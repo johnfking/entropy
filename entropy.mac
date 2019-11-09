@@ -1,0 +1,364 @@
+|*********************************************************************
+ * entropy
+ * entropy.mac
+ * "I am here because your gods found you lacking." 
+ *
+ * evil overlord: 
+ *  exspes007
+ * evil overlord advisors:
+ *  Knightly, dannuic, Saar, thatguy, Crack, Madix, alynel
+ *
+ * plugins Required: MQ2Collections, MQ2Nav, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
+ *
+ ***|
+
+
+
+#warning
+#turbo 240
+#engine parser 2
+#define DEBUG "/if (${_debug}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
+#define SDEBUG "/echo \ay+[\ax\aw${Time.Second}\ax\at::\ax\aw${Macro.CurLine}\ax\ay]\ax(\a-t${Macro.RunTime}\ax) \ayMARKER\ax --"
+#define OUT "/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,\at.\ax]}"
+#define GETINPUT "/call get_input"
+#define ISMEDEAD "/if (${is_me_dead[${maRez.Find[debugRez].Value}]}) /call check_for_rezbox"
+#define CHECKEXIT "/if (${check_exit[]}) /return"
+#define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maCC.Find[swPull].Value} && !${Me.Invis} && ${maRez.Find[swRezGive].Value}) /call check_for_corpse ${maDebug.Find[rez].Value}"
+#define CHECKFADE "/if (${maChr.Find[stPctFade].Value} && ${Me.PctHPs} < ${maChr.Find[stPctFade].Value} && ${Me.PctHPs} > 0 && !${Me.Dead}) /call cast_AA_fade"
+#define OVERLOS "${If[${maOver.Find[swOverLOS].Value},,los]}"
+#define PS4 "playerstate 4"
+#define AUTO "${maEnv.Find[swAuto].Value}"
+| #define CLOSE 15
+| #define CLOSE "${maEnv.Find[stActiveRange].Value}"
+#define ENV "${maEnv.Find[stEnvRadius].Value}"
+#define PULL "${maCC.Find[swPull].Value}"
+#define AGRO "${maCC.Find[swAgro].Value}"
+#define TARGET "${stAssTarID}"
+#define TIE	"${maTie.Find[swSetTie].Value}"
+#define HOME "${maHome.Find[swHomeMarker].Value}"
+#define MA1 "${maCC.Find[stManualAssist2].Value}"
+#define MA2 "${maCC.Find[stManualAssist2].Value}"
+#define VALID "${maCC.Find[swValidAssTarID].Value}"
+#define COMBAT "${maCC.Find[swSetCombat].Value}"
+#define SAFEZONE "${maEnv.Find[swZoneSafe].Value}"
+#define BURN "${maBurn.Find[swBurnConditionMet].Value}"
+#define PCTHO "${tmpHealAdjust}"
+#define PCTREST "${maEnv.Find[stPctRest].Value}"
+#define SAFEENV "${maEnv.Find[stEnvSafeRadius].Value}"
+#define PULLENV "${maCC.Find[stPullRadius].Value}"
+#define AE# "${maChr.Find[stCountAE].Value}"
+#define PET "${maMinion.Find[swPet].Value}"
+#define SWARM "${maMinion.Find[swSwarm].Value}"
+#define RANGE "${maCC.Find[swCombatRange].Value}"
+#define MELEE "${maCC.Find[swCombatMelee].Value}"
+#define NUKE "${maCC.Find[swCombatNuke].Value}"
+#define DOT "${maCC.Find[swCombatDoT].Value}"
+#define HEAL "${maCC.Find[swCombatHeal].Value}"
+#define CHECKTIE "/if (${maTie.Find[swSetTie].Value} && !${timer_Check_Tie}) /call set_tie FALSE"
+#define CHECKCURSOR "/if (${maEnv.Find[swAuto].Value} && ${maEnv.Find[swAutoInv].Value} && ${Cursor.ID} && !${timer_Check_Cursor}) /call check_cursor"
+#define HUDPATH "/noparse /ini .\..\MQ2HUD.ini"
+#define SETHUD "/call set_hud_data"
+#define ISDEAD "/if (${Target.Dead}) /call clear_combat FALSE"
+
+
+#include exspes\inc\initialize.inc
+#include exspes\inc\common.inc
+#include exspes\inc\control.inc
+#include exspes\inc\events.inc
+#include exspes\inc\custom.inc
+#include exspes\inc\dpsmeter.inc
+
+
+#include exspes\inc\class.ber.inc
+#include exspes\inc\class.brd.inc
+#include exspes\inc\class.bst.inc
+#include exspes\inc\class.clr.inc
+#include exspes\inc\class.dru.inc
+#include exspes\inc\class.enc.inc
+#include exspes\inc\class.mag.inc
+| #include exspes\class.mnk.inc
+| #include exspes\class.nec.inc
+#include exspes\inc\class.pal.inc
+#include exspes\inc\class.rng.inc
+#include exspes\inc\class.rog.inc
+#include exspes\inc\class.shd.inc
+| #include exspes\class.shm.inc
+#include exspes\inc\class.war.inc
+#include exspes\inc\class.wiz.inc
+
+
+
+|***
+ * note: entropy main sub and master loop
+ * use: none. auto
+ ***|
+sub main(string _debug, string _param1, string _auto)
+	/declare _boottimestart int local ${MacroQuest.Running}
+	/mqclear
+	
+	| this is built in to remove dannet usage from entropy to help troubleshoot other plugins. 
+	| DO NOT TOUCH THIS. really. just dont.
+	/declare swDanNet bool outer TRUE
+	
+
+	| Make sure plugins are loaded. kill macro if not
+	/if (!${check_plugin[FALSE, TRUE, |MQ2SQLite|MQ2DanNet|Mq2Nav|MQ2MoveUtils|MQ2Collections]}) {
+		/echo Make sure the following plugins are loaded
+		/echo \a-wMQ2SQLite, MQ2DanNet, Mq2Nav, MQ2MoveUtils, MQ2Collections\ax
+		/endmacro
+	}
+
+	/if (${Bool[${_debug}]}) {
+		/declare dump bool local ${maDebug.Add[${_debug.Lower},TRUE]}
+	}
+
+	| current entropy build #
+	/call set_data FALSE maEnv build													map outer A191106.05
+	
+	| prep macro
+	/call prepare_the_end FALSE
+
+	| environment notices
+ 	/if (${maEntropy.Find[swMaintenance].Value}) OUT ${notice} ${dot} Enabled${sep}\a-wmaintenance mode\ax
+ 	/if (${maEntropy.Find[swEventsInc].Value}) OUT ${notice} ${dot} Enabled${sep}\a-wevents\ax
+ 	/if (${maOver.Find[swOverLOS].Value}) OUT ${notice} ${dot} Disabled${sep}\a-wline of sight validation\ax
+ 
+	/if (!${timer_Check_Zone_ID}) /call check_zone_id FALSE FALSE
+	
+	| echo help on a new build or updates
+	/if (${Bool[${maData.Find[stPreviousBuild].Value}]}) {
+		/if (${maData.Find[stPreviousBuild].Value.NotEqual[${maEnv.Find[build].Value}]}) {
+			/varset dump ${out[0, "Help${sep}\a-w/aux\ax or \a-w/command aux\ax"]}
+		}
+	} else /if (!${Bool[${maData.Find[stPreviousBuild].Value}]}) {
+		/varset dump ${out[0, "Help${sep}\a-w/aux\ax or \a-w/command aux\ax"]}
+	}
+	
+	/varset dump ${out[0, "\agReady\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax"]}
+
+	| maintenance loop
+	/while (${maEntropy.Find[swMaintenance].Value}) {
+	  GETINPUT main_maintenance_loop swMaintenance|${maEntropy.Find[swMaintenance].Value}
+		/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) {
+			/call check_buff_cycle_now FALSE
+		}
+		/delay 1
+	}
+
+
+
+ 	| main loop
+	/while (!${maEntropy.Find[swMaintenance].Value}) {
+		GETINPUT main_loop swAuto|${maEnv.Find[swAuto].Value}
+		ISMEDEAD
+		CHECKCURSOR
+		SETHUD FALSE
+
+		| check food / drink
+		/if (!${timer_Check_FoodDrink}) {
+			/call check_last_supper FALSE
+		}
+
+		| check do now things
+		/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) {
+			/call check_buff_cycle_now FALSE
+		}
+		
+		/if (AUTO) {
+			
+			| check curing observers
+			/if (!${timer_Check_Observers} && ${swDanNet}) { 
+				/if (${maHeal.Find[swHealCure].Value}) /call set_observers FALSE maCure add FALSE
+			} 
+			
+			| sort /heal adj ##
+			/if (PCTHO != ${maHeal.Find[stHealAdjust].Value}) {
+				/varset tmpHealAdjust ${If[${maHeal.Find[stHealAdjust].Value},${Float[${maHeal.Find[stHealAdjust].Value}].Centi},99.99]}
+			}
+
+			| rest
+			/if (PCTREST) {
+				/if (!PULL || (PULL && !${SpawnCount[npc radius 15 PS4]})) /call do_rest ${maDebug.Find[rest].Value}
+			}		
+
+			| check exp
+			/if (${maEnv.Find[swCorrectEXPAA].Value}) {
+				/if (${maEnv.Find[stLvlMax].Value} && !${timer_Check_EXP_Adjust}) /call check_expaa_adjust FALSE
+			}
+
+			| fireworks
+			/if (${maEnv.Find[swAAFireworks].Value} && !${timer_Waste_Fireworks}) {
+				/call cast_AA_fireworks FALSE
+			}
+			
+			| some sweeet lovin....
+			/if (!${timer_Check_Buff_Cycle}) {
+				/call check_buff_cycle ${maDebug.Find[buff].Value}
+			}
+			
+			/if (${Me.PctEndurance} < 32) {
+				/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery
+			}			
+
+			| do we pull or assist	
+			/if (!SAFEZONE) {
+				/if (!${Me.Invis} || (${Select[${Me.Class.ShortName},ROG]} && ${maEnv.Find[swSoS].Value})) {	
+					/if (!PULL) {
+						/call get_assist_target FALSE
+					} else /if (PULL && !TARGET) {
+						/if (${maCC.Find[stPullMode].Value.Equal[base]}) {
+							/call get_target_basepull ${maDebug.Find[pull].Value}						
+						} else {
+							/call prep_advanced_pulling ${maDebug.Find[pull].Value}
+							/if (${SubDefined[get_target_${maCC.Find[stPullMode].Value}pull]}) {
+								/call get_target_${maCC.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
+							}
+						}
+					}
+				}
+			}
+			
+			/delay 1
+		}
+
+		ISMEDEAD
+		GETINPUT
+		CHECKREZ
+		CHECKTIE
+
+		/call main_${Me.Class.ShortName} FALSE
+		/if (!AUTO) /delay 1
+
+	} 
+	 
+ 
+	:OnExit	
+	/if (!${MacroQuest.LastCommand.Find[/end]} && !${MacroQuest.LastCommand.Find[/camp]}) {
+		 /mqlog ${maEnv.Find[build].Value} .. ERROR SOMEWHERE
+		 /mqlog .. LastCMD: ${MacroQuest.LastCommand}
+		 /mqlog .. ErrorMsg: ${MacroQuest.Error}
+		 /mqlog .. DataError: ${MacroQuest.MQ2DataError}
+		 /mqlog .. SyntaxError: ${MacroQuest.SyntaxError}
+		 /mqlog .. RunningTime: ${MacroQuest.Running}
+	} else {
+		OUT Current Build ${info}${maEnv.Find[build].Value}\ax ${dot} ${bad}Ended\ax
+		/mqlog ${maEnv.Find[build].Value} .. Clean Exit
+	}
+	/if (${swDanNet}) {
+		/if (${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) /dleave ${maComm.Find[stEntropyGroup_all].Value}
+	}
+	/endmacro	
+ 
+/return
+
+
+
+|***
+ * note:  all basic prep routines / data calls
+ * use: /call prepare_the_end [DEBUG]
+ ***|
+sub prepare_the_end(bool _debug)
+
+	| character database
+	/call set_data FALSE maData chrID																		map outer ${MacroQuest.Server}_${Me.Class.ShortName}_${Me.DisplayName}
+
+	| character database
+	/call set_data FALSE maData DBcharacter 														map outer macros\\exspes\\data\\${maData.Find[chrID].Value}.sqlite
+
+	| set raw data database
+	/call set_data FALSE maData DBstatic										  					map outer macros\\exspes\\entropy.sqlite
+
+	| set loot database
+	/call set_data FALSE maData DBloot										  						map outer macros\\exspes\\data\\loot.sqlite
+
+	| set zone database
+	/call set_data FALSE maData DBzone										  						map outer macros\\exspes\\data\\zone.sqlite
+
+	| fuck MQ2Melee
+	/if (${check_plugin[FALSE, FALSE, |mq2melee]}) {
+		/plugin mq2melee unload noauto
+	}
+
+	| fuck MQ2Cast as well
+	/if (${check_plugin[FALSE, FALSE, |mq2cast]}) {
+		/plugin mq2cast unload noauto
+	}
+
+	| and fuck MQ2 REZ most of all
+	/if (${check_plugin[FALSE, FALSE, |mq2rez]}) {
+		/plugin mq2rez unload noauto
+	}
+	
+	| set all initial variables	
+	/call set_initialize
+
+	/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,\at.\ax]} \a-tEntropy\ax${sep}\a-w${maEnv.Find[build].Value}\ax
+	
+	| pull static data
+	/call set_initialize_static_map FALSE
+		
+	| map the macro/game environment
+	/call set_initial_environment FALSE
+	
+	| set comm requirements
+	/if (${swDanNet}) {
+		/if (${DanNet.LocalEcho}) /squelch /dnet localecho ${maComm.Find[stLocalEcho].Value}
+		/if (${DanNet.CommandEcho}) /squelch /dnet commandecho ${maComm.Find[stCommandEcho].Value}
+		/if (!${DanNet.FrontDelim}) /squelch /dnet frontdelim ${maComm.Find[stFrontDelim].Value}
+		/if (${DanNet.FullNames}) /squelch /dnet fullnames ${maComm.Find[stFullNames].Value}
+		/dnet timeout ${maComm.Find[stNetworkTimeout].Value}
+	}
+			
+	| set blocked buffs
+	/call set_buffs_blocked FALSE SILENT
+
+	| check zone schema
+	/call sql_set_zone_schema FALSE
+	
+	| check loot schema
+	/call sql_set_loot_schema FALSE
+
+	| check character shema
+	/call sql_set_character_schema FALSE
+	
+	| get the conditions.
+	/call set_initialize_map_conditions FALSE
+
+	| set all character maps
+	/call set_initialize_map_character_environment FALSE
+
+	| get buffs
+	/call set_initialize_map_buffs FALSE
+
+	| get items
+	/call set_initialize_map_items FALSE
+	
+	| set any aliases needs
+	/call set_alias FALSE add
+
+	| build the zone lists
+	/call set_zone_lists FALSE
+	
+	| build crew data
+	/call set_initialize_crew FALSE
+	
+	| start up the DPS meter
+	/if (${SubDefined[DPSMeter_Init]}) /call DPSMeter_Init
+
+	| set class databits'n-bytes
+	/call set_${Me.Class.ShortName} FALSE
+
+ 	| check game cash?
+	/call check_free_ingame_cash FALSE
+	
+	| set hud variables
+	/call set_initialize_hud_variables
+	
+
+/return
+
+
+
+	
+	
+	

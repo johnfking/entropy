@@ -1,0 +1,434 @@
+|***
+ *	entropy
+ *	class.rng.inc
+ ***|
+ 
+
+
+
+|***
+ * note: primary initilization of all ranger non shared data
+ * use: not for you
+ ***|
+sub set_RNG(bool _debug)
+	DEBUG \atset_RNG\ax()
+		
+	/call set_data FALSE maData stSpire1																map outer "Fundament: First Spire of the Pathfinders"
+	/call set_data FALSE maData stSpire2																map outer "Fundament: Second Spire of the Pathfinders"
+	/call set_data FALSE maData stSpire3																map outer "Fundament: Third Spire of the Pathfinders"
+	/call set_data FALSE maData stSynergy																map outer "Outrider's Synergy"
+	/call set_data FALSE maData stEpic1																	map outer "Earthcaller"
+	/call set_data FALSE maData stEpic15																map outer "Heartwood Blade"
+	/call set_data FALSE maData stEpic2																	map outer "Aurora, the Heartwood Blade"
+	/call set_data FALSE maData stFade																	map outer "Cover Tracks"
+	/call set_data_map FALSE maChr stAAUnity														"Wildstalker's Unity (Azia)"	"${auxna} class aa unity buff"
+
+	/call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} alliance spell"
+
+	| spam summer nuke
+	/varset dump ${set_data_timer[FALSE, Summer_Nuke, 1s]}
+	/call set_data_map FALSE maChr stSummer		 													PREGEN|1											"${auxna} summer line nuke spell"
+	/call set_data_map FALSE maChr swSummer															FALSE													"${auxsw} use summer nuke line spell"
+
+	| rest disc
+ 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
+
+	| fast heal
+  /call set_data_map FALSE maChr stHealDesperate											PREGEN|1											"${auxna} fast cast heal"
+
+	| bow disc
+	/call set_data_map FALSE maChr stDiscRange			 										PREGEN|1											"${auxna} ranged DPS disc"
+
+	| melee disc
+	/call set_data_map FALSE maChr stDiscMele			 											PREGEN|1											"${auxna} melee DPS disc"
+
+	| agro/anti agro kicks
+	/call set_data_map FALSE maChr stDiscJolt			 											PREGEN|1											"${auxna} hate reduction disc"
+	/call set_data_map FALSE maChr stDiscEnrage		 											PREGEN|1											"${auxna} hate increase disc"
+
+	| AE group heal disc
+	/call set_data_map FALSE maChr stDiscHeal		 												PREGEN|1											"${auxna} group heal disc"
+
+	| ae melee disc
+	/call set_data_map FALSE maChr stDiscMeleeAE		 										PREGEN|1											"${auxna} ae melee disc"
+
+	| focused melee disc
+	/call set_data_map FALSE maChr stDiscMeleeSingle			 							PREGEN|1											"${auxna} single melee disc"
+
+/return
+                                     		
+
+
+
+
+|***
+ * note: Main Ranger Routine
+ * use: 
+ ***|
+sub main_RNG(bool _debug)
+	DEBUG \atmain_RNG\ax()
+
+	GETINPUT
+	ISMEDEAD
+	CHECKTIE
+	CHECKREZ
+
+	/while (${check_combat_status[FALSE]}) {
+		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Self
+		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Group
+		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call cast_cure FALSE
+		/if (${maHeal.Find[swHealXTarget].Value}) /call get_hurt_${Me.Class.ShortName} FALSE XTarget
+		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call get_hurt_${Me.Class.ShortName} FALSE Pet
+		/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+		/if (${check_class_loop[FALSE]}) /return FALSE
+		/if (VALID) {
+			/call set_combat FALSE
+			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+			/call misc_combat_${Me.Class.ShortName} FALSE
+			/if (BURN) /call burn_${Me.Class.ShortName} FALSE
+			/if (MELEE) /call do_melee FALSE TARGET
+			/if (DOT) /call cast_dot FALSE lsDoT TARGET
+			/if (NUKE) /call cast_nuke FALSE lsNuke TARGET
+			/if (${maChr.Find[swSummer].Value} && !${timer_Summer_Nuke}) /call cast_nuke_summer FALSE TARGET
+			/call check_item_cycle FALSE TARGET
+			| /if (${swAlliance}) /call trigger_alliance TARGET
+
+		}
+	
+		/if (AUTO) {	
+			CHECKFADE
+			/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
+			| /if (${validate_class[FALSE, ${lstClassMelee}]}) /call cast_stamina_recovery
+		}
+		
+	}
+	
+/return TRUE
+
+
+
+|***
+ * note: Combat skills, Disciplines and Alternate abilities.
+ * use: /call disc_${Me.Class.ShortName}
+ ***|
+sub misc_combat_RNG(bool _debug)
+	DEBUG \atmisc_combat_RNG\ax()
+	
+	ISMEDEAD
+	CHECKEXIT
+	GETINPUT
+	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/call set_combat FALSE
+	
+	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+	
+	| agro control
+	/if (AGRO) {
+		/if (${is_ready[FALSE, "${maChr.Find[stDiscEnrage].Value}"]}) {
+			/call voodoo FALSE "${maChr.Find[stDiscEnrage].Value}" TARGET FALSE
+		}
+	} else /if (!AGRO) {
+		/if (${is_ready[FALSE, "${maChr.Find[stDiscJolt].Value}"]}) {
+			/call voodoo FALSE "${maChr.Find[stDiscJolt].Value}" TARGET FALSE
+		}
+	}	
+
+	| elemental arrows rotation
+	/if (${Me.AltAbilityReady[Elemental Arrow]}) {
+		/if (!${Target.Buff[Elemental Arrow].ID} && !${Target.Buff[Glacial Arrow].ID} && !${Target.Buff[Volatile Arrow].ID}) {
+			/if (${is_ready[FALSE, "Elemental Arrow"]}) {
+				/call voodoo FALSE "Elemental Arrow" TARGET FALSE
+			}
+		}
+	} else /if (${Me.AltAbilityReady[Glacial Arrow]}) {
+		/if (!${Target.Buff[Elemental Arrow].ID} && !${Target.Buff[Glacial Arrow].ID}) {
+			/if (${is_ready[FALSE, "Glacial Arrow"T]}) {
+				/call voodoo FALSE "Glacial Arrow" TARGET FALSE
+			}
+		}
+	}	else /if (${Me.AltAbilityReady[Volatile Arrow]}) {
+		/if (!${Target.Buff[Elemental Arrow].ID} && !${Target.Buff[Volatile Arrow].ID}) {
+			/if (${is_ready[FALSE, "Volatile Arrow"]}) {
+				/call voodoo FALSE "Volatile Arrow" TARGET FALSE
+			}
+		}
+	}		
+	
+	/if (!${maChr.Find[stCountAE].Value}) {
+		/if (${is_ready[FALSE, "${maChr.Find[stDiscMeleeSingle].Value}"]}) {
+			/call voodoo FALSE "${maChr.Find[stDiscMeleeSingle].Value}" TARGET FALSE
+		}
+	} else /if (${SpawnCount[npc OVERLOS radius 60 PS4 targetable]} >= ${maChr.Find[stCountAE].Value} && ${maChr.Find[stCountAE].Value}) {	
+		/if (${is_ready[FALSE, "${maChr.Find[stDiscMeleeAE].Value}"]}) {
+			/call voodoo FALSE "${maChr.Find[stDiscMeleeAE].Value}" TARGET FALSE
+		}
+	}
+	
+/return TRUE
+
+
+
+|***
+ * note: MGB ranger Auspice if both AAs are ready
+ * use: 
+ ***|
+sub cast_AA_auspice(bool _debug)
+	DEBUG \atcast_AA_auspice\ax()
+	
+	ISMEDEAD
+	CHECKEXIT
+	GETINPUT
+	/if (${Me.AltAbilityReady[Mass Group Buff]} && ${Me.AltAbilityReady[Auspice of the Hunter]} && !${Bool[${Me.Song[Auspice of the Hunter]}]}) {
+		/if (${is_ready[FALSE, "Mass Group Buff"]}) {
+			/call voodoo FALSE "Mass Group Buff" 0 FALSE
+		}
+		/if (${is_ready[FALSE, "Auspice of the Hunter"]}) {
+			/call voodoo FALSE "Auspice of the Hunter" 0 FALSE
+		}
+	} else /if (${Me.Song[Auspice of the Hunter].ID}) {
+		OUT ${bad}QUIT\ax trying to cast ${sp}Auspice of the Hunter\ax while its running.	
+	}		
+/return TRUE
+
+
+
+|***
+ * note: healing
+ * use: /call check_heal_self_${Me.Class.ShortName}
+ ***|
+sub check_heal_RNG(bool _debug, string _type)
+	DEBUG \atcheck_heal_RNG\ax(\a-w${_type}\ax)
+	
+	CHECKTIE
+	ISMEDEAD
+	CHECKEXIT
+	CHECKREZ
+	CHECKFADE
+
+	| UPDATEHUD "HEAL ${_type}"
+	
+	/call check_hurt FALSE ${_type}
+  	
+	| if no one is hurt. back to the start
+	/if (!${hurtCount}) {
+		| UPDATEHUD FALSE
+		/return	
+	}  	
+	
+	/if (!${check_hurt[${_debug}, ${_type}]}) /return FALSE
+
+	| Reflexive Healing Disc
+	/if (${hurtCount} && ${Select[${_type},self,group]}) {
+		/if (${is_ready[FALSE, "${maChr.Find[stDiscHeal].Value}"]} && !${Me.Song[Bladespur Reflection].ID}) {
+			/call voodoo FALSE "${maChr.Find[stDiscHeal].Value}" TARGET FALSE
+		}
+	}
+	
+	
+	/if (!${get_hurt[FALSE, ${_type}]}) /return FALSE
+	CHECKREZ
+	CHECKFADE
+		
+	/call cast_list FALSE "lsHealBaseLine" ${hurtID}
+	
+	| UPDATEHUD FALSE
+
+/return TRUE
+
+
+
+|***
+ *	DES: DPS Clickies
+ *	USE: /call click_DPS_${Me.Class.ShortName}
+ *  NOTE: 
+ ***|
+sub click_DPS_RNG(bool _debug)
+	DEBUG click_DPS_RNG()
+	
+	/if (${is_target_dead[FALSE, TARGET]}) /return
+	ISMEDEAD
+	CHECKEXIT
+	GETINPUT
+	/call set_combat
+	/call use_skill_melee TARGET
+	/call click_horn_of_unity 	
+
+	
+	/if (!${Bool[${Me.ActiveDisc}]} && !${Bool[${Me.Song[Empowered Blades]}]} && !${Bool[${Me.Buff[${useGlyph}]}]}) {
+		| epic 2.0
+		/if (${is_ready[FALSE, epicitem, "2", ${Me.ID}]} && ${Spawn[TARGET].Distance} <= ${setCombatDistance}) /call voodoo FALSE "${${Me.Class.ShortName}Epic2}" item 0
+	}
+	
+/return TRUE
+
+
+
+|***
+ * note: Control for Spam Agro Nuke
+ * use: /call cast_nuke_summer DEBUG [TARGETID]
+ ***|
+sub cast_nuke_summer(bool _debug, int _tmpID)
+	DEBUG \atcast_nuke_summer\ax(\a-w${_tmpID}\ax)
+
+	/if (${is_target_dead[FALSE, TARGET]}) /return
+	ISMEDEAD
+	CHECKEXIT
+	/varset dump ${set_data_timer[FALSE, Summer_Nuke, RESTART]}
+	
+	/if (${is_ready[FALSE, "${maChr.Find[stSummer].Value}"]}) {
+		/call voodoo FALSE "${maChr.Find[stSummer].Value}" ${_tmpID} FALSE
+	}
+
+/return TRUE
+
+
+
+ |***
+ *	DES: Ranger burn routines
+ *	USE: establish all comp/trigger skills
+ *	NOTE: 
+ ***| 
+sub burn_RNG(bool _debug)
+	DEBUG burn_RNG()
+
+	/if (${is_target_dead[FALSE, TARGET]}) /return
+	ISMEDEAD
+	CHECKEXIT
+	GETINPUT
+	/call set_combat
+
+	/call cast_AA_spire
+	
+	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+
+	| cheeta
+	/if (${is_ready[FALSE, alt, "${RNGcheetah}", ${Me.ID}]}) /call voodoo FALSE "${RNGcheetah}" alt 0 FALSE
+	
+	| auspice
+	/if (${is_ready[FALSE, alt, "${RNGauspice}", ${Me.ID}]}) /call voodoo FALSE "${RNGauspice}" alt 0 FALSE
+	
+	| MELEE
+	/if (${swCombatMelee}) {
+		/if (${Target.Distance} <= ${setCombatDistance}) {
+
+			| weapon proc
+			/if (${is_ready[FALSE, alt, "Imbued Ferocity", ${Me.ID}]}) /call voodoo FALSE "Imbued Ferocity" alt 0 FALSE
+
+			/if (!${Bool[${Me.ActiveDisc}]} && !${Bool[${Me.Buff[${useGlyph}]}]}) {
+				/if (${is_ready[FALSE, alt, "Empowered Blades", ${Me.ID}]}) /call voodoo FALSE "Empowered Blades" alt 0 FALSE
+			} else /if (!${Bool[${Me.ActiveDisc}]} && !${Bool[${Me.Song[Empowered Blades]}]} && !${Bool[${Me.Buff[${useGlyph}]}]}) {
+				/if (${is_ready[FALSE, disc, "${DiscMele}", ${Me.ID}]}) /call voodoo FALSE "${DiscMele}" disc 0 FALSE
+			} else /if (!${Bool[${Me.ActiveDisc}]} && !${Me.CombatAbilityReady[${Spell[${DiscMele}].RankName}]} && !${Me.AltAbilityReady[Empowered Blades]} && !${Bool[${Me.Song[Empowered Blades]}]}) {
+				/call use_glyph
+			} else /if (!${Bool[${Me.ActiveDisc}]} && !${Me.CombatAbilityReady[${Spell[${DiscMele}].RankName}]} && !${Me.AltAbilityReady[Empowered Blades]} && !${Bool[${Me.Song[Empowered Blades]}]} && !${Bool[${Me.Buff[${useGlyph}]}]}) {
+				/if (${is_ready[FALSE, epicitem, "2", ${Me.ID}]}) /call voodoo FALSE "${${Me.Class.ShortName}Epic2}" item 0 FALSE
+			}
+		}
+
+
+	}
+	
+	| RANGE
+	/if (RANGE) {
+		/if (${Target.Distance} >= 31) {
+			/if (!${Bool[${Me.ActiveDisc}]} && !${Bool[${Me.Buff[${useGlyph}]}]}) {
+				/if (${is_ready[FALSE, disc, "${DiscRange}", ${Me.ID}]}) /call voodoo FALSE "${DiscRange}" disc 0 FALSE
+			} else /if (!${Bool[${Me.ActiveDisc}]} && !${Me.CombatAbilityReady[${Spell[${DiscRange}].RankName}]}) {
+				/call use_glyph
+			}
+		}
+	
+	}
+	
+	| attack / dmg AA
+	/if (${is_ready[FALSE, alt, "Outrider's Accuracy", ${Me.ID}]}) /call voodoo FALSE "Outrider's Accuracy" alt 0 FALSE
+	/if (${is_ready[FALSE, alt, "Outrider's Attack", ${Me.ID}]}) /call voodoo FALSE "Outrider's Attack" alt 0 FALSE
+	
+	| guardian buff (group first)
+	/if (!${Me.Song[Guardian of the Forest].ID} && ${Me.AltAbilityReady[${RNGgroupguardian}]}) {
+		/if (${is_ready[FALSE, alt, "${RNGgroupguardian}", ${Me.ID}]}) /call voodoo FALSE "${RNGgroupguardian}" alt 0 FALSE
+	} else /if (!${Me.Song[${RNGgroupguardian}].ID} && ${Me.AltAbilityReady[Guardian of the Forest]}) {  
+		/if (${is_ready[FALSE, alt, "Guardian of the Forest", ${Me.ID}]}) /call voodoo FALSE "Guardian of the Forest" alt 0 FALSE
+	}
+		
+	| swarm pets
+	/if (${swSwarm}) {
+		/if (${is_ready[FALSE, alt, "Pack Hunt", TARGET]}) {
+			/call voodoo FALSE "Pack Hunt" alt TARGET FALSE   
+		}
+	}
+	
+	| ae regen 
+	/if (${is_ready[FALSE, disc, "${DiscHeal}", TARGET]} && !${Me.Song[Bladespur Reflection].ID}) /call voodoo FALSE "${DiscHeal}" disc TARGET FALSE
+			
+	/call click_burn_circle
+	/call click_item_burn
+
+ /return TRUE
+ 	
+
+
+|***
+ * note: ranger specific control
+ * use: /chr
+ ***|
+sub set_control_RNG(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control_RNG\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+
+	/if (!${check_class[FALSE, |RNG]}) /return
+	/declare _li listiterator local
+  /declare _out string local
+  
+	| output control map
+	/if (${_type.Equal[see]}) {
+		/call Bind_command_see maChr ${_verbage}
+		/return
+
+	| use mana click items
+	} else /if (${_type.Equal[manaclick]}) {
+		/if (!${set_control_num_range[FALSE, stPctManaClick, "${_verbage}", 0, 99]}) /return
+		
+	| set ae on/off / count
+	} else /if (${_type.Equal[ae]}) {
+		/if (!${set_control_num_range[FALSE, stCountAE, "${_verbage}", 0, 99]}) /return
+
+	| defensive mob agro count
+	} else /if (${_type.Equal[def]}) {
+		/if (!${set_control_num_range[FALSE, stCountDefensive, "${_verbage}", 0, 99]}) /return
+
+	| set AA fade use %	
+	} else /if (${_type.Equal[fade]}) {
+		/if (!${set_control_num_range[FALSE, stPctFade, "${_verbage}", 0, 99]}) /return
+
+	| set spire to be used
+	} else /if (${_type.Equal[spire]}) {
+		/call set_control_chr_spire FALSE ${_verbage} ${_silent}
+		/return
+
+	| summer switch	
+	} else /if (${_type.Equal[summer]}) {
+		/varset dump ${set_switch_env[${_debug}, swSummer, TRUE, ${_verbage}]}
+
+	}
+
+	/if (${_silent.Equal[SILENT]}) /return 
+	/varset _out
+	/vardata _li lsChr.First.Clone
+	/while (!${_li.IsEnd}) {
+		/varset _out ${_out} ${If[${_li.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${_li.Value}\ax
+		/if (${_li.Value.Equal[manaclick]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaClick].Value},${num}${maChr.Find[stPctManaClick].Value}\ax,${r0}]}
+		/if (${_li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
+		/if (${_li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
+		/if (${_li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
+		/if (${_li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
+		/if (${_li.Value.Equal[summer]}) /varset _out ${_out}:${If[${maChr.Find[swSummer].Value},${on},${off}]}
+		/varset dump ${_li.Advance}
+	}	
+	OUT /chr ${_out}
+
+/return
+
+
+
+
+${Target.Body.Name.Equal[Animal]} || ${Target.Name.Body.Equal[Plant]}

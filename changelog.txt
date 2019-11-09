@@ -1,0 +1,21 @@
+|*********************************************************************
+ entropy.mac change log
+ changelog.txt
+
+ plugins: MQ2Collections, MQ2Nav, MQ2Map, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
+
+
+
+
+verbosity:
+0 = show everything
+1 = block: casting 
+2 = block:
+3 = block: controls
+4 = show nothing
+5 = (error echos)
+
+
+
+
+- cast events stored in maEnv:stCastReturn
