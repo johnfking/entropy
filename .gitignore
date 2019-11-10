@@ -4,3 +4,4 @@ buildrepo.mac
 .svn\
 data\
 hold\
+data\*.sqlite
