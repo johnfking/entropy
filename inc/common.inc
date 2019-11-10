@@ -4014,7 +4014,9 @@ sub check_zone_id(bool _debug, bool _force)
 		/doevents flush
 	
 		| check for mesh
-		/if (!${Navigation.MeshLoaded}) ${out[1, "${warning} ${dot} NO Mesh for \a-w${Zone.ShortName}\ax"]}
+		/if (!${Navigation.MeshLoaded}) {
+			/varset dump ${out[1, "${warning} ${dot} NO Mesh for \a-w${Zone.ShortName}\ax"]}
+		}
 
 		| make it right with the world
 		/varset dump ${maEnv.Add[stCurrentZoneID,${Zone.ID}]}
