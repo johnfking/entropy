@@ -1,7 +1,7 @@
 buildrepo.mac
 .svn
 .bat
-.svn\
-data\
-hold\
+.svn/
+data/
+hold/
 data/**/*.sqlite
