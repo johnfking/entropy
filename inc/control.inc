@@ -1037,8 +1037,9 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	} else /if (${_type.Equal[events]}) {
 		/varset dump ${set_switch_env[FALSE, swEventsInc, TRUE, ${_verbage}]}
 
-
-
+	| autoinvnetory while in manual
+	} else /if (${_type.Equal[manautoinv]}) {
+		/varset dump ${set_switch_env[FALSE, swAutoInvManual, TRUE, ${_verbage}]}
 
 	| enable sub hook checking
 	} else /if (${_type.Equal[hook]}) {
@@ -1178,7 +1179,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	}
 	
 	/if (${_silent.Equal[SILENT]}) /return
-	/varset dump ${_lsout.Append[maintenance,events,hud,dpsmeter,hook,nettimeout,autolist,buffrefresh]}
+	/varset dump ${_lsout.Append[maintenance,events,hud,dpsmeter,hook,nettimeout,autolist,buffrefresh,manautoinv]}
 	/vardata li _lsout.First.Clone
 	/while (!${li.IsEnd}) {
 		/varset _out ${_out} ${If[${li.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${li.Value}\ax
@@ -1190,6 +1191,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 		/if (${li.Value.Equal[nettimeout]}) /varset _out ${_out}:${If[${maEntropy.Find[stNetworkTimeout].Value},${num}${maEntropy.Find[stNetworkTimeout].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[buffrefresh]}) /varset _out ${_out}:${num}${maEntropy.Find[stBuffRefresh].Value}s\ax
 		/if (${li.Value.Equal[autolist]}) /varset _out ${_out}:${If[${maEntropy.Find[swAutoList].Value},${on},${off}]}
+		/if (${li.Value.Equal[manautoinv]}) /varset _out ${_out}:${If[${maEntropy.Find[swAutoInvManual].Value},${on},${off}]}
 		/varset dump ${li.Advance}
 	}	
 	OUT /entropy ${_out}
@@ -1564,7 +1566,7 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 #bind_noparse raw_edit /edit
 sub Bind_noparse_raw_edit(string _variable, string _value, string _add_delete, _verbage)
 
-	/call do_raw_edit TRUE FALSE "${_variable}" "${Parse[1,${_value}]}" ${_add_delete} ${_verbage}
+	/call do_raw_edit FALSE FALSE "${_variable}" "${Parse[1,${_value}]}" ${_add_delete} ${_verbage}
 	
 /return	TRUE
 
@@ -2557,7 +2559,6 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
 
 
 
-
 |***
  * note: make the toon stop its shit and splash at its feet
  * use: /dex NAME /splash | /splash
@@ -2567,6 +2568,8 @@ sub Bind_command_splash(bool _debug)
 	DEBUG \atBind_command_splash\ax()
 	
 	/if (!${check_class[TRUE, |PAL|CLR]}) /return FALSE
+	
+	/if (!${Spawn[${Me.ID}].CanSplashLand}) /return
 	
 	| cleric
 	/if (${Me.Class.ShortName.Equal[PAL]}) {
@@ -2664,11 +2667,6 @@ sub Bind_command_invis(bool _other, bool _debug)
 
 
 
-
-
-
-
-
 |***
  * note: displays the port and builds the command to the porting class
  * use: /port 
@@ -2678,12 +2676,9 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 	| /varset _debug TRUE
 	DEBUG \atBind_command_port\ax(\a-w${_type}, ${_nick1}, ${_nick2}\ax)
 	
-	
 	/declare _count int local 0
 	/declare _portName string local FALSE
 	/declare _list list local
-	
-	
 		
 	/if (${_type.Equal[see]}) {
 	
@@ -2906,8 +2901,8 @@ sub Bind_command_cls(bool _debug, string _sender)
 		/dgexecute /cls FALSE ${Me.DisplayName} 
 	} 
 
-	/hidecorpse NPC
-	/hidecorpse LOOTED
+	/hidecorpse npc
+	/hidecorpse looted
 
 /return
 
@@ -2924,7 +2919,6 @@ sub Bind_command_here(string _type)
 		/call Bind_command_aux here
 		/return		
 	}
-
 
 	/if (!${Bool[${_type}]} && ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]} > 1) {
 		OUT ${broadcast}${sep}\a-w/here\ax
@@ -2954,7 +2948,6 @@ sub Bind_command_here(string _type)
 		}
 	}
 	
-	
 	| reset timers
 	/declare lsTimers list local
 	/varset dump ${lsTimers.Append[Check_Buff_Aura,Check_Buff_Beg,Check_Buff_Crew,Check_Buff_Self,Check_Buff_Shrink,Check_Buff_Unity]}
@@ -2964,7 +2957,6 @@ sub Bind_command_here(string _type)
 		/varset dump ${set_data_timer[FALSE, ${li.Value}, 1m]}
 		/varset dump ${li.Advance}
 	}	
-	
 
 	| stop moving
 	/if (${Me.Moving}) {
@@ -3050,6 +3042,7 @@ sub Bind_command_grab(string _name, bool _debug)
  ***|
 #bind command_lesson /lesson
 sub Bind_command_lesson(bool _debug)
+
   /if (${is_ready[FALSE, "Lesson of the Devoted"]}) {
   	/call voodoo FALSE "Lesson of the Devoted" 0 FALSE
   }

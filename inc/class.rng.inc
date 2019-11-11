@@ -428,7 +428,3 @@ sub set_control_RNG(string _type, string _verbage, string _silent, bool _debug)
 
 /return
 
-
-
-
-${Target.Body.Name.Equal[Animal]} || ${Target.Name.Body.Equal[Plant]}

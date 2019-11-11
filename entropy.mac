@@ -55,7 +55,7 @@
 #define DOT "${maCC.Find[swCombatDoT].Value}"
 #define HEAL "${maCC.Find[swCombatHeal].Value}"
 #define CHECKTIE "/if (${maTie.Find[swSetTie].Value} && !${timer_Check_Tie}) /call set_tie FALSE"
-#define CHECKCURSOR "/if (${maEnv.Find[swAuto].Value} && ${maEnv.Find[swAutoInv].Value} && ${Cursor.ID} && !${timer_Check_Cursor}) /call check_cursor"
+#define CHECKCURSOR "/if (${Cursor.ID} && !${timer_Check_Cursor} && ((AUTO && ${maEnv.Find[swAutoInv].Value}) || ${maEntropy.Find[swAutoInvManual].Value})) /call check_cursor"
 #define HUDPATH "/noparse /ini .\..\MQ2HUD.ini"
 #define SETHUD "/call set_hud_data"
 #define ISDEAD "/if (${Target.Dead}) /call clear_combat FALSE"
@@ -207,7 +207,7 @@ sub main(string _debug, string _param1, string _auto)
 						/call get_assist_target FALSE
 					} else /if (PULL && !TARGET) {
 						/if (${maCC.Find[stPullMode].Value.Equal[base]}) {
-							/call get_target_basepull ${maDebug.Find[pull].Value}						
+							/call get_target_basepull ${maDebug.Find[pull].Value}					
 						} else {
 							/call prep_advanced_pulling ${maDebug.Find[pull].Value}
 							/if (${SubDefined[get_target_${maCC.Find[stPullMode].Value}pull]}) {
@@ -353,6 +353,9 @@ sub prepare_the_end(bool _debug)
 	
 	| set hud variables
 	/call set_initialize_hud_variables
+	
+	| set the DSL disctionary
+	/call set_initialize_DSL_dictionary
 	
 
 /return

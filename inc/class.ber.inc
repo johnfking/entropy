@@ -22,7 +22,7 @@ sub set_BER(bool _debug)
 	/call set_data FALSE maData stFade																	map outer "Self Preservation"
 	/call set_data_map FALSE maChr stAAUnity														FALSE													"${auxna} class aa unity buff"
 
- 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxli} remedy spells to use"
+ 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxli} stamina recovery disc"
 	/call set_data_map FALSE maChr stRageVolley 												PREGEN|1											"${auxna} "
 	/call set_data_map FALSE maChr stCryOfChaos 												PREGEN|1											"${auxna} "
 	/call set_data_map FALSE maChr stInspiredAnger											PREGEN|1											"${auxna} "
@@ -65,7 +65,6 @@ sub main_BER(bool _debug)
 	CHECKREZ
 
 	/if (AUTO) {
-		| /if (!${timer_click_poison}) /call click_poison FALSE
 		/if (${maEnv.Find[swSoS].Value}) /call set_sos FALSE
 	}
 	
@@ -90,22 +89,18 @@ sub main_BER(bool _debug)
 
 		/if (AUTO) {	
 			CHECKFADE
-			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery
+			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery FALSE
 		}
 	}
 
 
-
-
- 
 /return
 
 
 
 |***
- *	DES: 
- *	USE: 
- *  NOTE: 
+ * note: base combat mashing 
+ * use: 
  ***|
 sub misc_combat_BER(bool _debug)
 	DEBUG misc_combat_BER()
@@ -360,4 +355,52 @@ sub burn_BER(bool _debug)
 /return
 
 
+
+|***
+ * note: zerker specific control
+ * use: /chr
+ ***|
+sub set_control_BER(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control_BER\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+
+  /declare _out string local
+  
+	| output control map
+	/if (${_type.Equal[see]}) {
+		/call Bind_command_see maChr ${_verbage}
+		/return
+		
+	| set ae on/off / count
+	} else /if (${_type.Equal[ae]}) {
+		/if (!${set_control_num_range[FALSE, stCountAE, "${_verbage}", 0, 99]}) /return
+
+	| defensive mob agro count
+	} else /if (${_type.Equal[def]}) {
+		/if (!${set_control_num_range[FALSE, stCountDefensive, "${_verbage}", 0, 99]}) /return
+
+	| set AA fade use %	
+	} else /if (${_type.Equal[fade]}) {
+		/if (!${set_control_num_range[FALSE, stPctFade, "${_verbage}", 0, 99]}) /return
+
+	| set spire to be used
+	} else /if (${_type.Equal[spire]}) {
+		/call set_control_chr_spire FALSE ${_verbage} ${_silent}
+		/return
+
+	}
+
+	/if (${_silent.Equal[SILENT]}) /return 
+	/varset _out
+	/vardata li lsChr.First.Clone
+	/while (!${li.IsEnd}) {
+		/varset _out ${_out} ${If[${li.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${li.Value}\ax
+		/if (${li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
+		/varset dump ${li.Advance}
+	}	
+	OUT /chr ${_out}
+
+/return
 
