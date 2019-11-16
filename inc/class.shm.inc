@@ -1,36 +1,43 @@
+
+
+
+
+
+
+
+
+
+
+
 |***
- * entropy
- * class.shm.inc
+ *	DES: Shaman base variables
+ *	USE: 
+ *	NOTE: 
  ***|
- 
+sub pregen_SHM(bool _debug)
+	/declare _count int local 0
 
-
-|***
- * note: primary initilization of all cleric non shared data
- * use: not for you
- ***|
-sub set_SHM(bool _debug)
-	DEBUG \atset_SHM\ax()
-
-	/call set_data FALSE maData stSpire1																map outer "Fundament: First Spire of Ancestors"
-	/call set_data FALSE maData stSpire2																map outer "Fundament: Second Spire of Ancestors"
-	/call set_data FALSE maData stSpire3																map outer "Fundament: Third Spire of Ancestors"
-	/call set_data FALSE maData stSynergy																map outer "Luminary's Synergy"
-	/call set_data FALSE maData stEpic1																	map outer "Spear of Fate"
-	/call set_data FALSE maData stEpic15																map outer "Crafted Talisman of Fates"
-	/call set_data FALSE maData stEpic2																	map outer "Blessed Spiritstaff of the Heyokah"
-	/call set_data FALSE maData stFade																	map outer DALSE
-	/call set_data_map FALSE maChr stAAUnity														"Visionary's Unity"								"${auxna} class aa unity buff"
-
+	/call setDeclare SHMspire																						string		outer "|Fundament: First Spire of Ancestors|Fundament: Second Spire of Ancestors|Fundament: Third Spire of Ancestors"
+	/call setDeclare SHMsynergyAA																				string		outer "Luminary's Synergy"
+	/call setDeclare SHMAid																							string		outer "Ancestral Aid"
+	/call setDeclare SHMEpic1																						string		outer "Spear of Fate"
+	/call setDeclare SHMEpic15																					string		outer "Crafted Talisman of Fates"
+	/call setDeclare SHMEpic2																						string		outer "Blessed Spiritstaff of the Heyokah"
+	/call setDeclare SHMAAUnity																					string		outer "Visionary's Unity"
+	/call setDeclare SHMAAFade																					string		outer FALSE
 		
 	/c/varset dump ${set_data_timer[FALSE, Check_Talisman, 30s]}
 	/call sql_control FALSE ${chrID} stTalisman	 												PREGEN|1
 	/call sql_control FALSE ${chrID} swTalisman			 										FALSE
                                           		
 	                                        		
-	/call set_data_list FALSE maChr lsNukeTC									 					PREGEN|2											"${auxli} twincast nuke procs"
-	
-	/call set_data_map FALSE maChr stCannibalization										PREGEN|1											"${auxnum} canni spell"
+	/call set_data_list FALSE maChr lsNukeTC									 					PREGEN|2
+	/call set_data_map FALSE maChr stCannibalization										PREGEN|1
+		
+
+
+
+	                                         		
 	/call set_data_map FALSE maChr stPctCanniHP				 									60														"${auxnum} HP level to stop using canni"
 	/call set_data_map FALSE maChr stPctCanniManna				 							60														"${auxnum} mana level to start using canni"
 
@@ -39,7 +46,7 @@ sub set_SHM(bool _debug)
  	/call set_data_list FALSE maChr lsHealSurge													PREGEN|1											"${auxli} area surg spells"
   /call set_data_list FALSE maChr lsHealMain													PREGEN|3											"${auxli} main list of heal spells"											
 	/call set_data_list FALSE maChr lsHealIntervention									PREGEN|3											"${auxli} intervention nuke/healing spells"
-	/call set_data_list FALSE maChr lsHealReckless											PREGEN|3											"${auxli} reckless healing spells"
+	/call set_data_list FALSE maChr lsHealReckless											PREGEN|3											"${auxli} recless healing spells"
 
 
 
@@ -65,6 +72,20 @@ sub set_SHM(bool _debug)
 
 
 
+
+lsNukeTC "Glacial Gift|Frigid Gift"
+
+stGrowth "Savage Growth|Ferocious Growth|Rampant Growth|Unfettered Growth|Untamed Growth|Wild Growth"
+stAlliance "Ancient Alliance"
+stHealGroupOverTime "Cloud of Renewal|Shear of Renewal|Wisp of Renewal|Phantom of Renewal|Penumbra of Renewal|Shadow of Renewal|Shade of Renewal|Specter of Renewal|Ghost of Renewal"
+lsHealGroup "Eyrzekla's Recourse|Krasir's Recourse|Blezon's Recourse|Gotikan's Recourse|Qirik's Recourse"
+lsHealReckless "Reckless Rejuvenation|Reckless Restoration"
+lsHealMain "Eyrzekla's Mending|Krasir's Mending|Blezon's Mending|Reckless Remedy|Gotikan's Mending|Reckless Mending|Qirik's Mending|Dannal's Mending|Gemmi's mending|Ahnkaul's Mending|Ancient: Wilslik's Mending|Yoppa's Mending|Daluda's Mending|Tnarg's Mending|Chloroblast|Kragg's Salve|4Superior Healing|Spirit Salve|Greater Healing|Healing|Light Healing|Minor Healing"
+lsHealSurge "Spiritual Squall|Spiritual Swell|Spiritual Surge"
+lsHealIntervention "Prehistoric Intervention|Historian's Intervention|Antecessor's Intervention|Progenitor's intervention|Ascendant's Intervention|Antecedent's Intervention=|Ancestral Intervention"
+stCannibalization "Tribal Bargain|Tribal Pact|Ancestral Pact|Ancestral Arrangement|Ancestral Covenant|Ancestral Obligation|Ancestral Hearkening|Ancestral Bargain|Ancient: Ancestral Calling|Pained Memory|Ancient Chaotic Pain|Cannibalize IV|Cannibalize III|Cannibalize II|Cannibalize"
+stTalisman "Talisman of the Sabretooth|Talisman of the Leopard|Talisman of the Snow Leopard|Talisman of the Lion|Talisman of the Tiger|Talisman of the Lynx|Talisman of the Cougar|Talisman of the Panther"
+stHealOverTime "Halcyon Billow|Halcyon Bluster|Halcyon Shear|Halcyon Gust|Halcyon Zephyr|Halcyon Breeze|Spiritual Serenity|Quiescence|Breath of Trushar|Torpor|Stoicism"
 
 
 

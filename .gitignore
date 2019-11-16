@@ -5,3 +5,4 @@ buildrepo.mac
 data/
 hold/
 data/**/*.sqlite
+*.bat

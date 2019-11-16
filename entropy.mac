@@ -113,7 +113,7 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A191106.05
+	/call set_data FALSE maEnv build													map outer A191108.01
 	
 	| prep macro
 	/call prepare_the_end FALSE
@@ -207,7 +207,7 @@ sub main(string _debug, string _param1, string _auto)
 						/call get_assist_target FALSE
 					} else /if (PULL && !TARGET) {
 						/if (${maCC.Find[stPullMode].Value.Equal[base]}) {
-							/call get_target_basepull ${maDebug.Find[pull].Value}					
+							/call get_target_basepull ${maDebug.Find[pull].Value}						
 						} else {
 							/call prep_advanced_pulling ${maDebug.Find[pull].Value}
 							/if (${SubDefined[get_target_${maCC.Find[stPullMode].Value}pull]}) {
@@ -353,9 +353,6 @@ sub prepare_the_end(bool _debug)
 	
 	| set hud variables
 	/call set_initialize_hud_variables
-	
-	| set the DSL disctionary
-	/call set_initialize_DSL_dictionary
 	
 
 /return

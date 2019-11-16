@@ -145,10 +145,6 @@ sub set_initial_environment(bool _debug)
 
 	| bandolier setting
 	/call set_data FALSE FALSE lsBandolier															list outer "1h|2h|range|no"
-	
-	
-	| use for override some protections
-	/declare override bool outer FALSE
 
 
 	| timers  for everyone
@@ -865,7 +861,7 @@ sub set_initialize_map_character_environment(bool _debug)
 	/call set_data_map FALSE maEntropy swAutoList												FALSE													"${auxsw} autopopulate zone listsnames for some mob types"
 	/call set_data_map FALSE maEntropy stBuffRefresh										0															"${auxnum} time in seconds to refrsh a buff before it fades. 0=wait till it fades"
 	/call set_data_map FALSE maEntropy swAutoInvManual									0															"${auxsw} obey autoinventory fast list even in manual mode"
-		
+	
 	| GoM list
 	/call set_data_list FALSE maChr lsGoM																EMPTY													"${auxli} things to use on a gift of mana aa proc"
 
@@ -1077,60 +1073,6 @@ sub set_initialize_hud_variables()
 	}	
 	
 /return
-
-
-
-
-
-
-
-|***
- * note: test dictionary design for DSL... 
- * use: 
- ***|
-sub set_initialize_DSL_dictionary()
-
-/declare maDict map outer
-
-
-
-/varset dump ${maDict.Add[navto,Bind_command_navto]}
-/varset dump ${maDict.Add[target,/target]}
-/varset dump ${maDict.Add[]}
-/varset dump ${maDict.Add[]}
-/varset dump ${maDict.Add[]}
-/varset dump ${maDict.Add[]}
-/varset dump ${maDict.Add[]}
-/varset dump ${maDict.Add[]}
-/varset dump ${maDict.Add[]}
-/varset dump ${maDict.Add[]}
-/varset dump ${maDict.Add[]}
-/varset dump ${maDict.Add[]}
-/varset dump ${maDict.Add[]}
-/varset dump ${maDict.Add[]}
-/varset dump ${maDict.Add[]}
-/varset dump ${maDict.Add[]}
-
-
-
-
-
-/return
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1550,7 +1492,49 @@ sub set_initialize_hud(bool _debug, string _verbage)
 	/call setDeclare swModeSummon																				bool			outer FALSE	
 	
 	/call sql_control FALSE ${chrID} setModeHarvestCount								int				outer 999
-             			
+
+
+
+		
+
+		                                                            			
+
+	
+ 	
+	
+	                                                              			
+	/call sql_control FALSE ${chrID} useCircle													string		outer FALSE
+	/call sql_control FALSE ${chrID} CircleofPower											string		outer FALSE
+	/call sql_control FALSE ${chrID} CircleofLife												string		outer FALSE
+	/call sql_control FALSE ${chrID} CircleofMana												string		outer FALSE
+                                                                			
+	/for _count 1 to 6
+		/call sql_control FALSE ${chrID} clickItemSwarm${_count}					string		outer FALSE
+	/next _count
+
+		
+
+
+
+	| General class combat skills
+
+	/call sql_control FALSE ${chrID} bandolierNormal										string  	outer FALSE
+	/call setDeclare bandolierSwap																			string 		outer ${bandolierNormal}
+	/call sql_control FALSE ${chrID} bandolierBash											string		outer FALSE
+	/call sql_control FALSE ${chrID} bandolierBurn											string		outer FALSE
+	/call sql_control FALSE ${chrID} bandolierRange											string		outer FALSE
+	
+
+	/if (${Select[${Me.Class.ShortName},MAG,ENC,CLR,NEC,WIZ,SHM,DRU]}) {
+		/call sql_control FALSE ${chrID} TwincastSpell 										string 		outer FALSE
+		/call sql_control FALSE ${chrID} GatherSpell 											string 		outer FALSE
+		/call sql_control FALSE ${chrID} SilentCast	 											string		outer FALSE
+	}
+	
+
+                                                    			
+
+                                                                			
 	                                                              			
 	| Mode stuffs                                                 			
 	| Train Spell spells                                          			
@@ -1561,5 +1545,12 @@ sub set_initialize_hud(bool _debug, string _verbage)
 		/call sql_control FALSE ${chrID} divination												string 		outer FALSE
 		/call sql_control FALSE ${chrID} evocation												string 		outer FALSE
 	}
+
+	| forced delay for mez target
+	/if (${Select[${Me.Class.ShortName},ENC,BRD,NEC]}) {
+ 		/call sql_control FALSE ${chrID} setMezDelay											int 			outer 0
+	}                                                             			
+
+
 
 

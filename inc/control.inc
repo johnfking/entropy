@@ -28,13 +28,12 @@ sub Bind_control_debug(string _type, bool _debug)
 	}
   
   /declare _out string local
-  /declare _mi mapiterator local
-  /vardata _mi maDebug.First.Clone
-  /while (!${_mi.IsEnd}) {
-		/varset _out ${_out} ${If[${_mi.Key.Equal[${maDebug.First}]},,${dot}]} ${If[${_mi.Value},\ag${_mi.Key}\ax,${info}${_mi.Key}\ax]}
-		/varset dump ${_mi.Advance}
+  /vardata mi maDebug.First.Clone
+  /while (!${mi.IsEnd}) {
+		/varset _out ${_out} ${If[${mi.Key.Equal[${maDebug.First}]},,${dot}]} ${If[${mi.Value},\ag${mi.Key}\ax,${info}${mi.Key}\ax]}
+		/varset dump ${mi.Advance}
   }
-	OUT /debug ${_out}
+	/varset dump ${out[12, "/debug ${_out}"]}
 
 /return
 
@@ -59,12 +58,11 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 	| delete aliases
 	} else /if (${_type.Equal[whitewash]}) {
 
-	  /declare _li listiterator local
-		/vardata _li liAlias.First.Clone
-		/while (!${_li.IsEnd}) {
-			OUT Deleting Alias${sep}\a-w${_li.Value}\ax
-			/squelch /alias /${_li.Value} delete
-			/varset dump ${_li.Advance}
+		/vardata li liAlias.First.Clone
+		/while (!${li.IsEnd}) {
+			OUT Deleting Alias${sep}\a-w${li.Value}\ax
+			/squelch /alias /${li.Value} delete
+			/varset dump ${li.Advance}
 		}	
 		OUT Current Build ${info}${maEnv.Find[build].Value}\ax ${dot} ${bad}Ended\ax
 		/endm
@@ -81,7 +79,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		
 		/declare _spell "${_verbage}"
 
-		/declare _list string local
+		/declare list string local
 		/declare _count int local 0
 		/varset _spell ${Spell[${_spell}].RankName}
 		/declare _spellID ${Spell[${_spell}].ID}
@@ -102,10 +100,10 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 			OUT ${dot} .Restrictions \a-w${Spell[${_spell}].Restrictions[${_count}]}\ax
 			OUT ${dot} .Extra \a-w${Spell[${_spell}].Extra}\ax
 
-			/varset _list ${_list} ${Spell[${_spell}].Attrib[${_count}]}
+			/varset list ${list} ${Spell[${_spell}].Attrib[${_count}]}
 		/next _count
 		OUT ${dot} ${dot} ${dot} ${dot}
-		OUT \awSPA list\ax ${sep} \a-w${_list}\ax
+		OUT \awSPA list\ax ${sep} \a-w${list}\ax
 		
 		OUT \aw/spellslotinfo\ax
 		/spellslotinfo ${Spell[${_spell}].ID}
@@ -115,14 +113,13 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return
-	/declare _liout list local
-	/varset dump ${_liout.Append[checkvar,spa,whitewash]}
+	/declare liout list local
+	/varset dump ${liout.Append[checkvar,spa,whitewash]}
   /declare _out string local
-  /declare _li listiterator local
-	/vardata _li _liout.First.Clone
-	/while (!${_li.IsEnd}) {
-		/varset _out ${_out} ${If[${_li.Value.Equal[${_liout.First}]},,${dot}]} ${info}${_li.Value}\ax
-		/varset dump ${_li.Advance}
+	/vardata li liout.First.Clone
+	/while (!${li.IsEnd}) {
+		/varset _out ${_out} ${If[${li.Value.Equal[${liout.First}]},,${dot}]} ${info}${li.Value}\ax
+		/varset dump ${li.Advance}
 	}	
 	OUT /admin (PID:\a-w${EverQuest.PID}\ax) ${_out}
 
@@ -833,7 +830,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 	OUT /area ${_out}
 
 /return 
-
+send
 	
 	
 |***
@@ -1346,7 +1343,7 @@ sub Bind_deez(string _type, bool _debug)
 		OUT {maEnv.Find[stEnvRadius].Value}${sep}\a-w${maEnv.Find[stEnvRadius].Value}\ax .. #env:\a-wENV\ax
 
 
-		OUT ${eol}
+		/varset dump ${out[12, "${eol}"]} 
 	}
 	
 	
@@ -1601,7 +1598,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 					OUT \awstBuff${_count}\ax${sep}${If[${maBuffs.Find[swBuff${_count}].Value},${on},${off}]}${sep}\a-w${maBuffs.Find[stBuff${_count}].Value}\ax
 				}
 			/next _count
-		/if (${_silent.NotEqual[silent]}) OUT ${eol} 
+		/if (${_silent.NotEqual[silent]}) ${out[12, "${eol}"]}  
 		/echo
 		/return
 		}
@@ -1644,7 +1641,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 			/for _count 1 to 50
 				OUT \awc${_count}\ax${sep}\a-w${Parse[2,${maCondition.Find[c${_count}].Value}]}\ax
 			/next _count
-			/if (${_silent.NotEqual[silent]}) OUT ${eol} 
+			/if (${_silent.NotEqual[silent]}) ${out[12, "${eol}"]}  
 			/echo
 			/return
 		}
@@ -1660,7 +1657,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 					OUT \awstItem${_count}\ax${sep}\a-w${maItems.Find[stItem${_count}].Value}\ax
 				}
 			/next _count
-			/if (${_silent.NotEqual[silent]}) OUT ${eol} 
+			/if (${_silent.NotEqual[silent]}) ${out[12, "${eol}"]}  
 			/echo
 			/return
 		}
@@ -1756,7 +1753,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 			/return FALSE
 		}
 	}
-	/if (${_silent.NotEqual[silent]}) OUT ${eol}
+	/if (${_silent.NotEqual[silent]}) ${out[12, "${eol}"]} 
 	/echo
 
 /return	TRUE
@@ -2353,7 +2350,7 @@ sub Bind_command_aux(string _type, bool _debug)
 		/for _count 1 to ${sqlite.Rows[dummy]}
 			OUT ${If[${sqlite.Result[dummy ${_count} help_var].Find[${_type}]},,${sqlite.Result[dummy ${_count} help_var]}${sep}]}\a-g${Parse[2,${sqlite.Result[dummy ${_count} value]}]}\ax
 		/next _count
-		OUT ${eol}
+		/varset dump ${out[12, "${eol}"]} 
 		/return
 	}
 
@@ -2559,6 +2556,7 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
 
 
 
+
 |***
  * note: make the toon stop its shit and splash at its feet
  * use: /dex NAME /splash | /splash
@@ -2568,8 +2566,6 @@ sub Bind_command_splash(bool _debug)
 	DEBUG \atBind_command_splash\ax()
 	
 	/if (!${check_class[TRUE, |PAL|CLR]}) /return FALSE
-	
-	/if (!${Spawn[${Me.ID}].CanSplashLand}) /return
 	
 	| cleric
 	/if (${Me.Class.ShortName.Equal[PAL]}) {
@@ -2667,6 +2663,11 @@ sub Bind_command_invis(bool _other, bool _debug)
 
 
 
+
+
+
+
+
 |***
  * note: displays the port and builds the command to the porting class
  * use: /port 
@@ -2676,9 +2677,12 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 	| /varset _debug TRUE
 	DEBUG \atBind_command_port\ax(\a-w${_type}, ${_nick1}, ${_nick2}\ax)
 	
+	
 	/declare _count int local 0
 	/declare _portName string local FALSE
 	/declare _list list local
+	
+	
 		
 	/if (${_type.Equal[see]}) {
 	
@@ -2689,7 +2693,7 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 			/for _count 1 to ${sqlite.Rows[dummy]}
 				OUT ${dot}\a-w${sqlite.Result[dummy ${_count} nick1]} ${If[${Bool[${sqlite.Result[dummy ${_count} nick2]}]},${dot}${dot} ${sqlite.Result[dummy ${_count} nick2]},]}\ax
 			/next _count
-			OUT ${eol}
+			/varset dump ${out[12, "${eol}"]} 
 			/return
 		}
 		/return
@@ -2901,8 +2905,8 @@ sub Bind_command_cls(bool _debug, string _sender)
 		/dgexecute /cls FALSE ${Me.DisplayName} 
 	} 
 
-	/hidecorpse npc
-	/hidecorpse looted
+	/hidecorpse NPC
+	/hidecorpse LOOTED
 
 /return
 
@@ -2919,6 +2923,7 @@ sub Bind_command_here(string _type)
 		/call Bind_command_aux here
 		/return		
 	}
+
 
 	/if (!${Bool[${_type}]} && ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]} > 1) {
 		OUT ${broadcast}${sep}\a-w/here\ax
@@ -2948,6 +2953,7 @@ sub Bind_command_here(string _type)
 		}
 	}
 	
+	
 	| reset timers
 	/declare lsTimers list local
 	/varset dump ${lsTimers.Append[Check_Buff_Aura,Check_Buff_Beg,Check_Buff_Crew,Check_Buff_Self,Check_Buff_Shrink,Check_Buff_Unity]}
@@ -2957,6 +2963,7 @@ sub Bind_command_here(string _type)
 		/varset dump ${set_data_timer[FALSE, ${li.Value}, 1m]}
 		/varset dump ${li.Advance}
 	}	
+	
 
 	| stop moving
 	/if (${Me.Moving}) {
@@ -3042,7 +3049,6 @@ sub Bind_command_grab(string _name, bool _debug)
  ***|
 #bind command_lesson /lesson
 sub Bind_command_lesson(bool _debug)
-
   /if (${is_ready[FALSE, "Lesson of the Devoted"]}) {
   	/call voodoo FALSE "Lesson of the Devoted" 0 FALSE
   }
@@ -3159,7 +3165,7 @@ sub Bind_control_build(string _build, string _nickname, bool _debug)
 			
 		OUT \awUpdating\ax${sep}\a-wMD5\ax
 		/squelch /exec powershell "(get-content ${MacroQuest.Path}\macros\exspes\data\${_fn}).Replace('MD5',(Get-FileHash ${MacroQuest.Path}\macros\exspes\data\${_fn} -Algorithm MD5).Hash) | Set-Content ${MacroQuest.Path}\macros\exspes\data\${_fn}" bg
-		OUT ${eol} 
+		/varset dump ${out[12, "${eol}"]}  
 		/echo
 		/return
 
@@ -3188,7 +3194,7 @@ sub Bind_control_build(string _build, string _nickname, bool _debug)
 			/next _countK
 		/next _countS 
 
-		OUT ${eol} 
+		/varset dump ${out[12, "${eol}"]}  
 		/echo
 		/return		
 	}

@@ -262,9 +262,10 @@ sub check_heal_CLR(bool _debug, string _type)
 	SETHUD "heal ${_type.Lower}"
 	
 	/call get_hurt ${_debug} ${_type}
-	/if (${Select[${_type},group]} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
-		/call do_arbitration FALSE
-	}  
+	/if (${Select[${_type},group]} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration FALSE
+
+	/if (${Select[${_type},group]} && ${hurtCount} >= ${maChr.Find[stCountHealGroup].Value} && ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
+
 
 	/declare _count int local 0
   	
@@ -272,7 +273,7 @@ sub check_heal_CLR(bool _debug, string _type)
  	/if (${maChr.Find[swHealGroupOverTime].Value} && !SAFEZONE && ${Group.Members} && COMBAT) {
 	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= ${maChr.Find[stCountAE].Value} && ${maChr.Find[stCountAE].Value}) {
 	 		/declare _groupHOT string local ${set_rank[FALSE, ${maChr.Find[stHealGroupOverTime].Value.Arg[1,+]}]}
-			/if (!${Me.Song[Focused Celestial Regeneration].ID} && !${Me.Song[Elixir of].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID}) {
+			/if (!${Me.Song[Focused Celestial Regeneration].ID} && !${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID}) {
 
 				/declare _found bool TRUE
 				| check regen SPA
@@ -299,6 +300,8 @@ sub check_heal_CLR(bool _debug, string _type)
 		SETHUD FALSE
 		/return	
 	} 
+	
+	/call get_hurt ${_debug} ${_type}
 
 	/if (${Select[${_type},group]}) {
 		/if (${maChr.Find[stCountArbitrate].Value}) {
@@ -309,7 +312,6 @@ sub check_heal_CLR(bool _debug, string _type)
 		}
 		/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 	}
-
 
 	/if (!SAFEZONE) {
 		| panic heal
@@ -331,8 +333,7 @@ sub check_heal_CLR(bool _debug, string _type)
 			}
 			/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 		}
-		
-			
+
 		| Focused Celestial Regeneration - out of raid only
 		/if (!${Raid.Members}) {
 			/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO && !${Me.Song[Celestial Regeneration].ID}) { 
@@ -370,9 +371,8 @@ sub check_heal_CLR(bool _debug, string _type)
 				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
 			}
 			/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
-		}
-		
-				
+		}	
+	
 		| panic group heal. AA Beacon of life (3 min use)
 	  /if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value} && ${Group.Members} > 1 && ${maChr.Find[stCountHealGroup].Value}) {
 		  /if (${is_ready[${_debug}, "Beacon of Life"]}) {
@@ -389,8 +389,7 @@ sub check_heal_CLR(bool _debug, string _type)
 				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
 			}
 			/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
-		}		
-		
+		}
 
 		/if (${maChr.Find[stCountIssuance].Value}) {
 			/if (${SpawnCount[npc radius ENV PS4]} >= ${maChr.Find[stCountIssuance].Value}) /call Bind_command_issuance FALSE
@@ -398,7 +397,7 @@ sub check_heal_CLR(bool _debug, string _type)
 		
 		| splash heal
 		/if (${maChr.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
-			/if (${SpawnCount[npc radius ENV PS4]} >= ${maChr.Find[stCountSplash].Value}) /call Bind_command_splash FALSE
+			/if (${SpawnCount[npc radius ENV PS4]} >= ${maChr.Find[stCountSplash].Value}) /call Bind_ae_splash
 		}
 		
 	}
@@ -429,7 +428,7 @@ sub check_heal_CLR(bool _debug, string _type)
 	CHECKFADE	
 	CHECKREZ
 		
-	| yes. this realy is all there is to healing..
+	| yes. this is all there is to healing..
 	/declare _liHM listiterator local
 	/vardata _liHM lsHealOrder${maHeal.Find[stHealMode].Value}.First.Clone
 	/while (!${_liHM.IsEnd}) {
