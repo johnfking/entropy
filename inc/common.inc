@@ -2629,16 +2629,21 @@ sub get_target_basepull(bool _debug, int _tmpID)
 	DEBUG ${sep}loop \a-w:waitformob\ax
 	:waitformob
 	/if (!${SpawnCount[npc radius 31 PS4 targetable]}) {
-		/call set_timer _wait_for_mob ${Math.Calc[(PULLENV / 10) + ${Spawn[TARGET].Distance}]}s
+		| /declare _wait int local ${Math.Calc[(PULLENV / 10) + (${Spawn[TARGET].Distance}*.10)]}s
+		/declare _wait int local ${Math.Calc[(PULLENV + ${Spawn[TARGET].Distance})*.08]}s
+		/call set_timer FALSE _wait_for_mob ${_wait}
+	
 		/if (!${Spawn[TARGET].Dead}) {
-			/varset dump ${out[9, "Waiting on${sep}${tar}${Spawn[TARGET].DisplayName}\ax"]}
+			/varset dump ${out[9, "Waiting on${sep}${tar}${Spawn[TARGET].DisplayName}\ax${sep}\a-w${_wait}s\ax"]}
 		}
-		/while (TARGET && ${Spawn[TARGET].Distance} <= ${Spawn[TARGET].MaxRangeTo}+2 && !${Spawn[TARGET].Dead}) {
+	
+		/while (TARGET && ${Spawn[TARGET].Distance} <= ${Spawn[TARGET].MaxRangeTo} && !${Spawn[TARGET].Dead}) {
 			DEBUG ${sep}\awTARGET\ax.distance${sep}\a-w${Spawn[TARGET].Distance}\ax
 			GETINPUT
 			/delay 2
 			
 			/if (!TARGET || !${Spawn[TARGET].Dead}) {
+				/call clear_combat FALSE
 				DEBUG ${sep}/while \a-gbreak_NO_target\ax
 				/break			
 			}
@@ -2654,13 +2659,14 @@ sub get_target_basepull(bool _debug, int _tmpID)
 				/break
 			}
 			| target within melee
-			/if (${Spawn[TARGET].Distance} <= ${Spawn[TARGET].MaxRangeTo}+2) {
+			/if (${Spawn[TARGET].Distance} <= ${Spawn[TARGET].MaxRangeTo}) {
 				DEBUG ${sep}/while \a-gbreak_MaxRangeTo\ax
 				/break
 			}
 			
 			| timer ran out
 			/if (!${_wait_for_mob}) {
+				/call clear_combat FALSE
 				DEBUG ${sep}/while \a-gbreak_Timer\ax
 				/break
 			}
