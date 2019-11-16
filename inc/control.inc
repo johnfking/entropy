@@ -277,6 +277,8 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[autoinv]}) {
 		/varset dump ${set_switch_env[FALSE, swAutoInv, TRUE, ${_verbage}]}
 
+	} else /if (${_type.Equal[tribute]}) {
+		/varset dump ${set_switch_env[FALSE, swCheckTribute, TRUE, ${_verbage}]}
 
 	} else /if (${_type.Equal[glyphoutsideraid]}) {
 
@@ -343,7 +345,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 	/if (${_silent.Equal[SILENT]}) /return
 	/declare _lsout list local
 	/varset dump ${_lsout.Append[auto,rad,rest,meal,exp,advloot,autoinv,buffgem,buffgemhold,nukeloop,safelistguild,moblvmax]}
-	/varset dump ${_lsout.Append[moblvlmin,begmage,fireworks,takeri,takegi,saferadius,incharge]}
+	/varset dump ${_lsout.Append[moblvlmin,begmage,fireworks,takeri,takegi,saferadius,tribute]}
   /declare _out string local
   /declare _li listiterator local
 	/vardata _li _lsout.First.Clone
@@ -368,13 +370,13 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 		/if (${_li.Value.Equal[takegi]}) /varset _out ${_out}:${If[${maEnv.Find[swTakeGroupInvite].Value},${on},${off}]}
 		/if (${_li.Value.Equal[takeri]}) /varset _out ${_out}:${If[${maEnv.Find[swTakeRaidInvite].Value},${on},${off}]}
 		/if (${_li.Value.Equal[saferadius]}) /varset _out ${_out}:${If[${maEnv.Find[stEnvSafeRadius].Value},${num}${maEnv.Find[stEnvSafeRadius].Value}\ax,${r0}]}
+		/if (${_li.Value.Equal[tribute]}) /varset _out ${_out}:${If[${maEnv.Find[swCheckTribute].Value},${on},${off}]}
 		/if (${_li.Value.Equal[meal]}) /varset _out ${_out}:${submenu}
 		/varset dump ${_li.Advance}
 	}	
 	OUT /env ${_out}
 
 /return
-
 
 
 

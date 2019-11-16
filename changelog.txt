@@ -7,15 +7,9 @@
 
 
 
-verbosity:
-0 = show everything
-1 = block: casting 
-2 = block:
-3 = block: controls
-4 = show nothing
-5 = (error echos)
 
 
 
 
-- cast events stored in maEnv:stCastReturn
+
+

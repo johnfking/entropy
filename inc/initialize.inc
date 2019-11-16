@@ -157,6 +157,7 @@ sub set_initial_environment(bool _debug)
 	/varset dump ${set_data_timer[FALSE, Check_Poison, 1m]}
 	/varset dump ${set_data_timer[FALSE, Check_deBuffs, 6s]}
 	/varset dump ${set_data_timer[FALSE, Check_Behind, 10s]}
+	/varset dump ${set_data_timer[FALSE, Check_Tribute, 1m]}
 
 
 	| /varset dump ${set_data_timer[FALSE, Check_Buff_List_Population, 2s]}
@@ -476,7 +477,10 @@ sub set_initialize_map_character_environment(bool _debug)
 	/varset dump ${set_data_timer[FALSE, Check_FoodDrink, 10m]}
 	/call set_data_map FALSE maEnv stFood																FALSE													"${auxna} food item you want to eat"
 	/call set_data_map FALSE maEnv stDrink															FALSE													"${auxna} drink item you want to drink"
-
+	
+	| tribute switch	
+	/call set_data_map FALSE maEnv swCheckTribute												FALSE													"${auxsw} check and corect tribute for raids"
+	
 
 |** control: heal **|
 	/varset dump ${set_data_timer[FALSE, Check_Cure, 6s]}

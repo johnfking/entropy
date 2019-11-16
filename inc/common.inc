@@ -8685,7 +8685,7 @@ sub get_name_multipull(bool _debug, string _groupList)
 
 |***
  * note: outputs based by a verbosity lvl
- * note: ${out[reqlvl#, "string to output to MQ window"]}
+ * use: ${out[reqlvl#, "string to output to MQ window"]}
  ***|
 sub out(int _lvl, string _verbage)
 
@@ -8694,3 +8694,47 @@ sub out(int _lvl, string _verbage)
 	}
 
 /return
+
+
+
+
+|***
+ * note: checks and corrects tribute and trophy usafe during a raid
+ * use: 
+ ***|
+sub check_tribute(bool _debug)
+	DEBUG \atcheck_tribute\aw()
+	
+	/varset dump ${set_data_timer[FALSE, Check_Tribute, RESTART]}
+	
+	/if (!${Raid.Members}) {
+		/if (${Window[TributeBenefitWnd].Child[TBWG_ActivateButton].Text.Equal[Activate]}) /tribute personal off
+		/if (${Window[TributeBenefitWnd].Child[TBWGT_ActivateButton].Text.Equal[Activate]}) /trophy personal off		
+		/return FALSE
+	}
+	
+	| Personal tribute is off & Guild is on --> turn on personal
+	/if (${Window[TributeBenefitWnd].Child[TBWP_ActivateButton].Text.Equal[Activate]} && ${Window[TributeBenefitWnd].Child[TBWG_ActivateButton].Text.Equal[Deactivate]}) {
+		/tribute personal on
+	}
+
+	| Personal tribute is on & Guild is off --> turn off personal
+	/if (${Window[TributeBenefitWnd].Child[TBWP_ActivateButton].Text.Equal[Deactivate]} && ${Window[TributeBenefitWnd].Child[TBWG_ActivateButton].Text.Equal[Activate]}) {
+		/tribute personal off
+	}
+
+
+	| Personal trophy is off & Guild is on --> turn on personal
+	/if (${Window[TributeBenefitWnd].Child[TBWT_ActivateButton].Text.Equal[Activate]} && ${Window[TributeBenefitWnd].Child[TBWGT_ActivateButton].Text.Equal[Deactivate]}) {
+		/trophy personal on
+	}
+
+	| Personal trophy is on & Guild is off --> turn off personal
+	/if (${Window[TributeBenefitWnd].Child[TBWT_ActivateButton].Text.Equal[Deactivate]} && ${Window[TributeBenefitWnd].Child[TBWGT_ActivateButton].Text.Equal[Activate]}) {
+		/trophy personal off
+	}
+    
+    
+/return
+
+
