@@ -66,7 +66,7 @@ sub main_BST(bool _debug)
 
 	/if (AUTO) {
 		/call check_mana_${Me.Class.ShortName}
-		/if (PET || SWARM) /call send_pet FALSE TARGETt
+		/if (PET || SWARM) /call send_pet FALSE TARGET
 	}
 
 	/while (${check_combat_status[FALSE]}) {
