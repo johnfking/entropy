@@ -836,11 +836,11 @@ send
 	
 	
 |***
- * note:control for /beg
- * use: 
+ * note:/beg command
+ * use: starts the buff begging process
  ***|	
-#Bind control_beg /beg
-sub Bind_control_beg(string _buff, string _operate)
+#Bind command_beg /beg
+sub Bind_command_beg(string _buff, string _operate)
 
 	/if (${_buff.Equal[see]}) {
 		/call Bind_command_see maBuffRequest

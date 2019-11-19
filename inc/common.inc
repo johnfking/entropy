@@ -1180,7 +1180,6 @@ sub cast_AA_fireworks(bool _debug)
  * use: /call check_for_rezbox()
  ***|
 sub check_for_rezbox(bool _debug)
-| /varset _debug TRUE
 	DEBUG \atcheck_for_rezbox\ax()
 
 	GETINPUT rez_box_found swIsMeDead|${swIsMeDead}
@@ -2629,7 +2628,6 @@ sub get_target_basepull(bool _debug, int _tmpID)
 	DEBUG ${sep}loop \a-w:waitformob\ax
 	:waitformob
 	/if (!${SpawnCount[npc radius 31 PS4 targetable]}) {
-		| /declare _wait int local ${Math.Calc[(PULLENV / 10) + (${Spawn[TARGET].Distance}*.10)]}s
 		/declare _wait int local ${Math.Calc[(PULLENV + ${Spawn[TARGET].Distance})*.08]}s
 		/call set_timer FALSE _wait_for_mob ${_wait}
 	
@@ -2637,10 +2635,14 @@ sub get_target_basepull(bool _debug, int _tmpID)
 			/varset dump ${out[9, "Waiting on${sep}${tar}${Spawn[TARGET].DisplayName}\ax${sep}\a-w${_wait}s\ax"]}
 		}
 	
-		/while (TARGET && ${Spawn[TARGET].Distance} <= ${Spawn[TARGET].MaxRangeTo} && !${Spawn[TARGET].Dead}) {
-			DEBUG ${sep}\awTARGET\ax.distance${sep}\a-w${Spawn[TARGET].Distance}\ax
+		/while (TARGET && ${Spawn[TARGET].Distance} >= ${Spawn[TARGET].MaxRangeTo} && !${Spawn[TARGET].Dead}) {
+			SDEBUG ${sep}\awTARGET\ax.distance${sep}\a-w${Spawn[TARGET].Distance}\ax${sep}\a-w${_wait_for_mob}\ax
 			GETINPUT
-			/delay 2
+			/delay 5
+			
+			/if (!${Select[${Me.Class.ShortName},RNG]} && !${Me.Inventory[ammo].ID}) {
+				/call check_buff_cycle_range FALSE TRUE
+			}			
 			
 			/if (!TARGET || !${Spawn[TARGET].Dead}) {
 				/call clear_combat FALSE
@@ -2663,6 +2665,13 @@ sub get_target_basepull(bool _debug, int _tmpID)
 				DEBUG ${sep}/while \a-gbreak_MaxRangeTo\ax
 				/break
 			}
+			
+			| LoS time reduction
+			/if (!${Spawn[TARGET].LineOfSight}) {
+				/varcalc _wait_for_mob ${_wait_for_mob}-10
+				OUT Target \arLoS\ax${sep}\a-w${_wait}s\ax
+			}
+			
 			
 			| timer ran out
 			/if (!${_wait_for_mob}) {
@@ -2785,8 +2794,6 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		/call check_buff_cycle_range FALSE TRUE
 	}
 	
-	
-	:tagbitchyoureit
 	/if (${Spawn[ID ${_tmpID}].LineOfSight}) {
 		DEBUG ${sep}TargetLOS
 
@@ -2858,7 +2865,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 				GETINPUT
 				/attack on
 				
-				| we are using 80% of the targets max range to melee just to make sure we get close enough.
+				| we are using 90% of the targets max range to melee just to make sure we get close enough.
 				| dont argue with me on this. i'm not changing my mind
 				| if we are not in this range, we try and get closer.
 				/if (${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
@@ -5968,8 +5975,8 @@ sub check_for_corpse(bool _debug)
 	}
 
 
-	/declare _count 														int 		local 0
-	/declare _tmpID 														int 		local 0
+	/declare _count 													int 		local 0
+	/declare _tmpID 													int 		local 0
 
 	| make the damn variables
 	/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}
@@ -8703,7 +8710,6 @@ sub out(int _lvl, string _verbage)
 
 
 
-
 |***
  * note: checks and corrects tribute and trophy usafe during a raid
  * use: 
@@ -8714,8 +8720,12 @@ sub check_tribute(bool _debug)
 	/varset dump ${set_data_timer[FALSE, Check_Tribute, RESTART]}
 	
 	/if (!${Raid.Members}) {
-		/if (${Window[TributeBenefitWnd].Child[TBWG_ActivateButton].Text.Equal[Activate]}) /tribute personal off
-		/if (${Window[TributeBenefitWnd].Child[TBWGT_ActivateButton].Text.Equal[Activate]}) /trophy personal off		
+		/if (${Window[TributeBenefitWnd].Child[TBWG_ActivateButton].Text.Equal[Activate]}) {
+			/tribute personal off
+		}
+		/if (${Window[TributeBenefitWnd].Child[TBWGT_ActivateButton].Text.Equal[Activate]}) {
+			/trophy personal off		
+		}
 		/return FALSE
 	}
 	
@@ -8739,8 +8749,43 @@ sub check_tribute(bool _debug)
 	/if (${Window[TributeBenefitWnd].Child[TBWT_ActivateButton].Text.Equal[Deactivate]} && ${Window[TributeBenefitWnd].Child[TBWGT_ActivateButton].Text.Equal[Activate]}) {
 		/trophy personal off
 	}
-    
-    
+     
 /return
+
+
+
+
+
+
+|***
+ * note: rez control system. to ensure only 1 person trys to rez a corpse
+ * use: 
+ ***|
+sub control_rez(string _action, int _ID, string _flag)
+	| DEBUG\atcontrol_rez\ax(\a-w\ax)
+
+
+	
+	/if (${_action.Equal[add]}) {
+		
+		/dgzexecute /varset dump ${maRezControl.Add[${_ID},${_flag}]}
+		
+		
+	} else /if (${_action.Equal[delete]}) {
+		
+		
+		
+	}
+	
+	
+	
+/return
+
+
+
+/dgzexecute /varset dump ${maRezControl.Add[55,rez]}
+
+
+
 
 
