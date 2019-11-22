@@ -12,9 +12,7 @@
 sub set_BST(bool _debug)
 	DEBUG \atset_BST\ax()
 	
-	/call set_data FALSE maData stSpire1																map outer "Fundament: First Spire of the Savage Lord"
-	/call set_data FALSE maData stSpire2																map outer "Fundament: Second Spire of the Savage Lord"
-	/call set_data FALSE maData stSpire3																map outer "Fundament: Third Spire of the Savage Lord"
+	/call set_data FALSE maData stSpire																	map outer "Spire of the Savage Lord"
 	/call set_data FALSE maData stSynergy																map outer "Primalist's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Claw of the Savage Spirit"
 	/call set_data FALSE maData stEpic15																map outer "Savage Lord's Totem"

@@ -17,7 +17,7 @@
 sub pregen_SHM(bool _debug)
 	/declare _count int local 0
 
-	/call setDeclare SHMspire																						string		outer "|Fundament: First Spire of Ancestors|Fundament: Second Spire of Ancestors|Fundament: Third Spire of Ancestors"
+	/call setDeclare SHMspire																						string		outer "Spire of Ancestors"
 	/call setDeclare SHMsynergyAA																				string		outer "Luminary's Synergy"
 	/call setDeclare SHMAid																							string		outer "Ancestral Aid"
 	/call setDeclare SHMEpic1																						string		outer "Spear of Fate"

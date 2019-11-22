@@ -13,9 +13,7 @@
 sub set_WAR(bool _debug)
 	DEBUG \atset_WAR\ax()
 		
-	/call set_data FALSE maData stSpire1																map outer "Fundament: First Spire of the Warlord"
-	/call set_data FALSE maData stSpire2																map outer "Fundament: Second Spire of the Warlord"
-	/call set_data FALSE maData stSpire3																map outer "Fundament: Third Spire of the Warlord"
+	/call set_data FALSE maData stSpire 																map outer "Spire of the Warlord"
 	/call set_data FALSE maData stSynergy																map outer "Myrmidon's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Jagged Blade of War"
 	/call set_data FALSE maData stEpic15																map outer "Champion's Sword of Eternal Power"

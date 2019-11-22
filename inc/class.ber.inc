@@ -12,9 +12,7 @@
 sub set_BER(bool _debug)
 	DEBUG \atset_BER\ax()
 		
-	/call set_data FALSE maData stSpire1																map outer "Fundament: First Spire of Savagery"
-	/call set_data FALSE maData stSpire2																map outer "Fundament: Second Spire of Savagery"
-	/call set_data FALSE maData stSpire3																map outer "Fundament: Third Spire of Savagery"
+	/call set_data FALSE maData stSpire1																map outer "Spire of lhe Juggernaut"
 	/call set_data FALSE maData stSynergy																map outer "Fury's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Kerasian Axe of Ire"
 	/call set_data FALSE maData stEpic15																map outer "Raging Taelosian Alloy Axe"

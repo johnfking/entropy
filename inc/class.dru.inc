@@ -12,9 +12,7 @@
 sub set_DRU(bool _debug)
 	DEBUG \atset_DRU\ax()
 
-	/call set_data FALSE maData stSpire1																map outer "Fundament: First Spire of Nature"
-	/call set_data FALSE maData stSpire2																map outer "Fundament: Second Spire of Nature"
-	/call set_data FALSE maData stSpire3																map outer "Fundament: Third Spire of Nature"
+	/call set_data FALSE maData stSpire																	map outer "Spire of Nature"
 	/call set_data FALSE maData stSynergy																map outer "Preserver's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Nature Walker's Scimitar"
 	/call set_data FALSE maData stEpic15																map outer "Staff of Living Brambles"
@@ -37,7 +35,7 @@ sub set_DRU(bool _debug)
 	/call set_data_map FALSE maChr stGrowth			 												PREGEN|1											"${auxna} temp hp growth spell"
   /call set_data_list FALSE maChr lsHealRejuvilation									PREGEN|1											"${auxli} Rejuvilation line of heals (fast cast)"
 
-  /call set_data_map FALSE maChr stTwincast													PREGEN|1											"${auxna} twincast spell"
+  /call set_data_map FALSE maChr stTwincast														PREGEN|1											"${auxna} twincast spell"
 
 
 	/declare lsHealOrderbase list outer

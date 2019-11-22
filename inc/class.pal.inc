@@ -11,9 +11,7 @@
  ***|
 sub set_PAL(bool _debug)
 	DEBUG \atset_PAL\ax()
-	/call set_data FALSE maData stSpire1																map outer "Fundament: First Spire of Holiness"
-	/call set_data FALSE maData stSpire2																map outer "Fundament: Second Spire of Holiness"
-	/call set_data FALSE maData stSpire3																map outer "Fundament: Third Spire of Holiness"
+	/call set_data FALSE maData stSpire																	map outer "Spire of Chivalry"
 	/call set_data FALSE maData stSynergy																map outer "Knight's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Fiery Defender"
 	/call set_data FALSE maData stEpic15																map outer "Heartwood Blade"

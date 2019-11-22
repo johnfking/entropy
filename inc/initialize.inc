@@ -190,7 +190,6 @@ sub set_initial_environment(bool _debug)
 
   | controls for mana users
   /if (${lsClassCast.Contains[${Me.Class.ShortName}]}) {
-    | /call set_data FALSE FALSE lsChr                                  list outer manaclick
     /varset dump ${lsChr.Append[manaclick]}
   }
 
@@ -203,7 +202,7 @@ sub set_initial_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
     /varset dump ${lsChr.Append[arbitrate|divinerez|groupheal|grouphot|hot|issuance|primary|splash|vp|yaulp]}
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
-    /varset dump ${lsChr.Append[wolf|groupheal]}
+    /varset dump ${lsChr.Append[wolf|groupheal]} 
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
     /varset dump ${lsChr.Append[charm|gather|bos|crystal|charm]}
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
@@ -873,8 +872,8 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maChr stPctFade                            0                             "${auxnum} % of your healt to use class aa fade skill"
 
   | spire
-  /call set_data_map FALSE maChr stSpireRaid                          0                             "${auxnum} number of the spire you want to use while in group for burns"
-  /call set_data_map FALSE maChr stSpireGroup                         0                             "${auxnum} number of the spire you want to use while in a raid for burns"
+  /call set_data_map FALSE maChr swSpireRaid                          FALSE                         "${auxsw} use while in group for burns"
+  /call set_data_map FALSE maChr swSpireGroup                         FALSE													"${auxsw} use while in a raid for burns"
 
   | heal classes
   /if (${lsClassHeal.Contains[${Me.Class.ShortName}]}) {

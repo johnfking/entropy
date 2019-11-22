@@ -12,9 +12,7 @@
 sub set_ROG(bool _debug)
 	DEBUG \atset_ROG\ax()
 	
-	/call set_data FALSE maData stSpire1																map outer "Fundament: First Spire of the Rake"
-	/call set_data FALSE maData stSpire2																map outer "Fundament: Second Spire of the Rake"
-	/call set_data FALSE maData stSpire3																map outer "Fundament: Third Spire of the Rake"
+	/call set_data FALSE maData stSpire																	map outer "Spire of the Rake"
 	/call set_data FALSE maData stSynergy																map outer "Blackguard's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Ragebringer"
 	/call set_data FALSE maData stEpic15																map outer "Fatestealer"

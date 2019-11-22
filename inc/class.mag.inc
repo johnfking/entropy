@@ -12,9 +12,7 @@
 sub set_MAG(bool _debug)
 	DEBUG \atset_MAG\ax()
 	
-	/call set_data FALSE maData stSpire1																map outer "Fundament: First Spire of the Elements"
-	/call set_data FALSE maData stSpire2																map outer "Fundament: First Spire of the Elements"
-	/call set_data FALSE maData stSpire3																map outer "Fundament: Third Spire of the Elements"
+	/call set_data FALSE maData stSpire1																map outer "Spire of the Elements"
 	/call set_data FALSE maData stSynergy																map outer "Conjurer's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Orb of Mastery"
 	/call set_data FALSE maData stEpic15																map outer "Staff of Elemental Essence"

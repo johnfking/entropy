@@ -13,9 +13,7 @@
 sub set_RNG(bool _debug)
 	DEBUG \atset_RNG\ax()
 		
-	/call set_data FALSE maData stSpire1																map outer "Fundament: First Spire of the Pathfinders"
-	/call set_data FALSE maData stSpire2																map outer "Fundament: Second Spire of the Pathfinders"
-	/call set_data FALSE maData stSpire3																map outer "Fundament: Third Spire of the Pathfinders"
+	/call set_data FALSE maData stSpire																	map outer "Spire of the Pathfinders"
 	/call set_data FALSE maData stSynergy																map outer "Outrider's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Earthcaller"
 	/call set_data FALSE maData stEpic15																map outer "Heartwood Blade"
@@ -109,7 +107,7 @@ sub main_RNG(bool _debug)
 
 |***
  * note: Combat skills, Disciplines and Alternate abilities.
- * use: /call disc_${Me.Class.ShortName}
+ * use: /call misc_combat_${Me.Class.ShortName}
  ***|
 sub misc_combat_RNG(bool _debug)
 	DEBUG \atmisc_combat_RNG\ax()
@@ -134,25 +132,12 @@ sub misc_combat_RNG(bool _debug)
 	}	
 
 	| elemental arrows rotation
-	/if (${Me.AltAbilityReady[Elemental Arrow]}) {
-		/if (!${Target.Buff[Elemental Arrow].ID} && !${Target.Buff[Glacial Arrow].ID} && !${Target.Buff[Volatile Arrow].ID}) {
-			/if (${is_ready[FALSE, "Elemental Arrow"]}) {
-				/call voodoo FALSE "Elemental Arrow" TARGET FALSE
-			}
+	/if (!${Target.Buff[Elemental Arrow].ID}) {
+		/if (${is_ready[FALSE, "Elemental Arrow"]}) {
+			/call voodoo FALSE "Elemental Arrow" TARGET FALSE
 		}
-	} else /if (${Me.AltAbilityReady[Glacial Arrow]}) {
-		/if (!${Target.Buff[Elemental Arrow].ID} && !${Target.Buff[Glacial Arrow].ID}) {
-			/if (${is_ready[FALSE, "Glacial Arrow"T]}) {
-				/call voodoo FALSE "Glacial Arrow" TARGET FALSE
-			}
-		}
-	}	else /if (${Me.AltAbilityReady[Volatile Arrow]}) {
-		/if (!${Target.Buff[Elemental Arrow].ID} && !${Target.Buff[Volatile Arrow].ID}) {
-			/if (${is_ready[FALSE, "Volatile Arrow"]}) {
-				/call voodoo FALSE "Volatile Arrow" TARGET FALSE
-			}
-		}
-	}		
+	}
+
 	
 	/if (!${maChr.Find[stCountAE].Value}) {
 		/if (${is_ready[FALSE, "${maChr.Find[stDiscMeleeSingle].Value}"]}) {
@@ -205,13 +190,13 @@ sub check_heal_RNG(bool _debug, string _type)
 	CHECKREZ
 	CHECKFADE
 
-	| UPDATEHUD "HEAL ${_type}"
+	SETHUD "HEAL ${_type}"
 	
 	/call check_hurt FALSE ${_type}
   	
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
-		| UPDATEHUD FALSE
+		| SETHUD FALSE
 		/return	
 	}  	
 	
@@ -231,34 +216,8 @@ sub check_heal_RNG(bool _debug, string _type)
 		
 	/call cast_list FALSE "lsHealBaseLine" ${hurtID}
 	
-	| UPDATEHUD FALSE
+	SETHUD FALSE
 
-/return TRUE
-
-
-
-|***
- *	DES: DPS Clickies
- *	USE: /call click_DPS_${Me.Class.ShortName}
- *  NOTE: 
- ***|
-sub click_DPS_RNG(bool _debug)
-	DEBUG click_DPS_RNG()
-	
-	/if (${is_target_dead[FALSE, TARGET]}) /return
-	ISMEDEAD
-	CHECKEXIT
-	GETINPUT
-	/call set_combat
-	/call use_skill_melee TARGET
-	/call click_horn_of_unity 	
-
-	
-	/if (!${Bool[${Me.ActiveDisc}]} && !${Bool[${Me.Song[Empowered Blades]}]} && !${Bool[${Me.Buff[${useGlyph}]}]}) {
-		| epic 2.0
-		/if (${is_ready[FALSE, epicitem, "2", ${Me.ID}]} && ${Spawn[TARGET].Distance} <= ${setCombatDistance}) /call voodoo FALSE "${${Me.Class.ShortName}Epic2}" item 0
-	}
-	
 /return TRUE
 
 
@@ -283,15 +242,15 @@ sub cast_nuke_summer(bool _debug, int _tmpID)
 
 
 
- |***
- *	DES: Ranger burn routines
- *	USE: establish all comp/trigger skills
- *	NOTE: 
+|***
+ * note: really should be starting fires
+ * use: 
  ***| 
 sub burn_RNG(bool _debug)
-	DEBUG burn_RNG()
+	DEBUG \atburn_RNG\ax()
 
 	/if (${is_target_dead[FALSE, TARGET]}) /return
+	
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
@@ -302,27 +261,37 @@ sub burn_RNG(bool _debug)
 	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 
 	| cheeta
-	/if (${is_ready[FALSE, alt, "${RNGcheetah}", ${Me.ID}]}) /call voodoo FALSE "${RNGcheetah}" alt 0 FALSE
+	/if (${is_ready[FALSE, "Scarlet Cheeta's Fang"]}) {
+		/call voodoo FALSE "Scarlet Cheeta's Fang" 0 FALSE
+	}
 	
 	| auspice
-	/if (${is_ready[FALSE, alt, "${RNGauspice}", ${Me.ID}]}) /call voodoo FALSE "${RNGauspice}" alt 0 FALSE
+	/if (${is_ready[FALSE, "Auspice of the Hunter"]}) {
+		/call voodoo FALSE "Auspice of the Hunter" 0 FALSE
+	}
 	
 	| MELEE
-	/if (${swCombatMelee}) {
-		/if (${Target.Distance} <= ${setCombatDistance}) {
+	/if (MELEE) {
+		/if (${Target.Distance} <= ${Spawn[TARGET].MaxRangeTo}*.9) {
 
 			| weapon proc
-			/if (${is_ready[FALSE, alt, "Imbued Ferocity", ${Me.ID}]}) /call voodoo FALSE "Imbued Ferocity" alt 0 FALSE
-
-			/if (!${Bool[${Me.ActiveDisc}]} && !${Bool[${Me.Buff[${useGlyph}]}]}) {
-				/if (${is_ready[FALSE, alt, "Empowered Blades", ${Me.ID}]}) /call voodoo FALSE "Empowered Blades" alt 0 FALSE
-			} else /if (!${Bool[${Me.ActiveDisc}]} && !${Bool[${Me.Song[Empowered Blades]}]} && !${Bool[${Me.Buff[${useGlyph}]}]}) {
-				/if (${is_ready[FALSE, disc, "${DiscMele}", ${Me.ID}]}) /call voodoo FALSE "${DiscMele}" disc 0 FALSE
-			} else /if (!${Bool[${Me.ActiveDisc}]} && !${Me.CombatAbilityReady[${Spell[${DiscMele}].RankName}]} && !${Me.AltAbilityReady[Empowered Blades]} && !${Bool[${Me.Song[Empowered Blades]}]}) {
-				/call use_glyph
-			} else /if (!${Bool[${Me.ActiveDisc}]} && !${Me.CombatAbilityReady[${Spell[${DiscMele}].RankName}]} && !${Me.AltAbilityReady[Empowered Blades]} && !${Bool[${Me.Song[Empowered Blades]}]} && !${Bool[${Me.Buff[${useGlyph}]}]}) {
-				/if (${is_ready[FALSE, epicitem, "2", ${Me.ID}]}) /call voodoo FALSE "${${Me.Class.ShortName}Epic2}" item 0 FALSE
+			/if (${is_ready[FALSE, "Imbued Ferocity"]}) {
+				/call voodoo FALSE "Imbued Ferocity" 0 FALSE
 			}
+
+			/if (!${Me.ActiveDisc.ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
+				/if (${is_ready[FALSE, "Empowered Blades"]}) {
+					/call voodoo FALSE "Empowered Blades" alt 0 FALSE
+				}
+				
+			} else /if (!${Me.ActiveDisc.ID} && !${Me.Song[Empowered Blades].ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
+				/if (${is_ready[FALSE, "${maChr.Find[stDiscMele].Value}"]}) {
+					/call voodoo FALSE "${maChr.Find[stDiscMele].Value}" 0 FALSE
+				}
+				
+			} else /if (!${Me.ActiveDisc.ID} && !${is_ready[FALSE, "${maChr.Find[stDiscMele].Value}"]} && !${Me.AltAbilityReady[Empowered Blades]} && !${Me.Song[Empowered Blades].ID}) {
+				/call cast_glyph FALSE
+			} 
 		}
 
 
@@ -331,39 +300,49 @@ sub burn_RNG(bool _debug)
 	| RANGE
 	/if (RANGE) {
 		/if (${Target.Distance} >= 31) {
-			/if (!${Bool[${Me.ActiveDisc}]} && !${Bool[${Me.Buff[${useGlyph}]}]}) {
-				/if (${is_ready[FALSE, disc, "${DiscRange}", ${Me.ID}]}) /call voodoo FALSE "${DiscRange}" disc 0 FALSE
-			} else /if (!${Bool[${Me.ActiveDisc}]} && !${Me.CombatAbilityReady[${Spell[${DiscRange}].RankName}]}) {
-				/call use_glyph
+			/if (${Me.ActiveDisc.ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
+				/if (${is_ready[FALSE, "${maChr.Find[stDiscRange].Value}"]}) {
+					/call voodoo FALSE "${maChr.Find[stDiscRange].Value}" 0 FALSE
+				}
+			} else /if (!${Me.ActiveDisc.ID} && !(${is_ready[FALSE, "${maChr.Find[stDiscRange].Value}"]}) {
+				/call cast_glyph FALSE
 			}
 		}
 	
 	}
 	
 	| attack / dmg AA
-	/if (${is_ready[FALSE, alt, "Outrider's Accuracy", ${Me.ID}]}) /call voodoo FALSE "Outrider's Accuracy" alt 0 FALSE
-	/if (${is_ready[FALSE, alt, "Outrider's Attack", ${Me.ID}]}) /call voodoo FALSE "Outrider's Attack" alt 0 FALSE
+	/if (${is_ready[FALSE, "Outrider's Accuracy"]}) {
+		/call voodoo FALSE "Outrider's Accuracy" 0 FALSE
+	}
+	/if (${is_ready[FALSE, "Outrider's Attack"]}) {
+		/call voodoo FALSE "Outrider's Attack" 0 FALSE
+	}
 	
 	| guardian buff (group first)
-	/if (!${Me.Song[Guardian of the Forest].ID} && ${Me.AltAbilityReady[${RNGgroupguardian}]}) {
-		/if (${is_ready[FALSE, alt, "${RNGgroupguardian}", ${Me.ID}]}) /call voodoo FALSE "${RNGgroupguardian}" alt 0 FALSE
-	} else /if (!${Me.Song[${RNGgroupguardian}].ID} && ${Me.AltAbilityReady[Guardian of the Forest]}) {  
-		/if (${is_ready[FALSE, alt, "Guardian of the Forest", ${Me.ID}]}) /call voodoo FALSE "Guardian of the Forest" alt 0 FALSE
+	/if (!${Me.Song[Guardian of the Forest].ID} && ${Me.AltAbilityReady[Group Guardian of the Forest]}) {
+		/if (${is_ready[FALSE, "Group Guardian of the Forest", ${Me.ID}]}) {
+			/call voodoo FALSE "Group Guardian of the Forest" alt 0 FALSE
+		}
+		
+	} else /if (!${Me.Song[Group Guardian of the Forest].ID} && ${Me.AltAbilityReady[Guardian of the Forest]}) {  
+		/if (${is_ready[FALSE, "Guardian of the Forest", ${Me.ID}]}) {
+			/call voodoo FALSE "Guardian of the Forest" alt 0 FALSE
+		}
 	}
 		
 	| swarm pets
-	/if (${swSwarm}) {
-		/if (${is_ready[FALSE, alt, "Pack Hunt", TARGET]}) {
-			/call voodoo FALSE "Pack Hunt" alt TARGET FALSE   
+	/if (SWARM) {
+		/if (${is_ready[FALSE, "Pack Hunt"]}) {
+			/call voodoo FALSE "Pack Hunt" TARGET FALSE   
 		}
 	}
 	
 	| ae regen 
-	/if (${is_ready[FALSE, disc, "${DiscHeal}", TARGET]} && !${Me.Song[Bladespur Reflection].ID}) /call voodoo FALSE "${DiscHeal}" disc TARGET FALSE
+	/if (${is_ready[FALSE, "${maChr.Find[stDiscHeal].Value}"]} && !${Me.Song[Bladespur Reflection].ID}) {
+		/call voodoo FALSE "${maChr.Find[stDiscHeal].Value}" TARGET FALSE
+	}
 			
-	/call click_burn_circle
-	/call click_item_burn
-
  /return TRUE
  	
 
@@ -375,11 +354,8 @@ sub burn_RNG(bool _debug)
 sub set_control_RNG(string _type, string _verbage, string _silent, bool _debug)
 	DEBUG \atset_control_RNG\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
-	/if (!${check_class[FALSE, |RNG]}) /return
-	/declare _li listiterator local
   /declare _out string local
   
-	| output control map
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maChr ${_verbage}
 		/return
@@ -413,22 +389,17 @@ sub set_control_RNG(string _type, string _verbage, string _silent, bool _debug)
 
 	/if (${_silent.Equal[SILENT]}) /return 
 	/varset _out
-	/vardata _li lsChr.First.Clone
-	/while (!${_li.IsEnd}) {
-		/varset _out ${_out} ${If[${_li.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${_li.Value}\ax
-		/if (${_li.Value.Equal[manaclick]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaClick].Value},${num}${maChr.Find[stPctManaClick].Value}\ax,${r0}]}
-		/if (${_li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
-		/if (${_li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
-		/if (${_li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
-		/if (${_li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
-		/if (${_li.Value.Equal[summer]}) /varset _out ${_out}:${If[${maChr.Find[swSummer].Value},${on},${off}]}
-		/varset dump ${_li.Advance}
+	/vardata li lsChr.First.Clone
+	/while (!${li.IsEnd}) {
+		/varset _out ${_out} ${If[${li.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${li.Value}\ax
+		/if (${li.Value.Equal[manaclick]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaClick].Value},${num}${maChr.Find[stPctManaClick].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
+		/if (${li.Value.Equal[summer]}) /varset _out ${_out}:${If[${maChr.Find[swSummer].Value},${on},${off}]}
+		/varset dump ${li.Advance}
 	}	
 	OUT /chr ${_out}
 
 /return
-
-
-
-
-${Target.Body.Name.Equal[Animal]} || ${Target.Name.Body.Equal[Plant]}

@@ -1530,7 +1530,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub)
 		
 		| global cooldown
 		/if (${Me.SpellInCooldown}) /return FALSE
-		
+				
 		| correct rank name
 		/varset _verbage ${Spell[${_verbage}].RankName}
 
@@ -1751,12 +1751,6 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub)
 	}
 
 
-
-
-
-
-
-	
 	| pulses
 	} else /if (${_type.Equal[PULSE]}) {
 		DEBUG ${sep}\agPULSE\ax${sep}${_verbage}
@@ -2628,14 +2622,14 @@ sub get_target_basepull(bool _debug, int _tmpID)
 	DEBUG ${sep}loop \a-w:waitformob\ax
 	:waitformob
 	/if (!${SpawnCount[npc radius 31 PS4 targetable]}) {
-		/declare _wait int local ${Math.Calc[(PULLENV + ${Spawn[TARGET].Distance})*.08]}s
-		/call set_timer FALSE _wait_for_mob ${_wait}
+		/declare _wait int local ${Math.Calc[(PULLENV + ${Spawn[TARGET].Distance})*.08]}
+		/call set_timer FALSE _wait_for_mob ${_wait}s
 	
 		/if (!${Spawn[TARGET].Dead}) {
 			/varset dump ${out[9, "Waiting on${sep}${tar}${Spawn[TARGET].DisplayName}\ax${sep}\a-w${_wait}s\ax"]}
 		}
 	
-		/while (TARGET && ${Spawn[TARGET].Distance} >= ${Spawn[TARGET].MaxRangeTo} && !${Spawn[TARGET].Dead}) {
+		/while (TRUE) {
 			SDEBUG ${sep}\awTARGET\ax.distance${sep}\a-w${Spawn[TARGET].Distance}\ax${sep}\a-w${_wait_for_mob}\ax
 			GETINPUT
 			/delay 5
@@ -2644,39 +2638,42 @@ sub get_target_basepull(bool _debug, int _tmpID)
 				/call check_buff_cycle_range FALSE TRUE
 			}			
 			
-			/if (!TARGET || !${Spawn[TARGET].Dead}) {
+			/if (!TARGET || ${Spawn[TARGET].Dead}) {
 				/call clear_combat FALSE
-				DEBUG ${sep}/while \a-gbreak_NO_target\ax
+				SDEBUG ${sep}/while \a-gbreak_NO_target\ax
 				/break			
 			}
 
-			| mobs in range not our target
-			/if (${SpawnCount[npc radius 15 PS4 targetable]}) {
-				DEBUG ${sep}/while \a-gbreak_MOBSCLOSE\ax
+			| mobs in our personal space. fuck those things. no respect
+			/if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
+				SDEBUG ${sep}/while \a-gbreak_MOB IN SAFE SPACE\ax
 				/break
 			}
+
 			| target LOS & within tag range
 			/if (${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} < ENV && ${Spawn[TARGET].Distance} < 100 && RANGE) {
-				DEBUG ${sep}/while \a-gbreak_tag\ax
+				SDEBUG ${sep}/while \a-gbreak_tag\ax
 				/break
 			}
+			
 			| target within melee
-			/if (${Spawn[TARGET].Distance} <= ${Spawn[TARGET].MaxRangeTo}) {
-				DEBUG ${sep}/while \a-gbreak_MaxRangeTo\ax
+			/if (${Spawn[TARGET].Distance} <= ${Spawn[TARGET].MaxRangeTo}*.9) {
+				SDEBUG ${sep}/while \a-gbreak_MaxRangeTo\ax
 				/break
 			}
 			
 			| LoS time reduction
-			/if (!${Spawn[TARGET].LineOfSight}) {
-				/varcalc _wait_for_mob ${_wait_for_mob}-10
+			/if (!${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} < ENV) {
+				/varcalc _wait_for_mob ${_wait_for_mob} - 10
+				/call set_timer FALSE _wait_for_mob ${_wait_for_mob}s
 				OUT Target \arLoS\ax${sep}\a-w${_wait}s\ax
 			}
 			
 			
 			| timer ran out
 			/if (!${_wait_for_mob}) {
+				OUT Sick of waiting on${sep}\a-w${Spawn[TARGET].DisplayName}\ax
 				/call clear_combat FALSE
-				DEBUG ${sep}/while \a-gbreak_Timer\ax
 				/break
 			}
 		}
@@ -2686,6 +2683,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 
 /return
 
+${Spawn[${Target.ID}].MaxRangeTo}
 
 
 |***
@@ -3873,48 +3871,23 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 
 |***
  * note: sets the spires a character will use
- * use: /call set_control_chr_spire [debug] [group|raid] [1|2|3]
+ * use: /call set_control_chr_spire [debug] [group|raid] [NOTUSED]
  ***|
-sub set_control_chr_spire(bool _debug, string _type, int _verbage)
-	DEBUG \atset_control_chr_spire\ax(\a-w${_type}, ${_verbage}\ax)
+sub set_control_chr_spire(bool _debug, string _type, string _verbage)
+	DEBUG \atset_control_chr_spire\ax(\a-w${_type}\ax)
 	
-	/declare _lsout list local
-	/varset dump ${_lsout.Append[1,2,3]}
   /declare _out string local
 
 	/if (${_type.Equal[group]}) {
-		/if (${Range.Between[1,3:${Int[${_verbage}]}]}) {
-			/call do_raw_edit ${_debug} FALSE stSpireGroup ${If[${maChr.Find[stSpireGroup].Value.NotEqual[${_verbage}]},${_verbage},FALSE\ax]}
-		}
+		/varset dump ${set_switch_env[${_debug}, swSpireGroup, TRUE, ${_verbage}]}
 		
 	} else /if (${_type.Equal[raid]}) {
-		/if (${Range.Between[1,3:${Int[${_verbage}]}]}) {
-			/call do_raw_edit ${_debug} FALSE stSpireRaid ${If[${maChr.Find[stSpireGroup].Value.NotEqual[${_verbage}]},${_verbage},FALSE\ax]}
-		}
+		/varset dump ${set_switch_env[${_debug}, swSpireRaid, TRUE, ${_verbage}]}
 	}
 
-	/varset dump ${out[12, "/chr spire"]}
-	
-	/vardata li _lsout.First.Clone
-	/while (!${li.IsEnd}) {
-		/varset _out ${_out} ${If[${li.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${li.Value}\ax
-		/if (${li.Value.Equal[1]}) /varset _out ${_out}:${If[${maChr.Find[stSpireGroup].Value.Equal[1]},${on},${off}]}
-		/if (${li.Value.Equal[2]}) /varset _out ${_out}:${If[${maChr.Find[stSpireGroup].Value.Equal[2]},${on},${off}]}
-		/if (${li.Value.Equal[3]}) /varset _out ${_out}:${If[${maChr.Find[stSpireGroup].Value.Equal[3]},${on},${off}]}
-		/varset dump ${li.Advance}
-	}		
-	/varset dump ${out[12, "${dot} \awgroup\ax ${_out}"]}
-	
-	/varset _out
-	/vardata li _lsout.First.Clone
-	/while (!${li.IsEnd}) {
-		/varset _out ${_out} ${If[${li.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${li.Value}\ax
-		/if (${li.Value.Equal[1]}) /varset _out ${_out}:${If[${maChr.Find[stSpireRaid].Value.Equal[1]},${on},${off}]}
-		/if (${li.Value.Equal[2]}) /varset _out ${_out}:${If[${maChr.Find[stSpireRaid].Value.Equal[2]},${on},${off}]}
-		/if (${li.Value.Equal[3]}) /varset _out ${_out}:${If[${maChr.Find[stSpireRaid].Value.Equal[3]},${on},${off}]}
-		/varset dump ${li.Advance}
-	}		
-	/varset dump ${out[12, "${dot} \awraid\ax ${_out}"]}
+	/varset _out ${info}group\ax:${If[${Bool[${maChr.Find[swSpireGroup].Value}]},${on},${off}]}
+	/varset _out ${_out} ${dot} ${info}raid\ax:${If[${Bool[${maEnv.Find[swSpireRaid].Value}]},${on},${off}]}
+	/varset dump ${out[12, "/chr spire ${_out}"]}
 
 /return
 
@@ -7882,7 +7855,7 @@ sub cast_glyph(bool _debug)
 
 |***
  * note: uses the aa Spire you have set
- * use: /call cast_AA_spire
+ * use: /call cast_AA_spire DEBUG
  ***|
 sub cast_AA_spire(bool _debug)
 	DEBUG \atcast_AA_spire\aw()
@@ -7891,17 +7864,17 @@ sub cast_AA_spire(bool _debug)
 	CHECKEXIT
 	GETINPUT
 	
-	/if (${Raid.Members}) {
-		/if (!${Me.Buff[${maData.Find[stSpire${maChr.Find[stSpireRaid].Value}].Value}].ID} && ${Spell[${maData.Find[stSpire${maChr.Find[stSpireRaid].Value}].Value}].Stacks}) {
-			/if (${is_ready[FALSE, "${maData.Find[stSpire${maChr.Find[stSpireRaid].Value}].Value}"]}) {
-				/call voodoo FALSE "${maData.Find[stSpire${maChr.Find[stSpireRaid].Value}].Value}" 0 FALSE
+	/if (${Raid.Members} && ${maData.Find[swSpireRaid].Value}) {
+		/if (!${Me.Buff[${maData.Find[stSpire].Value}].ID} && ${Spell[${maData.Find[stSpire].Value}].Stacks}) {
+			/if (${is_ready[FALSE, "${maData.Find[stSpire].Value}"]}) {
+				/call voodoo FALSE "${maData.Find[stSpire].Value}" 0 FALSE
 				/return
 			}
 		}
-	} else /if (!${Raid.Members} && ${Group.Members}) {
-		/if (!${Me.Buff[${maData.Find[stSpire${maChr.Find[stSpireGroup].Value}].Value}].ID} && ${Spell[${maData.Find[stSpire${maChr.Find[stSpireGroup].Value}].Value}].Stacks}) {
-			/if (${is_ready[FALSE, "${maData.Find[stSpire${maChr.Find[stSpireGroup].Value}].Value}"]}) {
-				/call voodoo FALSE "${maData.Find[stSpire${maChr.Find[stSpireGroup].Value}].Value}" 0 FALSE
+	} else /if (!${Raid.Members} && ${Group.Members} && ${maData.Find[swSpireGroup].Value}) {
+		/if (!${Me.Buff[${maData.Find[stSpire].Value}].ID} && ${Spell[${maData.Find[stSpire].Value}].Stacks}) {
+			/if (${is_ready[FALSE, "${maData.Find[stSpire].Value}"]}) {
+				/call voodoo FALSE "${maData.Find[stSpire].Value}" 0 FALSE
 				/return
 			}
 		}

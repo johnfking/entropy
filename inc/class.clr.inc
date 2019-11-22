@@ -12,9 +12,7 @@
 sub set_CLR(bool _debug)
 	DEBUG \atset_CLR\ax()
 
-	/call set_data FALSE maData stSpire1																map outer "Fundament: First Spire of Divinity"
-	/call set_data FALSE maData stSpire2																map outer "Fundament: Second Spire of Divinity"
-	/call set_data FALSE maData stSpire3																map outer "Fundament: Third Spire of Divinity"
+	/call set_data FALSE maData stSpire																	map outer "Spire of the Vicar"
 	/call set_data FALSE maData stSynergy																map outer "Templar's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Water Sprinkler of Nem Ankh"
 	/call set_data FALSE maData stEpic15																map outer "Harmony of the Soul"

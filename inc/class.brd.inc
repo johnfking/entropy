@@ -12,9 +12,7 @@
 sub set_BRD(bool _debug)
 	DEBUG \atset_BRD\ax()
 
-	/call set_data FALSE maData stSpire1																map outer "Fundament: First Spire of the Minstrel"
-	/call set_data FALSE maData stSpire2																map outer "Fundament: Second Spire of the Minstrel"
-	/call set_data FALSE maData stSpire3																map outer "Fundament: Third Spire of the Minstrel"
+	/call set_data FALSE maData stSpire																	map outer "Spire of the Minstrels"
 	/call set_data FALSE maData stSynergy																map outer "Troubadour's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Singing Short Sword"
 	/call set_data FALSE maData stEpic15																map outer "Prismatic Dragon Blade"

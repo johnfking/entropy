@@ -12,9 +12,7 @@
 sub set_SHD(bool _debug)
 	DEBUG \atset_SHD\ax()
 		
-	/call set_data FALSE maData stSpire1																map outer "Fundament: First Spire of the Reavers"
-	/call set_data FALSE maData stSpire2																map outer "Fundament: Second Spire of the Reavers"
-	/call set_data FALSE maData stSpire3																map outer "Fundament: Third Spire of the Reavers"
+	/call set_data FALSE maData stSpire																	map outer "Spire of the Reavers"
 	/call set_data FALSE maData stSynergy																map outer "Knight's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Innoruuk's Curse"
 	/call set_data FALSE maData stEpic15																map outer "Innoruuk's Voice"
@@ -48,13 +46,8 @@ sub set_SHD(bool _debug)
 	/call set_data_map FALSE maChr lsAEHate 														EMPTY													"${auxli} ae hate skills to use"
 	/call set_data_map FALSE maChr stAELifeTap													PREGEN|1											"${auxna} se lifetap nuke"
 	/call set_data_map FALSE maChr stLeechcurse													PREGEN|1											"${auxna} leechcurse disc"
+	
 /return
-
-
-
-
-
-
 
 
 
@@ -103,7 +96,7 @@ sub main_SHD(bool _debug)
 		/if (AUTO) {	
 			/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
 			CHECKFADE
-			| /if (${validate_class[FALSE, ${lstClassMelee}]}) /call cast_stamina_recovery
+			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery
 		}
 	}
 

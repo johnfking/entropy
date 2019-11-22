@@ -12,9 +12,7 @@
 sub set_WIZ(bool _debug)
 	DEBUG \atset_WIZ\ax()
 
-	/call set_data FALSE maData stSpire1																map outer "Fundament: First Spire of Arcanum"
-	/call set_data FALSE maData stSpire2																map outer "Fundament: Second Spire of Arcanum"
-	/call set_data FALSE maData stSpire3																map outer "Fundament: Third Spire of Arcanum"
+	/call set_data FALSE maData stSpire																	map outer "Spire of Arcanum"
 	/call set_data FALSE maData stSynergy																map outer "Evoker's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Staff of the Four"
 	/call set_data FALSE maData stEpic15																map outer "Staff of Prismatic Power"
@@ -39,9 +37,9 @@ sub set_WIZ(bool _debug)
 	/call set_data_map FALSE maChr stCurrent														base
 	/call set_data FALSE FALSE stLine																		string outer ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
 
-	/call set_data_map FALSE maChr stAAFire															"Pyromancy"										"${auxna} fire boost (aa)"
-	/call set_data_map FALSE maChr stAAIce															"Cryomancy"										"${auxna} ice boost (aa)"
-	/call set_data_map FALSE maChr stAAMagic														"Arcomancy"										"${auxna} magic boost (aa)" 
+	| /call set_data_map FALSE maChr stAAFire															"Pyromancy"										"${auxna} fire boost (aa)"
+	| /call set_data_map FALSE maChr stAAIce															"Cryomancy"										"${auxna} ice boost (aa)"
+	| /call set_data_map FALSE maChr stAAMagic														"Arcomancy"										"${auxna} magic boost (aa)" 
 	/call set_data_map FALSE maChr stAABase															FALSE													"${auxna} pick a boost aa for DPS"
 	
 	/varset dump ${set_data_timer[FALSE, Force_TC, 6s]}
@@ -192,12 +190,12 @@ sub check_heal_WIZ(bool _debug, string _type)
 
 
 |***
- *	DES: Wizard burn routines
- *	USE: establish all comp/trigger skills
- *	NOTE: 
+ * note: Wizard burn routines
+ * use: bug guns?
  ***| 
 sub burn_WIZ(bool _debug)
-	DEBUG burn_WIZ()
+	DEBUG \atburn_WIZ\ax()
+	
 	CHECKEXIT
 	GETINPUT
 	/if (${is_target_dead[FALSE, TARGET]}) /return
@@ -218,7 +216,7 @@ sub burn_WIZ(bool _debug)
 		/call voodoo FALSE "${maChr.Find[stTC].Value}" 0 FALSE
 	}
 	
-	/call cast_AA_spire
+	/call cast_AA_spire FALSE
 
 	| boost spell type damage
 	/if (${is_ready[FALSE, "Fury of the Gods"]}) /call voodoo FALSE "Fury of the Gods" 0 FALSE
@@ -243,9 +241,7 @@ sub burn_WIZ(bool _debug)
 		/if (${is_ready[FALSE, alt, "Call of Xuzl"]}) /call voodoo FALSE "Call of Xuzl" alt TARGET FALSE
 	}
 
-	/call use_glyph	
-	/call click_burn_circle
-	/call click_item_burn
+	/call cast_glyph FALSE
 	
 /return
 
@@ -279,7 +275,7 @@ sub force_twincast_WIZ(bool _debug)
 |***
  * note: Make sure you are using the AA casting boost you want..
  * use: /call check_AA_mancy
- ***|
+
 sub check_AA_mancy(bool _debug)
 	DEBUG \atcheck_AA_mancy\ax()
 
@@ -304,7 +300,7 @@ sub check_AA_mancy(bool _debug)
 	}
 	
 /return
-
+ ***|
 
 
 |***
@@ -354,7 +350,7 @@ sub set_control_WIZ(string _type, string _verbage, string _silent, bool _debug)
 		}
 		/varset dump ${do_raw_edit[${_debug}, SILENT, stCurrent, "${_verbage.Lower}"]}
 		/varset stLine ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
-		/call check_AA_mancy FALSE
+		| /call check_AA_mancy FALSE
 
 	| set gather use %	
 	} else /if (${_type.Equal[gather]}) {
