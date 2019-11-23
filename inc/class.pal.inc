@@ -21,6 +21,7 @@ sub set_PAL(bool _debug)
 
 	| tank shield flash
 	/call set_data_map FALSE maChr stPctShieldFlash											0															"${auxnum} % of HP to try to get shield flash running"
+	/call set_data_map FALSE maChr stCountShieldFlash										0															"${auxnum} # of mobs to hit shield flash"
 
 	| Rampage Tank 
 	/call set_data_map FALSE maChr stRampageTank												FALSE													"${auxna} sets a rampage tank name for healing exclusion"
@@ -115,7 +116,7 @@ sub main_PAL(bool _debug)
 	    /call check_xtarget_build FALSE
 		}
 
-		/if (${maChr.Find[stPctShieldFlash].Value} && ${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE aa
+		/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 
 		| aa LoH
 		/if (${maHeal.Find[swHealSelf].Value} && ${maChr.Find[stPctLoH].Value}) {
@@ -137,13 +138,13 @@ sub main_PAL(bool _debug)
 		/if (${maHeal.Find[swHealXTarget].Value}) /call get_hurt_${Me.Class.ShortName} FALSE XTarget
 		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call get_hurt_${Me.Class.ShortName} FALSE Pet
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call cast_cure FALSE
-		/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE		
+		/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE		
 		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
 		/if (${check_class_loop[FALSE]}) /return
 		
 		/if (VALID) {
 			/call set_combat FALSE
-			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 			/if (AGRO) /call get_agro_${Me.Class.ShortName}
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (BURN) /call burn_${Me.Class.ShortName} FALSE
@@ -167,7 +168,7 @@ sub main_PAL(bool _debug)
 		/if (AUTO) {	
 			/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
 			CHECKFADE
-			| /if (${validate_class[FALSE, ${lstClassMelee}]}) /call cast_stamina_recovery
+			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery
 		}
 	}
 
@@ -181,6 +182,7 @@ sub main_PAL(bool _debug)
  ***|
 sub misc_combat_PAL(bool _debug)
 	DEBUG \atmisc_combat_PAL\ax()
+	
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
@@ -197,9 +199,9 @@ sub misc_combat_PAL(bool _debug)
 	/call check_facing FALSE TARGET FORCE
 	
 	| defensive	
-	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 		
-	/if (${maChr.Find[stPctShieldFlash].Value} && ${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE aa
+	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 	
 	| AA inquisitors armor stacking control
 	/if (${SpawnCount[npc OVERLOS radius 30 targetable]} >= ${maChr.Find[stCountDefensive].Value} && ${maChr.Find[stCountDefensive].Value}) {
@@ -240,8 +242,8 @@ sub get_agro_PAL(bool _debug)
 
 	/if (${is_target_dead[FALSE, TARGET]}) /return FALSE
 	/call set_combat FALSE
-	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
-	/if (${maChr.Find[stPctShieldFlash].Value} && ${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE aa
+	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 	
 	| aa LoH
 	/if (${maHeal.Find[swHealSelf].Value} && ${maChr.Find[stPctLoH].Value}) {
@@ -365,7 +367,6 @@ sub check_heal_PAL(bool _debug, string _type)
 				/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 			}
 		}
-		
 
 		| heal disc
 		/if (${hurtCount} >= 1) {
@@ -376,7 +377,6 @@ sub check_heal_PAL(bool _debug, string _type)
 		}	
 	  
 	}
-	
 	
 	| self only heals
 	/if (${Select[${_type},self]} && ${maHeal.Find[swHealSelf].Value}) {
@@ -403,7 +403,6 @@ sub check_heal_PAL(bool _debug, string _type)
 			/call voodoo FALSE "Gift of Life" 0 FALSE
 		}
 	}	
-
 	
  	/if (!${get_hurt[FALSE, ${_type}]}) /return FALSE
 	CHECKREZ
@@ -481,7 +480,7 @@ sub burn_PAL(bool _debug)
 
 	/call check_facing ${_debug} TARGET FORCE
 
-	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 
 	| deflection
 	/if (!${Bool[${Me.ActiveDisc}]} && ${Me.PctHPs} < 50*.PCTHO) {
@@ -491,7 +490,7 @@ sub burn_PAL(bool _debug)
 		}
 	}
 	
-	/if (${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value} && ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE aa
+	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 
 	| aa LoH
 	/if (${maHeal.Find[swHealSelf].Value} && ${maChr.Find[stPctLoH].Value}) {
@@ -605,20 +604,27 @@ sub set_control_PAL(string _type, string _verbage, string _silent, bool _debug)
 			/varset dump ${do_raw_edit[${_debug}, SILENT, stStun, "${_maStun.Find[${_verbage}].Value}"]}
 		} 
 	
-		/declare _mi mapiterator local
-		/vardata _mi _maStun.First.Clone
+		/vardata mi _maStun.First.Clone
 		OUT /chr stun [\a-wuse\ax|\a-wdivine\ax|\a-wforce\ax|\a-wdisruptive\ax]
 		/varset _out ${_out} \awuse\ax:${If[${maChr.Find[swStun].Value},${on},${off}]} ${dot}
-		/while (!${_mi.IsEnd}) {
-			/varset _out ${_out} ${If[${_maStun.First.Value.Equal[${_mi.Value}]},,${dot}]} ${If[${maChr.Find[stStun].Value.Equal[${_mi.Value}]},${good}${_mi.Value}\ax,${info}${_mi.Value}\ax]}
-			/varset dump ${_mi.Advance}
+		/while (!${mi.IsEnd}) {
+			/varset _out ${_out} ${If[${_maStun.First.Value.Equal[${mi.Value}]},,${dot}]} ${If[${maChr.Find[stStun].Value.Equal[${mi.Value}]},${good}${mi.Value}\ax,${info}${mi.Value}\ax]}
+			/varset dump ${mi.Advance}
 		}	
 		OUT /chr stun ${_out}
 		/return
 
 	| shield flash
 	} else /if (${_type.Equal[flash]}) {
-		/if (!${set_control_num_range[FALSE, stPctShieldFlash, "${_verbage}", 0, 99]}) /return
+		
+		/if (${_verbage.Equal[pct]}) {
+			/if (!${set_control_num_range[FALSE, stPctShieldFlash, "${_silent}", 0, 99]}) /return
+		} else /if (${_verbage.Equal[count]}) {
+			/if (!${set_control_num_range[FALSE, stCountShieldFlash, "${_silent}", 0, 99]}) /return
+		}
+
+		OUT /chr flash ${dot} ${info}pct\ax:${If[${Bool[${maChr.Find[stPctShieldFlash].Value}]},${num}${maChr.Find[stPctShieldFlash].Value}\ax,${r0}]} ${dot} ${info}count\ax:${If[${Bool[${maChr.Find[stCountShieldFlash].Value}]},${num}${maChr.Find[stCountShieldFlash].Value}\ax,${r0}]}
+		/return
 
 	| Lay on hands
 	} else /if (${_type.Equal[loh]}) {
@@ -651,16 +657,18 @@ sub set_control_PAL(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
 		/if (${li.Value.Equal[groupheal]}) /varset _out ${_out}:${If[${maChr.Find[stCountHealGroup].Value},${num}${maChr.Find[stCountHealGroup].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[flash]}) /varset _out ${_out}:${If[${maChr.Find[stPctShieldFlash].Value},${num}${maChr.Find[stPctShieldFlash].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[flash]}) /varset _out ${_out}:${submenu}
 		/if (${li.Value.Equal[loh]}) /varset _out ${_out}:${If[${maChr.Find[stPctLoH].Value},${num}${maChr.Find[stPctLoH].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[mg]}) /varset _out ${_out}:${If[${maChr.Find[stPctMG].Value},${num}${maChr.Find[stPctMG].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[attraction]}) /varset _out ${_out}:${If[${maChr.Find[swAttraction].Value},${on},${off}]}
 		/if (${li.Value.Equal[harmonious]}) /varset _out ${_out}:${If[${maChr.Find[swHarmonious].Value},${on},${off}]}
 		/if (${li.Value.Equal[vp]}) /varset _out ${_out}:${If[${maChr.Find[stPctVP].Value},${num}${maChr.Find[stPctVP].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[splash]}) /varset _out ${_out}:${If[${maChr.Find[stCountSplash].Value},${num}${maChr.Find[stCountSplash].Value}\ax,${r0}]}
+
 		/varset dump ${li.Advance}
-	}	
+	}
 	OUT /chr ${_out}
+
 /return
 
 

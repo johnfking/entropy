@@ -21,12 +21,8 @@ sub set_WAR(bool _debug)
 	/call set_data FALSE maData stFade																	map outer FALSE
 	/call set_data_map FALSE maChr stAAUnity														FALSE													"${auxna} class aa unity buff"
 
-	| tank shield flash
-	/call set_data_map FALSE maChr stPctShieldFlash											0															"${auxnum} % of HP to try to get shield flash running"
-
 	| attraction AA used for pulling / agro
 	/call set_data_map FALSE maChr swAttraction													FALSE													"${auxsw} use the attraction aa to help with agro/pulling"
-
 
 	| /call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} "
 	/call set_data_map FALSE maChr stDichotomic													PREGEN|1											"${auxna} dichotomic disc"
@@ -43,7 +39,12 @@ sub set_WAR(bool _debug)
 	/call set_data_map FALSE maChr stRest			 													PREGEN|1											"${auxna} Respite family disc"
 	/call set_data_map FALSE maChr stDefense 														PREGEN|1											"${auxna} Bracing Defense family disc"
 	/call set_data_map FALSE maChr stField				 											PREGEN|1											"${auxna} Field Armorer family disc"
+	
+	| shield flash
+	/call set_data_map FALSE maChr stPctShieldFlash											0															"${auxnum} % of HP to try to get shield flash running"
+	/call set_data_map FALSE maChr stCountShieldFlash										0															"${auxnum} # of mobs to hit shield flash"
 	/call set_data_map FALSE maChr stFlash				 											PREGEN|1											"${auxna} Flash of Anger family disc"
+
 	/call set_data_map FALSE maChr stNoTime				 											PREGEN|1											"${auxna} No Time to Bleed family disc"
 	/call set_data_map FALSE maChr stAttention													PREGEN|1											"${auxna} Undivided Attention family disc"
 	/call set_data_map FALSE maChr stPhantom														PREGEN|1											"${auxna} Phantom Aggressor family disc"
@@ -56,7 +57,6 @@ sub set_WAR(bool _debug)
 	/call set_data_map FALSE maChr stMighty															PREGEN|1											"${auxna} Mighty Strike Discipline family disc"
 	/call set_data_map FALSE maChr stOnslaught													PREGEN|1											"${auxna} Savage Onslaught Discipline family disc"
 	/call set_data_map FALSE maChr stOffensive													PREGEN|1											"${auxna} Offensive Discipline family disc"
-	
 
 /return
 
@@ -67,20 +67,21 @@ sub set_WAR(bool _debug)
  * use: 
  ***|
 sub main_WAR(bool _debug)
-	DEBUG main_WAR(${_debug})
+	DEBUG \atmain_WAR\ax()
+	
 	GETINPUT
 	ISMEDEAD
 	CHECKTIE
 
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Self
+		/if (${maHeal.Find[swHealSelf].Value}) /call check_heal_${Me.Class.ShortName} FALSE Self
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
 		/if (${check_class_loop[FALSE]}) /return
 
-		/if (${VALID}) {
+		/if (VALID) {
 			/call set_combat FALSE
-			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 			/if (AGRO) /call get_agro_${Me.Class.ShortName}
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (BURN) /call burn_${Me.Class.ShortName} FALSE
@@ -93,7 +94,7 @@ sub main_WAR(bool _debug)
 		}
 
 		/if (AUTO) {	
-			| /if (${validate_class[FALSE, ${lstClassMelee}]}) /call cast_stamina_recovery
+			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery
 		}
 	} 
 /return
@@ -117,7 +118,7 @@ sub misc_combat_WAR(bool _debug)
 	
 	/if (AGRO) /call get_agro_${Me.Class.ShortName}
 
-	/if (${validate_mitigation[FALSE, burn, SAFEENV]}) /call mitigation_cycle FALSE
+	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 
 	| stShocking blocks Brace for Impact
 	/if (${is_ready[FALSE, "${maChr.Find[stShocking].Value}"]} && !${Me.Buff[Brace for Impact].ID}) {
@@ -174,9 +175,7 @@ sub misc_combat_WAR(bool _debug)
 	| Duplicating these two sub calls here b/c don't want to lose agro or mitigation while firing off this other stuff.
 	/if (AGRO) /call get_agro_${Me.Class.ShortName}
 	
-	/if (${validate_mitigation[FALSE, burn, SAFEENV]}) {
-		/call mitigation_cycle FALSE
-	}
+	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 	
 	/if (AE# && ${SpawnCount[npc radius ENV targetable PS4]} >= AE#) {
 		/if (${is_ready[FALSE, "${maChr.Find[stExpanse].Value}"]}) {
@@ -354,7 +353,7 @@ sub burn_WAR(bool _debug)
 
 		} else {
 			/if (!${Me.ActiveDisc.Name.Equal[${maChr.Find[stEvasive].Value}]} && !${Me.ActiveDisc.Name.Equal[Fortitude Discipline]} && !${Me.Buff[${maChr.Find[stWarriors].Value}].ID}) {
-				/call mitigation_cycle FALSE
+				/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 			}
 		}
 	}

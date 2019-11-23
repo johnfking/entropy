@@ -454,8 +454,6 @@ sub check_heal_CLR(bool _debug, string _type)
 sub do_arbitration(bool _debug)
 	DEBUG \atdo_arbitration\ax()
 	
-	/if (!${maChr.Find[stCountArbitrate].Value}) /return FALSE
-	
 	ISMEDEAD
 	CHECKEXIT
 	
@@ -478,9 +476,11 @@ sub do_arbitration(bool _debug)
   }
   
   | should we group heal?
-	/if ((${maChr.Find[swArbitratetoHealGroup].Value} && ${_arbDone}) || (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value})) {
+	/if ((${maChr.Find[swArbitratetoHealGroup].Value} && ${_arbDone}) || (${maChr.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maChr.Find[stCountHealGroup].Value})) {
+		/varset dump ${out[3, "Arbitration done"]}
 	  /call cast_list ${_debug} lsHealGroup ${Me.ID}
 	}
+	
 	CHECKREZ
 	
 /return
@@ -544,7 +544,6 @@ sub Bind_command_issuance(bool _debug)
  ***| 
 sub burn_CLR(bool _debug)
 	DEBUG \atburn_CLR\ax()
-	
 	
 	CHECKTIE
 	ISMEDEAD

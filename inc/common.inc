@@ -905,13 +905,12 @@ sub is_defensive_active(bool _debug, string _abort, int _range)
 	/if (${SpawnCount[npc radius ${_range} PS4 targetable]} < ${maChr.Find[stCountDefensive].Value}) /return TRUE
 	/if (${_abort.Equal[burn]} && BURN) /return TRUE
 
-	/declare _li listiterator local
-	/vardata _li lsMitigationCyclecheck.First.Clone
-	/while (!${_li.IsEnd}) {
-		/if (${Me.Buff[${_li.Value}].ID}) /return TRUE
-		/if (${Me.Song[${_li.Value}].ID}) /return TRUE
-		/if (${Me.ActiveDisc[${_li.Value}].ID}) /return TRUE
-		/varset dump ${_li.Advance}
+	/vardata li lsMitigationCyclecheck.First.Clone
+	/while (!${li.IsEnd}) {
+		/if (${Me.Buff[${li.Value}].ID}) /return TRUE
+		/if (${Me.Song[${li.Value}].ID}) /return TRUE
+		/if (${Me.ActiveDisc[${li.Value}].ID}) /return TRUE
+		/varset dump ${li.Advance}
 	}
 
 /return FALSE
@@ -3274,7 +3273,7 @@ sub do_rest(bool _debug)
 	}
 	
 	/if (${maEnv.Find[swADVLoot].Value}) {
-		/if (AUTO && (${Group.Members} && ${Group.MasterLooter.ID} == ${Me.ID}) && ${Me.UseAdvancedLooting} && !${AdvLoot.LootInProgress} && !${Stick.Active}) /call do_loot
+		/if (AUTO && (${Group.Members} && ${Group.MasterLooter.ID} == ${Me.ID}) && ${Me.UseAdvancedLooting} && !${AdvLoot.LootInProgress} && !${Stick.Active}) /call do_loot TRUE
 	}
 	
 	| bard rest song
@@ -6177,8 +6176,8 @@ sub set_timer(bool _debug, string _my_timer, string _my_duration)
  *	NOTE: set a person in the group as master looter. Or, as the raid master looter.
  *	NOTE2: The event in this sectction is designed to handle lore items the toon already posseses. as of this, MQ has no property .Member value for LORE in ${AdvLoot
  ***|
-#Event forcedloreleave "#*#already has #1# and it is lore#*#"
-#Event forcedloreleave "#*#does not want #1#. It is either on their never list or they have selected No#*#"
+| #Event forcedloreleave "#*#already has #1# and it is lore#*#"
+| #Event forcedloreleave "#*#does not want #1#. It is either on their never list or they have selected No#*#"
 sub Event_forcedloreleave(string line, string _itemName, bool _debug)
 	/if (!${maEnv.Find[swADVLoot].Value}) /return
 	/varset _itemName ${AdvLoot.SList[1].Name}
@@ -6188,9 +6187,11 @@ sub Event_forcedloreleave(string line, string _itemName, bool _debug)
 /return
 
 sub do_loot(bool _debug)
-	/if (!${maEnv.Find[swADVLoot].Value}) /return
+	DEBUG \atdo_loot\ax()
+	
 	ISMEDEAD
 	GETINPUT
+
 	/if (${Stick.Active} || !${Me.FreeInventory} || !${Me.UseAdvancedLooting}) /return
 
 	| I am not the raid loot master /sigh
@@ -6216,29 +6217,41 @@ sub do_loot(bool _debug)
 	
 
 	/if (${Raid.Members} || ${Group.Members}) {
+		DEBUG ${sep}RAID${Raid.Members} || GROUP${Group.Members}
 		| Shared List Sorting
 		/for _scount ${AdvLoot.SCount} downto 1
 			/varset _advlItem ${AdvLoot.SList[${_scount}].Name}
 			
+			
+			| ${AdvLoot.SList[1].Name}
+			
 			/sqlite ${maData.Find[DBloot].Value} dummy SELECT * FROM loot_control WHERE item="${_advlItem}"
+			DEBUG dummy SELECT * FROM loot_control WHERE item="${_advlItem}" \ay${sqlite.Status[dummy]}\ax
+			
 			/if (${sqlite.Status[dummy].NotEqual[Success]}) {
 				/if (${AdvLoot.SList[${_scount}].NoDrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
 					/varset dump ${out[14, "${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]."]}
 					| /ini "${INILoot}" "${_advlItem.Left[1]}" "${_advlItem}" |Leave
 					/sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "leave")
+					DEBUG dummy INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "leave") \ay${sqlite.Status[dummy]}\ax
 					| 
 				} else {
 					/varset dump ${out[14, "${add} ${dot} ${_advlItem} = ${keep} [default]."]}
 					/sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "keep")
+					DEBUG  dummy INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "keep") \ay${sqlite.Status[dummy]}\ax
 					| /ini "${INILoot}" "${_advlItem.Left[1]}" "${_advlItem}" |Keep
 				}
 			}
 	
 	
 			| reload data
-			/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${_advlItem}" LIMIT 1
-			/varset _advlChoice ${sqlite.Result[lootquery 1 action]}
-			/varset _advlPerson ${sqlite.Result[lootquery 1 pass]}
+			/sqlite ${maData.Find[DBloot].Value} dummy SELECT * FROM loot_control WHERE item="${_advlItem}" LIMIT 1
+			DEBUG dummy SELECT * FROM loot_control WHERE item="${_advlItem}" LIMIT 1 \ay${sqlite.Status[dummy]}\ax
+			
+			/varset _advlChoice ${sqlite.Result[dummy 1 action]}
+			/varset _advlPerson ${sqlite.Result[dummy 1 pass]}
+			
+			SDEBUG here --${sqlite.Result[dummy 1 action]} == ${sqlite.Result[dummy 1 pass]}
 			
 			| now we do something with the item.
 			
@@ -6327,7 +6340,8 @@ sub do_loot(bool _debug)
 
 				} 
 			/next _pcount
-		}        
+		}
+	}
 
 /return
 
@@ -7651,7 +7665,6 @@ sub control_mez(bool _debug, int _tmpID)
 	
 	/declare _resistCount int local 0
 
-
 	| try to mez more then once if there is a fail
 	/while (${_resistCount} < 4) {
 	
@@ -7669,7 +7682,7 @@ sub control_mez(bool _debug, int _tmpID)
 		} 
 		
 		| mez ready?
-		| /delay 2.25s ${Me.SpellReady[${Spell[${madeBuff.Find[stMez].Value}].RankName}]}
+		/delay 2.25s ${Me.SpellReady[${Spell[${madeBuff.Find[stMez].Value}].RankName}]}
 		/call voodoo FALSE "${madeBuff.Find[stMez].Value}" ${_tmpID} FALSE
 
 		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,IMMUNE,TAKEHOLD]}) {
@@ -7706,19 +7719,33 @@ sub control_mez(bool _debug, int _tmpID)
 		}
 	}
 
-
 /return
 
 
 
 |***
- * note: active Shield Flash when HP reach a specific %
+ * note: active Shield Flash when HP reach a specific % or a number of mobs in immediate range
  * use: /call cast_shield_flash DEBUG [aa|disc]
  ***|
 sub cast_shield_flash(bool _debug, string _type)
 	DEBUG \atcast_shield_flash\ax(\a-w${_type}\ax)
 	/if (!AUTO) /return
+
+	| health low enough || enough mobs in range
+	/if (${Me.PctHPs} > ${maChr.Find[stPctShieldFlash].Value} && ${SpawnCount[npc radius SAFEENV PS4 targetable]} < ${maChr.Find[stCountShieldFlash].Value}) /return FALSE
+
+	| is the skill available
+	/if (${_type.Equal[aa]}) { 
+		/if (!${is_ready[FALSE, "Shield Flash"]}) /return FALSE
+	} else /if (${_type.Equal[disc]}) {
+		/if (!${is_ready[FALSE, "${maChr.Find[stFlash].Value}"]}) /return FALSE
+	}
 	
+	| do not use while another defensive line is running
+	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]}) /return FALSE
+	
+	
+	| mark current bandolier and swap to flash
 	/declare _Bandolier string local FALSE
 
 	| take note of current Bandolier	
@@ -7736,16 +7763,12 @@ sub cast_shield_flash(bool _debug, string _type)
 	
 	| pally / shadowknight
 	/if (${_type.Equal[aa]}) { 
-	
-		/if (!${is_ready[FALSE, "Shield Flash"]}) /return FALSE
 		/call check_facing FALSE TARGET FORCE
 		/invoke ${Me.Bandolier[Flash].Activate}
 		/call voodoo FALSE "Shield Flash" 0 FALSE
 		
 	| warior
 	} else /if (${_type.Equal[disc]}) {
-	
-		/if (!${is_ready[FALSE, "${maChr.Find[stFlash].Value}"]}) /return FALSE
 		/call check_facing FALSE TARGET FORCE
 		/invoke ${Me.Bandolier[Flash].Activate}
 		/call voodoo FALSE "${maChr.Find[stFlash].Value}" 0 FALSE

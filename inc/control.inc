@@ -1109,30 +1109,58 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 			/declare _section string local
 			/declare _key string local
 			/declare _value string local
-			/declare _pass string local
 			/declare _countS int local 0
-			/declare _countK int local 0
+			/declare _loopKey int local 0
+			/declare _totalCount int local 0
 			
-			/echo \awImporting Loot File from\ax\at...\ax\a-w${_lootini}\ax
-			/echo \a-yINI sections\ax::\a-w${Ini[${_lootini}].Count[|]}\ax
+			OUT \awImporting Loot File from\ax\at...\ax\a-w${_lootini}\ax
+			OUT On Large loot files this will take a min to build.
 			
-			/for _countS 1 to ${Ini[${_lootini}].Count[|]}
-				/varset _section ${Ini[${_lootini}].Arg[${_countS},|]}
-				/if (${Select[${_section},NULL]}) /continue
-				OUT \at..\ax\aw${_section}\ax::\a-w${Ini[${_lootini},${_section}].Count[|]}\ax
-			
-				/for _countK 1 to ${Ini[${_lootini},${_section}].Count[|]}
-					/varset _key ${Ini[${_lootini},${_section}].Arg[${_countK},|]}
-					/if (${Select[${_key},NULL]}) /continue
-					/varset _value ${Ini[${_lootini},${_section},${_key}].Arg[1,|]}
-					/varset _pass ${Ini[${_lootini},${_section},${_key}].Arg[2,|]}
-					OUT \at...\axkey:\aw${_key}\ax::value:\a-w${_value}\ax ${If[${Bool[${_pass}]},\at...\ax pass:\a-g${_pass}\ax,]}
-					/sqlite ${maData.Find[DBloot].Value} dummy INSERT OR IGNORE INTO loot_control VALUES ("${_key}", "${_value}", "${_pass}", "NULL")
-					DEBUG INSERT INTO loot_control VALUES ("${_key}", "${_value}", "${_pass}", "NULL") .. ${sqlite.Status[dummy]}
-				/next _countK
-			/next _countS 
+				/for _countS 0 to ${Ini[${_lootini}].Count[|]}
 
-			/echo ${eol}
+					/varset _section ${Ini[${_lootini}].Arg[${_countS},|]}
+
+					/if (!${Ini[${_lootini},${_section}].Count[|]}) {
+						/ini "${_lootini}" "${_section}" NULL NULL
+						/continue
+					}
+
+					OUT \at..\ax\aw${_section}
+	
+					| are there keys in the section?
+					/while (${Ini[${_lootini},${_section}].Count[|]}) {
+
+						| get the key
+						/varset _key ${Ini[${_lootini},${_section}].Arg[0,|]}
+		
+						| delete key if NULL and go to next
+						/if (${Select[${_key},NULL]}) {
+							/ini "${_lootini}" "${_section}" "${_key}" NULL
+							| /varcalc _loopKey ${_loopKey}+1
+							/continue
+						}
+
+						| get the key value
+						/varset _value ${Ini[${_lootini},${_section},${_key}].Arg[0,|]}
+						
+						| delete the key if the value is null and move to next
+						/if (${Select[${_value},NULL]}) {
+							/ini "${_lootini}" "${_section}" "${_key}" NULL
+							| /varcalc _loopKey ${_loopKey}+1
+							/continue
+						}
+
+						| add key->value to DB and delete
+						/sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO loot_control VALUES ("${_key}", "${_value}", 0, 0)
+						| OUT ${sep}\aw${_key}\ax${sep}\a-w${_value}\ax${sep}${sqlite.Status[dummy]}
+						/ini "${_lootini}" "${_section}" "${_key}" NULL
+
+					}
+					/next _countS 
+				
+			}
+			
+			/echo ${eol} 
 			/echo
 			/return					
 			

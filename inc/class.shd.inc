@@ -35,6 +35,8 @@ sub set_SHD(bool _debug)
  	/call set_data_map FALSE maChr stSkin 															PREGEN|1											"${auxna} name of the steel self buff"
 	/call set_data_map FALSE maChr swAttraction													FALSE													"${auxsw} use the attraction aa to help with agro/pulling"
 	/call set_data_map FALSE maChr stPctShieldFlash											0															"${auxnum} % of HP to try to get shield flash running"
+	/call set_data_map FALSE maChr stCountShieldFlash										0															"${auxnum} # of mobs to hit shield flash"
+	
 	/varset dump ${set_data_timer[FALSE, Check_VoT, 21m]}
 	/call set_data_map FALSE maChr swVoT				 												FALSE													"${auxsw} use voice of thule aa"
  	/call set_data_map FALSE maChr stTempRune 													PREGEN|1											"${auxna} fast reuse disc rune"
@@ -62,7 +64,7 @@ sub main_SHD(bool _debug)
 		/if (!${check_engaged[]} && PET) /call check_pet
 	}	
 	
-	/if (${maChr.Find[stPctShieldFlash].Value} && ${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE aa
+	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 
 	/while (${check_combat_status[FALSE]}) {
 		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Self
@@ -120,7 +122,7 @@ sub misc_combat_SHD(bool _debug)
 
 	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 	
-	/if (${maChr.Find[stPctShieldFlash].Value} && ${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE aa
+	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 
 	| AA Voice of Thule AA
 	/if (AGRO && !${timer_Check_VoT} && ${maChr.Find[swVoT].Value}) {
@@ -171,7 +173,7 @@ sub get_agro_SHD(bool _debug)
 	/if (PET) /call send_pet FALSE TARGET
 	
 	/call cast_challenge TARGET
-	/if (${maChr.Find[stPctShieldFlash].Value} && ${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE aa
+	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 	
 	| AA pet hate
 	/if (${Me.PctAggro} < 80 || ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
@@ -241,7 +243,7 @@ sub check_skin(bool _debug)
 
 	ISMEDEAD
 	SIMPLEEXIT
-	/if (${maChr.Find[stPctShieldFlash].Value} && ${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE aa
+	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 	GETINPUT
 	/if (${is_target_dead[FALSE, TARGET]}) /return	
 	/if (!${Me.Buff[${maChr.Find[stSkin].Value}].ID} && ${is_ready[FALSE, "${maChr.Find[stSkin].Value}"]}) {
@@ -275,7 +277,7 @@ sub burn_SHD(bool _debug)
 		}
 	}	
 	
-	/if (${maChr.Find[stPctShieldFlash].Value} && ${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE aa
+	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 
 	/if (${is_ready[FALSE, "T`Vyl's Resolve"]}) /call voodoo FALSE "T`Vyl's Resolve" TARGET FALSE
 	/if (${is_ready[FALSE, "${stCrimsonBlade}"]}) /call voodoo FALSE "${stCrimsonBlade}" 0 FALSE
@@ -340,8 +342,16 @@ sub set_control_SHD(string _type, string _verbage, string _silent, bool _debug)
 
 	| shield flash
 	} else /if (${_type.Equal[flash]}) {
-		/if (!${set_control_num_range[FALSE, stPctShieldFlash, "${_verbage}", 0, 99]}) /return
+		
+		/if (${_verbage.Equal[pct]}) {
+			/if (!${set_control_num_range[FALSE, stPctShieldFlash, "${_silent}", 0, 99]}) /return
+		} else /if (${_verbage.Equal[count]}) {
+			/if (!${set_control_num_range[FALSE, stCountShieldFlash, "${_silent}", 0, 99]}) /return
+		}
 
+		OUT /chr flash ${dot} ${info}pct\ax:${If[${Bool[${maChr.Find[stPctShieldFlash].Value}]},${num}${maChr.Find[stPctShieldFlash].Value}\ax,${r0}]} ${dot} ${info}count\ax:${If[${Bool[${maChr.Find[stCountShieldFlash].Value}]},${num}${maChr.Find[stCountShieldFlash].Value}\ax,${r0}]}
+		/return
+		
 	| harmonious
 	} else /if (${_type.Equal[harmonious]}) {
 		/varset dump ${set_switch_env[${_debug}, swHarmonious, TRUE, ${_verbage}]}
@@ -362,14 +372,14 @@ sub set_control_SHD(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
-		/if (${li.Value.Equal[flash]}) /varset _out ${_out}:${If[${maChr.Find[stPctShieldFlash].Value},${num}${maChr.Find[stPctShieldFlash].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[flash]}) /varset _out ${_out}:${submenu}
 		/if (${li.Value.Equal[vot]}) /varset _out ${_out}:${If[${maChr.Find[swVoT].Value},${on},${off}]}
 		/if (${li.Value.Equal[attraction]}) /varset _out ${_out}:${If[${maChr.Find[swAttraction].Value},${on},${off}]}
 		/if (${li.Value.Equal[harmonious]}) /varset _out ${_out}:${If[${maChr.Find[swHarmonious].Value},${on},${off}]}
 
-
 		/varset dump ${li.Advance}
 	}	
 	OUT /chr ${_out}
+
 /return
 
