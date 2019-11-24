@@ -500,7 +500,7 @@ sub get_input(string _sub, string _variable)
 		/call register_observer ${_sub} ${_variable}
 	}
 	
-/return FALSE
+/return
 
 
 
@@ -2639,7 +2639,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 		}
 	
 		/while (TRUE) {
-			SDEBUG ${sep}\awTARGET\ax.distance${sep}\a-w${Spawn[TARGET].Distance}\ax${sep}\a-w${_wait_for_mob}\ax
+			DEBUG ${sep}\awTARGET\ax.distance${sep}\a-w${Spawn[TARGET].Distance}\ax${sep}\a-w${_wait_for_mob}\ax
 			GETINPUT
 			/delay 5
 			
@@ -2649,25 +2649,25 @@ sub get_target_basepull(bool _debug, int _tmpID)
 			
 			/if (!TARGET || ${Spawn[TARGET].Dead}) {
 				/call clear_combat FALSE
-				SDEBUG ${sep}/while \a-gbreak_NO_target\ax
+				DEBUG ${sep}/while \a-gbreak_NO_target\ax
 				/break			
 			}
 
 			| mobs in our personal space. fuck those things. no respect
 			/if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
-				SDEBUG ${sep}/while \a-gbreak_MOB IN SAFE SPACE\ax
+				DEBUG ${sep}/while \a-gbreak_MOB IN SAFE SPACE\ax
 				/break
 			}
 
 			| target LOS & within tag range
 			/if (${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} < ENV && ${Spawn[TARGET].Distance} < 100 && RANGE) {
-				SDEBUG ${sep}/while \a-gbreak_tag\ax
+				DEBUG ${sep}/while \a-gbreak_tag\ax
 				/break
 			}
 			
 			| target within melee
 			/if (${Spawn[TARGET].Distance} <= ${Spawn[TARGET].MaxRangeTo}*.9) {
-				SDEBUG ${sep}/while \a-gbreak_MaxRangeTo\ax
+				DEBUG ${sep}/while \a-gbreak_MaxRangeTo\ax
 				/break
 			}
 			
@@ -3282,8 +3282,8 @@ sub do_rest(bool _debug)
 		}
 	}
 	
-	/if (${maEnv.Find[swADVLoot].Value}) {
-		/if (AUTO && (${Group.Members} && ${Group.MasterLooter.ID} == ${Me.ID}) && ${Me.UseAdvancedLooting} && !${AdvLoot.LootInProgress} && !${Stick.Active}) /call do_loot TRUE
+	/if (${maEnv.Find[swADVLoot].Value} && !${timer_Check_Loot}) {
+		/if (AUTO && (${Group.Members} && ${Group.MasterLooter.ID} == ${Me.ID}) && ${Me.UseAdvancedLooting} && !${AdvLoot.LootInProgress} && !${Stick.Active}) /call do_loot FALSE
 	}
 	
 	| bard rest song
@@ -6201,13 +6201,15 @@ sub do_loot(bool _debug)
 	ISMEDEAD
 	GETINPUT
 
+	/varset dump ${set_data_timer[FALSE, Check_Loot, RESTART]}
+
 	/if (${Stick.Active} || !${Me.FreeInventory} || !${Me.UseAdvancedLooting}) /return
 
 	| I am not the raid loot master /sigh
 	/if (${Raid.Members} && ${Raid.MasterLooter.ID} != ${Me.ID} && !${maOver.Find[swOverLoot].Value}) /return
 	/if (!${Raid.Members} && ${Group.Members} && ${Group.MasterLooter.ID} != ${Me.ID} && !${maOver.Find[swOverLoot].Value}) /return
 
-	SETHUD "loot"
+	SETHUD "loot whoring"
 
 	/delay 2s !${AdvLoot.LootInProgress}
 	| /if (${Me.UseAdvancedLooting} && ${Group.MasterLooter.Name.Equal[${Me.DisplayName}]} && !${swAutoCursor}) /varset swAutoCursor TRUE
@@ -6226,42 +6228,40 @@ sub do_loot(bool _debug)
 	
 
 	/if (${Raid.Members} || ${Group.Members}) {
-		DEBUG ${sep}RAID${Raid.Members} || GROUP${Group.Members}
+		DEBUG ${sep}RAID${sep}\a-w${Raid.Members}\ax || GROUP${sep}\a-w${Group.Members}\ax
 		| Shared List Sorting
 		/for _scount ${AdvLoot.SCount} downto 1
 			/varset _advlItem ${AdvLoot.SList[${_scount}].Name}
 			
+			/if (${_advlItem.Equal[NULL]}) /break
 			
-			| ${AdvLoot.SList[1].Name}
+			/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
+			DEBUG lootquery SELECT * FROM loot_control WHERE item="${_advlItem}" \ay${sqlite.Status[lootquery]}\ax
 			
-			/sqlite ${maData.Find[DBloot].Value} dummy SELECT * FROM loot_control WHERE item="${_advlItem}"
-			DEBUG dummy SELECT * FROM loot_control WHERE item="${_advlItem}" \ay${sqlite.Status[dummy]}\ax
-			
-			/if (${sqlite.Status[dummy].NotEqual[Success]}) {
+			/if (${sqlite.Status[lootquery].NotEqual[Success]}) {
 				/if (${AdvLoot.SList[${_scount}].NoDrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
 					/varset dump ${out[14, "${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]."]}
 					| /ini "${INILoot}" "${_advlItem.Left[1]}" "${_advlItem}" |Leave
-					/sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "leave")
-					DEBUG dummy INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "leave") \ay${sqlite.Status[dummy]}\ax
+					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "leave")
+					DEBUG lootquery INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "leave") \ay${sqlite.Status[lootquery]}\ax
 					| 
 				} else {
 					/varset dump ${out[14, "${add} ${dot} ${_advlItem} = ${keep} [default]."]}
-					/sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "keep")
-					DEBUG  dummy INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "keep") \ay${sqlite.Status[dummy]}\ax
+					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "keep")
+					DEBUG  lootquery INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "keep") \ay${sqlite.Status[lootquery]}\ax
 					| /ini "${INILoot}" "${_advlItem.Left[1]}" "${_advlItem}" |Keep
 				}
 			}
 	
-	
 			| reload data
-			/sqlite ${maData.Find[DBloot].Value} dummy SELECT * FROM loot_control WHERE item="${_advlItem}" LIMIT 1
-			DEBUG dummy SELECT * FROM loot_control WHERE item="${_advlItem}" LIMIT 1 \ay${sqlite.Status[dummy]}\ax
+			/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${_advlItem}" LIMIT 1
+			DEBUG lootquery SELECT * FROM loot_control WHERE item="${_advlItem}" LIMIT 1 \ay${sqlite.Status[lootquery]}\ax
 			
-			/varset _advlChoice ${sqlite.Result[dummy 1 action]}
-			/varset _advlPerson ${sqlite.Result[dummy 1 pass]}
+			/varset _advlChoice ${sqlite.Result[lootquery 1 action]}
+			/varset _advlPerson ${sqlite.Result[lootquery 1 pass]}
 			
-			SDEBUG here --${sqlite.Result[dummy 1 action]} == ${sqlite.Result[dummy 1 pass]}
-			
+			DEBUG here --${sqlite.Result[lootquery 1 action]} == ${sqlite.Result[lootquery 1 pass]}
+
 			| now we do something with the item.
 			
 			| if we are going to leave the item or if it is lore AND we have one already. Conversly, we loot if we intend to keep or destroy the item
@@ -6295,15 +6295,17 @@ sub do_loot(bool _debug)
 		/for _pcount ${AdvLoot.PCount} downto 1
 			/varset _advlItem ${AdvLoot.PList[${_pcount}].Name}
 
-			/sqlite ${maData.Find[DBloot].Value} dummy SELECT * FROM loot_control WHERE item="${_advlItem}"
-			/if (${sqlite.Status[dummy].NotEqual[Success]}) {
+			/if (${_advlItem.Equal[NULL]}) /break
+
+			/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
+			/if (${sqlite.Status[lootquery].NotEqual[Success]}) {
 
 				/if (${AdvLoot.PList[${_pcount}].NoDrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
 					/varset dump ${out[14, "Cursor ${dot} ${info}${_advlItem}\ax = ${leave} loot file [no drop]"]}
-					/sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "leave")
+					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "leave")
 				} else {
 					/varset dump ${out[14, "Cursor ${dot} ${info}${_advlItem}\ax = ${keep} loot file [default]"]}
-					/sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "keep")
+					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item, action) VALUES("${_advlItem}", "keep")
 				}
 			}
 
@@ -6572,7 +6574,7 @@ sub check_cursor(bool _debug, bool _ignoreTimer, string _verbage)
 		/varset dump ${set_data_timer[FALSE, Check_Cursor, 5s]}
 	}
 	
-	| allow for absence of override for not in same zone as master looter
+	| allow for absence of override for not in same zone as master  looter
 	/if (!${maOver.Find[swOverLoot].Value} && !${_ignoreTimer}) /return FALSE
 	
 	/if (!${Cursor.ID}) /return
