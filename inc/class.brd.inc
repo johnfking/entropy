@@ -46,14 +46,6 @@ sub set_BRD(bool _debug)
 /return
 
 
-
-
-
-
-
-
-
-
 sub main_BRD(bool _debug)
 	DEBUG \atmain_BRD\ax()
 
@@ -223,7 +215,7 @@ sub pulse_line(bool _debug)
 		/return
 	}
 
-	/declare _skip					bool local FALSE
+	/declare _skip bool local FALSE
 
 	SETHUD "pulse"
 	
@@ -269,12 +261,12 @@ sub pulse_line(bool _debug)
 sub pulse_stop(string _marker, bool _debug)
 	DEBUG \atpulse_stop\ax(marker:\aw${_marker}\aw)
 
-	/if ((${Me.Casting.ID} || ${Me.BardSongPlaying})) {
+	/while (${Me.Casting.ID} || ${Me.BardSongPlaying}) {
 		/varset dump ${maData.Add[stCastReturn,NOTREADY]}
 		/stopsong
 		/stopcast
 		/delay 10 !${Me.Casting.ID}
-	}	
+	}
 	
 /return 
 

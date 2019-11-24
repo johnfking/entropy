@@ -614,7 +614,7 @@ sub check_free_ingame_cash(bool _debug)
  ***| 
 sub sql_clear(bool _debug, string _verbage)
 
-	/if (!${sqlite.Clear[${_verbage}]})  {
+	/if (!${sqlite.Clear[${_verbage}]}) {
 		/varset debug ${out[16, "${warning} ${dot} Couldn't clear memory for${sep}\a-w${_verbage}\ax"]}
 	}
 	
@@ -2166,8 +2166,9 @@ sub clear_combat(bool _debug)
 	}
 	/if (TARGET) {
 		/call clear_timer FALSE TARGET
-		/varset stAssTarID 0
 	}
+
+	/varset stAssTarID 0
 	
 	| /if (${Me.MercID} && ${Me.MercenaryStance.NotEqual[Passive]}) /stance Passive
 	/varset dump ${maBurn.Add[swBurnConditionMet,FALSE]}
@@ -2665,13 +2666,13 @@ sub get_target_basepull(bool _debug, int _tmpID)
 			/if (!${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} < ENV) {
 				/varcalc _wait_for_mob ${_wait_for_mob} - 10
 				/call set_timer FALSE _wait_for_mob ${_wait_for_mob}s
-				OUT Target \arLoS\ax${sep}\a-w${_wait}s\ax
+				/varset dump ${out[9, "Target \arLoS\ax${sep}\a-w${_wait}s\ax"]}
 			}
 			
 			
 			| timer ran out
 			/if (!${_wait_for_mob}) {
-				OUT Sick of waiting on${sep}\a-w${Spawn[TARGET].DisplayName}\ax
+				/varset dump ${out[9, "Sick of waiting on${sep}\a-w${Spawn[TARGET].DisplayName}\ax"]}
 				/call clear_combat FALSE
 				/break
 			}
