@@ -60,6 +60,8 @@ sub main_BRD(bool _debug)
 		/if (${check_class_loop[FALSE]}) /return FALSE
 	
 		/if (VALID) {
+			/call control_routine FALSE
+
 			/call set_combat FALSE
 			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
@@ -72,7 +74,7 @@ sub main_BRD(bool _debug)
 			/call control_routine FALSE
 			| /if (${swAlliance}) /call trigger_alliance TARGET
 			/if (DOT) /call cast_dot FALSE lsDoT TARGET
-			/call pulse_line
+			/call pulse_line FALSE
 			/call control_routine FALSE
 			/if (NUKE) /call cast_nuke FALSE lsNuke TARGET
 			/call misc_combat_${Me.Class.ShortName}
@@ -114,10 +116,14 @@ sub misc_combat_BRD(bool _debug)
 	
 	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 	
-	/if (${is_ready[FALSE, "Fierce Eye"]}) /call voodoo FALSE "Fierce Eye" 0 FALSE
- 	/if (${is_ready[FALSE, "Bladed Song"]}) /call voodoo FALSE "Bladed Song" 0 FALSE
+	/if (${is_ready[FALSE, "Fierce Eye"]}) {
+		/call voodoo FALSE "Fierce Eye" 0 FALSE
+	}
+ 	/if (${is_ready[FALSE, "Bladed Song"]}) {
+ 		/call voodoo FALSE "Bladed Song" 0 FALSE
+ 	}
  	
- 	/call control_routine FALSE
+ 	| /call control_routine FALSE
 
 	| trigger Frenzied kicks AA for bards if target is debuffed from intimidate
 	/if (${maCC.Find[swIntimidation].Value}) {
@@ -228,6 +234,8 @@ sub pulse_line(bool _debug)
 			/return
 		}
 		
+		/call control_routine FALSE
+		
 		/if (AUTO) {
 			/call check_facing FALSE TARGET FORCE
 			/call stick_to_target FALSE TARGET
@@ -280,6 +288,7 @@ sub pulse_stop(string _marker, bool _debug)
  *  Song - Rallying Solo
  ***|
 sub cast_AA_rallying(bool _debug)
+	DEBUG \atcast_AA_rallying\ax()
 
  	/if (SAFEZONE || !${Me.AltAbilityReady[Rallying Solo]}) /return
 	ISMEDEAD
@@ -303,7 +312,8 @@ sub cast_AA_rallying(bool _debug)
  * use: establish all comp/trigger skills
  ***| 
 sub burn_BRD(bool _debug)
-
+	DEBUG \atburn_BRD\ax()
+	
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
@@ -316,12 +326,23 @@ sub burn_BRD(bool _debug)
 	
 	/call control_routine FALSE
 	
- 	/if (${is_ready[FALSE, "Thousand Blades"]}) /call voodoo FALSE "Thousand Blades" 0 FALSE	
+ 	/if (${is_ready[FALSE, "Thousand Blades"]}) {
+ 		/call voodoo FALSE "Thousand Blades" 0 FALSE	
+ 	}
+ 	
 	/call cast_AA_spire
-	/if (${is_ready[FALSE, "Funeral Dirge"]}) /call voodoo FALSE "Funeral Dirge" 0 FALSE
-	/if (${is_ready[FALSE, "Quick Time"]} && !${Me.Song[Ruaabri's Fury].ID}) /call voodoo FALSE "Quick Time" 0 FALSE
+	
+	/if (${is_ready[FALSE, "Funeral Dirge"]}) {
+		/call voodoo FALSE "Funeral Dirge" 0 FALSE
+	}
+	
+	/if (${is_ready[FALSE, "Quick Time"]} && !${Me.Song[Ruaabri's Fury].ID}) {
+		/call voodoo FALSE "Quick Time" 0 FALSE
+	}
 
 	/call cast_glyph FALSE
+	
+	/call check_item_cycle FALSE TARGET
 
 /return TRUE
 

@@ -2145,15 +2145,16 @@ sub is_target_dead(bool _debug, int _tmpID)
 
 	/if (${_dead}) {
 		/call clear_combat FALSE
-		/call set_stop FALSE
+		| /call set_stop FALSE
 	}
+	
 /return ${_dead}
 
 
 
 |***
  * note: Clear all combat variables
- * use: /call clear_combat
+ * use: /call clear_combat DEBUG
  ***|
 sub clear_combat(bool _debug)
 	DEBUG \atclear_combat\ax()
@@ -3861,10 +3862,10 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 			/varset dump ${out[16, "List Updated${sep}\a-w${_variable}\ax Count${sep}\a-w${${_variable}.Count}\ax"]}
 		} else /if (${Bool[${_map}]}) {
 			DEBUG MAP output
-			/varset dump ${out[16, "/edit ${_variable}${sep}\a-w${Parse[2,${${_map}.Find[${_variable}].Value}]}\ax"]}
+			OUT /edit ${_variable}${sep}\a-w${Parse[2,${${_map}.Find[${_variable}].Value}]}\ax
 		} else /if (${_found}) {
 			DEBUG FOUND output
-			/varset dump ${out[16, "/edit ${_variable}\ax${sep}${num}${Parse[0,${_value}]}\ax"]}
+			OUT /edit ${_variable}\ax${sep}${num}${Parse[0,${_value}]}\ax
 		} else {
 			
 		}
@@ -4445,7 +4446,6 @@ sub check_buff_cycle(bool _debug, bool _force)
 		} else /if (${Select[${Me.Class.ShortName},SHM]}) {
 		} else /if (${Select[${Me.Class.ShortName},WAR]}) {
 		} else /if (${Select[${Me.Class.ShortName},WIZ]}) {
-			/call check_AA_mancy FALSE
 		}
 	}
 
@@ -4589,7 +4589,7 @@ sub check_item_cycle(bool _debug, int _tmpID)
 			/return
 		}
 		/if (${maItems.Find[stItem${_count}].Value.Equal[FALSE]}) /continue
-		/if (!${is_ready[FALSE, ${maItems.Find[stItem${_count}].Value}]}) /continue
+		/if (!${is_ready[${_debug}, ${maItems.Find[stItem${_count}].Value}]}) /continue
 		
 		/if (${lsItem${_count}Tag.Contains[raid]} && !${Raid}) /continue
 		/if (${lsItem${_count}Tag.Contains[noraid]} && ${Raid}) /continue
@@ -4613,7 +4613,7 @@ sub check_item_cycle(bool _debug, int _tmpID)
 			/if (${Target.BuffDuration[${_spell}].TotalSeconds}) /continue			
 		}
 
-		/call voodoo ${maDebug.Find[cast].Value} "${maItems.Find[stItem${_count}].Value}" ${_tmpID} FALSE
+		/call voodoo ${_debug} "${maItems.Find[stItem${_count}].Value}" ${_tmpID} FALSE
 
 	/next _count
 /return
@@ -7444,6 +7444,11 @@ sub control_routine(bool _debug)
 	/declare _countArea int local 0
 	
 	/declare _count int local 0
+	
+	
+	/if (!${Defined[maMobControl]}) {
+		/declare maMobControl map outer
+	}
 
 	/if (!AUTO) /return FALSE
 	/if (!${madeBuff.Find[swMez].Value}) /return FALSE
@@ -7458,9 +7463,9 @@ sub control_routine(bool _debug)
 	
 	| if ${check_control_area returns more then 1
 	| hit the AE routines
-	/if (${_countArea}) {
+	| /if (${_countArea}) {
 		/call control_mezae ${_debug}
-	}
+	| }
 	
 	| check control map for any mobs marked as mezed with low or no timer
 	/varset _mezzID ${control_map[${_debug}, mez]}
@@ -7617,8 +7622,8 @@ sub control_map(bool _debug, string _type)
 
 
 |***
- * note: 
- * use: 
+ * note: AE mez routine
+ * use: rwq > 1 mob
  ***|
 sub control_mezae(bool _debug)
 	DEBUG \atcontrol_mezae\ax()
@@ -7657,6 +7662,7 @@ sub control_mezae(bool _debug)
 			}
 		}
 	} 
+	
 /return
 
 
