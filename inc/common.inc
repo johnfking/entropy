@@ -1815,7 +1815,14 @@ sub set_stop(bool _debug, string _silent)
 
 
 	/if (${Select[${Me.Class.ShortName},BRD]} && (${Me.Casting.ID} || ${Me.BardSongPlaying})) {
-		/call pulse_stop
+
+		/while (${Me.Casting.ID} || ${Me.BardSongPlaying}) {
+			/varset dump ${maData.Add[stCastReturn,NOTREADY]}
+			/stopsong
+			/stopcast
+			/delay 10 !${Me.Casting.ID}
+		}
+
 	}	else {
 		/if (${Me.Casting.ID}) /stopcast
 	}
@@ -2138,6 +2145,7 @@ sub is_target_dead(bool _debug, int _tmpID)
 
 	/if (${_dead}) {
 		/call clear_combat FALSE
+		/call set_stop FALSE
 	}
 /return ${_dead}
 
