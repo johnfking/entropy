@@ -98,12 +98,12 @@ sub set_initialize(bool _debug)
   /declare maDebug map outer
   /declare _lsout list local
   /varset dump ${_lsout.Delimiter["|"]}
-  /varset dump ${_lsout.Append[build|buff|burn|mezz|cast|melee|pull|cure|heal|rest|rez]}
+  /varset dump ${_lsout.Append[build|buff|burn|mezz|cast|melee|pull|cure|heal|rest|rez|loot]}
 
-  /vardata li _lsout.First
-  /while (!${li.IsEnd}) {
-    /varset dump ${maDebug.Add[${li.Value},FALSE]}
-    /varset dump ${li.Advance}
+  /vardata cli _lsout.First
+  /while (!${cli.IsEnd}) {
+    /varset dump ${maDebug.Add[${cli.Value},FALSE]}
+    /varset dump ${cli.Advance}
   } 
 
 /return
@@ -166,7 +166,7 @@ sub set_initial_environment(bool _debug)
   /varset dump ${set_data_timer[FALSE, Check_deBuffs, 6s]}
   /varset dump ${set_data_timer[FALSE, Check_Behind, 10s]}
   /varset dump ${set_data_timer[FALSE, Check_Tribute, 1m]}
-  /varset dump ${set_data_timer[FALSE, Check_Loot, 2s]}
+  /varset dump ${set_data_timer[FALSE, Check_Loot, 1s]}
 
 
   | /varset dump ${set_data_timer[FALSE, Check_Buff_List_Population, 2s]}
