@@ -58,7 +58,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 	| delete aliases
 	} else /if (${_type.Equal[whitewash]}) {
 
-		/vardata li liAlias.First.Clone
+		/vardata cli liAlias.First.Clone
 		/while (!${cli.IsEnd}) {
 			/varset dump ${out[12, "Deleting Alias${sep}\a-w${cli.Value}\ax"]}
 			/squelch /alias /${cli.Value} delete
@@ -116,7 +116,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 	/declare liout list local
 	/varset dump ${liout.Append[checkvar,spa,whitewash]}
   /declare _out string local
-	/vardata li liout.First.Clone
+	/vardata cli liout.First.Clone
 	/while (!${cli.IsEnd}) {
 		/varset _out ${_out} ${If[${cli.Value.Equal[${liout.First}]},,${dot}]} ${info}${cli.Value}\ax
 		/varset dump ${cli.Advance}
@@ -195,7 +195,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 		/declare _lsout list local
 		/varset dump ${_lsout.Append[adjust,level,maintain]}
 	  /declare _out string local
-		/vardata li _lsout.First.Clone
+		/vardata cli _lsout.First.Clone
 		/while (!${cli.IsEnd}) {
 			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
 			/if (${cli.Value.Equal[adjust]}) /varset _out ${_out}:${If[${maEnv.Find[swCorrectEXPAA].Value},${on},${off}]}

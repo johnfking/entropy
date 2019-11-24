@@ -6338,7 +6338,7 @@ sub do_loot(bool _debug)
 						:loopfind_advlItem
 						/delay 5
 						/nomodkey /shift /itemnotify in Pack${Math.Calc[${FindItem[=${_advlItem}].ItemSlot}-22]} ${Math.Calc[${FindItem[=${_advlItem}].ItemSlot2}+1]} leftmouseup
-						/call sort_cursor TRUE
+						/call check_cursor FALSE TRUE CLEAR
 						/if (${Window[ConfirmationDialogBox].Open}) {
 							/delay 1
 							/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
@@ -7337,7 +7337,7 @@ sub get_minion_summon_weapons(bool _debug)
 
 	}
 
-	/if (${Cursor.ID}) /call sort_cursor TRUE
+	/if (${Cursor.ID}) /call check_cursor FALSE TRUE CLEAR
 
 	/if (${Window[InventoryWindow].Open}) /invoke ${Window[InventoryWindow].DoClose}
 	
