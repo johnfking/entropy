@@ -24,9 +24,17 @@ sub set_initialize(bool _debug)
   /call set_data FALSE FALSE swDBlocked                               bool outer FALSE
   /call set_data FALSE FALSE DNQReturn                                string outer FALSE
 
+	| map iterator dump variable
   /declare mi mapiterator outer
+  
+  | normal list iterator dump variable
   /declare li listiterator outer
-  /declare se setiterator outer
+  
+  | control list dump variable
+  /declare cli listiterator outer
+  
+  | set dump variable
+  /declare si setiterator outer
   
    
   | hook map

@@ -5679,7 +5679,7 @@ sub do_melee(bool _debug, int _tmpID)
 	}
 	
 	| disarm
-	/if (${maCC.Find[disarm].Value} && !${Skill[Disarm].Auto}) {
+	/if (${maCC.Find[swDisarm].Value} && !${Skill[Disarm].Auto}) {
 		/if (${Me.AbilityReady[Disarm]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} && AGRO) {
 			/varset dump ${out[8, "Melee${sep}${sp}Disarm\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
 			/doability Disarm
@@ -5687,7 +5687,7 @@ sub do_melee(bool _debug, int _tmpID)
 	}
 		
 	| kick
-	/if (${maCC.Find[kick].Value} && !${Skill[Kick].Auto} && !${Select[${Me.Class.ShortName},MNK]}) {
+	/if (${maCC.Find[swKick].Value} && !${Skill[Kick].Auto} && !${Select[${Me.Class.ShortName},MNK]}) {
 	 	/if (${Me.AbilityReady[Kick]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
 			/varset dump ${out[8, "Melee${sep}${sp}Kick\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
 			/doability Kick
@@ -5695,7 +5695,7 @@ sub do_melee(bool _debug, int _tmpID)
 	}
 	
 	| bash
-	/if (${maCC.Find[bash].Value} && !${Skill[Bash].Auto}) {
+	/if (${maCC.Find[swBash].Value} && !${Skill[Bash].Auto}) {
 		/if (${Me.AbilityReady[Bash]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
 			/varset dump ${out[8, "Melee${sep}${sp}Bash\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
 			/if (${swBandolier} && ${Bool[${bandolierBash}]} && ${Bool[${bandolierNormal}]}) {
@@ -5712,7 +5712,7 @@ sub do_melee(bool _debug, int _tmpID)
 	
 	| Intimidation
 	/if (${check_class[FALSE, |BRD|ROG|BER]}) {
-		/if (${maCC.Find[intimidation].Value}) {
+		/if (${maCC.Find[swIntimidation].Value}) {
 			/if (${Me.AbilityReady[Intimidation]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
 				/varset dump ${out[8, "Melee${sep}${sp}Intimidation\ax ${dot} ${tar}${Spawn[TARGET].DisplayName}\ax"]}
 				/doability Intimidation		
@@ -5732,7 +5732,7 @@ sub do_melee(bool _debug, int _tmpID)
 
 	| rogue only skill
 	/if (${check_class[FALSE, |ROG]}) { 
-		/if (${maCC.Find[backstab].Value} && && !${Skill[Backstab].Auto}) {
+		/if (${maCC.Find[swBackstab].Value} && && !${Skill[Backstab].Auto}) {
 			/if (${Me.AbilityReady[Backstab]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
 			/varset dump ${out[8, "Melee${sep}${sp}Backstab\ax ${dot} ${tar}${Spawn[TARGET].DisplayName}\ax"]}
 				/doability Backstab
@@ -7438,6 +7438,11 @@ sub control_routine(bool _debug)
 	| /varset _debug TRUE
 	DEBUG \atcontrol_routine\ax()
 
+	/if (!AUTO) /return FALSE
+	/if (!${madeBuff.Find[swMez].Value}) /return FALSE
+	/if (!${maCC.Find[swCombatControl].Value}) /return FALSE
+
+
 	| ID for unmezzed/short mob
 	/declare _mezzID int local 0
 	| count of uncontrolled mobs in area
@@ -7445,14 +7450,9 @@ sub control_routine(bool _debug)
 	
 	/declare _count int local 0
 	
-	
 	/if (!${Defined[maMobControl]}) {
 		/declare maMobControl map outer
 	}
-
-	/if (!AUTO) /return FALSE
-	/if (!${madeBuff.Find[swMez].Value}) /return FALSE
-	/if (!${maCC.Find[swCombatControl].Value}) /return FALSE
 
 	| check control map for any mobs dead or gone
 	/varset dump ${control_map[${_debug}, dead]}

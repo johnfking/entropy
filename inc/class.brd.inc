@@ -123,15 +123,6 @@ sub misc_combat_BRD(bool _debug)
  		/call voodoo FALSE "Bladed Song" 0 FALSE
  	}
  	
- 	| /call control_routine FALSE
-
-	| trigger Frenzied kicks AA for bards if target is debuffed from intimidate
-	/if (${maCC.Find[swIntimidation].Value}) {
-		/if (${Target.Buff[Harbinger's Intimidation].ID} && ${Spawn[TARGET].Distance} <= ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.9]}) {
-			/if (${is_ready[FALSE, "Frenzied Kicks"]}) /call voodoo FALSE "Frenzied Kicks" 0 FALSE
-		}
-	}
-	
 	/if (${is_ready[FALSE, "Cacophony"]}) /call voodoo FALSE "Cacophony" TARGET FALSE
 	/if (${Spawn[TARGET].PctHPs} > 30) {
 		/if (${is_ready[FALSE, "Boastful Bellow"]}) /call voodoo FALSE "Boastful Bellow" TARGET FALSE	
@@ -296,7 +287,6 @@ sub cast_AA_rallying(bool _debug)
 	
 	/call pulse_stop FALSE
 
-
  	/declare _endurancePoint int local 30
  	/declare _manaPoint int local 30
 
@@ -339,7 +329,12 @@ sub burn_BRD(bool _debug)
 	/if (${is_ready[FALSE, "Quick Time"]} && !${Me.Song[Ruaabri's Fury].ID}) {
 		/call voodoo FALSE "Quick Time" 0 FALSE
 	}
-
+	
+	| trigger Frenzied kicks AA for bards if target is debuffed from intimidate
+	/if (${Target.Buff[Harbinger's Intimidation].ID} && ${is_ready[FALSE, "Frenzied Kicks"]}) {
+		/call voodoo FALSE "Frenzied Kicks" 0 FALSE
+	}
+	
 	/call cast_glyph FALSE
 	
 	/call check_item_cycle FALSE TARGET
