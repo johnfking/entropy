@@ -6243,12 +6243,12 @@ sub do_loot(bool _debug)
 				DEBUG ${sep}${_advlItem}${sep}\a-w not in database\ax
 				/if (${AdvLoot.SList[${_scount}].NoDrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
 					/varset dump ${out[14, "${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]."]}
-					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control VALUES("${_advlItem}", "leave", "0", "0")
-					DEBUG ${sep}lootquery INSERT INTO loot_control VALUES("${_advlItem}", "leave", "0", "0") \ay${sqlite.Status[lootquery]}\ax
+					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
+					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave") \ay${sqlite.Status[lootquery]}\ax
 				} else {
 					 OUT ${add} ${dot} ${_advlItem} = ${keep} [default]
-					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control VALUES("${_advlItem}", "keep", "0", "0")
-					DEBUG ${sep}lootquery INSERT INTO loot_control VALUES("${_advlItem}", "keep", "0", "0") \ay${sqlite.Status[lootquery]}\ax
+					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep")
+					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep") \ay${sqlite.Status[lootquery]}\ax
 				}
 			}
 	
@@ -6312,12 +6312,12 @@ sub do_loot(bool _debug)
 				DEBUG ${sep}${_advlItem}${sep}\a-wnot in database\ax
 				/if (${AdvLoot.SList[${_scount}].NoDrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
 					/varset dump ${out[14, "${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]."]}
-					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control VALUES("${_advlItem}", "leave", "0", "0")
-					DEBUG ${sep}lootquery INSERT INTO loot_control VALUES("${_advlItem}", "leave", "0", "0") \ay${sqlite.Status[lootquery]}\ax
+					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
+					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave") \ay${sqlite.Status[lootquery]}\ax
 				} else {
 					 OUT ${add} ${dot} ${_advlItem} = ${keep} [default]
-					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control VALUES("${_advlItem}", "keep", "0", "0")
-					DEBUG ${sep}lootquery INSERT INTO loot_control VALUES("${_advlItem}", "keep", "0", "0") \ay${sqlite.Status[lootquery]}\ax
+					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep")
+					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep") \ay${sqlite.Status[lootquery]}\ax
 				}
 			}
 
@@ -6357,15 +6357,17 @@ sub do_loot(bool _debug)
 					
 			| evil delete code. had to change this. like > 9000 times 
 						:loopfind_advlItem
+					/while (${FindItem[=${_advlItem}].ID}) {
 						/delay 5
 						/nomodkey /shift /itemnotify in Pack${Math.Calc[${FindItem[=${_advlItem}].ItemSlot}-22]} ${Math.Calc[${FindItem[=${_advlItem}].ItemSlot2}+1]} leftmouseup
-						/call check_cursor FALSE TRUE CLEAR
+						| /call check_cursor FALSE TRUE CLEAR
 						/if (${Window[ConfirmationDialogBox].Open}) {
 							/delay 1
 							/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
 						}
 						/delay 3 !${Cursor.ID}
-						/if (${FindItem[=${_advlItem}].ID}) /goto :loopfind_advlItem
+					}
+						| /if (${FindItem[=${_advlItem}].ID}) /goto :loopfind_advlItem
 			| evil delete code end...
 
 					}          

@@ -352,7 +352,7 @@ sub sql_set_loot_schema(bool _debug)
       /sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO 'build' ('build_number') VALUES ("${maEnv.Find[build].Value}")
       DEBUG ${sep}INSERT INTO 'build' \ay${sqlite.Status[dummy]}\ax
 
-      /sqlite ${maData.Find[DBloot].Value} dummy CREATE TABLE 'loot_control' ('item' TEXT NOT NULL PRIMARY KEY, 'action' TEXT NOT NULL, 'pass' TEXT NOT NULL, 'count' TEXT NOT NULL)
+      /sqlite ${maData.Find[DBloot].Value} dummy CREATE TABLE 'loot_control' ('item' TEXT NOT NULL PRIMARY KEY, 'action' TEXT, 'pass' TEXT, 'count' TEXT)
       DEBUG ${sep}CREATE TABLE 'loot_control' \ay${sqlite.Status[dummy]}\ax
 
       /delay 1

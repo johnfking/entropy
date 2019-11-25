@@ -2583,14 +2583,14 @@ sub Bind_command_splash(bool _debug)
 	| cleric
 	/if (${Me.Class.ShortName.Equal[PAL]}) {
 		/if (${is_ready[FALSE, "${maChr.Find[stSplashCure].Value}"]}) {
-			/call voodoo FALSE "${maChr.Find[stSplashCure].Value}" 0 FALSE
+		/call voodoo FALSE "${maChr.Find[stSplashCure].Value}" 0 FALSE
 		}
 	}
 
 	| cleric
 	/if (${Me.Class.ShortName.Equal[CLR]}) {
 		/if (${is_ready[FALSE, "${maChr.Find[stSplash].Value}"]}) {
-			/call voodoo FALSE "${maChr.Find[stSplash].Value}" 0 FALSE
+			/call voodoo FALSE "${maChr.Find[stSplash].Value}" ${Me.ID} FALSE
 		}
 	}
 	
@@ -3228,8 +3228,13 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 	/if (${_type.Equal[see]}) {
 		/if (!${Cursor.ID}) {
 			/varset dump ${get_shade[FALSE, MQWindow]}
-		} else /if (${Cursor.ID}) {
-			/varset dump ${out[14, "${Cursor.Name}"]}
+		} else {
+			/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
+			/varset dump ${out[0, "item${sep}\a-w${sqlite.Result[lootquery 1 item]}\ax"]}
+			/varset dump ${out[0, "action${sep}\a-w${sqlite.Result[lootquery 1 action]}\ax"]}
+			/varset dump ${out[0, "pass${sep}\a-w${sqlite.Result[lootquery 1 pass]}\ax"]}
+			/varset dump ${out[0, "count${sep}\a-w${sqlite.Result[lootquery 1 count]}\ax"]}
+			/echo
 		}
 		/return
 
@@ -3239,23 +3244,34 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 	}
 	
 	
-	/if (!${Cursor.ID}) /reutrn
+	| see if item is in the DB first?
+	/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
+	/if (${sqlite.Status[lootquery].NotEqual[Success]} || !${sqlite.Rows[lootquery]}) {
+		/if (${FindItem[=${Cursor.Name}].NoDrop} || ${FindItem[=${Cursor.Name}].Lore} || ${FindItemBank[${Cursor.Name}].Lore}) {
+			/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action)  VALUES("${Cursor.Name}", "leave")
+		} else {
+			/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${Cursor.Name}", "keep")
+		}
+	}
 
+	/if (${Select[${_type},destroy,leave,keep,ignore]}) {
+		/sqlite ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${Cursor.Name}"
+		DEBUG ${sep}lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${Cursor.Name}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
+		/varset dump ${out[14, "Set ${dot}${Cursor.Name}${sep}\a-w${_type.Lower}\ax"]}
 
-	| set cursot ro auto enable/disable
-	| set item to be passed to another
-	/if (${_type.Equal[destroy]}) {
-	} else /if (${_type.Equal[ignore]}) {
-	} else /if (${_type.Equal[keep]}) {
-	} else /if (${_type.Equal[leave]}) {
 	} else /if (${_type.Equal[pass]}) {
+		/sqlite ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}"
+		DEBUG ${sep}lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
+		/varset dump ${out[14, "Set ${dot}pass${sep}\a-w${_verbage}\ax"]}
+
+	} else /if (${_type.Equal[count]}) {
 
 	
 	} 
 	
 	/declare _out string local
 	/declare _lsout list local
-	/varset dump ${_lsout.Append[destroy,ignore,keep,leave,pass]}
+	/varset dump ${_lsout.Append[destroy,ignore,keep,leave,pass,count]}
   /varset _out
 	/vardata cli _lsout.First.Clone
 	/while (!${cli.IsEnd}) {
