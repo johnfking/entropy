@@ -247,7 +247,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 	  /declare _out string local
 		/vardata cli _lsout.First.Clone
 		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
+			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
 			/if (${cli.Value.Equal[pct]}) /varset _out ${_out}:${If[${maEnv.Find[stPctRest].Value},${num}${maEnv.Find[stPctRest].Value}\ax,${r0}]}
 			/if (${cli.Value.Equal[full]}) /varset _out ${_out}:${If[${maEnv.Find[swRestFull].Value},${on},${off}]}
 			/if (${cli.Value.Equal[combat]}) /varset _out ${_out}:${If[${maEnv.Find[swRestCombat].Value},${on},${off}]}

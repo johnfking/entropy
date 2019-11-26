@@ -77,11 +77,11 @@ sub main_RNG(bool _debug)
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call cast_cure FALSE
 		/if (${maHeal.Find[swHealXTarget].Value}) /call get_hurt_${Me.Class.ShortName} FALSE XTarget
 		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call get_hurt_${Me.Class.ShortName} FALSE Pet
-		/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+		/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 		/if (${check_class_loop[FALSE]}) /return FALSE
 		/if (VALID) {
 			/call set_combat FALSE
-			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (BURN) /call burn_${Me.Class.ShortName} FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
@@ -118,7 +118,7 @@ sub misc_combat_RNG(bool _debug)
 	/if (${is_target_dead[FALSE, TARGET]}) /return
 	/call set_combat FALSE
 	
-	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 	
 	| agro control
 	/if (AGRO) {
@@ -258,7 +258,7 @@ sub burn_RNG(bool _debug)
 
 	/call cast_AA_spire FALSE
 	
-	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 
 	| cheeta
 	/if (${is_ready[FALSE, "Scarlet Cheeta's Fang"]}) {
@@ -270,6 +270,8 @@ sub burn_RNG(bool _debug)
 		/call voodoo FALSE "Auspice of the Hunter" 0 FALSE
 	}
 	
+	
+	|**
 	| MELEE
 	/if (MELEE) {
 		/if (${Target.Distance} <= ${Spawn[TARGET].MaxRangeTo}*.9) {
@@ -310,6 +312,8 @@ sub burn_RNG(bool _debug)
 		}
 	
 	}
+	
+	**|
 	
 	| attack / dmg AA
 	/if (${is_ready[FALSE, "Outrider's Accuracy"]}) {

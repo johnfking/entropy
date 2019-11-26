@@ -365,7 +365,7 @@ sub burn_BST(bool _debug)
 	/if (${is_ready[FALSE, "Frenzied Swipes"]}) {
 		/call voodoo FALSE "Frenzied Swipes" 0 FALSE
 	}
-	/if (${is_ready[FALSE, "Ferociousness"]} && !${Me.Song[${stSavage}].ID}) {
+	/if (${is_ready[FALSE, "Ferociousness"]} && !${Me.Song[${maChr.Find[stSavage].Value}].ID}) {
 		/call voodoo FALSE "Ferociousness" 0 FALSE
 	}
 
@@ -390,12 +390,12 @@ sub burn_BST(bool _debug)
 
 	/call cast_glyph FALSE
 
-	/if (${Me.CombatAbilityReady[${Spell[${stFury}].RankName}]} && !${Me.Song[Frenzy of Spirit].ID} && !${Me.Buff[stDichotomic Fury].ID}) {
+	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stFury].Value}].RankName}]} && !${Me.Song[Frenzy of Spirit].ID} && !${Me.Buff[stDichotomic Fury].ID}) {
 		/if (${is_ready[FALSE, "${maChr.Find[stFury].Value}"]}) {
 			/call voodoo FALSE "${maChr.Find[stFury].Value}" 0 FALSE
 		}
 	} else {
-		/if (${Me.Song[${stFury}].ID}) /return
+		/if (${Me.Song[${maChr.Find[stFury].Value}].ID}) /return
 		/if (${is_ready[FALSE, "Frenzy of Spirit"]}) {
 			/call voodoo FALSE "Frenzy of Spirit" 0 FALSE
 		}

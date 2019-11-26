@@ -33,7 +33,7 @@ sub set_ENC(bool _debug)
 	
   | nights endless terror
   /call set_data_map FALSE maChr stTerror															PREGEN|1											"${auxna} name of terror spell"
-  /call set_data_map FALSE maChr lsTerrorToon													EMPTY													"${auxli} lsit of toons you want to keep terror buff on"
+  /call set_data_list FALSE maChr lsTerrorToon												EMPTY													"${auxli} lsit of toons you want to keep terror buff on"
 	
 	/call set_data_map FALSE maChr swGather			 												FALSE													"${auxsw} use gather manna aa"
 	/call set_data_map FALSE maChr stPctGather				 									0															"${auxnum} % of manna you want to use gather at"

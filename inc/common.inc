@@ -2674,7 +2674,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 			/if (!${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} < ENV) {
 				/varcalc _wait_for_mob ${_wait_for_mob} - 10
 				/call set_timer FALSE _wait_for_mob ${_wait_for_mob}s
-				/varset dump ${out[9, "Target \arLoS\ax${sep}\a-w${_wait}s\ax"]}
+				/varset dump ${out[9, "Target \arLoS\ax${sep}\a-w${_wait_for_mob}s\ax"]}
 			}
 			
 			
@@ -6674,7 +6674,7 @@ sub send_pet(bool _debug, int _tmpID)
 	
 	/if (PET) {
 		/if (${Me.Pet.ID} && ${Target.PctHPs} <= ${maMinion.Find[stPctPetEngage].Value}) {
-			/varset dump ${out[10, "Sending minion${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax"]}
+			| /varset dump ${out[10, "Sending minion${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax"]}
 			/pet attack
 		}
 	}
