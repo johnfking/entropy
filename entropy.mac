@@ -168,7 +168,7 @@ sub main(string _debug, string _param1, string _auto)
 			
 			| check curing observers
 			/if (!${timer_Check_Observers} && ${swDanNet}) { 
-				/if (${maHeal.Find[swHealCure].Value}) /call set_observers FALSE maCure add FALSE
+				/if (${maHeal.Find[swHealCure].Value}) /call set_observers FALSE maCure add ${maDebug.Find[cure].Value}
 			} 
 			
 			| sort /heal adj ##
@@ -203,8 +203,13 @@ sub main(string _debug, string _param1, string _auto)
 			
 			/if (${Me.PctEndurance} < 32) {
 				/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery
+			}
+			
+			| check loot
+			/if (${maEnv.Find[swADVLoot].Value} && !${timer_Check_Loot}) {
+				/if (AUTO && (${Group.Members} && ${Group.MasterLooter.ID} == ${Me.ID}) && ${Me.UseAdvancedLooting} && !${AdvLoot.LootInProgress} && !${Stick.Active}) /call do_loot ${maDebug.Find[loot].Value}
 			}			
-
+	
 			| do we pull or assist	
 			/if (!SAFEZONE) {
 				/if (!${Me.Invis} || (${Select[${Me.Class.ShortName},ROG]} && ${maEnv.Find[swSoS].Value})) {	

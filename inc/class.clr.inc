@@ -395,7 +395,7 @@ sub check_heal_CLR(bool _debug, string _type)
 		
 		| splash heal
 		/if (${maChr.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
-			/if (${SpawnCount[npc radius ENV PS4]} >= ${maChr.Find[stCountSplash].Value}) /call Bind_command_splash
+			/if (${SpawnCount[npc radius ENV PS4]} >= ${maChr.Find[stCountSplash].Value}) /call Bind_command_splash FALSE 
 		}
 		
 	}

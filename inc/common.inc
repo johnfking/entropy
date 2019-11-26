@@ -1482,12 +1482,15 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub)
 		DEBUG ${sep}alt${sep}${_verbage}
 	
 		/if (${Me.CurrentMana} < ${Spell[${_verbage}].Mana}) /return FALSE
-		/if (${Spell[${_verbage}].SpellType.Equal[Beneficial]} && ${_tmpID} == 0) {
-			/if (!${Spell[${AltAbility[${_verbage}].Spell.ID}].Stacks}) /return FALSE
-		}
+
+		| /if (${Spell[${_verbage}].SpellType.Equal[Beneficial]} && ${_tmpID} == 0) {
+		| 	/if (!${Spell[${AltAbility[${_verbage}].Spell.ID}].Stacks}) /return FALSE
+		| }
 
 		/if (${Me.Buff[${_verbage}].ID}) /return FALSE
 		/if (${Me.Song[${_verbage}].ID}) /return FALSE		
+		
+		
 		
 		/delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
 		/if (${_tmpID} == 0) {
@@ -3023,9 +3026,6 @@ sub pull_mob_find(bool _debug, int _spCount)
 sub set_spell_to(bool _debug, bool _echo, string _spellname, string _spellgem, bool _wait)
 	DEBUG \atset_spell_to\ax(\a-w${_echo}, ${_spellname}, ${_spellgem}, ${_wait}\ax)
 	
-	
-	| /varset _spellname 
-	
  	/if (${Me.Gem[${_spellname}]}) /return TRUE
 	ISMEDEAD
 	GETINPUT
@@ -3245,7 +3245,7 @@ sub do_rest(bool _debug)
 	/if (TIE) /return FALSE
 	
 	| clerics and pallys wait 'till yaulp gone
-	/if (${Me.Buff[Lesser Yaulp].ID} || ${Me.Buff[Yaulp].ID}) /return
+	/if (${Me.Buff[Yaulp].ID}) /return
 	GETINPUT
 
 	/if (HOME && !${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
@@ -3339,8 +3339,7 @@ sub do_rest(bool _debug)
 				/if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
 			} else /if (${Select[${Me.Class.ShortName},SHD]}) {
 				/if (${swPet} && ${maEnv.Find[swRestBuff].Value}) /call check_pet
-				/if (${maChr.Find[swHarmonio520
-					us].Value} && !${timer_Check_Harmonious}) /call check_harmonious
+				/if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
 
 			} else /if (${Select[${Me.Class.ShortName},RNG]}) {
 			} else /if (${Select[${Me.Class.ShortName},BST]}) {
@@ -4201,7 +4200,7 @@ sub check_buff_cycle_now(bool _debug)
 			/if (!${lsBuff${_count}Tag.Contains[alwaysup]}) /continue
 			/if (!${check_basic_tags[FALSE, Buff${_count}]}) /continue
 	
-			/call voodoo ${maDebug.Find[cast].Value} "${maBuffs.Find[stBuff${_count}].Value}" 0 FALSE
+			/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" 0 FALSE
 	
 			/if (${lsBuff${_count}Tag.Contains[autoinventory]}) /autoinventory
 

@@ -3097,7 +3097,6 @@ sub Bind_command_coh(string _verbage, bool _debug)
 #bind control_build /build
 sub Bind_control_build(string _build, string _nickname, bool _debug)
 
-
 	/declare _count int local 0
 
 	| output control map
@@ -3115,11 +3114,6 @@ sub Bind_control_build(string _build, string _nickname, bool _debug)
 	
 	| set fully qualified MQ name
 	/declare _fqn string local exspes\\data\\${_fn}
-	
-	| set fully qualified powershell path and name
-	| /declare _fqps string local ${Ini[${MacroQuest.Path}]}
-	
-	
 	
 	| set stuff to not export/import
 	/declare _skipMap list local
@@ -3149,6 +3143,7 @@ sub Bind_control_build(string _build, string _nickname, bool _debug)
 		/declare _mi mapiterator local
 		/vardata cli lsMaps.First.Clone
 		/while (!${cli.IsEnd}) {
+
 			| skip the maps we dont want to export
 			/if (${_skipMap.Contains[${cli.Value}]}) {
 				/varset dump ${cli.Advance}
@@ -3162,6 +3157,13 @@ sub Bind_control_build(string _build, string _nickname, bool _debug)
 						/varset dump ${_mi.Advance}
 						/continue
 					}
+					
+					| skip empty/false values
+					/if (${_mi.Value.Equal[FALSE]} || ${_mi.Value.Equal[EMPTY]}) {
+						/varset dump ${_mi.Advance}
+						/continue
+					}
+					
 					/ini "${_fqn}" ${cli.Value} "${_mi.Key}" "${Parse[1,${_mi.Value}]}"
 					/varset dump ${_mi.Advance}
 				}
@@ -3204,7 +3206,17 @@ sub Bind_control_build(string _build, string _nickname, bool _debug)
 				DEBUG ${_key}=${Parse[2,${Ini[${_fqn},${_section},${_key}]}]}
 				/call do_raw_edit FALSE SILENT ${_key} "${Parse[2,${Ini[${_fqn},${_section},${_key}]}]}" OVERRIDE
 			/next _countK
-		/next _countS 
+		/next _countS
+		
+		| load spells
+		/if (${Me.NumGems} && ${lsClassCast.Contains[${Me.Class.ShortName}]}) {
+			OUT \awLoading Gems\ax${sep}\a-w${Me.NumGems}\ax
+			/if (!${Window[SpellBookWnd].Open}) /invoke ${Window[SpellBookWnd].DoOpen}
+			/for _count 1 to ${Me.NumGems}
+				/call set_spell_to FALSE TRUE "${Spell[${Ini[${_fqn},Gems,Gem${_count}]}].RankName}" ${_count} FALSE
+			/next _count
+			/if (${Window[SpellBookWnd].Open}) /invoke ${Window[SpellBookWnd].DoClose}
+		}		
 
 		/varset dump ${out[18, "${eol}"]}  
 		/echo
@@ -3230,10 +3242,11 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 			/varset dump ${get_shade[FALSE, MQWindow]}
 		} else {
 			/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
-			/varset dump ${out[0, "item${sep}\a-w${sqlite.Result[lootquery 1 item]}\ax"]}
+			/varset dump ${out[0, "DB settings for item${sep}\a-w${sqlite.Result[lootquery 1 item]}\ax"]}
 			/varset dump ${out[0, "action${sep}\a-w${sqlite.Result[lootquery 1 action]}\ax"]}
 			/varset dump ${out[0, "pass${sep}\a-w${sqlite.Result[lootquery 1 pass]}\ax"]}
 			/varset dump ${out[0, "count${sep}\a-w${sqlite.Result[lootquery 1 count]}\ax"]}
+			/varset dump ${out[18, "${eol}"]}
 			/echo
 		}
 		/return
