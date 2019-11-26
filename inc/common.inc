@@ -2182,7 +2182,6 @@ sub clear_combat(bool _debug)
 
 	/varset stAssTarID 0
 	
-	| /if (${Me.MercID} && ${Me.MercenaryStance.NotEqual[Passive]}) /stance Passive
 	/varset dump ${maBurn.Add[swBurnConditionMet,FALSE]}
 	/if (${Stick.Active}) /squelch /stick off
 	/if (AUTO && ${Target.ID}) /squelch /target clear
@@ -2306,12 +2305,15 @@ sub is_burn_valid(bool _debug)
 
 	| no raid burning if turned off
 	/if (!${maBurn.Find[swBurnRaid].Value} && ${Raid.Members}) {
-		/varset dump ${maBurn.Find[maBurn.Add[swBurnConditionMet,FALSE]}
+		/varset dump ${maBurn.Add[swBurnConditionMet,FALSE]}
 		/return FALSE
 	}
 	
 	| if always set to burn, always burn while in combat
-	/if (${maBurn.Find[swBurnForce].Value} && ${Me.Combat}) /return TRUE
+	/if (${maBurn.Find[swBurnForce].Value} && ${Me.Combat}) {
+		/varset dump ${maBurn.Add[swBurnConditionMet,TRUE]}
+		/return TRUE
+	}
 	
 	| remainder requires automated modes
 	/if (!AUTO) /return FALSE
@@ -2410,9 +2412,7 @@ sub check_combat_status(bool _debug)
 		/if (${Target.ID}) {
 			/if (${Target.ID} == ${Me.ID}) /return FALSE
 			/if (COMBAT) {
-				/if (${is_burn_valid[${maDebug.Find[debugBurn].Value}]}) {
-					/varset dump ${maRez.Add[swBurnConditionMet,TRUE]}
-				}
+				/varset dump ${is_burn_valid[${maDebug.Find[debugBurn].Value}]}
 			}
 			/return TRUE
 		} else /if (!${Target.ID}) {
@@ -2431,10 +2431,8 @@ sub check_combat_status(bool _debug)
 			/varset dump ${maCC.Add[swValidAssTarID,TRUE]}
 		}
 		/varset dump ${maCC.Add[swSetCombat,TRUE]}
+		/varset dump ${is_burn_valid[${maDebug.Find[debugBurn].Value}]}
 		
-		/if (${is_burn_valid[${maDebug.Find[debugBurn].Value}]}) {
-			/varset dump ${maRez.Add[swBurnConditionMet,TRUE]}
-		}
 		/return TRUE
 	
 	
@@ -2474,9 +2472,7 @@ sub check_combat_status(bool _debug)
 				| /if (${Me.Song[${spellRestSong}].ID}) /stopsong
 			| }
 			/varset dump ${maCC.Add[swSetCombat,TRUE]}
-			| /if (${is_burn_valid[${maDebug.Find[debugBurn].Value}]}) {
-			| 	/varset dump ${maRez.Add[swBurnConditionMet,TRUE]}
-			| }
+			/varset dump ${is_burn_valid[${maDebug.Find[debugBurn].Value}]}
 			/return TRUE
 			
 		}
@@ -7925,18 +7921,20 @@ sub cast_AA_spire(bool _debug)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	
-	/if (${Raid.Members} && ${maData.Find[swSpireRaid].Value}) {
+
+	/if (${Raid.Members} && ${maChr.Find[swSpireRaid].Value}) {
+		DEBUG spire${sep}Raid
 		/if (!${Me.Buff[${maData.Find[stSpire].Value}].ID} && ${Spell[${maData.Find[stSpire].Value}].Stacks}) {
-			/if (${is_ready[FALSE, "${maData.Find[stSpire].Value}"]}) {
-				/call voodoo FALSE "${maData.Find[stSpire].Value}" 0 FALSE
+			/if (${is_ready[${_debug}, "${maData.Find[stSpire].Value}"]}) {
+				/call voodoo ${_debug} "${maData.Find[stSpire].Value}" 0 FALSE
 				/return
 			}
 		}
-	} else /if (!${Raid.Members} && ${Group.Members} && ${maData.Find[swSpireGroup].Value}) {
+	} else /if (!${Raid.Members} && ${maChr.Find[swSpireGroup].Value}) {
+		DEBUG spire${sep}Group
 		/if (!${Me.Buff[${maData.Find[stSpire].Value}].ID} && ${Spell[${maData.Find[stSpire].Value}].Stacks}) {
-			/if (${is_ready[FALSE, "${maData.Find[stSpire].Value}"]}) {
-				/call voodoo FALSE "${maData.Find[stSpire].Value}" 0 FALSE
+			/if (${is_ready[${_debug}, "${maData.Find[stSpire].Value}"]}) {
+				/call voodoo ${_debug} "${maData.Find[stSpire].Value}" 0 FALSE
 				/return
 			}
 		}

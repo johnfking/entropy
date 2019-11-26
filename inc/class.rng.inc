@@ -256,7 +256,7 @@ sub burn_RNG(bool _debug)
 	GETINPUT
 	/call set_combat
 
-	/call cast_AA_spire
+	/call cast_AA_spire FALSE
 	
 	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 

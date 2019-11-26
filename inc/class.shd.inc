@@ -44,8 +44,8 @@ sub set_SHD(bool _debug)
 	/call set_data_map FALSE maChr stCrimsonBlade			 									PREGEN|1											"${auxna} blade melee dps"
 	/call set_data_map FALSE maChr stAcrimony			 											PREGEN|1											"${auxna} hate attention"
 	/call set_data_map FALSE maChr stRancor				 											PREGEN|1											"${auxna} blade disc tap"
-	/call set_data_map FALSE maChr lsHate 															EMPTY													"${auxli} single target hate skills to use"
-	/call set_data_map FALSE maChr lsAEHate 														EMPTY													"${auxli} ae hate skills to use"
+	/call set_data_list FALSE maChr lsHate 															EMPTY													"${auxli} single target hate skills to use"
+	/call set_data_list FALSE maChr lsAEHate 														EMPTY													"${auxli} ae hate skills to use"
 	/call set_data_map FALSE maChr stAELifeTap													PREGEN|1											"${auxna} se lifetap nuke"
 	/call set_data_map FALSE maChr stLeechcurse													PREGEN|1											"${auxna} leechcurse disc"
 	
@@ -228,6 +228,7 @@ sub get_agro_SHD(bool _debug)
 		/if (${Me.PctAggro} < 90 || ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) { 
 			/if (${is_ready[FALSE, "${maChr.Find[stAcrimony].Value}"]}) {
 				/call voodoo FALSE "${maChr.Find[stAcrimony].Value}" TARGET FALSE
+			}
 		}
 	}
 /return

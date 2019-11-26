@@ -55,7 +55,8 @@ sub set_initialize(bool _debug)
   | list of all maps used with persistant data
   /declare lsMaps list outer
   /varset dump ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maItems,maBuffs,maBuff,maBurn]}
-  /varset dump ${lsMaps.Append[maEntropy,maOver,maDebug,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
+  /varset dump ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
+  /varset dump ${lsMaps.Append[maData,maDebug,maOver]}
 
   
   | set all output shortcuts
@@ -693,7 +694,7 @@ sub set_initialize_map_character_environment(bool _debug)
   
 
   | control: burn
-  /call set_data FALSE FALSE swBurnConditionMet                       bool outer FALSE
+  /call set_data FALSE maBurn swBurnConditionMet                      map outer FALSE 
   /call set_data_map FALSE maBurn swBurnForce                         FALSE                         "${auxsw} force burn routines"
   /call set_data_map FALSE maBurn swBurnAuto                          FALSE                         "${auxsw} auto burn on named encounters"
   /call set_data_map FALSE maBurn stPctBurnEngage                     99                            "${auxnum} % of mobs health to start burns"

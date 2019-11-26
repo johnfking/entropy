@@ -1795,6 +1795,11 @@ sub Bind_control_burn(string _type, string _verbage, string _silent, bool _debug
 	| force constant burning
 	} else /if (${_type.Equal[force]}) {
 		/varset dump ${set_switch_env[${_debug}, swBurnForce, TRUE, ${_verbage}]}
+		/if (${maBurn.Find[swBurnForce].Value}) {		
+			/varset dump ${maBurn.Add[swBurnConditionMet,TRUE]}
+		} else /if (!${maBurn.Find[swBurnForce].Value}) {
+			/varset dump ${maBurn.Add[swBurnConditionMet,FALSE]}
+		}
 
 	} 
 	
