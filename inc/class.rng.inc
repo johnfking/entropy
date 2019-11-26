@@ -30,6 +30,7 @@ sub set_RNG(bool _debug)
 
 	| rest disc
  	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
 
 	| fast heal
   /call set_data_map FALSE maChr stHealDesperate											PREGEN|1											"${auxna} fast cast heal"
@@ -389,6 +390,10 @@ sub set_control_RNG(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[summer]}) {
 		/varset dump ${set_switch_env[${_debug}, swSummer, TRUE, ${_verbage}]}
 
+	| use hiatus disc
+	} else /if (${_type.Equal[hiatus]}) {
+		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return 
@@ -402,6 +407,7 @@ sub set_control_RNG(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
 		/if (${li.Value.Equal[summer]}) /varset _out ${_out}:${If[${maChr.Find[swSummer].Value},${on},${off}]}
+		/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
 		/varset dump ${li.Advance}
 	}	
 	OUT /chr ${_out}

@@ -203,6 +203,11 @@ sub set_initial_environment(bool _debug)
     /varset dump ${lsChr.Append[manaclick]}
   }
 
+  | controls for melee users
+  /if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) {
+    /varset dump ${lsChr.Append[hiatus]}
+  }
+
   | controls by class
   /if (${Select[${Me.Class.ShortName},BER]}) {
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {

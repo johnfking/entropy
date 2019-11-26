@@ -29,7 +29,9 @@ sub set_PAL(bool _debug)
 	| attraction AA used for pulling / agro
 	/call set_data_map FALSE maChr swAttraction													FALSE													"${auxsw} use the attraction aa to help with agro/pulling"
  
- 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxli} remedy spells to use"
+ 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
+
  	/call set_data_map FALSE maChr stAlliance 													PREGEN|1											"${auxna} alliance spell .. damn useless thing"
 
 	| heals
@@ -641,6 +643,10 @@ sub set_control_PAL(string _type, string _verbage, string _silent, bool _debug)
 	| attraction
 	} else /if (${_type.Equal[attraction]}) {
 		/varset dump ${set_switch_env[${_debug}, swAttraction, TRUE, ${_verbage}]}
+
+	| use hiatus disc
+	} else /if (${_type.Equal[hiatus]}) {
+		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
 	
 	}
 
@@ -664,6 +670,7 @@ sub set_control_PAL(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[harmonious]}) /varset _out ${_out}:${If[${maChr.Find[swHarmonious].Value},${on},${off}]}
 		/if (${li.Value.Equal[vp]}) /varset _out ${_out}:${If[${maChr.Find[stPctVP].Value},${num}${maChr.Find[stPctVP].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[splash]}) /varset _out ${_out}:${If[${maChr.Find[stCountSplash].Value},${num}${maChr.Find[stCountSplash].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
 
 		/varset dump ${li.Advance}
 	}

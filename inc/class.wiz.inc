@@ -36,10 +36,6 @@ sub set_WIZ(bool _debug)
 	/varset dump ${lsNukeLine.Append[base,fire,ice,magic]}
 	/call set_data_map FALSE maChr stCurrent														base
 	/call set_data FALSE FALSE stLine																		string outer ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
-
-	| /call set_data_map FALSE maChr stAAFire															"Pyromancy"										"${auxna} fire boost (aa)"
-	| /call set_data_map FALSE maChr stAAIce															"Cryomancy"										"${auxna} ice boost (aa)"
-	| /call set_data_map FALSE maChr stAAMagic														"Arcomancy"										"${auxna} magic boost (aa)" 
 	/call set_data_map FALSE maChr stAABase															FALSE													"${auxna} pick a boost aa for DPS"
 	
 	/varset dump ${set_data_timer[FALSE, Force_TC, 6s]}
@@ -228,9 +224,7 @@ sub burn_WIZ(bool _debug)
 	
 	| aww baby
 	/if (${maChr.Find[swManaBurn].Value}) {
-		/if (${Target.ID} != ${Me.ID}) {
-			/target ID TARGET
-		}
+		/varset dump ${set_target[TARGET]}
 		/if (!${Target.Buff[Mana Burn].ID}) {
 			/if (${is_ready[FALSE, "Mana Burn"]}) /call voodoo FALSE "Mana Burn" TARGET FALSE
 		}
@@ -238,7 +232,7 @@ sub burn_WIZ(bool _debug)
 
 	| swarm pet
 	/if (SWARM) {
-		/if (${is_ready[FALSE, alt, "Call of Xuzl"]}) /call voodoo FALSE "Call of Xuzl" alt TARGET FALSE
+		/if (${is_ready[FALSE, "Call of Xuzl"]}) /call voodoo FALSE "Call of Xuzl" TARGET FALSE
 	}
 
 	/call cast_glyph FALSE
@@ -270,37 +264,6 @@ sub force_twincast_WIZ(bool _debug)
 	
 /return
 
-
-
-|***
- * note: Make sure you are using the AA casting boost you want..
- * use: /call check_AA_mancy
-
-sub check_AA_mancy(bool _debug)
-	DEBUG \atcheck_AA_mancy\ax()
-
-	/if (${Me.Buff[${maChr.Find[stAA${stLine}].Value}].ID}) /return TRUE
-
-	/if (${Bool[${maChr.Find[stAA${stLine}].Value}]} && !${Me.Buff[${maChr.Find[stAA${stLine}].Value}].ID}) {
-		/declare _tn2 string local
-
-		/vardata li lsNukeLine.First.Clone
-		/while (!${li.IsEnd}) {
-			/varset _tn2 ${li.Value.Left[1].Upper}${li.Value.Right[-1].Lower}
-			/if (${Me.Buff[${maChr.Find[stAA${_tn2}].Value}].ID}) {
-				/removebuff ${maChr.Find[stAA${_tn2}].Value}
-				/delay 5s !${Me.Buff[${maChr.Find[stAA${_tn2}].Value}].ID}
-			}
-			/varset dump ${li.Advance}
-		}
-	}
-	
-	/if (${is_ready[FALSE, "${maChr.Find[stAA${stLine}].Value}"]}) {
-		/call voodoo FALSE "${maChr.Find[stAA${stLine}].Value}" ${Me.ID} FALSE	
-	}
-	
-/return
- ***|
 
 
 |***
@@ -350,7 +313,7 @@ sub set_control_WIZ(string _type, string _verbage, string _silent, bool _debug)
 		}
 		/varset dump ${do_raw_edit[${_debug}, SILENT, stCurrent, "${_verbage.Lower}"]}
 		/varset stLine ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
-		| /call check_AA_mancy FALSE
+
 
 	| set gather use %	
 	} else /if (${_type.Equal[gather]}) {

@@ -20,7 +20,9 @@ sub set_BER(bool _debug)
 	/call set_data FALSE maData stFade																	map outer "Self Preservation"
 	/call set_data_map FALSE maChr stAAUnity														FALSE													"${auxna} class aa unity buff"
 
- 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxli} remedy spells to use"
+ 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
+
 	/call set_data_map FALSE maChr stRageVolley 												PREGEN|1											"${auxna} "
 	/call set_data_map FALSE maChr stCryOfChaos 												PREGEN|1											"${auxna} "
 	/call set_data_map FALSE maChr stInspiredAnger											PREGEN|1											"${auxna} "
@@ -359,3 +361,11 @@ sub burn_BER(bool _debug)
 
 
 
+
+
+
+/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
+
+	| use hiatus disc
+	} else /if (${_type.Equal[hiatus]}) {
+		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}

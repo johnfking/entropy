@@ -21,7 +21,8 @@ sub set_ROG(bool _debug)
 
 	/call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} alliance spell"
  	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
-
+ 	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
+	
 	/call set_data_map FALSE maChr stDichotomic													PREGEN|1											"${auxna} Dichotomic disc family"
 	/call set_data_map FALSE maChr stAggro 															PREGEN|1											"${auxna} Misdirection disc family"
 	/call set_data_map FALSE maChr stAssault 														PREGEN|1											"${auxna} Assault disc family"
@@ -98,7 +99,7 @@ sub main_ROG(bool _debug)
 
 		/if (AUTO) {	
 			CHECKFADE
-			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery
+			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery FALSE
 		}
 	}
 
@@ -351,7 +352,6 @@ sub set_control_ROG(string _type, string _verbage, string _silent, bool _debug)
 	DEBUG \atset_control_ROG\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 	
 	/declare _out string local
-	/declare _li listiterator local
 
 	| output control map
 	/if (${_type.Equal[see]}) {
@@ -383,23 +383,29 @@ sub set_control_ROG(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[blind]}) {
 		/varset dump ${set_switch_env[${_debug}, swBlinding, TRUE, ${_verbage}]}
 		
+	| use hiatus disc
+	} else /if (${_type.Equal[hiatus]}) {
+		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+			
+		
+		
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return 
 	/varset _out
-	/vardata _li lsChr.First.Clone
-	/while (!${_li.IsEnd}) {
-		/varset _out ${_out} ${If[${_li.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${_li.Value}\ax
-		/if (${_li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
-		/if (${_li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
-		/if (${_li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
-		/if (${_li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
+	/vardata li lsChr.First.Clone
+	/while (!${li.IsEnd}) {
+		/varset _out ${_out} ${If[${li.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${li.Value}\ax
+		/if (${li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
+		/if (${li.Value.Equal[sos]}) /varset _out ${_out}:${If[${maEnv.Find[swSoS].Value},${on},${off}]}
+		/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
+		/if (${li.Value.Equal[blind]}) /varset _out ${_out}:${If[${maChr.Find[swBlinding].Value},${on},${off}]}
 
-		/if (${_li.Value.Equal[sos]}) /varset _out ${_out}:${If[${maEnv.Find[swSoS].Value},${on},${off}]}
-		/if (${_li.Value.Equal[blind]}) /varset _out ${_out}:${If[${maChr.Find[swBlinding].Value},${on},${off}]}
 
-
-		/varset dump ${_li.Advance}
+		/varset dump ${li.Advance}
 	}	
 	OUT /chr ${_out}
 

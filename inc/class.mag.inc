@@ -226,7 +226,7 @@ sub burn_MAG(bool _debug)
 			/if (${is_ready[FALSE, "Heart of Flames"]}) {
 				/call voodoo FALSE "Heart of Flames" 0 FALSE
 			}
-		} else /if (!{Me.Buff[Heart of Flames].ID} && !${Me.AltAbilityReady[Heart of Flames]}) {
+		} else /if (!${Me.Buff[Heart of Flames].ID} && !${Me.AltAbilityReady[Heart of Flames]}) {
 			/if (${is_ready[FALSE, "Elemental Union"]}) {
 				/call voodoo FALSE "Elemental Union" 0 FALSE
 			}

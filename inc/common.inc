@@ -3329,12 +3329,12 @@ sub do_rest(bool _debug)
 
 			} else {
 				/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
-				/call cast_stamina_recovery
+				/call cast_stamina_recovery FALSE
 			}
 			/if (${Select[${Me.Class.ShortName},PAL]}) {
 				/if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
 			} else /if (${Select[${Me.Class.ShortName},SHD]}) {
-				/if (${swPet} && ${maEnv.Find[swRestBuff].Value}) /call check_pet
+				/if (${maMinion.Find[swPet].Value} && ${maEnv.Find[swRestBuff].Value}) /call check_pet
 				/if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
 
 			} else /if (${Select[${Me.Class.ShortName},RNG]}) {
@@ -4163,17 +4163,19 @@ sub set_tie(bool _debug)
  * use: /call cast_AA_fade
  ***|
 sub cast_AA_fade(bool _debug)
+	DEBUG \a-tcast_AA_fade\as()
+
+	| does the class even have a fade?
+	/if (!${maChr.Find[stPctFade].Value}) /return FALSE
 	ISMEDEAD
 		
-	| mobs in range.? dont use fade for no fucking reason
-	/if (!${SpawnCount[npc radius 30]}) /return FALSE
+	| mobs in safe range.?
+	/if (!${SpawnCount[npc radius SAFEENV]}) /return FALSE
 	
-	| does the class even have a fade?
-	/if (!${Bool[${maChr.Find[stFade].Value}]}) /return FALSE
 
 	| made it this far. may as well see if the shit works
-	/if (${is_ready[FALSE, "${${Me.Class.ShortName}AAFade}"]}) {
-		/call voodoo FALSE "${maChr.Find[stFade].Value}" 0 FALSE
+	/if (${is_ready[${_debug}, "${${Me.Class.ShortName}AAFade}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stFade].Value}" 0 FALSE
 	}
 
 /return TRUE
@@ -5774,50 +5776,45 @@ sub do_melee(bool _debug, int _tmpID)
 sub cast_stamina_recovery(bool _debug)
 	DEBUG \atcast_stamina_recovery\ax()
 	
- 	/if (SAFEZONE || !${is_ready[FALSE, "${maChr.Find[stRest].Value}"]}) /return
+	/if (${Me.PctEndurance} > 34) /return
+	
+ 	/if (SAFEZONE) /return
 	ISMEDEAD
 	GETINPUT
 	
 	/declare _endurancePoint int local 0
-	/if (${Select[${maChr.Find[stRest].Value},Respite,Reprive,Rest,Breather]}) {
-		/if (${Me.PctEndurance} > 33) /return
+	
+	| haitus switch
+	/if (${maChr.Find[swHiatus].Value} && ${Me.CombatAbilityReady[${Spell[Hiatus].RankName}]}) {
+		DEBUG rest${sep}\a-whiatus\ax
+		/if (${Me.CombatAbility[Hiatus Rk. III]} && (${Me.CurrentEndurance} < 102500 && ${Me.PctEndurance} < 34)) /varset _endurancePoint 34
+		/if (${Me.CombatAbility[Hiatus Rk. II]} && (${Me.CurrentEndurance} < 97500 && ${Me.PctEndurance} < 32)) /varset _endurancePoint 32
+		/if (${Me.CombatAbility[Hiatus]} && (${Me.CurrentEndurance} < 92500 && ${Me.PctEndurance} < 29)) /varset _endurancePoint 29
+		
+	 	/if (${Me.PctEndurance} < ${_endurancePoint}) {
+	 		/if (${is_ready[${_debug}, "${Spell[Hiatus].RankName}"]}) {
+	 			/call voodoo ${_debug} "${Spell[Hiatus].RankName}" 0 FALSE
+	 		}
+	 	}		
+		/return TRUE
+		
+	| rest disc	
+	} else /if (${Me.CombatAbilityReady[${Spell[stRest].RankName}]} && !${Select[${Me.CombatState},active]}) {
+		DEBUG rest${sep}\a-w${maChr.Find[stRest].Value}\ax
 		/if (${Me.CombatAbility[${maChr.Find[stRest].Value} Rk. III]}) /varset _endurancePoint 29
 		/if (${Me.CombatAbility[${maChr.Find[stRest].Value} Rk. II]}) /varset _endurancePoint 25
 		/if (${Me.CombatAbility[${maChr.Find[stRest].Value}]}) /varset _endurancePoint 21
-	} else /if (${Select[${maChr.Find[stRest].Value},Hiatus]}) {
-		/if (${Me.PctEndurance} > 65) /return
-		/if (${Me.CombatAbility[${maChr.Find[stRest].Value} Rk. III]} && (${Me.CurrentEndurance} < 102500 && ${Me.PctEndurance} < 65)) /varset _endurancePoint 65
-		/if (${Me.CombatAbility[${maChr.Find[stRest].Value} Rk. II]} && (${Me.CurrentEndurance} < 97500 && ${Me.PctEndurance} < 63)) /varset _endurancePoint 63
-		/if (${Me.CombatAbility[${maChr.Find[stRest].Value}]} && (${Me.CurrentEndurance} < 92500 && ${Me.PctEndurance} < 60)) /varset _endurancePoint 60
-	}
-	
-	| Force Fade to get rest dfor stamina while in combat
-	| /if (${swForceFadeRest} && ${is_ready[FALSE, "${maData.Find[stFade].Value}"]}) {
-	/if (${is_ready[FALSE, "${maData.Find[stFade].Value}"]}) {
-		/if (${Select[${Me.CombatState},combat]} && ${Me.PctEndurance} < ${_endurancePoint}) {
-			/call clear_combat FALSE
-			/call set_stop FALSE SILENT
-			/if (${is_ready[FALSE, "${maData.Find[stFade].Value}"]}) {
-				/call voodoo FALSE "${maData.Find[stFade].Value}" 0 FALSE
-			}
-			/delay 10
-			/if (${is_ready[FALSE, "${maData.Find[stFade].Value}"]}) {
-				/call voodoo FALSE "${maData.Find[stFade].Value}" 0 FALSE
-			}
-			/return
-		}
-	}
 
-	| need to be out of combat to use
- 	/if (!${Select[${Me.CombatState},resting,cooldown,active]}) /return
+	 	/if (${Me.PctEndurance} < ${_endurancePoint}) {
+	 		/if (${is_ready[${_debug}, "${maData.Find[stRest].Value}"]}) {
+	 			/call voodoo ${_debug} "${maData.Find[stRest].Value}" 0 FALSE
+	 		}
+	 	}
+	 	/return TRUE
 
- 	/if (${Me.PctEndurance} < ${_endurancePoint}) {
- 		/if (${is_ready[FALSE, "${maData.Find[stFade].Value}"]}) {
- 			/call voodoo FALSE "${maData.Find[stFade].Value}" 0 FALSE
- 		}
- 	}
+	} 
 
-/return
+/return FALSE
 
 
 
@@ -6349,30 +6346,34 @@ sub do_loot(bool _debug)
 					/delay 1s !${AdvLoot.LootInProgress}
 					/delay 5
 					/if (${FindItem[=${_advlItem}].ID}) {
+					| I'M SERIOUSLY SICK OF FIXING THIS delete code.
+						/while (${FindItem[=${_advlItem}].ID}) {
+							/delay 5
+							/nomodkey /shift /itemnotify in Pack${Math.Calc[${FindItem[=${_advlItem}].ItemSlot}-22]} ${Math.Calc[${FindItem[=${_advlItem}].ItemSlot2}+1]} leftmouseup
+
+							/varset dump ${out[14, "Destroying${sep}\a-w${_advlItem}\ax"]}
+							/nomodkey /destroy
 					
-			| evil delete code. had to change this. like > 9000 times 
-						:loopfind_advlItem
-					/while (${FindItem[=${_advlItem}].ID}) {
-						/delay 5
-						/nomodkey /shift /itemnotify in Pack${Math.Calc[${FindItem[=${_advlItem}].ItemSlot}-22]} ${Math.Calc[${FindItem[=${_advlItem}].ItemSlot2}+1]} leftmouseup
-						| /call check_cursor FALSE TRUE CLEAR
-						/if (${Window[ConfirmationDialogBox].Open}) {
-							/delay 1
-							/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+							| /call check_cursor FALSE TRUE CLEAR
+							/if (${Window[ConfirmationDialogBox].Open}) {
+								/delay 1
+								/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+							}
+							/delay 3 !${Cursor.ID}
 						}
-						/delay 3 !${Cursor.ID}
-					}
-						| /if (${FindItem[=${_advlItem}].ID}) /goto :loopfind_advlItem
-			| evil delete code end...
-
+						| evil delete code end...
 					}          
-
 				} 
 			/next _pcount
 		}
 	}
 
 /return
+
+
+						/nomodkey /shift /itemnotify in Pack${Int[${Math.Calc[${FindItem[=Scale Ore].ItemSlot}-22]}]} ${Math.Calc[${FindItem[=Scale Ore].ItemSlot2}+1]} leftmouseup
+
+
 
 
 

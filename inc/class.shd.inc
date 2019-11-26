@@ -21,7 +21,9 @@ sub set_SHD(bool _debug)
 
 	/call set_data_map FALSE maChr stAAUnity														"Dark Lord's Unity (Azia)"							"${auxna} class aa unity buff"
 
- 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxli} rest disc to recover stamina"
+ 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
+
  	/call set_data_map FALSE maChr stAlliance 													PREGEN|1											"${auxna} alliance spell .. damn useless thing"
 
 	/varset dump ${set_data_timer[FALSE, Check_Harmonious, 1m]}
@@ -360,6 +362,10 @@ sub set_control_SHD(string _type, string _verbage, string _silent, bool _debug)
 	| attraction
 	} else /if (${_type.Equal[attraction]}) {
 		/varset dump ${set_switch_env[${_debug}, swAttraction, TRUE, ${_verbage}]}
+
+	| use hiatus disc
+	} else /if (${_type.Equal[hiatus]}) {
+		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
 	
 	}
 
@@ -377,6 +383,7 @@ sub set_control_SHD(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[vot]}) /varset _out ${_out}:${If[${maChr.Find[swVoT].Value},${on},${off}]}
 		/if (${li.Value.Equal[attraction]}) /varset _out ${_out}:${If[${maChr.Find[swAttraction].Value},${on},${off}]}
 		/if (${li.Value.Equal[harmonious]}) /varset _out ${_out}:${If[${maChr.Find[swHarmonious].Value},${on},${off}]}
+		/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
 
 		/varset dump ${li.Advance}
 	}	

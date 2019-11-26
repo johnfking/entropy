@@ -6,6 +6,10 @@
  ***|
  
  
+  	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
+
+ 
  | spire of the sensei
 
 |***

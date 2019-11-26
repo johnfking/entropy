@@ -24,7 +24,7 @@
 #define ISMEDEAD "/if (${is_me_dead[${maRez.Find[debugRez].Value}]}) /call check_for_rezbox"
 #define CHECKEXIT "/if (${check_exit[]}) /return"
 #define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maCC.Find[swPull].Value} && !${Me.Invis} && ${maRez.Find[swRezGive].Value}) /call check_for_corpse ${maDebug.Find[rez].Value}"
-#define CHECKFADE "/if (${maChr.Find[stPctFade].Value} && ${Me.PctHPs} < ${maChr.Find[stPctFade].Value} && ${Me.PctHPs} > 0 && !${Me.Dead}) /call cast_AA_fade"
+#define CHECKFADE "/if (${maChr.Find[stPctFade].Value} && ${Me.PctHPs} < ${maChr.Find[stPctFade].Value} && ${Me.PctHPs} > 0 && !${Me.Dead}) /call cast_AA_fade FALSE"
 #define OVERLOS "${If[${maOver.Find[swOverLOS].Value},,los]}"
 #define PS4 "playerstate 4"
 #define AUTO "${maEnv.Find[swAuto].Value}"
@@ -113,7 +113,7 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A191126.01
+	/call set_data FALSE maEnv build													map outer A191126.02
 	
 	| prep macro
 	/call prepare_the_end FALSE

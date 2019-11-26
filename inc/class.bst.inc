@@ -22,7 +22,8 @@ sub set_BST(bool _debug)
 	
 	
 
- 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxli} stamina recovery line"
+ 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
  	/call set_data_map FALSE maChr stAlliance 													PREGEN|1											"${auxna} alliance spell"
 
 	/call set_data_map FALSE maChr stNukeServant 												PREGEN|1											"${auxna} spam nuke spam spell"
@@ -465,6 +466,10 @@ sub set_control_BST(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[paragroup]}) {
 		/if (!${set_control_num_range[FALSE, stPctParagonG, "${_verbage}", 0, 99]}) /return
 
+	| use hiatus disc
+	} else /if (${_type.Equal[hiatus]}) {
+		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+
 
 	}
 	
@@ -481,6 +486,7 @@ sub set_control_BST(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[consume]}) /varset _out ${_out}:${If[${maChr.Find[stPctConsume].Value},${num}${maChr.Find[stPctConsume].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[parafocus]}) /varset _out ${_out}:${If[${maChr.Find[stPctParagonF].Value},${num}${maChr.Find[stPctParagonF].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[paragroup]}) /varset _out ${_out}:${If[${maChr.Find[stPctParagonG].Value},${num}${maChr.Find[stPctParagonG].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
 		/varset dump ${li.Advance}
 	}	
 	OUT /chr ${_out}

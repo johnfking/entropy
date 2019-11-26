@@ -24,6 +24,10 @@ sub set_WAR(bool _debug)
 	| attraction AA used for pulling / agro
 	/call set_data_map FALSE maChr swAttraction													FALSE													"${auxsw} use the attraction aa to help with agro/pulling"
 
+ 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
+
+
 	| /call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} "
 	/call set_data_map FALSE maChr stDichotomic													PREGEN|1											"${auxna} dichotomic disc"
 	/call set_data_map FALSE maChr stRunes															PREGEN|1											"${auxna} Aura of Runes Discipline family disc"
@@ -36,7 +40,6 @@ sub set_WAR(bool _debug)
 	/call set_data_map FALSE maChr stWade				 												PREGEN|1											"${auxna} Wade into Battle family disc"
 	/call set_data_map FALSE maChr stRallying														PREGEN|1											"${auxna} Rallying Roar family disc"
 	/call set_data_map FALSE maChr stShout				 											PREGEN|1											"${auxna} Harrassing Shout family disc"
-	/call set_data_map FALSE maChr stRest			 													PREGEN|1											"${auxna} Respite family disc"
 	/call set_data_map FALSE maChr stDefense 														PREGEN|1											"${auxna} Bracing Defense family disc"
 	/call set_data_map FALSE maChr stField				 											PREGEN|1											"${auxna} Field Armorer family disc"
 	
@@ -459,6 +462,10 @@ sub set_control_WAR(string _type, string _verbage, string _silent, bool _debug)
 	| attraction
 	} else /if (${_type.Equal[attraction]}) {
 		/varset dump ${set_switch_env[${_debug}, swAttraction, TRUE, ${_verbage}]}
+
+	| use hiatus disc
+	} else /if (${_type.Equal[hiatus]}) {
+		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
 	
 	}
 
@@ -473,6 +480,7 @@ sub set_control_WAR(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
 		/if (${li.Value.Equal[flash]}) /varset _out ${_out}:${If[${maChr.Find[stPctShieldFlash].Value},${num}${maChr.Find[stPctShieldFlash].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[attraction]}) /varset _out ${_out}:${If[${maChr.Find[swAttraction].Value},${on},${off}]}
+		/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
 		/varset dump ${li.Advance}
 	}	
 	OUT /chr ${_out}
