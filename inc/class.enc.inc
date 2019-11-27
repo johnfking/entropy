@@ -271,7 +271,7 @@ sub burn_ENC(bool _debug)
 
 	
 	/if (${is_ready[FALSE, "Silent Casting"]}) {
-		/call voodoo FALSE "Silent Casting" alt 0 FALSE
+		/call voodoo FALSE "Silent Casting" 0 FALSE
 	} else /if (!${is_ready[FALSE, "Silent Casting"]} && ${is_ready[FALSE, "Dimensional Shield"]}) {
 		/call voodoo FALSE "Dimensional Shield" 0 FALSE
 	}

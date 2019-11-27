@@ -272,7 +272,6 @@ sub burn_RNG(bool _debug)
 	}
 	
 	
-	|**
 	| MELEE
 	/if (MELEE) {
 		/if (${Target.Distance} <= ${Spawn[TARGET].MaxRangeTo}*.9) {
@@ -284,7 +283,7 @@ sub burn_RNG(bool _debug)
 
 			/if (!${Me.ActiveDisc.ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
 				/if (${is_ready[FALSE, "Empowered Blades"]}) {
-					/call voodoo FALSE "Empowered Blades" alt 0 FALSE
+					/call voodoo FALSE "Empowered Blades" 0 FALSE
 				}
 				
 			} else /if (!${Me.ActiveDisc.ID} && !${Me.Song[Empowered Blades].ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
@@ -314,7 +313,6 @@ sub burn_RNG(bool _debug)
 	
 	}
 	
-	**|
 	
 	| attack / dmg AA
 	/if (${is_ready[FALSE, "Outrider's Accuracy"]}) {
@@ -327,12 +325,12 @@ sub burn_RNG(bool _debug)
 	| guardian buff (group first)
 	/if (!${Me.Song[Guardian of the Forest].ID} && ${Me.AltAbilityReady[Group Guardian of the Forest]}) {
 		/if (${is_ready[FALSE, "Group Guardian of the Forest", ${Me.ID}]}) {
-			/call voodoo FALSE "Group Guardian of the Forest" alt 0 FALSE
+			/call voodoo FALSE "Group Guardian of the Forest" 0 FALSE
 		}
 		
 	} else /if (!${Me.Song[Group Guardian of the Forest].ID} && ${Me.AltAbilityReady[Guardian of the Forest]}) {  
 		/if (${is_ready[FALSE, "Guardian of the Forest", ${Me.ID}]}) {
-			/call voodoo FALSE "Guardian of the Forest" alt 0 FALSE
+			/call voodoo FALSE "Guardian of the Forest" 0 FALSE
 		}
 	}
 		
