@@ -63,7 +63,7 @@ sub main_SHD(bool _debug)
 	DEBUG main_SHD()
 
 	/if (AUTO) {
-		/if (!${check_engaged[]} && PET) /call check_pet
+		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle FALSE
 	}	
 	
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
@@ -100,7 +100,7 @@ sub main_SHD(bool _debug)
 		/if (AUTO) {	
 			/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
 			CHECKFADE
-			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery
+			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery FALSE
 		}
 	}
 

@@ -155,9 +155,9 @@ sub misc_combat_ROG(bool _debug)
 	/if (${is_target_dead[FALSE, TARGET]}) /return
 
 	/if (${is_ready[FALSE, "${maChr.Find[stPlay].Value}"]}) {
-		/if (${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]} && ${is_ready[FALSE, "${maChr.Find[stFrenzy].Value}"]}) /goto :skipDiscPlay
-		/if (${is_ready[FALSE, "${maChr.Find[stPlay].Value}"]} && !${Bool[${Me.ActiveDisc}]}) /call voodoo FALSE "${maChr.Find[stPlay].Value}" 0 FALSE
-		:skipDiscPlay
+		/if (!${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]} || !${is_ready[FALSE, "${maChr.Find[stFrenzy].Value}"]}) {
+			/if (${is_ready[FALSE, "${maChr.Find[stPlay].Value}"]} && !${Bool[${Me.ActiveDisc}]}) /call voodoo FALSE "${maChr.Find[stPlay].Value}" 0 FALSE
+		}
 	}
 	
 	/if (!${lsZoneNamed.Contains[${Target.DisplayName}]} && !${is_ready[FALSE, "${maChr.Find[stFrenzy].Value}"]}) {
@@ -184,7 +184,7 @@ sub misc_combat_ROG(bool _debug)
  * use: auto
  ***|
 sub check_heal_ROG(bool _debug, string _type)
-	DEBUG check_heal_ROG(${_debug}, ${_type})
+	DEBUG \atcheck_heal_ROG\ax(\a-w${_type}\ax)
 
 	CHECKTIE
 	ISMEDEAD
@@ -196,8 +196,8 @@ sub check_heal_ROG(bool _debug, string _type)
 
 	/if (!${check_hurt[${_debug}, ${_type}]}) /return FALSE
 
-	/if (${is_ready[FALSE, alt, "Tumble", ${hurtID}]}) {
-		/call voodoo FALSE "Tumble" alt 0 FALSE
+	/if (${is_ready[FALSE, "Tumble"]}) {
+		/call voodoo FALSE "Tumble" 0 FALSE
 	}
 	
 	/call cast_list FALSE lsHealBaseLine ${Me.ID}	
@@ -267,7 +267,7 @@ sub click_poison(bool _debug)
 		CHECKCOMBATCAST
 		/if (${Me.Invis}) /makemevisible
 		/if (${is_ready[FALSE, "${clickPoisonDispenser}", ${Me.ID}]}) {
-			/call voodoo FALSE "${clickPoisonDispenser}" item 0 FALSE
+			/call voodoo FALSE "${clickPoisonDispenser}" 0 FALSE
 		}
 		/call sort_cursor TRUE FORCE
 	}
@@ -316,27 +316,27 @@ sub burn_ROG(bool _debug)
 		/if (${is_ready[FALSE, "Envenomed Blades"]}) /call voodoo FALSE "Envenomed Blades" 0 FALSE
 	}
 
-	/if (${is_ready[FALSE, "${maChr.Find[stDicho].Value}", ${Me.ID}]}) /call voodoo FALSE "${maChr.Find[stDicho].Value}" disc 0 FALSE
+	/if (${is_ready[FALSE, "${maChr.Find[stDicho].Value}", ${Me.ID}]}) /call voodoo FALSE "${maChr.Find[stDicho].Value}" 0 FALSE
 
 	/if (!AE#) {
-		/if (${is_ready[FALSE, "Focused Rake's Rampage"]}) /call voodoo FALSE "Focused Rake's Rampage" alt 0 FALSE
+		/if (${is_ready[FALSE, "Focused Rake's Rampage"]}) /call voodoo FALSE "Focused Rake's Rampage" 0 FALSE
 	} else /if (AE#) {
-		/if (${is_ready[FALSE, "Rake's Rampage"]}) /call voodoo FALSE "Rake's Rampage" alt 0 FALSE
+		/if (${is_ready[FALSE, "Rake's Rampage"]}) /call voodoo FALSE "Rake's Rampage" 0 FALSE
 	}
 
 	/if (${is_ready[FALSE, "${maChr.Find[stPinPoint].Value}"]}) /call voodoo FALSE "${maChr.Find[stPinPoint].Value}" disc TARGET FALSE
 	/if (${is_ready[FALSE, "${maChr.Find[stAggro].Value}"]}) /call voodoo FALSE "${maChr.Find[stAggro].Value}" disc TARGET FALSE
 	/if (${is_ready[FALSE, "Rogue's Fury"]}) /call voodoo FALSE "Rogue's Fury" 0 FALSE
-	/if (${is_ready[FALSE, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15) /call voodoo FALSE "${maChr.Find[stMark].Value}" disc TARGET FALSE
+	/if (${is_ready[FALSE, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15) /call voodoo FALSE "${maChr.Find[stMark].Value}" TARGET FALSE
 	/call cast_AA_spire
-	/if (${is_ready[FALSE, "Intensity of the Resolute"]} && ${Raid.Members}) /call voodoo FALSE "Intensity of the Resolute" alt 0 FALSE
+	/if (${is_ready[FALSE, "Intensity of the Resolute"]} && ${Raid.Members}) /call voodoo FALSE "Intensity of the Resolute" 0 FALSE
   /if (!${Me.ActiveDisc.ID}) {
-  	/if (${is_ready[FALSE, "${maChr.Find[stFrenzy].Value}"]}) /call voodoo FALSE "${maChr.Find[stFrenzy].Value}" disc 0 FALSE
+  	/if (${is_ready[FALSE, "${maChr.Find[stFrenzy].Value}"]}) /call voodoo FALSE "${maChr.Find[stFrenzy].Value}" 0 FALSE
   	/delay 2
   }
   /if (${is_ready[FALSE, "${maChr.Find[stTwistedChance].Value}"]} && !${Me.ActiveDisc.ID}) /call voodoo FALSE "${maChr.Find[stTwistedChance].Value}" 0 FALSE
   /if (${is_ready[FALSE, "${maChr.Find[stEradicator].Value}"]} && !${Me.ActiveDisc.ID}) /call voodoo FALSE "${maChr.Find[stEradicator].Value}" 0 FALSE
-  /if (${is_ready[FALSE, "${maChr.Find[stRazor].Value}"]} && !${Me.ActiveDisc.ID}) /call voodoo FALSE "${maChr.Find[stRazor].Value}" disc 0 FALSE
+  /if (${is_ready[FALSE, "${maChr.Find[stRazor].Value}"]} && !${Me.ActiveDisc.ID}) /call voodoo FALSE "${maChr.Find[stRazor].Value}" 0 FALSE
 
   /if (${is_ready[FALSE, "${maChr.Find[stAspBleeder].Value}"]} && !${Me.ActiveDisc.ID}) /call voodoo FALSE "${maChr.Find[stAspBleeder].Value}" 0 FALSE
 

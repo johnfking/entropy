@@ -235,9 +235,10 @@ sub burn_MAG(bool _debug)
 		}
 	}
 
-	/call cast_AA_spire
-	/if (${is_ready[FALSE, "${SilentCast}"]}) {
-		/call voodoo FALSE "${SilentCast}" 0 FALSE
+	/call cast_AA_spire FALSE
+	
+	/if (${is_ready[FALSE, "Silent Casting"]}) {
+		/call voodoo FALSE "Silent Casting" 0 FALSE
 	}
 	/if (${is_ready[FALSE, "Heart of Stone"]}) {
 		/call voodoo FALSE "Heart of Stone" 0 FALSE
@@ -256,7 +257,7 @@ sub burn_MAG(bool _debug)
 	| swarm pets
 	/if (SWARM) {
 		/if (${is_ready[FALSE, "Host of the Elements"]}) {
-			/call voodoo FALSE "Host of the Elements" TARGET FALSE
+			/call voodoo FALSE "Host of the Elements" TARGiiET FALSE
 		}
 	}
 

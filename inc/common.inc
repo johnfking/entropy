@@ -2672,9 +2672,10 @@ sub get_target_basepull(bool _debug, int _tmpID)
 			
 			| LoS time reduction
 			/if (!${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} < ENV) {
-				/varcalc _wait_for_mob ${_wait_for_mob} - 10
-				/call set_timer FALSE _wait_for_mob ${_wait_for_mob}s
-				/varset dump ${out[9, "Target \arLoS\ax${sep}\a-w${_wait_for_mob}s\ax"]}
+				| /varcalc _wait_for_mob ${_wait_for_mob} - 10
+				| /call set_timer FALSE _wait_for_mob ${_wait_for_mob}s
+				| /varset dump ${out[9, "Target \arLoS\ax${sep}\a-w${_wait_for_mob}s\ax"]}
+				/delay 1s
 			}
 			
 			
@@ -4174,7 +4175,7 @@ sub cast_AA_fade(bool _debug)
 	
 
 	| made it this far. may as well see if the shit works
-	/if (${is_ready[${_debug}, "${${Me.Class.ShortName}AAFade}"]}) {
+	/if (${is_ready[${_debug}, "${maData.Find[stFade].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stFade].Value}" 0 FALSE
 	}
 
@@ -7884,9 +7885,10 @@ ${Me.Bandolier[1].Name}
 sub cast_glyph(bool _debug)
 	DEBUG \atcast_glyph\ax()
 	
+	/if (${maCC.Find[stGlyph].Value.Equal[FALSE]}) /return FALSE
+	
 	/if (${Raid.Members}) {
 		/if (!${maCC.Find[swGlyphRaid].Value}) /return FALSE
-		/if (!${maBurn.Find[swBurnRaid].Value}) /return FALSE
 	} else /if (${Group.Members}) {
 		/if (!${maCC.Find[swGlyphGroup].Value}) /return FALSE
 	}

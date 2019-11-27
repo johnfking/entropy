@@ -512,7 +512,7 @@ sub burn_PAL(bool _debug)
 		/call voodoo FALSE "Valorous Rage" 0 FALSE
 	}
 
-	/call cast_glyph FALSE
+	| /call cast_glyph FALSE
 	
 /return
 
