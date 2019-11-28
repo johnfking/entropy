@@ -799,7 +799,7 @@ sub get_hurt(bool _debug, string _type)
 	} else /if (${_type.Equal[pet]}) {
 		/for _count 0 to ${Group}
 			/if (!${Group.Member[${_count}].Pet.ID}) /continue
-	    /if (${Group.Member[${_count}].Pet.PctHPs} >= ${PetPoint}) /continue
+	    /if (${Group.Member[${_count}].Pet.PctHPs} > ${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}) /continue
 	    /if (${Group.Member[${_count}].Pet.Distance} > ENV) /continue
 	    /if (${Group.Member[${_count}].Pet.PctHPs} >= ${hurtPctHP}) /continue
 
