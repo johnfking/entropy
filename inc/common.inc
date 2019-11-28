@@ -3505,14 +3505,15 @@ sub get_assist_target(bool _debug)
 				/if (${Me.XTarget[1].PctHPs} <= ${maCC.Find[stPctEngage].Value}) {
 					DEBUG targeting${sep}stAssTarID${sep}${maCC.Find[stPctEngage].Value}
 					/if (${Target.ID} != ${stAssTarID}) {
-						/varset dump ${set_target[${stAssTarID}]}
+						/squelch /target id ${stAssTarID}
+						/delay 1s ${Target.ID} == ${stAssTarID}
 					}
 				}
 			}
 		}
 		
 		/return TRUE
-	} 
+	}
 
 	| target acquisition when not using manual assist.
 	:skippingtoMAtarget
