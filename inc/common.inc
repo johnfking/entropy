@@ -4689,7 +4689,7 @@ sub set_target(int _tmpID)
 
 	/if (!${Bool[${_tmpID}]}) /return TRUE
 
-	/if (${Spawn[id ${_tmpID}].Dead}) {
+	/if (${Spawn[npc corpse ${_tmpID}].ID}) {
 		/return FALSE
 	}
 

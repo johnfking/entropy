@@ -268,10 +268,10 @@ sub check_heal_CLR(bool _debug, string _type)
 	/declare _count int local 0
   	
 	| Group Regen Heal 
- 	/if (${maChr.Find[swHealGroupOverTime].Value} && !SAFEZONE && ${Group.Members} && COMBAT) {
-	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= ${maChr.Find[stCountAE].Value} && ${maChr.Find[stCountAE].Value}) {
+ 	/if (${maChr.Find[swHealGroupOverTime].Value} && !SAFEZONE && ${Group.Members} && COMBAT && ${maChr.Find[stCountAE].Value}) {
+	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= ${maChr.Find[stCountAE].Value}) {
 	 		/declare _groupHOT string local ${set_rank[FALSE, ${maChr.Find[stHealGroupOverTime].Value.Arg[1,+]}]}
-			/if (!${Me.Song[Focused Celestial Regeneration].ID} && !${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID}) {
+			/if (!${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID}) {
 
 				/declare _found bool TRUE
 				| check regen SPA
