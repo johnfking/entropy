@@ -283,7 +283,7 @@ sub burn_SHD(bool _debug)
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 
 	/if (${is_ready[FALSE, "T`Vyl's Resolve"]}) /call voodoo FALSE "T`Vyl's Resolve" TARGET FALSE
-	/if (${is_ready[FALSE, "${stCrimsonBlade}"]}) /call voodoo FALSE "${stCrimsonBlade}" 0 FALSE
+	/if (${is_ready[FALSE, "${maChr.Find[stCrimsonBlade].Value}"]}) /call voodoo FALSE "${maChr.Find[stCrimsonBlade].Value}" 0 FALSE
 	/call cast_AA_spire FALSE
 	/if (${is_ready[FALSE, "Veil of Darkness"]}) /call voodoo FALSE "Veil of Darkness" TARGET FALSE
 	/if (${is_ready[FALSE, "Harm Touch"]}) /call voodoo FALSE "Harm Touch" TARGET FALSE

@@ -540,7 +540,9 @@ sub Bind_command_issuance(bool _debug)
  
 |***
  * note: burn routines
- * use: meh..
+ * "What day is today?" asked Pooh
+ * "It's the day we burn this mother fucker to the ground." squeaked Piglet
+ * "My favorite day." said Pooh
  ***| 
 sub burn_CLR(bool _debug)
 	DEBUG \atburn_CLR\ax()
@@ -560,12 +562,7 @@ sub burn_CLR(bool _debug)
 	  } 
 	}
 
-	| reflect spells (proc:Shield of Reverence, 18 sec duration 3 min use)
-	/if (${is_ready[FALSE, alt, "Shield of Reverence", ${Me.ID}]}) {
-		/call voodoo ${maDebug.Find[cast].Value} "Shield of Reverence" 0 FALSE
-	}
-
-		| stage 1
+	| stage 1
 	/if (${Me.AltAbilityReady[Channeling the Divine]} && ${Me.AltAbilityReady[Celestial Rapidity]} && !${Me.Buff[Healing Frenzy].ID}) {
 		
 	  | Spire 1:30 min duration 7:30 min reuse

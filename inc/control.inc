@@ -622,7 +622,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 		/varset dump ${out[12, "Home${sep}Clear"]}
 	}
 
-	/varset dump ${_lsout.Append[set,variance,movebehind,facefast,arc,mount,deathclear,gather]}
+	/varset dump ${_lsout.Append[set,variance,movebehind,facefast,arc,mount,deathclear]}
 	/vardata cli _lsout.First.Clone
 	/while (!${cli.IsEnd}) {
 		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax

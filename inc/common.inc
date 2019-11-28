@@ -3424,7 +3424,7 @@ sub do_rest(bool _debug)
 
 
 |***
- * note: Acquire target, get bitches. This will establish ${maCC.Find[stAssTarID].Value} for everyone.
+ * note: Acquire target, get bitches. This will establish ${stAssTarID} for everyone.
  * use: /call get_assist_target DEBUG
  ***|
 sub get_assist_target(bool _debug)
@@ -3436,7 +3436,7 @@ sub get_assist_target(bool _debug)
 	/if (!AUTO) /return
 	
 	| if no MA present. move along..	
-	/if (!${Spawn[${maCC.Find[stManualAssist1].Value}].ID} && !${Spawn[${maCC.Find[stManualAssist2].Value}].ID} && !${Select[${maCC.Find[stAssistMode].Value},G,1,2,3]}) {
+	/if (!${Spawn[${maCC.Find[stManualAssist1].Value}].ID} && !${Spawn[${maCC.Find[stManualAssist2].Value}].ID} && !${Select[${maCC.Find[stAssistMode].Value},g,1,2,3]}) {
 		/delay 1
 		/return false
 	}
@@ -3451,28 +3451,29 @@ sub get_assist_target(bool _debug)
 		/varset dump ${do_raw_edit[FALSE, TRUE, stManualAssist2, FALSE]}
 	}
 	
-	| if we dont have underfoot expansion, skip ALL smartassist go directly to jail. 
+	| if we dont have xtargetsd, skip ALL smartassist go directly to jail. 
 	/if (!${Me.XTargetSlots}) /goto :skippingtoMAtarget
 
 	| tar acquisition when using smart assist. set XTarget positions.
-	/if (${Select[${maCC.Find[stAssistMode].Value},G,1,2,3]}) {
+	/if (${Select[${maCC.Find[stAssistMode].Value},g,1,2,3]}) {
 		DEBUG ${sep}SmartAssist${sep}\a-w${maCC.Find[stAssistMode].Value}\ax [1,2,3,g]
 		
 		| skip corpses and me
-		| /if () {
-			
-			
-		| }
+		/if (${Spawn[id ${stAssTarID}].Dead} || ${stAssTarID} == ${Me.ID}) {
+			DEBUG ${sep} bad target${sep}\a-wcorpse or self\ax
+			/varset stAssTarID 0
+			/return FALSE
+		}
 		
 		| if the raid/group roles are not set or dead, move on tho stManualAssist1/2	
-		/if (${Select[${maCC.Find[stAssistMode].Value},G]}) {
+		/if (${Select[${maCC.Find[stAssistMode].Value},g]}) {
 			/if (!${Group.MainAssist.ID}) /goto :skippingtoMAtarget
 			/if (${Bool[${Spawn[${Group.MainAssist}].Dead}]}) /goto :skippingtoMAtarget
 		} else /if (${Select[${maCC.Find[stAssistMode].Value},1,2,3]}) {		
 		}	
 	
 		| set the 1st xtarget slot to the assists target
-		/if (${Select[${maCC.Find[stAssistMode].Value},G]}) {
+		/if (${Select[${maCC.Find[stAssistMode].Value},g]}) {
 			DEBUG ${sep}set Xtarget${sep}\a-wg\ax
 			/if (${Me.XTarget[1].TargetType.NotEqual[Group Assist Target]} && ${Group.Members}) /xtarget set 1 groupassisttarget
 		} else /if (${Select[${maCC.Find[stAssistMode].Value},1]}) {
@@ -3492,21 +3493,25 @@ sub get_assist_target(bool _debug)
 		| smart assist group
 		DEBUG ${sep}GET Target
 		
-
-
-		| /varset stAssTarID ${Me.XTarget[1].ID}
-		
-		/if (${Me.XTarget[1].ID} && TARGET != ${Me.XTarget[1].ID} && ${Me.XTarget[1].PctHPs} <= ${maCC.Find[stPctEngage].Value}) {
+		| set main target variable
+		/if (${Me.XTarget[1].ID} && TARGET != ${Me.XTarget[1].ID}) {
+			DEBUG ${sep}setting${sep}stAssTarID ${Me.XTarget[1].ID}
 			/varset stAssTarID ${Me.XTarget[1].ID}
-			/if (${Spawn[ID ${stAssTarID}].Distance} <= ENV && ${Target.ID} != ${stAssTarID}) {
-				/if (MELEE || RANGE || NUKE || DOT) {
-					/call set_target ${stAssTarID}
-					/delay 1s ${stAssTarID} == ${Me.XTarget[1].ID}
+		}
+		
+		| set actual pc target
+		/if (${Spawn[ID ${stAssTarID}].Distance} <= ENV && ${stAssTarID}) {
+			/if (MELEE || RANGE || NUKE || DOT) {
+				/if (${Me.XTarget[1].PctHPs} <= ${maCC.Find[stPctEngage].Value}) {
+					DEBUG targeting${sep}stAssTarID${sep}${maCC.Find[stPctEngage].Value}
+					/if (${Target.ID} != ${stAssTarID}) {
+						/varset dump ${set_target[${stAssTarID}]}
+					}
 				}
 			}
 		}
-
-		/return
+		
+		/return TRUE
 	} 
 
 	| target acquisition when not using manual assist.
@@ -4681,7 +4686,12 @@ sub cast_yaulp(bool _debug)
  ***|
 sub set_target(int _tmpID)
 
-	/if (${_tmpID} == 0) /return TRUE
+	/if (!${Bool[${_tmpID}]}) /return TRUE
+
+	/if (${Spawn[id ${_tmpID}].Dead}) {
+		/return FALSE
+	}
+
 	/if (${Target.ID} == ${_tmpID}) /return TRUE
 
 	/squelch /target id ${_tmpID}
@@ -4945,11 +4955,13 @@ sub check_buff_cycle_self(bool _debug)
 					/if (${Me.Buff[${FindItem[${_spell}].Spell}].ID}) {
 						/varset dump ${out[0, "Removing${sep}\a-w${FindItem[${_spell}].Spell}\ax"]}
 						/removebuff ${FindItem[${_spell}].Spell}
+						/delay 2
 					}
 					| illusions
 					/if (${Me.Buff[${FindItem[${_spell}].Spell.Trigger[${_countD}]}].ID}) {
 						/varset dump ${out[0, "Removing${sep}\a-w${FindItem[${_spell}].Spell}\ax"]}
 						/removebuff ${FindItem[${_spell}].Spell.Trigger[${_countD}]}
+						/delay 2
 					}
 				}	
 			/next _countD
@@ -5053,7 +5065,6 @@ sub check_buff_cycle_self(bool _debug)
 					/dquery ${_toonName} -q "lsBlockedBuffsMe.Find[${Spell[${_spellTrigger}].ID}]" -o DNQReturn -t 5
 					DEBUG ${sep}${sep}BLOCKED .Trigger.Blocked Buff \at${DNQReturn}\ax ${dot} ${_spellTrigger}
 					/if (${Bool[${DNQReturn}]}) /continue
-
 
 					| do we have the triggered buff?
 					/dquery ${_toonName} -q "Me.Buff[${_spellTrigger}].ID" -o DNQReturn -t 5
@@ -5786,7 +5797,7 @@ sub cast_stamina_recovery(bool _debug)
 	/declare _endurancePoint int local 0
 	
 	| haitus switch
-	/if (${maChr.Find[swHiatus].Value} && ${Me.CombatAbilityReady[${Spell[Hiatus].RankName}]}) {
+	/if (${maChr.Find[swHiatus].Value} && ${Me.CombatAbilityReady[${Spell[Hiatus].RankName}]} && ${Me.PctEndurance} < 20) {
 		DEBUG rest${sep}\a-whiatus\ax
 		/if (${Me.CombatAbility[Hiatus Rk. III]} && (${Me.CurrentEndurance} < 102500 && ${Me.PctEndurance} < 34)) /varset _endurancePoint 34
 		/if (${Me.CombatAbility[Hiatus Rk. II]} && (${Me.CurrentEndurance} < 97500 && ${Me.PctEndurance} < 32)) /varset _endurancePoint 32

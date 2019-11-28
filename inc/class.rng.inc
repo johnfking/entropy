@@ -271,7 +271,7 @@ sub burn_RNG(bool _debug)
 		/call voodoo FALSE "Auspice of the Hunter" 0 FALSE
 	}
 	
-	
+	|**
 	| MELEE
 	/if (MELEE) {
 		/if (${Target.Distance} <= ${Spawn[TARGET].MaxRangeTo}*.9) {
@@ -312,7 +312,7 @@ sub burn_RNG(bool _debug)
 		}
 	
 	}
-	
+	**|
 	
 	| attack / dmg AA
 	/if (${is_ready[FALSE, "Outrider's Accuracy"]}) {

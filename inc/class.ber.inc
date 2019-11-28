@@ -94,18 +94,13 @@ sub main_BER(bool _debug)
 		}
 	}
 
-
-
-
- 
 /return
 
 
 
 |***
- *	DES: 
- *	USE: 
- *  NOTE: 
+ * note: 
+ * use: 
  ***|
 sub misc_combat_BER(bool _debug)
 	DEBUG misc_combat_BER()
@@ -267,7 +262,7 @@ sub check_heal_BER(bool _debug, string _type)
 
 
 
- |***
+|***
  * note: Berzerker burn routines
  * use: if you're not burning. you are doing it wrong..
  ***| 
@@ -288,7 +283,8 @@ sub burn_BER(bool _debug)
 	/if (${is_ready[FALSE, "Desperation"]} && ${Me.PctHPs} < 90) /call voodoo FALSE "Desperation" 0 FALSE
 	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stUnsettlingScream].Value}].RankName}]} && ${Me.CurrentEndurance} > ${Spell[${maChr.Find[stUnsettlingScream].Value}].EnduranceCost}) {
 		/disc ${maChr.Find[stUnsettlingScream].Value}
-		/call voodoo FALSE "${maChr.Find[stUnsettlingScream].Value}" 
+		/call voodoo FALSE "${maChr.Find[stUnsettlingScream].Value}" TARGET FALSE
+	}
 		
 	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stCryOfChaos].Value}].RankName}]} && !${Me.Song[${maChr.Find[stCryOfChaos].Value}].ID}) {
 		/delay ${Math.Rand[8]}s ${Me.Song[${maChr.Find[stCryOfChaos].Value}].ID}
@@ -318,7 +314,8 @@ sub burn_BER(bool _debug)
 
 	/if (${is_ready[FALSE, "Blinding Fury"]}) /call voodoo FALSE "Blinding Fury" 0 FALSE
 	/if (${is_ready[FALSE, "Juggernaut Surge"]}) /call voodoo FALSE "Juggernaut Surge" 0 FALSE
-	/call use_glyph
+	
+	/call cast_glyph FALSE
 	
 	/if (!${Me.Song[Reckless Abandon].ID} && ${Raid.Members}) {
 		/if (${is_ready[FALSE, "Intensity of the Resolute"]}) /call voodoo FALSE "Intensity of the Resolute" 0 FALSE
@@ -354,7 +351,7 @@ sub burn_BER(bool _debug)
 		}
 
 		/if (!${Me.CombatAbilityReady[${Spell[${maChr.Find[stResolve].Value}].RankName}]}) /disc ${maChr.Find[stVengefulFlurry].Value}
-		/if (!${Me.CombatAbilityReady[${Spell[${maChr.Find[stResolve].Value}].RankName}]} && !${Me.CombatAbilityReady[${Spell[${stVengefulFlurry].Value}].RankName}]}) /disc ${maChr.Find[stCleavingRage].Value}
+		/if (!${Me.CombatAbilityReady[${Spell[${maChr.Find[stResolve].Value}].RankName}]} && !${Me.CombatAbilityReady[${Spell[${maChr.Find[stVengefulFlurry].Value}].RankName}]}) /disc ${maChr.Find[stCleavingRage].Value}
 	}
 
 /return
@@ -369,3 +366,63 @@ sub burn_BER(bool _debug)
 	| use hiatus disc
 	} else /if (${_type.Equal[hiatus]}) {
 		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+
+
+
+
+
+|***
+ * note: rogue specific controls
+ * use: /chr
+ ***|
+sub set_control_BER(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control_BER\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+	
+	/declare _out string local
+
+	| output control map
+	/if (${_type.Equal[see]}) {
+		/call Bind_command_see maChr ${_verbage}
+		/return
+		
+	| set ae on/off / count
+	} else /if (${_type.Equal[ae]}) {
+		/if (!${set_control_num_range[FALSE, stCountAE, "${_verbage}", 0, 99]}) /return
+
+	| defensive mob agro count
+	} else /if (${_type.Equal[def]}) {
+		/if (!${set_control_num_range[FALSE, stCountDefensive, "${_verbage}", 0, 99]}) /return
+
+	| set AA fade use %	
+	} else /if (${_type.Equal[fade]}) {
+		/if (!${set_control_num_range[FALSE, stPctFade, "${_verbage}", 0, 99]}) /return
+
+	| set spire to be used
+	} else /if (${_type.Equal[spire]}) {
+		/call set_control_chr_spire FALSE ${_verbage} ${_silent}
+		/return
+
+	| use hiatus disc
+	} else /if (${_type.Equal[hiatus]}) {
+		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+		
+		
+	}
+
+	/if (${_silent.Equal[SILENT]}) /return 
+	/varset _out
+	/vardata li lsChr.First.Clone
+	/while (!${li.IsEnd}) {
+		/varset _out ${_out} ${If[${li.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${li.Value}\ax
+		/if (${li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
+		/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
+
+		/varset dump ${li.Advance}
+	}	
+	OUT /chr ${_out}
+
+/return
+
