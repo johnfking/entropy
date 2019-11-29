@@ -17,12 +17,12 @@ sub set_initialize(bool _debug)
   DEBUG \atset_initialize\ax()
 
   | set inital trash variables  
-  /call set_data FALSE FALSE dump                                     string outer FALSE
-  /call set_data FALSE FALSE bindswap                                 bool outer FALSE
-  /call set_data FALSE FALSE swap                                     string outer FALSE
-  /call set_data FALSE FALSE DNReturn                                 string outer FALSE
-  /call set_data FALSE FALSE swDBlocked                               bool outer FALSE
-  /call set_data FALSE FALSE DNQReturn                                string outer FALSE
+  /call set_data FALSE FALSE dump string outer FALSE
+  /call set_data FALSE FALSE bindswap bool outer FALSE
+  /call set_data FALSE FALSE swap string outer FALSE
+  /call set_data FALSE FALSE DNReturn string outer FALSE
+  /call set_data FALSE FALSE swDBlocked bool outer FALSE
+  /call set_data FALSE FALSE DNQReturn string outer FALSE
 
 	| map iterator dump variable
   /declare mi mapiterator outer
@@ -35,7 +35,6 @@ sub set_initialize(bool _debug)
   
   | set dump variable
   /declare si setiterator outer
-  
    
   | hook map
   /declare maHook map outer
@@ -50,13 +49,17 @@ sub set_initialize(bool _debug)
  	/declare maRezControl map outer
 
 	| self blocked buffs  
-  /declare lsBlockedBuffsMe                                           string outer
+  /declare lsBlockedBuffsMe string outer
+  
+  | PREGEN recorder
+  /declare maPREGEN map outer
+  
 
   | list of all maps used with persistant data
   /declare lsMaps list outer
   /varset dump ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maItems,maBuffs,maBuff,maBurn]}
   /varset dump ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
-  /varset dump ${lsMaps.Append[maData,maDebug,maOver]}
+  /varset dump ${lsMaps.Append[maData,maDebug,maOver,maPREGEN]}
 
   
   | set all output shortcuts

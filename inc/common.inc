@@ -143,6 +143,11 @@ sub set_data_map (bool _debug, string _map, string _env_var, string _value, _aux
 	/if (!${Defined[${_map}]}) {
 		/declare ${_map} map outer
 	}
+	
+	| record pregen data
+	/if (${_value.Arg[1,|].Equal[PREGEN]}) {
+		/varset dump ${maPREGEN.Add[${_env_var},${_value.Arg[2,|]}]}
+	}
 
 	| is the data there already?
 	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_character WHERE env_var="${_env_var}"
@@ -222,6 +227,11 @@ sub set_data_list (bool _debug, string _map, string _env_var, string _value, str
 	/if (!${Defined[${_map}]}) {
 		/declare ${_map} map outer
 	}	
+	
+	| record pregen data
+	/if (${_value.Arg[1,|].Equal[PREGEN]}) {
+		/varset dump ${maPREGEN.Add[${_env_var},${_value.Arg[2,|]}]}
+	}
 
 	| is the data there already?
 	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_character WHERE env_var="${_env_var}"
@@ -273,7 +283,7 @@ sub set_data_list (bool _debug, string _map, string _env_var, string _value, str
 			/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM env_${Me.Class.ShortName.Lower} WHERE env_var="${_env_var}"
 			DEBUG ${sep}dummy SELECT * From env_${Me.Class.ShortName.Lower} WHERE env_var='${_env_var}' ${dot} \ay${sqlite.Status[dummy]}\ax
 			DEBUG ${sep}${sep}${sqlite.Result[dummy 1 env_var]}${sep}\a-w${sqlite.Result[dummy 1 value]}\ax
-			
+					
 			| how many do we want to find?
 			/while (${_count} <= ${_value.Arg[2,|]}) {
 				DEBUG +++++++ ${sqlite.Result[dummy 1 value].Arg[${_count},|]}
@@ -3676,7 +3686,7 @@ sub get_key_DBLOC(bool _debug, string _key)
  * use: hey look squirrels...
  * use: /call do_raw_edit DEBUG [silent T/F] [variable to change] [value to change it too|gem#|cursor] [add|delete|clear (for lists)] [not used yet]
  ***|
-sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, string _add_delete, string _verbage)
+  sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, string _add_delete, string _verbage)
 	DEBUG \atdo_raw_edit\ax(\aw${_silent}, ${_variable}, ${Parse[1,${_value}]}, ${_add_delete}, ${_verbage}\ax)
 
 	| ** error handeling ** |
@@ -3712,7 +3722,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 	/declare _list bool local FALSE
 	/declare _found bool local FALSE
 
-	| reset to pregendata
+	| set value as a gem
 	/if (${_value.Find[gem]} && ${_value.Length} < 6) {
 
 		/declare _gemN int local ${get_gem_id[FALSE, ${_value}]}
@@ -3733,7 +3743,44 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 			/return FALSE
 		}
 		/varset _value ${Cursor.Name}
-	}
+
+	| return to default settings
+	} else /if (${_value.Equal[pregen]}) {
+
+		DEBUG ${sep}DATA \agdoes exists\ax \arWE ARE RESETTING IT\ax
+		/declare _count int local 1
+		/declare _tmpList string local
+	
+		DEBUG GET PREGEN DATA
+		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM env_${Me.Class.ShortName.Lower} WHERE env_var="${_env_var}"
+		DEBUG ${sep}dummy SELECT * From env_${Me.Class.ShortName.Lower} WHERE env_var='${_env_var}' ${dot} \ay${sqlite.Status[dummy]}\ax
+		DEBUG ${sep}${sep}${sqlite.Result[dummy 1 env_var]}${sep}\a-w${sqlite.Result[dummy 1 value]}\ax
+				
+		| how many do we want to find?
+		/if (${maPREGEN.Find[${_value}].Value}) {
+		/while (${_count} <= ${maPREGEN.Find[${_value}].Value}) { 
+			DEBUG ${sep}${sqlite.Result[dummy 1 value].Arg[${_count},|]}
+			| is it in the book?
+			/if (${Me.Book[${Spell[${sqlite.Result[dummy 1 value].Arg[${_count},|]}].RankName}]} || ${Me.CombatAbility[${Spell[${sqlite.Result[dummy 1 value].Arg[${_count},|]}].RankName}]}) {
+				/if (${Bool[${_tmpList}]}) /varset _tmpList ${_tmpList}|
+				/varset _tmpList ${_tmpList}${sqlite.Result[dummy 1 value].Arg[${_count},|]}
+				/varcalc _count ${_count}+1
+			}
+		}
+	
+		| adjust our running value for the database entry
+		DEBUG ${sep} _tmpList ${_tmpList}
+		/varset _value ${_tmpList}
+		DEBUG ${sep} _value ${_tmpList}
+
+		| not a list or a single entry
+		} else {
+			/varset _value ${sqlite.Result[dummy 1 value]}
+			DEBUG ${sep} _value ${sqlite.Result[dummy 1 value]}	
+		}
+	
+
+	}	
 	
 	| clear/reset an existing list 
 	/if (${_variable.Left[2].Equal[ls]} && ${_value.Equal[clear]}) {

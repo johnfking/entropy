@@ -48,9 +48,7 @@ sub set_WIZ(bool _debug)
 	
 	
 /return	
-	
-	
-	
+
 	
 	
 |***
@@ -251,15 +249,17 @@ sub force_twincast_WIZ(bool _debug)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
+	
 	/varset dump ${set_data_timer[FALSE, Force_TC, 6s]}
+	
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 
 	/if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[Twincast].ID} && ${is_ready[FALSE, "${maChr.Find[stTC].Value}"]}) {
 		/call voodoo FALSE "${maChr.Find[stTC].Value}" 0 FALSE
 		/return
 
-	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[${TwincastSpell}].ID} && !${Me.Buff[Twincast].ID} && ${is_ready[FALSE, "${NukeTwincast${lineCurrent}}"]}) {
-		/call voodoo FALSE "${NukeTwincast${lineCurrent}}" TARGET FALSE
+	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[${TwincastSpell}].ID} && !${Me.Buff[Twincast].ID} && ${is_ready[FALSE, "${maChr.Find[stNukeTC${stLine}].Value}"]}) {
+		/call voodoo FALSE "${maChr.Find[stNukeTC${stLine}].Value}" TARGET FALSE
 	}
 	
 /return
