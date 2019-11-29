@@ -1,22 +1,102 @@
 |***
- *	class.mnk.inc
- *	Core Monk Include
- *
- *
+ * entropy
+ * class.mnk.inc
  ***|
  
- 
-  	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
+
+
+|***
+ * note: primary initilization of all cleric non shared data
+ * use: not for you
+ ***|
+sub set_MNK(bool _debug)
+	DEBUG \atset_MNK\ax()
+
+	/call set_data FALSE maData stSpire																	map outer "Spire of the Sensei"
+	/call set_data FALSE maData stSynergy																map outer "Calanin's Synergy"
+	/call set_data FALSE maData stEpic1																	map outer "Celestial Fists"
+	/call set_data FALSE maData stEpic15																map outer "Fistwraps of Celestial Discipline"
+	/call set_data FALSE maData stEpic2																	map outer "Transcended Fistwraps of Immortality"
+	/call set_data FALSE maData stFade																	map outer "Imitate Death"
+	/call set_data FALSE maData stCompleteHeal													map outer "Complete Heal"
+	/call set_data_map FALSE maChr stAAUnity														FALSE													"${auxna} class aa unity buff"
+
+
+  /call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
  	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
+
+
+
+
+	
+	/call sql_control FALSE ${chrID} switchMNKTrainMelee								bool			outer FALSE
+
+	/call sql_control FALSE ${chrID} setFDAgroPct												int				outer FALSE
+	/call sql_control FALSE ${chrID} setAgroPct													int				outer 95
+	/call sql_control FALSE ${chrID} setFDPct														int				outer 25
+ 	
+	/call set_data_map FALSE maChr stDichotomic													PREGEN|1											"${auxna} Dichotomic disc family"
+	
+	
+	/call sql_control FALSE ${chrID} stBalance												PREGEN|1
+	/call sql_control FALSE ${chrID} maChr.Find[stMonkey].Value													PREGEN|1
+	/call sql_control FALSE ${chrID} maChr.Find[stHeel].Value														PREGEN|1
+	/call sql_control FALSE ${chrID} maChr.Find[stDiscipline].Value											PREGEN|1
+	/call sql_control FALSE ${chrID} maChr.Find[stCrane].Value													PREGEN|1
+	/call sql_control FALSE ${chrID} maChr.Find[stPunch].Value													PREGEN|1
+	/call sql_control FALSE ${chrID} maChr.Find[stSynergy].Value												PREGEN|1
+	/call sql_control FALSE ${chrID} maChr.Find[stElbow].Value														PREGEN|1
+	/call sql_control FALSE ${chrID} maChr.Find[stCurse].Value													PREGEN|1
+	/call sql_control FALSE ${chrID} maChr.Find[stPrecision].Value												PREGEN|1
+	/call sql_control FALSE ${chrID} maChr.Find[stShuriken].Value												PREGEN|1
+	/call sql_control FALSE ${chrID} maChr.Find[stStorm].Value													PREGEN|1
+	/call sql_control FALSE ${chrID} maChr.Find[stDeath].Value											PREGEN|1
+	/call sql_control FALSE ${chrID} maChr.Find[stWu].Value															PREGEN|1
+	
+
+
+
+
+
+
+
+
+
+
+
+stAlliance "Doomwalker's Alliance"
+stDichotomic "Dissident Form|Dichotomic Form"
+stBalance "Tiger's Poise|Dragon's Balance|Eagle's Balance|92|Tiger's Balance"
+maChr.Find[stMonkey].Value "Drunken Monkey Style"
+maChr.Find[stHeel].Value "Heel of Zagali|Heel of Kojai|Hheel of Kai|70|Heel of Kanji"
+maChr.Find[stDiscipline].Value "Ironfist Discipline|Scaledfist Discipline|Ashenhand Discipline|Silentfist Discipline|Thunderkick Discipline"
+maChr.Find[stCrane].Value "Crane Stance"
+maChr.Find[stPunch].Value "Firestorm of Fists|Torrent of Fists|Strike Through|Jab Through|Punch Through"
+maChr.Find[stSynergy].Value "Firewalker's Synergy|Doomwalker's Synergy|Shadewalker's Synergy"
+maChr.Find[stElbow].Value "Hoshkar's Fang|Zalikor's Fang|Dragon Fang|Leopard Claw|Elbow Strike"
+maChr.Find[stCurse].Value "Curse of Fourteen Fists|Curse of the Thirteen Fingers"
+maChr.Find[stPrecision].Value "Firewalker's Precision Strike|Doomwalker's Precision Strike"
+maChr.Find[stShuriken].Value "Vigorous Shuriken"
+maChr.Find[stStorm].Value "Eye of the Storm"
+stRest "Breather|Seventh Wind|Reprieve|Rest|Sixth Wind|Fifth Wind|Respite|Fourth Wind|Third Wind|Second Wind"
+maChr.Find[stDeath].Value "Reject Death|Refuse Death|Forestall Death|Decry Death|Deny Death|Defer Death|Delay Death"
+maChr.Find[stWu].Value "Fists of Wu"
+
+
+
+
+
+/return
+
+
+
+
+ 
 
  
  | spire of the sensei
 
-|***
- *	DES: Main Monk Routine
- *	USE: 
- *  NOTE: 
- ***|
+
 sub core_MNK(bool _debug)
 	DEBUG core_MNK()
 
@@ -70,21 +150,21 @@ sub disc_MNK(bool _debug)
 	/if (${validate_mitigation[FALSE, burn, ${setCombatRadius}]}) /call mitigation_cycle FALSE
 
 	/if (${Me.PctAggro} >= ${setAgroPct}) {
-		/if (${validate_cast[FALSE, alt, "${AASilent}", ${Me.ID}]}) /call core_cast2 "${AASilent}" alt 0 FALSE
+		/if (${validate_cast[FALSE, alt, "Silent Strikes", ${Me.ID}]}) /call core_cast2 "Silent Strikes" alt 0 FALSE
 	}
-	/if (${validate_cast[FALSE, disc, "${DiscWu}", ${Me.ID}]} && !${Me.Song[${DiscWu}].ID}) /call core_cast2 "${DiscWu}" disc 0 FALSE
+	/if (${validate_cast[FALSE, disc, "${maChr.Find[stWu].Value}", ${Me.ID}]} && !${Me.Song[${maChr.Find[stWu].Value}].ID}) /call core_cast2 "${maChr.Find[stWu].Value}" disc 0 FALSE
 	| /if (${validate_cast[FALSE, disc, "${DiscDoubleAttack}", ${Me.ID}]}) /call core_cast2 "${DiscDoubleAttack}" disc 0 FALSE
-	/if (${validate_cast[FALSE, alt, "${AAZanFi}", ${Me.ID}]}) /call core_cast2 "${AAZanFi}" alt 0 FALSE
-	/if (${validate_cast[FALSE, disc, "${DiscMonkey}", ${Target2Kill}]}) /call core_cast2 "${DiscMonkey}" disc ${Target2Kill} FALSE	
+	/if (${validate_cast[FALSE, alt, "Zan Fi's Whistle", ${Me.ID}]}) /call core_cast2 "Zan Fi's Whistle" alt 0 FALSE
+	/if (${validate_cast[FALSE, disc, "${maChr.Find[stMonkey].Value}", ${Target2Kill}]}) /call core_cast2 "${maChr.Find[stMonkey].Value}" disc ${Target2Kill} FALSE	
 	/if (${Bool[${intimidation}]} && ${Me.AbilityReady["Intimidation"]}) /doability Intimidation
-	/if (${validate_cast[FALSE, alt, "${AAWasp}", ${Target2Kill}]}) /call core_cast2 "${AAWasp}" alt ${Target2Kill} FALSE   
-	/if (${validate_cast[FALSE, disc, "${DiscFists}", ${Target2Kill}]}) /call core_cast2 "${DiscFists}" disc ${Target2Kill} FALSE
-	/if (${validate_cast[FALSE, disc, "${DiscSynergy}", ${Target2Kill}]}) /call core_cast2 "${DiscSynergy}" disc ${Target2Kill} FALSE
-	/if (${validate_cast[FALSE, disc, "${DiscFang}", ${Target2Kill}]}) /call core_cast2 "${DiscFang}" disc ${Target2Kill} FALSE
-	/if (${validate_cast[FALSE, disc, "${DiscCurse}", ${Target2Kill}]}) /call core_cast2 "${DiscCurse}" disc ${Target2Kill} FALSE
-	/if (${validate_cast[FALSE, disc, "${DiscThrowing}", ${Target2Kill}]}) /call core_cast2 "${DiscThrowing}" disc ${Target2Kill} FALSE
-	/if (${validate_cast[FALSE, disc, "${DiscShuriken}", ${Target2Kill}]}) /call core_cast2 "${DiscShuriken}" disc ${Target2Kill} FALSE
-	/if (${validate_cast[FALSE, disc, "${DiscStorm}", ${Me.ID}]}) /call core_cast2 "${DiscStorm}" disc 0 FALSE
+	/if (${validate_cast[FALSE, alt, "Two-Finger Wasp Touch", ${Target2Kill}]}) /call core_cast2 "Two-Finger Wasp Touch" alt ${Target2Kill} FALSE   
+	/if (${validate_cast[FALSE, disc, "${maChr.Find[stPunch].Value}", ${Target2Kill}]}) /call core_cast2 "${maChr.Find[stPunch].Value}" disc ${Target2Kill} FALSE
+	/if (${validate_cast[FALSE, disc, "${maChr.Find[stSynergy].Value}", ${Target2Kill}]}) /call core_cast2 "${maChr.Find[stSynergy].Value}" disc ${Target2Kill} FALSE
+	/if (${validate_cast[FALSE, disc, "${maChr.Find[stElbow].Value}", ${Target2Kill}]}) /call core_cast2 "${maChr.Find[stElbow].Value}" disc ${Target2Kill} FALSE
+	/if (${validate_cast[FALSE, disc, "${maChr.Find[stCurse].Value}", ${Target2Kill}]}) /call core_cast2 "${maChr.Find[stCurse].Value}" disc ${Target2Kill} FALSE
+	/if (${validate_cast[FALSE, disc, "${maChr.Find[stPrecision].Value}", ${Target2Kill}]}) /call core_cast2 "${maChr.Find[stPrecision].Value}" disc ${Target2Kill} FALSE
+	/if (${validate_cast[FALSE, disc, "${maChr.Find[stShuriken].Value}", ${Target2Kill}]}) /call core_cast2 "${maChr.Find[stShuriken].Value}" disc ${Target2Kill} FALSE
+	/if (${validate_cast[FALSE, disc, "${maChr.Find[stStorm].Value}", ${Me.ID}]}) /call core_cast2 "${maChr.Find[stStorm].Value}" disc 0 FALSE
 
 /return
 
@@ -116,7 +196,7 @@ sub patch_heal_MNK(bool _debug)
 	}
 
 	/if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.${tmpHealOverride}) {
-		/if (${validate_cast[FALSE, disc, "${DiscDelayDeath}", ${Me.ID}]}) /call core_cast2 "${DiscDelayDeath}" disc 0 FALSE
+		/if (${validate_cast[FALSE, disc, "${maChr.Find[stDeath].Value}", ${Me.ID}]}) /call core_cast2 "${maChr.Find[stDeath].Value}" disc 0 FALSE
 	}
 	/call click_item_heal
 /return
@@ -160,19 +240,19 @@ sub burn_MNK(bool _debug)
 	CHECKINPUTS
 	
 	/if (${validate_mitigation[FALSE, FALSE, ${setCombatRadius}]}) /call mitigation_cycle FALSE
-	/if (${validate_cast[FALSE, disc, "${DiscDicho}", ${Me.ID}]}) /call core_cast2 "${DiscDicho}" disc 0 FALSE
+	/if (${validate_cast[FALSE, disc, "${stDichotomic}", ${Me.ID}]}) /call core_cast2 "${stDichotomic}" disc 0 FALSE
 	/if (${validate_cast[FALSE, disc, "${MNKAlliance}", ${Target2Kill}]}) /call core_cast2 "${MNKAlliance}" disc ${Target2Kill} FALSE 
 	/call cast_AA_spire
-	/if (${validate_cast[FALSE, disc, "${DiscBalance}", ${Me.ID}]}) /call core_cast2 "${DiscBalance}" disc 0 FALSE
-	/if (${validate_cast[FALSE, alt, "${AAThunder}", ${Me.ID}]}) /call core_cast2 "${AAThunder}" alt 0 FALSE
-	/if (${validate_cast[FALSE, alt, "${AAFocus}", ${Target2Kill}]}) /call core_cast2 "${AAFocus}" alt ${Target2Kill} FALSE
-	/if (${validate_cast[FALSE, disc, "${DiscMonkey}", ${Me.ID}]}) /call core_cast2 "${DiscMonkey}" disc 0 FALSE
-	/if (${validate_cast[FALSE, alt, "${AASilent}", ${Me.ID}]}) /call core_cast2 "${AASilent}" alt 0 FALSE
+	/if (${validate_cast[FALSE, disc, "${maChr.Find[stBalance].Value}", ${Me.ID}]}) /call core_cast2 "${maChr.Find[stBalance].Value}" disc 0 FALSE
+	/if (${validate_cast[FALSE, alt, "Infusion of Thunder", ${Me.ID}]}) /call core_cast2 "Infusion of Thunder" alt 0 FALSE
+	/if (${validate_cast[FALSE, alt, "Focused Destructive Force", ${Target2Kill}]}) /call core_cast2 "Focused Destructive Force" alt ${Target2Kill} FALSE
+	/if (${validate_cast[FALSE, disc, "${maChr.Find[stMonkey].Value}", ${Me.ID}]}) /call core_cast2 "${maChr.Find[stMonkey].Value}" disc 0 FALSE
+	/if (${validate_cast[FALSE, alt, "Silent Strikes", ${Me.ID}]}) /call core_cast2 "Silent Strikes" alt 0 FALSE
 	
 | 	Check if we're using a disc, if not use Heel, if another, cancel it and use Heel
 
 	/if (!${Bool[${Me.ActiveDisc.Name}]}) {
-		/if (${validate_cast[FALSE, disc, "${DiscHeel}", ${Target2Kill}]}) {
+		/if (${validate_cast[FALSE, disc, "${maChr.Find[stHeel].Value}", ${Target2Kill}]}) {
 		/if (!${flyingkick} || !${eaglestrike}) {
 			/varset kick FALSE
 			/varset flyingkick TRUE
@@ -181,10 +261,10 @@ sub burn_MNK(bool _debug)
 			/varset eaglestrike TRUE
 			/varset tigerclaw FALSE
 		}
-		/call core_cast2 "${DiscHeel}" disc ${Target2Kill} FALSE
+		/call core_cast2 "${maChr.Find[stHeel].Value}" disc ${Target2Kill} FALSE
 		}
 	} else /if (${Bool[${Me.ActiveDisc.Name}]} && !${Bool[${Me.ActiveDisc.Name.Find[Heel]}]}) {
-		/if (${validate_cast[FALSE, disc, "${DiscHeel}", ${Target2Kill}]}) {
+		/if (${validate_cast[FALSE, disc, "${maChr.Find[stHeel].Value}", ${Target2Kill}]}) {
 			/stopdisc
 			/if (!${flyingkick} || !${eaglestrike}) {
 				/varset kick FALSE
@@ -194,13 +274,13 @@ sub burn_MNK(bool _debug)
 				/varset eaglestrike TRUE
 				/varset tigerclaw FALSE
 			}
-			/call core_cast2 "${DiscHeel}" disc ${Target2Kill} FALSE
+			/call core_cast2 "${maChr.Find[stHeel].Value}" disc ${Target2Kill} FALSE
 		}
 	}
-	/if (${validate_cast[FALSE, disc, "${DiscAshenhand}", ${Me.ID}]}) /call core_cast2 "${DiscAshenhand}" disc 0 FALSE
-	/if (${validate_cast[FALSE, disc, "${DiscCrane}", ${Target2Kill}]}) /call core_cast2 "${DiscCrane}" disc ${Target2Kill} FALSE
-	/if (${validate_cast[FALSE, alt, "${AATwinStrike}", ${Target2Kill}]}) /call core_cast2 "${AATwinStrike}" alt ${Target2Kill} FALSE
-	/if (${validate_cast[FALSE, alt, "${AAChant}", ${Me.ID}]}) /call core_cast2 "${AAChant}" alt 0 FALSE    
+	/if (${validate_cast[FALSE, disc, "${maChr.Find[stDiscipline].Value}", ${Me.ID}]}) /call core_cast2 "${maChr.Find[stDiscipline].Value}" disc 0 FALSE
+	/if (${validate_cast[FALSE, disc, "${maChr.Find[stCrane].Value}", ${Target2Kill}]}) /call core_cast2 "${maChr.Find[stCrane].Value}" disc ${Target2Kill} FALSE
+	/if (${validate_cast[FALSE, alt, "Five Point Palm", ${Target2Kill}]}) /call core_cast2 "Five Point Palm" alt ${Target2Kill} FALSE
+	/if (${validate_cast[FALSE, alt, "Swift Tail's Chant", ${Me.ID}]}) /call core_cast2 "Swift Tail's Chant" alt 0 FALSE    
 
   /call use_glyph
   /call click_burn_circle
@@ -271,7 +351,7 @@ sub Event_MNKfdcheck(string line, string _verbage)
 		}
 		/stand
 		/if (${Me.AbilityReady["Mend"]}) /doability Mend
-		/if (${validate_cast[FALSE, disc, "${DiscDelayDeath}", ${Me.ID}]}) /call core_cast2 "${DiscDelayDeath}" disc 0 FALSE
+		/if (${validate_cast[FALSE, disc, "${maChr.Find[stDeath].Value}", ${Me.ID}]}) /call core_cast2 "${maChr.Find[stDeath].Value}" disc 0 FALSE
 	}
 /return
 

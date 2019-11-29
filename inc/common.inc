@@ -1407,7 +1407,8 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub)
 
 	| critical errors
 	/if (!${Bool[${_verbage}]}) {
-		/varset dump ${out[0, "${error}${sep}voodoo${sep}\a-w_verbage\ax ?? (\a-w${_verbage}, ${_tmpID}, ${_sub}\ax)"]}
+		/varset dump ${out[0, "${error}${sep}voodoo${sep}\ar_verbage\ax${sep}\a-w${_verbage}, ${_tmpID}, ${_sub}\ax)"]}
+		/delay 5
 		/return FALSE
 	}
 	
@@ -4452,7 +4453,7 @@ sub check_buff_cycle(bool _debug, bool _force)
 	/if (${maBuff.Find[swBuffSelf].Value} && ((AUTO && !${timer_Check_Buff_Self}) || ${_force})) /call check_buff_cycle_self ${_debug}
 
 	| crew
-	/if (${maBuff.Find[swBuffCrew].Value} && ((AUTO && !${timer_Check_Buff_Crew}) || ${_force})) /call check_buff_cycle_crew FALSE
+	/if (${maBuff.Find[swBuffCrew].Value} && ((AUTO && !${timer_Check_Buff_Crew}) || ${_force})) /call check_buff_cycle_crew ${_debug}
 	
 	| others
 	
@@ -4476,7 +4477,7 @@ sub check_buff_cycle(bool _debug, bool _force)
 		} else /if (${Select[${Me.Class.ShortName},CLR]}) {
 		} else /if (${Select[${Me.Class.ShortName},DRU]}) {
 		} else /if (${Select[${Me.Class.ShortName},ENC]}) {
-			/if (${maChr.Find[swAACrystals].Value}) /call check_crystals FALSE
+			/if (${maChr.Find[swAACrystals].Value}) /call check_crystals ${_debug}
 		} else /if (${Select[${Me.Class.ShortName},MAG]}) {
 		} else /if (${Select[${Me.Class.ShortName},MNK]}) {
 		} else /if (${Select[${Me.Class.ShortName},NEC]}) {
@@ -4490,7 +4491,7 @@ sub check_buff_cycle(bool _debug, bool _force)
 		}
 	}
 
-	/if (AUTO) /varset dump ${set_data_timer[FALSE, Check_Buff_Cycle, RESTART]}
+	/if (AUTO) /varset dump ${set_data_timer[${_debug}, Check_Buff_Cycle, RESTART]}
 
 	/if (${_force}) {
 		/if (${maBuff.Find[swBuffMaster].Value}) {
@@ -5904,22 +5905,14 @@ sub check_basic_tags(bool _debug, string _type, string _name)
 	DEBUG \atcheck_basic_tags\ax(\a-w${_type}, ${_name}\ax)
 
 	| no buffing in combat
-	/if (${ls${_type}Tag.Contains[nocombat]}) {
+	/if (${ls${_type}Tag.Contains[nocombat]} && AUTO) {
 		/if (${Select[${Me.CombatState},combat]}) /return FALSE
 		/if (${SpawnCount[npc radius SAFEENV PS4]}) /return FALSE
 	}
 	
 	| no cast while not in a raid
-	/if (${ls${_type}Tag.Contains[raid]}) {
-		/if (!${Raid.Members}) /return FALSE
-	}
-	
-	| no cast while solo
-	/if (${ls${_type}Tag.Contains[group]}) {
-		/if (!${Group.Members}) /return FALSE
-	}
-	
-	
+	/if (${ls${_type}Tag.Contains[raid]}) /if (!${Raid.Members}) /return FALSE
+	/if (${ls${_type}Tag.Contains[group]}) /if (!${Group.Members}) /return FALSE
 	/if (${ls${_type}Tag.Contains[noraid]} && ${Raid.Members}) /return FALSE
 	/if (${ls${_type}Tag.Contains[combat]} && ${Select[${Me.CombatState},cooldown,resting,active]}) /return FALSE
 	/if (${ls${_type}Tag.Contains[outdoor]} && (${Me.FeetWet} || ${Zone.Indoor})) /return FALSE
@@ -5933,27 +5926,30 @@ sub check_basic_tags(bool _debug, string _type, string _name)
 	/if (${ls${_type}Tag.Contains[swarm]} && !SWARM) /return FALSE
 	/if (${ls${_type}Tag.Contains[summonitem]} && ${check_basic_tags_summonitem[FALSE, ${_type}]}) /return FALSE
 	
-	/if (!${Bool[${_name}]}) {
-		/return TRUE
-	}
 	
 	| name/class specific tags
+	/if (!${Bool[${_name}]} || ${_name.Equal[FALSE]}) /return TRUE
 	/if (!${Spawn[${_name}].ID}) /return FALSE
-
+	
 	| class		
-	/if (!${ls${_type}Tag.Contains[${Spawn[${_name}].Class.ShortName}]}) /return FALSE
+	/declare _li listiterator local
+	/vardata _li lsClassAll.First.Clone
+	/while (!${_li.IsEnd}) {
+		/if (${ls${_type}Tag.Contains[${_li.Value}]}) {
+			/if (${Spawn[${_name}].Class.ShortName.NotEqual[${_li.Value}]}) /return FALSE
+		}
+		/varset dump ${_li.Advance}
+	}	
 		
 	| one of your crew
 	/if (${ls${_type}Tag.Contains[crew]}) {
 		/if (!${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_name}]}) /return FALSE
 	}
-		
+	
 	| main assist
 	/if (${ls${_type}Tag.Contains[ma]}) {
 		/if (${Group.MainAssist.Name.Equal[${_name}]} && ${maCC.Find[stManualAssist1].Value.Equal[${_name}]} && ${maCC.Find[stManualAssist2].Value.Equal[${_name}]})) /return FALSE
 	}
-
-
 	
 /return TRUE
 
