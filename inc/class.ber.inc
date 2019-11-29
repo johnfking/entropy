@@ -198,7 +198,7 @@ sub misc_combat_BER(bool _debug)
 		/if (${is_ready[FALSE, "Bloodfury"]}) /call voodoo FALSE "Bloodfury" 0 FALSE
 	}
 	
-	/if (${is_ready[FALSE, "${maChr.Find[stAugmentedFrenzy].Value}"]}) {
+	/if (${is_ready[FALSE, "${maChr.Find[stAugmentedFrenzy].Value}"]} && ${Me.PctHPs} < 90) {
 		/call voodoo FALSE "${maChr.Find[stAugmentedFrenzy].Value}" 0 FALSE
 	}
 	/if (${is_ready[FALSE, "${maChr.Find[stCryHavoc].Value}"]}) {
@@ -321,7 +321,8 @@ sub burn_BER(bool _debug)
 		/if (${is_ready[FALSE, "Intensity of the Resolute"]}) /call voodoo FALSE "Intensity of the Resolute" 0 FALSE
 	}
 	
-	/call cast_AA_spire
+	/call cast_AA_spire FALSE
+	
 	/if (${is_ready[FALSE, "Blood Pact"]}) /call voodoo FALSE "Blood Pact" 0 FALSE
 
 	/if (${Spawn[group PC Shaman].ID}) {

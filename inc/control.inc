@@ -526,8 +526,6 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 		
 		/next _count		
 		/return
-		
-		
 
 	} else /if (${_type.Equal[switch]}) {
 		/varset dump ${maHome.Add[swSetTie,FALSE]}

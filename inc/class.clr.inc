@@ -133,11 +133,11 @@ sub main_CLR(bool _debug)
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Self
-		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Group
+		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Self
+		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Group
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
-		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
-		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Pet
+		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} XTarget
+		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[minion].Value} Pet
 		/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
 		CHECKFADE
@@ -271,7 +271,7 @@ sub check_heal_CLR(bool _debug, string _type)
 	| Group Regen Heal 
  	/if (${maChr.Find[swHealGroupOverTime].Value} && !SAFEZONE && ${Group.Members} && COMBAT && ${maChr.Find[stCountAE].Value}) {
 	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= ${maChr.Find[stCountAE].Value}) {
-	 		/declare _groupHOT string local ${set_rank[FALSE, ${maChr.Find[stHealGroupOverTime].Value.Arg[1,+]}]}
+	 		/declare _groupHOT string local ${Set_Rank[False, ${Machr.Find[Sthealgroupovertime].Value.Arg[1,+]}]}
 			/if (!${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID}) {
 
 				/declare _found bool TRUE
@@ -288,7 +288,7 @@ sub check_heal_CLR(bool _debug, string _type)
 					/if (${Spell[${_groupHOT}].Stacks}) /varset _found FALSE
 				}
 				/if (!${_found} && ${is_ready[FALSE, ${_groupHOT}]}) {
-					/call voodoo ${maDebug.Find[cast].Value} "${maChr.Find[stHealGroupOverTime].Value}" 0 FALSE
+					/call voodoo ${_debug} "${maChr.Find[stHealGroupOverTime].Value}" 0 FALSE
 				}
 			}
 		}

@@ -3242,10 +3242,6 @@ sub do_rest(bool _debug)
 	/if (${Me.Buff[Yaulp].ID}) /return
 	GETINPUT
 
-	/if (HOME && !${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
-		/call Bind_control_home return
-	}
-
 	/declare _needrest bool local FALSE
 	/declare _resting bool local FALSE
 	
@@ -5986,8 +5982,8 @@ sub check_for_corpse(bool _debug)
 		ISMEDEAD
 		/if (!${timer_corpse_${NearestSpawn[${_count},pccorpse cleric radius ${maRez.Find[stMaxRezRange].Value}].ID}}) {
 			/varset _tmpID ${NearestSpawn[${_count},pccorpse cleric radius ${maRez.Find[stMaxRezRange].Value}].ID}
-			/if (${Select[${Me.Class.ShortName},CLR]} && ${Me.AltAbilityReady[${_divinerezCLR}]} && ${maRez.Find[swDivineCleric].Value}) {
-				/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} ${_divinerezCLR}
+			/if (${Select[${Me.Class.ShortName},CLR]}) {
+				/if (${maRez.Find[swDivineCleric].Value} && ${Me.AltAbilityReady[${_divinerezCLR}]}) /call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} ${_divinerezCLR}
 			} else /if (${Select[${Me.Class.ShortName},CLR,DRU,PAL,SHM,NEC]} && ${Me.AltAbilityReady[${_rez${Me.Class.ShortName}}]}) {
 				/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} ${_rez${Me.Class.ShortName}}
 			} else /if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {

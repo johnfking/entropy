@@ -181,9 +181,14 @@ sub main(string _debug, string _param1, string _auto)
 				/if (!${timer_Check_Tribute}) /call check_tribute				
 			}
 
+			| home check
+			/if (HOME && !${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
+				/call Bind_control_home return
+			}
+
 			| rest
 			/if (PCTREST) {
-				/if (!PULL || (PULL && !${SpawnCount[npc radius 15 PS4]})) /call do_rest ${maDebug.Find[rest].Value}
+				/if (!PULL || (PULL && !${SpawnCount[npc radius SAFEENV PS4]})) /call do_rest ${maDebug.Find[rest].Value}
 			}		
 
 			| check exp
