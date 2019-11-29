@@ -271,7 +271,7 @@ sub check_heal_CLR(bool _debug, string _type)
 	| Group Regen Heal 
  	/if (${maChr.Find[swHealGroupOverTime].Value} && !SAFEZONE && ${Group.Members} && COMBAT && ${maChr.Find[stCountAE].Value}) {
 	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= ${maChr.Find[stCountAE].Value}) {
-	 		/declare _groupHOT string local ${Set_Rank[False, ${Machr.Find[Sthealgroupovertime].Value.Arg[1,+]}]}
+	 		/declare _groupHOT string local ${Set_Rank[False, ${maChr.Find[stHealGroupOverTime].Value.Arg[1,+]}]}
 			/if (!${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID}) {
 
 				/declare _found bool TRUE

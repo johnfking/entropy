@@ -258,7 +258,7 @@ sub force_twincast_WIZ(bool _debug)
 		/call voodoo FALSE "${maChr.Find[stTC].Value}" 0 FALSE
 		/return
 
-	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[${TwincastSpell}].ID} && !${Me.Buff[Twincast].ID} && ${is_ready[FALSE, "${maChr.Find[stNukeTC${stLine}].Value}"]}) {
+	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[${maChr.Find[stTC].Value}].ID} && !${Me.Buff[Twincast].ID} && ${is_ready[FALSE, "${maChr.Find[stNukeTC${stLine}].Value}"]}) {
 		/call voodoo FALSE "${maChr.Find[stNukeTC${stLine}].Value}" TARGET FALSE
 	}
 	
