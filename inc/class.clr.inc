@@ -29,7 +29,7 @@ sub set_CLR(bool _debug)
  	/call set_data_list FALSE maChr lsHealRenewal												PREGEN|3											"${auxli} renewal spells to use"
  	/call set_data_list FALSE maChr lsHealIntervention									PREGEN|3											"${auxli} intervention spells to use"
  	/call set_data_list FALSE maChr lsHealLight													PREGEN|3											"${auxli} light spells to use"
- 	/call set_data_map FALSE maChr stHealPanic													PREGEN|1											"${auxna} oh shit spell"
+ 	| /call set_data_map FALSE maChr stHealPanic													PREGEN|1											"${auxna} oh shit spell"
 
   /call set_data_map FALSE maChr swHealGroupOverTime									FALSE													"${auxsw} use group heal over time spells/aas"
   /call set_data_map FALSE maChr swCelestialRegen											FALSE													"${auxsw} use celestial regen aa"
@@ -85,16 +85,17 @@ sub set_CLR(bool _debug)
 
 	| set heal orders
 	/declare lsHealOrderbase list outer
-	/varset dump ${lsHealOrderbase.Delimiter["|"]}
 	/varset dump ${lsHealOrderbase.Append[lsHealBaseLine]}
 
 	/declare lsHealOrderaggressive list outer
-	/varset dump ${lsHealOrderaggressive.Delimiter["|"]}
-	/varset dump ${lsHealOrderaggressive.Append[lsHealIntervention|lsHealRemedy|lsHealRenewal|lsHealLight]}
+	/varset dump ${lsHealOrderaggressive.Append[lsHealIntervention,lsHealRemedy,lsHealRenewal,lsHealLight]}
 
 	/declare lsHealOrderpassive list outer
-	/varset dump ${lsHealOrderpassive.Delimiter["|"]}
-	/varset dump ${lsHealOrderpassive.Append[lsHealRemedy|lsHealIntervention|lsHealRenewal|lsHealLight]}
+	/varset dump ${lsHealOrderpassive.Append[lsHealRemedy,lsHealIntervention,lsHealRenewal,lsHealLight]}
+	
+	/declare lsHealOrderheavy list outer
+	/varset dump ${lsHealOrderheavy.Append[lsHealRenewal,lsHealIntervention,lsHealLight,lsHealRemedy]}
+	
 
 /return
 
@@ -135,11 +136,11 @@ sub main_CLR(bool _debug)
 		CHECKREZ
 		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Self
 		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Group
+		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
 		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} XTarget
 		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[minion].Value} Pet
 		/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
-		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
 		CHECKFADE
 		| /if (${swAlliance}) /call trigger_alliance
 
@@ -313,7 +314,7 @@ sub check_heal_CLR(bool _debug, string _type)
 	}
 
 	/if (!SAFEZONE) {
-		| panic heal
+		|** panic heal
 		/if (${hurtPctHP} < ${maHeal.Find[stHealPointPanic].Value}*.PCTHO) {
 			/if (${Me.Casting.ID}) /stopcast
 			/if (${is_ready[FALSE, "${maChr.Find[stHealPanic].Value}"]}) {
@@ -321,6 +322,7 @@ sub check_heal_CLR(bool _debug, string _type)
 			}
 			/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 		}
+		**|
 
 		| Arbitration
 		/if (${Select[${_type},group]}) {

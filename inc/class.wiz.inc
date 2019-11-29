@@ -36,7 +36,7 @@ sub set_WIZ(bool _debug)
 	/varset dump ${lsNukeLine.Append[base,fire,ice,magic]}
 	/call set_data_map FALSE maChr stCurrent														base
 	/call set_data FALSE FALSE stLine																		string outer ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
-	/call set_data_map FALSE maChr stAABase															FALSE													"${auxna} pick a boost aa for DPS"
+	| /call set_data_map FALSE maChr stAABase															FALSE													"${auxna} pick a boost aa for DPS"
 	
 	/varset dump ${set_data_timer[FALSE, Force_TC, 6s]}
 	/call set_data_map FALSE maChr stTC																	PREGEN|1											"${auxna} whatever the hell you want to use for twincast"

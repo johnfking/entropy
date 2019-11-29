@@ -741,7 +741,7 @@ sub set_initialize_map_character_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
-    /call set_data FALSE FALSE lsHealMode                             list outer "base|passive|aggressive"
+    /call set_data FALSE FALSE lsHealMode                             list outer "base|passive|aggressive|heavy"
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use" 
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 

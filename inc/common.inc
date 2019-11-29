@@ -4242,12 +4242,11 @@ sub check_buff_cycle_now(bool _debug)
 		/for _count 1 to 50
 			/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
 			/if (!${lsBuff${_count}Tag.Contains[alwaysup]}) /continue
-			/if (!${check_basic_tags[FALSE, Buff${_count}]}) /continue
+			/if (!${check_basic_tags[FALSE, Buff${_count}, ${Me.DisplayName}]}) /continue
 	
 			/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" 0 FALSE
 	
 			/if (${lsBuff${_count}Tag.Contains[autoinventory]}) /autoinventory
-
 		
 		/next _count	
 
@@ -4284,10 +4283,9 @@ sub cast_list(bool _debug, string _lsList, int _tmpID)
 	/vardata _liCL ${_lsList}.First.Clone
 	/while (!${_liCL.IsEnd}) {
 		/if (!AUTO) /return
-		| /if (${get_target_buff[${_debug}, "${maChr.Find[stChallenge].Value}"]} >= ${maCC.Find[stDotRefresh].Value}) /return TRUE
 		
 		DEBUG ${sep}_liCL.Value${sep}\a-w${_liCL.Value}\ax
-		/if (${is_ready[FALSE, "${_liCL.Value}"]}) {
+		/if (${is_ready[${_debug}, "${_liCL.Value}"]}) {
 			/call voodoo ${_debug} "${_liCL.Value}" ${_tmpID} FALSE
 			/return
 		}
@@ -4366,7 +4364,7 @@ sub check_buff_cycle_aura(bool _debug)
 	| Aura: berzerker, monk, warrior
 	/if (${check_class[FALSE, |BER|MNK|WAR]}) {
 		/if (${Bool[${_a1c}]} && !${Bool[${Me.Aura[1].Name.Equal[${_a1c}]}]}) {
-			/if (!${check_basic_tags[FALSE, Aura1]}) /return FALSE
+			/if (!${check_basic_tags[FALSE, Aura1, ${Me.DisplayName}]}) /return FALSE
 			/call voodoo FALSE "${_a1}" 0 FALSE
 		}
 		/return
@@ -4375,7 +4373,7 @@ sub check_buff_cycle_aura(bool _debug)
 	| Aura: Bard
 	/if (${check_class[FALSE, |BRD]}) {
 		/if (${Bool[${_a1c}]} && !${Bool[${Me.Aura[1].Name.Equal[${_a1c}]}]}) {
-			/if (!${check_basic_tags[FALSE, Aura1]}) /return FALSE
+			/if (!${check_basic_tags[FALSE, Aura1, ${Me.DisplayName}]}) /return FALSE
 			/if (${is_ready[${_debug}, "${_a1}"]}) {
 				/call voodoo ${_debug} "${_a1}" 0 FALSE
 			}
@@ -4395,7 +4393,7 @@ sub check_buff_cycle_aura(bool _debug)
 		/if (${Bool[${_a${_aura}}]}) {
 			/for _count 1 to 2
 				/if (${Bool[${_a${_aura}c}]}) {
-					/if (!${check_basic_tags[FALSE, Aura${_count}]}) /varset _found${_aura} TRUE
+					/if (!${check_basic_tags[FALSE, Aura${_count}, ${Me.DisplayName}]}) /varset _found${_aura} TRUE
 					DEBUG /if Me.Aura[${_count}].Name.Equal[${_a${_aura}c}]
 					/if (${Me.Aura[${_count}].Name.Equal[${_a${_aura}c}]}) {
 						/varset _found${_aura} TRUE
@@ -4940,7 +4938,7 @@ sub check_buff_cycle_self(bool _debug)
 		/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
 		/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) /continue
 		/if (!${lsBuff${_count}Tag.Contains[self]}) /continue
-		/if (!${check_basic_tags[FALSE, Buff${_count}]}) /continue
+		/if (!${check_basic_tags[FALSE, Buff${_count}, ${Me.DisplayName}]}) /continue
 
 		/varset _spell ${set_rank[FALSE, "${maBuffs.Find[stBuff${_count}].Value.Arg[1,+]}"]}
 		/varset _found TRUE
@@ -5262,6 +5260,9 @@ sub check_buff_cycle_crew(bool _debug)
 		| each buff
 		/for _count 1 to 50
 			DEBUG ${sep}\agBUFF\ax#${sep}\a-w${_count}\ax ---------------------
+			
+			/if (!${check_basic_tags[FALSE, Buff${_count}, ${_toonName}]}) /continue
+			
 			| pretend the target does not have the spell
 			/varset _target FALSE
 			| class		
@@ -5390,7 +5391,7 @@ sub check_buff_cycle_crew(bool _debug)
 			/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
 			/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) /continue
 			
-			/if (!${check_basic_tags[FALSE, Buff${_count}]}) /continue			
+			/if (!${check_basic_tags[FALSE, Buff${_count}, ${_toonName}]}) /continue			
 			
 			| pretend the target does not have the spell
 			/varset _target FALSE
@@ -5897,14 +5898,28 @@ sub check_harmonious(bool _debug)
 
 |***
  * note: checks tags for buffs..
- * use: ${check_basic_tags[DEBUG, type]}
+ * use: ${check_basic_tags[DEBUG, type, name]}
  ***|
-sub check_basic_tags(bool _debug, string _type)
-	DEBUG \atcheck_basic_tags\ax(\a-w${_type}\ax)
+sub check_basic_tags(bool _debug, string _type, string _name)
+	DEBUG \atcheck_basic_tags\ax(\a-w${_type}, ${_name}\ax)
 
-	/if (${ls${_type}Tag.Contains[nocombat]} && (${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius SAFEENV PS4]})) /return FALSE
-	/if (${ls${_type}Tag.Contains[raid]} && !${Raid.Members}) /return FALSE
-	/if (${ls${_type}Tag.Contains[group]} && !${Group.Members}) /return FALSE
+	| no buffing in combat
+	/if (${ls${_type}Tag.Contains[nocombat]}) {
+		/if (${Select[${Me.CombatState},combat]}) /return FALSE
+		/if (${SpawnCount[npc radius SAFEENV PS4]}) /return FALSE
+	}
+	
+	| no cast while not in a raid
+	/if (${ls${_type}Tag.Contains[raid]}) {
+		/if (!${Raid.Members}) /return FALSE
+	}
+	
+	| no cast while solo
+	/if (${ls${_type}Tag.Contains[group]}) {
+		/if (!${Group.Members}) /return FALSE
+	}
+	
+	
 	/if (${ls${_type}Tag.Contains[noraid]} && ${Raid.Members}) /return FALSE
 	/if (${ls${_type}Tag.Contains[combat]} && ${Select[${Me.CombatState},cooldown,resting,active]}) /return FALSE
 	/if (${ls${_type}Tag.Contains[outdoor]} && (${Me.FeetWet} || ${Zone.Indoor})) /return FALSE
@@ -5917,6 +5932,28 @@ sub check_basic_tags(bool _debug, string _type)
 	/if (${ls${_type}Tag.Contains[pet]} && !${Pet.ID}) /return FALSE
 	/if (${ls${_type}Tag.Contains[swarm]} && !SWARM) /return FALSE
 	/if (${ls${_type}Tag.Contains[summonitem]} && ${check_basic_tags_summonitem[FALSE, ${_type}]}) /return FALSE
+	
+	/if (!${Bool[${_name}]}) {
+		/return TRUE
+	}
+	
+	| name/class specific tags
+	/if (!${Spawn[${_name}].ID}) /return FALSE
+
+	| class		
+	/if (!${ls${_type}Tag.Contains[${Spawn[${_name}].Class.ShortName}]}) /return FALSE
+		
+	| one of your crew
+	/if (${ls${_type}Tag.Contains[crew]}) {
+		/if (!${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_name}]}) /return FALSE
+	}
+		
+	| main assist
+	/if (${ls${_type}Tag.Contains[ma]}) {
+		/if (${Group.MainAssist.Name.Equal[${_name}]} && ${maCC.Find[stManualAssist1].Value.Equal[${_name}]} && ${maCC.Find[stManualAssist2].Value.Equal[${_name}]})) /return FALSE
+	}
+
+
 	
 /return TRUE
 
@@ -7063,7 +7100,7 @@ sub check_minion_cycle_buff(bool _debug)
 		| minion buffs?		
 		/if (!${lsBuff${_count}Tag.Contains[minion]}) /continue
 		
-		/if (!${check_basic_tags[FALSE, Buff${_count}]}) /continue			
+		/if (!${check_basic_tags[FALSE, Buff${_count}, FALSE]}) /continue			
 
 		DEBUG _count${sep}\a-w${_count}
 		
