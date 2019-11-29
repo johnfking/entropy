@@ -116,7 +116,7 @@ sub misc_combat_RNG(bool _debug)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	/call set_combat FALSE
 	
 	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
@@ -230,7 +230,7 @@ sub check_heal_RNG(bool _debug, string _type)
 sub cast_nuke_summer(bool _debug, int _tmpID)
 	DEBUG \atcast_nuke_summer\ax(\a-w${_tmpID}\ax)
 
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	ISMEDEAD
 	CHECKEXIT
 	/varset dump ${set_data_timer[FALSE, Summer_Nuke, RESTART]}
@@ -250,7 +250,7 @@ sub cast_nuke_summer(bool _debug, int _tmpID)
 sub burn_RNG(bool _debug)
 	DEBUG \atburn_RNG\ax()
 
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	
 	ISMEDEAD
 	CHECKEXIT

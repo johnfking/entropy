@@ -120,7 +120,7 @@ sub misc_combat_SHD(bool _debug)
 	GETINPUT
 	CHECKTIE
 	
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 
 	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 	
@@ -171,7 +171,7 @@ sub get_agro_SHD(bool _debug)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	/if (PET) /call send_pet FALSE TARGET
 	
 	/call cast_challenge TARGET
@@ -248,7 +248,7 @@ sub check_skin(bool _debug)
 	SIMPLEEXIT
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 	GETINPUT
-	/if (${is_target_dead[FALSE, TARGET]}) /return	
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return	
 	/if (!${Me.Buff[${maChr.Find[stSkin].Value}].ID} && ${is_ready[FALSE, "${maChr.Find[stSkin].Value}"]}) {
 		/call voodoo FALSE "${maChr.Find[stSkin].Value}" 0 FALSE
 		/varset dump ${set_data_timer[FALSE, Check_Skin, RESTART]}
@@ -268,7 +268,7 @@ sub burn_SHD(bool _debug)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	/if (${is_target_dead[FALSE, TARGET]}) /return		
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return		
 	
 	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 	

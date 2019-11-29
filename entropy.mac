@@ -161,7 +161,7 @@ sub main(string _debug, string _param1, string _auto)
 
 		| check do now things
 		/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) {
-			/call check_buff_cycle_now FALSE
+			/call check_buff_cycle_now ${maDebug.Find[buff].Value}
 		}
 		
 		/if (AUTO) {
@@ -214,7 +214,7 @@ sub main(string _debug, string _param1, string _auto)
 			/if (!SAFEZONE) {
 				/if (!${Me.Invis} || (${Select[${Me.Class.ShortName},ROG]} && ${maEnv.Find[swSoS].Value})) {	
 					/if (!PULL) {
-						/call get_assist_target FALSE
+						/call get_assist_target ${maDebug.Find[target].Value}
 					} else /if (PULL && !TARGET) {
 						/if (${maCC.Find[stPullMode].Value.Equal[base]}) {
 							/call get_target_basepull ${maDebug.Find[pull].Value}						

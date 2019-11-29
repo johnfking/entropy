@@ -170,7 +170,7 @@ sub main_PAL(bool _debug)
 		/if (AUTO) {	
 			/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
 			CHECKFADE
-			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery
+			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[rest].Value}
 		}
 	}
 
@@ -188,7 +188,7 @@ sub misc_combat_PAL(bool _debug)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	/if (${is_target_dead[FALSE, TARGET]}) /return FALSE
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 	CHECKTIE
 
 	/call set_combat FALSE
@@ -242,7 +242,7 @@ sub get_agro_PAL(bool _debug)
 	CHECKEXIT	  
 	GETINPUT
 
-	/if (${is_target_dead[FALSE, TARGET]}) /return FALSE
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 	/call set_combat FALSE
 	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
@@ -284,7 +284,7 @@ sub get_agro_PAL(bool _debug)
 	}
 
 	/if (${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]}) /return
-	/if (${is_target_dead[FALSE, TARGET]}) /return FALSE
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 
 	| AA pet hate (the little sword thingie)
 	/if (${Me.PctAggro} < 80 && ${is_ready[FALSE, "Projection of Piety"]}) {
@@ -475,7 +475,7 @@ sub check_steel(bool _debug)
 sub burn_PAL(bool _debug)
 	DEBUG \atburn_PAL\ax()
 
-	/if (${is_target_dead[FALSE, TARGET]}) /return FALSE
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 	ISMEDEAD
 	CHECKEXIT
   GETINPUT
@@ -537,7 +537,7 @@ sub cast_alliance_PAL(int _tmpID, bool _debug)
 	| spell ready?
 	| /if (!${check_ready[spell, "${${Me.Class.ShortName}Alliance}"]}) /return FALSE
 	| no target
-	/if (${is_target_dead[FALSE, ${_tmpID}]}) /return FALSE
+	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
 
 	ISMEDEAD
 	CHECKEXIT

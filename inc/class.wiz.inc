@@ -111,7 +111,7 @@ sub misc_combat_WIZ(bool _debug)
 	GETINPUT
 	CHECKTIE
 
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 
 	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 		
@@ -194,7 +194,7 @@ sub burn_WIZ(bool _debug)
 	
 	CHECKEXIT
 	GETINPUT
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	
 	| shhhhh..
 	/if (${is_ready[FALSE, "Silent Casting"]}) /call voodoo FALSE "Silent Casting" 0 FALSE
@@ -252,7 +252,7 @@ sub force_twincast_WIZ(bool _debug)
 	CHECKEXIT
 	GETINPUT
 	/varset dump ${set_data_timer[FALSE, Force_TC, 6s]}
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 
 	/if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[Twincast].ID} && ${is_ready[FALSE, "${maChr.Find[stTC].Value}"]}) {
 		/call voodoo FALSE "${maChr.Find[stTC].Value}" 0 FALSE

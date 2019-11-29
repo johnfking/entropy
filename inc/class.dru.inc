@@ -122,7 +122,7 @@ sub misc_combat_DRU(bool _debug)
 	CHECKEXIT
 	GETINPUT
 	
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	/if (${validate_mitigation[FALSE, FALSE, ${setCombatRadius}]}) /call mitigation_cycle FALSE
 
 	/if (${is_ready[FALSE, "Season's Wrath"]})) /call voodoo FALSE "Season's Wrath" TARGET FALSE

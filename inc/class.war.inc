@@ -115,7 +115,7 @@ sub misc_combat_WAR(bool _debug)
 	GETINPUT
 	CHECKEXIT
 
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	
 	/call check_facing FALSE TARGET FALSE
 	
@@ -226,7 +226,7 @@ sub get_agro_WAR(bool _debug)
 	ISMEDEAD
 	GETINPUT
 	CHECKEXIT
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 
 
 	| (60 seconds) and ae taunt

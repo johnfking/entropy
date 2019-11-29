@@ -110,7 +110,7 @@ sub misc_combat_BER(bool _debug)
 	GETINPUT
 	CHECKTIE
 
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 		
 	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 

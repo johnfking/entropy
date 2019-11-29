@@ -1299,31 +1299,28 @@ sub is_me_dead(bool _debug)
 
 	/if (${swIsMeDead}) /return TRUE
 
-	/declare _dead bool local FALSE
-
 	| check death states
-	/if (${Me.State.Equal[HOVER]} || ${Me.Hovering}) /varset _dead TRUE
-	/if (${Me.Dead}) /varset _dead TRUE
+	/if (${Me.State.Equal[HOVER]} || ${Me.Hovering}) /varset swIsMeDead TRUE
+	
 	
 	| did I just die and get sent to bind ?
 	/if ((${Me.Buff[Resurrection Sickness].ID} || ${Me.Buff[Revival Sickness].ID}) && ${Zone.ID} == ${Me.ZoneBound.ID}) {
-		/if (${Me.BoundLocation[0].Y} == ${Me.Y} && ${Me.BoundLocation[0].X} == ${Me.X} && ${Me.BoundLocation[0].Z} == ${Me.Z}) /varset _dead TRUE
+		/if (${Me.BoundLocation[0].Y} == ${Me.Y} && ${Me.BoundLocation[0].X} == ${Me.X} && ${Me.BoundLocation[0].Z} == ${Me.Z}) /varset swIsMeDead TRUE
 	}
 
 	| if we died, shut shit down
-	/if (${_dead}) {
-		/varset swIsMeDead TRUE
+	/if (${swIsMeDead}) {
+		/varset stAssTarID 0
 		/doevents flush
 
 		| stop all the things(s)
-		/if (${maHome.Find[swMoveDeathClear].Value} && HOME) {
-			/if (HOME) /call Bind_control_home clear FALSE silent FALSE
+		/if (${maHome.Find[swMoveDeathClear].Value}) {
+			/call Bind_control_home clear FALSE silent FALSE
 		}
 
 		/call set_stop FALSE SILENT
 		/call clear_combat FALSE
 		/if (${Me.Casting.ID}) /stopcast
-		/varset stAssTarID 0
 
 	}
 
@@ -2075,7 +2072,7 @@ sub stick_to_target(bool _debug, int _tmpID)
 		:checkstuck
 		ISMEDEAD	
 		GETINPUT
-		/if (${is_target_dead[FALSE, ${_tmpID}]}) /return FALSE
+		/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
 		/if (${MoveUtils.Stuck}) {
 			/delay 1
 			/squelch /stick off
@@ -2089,7 +2086,7 @@ sub stick_to_target(bool _debug, int _tmpID)
 		:movetomob
 		ISMEDEAD	
 		GETINPUT
-		/if (${is_target_dead[FALSE, ${_tmpID}]}) /return FALSE
+		/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
 		/if (!${Stick.Active} && ${Target.ID} && VALID && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.9) {
 			/call check_facing FALSE ${_tmpID} FALSE
 			/squelch /stick id ${_tmpID} ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.9]}
@@ -2373,7 +2370,7 @@ sub check_class_loop(bool _debug)
 		| no target.. were done
 		/if (!${Spawn[TARGET].ID}) /return TRUE
 		| targets dead. why bother
-		/if (${is_target_dead[FALSE, TARGET]}) /return TRUE
+		/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return TRUE
 		
 	| manual mode	
 	} else /if (!AUTO) {
@@ -2382,7 +2379,7 @@ sub check_class_loop(bool _debug)
 		| forced combat in manual
 		/if (COMBAT) {
 			| target dead. end
-			/if (${is_target_dead[FALSE, TARGET]}) /return TRUE
+			/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return TRUE
 		}
 
 	}
@@ -2490,7 +2487,7 @@ sub check_combat_status(bool _debug)
 sub set_combat(bool _debug)
 	DEBUG \atset_combat\ax()
 
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	
 	CHECKCURSOR
 	
@@ -2719,7 +2716,7 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 	}
 
 	| get the mob to us for non pet classes..
-	/while (!${is_target_dead[FALSE, ${_tmpID}]} && !${Select[${Me.Class.ShortName},MAG,NEC,BST,ENC]}) { 
+	/while (!${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]} && !${Select[${Me.Class.ShortName},MAG,NEC,BST,ENC]}) { 
 		DEBUG ${sep}pull_mob_prep${sep}\awLoop.Start\ax${sep}${_tmpID}
 		
 		| keep tabs on targets range if they are the puller. advanced pullers fetching we do not care about yet
@@ -2769,7 +2766,7 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 
 
 		/delay 1
-		/if (${is_target_dead[FALSE, ${_tmpID}]}) /break
+		/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /break
 	}
 	
 	| pet auto send to kill
@@ -3498,7 +3495,7 @@ sub get_assist_target(bool _debug)
 			DEBUG ${sep}setting${sep}stAssTarID ${Me.XTarget[1].ID}
 			/varset stAssTarID ${Me.XTarget[1].ID}
 		}
-		
+				
 		| set actual pc target
 		/if (${Spawn[ID ${stAssTarID}].Distance} <= ENV && ${stAssTarID}) {
 			/if (MELEE || RANGE || NUKE || DOT) {
@@ -3727,12 +3724,11 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 		/if (!${Range.Between[1,${Me.NumGems}:${_gemN}]}) {
 			/varset dump ${out[16, "1-${Me.NumGems} only for the gem option"]}
 			/varset dump ${out[16. "ex: \aw/edit\ax [${num}variable\ax] [gem${num}#\ax] \a-w[add|delete]\ax"]}
-			/return
+			/return FALSE
 		}
 		
 		| adjust to the loaded spell
 		/varset _value ${Me.Gem[${_gemN}].BaseName}	
-		/varset _found TRUE
 		
 	| set value as cursor
 	} else /if (${_value.Equal[cursor]}) {
@@ -3741,10 +3737,10 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 			/return FALSE
 		}
 		/varset _value ${Cursor.Name}
-		/varset _found TRUE
+	}
 	
 	| clear/reset an existing list 
-	} else /if (${_variable.Left[2].Equal[ls]} && ${_value.Equal[clear]}) {
+	/if (${_variable.Left[2].Equal[ls]} && ${_value.Equal[clear]}) {
 		DEBUG ${sep}\ayclear a list\ax
 
 		/declare _tmpList list local
@@ -4665,7 +4661,9 @@ sub do_mana_recovery_item(bool _debug)
  ***|
 sub cast_yaulp(bool _debug)
 	DEBUG \atcast_yaulp\ax()
+	
 	/varset dump ${set_data_timer[FALSE, Check_Yaulp, RESTART]}
+	
 	/if (!${maBuff.Find[swBuffMaster].Value}) /return FALSE
 
 	/if (${Me.PctMana} > 98*.PCTHO) /return FALSE
@@ -4683,7 +4681,7 @@ sub cast_yaulp(bool _debug)
 
 |***
  * note: sets your target.. nothing more.. nothing less..
- * use: ${set_target[ID]}
+ * use: ${set_target[ID]} | /call set_target [ID]
  ***|
 sub set_target(int _tmpID)
 
@@ -5606,7 +5604,7 @@ sub cast_nuke(bool _debug, string _line, int _tmpID)
 		ISMEDEAD
 		CHECKEXIT
 		GETINPUT
-		/if (${is_target_dead[FALSE, ${_tmpID}]}) /return
+		/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return
 		/if (${Me.PctMana} < 2) /continue 
 		/if (${is_ready[${_debug}, "${li.Value}"]}) {
 			/call voodoo ${_debug} "${li.Value}" ${_tmpID} FALSE
@@ -5640,7 +5638,7 @@ sub cast_dot(bool _debug, string _line, int _tmpID)
 		CHECKEXIT
 		GETINPUT
 		/if (${get_target_buff_time_left[${_debug}, "${li.Value}"]} >= ${maCC.Find[stDotRefresh].Value}) /return TRUE
-		/if (${is_target_dead[FALSE, ${_tmpID}]}) /return
+		/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return
 		/if (${Me.PctMana} < 2) /continue 
 		/if (${is_ready[FALSE, "${li.Value}"]}) {
 			/call voodoo FALSE "${li.Value}" ${_tmpID} FALSE
@@ -5672,7 +5670,7 @@ sub do_melee(bool _debug, int _tmpID)
 	CHECKEXIT
 	GETINPUT
 	
-	/if (${is_target_dead[FALSE, ${_tmpID}]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return
 	/varset dump ${set_target[${_tmpID}]}
 	
 	/if (AUTO) {
@@ -6658,7 +6656,7 @@ sub cast_temp_pet( bool _debug, int _tmpID, string _tmpSpell)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	/if (${is_target_dead[FALSE, ${_tmpID}]}) /return FALSE
+	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
 	/if (${Target.PctHPs} > ${maMinion.Find[stPctSwarmEngage].Value}) /return FALSE
 	
 	/if (${is_ready[FALSE, "${_tmpSpell}"]}) {
@@ -6676,10 +6674,11 @@ sub cast_temp_pet( bool _debug, int _tmpID, string _tmpSpell)
 sub send_pet(bool _debug, int _tmpID)
 	DEBUG \atsend_pet\ax(\a-w${_tmpID}\ax)
 
-	/if (!AUTO && !${maMinion.Find[swonForce].Value}) /return FALSE
-	/if (${Spawn[${_tmpID}].Distance} > ENV) /return FALSE
-	/if (${Me.Pet.Target.ID} == ${_tmpID}) /return TRUE
 	/if (!${_tmpID}) /return FALSE
+	/if (!AUTO && !${maMinion.Find[swonForce].Value}) /return FALSE
+	/if (${Spawn[id ${_tmpID}].Distance} > ENV) /return FALSE
+	/if (${Me.Pet.Target.ID} == ${_tmpID}) /return TRUE
+	
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
@@ -6929,10 +6928,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
 sub check_minion_cycle(bool _debug, bool _force)
 	DEBUG \atcheck_minion_cycle\ax(\a-w${_force}\ax)
 	
-	/if (!PET) {
-		/if (AUTO) /varset dump ${set_data_timer[FALSE, Check_Minion_Cycle, RESTART]}
-		/return FALSE
-	}
+	/if (AUTO) /varset dump ${set_data_timer[${_debug}, Check_Minion_Cycle, RESTART]}
 
 	/if (${_force}) {
 		/declare _buffcycletimestart int local ${MacroQuest.Running}
@@ -6944,11 +6940,10 @@ sub check_minion_cycle(bool _debug, bool _force)
 	}
 		
 	| summon minion
-	/if (!${Pet.ID}) /call check_minion_cycle_summon FALSE 
+	/if (!${Pet.ID}) /call check_minion_cycle_summon TRUE 
 	
 	| buffs
 	/if (${maMinion.Find[swPetBuff].Value} && (!${timer_Check_Minion_Buff} || ${_force})) /call check_minion_cycle_buff ${_debug} 
-
 
 	| get weapons?
 	/if (${maMinion.Find[swUsePetGear].Value}) /call check_minion_cycle_weapons ${_debug}

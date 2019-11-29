@@ -65,6 +65,7 @@ sub main_BST(bool _debug)
 
 	/if (AUTO) {
 		/call check_mana_${Me.Class.ShortName}
+		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
 		/if (PET || SWARM) /call send_pet FALSE TARGET
 	}
 
@@ -82,12 +83,11 @@ sub main_BST(bool _debug)
 		/if (VALID) {
 			/call set_combat FALSE
 			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
-			/if (AGRO) /call get_agro_${Me.Class.ShortName}
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
 			/call misc_combat_${Me.Class.ShortName} FALSE
-			/if (BURN) /call burn_${Me.Class.ShortName} FALSE
-			/if (PET || SWARM) /call send_pet FALSE TARGET
-			/if (SWARM) /call cast_temp_pet FALSE TARGET "${maChr.Find[stNukeServant].Value}"
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
+			/if (PET || SWARM) /call send_pet ${maDebug.Find[minon].Value} TARGET
+			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (DOT) /call cast_dot FALSE lsDoT TARGET
 			/if (NUKE) /call cast_nuke FALSE lsNuke TARGET
@@ -95,17 +95,13 @@ sub main_BST(bool _debug)
 
 			| /if (${swAlliance}) /call cast_alliance_${Me.Class.ShortName} TARGET
 		
-			| /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-				| /call check_buff_cycle_temp_self FALSE stSteel 
-				| /call check_buff_cycle_temp_self FALSE stStance
-			| }			
 		}
 
 		/if (AUTO) {	
 			CHECKFADE
 			/call check_mana_BST FALSE
 			/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
-			| /if (${validate_class[FALSE, ${lstClassMelee}]}) /call cast_stamina_recovery
+			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[rest].Value}
 		}	
 	}
 	
@@ -125,7 +121,8 @@ sub misc_combat_BST(bool _debug)
 	CHECKEXIT
 	GETINPUT
 
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
+	
 	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 	/if (SWARM || PET) /call send_pet FALSE TARGET
 	
@@ -340,7 +337,7 @@ sub click_DPS_BST(bool _debug)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	/call click_horn_of_unity 	
 
 /return
@@ -357,7 +354,7 @@ sub burn_BST(bool _debug)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	/if (SWARM || PET) /call send_pet FALSE TARGET
 	
 	/if (${is_ready[FALSE, "Bestial Alignment"]}) {

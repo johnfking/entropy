@@ -98,8 +98,10 @@ sub set_initialize(bool _debug)
   | generate DEBUGS
   /declare maDebug map outer
   /declare _lsout list local
-  /varset dump ${_lsout.Delimiter["|"]}
-  /varset dump ${_lsout.Append[build|buff|burn|mezz|cast|melee|pull|cure|heal|rest|rez|loot]}
+  /varset dump ${_lsout.Append[build,buff,burn,cast,cure,edit,heal,loot,mezz,melee,minion,pull,rest,rez,target]}
+  | /varset dump ${_lsout.Append[]}
+  
+  
 
   /vardata cli _lsout.First
   /while (!${cli.IsEnd}) {
@@ -595,7 +597,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data FALSE maData stCampY                                 map outer 999999999
   /call set_data FALSE maData stCampZ                                 map outer 999999999
   /call set_data_map FALSE maHome stMount                             FALSE                         "${auxna} name of mount you wish to sit your fat ass on"
-  /call set_data_map FALSE maHome swMoveDeathClear                    FALSE                         "${auxsw} clear home marker and movements on death"
+  /call set_data_map FALSE maHome swMoveDeathClear                    FALSE                         "${auxsw} on = clear home marker and movements on death"
   /call set_data_map FALSE maHome swMoveBehind                        FALSE                         "${auxsw} move behind the target during combat"
   /call set_data_map FALSE maHome swFaceFast                          FALSE                         "${auxsw} use fast facing movements"
   /call set_data_map FALSE maHome stFaceArc                           15                            "${auxnum} [\a-w1-45\az] acceptable range of facing and still be on target"

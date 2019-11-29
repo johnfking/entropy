@@ -64,7 +64,7 @@ sub main_MAG(bool _debug)
 		/if (${maChr.Find[stPctGather].Value}) {
 			/if (${Me.PctMana} <= ${maChr.Find[stPctGather].Value}*.PCTHO) /call check_gather
 		}
-		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle FALSE
+		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
 	}
 
 	/while (${check_combat_status[FALSE]}) {
@@ -115,7 +115,7 @@ sub misc_combat_MAG(bool _debug)
 	GETINPUT
 	CHECKTIE
 	
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 
 	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 	
@@ -138,7 +138,7 @@ sub misc_combat_MAG(bool _debug)
 sub cast_nuke_salvo(bool _debug)
 	DEBUG \atcast_nuke_salvo\ax()
 
-	/if (${SpawnCount[pet radius ENV]} < 3) /return
+	/if (${SpawnCount[pet radius ENV]} < 3) /return FALSE
 
 	CHECKEXIT
 	CHECKTIE
@@ -273,7 +273,7 @@ sub force_twincast_MAG(bool _debug)
 	DEBUG \atforce_twincast_MAG\ax()
 	
 	/if (!${maChr.Find[swForceTC].Value} || ${timer_Force_TC}) /return
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	
 	ISMEDEAD
 	CHECKEXIT

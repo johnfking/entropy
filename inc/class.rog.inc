@@ -116,7 +116,7 @@ sub do_sneak_attack(bool _debug)
 
 	/if (!${is_ready[FALSE, "${maChr.Find[stSneakAttack].Value}"]}) /return
 	CHECKEXIT
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	
 	/if (${Target.ID} && ${Me.Invis} && ${Me.Sneaking}) {
 		/call voodoo FALSE "${maChr.Find[stSneakAttack].Value}" TARGET FALSE
@@ -136,7 +136,7 @@ sub misc_combat_ROG(bool _debug)
 
 	CHECKEXIT
 	GETINPUT
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	/call set_combat FALSE
 	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 	/if (${is_ready[FALSE, "${maChr.Find[stAssault].Value}"]}) /call voodoo FALSE "${maChr.Find[stAssault].Value}" TARGET FALSE
@@ -146,13 +146,13 @@ sub misc_combat_ROG(bool _debug)
 	/if (${is_ready[FALSE, "${maChr.Find[stTwistedShank].Value}"]}) /call voodoo FALSE "${maChr.Find[stTwistedShank].Value}" TARGET FALSE
 	/if (${is_ready[FALSE, "${maChr.Find[stAbsorbingAgent].Value}"]}) /call voodoo FALSE "${maChr.Find[stAbsorbingAgent].Value}" TARGET FALSE
 
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 
 	/if (${is_ready[FALSE, "${maChr.Find[stShadowHunter].Value}"]}) /call voodoo FALSE "${maChr.Find[stShadowHunter].Value}" TARGET FALSE
 	/if (${is_ready[FALSE, "${maChr.Find[stDisassociative].Value}"]}) /call voodoo FALSE "${maChr.Find[stDisassociative].Value}" TARGET FALSE
 	/if (${is_ready[FALSE, "${maChr.Find[stBleed].Value}"]}) /call voodoo FALSE "${maChr.Find[stBleed].Value}" TARGET FALSE
 
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 
 	/if (${is_ready[FALSE, "${maChr.Find[stPlay].Value}"]}) {
 		/if (!${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]} || !${is_ready[FALSE, "${maChr.Find[stFrenzy].Value}"]}) {
@@ -163,7 +163,7 @@ sub misc_combat_ROG(bool _debug)
 	/if (!${lsZoneNamed.Contains[${Target.DisplayName}]} && !${is_ready[FALSE, "${maChr.Find[stFrenzy].Value}"]}) {
 		/if (${is_ready[FALSE, "${maChr.Find[stPlay].Value}"]} && !${Bool[${Me.ActiveDisc}]}) /call voodoo FALSE "${maChr.Find[stPlay].Value}" 0 FALSE
 	}		
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	
 	/if (${Target.ID} && ${is_ready[FALSE, "${maChr.Find[stPhantom].Value}"]}) /call voodoo FALSE "${maChr.Find[stPhantom].Value}" TARGET FALSE
 	/if (${is_ready[FALSE, "${maChr.Find[stHiddenBlade].Value}"]}) /call voodoo FALSE "${maChr.Find[stHiddenBlade].Value}" 0 FALSE
@@ -298,7 +298,7 @@ sub burn_ROG(bool _debug)
 	CHECKEXIT
 	GETINPUT
 	
-	/if (${is_target_dead[FALSE, TARGET]}) /return
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	/call set_combat FALSE
 
 	/if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stPlay].Value}]} && ${Me.CombatAbilityReady[${Spell[${maChr.Find[stFrenzy].Value}].RankName}]}) {

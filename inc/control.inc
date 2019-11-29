@@ -1568,9 +1568,9 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
  * use: mostly for breaking shit
  ***|
 #bind_noparse raw_edit /edit
-sub Bind_noparse_raw_edit(string _variable, string _value, string _add_delete, _verbage)
+sub Bind_noparse_raw_edit(string _variable, string _value, string _add_delete, string _verbage)
 
-	/call do_raw_edit FALSE FALSE "${_variable}" "${Parse[1,${_value}]}" ${_add_delete} ${_verbage}
+	/call do_raw_edit ${maDebug.Find[edit].Value} FALSE "${_variable}" "${Parse[1,${_value}]}" ${_add_delete} ${_verbage}
 	
 /return	TRUE
 
@@ -3324,7 +3324,7 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 		
 	| force a minion build/check
 	} else /if (${_type.Equal[build]}) {
-		/call check_minion_cycle FALSE TRUE
+		/call check_minion_cycle FALSE TRUE ${maDebug.Find[minion].Value}
 		/return		
 
 	} else /if (${_type.Equal[engage]}) {

@@ -103,7 +103,7 @@ sub misc_combat_BRD(bool _debug)
 	CHECKEXIT
 	GETINPUT
 
-	/if (${is_target_dead[FALSE, TARGET]}) {
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) {
 		/call clear_combat
 		/call pulse_stop
 		/return
@@ -126,7 +126,7 @@ sub misc_combat_BRD(bool _debug)
 	/if (${is_ready[FALSE, "Cacophony"]}) /call voodoo FALSE "Cacophony" TARGET FALSE
 	/if (${Spawn[TARGET].PctHPs} > 30) {
 		/if (${is_ready[FALSE, "Boastful Bellow"]}) /call voodoo FALSE "Boastful Bellow" TARGET FALSE	
-		/if (${is_target_dead[FALSE, TARGET]}) {
+		/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) {
 			/call pulse_stop
 			/call clear_combat
 			/return
@@ -171,7 +171,7 @@ sub cast_servant_swarm(bool _debug, int _tmpID)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	/if (${is_target_dead[FALSE, ${_tmpID}]}) {
+	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) {
 		/call clear_combat
 		/return
 	}
@@ -206,7 +206,7 @@ sub cast_servant_swarm(bool _debug, int _tmpID)
 sub pulse_line(bool _debug)
 	DEBUG \atpulse_line\ax()
 
-	/if (${is_target_dead[FALSE, TARGET]}) {
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) {
 		/call clear_combat
 		/call pulse_stop
 		/return
@@ -219,7 +219,7 @@ sub pulse_line(bool _debug)
 	/vardata li lsLine${stLine}.First.Clone
 	/while (!${li.IsEnd}) {
 
-		/if (${is_target_dead[FALSE, TARGET]}) {
+		/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) {
 			/call clear_combat
 			/call pulse_stop
 			/return
@@ -308,7 +308,7 @@ sub burn_BRD(bool _debug)
 	CHECKEXIT
 	GETINPUT
 	
-	/if (${is_target_dead[FALSE, TARGET]}) {
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) {
 		/call clear_combat
 		/call pulse_stop
 		/return
