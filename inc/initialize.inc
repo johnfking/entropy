@@ -102,7 +102,7 @@ sub set_initialize(bool _debug)
   /declare maDebug map outer
   /declare _lsout list local
   /varset dump ${_lsout.Append[build,burn,cast,cure,edit,heal,loot,mezz,melee,minion,pull,rest,rez,target,zone]}
-  /varset dump ${_lsout.Append[buff,buffrange,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass]}
+  /varset dump ${_lsout.Append[buff,buffammo,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass]}
   
   
 
@@ -568,6 +568,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maBuff swBuffShrink                        FALSE                         "${auxsw} buff shring"
   /call set_data_map FALSE maBuff stShrinkItem                        FALSE                         "${auxna} buff shrink item/spell"
   /call set_data_map FALSE maBuff swBuffNow                           FALSE                         "${auxsw} buff the now things"
+  /call set_data_map FALSE maBuff swBuffAmmo                          FALSE                         "${auxsw} summons ammo"
 
   | auras
   /varset dump ${set_data_timer[FALSE, Check_Buff_Aura, 3m]}

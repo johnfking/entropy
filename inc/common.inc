@@ -4460,7 +4460,7 @@ sub check_buff_cycle(bool _debug, bool _force)
 	/if (${maBuff.Find[swBuffPowersource].Value} && ((AUTO && !${timer_Check_Buff_Powersource}) || ${_force})) /call check_buff_cycle_powersource ${_debug}
 	
 	| ranged ammo
-	/if ((AUTO && !${timer_Check_Ammo}) && (!${Me.Inventory[ammo].ID} || ${_force})) /call check_buff_cycle_range ${maDebug.Find[buffrange].Value}	
+	/if (${maBuff.Find[swBuffAmmo].Value} && ((AUTO && !${timer_Check_Ammo}) && (!${Me.Inventory[ammo].ID} || ${_force}))) /call check_buff_cycle_range ${maDebug.Find[buffammo].Value}	
 
 	| summon poison
 	/if ((AUTO && !${timer_Check_Poison}) && (${maCC.Find[swPoison].Value} || ${_force})) /call check_buff_cycle_poison ${maDebug.Find[buffpoison].Value}
@@ -4747,10 +4747,18 @@ sub check_buff_cycle_range(bool _debug)
 		
 			DEBUG ${sep}_count${sep}\a-wBuff${_count}${sep}${maBuffs.Find[stBuff${_count}].Value}
 		
-		/if (${FindItemCount[${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}]} && !${Me.Inventory[ammo].ID}) {
-			/call Bind_command_swap "${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}" 22 ${_debug}
-			/delay 5
-			/return TRUE
+		/if (${Select[${Me.Class.ShortName},BER]}) {
+			/if (${FindItemCount[=${Spell[${maBuffs.Find[stBuff${_count}].Value}].Base[1]}]} && !${Me.Inventory[ammo].ID}) {
+				/call Bind_command_swap "${FindItem[=${Spell[${maBuffs.Find[stBuff${_count}].Value}].Base[1]}].Name}" 22 ${_debug}
+				/delay 5
+				/return TRUE
+			}				
+		} else {
+			/if (${FindItemCount[${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}]} && !${Me.Inventory[ammo].ID}) {
+				/call Bind_command_swap "${FindItem[=${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}" 22 ${_debug}
+				/delay 5
+				/return TRUE
+			}		
 		}
 	
 		/if (${is_ready[${_debug}, "${maBuffs.Find[stBuff${_count}].Value}"]}) {
@@ -4758,7 +4766,7 @@ sub check_buff_cycle_range(bool _debug)
 		}
 		/delay 10s !${Me.Casting.ID}
 
-		/if (${Cursor.Name.Equal[${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}]}) {
+		/if (${Cursor.Name.Equal[=${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}]}) {
 			/autoinventory
 		}
 
@@ -4767,6 +4775,19 @@ sub check_buff_cycle_range(bool _debug)
 /return TRUE
 
 
+
+| zerker
+${maBuffs.Find[stBuff2].Value}
+| count
+${FindItemCount[=${Spell[${maBuffs.Find[stBuff${_count}].Value}].Base[1]}]}
+| name
+${FindItem[=${Spell[${maBuffs.Find[stBuff${_count}].Value}].Base[1]}].Name}
+
+
+
+
+${FindItemCount[${Spell[${FindItem[=${maBuffs.Find[stBuff2].Value}].Spell}].Base[1]}]}
+${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff2].Value}].Spell}].Base[1]}].Name}
 ${FindItem[${Spell[${FindItem[${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}
 
 43

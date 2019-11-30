@@ -1424,6 +1424,11 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, bool _debug
 	} else /if (${_type.Equal[raid]}) {
 		/varset dump ${set_switch_env[${_debug}, swBuffRaid, TRUE, ${_verbage}]}
 
+
+	} else /if (${_type.Equal[ammo]}) {
+		/varset dump ${set_switch_env[${_debug}, swBuffAmmo, TRUE, ${_verbage}]}
+
+
 	} else /if (${_type.Equal[beg]}) {
 
 		| output control map
@@ -1502,7 +1507,7 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, bool _debug
 	
 	/if (${_silent.Equal[SILENT]}) /return
 	/declare _lsout list local
-	/varset dump ${_lsout.Append[master,self,crew,raid,beg,unity,shrink,aura,temp,now,ps]}
+	/varset dump ${_lsout.Append[master,self,crew,raid,beg,unity,shrink,aura,temp,now,ps,ammo]}
   /declare _out string local
 	/vardata cli _lsout.First.Clone
 	/while (!${cli.IsEnd}) {
@@ -1518,6 +1523,7 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, bool _debug
 		/if (${cli.Value.Equal[shrink]}) /varset _out ${_out}:${submenu}
 		/if (${cli.Value.Equal[now]}) /varset _out ${_out}:${If[${maBuff.Find[swBuffNow].Value},${on},${off}]}
 		/if (${cli.Value.Equal[ps]}) /varset _out ${_out}:${If[${maBuff.Find[swBuffPowersource].Value},${on},${off}]}
+		/if (${cli.Value.Equal[ammo]}) /varset _out ${_out}:${If[${maBuff.Find[swBuffAmmo].Value},${on},${off}]}
 
 		/varset dump ${cli.Advance}
 	}		
