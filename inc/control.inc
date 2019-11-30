@@ -110,11 +110,124 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 		/return
 
+
+	} else /if (${_type.Equal[import]}) {
+	
+		/if (${_verbage.Equal[loot]}) {
+			/mqclear
+			| current core loot file
+			/declare _lootini string local tc\\data\\core.loot.ini
+			/declare _section string local
+			/declare _key string local
+			/declare _value string local
+			/declare _countS int local 0
+			/declare _loopKey int local 0
+			/declare _totalCount int local 0
+			
+			/varset dump ${out[12, "\awImporting Loot File from\ax\at...\ax\a-w${_lootini}\ax"]}
+			/varset dump ${out[12, "On Large loot files this will take a min to build."]}
+			
+				/for _countS 0 to ${Ini[${_lootini}].Count[|]}
+
+					/varset _section ${Ini[${_lootini}].Arg[${_countS},|]}
+
+					/if (!${Ini[${_lootini},${_section}].Count[|]}) {
+						/ini "${_lootini}" "${_section}" NULL NULL
+						/continue
+					}
+
+					/varset dump ${out[12, "\at..\ax\aw${_section}"]}
+	
+					| are there keys in the section?
+					/while (${Ini[${_lootini},${_section}].Count[|]}) {
+
+						| get the key
+						/varset _key ${Ini[${_lootini},${_section}].Arg[0,|]}
+		
+						| delete key if NULL and go to next
+						/if (${Select[${_key},NULL]}) {
+							/ini "${_lootini}" "${_section}" "${_key}" NULL
+							| /varcalc _loopKey ${_loopKey}+1
+							/continue
+						}
+
+						| get the key value
+						/varset _value ${Ini[${_lootini},${_section},${_key}].Arg[0,|]}
+						
+						| delete the key if the value is null and move to next
+						/if (${Select[${_value},NULL]}) {
+							/ini "${_lootini}" "${_section}" "${_key}" NULL
+							| /varcalc _loopKey ${_loopKey}+1
+							/continue
+						}
+
+						| add key->value to DB and delete
+						/sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO loot_control VALUES ("${_key}", "${_value}", 0, 0)
+						/ini "${_lootini}" "${_section}" "${_key}" NULL
+
+					}
+					/next _countS 
+				
+			}
+			
+			/varset dump ${out[18, "${eol}"]}
+			/return					
+			
+		}
+		
+		/if (${_verbage.Equal[zone]}) {
+			/mqclear
+			| current core loot file
+			/declare _ini string local exspes\\zonedata.ini
+			/declare _section string local
+			/declare _key string local
+			/declare _value string local
+			/declare _pass string local
+			/declare _countS int local 0
+			/declare _countK int local 0
+			/declare _countV int local 0
+			
+			/echo \awImporting Named File from\ax\at...\ax\a-w${_ini}\ax
+			/echo \a-yINI sections\ax::\a-w${Ini[${_ini}].Count[|]}\ax
+			
+			/for _countS 1 to ${Ini[${_ini}].Count[|]}
+				/varset _section ${Ini[${_ini}].Arg[${_countS},|]}
+				/if (${Select[${_section},NULL]}) /continue
+				/varset dump ${out[12, "\at..\ax\aw${_section}\ax"]}
+				/for _countK 1 to ${Ini[${_ini},${_section}].Count[|]}
+					/varset _key ${Ini[${_ini},${_section}].Arg[${_countK},|]}
+					/if (${Select[${_key},NULL]}) /continue
+			
+					/for _countV 1 to ${Ini[${_ini},${_section},${_key}].Count[|]}
+						/varset _value ${Ini[${_ini},${_section},${_key}].Arg[${_countV},|]}
+						/varset dump ${out[12, "\at...\ax\a-w${_value}\ax"]}
+						/sqlite ${maData.Find[DBzone].Value} dummy INSERT OR IGNORE INTO zone_control VALUES ("${_section}", "${_key}", "${_value}")
+					/next _countV
+				/next _countK
+			/next _countS 
+			/varset dump ${out[18, "${eol}"]}
+			/echo
+			/return								
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return
 	/declare liout list local
-	/varset dump ${liout.Append[checkvar,spa,whitewash]}
+	/varset dump ${liout.Append[checkvar,spa,whitewash,import]}
   /declare _out string local
 	/vardata cli liout.First.Clone
 	/while (!${cli.IsEnd}) {
@@ -1090,104 +1203,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 		/return
 		
 		
-	} else /if (${_type.Equal[import]}) {
-	
-		/if (${_verbage.Equal[loot]}) {
-			/mqclear
-			| current core loot file
-			/declare _lootini string local tc\\data\\core.loot.ini
-			/declare _section string local
-			/declare _key string local
-			/declare _value string local
-			/declare _countS int local 0
-			/declare _loopKey int local 0
-			/declare _totalCount int local 0
-			
-			/varset dump ${out[12, "\awImporting Loot File from\ax\at...\ax\a-w${_lootini}\ax"]}
-			/varset dump ${out[12, "On Large loot files this will take a min to build."]}
-			
-				/for _countS 0 to ${Ini[${_lootini}].Count[|]}
 
-					/varset _section ${Ini[${_lootini}].Arg[${_countS},|]}
-
-					/if (!${Ini[${_lootini},${_section}].Count[|]}) {
-						/ini "${_lootini}" "${_section}" NULL NULL
-						/continue
-					}
-
-					/varset dump ${out[12, "\at..\ax\aw${_section}"]}
-	
-					| are there keys in the section?
-					/while (${Ini[${_lootini},${_section}].Count[|]}) {
-
-						| get the key
-						/varset _key ${Ini[${_lootini},${_section}].Arg[0,|]}
-		
-						| delete key if NULL and go to next
-						/if (${Select[${_key},NULL]}) {
-							/ini "${_lootini}" "${_section}" "${_key}" NULL
-							| /varcalc _loopKey ${_loopKey}+1
-							/continue
-						}
-
-						| get the key value
-						/varset _value ${Ini[${_lootini},${_section},${_key}].Arg[0,|]}
-						
-						| delete the key if the value is null and move to next
-						/if (${Select[${_value},NULL]}) {
-							/ini "${_lootini}" "${_section}" "${_key}" NULL
-							| /varcalc _loopKey ${_loopKey}+1
-							/continue
-						}
-
-						| add key->value to DB and delete
-						/sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO loot_control VALUES ("${_key}", "${_value}", 0, 0)
-						/ini "${_lootini}" "${_section}" "${_key}" NULL
-
-					}
-					/next _countS 
-				
-			}
-			
-			/varset dump ${out[18, "${eol}"]}
-			/return					
-			
-		}
-		
-		/if (${_verbage.Equal[zone]}) {
-			/mqclear
-			| current core loot file
-			/declare _ini string local exspes\\zonedata.ini
-			/declare _section string local
-			/declare _key string local
-			/declare _value string local
-			/declare _pass string local
-			/declare _countS int local 0
-			/declare _countK int local 0
-			/declare _countV int local 0
-			
-			/echo \awImporting Named File from\ax\at...\ax\a-w${_ini}\ax
-			/echo \a-yINI sections\ax::\a-w${Ini[${_ini}].Count[|]}\ax
-			
-			/for _countS 1 to ${Ini[${_ini}].Count[|]}
-				/varset _section ${Ini[${_ini}].Arg[${_countS},|]}
-				/if (${Select[${_section},NULL]}) /continue
-				/varset dump ${out[12, "\at..\ax\aw${_section}\ax"]}
-				/for _countK 1 to ${Ini[${_ini},${_section}].Count[|]}
-					/varset _key ${Ini[${_ini},${_section}].Arg[${_countK},|]}
-					/if (${Select[${_key},NULL]}) /continue
-			
-					/for _countV 1 to ${Ini[${_ini},${_section},${_key}].Count[|]}
-						/varset _value ${Ini[${_ini},${_section},${_key}].Arg[${_countV},|]}
-						/varset dump ${out[12, "\at...\ax\a-w${_value}\ax"]}
-						/sqlite ${maData.Find[DBzone].Value} dummy INSERT OR IGNORE INTO zone_control VALUES ("${_section}", "${_key}", "${_value}")
-					/next _countV
-				/next _countK
-			/next _countS 
-			/varset dump ${out[18, "${eol}"]}
-			/echo
-			/return								
-		}
 		
 
 	}

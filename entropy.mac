@@ -161,7 +161,7 @@ sub main(string _debug, string _param1, string _auto)
 
 		| check do now things
 		/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) {
-			/call check_buff_cycle_now ${maDebug.Find[buff].Value}
+			/call check_buff_cycle_now FALSE
 		}
 		
 		/if (AUTO) {
@@ -328,10 +328,10 @@ sub prepare_the_end(bool _debug)
 	/call set_buffs_blocked FALSE SILENT
 
 	| check zone schema
-	/call sql_set_zone_schema FALSE
+	/call sql_set_zone_schema ${maDebug.Find[zone].Value}
 	
 	| check loot schema
-	/call sql_set_loot_schema FALSE
+	/call sql_set_loot_schema ${maDebug.Find[loot].Value}
 
 	| check character shema
 	/call sql_set_character_schema FALSE
@@ -352,7 +352,7 @@ sub prepare_the_end(bool _debug)
 	/call set_alias FALSE add
 
 	| build the zone lists
-	/call set_zone_lists FALSE
+	/call set_zone_lists ${maDebug.Find[zone].Value}
 	
 	| build crew data
 	/call set_initialize_crew FALSE
@@ -361,7 +361,7 @@ sub prepare_the_end(bool _debug)
 	/if (${SubDefined[DPSMeter_Init]}) /call DPSMeter_Init
 
 	| set class databits'n-bytes
-	/call set_${Me.Class.ShortName} FALSE
+	/call set_${Me.Class.ShortName} ${maDebug.Find[build].Value}
 
  	| check game cash?
 	/call check_free_ingame_cash FALSE

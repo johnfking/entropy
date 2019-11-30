@@ -49,15 +49,6 @@ sub set_ROG(bool _debug)
 	/call set_data_map FALSE maChr swBlinding														FALSE													"${auxsw} use blinding disc.. or not."
 	/call set_data_map FALSE maChr stBlinding														PREGEN|1											"${auxna} Blinding Flash disc family"
 
-	| keep on cooldown
-	| /call timer_set FALSE tClick_Poison																	string		outer 30s 	timer_click_poison
-	                                           		              				        	
-	| /call sql_control FALSE ${chrID} clickPoisonBuff										string 		outer "|Bite of the Shissar Poison X|Tallon's Tactic Poison IV|Tallon's Tactic Poison V|Vallon's Tactic Poison IV|Vallon's Tactic Poison V|Mana Poison Coat|Hero's Toxin Poison I|Hero's Toxin Poison II"
-	| /call sql_control FALSE ${chrID} clickPoisonItem										string 		outer "Consigned Bite of the Shissar XVIII"
-	| /call sql_control FALSE ${chrID} clickPoisonDispenser								string 		outer "Selrach's Shadowscale Leggings"
-	| /call sql_control FALSE ${chrID} clickPoisonCount										int		 		outer 60
-                                             		              				        	                                             		              			        	
-	
 /return
 
 
@@ -74,7 +65,6 @@ sub main_ROG(bool _debug)
 	CHECKREZ
 
 	/if (AUTO) {
-		| /if (!${timer_click_poison}) /call click_poison FALSE
 		/if (${maEnv.Find[swSoS].Value}) /call set_sos FALSE
 	}
 	

@@ -1234,7 +1234,7 @@ sub check_for_rezbox(bool _debug)
 			}
 		}
 		
-		/echo  _stRezWindowPct ${_stRezWindowPct}
+		DEBUG  _stRezWindowPct ${_stRezWindowPct}
 		
 		/declare _swValidRezFound bool local FALSE
 			
@@ -1253,10 +1253,7 @@ sub check_for_rezbox(bool _debug)
 
 		} 
 
-		/echo _swValidRezFound ${_swValidRezFound}
-		| /mqp
-
-			
+		DEBUG _swValidRezFound ${_swValidRezFound}
 		| more waiting
 		/if (${_swValidRezFound}) {
 			/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
@@ -1269,7 +1266,6 @@ sub check_for_rezbox(bool _debug)
 				}
 				/delay 1s
 				/nomodkey /notify RespawnWnd RW_SelectButton leftmouseup
-				
 			}
 
 			| Clear ALL THE MARKERS!
@@ -4441,33 +4437,33 @@ sub check_buff_cycle(bool _debug, bool _force)
 	}
 
 	| unity
-	/if (${maBuff.Find[swBuffUnity].Value} && ((AUTO && !${timer_Check_Buff_Unity}) || ${_force})) /call check_buff_cycle_unity ${_debug}
+	/if (${maBuff.Find[swBuffUnity].Value} && ((AUTO && !${timer_Check_Buff_Unity}) || ${_force})) /call check_buff_cycle_unity ${maDebug.Find[buffunity].Value} 
 
 	| aura
-	/if (${maBuff.Find[swBuffAura].Value} && ((AUTO && !${timer_Check_Buff_Aura}) || ${_force})) /call check_buff_cycle_aura ${_debug}
+	/if (${maBuff.Find[swBuffAura].Value} && ((AUTO && !${timer_Check_Buff_Aura}) || ${_force})) /call check_buff_cycle_aura ${maDebug.Find[buffaura].Value} 
 	
 	| shrink
-	/if (${maBuff.Find[swBuffShrink].Value} && ((AUTO && !${timer_Check_Buff_Shrink}) || ${_force})) /call check_buff_cycle_shrink ${_debug} 
+	/if (${maBuff.Find[swBuffShrink].Value} && ((AUTO && !${timer_Check_Buff_Shrink}) || ${_force})) /call check_buff_cycle_shrink ${maDebug.Find[buffshrink].Value} 
 	
 	| self
-	/if (${maBuff.Find[swBuffSelf].Value} && ((AUTO && !${timer_Check_Buff_Self}) || ${_force})) /call check_buff_cycle_self ${_debug}
+	/if (${maBuff.Find[swBuffSelf].Value} && ((AUTO && !${timer_Check_Buff_Self}) || ${_force})) /call check_buff_cycle_self ${maDebug.Find[buffself].Value}
 
 	| crew
-	/if (${maBuff.Find[swBuffCrew].Value} && ((AUTO && !${timer_Check_Buff_Crew}) || ${_force})) /call check_buff_cycle_crew ${_debug}
+	/if (${maBuff.Find[swBuffCrew].Value} && ((AUTO && !${timer_Check_Buff_Crew}) || ${_force})) /call check_buff_cycle_crew ${maDebug.Find[buffcrew].Value}
 	
 	| others
 	
 	| beg
-	/if (${maBuff.Find[swBuffBeg].Value} && ((AUTO && !${timer_Check_Buff_Beg}) || ${_force})) /call check_buff_cycle_beg ${_debug}
+	/if (${maBuff.Find[swBuffBeg].Value} && ((AUTO && !${timer_Check_Buff_Beg}) || ${_force})) /call check_buff_cycle_beg ${maDebug.Find[buffbeg].Value}
 	
 	| powersource
 	/if (${maBuff.Find[swBuffPowersource].Value} && ((AUTO && !${timer_Check_Buff_Powersource}) || ${_force})) /call check_buff_cycle_powersource ${_debug}
 	
 	| ranged ammo
-	/if ((AUTO && !${timer_Check_Ammo}) && (!${Me.Inventory[ammo].ID} || ${_force})) /call check_buff_cycle_range ${_debug}	
+	/if ((AUTO && !${timer_Check_Ammo}) && (!${Me.Inventory[ammo].ID} || ${_force})) /call check_buff_cycle_range ${maDebug.Find[buffrange].Value}	
 
 	| summon poison
-	/if ((AUTO && !${timer_Check_Poison}) && (${maCC.Find[swPoison].Value} || ${_force})) /call check_buff_cycle_poison ${_debug}	
+	/if ((AUTO && !${timer_Check_Poison}) && (${maCC.Find[swPoison].Value} || ${_force})) /call check_buff_cycle_poison ${maDebug.Find[buffpoison].Value}
 	
 	| class specific buffs. buff self required
 	/if (${maBuff.Find[swBuffSelf].Value} && (!${timer_Check_Buff_Self} || ${_force})) {
@@ -4477,7 +4473,7 @@ sub check_buff_cycle(bool _debug, bool _force)
 		} else /if (${Select[${Me.Class.ShortName},CLR]}) {
 		} else /if (${Select[${Me.Class.ShortName},DRU]}) {
 		} else /if (${Select[${Me.Class.ShortName},ENC]}) {
-			/if (${maChr.Find[swAACrystals].Value}) /call check_crystals ${_debug}
+			/if (${maChr.Find[swAACrystals].Value}) /call check_crystals ${maDebug.Find[buffclass].Value}
 		} else /if (${Select[${Me.Class.ShortName},MAG]}) {
 		} else /if (${Select[${Me.Class.ShortName},MNK]}) {
 		} else /if (${Select[${Me.Class.ShortName},NEC]}) {
@@ -4633,17 +4629,7 @@ sub check_item_cycle(bool _debug, int _tmpID)
 		/if (${maItems.Find[stItem${_count}].Value.Equal[FALSE]}) /continue
 		/if (!${is_ready[${_debug}, ${maItems.Find[stItem${_count}].Value}]}) /continue
 		
-		/if (${lsItem${_count}Tag.Contains[raid]} && !${Raid}) /continue
-		/if (${lsItem${_count}Tag.Contains[noraid]} && ${Raid}) /continue
-		/if (${lsItem${_count}Tag.Contains[nocombat]} && ${Select[${Me.CombatState},combat]}) /continue
-		/if (${lsItem${_count}Tag.Contains[combat]} && ${Select[${Me.CombatState},cooldown,resting,active]}) /continue
-		/if (${lsItem${_count}Tag.Contains[outdoor]} && (${Me.FeetWet} || ${Zone.Indoor})) /continue
-		/if (${lsItem${_count}Tag.Contains[ma]}) /varset _tmpID ${get_assist_info[FALSE, ID]}
-		/if (${lsItem${_count}Tag.Contains[puller]} && ${maCC.Find[swPull].Value}) /continue
-		/if (${lsItem${_count}Tag.Contains[burn]} && !BURN) /continue
-		/if (${lsItem${_count}Tag.Contains[swarm]} && !${maMinion.Find[swarm].Value}) /continue
-		/if (${lsItem${_count}Tag.Contains[nosafezone]} && SAFEZONE) /continue
-		/if (${lsItem${_count}Tag.Contains[matarget]} && ${Target.ID} != TARGET) /continue
+		/if (!${check_basic_tags[${_debug}, Item${_count}, FALSE]}) /continue
 
 		/varset _spell ${FindItem[${maItems.Find[stItem${_count}].Value.Arg[1,+]}].Spell}
 		/if (${lsItem${_count}Tag.Contains[self]}) {
@@ -4749,8 +4735,9 @@ sub set_target(int _tmpID)
  * use: /call check_buff_cycle_range DEBUG
  ***|
 sub check_buff_cycle_range(bool _debug)
+	DEBUG \atcheck_buff_cycle_range\ax()
 
-	/varset dump ${set_data_timer[FALSE, Check_Ammo, RESTART]}
+	/varset dump ${set_data_timer[${_debug}, Check_Ammo, RESTART]}
 
 	/declare _count int local 0
 	/for _count 1 to 50
@@ -4758,15 +4745,16 @@ sub check_buff_cycle_range(bool _debug)
 		/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) /continue		
 		/if (!${lsBuff${_count}Tag.Contains[summonrange]}) /continue
 		
+			DEBUG ${sep}_count${sep}\a-wBuff${_count}${sep}${maBuffs.Find[stBuff${_count}].Value}
 		
 		/if (${FindItemCount[${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}]} && !${Me.Inventory[ammo].ID}) {
-			/call Bind_command_swap "${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}" 22 FALSE
+			/call Bind_command_swap "${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}" 22 ${_debug}
 			/delay 5
 			/return TRUE
 		}
 	
-		/if (${is_ready[FALSE, "${maBuffs.Find[stBuff${_count}].Value}"]}) {
-			/call voodoo FALSE "${maBuffs.Find[stBuff${_count}].Value}" 0 FALSE
+		/if (${is_ready[${_debug}, "${maBuffs.Find[stBuff${_count}].Value}"]}) {
+			/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" 0 FALSE
 		}
 		/delay 10s !${Me.Casting.ID}
 
@@ -4781,15 +4769,10 @@ sub check_buff_cycle_range(bool _debug)
 
 ${FindItem[${Spell[${FindItem[${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}
 
-
-
 43
 /itemnotify "${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff30].Value}].Spell}].Base[1]}].Name}" leftmouseup
 
 ${FindItem[${Spell[${FindItem[${maBuffs.Find[stBuff30].Value}].Spell}].Base[1]}].Name}
-
-
-
 
 ${FindItemCount[${Spell[${FindItem[=${maBuffs.Find[stBuff43].Value}].Spell}].Base[1]}]}
 
@@ -5916,7 +5899,6 @@ sub check_basic_tags(bool _debug, string _type, string _name)
 	/if (${ls${_type}Tag.Contains[noraid]} && ${Raid.Members}) /return FALSE
 	/if (${ls${_type}Tag.Contains[combat]} && ${Select[${Me.CombatState},cooldown,resting,active]}) /return FALSE
 	/if (${ls${_type}Tag.Contains[outdoor]} && (${Me.FeetWet} || ${Zone.Indoor})) /return FALSE
-	/if (${ls${_type}Tag.Contains[ma]} && ${Me.ID} != ${get_assist_info[FALSE, ID]}) /return FALSE
 	/if (${ls${_type}Tag.Contains[puller]} && PULL) /return FALSE
 	/if (${ls${_type}Tag.Contains[agro]} && !${Bool[${maCC.Find[stAssistMode].Value}]}) /return FALSE
 	/if (${ls${_type}Tag.Contains[burn]} && !BURN) /return FALSE
@@ -5924,7 +5906,14 @@ sub check_basic_tags(bool _debug, string _type, string _name)
 	/if (${ls${_type}Tag.Contains[matarget]} && (${Target.ID} != TARGET)) /return FALSE
 	/if (${ls${_type}Tag.Contains[pet]} && !${Pet.ID}) /return FALSE
 	/if (${ls${_type}Tag.Contains[swarm]} && !SWARM) /return FALSE
-	/if (${ls${_type}Tag.Contains[summonitem]} && ${check_basic_tags_summonitem[FALSE, ${_type}]}) /return FALSE
+
+	/if (${ls${_type}Tag.Contains[ma]}) {
+		/if (${Me.ID} != ${get_assist_info[FALSE, ID]}) /return FALSE
+	}
+
+	/if (${ls${_type}Tag.Contains[summonitem]}) {
+		/if (${check_basic_tags_summonitem[FALSE, ${_type}]}) /return FALSE
+	}
 	
 	
 	| name/class specific tags
@@ -6762,8 +6751,8 @@ sub send_pet(bool _debug, int _tmpID)
 	/varset dump ${set_target[${_tmpID}]}
 	
 	/if (PET) {
-		/if (${Me.Pet.ID} && ${Target.PctHPs} <= ${maMinion.Find[stPctPetEngage].Value}) {
-			| /varset dump ${out[10, "Sending minion${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax"]}
+		/if (!${Me.Pet.ID} && ${Target.PctHPs} <= ${maMinion.Find[stPctPetEngage].Value}) {
+			/varset dump ${out[10, "Sending minion${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax"]}
 			/pet attack
 		}
 	}

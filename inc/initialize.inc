@@ -101,8 +101,8 @@ sub set_initialize(bool _debug)
   | generate DEBUGS
   /declare maDebug map outer
   /declare _lsout list local
-  /varset dump ${_lsout.Append[build,buff,burn,cast,cure,edit,heal,loot,mezz,melee,minion,pull,rest,rez,target]}
-  | /varset dump ${_lsout.Append[]}
+  /varset dump ${_lsout.Append[build,burn,cast,cure,edit,heal,loot,mezz,melee,minion,pull,rest,rez,target,zone]}
+  /varset dump ${_lsout.Append[buff,buffrange,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass]}
   
   
 
@@ -228,6 +228,7 @@ sub set_initial_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
     /varset dump ${lsChr.Append[line|gather|forcetc]}
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
+    /varset dump ${lsChr.Append[train|fdpct|agrogpct]}  	
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
     /varset dump ${lsChr.Append[attraction|harmonious|loh|mg|flash|stun|yaulp]}

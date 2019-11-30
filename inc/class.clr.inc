@@ -198,14 +198,14 @@ sub misc_combat_CLR(bool _debug)
 	| pet AA hammer	
 	/if (${maBurn.Find[swBurnForce].Value} || (${maBurn.Find[swBurnAuto].Value} && ${lsZoneNamed.Contains[${Target.DisplayName}]})) {
 		/if (${is_ready[FALSE, "Celestial Hammer"]}) {
-			/call voodoo ${maDebug.Find[cast].Value} "Celestial Hammer" TARGET FALSE
+			/call voodoo ${_debug} "Celestial Hammer" TARGET FALSE
 		}
 	}
 	
 	| undead aa nuke
 	/if (${Target.Body.Name.Equal[Undead]}) {
 		/if (${is_ready[FALSE, "Turn Undead"]}) {
-			/call voodo ${maDebug.Find[cast].Value} "Turn Undead" TARGET FALSE
+			/call voodo ${_debug} "Turn Undead" TARGET FALSE
 		}
 	}	
 	
@@ -413,7 +413,7 @@ sub check_heal_CLR(bool _debug, string _type)
 			/dquery ${Spawn[${hurtID}].DisplayName} -q "Me.Song[${_spell}].Duration" -o _has
 			/if (${_stacks} && !${_has}) {
 				/if (${is_ready[${_debug}, "${_spell}"]}) {
-					/call voodoo ${maDebug.Find[cast].Value} "${maChr.Find[stHealOverTime}.Value}" ${hurtID} FALSE
+					/call voodoo ${_debug} "${maChr.Find[stHealOverTime}.Value}" ${hurtID} FALSE
 				}
 			}
 		}
@@ -561,7 +561,7 @@ sub burn_CLR(bool _debug)
 	| Group AA Celestial Regeneration
  	/if (${maChr.Find[swHealGroupOverTime].Value} && ${Group}) {
  	 	/if (${is_ready[FALSE, "Celestial Regeneration"]} && !${Bool[${Me.Song[Celestial Regeneration]}]} && !${Me.Song[Focused Celestial Regeneration].ID}) {
- 			/call voodoo ${maDebug.Find[cast].Value} "Celestial Regeneration" 0 FALSE
+ 			/call voodoo ${_debug} "Celestial Regeneration" 0 FALSE
 	  } 
 	}
 
@@ -574,18 +574,18 @@ sub burn_CLR(bool _debug)
 	 	| anti agro (pric Silent Casting 1min duration 9 min reuse)
 		/if (!${Me.Buff[Divine Retribution].ID}) {
 			/if (${is_ready[FALSE, "Silent Casting"]}) {
-				/call voodoo ${maDebug.Find[cast].Value} "Silent Casting" 0 FALSE
+				/call voodoo ${_debug} "Silent Casting" 0 FALSE
 			}
 		}	
 		
 	 	| 50% chance to twincast (proc:Channeling of the Divine, 45 sec duration 10 min resuse)
 	 	/if (${is_ready[FALSE, "Channeling the Divine"]}) {
-	 		/call voodoo ${maDebug.Find[cast].Value} "Channeling the Divine"  0 FALSE
+	 		/call voodoo ${_debug} "Channeling the Divine"  0 FALSE
 	 	}
 	 	
 		| - ~50% to cast times [proc:Celestial Rapidity, 1 min duration 10 min reuse]
 		/if (${is_ready[FALSE, "Celestial Rapidity"]}) {
-			/call voodoo ${maDebug.Find[cast].Value} "Celestial Rapidity" 0 FALSE
+			/call voodoo ${_debug} "Celestial Rapidity" 0 FALSE
 		}
 		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
 			/call get_hurt FALSE Group
@@ -598,18 +598,18 @@ sub burn_CLR(bool _debug)
 		| melee block anti agro (20 min reuse)
 		/if (!${Me.Song[Silent Casting].ID}) {
 			/if (${is_ready[FALSE, "Divine Retribution"]}) {
-				/call voodoo ${maDebug.Find[cast].Value} "Divine Retribution" 0 FALSE
+				/call voodoo ${_debug} "Divine Retribution" 0 FALSE
 			}
 		}
 
 		| 100% exceptional heal (proc: Flurry of Life, 1:30 min duration 15 min reuse)
 		/if (${is_ready[FALSE, "Healing Frenzy"]}) {
-			/call voodoo ${maDebug.Find[cast].Value} "Healing Frenzy" 0 FALSE
+			/call voodoo ${_debug} "Healing Frenzy" 0 FALSE
 		}
 
 		| heal power bost: 35% (proc Healing Frenzy, 40sec duration 15 min reuse)
 		/if (${is_ready[FALSE, "Flurry of Life"]}) {
-			/call voodoo ${maDebug.Find[cast].Value} "Flurry of Life" 0 FALSE
+			/call voodoo ${_debug} "Flurry of Life" 0 FALSE
 		}
 		
 		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
@@ -620,13 +620,13 @@ sub burn_CLR(bool _debug)
 
 	| heal ward (20 min reuse)
 	/if (${is_ready[FALSE, "Exquisite Benediction"]}) {
-		/call voodoo ${maDebug.Find[cast].Value} "Exquisite Benediction" 0 FALSE
+		/call voodoo ${_debug} "Exquisite Benediction" 0 FALSE
 	}
 
 	| direct damage boost if using aggressive healing
 	/if (${maHeal.Find[stHealMode].Value.Equal[aggressive]} && !${Me.Song[Silent Casting].ID}) {
     /if (${is_ready[FALSE, "Battle Frenzy"]}) {
-    	/call voodoo ${maDebug.Find[cast].Value} "Battle Frenzy" 0 FALSE
+    	/call voodoo ${_debug} "Battle Frenzy" 0 FALSE
     }
   }
   
