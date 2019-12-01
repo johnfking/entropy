@@ -243,7 +243,7 @@ sub mode_forage(bool _debug)
 	/doability forage
 	/delay 1s
 	
-	CHECKCURSOR ${_debug} TRUE
+	/call check_cursor ${_debug} TRUE
 	SETHUD FALSE
 	
 /return TRUE
@@ -657,7 +657,7 @@ sub mode_collect(bool _debug)
 		/call Bind_command_grab "glowing" ${_debug}
 		/delay 5
 		
-		CHECKCURSOR ${_debug} TRUE
+		/call check_cursor ${_debug} TRUE
 	}
 
 	SETHUD FALSE

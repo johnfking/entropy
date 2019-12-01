@@ -19,8 +19,6 @@ sub set_BST(bool _debug)
 	/call set_data FALSE maData stEpic2																	map outer "Spiritcaller Totem of the Feral"
 	/call set_data FALSE maData stFade																	map outer "Playing Possum"
 	/call set_data_map FALSE maChr stAAUnity														"Feralist's Unity"						"${auxna} class aa unity buff"
-	
-	
 
  	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
  	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
@@ -49,7 +47,6 @@ sub set_BST(bool _debug)
 	/call set_data_map FALSE maCC stMeleePunch   												"dragon punch"								"${auxna} current combat punch method"
 	/declare lsMeleeKick list outer
 	/varset dump ${lsMeleeKick.Append[kick,flying kick,round kick]}
-   
                                           			
 /return
 

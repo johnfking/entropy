@@ -122,6 +122,11 @@ sub misc_combat_WAR(bool _debug)
 	/if (AGRO) /call get_agro_${Me.Class.ShortName}
 
 	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+	
+	
+	/if (${is_ready[FALSE, "${maChr.Find[stNoTime].Value}"]} && !${Me.Buff[${maChr.Find[stDichotomic].Value}].ID}) {
+		/call voodoo FALSE "${maChr.Find[stNoTime].Value}" 0 FALSE
+	}
 
 	| stShocking blocks Brace for Impact
 	/if (${is_ready[FALSE, "${maChr.Find[stShocking].Value}"]} && !${Me.Buff[Brace for Impact].ID}) {
@@ -443,7 +448,6 @@ sub set_control_WAR(string _type, string _verbage, string _silent, bool _debug)
 		/call set_control_chr_spire FALSE ${_verbage} ${_silent}
 		/return
 
-
 	| defensive mob agro count
 	} else /if (${_type.Equal[def]}) {
 		/if (!${set_control_num_range[FALSE, stCountDefensive, "${_verbage}", 0, 99]}) /return
@@ -485,46 +489,8 @@ sub set_control_WAR(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
 		/varset dump ${li.Advance}
 	}	
-	OUT /chr ${_out}
+	/varset dump ${out[14, "${_out}"]}
 		
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /return
 
 

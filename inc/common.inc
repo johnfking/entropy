@@ -4242,18 +4242,20 @@ sub check_buff_cycle_now(bool _debug)
 
 	/declare _count int local 0
 
-	/varset dump ${set_data_timer[FALSE, Check_Buff_Now, RESTART]}
+	/varset dump ${set_data_timer[${_debug}, Check_Buff_Now, RESTART]}
 		| check now buffs
 		/for _count 1 to 50
 			/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
 			/if (!${lsBuff${_count}Tag.Contains[alwaysup]}) /continue
-			| /if (!${check_basic_tags[FALSE, Buff${_count}, ${Me.DisplayName}]}) /continue
+			/if (!${check_basic_tags[${_debug}, Buff${_count}, ${Me.DisplayName}]}) /continue
 	
 			/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" 0 FALSE
 	
-			/if (${lsBuff${_count}Tag.Contains[autoinventory]}) /autoinventory
+			/if (${lsBuff${_count}Tag.Contains[autoinventory]}) {
+				/call check_cursor ${_debug} TRUE CLEAR
+			}
 		
-		/next _count	
+		/next _count
 
 /return
 

@@ -135,11 +135,11 @@ sub main_PAL(bool _debug)
 	}
 		
 	/while (${check_combat_status[FALSE]}) {
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Self
-		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Group
-		/if (${maHeal.Find[swHealXTarget].Value}) /call get_hurt_${Me.Class.ShortName} FALSE XTarget
-		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call get_hurt_${Me.Class.ShortName} FALSE Pet
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call cast_cure FALSE
+		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Self
+		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Group
+		/if (${maHeal.Find[swHealXTarget].Value}) /call get_hurt_${Me.Class.ShortName} ${maDebug.Find[heal].Value} XTarget
+		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call get_hurt_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Pet
+		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call cast_cure ${maDebug.Find[cure].Value}
 		/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE		
 		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
 		/if (${check_class_loop[FALSE]}) /return
@@ -151,9 +151,9 @@ sub main_PAL(bool _debug)
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (DOT) /call cast_DOT FALSE lsDoT TARGET
-			/if (NUKE) /call cast_nuke FALSE lsNuke TARGET
-			/call check_item_cycle FALSE TARGET
+			/if (DOT) /call cast_DOT ${maDebug.Find[castdot].Value} lsDoT TARGET
+			/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
+			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
 			| /call check_deBuffs FALSE TARGET
 			| /if (${swAlliance}) /call cast_alliance_${Me.Class.ShortName} TARGET
 			/if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) {
@@ -233,7 +233,7 @@ sub misc_combat_PAL(bool _debug)
 
 |***
  * note: I'm more important then you are!
- * use: /call get_agro_PAL
+ * use: /call get_agro_PAL DEBUG
  ***|
 sub get_agro_PAL(bool _debug)
 	DEBUG \atget_agro_PAL\ax()
@@ -307,6 +307,7 @@ sub get_agro_PAL(bool _debug)
 	/if (${Me.PctAggro} < 95 && ${is_ready[FALSE, "${maChr.Find[stValiant].Value}"]}) {
 		/call voodoo FALSE "${maChr.Find[stValiant].Value}" TARGET FALSE
 	}
+	
 /return
 
 
@@ -329,7 +330,7 @@ sub check_heal_PAL(bool _debug, string _type)
 	/call get_hurt FALSE ${_type}
 	
 	/if (!${hurtCount}) {
-		| SETHUD FALSE
+		SETHUD FALSE
 		/return	
 	}
 
@@ -512,40 +513,9 @@ sub burn_PAL(bool _debug)
 		/call voodoo FALSE "Valorous Rage" 0 FALSE
 	}
 
-	| /call cast_glyph FALSE
+	/call cast_glyph FALSE
 	
 /return
-
-
-
-|***
- *	DES: Alliance (Holly Alliance|spell)
- *	USE: 
- *  NOTE: 6 casts to fulm.
- ***|
-sub cast_alliance_PAL(int _tmpID, bool _debug)
-	DEBUG cast_alliance_${Me.Class.ShortName()
-
-  | check alliance group/raid
-  /if (!${Bool[${setAlliance}]}) /return FALSE
-	/if (${setAlliance.Equal[raid]} && !${Raid.Members}) /return FALSE  
-	/if (${setAlliance.Equal[group]} && (!${Bool[${Group.Members]} || ${Raid.Members})) /return FALSE  
-	| enough paladins to make it worth casting?
-	/if (${SpawnCount[paladin radius ${setMobAgro} zradius ${setzradius}]} < 3) /return FALSE
-	| have the alliance on it already?
-	/if (${Target.Buff[${${Me.Class.ShortName}Alliance}].ID}) /return FALSE
-	| spell ready?
-	| /if (!${check_ready[spell, "${${Me.Class.ShortName}Alliance}"]}) /return FALSE
-	| no target
-	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
-
-	ISMEDEAD
-	CHECKEXIT
-  GETINPUT
-
-	| /if (${validate_cast[FALSE, spell, "${${Me.Class.ShortName}Alliance}", ${_tmpID}]}) /call voodoo FALSE "${${Me.Class.ShortName}Alliance}" alt ${_tmpID} FALSE
-
-/return TRUE
 
 
 
@@ -674,7 +644,7 @@ sub set_control_PAL(string _type, string _verbage, string _silent, bool _debug)
 
 		/varset dump ${li.Advance}
 	}
-	OUT /chr ${_out}
+	/varset dump ${out[14, "${_out}"]}
 
 /return
 

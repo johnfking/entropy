@@ -86,16 +86,20 @@ sub set_CLR(bool _debug)
 
 	| set heal orders
 	/declare lsHealOrderbase list outer
+	/varset dump ${lsHealOrderbase.Delimiter["|"]}
 	/varset dump ${lsHealOrderbase.Append[lsHealBaseLine]}
 
 	/declare lsHealOrderaggressive list outer
-	/varset dump ${lsHealOrderaggressive.Append[lsHealIntervention,lsHealRemedy,lsHealRenewal,lsHealLight]}
+	/varset dump ${lsHealOrderaggressive.Delimiter["|"]}
+	/varset dump ${lsHealOrderaggressive.Append[lsHealIntervention|lsHealRemedy|lsHealRenewal|lsHealLight]}
 
 	/declare lsHealOrderpassive list outer
-	/varset dump ${lsHealOrderpassive.Append[lsHealRemedy,lsHealIntervention,lsHealRenewal,lsHealLight]}
+	/varset dump ${lsHealOrderpassive.Delimiter["|"]}
+	/varset dump ${lsHealOrderpassive.Append[lsHealRemedy|lsHealIntervention|lsHealRenewal|lsHealLight]}
 	
 	/declare lsHealOrderheavy list outer
-	/varset dump ${lsHealOrderheavy.Append[lsHealRenewal,lsHealIntervention,lsHealLight,lsHealRemedy]}
+	/varset dump ${lsHealOrderheavy.Delimiter["|"]}
+	/varset dump ${lsHealOrderheavy.Append[lsHealRenewal|lsHealIntervention|lsHealLight|lsHealRemedy]}
 	
 
 /return
@@ -141,7 +145,7 @@ sub main_CLR(bool _debug)
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
 		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} XTarget
 		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[minion].Value} Pet
-		/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+		/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 		CHECKFADE
 		| /if (${swAlliance}) /call trigger_alliance
 
@@ -150,7 +154,7 @@ sub main_CLR(bool _debug)
 			/call check_buff_cycle_temp_list FALSE stRetort lsRetortToon
 		}
 		/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
-		/if (BURN) /call burn_${Me.Class.ShortName} FALSE
+		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
@@ -158,10 +162,10 @@ sub main_CLR(bool _debug)
 			/call set_combat FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
 			/call misc_combat_${Me.Class.ShortName} FALSE
-			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
-			/if (DOT) /call cast_dot FALSE lsDot TARGET
-			/if (NUKE) /call cast_nuke FALSE lsNuke TARGET
-			/call check_item_cycle FALSE TARGET
+			/if (!${timer_Check_deBuffs}) /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDot TARGET
+			/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
+			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
 		}
 
 		/if (AUTO) {	
@@ -189,7 +193,7 @@ sub misc_combat_CLR(bool _debug)
 	CHECKREZ
 	
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
-	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 
 	/if (${maMinion.Find[swSwarm].Value} && !${Me.Pet.ID}) {
 		/call cast_list ${_debug} lsTempPet TARGET
@@ -212,7 +216,7 @@ sub misc_combat_CLR(bool _debug)
 	
 	/if (AUTO && ${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
 		/call get_hurt FALSE Group
-		/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration FALSE
+		/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
 	}
 	
 /return
@@ -263,10 +267,9 @@ sub check_heal_CLR(bool _debug, string _type)
 	SETHUD "heal ${_type.Lower}"
 	
 	/call get_hurt ${_debug} ${_type}
-	/if (${Select[${_type},group]} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration FALSE
+	/if (${Select[${_type},group]} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
 
 	/if (${Select[${_type},group]} && ${hurtCount} >= ${maChr.Find[stCountHealGroup].Value} && ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
-
 
 	/declare _count int local 0
   	
@@ -306,7 +309,7 @@ sub check_heal_CLR(bool _debug, string _type)
 
 	/if (${Select[${_type},group]}) {
 		/if (${maChr.Find[stCountArbitrate].Value}) {
-			/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration FALSE
+			/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
 		}
 		/if (${maChr.Find[stCountHealGroup].Value}) {
 			/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
@@ -328,7 +331,7 @@ sub check_heal_CLR(bool _debug, string _type)
 		| Arbitration
 		/if (${Select[${_type},group]}) {
 			/if (${maChr.Find[stCountArbitrate].Value}) {
-				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration FALSE
+				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
 			}
 			/if (${maChr.Find[stCountHealGroup].Value}) {
 				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
@@ -367,7 +370,7 @@ sub check_heal_CLR(bool _debug, string _type)
 		
 		/if (${Select[${_type},group]}) {
 			/if (${maChr.Find[stCountArbitrate].Value}) {
-				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration FALSE
+				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
 			}
 			/if (${maChr.Find[stCountHealGroup].Value}) {
 				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
@@ -385,7 +388,7 @@ sub check_heal_CLR(bool _debug, string _type)
 
 		/if (${Select[${_type},group]}) {
 			/if (${maChr.Find[stCountArbitrate].Value}) {
-				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration FALSE
+				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
 			}
 			/if (${maChr.Find[stCountHealGroup].Value}) {
 				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
@@ -439,7 +442,7 @@ sub check_heal_CLR(bool _debug, string _type)
 		/if (!AUTO) /return
 		/call get_hurt FALSE ${_type} 
 		/if (${Select[${_type},group]} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
-			/call do_arbitration FALSE
+			/call do_arbitration ${maDebug.Find[arbitrate].Value}
 		} else /if (!${hurtCount} || !${maChr.Find[stCountArbitrate].Value}) {
 			/return
 		}
@@ -480,6 +483,7 @@ sub do_arbitration(bool _debug)
   }
   
   | should we group heal?
+  DEBUG ${sep}\a-w(${maChr.Find[swArbitratetoHealGroup].Value} && ${_arbDone}) || (${maChr.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maChr.Find[stCountHealGroup].Value})\ax
 	/if ((${maChr.Find[swArbitratetoHealGroup].Value} && ${_arbDone}) || (${maChr.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maChr.Find[stCountHealGroup].Value})) {
 		/varset dump ${out[3, "Arbitration done"]}
 	  /call cast_list ${_debug} lsHealGroup ${Me.ID}
@@ -524,7 +528,7 @@ sub Bind_command_issuance(bool _debug)
 	
 	/if (AUTO && ${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
 		/call get_hurt FALSE Group
-		/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration FALSE
+		/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
 	}
 	
 	| should we recast?
@@ -557,7 +561,7 @@ sub burn_CLR(bool _debug)
 	GETINPUT
 	CHECKREZ
 	
-	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE	
+	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE	
 
 	| Group AA Celestial Regeneration
  	/if (${maChr.Find[swHealGroupOverTime].Value} && ${Group}) {
@@ -590,7 +594,7 @@ sub burn_CLR(bool _debug)
 		}
 		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
 			/call get_hurt FALSE Group
-			/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration FALSE
+			/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
 		}
 		
 	| stage 2
@@ -615,7 +619,7 @@ sub burn_CLR(bool _debug)
 		
 		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
 			/call get_hurt FALSE Group
-			/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration FALSE
+			/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
 		}
 	}
 
@@ -760,7 +764,7 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[primary]}) /varset _out ${_out}:${submenu}
 		/varset dump ${li.Advance}
 	}	
-	OUT /chr ${_out}
+	/varset dump ${out[14, "${_out}"]}
 
 /return
 

@@ -59,7 +59,7 @@ sub set_initialize(bool _debug)
   /declare lsMaps list outer
   /varset dump ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maItems,maBuffs,maBuff,maBurn]}
   /varset dump ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
-  /varset dump ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maDeez,maMode]}
+  /varset dump ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maDeez,maMode,maRezControl,maWatchspawn,maBuffRequest,maHook]}
 
   
   | set all output shortcuts
@@ -101,11 +101,32 @@ sub set_initialize(bool _debug)
   | generate DEBUGS
   /declare maDebug map outer
   /declare _lsout list local
-  /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mezz,melee,minion,pull,rest,rez,target,zone]}
-  /varset dump ${_lsout.Append[buff,buffammo,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass]}
-  /varset dump ${_lsout.Append[cast,castitem]}
+  /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mezz,melee,minion,pull,rest,rez,target,zone,debuff]}
+  /varset dump ${_lsout.Append[buff,buffammo,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass,buffnow]}
+  /varset dump ${_lsout.Append[cast,castitem,castnuke,castdot]}
   /varset dump ${_lsout.Append[mode,modeforage,modedrag,modecollect]}
-
+  
+  | class specific debuffs
+  /if (${Select[${Me.Class.ShortName},BER]}) {
+  } else /if (${Select[${Me.Class.ShortName},BRD]}) {
+  } else /if (${Select[${Me.Class.ShortName},BST]}) {
+  } else /if (${Select[${Me.Class.ShortName},CLR]}) {
+  	/varset dump ${_lsout.Append[arbitrate]}
+  } else /if (${Select[${Me.Class.ShortName},DRU]}) {
+  } else /if (${Select[${Me.Class.ShortName},ENC]}) {
+  } else /if (${Select[${Me.Class.ShortName},MAG]}) {
+  } else /if (${Select[${Me.Class.ShortName},MNK]}) {
+  } else /if (${Select[${Me.Class.ShortName},NEC]}) {
+  } else /if (${Select[${Me.Class.ShortName},PAL]}) {
+  } else /if (${Select[${Me.Class.ShortName},RNG]}) {
+  } else /if (${Select[${Me.Class.ShortName},ROG]}) {
+  } else /if (${Select[${Me.Class.ShortName},SHD]}) {
+  } else /if (${Select[${Me.Class.ShortName},SHM]}) {
+  	/varset dump ${_lsout.Append[talisman,surge]}
+  } else /if (${Select[${Me.Class.ShortName},WAR]}) {
+  } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
+  }  
+  
   /vardata cli _lsout.First.Clone
   /while (!${cli.IsEnd}) {
     /varset dump ${maDebug.Add[${cli.Value},FALSE]}
@@ -240,6 +261,7 @@ sub set_initial_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},SHD]}) {
     /varset dump ${lsChr.Append[attraction|harmonious|vot|flash|skin|stance]}
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
+  	/varset dump ${lsChr.Append[cannihps|cannimanna|surge|talisman]}
   } else /if (${Select[${Me.Class.ShortName},WAR]}) {
     /varset dump ${lsChr.Append[attraction|flash]}
   } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
@@ -248,7 +270,7 @@ sub set_initial_environment(bool _debug)
 
   
   | set current zone
-  /call set_data FALSE maEnv stCurrentZoneID                          map outer FALSE
+  /call set_data FALSE maEnv stCurrentZoneID                          	map outer FALSE
 
   | Comm  
   /if (${swDanNet}) {
@@ -739,15 +761,11 @@ sub set_initialize_map_character_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
-    
-    
     /call set_data_list FALSE maChr lsLineTank                        EMPTY                         "${auxli} songs to play for tanks"  
     /call set_data_list FALSE maChr lsLineCaster                      EMPTY                         "${auxli} songs to play for casters"  
     /call set_data_list FALSE maChr lsLineMelee                       EMPTY                         "${auxli} songs to play for dps whores" 
     /call set_data_list FALSE maChr lsLineMix                         EMPTY                         "${auxli} songs for the group you just cant keep happy" 
     /call set_data_list FALSE maChr lsLineOther                       EMPTY                         "${auxli} B side songs" 
-    
-  
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
@@ -800,7 +818,7 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data_list FALSE maChr lsHealPetLine                     EMPTY                         "${auxli} list of healing spells/aas/items for pets"
-    /call set_data FALSE FALSE lsHealMode                             list outer "base"
+    /call set_data FALSE FALSE lsHealMode                             list outer "base|passive|aggressive"
   } else /if (${Select[${Me.Class.ShortName},WAR]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
@@ -866,8 +884,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_Data_map FALSE maMinion swonForce                         FALSE                         "${auxsw} send pets on \a-w/cc force\ax command"
   /call set_Data_map FALSE maMinion swUsePetGear                      FALSE                         "${auxsw} use pet weapons"
   /call set_Data_map FALSE maMinion stPetWeapon                       FALSE                         "${auxna} weapon to give your pet"
-
-
   
   /varset dump ${set_data_timer[FALSE, Check_Minion_Shrink, 10m]}
   /call set_Data_map FALSE maMinion swPetShrink                       FALSE                         "${auxsw} use pet shrink item/spell/drugs?"
@@ -1489,44 +1505,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 
 
-  | overrides
 
-
-  | buffs
-
-
-  | cursor                                                            
-  /call sql_control FALSE ${chrID} swAutoCursor                       bool      outer FALSE         
-                                                                      
-
-  
-
-  | mode control
-  /call setDeclare swModeToken                                        bool      outer FALSE
-  /call setDeclare swModeFALSE                                        bool      outer FALSE
-  /call setDeclare swModeStop                                         bool      outer FALSE
-  /call setDeclare swModeAgro                                         bool      outer FALSE
-  /call setDeclare setModeType                                        string    outer FALSE
-  /call setDeclare setModeCount                                       int       outer 0
-  /call setDeclare swModeDrag                                         bool      outer FALSE 
-  /call setDeclare swModeDrink                                        bool      outer FALSE 
-  /call setDeclare swModeForage                                       bool      outer FALSE
-  /call setDeclare swModePetfarm                                      bool      outer FALSE
-  /call setDeclare swModeScorch                                       bool      outer FALSE
-  /call setDeclare swModeHunt                                         bool      outer FALSE
-  /call setDeclare swModeFish                                         bool      outer FALSE
-  /call setDeclare swModeSkill                                        bool      outer FALSE
-  /call setDeclare swModeHarvest                                      bool      outer FALSE
-  /call setDeclare swModeHarvestCount                                 bool      outer FALSE
-  /call setDeclare swModeTradeskill                                   bool      outer FALSE
-  /call setDeclare swModeLush                                         bool      outer FALSE
-  /call setDeclare swModeTrainspell                                   bool      outer FALSE
-  /call setDeclare swModeTrainspellSPC                                bool      outer FALSE
-  /call setDeclare swModeOpen                                         bool      outer FALSE 
-  /call setDeclare swModeCollect                                      bool      outer FALSE 
-  /call setDeclare swModeSummon                                       bool      outer FALSE 
-  
-  /call sql_control FALSE ${chrID} setModeHarvestCount                int       outer 999
 
 
 
@@ -1536,16 +1515,6 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
   
   
-  
-                                                                      
-  /call sql_control FALSE ${chrID} useCircle                          string    outer FALSE
-  /call sql_control FALSE ${chrID} CircleofPower                      string    outer FALSE
-  /call sql_control FALSE ${chrID} CircleofLife                       string    outer FALSE
-  /call sql_control FALSE ${chrID} CircleofMana                       string    outer FALSE
-                                                                      
-  /for _count 1 to 6
-    /call sql_control FALSE ${chrID} clickItemSwarm${_count}          string    outer FALSE
-  /next _count
 
     
 
@@ -1560,12 +1529,6 @@ sub set_initialize_hud(bool _debug, string _verbage)
   /call sql_control FALSE ${chrID} bandolierRange                     string    outer FALSE
   
 
-  /if (${Select[${Me.Class.ShortName},MAG,ENC,CLR,NEC,WIZ,SHM,DRU]}) {
-    /call sql_control FALSE ${chrID} TwincastSpell                    string    outer FALSE
-    /call sql_control FALSE ${chrID} GatherSpell                      string    outer FALSE
-    /call sql_control FALSE ${chrID} SilentCast                       string    outer FALSE
-  }
-  
 
                                                           
 
@@ -1581,10 +1544,6 @@ sub set_initialize_hud(bool _debug, string _verbage)
     /call sql_control FALSE ${chrID} evocation                        string    outer FALSE
   }
 
-  | forced delay for mez target
-  /if (${Select[${Me.Class.ShortName},ENC,BRD,NEC]}) {
-    /call sql_control FALSE ${chrID} setMezDelay                      int       outer 0
-  }                                                                   
 
 
 

@@ -83,7 +83,7 @@
 #include exspes\inc\class.rng.inc
 #include exspes\inc\class.rog.inc
 #include exspes\inc\class.shd.inc
-| #include exspes\class.shm.inc
+#include exspes\class.shm.inc
 #include exspes\inc\class.war.inc
 #include exspes\inc\class.wiz.inc
 
@@ -100,7 +100,6 @@ sub main(string _debug, string _param1, string _auto)
 	| this is built in to remove dannet usage from entropy to help troubleshoot other plugins. 
 	| DO NOT TOUCH THIS. really. just dont.
 	/declare swDanNet bool outer TRUE
-	
 
 	| Make sure plugins are loaded. kill macro if not
 	/if (!${check_plugin[FALSE, TRUE, |MQ2SQLite|MQ2DanNet|Mq2Nav|MQ2MoveUtils|MQ2Collections]}) {
@@ -142,12 +141,10 @@ sub main(string _debug, string _param1, string _auto)
 	/while (${maEntropy.Find[swMaintenance].Value}) {
 	  GETINPUT main_maintenance_loop swMaintenance|${maEntropy.Find[swMaintenance].Value}
 		/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) {
-			/call check_buff_cycle_now FALSE
+			/call check_buff_cycle_now ${maDebug.Find[buffnow].Value}
 		}
 		/delay 1
 	}
-
-
 
  	| main loop
 	/while (!${maEntropy.Find[swMaintenance].Value}) {
@@ -163,8 +160,13 @@ sub main(string _debug, string _param1, string _auto)
 
 		| check do now things
 		/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) {
-			/call check_buff_cycle_now FALSE
+			/call check_buff_cycle_now ${maDebug.Find[buffnow].Value}
 		}
+
+		| mode check
+		/if (!${timer_Check_Mode}) {
+			/call check_mode ${maDebug.Find[mode].Value}
+		}		
 		
 		/if (AUTO) {
 			
@@ -183,11 +185,6 @@ sub main(string _debug, string _param1, string _auto)
 				/if (!${timer_Check_Tribute}) /call check_tribute				
 			}
 			
-			| mode check
-			/if (!${timer_Check_Mode}) {
-				/call check_mode ${maDebug.Find[mode].Value}
-			}
-
 			| home check
 			/if (HOME && !${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
 				/call Bind_control_home return

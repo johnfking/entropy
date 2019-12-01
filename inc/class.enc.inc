@@ -124,6 +124,21 @@ sub misc_combat_ENC(bool _debug)
 	
 	/if (!${is_defensive_active[${_debug}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${_debug}
 
+	
+	| use AA beam of slumber?
+	/if (${maChr.Find[swAABoS].Value} && ${madeBuff.Find[swMez].Value}) {
+		/if (${Spawn[${_tmpID}].NearestSpawn[3,npc radius 30].ID} && ${Spawn[${_tmpID}].Distance3D} <= 200 && ${Spawn[${_tmpID}].Distance3D} >= ${setMobAgro}*.5) {
+			/if (${Me.AltAbilityReady[Beam of Slumber]}) {
+				/if (${Me.Casting.ID}) /stopcast
+				/face ID ${_tmpID} ${If[${maHome.Find[swFaceFast].Value},fast,]}
+				/if (${is_ready[FALSE, "Beam of Slumber"]}) /call voodoo FALSE "Beam of Slumber" 0 FALSE
+			} 
+		}
+	}	
+	
+	
+	
+
 	| swarm pet
 	/if (SWARM && AGRO) {
 		/if (${is_ready[FALSE, "Phantasmal Opponent"]} && ${Target.PctHPs} <= ${maMinion.Find[stPctSwarmEngage].Value}) {
@@ -255,40 +270,40 @@ sub burn_ENC(bool _debug)
 	/if (!${is_defensive_active[${_debug}, BURN, SAFEENV]}) /call cast_defensive_cycle ${_debug}
 	
 	/if (${is_ready[FALSE, "Illusions of Grandeur"]}) {
-		/call voodoo FALSE "Illusions of Grandeur" 0 FALSE
+		/call voodoo ${_debug} "Illusions of Grandeur" 0 FALSE
 	}
 
 	/if (${is_ready[FALSE, "Mental Contortion"]}) {
-		/call voodoo FALSE "Mental Contortion" TARGET FALSE
+		/call voodoo ${_debug} "Mental Contortion" TARGET FALSE
 	}
 
-	| /call cast_AA_spire
+	/call cast_AA_spire ${_debug}
 
 	/if (${is_ready[FALSE, "Improved Twincast"]}) {
-		/call voodoo FALSE "Improved Twincast" 0 FALSE
+		/call voodoo ${_debug} "Improved Twincast" 0 FALSE
 	}
 
 	| # DD spell damage bonus
 	/if (${is_ready[FALSE, "Calculated Insanity"]}) {
-		/call voodoo FALSE "Calculated Insanity" 0 FALSE
+		/call voodoo ${_debug} "Calculated Insanity" 0 FALSE
 	}
 
 	
 	/if (${is_ready[FALSE, "Silent Casting"]}) {
-		/call voodoo FALSE "Silent Casting" 0 FALSE
+		/call voodoo ${_debug} "Silent Casting" 0 FALSE
 	} 
 	
 	/if (${is_ready[FALSE, "Dimensional Shield"]}) {
-		/call voodoo FALSE "Dimensional Shield" 0 FALSE
+		/call voodoo ${_debug} "Dimensional Shield" 0 FALSE
 	}
 
 	| resist mod
-	/if (${is_ready[FALSE, "Focus of Arcanum"]}) /call voodoo FALSE "Focus of Arcanum" 0 FALSE
+	/if (${is_ready[FALSE, "Focus of Arcanum"]}) /call voodoo ${_debug} "Focus of Arcanum" 0 FALSE
 
 	| Group DD Bonus
-	/if (${is_ready[FALSE, "Chromatic Haze"]}) /call voodoo FALSE "Chromatic Haze" 0 FALSE
+	/if (${is_ready[FALSE, "Chromatic Haze"]}) /call voodoo ${_debug} "Chromatic Haze" 0 FALSE
 	
-	/call cast_glyph FALSE
+	/call cast_glyph ${_debug}
 
 /return
 
@@ -374,7 +389,6 @@ sub set_control_ENC(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[manaclick]}) {
 		/if (!${set_control_num_range[FALSE, stPctManaClick, "${_verbage}", 0, 99]}) /return
 		
-		
 	| use AA crystals
 	} else /if (${_type.Equal[crystal]}) {
 		/varset dump ${set_switch_env[${_debug}, swAACrystals, TRUE, ${_verbage}]}
@@ -383,13 +397,7 @@ sub set_control_ENC(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[bos]}) {
 		/varset dump ${set_switch_env[${_debug}, swAABoS, TRUE, ${_verbage}]}
 		
-		
-		
-		
-		
-		
 	}
-
 	
 	/if (${_silent.Equal[SILENT]}) /return 
 	/varset _out
@@ -403,8 +411,6 @@ sub set_control_ENC(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[manaclick]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaClick].Value},${num}${maChr.Find[stPctManaClick].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[crystal]}) /varset _out ${_out}:${If[${maChr.Find[swAACrystals].Value},${on},${off}]}
 		/if (${li.Value.Equal[bos]}) /varset _out ${_out}:${If[${maChr.Find[swAABoS].Value},${on},${off}]}
-
-
 
 		/varset dump ${li.Advance}
 	}	
