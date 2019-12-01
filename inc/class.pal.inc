@@ -149,7 +149,7 @@ sub main_PAL(bool _debug)
 			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 			/if (AGRO) /call get_agro_${Me.Class.ShortName}
 			/call misc_combat_${Me.Class.ShortName} FALSE
-			/if (BURN) /call burn_${Me.Class.ShortName} FALSE
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (DOT) /call cast_DOT FALSE lsDoT TARGET
 			/if (NUKE) /call cast_nuke FALSE lsNuke TARGET
@@ -272,7 +272,7 @@ sub get_agro_PAL(bool _debug)
 	
 		/if (!${Raid.Members} || ${Raid.Members} && ${Raid.MainAssist.Name.Equal[${Me.DisplayName}]}) {
 			/if (${_coutAE} > 1) {
-				/if (${is_ready[FALSE, alt, "Hallowed Lodestar"]}) {
+				/if (${is_ready[FALSE, "Hallowed Lodestar"]}) {
 					/call voodoo FALSE "Hallowed Lodestar" TARGET FALSE
 				}
 			} else /if (${_coutAE} > 4) {
@@ -482,7 +482,7 @@ sub burn_PAL(bool _debug)
 
 	/call check_facing ${_debug} TARGET FORCE
 
-	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[${_debug}, BURN, SAFEENV]}) /call cast_defensive_cycle ${_debug}
 
 	| deflection
 	/if (!${Bool[${Me.ActiveDisc}]} && ${Me.PctHPs} < 50*.PCTHO) {

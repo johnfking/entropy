@@ -59,7 +59,7 @@ sub main_ENC(bool _debug)
 	/if (AUTO) {
 		/if (${maChr.Find[swAACrystals].Value}) /call check_crystals FALSE
 		/if (${maChr.Find[stPctGather].Value}) /call check_gather FALSE
-		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle FALSE
+		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value}
 	}
 
 	
@@ -77,7 +77,7 @@ sub main_ENC(bool _debug)
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
 			/call control_routine FALSE
 
-			/if (BURN) /call burn_${Me.Class.ShortName} FALSE
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 			/if (PET || SWARM) /call send_pet FALSE TARGET
 			/if (MELEE) /call use_skill_melee TARGET
 			/call misc_combat_${Me.Class.ShortName} FALSE
@@ -122,7 +122,7 @@ sub misc_combat_ENC(bool _debug)
 	GETINPUT
 	CHECKTIE
 	
-	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[${_debug}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${_debug}
 
 	| swarm pet
 	/if (SWARM && AGRO) {
@@ -247,8 +247,12 @@ sub check_heal_ENC(bool _debug)
  ***| 
 sub burn_ENC(bool _debug)
 	DEBUG \atburn_ENC\ax()
+	
 	CHECKEXIT
 	GETINPUT
+	
+	
+	/if (!${is_defensive_active[${_debug}, BURN, SAFEENV]}) /call cast_defensive_cycle ${_debug}
 	
 	/if (${is_ready[FALSE, "Illusions of Grandeur"]}) {
 		/call voodoo FALSE "Illusions of Grandeur" 0 FALSE

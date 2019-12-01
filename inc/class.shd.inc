@@ -270,7 +270,7 @@ sub burn_SHD(bool _debug)
 	GETINPUT
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return		
 	
-	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[${_debug}, BURN, SAFEENV]}) /call cast_defensive_cycle ${_debug}
 	
 	| deflection
 	/if (!${Me.ActiveDisc.ID} && ${Me.PctHPs} < 50*.PCTHO) {

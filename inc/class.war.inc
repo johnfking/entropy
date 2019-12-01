@@ -87,7 +87,7 @@ sub main_WAR(bool _debug)
 			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 			/if (AGRO) /call get_agro_${Me.Class.ShortName}
 			/call misc_combat_${Me.Class.ShortName} FALSE
-			/if (BURN) /call burn_${Me.Class.ShortName} FALSE
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (DOT) /call cast_DOT FALSE lsDoT TARGET
 			/if (NUKE) /call cast_nuke FALSE lsNuke TARGET
@@ -325,6 +325,8 @@ sub burn_WAR(bool _debug)
 	/call check_facing FALSE TARGET FALSE
 	
 	/if (${maChr.Find[stPctShieldFlash].Value} && ${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE disc
+	
+	/if (!${is_defensive_active[${_debug}, BURN, SAFEENV]}) /call cast_defensive_cycle ${_debug}
 
 	/if (AGRO && ${swBurnControl} && TARGET && (${NameList.Find[${Target.DisplayName}]} && !${swOverrideName})) {
 		/if (${is_ready[FALSE, "Fortitude Discipline"]}) {

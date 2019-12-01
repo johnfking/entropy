@@ -886,14 +886,15 @@ sub check_facing(bool _debug, int _tmpID, string _adjust)
 sub cast_defensive_cycle(bool _debug)
 	DEBUG \atcast_defensive_cycle\ax()
 
-	/vardata li lsMitigationCycle.First.Clone
-	/while (!${li.IsEnd}) {
+	/declare _li listiterator string local
+	/vardata _li lsMitigationCycle.First.Clone
+	/while (!${_li.IsEnd}) {
 		ISMEDEAD
-		/if (${is_ready[FALSE, "${li.Value}"]}) {
-			/call voodoo FALSE "${li.Value}" 0 FALSE
+		/if (${is_ready[FALSE, "${_li.Value}"]}) {
+			/call voodoo FALSE "${_li.Value}" 0 FALSE
 			/return TRUE
 		}
-		/varset dump ${li.Advance}
+		/varset dump ${_li.Advance}
 	}
 
 /return FALSE
@@ -911,17 +912,20 @@ sub is_defensive_active(bool _debug, string _abort, int _range)
 
 	/if (!${maChr.Count[lsMitigationCycle]} && !${maChr.Count[lsMitigationCyclecheck]}) /return TRUE
 
-	| /if (${Me.PctHPs} < 30*.PCTHO) /return TRUE
-	/if (${SpawnCount[npc radius ${_range} PS4 targetable]} < ${maChr.Find[stCountDefensive].Value}) /return TRUE
-	/if (${_abort.Equal[burn]} && BURN) /return TRUE
-
-	/vardata li lsMitigationCyclecheck.First.Clone
-	/while (!${li.IsEnd}) {
-		/if (${Me.Buff[${li.Value}].ID}) /return TRUE
-		/if (${Me.Song[${li.Value}].ID}) /return TRUE
-		/if (${Me.ActiveDisc[${li.Value}].ID}) /return TRUE
-		/varset dump ${li.Advance}
+	/declare _li listiterator string local
+	/vardata _li lsMitigationCyclecheck.First.Clone
+	/while (!${_li.IsEnd}) {
+		/if (${Me.Buff[${_li.Value}].ID}) /return TRUE
+		/if (${Me.Song[${_li.Value}].ID}) /return TRUE
+		/if (${Me.ActiveDisc[${_li.Value}].ID}) /return TRUE
+		/varset dump ${_li.Advance}
 	}
+
+
+	/if (${SpawnCount[npc radius ${_range} PS4 targetable]} < ${maChr.Find[stCountDefensive].Value}) /return TRUE
+
+	/if (${_abort.Equal[burn]} && BURN) /return FALSE
+
 
 /return FALSE
 
