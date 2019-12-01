@@ -38,6 +38,40 @@ sub Bind_control_debug(string _type, bool _debug)
 /return
 
 
+|***
+ * note: mode control
+ * use: /mode []
+ ***|
+#bind control_mode /mode
+sub Bind_control_mode(string _type, bool _debug)
+	DEBUG \atBind_control_mode\ax(\a-w${_type}\ax)
+	
+  | output control map
+	/if (${_type.Equal[see]}) {
+			/call Bind_command_see maMode
+		/return
+	} else /if (${_type.Equal[aux]}) {
+		/call Bind_command_aux mode
+		/return		
+
+	} else /if (${maMode.Contains[${_type}]}) {
+		/varset dump ${maMode.Add[${_type},${If[${maMode.Find[${_type}].Value},FALSE,TRUE]}]}
+	}
+  
+  /declare _out string local
+  /vardata mi maMode.First.Clone
+  /while (!${mi.IsEnd}) {
+		/varset _out ${_out} ${If[${mi.Key.Equal[${maMode.First}]},,${dot}]} ${If[${mi.Value},\ag${mi.Key}\ax,${info}${mi.Key}\ax]}
+		/varset dump ${mi.Advance}
+  }
+	/varset dump ${out[12, "/mode ${_out}"]}
+
+/return
+
+
+
+
+
 
 |***
  * note: administration control 
@@ -1321,12 +1355,24 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
  ***|
 #Bind deez /deez
 sub Bind_deez(string _type, bool _debug)
+
+	
+
 	/if (${_type.Equal[nutz]}) {
 		/varset dump ${out[0, "dannuic said i should put this in to powerlevel people"]}
 		/varset dump ${out[0, "well. i'm not going to code in powerleveling. but you can"]}
 		/varset dump ${out[0, "have the command anyways"]}
 
 	}
+	
+	/if (!${Defined[maDeez]}) {
+		/declare maDeez map outer
+	}
+
+	/if (!${Defined[lsDeez]}) {
+		/declare lsDeez list outer
+	}
+
 
 	| fakes a hash	
 	/if (${_type.Equal[hash]}) {
@@ -1338,8 +1384,8 @@ sub Bind_deez(string _type, bool _debug)
 		/declare _hash string local
 		/declare _list string local
 		
-		/declare _count int local 0
 		/declare _an int local 0
+		/declare _count int local 0
 		
 		/for _count 1 to 32
 			/varset _an ${Math.Rand[1,2]}
@@ -1374,8 +1420,162 @@ sub Bind_deez(string _type, bool _debug)
 		/varset dump ${out[18, "${eol}"]} 
 	}
 	
-/return
+	
+	
+	/if (${_type.Equal[map]}) {
+		/varset dump ${maDeez.Add[001,1]}
+		/varset dump ${maDeez.Add[007,"Bond, James"]}
+		/varset dump ${maDeez.Add[007,"Bond-James"]}
+		/call Bind_command_see maDeez
+	}	
+	
+	
+	/if (${_type.Equal[list]}) {
+		/varset dump ${lsDeez.Append[001]}
+		/varset dump ${lsDeez.Append["bond, james"]}
+		/varset dump ${lsDeez.Append["Bond, James"]}
+		/call Bind_command_see lsDeez
+	}
+	
+	
+	/if (${_type.Equal[actors]}) {
+		/declare MyGroundItem ground local
+		/vardata MyGroundItem Ground.First
+		/for _count 1 to ${GroundItemCount[Glowing Globe]}
+			OUT ${MyGroundItem.Name}${sep}ID-\a-w${MyGroundItem.ID}\ax${sep}Path-\a-w${Navigation.PathExists[${MyGroundItem.ID}]}\ax${sep}dis-\a-w${MyGroundItem.Distance}\ax
+			/vardata MyGroundItem MyGroundItem.Next
+		/next _count
+	}	
+	
+	
+	/if (${_type.Equal[ground]}) { 
+	
+		/declare _item ground local
+		/vardata _item Ground.First
+		/declare _count in local 1
+	
+		/while (${_count} <= ${GroundItemCount}) {
+			/if (${_item.DisplayName.Find[Glowing Globe]}) {
+				/echo ${_count}/${GroundItemCount} -- ${_item.DisplayName}\ax${sep}Path-\a-w${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}\ax${sep}dis-\a-w${_item.Distance}\ax
+			}
+			/if (${_count} == ${GroundItemCount}) /break
+			/varcalc _count ${_count} + 1
+			/vardata _item _item.Next
+		}
+	}
+	
+	
+	
+	/return
+	
+	
 
+
+
+	${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}
+
+
+
+
+/declare MyGroundItem ground local
+/vardata MyGroundItem Ground.First
+    /for _count 1 to ${GroundItemCount[Glowing Globe]}
+        /if (${MyGroundItem.DisplayName.Find[Glowing Globe]}) {
+        /varset ItemLoc ${MyGroundItem.Y} ${MyGroundItem.X} ${MyGroundItem.Z}
+        /varset PathLength ${Navigation.PathLength[loc ${ItemLoc}]}
+        /if (${PathLength} > 0) {
+            do sort stuff here.
+        }
+    /if (${Bool[${MyGroundItem.Next}]}) {
+        /vardata MyGroundItem MyGroundItem.Next
+    } else {
+        /break
+    }
+/next Count
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+${GroundItemCount[Glowing Globe]}
+
+${NearestSpawn[2, "Glowing Globe"].ID}
+
+
+${Ground[Glowing Globe].ID}
+
+${Ground[Glowing Globe].X}
+
+${Ground[Glowing Globe].Y}
+		
+		
+	/nav loc ${Ground[Glowing Globe].Y} ${Ground[Glowing Globe].X} ${Ground[Glowing Globe].X}	distance=15 log=off
+	
+	
+	
+/nav LOC 		
+		
+	
+		| Start by just setting it to the first entry found in the grounditems list:
+		| NOTE that I DO NOT USE ${Ground.First}, but Ground.First that's just how /vardata works, so accept it.
+		
+
+		/for _count 1 to ${GroundItemCount}
+			/echo \a-w${_count}. \awID: \at${MyGroundItem.ID} \awDist: \ay${MyGroundItem.Distance} \ag${MyGroundItem.DisplayName}
+| move to next:
+			/if (${Bool[${MyGroundItem.Next}]}) {
+				
+			} else {
+				/break
+			}
+		/next _count
+	/return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+${Navigation.PathExists[${Ground[${_count}].ID}]}	
 
 
 
@@ -3142,7 +3342,7 @@ sub Bind_control_build(string _build, string _nickname, bool _debug)
 	
 	| set stuff to not export/import
 	/declare _skipMap list local
-	/varset dump ${_skipMap.Append[maDebug,maTimer,Gems,maCrew]}
+	/varset dump ${_skipMap.Append[maDebug,maTimer,Gems,maCrew,maMode,maDeez,maPREGEN]}
 	/declare _skipKey list local
 	/varset dump ${_skipKey.Append[swBuffMaster,swIsMeDead,swSetCombat,swValidAssTarID,swSnapStuck,swHomeMarker,verbosity,swZoneSafe,swAuto]}
 	/varset dump ${_skipKey.Append[stCurrentZoneID,stCastReturn,build,swSetTie,swBurnConditionMet]}

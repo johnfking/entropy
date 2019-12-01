@@ -12,42 +12,42 @@
 sub set_ROG(bool _debug)
 	DEBUG \atset_ROG\ax()
 	
-	/call set_data FALSE maData stSpire																	map outer "Spire of the Rake"
-	/call set_data FALSE maData stSynergy																map outer "Blackguard's Synergy"
-	/call set_data FALSE maData stEpic1																	map outer "Ragebringer"
-	/call set_data FALSE maData stEpic15																map outer "Fatestealer"
-	/call set_data FALSE maData stEpic2																	map outer "Nightshade, Blade of Entropy"
-	/call set_data FALSE maData stFade																	map outer "Escape"
+	/call set_data ${_debug} maData stSpire															map outer "Spire of the Rake"
+	/call set_data ${_debug} maData stSynergy														map outer "Blackguard's Synergy"
+	/call set_data ${_debug} maData stEpic1															map outer "Ragebringer"
+	/call set_data ${_debug} maData stEpic15														map outer "Fatestealer"
+	/call set_data ${_debug} maData stEpic2															map outer "Nightshade, Blade of Entropy"
+	/call set_data ${_debug} maData stFade															map outer "Escape"
 
-	/call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} alliance spell"
- 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
- 	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
+	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
+ 	/call set_data_map ${_debug} maChr stRest 													PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map ${_debug} maChr swHiatus													FALSE													"${auxsw} use hiatus rest disc"
 	
-	/call set_data_map FALSE maChr stDichotomic													PREGEN|1											"${auxna} Dichotomic disc family"
-	/call set_data_map FALSE maChr stAggro 															PREGEN|1											"${auxna} Misdirection disc family"
-	/call set_data_map FALSE maChr stAssault 														PREGEN|1											"${auxna} Assault disc family"
-	/call set_data_map FALSE maChr stBleed 															PREGEN|1											"${auxna} Bleed disc family"
-	/call set_data_map FALSE maChr stPlay	 															PREGEN|1											"${auxna} Knifeplay disc family"
-	/call set_data_map FALSE maChr stPhantom														PREGEN|1											"${auxna} Phantom Assassin disc family"
-	/call set_data_map FALSE maChr stHack																PREGEN|1											"${auxna} Jugular Slash disc family"
-	/call set_data_map FALSE maChr stHiddenBlade												PREGEN|1											"${auxna} Hidden Blade disc family"
-	/call set_data_map FALSE maChr stBladePoison												PREGEN|1											"${auxna} Toxic Blade disc family"
-	/call set_data_map FALSE maChr stSneakAttack												PREGEN|1											"${auxna} Sneak Attack disc family"
-	/call set_data_map FALSE maChr stShadowHunter												PREGEN|1											"${auxna} Shadow-Hunter's Dagger disc family"
-	/call set_data_map FALSE maChr stDisassociative											PREGEN|1											"${auxna} Disassociative Puncture disc family"
-	/call set_data_map FALSE maChr stAspBleeder													PREGEN|1											"${auxna} Aspbleeder disc family"
-	/call set_data_map FALSE maChr stPinPoint 													PREGEN|1											"${auxna} Pinpoint Vulnerability disc family"
-	/call set_data_map FALSE maChr stMark 															PREGEN|1											"${auxna} Easy Mark disc family"
-	/call set_data_map FALSE maChr stEradicator 												PREGEN|1											"${auxna} Duelist disc family"
-	/call set_data_map FALSE maChr stRazor 															PREGEN|1											"${auxna} Razor's Edge disc family"
-	/call set_data_map FALSE maChr stFrenzy 														PREGEN|1											"${auxna} Frenzied Stabbing disc family"
-	/call set_data_map FALSE maChr stTwistedChance											PREGEN|1											"${auxna} Twisted Chance disc family"
-	/call set_data_map FALSE maChr stVision 														PREGEN|1											"${auxna} Thief's Eyes disc family"
-	/call set_data_map FALSE maChr stTwistedShank												PREGEN|1											"${auxna} Twisted Shank disc family"
-	/call set_data_map FALSE maChr stAbsorbingAgent											PREGEN|1											"${auxna} Absorbing Agent disc family"
+	/call set_data_map ${_debug} maChr stDichotomic											PREGEN|1											"${auxna} Dichotomic disc family"
+	/call set_data_map ${_debug} maChr stAggro 													PREGEN|1											"${auxna} Misdirection disc family"
+	/call set_data_map ${_debug} maChr stAssault 												PREGEN|1											"${auxna} Assault disc family"
+	/call set_data_map ${_debug} maChr stBleed 													PREGEN|1											"${auxna} Bleed disc family"
+	/call set_data_map ${_debug} maChr stPlay	 													PREGEN|1											"${auxna} Knifeplay disc family"
+	/call set_data_map ${_debug} maChr stPhantom												PREGEN|1											"${auxna} Phantom Assassin disc family"
+	/call set_data_map ${_debug} maChr stHack														PREGEN|1											"${auxna} Jugular Slash disc family"
+	/call set_data_map ${_debug} maChr stHiddenBlade										PREGEN|1											"${auxna} Hidden Blade disc family"
+	/call set_data_map ${_debug} maChr stBladePoison										PREGEN|1											"${auxna} Toxic Blade disc family"
+	/call set_data_map ${_debug} maChr stSneakAttack										PREGEN|1											"${auxna} Sneak Attack disc family"
+	/call set_data_map ${_debug} maChr stShadowHunter										PREGEN|1											"${auxna} Shadow-Hunter's Dagger disc family"
+	/call set_data_map ${_debug} maChr stDisassociative									PREGEN|1											"${auxna} Disassociative Puncture disc family"
+	/call set_data_map ${_debug} maChr stAspBleeder											PREGEN|1											"${auxna} Aspbleeder disc family"
+	/call set_data_map ${_debug} maChr stPinPoint 											PREGEN|1											"${auxna} Pinpoint Vulnerability disc family"
+	/call set_data_map ${_debug} maChr stMark 													PREGEN|1											"${auxna} Easy Mark disc family"
+	/call set_data_map ${_debug} maChr stEradicator 										PREGEN|1											"${auxna} Duelist disc family"
+	/call set_data_map ${_debug} maChr stRazor 													PREGEN|1											"${auxna} Razor's Edge disc family"
+	/call set_data_map ${_debug} maChr stFrenzy 												PREGEN|1											"${auxna} Frenzied Stabbing disc family"
+	/call set_data_map ${_debug} maChr stTwistedChance									PREGEN|1											"${auxna} Twisted Chance disc family"
+	/call set_data_map ${_debug} maChr stVision 												PREGEN|1											"${auxna} Thief's Eyes disc family"
+	/call set_data_map ${_debug} maChr stTwistedShank										PREGEN|1											"${auxna} Twisted Shank disc family"
+	/call set_data_map ${_debug} maChr stAbsorbingAgent									PREGEN|1											"${auxna} Absorbing Agent disc family"
 
-	/call set_data_map FALSE maChr swBlinding														FALSE													"${auxsw} use blinding disc.. or not."
-	/call set_data_map FALSE maChr stBlinding														PREGEN|1											"${auxna} Blinding Flash disc family"
+	/call set_data_map ${_debug} maChr swBlinding												FALSE													"${auxsw} use blinding disc.. or not."
+	/call set_data_map ${_debug} maChr stBlinding												PREGEN|1											"${auxna} Blinding Flash disc family"
 
 /return
 
@@ -76,14 +76,14 @@ sub main_ROG(bool _debug)
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
-			/call do_sneak_attack FALSE
+			/call do_sneak_attack ${maDebug.Find[class].Value}
 			/call set_combat FALSE
 			/if (MELEE && !${timer_Check_Behind}) /call stick_to_target FALSE TARGET 
 			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 			/call misc_combat_${Me.Class.ShortName} FALSE
-			/if (BURN) /call burn_${Me.Class.ShortName} FALSE
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 			/if (MELEE) /call do_melee FALSE TARGET
-			/call check_item_cycle FALSE TARGET
+			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
 
 		}
 
@@ -376,8 +376,7 @@ sub set_control_ROG(string _type, string _verbage, string _silent, bool _debug)
 	| use hiatus disc
 	} else /if (${_type.Equal[hiatus]}) {
 		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
-			
-		
+	
 		
 	}
 
@@ -393,7 +392,6 @@ sub set_control_ROG(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[sos]}) /varset _out ${_out}:${If[${maEnv.Find[swSoS].Value},${on},${off}]}
 		/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
 		/if (${li.Value.Equal[blind]}) /varset _out ${_out}:${If[${maChr.Find[swBlinding].Value},${on},${off}]}
-
 
 		/varset dump ${li.Advance}
 	}	

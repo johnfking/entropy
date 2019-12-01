@@ -12,76 +12,77 @@
 sub set_CLR(bool _debug)
 	DEBUG \atset_CLR\ax()
 
-	/call set_data FALSE maData stSpire																	map outer "Spire of the Vicar"
-	/call set_data FALSE maData stSynergy																map outer "Templar's Synergy"
-	/call set_data FALSE maData stEpic1																	map outer "Water Sprinkler of Nem Ankh"
-	/call set_data FALSE maData stEpic15																map outer "Harmony of the Soul"
-	/call set_data FALSE maData stEpic2																	map outer "Aegis of Superior Divinity"
-	/call set_data FALSE maData stFade																	map outer "Divine Peace"
-	/call set_data FALSE maData stCompleteHeal													map outer "Complete Heal"
-	/call set_data_map FALSE maChr stAAUnity														"Saint's Unity"								"${auxna} class aa unity buff"
+	/call set_data ${_debug} maData stSpire															map outer "Spire of the Vicar"
+	/call set_data ${_debug} maData stSynergy														map outer "Templar's Synergy"
+	/call set_data ${_debug} maData stEpic1															map outer "Water Sprinkler of Nem Ankh"
+	/call set_data ${_debug} maData stEpic15														map outer "Harmony of the Soul"
+	/call set_data ${_debug} maData stEpic2															map outer "Aegis of Superior Divinity"
+	/call set_data ${_debug} maData stFade															map outer "Divine Peace"
+	/call set_data ${_debug} maData stCompleteHeal											map outer "Complete Heal"
+	/call set_data_map ${_debug} maChr stAAUnity												"Saint's Unity"								"${auxna} class aa unity buff"
 
 	| Veturika's Preserverance
-	/call set_data_map FALSE maChr stPctVP															0															"${auxnum} % of manna to use veturikas perseverance"
+	/call set_data_map ${_debug} maChr stPctVP													0															"${auxnum} % of manna to use veturikas perseverance"
 	
 	| healing
- 	/call set_data_list FALSE maChr lsHealRemedy												PREGEN|3											"${auxli} remedy spells to use"
- 	/call set_data_list FALSE maChr lsHealRenewal												PREGEN|3											"${auxli} renewal spells to use"
- 	/call set_data_list FALSE maChr lsHealIntervention									PREGEN|3											"${auxli} intervention spells to use"
- 	/call set_data_list FALSE maChr lsHealLight													PREGEN|3											"${auxli} light spells to use"
+ 	/call set_data_list ${_debug} maChr lsHealRemedy										PREGEN|3											"${auxli} remedy spells to use"
+ 	/call set_data_list ${_debug} maChr lsHealRenewal										PREGEN|3											"${auxli} renewal spells to use"
+ 	/call set_data_list ${_debug} maChr lsHealIntervention							PREGEN|3											"${auxli} intervention spells to use"
+ 	/call set_data_list ${_debug} maChr lsHealLight											PREGEN|3											"${auxli} light spells to use"
  	| /call set_data_map FALSE maChr stHealPanic													PREGEN|1											"${auxna} oh shit spell"
 
-  /call set_data_map FALSE maChr swHealGroupOverTime									FALSE													"${auxsw} use group heal over time spells/aas"
-  /call set_data_map FALSE maChr swCelestialRegen											FALSE													"${auxsw} use celestial regen aa"
-  /call set_data_map FALSE maChr stHealGroupOverTime									PREGEN|1											"${auxna} group heal over time spell"
+  /call set_data_map ${_debug} maChr swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas"
+  /call set_data_map ${_debug} maChr swCelestialRegen									FALSE													"${auxsw} use celestial regen aa"
+  /call set_data_map ${_debug} maChr stHealGroupOverTime							PREGEN|1											"${auxna} group heal over time spell"
 
 
-	/call set_data_map FALSE maChr swHealOverTime												FALSE													"${auxsw} % of members health to use heal over time"
-	/call set_data_map FALSE maChr stHealOverTime												PREGEN|1											"${auxna} heal over time spelll"
+	/call set_data_map ${_debug} maChr swHealOverTime										FALSE													"${auxsw} % of members health to use heal over time"
+	/call set_data_map ${_debug} maChr stHealOverTime										PREGEN|1											"${auxna} heal over time spelll"
 
-	/call set_data_map FALSE maChr stCountHealGroup											0															"${auxnum} number in group hurt to use a group heal"
- 	/call set_data_list FALSE maChr lsHealGroup													PREGEN|2											"${auxli} group heal spells"
+	/call set_data_map ${_debug} maChr stCountHealGroup									0															"${auxnum} number in group hurt to use a group heal"
+ 	/call set_data_list ${_debug} maChr lsHealGroup											PREGEN|2											"${auxli} group heal spells"
 
-	/call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} alliance spell"
+	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
 
 	| issuance
-	/call set_data_map FALSE maChr stCountIssuance											0															"${auxnum} nuymber of mobs in area to use issuance"
+	/call set_data_map ${_debug} maChr stCountIssuance									0															"${auxnum} nuymber of mobs in area to use issuance"
 	/call set_data_map ${_debug} maChr stIssuance												PREGEN|1											"${auxna} issuance spell"
 
 	| swarm pet
-	/call set_data_map FALSE maChr stTempPet														PREGEN|1											"${auxna} temp hammer pet spell"
+	/call set_data_map ${_debug} maChr stTempPet												PREGEN|1											"${auxna} temp hammer pet spell"
 
 	| splash
-	/call set_data_map FALSE maChr stCountSplash												0															"${auxnum} number of hurt to use a splash heal"
-	/call set_data_map FALSE maChr stSplash															PREGEN|1											"${auxna} splash heal"
+	/call set_data_map ${_debug} maChr stCountSplash										0															"${auxnum} number of hurt to use a splash heal"
+	/call set_data_map ${_debug} maChr stSplash													PREGEN|1											"${auxna} splash heal"
 
 	| divine rez
-	/call set_data_map FALSE maRez swDivineCleric												FALSE													"${auxsw} divin rez other clerics"
+	/call set_data_map ${_debug} maRez swDivineCleric										FALSE													"${auxsw} divin rez other clerics"
 	
 	| Rampage Tank 
-	/call set_data_map FALSE maChr stRampageTank												FALSE													"${auxna} rampage tank to not heal (\a-wcompletely ignore\ax)"
+	/call set_data_map ${_debug} maChr stRampageTank										FALSE													"${auxna} rampage tank to not heal (\a-wcompletely ignore\ax)"
 	
 	| arbitration
-	/call set_data_map FALSE maChr swArbitratetoHealGroup								FALSE													"${auxsw} heal group immediately after an arbitration"
-	/call set_data_map FALSE maChr swArbitrate													FALSE													"${auxsw} use aa arbitrate and epic sheild"
-	/call set_data_map FALSE maChr stCountArbitrate											0															"${auxnum} num of group hurt to use arbitration aa/epic"
+	
+	/call set_data_map ${_debug} maChr swArbitratetoHealGroup						FALSE													"${auxsw} heal group immediately after an arbitration"
+	/call set_data_map ${_debug} maChr swArbitrate											FALSE													"${auxsw} use aa arbitrate and epic sheild"
+	/call set_data_map ${_debug} maChr stCountArbitrate									0															"${auxnum} num of group hurt to use arbitration aa/epic"
 
 	| yaulp
-	/varset dump ${set_data_timer[FALSE, Check_Yaulp, 6s]}
-	/call set_data_map FALSE maChr swYaulp 															FALSE													"${auxsw} use yaulp (\a-win combat, on cooldown\ax)"
-  /call set_data_map FALSE maChr stYaulp															PREGEN|1											"${auxna} name of yaulp spell/aa/item"
+	/varset dump ${set_data_timer[${_debug}, Check_Yaulp, 6s]}
+	/call set_data_map ${_debug} maChr swYaulp 													FALSE													"${auxsw} use yaulp (\a-win combat, on cooldown\ax)"
+  /call set_data_map ${_debug} maChr stYaulp													PREGEN|1											"${auxna} name of yaulp spell/aa/item"
 
 	| temp buff: ward family
-  /call set_data_list FALSE maChr lsWardToon	 												EMPTY													"${auxli} list of toons to use ward temp hp buff on"
-	/call set_data_map FALSE maChr stWard			 													PREGEN|1											"${auxna} use ward temp buff"
+  /call set_data_list ${_debug} maChr lsWardToon	 										EMPTY													"${auxli} list of toons to use ward temp hp buff on"
+	/call set_data_map ${_debug} maChr stWard			 											PREGEN|1											"${auxna} use ward temp buff"
 
 	| temp buff: retort family
-	/call set_data_list FALSE maChr lsRetortToon 												EMPTY													"${auxli} list of toons to use retort temp line on"
-	/call set_data_map FALSE maChr stRetort															PREGEN|1											"${auxna} use retort temp buff"
+	/call set_data_list ${_debug} maChr lsRetortToon 										EMPTY													"${auxli} list of toons to use retort temp line on"
+	/call set_data_map ${_debug} maChr stRetort													PREGEN|1											"${auxna} use retort temp buff"
 
 	| primary weapon  
-  /call set_data_map FALSE maChr swSummonPrimary											FALSE													"${auxsw} use summoned primary hammer"
-  /call set_data_map FALSE maChr stSummonPrimary											PREGEN|1											"${auxna} name of primary hammer spell"
+  /call set_data_map ${_debug} maChr swSummonPrimary									FALSE													"${auxsw} use summoned primary hammer"
+  /call set_data_map ${_debug} maChr stSummonPrimary									PREGEN|1											"${auxna} name of primary hammer spell"
 
 	| set heal orders
 	/declare lsHealOrderbase list outer

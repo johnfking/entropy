@@ -219,6 +219,7 @@ sub Event_COMBAT_DISTANCE(string line)
 #event Zone "You have entered #*#" 
 | #event Zone "LOADING, PLEASE WAIT..."
 sub Event_Zone(string _line)
+	/call check_mode FALSE RESET
 	/call check_zone_id FALSE FALSE
 /return FALSE
 

@@ -128,11 +128,11 @@ sub misc_combat_WAR(bool _debug)
 		/call voodoo FALSE "${maChr.Find[stShocking].Value}" TARGET FALSE
 	}
 	
-	/if (${is_ready[FALSE, "${maChr.Find[stRunes}"]}) {
+	/if (${is_ready[FALSE, "${maChr.Find[stRunes].Value}"]}) {
 		/call voodoo FALSE "${maChr.Find[stRunes].Value}" TARGET FALSE
 	}
 	
-	/if (${is_ready[FALSE, "${maChr.Find[stDefense}"]}) {
+	/if (${is_ready[FALSE, "${maChr.Find[stDefense].Value}"]}) {
 		/call voodoo FALSE "${maChr.Find[stDefense].Value}" 0 FALSE
 	}
 
@@ -145,7 +145,7 @@ sub misc_combat_WAR(bool _debug)
 		/call voodoo FALSE "${maChr.Find[stCommanding].Value}" TARGET FALSE	
 	}
 	
-	/if (${is_ready[FALSE, "Brace for Impact"]}) {
+	/if (${is_ready[FALSE, "Brace for Impact"]} && !${Me.Buff[${maChr.Find[stShocking].Value}].ID}) {
 		/call voodoo FALSE "Brace for Impact" 0 FALSE
 	}
 	

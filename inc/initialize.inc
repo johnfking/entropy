@@ -59,7 +59,7 @@ sub set_initialize(bool _debug)
   /declare lsMaps list outer
   /varset dump ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maItems,maBuffs,maBuff,maBurn]}
   /varset dump ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
-  /varset dump ${lsMaps.Append[maData,maDebug,maOver,maPREGEN]}
+  /varset dump ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maDeez,maMode]}
 
   
   | set all output shortcuts
@@ -101,12 +101,12 @@ sub set_initialize(bool _debug)
   | generate DEBUGS
   /declare maDebug map outer
   /declare _lsout list local
-  /varset dump ${_lsout.Append[build,burn,cast,cure,edit,heal,loot,mezz,melee,minion,pull,rest,rez,target,zone]}
+  /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mezz,melee,minion,pull,rest,rez,target,zone]}
   /varset dump ${_lsout.Append[buff,buffammo,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass]}
-  
-  
+  /varset dump ${_lsout.Append[cast,castitem]}
+  /varset dump ${_lsout.Append[mode,modeforage,modedrag,modecollect]}
 
-  /vardata cli _lsout.First
+  /vardata cli _lsout.First.Clone
   /while (!${cli.IsEnd}) {
     /varset dump ${maDebug.Add[${cli.Value},FALSE]}
     /varset dump ${cli.Advance}
@@ -173,6 +173,7 @@ sub set_initial_environment(bool _debug)
   /varset dump ${set_data_timer[FALSE, Check_Behind, 10s]}
   /varset dump ${set_data_timer[FALSE, Check_Tribute, 1m]}
   /varset dump ${set_data_timer[FALSE, Check_Loot, 1s]}
+  /varset dump ${set_data_timer[FALSE, Check_Mode, 5]}
 
 
   | /varset dump ${set_data_timer[FALSE, Check_Buff_List_Population, 2s]}
@@ -272,6 +273,19 @@ sub set_initial_environment(bool _debug)
     | join the group
     /djoin ${maComm.Find[stEntropyGroup_all].Value}
   }
+  
+  
+  | generate modes
+  /declare maMode map outer
+  /declare _lsout list local
+  /varset dump ${_lsout.Append[forage,drag,collect]}
+
+  /vardata cli _lsout.First.Clone
+  /while (!${cli.IsEnd}) {
+    /varset dump ${maMode.Add[${cli.Value},FALSE]}
+    /varset dump ${cli.Advance}
+  } 
+  
 
 /return
 
@@ -511,7 +525,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maHeal stCureDiseaseItem                   FALSE                         "${auxna} name of item to cure self diseases"
   /call set_data_map FALSE maHeal stCureCorruptionItem                FALSE                         "${auxna} name of item to cure self corruption"
   /call set_data_list FALSE maHeal lsNoCureDeBuff                     EMPTY                         "${auxli} list of debuffs you DO NOT want to cure"
-  /call set_data_list FALSE maHeal lsHealItem                         EMPTY                         "${auxli} click heal items you want to waste time using"
+  | /call set_data_list FALSE maHeal lsHealItem                         EMPTY                         "${auxli} click heal items you want to waste time using"
   /call set_data_list FALSE maHeal lsHealXTClass                      EMPTY                         "${auxli} classes to populate xtarget for healing use: \a-t/heal xtarget\ax"
   /call set_data_list FALSE maHeal lsNoHealToon                       EMPTY                         "${auxli} fuck these people.. no heals for them.."
 
@@ -1079,7 +1093,7 @@ sub set_initialize_hud_variables()
   /varset dump ${lsHUD.Append[engage,swpet,engagepet,swswarm,engageswarm,env]}
   /varset dump ${lsHUD.Append[auto,melee,range,nuke,dot,heal,control]}
   /varset dump ${lsHUD.Append[healmode,override,self,group,xt,pet,cure]}
-  /varset dump ${lsHUD.Append[bmaster,bself,bcrew,braid,bbeg,btemp,bunity,baura,bnow,bpet]}
+  /varset dump ${lsHUD.Append[bmaster,bself,bcrew,braid,bbeg,btemp,bunity,baura,bnow,bpet,bammo]}
   /varset dump ${lsHUD.Append[agro,pull,pullarea,pullmode]}
   /varset dump ${lsHUD.Append[tie,tietoon,tiemode]}
   /varset dump ${lsHUD.Append[buauto,bupct,bucount,buraid]}
@@ -1233,6 +1247,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH entropy bN2     19,220,34,25,25,25,"${If[${h_bnow},,_]}"
     HUDPATH entropy bP1     19,229,39,255,255,255,"${If[${h_bpet},P,]}"
     HUDPATH entropy bP2     19,229,34,25,25,25,"${If[${h_bpet},,_]}"
+
 
     | burn
     HUDPATH entropy burn1   19,255,39,0,255,0,"${If[${h_buauto},burn,]}"

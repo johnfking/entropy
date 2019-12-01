@@ -12,49 +12,44 @@
 sub set_MNK(bool _debug)
 	DEBUG \atset_MNK\ax()
 
-	/call set_data FALSE maData stSpire																	map outer "Spire of the Sensei"
-	/call set_data FALSE maData stSynergy																map outer "Calanin's Synergy"
-	/call set_data FALSE maData stEpic1																	map outer "Celestial Fists"
-	/call set_data FALSE maData stEpic15																map outer "Fistwraps of Celestial Discipline"
-	/call set_data FALSE maData stEpic2																	map outer "Transcended Fistwraps of Immortality"
-	/call set_data FALSE maData stFade																	map outer "Imitate Death"
-	/call set_data FALSE maData stCompleteHeal													map outer "Complete Heal"
-	/call set_data_map FALSE maChr stAAUnity														FALSE													"${auxna} class aa unity buff"
+	/call set_data ${_debug} maData stSpire															map outer "Spire of the Sensei"
+	/call set_data ${_debug} maData stSynergy														map outer "Calanin's Synergy"
+	/call set_data ${_debug} maData stEpic1															map outer "Celestial Fists"
+	/call set_data ${_debug} maData stEpic15														map outer "Fistwraps of Celestial Discipline"
+	/call set_data ${_debug} maData stEpic2															map outer "Transcended Fistwraps of Immortality"
+	/call set_data ${_debug} maData stFade															map outer "Imitate Death"
+	/call set_data ${_debug} maData stCompleteHeal											map outer "Complete Heal"
+	/call set_data_map ${_debug} maChr stAAUnity												FALSE													"${auxna} class aa unity buff"
 
-  /call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
- 	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
-	/call set_data_map FALSE maChr swTrainMelee													FALSE													"${auxsw} alternate skills for training"
+  /call set_data_map ${_debug} maChr stRest 													PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map ${_debug} maChr swHiatus													FALSE													"${auxsw} use hiatus rest disc"
+	/call set_data_map ${_debug} maChr swTrainMelee											FALSE													"${auxsw} alternate skills for training"
 
-	/call set_data_map FALSE maChr stPctFDAggro													0
-	/call set_data_map FALSE maChr stPctAggro														0
-	/call set_data_map FALSE maChr stPctFD															0
+	/call set_data_map ${_debug} maChr stPctFDAggro											0
+	/call set_data_map ${_debug} maChr stPctAggro												0
+	/call set_data_map ${_debug} maChr stPctFD													0
  	
-	/call set_data_map FALSE maChr stDichotomic													PREGEN|1											"${auxna} Dichotomic disc family"
-	/call set_data_map FALSE maChr stBalance														PREGEN|1											"${auxna} Tiger's Balance disc family"
-	/call set_data_map FALSE maChr stMonkey															PREGEN|1											"${auxna} Drunken Monkey Style disc family"
-	/call set_data_map FALSE maChr stHeel																PREGEN|1											"${auxna} Heel of Kanji disc family"
-	/call set_data_map FALSE maChr stDiscipline													PREGEN|1											"${auxna} Thunderkick Discipline disc family"
-	/call set_data_map FALSE maChr stCrane															PREGEN|1											"${auxna} Crane Stance disc family"
-	/call set_data_map FALSE maChr stPunch															PREGEN|1											"${auxna} Punch Through disc family"
-	/call set_data_map FALSE maChr stSynergy														PREGEN|1											"${auxna} Shadewalker's Synergy disc family"
-	/call set_data_map FALSE maChr stElbow															PREGEN|1											"${auxna} Elbow Strike disc family"
-	/call set_data_map FALSE maChr stCurse															PREGEN|1											"${auxna} Curse of the Thirteen Fingers disc family"
-	/call set_data_map FALSE maChr stPrecision													PREGEN|1											"${auxna} Doomwalker's Precision Strike disc family"
-	/call set_data_map FALSE maChr stShuriken														PREGEN|1											"${auxna} Vigorous Shuriken disc family"
-	/call set_data_map FALSE maChr stStorm															PREGEN|1											"${auxna} Eye of the Storm disc family"
-	/call set_data_map FALSE maChr stDeath															PREGEN|1											"${auxna} Delay Death disc family"
-	/call set_data_map FALSE maChr stWu																	PREGEN|1											"${auxna} Fists of Wu disc family"
+	/call set_data_map ${_debug} maChr stDichotomic											PREGEN|1											"${auxna} Dichotomic disc family"
+	/call set_data_map ${_debug} maChr stBalance												PREGEN|1											"${auxna} Tiger's Balance disc family"
+	/call set_data_map ${_debug} maChr stMonkey													PREGEN|1											"${auxna} Drunken Monkey Style disc family"
+	/call set_data_map ${_debug} maChr stHeel														PREGEN|1											"${auxna} Heel of Kanji disc family"
+	/call set_data_map ${_debug} maChr stDiscipline											PREGEN|1											"${auxna} Thunderkick Discipline disc family"
+	/call set_data_map ${_debug} maChr stCrane													PREGEN|1											"${auxna} Crane Stance disc family"
+	/call set_data_map ${_debug} maChr stPunch													PREGEN|1											"${auxna} Punch Through disc family"
+	/call set_data_map ${_debug} maChr stSynergy												PREGEN|1											"${auxna} Shadewalker's Synergy disc family"
+	/call set_data_map ${_debug} maChr stElbow													PREGEN|1											"${auxna} Elbow Strike disc family"
+	/call set_data_map ${_debug} maChr stCurse													PREGEN|1											"${auxna} Curse of the Thirteen Fingers disc family"
+	/call set_data_map ${_debug} maChr stPrecision											PREGEN|1											"${auxna} Doomwalker's Precision Strike disc family"
+	/call set_data_map ${_debug} maChr stShuriken												PREGEN|1											"${auxna} Vigorous Shuriken disc family"
+	/call set_data_map ${_debug} maChr stStorm													PREGEN|1											"${auxna} Eye of the Storm disc family"
+	/call set_data_map ${_debug} maChr stDeath													PREGEN|1											"${auxna} Delay Death disc family"
+	/call set_data_map ${_debug} maChr stWu															PREGEN|1											"${auxna} Fists of Wu disc family"
 	
 /return
 
 
 
-
- 
-
-
-	
-	|***
+|***
  * note: kick 'em in the nuts
  * use: 
  ***|

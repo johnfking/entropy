@@ -2647,7 +2647,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 			/delay 5
 			
 			/if (!${Select[${Me.Class.ShortName},RNG]} && !${Me.Inventory[ammo].ID}) {
-				/call check_buff_cycle_range FALSE TRUE
+				/call check_buff_cycle_ammo FALSE TRUE
 			}			
 			
 			/if (!TARGET || ${Spawn[TARGET].Dead}) {
@@ -2802,7 +2802,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 	/declare _count int local 0
 	
 	/if (!${Select[${Me.Class.ShortName},RNG]} && !${Me.Inventory[ammo].ID}) {
-		/call check_buff_cycle_range FALSE TRUE
+		/call check_buff_cycle_ammo FALSE TRUE
 	}
 	
 	/if (${Spawn[ID ${_tmpID}].LineOfSight}) {
@@ -2850,7 +2850,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 				DEBUG ${sep}Tag${sep}Range${sep}[${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax]
 				GETINPUT
 				| /if (!${Select[${Me.Class.ShortName},RNG]} && !${Me.Inventory[ammo].ID}) {
-				| 	/call check_buff_cycle_range FALSE TRUE
+				| 	/call check_buff_cycle_ammo FALSE TRUE
 				| }
 				/nav stop log=off
 				/delay 1s !${Me.Moving}
@@ -3683,10 +3683,10 @@ sub get_key_DBLOC(bool _debug, string _key)
  * use: hey look squirrels...
  * use: /call do_raw_edit DEBUG [silent T/F] [variable to change] [value to change it too|gem#|cursor] [add|delete|clear (for lists)] [not used yet]
  ***|
-  sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, string _add_delete, string _verbage)
+sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, string _add_delete, string _verbage)
 	DEBUG \atdo_raw_edit\ax(\aw${_silent}, ${_variable}, ${Parse[1,${_value}]}, ${_add_delete}, ${_verbage}\ax)
 
-	| ** error handeling ** |
+	| ** error control ** |
 
 	| is it really a DB variable?
 	/declare _DBLOC string local ${get_key_DBLOC[${_debug}, ${_variable}]}
@@ -3710,8 +3710,7 @@ sub get_key_DBLOC(bool _debug, string _key)
 		/return FALSE
 	} 
 	
-	
-	| ** end of error handeling .. start of actually getting something fucking done. ** |
+	| ** end of error control .. start of actually getting something fucking done. ** |
 	
 	
 	| does it have a ?
@@ -3811,7 +3810,7 @@ sub get_key_DBLOC(bool _debug, string _key)
 		/declare _tmpList list local
 		/varset dump ${_tmpList.Delimiter["|"]}
 	
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var='${_variable}'
+		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var="${_variable}"
 		/varset dump ${_tmpList.Append[${sqlite.Result[dummy 1 value]}]}
 		DEBUG ${sep}DB current count${sep}\aw${_tmpList.Count}\ax
 		
@@ -3876,13 +3875,19 @@ sub get_key_DBLOC(bool _debug, string _key)
 	/if (${Bool[${_map}]} || ${_list} || ${_found}) {
 		/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET value=${Parse[1,"${_value}"]} WHERE ${_DBLOC.Arg[2,|]}="${_variable}"
 		DEBUG ${sep}dummy UPDATE ${_DBLOC.Arg[1,|]} SET value=${Parse[1,"${_value}"]} WHERE ${_DBLOC.Arg[2,|]}="${_variable}" \ay${sqlite.Status[dummy]}\ax
+		/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET value=${Parse[1,"${_value}"]} WHERE ${_DBLOC.Arg[2,|]}="${_variable}"
+		
+		| reload data
+		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var="${_variable}"
+		
+		DEBUG valuerow:${sqlite.Result[dummy 1 value]}
 	}
 	| repopulate the containers
 	/if (${Bool[${_map}]}) {
 		DEBUG MAP ADD
 
-		DEBUG /varset dump ${${_map}.Add[${_variable},"${Parse[1,${_value}]}"]}
-		/varset dump ${${_map}.Add[${_variable},"${Parse[1,${_value}]}"]}
+		DEBUG /varset dump ${${_map}.Add[${_variable},"${sqlite.Result[dummy 1 value]}"]}
+		/varset dump ${${_map}.Add[${_variable},"${sqlite.Result[dummy 1 value]}"]}
 	} 
 	
 	/if (${_list}) {
@@ -3900,10 +3905,11 @@ sub get_key_DBLOC(bool _debug, string _key)
 			/varset dump ${out[16, "List Updated${sep}\a-w${_variable}\ax Count${sep}\a-w${${_variable}.Count}\ax"]}
 		} else /if (${Bool[${_map}]}) {
 			DEBUG MAP output
-			OUT /edit ${_variable}${sep}\a-w${Parse[2,${${_map}.Find[${_variable}].Value}]}\ax
+			OUT /edit ${_variable}${sep}\a-w${sqlite.Result[dummy 1 value]}\ax
+			
 		} else /if (${_found}) {
 			DEBUG FOUND output
-			OUT /edit ${_variable}\ax${sep}${num}${Parse[0,${_value}]}\ax
+			OUT /edit ${_variable}\ax${sep}${num}${Parse[0,"${_value}"]}\ax
 		} else {
 			
 		}
@@ -4460,7 +4466,7 @@ sub check_buff_cycle(bool _debug, bool _force)
 	/if (${maBuff.Find[swBuffPowersource].Value} && ((AUTO && !${timer_Check_Buff_Powersource}) || ${_force})) /call check_buff_cycle_powersource ${_debug}
 	
 	| ranged ammo
-	/if (${maBuff.Find[swBuffAmmo].Value} && ((AUTO && !${timer_Check_Ammo}) && (!${Me.Inventory[ammo].ID} || ${_force}))) /call check_buff_cycle_range ${maDebug.Find[buffammo].Value}	
+	/if (${maBuff.Find[swBuffAmmo].Value} && ((AUTO && !${timer_Check_Ammo}) && (!${Me.Inventory[ammo].ID} || ${_force}))) /call check_buff_cycle_ammo ${maDebug.Find[buffammo].Value}	
 
 	| summon poison
 	/if ((AUTO && !${timer_Check_Poison}) && (${maCC.Find[swPoison].Value} || ${_force})) /call check_buff_cycle_poison ${maDebug.Find[buffpoison].Value}
@@ -4594,8 +4600,8 @@ Scorpikis Worry Stone
 
 
 ${Spell[${FindItem[Sealed Translucent Energeian Light Orb].Clicky.SpellID}].Name}
-
-${Spell[${FindItem[Sealed Translucent Energeian Light Orb].Clicky.SpellID}].ID}
+Translucent
+${Spell[${FindItem[Sealed  Energeian Light Orb].Clicky.SpellID}].ID}
 
 ${FindItem[Sealed Translucent Energeian Light Orb].Clicky.Name}
 
@@ -4627,7 +4633,7 @@ sub check_item_cycle(bool _debug, int _tmpID)
 			/return
 		}
 		/if (${maItems.Find[stItem${_count}].Value.Equal[FALSE]}) /continue
-		/if (!${is_ready[${_debug}, ${maItems.Find[stItem${_count}].Value}]}) /continue
+		/if (!${is_ready[${_debug}, "${maItems.Find[stItem${_count}].Value}"]}) /continue
 		
 		/if (!${check_basic_tags[${_debug}, Item${_count}, FALSE]}) /continue
 
@@ -4732,10 +4738,10 @@ sub set_target(int _tmpID)
 
 |***
  * note: used to refresh ammo for ranged attacks
- * use: /call check_buff_cycle_range DEBUG
+ * use: /call check_buff_cycle_ammo DEBUG
  ***|
-sub check_buff_cycle_range(bool _debug)
-	DEBUG \atcheck_buff_cycle_range\ax()
+sub check_buff_cycle_ammo(bool _debug)
+	DEBUG \atcheck_buff_cycle_ammo\ax()
 
 	/varset dump ${set_data_timer[${_debug}, Check_Ammo, RESTART]}
 
@@ -4766,9 +4772,7 @@ sub check_buff_cycle_range(bool _debug)
 		}
 		/delay 10s !${Me.Casting.ID}
 
-		/if (${Cursor.Name.Equal[=${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}]}) {
-			/autoinventory
-		}
+		/call check_cursor FALSE TRUE CLEAR
 
 	/next _count	
 
@@ -6399,7 +6403,7 @@ sub do_loot(bool _debug)
 			/if (${sqlite.Status[lootquery].NotEqual[Success]} || !${sqlite.Rows[lootquery]}) {
 				/varset _notfound TRUE
 				DEBUG ${sep}${_advlItem}${sep}\a-wnot in database\ax
-				/if (${AdvLoot.SList[${_scount}].NoDrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
+				/if (${Advloot.Slist[${_Scount}].Nodrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
 					/varset dump ${out[14, "${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]."]}
 					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
 					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave") \ay${sqlite.Status[lootquery]}\ax
@@ -6660,7 +6664,7 @@ sub check_cure(bool _debug)
 
 |***
  * note: dumb fucks always gotta put that red bouncy ball on my cursor
- * use: /call check_cursor DEBUG [ignoretimer T/F] [clear] || CHECKCURSOR
+ * use: /call check_cursor DEBUG [ignoretimer T/F] [clear]
  ***|
 sub check_cursor(bool _debug, bool _ignoreTimer, string _verbage)
 	DEBUG \atcheck_cursor\ax(\a-w${_ignoreTimer}, ${_verbage}\ax)
@@ -6696,36 +6700,34 @@ sub check_cursor(bool _debug, bool _ignoreTimer, string _verbage)
 	/if (!${Cursor.ID}) /return
 	/declare _cursorChoice string local 
 	
-	| see if the item is in the database
-	| if its not there. add it accordingly
-	/sqlite ${maData.Find[DBloot].Value} dummy SELECT * FROM loot_control WHERE item="${Cursor.Name}"
-	/if (${sqlite.Status[dummy].NotEqual[Success]}) {	
-		/if (${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
-			/sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO loot_control(item, action) VALUES("${Cursor.Name}", "leave")
-		} else {
-			/sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO loot_control(item, action) VALUES("${Cursor.Name}", "keep")
-		}
-	}
 	
-	| reload data
-	/sqlite ${maData.Find[DBloot].Value} dummy SELECT * FROM loot_control WHERE item="${_advlItem}" LIMIT 1
-	
-	| wtf we gotta do with the item?
-	| do the things that we do best
-	/if (${Select[${sqlite.Result[dummy 1 action]},Keep,Sell]}) {
-		/varset dump ${out[14, "Cursor ${sep} ${keep} ${sep} ${info}${Cursor.Name}\ax ${sep} (${num}${FindItemCount[=${Cursor.Name}]}\ax)"]}
-		/nomodkey /autoinventory
-		/delay 1
-	} else /if (${Select[${sqlite.Result[dummy 1 action]},Destroy]}) {
-		/varset dump ${out[14, "Cursor ${sep} ${destroy} ${sep} ${info}${Cursor.Name}\ax"]}
-		/if ({sqlite.Result[dummy 1 action].Equal[Destroy]}) /nomodkey /destroy
-		/delay 1
-	} else /if (${Select[${sqlite.Result[dummy 1 action]},Leave]}) {
-		/varset dump ${out[14, "Cursor ${sep} ${leave} ${sep} ${info}${Cursor.Name}\ax"]}
-		/if (${sqlite.Result[dummy 1 action].Equal[Leave]}) /nomodkey /drop
-		/delay 1
-	} else /if (${Select[${sqlite.Result[dummy 1 action]},Ignore]}) {
-		/return FALSE
+	/while (${Cursor.ID}) {
+		| see if the item is in the database
+		| if its not there. add it accordingly
+
+		/if (!${Cursor.ID}) /break
+		
+		| check DB for the item
+		/call set_loot_item ${_debug} "${Cursor.Name}"
+
+		| reload data
+		/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}" LIMIT 1
+		
+		| wtf we gotta do with the item?
+		| do the things that we do best
+		/if (${Select[${sqlite.Result[lootquery 1 action]},keep,sell]}) {
+			/varset dump ${out[14, "Cursor${sep}${keep}${sep}${info}${Cursor.Name}\ax${sep}\a-w${FindItemCount[=${Cursor.Name}]}\ax"]}
+			/nomodkey /autoinventory
+			/delay 1
+		} else /if (${Select[${sqlite.Result[lootquery 1 action]},destroy]}) {
+			/varset dump ${out[14, "Cursor${sep}${destroy}${sep}${info}${Cursor.Name}\ax"]}
+			/if (${sqlite.Result[lootquery 1 action].Equal[destroy]}) /nomodkey /destroy
+			/delay 1
+		} else /if (${Select[${sqlite.Result[lootquery 1 action]},leave,ignore]}) {
+			/varset dump ${out[14, "Cursor${sep}${leave}${sep}${info}${Cursor.Name}\ax"]}
+			/if (${sqlite.Result[lootquery 1 action].Equal[leave]}) /nomodkey /drop
+			/delay 1
+		} 
 	}
 
 /return
@@ -7335,7 +7337,7 @@ sub give_to_pet(string _item, bool _debug)
 			/click left target
 			/delay 5s !${Bool[${Cursor.ID}]}
 		} else {
-			CLEARCURSOR TRUE
+			/call check_cursor FALSE TRUE CLEAR
 		}
 	}
 	
@@ -8902,17 +8904,96 @@ sub control_rez(string _action, int _ID, string _flag)
 		
 	} else /if (${_action.Equal[delete]}) {
 		
-		
-		
 	}
 	
-	
-	
-/return
-
-
+return
 
 /dgzexecute /varset dump ${maRezControl.Add[55,rez]}
+
+
+
+
+
+|***
+ * note: checks if a mode needs to be executed
+ * use: /call check_mode DEBUG [RESET]
+ ***|
+sub check_mode(bool _debug, string _verbage)
+	DEBUG \atcheck_mode\ax()
+	
+	/varset dump ${set_data_timer[FALSE, Check_Mode, RESTART]}
+	
+  /declare _out string local
+  /vardata mi maMode.First.Clone
+  
+	| reset used for zoning, and other stuffs
+  /if (${_verbage.Equal[reset]}) {
+	  /while (!${mi.IsEnd}) {
+	  	/if (${mi.Value}) {
+				/varset dump ${maMode.Add[${mi.Key},FALSE]}
+	  	}
+			/varset dump ${mi.Advance}
+	  }  	
+  	/return TRUE
+  }
+  
+  
+  | normal check routine
+  /while (!${mi.IsEnd}) {
+  	/if (${mi.Value}) {
+  		DEBUG  mode_${mi.Key}
+  		/call mode_${mi.Key} ${maDebug.Find[mode${mi.Key}].Value}
+  	}
+		/varset dump ${mi.Advance}
+  }
+
+/return TRUE
+
+
+
+
+|***
+ * note: checks the passed item name against the DB
+ * use: /call set_loot_item DEBUG [NAME]
+ ***|
+sub set_loot_item(bool _debug, string _item)
+	DEBUG \atset_loot_item\ax(\a-w${_item}\ax)
+
+	| check for the item in the DB
+	/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${_item}"
+	DEBUG ${sep}lootquery SELECT * FROM loot_control WHERE item="${_item}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
+
+	| we did not find it?
+	/if (${sqlite.Status[lootquery].NotEqual[Success]} || !${sqlite.Rows[lootquery]}) {
+		DEBUG ${sep}${_item}${sep}\a-w not in database\ax
+
+		| item not in database or lore and have
+		/if (${AdvLoot.SList[${_item}].NoDrop} || ${AdvLoot.SList[${_item}].NoDrop} || ${FindItem[=${_item}].Lore} || ${FindItemBank[=${_item}].Lore}) {
+			/varset dump ${out[0, "${add} ${dot} ${_item} = ${leave} [no drop/lore]"]}
+			/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_item}", "leave")
+			DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_item}", "leave") \ay${sqlite.Status[lootquery]}\ax
+
+		| by default add everything as keep.
+		} else {
+			/varset dump ${out[0, "${add} ${dot} ${_item} = ${keep} [default]"]}
+			/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_item}", "keep")
+			DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_item}", "keep") \ay${sqlite.Status[lootquery]}\ax
+		}
+	}
+
+/return TRUE
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
