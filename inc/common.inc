@@ -921,11 +921,9 @@ sub is_defensive_active(bool _debug, string _abort, int _range)
 		/varset dump ${_li.Advance}
 	}
 
-
 	/if (${SpawnCount[npc radius ${_range} PS4 targetable]} < ${maChr.Find[stCountDefensive].Value}) /return TRUE
 
 	/if (${_abort.Equal[burn]} && BURN) /return FALSE
-
 
 /return FALSE
 
@@ -4249,7 +4247,7 @@ sub check_buff_cycle_now(bool _debug)
 		/for _count 1 to 50
 			/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
 			/if (!${lsBuff${_count}Tag.Contains[alwaysup]}) /continue
-			/if (!${check_basic_tags[FALSE, Buff${_count}, ${Me.DisplayName}]}) /continue
+			| /if (!${check_basic_tags[FALSE, Buff${_count}, ${Me.DisplayName}]}) /continue
 	
 			/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" 0 FALSE
 	
