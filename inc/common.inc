@@ -1679,7 +1679,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub)
 	 	/if (!${Spell[${_verbage}].NewStacks}) /return FALSE
 
 		| CHECK DISK DURATION VS ACTIVE DISC FOR STACKING ISSUES/ BLOCKED DISCS
-		| /if (${Bool[${Me.ActiveDisc}]}) /return FALSE
+		/if (${Me.ActiveDisc.Name.Equal[${_verbage}]}) /return FALSE
 
 		/if (${_tmpID} == 0) {
 			/varset dump ${out[4, "Disc${sep}${sp}${_verbage}\ax"]}
