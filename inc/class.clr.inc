@@ -150,8 +150,8 @@ sub main_CLR(bool _debug)
 		| /if (${swAlliance}) /call trigger_alliance
 
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-			/call check_buff_cycle_temp_list FALSE stWard lsWardToon
-			/call check_buff_cycle_temp_list FALSE stRetort lsRetortToon
+			/call check_buff_cycle_temp_list ${maDebug.Find[bufftemp].Value} stWard lsWardToon
+			/call check_buff_cycle_temp_list ${maDebug.Find[bufftemp].Value} stRetort lsRetortToon
 		}
 		/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
 		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
@@ -561,7 +561,7 @@ sub burn_CLR(bool _debug)
 	GETINPUT
 	CHECKREZ
 	
-	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE	
+	/if (!${is_defensive_active[FALSE, BURN, SAFEENV]}) /call cast_defensive_cycle FALSE	
 
 	| Group AA Celestial Regeneration
  	/if (${maChr.Find[swHealGroupOverTime].Value} && ${Group}) {

@@ -620,18 +620,13 @@ sub mode_collect(bool _debug)
 	/vardata _item Ground.First
 	/declare _count int local 1
 	/declare _distfinal int local 999999
-	
 	/declare _locY int local
 	/declare _locX int local
 	/declare _locZ int local
 	
-		
-	
 	/while (${_count} <= ${GroundItemCount}) {
 		/if (${_item.DisplayName.Find[Glowing Globe]}) {
 			DEBUG ${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}${sep}\a-wlocyxz ${_item.Y} ${_item.X} ${_item.Z}\ax
-			
-			
 			/if (${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}) {
 				/if (${_item.Distance} < ${_distfinal}) {
 					DEBUG ${_count}/${GroundItemCount} -- ${_item.DisplayName}\ax${sep}Path-\a-w${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}\ax${sep}dis-\a-w${_item.Distance}\ax
@@ -651,7 +646,6 @@ sub mode_collect(bool _debug)
 	/nav locyxz ${_locY} ${_locX} ${_locZ} | dist=16 log=off
 	/delay 2s
 	/delay 3m !${Navigation.Active}
-
 					
 	/if (${Ground[Glowing Globe].Distance3D} < 19) {
 		/call Bind_command_grab "glowing" ${_debug}

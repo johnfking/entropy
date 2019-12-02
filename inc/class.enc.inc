@@ -127,10 +127,10 @@ sub misc_combat_ENC(bool _debug)
 	
 	| use AA beam of slumber?
 	/if (${maChr.Find[swAABoS].Value} && ${madeBuff.Find[swMez].Value}) {
-		/if (${Spawn[${_tmpID}].NearestSpawn[3,npc radius 30].ID} && ${Spawn[${_tmpID}].Distance3D} <= 200 && ${Spawn[${_tmpID}].Distance3D} >= ${setMobAgro}*.5) {
+		/if (${Spawn[TARGET].NearestSpawn[3,npc radius 30].ID} && ${Spawn[TARGET].Distance3D} <= 200 && ${Spawn[TARGET].Distance3D} >= ${setMobAgro}*.5) {
 			/if (${Me.AltAbilityReady[Beam of Slumber]}) {
 				/if (${Me.Casting.ID}) /stopcast
-				/face ID ${_tmpID} ${If[${maHome.Find[swFaceFast].Value},fast,]}
+				/face ID TARGET ${If[${maHome.Find[swFaceFast].Value},fast,]}
 				/if (${is_ready[FALSE, "Beam of Slumber"]}) /call voodoo FALSE "Beam of Slumber" 0 FALSE
 			} 
 		}

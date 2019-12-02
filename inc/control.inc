@@ -2495,6 +2495,10 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[bandolier]}) {
 		/varset dump ${set_switch_env[${_debug}, swBandolier, TRUE, ${_verbage}]}
 
+	| use alliance
+	} else /if (${_type.Equal[alliance]}) {
+		/varset dump ${set_switch_env[${_debug}, swAlliance, TRUE, ${_verbage}]}
+
 	| agro
 	} else /if (${_type.Equal[agro]}) {
 		/varset dump ${set_switch_env[${_debug}, swAgro, TRUE, ${_verbage}]}
@@ -2540,7 +2544,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	
 	/if (${_silent.Equal[SILENT]}) /return
 	/declare _lsout list local 
-	/varset dump ${_lsout.Append[ass,agro,mode,pull,melee,glyph,dotrefresh,stopnuke,nukedelay,engage,poison,bandolier]}
+	/varset dump ${_lsout.Append[alliance,ass,agro,mode,pull,melee,glyph,dotrefresh,stopnuke,nukedelay,engage,poison,bandolier]}
 	/vardata cli _lsout.First.Clone
 	/while (!${cli.IsEnd}) {
 		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
@@ -2557,6 +2561,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		/if (${cli.Value.Equal[agro]}) /varset _out ${_out}:${If[${maCC.Find[swAgro].Value},${on},${off}]}
 		/if (${cli.Value.Equal[bandolier]}) /varset _out ${_out}:${If[${maCC.Find[swBandolier].Value},${on},${off}]}
 		/if (${cli.Value.Equal[poison]}) /varset _out ${_out}:${If[${maCC.Find[swPoison].Value},${on},${off}]}
+		/if (${cli.Value.Equal[alliance]}) /varset _out ${_out}:${If[${maCC.Find[swAlliance].Value},${on},${off}]}
 		/varset dump ${cli.Advance}
 	}	
 	
@@ -3342,7 +3347,7 @@ sub Bind_control_build(string _build, string _nickname, bool _debug)
 	
 	| set stuff to not export/import
 	/declare _skipMap list local
-	/varset dump ${_skipMap.Append[maDebug,maTimer,Gems,maCrew,maMode,maDeez,maPREGEN,maRezControl,maWatchspawn,maBuffRequest,maHook]}
+	/varset dump ${_skipMap.Append[maDebug,maTimer,Gems,maCrew,maMode,maDeez,maPREGEN,maRezControl,maWatchspawn,maBuffRequest,maHook,maData]}
 	/declare _skipKey list local
 	/varset dump ${_skipKey.Append[swBuffMaster,swIsMeDead,swSetCombat,swValidAssTarID,swSnapStuck,swHomeMarker,verbosity,swZoneSafe,swAuto]}
 	/varset dump ${_skipKey.Append[stCurrentZoneID,stCastReturn,build,swSetTie,swBurnConditionMet]}

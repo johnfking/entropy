@@ -96,7 +96,9 @@ sub set_data_timer(string _debug, string _env_timer, string _value, string _verb
 	
 	| delete timer
 	/if (${_verbage.Equal[delete]}) {
-		/if (!${Defined[timer_${_env_timer}]}) /deletevar timer_${_env_timer}
+		/if (!${Defined[timer_${_env_timer}]}) {
+			/deletevar timer_${_env_timer}
+		}
 	}	
 
 	| create map
@@ -285,6 +287,7 @@ sub set_data_list (bool _debug, string _map, string _env_var, string _value, str
 			DEBUG ${sep}${sep}${sqlite.Result[dummy 1 env_var]}${sep}\a-w${sqlite.Result[dummy 1 value]}\ax
 					
 			| how many do we want to find?
+			
 			/while (${_count} <= ${_value.Arg[2,|]}) {
 				DEBUG +++++++ ${sqlite.Result[dummy 1 value].Arg[${_count},|]}
 				| is it in the book?
@@ -292,6 +295,9 @@ sub set_data_list (bool _debug, string _map, string _env_var, string _value, str
 					/if (${Bool[${_tmpList}]}) /varset _tmpList ${_tmpList}|
 					/varset _tmpList ${_tmpList}${sqlite.Result[dummy 1 value].Arg[${_count},|]}
 					/varcalc _count ${_count}+1
+				} else /if (!${Me.Book[${Spell[${sqlite.Result[dummy 1 value].Arg[${_count},|]}].RankName}]} && !${Me.CombatAbility[${Spell[${sqlite.Result[dummy 1 value].Arg[${_count},|]}].RankName}]}) {
+					/varcalc _count ${_count}+1
+					/continue
 				}
 			}
 		
@@ -1413,6 +1419,20 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub)
 	| generic validations
 	/if (${Me.Invis}) /return FALSE
 	/if (${swIsMeDead}) /return FALSE
+	
+	
+	
+	| redirect the current cast to a dichotomic if GoM rocs
+	/if (${_tmpID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]} && ${Spawn[${Target.ID}].Type.NotEqual[pc]}) {
+	
+		| nuke 1
+		/if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) {
+			/varset _verbage ${maChr.Find[stDichotomic].Value}
+		}
+	}	
+	
+	
+	
 	
 	| are we moving? and not a bard?
 	/if (!${Select[${Me.Class.ShortName},BRD]}) {
@@ -3389,11 +3409,7 @@ sub do_rest(bool _debug)
 				| 	/if (${swHealXTarget}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
 				| }				
 			} else /if (${Select[${Me.Class.ShortName},SHM]}) {
-				| /if (${maCC.Find[swCombatHeal].Value} && ${SpawnCount[npc radius ENV PS4]}) {
-					| /if (${swHealGroup}) /call check_heal_${Me.Class.ShortName} FALSE Group
-					| /if (${swHealXTarget}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
-				| }				
-				| /if (!${swNeedRez}) /call check_cani
+				/call check_cani ${maDebug.Find[canni].Value}
 			} else /if (${Select[${Me.Class.ShortName},ENC]}) {
 				| /if (${mobList.Find[|]}) /call list_update mobList ${_debug}
 			} else /if (${Select[${Me.Class.ShortName},WIZ]}) {
@@ -5683,7 +5699,7 @@ sub cast_nuke(bool _debug, string _line, int _tmpID)
 
 |***
  * note: cast dot lists
- * use: /call cast_dot DEBUG [listname]  [targetid]
+ * use: /call cast_dot DEBUG [listname] [targetid]
  ***|
 sub cast_dot(bool _debug, string _line, int _tmpID)
 	DEBUG \atcast_dot\ax(\a-w${_line}, ${_tmpID}\ax)

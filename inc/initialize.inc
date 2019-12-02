@@ -102,7 +102,7 @@ sub set_initialize(bool _debug)
   /declare maDebug map outer
   /declare _lsout list local
   /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mezz,melee,minion,pull,rest,rez,target,zone,debuff]}
-  /varset dump ${_lsout.Append[buff,buffammo,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass,buffnow]}
+  /varset dump ${_lsout.Append[buff,buffammo,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass,buffnow,bufftemp]}
   /varset dump ${_lsout.Append[cast,castitem,castnuke,castdot]}
   /varset dump ${_lsout.Append[mode,modeforage,modedrag,modecollect]}
   
@@ -122,7 +122,7 @@ sub set_initialize(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},ROG]}) {
   } else /if (${Select[${Me.Class.ShortName},SHD]}) {
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
-  	/varset dump ${_lsout.Append[talisman,surge]}
+  	/varset dump ${_lsout.Append[talisman,surge,canni]}
   } else /if (${Select[${Me.Class.ShortName},WAR]}) {
   } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
   }  
@@ -261,7 +261,7 @@ sub set_initial_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},SHD]}) {
     /varset dump ${lsChr.Append[attraction|harmonious|vot|flash|skin|stance]}
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
-  	/varset dump ${lsChr.Append[cannihps|cannimanna|surge|talisman]}
+  	/varset dump ${lsChr.Append[cannihps|cannimanna|surge|talisman|groupheal|grouphot|hot]}
   } else /if (${Select[${Me.Class.ShortName},WAR]}) {
     /varset dump ${lsChr.Append[attraction|flash]}
   } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
@@ -663,6 +663,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maCC swCombatDoT                           FALSE                         "${auxsw} dot all the things!!"
   /call set_data_map FALSE maCC swCombatHeal                          FALSE                         "${auxsw} enable heal modes in or out of combat"
   /call set_data_map FALSE maCC swCombatControl                       FALSE                         "${auxsw} enable crowd control modes in or out of combat"
+  /call set_data_map FALSE maCC swAlliance			                      FALSE                         "${auxsw} enable class alliance"
   
   /call set_data_map FALSE maCC swPull                                FALSE                         "${auxsw} enable pulling (\a-wselect mobs to kill\ax)"
   /call set_data_map FALSE maCC stPullMode                            base                          "${auxna} [\a-wbase-nav-int-pet-multi\ax] the mode of pulling you wish to use while looking for said mobs"
@@ -818,7 +819,7 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data_list FALSE maChr lsHealPetLine                     EMPTY                         "${auxli} list of healing spells/aas/items for pets"
-    /call set_data FALSE FALSE lsHealMode                             list outer "base|passive|aggressive"
+    /call set_data FALSE FALSE lsHealMode                             list outer "base|mending|reckless"
   } else /if (${Select[${Me.Class.ShortName},WAR]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 

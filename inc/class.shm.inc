@@ -20,49 +20,52 @@ sub set_SHM(bool _debug)
 	/call set_data ${_debug} maData stFade															map outer FALSE
 	/call set_data_map ${_debug} maChr stAAUnity												"Visionary's Unity"						"${auxna} class aa unity buff"
 		
-	/varset dump ${set_data_timer[FALSE, Check_Talisman, 30s]}
-	/call sql_control FALSE ${chrID} stTalisman	 												PREGEN|1											"${auxna} talisman spell"
-	/call sql_control FALSE ${chrID} swTalisman			 										FALSE													"${auxsw} use talisman spell"
+	/varset dump ${set_data_timer[${_debug}, Check_Talisman, 30s]}
+	/call set_data_map ${_debug} maChr stTalisman	 											PREGEN|1											"${auxna} talisman spell"
+	/call set_data_map ${_debug} maChr swTalisman			 									FALSE													"${auxsw} use talisman spell"
 	                                        		
-	/call set_data_list FALSE maChr lsNukeTC									 					PREGEN|2											"${auxli} heal twincast nukes"
-	/call set_data_map FALSE maChr stCannibalization										PREGEN|1											
+	/call set_data_list ${_debug} maChr lsNukeTC									 			PREGEN|2											"${auxli} heal twincast nukes"
+	/call set_data_map ${_debug} maChr stCannibalization								PREGEN|1											"${auxna} canni spell"
 	                                         		
-	/call set_data_map FALSE maChr stPctCanniHP				 									60														"${auxnum} HP level to stop using canni"
-	/call set_data_map FALSE maChr stPctCanniManna				 							60														"${auxnum} mana level to start using canni"
+	/call set_data_map ${_debug} maChr stPctCanniHP				 							60														"${auxnum} HP level to stop using canni"
+	/call set_data_map ${_debug} maChr stPctCanniManna				 					60														"${auxnum} mana level to start using canni"
 
-	/call set_data_map FALSE maChr swSurge															FALSE													"${auxsw} use surge healing"
+	/call set_data_map ${_debug} maChr swSurge													FALSE													"${auxsw} use surge healing"
  
- 	/call set_data_list FALSE maChr lsHealSurge													PREGEN|1											"${auxli} area surg spells"
-  /call set_data_list FALSE maChr lsHealMain													PREGEN|3											"${auxli} main list of heal spells"											
-	/call set_data_list FALSE maChr lsHealIntervention									PREGEN|3											"${auxli} intervention nuke/healing spells"
-	/call set_data_list FALSE maChr lsHealReckless											PREGEN|3											"${auxli} recless healing spells"
+ 	/call set_data_map ${_debug} maChr stDichotomic											PREGEN|1											"${auxna} dichotomic spell"
+ 	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
+ 
+ 	/call set_data_map ${_debug} maChr stHealSurge											PREGEN|1											"${auxna} area surg spell"
+  /call set_data_list ${_debug} maChr lsHealMending										PREGEN|3											"${auxli} main list of heal spells"											
+	/call set_data_list ${_debug} maChr lsHealIntervention							PREGEN|3											"${auxli} intervention nuke/healing spells"
+	/call set_data_list ${_debug} maChr lsHealReckless									PREGEN|3											"${auxli} recless healing spells"
 
-  /call set_data_map FALSE maChr swHealGroupOverTime									FALSE													"${auxsw} use group heal over time spells/aas"
-  /call set_data_map FALSE maChr stHealGroupOverTime									PREGEN|1											"${auxna} group heal over time spell"
+  /call set_data_map ${_debug} maChr swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas"
+  /call set_data_map ${_debug} maChr stHealGroupOverTime							PREGEN|1											"${auxna} group heal over time spell"
 
-	/call set_data_map FALSE maChr swHealOverTime												FALSE													"${auxsw} % of members health to use heal over time"
-	/call set_data_map FALSE maChr stHealOverTime												PREGEN|1											"${auxna} heal over time spelll"
+	/call set_data_map ${_debug} maChr swHealOverTime										FALSE													"${auxsw} % of members health to use heal over time"
+	/call set_data_map ${_debug} maChr stHealOverTime										PREGEN|1											"${auxna} heal over time spelll"
 
-	/call set_data_map FALSE maChr stCountHealGroup											0															"${auxnum} number in group hurt to use a group heal"
- 	/call set_data_list FALSE maChr lsHealGroup													PREGEN|2											"${auxli} group heal spells"
+	/call set_data_map ${_debug} maChr stCountHealGroup									0															"${auxnum} number in group hurt to use a group heal"
+ 	/call set_data_list ${_debug} maChr lsHealGroup											PREGEN|2											"${auxli} group heal spells"
 
 	| temp buff: growth family
-  /call set_data_list FALSE maChr lsGrowthToon	 											EMPTY													"${auxli} list of toons to use ward temp hp growth on"
-	/call set_data_map FALSE maChr stGrowth			 												PREGEN|1											"${auxna} temp hp growth spell"
+  /call set_data_list ${_debug} maChr lsGrowthToon	 									EMPTY													"${auxli} list of toons to use ward temp hp growth on"
+	/call set_data_map ${_debug} maChr stGrowth			 										PREGEN|1											"${auxna} temp hp growth spell"
 
 	| set heal orders
 	/declare lsHealOrderbase list outer
 	/varset dump ${lsHealOrderbase.Delimiter["|"]}
 	/varset dump ${lsHealOrderbase.Append[lsHealBaseLine]}
 
-	/declare lsHealOrderaggressive list outer
-	/varset dump ${lsHealOrderaggressive.Delimiter["|"]}
-	/varset dump ${lsHealOrderaggressive.Append[lsHealIntervention|lsHealReckless|lsHealMain]}
+	/declare lsHealOrdermending list outer
+	/varset dump ${lsHealOrdermending.Delimiter["|"]}
+	/varset dump ${lsHealOrdermending.Append[lsHealMending|lsHealReckless]}
 
-	/declare lsHealOrderpassive list outer
-	/varset dump ${lsHealOrderpassive.Delimiter["|"]}
-	/varset dump ${lsHealOrderpassive.Append[lsHealMain|lsHealReckless|lsHealIntervention]}
-	
+	/declare lsHealOrderreckless list outer
+	/varset dump ${lsHealOrderreckless.Delimiter["|"]}
+	/varset dump ${lsHealOrderreckless.Append[lsHealReckless|lsHealMending]}
+
 /return
 
 
@@ -82,11 +85,10 @@ sub main_SHM(bool _debug)
 	  /if (${maHeal.Find[swHealXTarget].Value} && !${timer_Check_Xtarget_Build}) {
 	    /call check_xtarget_build FALSE
 		}
-		
-		/if (!${Me.Invis}) {
-			/call check_cani
-			/if (!${check_engaged[FALSE]} && PET) /call check_pet
-		}
+		/call check_cani ${maDebug.Find[canni].Value}
+		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
+		/if (PET || SWARM) /call send_pet FALSE TARGET
+
 	}	
 
 	/while (${check_combat_status[FALSE]}) {
@@ -112,21 +114,21 @@ sub main_SHM(bool _debug)
 			
 			CHECKREZ
 			/call set_combat FALSE
+			/if (PET || SWARM) /call send_pet ${maDebug.Find[minion].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDot TARGET
+			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDoT TARGET
 			/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
 			/if (${maChr.Find[swTalisman].Value}) /call cast_talisman ${maDebug.Find[talisman].Value}
-			| /if (${swAlliance}) /call cast_alliance_SHM ${maDebug.Find[alliance].Value}
-			/if (PET || SWARM) /call send_pet ${maDebug.Find[minon].Value} TARGET
+			/if (${maCC.Find[swAlliance].Value}) /call cast_alliance_SHM ${maDebug.Find[alliance].Value}
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
 		}
 
 		/if (AUTO) {
 			CHECKFADE
-			/call check_cani	
+			/call check_cani ${maDebug.Find[canni].Value}
 			/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
 		}
 	}
@@ -146,6 +148,8 @@ sub misc_combat_SHM(bool _debug)
 	CHECKEXIT
 	GETINPUT
 	CHECKREZ
+	
+	/call check_cani ${maDebug.Find[canni].Value}
 	
 	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 	
@@ -171,7 +175,7 @@ sub check_heal_SHM(bool _debug, string _type)
 
 	SETHUD "heal ${_type}"
 	
-	/call check_hurt FALSE ${_type}
+	/call get_hurt ${_debug} ${_type}
 	/declare _count int local 0
 	
 	| Group Regen Heal 
@@ -231,43 +235,36 @@ sub check_heal_SHM(bool _debug, string _type)
 	
 	**|
   
-  /if (!${check_hurt[FALSE, ${_type}]}) /return FALSE
-  
+ 	/if (!${get_hurt[FALSE, ${_type}]}) {
+ 		/return FALSE
+ 	}
 
+	ISMEDEAD
+	CHECKEXIT
+	CHECKFADE	
+	CHECKREZ
+		
+	/declare _liHM listiterator local
+	/vardata _liHM lsHealOrder${maHeal.Find[stHealMode].Value}.First.Clone
+	/while (!${_liHM.IsEnd}) {
+		DEBUG ${sep}_liHM.Value${sep}\a-w${_liHM.Value}\ax
+		/call cast_list FALSE "${_liHM.Value}" ${hurtID}
+		/varset dump ${_liHM.Advance}
+	}  
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 	
 	SETHUD FALSE
-	
 	
 /return
 
 
 
 |***
- *	DES: surge heal
- *	USE: part of heal routine
- *  NOTE: this will try and get a twinheal proc first.
+ * note: surge heal
+ * use: part of heal routine
  ***|
 sub cast_surge_heal(bool _debug)
-	DEBUG cast_surge_heal(${_debug})
-	/if (!${Bool[${TC1}]} && !${Bool[${TC2}]}) /return
-	/if (!${Me.SpellReady[${Spell[${TC1}].RankName}]} && !${Me.SpellReady[${Spell[${TC2}].RankName}]}) /return
+	DEBUG \atcast_surge_heal\ax()
+
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 
 	CHECKEXIT
@@ -280,18 +277,34 @@ sub cast_surge_heal(bool _debug)
 
 	/if (!${Spawn[${_tmpID}].LineOfSight}) /return FALSE
 	
-  /if (${Me.SpellReady[${Spell[${TC1}].RankName}]} && !${Me.Song[Healing Twincast].ID}) {
-		/if (${is_ready[FALSE, spell, "${TC1}", ${_tmpID}]}) /call voodoo ${_debug} "${TC1}" 0 ${_tmpID} FALSE
-	} else /if (${Me.SpellReady[${Spell[${TC2}].RankName}]} && !${Me.Song[Healing Twincast].ID}) {
-		/if (${is_ready[FALSE, spell, "${TC2}", ${_tmpID}]}) /call voodoo ${_debug} "${TC2}" 0 ${_tmpID} FALSE
+  /if (!${Me.Song[Healing Twincast].ID}) {
+	 	/declare _li listiterator local
+		/vardata _li lsNukeTC.First.Clone
+		/while (!${_li.IsEnd}) {
+
+			/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return
+			/if (${Me.PctMana} < 2) /continue 
+
+			/if (${is_ready[${_debug}, "${_li.Value}"]}) {
+				/call voodoo ${_debug} "${_li.Value}" ${_tmpID} FALSE
+			}
+			/delay 15 !${Me.Casting.ID}
+			/if (${Me.Song[Healing Twincast].ID}) /break
+
+			/varset dump ${_li.Advance}
+		}	 
+ 	 
 	}
+	
+	/if (!${Me.Song[Healing Twincast].ID}) /return FALSE
 
 	| spalsh surge heal	
-	/if (${Me.SpellReady[${Spell[${lsHealSurge}].RankName}]} && ${Me.Song[Healing Twincast].ID}) {
-		/delay 2.25s ${Me.SpellReady[${Spell[${lsHealSurge}].RankName}]}
-		/if (${is_ready[FALSE, spell, "${lsHealSurge}", ${_tmpID}]}) /call voodoo ${_debug} "${lsHealSurge}" 0 ${_tmpID} FALSE
+	/delay 2.25s ${Me.SpellReady[${Spell[${maChr.Find[stHealSurge].Value}].RankName}]}
+	/if (${is_ready[${_debug}, "${maChr.Find[stHealSurge].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stHealSurge].Value}" ${_tmpID} FALSE
 	}
-/return
+	
+/return TRUE
 
 
 
@@ -304,6 +317,8 @@ sub burn_SHM(bool _debug)
 	
 	CHECKEXIT
 	GETINPUT
+	
+	/if (!${is_defensive_active[FALSE, BURN, SAFEENV]}) /call cast_defensive_cycle FALSE	
 
 	| swarm aa pet
 	/if (SWARM) {
@@ -356,7 +371,7 @@ sub cast_talisman(bool _debug)
  *  NOTE: 
  ***|
 sub check_cani(bool _debug)
-	DEBUG check_cani(${_debug})
+	DEBUG \atcheck_cani\ax()
 	
 	/if (!${maChr.Find[stPctCanniManna].Value}) /return
 	
@@ -365,52 +380,54 @@ sub check_cani(bool _debug)
 	ISMEDEAD
 		
 	| use the aa cani
-	/if (${Me.PctMana} <= ${maChr.Find[stPctCanniManna].Value}*.PCTHO*.5 && ${Me.PctHPs} >= ${maChr.Find[stPctCanniHP].Value}) {
-		/if (${is_ready[FALSE, "Cannibalization"]}) {
+	/if (${Me.PctMana} <= ${maChr.Find[stPctCanniManna].Value}*.PCTHO && ${Me.PctHPs} >= ${maChr.Find[stPctCanniHP].Value}) {
+		/if (${is_ready[${_debug}, "Cannibalization"]}) {
 			/call voodoo ${_debug} "Cannibalization" 0 FALSE
 		}
 	}
 	
+	| if canni spell is not ready bail..
+	/if (!${is_ready[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) /return FALSE
 		
 	| canni spell first...
 	/if (${Me.PctMana} <= ${maChr.Find[stPctCanniManna].Value} && ${Me.PctHPs} >= ${maChr.Find[stPctCanniHP].Value}) {
 		/declare _cancast bool local FALSE
 	
-		/if (${_spell.Equal[Cannibalize]} && ${Me.CurrentHPs} > 50) /varset _cancast TRUE
-		/if (${_spell.Equal[Cannibalize II]} && ${Me.CurrentHPs} > 67) /varset _cancast TRUE
-		/if (${_spell.Equal[Cannibalize III]} && ${Me.CurrentHPs} > 74) /varset _cancast TRUE
-		/if (${_spell.Equal[Cannibalize IV]} && ${Me.CurrentHPs} > 148) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancient Chaotic Pain]} && ${Me.CurrentHPs} > 668) /varset _cancast TRUE
-		/if (${_spell.Equal[Pained Memory]} && ${Me.CurrentHPs} > 688) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancient: Ancestral Calling]} && ${Me.CurrentHPs} > 868) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Bargain]} && ${Me.CurrentHPs} > 1042) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Bargain Rk. II]} && ${Me.CurrentHPs} > 1085) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Bargain Rk. III]} && ${Me.CurrentHPs} > 1128) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Hearkening]} && ${Me.CurrentHPs} > 1161) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Hearkening Rk. II]} && ${Me.CurrentHPs} > 1324) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Hearkening Rk. III]} && ${Me.CurrentHPs} > 1141) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Obligation]} && ${Me.CurrentHPs} > 1417) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Obligation Rk. II]} && ${Me.CurrentHPs} > 1615) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Obligation Rk. III]} && ${Me.CurrentHPs} > 1721) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Covenant]} && ${Me.CurrentHPs} > 1559) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Covenant Rk. II]} && ${Me.CurrentHPs} > 1777) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Covenant Rk. III]} && ${Me.CurrentHPs} > 1893) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Arrangement]} && ${Me.CurrentHPs} > 2366) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Arrangement Rk. II]} && ${Me.CurrentHPs} > 2484) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Arrangement Rk. III]} && ${Me.CurrentHPs} > 2608) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Pact]} && ${Me.CurrentHPs} > 4564) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Pact Rk. II]} && ${Me.CurrentHPs} > 4792) /varset _cancast TRUE
-		/if (${_spell.Equal[Ancestral Pact Rk. III]} && ${Me.CurrentHPs} > 5032) /varset _cancast TRUE
-		/if (${_spell.Equal[Tribal Pact]} && ${Me.CurrentHPs} > 6693) /varset _cancast TRUE
-		/if (${_spell.Equal[Tribal Pact Rk. II]} && ${Me.CurrentHPs} > 7028) /varset _cancast TRUE
-		/if (${_spell.Equal[Tribal Pact Rk. III]} && ${Me.CurrentHPs} > 7379) /varset _cancast TRUE
-		/if (${_spell.Equal[Tribal Bargain]} && ${Me.CurrentHPs} > 8117) /varset _cancast TRUE
-		/if (${_spell.Equal[Tribal Bargain Rk. II]} && ${Me.CurrentHPs} > 8523) /varset _cancast TRUE
-		/if (${_spell.Equal[Tribal Bargain Rk. III]} && ${Me.CurrentHPs} > 8949) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Cannibalize]} && ${Me.CurrentHPs} > 50) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Cannibalize II]} && ${Me.CurrentHPs} > 67) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Cannibalize III]} && ${Me.CurrentHPs} > 74) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Cannibalize IV]} && ${Me.CurrentHPs} > 148) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancient Chaotic Pain]} && ${Me.CurrentHPs} > 668) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Pained Memory]} && ${Me.CurrentHPs} > 688) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancient: Ancestral Calling]} && ${Me.CurrentHPs} > 868) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Bargain]} && ${Me.CurrentHPs} > 1042) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Bargain Rk. II]} && ${Me.CurrentHPs} > 1085) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Bargain Rk. III]} && ${Me.CurrentHPs} > 1128) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Hearkening]} && ${Me.CurrentHPs} > 1161) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Hearkening Rk. II]} && ${Me.CurrentHPs} > 1324) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Hearkening Rk. III]} && ${Me.CurrentHPs} > 1141) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Obligation]} && ${Me.CurrentHPs} > 1417) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Obligation Rk. II]} && ${Me.CurrentHPs} > 1615) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Obligation Rk. III]} && ${Me.CurrentHPs} > 1721) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Covenant]} && ${Me.CurrentHPs} > 1559) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Covenant Rk. II]} && ${Me.CurrentHPs} > 1777) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Covenant Rk. III]} && ${Me.CurrentHPs} > 1893) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Arrangement]} && ${Me.CurrentHPs} > 2366) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Arrangement Rk. II]} && ${Me.CurrentHPs} > 2484) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Arrangement Rk. III]} && ${Me.CurrentHPs} > 2608) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Pact]} && ${Me.CurrentHPs} > 4564) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Pact Rk. II]} && ${Me.CurrentHPs} > 4792) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Pact Rk. III]} && ${Me.CurrentHPs} > 5032) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Tribal Pact]} && ${Me.CurrentHPs} > 6693) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Tribal Pact Rk. II]} && ${Me.CurrentHPs} > 7028) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Tribal Pact Rk. III]} && ${Me.CurrentHPs} > 7379) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Tribal Bargain]} && ${Me.CurrentHPs} > 8117) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Tribal Bargain Rk. II]} && ${Me.CurrentHPs} > 8523) /varset _cancast TRUE
+		/if (${maChr.Find[stCannibalization].Value.Equal[Tribal Bargain Rk. III]} && ${Me.CurrentHPs} > 8949) /varset _cancast TRUE
 
 		/if (${_cancast}) {
-			/if (${is_ready[FALSE, "${stCannibalization}"]}) {
-				/call voodoo ${_debug} "${stCannibalization}" 0 FALSE
+			/if (${is_ready[FALSE, "${maChr.Find[stCannibalization].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stCannibalization].Value}" 0 FALSE
 			}
 			/return
 		}
@@ -527,19 +544,15 @@ sub set_control_SHM(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
-		/if (${li.Value.Equal[vp]}) /varset _out ${_out}:${If[${maChr.Find[stPctVP].Value},${num}${maChr.Find[stPctVP].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[groupheal]}) /varset _out ${_out}:${If[${maChr.Find[stCountHealGroup].Value},${num}${maChr.Find[stCountHealGroup].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[grouphot]}) /varset _out ${_out}:${If[${maChr.Find[swHealGroupOverTime].Value},${on},${off}]}
 		/if (${li.Value.Equal[hot]}) /varset _out ${_out}:${If[${maChr.Find[swHealOverTime].Value},${on},${off}]}
 		/if (${li.Value.Equal[manaclick]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaClick].Value},${num}${maChr.Find[stPctManaClick].Value}\ax,${r0}]}
-	
-		/if (${li.Value.Equal[cannihps]}) /varset _out ${_out}:${If[${maChr.Find[].Value},${num}${maChr.Find[].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[cannimanna]}) /varset _out ${_out}:${If[${maChr.Find[].Value},${num}${maChr.Find[].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[surge]}) /varset _out ${_out}:${If[${maChr.Find[].Value},${on},${off}]}
-		/if (${li.Value.Equal[talisman]}) /varset _out ${_out}:${If[${maChr.Find[].Value},${on},${off}]}
-	
-	
-	
+		/if (${li.Value.Equal[cannihps]}) /varset _out ${_out}:${If[${maChr.Find[stPctCanniHP].Value},${num}${maChr.Find[stPctCanniHP].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[cannimanna]}) /varset _out ${_out}:${If[${maChr.Find[stPctCanniManna].Value},${num}${maChr.Find[stPctCanniManna].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[surge]}) /varset _out ${_out}:${If[${maChr.Find[swSurge].Value},${on},${off}]}
+		/if (${li.Value.Equal[talisman]}) /varset _out ${_out}:${If[${maChr.Find[swTalisman].Value},${on},${off}]}
+
 		/varset dump ${li.Advance}
 	}	
 	/varset dump ${out[14, "${_out}"]}

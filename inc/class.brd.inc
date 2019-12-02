@@ -119,6 +119,8 @@ sub misc_combat_BRD(bool _debug)
 	/if (${is_ready[FALSE, "Fierce Eye"]}) {
 		/call voodoo FALSE "Fierce Eye" 0 FALSE
 	}
+	
+	
  	/if (${is_ready[FALSE, "Bladed Song"]}) {
  		/call voodoo FALSE "Bladed Song" 0 FALSE
  	}

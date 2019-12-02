@@ -77,13 +77,13 @@
 #include exspes\inc\class.dru.inc
 #include exspes\inc\class.enc.inc
 #include exspes\inc\class.mag.inc
-| #include exspes\class.mnk.inc
-| #include exspes\class.nec.inc
+| #include exspes\inc\class.mnk.inc
+| #include exspes\inc\class.nec.inc
 #include exspes\inc\class.pal.inc
 #include exspes\inc\class.rng.inc
 #include exspes\inc\class.rog.inc
 #include exspes\inc\class.shd.inc
-#include exspes\class.shm.inc
+#include exspes\inc\class.shm.inc
 #include exspes\inc\class.war.inc
 #include exspes\inc\class.wiz.inc
 
@@ -114,7 +114,7 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A191130.02
+	/call set_data FALSE maEnv build													map outer A191201.02
 	
 	| prep macro
 	/call prepare_the_end FALSE
