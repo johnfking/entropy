@@ -395,6 +395,6 @@ sub set_control_ROG(string _type, string _verbage, string _silent, bool _debug)
 
 		/varset dump ${li.Advance}
 	}	
-	OUT /chr ${_out}
+	/varset dump ${out[14, "${_out}"]}
 
 /return

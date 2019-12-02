@@ -100,7 +100,6 @@ sub set_CLR(bool _debug)
 	/declare lsHealOrderheavy list outer
 	/varset dump ${lsHealOrderheavy.Delimiter["|"]}
 	/varset dump ${lsHealOrderheavy.Append[lsHealRenewal|lsHealIntervention|lsHealLight|lsHealRemedy]}
-	
 
 /return
 
@@ -153,7 +152,7 @@ sub main_CLR(bool _debug)
 			/call check_buff_cycle_temp_list ${maDebug.Find[bufftemp].Value} stWard lsWardToon
 			/call check_buff_cycle_temp_list ${maDebug.Find[bufftemp].Value} stRetort lsRetortToon
 		}
-		/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
+		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
 		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 		/if (${check_class_loop[FALSE]}) /return
 
@@ -169,7 +168,7 @@ sub main_CLR(bool _debug)
 		}
 
 		/if (AUTO) {	
-			/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
+			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
 			CHECKFADE
 		}
 
@@ -657,8 +656,8 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 		/return
 		
 	| use mana click items
-	} else /if (${_type.Equal[manaclick]}) {
-		/if (!${set_control_num_range[FALSE, stPctManaClick, "${_verbage}", 0, 99]}) /return
+	} else /if (${_type.Equal[manarecover]}) {
+		/if (!${set_control_num_range[FALSE, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
 		
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
@@ -759,7 +758,7 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[groupheal]}) /varset _out ${_out}:${If[${maChr.Find[stCountHealGroup].Value},${num}${maChr.Find[stCountHealGroup].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[grouphot]}) /varset _out ${_out}:${If[${maChr.Find[swHealGroupOverTime].Value},${on},${off}]}
 		/if (${li.Value.Equal[hot]}) /varset _out ${_out}:${If[${maChr.Find[swHealOverTime].Value},${on},${off}]}
-		/if (${li.Value.Equal[manaclick]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaClick].Value},${num}${maChr.Find[stPctManaClick].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[splash]}) /varset _out ${_out}:${If[${maChr.Find[stCountSplash].Value},${num}${maChr.Find[stCountSplash].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[primary]}) /varset _out ${_out}:${submenu}
 		/varset dump ${li.Advance}

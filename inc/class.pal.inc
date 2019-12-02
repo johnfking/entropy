@@ -168,7 +168,7 @@ sub main_PAL(bool _debug)
 		}
 
 		/if (AUTO) {	
-			/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
+			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
 			CHECKFADE
 			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[rest].Value}
 		}
@@ -534,8 +534,8 @@ sub set_control_PAL(string _type, string _verbage, string _silent, bool _debug)
 		/return
 
 	| use mana click items
-	} else /if (${_type.Equal[manaclick]}) {
-		/if (!${set_control_num_range[FALSE, stPctManaClick, "${_verbage}", 0, 99]}) /return
+	} else /if (${_type.Equal[manarecover]}) {
+		/if (!${set_control_num_range[FALSE, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
 		
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
@@ -627,7 +627,7 @@ sub set_control_PAL(string _type, string _verbage, string _silent, bool _debug)
 		/varset _out ${_out} ${If[${lsChr.First.Value.Equal[${li.Value}]},,${dot}]} ${info}${li.Value}\ax
 		/if (${li.Value.Equal[yaulp]}) /varset _out ${_out}:${If[${maChr.Find[swYaulp].Value},${on},${off}]}
 		/if (${li.Value.Equal[stun]}) /varset _out ${_out}:${submenu}
-		/if (${li.Value.Equal[manaclick]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaClick].Value},${num}${maChr.Find[stPctManaClick].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}

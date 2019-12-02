@@ -86,7 +86,7 @@ sub main_DRU(bool _debug)
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
 			/call check_buff_cycle_temp_list FALSE stGrowth lsGrowthToon
 		}
-		/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
+		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
 		/if (BURN) /call burn_${Me.Class.ShortName} FALSE
 		/if (${check_class_loop[FALSE]}) /return
 
@@ -102,7 +102,7 @@ sub main_DRU(bool _debug)
 		}
 
 		/if (AUTO) {	
-			/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
+			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
 			CHECKFADE
 		}
 
@@ -317,8 +317,8 @@ sub set_control_DRU(string _type, string _verbage, string _silent, bool _debug)
 		/return
 		
 	| use mana click items
-	} else /if (${_type.Equal[manaclick]}) {
-		/if (!${set_control_num_range[FALSE, stPctManaClick, "${_verbage}", 0, 99]}) /return
+	} else /if (${_type.Equal[manarecover]}) {
+		/if (!${set_control_num_range[FALSE, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
 		
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
@@ -368,10 +368,10 @@ sub set_control_DRU(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
 		/if (${li.Value.Equal[wolf]}) /varset _out ${_out}:${If[${Bool[${maChr.Find[stWolfSpirit].Value}]},${num}${maChr.Find[stWolfSpirit].Value}\ax,${off}]}
 		/if (${li.Value.Equal[groupheal]}) /varset _out ${_out}:${If[${maChr.Find[stCountHealGroup].Value},${num}${maChr.Find[stCountHealGroup].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[manaclick]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaClick].Value},${num}${maChr.Find[stPctManaClick].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
 		/varset dump ${li.Advance}
 	}	
-	OUT /chr ${_out}
+	/varset dump ${out[14, "${_out}"]}
 
 /return
 

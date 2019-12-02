@@ -25,9 +25,8 @@ sub set_MNK(bool _debug)
  	/call set_data_map ${_debug} maChr swHiatus													FALSE													"${auxsw} use hiatus rest disc"
 	/call set_data_map ${_debug} maChr swTrainMelee											FALSE													"${auxsw} alternate skills for training"
 
-	/call set_data_map ${_debug} maChr stPctFDAggro											0
-	/call set_data_map ${_debug} maChr stPctAggro												0
-	/call set_data_map ${_debug} maChr stPctFD													0
+	/call set_data_map ${_debug} maChr stPctFDAggro											0															"${auxnum} % agro for fd"
+	/call set_data_map ${_debug} maChr stPctFDHP												0															"${auxnum} % health fd at"
  	
 	/call set_data_map ${_debug} maChr stDichotomic											PREGEN|1											"${auxna} Dichotomic disc family"
 	/call set_data_map ${_debug} maChr stBalance												PREGEN|1											"${auxna} Tiger's Balance disc family"
@@ -63,9 +62,9 @@ sub main_MNK(bool _debug)
 	
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Self
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
-		/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Self
+		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
+		/if (${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
@@ -73,7 +72,7 @@ sub main_MNK(bool _debug)
 			/if (MELEE && !${timer_Check_Behind}) /call stick_to_target FALSE TARGET
 			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 			/call misc_combat_${Me.Class.ShortName} FALSE
-			/if (BURN) /call burn_${Me.Class.ShortName} FALSE
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 			/if (MELEE) /call do_melee FALSE TARGET
 			/call check_item_cycle FALSE TARGET
 
@@ -90,106 +89,108 @@ sub main_MNK(bool _debug)
 	
 	
 |***
- *	DES: 
- *	USE: 
- *  NOTE: 
+ * note: al the extra combat shit 
+ * use: 
  ***|
-sub mis_combat_MNK(bool _debug)
-	DEBUG \atmis_combat_MNK\ax()
+sub misc_combat_MNK(bool _debug)
+	DEBUG \atmisc_combat_MNK\ax()
 	
 	CHECKEXIT
-	CHECKINPUTS
+	GETINPUT
 	
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	/call check_deBuffs FALSE TARGET
-	/call get_agro_${Me.Class.ShortName}
 
 	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 
-	/if (${Me.PctAggro} >= ${stPctAggro}) {
+	/if (!AGRO) {
 		/if (is_ready[FALSE, "Silent Strikes"]}) /call voodoo FALSE "Silent Strikes" alt 0 FALSE
 	}
+	
 	/if (is_ready[FALSE, "${maChr.Find[stWu].Value}"]} && !${Me.Song[${maChr.Find[stWu].Value}].ID}) /call voodoo FALSE "${maChr.Find[stWu].Value}" disc 0 FALSE
 	| /if (is_ready[FALSE, "${DiscDoubleAttack}"]}) /call voodoo FALSE "${DiscDoubleAttack}" disc 0 FALSE
-	/if (is_ready[FALSE, "Zan Fi's Whistle"]}) /call voodoo FALSE "Zan Fi's Whistle" alt 0 FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stMonkey].Value}"]}) /call voodoo FALSE "${maChr.Find[stMonkey].Value}" disc TARGET FALSE	
-	/if (${Bool[${intimidation}]} && ${Me.AbilityReady["Intimidation"]}) /doability Intimidation
-	/if (is_ready[FALSE, "Two-Finger Wasp Touch"]}) /call voodoo FALSE "Two-Finger Wasp Touch" alt TARGET FALSE   
-	/if (is_ready[FALSE, "${maChr.Find[stPunch].Value}"]}) /call voodoo FALSE "${maChr.Find[stPunch].Value}" disc TARGET FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stSynergy].Value}"]}) /call voodoo FALSE "${maChr.Find[stSynergy].Value}" disc TARGET FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stElbow].Value}"]}) /call voodoo FALSE "${maChr.Find[stElbow].Value}" disc TARGET FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stCurse].Value}"]}) /call voodoo FALSE "${maChr.Find[stCurse].Value}" disc TARGET FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stPrecision].Value}"]}) /call voodoo FALSE "${maChr.Find[stPrecision].Value}" disc TARGET FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stShuriken].Value}"]}) /call voodoo FALSE "${maChr.Find[stShuriken].Value}" disc TARGET FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stStorm].Value}"]}) /call voodoo FALSE "${maChr.Find[stStorm].Value}" disc 0 FALSE
+	/if (is_ready[FALSE, "Zan Fi's Whistle"]}) /call voodoo FALSE "Zan Fi's Whistle" 0 FALSE
+	/if (is_ready[FALSE, "${maChr.Find[stMonkey].Value}"]}) /call voodoo FALSE "${maChr.Find[stMonkey].Value}" TARGET FALSE	
+	/if (${maCC.Find[swIntimidation].Value} && ${Me.AbilityReady["Intimidation"]}) /doability Intimidation
+	/if (is_ready[FALSE, "Two-Finger Wasp Touch"]}) /call voodoo FALSE "Two-Finger Wasp Touch" TARGET FALSE   
+	/if (is_ready[FALSE, "${maChr.Find[stPunch].Value}"]}) /call voodoo FALSE "${maChr.Find[stPunch].Value}" TARGET FALSE
+	/if (is_ready[FALSE, "${maChr.Find[stSynergy].Value}"]}) /call voodoo FALSE "${maChr.Find[stSynergy].Value}" TARGET FALSE
+	/if (is_ready[FALSE, "${maChr.Find[stElbow].Value}"]}) /call voodoo FALSE "${maChr.Find[stElbow].Value}" TARGET FALSE
+	/if (is_ready[FALSE, "${maChr.Find[stCurse].Value}"]}) /call voodoo FALSE "${maChr.Find[stCurse].Value}" TARGET FALSE
+	/if (is_ready[FALSE, "${maChr.Find[stPrecision].Value}"]}) /call voodoo FALSE "${maChr.Find[stPrecision].Value}" TARGET FALSE
+	/if (is_ready[FALSE, "${maChr.Find[stShuriken].Value}"]}) /call voodoo FALSE "${maChr.Find[stShuriken].Value}" TARGET FALSE
+	/if (is_ready[FALSE, "${maChr.Find[stStorm].Value}"]}) /call voodoo FALSE "${maChr.Find[stStorm].Value}" 0 FALSE
 
 /return
 
 
 
 |***
- *	DES: emergency healing
- *	USE: /call patch_heal_${Me.Class.ShortName}
- *  NOTE: 
+ * note: healing
+ * use: auto
  ***|
-sub patch_heal_MNK(bool _debug)
-	DEBUG patch_heal_MNK()
-	CHECKEXIT
+sub check_heal_MNK(bool _debug, string _type)
+	DEBUG \atcheck_heal_MNK\ax(\a-w${_type}\ax)
+
+	CHECKTIE
 	ISMEDEAD
+	CHECKEXIT
+	CHECKREZ
+	CHECKFADE
+
+	SETHUD "heal ${_type}"
 	
 	| mend training
-	/if (${switchMNKTrainMelee}) {
+	/if (${maChr.Find[swTrainMelee].Value}) {
 		/if (${Me.Skill[Mend]} < ${Me.SkillCap[Mend]} && ${Me.AbilityReady[Mend]}) {
 			/doability Mend
-			/return
 		}
-	}
+	}	
 
-	/if (${Me.PctHPs} > ${${Me.Class.ShortName}Point}*.${tmpHealOverride}) /return
+	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+	/if (is_ready[FALSE, "${maChr.Find[stDeath].Value}"]}) /call voodoo FALSE "${maChr.Find[stDeath].Value}" 0 FALSE
 
-	/if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.${tmpHealOverride} && ${Me.AbilityReady[Mend]}) {
+	/if (${Me.AbilityReady[Mend]}) {
 		/doability Mend
 		/return
 	}
 
-	/if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.${tmpHealOverride}) {
-		/if (is_ready[FALSE, "${maChr.Find[stDeath].Value}"]}) /call voodoo FALSE "${maChr.Find[stDeath].Value}" disc 0 FALSE
-	}
-	/call click_item_heal
+	/call cast_list FALSE lsHealBaseLine ${Me.ID}	
+	
+	SETHUD FALSE
+
 /return
 
 
 
-
-
- |***
- *	DES: Monk burn routines
- *	USE: establish all comp/trigger skills
- *	NOTE: 
+|***
+ * note: Monk burn routines
+ * use: you made a monk... hahaha
  ***| 
 sub burn_MNK(bool _debug)
 	DEBUG \atburn_MNK\ax()
 	
+	ISMEDEAD
 	CHECKEXIT
-	CHECKINPUTS
+	GETINPUT
 	
-	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[${_debug}, BURN, SAFEENV]}) /call cast_defensive_cycle FALSE
 	
-	/if (is_ready[FALSE, "${maChr.Find[stDichotomic].Value}"]}) /call voodoo FALSE "${maChr.Find[stDichotomic].Value}" 0 FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stAlliance].Value}"]}) /call voodoo FALSE "${maChr.Find[stAlliance].Value}" TARGET FALSE 
+	/if (is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" 0 FALSE
+	/if (is_ready[${_debug}, "${maChr.Find[stAlliance].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" TARGET FALSE 
 	
-	/call cast_AA_spire FALSE
+	/call cast_AA_spire ${_debug}
 	
-	/if (is_ready[FALSE, "${maChr.Find[stBalance].Value}"]}) /call voodoo FALSE "${maChr.Find[stBalance].Value}" 0 FALSE
-	/if (is_ready[FALSE, "Infusion of Thunder"]}) /call voodoo FALSE "Infusion of Thunder" 0 FALSE
-	/if (is_ready[FALSE, "Focused Destructive Force"]}) /call voodoo FALSE "Focused Destructive Force" TARGET FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stMonkey].Value}"]}) /call voodoo FALSE "${maChr.Find[stMonkey].Value}" 0 FALSE
-	/if (is_ready[FALSE, "Silent Strikes"]}) /call voodoo FALSE "Silent Strikes" 0 FALSE
+	/if (is_ready[${_debug}, "${maChr.Find[stBalance].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stBalance].Value}" 0 FALSE
+	/if (is_ready[${_debug}, "Infusion of Thunder"]}) /call voodoo ${_debug} "Infusion of Thunder" 0 FALSE
+	/if (is_ready[${_debug}, "Focused Destructive Force"]}) /call voodoo ${_debug} "Focused Destructive Force" TARGET FALSE
+	/if (is_ready[${_debug}, "${maChr.Find[stMonkey].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stMonkey].Value}" 0 FALSE
+	/if (is_ready[${_debug}, "Silent Strikes"]}) /call voodoo ${_debug} "Silent Strikes" 0 FALSE
 	
 | 	Check if we're using a disc, if not use Heel, if another, cancel it and use Heel
 
 	/if (!${Me.ActiveDisc.Name.ID}) {
-		/if (is_ready[FALSE, "${maChr.Find[stHeel].Value}"]}) {
+		/if (is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
 		/if (!${maCC.Find[swFlyingkick].Value} || !${maCC.Find[swEaglestrike].Value}) {
 			/varset dump ${maCC.Add[swKick,FALSE]}
 			/varset dump ${maCC.Add[swFlyingkick,TRUE]}
@@ -198,10 +199,10 @@ sub burn_MNK(bool _debug)
 			/varset dump ${maCC.Add[swEaglestrike,TRUE]}
 			/varset dump ${maCC.Add[swTigerclaw,FALSE]}
 		}
-		/call voodoo FALSE "${maChr.Find[stHeel].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stHeel].Value}" TARGET FALSE
 		}
 	} else /if (${Me.ActiveDisc.Name.ID} && !${Me.ActiveDisc.Name.Find[Heel]}) {
-		/if (is_ready[FALSE, "${maChr.Find[stHeel].Value}"]}) {
+		/if (is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
 			/stopdisc
 			/if (!${maCC.Find[swFlyingkick].Value} || !${maCC.Find[swEaglestrike].Value}) {
 				/varset dump ${maCC.Add[swKick,FALSE]}
@@ -211,17 +212,17 @@ sub burn_MNK(bool _debug)
 				/varset dump ${maCC.Add[swEaglestrike,TRUE]}
 				/varset dump ${maCC.Add[swTigerclaw,FALSE]}
 			}
-			/call voodoo FALSE "${maChr.Find[stHeel].Value}" TARGET FALSE
+			/call voodoo ${_debug} "${maChr.Find[stHeel].Value}" TARGET FALSE
 		}
 	}
-	/if (is_ready[FALSE, "${maChr.Find[stDiscipline].Value}"]}) /call voodoo FALSE "${maChr.Find[stDiscipline].Value}" FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stCrane].Value}"]}) /call voodoo FALSE "${maChr.Find[stCrane].Value}" TARGET FALSE
-	/if (is_ready[FALSE, "Five Point Palm"]}) /call voodoo FALSE "Five Point Palm" TARGET FALSE
-	/if (is_ready[FALSE, "Swift Tail's Chant"]}) /call voodoo FALSE "Swift Tail's Chant" 0 FALSE    
+	/if (is_ready[${_debug}, "${maChr.Find[stDiscipline].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stDiscipline].Value}" FALSE
+	/if (is_ready[${_debug}, "${maChr.Find[stCrane].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stCrane].Value}" TARGET FALSE
+	/if (is_ready[${_debug}, "Five Point Palm"]}) /call voodoo ${_debug} "Five Point Palm" TARGET FALSE
+	/if (is_ready[${_debug}, "Swift Tail's Chant"]}) /call voodoo ${_debug} "Swift Tail's Chant" 0 FALSE    
 
-  /call cast_glyph FALSE
+  /call cast_glyph ${_debug}
 
-/return
+/return TRUE
 
 
 
@@ -272,7 +273,8 @@ sub melee_train_MNK(bool _debug)
 		/varset dump ${maCC.Add[swEaglestrike,FALSE]}
 		/varset dump ${maCC.Add[swTigerclaw,FALSE]}
 	}
-/return
+	
+/return TRUE
 
 
 
@@ -304,7 +306,7 @@ sub check_fd(bool _debug)
 	
 	ISMEDEAD
 	
-	/if (${Me.Combat} && ${Me.PctHPs} <= ${stPctFD}) {
+	/if (${Me.Combat} && ${Me.PctHPs} <= ${maChr.Find[stPctFDHP].Value}) {
 		/if (!${Me.State.Equal[FEIGN]} && !${swIsMeDead}) {
 			/if (${Me.AbilityReady[Feign Death]}) {
 				/attack off
@@ -321,89 +323,10 @@ sub check_fd(bool _debug)
 	}
 
 	/if (${Me.State.Equal[FEIGN]}) {
-		/if (${Me.PctHPs} > ${stPctFD} && AUTO && ${Me.PctAggro} <= ${maChr.Find[stPctAggro].Value}) /stand
-	}
-/return 
-
-
-
-
-
-|***
- *	DES: Class controls
- *	USE: /mnk []
- *  NOTE:
- ***|
-#bind setMNK /mnk
-sub Bind_setMNK(string _type, string _verbage, bool _debug)
-	/if (!${validate_class[TRUE, |MNK]}) /return
-
-	/declare _sep bool local
-	/declare _listout string local
-	/declare _count int local 0
-	/declare _bind string local ${Me.Class.ShortName.Lower}
-  /declare _lstClass string	local |ae|agpct|defcount|fdpct|healpoint|spiregroup|spireraid|trainmelee
-
-	| set FD HP PCT
-	/if (${_type.Equal[fdpct]}) {
-		/if (${Range.Between[1,99:${Int[${_verbage}]}]}) {
-			/call sql_update FALSE ${chrID} stPctFDAggro ${_verbage}
-		} else /if (!${Range.Between[1,99:${Int[${_verbage}]}]}) {
-			VOUT /${_bind} fdpct(${cnum}${stPctFDAggro}\ax) allowable range ${sep} ${cinfo}1 - 99\ax
-			/return
-		}	
-		
-	| set FD agro PCT
-	} else /if (${_type.Equal[agpct]}) {
-		/if (${Range.Between[1,99:${Int[${_verbage}]}]}) {
-			/call sql_update FALSE ${chrID} stPctAggro ${_verbage}
-		} else /if (!${Range.Between[1,99:${Int[${_verbage}]}]}) {
-			VOUT /${_bind} agpct(${cnum}${stPctAggro}\ax) allowable range ${sep} ${cinfo}1 - 99\ax
-			/return
-		}
-
-	| spire control
-	} else /if (${_type.Equal[spiregroup]} || ${_type.Equal[spireraid]}) {
-		/call set_character_spire FALSE ${_type} ${_verbage}
-
-	| healpoint
-	} else /if (${_type.Equal[healpoint]}) {
-		/call set_character_healpoint FALSE ${_verbage}
-		/return
-
-	| enable/disable training melee punches and kicks
-	} else /if (${_type.Equal[trainmelee]}) {
-		/call set_switch ${chrID} switchMNKTrainMelee ${_verbage}
-
-	| defensive mob agro count
-	} else /if (${_type.Equal[defcount]}) {
-		/call set_character_defcount FALSE ${_verbage}
-		
-	| set ae on/off / count
-	} else /if (${_type.Equal[ae]}) {
-		/call set_character_ae FALSE ${_verbage}
-		
+		/if (${Me.PctHPs} > ${maChr.Find[stPctFDHP].Value}} && AUTO && ${Me.PctAggro} <= ${maChr.Find[stPctFDAggro].Value}) /stand
 	}
 	
-	/if (${swMQClear}) /mqclear
-	/for _count 1 to ${_lstClass.Count[|]}
-		/varset _listout ${_listout} ${If[${_sep},${sep},]} ${cinfo}${_lstClass.Arg[${_count},|]}\ax
-		/if (${_lstClass.Arg[${_count},|].Equal[ae]}) /varset _listout ${_listout}:${If[${AEMelee},${cnum}${AEMelee}\ax,${ooff}]}
-		/if (${_lstClass.Arg[${_count},|].Equal[agpct]}) /varset _listout ${_listout}:${cnum}${stPctAggro}\ax
-		/if (${_lstClass.Arg[${_count},|].Equal[defcount]}) /varset _listout ${_listout}:${If[${defCount},${cnum}${defCount}\ax,${ooff}]}
-		/if (${_lstClass.Arg[${_count},|].Equal[fdpct]}) /varset _listout ${_listout}:${cnum}${stPctFDAggro}\ax
-		/if (${_lstClass.Arg[${_count},|].Equal[healpoint]}) /varset _listout ${_listout}:${cnum}${${Me.Class.ShortName}Point}\ax
-		/if (${_lstClass.Arg[${_count},|].Equal[spiregroup]}) /varset _listout ${_listout}:${If[${spireGroup},${cnum}${spireGroup}\ax,${ooff}]}
-		/if (${_lstClass.Arg[${_count},|].Equal[spireraid]}) /varset _listout ${_listout}:${If[${spireRaid},${cnum}${spireRaid}\ax,${ooff}]}
-		/if (${_lstClass.Arg[${_count},|].Equal[trainmelee]}) /varset _listout ${_listout}:${If[${switchMNKTrainMelee},${oon},${ooff}]}
-		/varset _sep TRUE
-	/next _count
-	VOUT /${_bind} [${_listout}]
-
-/return
-
-
-
+/return TRUE
 
 
 
@@ -442,9 +365,20 @@ sub set_control_MNK(string _type, string _verbage, string _silent, bool _debug)
 	| use hiatus disc
 	} else /if (${_type.Equal[hiatus]}) {
 		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
-			
-		
-		
+
+
+	| train skills
+	} else /if (${_type.Equal[train]}) {
+		/varset dump ${set_switch_env[${_debug}, swTrainMelee, TRUE, ${_verbage}]}
+
+	| set AA fade use %	
+	} else /if (${_type.Equal[fdhp]}) {
+		/if (!${set_control_num_range[FALSE, stPctFDHP, "${_verbage}", 0, 99]}) /return
+
+	| set AA fade use %	
+	} else /if (${_type.Equal[fdaggro]}) {
+		/if (!${set_control_num_range[FALSE, stPctFDAggro, "${_verbage}", 0, 99]}) /return
+
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return 
@@ -457,10 +391,15 @@ sub set_control_MNK(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
 		/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
-
+		/if (${li.Value.Equal[train]}) /varset _out ${_out}:${If[${maChr.Find[swTrainMelee].Value},${on},${off}]}
+		/if (${li.Value.Equal[fdhp]}) /varset _out ${_out}:${If[${maChr.Find[stPctFDHP].Value},${num}${maChr.Find[stPctFDHP].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[fdaggro]}) /varset _out ${_out}:${If[${maChr.Find[stPctFDAggro].Value},${num}${maChr.Find[stPctFDAggro].Value}\ax,${r0}]}
 
 		/varset dump ${li.Advance}
 	}	
-	OUT /chr ${_out}
+	/varset dump ${out[14, "${_out}"]}
 
 /return
+
+
+

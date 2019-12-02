@@ -106,7 +106,7 @@ sub main_SHM(bool _debug)
 			/call check_buff_cycle_temp_list FALSE stGrowth lsGrowthToon
 		}
 
-		/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
+		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
 		/if (BURN) /call burn_${Me.Class.ShortName} FALSE
 		/if (${check_class_loop[FALSE]}) /return
 
@@ -129,7 +129,7 @@ sub main_SHM(bool _debug)
 		/if (AUTO) {
 			CHECKFADE
 			/call check_cani ${maDebug.Find[canni].Value}
-			/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
+			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
 		}
 	}
 
@@ -388,56 +388,18 @@ sub check_cani(bool _debug)
 	
 	| if canni spell is not ready bail..
 	/if (!${is_ready[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) /return FALSE
-		
-	| canni spell first...
-	/if (${Me.PctMana} <= ${maChr.Find[stPctCanniManna].Value} && ${Me.PctHPs} >= ${maChr.Find[stPctCanniHP].Value}) {
-		/declare _cancast bool local FALSE
-	
-		/if (${maChr.Find[stCannibalization].Value.Equal[Cannibalize]} && ${Me.CurrentHPs} > 50) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Cannibalize II]} && ${Me.CurrentHPs} > 67) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Cannibalize III]} && ${Me.CurrentHPs} > 74) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Cannibalize IV]} && ${Me.CurrentHPs} > 148) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancient Chaotic Pain]} && ${Me.CurrentHPs} > 668) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Pained Memory]} && ${Me.CurrentHPs} > 688) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancient: Ancestral Calling]} && ${Me.CurrentHPs} > 868) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Bargain]} && ${Me.CurrentHPs} > 1042) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Bargain Rk. II]} && ${Me.CurrentHPs} > 1085) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Bargain Rk. III]} && ${Me.CurrentHPs} > 1128) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Hearkening]} && ${Me.CurrentHPs} > 1161) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Hearkening Rk. II]} && ${Me.CurrentHPs} > 1324) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Hearkening Rk. III]} && ${Me.CurrentHPs} > 1141) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Obligation]} && ${Me.CurrentHPs} > 1417) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Obligation Rk. II]} && ${Me.CurrentHPs} > 1615) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Obligation Rk. III]} && ${Me.CurrentHPs} > 1721) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Covenant]} && ${Me.CurrentHPs} > 1559) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Covenant Rk. II]} && ${Me.CurrentHPs} > 1777) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Covenant Rk. III]} && ${Me.CurrentHPs} > 1893) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Arrangement]} && ${Me.CurrentHPs} > 2366) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Arrangement Rk. II]} && ${Me.CurrentHPs} > 2484) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Arrangement Rk. III]} && ${Me.CurrentHPs} > 2608) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Pact]} && ${Me.CurrentHPs} > 4564) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Pact Rk. II]} && ${Me.CurrentHPs} > 4792) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Ancestral Pact Rk. III]} && ${Me.CurrentHPs} > 5032) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Tribal Pact]} && ${Me.CurrentHPs} > 6693) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Tribal Pact Rk. II]} && ${Me.CurrentHPs} > 7028) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Tribal Pact Rk. III]} && ${Me.CurrentHPs} > 7379) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Tribal Bargain]} && ${Me.CurrentHPs} > 8117) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Tribal Bargain Rk. II]} && ${Me.CurrentHPs} > 8523) /varset _cancast TRUE
-		/if (${maChr.Find[stCannibalization].Value.Equal[Tribal Bargain Rk. III]} && ${Me.CurrentHPs} > 8949) /varset _cancast TRUE
+	/if (${Me.PctMana} >= ${maChr.Find[stPctCanniManna].Value}) /return FALSE
+	/if (${Me.PctHPs} <= ${maChr.Find[stPctCanniHP].Value}) /return FALSE
 
-		/if (${_cancast}) {
-			/if (${is_ready[FALSE, "${maChr.Find[stCannibalization].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stCannibalization].Value}" 0 FALSE
-			}
-			/return
-		}
+	| check HP requirements
+	/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM mana_recovery WHERE env_var="${maChr.Find[stCannibalization].Value}"
+	/if (${Me.PctHPs} < ${sqlite.Result[dummy 1 value]}) /return FALSE
 
+	/if (${is_ready[FALSE, "${maChr.Find[stCannibalization].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stCannibalization].Value}" 0 FALSE
 	}
 	
 /return
-
-
-
 
 
 
@@ -467,8 +429,6 @@ sub cast_alliance_SHM(bool _debug)
 
 
 
-
-
 |***
  * note: shaman specific control
  * use: /chr
@@ -484,8 +444,8 @@ sub set_control_SHM(string _type, string _verbage, string _silent, bool _debug)
 		/return
 		
 	| use mana click items
-	} else /if (${_type.Equal[manaclick]}) {
-		/if (!${set_control_num_range[${_debug}, stPctManaClick, "${_verbage}", 0, 99]}) /return
+	} else /if (${_type.Equal[manarecover]}) {
+		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
 		
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
@@ -547,7 +507,7 @@ sub set_control_SHM(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[groupheal]}) /varset _out ${_out}:${If[${maChr.Find[stCountHealGroup].Value},${num}${maChr.Find[stCountHealGroup].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[grouphot]}) /varset _out ${_out}:${If[${maChr.Find[swHealGroupOverTime].Value},${on},${off}]}
 		/if (${li.Value.Equal[hot]}) /varset _out ${_out}:${If[${maChr.Find[swHealOverTime].Value},${on},${off}]}
-		/if (${li.Value.Equal[manaclick]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaClick].Value},${num}${maChr.Find[stPctManaClick].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[cannihps]}) /varset _out ${_out}:${If[${maChr.Find[stPctCanniHP].Value},${num}${maChr.Find[stPctCanniHP].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[cannimanna]}) /varset _out ${_out}:${If[${maChr.Find[stPctCanniManna].Value},${num}${maChr.Find[stPctCanniManna].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[surge]}) /varset _out ${_out}:${If[${maChr.Find[swSurge].Value},${on},${off}]}

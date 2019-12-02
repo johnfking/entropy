@@ -59,7 +59,8 @@ sub set_initialize(bool _debug)
   /declare lsMaps list outer
   /varset dump ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maItems,maBuffs,maBuff,maBurn]}
   /varset dump ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
-  /varset dump ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maDeez,maMode,maRezControl,maWatchspawn,maBuffRequest,maHook]}
+  /varset dump ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maDeez,maMode,maRezControl,maWatchspawn]}
+  /varset dump ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery]}
 
   
   | set all output shortcuts
@@ -227,7 +228,7 @@ sub set_initial_environment(bool _debug)
 
   | controls for mana users
   /if (${lsClassCast.Contains[${Me.Class.ShortName}]}) {
-    /varset dump ${lsChr.Append[manaclick]}
+    /varset dump ${lsChr.Append[manarecover]}
   }
 
   | controls for melee users
@@ -250,7 +251,7 @@ sub set_initial_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
     /varset dump ${lsChr.Append[line|gather|forcetc]}
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
-    /varset dump ${lsChr.Append[train|fdpct|agrogpct]}  	
+    /varset dump ${lsChr.Append[train|fdhp|fdaggro]}  	
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
     /varset dump ${lsChr.Append[attraction|harmonious|loh|mg|flash|stun|yaulp]}
@@ -939,7 +940,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
   | can cast?
   /if (${lsClassCast.Contains[${Me.Class.ShortName}]}) {
-    /call set_data_map FALSE maChr stPctManaClick                     0                             "${auxna} % to use whatever manna click items entropy can find on you"
+    /call set_data_map FALSE maChr stPctManaRecovery                     0                             "${auxna} % to use whatever manna recovery things entropy can find on you"
   } 
 
 
@@ -1036,7 +1037,7 @@ sub set_initialize_static_map(bool _debug)
   /declare maStaticMaps map local
   /varset dump ${maStaticMaps.Add[maShade, shade]}
   /varset dump ${maStaticMaps.Add[maSQLError, sql_error]}
-  /varset dump ${maStaticMaps.Add[maManaClick, mana_click_item]}
+  /varset dump ${maStaticMaps.Add[maManaRecovery, mana_recovery]}
   /varset dump ${maStaticMaps.Add[maExpansion, env_xpac]}
   /varset dump ${maStaticMaps.Add[maCure, cure]}
   

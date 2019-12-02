@@ -1465,117 +1465,22 @@ sub Bind_deez(string _type, bool _debug)
 	}
 	
 	
+	/if (${_type.Equal[dbtest]}) { 
 	
+		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM mana_recovery WHERE env_var="Wand of Arcronite Modulation"
+	
+		OUT ${sqlite.Result[dummy 1 value]}
+
+
 	/return
 	
 	
 
 
 
-	${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}
 
 
 
-
-/declare MyGroundItem ground local
-/vardata MyGroundItem Ground.First
-    /for _count 1 to ${GroundItemCount[Glowing Globe]}
-        /if (${MyGroundItem.DisplayName.Find[Glowing Globe]}) {
-        /varset ItemLoc ${MyGroundItem.Y} ${MyGroundItem.X} ${MyGroundItem.Z}
-        /varset PathLength ${Navigation.PathLength[loc ${ItemLoc}]}
-        /if (${PathLength} > 0) {
-            do sort stuff here.
-        }
-    /if (${Bool[${MyGroundItem.Next}]}) {
-        /vardata MyGroundItem MyGroundItem.Next
-    } else {
-        /break
-    }
-/next Count
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-${GroundItemCount[Glowing Globe]}
-
-${NearestSpawn[2, "Glowing Globe"].ID}
-
-
-${Ground[Glowing Globe].ID}
-
-${Ground[Glowing Globe].X}
-
-${Ground[Glowing Globe].Y}
-		
-		
-	/nav loc ${Ground[Glowing Globe].Y} ${Ground[Glowing Globe].X} ${Ground[Glowing Globe].X}	distance=15 log=off
-	
-	
-	
-/nav LOC 		
-		
-	
-		| Start by just setting it to the first entry found in the grounditems list:
-		| NOTE that I DO NOT USE ${Ground.First}, but Ground.First that's just how /vardata works, so accept it.
-		
-
-		/for _count 1 to ${GroundItemCount}
-			/echo \a-w${_count}. \awID: \at${MyGroundItem.ID} \awDist: \ay${MyGroundItem.Distance} \ag${MyGroundItem.DisplayName}
-| move to next:
-			/if (${Bool[${MyGroundItem.Next}]}) {
-				
-			} else {
-				/break
-			}
-		/next _count
-	/return
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-${Navigation.PathExists[${Ground[${_count}].ID}]}	
 
 
 
@@ -3347,7 +3252,8 @@ sub Bind_control_build(string _build, string _nickname, bool _debug)
 	
 	| set stuff to not export/import
 	/declare _skipMap list local
-	/varset dump ${_skipMap.Append[maDebug,maTimer,Gems,maCrew,maMode,maDeez,maPREGEN,maRezControl,maWatchspawn,maBuffRequest,maHook,maData]}
+	/varset dump ${_skipMap.Append[maDebug,maTimer,Gems,maCrew,maMode,maDeez,maPREGEN,maRezControl,maWatchspawn]}
+	/varset dump ${_skipMap.Append[maBuffRequest,maHook,maData,maManaRecovery]}
 	/declare _skipKey list local
 	/varset dump ${_skipKey.Append[swBuffMaster,swIsMeDead,swSetCombat,swValidAssTarID,swSnapStuck,swHomeMarker,verbosity,swZoneSafe,swAuto]}
 	/varset dump ${_skipKey.Append[stCurrentZoneID,stCastReturn,build,swSetTie,swBurnConditionMet]}

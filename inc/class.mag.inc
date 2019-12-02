@@ -96,7 +96,7 @@ sub main_MAG(bool _debug)
 		/if (AUTO) {	
 			| /call Bind_setMAG rods
 
-			/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
+			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
 			/if (${maChr.Find[stPctGather].Value}) /call check_gather FALSE
 		}
 	}
@@ -381,8 +381,8 @@ sub set_control_MAG(string _type, string _verbage, string _silent, bool _debug)
 		/return
 		
 	| use mana click items
-	} else /if (${_type.Equal[manaclick]}) {
-		/if (!${set_control_num_range[FALSE, stPctManaClick, "${_verbage}", 0, 99]}) /return
+	} else /if (${_type.Equal[manarecover]}) {
+		/if (!${set_control_num_range[FALSE, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
 		
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
@@ -435,18 +435,15 @@ sub set_control_MAG(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
-		/if (${li.Value.Equal[manaclick]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaClick].Value},${num}${maChr.Find[stPctManaClick].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[forcetc]}) /varset _out ${_out}:${If[${maChr.Find[swForceTC].Value},${on},${off}]}
 		/if (${li.Value.Equal[line]}) /varset _out ${_out}:[${num}${maChr.Find[stCurrent].Value}\ax]
 		/if (${li.Value.Equal[gather]}) /varset _out ${_out}:${If[${maChr.Find[stPctGather].Value},${num}${maChr.Find[stPctGather].Value}\ax,${r0}]}
 
 		/varset dump ${li.Advance}
 	}	
-	OUT /chr ${_out}
+	/varset dump ${out[14, "${_out}"]}
 
-	
-	
-	
 /return
 
 

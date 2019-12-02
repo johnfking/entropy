@@ -97,7 +97,7 @@ sub main_BST(bool _debug)
 		/if (AUTO) {	
 			CHECKFADE
 			/call check_mana_BST FALSE
-			/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
+			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
 			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[rest].Value}
 		}	
 	}
@@ -427,8 +427,8 @@ sub set_control_BST(string _type, string _verbage, string _silent, bool _debug)
 		/return
 		
 	| use mana click items
-	} else /if (${_type.Equal[manaclick]}) {
-		/if (!${set_control_num_range[FALSE, stPctManaClick, "${_verbage}", 0, 99]}) /return
+	} else /if (${_type.Equal[manarecover]}) {
+		/if (!${set_control_num_range[FALSE, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
 		
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
@@ -476,14 +476,14 @@ sub set_control_BST(string _type, string _verbage, string _silent, bool _debug)
 		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
-		/if (${li.Value.Equal[manaclick]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaClick].Value},${num}${maChr.Find[stPctManaClick].Value}\ax,${r0}]}
+		/if (${li.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[consume]}) /varset _out ${_out}:${If[${maChr.Find[stPctConsume].Value},${num}${maChr.Find[stPctConsume].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[parafocus]}) /varset _out ${_out}:${If[${maChr.Find[stPctParagonF].Value},${num}${maChr.Find[stPctParagonF].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[paragroup]}) /varset _out ${_out}:${If[${maChr.Find[stPctParagonG].Value},${num}${maChr.Find[stPctParagonG].Value}\ax,${r0}]}
 		/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
 		/varset dump ${li.Advance}
 	}	
-	OUT /chr ${_out}
+	/varset dump ${out[14, "${_out}"]}
 
 /return
 

@@ -3345,23 +3345,24 @@ sub do_rest(bool _debug)
 			| bards suck...
 			/if (${Me.Class.ShortName.Equal[BRD]}) {
 				/call cast_AA_rallying FALSE
-				/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
+				/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
 				/if (${Me.PctEndurance} < PCTREST*.PCTHO) /varset _needrest TRUE
 				/if (${Me.PctMana} < PCTREST*.PCTHO) /varset _needrest TRUE
 				/if (${maChr.Find[swSongRest].Value}) /varset _needrest TRUE
 
 			} else {
-				/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
+				/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
 				/call cast_stamina_recovery FALSE
 			}
 			/if (${Select[${Me.Class.ShortName},PAL]}) {
 				/if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
 			} else /if (${Select[${Me.Class.ShortName},SHD]}) {
-				/if (${maMinion.Find[swPet].Value} && ${maEnv.Find[swRestBuff].Value}) /call check_pet
+				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
 				/if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
 
 			} else /if (${Select[${Me.Class.ShortName},RNG]}) {
 			} else /if (${Select[${Me.Class.ShortName},BST]}) {
+				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
 			} 
 			
 			DEBUG ${sep}hybrid _needrest${sep}\a-w${_needrest}\ax${sep}
@@ -3389,13 +3390,13 @@ sub do_rest(bool _debug)
 		} else /if (!${lsClassMelee.CountOf[${Me.Class.ShortName}]} && ${lsClassCast.CountOf[${Me.Class.ShortName}]}) {
 			/if (${Me.PctMana} < PCTREST*.PCTHO) {
 				/varset _needrest TRUE
-				/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
+				/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
 			}
 			
 			| rest to full requirement
 			/if (${maEnv.Find[swRestFull].Value}) {
 				/if (${Me.PctMana} < 99*.PCTHO) /varset _needrest TRUE
-				/if (${maChr.Find[stPctManaClick].Value}) /call do_mana_recovery_item FALSE
+				/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
 			}			
 
 			/if (${Select[${Me.Class.ShortName},CLR]}) {
@@ -3410,14 +3411,14 @@ sub do_rest(bool _debug)
 				| }				
 			} else /if (${Select[${Me.Class.ShortName},SHM]}) {
 				/call check_cani ${maDebug.Find[canni].Value}
+				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
 			} else /if (${Select[${Me.Class.ShortName},ENC]}) {
-				| /if (${mobList.Find[|]}) /call list_update mobList ${_debug}
+				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
 			} else /if (${Select[${Me.Class.ShortName},WIZ]}) {
-				| /if (${maEnv.Find[swRestBuff].Value}) /call sort_mancy_lineAA
 			} else /if (${Select[${Me.Class.ShortName},NEC]}) {
-				| /if (PET && ${maEnv.Find[swRestBuff].Value}) /call check_pet
+				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
 			} else /if (${Select[${Me.Class.ShortName},MAG]}) {
-				| /if (PET && ${maEnv.Find[swRestBuff].Value}) /call check_pet
+				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
 			}
 			
 			DEBUG ${sep}caster _needrest${sep}\a-w${_needrest}\ax
@@ -4676,12 +4677,12 @@ sub check_item_cycle(bool _debug, int _tmpID)
 
 |***
  * note: Mana recovery items; rods, shards, crack pipes
- * use: /call do_mana_recovery_item DEBUG
+ * use: /call do_mana_recovery DEBUG
  ***|
-sub do_mana_recovery_item(bool _debug)
-	DEBUG \atdo_mana_recovery_item\ax()
+sub do_mana_recovery(bool _debug)
+	DEBUG \atdo_mana_recovery\ax()
 	
-	/if (${Me.PctMana} > ${maChr.Find[stPctManaClick].Value}*.PCTHO) /return FALSE
+	/if (${Me.PctMana} > ${maChr.Find[stPctManaRecovery].Value}*.PCTHO) /return FALSE
 	/if (!${lsClassCast.Contains[${Me.Class.ShortName}]}) /return FALSE
 	
 	ISMEDEAD
@@ -4689,7 +4690,7 @@ sub do_mana_recovery_item(bool _debug)
 	GETINPUT
 		
 	| you can take that rod.. and shove it right up you...
-  /vardata mi maManaClick.First.Clone
+  /vardata mi maManaRecovery.First.Clone
   /while (!${mi.IsEnd}) {
 		/if (${is_ready[FALSE, "${mi.Key}"]} && ${Me.PctHPs} < ${mi.Value}) {
 	  	DEBUG ${mi.Key}${sep}\a-w${mi.Value}\ax
