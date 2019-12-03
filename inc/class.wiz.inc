@@ -79,7 +79,7 @@ sub main_WIZ(bool _debug)
 			/if (DOT) /call cast_dot /call check_cure ${maDebug.Find[castdot].Value} lsDoT TARGET
 			/if (NUKE) {
 				/if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} TRUE
-				/call cast_nuke /call check_cure ${maDebug.Find[castnuke].Value} lsNuke${stLine} TARGET
+				/call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke${stLine} TARGET
 			}
 			/if (MELEE) /call use_skill_melee TARGET
 			/call misc_combat_${Me.Class.ShortName}
@@ -88,8 +88,8 @@ sub main_WIZ(bool _debug)
 		}
 		
 		/if (AUTO) {	
-			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value]}
-			/if (${Me.PctMana} <= ${maChr.Find[stPctGather].Value}*.PCTHO) /call check_harvest ${maDebug.Find[mannarecover].Value]}
+			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
+			/if (${Me.PctMana} <= ${maChr.Find[stPctGather].Value}*.PCTHO) /call check_harvest ${maDebug.Find[mannarecover].Value}
 			CHECKFADE
 		}	
 	}	
