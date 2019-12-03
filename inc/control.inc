@@ -3235,7 +3235,7 @@ sub Bind_control_build(string _build, string _nickname, bool _debug)
 	| set stuff to not export/import
 	/declare _skipMap list local
 	/varset dump ${_skipMap.Append[maDebug,maTimer,Gems,maCrew,maMode,maDeez,maPREGEN,maRezControl,maWatchspawn]}
-	/varset dump ${_skipMap.Append[maBuffRequest,maHook,maData,maManaRecovery]}
+	/varset dump ${_skipMap.Append[maBuffRequest,maHook,maData,maManaRecovery,maDeez]}
 	/declare _skipKey list local
 	/varset dump ${_skipKey.Append[swBuffMaster,swIsMeDead,swSetCombat,swValidAssTarID,swSnapStuck,swHomeMarker,verbosity,swZoneSafe,swAuto]}
 	/varset dump ${_skipKey.Append[stCurrentZoneID,stCastReturn,build,swSetTie,swBurnConditionMet]}

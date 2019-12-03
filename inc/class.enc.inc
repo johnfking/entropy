@@ -71,21 +71,21 @@ sub main_ENC(bool _debug)
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
+			/if (PET || SWARM) /call send_pet ${maDebug.Find[minion].Value} TARGET
 			/call set_combat FALSE
 			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
 			/call control_routine FALSE
 
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
-			/if (PET || SWARM) /call send_pet FALSE TARGET
 			/if (MELEE) /call use_skill_melee TARGET
 			/call misc_combat_${Me.Class.ShortName} FALSE
 
 			/call control_routine FALSE
 
-			/if (DOT) /call cast_dot FALSE lsDot TARGET
+			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDot TARGET
 			/call control_routine FALSE
-			/if (NUKE) /call cast_nuke FALSE lsNuke TARGET
+			/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
 			/call control_routine FALSE
 			/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
 				/call check_buff_cycle_temp_list FALSE stTerror lsTerrorToon
@@ -100,8 +100,8 @@ sub main_ENC(bool _debug)
 	}
 
 	/if (AUTO) {	
-		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
-		/if (${maChr.Find[stPctGather].Value}) /call check_gather FALSE
+		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
+		/if (${maChr.Find[stPctGather].Value}) /call check_gather ${maDebug.Find[manarecover].Value}
 		| /if (${switchCharmPet} && ${swPet} && !${Me.Pet.ID}) /call find_mob_to_charm
 	}
 
@@ -126,7 +126,7 @@ sub misc_combat_ENC(bool _debug)
 	
 	| use AA beam of slumber?
 	/if (${maChr.Find[swAABoS].Value} && ${madeBuff.Find[swMez].Value}) {
-		/if (${Spawn[TARGET].NearestSpawn[3,npc radius 30].ID} && ${Spawn[TARGET].Distance3D} <= 200 && ${Spawn[TARGET].Distance3D} >= ${setMobAgro}*.5) {
+		/if (${Spawn[TARGET].NearestSpawn[3,npc radius 30].ID} && ${Spawn[TARGET].Distance3D} <= 200 && ${Spawn[TARGET].Distance3D} >= ENV*.5) {
 			/if (${Me.AltAbilityReady[Beam of Slumber]}) {
 				/if (${Me.Casting.ID}) /stopcast
 				/face ID TARGET ${If[${maHome.Find[swFaceFast].Value},fast,]}

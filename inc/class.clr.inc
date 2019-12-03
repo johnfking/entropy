@@ -193,6 +193,8 @@ sub misc_combat_CLR(bool _debug)
 	
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+	
+	/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
 
 	/if (${maMinion.Find[swSwarm].Value} && !${Me.Pet.ID}) {
 		/call cast_list ${_debug} lsTempPet TARGET

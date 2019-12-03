@@ -3955,10 +3955,11 @@ sub set_control_chr_spire(bool _debug, string _type, string _verbage)
 		
 	} else /if (${_type.Equal[raid]}) {
 		/varset dump ${set_switch_env[${_debug}, swSpireRaid, TRUE, ${_verbage}]}
+
 	}
 
-	/varset _out ${info}group\ax:${If[${Bool[${maChr.Find[swSpireGroup].Value}]},${on},${off}]}
-	/varset _out ${_out} ${dot} ${info}raid\ax:${If[${Bool[${maEnv.Find[swSpireRaid].Value}]},${on},${off}]}
+	/varset _out ${info}group\ax:${If[${maChr.Find[swSpireGroup].Value},${on},${off}]}
+	/varset _out ${_out} ${dot} ${info}raid\ax:${If[${maChr.Find[swSpireRaid].Value},${on},${off}]}
 	/varset dump ${out[12, "/chr spire ${_out}"]}
 
 /return
@@ -6981,6 +6982,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
 					DEBUG ${sep}{madeBuff.Find[sw${li.Value}].Value}${sep}\a-wSINGLE\ax
 					/call voodoo ${_debug} "${madeBuff.Find[st${li.Value}].Value}" ${_tmpID} FALSE
 					/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
+						DEBUG	lsdeBuff${li.Value}.Contains[${_tmpID}]
 						/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
 							/varset dump ${lsdeBuff${li.Value}.Append[${_tmpID}]}
 						}
