@@ -104,22 +104,22 @@ sub misc_combat_MNK(bool _debug)
 	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 
 	/if (!AGRO) {
-		/if (is_ready[FALSE, "Silent Strikes"]}) /call voodoo FALSE "Silent Strikes" alt 0 FALSE
+		/if (${is_ready[FALSE, "Silent Strikes"]}) /call voodoo FALSE "Silent Strikes" alt 0 FALSE
 	}
 	
-	/if (is_ready[FALSE, "${maChr.Find[stWu].Value}"]} && !${Me.Song[${maChr.Find[stWu].Value}].ID}) /call voodoo FALSE "${maChr.Find[stWu].Value}" disc 0 FALSE
-	| /if (is_ready[FALSE, "${DiscDoubleAttack}"]}) /call voodoo FALSE "${DiscDoubleAttack}" disc 0 FALSE
-	/if (is_ready[FALSE, "Zan Fi's Whistle"]}) /call voodoo FALSE "Zan Fi's Whistle" 0 FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stMonkey].Value}"]}) /call voodoo FALSE "${maChr.Find[stMonkey].Value}" TARGET FALSE	
+	/if (${is_ready[FALSE, "${maChr.Find[stWu].Value}"]} && !${Me.Song[${maChr.Find[stWu].Value}].ID}) /call voodoo FALSE "${maChr.Find[stWu].Value}" disc 0 FALSE
+	| /if (${is_ready[FALSE, "${DiscDoubleAttack}"]}) /call voodoo FALSE "${DiscDoubleAttack}" disc 0 FALSE
+	/if (${is_ready[FALSE, "Zan Fi's Whistle"]}) /call voodoo FALSE "Zan Fi's Whistle" 0 FALSE
+	/if (${is_ready[FALSE, "${maChr.Find[stMonkey].Value}"]}) /call voodoo FALSE "${maChr.Find[stMonkey].Value}" TARGET FALSE	
 	/if (${maCC.Find[swIntimidation].Value} && ${Me.AbilityReady["Intimidation"]}) /doability Intimidation
-	/if (is_ready[FALSE, "Two-Finger Wasp Touch"]}) /call voodoo FALSE "Two-Finger Wasp Touch" TARGET FALSE   
-	/if (is_ready[FALSE, "${maChr.Find[stPunch].Value}"]}) /call voodoo FALSE "${maChr.Find[stPunch].Value}" TARGET FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stSynergy].Value}"]}) /call voodoo FALSE "${maChr.Find[stSynergy].Value}" TARGET FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stElbow].Value}"]}) /call voodoo FALSE "${maChr.Find[stElbow].Value}" TARGET FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stCurse].Value}"]}) /call voodoo FALSE "${maChr.Find[stCurse].Value}" TARGET FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stPrecision].Value}"]}) /call voodoo FALSE "${maChr.Find[stPrecision].Value}" TARGET FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stShuriken].Value}"]}) /call voodoo FALSE "${maChr.Find[stShuriken].Value}" TARGET FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stStorm].Value}"]}) /call voodoo FALSE "${maChr.Find[stStorm].Value}" 0 FALSE
+	/if (${is_ready[FALSE, "Two-Finger Wasp Touch"]}) /call voodoo FALSE "Two-Finger Wasp Touch" TARGET FALSE   
+	/if (${is_ready[FALSE, "${maChr.Find[stPunch].Value}"]}) /call voodoo FALSE "${maChr.Find[stPunch].Value}" TARGET FALSE
+	/if (${is_ready[FALSE, "${maChr.Find[stSynergy].Value}"]}) /call voodoo FALSE "${maChr.Find[stSynergy].Value}" TARGET FALSE
+	/if (${is_ready[FALSE, "${maChr.Find[stElbow].Value}"]}) /call voodoo FALSE "${maChr.Find[stElbow].Value}" TARGET FALSE
+	/if (${is_ready[FALSE, "${maChr.Find[stCurse].Value}"]}) /call voodoo FALSE "${maChr.Find[stCurse].Value}" TARGET FALSE
+	/if (${is_ready[FALSE, "${maChr.Find[stPrecision].Value}"]}) /call voodoo FALSE "${maChr.Find[stPrecision].Value}" TARGET FALSE
+	/if (${is_ready[FALSE, "${maChr.Find[stShuriken].Value}"]}) /call voodoo FALSE "${maChr.Find[stShuriken].Value}" TARGET FALSE
+	/if (${is_ready[FALSE, "${maChr.Find[stStorm].Value}"]}) /call voodoo FALSE "${maChr.Find[stStorm].Value}" 0 FALSE
 
 /return
 
@@ -148,7 +148,7 @@ sub check_heal_MNK(bool _debug, string _type)
 	}	
 
 	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
-	/if (is_ready[FALSE, "${maChr.Find[stDeath].Value}"]}) /call voodoo FALSE "${maChr.Find[stDeath].Value}" 0 FALSE
+	/if (${is_ready[FALSE, "${maChr.Find[stDeath].Value}"]}) /call voodoo FALSE "${maChr.Find[stDeath].Value}" 0 FALSE
 
 	/if (${Me.AbilityReady[Mend]}) {
 		/doability Mend
@@ -176,21 +176,21 @@ sub burn_MNK(bool _debug)
 	
 	/if (!${is_defensive_active[${_debug}, BURN, SAFEENV]}) /call cast_defensive_cycle FALSE
 	
-	/if (is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" 0 FALSE
-	/if (is_ready[${_debug}, "${maChr.Find[stAlliance].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" TARGET FALSE 
+	/if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAlliance].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" TARGET FALSE 
 	
 	/call cast_AA_spire ${_debug}
 	
-	/if (is_ready[${_debug}, "${maChr.Find[stBalance].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stBalance].Value}" 0 FALSE
-	/if (is_ready[${_debug}, "Infusion of Thunder"]}) /call voodoo ${_debug} "Infusion of Thunder" 0 FALSE
-	/if (is_ready[${_debug}, "Focused Destructive Force"]}) /call voodoo ${_debug} "Focused Destructive Force" TARGET FALSE
-	/if (is_ready[${_debug}, "${maChr.Find[stMonkey].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stMonkey].Value}" 0 FALSE
-	/if (is_ready[${_debug}, "Silent Strikes"]}) /call voodoo ${_debug} "Silent Strikes" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stBalance].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stBalance].Value}" 0 FALSE
+	/if (${is_ready[${_debug}, "Infusion of Thunder"]}) /call voodoo ${_debug} "Infusion of Thunder" 0 FALSE
+	/if (${is_ready[${_debug}, "Focused Destructive Force"]}) /call voodoo ${_debug} "Focused Destructive Force" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stMonkey].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stMonkey].Value}" 0 FALSE
+	/if (${is_ready[${_debug}, "Silent Strikes"]}) /call voodoo ${_debug} "Silent Strikes" 0 FALSE
 	
 | 	Check if we're using a disc, if not use Heel, if another, cancel it and use Heel
 
 	/if (!${Me.ActiveDisc.Name.ID}) {
-		/if (is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
 		/if (!${maCC.Find[swFlyingkick].Value} || !${maCC.Find[swEaglestrike].Value}) {
 			/varset dump ${maCC.Add[swKick,FALSE]}
 			/varset dump ${maCC.Add[swFlyingkick,TRUE]}
@@ -202,7 +202,7 @@ sub burn_MNK(bool _debug)
 		/call voodoo ${_debug} "${maChr.Find[stHeel].Value}" TARGET FALSE
 		}
 	} else /if (${Me.ActiveDisc.Name.ID} && !${Me.ActiveDisc.Name.Find[Heel]}) {
-		/if (is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
 			/stopdisc
 			/if (!${maCC.Find[swFlyingkick].Value} || !${maCC.Find[swEaglestrike].Value}) {
 				/varset dump ${maCC.Add[swKick,FALSE]}
@@ -215,10 +215,10 @@ sub burn_MNK(bool _debug)
 			/call voodoo ${_debug} "${maChr.Find[stHeel].Value}" TARGET FALSE
 		}
 	}
-	/if (is_ready[${_debug}, "${maChr.Find[stDiscipline].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stDiscipline].Value}" FALSE
-	/if (is_ready[${_debug}, "${maChr.Find[stCrane].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stCrane].Value}" TARGET FALSE
-	/if (is_ready[${_debug}, "Five Point Palm"]}) /call voodoo ${_debug} "Five Point Palm" TARGET FALSE
-	/if (is_ready[${_debug}, "Swift Tail's Chant"]}) /call voodoo ${_debug} "Swift Tail's Chant" 0 FALSE    
+	/if (${is_ready[${_debug}, "${maChr.Find[stDiscipline].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stDiscipline].Value}" FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stCrane].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stCrane].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "Five Point Palm"]}) /call voodoo ${_debug} "Five Point Palm" TARGET FALSE
+	/if (${is_ready[${_debug}, "Swift Tail's Chant"]}) /call voodoo ${_debug} "Swift Tail's Chant" 0 FALSE    
 
   /call cast_glyph ${_debug}
 
@@ -285,12 +285,12 @@ sub Event_MNKfdcheck(string line, string _verbage)
 	
 	/if (${Me.State.Equal[FEIGN]} && !${swIsMeDead}) {
 		/if (${Me.AltAbilityReady["${maChr.Find[stFade].Value}"]}) {
-			/if (is_ready[FALSE, "${maChr.Find[stFade].Value}"]}) /call voodoo FALSE "${maChr.Find[stFade].Value}" 0 FALSE
+			/if (${is_ready[FALSE, "${maChr.Find[stFade].Value}"]}) /call voodoo FALSE "${maChr.Find[stFade].Value}" 0 FALSE
 			/return
 		}
 		/stand
 		/if (${Me.AbilityReady[Mend]}) /doability Mend
-		/if (is_ready[FALSE, "${maChr.Find[stDeath].Value}"]}) /call voodoo FALSE "${maChr.Find[stDeath].Value}" 0 FALSE
+		/if (${is_ready[FALSE, "${maChr.Find[stDeath].Value}"]}) /call voodoo FALSE "${maChr.Find[stDeath].Value}" 0 FALSE
 	}
 	
 /return FALSE
