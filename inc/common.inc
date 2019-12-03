@@ -5705,19 +5705,24 @@ sub cast_nuke(bool _debug, string _line, int _tmpID)
  ***|
 sub cast_dot(bool _debug, string _line, int _tmpID)
 	DEBUG \atcast_dot\ax(\a-w${_line}, ${_tmpID}\ax)
-		
-	/vardata li ${_line}.First.Clone
-	/while (!${li.IsEnd}) {
+	
+	/declare _licu listiterator local
+	/vardata _licu ${_line}.First.Clone
+	/while (!${_licu.IsEnd}) {
 
 		ISMEDEAD
 		CHECKEXIT
 		GETINPUT
-		/if (${get_target_buff_time_left[${_debug}, "${li.Value}"]} >= ${maCC.Find[stDotRefresh].Value}) /return TRUE
+		/if (${get_target_buff_time_left[${_debug}, "${_licu.Value}"]} >= ${maCC.Find[stDotRefresh].Value}) /return TRUE
+		
 		/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return
+		
 		/if (${Me.PctMana} < 2) /continue 
-		/if (${is_ready[FALSE, "${li.Value}"]}) {
-			/call voodoo FALSE "${li.Value}" ${_tmpID} FALSE
+		
+		/if (${is_ready[FALSE, "${_licu.Value}"]}) {
+			/call voodoo FALSE "${_licu.Value}" ${_tmpID} FALSE
 		}
+		
 		/varset dump ${set_data_timer[FALSE, Nuke_Delay, RESTART]}
 
 		| maintain the loop of nukes till all are cycled.
@@ -5727,7 +5732,7 @@ sub cast_dot(bool _debug, string _line, int _tmpID)
 			/delay ${timer_Nuke_Delay}
 		}
 
-		/varset dump ${li.Advance}
+		/varset dump ${_licu.Advance}
 	}	
 
 /return
@@ -6933,103 +6938,103 @@ sub check_deBuffs(bool _debug, int _tmpID)
 	| end of eradicate debuff checks
 	}
 	
-	
+	/declare _lidb listiterator local
 	/declare _lsout list local
 	/varset dump ${_lsout.Append[Slow,Snare,Tash,Cripple,Malo]}
-	/vardata li _lsout.First.Clone
+	/vardata _lidb _lsout.First.Clone
 	/declare _tmpTLO string local
-	/while (!${li.IsEnd}) {
+	/while (!${_lidb.IsEnd}) {
 		
-		/if (${li.Value.Equal[Slow]}) {
+		/if (${_lidb.Value.Equal[Slow]}) {
 			/varset _tmpTLO Slowed
-		} else /if (${li.Value.Equal[Snare]}) {
+		} else /if (${_lidb.Value.Equal[Snare]}) {
 			/varset _tmpTLO Snared
-		} else /if (${li.Value.Equal[Tash]}) {
+		} else /if (${_lidb.Value.Equal[Tash]}) {
 			/varset _tmpTLO Tashed
-		} else /if (${li.Value.Equal[Cripple]}) {
+		} else /if (${_lidb.Value.Equal[Cripple]}) {
 			/varset _tmpTLO Crippled
-		} else /if (${li.Value.Equal[Malo]}) {
+		} else /if (${_lidb.Value.Equal[Malo]}) {
 			/varset _tmpTLO Maloed
 		}
 		
-		/if (${madeBuff.Find[sw${li.Value}].Value}) {
-			DEBUG ${sep}{madeBuff.Find[sw${li.Value}].Value}${sep}\a-w${madeBuff.Find[sw${li.Value}].Value}\ax
+		/if (${madeBuff.Find[sw${_lidb.Value}].Value}) {
+			DEBUG ${sep}{madeBuff.Find[sw${_lidb.Value}].Value}${sep}\a-w${madeBuff.Find[sw${_lidb.Value}].Value}\ax
 
-			/if (!${Defined[timer_${li.Value.Lower}_ID${_tmpID}]}) {
-				/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, 1]}
+			/if (!${Defined[timer_${_lidb.Value.Lower}_ID${_tmpID}]}) {
+				/varset dump ${set_timer[${_debug}, timer_${_lidb.Value.Lower}_ID${_tmpID}, 1]}
 			} 
 					
 			| add if already there?
-			/if ((${Target.${_tmpTLO}.ID} || ${Target.Buff[${madeBuff.Find[st${li.Value}].Value}].ID} || ${Target.Buff[${madeBuff.Find[stAE${li.Value}].Value}].ID}) && (!${timer_${li.Value.Lower}_ID${_tmpID}} || !${lsdeBuff${li.Value}.Contains[${_tmpID}]})) {
-				/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
-					/varset dump ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+			/if ((${Target.${_tmpTLO}.ID} || ${Target.Buff[${madeBuff.Find[st${_lidb.Value}].Value}].ID} || ${Target.Buff[${madeBuff.Find[stAE${_lidb.Value}].Value}].ID}) && (!${timer_${_lidb.Value.Lower}_ID${_tmpID}} || !${lsdeBuff${_lidb.Value}.Contains[${_tmpID}]})) {
+				/if (!${lsdeBuff${_lidb.Value}.Contains[${_tmpID}]}) {
+					/varset dump ${lsdeBuff${_lidb.Value}.Append[${_tmpID}]}
 				}
 				/if (${Target.${_tmpTLO}.Duration.TotalSeconds}) {
-					/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, ${Target.${_tmpTLO}.Duration.TotalSeconds}]}			
+					/varset dump ${set_timer[${_debug}, timer_${_lidb.Value.Lower}_ID${_tmpID}, ${Target.${_tmpTLO}.Duration.TotalSeconds}]}			
 				}
 			}
 				
-			/if (!${timer_${li.Value.Lower}_ID${_tmpID}} || !${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
+			/if (!${timer_${_lidb.Value.Lower}_ID${_tmpID}} || !${lsdeBuff${_lidb.Value}.Contains[${_tmpID}]}) {
 				DEBUG NO timer or not in list
-				/if (${Bool[${madeBuff.Find[stAE${li.Value}].Value}]} && AE#) {
-					/varset _mobCount ${SpawnCount[npc loc ${Spawn[id ${_tmpID}].X} ${Spawn[id ${_tmpID}].Y} radius ${Spell[${madeBuff.Find[stAE${li.Value}].Value}].AERange}]} 
+				/if (${Bool[${madeBuff.Find[stAE${_lidb.Value}].Value}]} && AE#) {
+					/varset _mobCount ${SpawnCount[npc loc ${Spawn[id ${_tmpID}].X} ${Spawn[id ${_tmpID}].Y} radius ${Spell[${madeBuff.Find[stAE${_lidb.Value}].Value}].AERange}]} 
 				} else {
 					/varset _mobCount 0
 				}
 				
 				DEBUG _mobCount${sep}\a-w${_mobCount}\ax
-				/if ((!AE# || (AE# && !${is_ready[${_debug}, "${madeBuff.Find[stAE${li.Value}].Value}"]})) && ${is_ready[${_debug}, "${madeBuff.Find[st${li.Value}].Value}"]}) {
-					DEBUG ${sep}{madeBuff.Find[sw${li.Value}].Value}${sep}\a-wSINGLE\ax
-					/call voodoo ${_debug} "${madeBuff.Find[st${li.Value}].Value}" ${_tmpID} FALSE
+				/if ((!AE# || (AE# && !${is_ready[${_debug}, "${madeBuff.Find[stAE${_lidb.Value}].Value}"]})) && ${is_ready[${_debug}, "${madeBuff.Find[st${_lidb.Value}].Value}"]}) {
+					DEBUG ${sep}{madeBuff.Find[sw${_lidb.Value}].Value}${sep}\a-wSINGLE\ax
+					/call voodoo ${_debug} "${madeBuff.Find[st${_lidb.Value}].Value}" ${_tmpID} FALSE
 					/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
-						DEBUG	lsdeBuff${li.Value}.Contains[${_tmpID}]
-						/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
-							/varset dump ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+						DEBUG	lsdeBuff${_lidb.Value}.Contains[${_tmpID}]
+						/if (!${lsdeBuff${_lidb.Value}.Contains[${_tmpID}]}) {
+							/varset dump ${lsdeBuff${_lidb.Value}.Append[${_tmpID}]}
 						}
-						/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[st${li.Value}].Value}].Duration.TotalSeconds}]}
+						/varset dump ${set_timer[${_debug}, timer_${_lidb.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[st${_lidb.Value}].Value}].Duration.TotalSeconds}]}
 					} else /if (${Select[${maData.Find[stCastReturn].Value},RESISTED,NOTREADY,FIZZLE,DISTRACTED]}) {
-						/varset dump ${set_timer[FALSE, timer_${li.Value.Lower}_ID${_tmpID}, 6s]}
+						/varset dump ${set_timer[FALSE, timer_${_lidb.Value.Lower}_ID${_tmpID}, 6s]}
 					} else /if (${Select[${maData.Find[stCastReturn].Value},IMMUNE,TAKEHOLD]}) {
-						/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
-							/varset dump ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+						/if (!${lsdeBuff${_lidb.Value}.Contains[${_tmpID}]}) {
+							/varset dump ${lsdeBuff${_lidb.Value}.Append[${_tmpID}]}
 						}
-						/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, 10m]}
+						/varset dump ${set_timer[${_debug}, timer_${_lidb.Value.Lower}_ID${_tmpID}, 10m]}
 					}
-					/varset dump ${li.Advance}
+					/varset dump ${_lidb.Advance}
 					/continue
 				}
 				
-				/if (AE# && ${is_ready[${_debug}, "${madeBuff.Find[stAE${li.Value}].Value}"]} && (${_mobCount} >= AE#)) {
-					DEBUG ${sep}{madeBuff.Find[sw${li.Value}].Value}${sep}\a-wMULTI\ax
-					/call voodoo ${_debug} "${madeBuff.Find[stAE${li.Value}].Value}" ${_tmpID} FALSE
+				/if (AE# && ${is_ready[${_debug}, "${madeBuff.Find[stAE${_lidb.Value}].Value}"]} && (${_mobCount} >= AE#)) {
+					DEBUG ${sep}{madeBuff.Find[sw${_lidb.Value}].Value}${sep}\a-wMULTI\ax
+					/call voodoo ${_debug} "${madeBuff.Find[stAE${_lidb.Value}].Value}" ${_tmpID} FALSE
 					/if (${maData.Find[stCastReturn].Value.Equal[SUCCESS]}) {
-						/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
-							/varset dump ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+						/if (!${lsdeBuff${_lidb.Value}.Contains[${_tmpID}]}) {
+							/varset dump ${lsdeBuff${_lidb.Value}.Append[${_tmpID}]}
 						}
-						/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[stAE${li.Value}].Value}].Duration.TotalSeconds}]}
+						/varset dump ${set_timer[${_debug}, timer_${_lidb.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[stAE${_lidb.Value}].Value}].Duration.TotalSeconds}]}
 						/for _count 1 to ${_mobCount}
-							/varset _tmpMobID ${Spawn[${_tmpID}].NearestSpawn[${_count} ,npc radius ${Spell[${madeBuff.Find[stAE${li.Value}].Value}].AERange}].ID}
+							/varset _tmpMobID ${Spawn[${_tmpID}].NearestSpawn[${_count} ,npc radius ${Spell[${madeBuff.Find[stAE${_lidb.Value}].Value}].AERange}].ID}
 							/if (${_tmpMobID} == 0) /break
-							/if (!${lsdeBuff${li.Value}.Contains[${_tmpMobID}]}) {
-								/varset dump ${lsdeBuff${li.Value}.Append[${_tmpMobID}]}
+							/if (!${lsdeBuff${_lidb.Value}.Contains[${_tmpMobID}]}) {
+								/varset dump ${lsdeBuff${_lidb.Value}.Append[${_tmpMobID}]}
 							}
-							/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpMobID}, ${madeBuff.Find[stTimerSnare].Value}]}
+							/varset dump ${set_timer[${_debug}, timer_${_lidb.Value.Lower}_ID${_tmpMobID}, ${madeBuff.Find[stTimerSnare].Value}]}
 						/next _count
 					} else /if (${Select[${maData.Find[stCastReturn].Value},RESISTED,NOTREADY,FIZZLE,DISTRACTED]}) {
-						/varset dump ${set_timer[FALSE, timer_${li.Value.Lower}_ID${_tmpID}, 6s]}
+						/varset dump ${set_timer[FALSE, timer_${_lidb.Value.Lower}_ID${_tmpID}, 6s]}
 					} else /if (${Select[${maData.Find[stCastReturn].Value},IMMUNE,TAKEHOLD]}) {
-						/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
-							/varset dump ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+						/if (!${lsdeBuff${_lidb.Value}.Contains[${_tmpID}]}) {
+							/varset dump ${lsdeBuff${_lidb.Value}.Append[${_tmpID}]}
 						}
-						/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, 10m]}
+						/varset dump ${set_timer[${_debug}, timer_${_lidb.Value.Lower}_ID${_tmpID}, 10m]}
 					}
-					/varset dump ${li.Advance}
+					/varset dump ${_lidb.Advance}
 					/continue
 				}
 			}
 		}
 
-		/varset dump ${li.Advance}
+		/varset dump ${_lidb.Advance}
 	}		
 	
 /return

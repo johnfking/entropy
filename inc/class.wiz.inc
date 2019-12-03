@@ -71,19 +71,19 @@ sub main_WIZ(bool _debug)
 		/if (VALID) {
 			/call set_combat FALSE
 			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
-			/if (!${timer_Check_deBuffs}) /call check_deBuffs /call check_cure ${maDebug.Find[debuff].Value} TARGET
-			/if (BURN) /call burn_${Me.Class.ShortName} /call check_cure ${maDebug.Find[burn].Value}
+			/if (!${timer_Check_deBuffs}) /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			/if (BURN) /call burn_${Me.Class.ShortName}  ${maDebug.Find[burn].Value}
 			/if (PET || SWARM) /call send_pet FALSE TARGET
 			/if (SWARM) /call cast_temp_pet FALSE TARGET "${maChr.Find[stTempPet].Value}"
 			/if (${maCC.Find[swAlliance].Value}) /call trigger_alliance TARGET
-			/if (DOT) /call cast_dot /call check_cure ${maDebug.Find[castdot].Value} lsDoT TARGET
+			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDoT TARGET
 			/if (NUKE) {
 				/if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} TRUE
 				/call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke${stLine} TARGET
 			}
 			/if (MELEE) /call use_skill_melee TARGET
 			/call misc_combat_${Me.Class.ShortName}
-			/call check_item_cycle /call check_cure ${maDebug.Find[castitem].Value} TARGET
+			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
 
 		}
 		
