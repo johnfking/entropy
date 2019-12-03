@@ -2938,8 +2938,8 @@ sub pull_mob_tag(bool _debug, int _tmpID)
  ***|
 sub pull_mob_find(bool _debug, int _spCount)
 	DEBUG \atpull_mob_find\ax(\a-w${_spCount}\ax)
+	
 	/if (!${Bool[${_spCount}]}) /varset _spCount 0
-
 
 	/if (HOME && !${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
 		/call Bind_control_home return
@@ -6356,7 +6356,7 @@ sub do_loot(bool _debug)
 				/varset _notfound TRUE
 				DEBUG ${sep}${_advlItem}${sep}\a-w not in database\ax
 				/if (${AdvLoot.SList[${_scount}].NoDrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
-					/varset dump ${out[14, "${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]."]}
+					/varset dump ${out[14, "${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]"]}
 					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
 					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave") \ay${sqlite.Status[lootquery]}\ax
 				} else {
@@ -6425,7 +6425,7 @@ sub do_loot(bool _debug)
 				/varset _notfound TRUE
 				DEBUG ${sep}${_advlItem}${sep}\a-wnot in database\ax
 				/if (${Advloot.Slist[${_Scount}].Nodrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
-					/varset dump ${out[14, "${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]."]}
+					/varset dump ${out[0, "${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]"]}
 					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
 					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave") \ay${sqlite.Status[lootquery]}\ax
 				} else {
@@ -6993,6 +6993,8 @@ sub check_deBuffs(bool _debug, int _tmpID)
 						}
 						/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, 10m]}
 					}
+					/varset dump ${li.Advance}
+					/continue
 				}
 				
 				/if (AE# && ${is_ready[${_debug}, "${madeBuff.Find[stAE${li.Value}].Value}"]} && (${_mobCount} >= AE#)) {
@@ -7019,6 +7021,8 @@ sub check_deBuffs(bool _debug, int _tmpID)
 						}
 						/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, 10m]}
 					}
+					/varset dump ${li.Advance}
+					/continue
 				}
 			}
 		}
@@ -9006,12 +9010,80 @@ sub set_loot_item(bool _debug, string _item)
 
 
 
+|***
+ * note: buy items from a vendor
+ * use : /call vendor_buy DEBUG [item] [#]
+ ***|
+sub vendor_buy( bool _debug, string _itemtoBuy, int _buyAmount)
+	DEBUG \atvendor_buy\ax(\a-w${_itemtoBuy}, ${_buyAmount}\ax)
+	
+	/if (!${Select[${Target.Type},npc,pet]} || !${Target.ID} || ${Target.Type.Equal[pet]} && !${Target.DisplayName.Find[familiar]}) /return FALSE
+	/declare _count int local 0
+	/declare _qty int local 0
+	/declare _listItem int local 0
 
+	/varcalc _qty ${_buyAmount}-${FindItemCount[=${_itemtoBuy}]}
+	/delay 3
+	/if (${FindItemCount[=${_itemtoBuy}]} >= ${_buyAmount}) {
+		OUT I already have ${_itemtoBuy} ${sep} (${num}${FindItemCount[=${_itemtoBuy}]}\ax)
+		/return
+	}   
 
+	| set item in the list window
+	/if (${Target.ID} == ${Spawn[npc alerynril].ID}) {
+		/varset _listItem ${Window[NewPointMerchantWnd].Child[NewPointMerchant_ItemList].List[=${_itemtoBuy}]}
+	} else {
+		/varset _listItem ${Window[MerchantWnd].Child[ItemList].List[=${_itemtoBuy},2]}}
+	} 	
 
+	/if (!${_listItem}) {
+		OUT ${caution}${sep}\a-wCouldn't find ${_itemtoBuy}\ax
+		/return
+	} else {
+		/if (${Target.ID} == ${Spawn[npc alerynril].ID}) {
+			/notify NewPointMerchantWnd NewPointMerchant_ItemList listselect ${_listItem}
+		} else {
+			/notify MerchantWnd ItemList listselect ${_listItem}
+		}
+		/delay 5       
+	}	
 
+	OUT Buying${sep}\a-w${_itemtoBuy} 'till I get ${_buyAmount}\ax
 
+	:loopbuyitems
+	GETINPUT
 
+	/if (${_qty} > 0) {
+		/if (${_qty} > 19) {
+			/if (${Target.ID} == ${Spawn[npc alerynril].ID}) {
+				/shiftkey /notify NewPointMerchantWnd NewPointMerchant_PurchaseButton leftmouseup
+			} else {            	
+				/shiftkey /notify merchantwnd MW_Buy_Button leftmouseup
+			}	
+			/delay 5 ${FindItemCount[=${_itemtoBuy}]} >= ${_qty}
+			/varcalc _qty ${_buyAmount}-${FindItemCount[=${_itemtoBuy}]} 
+			/if (${_qty} <= 0) /return
+			}
+			/delay 5
+			/if (${_qty} > 19) /goto :loopbuyitems
+		}
+		/if (${_qty} > 0 && ${_qty} < 20) {
+			/for _count 1 to ${_qty}
+				/if (${Target.ID} == ${Spawn[npc alerynril].ID}) {
+					/ctrlkey /notify NewPointMerchantWnd NewPointMerchant_PurchaseButton leftmouseup
+				} else {            	
+					/ctrlkey /notify merchantwnd MW_Buy_Button leftmouseup
+				}
+				/delay 1s ${FindItemCount[=${_itemtoBuy}]} >= ${Math.Calc[${FindItemCount[=${_itemtoBuy}]}+${_count}]}
+				/echo Buying ${_itemtoBuy} ${_count} of ${_qty}
+				/if (${_count} >= ${_qty}) /return
+			/next _count
+			/varcalc _qty ${_buyAmount}-${FindItemCount[=${_itemtoBuy}]}
+
+		}
+	}
+
+/return TRUE
 
 
 

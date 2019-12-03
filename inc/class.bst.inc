@@ -24,7 +24,7 @@ sub set_BST(bool _debug)
  	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
  	/call set_data_map FALSE maChr stAlliance 													PREGEN|1											"${auxna} alliance spell"
 
-	/call set_data_map FALSE maChr stNukeServant 												PREGEN|1											"${auxna} spam nuke spam spell"
+	/call set_data_map FALSE maChr stNukeServant 												PREGEN|1											"${auxna} spam nuke pet spell"
 	/call set_data_map FALSE maChr stGrowl 															PREGEN|1											"${auxna} growl buff spell"
   /call set_data_map FALSE maChr stFero 															PREGEN|1											"${auxna} ferocity spell line"
   /call set_data_map FALSE maChr stDichotomic 												PREGEN|1											"${auxna} dichotomic spell"
@@ -63,41 +63,40 @@ sub main_BST(bool _debug)
 	/if (AUTO) {
 		/call check_mana_${Me.Class.ShortName}
 		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
-		/if (PET || SWARM) /call send_pet FALSE TARGET
+		/if (PET || SWARM) /call send_pet ${maDebug.Find[minion].Value} TARGET
 	}
 
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Self
-		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Group
+		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value}  Self
+		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value}  Group
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
-		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
-		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Pet
-		/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value}  XTarget
+		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[minion].Value}  Pet
+		/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 		/if (${check_class_loop[FALSE]}) /return		
 
 		/if (VALID) {
 			/call set_combat FALSE
-			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[minon].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (DOT) /call cast_dot FALSE lsDoT TARGET
-			/if (NUKE) /call cast_nuke FALSE lsNuke TARGET
-			/call check_item_cycle FALSE TARGET
-
-			| /if (${swAlliance}) /call cast_alliance_${Me.Class.ShortName} TARGET
+			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDoT TARGET
+			/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
+			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
+			/if (${maCC.Find[swAlliance].Value}) /call cast_alliance_${Me.Class.ShortName} TARGET
 		
 		}
 
 		/if (AUTO) {	
 			CHECKFADE
 			/call check_mana_BST FALSE
-			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
+			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[rest].Value}
 		}	
 	}

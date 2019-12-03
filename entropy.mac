@@ -78,7 +78,7 @@
 #include exspes\inc\class.enc.inc
 #include exspes\inc\class.mag.inc
 #include exspes\inc\class.mnk.inc
-| #include exspes\inc\class.nec.inc
+#include exspes\inc\class.nec.inc
 #include exspes\inc\class.pal.inc
 #include exspes\inc\class.rng.inc
 #include exspes\inc\class.rog.inc

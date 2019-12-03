@@ -105,7 +105,7 @@ sub set_initialize(bool _debug)
   /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mezz,melee,minion,pull,rest,rez,target,zone,debuff]}
   /varset dump ${_lsout.Append[buff,buffammo,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass,buffnow,bufftemp]}
   /varset dump ${_lsout.Append[cast,castitem,castnuke,castdot]}
-  /varset dump ${_lsout.Append[mode,modeforage,modedrag,modecollect]}
+  /varset dump ${_lsout.Append[mode,modeforage,modedrag,modecollect,modesummon]}
   
   | class specific debuffs
   /if (${Select[${Me.Class.ShortName},BER]}) {
@@ -253,6 +253,7 @@ sub set_initial_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
     /varset dump ${lsChr.Append[train|fdhp|fdaggro]}  	
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
+    /varset dump ${lsChr.Append[blood|bloom]}  	
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
     /varset dump ${lsChr.Append[attraction|harmonious|loh|mg|flash|stun|yaulp]}
   } else /if (${Select[${Me.Class.ShortName},RNG]}) {
@@ -301,7 +302,7 @@ sub set_initial_environment(bool _debug)
   | generate modes
   /declare maMode map outer
   /declare _lsout list local
-  /varset dump ${_lsout.Append[forage,drag,collect]}
+  /varset dump ${_lsout.Append[forage,drag,collect,summon]}
 
   /vardata cli _lsout.First.Clone
   /while (!${cli.IsEnd}) {
@@ -564,16 +565,15 @@ sub set_initialize_map_character_environment(bool _debug)
       /call set_data_map FALSE maHeal stHealPoint${li.Value}         80                   					"${auxnum} % of health to start healing:\a-w${li.Value}\ax"
       /varset dump ${li.Advance}
     }
-  /call set_data_map FALSE maHeal stHealMode                          base                          "[\a-wbase\ax|\a-wpassive\ax|\a-waggressive\ax] heal mode to use"
-  
-
-  /call set_data_list FALSE maHeal lsProtectOutsideGroup              EMPTY                         "${auxli} names outside of your group to add to xtarget for healing"
+	 /call set_data_list FALSE maHeal lsProtectOutsideGroup              EMPTY                         "${auxli} names outside of your group to add to xtarget for healing"
   /call set_data_list FALSE maHeal lsProtectInsideRaid                EMPTY                         "${auxli} names in a raid to add to your xtarget healing (\a-wbeyond lsHealXTClass\ax)"
   /call set_data_list FALSE maHeal lsProtectNPCList                   EMPTY                         "${auxli} npcs to add to xtarget list for healing"
     
   } else /if (!${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
     /call set_data_map FALSE maHeal stHealPoint${Me.Class.ShortName}  60
   }
+
+  /call set_data_map FALSE maHeal stHealMode                          base                          "[\a-wbase\ax|\a-wpassive\ax|\a-waggressive\ax] heal mode to use"
 
   /if (${lsClassCastCure.Contains[${Me.Class.ShortName}]}) {
     /call set_data_map FALSE maHeal stCureCurse                       FALSE                         "${auxna} name of cure curse spell"
@@ -798,6 +798,8 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
+    /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
+    /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data_list FALSE maChr lsHealPetLine                     EMPTY                         "${auxli} list of healing spells/aas/items for pets"
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
@@ -970,8 +972,6 @@ sub set_initialize_crew(bool _debug)
   /next _count
 
 /return
-
-
 
 
 

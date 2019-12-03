@@ -38,6 +38,7 @@ sub Bind_control_debug(string _type, bool _debug)
 /return
 
 
+
 |***
  * note: mode control
  * use: /mode []
@@ -70,9 +71,6 @@ sub Bind_control_mode(string _type, bool _debug)
 
 
 
-
-
-
 |***
  * note: administration control 
  * use: /admin
@@ -80,7 +78,6 @@ sub Bind_control_mode(string _type, bool _debug)
 #bind control_admin /admin
 sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
 	DEBUG \atBind_control_admin\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
-
 
 	| cehck for undeclared variables
 	/if (${_type.Equal[checkvar]}) {
@@ -109,7 +106,6 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 			/varset dump ${out[12, "/admin spa \atEXACT SPELLNAME\ax"]}
 			/return
 		}
-		
 		
 		/declare _spell "${_verbage}"
 
@@ -143,7 +139,6 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		/spellslotinfo ${Spell[${_spell}].ID}
 
 		/return
-
 
 	} else /if (${_type.Equal[import]}) {
 	
@@ -243,19 +238,6 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 			/echo
 			/return								
 		}
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	}
 
@@ -1079,10 +1061,10 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, bool _debug
 
 	} else /if (${_type.Equal[mode]}) {
 		
-		/if (!${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
-			/varset dump ${get_shade[TRUE, MQWindow]}
-			/return
-		}
+		| /if (!${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
+		| 	/varset dump ${get_shade[TRUE, MQWindow]}
+		| 	/return
+		| }
 		
 		/if (${lsHealMode.Contains[${_verbage}]}) {
 			/call do_raw_edit ${_debug} SILENT stHealMode "${_verbage}"

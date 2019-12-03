@@ -107,7 +107,7 @@ sub mode_get_mob(bool _debug)
 
 	CLEARCURSOR TRUE
 
-	/if (!${Spawn[${Target2Kill}].ID} || ${Spawn[${Target2Kill}].Dead} || ${Target.Dead}) {
+	/if (!${Spawn[TARGET].ID} || ${Spawn[TARGET].Dead} || ${Target.Dead}) {
 		/call set_stop NOECHO
 		/call clear_combat
 		/return
@@ -116,41 +116,41 @@ sub mode_get_mob(bool _debug)
 	| /call check_watch_spawn
 
 	| get us to the mob
-	| /if (${Spawn[${Target2Kill}].Distance} > ${setCombatDistance} && ${Spawn[${Target2Kill}].LineOfSight} && ${Spawn[${Target2Kill}].Distance} > ${setMobAgro}) {
-	/if (${Spawn[${Target2Kill}].Distance} > ${setCombatDistance} && ${Spawn[${Target2Kill}].Distance} > ${setMobAgro}) {
-		/squelch /face ID ${Target2Kill} nolook ${If[${swFaceFast},fast,]}
+	| /if (${Spawn[TARGET].Distance} > ${setCombatDistance} && ${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} > ${setMobAgro}) {
+	/if (${Spawn[TARGET].Distance} > ${setCombatDistance} && ${Spawn[TARGET].Distance} > ${setMobAgro}) {
+		/squelch /face ID TARGET nolook ${If[${swFaceFast},fast,]}
 		
 		| use nav for movement
 		/if (${setTieMode.Equal[nav]} && ${Bool[${Plugin[MQ2Nav]}]} && !${Navigation.Active}) {
-			| /echo nav to ${Target2Kill}
+			| /echo nav to TARGET
 			/if (${Navigation.Active}) /nav stop log=off
-			/squelch /nav ID ${Target2Kill} log=off
+			/squelch /nav ID TARGET log=off
 
 		| use stick for movement
 		} else /if (${setTieMode.Equal[stick]} && ${Bool[${Plugin[MQ2MoveUtils]}]} && !${Stick.Active}) {
-			/squelch /stick ID ${Target2Kill} ${setCombatDistance} UW
+			/squelch /stick ID TARGET ${setCombatDistance} UW
 		}
 		
 	| at the mob, do something about it		
-	} else /if (${Spawn[${Target2Kill}].LineOfSight} && ${Spawn[${Target2Kill}].Distance} <= ${setMobAgro}) {
-		/squelch /face ID ${Target2Kill} nolook ${If[${swFaceFast},fast,]}
-		/squelch /target ID ${Target2Kill}
+	} else /if (${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} <= ${setMobAgro}) {
+		/squelch /face ID TARGET nolook ${If[${swFaceFast},fast,]}
+		/squelch /target ID TARGET
 	}
 					
-	/if (${Spawn[${Target2Kill}].Distance} < ${setMobAgro} && ${Spawn[${Target2Kill}].Distance} > 31) {
-		/squelch /target ID ${Target2Kill}
+	/if (${Spawn[TARGET].Distance} < ${setMobAgro} && ${Spawn[TARGET].Distance} > 31) {
+		/squelch /target ID TARGET
 		/if (${Me.Pet.ID} && !${Me.Pet.Target.ID}) /pet attack
-		/if (${Target.ID} && ${Spawn[${Target2Kill}].LineOfSight}) /range
-	} else /if (${Spawn[${Target2Kill}].Distance} < ${setCombatDistance}) {
+		/if (${Target.ID} && ${Spawn[TARGET].LineOfSight}) /range
+	} else /if (${Spawn[TARGET].Distance} < ${setCombatDistance}) {
 		/call set_combat COMBAT
 		/if (${Me.Pet.ID} && !${Me.Pet.Target.ID}) /pet attack
 		
 		/if (${Bool[${ModeNuke}]}) {
-			/if (${validate_cast[FALSE, FIND, "${ModeNuke}", ${Target2Kill}]}) /call core_cast2 "${ModeNuke}" FIND ${Target2Kill} FALSE 
+			/if (${validate_cast[FALSE, FIND, "${ModeNuke}", TARGET]}) /call core_cast2 "${ModeNuke}" FIND TARGET FALSE 
 		}
 	} 
 
-	/if (${Spawn[${Target2Kill}].ID} && ${Spawn[${Target2Kill}].Distance} > ${setCombatDistance}) /goto :movetomob	
+	/if (${Spawn[TARGET].ID} && ${Spawn[TARGET].Distance} > ${setCombatDistance}) /goto :movetomob	
 
 /return
 
@@ -302,13 +302,13 @@ sub mode_hunt(bool _debug)
 	/for _count 1 to ${HuntMobList.Count[|]}
 		/if (${Spawn[npc ${HuntMobList.Arg[${_count},|]} radius ${setModeAgro} targetable].ID}) {
 			/varset Target2Kill ${NearestSpawn[npc ${HuntMobList.Arg[${_count},|]}].ID}
-			/call echos hunt 0 0 ${Target2Kill} 0
+			/call echos hunt 0 0 TARGET 0
 			/goto :haveatarget
 		}
 	/next _count	
 
 	:haveatarget
-	/if (!${Target2Kill}) {
+	/if (!TARGET) {
 		/call timer_set timer_wait_for_mob_to_kill ${tHunt_delay}
 		/call check_buff_routines TRUE
 	}
@@ -317,10 +317,10 @@ sub mode_hunt(bool _debug)
 	/if (${swADVL}) {
 		/if ((${coreAuto} || ${swOverrideLoot}) && !${SafeZone} && !${swOverrideSafeZone}) /call do_loot
 	}
-	/if (${Spawn[${Target2Kill}].ID}) {
+	/if (${Spawn[TARGET].ID}) {
 		/call mode_get_mob
-	} else /if (${Spawn[${Target2Kill}].Dead} || !${Spawn[${Target2Kill}].ID} || !${timer_scorched_earth_fail}) {
-		/if (!${timer_scorched_earth_fail}) /call timer_set timer_scorched_earth_ignore_${Target2Kill} ${tScorchedEarth_ignore} 
+	} else /if (${Spawn[TARGET].Dead} || !${Spawn[TARGET].ID} || !${timer_scorched_earth_fail}) {
+		/if (!${timer_scorched_earth_fail}) /call timer_set timer_scorched_earth_ignore_$TARGET ${tScorchedEarth_ignore} 
 		/call set_stop NOECHO
 		/call clear_combat
 	}	
@@ -367,7 +367,7 @@ sub mode_petfarm(bool _debug)
 
 		| skip excluded mobs
 		:loopnamedmob
-		/if (${ExcludeList.Find[${Spawn[id ${Target2Kill}].DisplayName}]})	{
+		/if (${ExcludeList.Find[${Spawn[id TARGET].DisplayName}]})	{
 			/varcalc _nameloop ${_nameloop}+1
 			/if (${_spawnCount} > 1) {
 				/varset Target2Kill ${Spawn[${NearestSpawn[${_nameloop}, ${If[${swOverrideLOS},,los]} npc radius ${setMobAgro} zradius ${setzradius} targetable]}].ID}
@@ -379,7 +379,7 @@ sub mode_petfarm(bool _debug)
 			}
 		}
 				
-		/if (!${Target2Kill}) /goto :nomob
+		/if (!TARGET) /goto :nomob
 		/varset _resetCount 0
 	} else {
 		:nomob
@@ -402,11 +402,11 @@ sub mode_petfarm(bool _debug)
 	:gettarget
 	CHECKTIE
 	/doevents
-	/squelch /target ID ${Target2Kill}
-	/if (!${ExcludeList.Find[${Spawn[id ${Target2Kill}].DisplayName}]}) {
+	/squelch /target ID TARGET
+	/if (!${ExcludeList.Find[${Spawn[id TARGET].DisplayName}]}) {
 		/if (!${Pet.Target.ID}) {
 			| /delay 5
-			/call echos petfarm 0 ${Target2Kill} 0 0
+			/call echos petfarm 0 TARGET 0 0
 			/pet attack
 			/delay 2s
 		}
@@ -423,12 +423,12 @@ sub mode_petfarm(bool _debug)
 	/delay 1s
 	/doevents
 	CHECKTIE
-	/if (${Spawn[${Target2Kill}].Type.Equal[CORPSE]} || !${Spawn[${_tmpID}].ID}) /goto :loopfindmob
-	/if (${Spawn[${Target2Kill}].Distance} > ${setMobAgro}) {
+	/if (${Spawn[TARGET].Type.Equal[CORPSE]} || !${Spawn[${_tmpID}].ID}) /goto :loopfindmob
+	/if (${Spawn[TARGET].Distance} > ${setMobAgro}) {
 		/goto :loopfindmob
 	}
-	/if (${Me.Pet.Target.ID} != ${Target2Kill}) /goto :gettarget
-	/if (${Spawn[${Target2Kill}].Type.NotEqual[CORPSE]}) /goto :loopwaittilldead
+	/if (${Me.Pet.Target.ID} != TARGET) /goto :gettarget
+	/if (${Spawn[TARGET].Type.NotEqual[CORPSE]}) /goto :loopwaittilldead
 
 	/varset swModeToken FALSE
 	SETHUD FALSE
@@ -474,7 +474,7 @@ sub mode_scorched_earth2(bool _debug)
 	/if (${SpawnCount[npc ${If[${swOverrideLOS},,los]} radius ${setModeAgro} targetable]}) {
 		
 		| find something in our local range first
-		/while (${_tmpRange} <= ${setMobAgro} && !${Target2Kill}) {
+		/while (${_tmpRange} <= ${setMobAgro} && !TARGET) {
 			/if (${SpawnCount[npc ${If[${swOverrideLOS},,los]} range ${setMobLvlMin} ${setMobLvlMax} radius ${_tmpRange} zradius ${setzradius} targetable]}) {
 				/for _count 1 to ${SpawnCount[npc ${If[${swOverrideLOS},,los]} range ${setMobLvlMin} ${setMobLvlMax} radius ${_tmpRange} zradius ${setzradius} targetable]}
 					ISMEDEAD
@@ -488,7 +488,7 @@ sub mode_scorched_earth2(bool _debug)
 		}	
 		
 		| nothing in local range, check our max range
-		/if (!${Target2Kill}) {
+		/if (!TARGET) {
 			/if (${SpawnCount[npc ${If[${swOverrideLOS},,los]} radius ${setModeAgro} targetable]}) {
 				/varset _spawnCount ${SpawnCount[npc ${If[${swOverrideLOS},,los]} radius ${setModeAgro} targetable]}	
 				/varset Target2Kill ${Spawn[${NearestSpawn[1, npc ${If[${swOverrideLOS},,los]} radius ${setModeAgro} targetable]}].ID}
@@ -496,7 +496,7 @@ sub mode_scorched_earth2(bool _debug)
 
 				:loopignoreddmob
 				
-				/if (${ExcludeList.Find[${Spawn[id ${Target2Kill}].DisplayName}]})	{
+				/if (${ExcludeList.Find[${Spawn[id TARGET].DisplayName}]})	{
 					/varcalc _nameloop ${_nameloop}+1
 					/if (${_spawnCount} > 1) {
 						/varset Target2Kill ${Spawn[${NearestSpawn[${_nameloop}, npc ${If[${swOverrideLOS},,los]} radius ${setModeAgro} targetable]}].ID}
@@ -506,7 +506,7 @@ sub mode_scorched_earth2(bool _debug)
 						/varset _nameloop 1
 					}
 				}
-				/if (!${Target2Kill}) /goto :nomob
+				/if (!TARGET) /goto :nomob
 				/varset _resetCount 0
 			}
 		}
@@ -525,16 +525,16 @@ sub mode_scorched_earth2(bool _debug)
 		}
 		/return
 	}
-	/call echos hunt 0 0 ${Target2Kill} 0
+	/call echos hunt 0 0 TARGET 0
 
 	:gettarget
 	/doevents
 	
-	/if (!${ExcludeList.Find[${Spawn[id ${Target2Kill}].DisplayName}]} && !${timer_scorched_earth_ignore_${Target2Kill}}) {
-		/if (${Spawn[${Target2Kill}].ID}) {
+	/if (!${ExcludeList.Find[${Spawn[id TARGET].DisplayName}]} && !${timer_scorched_earth_ignore_$TARGET}) {
+		/if (${Spawn[TARGET].ID}) {
 			/call mode_get_mob
-		} else /if (${Spawn[${Target2Kill}].Dead} || !${Spawn[${Target2Kill}].ID} || !${timer_scorched_earth_fail}) {
-			/if (!${timer_scorched_earth_fail}) /call timer_set timer_scorched_earth_ignore_${Target2Kill} ${tScorchedEarth_ignore} 
+		} else /if (${Spawn[TARGET].Dead} || !${Spawn[TARGET].ID} || !${timer_scorched_earth_fail}) {
+			/if (!${timer_scorched_earth_fail}) /call timer_set timer_scorched_earth_ignore_$TARGET ${tScorchedEarth_ignore} 
 			/call set_stop NOECHO
 			/call clear_combat
 		}
@@ -553,12 +553,12 @@ sub mode_scorched_earth2(bool _debug)
 	:loopwaittilldead
 	/delay 1s
 	/doevents
-	/if (${Spawn[${Target2Kill}].Type.Equal[CORPSE]} || !${Spawn[${Target2Kill}].ID}) /goto :loopfindmob
-	/if (${Spawn[${Target2Kill}].Distance} > ${setMobAgro}) {
+	/if (${Spawn[TARGET].Type.Equal[CORPSE]} || !${Spawn[TARGET].ID}) /goto :loopfindmob
+	/if (${Spawn[TARGET].Distance} > ${setMobAgro}) {
 		/goto :loopfindmob
 	}
-	/if (${Me.Pet.Target.ID} != ${Target2Kill}) /goto :gettarget
-	/if (${Spawn[${Target2Kill}].Type.NotEqual[CORPSE]}) /goto :loopwaittilldead
+	/if (${Me.Pet.Target.ID} != TARGET) /goto :gettarget
+	/if (${Spawn[TARGET].Type.NotEqual[CORPSE]}) /goto :loopwaittilldead
 
 	SETHUD FALSE
 /return
@@ -596,15 +596,15 @@ sub mode_harvest(bool _debug)
 
 
 |***
- *	DES: Collection go getter thingie
- *	USE:
- *  NOTE: Will run around and pick collection glowing globes
+ * note: Collection go getter thingie
+ * use: /mode collect
  ***|
 sub mode_collect(bool _debug)
 	DEBUG \atmode_collect\ax()
 
 	/if (!${GroundItemCount[Glowing Globe]}) {
 		/return FALSE
+		/delay 2
 	}
 
 	/if (!${Navigation.MeshLoaded}) {
@@ -640,6 +640,7 @@ sub mode_collect(bool _debug)
 		}
 		/if (${_count} == ${GroundItemCount}) /break
 		/varcalc _count ${_count} + 1
+		/if (${_count} >= ${GroundItemCount}) /break
 		/vardata _item _item.Next
 	}
 
@@ -875,13 +876,19 @@ sub mode_open(string _type, bool _debug)
 
 
 |***
- *	DES: summons a corpse in lobby
- *	USE: /call mode_summon | /mode summon
- *  NOTE: 
+ * note: summons a corpse in lobby
+ * use: /mode summon DEBUG
  ***|
-sub mode_summon(string _type, bool _debug)
+sub mode_summon(bool _debug)
+	DEBUG \atmode_summon\ax()
 
-	SETHUD "Summon Corpse"
+	| in the lobby?
+	/if (${Zone.ShortName.NotEqual[GuildLobby]}) {
+		/varset dump ${maMode.Add[summon,FALSE]}
+		/return FALSE
+	}
+
+	SETHUD "mode fetch corpse"
 
 	| set stone to buy
 	/declare _soulstone string local
@@ -901,13 +908,11 @@ sub mode_summon(string _type, bool _debug)
 	/if (${Me.Level} <= 20)	/varset _soulstone Minor Soulstone
 
 	:start
-
-	| in the lobby?
-	/if (${Zone.ShortName.NotEqual[GuildLobby]}) /goto :bailmode
+	GETINPUT
+	ISMEDEAD
 
 	| do we need to buy a stone?
   /if (!${FindItemCount[=${_soulstone}]}) {
-
 		/nav spawn npc A Disciple of Luclin |log=off
 
 		:priestinventory
@@ -918,20 +923,18 @@ sub mode_summon(string _type, bool _debug)
 			/nomodkey /click right target
 			/delay 5s ${Window[MerchantWnd].Open}
 			/if (!${Window[MerchantWnd].Open}) /goto :priestinventory
-		
 		/delay 1s
-		/call vendor_buy "${_soulstone}" 1
+		/call vendor_buy ${maDebug.Find[vendor].Value} "${_soulstone}" 1
 
 		:closepriestinventory
 			/nomodkey /notify MerchantWnd MW_Done_Button LeftMouseUp
 			/delay 10
 			/if (${Window[MerchantWnd].Open}) /goto :closepriestinventory
   }
-
-	/if (!${FindItem[${_soulstone}].ID}) /goto :start
+	/if (!${FindItemCount[=${_soulstone}]}) /goto :start
 
 	| move to rezer
-  /nav spawn npc A Priest of Luclin |log=off
+  /nav spawn npc A Priest of Luclin |log=off distance=6
   /delay 10s !${Navigation.Active}
 
 	| get stone on cursor
@@ -958,75 +961,73 @@ sub mode_summon(string _type, bool _debug)
 			/if (${Window[InventoryWindow].Open}) /goto :CloseInvWnd
 		}
 
-
   /if (${Window[InventoryWindow].Open}) /nomodkey /notify InventoryWindow IW_DoneButton LeftMouseUp
   /delay 5
 
-	:bailmode
 	/squelch /target clear
-	/varset swModeSummon FALSE
+	/varset dump ${maMode.Add[summon,FALSE]}
 
+/return FALSE
 
-/return
 
 
 |***
- *	DES: Scorched Earth Mode
- *	USE: /call mode_scorched_earth | /mode scorch
- *  NOTE: This will kill everything in a zone. or at least try /shrug
+ * note: Scorched Earth Mode
+ * use: /mode scorch
  ***|
-sub mode_scorched_earth(bool _debug, int _tmpID)
+sub mode_scorch(bool _debug, int _tmpID)
+	DEBUG \atmode_scorch\ax(\a-w${_tmpID}\ax)
 
 	/varset swOverrideEngagePct TRUE
 	/varset swOverrideLOS TRUE
 	/varset swModeToken TRUE
 	
 	/call clear_combat
+
+
 	/declare _count int local 0
 
 
-	SETHUD "Kill 'Em All"
+	SETHUD "mode scorch"
 	| find a mob
 	/call pull_mob_find ${_debug}
 	
 	DEBUG pull_mob_find.return${dep}\a-w${Macro.Return}\ax
 
-	/if (!${Target2Kill}) {
-		DEBUG \arNO\ax Target2Kill
+	/if (!TARGET) {
+		DEBUG \arNO\ax stAssTarID
 		SETHUD FALSE
 		/return FALSE
 	} else {
-		/if (!${_tmpID}) /varset _tmpID ${Target2Kill}
+		/if (!${_tmpID}) /varset _tmpID TARGET
 	}
 
-
-
 	:checkpath
-	/if	(!${Navigation.PathExists[locyxz ${Spawn[${Target2Kill}].Y} ${Spawn[${Target2Kill}].X} ${Spawn[${Target2Kill}].Z}]}) {
+	/if	(!${Navigation.PathExists[locyxz ${Spawn[TARGET].Y} ${Spawn[TARGET].X} ${Spawn[TARGET].Z}]}) {
 		GETINPUT
-		OUT ${onotice} ${sep} No Nav Path ${sep} [${ctar}${Spawn[${Target2Kill}].DisplayName}\ax]
+		OUT ${notice}${sep}No Nav Path${sep}\a-w${Spawn[TARGET].DisplayName}\ax
 		/varcalc _count ${_count}+1
 		/if (${_count} > 10) /return FALSE
 		/delay 1s
-		/call pull_mob_find FALSE ${_count}
+		/call pull_mob_find ${_debug} ${_count}
 		/goto :checkpath
 	}	
 
 	| get to the mob
-	/declare _movetorange float local ${Math.Calc[${Spawn[${Target2Kill}].MaxRangeTo}*.8]}
+	/declare _movetorange float local ${Math.Calc[${Spawn[TARGET].MaxRangeTo}*.8]}
 
-	/nav ID ${Target2Kill} distance=${_dist} lineofsight=${_LoS} log=off
+	/nav ID TARGET |distance=${_dist} lineofsight=${_LoS} log=off
 	/delay 1s ${Me.Moving}
 	
 	/while (${Navigation.Active}) {
-		DEBUG moving to ${dep} \a-w${Target2Kill}\ax
+		DEBUG moving to ${dep} \a-w$TARGET\ax
 		/delay 5
 		
 		GETINPUT
-		/if (!${Target2Kill}) /return FALSE
-		/call pull_mob_tag ${_debug} ${Target2Kill}
+		/if (!TARGET) /return FALSE
+		/call pull_mob_tag ${_debug} TARGET
 		/if (${Macro.Return}) {
-			/nav stop log=off
+			/nav stop |log=off
 			/break
 		}
 	}
