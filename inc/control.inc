@@ -3426,7 +3426,6 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
   /declare _out string local
 	/declare _lsout list local
 
-
 	| output control map
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maMinion ${_verbage}
@@ -3506,8 +3505,7 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 			/if (${cli.Value.Equal[item]}) /varset _out ${_out}:[${If[${Bool[${maMinion.Find[stPetShrink].Value}]},${num}${maMinion.Find[stPetShrink].Value}\ax,${off}]}]
 			/varset dump ${cli.Advance}
 		}	
-		OUT /minion shrink ${_out}
-		/varset dump ${out[12, ""]}
+		/varset dump ${out[12, "${_out}"]}
 		/return
 
 	} 
@@ -3531,9 +3529,8 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 		/if (${cli.Value.Equal[onforce]}) /varset _out ${_out}:${If[${maMinion.Find[swonForce].Value},${on},${off}]}
 		/varset dump ${cli.Advance}
 	}		
-	OUT /minion ${_out}
-	/varset dump ${out[12, ""]}
 
+	/varset dump ${out[12, "${_out}"]}
 	
 /return
 

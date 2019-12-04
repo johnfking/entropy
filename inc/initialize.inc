@@ -102,7 +102,7 @@ sub set_initialize(bool _debug)
   | generate DEBUGS
   /declare maDebug map outer
   /declare _lsout list local
-  /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mezz,melee,minion,pull,rest,rez,target,zone,debuff]}
+  /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mez,melee,minion,pull,rest,rez,target,zone,debuff]}
   /varset dump ${_lsout.Append[buff,buffammo,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass,buffnow,bufftemp]}
   /varset dump ${_lsout.Append[cast,castitem,castnuke,castdot]}
   /varset dump ${_lsout.Append[mode,modeforage,modedrag,modecollect,modesummon]}
@@ -1094,7 +1094,6 @@ sub set_alias(bool _debug, string _action)
   }
   
 /return
-
 
 
 

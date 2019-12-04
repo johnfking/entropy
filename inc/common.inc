@@ -1066,37 +1066,38 @@ sub set_observers(bool _debug, string _map, string _action)
 		DEBUG ${sep}_toon\aw ${_count}\ax::\at${_toon}\ax
 
 		| start our trip throught the map
-		/vardata mi ${_map}.First.Clone
-		/while (!${mi.IsEnd}) {
+		/devlare _miso mapiterator local
+		/vardata _miso ${_map}.First.Clone
+		/while (!${_miso.IsEnd}) {
 			| we're skipping the TLO for monitoring
-			/if (${mi.Key.Equal[tlo]}) {
-				/varset dump ${mi.Advance}
+			/if (${_miso.Key.Equal[tlo]}) {
+				/varset dump ${_miso.Advance}
 				/continue
 			}
 			
-			DEBUG ${sep}map(key,value)${sep}${_map}(\a-w${mi.Key},${mi.Value}\ax)
+			DEBUG ${sep}map(key,value)${sep}${_map}(\a-w${_miso.Key},${_miso.Value}\ax)
 			
 			| define or delete the variables as we need
 			/if (${_action.Equal[drop]}) {
-				DEBUG /varset dump lsObserved_${_toon}.Remove[${mi.Value}]
-				/if (${Defined[${_toon}_${mi.Value}]}) /deletevar ${_toon}_${mi.Value}
-				/varset dump ${lsObserved_${_toon}.Remove[${mi.Value}]}
+				DEBUG /varset dump lsObserved_${_toon}.Remove[${_miso.Value}]
+				/if (${Defined[${_toon}_${_miso.Value}]}) /deletevar ${_toon}_${_miso.Value}
+				/varset dump ${lsObserved_${_toon}.Remove[${_miso.Value}]}
 				
 			} else /if (${_action.Equal[add]}) {
 				| if what we are observing isnt in the charcters list, add it
-				/if (!${lsObserved_${_toon}.Contains[${mi.Value}]}) {
-					/varset dump ${lsObserved_${_toon}.Append[${mi.Value}]}
+				/if (!${lsObserved_${_toon}.Contains[${_miso.Value}]}) {
+					/varset dump ${lsObserved_${_toon}.Append[${_miso.Value}]}
 				}
 				| if the observer variable does not exist create it
-				/if (!${Defined[${_toon}_${mi.Value}]}) /declare ${_toon}_${mi.Value} string outer
+				/if (!${Defined[${_toon}_${_miso.Value}]}) /declare ${_toon}_${_miso.Value} string outer
 			}
 
 			| set observer or drop it. depending on your choice
-			DEBUG ${sep}\a-t/dobserve\ax ${_toon} -q \a-w"${_tlo}.${mi.Value}"\ax -o ${_toon}_${mi.Value} ${_actionO}
-			/dobserve ${_toon} -q "${_tlo}.${mi.Value}" -o ${_toon}_${mi.Value} ${_actionO}
+			DEBUG ${sep}\a-t/dobserve\ax ${_toon} -q \a-w"${_tlo}.${_miso.Value}"\ax -o ${_toon}_${_miso.Value} ${_actionO}
+			/dobserve ${_toon} -q "${_tlo}.${_miso.Value}" -o ${_toon}_${_miso.Value} ${_actionO}
 
 			| increment to the next item in the map and start loop over if theres more to do
-			/varset dump ${mi.Advance}
+			/varset dump ${_miso.Advance}
 
 		}	
 		| set an end time for our test for that characer
@@ -3678,16 +3679,18 @@ sub get_key_map(bool _debug, string _key, bool _validate)
 sub get_key_DBLOC(bool _debug, string _key)
 	DEBUG\atget_key_DBLOC\ax(\a-w${_key}\ax)	
 
-	/vardata mi maDBTables.First.Clone
-	/while (!${mi.IsEnd}) {
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM '${mi.Key}' WHERE ${mi.Value}='${_key}'
+	/declare _mikey mapiterator local
+	/vardata _mikey maDBTables.First.Clone
+	/while (!${_mikey.IsEnd}) {
+		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM '${_mikey.Key}' WHERE ${_mikey.Value}='${_key}'
 		/if (${sqlite.Rows[dummy]}) {
-			DEBUG ${sep}DBLOC Returning${sep}\a-w|${mi.Key}|${mi.Value}\ax
-			/return |${mi.Key}|${mi.Value}
+			DEBUG ${sep}DBLOC Returning${sep}\a-w|${_mikey.Key}|${_mikey.Value}\ax
+			/return |${_mikey.Key}|${_mikey.Value}
 		}
-		/varset dump ${mi.Advance}
+		/varset dump ${_mikey.Advance}
 	}	
 	DEBUG ${sep}DBLOC Returning${sep}\a-wNOT FOUND IN DB\ax
+	
 /return FALSE
 
 
@@ -4688,20 +4691,21 @@ sub do_mana_recovery(bool _debug)
 	GETINPUT
 		
 	| you can take that rod.. and shove it right up you...
+	/declare _midmc mapiterator local
   /vardata mi maManaRecovery.First.Clone
-  /while (!${mi.IsEnd}) {
-		/if (${is_ready[FALSE, "${mi.Key}"]} && ${Me.PctHPs} < ${mi.Value}) {
-	  	DEBUG ${mi.Key}${sep}\a-w${mi.Value}\ax
+  /while (!${_midmc.IsEnd}) {
+		/if (${is_ready[FALSE, "${_midmc.Key}"]} && ${Me.PctHPs} < ${_midmc.Value}) {
+	  	DEBUG ${_midmc.Key}${sep}\a-w${_midmc.Value}\ax
 
-			/call voodoo FALSE "${mi.Key}" 0 FALSE
+			/call voodoo FALSE "${_midmc.Key}" 0 FALSE
 
-			/if (!${Select[${Me.Class.ShortName},MAG]} && !${FindItemCount[=${mi.Key}]}) {
+			/if (!${Select[${Me.Class.ShortName},MAG]} && !${FindItemCount[=${_midmc.Key}]}) {
 				| /call tell_resident_mage shard
 				| ${get_resident_class[FALSE, MAG, 100]}
 			}			
 			/break
 		}
-		/varset dump ${mi.Advance}
+		/varset dump ${_midmc.Advance}
   }
 
 /return
@@ -4874,71 +4878,6 @@ sub check_buff_cycle_poison(bool _debug)
 
 
 
-${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Spell}].NumEffects}
-
-
-
-${maBuffs.Find[stBuff5].Value}
-${FindItem[=${maBuffs.Find[stBuff5].Value}].Spell}
-
-${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Spell}].Trigger}
-
-${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Spell}].Base[1]}].Name}
-
-${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Spell}].Base[1]}].Name}
-${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Spell}].Trigger}
-${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Spell}].Base[1]}
-${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Spell}].Trigger}
-
-${Spell[${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Spell}].Base[2]}].Name}
-
-${Me.Buff[${Spell[${FindItem[=${_verbage}].Clicky.SpellID}].Name}].ID}
-
-${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Clicky.SpellID}].Trigger}].Name}
-
-${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Clicky.SpellID}].Trigger}
-
-| spell ID
-${FindItem[=${maBuffs.Find[stBuff5].Value}].Clicky.SpellID}
-
-| spell name
-${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Clicky.SpellID}].Trigger}
-
-| summoned Item ID
-${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Clicky.SpellID}].Base[1]}
-
-
-${FindItemCount[${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Clicky.SpellID}].Base[1]}]}
-
--------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 |***
  * note: check self buffs
  * use: /call check_buff_cycle_self DEBUG
@@ -5047,12 +4986,9 @@ sub check_buff_cycle_self(bool _debug)
  * note: buffs all your toons
  * use: automatic any peers
  ***|
-
 /sub check_buff_cycle_crew(bool _debug)
 	DEBUG \atcheck_buff_cycle_crew\ax()
 	
-	| CHECKCOMBATCAST
-
 	/if (AUTO) /varset dump ${set_data_timer[FALSE, Check_Buff_Crew, RESTART]}
 	/if (!${maBuff.Find[swBuffMaster].Value}) /return FALSE
 
@@ -6826,6 +6762,7 @@ sub send_pet(bool _debug, int _tmpID)
  * note: cycles all debuff routines. (NOT mezing).. look at eradicate for walkthrough cause your dumb ass will forget
  * use: /call check_deBuffs DEBUG [TARGETID]
  ***|
+ |**
 sub check_deBuffs(bool _debug, int _tmpID)
 	DEBUG \atcheck_deBuffs\ax(\a-w${_tmpID}\ax)
 	
@@ -7015,7 +6952,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
 						}
 						/varset dump ${set_timer[${_debug}, timer_${_lidb.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[stAE${_lidb.Value}].Value}].Duration.TotalSeconds}]}
 						/for _count 1 to ${_mobCount}
-							/varset _tmpMobID ${Spawn[${_tmpID}].NearestSpawn[${_count} ,npc radius ${Spell[${madeBuff.Find[stAE${_lidb.Value}].Value}].AERange}].ID}
+							/varset _tmpMobID ${Spawn[${_tmpID}].NearestSpawn[${_count}, npc radius ${Spell[${madeBuff.Find[stAE${_lidb.Value}].Value}].AERange}].ID}
 							/if (${_tmpMobID} == 0) /break
 							/if (!${lsdeBuff${_lidb.Value}.Contains[${_tmpMobID}]}) {
 								/varset dump ${lsdeBuff${_lidb.Value}.Append[${_tmpMobID}]}
@@ -7040,6 +6977,251 @@ sub check_deBuffs(bool _debug, int _tmpID)
 	}		
 	
 /return
+
+**|
+
+
+
+
+
+
+
+|***
+ * note: cycles all debuff routines. (NOT mezing).. look at eradicate for walkthrough cause your dumb ass will forget
+ * use: /call check_deBuffs DEBUG [TARGETID]
+ ***|
+sub check_deBuffs(bool _debug, int _tmpID)
+	DEBUG \atcheck_deBuffs\ax(\a-w${_tmpID}\ax)
+	
+	| check distance or bail early
+	/if (${Spawn[${_tmpID}].Distance} > ENV) {
+		/varset dump ${set_data_timer[FALSE, Check_deBuffs, RESTART]}
+		/return FALSE
+	}
+
+	ISMEDEAD
+	CHECKEXIT
+	CHECKTIE
+	GETINPUT
+
+	/varset dump ${set_target[${_tmpID}]}
+	
+	/declare _count int local 0
+	/declare _mobCount int local 0
+	/declare _tmpMobID int local
+	/declare _tmpSpell string local
+	
+	| eradicate (dispell thingies)
+	/if (${madeBuff.Find[swEradicate].Value}) {
+		DEBUG ${sep}{madeBuff.Find[swEradicate].Value}${sep}\a-w${madeBuff.Find[swEradicate].Value}\ax
+
+		| does this mob have a timer associated with it?
+		| if there is no timer, create one with 1/10 second
+		/if (!${Defined[timer_eradicate_ID${_tmpID}]}) {
+			/varset dump ${set_timer[${_debug}, timer_eradicate_ID${_tmpID}, 1]}
+		} 
+		
+		| if there is not timer left on the target, get to work
+		| first check if there is an ae component for this debuff, if there is
+		| and the character has an ae count that is = < then mobs around the target
+		| fire the AE and add all those in that AE range into the list
+		| otherwise just do singles
+		/if (!${timer_eradicate_ID${_tmpID}} || !${lsdeBuffEradicate.Contains[${_tmpID}]}) {
+			DEBUG NO timer or not in list
+			
+			/if (${Bool[${madeBuff.Find[stAEEradicate].Value}]} && AE#) {
+				/varset _mobCount ${SpawnCount[npc loc ${Spawn[id ${_tmpID}].X} ${Spawn[id ${_tmpID}].Y} radius ${Spell[${madeBuff.Find[stAEEradicate].Value}].AERange}]} 
+			} else {
+				/varset _mobCount 0
+			}
+			
+			DEBUG _mobCount${sep}\a-w${_mobCount}\ax
+	
+			| single mob debuff
+			/if ((!AE# || (AE# && !${is_ready[${_debug}, "${madeBuff.Find[stAEEradicate].Value}"]}))  && ${is_ready[${_debug}, "${madeBuff.Find[stEradicate].Value}"]}) {
+				DEBUG ${sep}{madeBuff.Find[swEradicate].Value}${sep}\a-wSINGLE\ax
+
+				| try to eradicate it
+				/call voodoo ${_debug} "${madeBuff.Find[stEradicate].Value}" ${_tmpID} FALSE
+
+				| was the debuff cast successful?
+				/if (${maData.Find[stCastReturn].Value.Equal[SUCCESS]}) {
+					| throw it in out list if not there
+					/if (!${lsdeBuffEradicate.Contains[${_tmpID}]}) {
+						/varset dump ${lsdeBuffEradicate.Append[${_tmpID}]}
+					}
+					
+					| set the re-check timer
+					/varset dump ${set_timer[${_debug}, timer_eradicate_ID${_tmpID}, ${madeBuff.Find[stTimerEradicate].Value}]}
+					
+				| cast failure we try again in one tick
+				} else /if (${maData.Find[stCastReturn].Value.NotEqual[SUCCESS]}) {
+					/varset dump ${set_timer[FALSE, timer_eradicate_ID${_tmpID}, 6s]}
+				}
+				
+			}
+			
+			| multi mob debuff
+			/if (AE# && ${is_ready[${_debug}, "${madeBuff.Find[stAEEradicate].Value}"]} && (${_mobCount} >= AE#)) {
+				DEBUG ${sep}{madeBuff.Find[swEradicate].Value}${sep}\a-wMULTI\ax
+				
+				| try to eradicate it
+				/call voodoo ${_debug} "${madeBuff.Find[stAEEradicate].Value}" ${_tmpID} FALSE
+
+				| was the debuff cast successful?
+				/if (${maData.Find[stCastReturn].Value.Equal[SUCCESS]}) {
+
+					| throw it in out list if not there
+					/if (!${lsdeBuffEradicate.Contains[${_tmpID}]}) {
+						/varset dump ${lsdeBuffEradicate.Append[${_tmpID}]}
+					}
+
+					| set the re-check timer
+					/varset dump ${set_timer[${_debug}, timer_eradicate_ID${_tmpID}, ${madeBuff.Find[stTimerEradicate].Value}]}
+						
+					| get all his fucking friends too			
+					/for _count 1 to ${_mobCount}
+						/varset _tmpMobID ${Spawn[${_tmpID}].NearestSpawn[${_count} ,npc radius ${Spell[${madeBuff.Find[stAEEradicate].Value}].AERange}].ID}
+						/if (${_tmpMobID} == 0) /break
+					
+						/if (!${lsdeBuffEradicate.Contains[${_tmpMobID}]}) {
+							/varset dump ${lsdeBuffEradicate.Append[${_tmpMobID}]}
+						}
+						
+						| bitches need timers
+						/varset dump ${set_timer[${_debug}, timer_eradicate_ID${_tmpMobID}, ${madeBuff.Find[stTimerEradicate].Value}]}
+						
+					/next _count
+					
+				| cast failure we try again in one tick
+				} else /if (${maData.Find[stCastReturn].Value.NotEqual[SUCCESS]}) {
+					/varset dump ${set_timer[FALSE, timer_eradicate_ID${_tmpID}, 6s]}
+				}
+
+			}
+			
+		}
+	| end of eradicate debuff checks
+	}
+	
+	
+	/declare _lsout list local
+	/varset dump ${_lsout.Append[Slow,Snare,Tash,Cripple,Malo]}
+	/vardata li _lsout.First.Clone
+	/declare _tmpTLO string local
+	/while (!${li.IsEnd}) {
+		
+		/if (${li.Value.Equal[Slow]}) {
+			/varset _tmpTLO Slowed
+		} else /if (${li.Value.Equal[Snare]}) {
+			/varset _tmpTLO Snared
+		} else /if (${li.Value.Equal[Tash]}) {
+			/varset _tmpTLO Tashed
+		} else /if (${li.Value.Equal[Cripple]}) {
+			/varset _tmpTLO Crippled
+		} else /if (${li.Value.Equal[Malo]}) {
+			/varset _tmpTLO Maloed
+		}
+		
+		/if (${madeBuff.Find[sw${li.Value}].Value}) {
+			DEBUG ${sep}{madeBuff.Find[sw${li.Value}].Value}${sep}\a-w${madeBuff.Find[sw${li.Value}].Value}\ax
+
+			/if (!${Defined[timer_${li.Value.Lower}_ID${_tmpID}]}) {
+				/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, 1]}
+			} 
+					
+			| add if already there?
+			/if ((${Target.${_tmpTLO}.ID} || ${Target.Buff[${madeBuff.Find[st${li.Value}].Value}].ID} || ${Target.Buff[${madeBuff.Find[stAE${li.Value}].Value}].ID}) && (!${timer_${li.Value.Lower}_ID${_tmpID}} || !${lsdeBuff${li.Value}.Contains[${_tmpID}]})) {
+				/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
+					/varset dump ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+				}
+				/if (${Target.${_tmpTLO}.Duration.TotalSeconds}) {
+					/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, ${Target.${_tmpTLO}.Duration.TotalSeconds}]}			
+				}
+			}
+				
+			/if (!${timer_${li.Value.Lower}_ID${_tmpID}} || !${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
+				DEBUG NO timer or not in list
+				/if (${Bool[${madeBuff.Find[stAE${li.Value}].Value}]} && AE#) {
+					/varset _mobCount ${SpawnCount[npc loc ${Spawn[id ${_tmpID}].X} ${Spawn[id ${_tmpID}].Y} radius ${Spell[${madeBuff.Find[stAE${li.Value}].Value}].AERange}]} 
+				} else {
+					/varset _mobCount 0
+				}
+				
+				DEBUG _mobCount${sep}\a-w${_mobCount}\ax
+				/if ((!AE# || (AE# && !${is_ready[${_debug}, "${madeBuff.Find[stAE${li.Value}].Value}"]})) && ${is_ready[${_debug}, "${madeBuff.Find[st${li.Value}].Value}"]}) {
+					DEBUG ${sep}{madeBuff.Find[sw${li.Value}].Value}${sep}\a-wSINGLE\ax
+					/call voodoo ${_debug} "${madeBuff.Find[st${li.Value}].Value}" ${_tmpID} FALSE
+					/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
+						/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
+							/varset dump ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+						}
+						/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[st${li.Value}].Value}].Duration.TotalSeconds}]}
+					} else /if (${Select[${maData.Find[stCastReturn].Value},RESISTED,NOTREADY,FIZZLE,DISTRACTED]}) {
+						/varset dump ${set_timer[FALSE, timer_${li.Value.Lower}_ID${_tmpID}, 6s]}
+					} else /if (${Select[${maData.Find[stCastReturn].Value},IMMUNE,TAKEHOLD]}) {
+						/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
+							/varset dump ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+						}
+						/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, 10m]}
+					}
+				}
+				
+				/if (AE# && ${is_ready[${_debug}, "${madeBuff.Find[stAE${li.Value}].Value}"]} && (${_mobCount} >= AE#)) {
+					DEBUG ${sep}{madeBuff.Find[sw${li.Value}].Value}${sep}\a-wMULTI\ax
+					/call voodoo ${_debug} "${madeBuff.Find[stAE${li.Value}].Value}" ${_tmpID} FALSE
+					/if (${maData.Find[stCastReturn].Value.Equal[SUCCESS]}) {
+						/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
+							/varset dump ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+						}
+						/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[stAE${li.Value}].Value}].Duration.TotalSeconds}]}
+						/for _count 1 to ${_mobCount}
+							/varset _tmpMobID ${Spawn[${_tmpID}].NearestSpawn[${_count} ,npc radius ${Spell[${madeBuff.Find[stAE${li.Value}].Value}].AERange}].ID}
+							/if (${_tmpMobID} == 0) /break
+							/if (!${lsdeBuff${li.Value}.Contains[${_tmpMobID}]}) {
+								/varset dump ${lsdeBuff${li.Value}.Append[${_tmpMobID}]}
+							}
+							/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpMobID}, ${madeBuff.Find[stTimerSnare].Value}]}
+						/next _count
+					} else /if (${Select[${maData.Find[stCastReturn].Value},RESISTED,NOTREADY,FIZZLE,DISTRACTED]}) {
+						/varset dump ${set_timer[FALSE, timer_${li.Value.Lower}_ID${_tmpID}, 6s]}
+					} else /if (${Select[${maData.Find[stCastReturn].Value},IMMUNE,TAKEHOLD]}) {
+						/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
+							/varset dump ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+						}
+						/varset dump ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, 10m]}
+					}
+				}
+			}
+		}
+
+		/varset dump ${li.Advance}
+	}		
+	
+/return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	
 	
 
@@ -7164,10 +7346,7 @@ sub check_minion_cycle_buff(bool _debug)
 		| stacks
 		/if (!${Spell[${_spell}].StacksTarget}) /continue
 				
-		| /if (${Target.ID} == ${Pet.ID}) {
-			/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" ${Pet.ID} FALSE		
-			/continue
-		| }	
+		/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" ${Pet.ID} FALSE		
 
 	/next _count
 
@@ -7274,38 +7453,6 @@ sub check_minion_cycle_weapons(bool _debug)
 
 
 
-
-
-
-
-
-${FindItem[=${Spell[${maBuffs.Find[stBuff11].Value}].Base[1]}].ID}
-${lsBuff11Tag.Contains[summonweapons]}
-
-
-
-${FindItemCount[=${Spell[${maBuffs.Find[stBuff11].Value}].Base[1]}]}
-${FindItem[${Spell[${maBuffs.Find[stBuff11].Value}].Base[1]}].Name}
-
-
-
-
-${Spell[${maBuffs.Find[stBuff11].Value}].Base[1]}
-
-
-
-${Pet.Equipment[primary]}
-
-
-
-
-
-
-
-
-
-
-
 |***
  * note: lipstick on a pig is still a fucking pig
  * use: /call check_minion_cycle_Illusion DEBUG
@@ -7327,12 +7474,6 @@ sub check_minion_cycle_Illusion(bool _debug)
 	}
 
 /return
-
-
-
-
-
-
 
 
 
@@ -7494,7 +7635,6 @@ sub get_minion_summon_weapons(bool _debug)
 
 
 
-
 |***
  * note: deletes an item.. 
  * use: /call item_delete DEBUG ["ITEM NAME"]
@@ -7583,314 +7723,6 @@ sub get_MAG_folded_pack(bool _debug)
 
 
 |***
- * note: this is used to cycle the control map and handle the IDs in it. final return will be an unmezzed mob ID, if any
- * use: /call check_control_routine DEBUG
- ***|
-sub control_routine(bool _debug)
-	| /varset _debug TRUE
-	DEBUG \atcontrol_routine\ax()
-
-	/if (!AUTO) /return FALSE
-	/if (!${madeBuff.Find[swMez].Value}) /return FALSE
-	/if (!${maCC.Find[swCombatControl].Value}) /return FALSE
-
-
-	| ID for unmezzed/short mob
-	/declare _mezzID int local 0
-	| count of uncontrolled mobs in area
-	/declare _countArea int local 0
-	
-	/declare _count int local 0
-	
-	/if (!${Defined[maMobControl]}) {
-		/declare maMobControl map outer
-	}
-
-	| check control map for any mobs dead or gone
-	/varset dump ${control_map[${_debug}, dead]}
-
-	| find unaccounted mobs in my area
-	| returns the # of mobs that do not have a current mez timer associated
-	/varset _countArea ${control_area[${_debug}]}
-	
-	| if ${check_control_area returns more then 1
-	| hit the AE routines
-	| /if (${_countArea}) {
-		/call control_mezae ${_debug}
-	| }
-	
-	| check control map for any mobs marked as mezed with low or no timer
-	/varset _mezzID ${control_map[${_debug}, mez]}
-
-	
-	| mez something for christs sake...
-	/if (${_mezzID} && ${_countArea} && ${Bool[${madeBuff.Find[stMez].Value}]}) {
-		/for _count 1 to ${_countArea}
-			/varset _mezzID ${control_map[${_debug}, mez]}
-			/call control_mez FALSE ${_mezzID}
-		/next _count
-	}
-	
-	/delay 1
-	
-/return TRUE
-
-
-
-|***
- * note: this is used to check our current ENV and find mobs that we do not know about that are pissed at us
- * use: ${control_areaDEBUG}
- ***|
-sub control_area(bool _debug)
-	DEBUG \atcontrol_area\ax()
-
-	/declare _agroCount int local 0
-	/declare _count int local 0
-	/declare _tmpID int local
-	
-	/for _count 1 to ${SpawnCount[npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value} PS4]}
-		/varset _tmpID ${NearestSpawn[${_count}, npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value} PS4].ID}
-
-		| do we have the mob in the mez list ??
-		/if (${maMobControl.Contains[${_tmpID}]}) {
-			/continue
-		}
-	
-		| if this mob is the current assists target, remove it from our need to control
-		/if (${_tmpID} == TARGET) {
-			/if (${maMobControl.Contains[${_tmpID}]}) {
-				/varset dump ${maMobControl.Remove[${_tmpID}]}
-				
-				| delete the existing mez timer if any?
-				/if (${Defined[timer_mez_ID${mi.Key}]}) {
-					/deletevar timer_mez_ID${mi.Key}
-				}				
-				
-			}
-			/continue
-		}
-		
-		| mob is not in mez list and not in agro list. fresh meat...
-		/if (!${maMobControl.Contains[${_tmpID}]}) {
-			
-			| identify mobs we dont touch
-			/if (${lsZoneNoMez.Contains[${Spawn[${_tmpID}].DisplayName}]} || ${lsZoneExclude.Contains[${Spawn[${_tmpID}].DisplayName}]}) {
-				/varset dump ${maMobControl.Add[${_tmpID},EXEMPT]}
-			
-			| mobs that we are to charm
-			} else /if (${lsZoneCharm.Contains[${Spawn[${_tmpID}].DisplayName}]} && ${maChr.Find[swCharm].Value}) {
-					/varset dump ${maMobControl.Add[${_tmpID},CHARM]}
-			
-			| mobs that we are to mez
-			| create the mez timer with the ID
-			} else { 
-				/if (!${Defined[timer_mez_ID${_tmpID}]}) {
-					/varset dump ${set_timer[FALSE, timer_mez_ID${_tmpID}, 1]}
-					/varset dump ${maMobControl.Add[${_tmpID},MEZ]}
-					/varcalc _agroCount ${_agroCount} + 1
-				} 
-					
-			}
-		}
-
-	/next _count
-	
-/return ${_agroCount}
-
-
-
-|***
- * note: cheeck the IDs in the passed list. remove them from the list if they are dead/gone
- * use: ${control_map[DEBUG, THINGIETOCHECK??]}
- * 
- * THINGIETOCHECK:
- * dead = check for dead or no more spawns. removes them from the control map
- * mez = find mobs that are not mezed. returns ID of nonmezed or short duration remaining mezed mob
- ***|
-sub control_map(bool _debug, string _type)
-	DEBUG \atcontrol_map\ax(\a-w${_type}\ax)
-	
-	/declare _returnCount int local 0
-	
-	| check list for dead mobs and get them gone
-	/if (${_type.Equal[dead]}) {
-	
-		/declare maRemoveals list
-		/declare _remcount int local 0
-		/declare _count int local 0
-
-		/vardata mi maMobControl.First.Clone
-		/varset dump ${maRemoveals.Clear}
-		/while (!${mi.IsEnd}) {
-			DEBUG ${sep}mi.Key--.Value${sep}\a-w${mi.Key} -- ${mi.Value}\ax
-			/if (!${Spawn[${mi.Key}].ID} || ${Spawn[${mi.Key}].Dead}) {
-				DEBUG ${sep}removing${sep}\a-w${mi.Key}\ax
-
-				| delete the existing mez timer if any?
-				/if (${Defined[timer_mez_ID${mi.Key}]}) {
-					/deletevar timer_mez_ID${mi.Key}
-				}
-
-				| Add the key to the list of items to remove.
-				/varset dump ${maRemoveals.Append[${mi.Key}]}
-			}
-			/varset dump ${mi.Advance}
-		}
-
-		/varcalc _remcount ${maRemoveals.Count}
-
-		/for _count 1 to ${_remcount}
-			/varset dump ${maMobControl.Remove[${maRemoveals.Head}]}
-		/next _count
-		
-	}
-	
-	| find a non mezed mob or mob with a short duration mez left. return its ID if any for cc
-	/if (${_type.Equal[mez]}) {
-		DEBUG ${sep}cc${sep}
-		/vardata mi maMobControl.First.Clone
-		/while (!${mi.IsEnd}) {
-			DEBUG ${sep}mi.Key--.Value${sep}\a-w${mi.Key} -- ${mi.Value}\ax
-			/if (${Bool[${maCC.Find[stAssistMode].Value}]} && ${mi.Key} == ${Me.XTarget[1].ID}) {
-				/varset dump ${mi.Advance}
-				/continue
-			}
-			
-			/if (${mi.Value.Equal[MEZ]} && ${Defined[timer_mez_ID${mi.Key}]}) {
-				
-				| if the timer is < 6 seconds. remezz
-				/if (${timer_mez_ID${mi.Key}} < 60) {
-					/return ${mi.Key}
-				}
-
-			}
-			/varset dump ${mi.Advance}
-		}
-		/return 0
-	}
-
-/return FALSE
-
-
-
-|***
- * note: AE mez routine
- * use: rwq > 1 mob
- ***|
-sub control_mezae(bool _debug)
-	DEBUG \atcontrol_mezae\ax()
-
-	ISMEDEAD
-	GETINPUT
-	/declare _tmpID int local
-
-	/if (${maMobControl.Count} >= 1 && ${is_ready[FALSE, "${madeBuff.Find[stAEMez].Value}"]}) {
-		/vardata _tmpID maMobControl.First
-
-		/if (AE# && ${SpawnCount[npc los radius ${Spell[${madeBuff.Find[stAEMez].Value}].AERange} targetable]} >= AE#) {
-	
-			/if (${Me.Gem[${Spell[${maChr.Find[stAEStun].Value}].RankName}]}) {
-				/if (${Me.Casting.Name.NotEqual[${Spell[${maChr.Find[stAEStun].Value}].RankName}]}) /stopcast
-				/delay 2.25s ${Me.SpellReady[${Spell[${maChr.Find[stAEStun].Value}].RankName}]}
-				/call voodoo FALSE "${maChr.Find[stAEStun].Value}" 0 FALSE
-			}
-
-			/if (${Me.Gem[${Spell[${madeBuff.Find[stAEMez].Value}].RankName}]}) {
-				/if (${Me.Casting.Name.NotEqual[${Spell[${madeBuff.Find[stAEMez].Value}].RankName}]}) /stopcast
-				/delay 2.25s ${Me.SpellReady[${Spell[${madeBuff.Find[stAEMez].Value}].RankName}]}
-				/call voodoo FALSE "${madeBuff.Find[stAEMez].Value}" 0 FALSE
-			}
-
-		}
-		
-		| use AA beam of slumber?
-		/if (${maChr.Find[swAABoS].Value}) {
-			/if (${Spawn[${_tmpID}].NearestSpawn[3,npc radius 30].ID} && ${Spawn[${_tmpID}].Distance3D} <= 200 && ${Spawn[${_tmpID}].Distance3D} >= ENV*.5) {
-				/if (${is_ready[FALSE, "Beam of Slumber"]}) {
-					/if (${Me.Casting.ID}) /stopcast
-					/face ID ${_tmpID} ${If[${maHome.Find[swFaceFast].Value},fast,]}
-					/call voodoo FALSE "Beam of Slumber" 0 FALSE
-				} 
-			}
-		}
-	} 
-	
-/return
-
-
-
-|***
- * note: single mez the target
- * use: /call control_mez DEBUG [TARGETID]
- ***|
-sub control_mez(bool _debug, int _tmpID)
-	DEBUG \atcontrol_mez\ax(${_tmpID})
-	
-	/if (!${_tmpID}) /return FALSE
-	
-	/if (${timer_mez_ID${_tmpID}} > 60) /return
-	
-	/declare _resistCount int local 0
-
-	| try to mez more then once if there is a fail
-	/while (${_resistCount} < 4) {
-	
-		/varset dump ${set_target[${_tmpID}]}
-		/if (${_tmpID} == TARGET) /return FALSE
-
-		ISMEDEAD
-		GETINPUT
-		
-		/if (!${Target.LineOfSight}) /return FALSE
-		
-		/if (${Target.Mezzed.Duration} && ${Spell[${Target.Mezzed}].Name.Find[${madeBuff.Find[stMez].Value}]}) {
-			/call set_timer timer_mez_ID${_tmpID} ${Target.Mezzed.Duration.TotalSeconds}s
-			/return TRUE
-		} 
-		
-		| mez ready?
-		/delay 2.25s ${Me.SpellReady[${Spell[${madeBuff.Find[stMez].Value}].RankName}]}
-		/call voodoo FALSE "${madeBuff.Find[stMez].Value}" ${_tmpID} FALSE
-
-		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,IMMUNE,TAKEHOLD]}) {
-
-			/if (${Select[${maData.Find[stCastReturn].Value},IMMUNE,TAKEHOLD]}) {
-				| auto add to no mez list for zone
-				/if (${maEntropy.Find[swAutoList].Value} && ${maData.Find[stCastReturn].Value.Equal[IMMUNE]}) {
-					/sqlite ${maData.Find[DBzone].Value} dummy INSERT INTO zone_control VALUES ("${Zone.ShortName}", "lsZoneNoMez", "${Target.DisplayName}")
-					/varset dump ${out[15, "/area nomez ${dot} ${num}lsZoneNoMez\ax${sep}\a-w${Target.DisplayName}\ax"]}
-					/call set_zone_lists FALSE
-				}
-				
-				| were not going to try this target again, clear its current control settings
-			  /varset dump ${maMobControl.Add[${_tmpID},EXEMPT]}
-			  /if (${Defined[timer_mez_ID${_tmpID}]}) {
-			  	/deletevar timer_mez_ID${_tmpID}
-			  	/return FALSE
-			  }
-			  
-			}
-
-			| /call set_timer timer_mez_ID${_tmpID} ${Spell[${madeBuff.Find[stMez].Value}].Duration.Seconds}s
-			/varset dump ${set_timer[FALSE, timer_mez_ID${_tmpID}, ${Spell[${madeBuff.Find[stMez].Value}].Duration.Seconds}s]}
-
-			/return TRUE
-		
-		} else /if (${Select[${maData.Find[stCastReturn].Value},RESISTED,RESISTEDYOU]}) {
-			/varcalc _resistCount ${_resistCount} + 1
-			/if (${_resistCount} >= 1) {
-				/if (${is_ready[FALSE, "${madeBuff.Find[stTash].Value}"]}) {
-					/call voodoo FALSE "${madeBuff.Find[stTash].Value}" ${_tmpID} FALSE
-				}
-			}
-		}
-	}
-
-/return
-
-
-
-|***
  * note: active Shield Flash when HP reach a specific % or a number of mobs in immediate range
  * use: /call cast_shield_flash DEBUG [aa|disc]
  ***|
@@ -7951,8 +7783,6 @@ sub cast_shield_flash(bool _debug, string _type)
 
 
 
-
-
 |***
  * note: swaps bandolier
  *	USE: /call set_bandolier DEBUG [1h|2h|range|no]
@@ -7969,42 +7799,6 @@ sub set_bandolier(bool _debug)
 	/varset bandolierSwap ${bandolier${_band}}
 
 /return TRUE
-
-
-${Me.Bandolier.Count}
-
-
-1h|2h|range|no
-
-
-Sword Board (Defensive Proficiency II)
-
-Dual-Wielding Proficiency II
-Two-Handed Proficiency II
-
-${Me.Bandolier.Name}
-${Me.Bandolier}
-
-${Me.Bandolier.Active}
-${Me.Bandolier.ID}
-
-${Me.Bandolier[]}
-
-${Me.Bandolier[1H].Active}
-
-${Me.Bandolier[1]}
-
-/invoke ${Me.Bandolier[1H].Activate}
-
-
-
-${Me.Bandolier[1].Active}
-
-
-${Me.Bandolier[1].Name}
-
-
-
 
 
 
@@ -8119,14 +7913,14 @@ sub set_hud_data(string _mode)
 	/varset h_swswarm				${maMinion.Find[swSwarm].Value}
 
 	| cc modes
-	/varset h_auto					AUTO
-	/varset h_melee					MELEE
-	/varset h_range					RANGE
-	/varset h_nuke					NUKE
-	/varset h_dot						DOT
+	/varset h_auto					${maEnv.Find[swAuto].Value}
+	/varset h_melee					${maCC.Find[swCombatMelee].Value}
+	/varset h_range					${maCC.Find[swCombatRange].Value}
+	/varset h_nuke					${maCC.Find[swCombatNuke].Value}
+	/varset h_dot						${maCC.Find[swCombatDoT].Value}
 	/varset h_heal					${maCC.Find[swCombatHeal].Value}
 	/varset h_control				${maCC.Find[swCombatControl].Value}
-	/varset h_env						ENV
+	/varset h_env						${maEnv.Find[stEnvRadius].Value}
 	
 
 	| healing
@@ -8151,13 +7945,13 @@ sub set_hud_data(string _mode)
 	/varset h_bpet					${maMinion.Find[swPetBuff].Value}
 	
 	| pull / agro
-	/varset h_agro					AGRO
-	/varset h_pull					PULL
+	/varset h_agro					${maCC.Find[swAgro].Value}
+	/varset h_pull					${maCC.Find[swPull].Value}
 	/varset h_pullarea			${maCC.Find[stPullRadius].Value}
 	/varset h_pullmode			${maCC.Find[stPullMode].Value}
 	
 	| tie
-	/varset h_tie						TIE
+	/varset h_tie						${maTie.Find[swSetTie].Value}
 	/varset h_tietoon				${maTie.Find[stTieToon].Value}
 	/varset h_tiemode				${maTie.Find[stTieMode].Value}
 
@@ -8960,27 +8754,28 @@ sub check_mode(bool _debug, string _verbage)
 	/varset dump ${set_data_timer[FALSE, Check_Mode, RESTART]}
 	
   /declare _out string local
-  /vardata mi maMode.First.Clone
+  /declare _mimode mapiterator local 
+  /vardata _mimode maMode.First.Clone
   
 	| reset used for zoning, and other stuffs
   /if (${_verbage.Equal[reset]}) {
-	  /while (!${mi.IsEnd}) {
-	  	/if (${mi.Value}) {
-				/varset dump ${maMode.Add[${mi.Key},FALSE]}
+	  /while (!${_mimode.IsEnd}) {
+	  	/if (${_mimode.Value}) {
+				/varset dump ${maMode.Add[${_mimode.Key},FALSE]}
 	  	}
-			/varset dump ${mi.Advance}
+			/varset dump ${_mimode.Advance}
 	  }  	
   	/return TRUE
   }
   
   
   | normal check routine
-  /while (!${mi.IsEnd}) {
-  	/if (${mi.Value}) {
-  		DEBUG  mode_${mi.Key}
-  		/call mode_${mi.Key} ${maDebug.Find[mode${mi.Key}].Value}
+  /while (!${_mimode.IsEnd}) {
+  	/if (${_mimode.Value}) {
+  		DEBUG  mode_${_mimode.Key}
+  		/call mode_${_mimode.Key} ${maDebug.Find[mode${_mimode.Key}].Value}
   	}
-		/varset dump ${mi.Advance}
+		/varset dump ${_mimode.Advance}
   }
 
 /return TRUE
@@ -9103,3 +8898,311 @@ sub vendor_buy( bool _debug, string _itemtoBuy, int _buyAmount)
 
 
 
+
+
+
+|***
+ * note: this is used to cycle the control map and handle the IDs in it. final return will be an unmezzed mob ID, if any
+ * use: /call check_control_routine DEBUG
+ ***|
+sub control_routine(bool _debug)
+	| /varset _debug TRUE
+	DEBUG \atcontrol_routine\ax()
+
+	/if (!AUTO) /return FALSE
+	/if (!${madeBuff.Find[swMez].Value}) /return FALSE
+	/if (!${maCC.Find[swCombatControl].Value}) /return FALSE
+
+
+	| ID for unmezzed/short mob
+	/declare _mezzID int local 0
+	| count of uncontrolled mobs in area
+	/declare _countArea int local 0
+	
+	/declare _count int local 0
+	
+	/if (!${Defined[maMobControl]}) {
+		/declare maMobControl map outer
+	}
+
+	| check control map for any mobs dead or gone
+	/varset dump ${control_map[${_debug}, dead]}
+
+	| find unaccounted mobs in my area
+	| returns the # of mobs that do not have a current mez timer associated
+	/varset _countArea ${control_area[${_debug}]}
+	
+	| if ${check_control_area returns more then 1
+	| hit the AE routines
+	| /if (${_countArea}) {
+		/call control_mezae ${_debug}
+	| }
+	
+	| check control map for any mobs marked as mezed with low or no timer
+	/varset _mezzID ${control_map[${_debug}, mez]}
+
+	
+	| mez something for christs sake...
+	/if (${_mezzID} && ${_countArea} && ${Bool[${madeBuff.Find[stMez].Value}]}) {
+		/for _count 1 to ${_countArea}
+			/varset _mezzID ${control_map[${_debug}, mez]}
+			/call control_mez FALSE ${_mezzID}
+		/next _count
+	}
+	
+	/delay 1
+	
+/return TRUE
+
+
+
+|***
+ * note: this is used to check our current ENV and find mobs that we do not know about that are pissed at us
+ * use: ${control_areaDEBUG}
+ ***|
+sub control_area(bool _debug)
+	DEBUG \atcontrol_area\ax()
+
+	/declare _agroCount int local 0
+	/declare _count int local 0
+	/declare _tmpID int local
+	
+	/for _count 1 to ${SpawnCount[npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value} PS4]}
+		/varset _tmpID ${NearestSpawn[${_count}, npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value} PS4].ID}
+
+		| do we have the mob in the mez list ??
+		/if (${maMobControl.Contains[${_tmpID}]}) {
+			/continue
+		}
+	
+		| if this mob is the current assists target, remove it from our need to control
+		/if (${_tmpID} == TARGET) {
+			/if (${maMobControl.Contains[${_tmpID}]}) {
+				/varset dump ${maMobControl.Remove[${_tmpID}]}
+				
+				| delete the existing mez timer if any?
+				/if (${Defined[timer_mez_ID${mi.Key}]}) {
+					/deletevar timer_mez_ID${mi.Key}
+				}				
+				
+			}
+			/continue
+		}
+		
+		| mob is not in mez list and not in agro list. fresh meat...
+		/if (!${maMobControl.Contains[${_tmpID}]}) {
+			
+			| identify mobs we dont touch
+			/if (${lsZoneNoMez.Contains[${Spawn[${_tmpID}].DisplayName}]} || ${lsZoneExclude.Contains[${Spawn[${_tmpID}].DisplayName}]}) {
+				/varset dump ${maMobControl.Add[${_tmpID},EXEMPT]}
+			
+			| mobs that we are to charm
+			} else /if (${lsZoneCharm.Contains[${Spawn[${_tmpID}].DisplayName}]} && ${maChr.Find[swCharm].Value}) {
+					/varset dump ${maMobControl.Add[${_tmpID},CHARM]}
+			
+			| mobs that we are to mez
+			| create the mez timer with the ID
+			} else { 
+				/if (!${Defined[timer_mez_ID${_tmpID}]}) {
+					/varset dump ${set_timer[FALSE, timer_mez_ID${_tmpID}, 1]}
+					/varset dump ${maMobControl.Add[${_tmpID},MEZ]}
+					/varcalc _agroCount ${_agroCount} + 1
+				} 
+					
+			}
+		}
+
+	/next _count
+	
+/return ${_agroCount}
+
+
+
+|***
+ * note: cheeck the IDs in the passed list. remove them from the list if they are dead/gone
+ * use: ${control_map[DEBUG, THINGIETOCHECK??]}
+ * 
+ * THINGIETOCHECK:
+ * dead = check for dead or no more spawns. removes them from the control map
+ * mez = find mobs that are not mezed. returns ID of nonmezed or short duration remaining mezed mob
+ ***|
+sub control_map(bool _debug, string _type)
+	DEBUG \atcontrol_map\ax(\a-w${_type}\ax)
+	
+	/declare _returnCount int local 0
+	
+	| check list for dead mobs and get them gone
+	/if (${_type.Equal[dead]}) {
+	
+		/declare maRemoveals list
+		/declare _remcount int local 0
+		/declare _count int local 0
+
+		/vardata mi maMobControl.First.Clone
+		/varset dump ${maRemoveals.Clear}
+		/while (!${mi.IsEnd}) {
+			DEBUG ${sep}mi.Key--.Value${sep}\a-w${mi.Key} -- ${mi.Value}\ax
+			/if (!${Spawn[${mi.Key}].ID} || ${Spawn[${mi.Key}].Dead}) {
+				DEBUG ${sep}removing${sep}\a-w${mi.Key}\ax
+
+				| delete the existing mez timer if any?
+				/if (${Defined[timer_mez_ID${mi.Key}]}) {
+					/deletevar timer_mez_ID${mi.Key}
+				}
+
+				| Add the key to the list of items to remove.
+				/varset dump ${maRemoveals.Append[${mi.Key}]}
+			}
+			/varset dump ${mi.Advance}
+		}
+
+		/varcalc _remcount ${maRemoveals.Count}
+
+		/for _count 1 to ${_remcount}
+			/varset dump ${maMobControl.Remove[${maRemoveals.Head}]}
+		/next _count
+		
+	}
+	
+	| find a non mezed mob or mob with a short duration mez left. return its ID if any for cc
+	/if (${_type.Equal[mez]}) {
+		DEBUG ${sep}cc${sep}
+		/vardata mi maMobControl.First.Clone
+		/while (!${mi.IsEnd}) {
+			DEBUG ${sep}mi.Key--.Value${sep}\a-w${mi.Key} -- ${mi.Value}\ax
+			/if (${Bool[${maCC.Find[stAssistMode].Value}]} && ${mi.Key} == ${Me.XTarget[1].ID}) {
+				/varset dump ${mi.Advance}
+				/continue
+			}
+			
+			/if (${mi.Value.Equal[MEZ]} && ${Defined[timer_mez_ID${mi.Key}]}) {
+				
+				| if the timer is < 6 seconds. remezz
+				/if (${timer_mez_ID${mi.Key}} < 60) {
+					/return ${mi.Key}
+				}
+
+			}
+			/varset dump ${mi.Advance}
+		}
+		/return 0
+	}
+
+/return FALSE
+
+
+
+|***
+ * note: AE mez routine
+ * use: rwq > 1 mob
+ ***|
+sub control_mezae(bool _debug)
+	DEBUG \atcontrol_mezae\ax()
+
+	ISMEDEAD
+	GETINPUT
+	/declare _tmpID int local
+
+	/if (${maMobControl.Count} >= 1 && ${is_ready[FALSE, "${madeBuff.Find[stAEMez].Value}"]}) {
+		/vardata _tmpID maMobControl.First
+
+		/if (AE# && ${SpawnCount[npc los radius ${Spell[${madeBuff.Find[stAEMez].Value}].AERange} targetable]} >= AE#) {
+	
+			/if (${Me.Gem[${Spell[${maChr.Find[stAEStun].Value}].RankName}]}) {
+				/if (${Me.Casting.Name.NotEqual[${Spell[${maChr.Find[stAEStun].Value}].RankName}]}) /stopcast
+				/delay 2.25s ${Me.SpellReady[${Spell[${maChr.Find[stAEStun].Value}].RankName}]}
+				/call voodoo FALSE "${maChr.Find[stAEStun].Value}" 0 FALSE
+			}
+
+			/if (${Me.Gem[${Spell[${madeBuff.Find[stAEMez].Value}].RankName}]}) {
+				/if (${Me.Casting.Name.NotEqual[${Spell[${madeBuff.Find[stAEMez].Value}].RankName}]}) /stopcast
+				/delay 2.25s ${Me.SpellReady[${Spell[${madeBuff.Find[stAEMez].Value}].RankName}]}
+				/call voodoo FALSE "${madeBuff.Find[stAEMez].Value}" 0 FALSE
+			}
+
+		}
+		
+		| use AA beam of slumber?
+		/if (${maChr.Find[swAABoS].Value}) {
+			/if (${Spawn[${_tmpID}].NearestSpawn[3,npc radius 30].ID} && ${Spawn[${_tmpID}].Distance3D} <= 200 && ${Spawn[${_tmpID}].Distance3D} >= ENV*.5) {
+				/if (${is_ready[FALSE, "Beam of Slumber"]}) {
+					/if (${Me.Casting.ID}) /stopcast
+					/face ID ${_tmpID} ${If[${maHome.Find[swFaceFast].Value},fast,]}
+					/call voodoo FALSE "Beam of Slumber" 0 FALSE
+				} 
+			}
+		}
+	} 
+	
+/return
+
+
+
+|***
+ * note: single mez the target
+ * use: /call control_mez DEBUG [TARGETID]
+ ***|
+sub control_mez(bool _debug, int _tmpID)
+	DEBUG \atcontrol_mez\ax(${_tmpID})
+	
+	/if (!${_tmpID}) /return FALSE
+	
+	/if (${timer_mez_ID${_tmpID}} > 60) /return
+	
+	/declare _resistCount int local 0
+
+	| try to mez more then once if there is a fail
+	/while (${_resistCount} < 4) {
+	
+		/varset dump ${set_target[${_tmpID}]}
+		/if (${_tmpID} == TARGET) /return FALSE
+
+		ISMEDEAD
+		GETINPUT
+		
+		/if (!${Target.LineOfSight}) /return FALSE
+		
+		/if (${Target.Mezzed.Duration} && ${Spell[${Target.Mezzed}].Name.Find[${madeBuff.Find[stMez].Value}]}) {
+			/call set_timer timer_mez_ID${_tmpID} ${Target.Mezzed.Duration.TotalSeconds}s
+			/return TRUE
+		} 
+		
+		| mez ready?
+		/delay 2.25s ${Me.SpellReady[${Spell[${madeBuff.Find[stMez].Value}].RankName}]}
+		/call voodoo FALSE "${madeBuff.Find[stMez].Value}" ${_tmpID} FALSE
+
+		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,IMMUNE,TAKEHOLD]}) {
+
+			/if (${Select[${maData.Find[stCastReturn].Value},IMMUNE,TAKEHOLD]}) {
+				| auto add to no mez list for zone
+				/if (${maEntropy.Find[swAutoList].Value} && ${maData.Find[stCastReturn].Value.Equal[IMMUNE]}) {
+					/sqlite ${maData.Find[DBzone].Value} dummy INSERT INTO zone_control VALUES ("${Zone.ShortName}", "lsZoneNoMez", "${Target.DisplayName}")
+					/varset dump ${out[15, "/area nomez ${dot} ${num}lsZoneNoMez\ax${sep}\a-w${Target.DisplayName}\ax"]}
+					/call set_zone_lists FALSE
+				}
+				
+				| were not going to try this target again, clear its current control settings
+			  /varset dump ${maMobControl.Add[${_tmpID},EXEMPT]}
+			  /if (${Defined[timer_mez_ID${_tmpID}]}) {
+			  	/deletevar timer_mez_ID${_tmpID}
+			  	/return FALSE
+			  }
+			  
+			}
+
+			| /call set_timer timer_mez_ID${_tmpID} ${Spell[${madeBuff.Find[stMez].Value}].Duration.Seconds}s
+			/varset dump ${set_timer[FALSE, timer_mez_ID${_tmpID}, ${Spell[${madeBuff.Find[stMez].Value}].Duration.Seconds}s]}
+
+			/return TRUE
+		
+		} else /if (${Select[${maData.Find[stCastReturn].Value},RESISTED,RESISTEDYOU]}) {
+			/varcalc _resistCount ${_resistCount} + 1
+			/if (${_resistCount} >= 1) {
+				/if (${is_ready[FALSE, "${madeBuff.Find[stTash].Value}"]}) {
+					/call voodoo FALSE "${madeBuff.Find[stTash].Value}" ${_tmpID} FALSE
+				}
+			}
+		}
+	}
+
+/return

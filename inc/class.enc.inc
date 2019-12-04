@@ -67,7 +67,7 @@ sub main_ENC(bool _debug)
 		CHECKREZ
 		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Self
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
-		/call control_routine FALSE
+		/call control_routine ${maDebug.Find[mez].Value}
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
@@ -75,25 +75,25 @@ sub main_ENC(bool _debug)
 			/call set_combat FALSE
 			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
-			/call control_routine FALSE
+			/call control_routine ${maDebug.Find[mez].Value}
 
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 			/if (MELEE) /call use_skill_melee TARGET
 			/call misc_combat_${Me.Class.ShortName} FALSE
 
-			/call control_routine FALSE
+			/call control_routine ${maDebug.Find[mez].Value}
 
 			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDot TARGET
-			/call control_routine FALSE
+			/call control_routine ${maDebug.Find[mez].Value}
 			/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
-			/call control_routine FALSE
+			/call control_routine ${maDebug.Find[mez].Value}
 			/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
 				/call check_buff_cycle_temp_list FALSE stTerror lsTerrorToon
 			}
-			/call control_routine FALSE
+			/call control_routine ${maDebug.Find[mez].Value}
 			| /if (${swAlliance}) /call trigger_alliance TARGET
 
-			/call check_item_cycle FALSE TARGET
+			/call check_item_cycle FALSE ${maDebug.Find[castitem].Value}
 			
 		}
 

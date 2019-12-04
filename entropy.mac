@@ -17,6 +17,7 @@
 #warning
 #turbo 240
 #engine parser 2
+
 #define DEBUG "/if (${_debug}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
 #define SDEBUG "/echo \ay+[\ax\aw${Time.Second}\ax\at::\ax\aw${Macro.CurLine}\ax\ay]\ax(\a-t${Macro.RunTime}\ax) \ay--\ax "
 #define OUT "/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,\at.\ax]}"
@@ -28,8 +29,6 @@
 #define OVERLOS "${If[${maOver.Find[swOverLOS].Value},,los]}"
 #define PS4 "playerstate 4"
 #define AUTO "${maEnv.Find[swAuto].Value}"
-| #define CLOSE 15
-| #define CLOSE "${maEnv.Find[stActiveRange].Value}"
 #define ENV "${maEnv.Find[stEnvRadius].Value}"
 #define PULL "${maCC.Find[swPull].Value}"
 #define AGRO "${maCC.Find[swAgro].Value}"
@@ -68,8 +67,6 @@
 #include exspes\inc\custom.inc
 #include exspes\inc\dpsmeter.inc
 #include exspes\inc\mode.inc
-
-
 #include exspes\inc\class.ber.inc
 #include exspes\inc\class.brd.inc
 #include exspes\inc\class.bst.inc
@@ -114,7 +111,7 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A191203.02
+	/call set_data FALSE maEnv build													map outer A191204.01
 	
 	| prep macro
 	/call prepare_the_end FALSE
