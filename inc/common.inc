@@ -1623,18 +1623,18 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub)
 		**|
 
 		| if a gom procs and a spell is ready, we hijack the existing cast and use the GOM spell in its place
-		/if (${_tmpID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]} && ${lsGoM.Count} && ${lsGoM.First.NotEqual[empty]}) {
+		/if (${_tmpID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]}) {
 	
 			/declare _ligom listiterator local
 			/vardata _ligom lsGoM.First.Clone
-			/while (!${_ligom.IsEnd}) {
-				/if (${is_ready[FALSE, "${_ligom.Value}"]}) {
-					/varset _verbage ${_ligom.Value}
-					/break					
-				}
-			/varset dump ${_ligom.Advance}
-			}		
-
+				/while (!${_ligom.IsEnd}) {
+					/if (${_ligom.Value.Equal[empty]}) /break
+					/if (${is_ready[FALSE, "${_ligom.Value}"]}) {
+						/varset _verbage ${_ligom.Value}
+						/break					
+					}
+				/varset dump ${_ligom.Advance}
+			}
 		}
 
 		/if (${Window[SpellBookWnd].Open}) /invoke ${Window[SpellBookWnd].DoClose}
