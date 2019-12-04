@@ -3802,6 +3802,7 @@ sub Bind_control_grain(string _num)
 	}
 
 
+	| add in raw edit for numbers
 
 
 /return FALSE

@@ -1009,7 +1009,7 @@ sub mode_scorch(bool _debug, int _tmpID)
 		/varcalc _count ${_count}+1
 		/if (${_count} > 10) /return FALSE
 		/delay 1s
-		/call pull_mob_find ${_debug} ${_count}
+		/call pull_mob_find FALSE ${_count}
 		/goto :checkpath
 	}	
 

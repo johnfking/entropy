@@ -729,13 +729,14 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 		}
 
 		/declare _lsout list local
+		/declare _lichrs listiterator local
 		/varset dump ${_lsout.Append[use,spell]}
 		/vardata li _lsout.First.Clone
-		/while (!${li.IsEnd}) {
-			/varset _out ${_out} ${If[${li.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${li.Value}\ax
-			/if (${li.Value.Equal[use]}) /varset _out ${_out}:${If[${maChr.Find[swSummonPrimary].Value},${on},${off}]}
-			/if (${li.Value.Equal[spell]}) /varset _out ${_out}:[${If[${Bool[${maChr.Find[stSummonPrimary].Value}]},${num}${maChr.Find[stSummonPrimary].Value}\ax,${r0}]}]
-			/varset dump ${li.Advance}
+		/while (!${_lichrs.IsEnd}) {
+			/varset _out ${_out} ${If[${_lichrs.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${_lichrs.Value}\ax
+			/if (${_lichrs.Value.Equal[use]}) /varset _out ${_out}:${If[${maChr.Find[swSummonPrimary].Value},${on},${off}]}
+			/if (${_lichrs.Value.Equal[spell]}) /varset _out ${_out}:[${If[${Bool[${maChr.Find[stSummonPrimary].Value}]},${num}${maChr.Find[stSummonPrimary].Value}\ax,${r0}]}]
+			/varset dump ${_lichrs.Advance}
 		}	
 		OUT /chr primary ${_out}
 		/return
@@ -745,25 +746,26 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 	
 	/if (${_silent.Equal[SILENT]}) /return 
 	/varset _out
-	/vardata li lsChr.First.Clone
-	/while (!${li.IsEnd}) {
-		/varset _out ${_out} ${If[${li.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${li.Value}\ax
-		/if (${li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
-		/if (${li.Value.Equal[vp]}) /varset _out ${_out}:${If[${maChr.Find[stPctVP].Value},${num}${maChr.Find[stPctVP].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[arbitrate]}) /varset _out ${_out}:${If[${maChr.Find[stCountArbitrate].Value},${num}${maChr.Find[stCountArbitrate].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[yaulp]}) /varset _out ${_out}:${If[${maChr.Find[swYaulp].Value},${on},${off}]}
-		/if (${li.Value.Equal[divinerez]}) /varset _out ${_out}:${If[${maRez.Find[swDivineCleric].Value},${on},${off}]}
-		/if (${li.Value.Equal[issuance]}) /varset _out ${_out}:${If[${maChr.Find[stCountIssuance].Value},${num}${maChr.Find[stCountIssuance].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[groupheal]}) /varset _out ${_out}:${If[${maChr.Find[stCountHealGroup].Value},${num}${maChr.Find[stCountHealGroup].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[grouphot]}) /varset _out ${_out}:${If[${maChr.Find[swHealGroupOverTime].Value},${on},${off}]}
-		/if (${li.Value.Equal[hot]}) /varset _out ${_out}:${If[${maChr.Find[swHealOverTime].Value},${on},${off}]}
-		/if (${li.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[splash]}) /varset _out ${_out}:${If[${maChr.Find[stCountSplash].Value},${num}${maChr.Find[stCountSplash].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[primary]}) /varset _out ${_out}:${submenu}
-		/varset dump ${li.Advance}
+	/declare _lichr listiterator local
+	/vardata _lichr lsChr.First.Clone
+	/while (!${_lichr.IsEnd}) {
+		/varset _out ${_out} ${If[${_lichr.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${_lichr.Value}\ax
+		/if (${_lichr.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
+		/if (${_lichr.Value.Equal[vp]}) /varset _out ${_out}:${If[${maChr.Find[stPctVP].Value},${num}${maChr.Find[stPctVP].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[arbitrate]}) /varset _out ${_out}:${If[${maChr.Find[stCountArbitrate].Value},${num}${maChr.Find[stCountArbitrate].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[yaulp]}) /varset _out ${_out}:${If[${maChr.Find[swYaulp].Value},${on},${off}]}
+		/if (${_lichr.Value.Equal[divinerez]}) /varset _out ${_out}:${If[${maRez.Find[swDivineCleric].Value},${on},${off}]}
+		/if (${_lichr.Value.Equal[issuance]}) /varset _out ${_out}:${If[${maChr.Find[stCountIssuance].Value},${num}${maChr.Find[stCountIssuance].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[groupheal]}) /varset _out ${_out}:${If[${maChr.Find[stCountHealGroup].Value},${num}${maChr.Find[stCountHealGroup].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[grouphot]}) /varset _out ${_out}:${If[${maChr.Find[swHealGroupOverTime].Value},${on},${off}]}
+		/if (${_lichr.Value.Equal[hot]}) /varset _out ${_out}:${If[${maChr.Find[swHealOverTime].Value},${on},${off}]}
+		/if (${_lichr.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[splash]}) /varset _out ${_out}:${If[${maChr.Find[stCountSplash].Value},${num}${maChr.Find[stCountSplash].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[primary]}) /varset _out ${_out}:${submenu}
+		/varset dump ${_lichr.Advance}
 	}	
 	/varset dump ${out[14, "${_out}"]}
 

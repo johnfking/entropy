@@ -468,19 +468,20 @@ sub set_control_BST(string _type, string _verbage, string _silent, bool _debug)
 	
 	/if (${_silent.Equal[SILENT]}) /return 
 	/varset _out
-	/vardata li lsChr.First.Clone
-	/while (!${li.IsEnd}) {
-		/varset _out ${_out} ${If[${li.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${li.Value}\ax
-		/if (${li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
-		/if (${li.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[consume]}) /varset _out ${_out}:${If[${maChr.Find[stPctConsume].Value},${num}${maChr.Find[stPctConsume].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[parafocus]}) /varset _out ${_out}:${If[${maChr.Find[stPctParagonF].Value},${num}${maChr.Find[stPctParagonF].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[paragroup]}) /varset _out ${_out}:${If[${maChr.Find[stPctParagonG].Value},${num}${maChr.Find[stPctParagonG].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
-		/varset dump ${li.Advance}
+	/declare _lichr listiterator local
+	/vardata _lichr lsChr.First.Clone
+	/while (!${_lichr.IsEnd}) {
+		/varset _out ${_out} ${If[${_lichr.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${_lichr.Value}\ax
+		/if (${_lichr.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
+		/if (${_lichr.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[consume]}) /varset _out ${_out}:${If[${maChr.Find[stPctConsume].Value},${num}${maChr.Find[stPctConsume].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[parafocus]}) /varset _out ${_out}:${If[${maChr.Find[stPctParagonF].Value},${num}${maChr.Find[stPctParagonF].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[paragroup]}) /varset _out ${_out}:${If[${maChr.Find[stPctParagonG].Value},${num}${maChr.Find[stPctParagonG].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
+		/varset dump ${_lichr.Advance}
 	}	
 	/varset dump ${out[14, "${_out}"]}
 

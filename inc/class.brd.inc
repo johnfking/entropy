@@ -218,8 +218,9 @@ sub pulse_line(bool _debug)
 
 	SETHUD "pulse"
 	
-	/vardata li lsLine${stLine}.First.Clone
-	/while (!${li.IsEnd}) {
+	/declare _lipl listiterator local
+	/vardata _lipl lsLine${stLine}.First.Clone
+	/while (!${_lipl.IsEnd}) {
 
 		/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) {
 			/call clear_combat
@@ -235,18 +236,18 @@ sub pulse_line(bool _debug)
 		}	
 
 		| song not ready
-		/if (!${is_ready[FALSE, "${li.Value}"]}) /varset _skip TRUE
+		/if (!${is_ready[FALSE, "${_lipl.Value}"]}) /varset _skip TRUE
 
 		| song has time left
-		/if (${Me.Song[${li.Value}].Duration} > ${maChr.Find[stSongRefresh].Value}*10) /varset _skip TRUE
+		/if (${Me.Song[${_lipl.Value}].Duration} > ${maChr.Find[stSongRefresh].Value}*10) /varset _skip TRUE
 
 		/if (${_skip}) {
-			/varset dump ${li.Advance}
+			/varset dump ${_lipl.Advance}
 			/continue
 		}
 
-		/call voodoo FALSE "${li.Value}" 0 FALSE
-		/varset dump ${li.Advance}
+		/call voodoo FALSE "${_lipl.Value}" 0 FALSE
+		/varset dump ${_lipl.Advance}
 	}	
 
 	SETHUD FALSE
@@ -423,18 +424,19 @@ sub set_control_BRD(string _type, string _verbage, string _silent, bool _debug)
 	
 	/if (${_silent.Equal[SILENT]}) /return 
 	/varset _out
-	/vardata li lsChr.First.Clone
-	/while (!${li.IsEnd}) {
-		/varset _out ${_out} ${If[${li.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${li.Value}\ax
-		/if (${li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[refresh]}) /varset _out ${_out}:${If[${maChr.Find[stSongRefresh].Value},${num}${maChr.Find[stSongRefresh].Value}s\ax,${r0}]}
-		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
-		/if (${li.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[line]}) /varset _out ${_out}:[${num}${maChr.Find[stCurrent].Value}\ax]
-		/if (${li.Value.Equal[rest]}) /varset _out ${_out}:${If[${maChr.Find[swSongRest].Value},${on},${off}]}
-		/varset dump ${li.Advance}
+	/declare _lichr listiterator local
+	/vardata _lichr lsChr.First.Clone
+	/while (!${_lichr.IsEnd}) {
+		/varset _out ${_out} ${If[${_lichr.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${_lichr.Value}\ax
+		/if (${_lichr.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[refresh]}) /varset _out ${_out}:${If[${maChr.Find[stSongRefresh].Value},${num}${maChr.Find[stSongRefresh].Value}s\ax,${r0}]}
+		/if (${_lichr.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
+		/if (${_lichr.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[line]}) /varset _out ${_out}:[${num}${maChr.Find[stCurrent].Value}\ax]
+		/if (${_lichr.Value.Equal[rest]}) /varset _out ${_out}:${If[${maChr.Find[swSongRest].Value},${on},${off}]}
+		/varset dump ${_lichr.Advance}
 	}	
 	/varset dump ${out[14, "${_out}"]}
 

@@ -327,7 +327,7 @@ sub burn_BER(bool _debug)
 
 	/if (${Spawn[group PC Shaman].ID}) {
 	 	/if (!${Me.Buff[Savage Spirit].ID} && !${Me.ActiveDisc.ID}) {
-	 		/if (${is_ready[FALSE, "${maChr.Find[stInspiredAnger].Value}}"]}) /call voodoo FALSE "${maChr.Find[stInspiredAnger].Value}}" 0 FALSE		
+	 		/if (${is_ready[FALSE, "${maChr.Find[stInspiredAnger].Value}}"]}) /call voodoo FALSE "${maChr.Find[stInspiredAnger].Value}" 0 FALSE		
 	 	}
 		/if (!${Me.ActiveDisc.ID} && ${Me.AltAbilityReady[Savage Spirit]}) {
 		 /alt act 465
@@ -356,19 +356,6 @@ sub burn_BER(bool _debug)
 	}
 
 /return
-
-
-
-
-
-
-/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
-
-	| use hiatus disc
-	} else /if (${_type.Equal[hiatus]}) {
-		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
-
-
 
 
 
@@ -412,16 +399,17 @@ sub set_control_BER(string _type, string _verbage, string _silent, bool _debug)
 
 	/if (${_silent.Equal[SILENT]}) /return 
 	/varset _out
-	/vardata li lsChr.First.Clone
-	/while (!${li.IsEnd}) {
-		/varset _out ${_out} ${If[${li.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${li.Value}\ax
-		/if (${li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
-		/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
+	/declare _lichr listiterator local
+	/vardata _lichr lsChr.First.Clone
+	/while (!${_lichr.IsEnd}) {
+		/varset _out ${_out} ${If[${_lichr.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${_lichr.Value}\ax
+		/if (${_lichr.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
+		/if (${_lichr.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
 
-		/varset dump ${li.Advance}
+		/varset dump ${_lichr.Advance}
 	}	
 	/varset dump ${out[14, "${_out}"]}
 

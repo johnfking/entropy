@@ -288,10 +288,11 @@ sub set_initial_environment(bool _debug)
 
     /varset dump ${lsEntropyGroup.Append[all|1|2|3|4|5|6|7|8|9|10|11]}
 
-    /vardata li lsEntropyGroup.First
-    /while (!${li.IsEnd}) {
-      /varset dump ${maComm.Add[stEntropyGroup_${li.Value},entropy${li.Value}]}
-      /varset dump ${li.Advance}
+		/declare _lidn listiterator local
+    /vardata _lidn lsEntropyGroup.First
+    /while (!${_lidn.IsEnd}) {
+      /varset dump ${maComm.Add[stEntropyGroup_${_lidn.Value},entropy${_lidn.Value}]}
+      /varset dump ${_lidn.Advance}
     } 
 
     | join the group
@@ -304,10 +305,11 @@ sub set_initial_environment(bool _debug)
   /declare _lsout list local
   /varset dump ${_lsout.Append[forage,drag,collect,summon]}
 
-  /vardata cli _lsout.First.Clone
-  /while (!${cli.IsEnd}) {
-    /varset dump ${maMode.Add[${cli.Value},FALSE]}
-    /varset dump ${cli.Advance}
+	/declare _lisie listiterator local
+  /vardata _lisie _lsout.First.Clone
+  /while (!${_lisie.IsEnd}) {
+    /varset dump ${maMode.Add[${_lisie.Value},FALSE]}
+    /varset dump ${_lisie.Advance}
   } 
   
 
@@ -330,10 +332,11 @@ sub sql_set_zone_schema(bool _debug)
   /varset dump ${lsZoneProperty.Append[lsZoneNamed|lsZoneExclude|lsZoneHunt|lsZoneCharm|lsZoneHarvest|lsZoneRange|lsZoneNoMez|lsZoneNoCast]}
   /varset dump ${lsZoneProperty.Append[lsZoneNoMelee|lsZoneNoFire|lsZoneNoPoison|lsZoneNoMagic|lsZoneNoCorruption|lsZoneNoCold|lsZoneNoDisease]}
 
-  /vardata li lsZoneProperty.First
-  /while (!${li.IsEnd}) {
-    /declare ${li.Value} list outer
-    /varset dump ${li.Advance}
+	/declare _lisszs listiterator local
+  /vardata _lisszs lsZoneProperty.First
+  /while (!${_lisszs.IsEnd}) {
+    /declare ${_lisszs.Value} list outer
+    /varset dump ${_lisszs.Advance}
   }
 
   /sqlite ${maData.Find[DBzone].Value} dummy SELECT build_number FROM build
@@ -373,7 +376,7 @@ sub sql_set_zone_schema(bool _debug)
     }     
   }
 
-  /return
+ /return TRUE
 
 
 
@@ -560,10 +563,11 @@ sub set_initialize_map_character_environment(bool _debug)
   /if (${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
     /call set_data_map FALSE maHeal stHealPointPanic                  80                            "${auxnum} % of health to use panic heal"
     /call set_data_map FALSE maHeal stHealPointHoT                    80                            "${auxnum} % of health to use single heal over time"
-    /vardata li lsClassAll.First
-    /while (!${li.IsEnd}) {
-      /call set_data_map FALSE maHeal stHealPoint${li.Value}         80                   					"${auxnum} % of health to start healing:\a-w${li.Value}\ax"
-      /varset dump ${li.Advance}
+		/declare _lishp listiterator local
+    /vardata _lishp lsClassAll.First
+    /while (!${_lishp.IsEnd}) {
+      /call set_data_map FALSE maHeal stHealPoint${_lishp.Value}      80                   					"${auxnum} % of health to start healing:\a-w${_lishp.Value}\ax"
+      /varset dump ${_lishp.Advance}
     }
 	 /call set_data_list FALSE maHeal lsProtectOutsideGroup              EMPTY                         "${auxli} names outside of your group to add to xtarget for healing"
   /call set_data_list FALSE maHeal lsProtectInsideRaid                EMPTY                         "${auxli} names in a raid to add to your xtarget healing (\a-wbeyond lsHealXTClass\ax)"
@@ -1117,11 +1121,12 @@ sub set_initialize_hud_variables()
   /varset dump ${lsHUD.Append[buauto,bupct,bucount,buraid]}
   /varset dump ${lsHUD.Append[rpct,rfull,rrod,rbuff,rcombat]}
   /varset dump ${lsHUD.Append[zgive,ztake,zcombat,zeveryone,ztoken]}
-  /vardata li lsHUD.First.Clone
-  
-  /while (!${li.IsEnd}) {
-    /declare h_${li.Value} string outer
-    /varset dump ${li.Advance}
+
+	/declare _lisihv listiterator local
+  /vardata _lisihv lsHUD.First.Clone
+  /while (!${_lisihv.IsEnd}) {
+    /declare h_${_lisihv.Value} string outer
+    /varset dump ${_lisihv.Advance}
   } 
   
 /return

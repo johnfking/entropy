@@ -332,20 +332,21 @@ sub set_control_WIZ(string _type, string _verbage, string _silent, bool _debug)
 
 	/if (${_silent.Equal[SILENT]}) /return 
 	/varset _out
-	/vardata li lsChr.First.Clone
-	/while (!${li.IsEnd}) {
-		/varset _out ${_out} ${If[${li.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${li.Value}\ax
-		/if (${li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
-		/if (${li.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[line]}) /varset _out ${_out}:[${num}${maChr.Find[stCurrent].Value}\ax]
-		/if (${li.Value.Equal[mb]}) /varset _out ${_out}:${If[${maChr.Find[swManaBurn].Value},${on},${off}]}
-		/if (${li.Value.Equal[gather]}) /varset _out ${_out}:${If[${maChr.Find[stPctGather].Value},${num}${maChr.Find[stPctGather].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[concussion]}) /varset _out ${_out}:${If[${maChr.Find[stPctConcussion].Value},${num}${maChr.Find[stPctConcussion].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[forcetc]}) /varset _out ${_out}:${If[${maChr.Find[swForceTC].Value},${on},${off}]}
-		/varset dump ${li.Advance}
+	/declare _lichr listiterator local
+	/vardata _lichr lsChr.First.Clone
+	/while (!${_lichr.IsEnd}) {
+		/varset _out ${_out} ${If[${_lichr.Value.Equal[${lsChr.First}]},,${dot}]} ${info}${_lichr.Value}\ax
+		/if (${_lichr.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
+		/if (${_lichr.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[line]}) /varset _out ${_out}:[${num}${maChr.Find[stCurrent].Value}\ax]
+		/if (${_lichr.Value.Equal[mb]}) /varset _out ${_out}:${If[${maChr.Find[swManaBurn].Value},${on},${off}]}
+		/if (${_lichr.Value.Equal[gather]}) /varset _out ${_out}:${If[${maChr.Find[stPctGather].Value},${num}${maChr.Find[stPctGather].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[concussion]}) /varset _out ${_out}:${If[${maChr.Find[stPctConcussion].Value},${num}${maChr.Find[stPctConcussion].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[forcetc]}) /varset _out ${_out}:${If[${maChr.Find[swForceTC].Value},${on},${off}]}
+		/varset dump ${_lichr.Advance}
 	}	
 	/varset dump ${out[14, "${_out}"]}
 

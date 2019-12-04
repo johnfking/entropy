@@ -1623,7 +1623,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub)
 		**|
 
 		| if a gom procs and a spell is ready, we hijack the existing cast and use the GOM spell in its place
-		/if (${_tmpID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]} && ${lsGoM.Count}) {
+		/if (${_tmpID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]} && ${lsGoM.Count} && ${lsGoM.First.NotEqual[empty]}) {
 	
 			/declare _ligom listiterator local
 			/vardata _ligom lsGoM.First.Clone
@@ -2036,35 +2036,35 @@ sub check_xtarget_build(bool _debug, string _forced)
 		***|
 
 
-
-		/vardata li lsHealXTClass.First.Clone
-		/while (!${li.IsEnd}) {
+		/declare _lixt listiterator local
+		/vardata _lixt lsHealXTClass.First.Clone
+		/while (!${_lixt.IsEnd}) {
 
 			| no class in range
-			/if (!${SpawnCount[pc ${li.Value} raid radius ENV]}) {
-				/varset dump ${li.Advance}
+			/if (!${SpawnCount[pc ${_lixt.Value} raid radius ENV]}) {
+				/varset dump ${_lixt.Advance}
 				/continue
 			}
 
 			| cycle the class and add to slots
-			/for _x 1 to ${SpawnCount[pc ${li.Value} raid radius ENV]}
+			/for _x 1 to ${SpawnCount[pc ${_lixt.Value} raid radius ENV]}
 
 				/if (${_b} > ${Me.XTargetSlots}) /break
 				
 				| are they a group member?
-				/if (${Group.Member[${NearestSpawn[${_x}, pc ${li.Value} raid]}].ID}) /continue
+				/if (${Group.Member[${NearestSpawn[${_x}, pc ${_lixt.Value} raid]}].ID}) /continue
 				
 				| on the xtarget
-				/if (${Bool[${Me.XTarget[${NearestSpawn[${_x}, pc ${li.Value} raid].Name}]}]}) /continue
+				/if (${Bool[${Me.XTarget[${NearestSpawn[${_x}, pc ${_lixt.Value} raid].Name}]}]}) /continue
 
 				| me?
-				/if (${NearestSpawn[${_x}, pc ${li.Value} raid radius ENV].DisplayName.Equal[${Me.DisplayName}]}) /continue
+				/if (${NearestSpawn[${_x}, pc ${_lixt.Value} raid radius ENV].DisplayName.Equal[${Me.DisplayName}]}) /continue
 
 				/varcalc _b ${_b}+1
-				/xtarget set ${_b} ${NearestSpawn[${_x}, pc ${li.Value} raid radius ENV]}
+				/xtarget set ${_b} ${NearestSpawn[${_x}, pc ${_lixt.Value} raid radius ENV]}
 			/next _x
 			
-			/varset dump ${li.Advance}
+			/varset dump ${_lixt.Advance}
 		}
 
 	}
@@ -3655,20 +3655,15 @@ sub set_zone_lists(bool _debug)
 sub get_key_map(bool _debug, string _key, bool _validate)
 	DEBUG\atget_key_map\ax(\a-w${_key}\ax)	
 
-	/vardata li lsMaps.First.Clone
-	/while (!${li.IsEnd}) {
-		DEBUG ${sep}lsMaps${sep}\a-w${li.Value}\ax${sep}contains(\aw${_key}\ax)${If[${${li.Value}.Contains[${_key}]}, ${dot} \agFound\ax,]}
-		/if (${${li.Value}.Contains[${_key}]}) {
-			DEBUG ${sep}lsMaps${sep}\agReturning\ax${sep}\a-w${li.Value}\ax
-			
-			| /if (${_validate}) {
-			| 	/return TRUE
-			| } else {
-				/return ${li.Value}
-			| }
-			
+	/declare _liglm listiterator local
+	/vardata _liglm lsMaps.First.Clone
+	/while (!${_liglm.IsEnd}) {
+		DEBUG ${sep}lsMaps${sep}\a-w${_liglm.Value}\ax${sep}contains(\aw${_key}\ax)${If[${${_liglm.Value}.Contains[${_key}]}, ${dot} \agFound\ax,]}
+		/if (${${_liglm.Value}.Contains[${_key}]}) {
+			DEBUG ${sep}lsMaps${sep}\agReturning\ax${sep}\a-w${_liglm.Value}\ax
+			/return ${_liglm.Value}
 		}
-		/varset dump ${li.Advance}
+		/varset dump ${_liglm.Advance}
 	}	
 	DEBUG ${sep}Map Returning${sep}\arNO MAP FOUND\ax
 
@@ -3987,10 +3982,11 @@ sub set_control_heal_point(bool _debug, int _verbage)
 		/varset dump ${set_control_num_range[${_debug}, stHealPoint${Target.Class.ShortName}, "${_verbage}", 1, 99]}
 	}		
 
-	/vardata li lsClassAll.First.Clone
-	/while (!${li.IsEnd}) {
-		/varset _out ${_out} ${If[${li.Value.Equal[${lsClassAll.First}]},,${dot}]} ${info}${li.Value}\ax:${num}${maHeal.Find[stHealPoint${li.Value}].Value}\ax
-		/varset dump ${li.Advance}
+	/declare _lichp listiterator local
+	/vardata _lichp lsClassAll.First.Clone
+	/while (!${_lichp.IsEnd}) {
+		/varset _out ${_out} ${If[${_lichp.Value.Equal[${lsClassAll.First}]},,${dot}]} ${info}${_lichp.Value}\ax:${num}${maHeal.Find[stHealPoint${_lichp.Value}].Value}\ax
+		/varset dump ${_lichp.Advance}
 	}
 	/varset _out ${_out} ${dot}${info}PANIC\ax:${num}${maHeal.Find[stHealPointPanic].Value}\ax
 	/varset _out ${_out} ${dot}${info}HOT\ax:${num}${maHeal.Find[stHealPointHoT].Value}\ax
@@ -4029,12 +4025,13 @@ sub set_control_chr_xtclass(bool _debug, string _verbage)
 		}			
 	}
   /declare _out string local
-	/vardata li lsClassAll.First.Clone
-	/while (!${li.IsEnd}) {
-		/varset _out ${_out} ${If[${li.Value.Equal[${lsClassAll.First}]},,${dot}]} ${info}${li.Value}\ax
-		/if (${lsHealXTClass.Contains[${li.Value}]}) /varset _out ${_out}:${on}
-		/if (!${lsHealXTClass.Contains[${li.Value}]}) /varset _out ${_out}:${off}
-		/varset dump ${li.Advance}
+  /declare _lisccx listiterator local
+	/vardata _lisccx lsClassAll.First.Clone
+	/while (!${_lisccx.IsEnd}) {
+		/varset _out ${_out} ${If[${_lisccx.Value.Equal[${lsClassAll.First}]},,${dot}]} ${info}${_lisccx.Value}\ax
+		/if (${lsHealXTClass.Contains[${_lisccx.Value}]}) /varset _out ${_out}:${on}
+		/if (!${lsHealXTClass.Contains[${_lisccx.Value}]}) /varset _out ${_out}:${off}
+		/varset dump ${_lisccx.Advance}
 	}	
 	/varset dump ${out[12, "/chr xtclass ${_out}"]}
 
@@ -5213,28 +5210,28 @@ sub check_buff_cycle_beg(bool _debug)
 	/if (!${maBuff.Find[swBuffMaster].Value}) /return FALSE
 
 
-  /declare _mi mapiterator local
-  /vardata _mi maBuffRequest.First.Clone
-  /while (!${_mi.IsEnd}) {
+  /declare _mibb mapiterator local
+  /vardata _mibb maBuffRequest.First.Clone
+  /while (!${_mibb.IsEnd}) {
 		
-		/if (!${is_lsSafeNames[FALSE, ${_mi.Key}]}) {
-			/varset dump ${maBuffRequest.Remove[${_mi.Key}]}
+		/if (!${is_lsSafeNames[FALSE, ${_mibb.Key}]}) {
+			/varset dump ${maBuffRequest.Remove[${_mibb.Key}]}
 			/return FALSE
 		}
 
 		/for _count 1 to 50
 			/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
 			/if (!${Bool[${maBuffs.Find[stBuff${_count}Alias].Value}]}) /continue
-			/if (${Spawn[${_mi.Key}].Distance} > ENV) /continue
+			/if (${Spawn[${_mibb.Key}].Distance} > ENV) /continue
 			
 			
-			/if (${maBuffs.Find[stBuff${_count}Alias].Value.Find[${_mi.Value}]}) {
-				DEBUG ${sep}BEG \ap${_mi.Value}\ax found${sep}\aw${_count}\ax${sep}\a-w${maBuffs.Find[stBuff${_count}].Value}\ax for \a-y${_mi.Key}\ax
-				/call voodoo ${maDebug.Find[cast].Value} "${maBuffs.Find[stBuff${_count}].Value}" ${Spawn[${_mi.Key}].ID} FALSE
+			/if (${maBuffs.Find[stBuff${_count}Alias].Value.Find[${_mibb.Value}]}) {
+				DEBUG ${sep}BEG \ap${_mibb.Value}\ax found${sep}\aw${_count}\ax${sep}\a-w${maBuffs.Find[stBuff${_count}].Value}\ax for \a-y${_mibb.Key}\ax
+				/call voodoo ${maDebug.Find[cast].Value} "${maBuffs.Find[stBuff${_count}].Value}" ${Spawn[${_mibb.Key}].ID} FALSE
 			}
 		/next _count
-		/if (${_remove}) /varset dump ${maBuffRequest.Remove[${_mi.Key}]}
-		/varset dump ${_mi.Advance}
+		/if (${_remove}) /varset dump ${maBuffRequest.Remove[${_mibb.Key}]}
+		/varset dump ${_mibb.Advance}
   }
 
 	SETHUD FALSE
@@ -5582,28 +5579,28 @@ sub check_buff_cycle_temp_list(bool _debug, string _spell, string _toonList)
 	
 	/declare _castSpell bool local FALSE
 
-	/declare _li listiterator local
-	/vardata _li ${_toonList}.First.Clone
-		/while (!${_li.IsEnd}) {
-			DEBUG ${sep}_li.Value${sep}\a-w${_li.Value}\ax
+	/declare _libt listiterator local
+	/vardata _libt ${_toonList}.First.Clone
+		/while (!${_libt.IsEnd}) {
+			DEBUG ${sep}_libt.Value${sep}\a-w${_libt.Value}\ax
 			/varset _castSpell FALSE
 
-		/if (!${Spawn[pc ${_li.Value}].ID} || ${Spawn[pc ${_li.Value}].Dead}) {
-			/varset dump ${_li.Advance}
+		/if (!${Spawn[pc ${_libt.Value}].ID} || ${Spawn[pc ${_libt.Value}].Dead}) {
+			/varset dump ${_libt.Advance}
 			/continue
 		}
 
-		/dquery ${_li.Value} -q "Spell[${_spellCHK}].Stacks" -o DNQReturn -t 5
+		/dquery ${_libt.Value} -q "Spell[${_spellCHK}].Stacks" -o DNQReturn -t 5
 		DEBUG ${DNQReturn}
 		/if (${Bool[${DNQReturn}]}) /varset _castSpell TRUE
 			
-		/dquery ${_li.Value} -q "Me.Buff[${_spellCHK}].ID" -o DNQReturn -t 5
+		/dquery ${_libt.Value} -q "Me.Buff[${_spellCHK}].ID" -o DNQReturn -t 5
 		DEBUG ${DNQReturn}
 		/if (${Bool[${DNQReturn}]}) /varset _castSpell FALSE
 
 
-		/if (${_castSpell}) /call voodoo ${maDebug.Find[cast].Value} "${maChr.Find[${_spell}].Value}" ${Spawn[=${_li.Value} pc].ID} FALSE
-		/varset dump ${_li.Advance}
+		/if (${_castSpell}) /call voodoo ${maDebug.Find[cast].Value} "${maChr.Find[${_spell}].Value}" ${Spawn[=${_libt.Value} pc].ID} FALSE
+		/varset dump ${_libt.Advance}
 	}	
 
 /return
@@ -5673,18 +5670,23 @@ sub cast_challenge(bool _debug, int _tmpID)
 sub cast_nuke(bool _debug, string _line, int _tmpID)
 	DEBUG \atcast_nuke\ax(\a-w${_line}, ${_tmpID}\ax)
 
-	/vardata li ${_line}.First.Clone
-	/while (!${li.IsEnd}) {
-		DEBUG li.Value${sep}\a-w${li.Value}\ax
+	/declare _linu listiterator local
+	/vardata _linu ${_line}.First.Clone
+	
+	/while (!${_linu.IsEnd}) {
+		DEBUG _linu.Value${sep}\a-w${_linu.Value}\ax
+	
 		ISMEDEAD
 		CHECKEXIT
 		GETINPUT
+	
 		/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return
 		/if (${Me.PctMana} < 2) /continue 
-		/if (${is_ready[${_debug}, "${li.Value}"]}) {
-			/call voodoo ${_debug} "${li.Value}" ${_tmpID} FALSE
+	
+		/if (${is_ready[${_debug}, "${_linu.Value}"]}) {
+			/call voodoo ${_debug} "${_linu.Value}" ${_tmpID} FALSE
 		}
-		/varset dump ${set_data_timer[FALSE, Nuke_Delay, RESTART]}
+		/varset dump ${set_data_timer[${_debug}, Nuke_Delay, RESTART]}
 
 		| maintain the loop of nukes till all are cycled.
 		/if (${maCC.Find[stNukeDelay].Value}) {
@@ -5692,7 +5694,7 @@ sub cast_nuke(bool _debug, string _line, int _tmpID)
 			/delay 2.5s
 			/delay ${timer_Nuke_Delay}
 		}
-		/varset dump ${li.Advance}
+		/varset dump ${_linu.Advance}
 	}	
 
 /return
@@ -7567,12 +7569,13 @@ sub get_MAG_folded_pack(bool _debug)
 
 	/declare _lsout list local
 	/varset dump ${_lsout.Append[Wirn's,Thassis',Frightforged,Manaforged,Spectral]}
-	/vardata li _lsout.First.Clone
-	/while (!${li.IsEnd}) {
-		/if (${FindItemCount[Folded Pack of ${li.Value} Armaments]}) {
-			/varset stMAGFoldedPack Folded Pack of ${li.Value} Armaments
+	/devlare _ligmfp listiterator local
+	/vardata _ligmfp _lsout.First.Clone
+	/while (!${_ligmfp.IsEnd}) {
+		/if (${FindItemCount[Folded Pack of ${_ligmfp.Value} Armaments]}) {
+			/varset stMAGFoldedPack Folded Pack of ${_ligmfp.Value} Armaments
 		}
-		/varset dump ${li.Advance}
+		/varset dump ${_ligmfp.Advance}
 	}	
 
 /return ${stMAGFoldedPack}
@@ -8089,20 +8092,21 @@ sub set_hud_data(string _mode)
 	}
 		
 	| check for Invis
-	/vardata li lsIV.First.Clone
-	/while (!${li.IsEnd}) {
-		/if (${Me.Buff[${li.Value}].ID}) {
+	/declare _lishd listiterator local
+	/vardata _lishd lsIV.First.Clone
+	/while (!${_lishd.IsEnd}) {
+		/if (${Me.Buff[${_lishd.Value}].ID}) {
 			| /varset stHUDNotice ${stHUDNotice} IV
 		}
-		/varset dump ${li.Advance}
+		/varset dump ${_lishd.Advance}
 	}		
 
-	/vardata li lsIVU.First.Clone
-	/while (!${li.IsEnd}) {
-		/if (${Me.Buff[${li.Value}].ID}) {
+	/vardata _lishd lsIVU.First.Clone
+	/while (!${_lishd.IsEnd}) {
+		/if (${Me.Buff[${_lishd.Value}].ID}) {
 			| /varset stHUDNotice ${stHUDNotice} IVU
 		}
-		/varset dump ${li.Advance}
+		/varset dump ${_lishd.Advance}
 	}		
 	
 	/varset h_time 					${maData.Find[swHUDTime].Value}

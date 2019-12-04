@@ -622,27 +622,28 @@ sub set_control_PAL(string _type, string _verbage, string _silent, bool _debug)
 
 	/if (${_silent.Equal[SILENT]}) /return 
 	/varset _out
-	/vardata li lsChr.First.Clone
-	/while (!${li.IsEnd}) {
-		/varset _out ${_out} ${If[${lsChr.First.Value.Equal[${li.Value}]},,${dot}]} ${info}${li.Value}\ax
-		/if (${li.Value.Equal[yaulp]}) /varset _out ${_out}:${If[${maChr.Find[swYaulp].Value},${on},${off}]}
-		/if (${li.Value.Equal[stun]}) /varset _out ${_out}:${submenu}
-		/if (${li.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
-		/if (${li.Value.Equal[groupheal]}) /varset _out ${_out}:${If[${maChr.Find[stCountHealGroup].Value},${num}${maChr.Find[stCountHealGroup].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[flash]}) /varset _out ${_out}:${submenu}
-		/if (${li.Value.Equal[loh]}) /varset _out ${_out}:${If[${maChr.Find[stPctLoH].Value},${num}${maChr.Find[stPctLoH].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[mg]}) /varset _out ${_out}:${If[${maChr.Find[stPctMG].Value},${num}${maChr.Find[stPctMG].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[attraction]}) /varset _out ${_out}:${If[${maChr.Find[swAttraction].Value},${on},${off}]}
-		/if (${li.Value.Equal[harmonious]}) /varset _out ${_out}:${If[${maChr.Find[swHarmonious].Value},${on},${off}]}
-		/if (${li.Value.Equal[vp]}) /varset _out ${_out}:${If[${maChr.Find[stPctVP].Value},${num}${maChr.Find[stPctVP].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[splash]}) /varset _out ${_out}:${If[${maChr.Find[stCountSplash].Value},${num}${maChr.Find[stCountSplash].Value}\ax,${r0}]}
-		/if (${li.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
+	/declare _lichr listiterator local
+	/vardata _lichr lsChr.First.Clone
+	/while (!${_lichr.IsEnd}) {
+		/varset _out ${_out} ${If[${lsChr.First.Value.Equal[${_lichr.Value}]},,${dot}]} ${info}${_lichr.Value}\ax
+		/if (${_lichr.Value.Equal[yaulp]}) /varset _out ${_out}:${If[${maChr.Find[swYaulp].Value},${on},${off}]}
+		/if (${_lichr.Value.Equal[stun]}) /varset _out ${_out}:${submenu}
+		/if (${_lichr.Value.Equal[manarecover]}) /varset _out ${_out}:${If[${maChr.Find[stPctManaRecovery].Value},${num}${maChr.Find[stPctManaRecovery].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
+		/if (${_lichr.Value.Equal[groupheal]}) /varset _out ${_out}:${If[${maChr.Find[stCountHealGroup].Value},${num}${maChr.Find[stCountHealGroup].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[flash]}) /varset _out ${_out}:${submenu}
+		/if (${_lichr.Value.Equal[loh]}) /varset _out ${_out}:${If[${maChr.Find[stPctLoH].Value},${num}${maChr.Find[stPctLoH].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[mg]}) /varset _out ${_out}:${If[${maChr.Find[stPctMG].Value},${num}${maChr.Find[stPctMG].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[attraction]}) /varset _out ${_out}:${If[${maChr.Find[swAttraction].Value},${on},${off}]}
+		/if (${_lichr.Value.Equal[harmonious]}) /varset _out ${_out}:${If[${maChr.Find[swHarmonious].Value},${on},${off}]}
+		/if (${_lichr.Value.Equal[vp]}) /varset _out ${_out}:${If[${maChr.Find[stPctVP].Value},${num}${maChr.Find[stPctVP].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[splash]}) /varset _out ${_out}:${If[${maChr.Find[stCountSplash].Value},${num}${maChr.Find[stCountSplash].Value}\ax,${r0}]}
+		/if (${_lichr.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
 
-		/varset dump ${li.Advance}
+		/varset dump ${_lichr.Advance}
 	}
 	/varset dump ${out[14, "${_out}"]}
 
