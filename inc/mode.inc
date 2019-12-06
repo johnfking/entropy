@@ -76,6 +76,9 @@ sub Bind_fredmode(string _type, string _verbage, bool _debug)
  *  NOTE: 
  ***|
 sub switch_clear_mode(bool _debug)
+/return
+
+
 	/declare _count int local 0
 	/declare _list string local ${sql_return[FALSE, lstTypesMode]}
 	/if (${swModeToken}) /varset swModeToken FALSE
@@ -315,7 +318,7 @@ sub mode_hunt(bool _debug)
 
 	/if (!${Bool[${FindItemCount[${lstRangeItemSummon}]}]} && ${Bool[${lstRangeItemSummon}]}) /call check_ammo
 	/if (${swADVL}) {
-		/if ((${coreAuto} || ${swOverrideLoot}) && !${SafeZone} && !${swOverrideSafeZone}) /call do_loot
+		/if ((AUTO || ${swOverrideLoot}) && !${SafeZone} && !${swOverrideSafeZone}) /call do_loot
 	}
 	/if (${Spawn[TARGET].ID}) {
 		/call mode_get_mob
@@ -332,236 +335,78 @@ sub mode_hunt(bool _debug)
 
 
 |***
- *	DES: Pet Farm
- *	USE: /call mode_petfarm | /mode petfarm
- *  NOTE: Use with caution. For static pet classes only.
+ * note: Pet Farm
+ * use: /mode petfarm
  ***|
 sub mode_petfarm(bool _debug)
+	DEBUG \atmode_petfarm\ax()
+
+	/if (!${lsClassPet.Contains[${Me.Class.ShortName}]} || SAFEZONE) {
+		/varset dump ${maMode.Add[${_mimode.Key},FALSE]}
+		/return FALSE
+	}
+
 	ISMEDEAD
 
-	/declare _tmpID					int local 0
-	/declare _spawnCount 		int local 0
-	/declare _resetCount		int local 0
-	/declare _nameloop			int local 1
-
-	/varset swOverrideEngagePct TRUE
-	/varset swOverrideLOS TRUE
+	/varset dump ${maOver.Add[swOverPctEngage,TRUE]}
+	/varset dump ${maOver.Add[swOverLOS,TRUE]}
 	/varset swModeToken TRUE
 	
-	SETHUD "Pet Farm"
-	:loopfindmob
-	/doevents
-	/if (!${Select[${Me.Class.ShortName},MAG,ENC,NEC,BST,SHD,SHM,RNG,DRU]} || (${SafeZone} && !${swOverrideSafeZone})) {
-		/call echos failboat 0 0 0 0
-		/call switch_clear_mode
-		/return
-	}
-	/call check_watch_spawn
-	/if ((${coreAuto} || ${swOverrideLoot}) && !${SafeZone} && !${swOverrideSafeZone}) /call do_loot
+	SETHUD "mode petfarm"
 	
-	/if (${Select[${Me.Class.ShortName},MAG]} && ${switchHealPet}) /call pet_heal_MAG
+	GETINPUT
 
-	/if (${SpawnCount[npc ${If[${swOverrideLOS},,los]} radius ${setMobAgro} zradius ${setzradius} targetable]}) {
-		/varset _spawnCount ${SpawnCount[npc ${If[${swOverrideLOS},,los]} radius ${setMobAgro} zradius ${setzradius}]}	
-		/varset Target2Kill ${Spawn[${NearestSpawn[1, ${If[${swOverrideLOS},,los]} npc radius ${setMobAgro} zradius ${setzradius} targetable]}].ID}
+	/if (AUTO) {
+		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} FALSE
+		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[minion].Value} Pet
+	}
 
-		| skip excluded mobs
-		:loopnamedmob
-		/if (${ExcludeList.Find[${Spawn[id TARGET].DisplayName}]})	{
-			/varcalc _nameloop ${_nameloop}+1
-			/if (${_spawnCount} > 1) {
-				/varset Target2Kill ${Spawn[${NearestSpawn[${_nameloop}, ${If[${swOverrideLOS},,los]} npc radius ${setMobAgro} zradius ${setzradius} targetable]}].ID}
+	SETHUD "mode scorch"
+	| find a mob
+	/call pull_mob_find ${_debug}
+	DEBUG pull_mob_find.return${sep}\a-w${Macro.Return}\ax
 
-				/goto :loopnamedmob
-			} else {
-				/varset Target2Kill 0
-				/varset _nameloop 1
-			}
-		}
-				
-		/if (!TARGET) /goto :nomob
-		/varset _resetCount 0
-	} else {
-		:nomob
-		/doevents
-		/varset _resetCount 0
-		/varset _spawnCount 0
-		/varset Target2Kill 0
-		/varset _nameloop 1
-		/if (${timer_Petfarm_delay}) /goto :loopfindmob
-
-		/if (!${timer_Petfarm_delay}) /call timer_update timer_Petfarm_delay ${tPetfarm_delay}
-		/if (${Me.Pet.Target.ID}) /pet back off
-		/if (${Me.AltAbilityReady[Summon Companion]} && ${Me.Pet.Distance} > 80) {
-			/if (${validate_cast[FALSE, alt, "Summon Companion", ${Me.Pet.ID}]}) /call core_cast2 "Summon Companion" alt 0 FALSE
-		}
-
-		/return
+	/if (!TARGET) {
+		DEBUG \arNO\ax stAssTarID
+		SETHUD FALSE
+		GETINPUT
+		/call where_the_fuck_is_my_pet ${_debug} FORCE
+		/return FALSE
 	}
 	
-	:gettarget
 	CHECKTIE
 	/doevents
-	/squelch /target ID TARGET
-	/if (!${ExcludeList.Find[${Spawn[id TARGET].DisplayName}]}) {
-		/if (!${Pet.Target.ID}) {
-			| /delay 5
-			/call echos petfarm 0 TARGET 0 0
-			/pet attack
-			/delay 2s
-		}
-	}
-	/varcalc _resetCount ${_resetCount}+1
+	/varset dump ${set_target[TARGET]}
+
+	/pet attack
 	
-	/if (${_resetCount} > 30) {
-		/varset _resetCount 0
-		/if (${validate_cast[FALSE, alt, "Summon Companion", ${Me.Pet.ID}]}) /call core_cast2 "Summon Companion" alt 0 FALSE
-		/goto :loopfindmob
-	}		
+	CHECKTIE
+	
+	/varset dump ${set_timer[${_debug}, timer_mob_get, 20s]}
 		
-	:loopwaittilldead
-	/delay 1s
-	/doevents
-	CHECKTIE
-	/if (${Spawn[TARGET].Type.Equal[CORPSE]} || !${Spawn[${_tmpID}].ID}) /goto :loopfindmob
-	/if (${Spawn[TARGET].Distance} > ${setMobAgro}) {
-		/goto :loopfindmob
-	}
-	/if (${Me.Pet.Target.ID} != TARGET) /goto :gettarget
-	/if (${Spawn[TARGET].Type.NotEqual[CORPSE]}) /goto :loopwaittilldead
+	/while (TARGET) {
+		GETINPUT
+		/delay 1s
 
-	/varset swModeToken FALSE
-	SETHUD FALSE
-/return
+		/if (${Spawn[TARGET].Type.Equal[CORPSE]} || !${Spawn[TARGET].ID}) /break
+		/if (${Me.Pet.Target.ID} != TARGET) /break
+		/if (${Spawn[TARGET].Distance} > PULLENV) /break
+		DEBUG ${sep}here${sep}\a-w${timer_mob_get}\ax \agTARGET\ax
+		/if (!${timer_mob_get}) /break
+	
+	}		
 
-
-
-|***
- *	DES: Scorched Earth Mode
- *	USE: /call mode_scorched_earth | /mode scorch
- *  NOTE: This will kill everything in a zone. or at least try /shrug
- ***|
-sub mode_scorched_earth2(bool _debug)
-	ISMEDEAD
-	/declare _spawnCount 		int local 0
-	/declare _resetCount		int local 0
-	/declare _nameloop			int local 1
-	/declare _tmpID 				int local
-	/declare _tmpRange 			int local ${Math.Calc[${setMobAgro}/10]}
-	/declare _count 				int local 0
-
-
-	/varset swOverrideEngagePct TRUE
-	/varset swOverrideLOS TRUE
+	/varset dump ${maOver.Add[swOverPctEngage,FALSE]}
+	/varset dump ${maOver.Add[swOverLOS,FALSE]}
+	/varset swModeToken FALSE	
+	/call where_the_fuck_is_my_pet ${_debug} FORCE
 	/call clear_combat
 	
-	:loopfindmob
-	SETHUD "Kill 'Em All"
-	/doevents
-	/if (!${swModeScorch}) /return
-	/if (${SafeZone} && !${swOverrideSafeZone}) {
-		/call echos failboat 0 0 0 0
-		/call switch_clear_mode
-		/return
-	}
-	/call check_watch_spawn
-	/if ((${coreAuto} || ${swOverrideLoot}) && !${SafeZone} && !${swOverrideSafeZone}) /call do_loot
-	/call check_buff_routines TRUE
-	/if (!${Bool[${FindItemCount[${lstRangeItemSummon}]}]} && ${Bool[${lstRangeItemSummon}]}) /call check_ammo
-
-
-
-	/if (${SpawnCount[npc ${If[${swOverrideLOS},,los]} radius ${setModeAgro} targetable]}) {
-		
-		| find something in our local range first
-		/while (${_tmpRange} <= ${setMobAgro} && !TARGET) {
-			/if (${SpawnCount[npc ${If[${swOverrideLOS},,los]} range ${setMobLvlMin} ${setMobLvlMax} radius ${_tmpRange} zradius ${setzradius} targetable]}) {
-				/for _count 1 to ${SpawnCount[npc ${If[${swOverrideLOS},,los]} range ${setMobLvlMin} ${setMobLvlMax} radius ${_tmpRange} zradius ${setzradius} targetable]}
-					ISMEDEAD
-					/if (!${ExcludeList.Find[${Spawn[id ${_tmpID}].DisplayName}]}) {
-						/varset _tmpID ${NearestSpawn[${_count}, npc ${If[${swOverrideLOS},,los]} range ${setMobLvlMin} ${setMobLvlMax} radius ${_tmpRange} zradius ${setzradius} targetable].ID}
-					}
-			
-				/next _count
-			}
-			/varcalc _tmpRange ${_tmpRange}+10
-		}	
-		
-		| nothing in local range, check our max range
-		/if (!TARGET) {
-			/if (${SpawnCount[npc ${If[${swOverrideLOS},,los]} radius ${setModeAgro} targetable]}) {
-				/varset _spawnCount ${SpawnCount[npc ${If[${swOverrideLOS},,los]} radius ${setModeAgro} targetable]}	
-				/varset Target2Kill ${Spawn[${NearestSpawn[1, npc ${If[${swOverrideLOS},,los]} radius ${setModeAgro} targetable]}].ID}
-				/call timer_set timer_scorched_earth_fail ${tScorchedEarth_fail}
-
-				:loopignoreddmob
-				
-				/if (${ExcludeList.Find[${Spawn[id TARGET].DisplayName}]})	{
-					/varcalc _nameloop ${_nameloop}+1
-					/if (${_spawnCount} > 1) {
-						/varset Target2Kill ${Spawn[${NearestSpawn[${_nameloop}, npc ${If[${swOverrideLOS},,los]} radius ${setModeAgro} targetable]}].ID}
-						/goto :loopignoreddmob
-					} else {
-						/varset Target2Kill 0
-						/varset _nameloop 1
-					}
-				}
-				/if (!TARGET) /goto :nomob
-				/varset _resetCount 0
-			}
-		}
-				
-	} else {
-		:nomob
-		/doevents
-		/varset _resetCount 0
-		/varset _spawnCount 0
-		/varset Target2Kill 0
-		/varset _nameloop 1
-		/if (!${timer_ScorchedEarth_delay}) /call timer_set timer_ScorchedEarth_delay ${tScorchedEarth_delay}
-		/if (${Me.Pet.Target.ID}) /pet back off
-		/if (${Me.Pet.ID} && ${Me.AltAbilityReady[Summon Companion]} && ${Me.Pet.Distance} > 80) {
-			/if (${validate_cast[FALSE, alt, "Summon Companion", ${Me.Pet.ID}]}) /call core_cast2 "Summon Companion" alt 0 FALSE
-		}
-		/return
-	}
-	/call echos hunt 0 0 TARGET 0
-
-	:gettarget
-	/doevents
-	
-	/if (!${ExcludeList.Find[${Spawn[id TARGET].DisplayName}]} && !${timer_scorched_earth_ignore_$TARGET}) {
-		/if (${Spawn[TARGET].ID}) {
-			/call mode_get_mob
-		} else /if (${Spawn[TARGET].Dead} || !${Spawn[TARGET].ID} || !${timer_scorched_earth_fail}) {
-			/if (!${timer_scorched_earth_fail}) /call timer_set timer_scorched_earth_ignore_$TARGET ${tScorchedEarth_ignore} 
-			/call set_stop NOECHO
-			/call clear_combat
-		}
-	}
-	
-	/varcalc _resetCount ${_resetCount}+1
-
-	/if (${_resetCount} > 30) {
-		/varset _resetCount 0
-		/if (${Me.Pet.ID} && ${Me.AltAbilityReady[Summon Companion]} && ${Me.Pet.Distance} > 80) {
-			/if (${validate_cast[FALSE, alt, "Summon Companion", ${Me.Pet.ID}]}) /call core_cast2 "Summon Companion" alt 0 FALSE
-		}
-		/goto :loopfindmob
-	}		
-		
-	:loopwaittilldead
-	/delay 1s
-	/doevents
-	/if (${Spawn[TARGET].Type.Equal[CORPSE]} || !${Spawn[TARGET].ID}) /goto :loopfindmob
-	/if (${Spawn[TARGET].Distance} > ${setMobAgro}) {
-		/goto :loopfindmob
-	}
-	/if (${Me.Pet.Target.ID} != TARGET) /goto :gettarget
-	/if (${Spawn[TARGET].Type.NotEqual[CORPSE]}) /goto :loopwaittilldead
-
 	SETHUD FALSE
+	
 /return
+
+
 
 
 
@@ -978,21 +823,17 @@ sub mode_summon(bool _debug)
 sub mode_scorch(bool _debug, int _tmpID)
 	DEBUG \atmode_scorch\ax(\a-w${_tmpID}\ax)
 
-	/varset swOverrideEngagePct TRUE
-	/varset swOverrideLOS TRUE
+	/varset dump ${maOver.Add[swOverPctEngage,TRUE]}
+	/varset dump ${maOver.Add[swOverLOS,TRUE]}
 	/varset swModeToken TRUE
-	
 	/call clear_combat
-
-
 	/declare _count int local 0
-
 
 	SETHUD "mode scorch"
 	| find a mob
 	/call pull_mob_find ${_debug}
 	
-	DEBUG pull_mob_find.return${dep}\a-w${Macro.Return}\ax
+	DEBUG pull_mob_find.return${sep}\a-w${Macro.Return}\ax
 
 	/if (!TARGET) {
 		DEBUG \arNO\ax stAssTarID
@@ -1011,32 +852,23 @@ sub mode_scorch(bool _debug, int _tmpID)
 		/delay 1s
 		/call pull_mob_find FALSE ${_count}
 		/goto :checkpath
-	}	
+	}
 
 	| get to the mob
-	/declare _movetorange float local ${Math.Calc[${Spawn[TARGET].MaxRangeTo}*.8]}
+	/declare _movetorange float local ${Math.Calc[${Spawn[TARGET].MaxRangeTo}*.9]}
+	
+	/call pull_mob_move_to ${_debug} TARGET ${_movetorange} on
 
-	/nav ID TARGET |distance=${_dist} lineofsight=${_LoS} log=off
+	/nav id TARGET |distance=${_movetorange} lineofsight=${If[${maOver.Find[swOverLOS].Value},,los]} log=off
 	/delay 1s ${Me.Moving}
-	
-	/while (${Navigation.Active}) {
-		DEBUG moving to ${dep} \a-w$TARGET\ax
-		/delay 5
-		
-		GETINPUT
-		/if (!TARGET) /return FALSE
-		/call pull_mob_tag ${_debug} TARGET
-		/if (${Macro.Return}) {
-			/nav stop |log=off
-			/break
-		}
-	}
-	
+
+	/varset dump ${maOver.Add[swOverPctEngage,FALSE]}
+	/varset dump ${maOver.Add[swOverLOS,FALSE]}
 	/varset swModeToken FALSE
+
 	SETHUD FALSE
 
 /return
-
 
 
 

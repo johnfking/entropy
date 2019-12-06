@@ -2337,7 +2337,7 @@ sub is_burn_valid(bool _debug)
 	}
 	
 	| if always set to burn, always burn while in combat
-	/if (${maBurn.Find[swBurnForce].Value} && ${Me.Combat}) {
+	/if (${maBurn.Find[swBurnForce].Value} &&  ${Me.CombatState.Equal[combat]}) {
 		/varset dump ${maBurn.Add[swBurnConditionMet,TRUE]}
 		/return TRUE
 	}
@@ -2869,13 +2869,10 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			| range tag
 			| there are some base limitations to combat range tagging. we are going to limit to 274 for range/thrown items
 			| yes i know some classes can go a lot farther..
-			/if (${Spawn[ID ${_tmpID}].Distance} > 31 && ${Spawn[ID ${_tmpID}].Distance} < 275) {
-				DEBUG ${sep}Tag${sep}Range${sep}[${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax]
+			/if (${Spawn[ID ${_tmpID}].Distance} > 31 && ${Spawn[ID ${_tmpID}].Distance} < 275 && RANGE) {
+				DEBUG ${sep}Tag${sep}Range${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
 				GETINPUT
-				| /if (!${Select[${Me.Class.ShortName},RNG]} && !${Me.Inventory[ammo].ID}) {
-				| 	/call check_buff_cycle_ammo FALSE TRUE
-				| }
-				/nav stop log=off
+				/nav stop |log=off
 				/delay 1s !${Me.Moving}
 				/if (${Target.ID}) /range
 				/while (${Target.AggroHolder.Name.NotEqual[${Me.DisplayName}]} || ${_count} < 4) {
@@ -2894,8 +2891,8 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			
 			| melee tag
 			| anything less then what we can range at. magic number is 31 paces
-			} else /if (${Spawn[ID ${_tmpID}].Distance} < 31) {
-				DEBUG ${sep}Tag${sep}Melee${sep}[${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax]
+			} else /if (${Spawn[ID ${_tmpID}].Distance} < 31 && MELEE) {
+				DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
 				GETINPUT
 				/attack on
 				
@@ -2903,15 +2900,17 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 				| dont argue with me on this. i'm not changing my mind
 				| if we are not in this range, we try and get closer.
 				/if (${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
-					/if (MELEE) /nav ID ${_tmpID} |dist=${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} log=off
+					DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \agNAVTO\ax
+					/nav ID ${_tmpID} |dist=${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} log=off
 					/delay 5 ${Me.Moving}
-					| /delay 3s !${Me.Moving}
+
 				}
 				/delay 2
 				| make sure we have the targets attention.
 				/delay 2s ${Target.AggroHolder.Name.Equal[${Me.DisplayName}]}
+				DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \ayhave target\ax
 				/return TRUE
-			
+				
 			}
 				
 		}
@@ -2922,14 +2921,14 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			/while (${timer_wait_nolos}) {
 				/delay 2 
 				/if (${Spawn[ID ${_tmpID}].LineOfSight}) /break
-				/if (${Spawn[ID ${_tmpID}].Distance} > PULLENV*2) /break
+				/if (${Spawn[ID ${_tmpID}].Distance} > PULLENV) /break
 				/if (!${Spawn[ID ${_tmpID}].ID}) /break 
 			}
 			/call clear_combat FALSE
 			/return FALSE
 		}	
 	
-	/return FALSE
+/return FALSE
 
 
 
@@ -2950,8 +2949,8 @@ sub pull_mob_find(bool _debug, int _spCount)
 		/varset stAssTarID 0
 	}
 		
-	| we have an existign target
-	/if (TARGET && !${_spCount}) /return TARGET
+	| we have an existign target and not using a mode
+	/if (TARGET && !${_spCount} && !${swModeToken}) /return TARGET
 	
 	/declare _tmpID int local
 	/declare _tmpAgroRange int local ${Int[${Math.Calc[ENV/10]}]}
@@ -2963,6 +2962,7 @@ sub pull_mob_find(bool _debug, int _spCount)
 
 	| adjust LOS?
 	/if (${maOver.Find[swOverLOS].Value} || ${Select[${maCC.Find[stPullMode].Value},int,pet,calm,multi,nav]}) {
+		DEBUG ${sep} LOS overridden
 		/varset _los
 	} 
 	
@@ -6236,7 +6236,6 @@ sub set_timer(bool _debug, string _my_timer, string _my_duration)
 
 
 
-
 |***
  *	DES: advanced loot routine(s)
  *	USE: auto
@@ -8118,14 +8117,14 @@ sub get_target_intpull(bool _debug, int _tmpID)
 sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 	DEBUG \atpull_mob_move_to\ax(\a-w${_tmpID}, ${_dist}, ${_LoS}\ax)
 	
-	/nav ID ${_tmpID} distance=${_dist} lineofsight=${_LoS} log=off		
+	/nav ID ${_tmpID} |distance=${_dist} lineofsight=${_LoS} log=off		
 	/delay 1s ${Me.Moving}	
 	
 	/while (${Navigation.Active}) {
 		DEBUG ${sep}moving to${sep}\a-w${_tmpID}\ax
 		
 		| range from camp check
-		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${setCampY},${setCampX},${setCampZ}]} > PULLENV) {
+		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} > PULLENV && !${swModeToken}) {
 			DEBUG Mob exceeded setMobAGro range
 			/varset _tmpID 0
 			/return
@@ -8552,10 +8551,13 @@ sub find_priest(bool _debug, int _distance)
  ***|
 sub where_the_fuck_is_my_pet(bool _debug, bool _force)
 	DEBUG \atwhere_the_fuck_is_my_pet\ax(\a-w${_force}\ax)
+
 	/if (!${Me.Pet.ID}) /return
 	
 	/if (${Me.Pet.PctHPs} < 50 || ${_force}) {
-		/call core_cast2 "Summon Companion" alt 0 FALSE
+		/if (${is_ready[${_debug}, "Summon Companion"]}) {
+			/call voodoo ${_debug} "Summon Companion" 0 FALSE
+		}
 	}
 	
 	/if (!${Me.Pet.ReGroup}) /pet regroup

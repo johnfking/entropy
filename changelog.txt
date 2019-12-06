@@ -1,14 +1,40 @@
-|*********************************************************************
- entropy.mac change log
- changelog.txt
-
- plugins: MQ2Collections, MQ2Nav, MQ2Map, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
-
+changelog.txt
+entropy.mac
+exspes
+plugins: MQ2Collections, MQ2Nav, MQ2Map, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
 
 
 
 
 
+A191204.01
+ok, time to start this
+- /cursor
+  /cursor [see|keep|destroy|leave|ignore] "nameofitem" will set that item to that option in the database
+  /cursor [see|keep|destroy|leave|ignore] with an item on the cursor will set that item to that option in the database
+
+- /mode
+  forage - forages shit. matches to lood databse and treats as set
+  summon - will (while in lobby) go buy the summon item you need, take it to the summoner and summon your corpse. mode ends then
+  drag - drags corpses. all the corpses.. seriously. all of them
+  collect - goes and gets shineys. effectiveness is very reliant on your zone mesh
+  scorch - NOT FOR USE IN NON NOOB ZONE!!
+    - kills everything
+    - obeys exclude list
+    - reqires /env auto enabled
+    - best to use with a high pull radius
+    - follows /cc mode Range|Melee usage
+  petfarm - NOT FOR USE IN NON NOOB ZONE!! 
+    - sends pet to kill shit
+    - if you increase your /cc pull rad ## over your pet range, you are stupid
+    - obeys exclude list
+    
+
+- /build
+  /build save "name" [all] - will save all DB fields for your character false or otherwise. good for making fast switching builds if you need. will still not save fields for character names
+ 
+
+- several small class corrections
 
 
 

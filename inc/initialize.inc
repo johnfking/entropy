@@ -105,7 +105,7 @@ sub set_initialize(bool _debug)
   /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mez,melee,minion,pull,rest,rez,target,zone,debuff]}
   /varset dump ${_lsout.Append[buff,buffammo,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass,buffnow,bufftemp]}
   /varset dump ${_lsout.Append[cast,castitem,castnuke,castdot]}
-  /varset dump ${_lsout.Append[mode,modeforage,modedrag,modecollect,modesummon]}
+  /varset dump ${_lsout.Append[mode,modeforage,modedrag,modecollect,modesummon,modescorch,modepetfarm]}
   
   | class specific debuffs
   /if (${Select[${Me.Class.ShortName},BER]}) {
@@ -303,7 +303,7 @@ sub set_initial_environment(bool _debug)
   | generate modes
   /declare maMode map outer
   /declare _lsout list local
-  /varset dump ${_lsout.Append[forage,drag,collect,summon]}
+  /varset dump ${_lsout.Append[forage,drag,collect,summon,scorch,petfarm]}
 
 	/declare _lisie listiterator local
   /vardata _lisie _lsout.First.Clone
@@ -657,6 +657,10 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maTie stTieMode                            nav                           "${auxna} [\a-wstick-nav\ax] the mode you want to use for tie movements"
   /call set_data_map FALSE maTie stTieVariance                        5                             "${auxnum} acceptabe distances to be away from the tiem toon before moving to it"
   
+
+|** control: mode **|
+  /call set_data FALSE FALSE swModeToken                              bool outer FALSE
+
 
 |** control: cc **|
   /call set_data FALSE maCC swSetCombat                               map outer FALSE

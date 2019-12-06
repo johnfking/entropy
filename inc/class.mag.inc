@@ -77,6 +77,7 @@ sub main_MAG(bool _debug)
 
 		/if (${check_class_loop[FALSE]}) /return FALSE
 			/call set_combat FALSE
+			/if (MELEE) /call do_melee FALSE TARGET
 			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName}
@@ -88,7 +89,6 @@ sub main_MAG(bool _debug)
 				/if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} TRUE
 				/call cast_nuke FALSE lsNuke${stLine} TARGET
 			}
-			/if (MELEE) /call use_skill_melee TARGET
 			/call misc_combat_${Me.Class.ShortName}
 			/call check_item_cycle FALSE TARGET			
 		}

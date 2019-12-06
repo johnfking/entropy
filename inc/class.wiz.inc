@@ -70,6 +70,7 @@ sub main_WIZ(bool _debug)
 	
 		/if (VALID) {
 			/call set_combat FALSE
+			/if (MELEE) /call do_melee FALSE TARGET
 			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName}  ${maDebug.Find[burn].Value}
@@ -81,7 +82,6 @@ sub main_WIZ(bool _debug)
 				/if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} TRUE
 				/call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke${stLine} TARGET
 			}
-			/if (MELEE) /call use_skill_melee TARGET
 			/call misc_combat_${Me.Class.ShortName}
 			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
 

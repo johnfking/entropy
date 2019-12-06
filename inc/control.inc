@@ -3212,7 +3212,7 @@ sub Bind_command_coh(string _verbage, bool _debug)
  * use: /build [save|load] [nickname] [DEBUG]
  ***|
 #bind control_build /build
-sub Bind_control_build(string _build, string _nickname, bool _debug)
+sub Bind_control_build(string _build, string _nickname, string _verbage, bool _debug)
 
 	/declare _count int local 0
 
@@ -3277,11 +3277,14 @@ sub Bind_control_build(string _build, string _nickname, bool _debug)
 					}
 					
 					| skip empty/false values
-					/if (${_mi.Value.Equal[FALSE]} || ${_mi.Value.Equal[EMPTY]}) {
-						/varset dump ${_mi.Advance}
-						/continue
+					/if (${_verbage.NotEqual[all]}) { 
+						/if (${_mi.Value.Equal[FALSE]} || ${_mi.Value.Equal[EMPTY]}) {
+							/varset dump ${_mi.Advance}
+							/continue
+						}
 					}
 					
+					| OUTPUT TO THE INI
 					/ini "${_fqn}" ${cli.Value} "${_mi.Key}" "${Parse[1,${_mi.Value}]}"
 					/varset dump ${_mi.Advance}
 				}
@@ -3319,10 +3322,10 @@ sub Bind_control_build(string _build, string _nickname, bool _debug)
 			/echo \at...\ax\a-w${_section}\ax
 		
 			/for _countK 1 to ${Ini[${_fqn},${_section}].Count[|]}
-				/varset _key ${Ini[${_fqn},${_section}].Arg[${_countK},|]}
+				/varset _key ${Ini[${_fqn},${_section} ].Arg[${_countK},|]}
 				/if (${Select[${_key},NULL]}) /continue
 				DEBUG ${_key}=${Parse[2,${Ini[${_fqn},${_section},${_key}]}]}
-				/call do_raw_edit FALSE SILENT ${_key} "${Parse[2,${Ini[${_fqn},${_section},${_key}]}]}" OVERRIDE
+				/call do_raw_edit FALSE SILENT ${_key} "${Parse[2,${Ini[${_fqn},${_section},${_key},noparse]}]}" OVERRIDE
 			/next _countK
 		/next _countS
 		
@@ -3331,7 +3334,7 @@ sub Bind_control_build(string _build, string _nickname, bool _debug)
 			OUT \awLoading Gems\ax${sep}\a-w${Me.NumGems}\ax
 			/if (!${Window[SpellBookWnd].Open}) /invoke ${Window[SpellBookWnd].DoOpen}
 			/for _count 1 to ${Me.NumGems}
-				/call set_spell_to FALSE TRUE "${Spell[${Ini[${_fqn},Gems,Gem${_count}]}].RankName}" ${_count} FALSE
+				/call set_spell_to ${_debug} TRUE "${Spell[${Ini[${_fqn},Gems,Gem${_count}]}].RankName}" ${_count} FALSE
 			/next _count
 			/if (${Window[SpellBookWnd].Open}) /invoke ${Window[SpellBookWnd].DoClose}
 		}		
@@ -3353,10 +3356,9 @@ sub Bind_control_build(string _build, string _nickname, bool _debug)
 sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 	DEBUG \atBind_control_cursor\ax(\a-w${_type}, ${_verbage}\ax)
 
-
 	| output control map
 	/if (${_type.Equal[see]}) {
-		/if (!${Cursor.ID}) {
+		/if (!${Cursor.ID} && !${Bool[${_verbage}]}) {
 			/varset dump ${get_shade[FALSE, MQWindow]}
 		} else {
 			/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
@@ -3386,14 +3388,26 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 	}
 
 	/if (${Select[${_type},destroy,leave,keep,ignore]}) {
-		/sqlite ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${Cursor.Name}"
-		DEBUG ${sep}lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${Cursor.Name}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
-		/varset dump ${out[14, "Set ${dot}${Cursor.Name}${sep}\a-w${_type.Lower}\ax"]}
+		/declare _item string local
+		
+		/if (${Cursor.ID}) {
+			/varset _item ${Cursor.Name}
+		} else /if (!${Cursor.ID} && ${Bool[${_verbage}]}) {
+			/varset _item ${_verbage}
+		} else /if (!${Cursor.ID} && !${Bool[${_verbage}]}) {
+			/varset dump ${get_shade[FALSE, MQWindow]}
+		}
+		
+		
+		
+		/sqlite ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${_item}"
+		DEBUG ${sep}lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${_item}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
+		/varset dump ${out[14, "Set${sep}${_item}${sep}\a-w${_type.Lower}\ax"]}
 
 	} else /if (${_type.Equal[pass]}) {
 		/sqlite ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}"
 		DEBUG ${sep}lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
-		/varset dump ${out[14, "Set ${dot}pass${sep}\a-w${_verbage}\ax"]}
+		/varset dump ${out[14, "Set${sep}pass${sep}\a-w${_verbage}\ax"]}
 
 	} else /if (${_type.Equal[count]}) {
 

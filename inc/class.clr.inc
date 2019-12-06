@@ -162,7 +162,7 @@ sub main_CLR(bool _debug)
 			/if (MELEE) /call do_melee FALSE TARGET
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDot TARGET
+			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDoT TARGET
 			/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
 			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
 		}
@@ -196,9 +196,7 @@ sub misc_combat_CLR(bool _debug)
 	
 	/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
 
-	/if (${maMinion.Find[swSwarm].Value} && !${Me.Pet.ID}) {
-		/call cast_list ${_debug} lsTempPet TARGET
-	}
+	/if (SWARM) /call cast_temp_pet FALSE TARGET "${maChr.Find[stTempPet].Value}"
 	
 	
 	| pet AA hammer	
@@ -211,7 +209,7 @@ sub misc_combat_CLR(bool _debug)
 	| undead aa nuke
 	/if (${Target.Body.Name.Equal[Undead]}) {
 		/if (${is_ready[FALSE, "Turn Undead"]}) {
-			/call voodo ${_debug} "Turn Undead" TARGET FALSE
+			/call voodoo ${_debug} "Turn Undead" TARGET FALSE
 		}
 	}	
 	

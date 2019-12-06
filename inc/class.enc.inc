@@ -73,17 +73,17 @@ sub main_ENC(bool _debug)
 		/if (VALID) {
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[minion].Value} TARGET
 			/call set_combat FALSE
+			/if (MELEE) /call do_melee FALSE TARGET
 			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
 			/call control_routine ${maDebug.Find[mez].Value}
 
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
-			/if (MELEE) /call use_skill_melee TARGET
 			/call misc_combat_${Me.Class.ShortName} FALSE
 
 			/call control_routine ${maDebug.Find[mez].Value}
 
-			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDot TARGET
+			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDoT TARGET
 			/call control_routine ${maDebug.Find[mez].Value}
 			/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
 			/call control_routine ${maDebug.Find[mez].Value}
