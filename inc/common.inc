@@ -1520,6 +1520,8 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub)
 		
 		
 		/delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
+		
+		
 		/if (${_tmpID} == 0) {
 			/varset dump ${out[2, "AA${sep}${sp}${_verbage}\ax"]}
 		} else /if (${_tmpID} != 0 && ${Target.ID}) {
@@ -1529,11 +1531,15 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub)
 		/while (${_castLoop}) {
 			DEBUG ${sep}altCastLoop${sep}${_verbage}
 			/alt act ${Me.AltAbility[${_verbage}].ID}
-			/delay 8
-			/delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
-			/while (${Me.Casting.ID} || ${Window[CastingWindow].Open}) {
-				/delay 3
+			
+			/if (${Spell[${_verbage}].MyCastTime}) {
+				/delay 8
+				/delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
+				/while (${Me.Casting.ID} || ${Window[CastingWindow].Open}) {
+					/delay 3
+				}
 			}
+			
 			GETINPUT
 			/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
 				/if (${Select[${Me.Class.ShortName},BRD]}) /call pulse_stop
@@ -2658,6 +2664,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 	:waitformob
 	/if (!${SpawnCount[npc radius 31 PS4 targetable]}) {
 		/declare _wait int local ${Math.Calc[(PULLENV + ${Spawn[TARGET].Distance})*.08]}
+		| /varset dump ${set_temer[${_debug}, Check_LoS_Timeout, RESTART]}
 		/call set_timer FALSE _wait_for_mob ${_wait}s
 	
 		/if (!${Spawn[TARGET].Dead}) {
@@ -2727,7 +2734,7 @@ ${Spawn[${Target.ID}].MaxRangeTo}
  * use: /call pull_mob_prep DEBUG [TARGETID]
  ***|
 sub pull_mob_prep(bool _debug, int _tmpID)
-	DEBUG \a-tpull_mob_prep\ax(\a-w${_tmpID}\ax)
+	DEBUG \atpull_mob_prep\ax(\a-w${_tmpID}\ax)
 	
 	/declare _count int local 0
 	/declare _los string local los
@@ -2773,16 +2780,21 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 		| check target is LoS. if stays out of sight too long. reset.
 		| again only the puller cares about this, not fetchers
 		/if (!${Spawn[${_tmpID}].LineOfSight} && !${maOver.Find[swOverLOS].Value} && PULL) {
-			/varset dump ${set_timer[FALSE, timer_wait_nolos, 30s]}
+			/declare _losfail bool FALSE
+			Check_LoS_Timeout
+			/varset dump ${set_timer[FALSE, Check_LoS_Timeout, RESTART]}
 			/varset dump ${out[9, "Waiting for pull (\a-wLOS\ax)"]}
-			/while (${timer_wait_nolos}) {
+			/while (${timer_Check_LoS_Timeout}) {
 				/delay 2 
-				/if (${Spawn[ID ${_tmpID}].LineOfSight}) /break
-				/if (${Spawn[ID ${_tmpID}].Distance} > PULLENV*2) /break
-				/if (${Spawn[ID ${_tmpID}].ID}) /break 
+				/if (${Spawn[ID ${_tmpID}].LineOfSight}) /varset _losfail TRUE
+				/if (${Spawn[ID ${_tmpID}].Distance} > PULLENV*2) /varset _losfail TRUE
+				/if (${Spawn[ID ${_tmpID}].ID} || ${Spawn[ID ${_tmpID}].Dead}) /varset _losfail TRUE 
+				/if (${_losfail}) /break
 			}
-			| /call clear_combat FALSE
-			/return
+			/if (${_losfail}) {
+				/call clear_combat FALSE
+				/return FALSE
+			}
 		}
 		
 
@@ -2829,20 +2841,20 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 	}
 	
 	/if (${Spawn[ID ${_tmpID}].LineOfSight}) {
-		DEBUG ${sep}TargetLOS
+		DEBUG ${sep}Target${sep}\agLoS\ax
 
 		| attraction pulls/agro
 		/if (${Select[${Me.Class.ShortName},SHD,WAR,PAL]} && ${maChr.Find[swAttraction].Value}) {
-			/if (${Spawn[ID ${_tmpID}].Distance} < PULLENV && ${Spawn[ID ${_tmpID}].Distance} > 40) {
+			/if (${Spawn[ID ${_tmpID}].Distance} < PULLENV && ${Spawn[ID ${_tmpID}].Distance} > 30) {
 				/declare _attraction string local FALSE
 				/if (${Select[${Me.Class.ShortName},SHD]}) /varset _attraction Hate's Attraction
 				/if (${Select[${Me.Class.ShortName},WAR]}) /varset _attraction Warlord's Grasp
 				/if (${Select[${Me.Class.ShortName},PAL]}) /varset _attraction Divine Call
 				/if (${Select[${Me.Class.ShortName},MON]}) /varset _attraction Moving Mountains
 				
-				/if (${is_ready[FALSE, "${_attraction}"]}) {
+				/if (${is_ready[${_debug}, "${_attraction}"]}) {
 					DEBUG ${sep}${Me.Class.ShortName} _attraction${sep}\aw${_attraction}\ax
-					/call voodoo FALSE "${_attraction}" ${_tmpID} FALSE
+					/call voodoo ${_debug} "${_attraction}" ${_tmpID} FALSE
 				}
 			}
 		}
@@ -2857,68 +2869,66 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			/call voodoo FALSE "${maCC.Find[stRangeOther].Value}" ${_tmpID} FALSE
 			/delay 5
 			/return TRUE
-				
-					
-		| combat tag	
-		} else {
-			| get our target
-			/if (${Target.ID} != ${_tmpID}) {
-				/varset dump ${set_target[${_tmpID}]}
-			}
-			
-			| range tag
-			| there are some base limitations to combat range tagging. we are going to limit to 274 for range/thrown items
-			| yes i know some classes can go a lot farther..
-			/if (${Spawn[ID ${_tmpID}].Distance} > 31 && ${Spawn[ID ${_tmpID}].Distance} < 275 && RANGE) {
-				DEBUG ${sep}Tag${sep}Range${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
-				GETINPUT
-				/nav stop |log=off
-				/delay 1s !${Me.Moving}
-				/if (${Target.ID}) /range
-				/while (${Target.AggroHolder.Name.NotEqual[${Me.DisplayName}]} || ${_count} < 4) {
-					/if (${Target.ID} && ${Spawn[ID ${_tmpID}].Distance} > 31) {
-						/range
-						/delay 5
-						/varcalc _count ${_count}+1
-					} else {
-						/return FALSE
-					}				
-				}
-				
-				/if (${Target.ID}) /range
-				/delay 1
-				/return TRUE
-			
-			| melee tag
-			| anything less then what we can range at. magic number is 31 paces
-			} else /if (${Spawn[ID ${_tmpID}].Distance} < 31 && MELEE) {
-				DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
-				GETINPUT
-				/attack on
-				
-				| we are using 90% of the targets max range to melee just to make sure we get close enough.
-				| dont argue with me on this. i'm not changing my mind
-				| if we are not in this range, we try and get closer.
-				/if (${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
-					DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \agNAVTO\ax
-					/nav ID ${_tmpID} |dist=${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} log=off
-					/delay 5 ${Me.Moving}
+		} 
 
-				}
-				/delay 2
-				| make sure we have the targets attention.
-				/delay 2s ${Target.AggroHolder.Name.Equal[${Me.DisplayName}]}
-				DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \ayhave target\ax
-				/return TRUE
-				
-			}
-				
+		
+		| get our target
+		/if (${Target.ID} != ${_tmpID}) {
+			/varset dump ${set_target[${_tmpID}]}
 		}
+		
+		| range tag
+		| there are some base limitations to combat range tagging. we are going to limit to 274 for range/thrown items
+		| yes i know some classes can go a lot farther..
+		/if (${Spawn[ID ${_tmpID}].Distance} > 31 && ${Spawn[ID ${_tmpID}].Distance} > ENV && ${Spawn[ID ${_tmpID}].Distance} < 274 && RANGE) {
+			DEBUG ${sep}Tag${sep}Range${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
+			GETINPUT
+			/nav stop |log=off
+			/delay 1s !${Me.Moving}
+			/if (${Target.ID}) /range
+			/while (${Target.AggroHolder.Name.NotEqual[${Me.DisplayName}]} || ${_count} < 4) {
+				/if (${Target.ID} && ${Spawn[ID ${_tmpID}].Distance} > 31) {
+					/range
+					/delay 5
+					/varcalc _count ${_count}+1
+				} else {
+					/return FALSE
+				}				
+			}
+			
+			/if (${Target.ID}) /range
+			/delay 1
+			/return TRUE
+		
+		| melee tag
+		| anything less then what we can range at. magic number is 31 paces
+		} else /if (${Spawn[ID ${_tmpID}].Distance} <= ENV && MELEE) {
+			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
+			GETINPUT
+			/attack on
+			
+			| we are using 90% of the targets max range to melee just to make sure we get close enough.
+			| dont argue with me on this. i'm not changing my mind
+			| if we are not in this range, we try and get closer.
+			/if (${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
+				DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \agNAVTO\ax
+				/nav ID ${_tmpID} |dist=${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} log=off
+				/delay 5 ${Me.Moving}
+			}
+
+			/delay 2
+			| make sure we have the targets attention.
+			/delay 2s ${Target.AggroHolder.Name.Equal[${Me.DisplayName}]}
+			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \ayhave target\ax
+			/return TRUE
+			
+		}
+				
 	} else /if (!${Spawn[${_tmpID}].LineOfSight} && !${maOver.Find[swOverLOS].Value}) {
-		DEBUG Target\arLOS\ax
-			/varset dump ${set_timer[FALSE, timer_wait_nolos, 30s]}
+		DEBUG Target${sep}\arLOS\ax
+			/varset dump ${set_data_timer[FALSE, Check_LoS_Timeout, RESTART]}
 			/varset dump ${out[9, "Waiting for pull (\a-wLOS\ax)"]}
-			/while (${timer_wait_nolos}) {
+			/while (${timer_Check_LoS_Timeout}) {
 				/delay 2 
 				/if (${Spawn[ID ${_tmpID}].LineOfSight}) /break
 				/if (${Spawn[ID ${_tmpID}].Distance} > PULLENV) /break
@@ -3358,12 +3368,12 @@ sub do_rest(bool _debug)
 			/if (${Select[${Me.Class.ShortName},PAL]}) {
 				/if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
 			} else /if (${Select[${Me.Class.ShortName},SHD]}) {
-				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
+				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value}
 				/if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
 
 			} else /if (${Select[${Me.Class.ShortName},RNG]}) {
 			} else /if (${Select[${Me.Class.ShortName},BST]}) {
-				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
+				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value}
 			} 
 			
 			DEBUG ${sep}hybrid _needrest${sep}\a-w${_needrest}\ax${sep}
@@ -3412,14 +3422,14 @@ sub do_rest(bool _debug)
 				| }				
 			} else /if (${Select[${Me.Class.ShortName},SHM]}) {
 				/call check_cani ${maDebug.Find[canni].Value}
-				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
+				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value}
 			} else /if (${Select[${Me.Class.ShortName},ENC]}) {
-				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
+				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value}
 			} else /if (${Select[${Me.Class.ShortName},WIZ]}) {
 			} else /if (${Select[${Me.Class.ShortName},NEC]}) {
-				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
+				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value}
 			} else /if (${Select[${Me.Class.ShortName},MAG]}) {
-				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
+				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value}
 			}
 			
 			DEBUG ${sep}caster _needrest${sep}\a-w${_needrest}\ax
@@ -6735,20 +6745,19 @@ sub send_pet(bool _debug, int _tmpID)
 	CHECKEXIT
 	GETINPUT
 
-	/varset dump ${set_target[${_tmpID}]}
-	
 	/if (PET) {
-		/if (!${Me.Pet.ID} && ${Target.PctHPs} <= ${maMinion.Find[stPctPetEngage].Value}) {
-			/varset dump ${out[10, "Sending minion${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax"]}
+		/if (${Spawn[id ${_tmpID}].PctHPs} < ${maMinion.Find[stPctPetEngage].Value}) {
+			/varset dump ${set_target[${_tmpID}]}
+			| /varset dump ${out[10, "Sending minion${sep}\a-w${Spawn[id ${_tmpID}].DisplayName}\ax"]}
 			/pet attack
 		}
 	}
 	
 	| send in the swarm
 	/if (SWARM) {
-		/if (${Target.PctHPs} <= ${maMinion.Find[stPctSwarmEngage].Value}) {
-			/pet swarm
-			
+		/if (${Spawn[id ${_tmpID}].PctHPs}  < ${maMinion.Find[stPctSwarmEngage].Value}) {
+			/varset dump ${set_target[${_tmpID}]}
+			/pet swarm			
 		}
 	}
 
@@ -7199,29 +7208,6 @@ sub check_deBuffs(bool _debug, int _tmpID)
 	
 /return
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
 	
 
 |***
@@ -8092,7 +8078,7 @@ sub get_target_intpull(bool _debug, int _tmpID)
 	/if (!TARGET) {
 		/delay 1s
 		/return
-	} else /if (${Spawn[id TARGET].Distance} < ${Spawn[ID TARGET].MaxRangeTo}) {
+	} else /if (${Spawn[id TARGET].Distance} < ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
 		/varset combat COMBAT
 		/if (${swCombatMelee}) /squelch /stick ID TARGET SAFEENV
 		/return
@@ -8173,20 +8159,21 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	
 	/varset dump ${set_target[${_tmpID}]}
 	
-	/call setDeclare giveUpPull timer outer 30s
+	/varset dump ${set_timer[${_debug}, timer_giveUpPull, 30s]}
 	
 	DEBUG ${sep}target${sep}\ay${_tmpID}\ax${sep}\aw${Spawn[${_tmpID}].DisplayName}\ax ${sep} dist:\a-w${Spawn[${_tmpID}].Distance}\ax
 	
 	/if (${Me.Pet.Taunt}) /pet taunt
 	/if (${Me.Pet.Stance.NotEqual[follow]}) /pet follow
-	/if (!${swHomeSet}) /call Bind_home_control set FALSE
+	/if (!HOME) /call Bind_control_home set FALSE silent FALSE
+
 	/varset dump ${out[9, "Fetching${sep}${tar}${Spawn[id ${_tmpID}].DisplayName}\ax"]}
-	/declare _melee float local ${Spawn[${_tmpID}].MaxRangeTo}
+	/declare _melee float local ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}
 
 	| get closer if we need too
-	/if (${Spawn[${_tmpID}].Distance} >= 200) {
+	/if (${Spawn[${_tmpID}].Distance} >= PULLENV && PULLENV > 250) {
 		/call pull_mob_move_to FALSE ${_tmpID} 60 off
-		/if (!${giveUpPull}) /goto :timerfail
+		/if (!${timer_giveUpPull}) /goto :timerfail
 	}
 		
 	/while (${Me.Moving}) {
@@ -8198,21 +8185,22 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	/delay 8s ${Me.Pet.Combat}
 		
 	/while (${Math.Distance[${Me.Pet.Y},${Me.Pet.X}:${Spawn[${_tmpID}].Y},${Spawn[${_tmpID}].X}]} > ${_melee}) {
+		/if (!${Spawn[id ${_tmpID}].ID} || ${Spawn[id ${_tmpID}].Dead}) /break
 		/pet attack
 		/delay 1s
-		DEBUG ${sep}waiting on pet to get to target :: ${Math.Distance[${Me.Pet.Y},${Me.Pet.X}:${Spawn[${_tmpID}].Y},${Spawn[${_tmpID}].X}]}
-		/delay 6s ${Math.Distance[${Me.Pet.Y}, ${Me.Pet.X}, ${Me.Pet.Z} : ${Spawn[${_tmpID}].Y}, ${Spawn[${_tmpID}].X}, ${Spawn[${_tmpID}].Z}]} > ${_melee}
+		DEBUG ${sep}waiting on pet to get to target${sep}\a-w${Math.Distance[${Me.Pet.Y},${Me.Pet.X}:${Spawn[${_tmpID}].Y},${Spawn[${_tmpID}].X}]}\ax
+		/delay 1s ${Math.Distance[${Me.Pet.Y}, ${Me.Pet.X}, ${Me.Pet.Z} : ${Spawn[${_tmpID}].Y}, ${Spawn[${_tmpID}].X}, ${Spawn[${_tmpID}].Z}]} > ${_melee}
 		/delay 5
 		/if (${Target.AggroHolder.Name.Equal[${Me.Pet.Name}]}) /break
 		/if (!${Me.Pet.ID} || !${_tmpID}) /break
 		GETINPUT
-		/if (!${giveUpPull}) /goto :timerfail
+		/if (!${timer_giveUpPull}) /goto :timerfail
 	}
 		
 	/call where_the_fuck_is_my_pet FALSE FALSE		
 	
-	/call Bind_home_control return FALSE
-	/if (!${giveUpPull}) /goto :timerfail
+	/if (HOME) /call Bind_control_home return FALSE silent FALSE
+	/if (!${timer_giveUpPull}) /goto :timerfail
 	
 	/while (${Me.Pet.Distance} > 20) {
 		DEBUG ${sep}pet.distance ${sep} ${Me.Pet.Distance} > 20
@@ -8222,7 +8210,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 		/if (${Me.Pet.Distance} < 20) /break
 		/if (${Spawn[pc group raid ${Target.AggroHolder.Name}].ID}) /return
 		GETINPUT
-		/if (!${giveUpPull}) /goto :timerfail
+		/if (!${timer_giveUpPull}) /goto :timerfail
 	}		
 
 
@@ -8234,7 +8222,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 		/if (!${Me.Pet.ID} || !${_tmpID}) /return
 		/if (${Spawn[pc group raid ${Target.AggroHolder.Name}].ID}) /return
 		GETINPUT
-		/if (!${giveUpPull}) /goto :timerfail
+		/if (!${timer_giveUpPull}) /goto :timerfail
 	}
 	
 ***|	
@@ -8253,7 +8241,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 		/if (${Spawn[pc group raid ${Target.AggroHolder.Name}].ID}) /break
 		
 		| target within melee
-		/if (${Spawn[${_tmpID}].Distance} <= ${Spawn[${_tmpID}].MaxRangeTo}) {
+		/if (${Spawn[${_tmpID}].Distance} <= ${Spawn[${_tmpID}].MaxRangeTo}*.9) {
 			DEBUG ${sep}/while \a-gbreak_MaxRangeTo\ax
 			/break
 		}
@@ -8266,10 +8254,10 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	}	
 
 	:timerfail
-	/if (!${giveUpPull}) {
+	/if (!${timer_giveUpPull}) {
 		/varset dump ${out[9, "${notice} ${dot} Timer to get mob failed!"]}
 		/call where_the_fuck_is_my_pet FALSE TRUE
-		/call Bind_home_control return FALSE
+		/call Bind_control_home return FALSE silent FALSE
 	}
 
 	SETHUD FALSE	

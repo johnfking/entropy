@@ -196,6 +196,7 @@ sub set_initial_environment(bool _debug)
   /varset dump ${set_data_timer[FALSE, Check_Tribute, 1m]}
   /varset dump ${set_data_timer[FALSE, Check_Loot, 1s]}
   /varset dump ${set_data_timer[FALSE, Check_Mode, 5]}
+  /varset dump ${set_data_timer[FALSE, Check_LoS_Timeout, 10s]}
 
 
   | /varset dump ${set_data_timer[FALSE, Check_Buff_List_Population, 2s]}

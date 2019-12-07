@@ -62,8 +62,7 @@ sub main_BST(bool _debug)
 
 	/if (AUTO) {
 		/call check_mana_${Me.Class.ShortName}
-		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
-		/if (PET || SWARM) /call send_pet ${maDebug.Find[minion].Value} TARGET
+		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value}
 	}
 
 	/while (${check_combat_status[FALSE]}) {
@@ -79,11 +78,12 @@ sub main_BST(bool _debug)
 
 		/if (VALID) {
 			/call set_combat FALSE
+			/if (PET || SWARM) /call send_pet ${maDebug.Find[minon].Value} TARGET
 			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
-			/if (PET || SWARM) /call send_pet ${maDebug.Find[minon].Value} TARGET
+
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDoT TARGET

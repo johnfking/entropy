@@ -5,6 +5,19 @@ plugins: MQ2Collections, MQ2Nav, MQ2Map, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
 
 
 
+A191206.01
+- fix to pets not paying attention to what they are supposed to be doing
+- pull modes that are now functional
+  pet - if you turn this on and you are not a pet class, you are once again stupid.
+    - sends your pet out to piss off a mob and bring it back to camp.
+  base - completely stationary pulling
+    - range tag mobs to get them to you
+    - los required
+    - and a freaking range method for pulling
+- externalized the timer used rof pulling LoS issues. Check_LoS_Timeout default is 10 seconds if you want to change it
+- voodoo
+  adjustment to the alt ability cast routine to skip all delays for instant cast.
+
 
 
 A191204.01
@@ -28,11 +41,9 @@ ok, time to start this
     - sends pet to kill shit
     - if you increase your /cc pull rad ## over your pet range, you are stupid
     - obeys exclude list
-    
 
 - /build
   /build save "name" [all] - will save all DB fields for your character false or otherwise. good for making fast switching builds if you need. will still not save fields for character names
- 
 
 - several small class corrections
 
