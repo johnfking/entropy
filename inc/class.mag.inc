@@ -78,7 +78,7 @@ sub main_MAG(bool _debug)
 		/if (${check_class_loop[FALSE]}) /return FALSE
 			/call set_combat FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName}
 			/if (PET || SWARM) /call send_pet FALSE TARGET
@@ -111,13 +111,16 @@ sub main_MAG(bool _debug)
 sub misc_combat_MAG(bool _debug)
 	DEBUG \atmisc_combat_MAG\ax()
 	
+	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
-	
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 
-	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	| Forece of Elements AA
 	/if (${is_ready[FALSE, "Force of Elements"]}) {
@@ -208,8 +211,18 @@ sub check_heal_MAG(bool _debug, string _type)
 sub burn_MAG(bool _debug)
 	DEBUG \atburn_MAG\ax()
 	
+	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
+	GETINPUT
 	CHECKTIE
+
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+
+	
 	/if (${is_ready[FALSE, "Elemental Ward"]}) {
 		/call voodoo FALSE "Elemental Ward" 0 FALSE
 	}

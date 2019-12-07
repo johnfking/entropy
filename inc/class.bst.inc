@@ -73,13 +73,13 @@ sub main_BST(bool _debug)
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
 		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value}  XTarget
 		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[minion].Value} Pet
-		/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+		/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 		/if (${check_class_loop[FALSE]}) /return		
 
 		/if (VALID) {
 			/call set_combat FALSE
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[minon].Value} TARGET
-			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
@@ -112,15 +112,16 @@ sub main_BST(bool _debug)
 sub misc_combat_BST(bool _debug)
 	DEBUG \atmisc_combat_BST\ax()
 
-	/if (${Me.PctEndurance} < 2) /return
 	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
+	CHECKTIE
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
-	
-	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
-	/if (SWARM || PET) /call send_pet FALSE TARGET
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	/if (${is_ready[FALSE, "${maChr.Find[stBestial].Value}", ${Me.ID}]} && !${Me.Song[${maChr.Find[stBestial].Value}].ID}) {
 		/call voodoo FALSE "${maChr.Find[stBestial].Value}" disc 0 FALSE
@@ -322,24 +323,6 @@ sub cast_AA_paragon(bool _debug)
 
 
 
-|***
- *	DES: DPS Clickies
- *	USE: this shits auto, learn to love it.
- *  NOTE: 
- ***|
-sub click_DPS_BST(bool _debug)
-	DEBUG click_DPS_BST(${_debug})
-
-	ISMEDEAD
-	CHECKEXIT
-	GETINPUT
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
-	/call click_horn_of_unity 	
-
-/return
-
-
-
  |***
  * note: Beast burn routines
  * use: establish all comp/trigger skills
@@ -348,10 +331,15 @@ sub burn_BST(bool _debug)
 	DEBUG burn_BST(${_debug})
 
 	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
-	/if (SWARM || PET) /call send_pet FALSE TARGET
+	CHECKTIE
+
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	/if (${is_ready[FALSE, "Bestial Alignment"]}) {
 		/call voodoo FALSE "Bestial Alignment" 0 FALSE

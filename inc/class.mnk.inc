@@ -64,13 +64,13 @@ sub main_MNK(bool _debug)
 		GETINPUT
 		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Self
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
-		/if (${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+		/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
 			/call set_combat FALSE
 			/if (MELEE && !${timer_Check_Behind}) /call stick_to_target FALSE TARGET
-			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 			/if (MELEE) /call do_melee FALSE TARGET
@@ -95,13 +95,16 @@ sub main_MNK(bool _debug)
 sub misc_combat_MNK(bool _debug)
 	DEBUG \atmisc_combat_MNK\ax()
 	
+	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
-	
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
-	/call check_deBuffs FALSE TARGET
+	CHECKTIE
 
-	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
 	/if (!AGRO) {
 		/if (${is_ready[FALSE, "Silent Strikes"]}) /call voodoo FALSE "Silent Strikes" alt 0 FALSE
@@ -171,10 +174,15 @@ sub burn_MNK(bool _debug)
 	DEBUG \atburn_MNK\ax()
 	
 	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
-	
-	/if (!${is_defensive_active[${_debug}, BURN, SAFEENV]}) /call cast_defensive_cycle FALSE
+	CHECKTIE
+
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	/if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" 0 FALSE
 	/if (${is_ready[${_debug}, "${maChr.Find[stAlliance].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" TARGET FALSE 

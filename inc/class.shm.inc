@@ -99,7 +99,7 @@ sub main_SHM(bool _debug)
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
 		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
 		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Pet
-		/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+		/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 		CHECKFADE
 
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
@@ -143,20 +143,20 @@ sub main_SHM(bool _debug)
 sub misc_combat_SHM(bool _debug)
 	DEBUG \atmisc_combat_SHM\ax()
 	
-	CHECKTIE
 	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
-	CHECKREZ
+	CHECKTIE
+
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	/call check_cani ${maDebug.Find[canni].Value}
 	
-	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
-	
 /return
-
-
-
 
 
 
@@ -315,11 +315,17 @@ sub cast_surge_heal(bool _debug)
 sub burn_SHM(bool _debug)
 	DEBUG \atburn_SHM\ax()
 	
+	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
-	
-	/if (!${is_defensive_active[FALSE, BURN, SAFEENV]}) /call cast_defensive_cycle FALSE	
+	CHECKTIE
 
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	
 	| swarm aa pet
 	/if (SWARM) {
 		/if (${is_ready[FALSE, "Spirit Call"]}) /call voodoo ${_debug} "Spirit Call" TARGET FALSE

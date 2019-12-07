@@ -140,13 +140,13 @@ sub main_PAL(bool _debug)
 		/if (${maHeal.Find[swHealXTarget].Value}) /call get_hurt_${Me.Class.ShortName} ${maDebug.Find[heal].Value} XTarget
 		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call get_hurt_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Pet
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call cast_cure ${maDebug.Find[cure].Value}
-		/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE		
+		/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}		
 		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
 		/if (${check_class_loop[FALSE]}) /return
 		
 		/if (VALID) {
 			/call set_combat FALSE
-			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/if (AGRO) /call get_agro_${Me.Class.ShortName}
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
@@ -186,22 +186,23 @@ sub misc_combat_PAL(bool _debug)
 	DEBUG \atmisc_combat_PAL\ax()
 	
 	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 	CHECKTIE
 
-	/call set_combat FALSE
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
 	| spam rune
 	/if (${is_ready[FALSE, "${maChr.Find[stTempRune].Value}"]}) {
 		/call voodoo FALSE "${maChr.Find[stTempRune].Value}" 0 FALSE
 	}
 
-	/call check_facing FALSE TARGET FORCE
+	/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
-	| defensive	
-	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
 		
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 	
@@ -244,7 +245,7 @@ sub get_agro_PAL(bool _debug)
 
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 	/call set_combat FALSE
-	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 	
 	| aa LoH
@@ -476,14 +477,16 @@ sub check_steel(bool _debug)
 sub burn_PAL(bool _debug)
 	DEBUG \atburn_PAL\ax()
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
-  GETINPUT
+	GETINPUT
+	CHECKTIE
 
-	/call check_facing ${_debug} TARGET FORCE
-
-	/if (!${is_defensive_active[${_debug}, BURN, SAFEENV]}) /call cast_defensive_cycle ${_debug}
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
 	| deflection
 	/if (!${Bool[${Me.ActiveDisc}]} && ${Me.PctHPs} < 50*.PCTHO) {

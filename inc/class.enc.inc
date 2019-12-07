@@ -74,7 +74,7 @@ sub main_ENC(bool _debug)
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[minion].Value} TARGET
 			/call set_combat FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
 			/call control_routine ${maDebug.Find[mez].Value}
 
@@ -116,13 +116,17 @@ sub main_ENC(bool _debug)
  ***|
 sub misc_combat_ENC(bool _debug)
 	DEBUG \atmisc_combat_ENC\ax()
+
 	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
-	
-	/if (!${is_defensive_active[${_debug}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${_debug}
 
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	| use AA beam of slumber?
 	/if (${maChr.Find[swAABoS].Value} && ${madeBuff.Find[swMez].Value}) {
@@ -134,9 +138,6 @@ sub misc_combat_ENC(bool _debug)
 			} 
 		}
 	}	
-	
-	
-	
 
 	| swarm pet
 	/if (SWARM && AGRO) {
@@ -262,11 +263,16 @@ sub check_heal_ENC(bool _debug)
 sub burn_ENC(bool _debug)
 	DEBUG \atburn_ENC\ax()
 	
+	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
-	
-	
-	/if (!${is_defensive_active[${_debug}, BURN, SAFEENV]}) /call cast_defensive_cycle ${_debug}
+	CHECKTIE
+
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	/if (${is_ready[FALSE, "Illusions of Grandeur"]}) {
 		/call voodoo ${_debug} "Illusions of Grandeur" 0 FALSE

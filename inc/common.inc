@@ -2098,7 +2098,7 @@ sub stick_to_target(bool _debug, int _tmpID)
 	/if (${maHome.Find[swMoveBehind].Value} && !${Stick.Behind} && ${Target.Distance} <= ENV) {
 		DEBUG ${sep}maHome.Find[swMoveBehind].Value${sep}\a-w${maHome.Find[swMoveBehind].Value}\ax
 		| /call get_assist_target
-		/call check_facing FALSE TARGET FALSE
+		/call check_facing ${maDebug.Find[face].Value} TARGET FALSE
 			
 		/if (!${Stick.Active} && ${Target.ID} && VALID && !${Stick.Behind} && !${timer_Check_Behind}) {
 			DEBUG ${sep}snaproll
@@ -2124,7 +2124,7 @@ sub stick_to_target(bool _debug, int _tmpID)
 		GETINPUT
 		/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
 		/if (!${Stick.Active} && ${Target.ID} && VALID && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.9) {
-			/call check_facing FALSE ${_tmpID} FALSE
+			/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FALSE
 			/squelch /stick id ${_tmpID} ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.9]}
 		}
 		/delay 1
@@ -2540,7 +2540,7 @@ sub set_combat(bool _debug)
 		| range mobs if enabled
 		/if (RANGE) {
 			
-			/call check_facing FALSE TARGET FORCE
+			/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 			
 			| no need to move were are at a good distance
 			/if (${Stick.Active}) /squelch /stick off		
@@ -2558,7 +2558,7 @@ sub set_combat(bool _debug)
 				/return
 			} else {
 				/if (${Me.AutoFire}) /squelch /autofire
-				/call check_facing FALSE TARGET FORCE
+				/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 				/squelch /attack on
 				/if (AUTO) /call stick_to_target FALSE TARGET
 			}
@@ -2581,7 +2581,7 @@ sub set_combat(bool _debug)
 				/return FALSE
 			} else {
 				/if (${Me.AutoFire}) /squelch /autofire
-				/call check_facing FALSE TARGET FORCE
+				/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 				/squelch /attack on
 				/if (AUTO) /call stick_to_target FALSE TARGET
 			}
@@ -2635,7 +2635,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 		/call pull_mob_find ${_debug}
 	}
 	
-	DEBUG ${sep}target${sep}\a-wTARGET
+	DEBUG ${sep}target${sep}\a-wTARGET\ax
 	
 	| When you grow up, your heart dies.
 	/if (!TARGET) {
@@ -2774,16 +2774,16 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 		| keep us facing the target just enough...
 		/if (${Target.ID} && (MELEE || RANGE) && ${Spawn[ID ${_tmpID}].LineOfSight}) {
 			DEBUG ${sep}Facing${sep}${_tmpID}
-			/call check_facing FALSE ${_tmpID} FORCE
+			/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 		}
 			
 		| check target is LoS. if stays out of sight too long. reset.
 		| again only the puller cares about this, not fetchers
 		/if (!${Spawn[${_tmpID}].LineOfSight} && !${maOver.Find[swOverLOS].Value} && PULL) {
 			/declare _losfail bool FALSE
-			Check_LoS_Timeout
 			/varset dump ${set_timer[FALSE, Check_LoS_Timeout, RESTART]}
 			/varset dump ${out[9, "Waiting for pull (\a-wLOS\ax)"]}
+			/delay 1
 			/while (${timer_Check_LoS_Timeout}) {
 				/delay 2 
 				/if (${Spawn[ID ${_tmpID}].LineOfSight}) /varset _losfail TRUE
@@ -2805,7 +2805,6 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 			/nav stop log=off
 			/break
 		}
-
 
 		/delay 1
 		/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /break
@@ -2861,7 +2860,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 					
 		| aa/spell/disc/item tag
 		/if (${is_ready[FALSE, "${maCC.Find[stRangeOther].Value}"]}) {			
-			DEBUG ${sep}Tag${sep}Other${sep}[${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax]${sep}\a-w${maCC.Find[stRangeOther].Value}\ax
+			DEBUG ${sep}Tag${sep}Other${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax${sep}\a-w${maCC.Find[stRangeOther].Value}\ax
 			/if (${Spawn[ID ${_tmpID}].Distance} < 80) {
 				/call set_stop FALSE				
 			}
@@ -2971,7 +2970,7 @@ sub pull_mob_find(bool _debug, int _spCount)
 	/declare _tmpCombatRange int local 31
 
 	| adjust LOS?
-	/if (${maOver.Find[swOverLOS].Value} || ${Select[${maCC.Find[stPullMode].Value},int,pet,calm,multi,nav]}) {
+	/if (${maOver.Find[swOverLOS].Value} || ${Select[${maCC.Find[stPullMode].Value},int,pet,calm,multi]}) {
 		DEBUG ${sep} LOS overridden
 		/varset _los
 	} 
@@ -2980,6 +2979,7 @@ sub pull_mob_find(bool _debug, int _spCount)
 	DEBUG ${sep}range${sep}\aw${maEnv.Find[stMobLvlMin].Value}\ax-\aw${maEnv.Find[stMobLvlMax].Value}\ax zradius${sep}\a-w${maCC.Find[stZRadius].Value}\ax
 	
 	/while (${_tmpAgroRange} <= PULLENV && !TARGET) {
+		/delay 1
 
 		| search local ENV range in steps of 10 for mob acquisition
 		DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
@@ -5702,7 +5702,7 @@ sub do_melee(bool _debug, int _tmpID)
 	/varset dump ${set_target[${_tmpID}]}
 	
 	/if (AUTO) {
-		/call check_facing FALSE ${_tmpID} FORCE
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 		/call stick_to_target ${_debug} TARGET
 	}
 
@@ -7744,19 +7744,17 @@ sub cast_shield_flash(bool _debug, string _type)
 		/next _count
 	}
 	
-	
 	| pally / shadowknight
 	/if (${_type.Equal[aa]}) { 
-		/call check_facing FALSE TARGET FORCE
+		/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 		/invoke ${Me.Bandolier[Flash].Activate}
 		/call voodoo FALSE "Shield Flash" 0 FALSE
 		
 	| warior
 	} else /if (${_type.Equal[disc]}) {
-		/call check_facing FALSE TARGET FORCE
+		/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 		/invoke ${Me.Bandolier[Flash].Activate}
 		/call voodoo FALSE "${maChr.Find[stFlash].Value}" 0 FALSE
-
 	}
 
 	| reset to previous bandolier
@@ -8051,14 +8049,13 @@ sub set_AA_agro(bool _debug)
  ***|
 sub get_target_intpull(bool _debug, int _tmpID)
 	DEBUG \atget_target_intpull\ax(\a-w${_tmpID}\ax)
+
 	/if (!AUTO || !PULL) /return
+
 	ISMEDEAD
 	GETINPUT
 	CHECKTIE
 
-	/declare _tmpCombatRange int local 31
-	/declare _count int local 0
-	
 	/if (${_tmpID}) {
 		/varset stAssTarID ${_tmpID}
 	}	else {
@@ -8070,25 +8067,13 @@ sub get_target_intpull(bool _debug, int _tmpID)
 		/return FALSE
 	}
 	
-	/if (${Target.ID} != TARGET) {
-		/squelch /target ID TARGET
-		/delay 1s ${Target.ID} == TARGET
-	}	
-	
-	/if (!TARGET) {
-		/delay 1s
-		/return
-	} else /if (${Spawn[id TARGET].Distance} < ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
-		/varset combat COMBAT
-		/if (${swCombatMelee}) /squelch /stick ID TARGET SAFEENV
-		/return
-	}
+	/varset dump ${set_target[TARGET]}
 	
 	/delay 1s
-	/dex ${get_resident[FALSE, CLR, 60]} /advancedpullint ${Me.ID}
+	/dex ${get_resident_class[${_debug}, CLR, 60]} /advancedpullint ${Me.ID} ${_debug}
 	/delay 1s
 	
-	/call pull_mob_prep FALSE TARGET
+	/call pull_mob_prep ${_debug} TARGET
 				
 	SETHUD FALSE
 
@@ -8307,8 +8292,8 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	
 	DEBUG ${sep}Target ${sep} ${_tmpID} ${sep} \aw${Spawn[${_tmpID}].DisplayName}\ax
 
-	/if (!${swHomeSet}) /call Bind_home_control set FALSE
-	/varset dump ${out[9, "Fetching${sep}{tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
+	/if (!HOME) /call Bind_control_home set FALSE silent FALSE
+	/varset dump ${out[9, "Fetching${sep}${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
 	/varset dump  ${set_target[${_tmpID}]}
 
 	| go get the mob
@@ -8329,7 +8314,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	}
 
 	| move home
-	/call Bind_home_control return FALSE
+	/call Bind_control_home return FALSE silent FALSE
 
 	/while (${Me.Moving}) {
 		GETINPUT

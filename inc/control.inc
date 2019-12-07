@@ -282,11 +282,11 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 			/if (HOME) /call Bind_control_home clear
 			/call clear_combat FALSE
 		} else /if (${_type.Equal[auto]}) {
-			/if (${maCC.Find[swPullSetHome].Value} && PULL) {
+			/if ((${maCC.Find[swPullSetHome].Value} && PULL) || ${maHome.Find[swonAuto].Value}) {
 				/call Bind_control_home set
 			}
 		}
-		/return
+		/return TRUE
 
 	| enable wasiting fireworks for those bastards with too much AA on their hands
 	} else /if (${_type.Equal[fireworks]}) {
@@ -740,6 +740,9 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 	} else /if (${_type.Equal[deathclear]}) {
 		/varset dump ${set_switch_env[FALSE, swMoveDeathClear, TRUE, ${_verbage}]}
 
+	} else /if (${_type.Equal[onauto]}) {
+		/varset dump ${set_switch_env[FALSE, swonAuto, TRUE, ${_verbage}]}
+
 	} 
 
 	/if (${_silent.Equal[SILENT]}) /return
@@ -749,7 +752,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 		/varset dump ${out[12, "Home${sep}Clear"]}
 	}
 
-	/varset dump ${_lsout.Append[set,variance,movebehind,facefast,arc,mount,deathclear]}
+	/varset dump ${_lsout.Append[set,variance,movebehind,facefast,arc,mount,deathclear,onauto]}
 	/vardata cli _lsout.First.Clone
 	/while (!${cli.IsEnd}) {
 		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
@@ -760,6 +763,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 		/if (${cli.Value.Equal[arc]}) /varset _out ${_out}:${If[${maHome.Find[stFaceArc].Value},${num}${maHome.Find[stFaceArc].Value}\ax,${off}]}
 		/if (${cli.Value.Equal[mount]}) /varset _out ${_out}:[${If[${Bool[${maHome.Find[stMount].Value}]},${num}${maHome.Find[stMount].Value}\ax,${off}]}]
 		/if (${cli.Value.Equal[deathclear]}) /varset _out ${_out}:${If[${maHome.Find[swMoveDeathClear].Value},${on},${off}]}
+		/if (${cli.Value.Equal[onauto]}) /varset _out ${_out}:${If[${maHome.Find[swonAuto].Value},${on},${off}]}
 		/varset dump ${cli.Advance}
 	}	
 	/varset dump ${out[12, "/home ${_out}"]}
@@ -2329,9 +2333,9 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		} else /if (${_verbage.Equal[int]}) {
 			/if (${Select[${Me.Class.ShortName},CLR,SHM]}) {
 				/varset dump ${get_shade[FALSE, MQWindow]}
-				/return
+				/return FALSE
 			}		
-			/call do_raw_edit ${_debug} SILENT setPullMode "int"
+			/call do_raw_edit ${_debug} SILENT stPullMode "int"
 		| pet pulling
 		} else /if (${_verbage.Equal[pet]}) {
 			/if (!${Select[${Me.Class.ShortName},MAG,ENC,DRU,SHM,SHD,NEC,BST]}) {
@@ -3729,7 +3733,7 @@ sub Bind_command_pull(string _type, int _tmpID, bool _debug)
 
 |***
  * note: forces an intervention spell on that target
- * use: /intervention [TargetID] DEBUG
+ * use: /advancedpullint [TargetID] DEBUG
  ***|
 #bind command_pull_int /advancedpullint
 sub Bind_command_pull_int(int _tmpID, bool _debug)
@@ -3738,26 +3742,12 @@ sub Bind_command_pull_int(int _tmpID, bool _debug)
 	/if (!AUTO) /return FALSE
 	
 	/if (!${Bool[${_tmpID}]}) {
-		OUT ${notice}${sep}target required
-		/varset dump ${out[9, ""]}
+		/varset dump ${out[9, "${notice}${sep}target required"]}
 		/return FALSE
 	}
 	
-	/declare _count int local 0
-	/if (${Me.Class.ShortName.Equal[CLR]}) /varset _count 4
-	| /if (${Me.Class.ShortName.Equal[DRU]}) /varset _count 4
-	/if (${Me.Class.ShortName.Equal[SHM]}) /varset _count 1
+	/call cast_list ${_debug} "lsHealIntervention" ${_tmpID}
 
-	/while (${_count} > 0) {
-		/if (${Me.SpellReady[${Spell[${healIntervention${_count}}].RankName}]}) {
-			/if (${validate_cast[FALSE, spell, "${healIntervention${_count}}", ${_tmpID}]}) {
-				/call core_cast2 "${healIntervention${_count}}" 0 ${_tmpID} FALSE
-				/return TRUE
-			}
-		}
-		/varcalc _count ${_count} - 1
-	} 
-	
 /return FALSE
 
 

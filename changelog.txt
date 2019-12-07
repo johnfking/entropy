@@ -1,8 +1,30 @@
 changelog.txt
 entropy.mac
 exspes
+
 plugins: MQ2Collections, MQ2Nav, MQ2Map, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
 
+|******************************************************************
+
+
+
+
+
+
+
+
+A191207.01
+- added in more melle checks for facing a target to all class files
+- more adjustments to the pulling tag routine
+- /home
+  onauto - (switch) will set a home camp whenever auto is enabled
+- /pull
+  nav - uses nav to find a valid mob, goes and gets it and brings it back to the group for spanking  
+  int - uses a cleric or shaman to heal you with an interventions heal that nukes tour target and agros it back to the group.
+- /debug
+  face - facing movements
+  def - class defensive cycle routines
+  
 
 
 A191206.01
@@ -14,7 +36,7 @@ A191206.01
     - range tag mobs to get them to you
     - los required
     - and a freaking range method for pulling
-- externalized the timer used rof pulling LoS issues. Check_LoS_Timeout default is 10 seconds if you want to change it
+- externalized the timer used for pulling LoS issues. Check_LoS_Timeout default is 10 seconds if you want to change it
 - voodoo
   adjustment to the alt ability cast routine to skip all delays for instant cast.
 
@@ -25,7 +47,6 @@ ok, time to start this
 - /cursor
   /cursor [see|keep|destroy|leave|ignore] "nameofitem" will set that item to that option in the database
   /cursor [see|keep|destroy|leave|ignore] with an item on the cursor will set that item to that option in the database
-
 - /mode
   forage - forages shit. matches to lood databse and treats as set
   summon - will (while in lobby) go buy the summon item you need, take it to the summoner and summon your corpse. mode ends then
@@ -41,10 +62,8 @@ ok, time to start this
     - sends pet to kill shit
     - if you increase your /cc pull rad ## over your pet range, you are stupid
     - obeys exclude list
-
 - /build
   /build save "name" [all] - will save all DB fields for your character false or otherwise. good for making fast switching builds if you need. will still not save fields for character names
-
 - several small class corrections
 
 

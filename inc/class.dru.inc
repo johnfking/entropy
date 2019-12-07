@@ -80,7 +80,7 @@ sub main_DRU(bool _debug)
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
 		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
 		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Pet
-		/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+		/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 		CHECKFADE
 
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
@@ -119,11 +119,16 @@ sub main_DRU(bool _debug)
 sub misc_combat_DRU(bool _debug)
 	DEBUG \atmisc_combat_DRU\ax()
 	
+	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
-	
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
-	/if (${validate_mitigation[FALSE, FALSE, ${setCombatRadius}]}) /call mitigation_cycle FALSE
+	CHECKTIE
+
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
 	/if (${is_ready[FALSE, "Season's Wrath"]})) /call voodoo FALSE "Season's Wrath" TARGET FALSE
 	/if (${is_ready[FALSE, "Storm Strike"]})) /call voodoo FALSE "Storm Strike" TARGET FALSE
@@ -266,13 +271,20 @@ sub check_heal_DRU(bool _debug, string _type)
 sub burn_DRU(bool _debug)
 	DEBUG \atburn_DRU\ax()
 	
+	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
+	CHECKTIE
+
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	| swarm pets
 	/if (SWARM) {
 		/if (${is_ready[FALSE, "Nature's Guardian"]})) /call voodoo FALSE "Nature's Guardian" TARGET FALSE
-		
 	}
 	
 	| defense

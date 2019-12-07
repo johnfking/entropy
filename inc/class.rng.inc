@@ -78,11 +78,11 @@ sub main_RNG(bool _debug)
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call cast_cure FALSE
 		/if (${maHeal.Find[swHealXTarget].Value}) /call get_hurt_${Me.Class.ShortName} FALSE XTarget
 		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call get_hurt_${Me.Class.ShortName} FALSE Pet
-		/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+		/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 		/if (${check_class_loop[FALSE]}) /return FALSE
 		/if (VALID) {
 			/call set_combat FALSE
-			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (BURN) /call burn_${Me.Class.ShortName} FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
@@ -114,13 +114,16 @@ sub misc_combat_RNG(bool _debug)
 	DEBUG \atmisc_combat_RNG\ax()
 	
 	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
-	/call set_combat FALSE
-	
-	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
-	
+	CHECKTIE
+
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+		
 	| agro control
 	/if (AGRO) {
 		/if (${is_ready[FALSE, "${maChr.Find[stDiscEnrage].Value}"]}) {
@@ -250,17 +253,19 @@ sub cast_nuke_summer(bool _debug, int _tmpID)
 sub burn_RNG(bool _debug)
 	DEBUG \atburn_RNG\ax()
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
-	
 	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
-	/call set_combat
+	CHECKTIE
+
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE	
 
 	/call cast_AA_spire FALSE
 	
-	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
-
 	| cheeta
 	/if (${is_ready[FALSE, "Scarlet Cheeta's Fang"]}) {
 		/call voodoo FALSE "Scarlet Cheeta's Fang" 0 FALSE

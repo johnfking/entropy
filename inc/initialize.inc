@@ -102,7 +102,7 @@ sub set_initialize(bool _debug)
   | generate DEBUGS
   /declare maDebug map outer
   /declare _lsout list local
-  /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mez,melee,minion,pull,rest,rez,target,zone,debuff]}
+  /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mez,melee,minion,pull,rest,rez,target,zone,debuff,def,face]}
   /varset dump ${_lsout.Append[buff,buffammo,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass,buffnow,bufftemp]}
   /varset dump ${_lsout.Append[cast,castitem,castnuke,castdot]}
   /varset dump ${_lsout.Append[mode,modeforage,modedrag,modecollect,modesummon,modescorch,modepetfarm]}
@@ -649,7 +649,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maHome swFaceFast                          FALSE                         "${auxsw} use fast facing movements"
   /call set_data_map FALSE maHome stFaceArc                           15                            "${auxnum} [\a-w1-45\az] acceptable range of facing and still be on target"
   /call set_data FALSE maHome swSnapStuck                             map outer FALSE
-
+	/call set_data_map FALSE maHome swonAuto		                        FALSE                         "${auxsw} set home camp on auto"
 
 |** control: tie **|
   /varset dump ${set_data_timer[FALSE, Check_Tie, 5]}

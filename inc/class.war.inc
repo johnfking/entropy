@@ -84,7 +84,7 @@ sub main_WAR(bool _debug)
 
 		/if (VALID) {
 			/call set_combat FALSE
-			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/if (AGRO) /call get_agro_${Me.Class.ShortName}
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
@@ -112,16 +112,18 @@ sub misc_combat_WAR(bool _debug)
 	DEBUG \atmisc_combat_WAR\ax()
 
 	ISMEDEAD
-	GETINPUT
-	CHECKEXIT
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
-	
-	/call check_facing FALSE TARGET FALSE
+	CHECKEXIT
+	GETINPUT
+	CHECKTIE
+
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	/if (AGRO) /call get_agro_${Me.Class.ShortName}
 
-	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 	
 	
 	/if (${is_ready[FALSE, "${maChr.Find[stNoTime].Value}"]} && !${Me.Buff[${maChr.Find[stDichotomic].Value}].ID}) {
@@ -178,12 +180,12 @@ sub misc_combat_WAR(bool _debug)
 		/call voodoo FALSE "Knee Strike" TARGET FALSE
 	}
 	
-	/call check_facing FALSE TARGET FALSE
+	/call check_facing ${maDebug.Find[face].Value} TARGET FALSE
 	
 	| Duplicating these two sub calls here b/c don't want to lose agro or mitigation while firing off this other stuff.
 	/if (AGRO) /call get_agro_${Me.Class.ShortName}
 	
-	/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 	
 	/if (AE# && ${SpawnCount[npc radius ENV targetable PS4]} >= AE#) {
 		/if (${is_ready[FALSE, "${maChr.Find[stExpanse].Value}"]}) {
@@ -324,10 +326,14 @@ sub burn_WAR(bool _debug)
 	DEBUG burn_WAR(${_debug})
 
 	ISMEDEAD
-	GETINPUT
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
-	
-	/call check_facing FALSE TARGET FALSE
+	GETINPUT
+	CHECKTIE
+
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	/if (${maChr.Find[stPctShieldFlash].Value} && ${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE disc
 	
@@ -363,7 +369,7 @@ sub burn_WAR(bool _debug)
 
 		} else {
 			/if (!${Me.ActiveDisc.Name.Equal[${maChr.Find[stEvasive].Value}]} && !${Me.ActiveDisc.Name.Equal[Fortitude Discipline]} && !${Me.Buff[${maChr.Find[stWarriors].Value}].ID}) {
-				/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+				/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			}
 		}
 	}

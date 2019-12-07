@@ -73,7 +73,7 @@ sub main_BER(bool _debug)
 		GETINPUT
 		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Self
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
-		/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+		/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
@@ -81,7 +81,7 @@ sub main_BER(bool _debug)
 			/call set_combat FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (MELEE && !${timer_Check_Behind}) /call stick_to_target FALSE TARGET 
-			/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (BURN) /call burn_${Me.Class.ShortName} FALSE
 			/call check_item_cycle FALSE TARGET
@@ -106,13 +106,15 @@ sub misc_combat_BER(bool _debug)
 	DEBUG misc_combat_BER()
 
 	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
-		
-	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle FALSE
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
 	/if (${Me.PctHPs} < 90) {
 		/if (${is_ready[FALSE, "${maChr.Find[stBattleFrenzy].Value}"]}) {
@@ -269,8 +271,16 @@ sub check_heal_BER(bool _debug, string _type)
 sub burn_BER(bool _debug)
 	DEBUG burn_BER()
 
+	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
+	CHECKTIE
+
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	/if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stDisconcerting].Value}]}) {
 		:loopmakestop

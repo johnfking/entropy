@@ -58,7 +58,7 @@ sub main_NEC(bool _debug)
 	
 		/if (VALID) {
 			/call set_combat FALSE
-			/if (!${is_defensive_active[FALSE, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs /call check_cure ${maDebug.Find[debuff].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} /call check_cure ${maDebug.Find[burn].Value}
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[minion].Value} TARGET
@@ -149,13 +149,16 @@ sub check_heal_NEC(bool _debug, string _type)
 sub misc_combat_NEC(bool _debug)
 	DEBUG \atmisc_combat_NEC\ax()
 	
+	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
-	
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
-	
-	/if (!${is_defensive_active[${_debug}, FALSE, SAFEENV]}) /call cast_defensive_cycle FALSE
+
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
 	| aa wake the dead
 	/if (SWARM) {
@@ -182,10 +185,16 @@ sub misc_combat_NEC(bool _debug)
 sub burn_NEC(bool _debug)
 	DEBUG \atburn_NEC\ax()
 	
-  CHECKEXIT
-  GETINPUT
-  
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
+	ISMEDEAD
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
+	CHECKEXIT
+	GETINPUT
+	CHECKTIE
+
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	| /if (${Me.Song[Gift of Deathly Resolve].ID}) /call cast_DOT FALSE TARGET
 	
