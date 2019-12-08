@@ -1,15 +1,24 @@
-changelog.txt
-entropy.mac
-exspes
-
-plugins: MQ2Collections, MQ2Nav, MQ2Map, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
-
 |******************************************************************
+ * changelog.txt
+ * entropy.mac
+ * exspes
+ *
+ * plugins: MQ2Collections, MQ2Nav, MQ2Map, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
+ *
+ ******************************************************************|
 
 
 
 
 
+
+
+A191208.01
+- developed a new method for outputs for / commands. faster and faster!!
+- finished /grain control for outputs
+- more refining to the pull code
+- necromancer
+  should be fully functional. needs testing.
 
 
 

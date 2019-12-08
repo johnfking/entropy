@@ -57,11 +57,11 @@ sub main_NEC(bool _debug)
 		/if (${check_class_loop[FALSE]}) /return
 	
 		/if (VALID) {
+			/if (PET || SWARM) /call send_pet ${maDebug.Find[minion].Value} TARGET
 			/call set_combat FALSE
 			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs /call check_cure ${maDebug.Find[debuff].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} /call check_cure ${maDebug.Find[burn].Value}
-			/if (PET || SWARM) /call send_pet ${maDebug.Find[minion].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/if (${maCC.Find[swAlliance].Value}) /call trigger_alliance TARGET
 			/if (${maChr.Find[swblood].Value} && ${timer_Check_Blood}) /call cast_blood ${maDebuf.Find[blood].Value} TARGET
@@ -271,5 +271,67 @@ sub cast_bloom(bool _debug)
 	}
 	
 /return TRUE
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+|***
+ * note: Class controls
+ * use: /chr []
+ ***|
+sub set_control_NEC(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control_NEC\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+
+  /declare _out string local
+
+	| output control map
+	/if (${_type.Equal[see]}) {
+		/call Bind_command_see maChr ${_verbage}
+		/return
+
+		
+	| use mana click items
+	} else /if (${_type.Equal[manarecover]}) {
+		/if (!${set_control_num_range[FALSE, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
+		
+	| set spire to be used
+	} else /if (${_type.Equal[spire]}) {
+		/call set_control_chr_spire FALSE ${_verbage} ${_silent}
+		/return
+		
+	| set AA fade use %	
+	} else /if (${_type.Equal[fade]}) {
+		/if (!${set_control_num_range[FALSE, stPctFade, "${_verbage}", 0, 99]}) /return
+
+	| defensive mob agro count
+	} else /if (${_type.Equal[def]}) {
+		/if (!${set_control_num_range[FALSE, stCountDefensive, "${_verbage}", 0, 99]}) /return
+
+	| set ae on/off / count
+	} else /if (${_type.Equal[ae]}) {
+		/if (!${set_control_num_range[FALSE, stCountAE, "${_verbage}", 0, 99]}) /return
+
+	| use blood nuke line
+	} else /if (${_type.Equal[blood]}) {
+		/varset dump ${set_switch_env[${_debug}, swblood, TRUE, ${_verbage}]}
+		
+	| use bloom mana recovery
+	} else /if (${_type.Equal[bloom]}) {
+		/varset dump ${set_switch_env[${_debug}, stPctBloom, TRUE, ${_verbage}]}
+		
+
+	}
+
+	/if (${_silent.Equal[SILENT]}) /return 
+	/varset dump ${set_control_output[${_debug}, maChr, chr, maChrControl]}
+	
+/return
+
+
+
+ 
  
  

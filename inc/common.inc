@@ -2662,7 +2662,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 	| wait for mob to get to camp
 	DEBUG ${sep}loop \a-w:waitformob\ax
 	:waitformob
-	/if (!${SpawnCount[npc radius 31 PS4 targetable]}) {
+	/if (!${SpawnCount[npc radius ENV PS4 targetable]}) {
 		/declare _wait int local ${Math.Calc[(PULLENV + ${Spawn[TARGET].Distance})*.08]}
 		| /varset dump ${set_temer[${_debug}, Check_LoS_Timeout, RESTART]}
 		/call set_timer FALSE _wait_for_mob ${_wait}s
@@ -2915,10 +2915,10 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 				/delay 5 ${Me.Moving}
 			}
 
-			/delay 2
+			| /delay 2
 			| make sure we have the targets attention.
-			/delay 2s ${Target.AggroHolder.Name.Equal[${Me.DisplayName}]}
-			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \ayhave target\ax
+			| /delay 2s ${Target.AggroHolder.Name.Equal[${Me.DisplayName}]}
+			| DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \ayhave target\ax
 			/return TRUE
 			
 		}
@@ -8167,7 +8167,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	
 	/delay 8s ${Me.Pet.Distance} < 15
 	/pet attack
-	/delay 8s ${Me.Pet.Combat}
+	| /delay 8s ${Me.Pet.Combat}
 		
 	/while (${Math.Distance[${Me.Pet.Y},${Me.Pet.X}:${Spawn[${_tmpID}].Y},${Spawn[${_tmpID}].X}]} > ${_melee}) {
 		/if (!${Spawn[id ${_tmpID}].ID} || ${Spawn[id ${_tmpID}].Dead}) /break
@@ -9181,3 +9181,57 @@ sub control_mez(bool _debug, int _tmpID)
 	}
 
 /return
+
+
+
+|***
+ * note: builds the outputs for various / commands
+ * use: /call control_mez DEBUG [TARGETID]
+ ***|
+sub set_control_output(bool _debug, string _map, string _outname, string _control)
+	DEBUG \atset_control_output\ax(\a-w${_map}, "${_outname}", ${_control}\ax)
+
+	/declare _out string local
+	/declare _value string local
+  /vardata cmi ${_control}.First.Clone
+	/while (!${cmi.IsEnd}) {
+		DEBUG ${sep}left 2${sep}\a-w${cmi.Value.Left[2]}\ax
+		DEBUG ${sep}${cmi.Key}${sep}\a-w${cmi.Value}\ax${sep}\a-y${${_map}.Find[${cmi.Value}].Value}\ax
+		
+		/if (${cmi.Value.Count[|]}) {
+			/varset _value ${cmi.Value.Arg[1,|]}
+		} else {
+			/varset _value ${cmi.Value}
+		}
+		
+		| submenu only
+		/if (${cmi.Value.Equal[submenu]}) {
+			/varset _out ${_out} ${info}${cmi.Key}\ax:${submenu}
+
+		| string in brackets
+		} else /if (${cmi.Value.Left[2].Equal[st]} && ${cmi.Value.Arg[2,|].Equal[br]}) {
+			/varset _out ${_out} ${info}${cmi.Key}\ax:[${If[${Bool[${${_map}.Find[${_value}].Value}]},${num}${${_map}.Find[${_value}].Value}\ax,${off}]}]
+
+		| straight string		
+		} else /if (${cmi.Value.Left[2].Equal[st]}) {
+			/varset _out ${_out} ${info}${cmi.Key}\ax:${If[${Bool[${${_map}.Find[${_value}].Value}]},${num}${${_map}.Find[${_value}].Value}\ax,${r0}]}
+
+		| switch in persentasies
+		} else /if (${cmi.Value.Left[2].Equal[sw]} && ${cmi.Value.Arg[2,|].Equal[pr]}) {
+			/varset _out ${_out} ${info}${cmi.Key}\ax:(${If[${${_map}.Find[${_value}].Value},${on},${off}]})
+			
+		| straight switch (optional submenu)
+		} else /if (${cmi.Value.Left[2].Equal[sw]}) {
+			/varset _out ${_out} ${info}${cmi.Key}\ax:${If[${${_map}.Find[${_value}].Value},${on},${off}]}${If[${cmi.Value.Arg[2,|].Equal[sm]},${submenu},]}
+		}
+
+		/varset dump ${cmi.Advance}
+		/if (!${cmi.IsEnd}) /varset _out ${_out} ${dot}
+	}
+	/varset dump ${out[12, "/${_outname} ${dot} ${_out}"]}
+
+/return
+
+
+
+

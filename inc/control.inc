@@ -321,19 +321,12 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 			/varset dump ${set_switch_env[FALSE, swCorrectEXPAA, TRUE, ${_silent}]}
 		}
 
-		/declare _lsout list local
-		/varset dump ${_lsout.Append[adjust,level,maintain]}
-	  /declare _out string local
-		/vardata cli _lsout.First.Clone
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[adjust]}) /varset _out ${_out}:${If[${maEnv.Find[swCorrectEXPAA].Value},${on},${off}]}
-			/if (${cli.Value.Equal[level]}) /varset _out ${_out}:${If[${maEnv.Find[stLvlMax].Value},${num}${maEnv.Find[stLvlMax].Value}\ax,${r0}]}
-			/if (${cli.Value.Equal[maintain]}) /varset _out ${_out}:${num}${maEnv.Find[stLvlPct].Value}\ax
-			/varset dump ${cli.Advance}
-		}	
-		/varset dump ${out[12, "/env exp ${_out}"]}
-	/return
+		/varset dump ${maControl.Clear}
+		/varset dump ${maControl.Add[adjust,swCorrectEXPAA]}
+		/varset dump ${maControl.Add[level,stLvlMax]}
+		/varset dump ${maControl.Add[maintain,stLvlPct]}
+		/varset dump ${set_control_output[${_debug}, maEnv, "env exp", maControl]}
+		/return
 
 	| food/drink
 	} else /if (${_type.Equal[meal]}) {
@@ -371,21 +364,16 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 			/varset dump ${set_switch_env[FALSE, swRestBuff, TRUE, ${_silent}]}
 
 		}
-		/declare _lsout list local
-		/varset dump ${_lsout.Append[pct,full,combat,modrod,buff]}
-	  /declare _out string local
-		/vardata cli _lsout.First.Clone
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[pct]}) /varset _out ${_out}:${If[${maEnv.Find[stPctRest].Value},${num}${maEnv.Find[stPctRest].Value}\ax,${r0}]}
-			/if (${cli.Value.Equal[full]}) /varset _out ${_out}:${If[${maEnv.Find[swRestFull].Value},${on},${off}]}
-			/if (${cli.Value.Equal[combat]}) /varset _out ${_out}:${If[${maEnv.Find[swRestCombat].Value},${on},${off}]}
-			/if (${cli.Value.Equal[modrod]}) /varset _out ${_out}:${If[${maEnv.Find[swRestModRod].Value},${on},${off}]}
-			/if (${cli.Value.Equal[buff]}) /varset _out ${_out}:${If[${maEnv.Find[swRestBuff].Value},${on},${off}]}
-			/varset dump ${cli.Advance}
-		}	
-		/varset dump ${out[12, "/env rest ${_out}"]}
-	/return
+		
+		/varset dump ${maControl.Clear}
+		/varset dump ${maControl.Add[pct,stPctRest]}
+		/varset dump ${maControl.Add[full,swRestFull]}
+		/varset dump ${maControl.Add[combat,swRestCombat]}
+		/varset dump ${maControl.Add[modrod,swRestModRod]}
+		/varset dump ${maControl.Add[buff,swRestBuff]}
+		/varset dump ${set_control_output[${_debug}, maEnv, "env rest", maControl]}	
+		/return		
+
 
 	} else /if (${_type.Equal[moblvlmin]}) {
 		/varset dump ${set_switch_env[FALSE, stMobLvlMin, TRUE, ${_verbage}]}
@@ -438,10 +426,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[rad]}) {
 		/if (!${set_control_num_range[${_debug}, stEnvRadius, "${_verbage}", 0, 999]}) /return
 
-
-
 	} else /if (${_type.Equal[incharge]}) {
-
 		/declare _count int local 0
 		/declare _name string local FALSE
 		
@@ -470,37 +455,27 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return
-	/declare _lsout list local
-	/varset dump ${_lsout.Append[auto,rad,rest,meal,exp,advloot,autoinv,buffgem,buffgemhold,nukeloop,safelistguild,moblvmax]}
-	/varset dump ${_lsout.Append[moblvlmin,begmage,fireworks,takeri,takegi,saferadius,tribute]}
-  /declare _out string local
-	/vardata cli _lsout.First.Clone
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/if (${cli.Value.Equal[auto]}) /varset _out ${_out}:(${If[${maEnv.Find[swAuto].Value},${on},${off}]})
-		/if (${cli.Value.Equal[rad]}) /varset _out ${_out}:${If[${maEnv.Find[stEnvRadius].Value},${num}${maEnv.Find[stEnvRadius].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[advloot]}) /varset _out ${_out}:${If[${maEnv.Find[swADVLoot].Value},${on},${off}]}
-		/if (${cli.Value.Equal[autoinv]}) /varset _out ${_out}:${If[${maEnv.Find[swAutoInv].Value},${on},${off}]}
-		/if (${cli.Value.Equal[buffgemhold]}) /varset _out ${_out}:${If[${maEnv.Find[swHoldBuffGem].Value},${on},${off}]}
-		/if (${cli.Value.Equal[buffgem]}) /varset _out ${_out}:${num}${maEnv.Find[stBuffGem].Value}\ax
-		/if (${cli.Value.Equal[nukeloop]}) /varset _out ${_out}:${If[${maEnv.Find[swNukeLoop].Value},${on},${off}]}
-		/if (${cli.Value.Equal[safelistguild]}) /varset _out ${_out}:${If[${maEnv.Find[swSafelistGuild].Value},${on},${off}]}
-		/if (${cli.Value.Equal[rest]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[moblvlmin]}) /varset _out ${_out}:${If[${maEnv.Find[stMobLvlMin].Value},${num}${maEnv.Find[stMobLvlMin].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[moblvmax]}) /varset _out ${_out}:${If[${maEnv.Find[stMobLvlMax].Value},${num}${maEnv.Find[stMobLvlMax].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[begmage]}) /varset _out ${_out}:${If[${maEnv.Find[swBegMAG].Value},${on},${off}]}
-		/if (${cli.Value.Equal[dpsmeter]}) /varset _out ${_out}:${If[${maEnv.Find[swDPSMeter].Value},${on},${off}]}
-		/if (${cli.Value.Equal[exp]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[fireworks]}) /varset _out ${_out}:${If[${maEnv.Find[swAAFireworks].Value},${on},${off}]}
-		/if (${cli.Value.Equal[hook]}) /varset _out ${_out}:${If[${maEnv.Find[swHookSub].Value},${on},${off}]}
-		/if (${cli.Value.Equal[takegi]}) /varset _out ${_out}:${If[${maEnv.Find[swTakeGroupInvite].Value},${on},${off}]}
-		/if (${cli.Value.Equal[takeri]}) /varset _out ${_out}:${If[${maEnv.Find[swTakeRaidInvite].Value},${on},${off}]}
-		/if (${cli.Value.Equal[saferadius]}) /varset _out ${_out}:${If[${maEnv.Find[stEnvSafeRadius].Value},${num}${maEnv.Find[stEnvSafeRadius].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[tribute]}) /varset _out ${_out}:${If[${maEnv.Find[swCheckTribute].Value},${on},${off}]}
-		/if (${cli.Value.Equal[meal]}) /varset _out ${_out}:${submenu}
-		/varset dump ${cli.Advance}
-	}	
-	/varset dump ${out[12, "/env ${_out}"]}
+	/varset dump ${maControl.Clear}
+	/varset dump ${maControl.Add[auto,swAuto|pr]}
+	/varset dump ${maControl.Add[rad,stEnvRadius]}
+	/varset dump ${maControl.Add[rest,submenu]}
+	/varset dump ${maControl.Add[meal,submenu]}
+	/varset dump ${maControl.Add[exp,submenu]}
+	/varset dump ${maControl.Add[advloot,swADVLoot]}
+	/varset dump ${maControl.Add[autoinv,swAutoInv]}
+	/varset dump ${maControl.Add[buffgem,stBuffGem]}
+	/varset dump ${maControl.Add[buffgemhold,swHoldBuffGem]}
+	/varset dump ${maControl.Add[nukeloop,swNukeLoop]}
+	/varset dump ${maControl.Add[safelistguild,swSafelistGuild]}
+	/varset dump ${maControl.Add[moblvmax,stMobLvlMax]}
+	/varset dump ${maControl.Add[moblvlmin,stMobLvlMin]}
+	/varset dump ${maControl.Add[begmage,swBegMAG]}
+	/varset dump ${maControl.Add[fireworks,swAAFireworks]}
+	/varset dump ${maControl.Add[takeri,swTakeRaidInvite]}
+	/varset dump ${maControl.Add[takegi,swTakeGroupInvite]}
+	/varset dump ${maControl.Add[saferadius,stEnvSafeRadius]}
+	/varset dump ${maControl.Add[tribute,swCheckTribute]}
+	/varset dump ${set_control_output[${_debug}, maEnv, env, maControl]}
 
 /return
 
@@ -752,23 +727,17 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 		/varset dump ${out[12, "Home${sep}Clear"]}
 	}
 
-	/varset dump ${_lsout.Append[set,variance,movebehind,facefast,arc,mount,deathclear,onauto]}
-	/vardata cli _lsout.First.Clone
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/if (${cli.Value.Equal[set]}) /varset _out ${_out}:(${If[${maHome.Find[swHomeMarker].Value},${on},${off}]})
-		/if (${cli.Value.Equal[variance]}) /varset _out ${_out}:${If[${maHome.Find[stHomeVariance].Value},${num}${maHome.Find[stHomeVariance].Value}\ax,${off}]}
-		/if (${cli.Value.Equal[movebehind]}) /varset _out ${_out}:${If[${maHome.Find[swMoveBehind].Value},${on},${off}]}
-		/if (${cli.Value.Equal[facefast]}) /varset _out ${_out}:${If[${maHome.Find[swFaceFast].Value},${on},${off}]}
-		/if (${cli.Value.Equal[arc]}) /varset _out ${_out}:${If[${maHome.Find[stFaceArc].Value},${num}${maHome.Find[stFaceArc].Value}\ax,${off}]}
-		/if (${cli.Value.Equal[mount]}) /varset _out ${_out}:[${If[${Bool[${maHome.Find[stMount].Value}]},${num}${maHome.Find[stMount].Value}\ax,${off}]}]
-		/if (${cli.Value.Equal[deathclear]}) /varset _out ${_out}:${If[${maHome.Find[swMoveDeathClear].Value},${on},${off}]}
-		/if (${cli.Value.Equal[onauto]}) /varset _out ${_out}:${If[${maHome.Find[swonAuto].Value},${on},${off}]}
-		/varset dump ${cli.Advance}
-	}	
-	/varset dump ${out[12, "/home ${_out}"]}
-
-/return 
+	/varset dump ${maControl.Clear}
+	/varset dump ${maControl.Add[set,swHomeMarker|pr]}
+	/varset dump ${maControl.Add[variance,stHomeVariance]}
+	/varset dump ${maControl.Add[movebehind,swMoveBehind]}
+	/varset dump ${maControl.Add[facefast,swFaceFast]}
+	/varset dump ${maControl.Add[arc,stFaceArc]}
+	/varset dump ${maControl.Add[mount,stMount]}
+	/varset dump ${maControl.Add[deathclear,swMoveDeathClear]}
+	/varset dump ${maControl.Add[onauto,swonAuto]}
+	/varset dump ${set_control_output[${_debug}, maHome, home, maControl]}
+/return
 
 
 
@@ -818,18 +787,12 @@ sub Bind_control_tc(string _type, string _verbage, string _silent, bool _debug)
 	} 
 
 	/if (${_silent.Equal[SILENT]}) /return
-	/varset dump ${_lsout.Append[toon,variance,mode]}
-	/vardata cli _lsout.First.Clone
-	/varset _out ${_out}tie:(${If[${maTie.Find[swSetTie].Value},${on},${off}]})
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/if (${cli.Value.Equal[toon]}) /varset _out ${_out}:[${If[${Bool[${maTie.Find[stTieToon].Value}]},${num}${maTie.Find[stTieToon].Value}\ax,${off}]}]
-		/if (${cli.Value.Equal[variance]}) /varset _out ${_out}:${If[${maTie.Find[stTieVariance].Value},${num}${maTie.Find[stTieVariance].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[mode]}) /varset _out ${_out}:${submenu}
-		/varset dump ${cli.Advance}
-	}	
-	/varset dump ${out[12, "/tc ${_out}"]}
 
+	/varset dump ${maControl.Clear}
+	/varset dump ${maControl.Add[toon,stTieToon|br]}
+	/varset dump ${maControl.Add[variance,stTieVariance]}
+	/varset dump ${maControl.Add[mode,submenu]}
+	/varset dump ${set_control_output[${_debug}, maTie, tc, maControl]}
 /return
 
 
@@ -1102,27 +1065,20 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, bool _debug
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return 
-	/declare _out string local
-	/declare _lsout list 
-	/varset dump ${_lsout.Append[point,mode,self,group,xt,xtclass,pet,cure,adj,rampage]}
-	/vardata cli _lsout.First.Clone
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/if (${cli.Value.Equal[point]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[mode]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[xtclass]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[self]}) /varset _out ${_out}:${If[${maHeal.Find[swHealSelf].Value},${on},${off}]}
-		/if (${cli.Value.Equal[group]}) /varset _out ${_out}:${If[${maHeal.Find[swHealGroup].Value},${on},${off}]}
-		/if (${cli.Value.Equal[xt]}) /varset _out ${_out}:${If[${maHeal.Find[swHealXTarget].Value},${on},${off}]}
-		/if (${cli.Value.Equal[pet]}) /varset _out ${_out}:${If[${maHeal.Find[swHealPet].Value},${on},${off}]}
-		/if (${cli.Value.Equal[cure]}) /varset _out ${_out}:${If[${maHeal.Find[swHealCure].Value},${on},${off}]}
-		/if (${cli.Value.Equal[adj]}) /varset _out ${_out}:${If[${maHeal.Find[stHealAdjust].Value},${num}${maHeal.Find[stHealAdjust].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[rampage]}) /varset _out ${_out}:${If[${Bool[${maChr.Find[stRampageTank].Value}]},[${num}${maChr.Find[stRampageTank].Value}\ax],[${off}]]}
-		/varset dump ${cli.Advance}
-	}	
-	/varset dump ${out[12, "/heal ${_out}"]}
+	/varset dump ${maControl.Clear}
+	/varset dump ${maControl.Add[point,submenu]}
+	/varset dump ${maControl.Add[mode,submenu]}
+	/varset dump ${maControl.Add[self,swHealSelf]}
+	/varset dump ${maControl.Add[group,swHealGroup]}
+	/varset dump ${maControl.Add[xt,swHealXTarget]}
+	/varset dump ${maControl.Add[xtclass,submenu]}
+	/varset dump ${maControl.Add[pet,swHealPet]}
+	/varset dump ${maControl.Add[cure,swHealCure]}
+	/varset dump ${maControl.Add[adj,stHealAdjust]}
+	/varset dump ${maControl.Add[rampage,stRampageTank|br]}
+	/varset dump ${set_control_output[${_debug}, maChr, heal, maControl]}
 
-/return
+/return	
 
 
 
@@ -1198,8 +1154,6 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 				/varset dump ${maData.ADd[swHUDTime,TRUE]}
 				/varset dump ${out[12, "HUD Time${sep}\a-wIRL\ax"]}
 			}
-			
-						 
 
 		| reset the MQhud ini file
 		} else /if (${_verbage.Equal[update]}) {
@@ -1221,31 +1175,22 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 		}	
 		/varset dump ${out[12, "/entropy hud ${_out}"]}
 		/return
-		
-		
-
-		
 
 	}
 	
 	/if (${_silent.Equal[SILENT]}) /return
-	/varset dump ${_lsout.Append[maintenance,events,hud,dpsmeter,hook,nettimeout,autolist,buffrefresh,manautoinv]}
-	/vardata cli _lsout.First.Clone
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/if (${cli.Value.Equal[maintenance]}) /varset _out ${_out}:${If[${maEntropy.Find[swMaintenance].Value},${on},${off}]}
-		/if (${cli.Value.Equal[events]}) /varset _out ${_out}:${If[${maEntropy.Find[swEventsInc].Value},${on},${off}]}
-		/if (${cli.Value.Equal[hud]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[dpsmeter]}) /varset _out ${_out}:${If[${maEntropy.Find[swDPSMeter].Value},${on},${off}]}
-		/if (${cli.Value.Equal[hook]}) /varset _out ${_out}:${If[${maEntropy.Find[swHookSub].Value},${on},${off}]}
-		/if (${cli.Value.Equal[nettimeout]}) /varset _out ${_out}:${If[${maEntropy.Find[stNetworkTimeout].Value},${num}${maEntropy.Find[stNetworkTimeout].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[buffrefresh]}) /varset _out ${_out}:${num}${maEntropy.Find[stBuffRefresh].Value}s\ax
-		/if (${cli.Value.Equal[autolist]}) /varset _out ${_out}:${If[${maEntropy.Find[swAutoList].Value},${on},${off}]}
-		/if (${cli.Value.Equal[manautoinv]}) /varset _out ${_out}:${If[${maEntropy.Find[swAutoInvManual].Value},${on},${off}]}
-		/varset dump ${cli.Advance}
-	}	
-	/varset dump ${out[12, "/entropy ${_out}"]}
-	
+	/varset dump ${maControl.Clear}
+	/varset dump ${maControl.Add[autolist,swAutoList]}
+	/varset dump ${maControl.Add[buffrefresh,stBuffRefresh]}
+	/varset dump ${maControl.Add[dpsmeter,swDPSMeter]}
+	/varset dump ${maControl.Add[events,swEventsInc]}
+	/varset dump ${maControl.Add[hook,swHookSub]}
+	/varset dump ${maControl.Add[hud,submenu]}
+	/varset dump ${maControl.Add[manautoinv,swAutoInvManual]}
+	/varset dump ${maControl.Add[maintenance,swMaintenance]}
+	/varset dump ${maControl.Add[nettimeout,nettimeout]}
+	/varset dump ${set_control_output[${_debug}, maEntropy, entropy, maControl]}	
+
 /return
 
 
@@ -1259,7 +1204,7 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 	DEBUG \atcontrol_rez\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
   /declare _out string local
-	/declare _lsout list local
+	| /declare _lsout list local
 
 	| output control map
 	/if (${_type.Equal[see]}) {
@@ -1290,12 +1235,9 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[token]}) {
 		/varset dump ${set_switch_env[FALSE, swRezToken, TRUE, ${_verbage}]}
 		
-		
 	| rez radius
 	} else /if (${_type.Equal[rad]}) {
 		/if (!${set_control_num_range[FALSE, stMaxRezRange, "${_verbage}", 0, 100]}) /return
-
-	
 
 	| set rez accept percent	
 	} else /if (${_type.Equal[pct]}) {
@@ -1314,24 +1256,16 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 	}
 	
 	/if (${_silent.Equal[SILENT]}) /return
-	/varset dump ${_lsout.Append[give,take,combat,everyone,token,pct,rad]}
-	/vardata cli _lsout.First.Clone
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/if (${cli.Value.Equal[give]}) /varset _out ${_out}:${If[${maRez.Find[swRezGive].Value},${on},${off}]}
-		/if (${cli.Value.Equal[take]}) /varset _out ${_out}:${If[${maRez.Find[swRezTake].Value},${on},${off}]}
-		/if (${cli.Value.Equal[combat]}) /varset _out ${_out}:${If[${maRez.Find[swRezCombat].Value},${on},${off}]}
-		/if (${cli.Value.Equal[everyone]}) /varset _out ${_out}:${If[${maRez.Find[swRezEveryone].Value},${on},${off}]}
-		/if (${cli.Value.Equal[token]}) /varset _out ${_out}:${If[${maRez.Find[swRezToken].Value},${on},${off}]}
-		/if (${cli.Value.Equal[pct]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[rad]}) /varset _out ${_out}:${If[${maRez.Find[stMaxRezRange].Value},${num}${maRez.Find[stMaxRezRange].Value}\ax,${r0}]}
-		/varset dump ${cli.Advance}
-	}	
-	/varset dump ${out[12, "/rez ${_out}"]}
+	/varset dump ${maControl.Clear}
+	/varset dump ${maControl.Add[give,swRezGive]}
+	/varset dump ${maControl.Add[rad,stMaxRezRange]}
+	/varset dump ${maControl.Add[token,swRezToken]}
+	/varset dump ${maControl.Add[everyone,swRezEveryone]}
+	/varset dump ${maControl.Add[take,swRezTake]}
+	/varset dump ${maControl.Add[combat,swRezCombat]}
+	/varset dump ${set_control_output[${_debug}, maRez, rez, maControl, maControl]}
 	
 /return
-
-
 
 
 
@@ -1450,25 +1384,16 @@ sub Bind_deez(string _type, bool _debug)
 		}
 	}
 	
-	
 	/if (${_type.Equal[dbtest]}) { 
 	
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM mana_recovery WHERE env_var="Wand of Arcronite Modulation"
 	
 		OUT ${sqlite.Result[dummy 1 value]}
+	}
 
-
-	/return
+/return
 	
 	
-
-
-
-
-
-
-
-
 
 |***
  * note: your mama so fat, each ass cheek has a different zip code
@@ -1568,7 +1493,6 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, bool _debug
 			OUT ${dot}${dot} \a-w${cli.Value}\ax
 			/varset dump ${cli.Advance}
 		}	
-
 		/return
 
 	} else /if (${_type.Equal[temp]}) {
@@ -1581,44 +1505,29 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, bool _debug
 			/varset dump ${set_switch_env[${_debug}, swBuffShrink, TRUE, ${_silent}]}
 		}
 		
-		/declare _lsout list local
-	  /declare _out string local
-		/varset dump ${_lsout.Append[use,item]}
-		/vardata cli _lsout.First.Clone
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[use]}) /varset _out ${_out}:${If[${maBuff.Find[swBuffShrink].Value},${on},${off}]}
-			/if (${cli.Value.Equal[item]}) /varset _out ${_out}:[${If[${Bool[${maBuff.Find[stShrinkItem].Value}]},${num}${maBuff.Find[stShrinkItem].Value}\ax,${off}]}]
-			/varset dump ${cli.Advance}
-		}	
-		/varset dump ${out[12, "/buff shrink ${_out}"]}
+		/varset dump ${maControl.Clear}
+		/varset dump ${maControl.Add[use,swBuffShrink]}
+		/varset dump ${maControl.Add[item,stShrinkItem|br]}
+		/varset dump ${set_control_output[${_debug}, maBuff, "buff shrink", maControl]}	
 		/return
-
+		
 	}
 	
 	/if (${_silent.Equal[SILENT]}) /return
-	/declare _lsout list local
-	/varset dump ${_lsout.Append[master,self,crew,raid,beg,unity,shrink,aura,temp,now,ps,ammo]}
-  /declare _out string local
-	/vardata cli _lsout.First.Clone
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/if (${cli.Value.Equal[master]}) /varset _out ${_out}:(${If[${maBuff.Find[swBuffMaster].Value},${on},${off}]})
-		/if (${cli.Value.Equal[self]}) /varset _out ${_out}:${If[${maBuff.Find[swBuffSelf].Value},${on},${off}]}
-		/if (${cli.Value.Equal[crew]}) /varset _out ${_out}:${If[${maBuff.Find[swBuffCrew].Value},${on},${off}]}
-		/if (${cli.Value.Equal[raid]}) /varset _out ${_out}:${If[${maBuff.Find[swBuffRaid].Value},${on},${off}]}
-		/if (${cli.Value.Equal[beg]}) /varset _out ${_out}:${If[${maBuff.Find[swBuffBeg].Value},${on},${off}]}
-		/if (${cli.Value.Equal[temp]}) /varset _out ${_out}:${If[${maBuff.Find[swBuffTemp].Value},${on},${off}]}
-		/if (${cli.Value.Equal[unity]}) /varset _out ${_out}:${If[${maBuff.Find[swBuffUnity].Value},${on},${off}]}
-		/if (${cli.Value.Equal[aura]}) /varset _out ${_out}:${If[${maBuff.Find[swBuffAura].Value},${on},${off}]} ${submenu}
-		/if (${cli.Value.Equal[shrink]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[now]}) /varset _out ${_out}:${If[${maBuff.Find[swBuffNow].Value},${on},${off}]}
-		/if (${cli.Value.Equal[ps]}) /varset _out ${_out}:${If[${maBuff.Find[swBuffPowersource].Value},${on},${off}]}
-		/if (${cli.Value.Equal[ammo]}) /varset _out ${_out}:${If[${maBuff.Find[swBuffAmmo].Value},${on},${off}]}
-
-		/varset dump ${cli.Advance}
-	}		
-	/varset dump ${out[12, "/buff ${_out}"]}
+	/varset dump ${maControl.Clear}
+	/varset dump ${maControl.Add[ammo,swBuffAmmo]}
+	/varset dump ${maControl.Add[aura,submenu]}
+	/varset dump ${maControl.Add[beg,swBuffBeg]}
+	/varset dump ${maControl.Add[crew,swBuffCrew]}
+	/varset dump ${maControl.Add[master,swBuffMaster]}
+	/varset dump ${maControl.Add[now,swBuffNow]}
+	/varset dump ${maControl.Add[ps,swBuffPowersource]}
+	/varset dump ${maControl.Add[raid,swBuffRaid]}
+	/varset dump ${maControl.Add[self,swBuffSelf]}
+	/varset dump ${maControl.Add[shrink,submenu]}
+	/varset dump ${maControl.Add[temp,swBuffTemp]}
+	/varset dump ${maControl.Add[unity,swBuffUnity]}
+	/varset dump ${set_control_output[${_debug}, maBuff, buff, maControl]}	
 
 /return
 
@@ -1628,7 +1537,7 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, bool _debug
  * note: control for overrides
  * use: 
  ***|
-#Bind control_over /over
+#Bind control_over /override
 sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug)
 	DEBUG \atBind_control_over\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
@@ -1654,21 +1563,13 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 	}
 	
 	/if (${_silent.Equal[SILENT]}) /return
-	/declare _lsout list local
-	/varset dump ${_lsout.Append[los,engage,loot,safenames,trainspell]}
-  /declare _out string local
-	/vardata cli _lsout.First.Clone
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/if (${cli.Value.Equal[los]}) /varset _out ${_out}:${If[${maOver.Find[swOverLOS].Value},${on},${off}]}
-		/if (${cli.Value.Equal[engage]}) /varset _out ${_out}:${If[${maOver.Find[swOverPctEngage].Value},${on},${off}]}
-		/if (${cli.Value.Equal[loot]}) /varset _out ${_out}:${If[${maOver.Find[swOverLoot].Value},${on},${off}]}
-		/if (${cli.Value.Equal[safenames]}) /varset _out ${_out}:${If[${maOver.Find[swOverSafeNames].Value},${on},${off}]}
-		/if (${cli.Value.Equal[trainspell]}) /varset _out ${_out}:${If[${maOver.Find[swOverTrainSpell].Value},${on},${off}]}
-		/varset dump ${cli.Advance}
-	}	
-
-	/varset dump ${out[12, "/over ${_out}"]}
+	/varset dump ${maControl.Clear}
+	/varset dump ${maControl.Add[los,swOverLOS]}
+	/varset dump ${maControl.Add[engage,swOverPctEngage]}
+	/varset dump ${maControl.Add[loot,swOverLoot]}
+	/varset dump ${maControl.Add[safenames,swOverSafeNames]}
+	/varset dump ${maControl.Add[trainspell,swOverTrainSpell]}
+	/varset dump ${set_control_output[${_debug}, maOver, override, maControl]}		
 	
 /return	
 
@@ -1915,20 +1816,13 @@ sub Bind_control_burn(string _type, string _verbage, string _silent, bool _debug
 	} 
 	
 	/if (${_silent.Equal[SILENT]}) /return
-	/declare _lsout list local
-	/varset dump ${_lsout.Append[auto,engage,count,force,raid]}
-  /declare _out string local
-	/vardata cli _lsout.First.Clone
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/if (${cli.Value.Equal[auto]}) /varset _out ${_out}:${If[${maBurn.Find[swBurnAuto].Value},${on},${off}]}
-		/if (${cli.Value.Equal[engage]}) /varset _out ${_out}:${If[${maBurn.Find[stPctBurnEngage].Value},${num}${maBurn.Find[stPctBurnEngage].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[count]}) /varset _out ${_out}:${If[${maBurn.Find[stBurnCount].Value},${num}${maBurn.Find[stBurnCount].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[force]}) /varset _out ${_out}:${If[${maBurn.Find[swBurnForce].Value},${on},${off}]}
-		/if (${cli.Value.Equal[raid]}) /varset _out ${_out}:${If[${maBurn.Find[swBurnRaid].Value},${on},${off}]}
-		/varset dump ${cli.Advance}
-	}		
-	/varset dump ${out[12, "/burn ${_out}"]}
+	/varset dump ${maControl.Clear}
+	/varset dump ${maControl.Add[auto,swBurnAuto]}
+	/varset dump ${maControl.Add[count,stBurnCount]}
+	/varset dump ${maControl.Add[engage,stPctBurnEngage]}
+	/varset dump ${maControl.Add[force,swBurnForce]}
+	/varset dump ${maControl.Add[raid,swBurnRaid]}
+	/varset dump ${set_control_output[${_debug}, maBurn, burn, maControl]}		
 	
 /return
 
@@ -2085,6 +1979,7 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 			/if (${cli.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swCripple].Value},${on},${off}]}
 			/if (${cli.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stCripple].Value}]},${num}${madeBuff.Find[stCripple].Value}\ax,${off}]}]
 			/if (${cli.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAECripple].Value}]},${num}${madeBuff.Find[stAECripple].Value}\ax,${off}]}]
+
 			/varset dump ${cli.Advance}
 		}	
 		/varset dump ${out[12, "/debuff cripple ${_out}"]}
@@ -2093,24 +1988,18 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return
-	/declare _lsout list local
-	/varset dump ${_lsout.Append[mez,malo,tash,slow,snare,eradicate,cripple]}
-	/vardata cli _lsout.First.Clone
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/if (${cli.Value.Equal[mez]}) /varset _out ${_out}:${If[${madeBuff.Find[swMez].Value},${on},${off}]} ${submenu}
-		/if (${cli.Value.Equal[malo]}) /varset _out ${_out}:${If[${madeBuff.Find[swMalo].Value},${on},${off}]} ${submenu}
-		/if (${cli.Value.Equal[tash]}) /varset _out ${_out}:${If[${madeBuff.Find[swTash].Value},${on},${off}]} ${submenu}
-		/if (${cli.Value.Equal[slow]}) /varset _out ${_out}:${If[${madeBuff.Find[swSlow].Value},${on},${off}]} ${submenu}
-		/if (${cli.Value.Equal[snare]}) /varset _out ${_out}:${If[${madeBuff.Find[swSnare].Value},${on},${off}]} ${submenu}
-		/if (${cli.Value.Equal[eradicate]}) /varset _out ${_out}:${If[${madeBuff.Find[swEradicate].Value},${on},${off}]} ${submenu}
-		/if (${cli.Value.Equal[cripple]}) /varset _out ${_out}:${If[${madeBuff.Find[swCripple].Value},${on},${off}]} ${submenu}
-		/varset dump ${cli.Advance}
-	}		
-	/varset dump ${out[12, "/debuff ${_out}"]}
-
+	/varset dump ${maControl.Clear}
+	/varset dump ${maControl.Add[cripple,swCripple|sm]}
+	/varset dump ${maControl.Add[eradicate,swEradicate|sm]}
+	/varset dump ${maControl.Add[malo,swMalo|sm]}
+	/varset dump ${maControl.Add[mez,swMez|sm]}
+	/varset dump ${maControl.Add[slow,swSlow|sm]}
+	/varset dump ${maControl.Add[snare,swSnare|sm]}
+	/varset dump ${maControl.Add[tash,swTash|sm]}
+	/varset dump ${set_control_output[${_debug}, madeBuff, debuff, maControl]}
+	
 /return
-
+	
 
 
 |***
@@ -2181,17 +2070,12 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 			/varset dump ${do_raw_edit[FALSE, SILENT, stGlyph, "${_silent}"]}
 		}
 		
-		/declare _lsout list local 
-		/varset dump ${_lsout.Append[group,raid,name]}
-		/vardata cli _lsout.First.Clone
-		/while (!${cli.IsEnd}) {	
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[group]}) /varset _out ${_out}:${If[${maCC.Find[swGlyphGroup].Value},${on},${off}]}
-			/if (${cli.Value.Equal[raid]}) /varset _out ${_out}:${If[${maCC.Find[swGlyphRaid].Value},${on},${off}]}
-			/if (${cli.Value.Equal[name]}) /varset _out ${_out}:[${If[${Bool[${maCC.Find[stGlyph].Value}]},${num}${maCC.Find[stGlyph].Value}\ax,${off}]}]
-			/varset dump ${cli.Advance}
-		}	
-		/varset dump ${out[12, "/cc glyph ${_out}"]}
+
+		/varset dump ${maControl.Clear}
+		/varset dump ${maControl.Add[group,swGlyphGroup]}
+		/varset dump ${maControl.Add[name,stGlyph|br]}
+		/varset dump ${maControl.Add[raid,swGlyphRaid]}
+		/varset dump ${set_control_output[${_debug}, maCC, "cc glyph", maControl]}	
 		/return
 		
 	| set combat mode	
@@ -2223,20 +2107,14 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 
 		}	
 	
-		/declare _lsout list local 
-		/varset dump ${_lsout.Append[melee,range,dot,nuke,heal,cc]}
-		/vardata cli _lsout.First.Clone
-		/while (!${cli.IsEnd}) {	
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[melee]}) /varset _out ${_out}:${If[${maCC.Find[swCombatMelee].Value},${on},${off}]}
-			/if (${cli.Value.Equal[range]}) /varset _out ${_out}:${If[${maCC.Find[swCombatRange].Value},${on},${off}]}
-			/if (${cli.Value.Equal[nuke]}) /varset _out ${_out}:${If[${maCC.Find[swCombatNuke].Value},${on},${off}]}
-			/if (${cli.Value.Equal[dot]}) /varset _out ${_out}:${If[${maCC.Find[swCombatDoT].Value},${on},${off}]}
-			/if (${cli.Value.Equal[heal]}) /varset _out ${_out}:${If[${maCC.Find[swCombatHeal].Value},${on},${off}]}
-			/if (${cli.Value.Equal[cc]}) /varset _out ${_out}:${If[${maCC.Find[swCombatControl].Value},${on},${off}]}
-			/varset dump ${cli.Advance}
-		}	
-		/varset dump ${out[12, "/cc mode ${_out}"]}
+		/varset dump ${maControl.Clear}
+		/varset dump ${maControl.Add[cc,swCombatControl]}
+		/varset dump ${maControl.Add[dot,swCombatDoT]}
+		/varset dump ${maControl.Add[heal,swCombatHeal]}
+		/varset dump ${maControl.Add[melee,swCombatMelee]}
+		/varset dump ${maControl.Add[nuke,swCombatNuke]}
+		/varset dump ${maControl.Add[range,swCombatRange]}
+		/varset dump ${set_control_output[${_debug}, maCC, "cc mode", maControl]}	
 		/return
 	
 	| set melee things to do
@@ -2273,18 +2151,19 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		/vardata cli lsMeleeSkill.First.Clone
 		/while (!${cli.IsEnd}) {	
 			/varset _out ${_out} ${If[${cli.Value.Equal[${lsMeleeSkill.First}]},,${dot}]} ${info}${cli.Value}\ax
+			/if (${cli.Value.Equal[backstabb]}) /varset _out ${_out}:${If[${maCC.Find[swBackstab].Value},${on},${off}]}
 			/if (${cli.Value.Equal[bash]}) /varset _out ${_out}:${If[${maCC.Find[swBash].Value},${on},${off}]}
 			/if (${cli.Value.Equal[disarm]}) /varset _out ${_out}:${If[${maCC.Find[swDisarm].Value},${on},${off}]}
-			/if (${cli.Value.Equal[backstabb]}) /varset _out ${_out}:${If[${maCC.Find[swBackstab].Value},${on},${off}]}
 			/if (${cli.Value.Equal[dragonpunch]}) /varset _out ${_out}:${If[${maCC.Find[swDragonpunch].Value},${on},${off}]}
 			/if (${cli.Value.Equal[eaglestrike]}) /varset _out ${_out}:${If[${maCC.Find[swEaglestrike].Value},${on},${off}]}
-			/if (${cli.Value.Equal[tigerclaw]}) /varset _out ${_out}:${If[${maCC.Find[swTigerclaw].Value},${on},${off}]}
-			/if (${cli.Value.Equal[kick]}) /varset _out ${_out}:${If[${maCC.Find[swKick].Value},${on},${off}]}
 			/if (${cli.Value.Equal[flyingkick]}) /varset _out ${_out}:${If[${maCC.Find[swFlyingkick].Value},${on},${off}]}
+			/if (${cli.Value.Equal[frenzy]}) /varset _out ${_out}:${If[${maCC.Find[swFrenzy].Value},${on},${off}]}
+			/if (${cli.Value.Equal[intimidation]}) /varset _out ${_out}:${If[${maCC.Find[swIntimidation].Value},${on},${off}]}
+			/if (${cli.Value.Equal[kick]}) /varset _out ${_out}:${If[${maCC.Find[swKick].Value},${on},${off}]}
 			/if (${cli.Value.Equal[roundkick]}) /varset _out ${_out}:${If[${maCC.Find[swRoundkick].Value},${on},${off}]}
 			/if (${cli.Value.Equal[taunt]}) /varset _out ${_out}:${If[${maCC.Find[swTaunt].Value},${on},${off}]}
-			/if (${cli.Value.Equal[intimidation]}) /varset _out ${_out}:${If[${maCC.Find[swIntimidation].Value},${on},${off}]}
-			/if (${cli.Value.Equal[frenzy]}) /varset _out ${_out}:${If[${maCC.Find[swFrenzy].Value},${on},${off}]}
+			/if (${cli.Value.Equal[tigerclaw]}) /varset _out ${_out}:${If[${maCC.Find[swTigerclaw].Value},${on},${off}]}
+
 			/varset dump ${cli.Advance}
 		}	
 		/varset dump ${out[12, "/cc melee ${_out}"]}
@@ -2434,30 +2313,23 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	}
 	
 	/if (${_silent.Equal[SILENT]}) /return
-	/declare _lsout list local 
-	/varset dump ${_lsout.Append[alliance,ass,agro,mode,pull,melee,glyph,dotrefresh,stopnuke,nukedelay,engage,poison,bandolier]}
-	/vardata cli _lsout.First.Clone
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/if (${cli.Value.Equal[ass]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[mode]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[dotrefresh]}) /varset _out ${_out}:${If[${maCC.Find[stDotRefresh].Value},${num}${maCC.Find[stDotRefresh].Value}s\ax,${r0}]}
-		/if (${cli.Value.Equal[pull]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[melee]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[glyph]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[stopnuke]}) /varset _out ${_out}:${If[${maCC.Find[stPctStopNuke].Value},${num}${maCC.Find[stPctStopNuke].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[nukedelay]}) /varset _out ${_out}:${If[${maCC.Find[stNukeDelay].Value},${num}${maCC.Find[stNukeDelay].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[engage]}) /varset _out ${_out}:${If[${maCC.Find[stPctEngage].Value},${num}${maCC.Find[stPctEngage].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[zradius]}) /varset _out ${_out}:${If[${maCC.Find[stZRadius].Value},${num}${maCC.Find[stZRadius].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[agro]}) /varset _out ${_out}:${If[${maCC.Find[swAgro].Value},${on},${off}]}
-		/if (${cli.Value.Equal[bandolier]}) /varset _out ${_out}:${If[${maCC.Find[swBandolier].Value},${on},${off}]}
-		/if (${cli.Value.Equal[poison]}) /varset _out ${_out}:${If[${maCC.Find[swPoison].Value},${on},${off}]}
-		/if (${cli.Value.Equal[alliance]}) /varset _out ${_out}:${If[${maCC.Find[swAlliance].Value},${on},${off}]}
-		/varset dump ${cli.Advance}
-	}	
 	
-	
-	/varset dump ${out[12, "/cc ${_out}"]}
+	/varset dump ${maControl.Clear}
+	/varset dump ${maControl.Add[ass,submenu]}
+	/varset dump ${maControl.Add[mode,submenu]}
+	/varset dump ${maControl.Add[dotrefresh,stDotRefresh]}
+	/varset dump ${maControl.Add[pull,submenu]}
+	/varset dump ${maControl.Add[melee,submenu]}
+	/varset dump ${maControl.Add[glyph,submenu]}
+	/varset dump ${maControl.Add[stopnuke,stPctStopNuke]}
+	/varset dump ${maControl.Add[nukedelay,stNukeDelay]}
+	/varset dump ${maControl.Add[engage,stPctEngage]}
+	/varset dump ${maControl.Add[zradius,stZRadius]}
+	/varset dump ${maControl.Add[agro,swAgro]}
+	/varset dump ${maControl.Add[bandolier,swBandolier]}
+	/varset dump ${maControl.Add[poison,swPoison]}
+	/varset dump ${maControl.Add[alliance,swAlliance]}
+	/varset dump ${set_control_output[${_debug}, maCC, cc, maControl]}		
 
 /return
 
@@ -2797,11 +2669,6 @@ sub Bind_command_invis(bool _other, bool _debug)
 
 
 
-
-
-
-
-
 |***
  * note: displays the port and builds the command to the porting class
  * use: /port 
@@ -2811,12 +2678,10 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 	| /varset _debug TRUE
 	DEBUG \atBind_command_port\ax(\a-w${_type}, ${_nick1}, ${_nick2}\ax)
 	
-	
 	/declare _count int local 0
 	/declare _portName string local FALSE
 	/declare _list list local
-	
-	
+
 		
 	/if (${_type.Equal[see]}) {
 	
@@ -3513,42 +3378,30 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 		} else /if (${_verbage.Equal[use]}) {
 			/varset dump ${set_switch_env[${_debug}, swPetShrink, TRUE, ${_silent}]}
 		}
-		
-	  /varset _out
-		/varset dump ${_lsout.Append[use,item]}
-		/vardata cli _lsout.First.Clone
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[use]}) /varset _out ${_out}:${If[${maMinion.Find[swPetShrink].Value},${on},${off}]}
-			/if (${cli.Value.Equal[item]}) /varset _out ${_out}:[${If[${Bool[${maMinion.Find[stPetShrink].Value}]},${num}${maMinion.Find[stPetShrink].Value}\ax,${off}]}]
-			/varset dump ${cli.Advance}
-		}	
-		/varset dump ${out[12, "${_out}"]}
+
+		/varset dump ${maControl.Clear}
+		/varset dump ${maControl.Add[use,swPetShrink]}
+		/varset dump ${maControl.Add[item,stPetShrink|br]}
+		/varset dump ${set_control_output[${_debug}, maMinion, "minion shrink", maControl]}	
 		/return
 
 	} 
 	
 	/if (${_silent.Equal[SILENT]}) /return
-	/varset dump ${_lsout.Append[pet,type,illusion,buff,shrink,engage,swarm,sengage,ds,gear,onforce]}
-  /varset _out
-	/vardata cli _lsout.First.Clone
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/if (${cli.Value.Equal[type]}) /varset _out ${_out}:[${If[${Bool[${maMinion.Find[stPetType].Value}]},${num}${maMinion.Find[stPetType].Value}\ax,${off}]}]
-		/if (${cli.Value.Equal[illusion]}) /varset _out ${_out}:[${If[${Bool[${maMinion.Find[stPetIllusion].Value}]},${num}${maMinion.Find[stPetIllusion].Value}\ax,${off}]}]
-		/if (${cli.Value.Equal[pet]}) /varset _out ${_out}:${If[${maMinion.Find[swPet].Value},${on},${off}]}
-		/if (${cli.Value.Equal[buff]}) /varset _out ${_out}:${If[${maMinion.Find[swPetBuff].Value},${on},${off}]}
-		/if (${cli.Value.Equal[shrink]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[engage]}) /varset _out ${_out}:${If[${maMinion.Find[stPctPetEngage].Value},${num}${maMinion.Find[stPctPetEngage].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[swarm]}) /varset _out ${_out}:${If[${maMinion.Find[swSwarm].Value},${on},${off}]}
-		/if (${cli.Value.Equal[sengage]}) /varset _out ${_out}:${If[${maMinion.Find[stPctSwarmEngage].Value},${num}${maMinion.Find[stPctSwarmEngage].Value}\ax,${r0}]}
-		/if (${cli.Value.Equal[ds]}) /varset _out ${_out}:${If[${maMinion.Find[swNoSwarmonDS].Value},${on},${off}]}
-		/if (${cli.Value.Equal[gear]}) /varset _out ${_out}:${submenu}
-		/if (${cli.Value.Equal[onforce]}) /varset _out ${_out}:${If[${maMinion.Find[swonForce].Value},${on},${off}]}
-		/varset dump ${cli.Advance}
-	}		
 
-	/varset dump ${out[12, "${_out}"]}
+	/varset dump ${maControl.Clear}
+	/varset dump ${maControl.Add[type,stPetType|br]}
+	/varset dump ${maControl.Add[illusion,stPetIllusion|br]}
+	/varset dump ${maControl.Add[pet,swPet]}
+	/varset dump ${maControl.Add[buff,swPetBuff]}
+	/varset dump ${maControl.Add[shrink,submenu]}
+	/varset dump ${maControl.Add[engage,stPctPetEngage]}
+	/varset dump ${maControl.Add[swarm,swSwarm]}
+	/varset dump ${maControl.Add[sengage,stPctSwarmEngage]}
+	/varset dump ${maControl.Add[ds,swNoSwarmonDS]}
+	/varset dump ${maControl.Add[gear,submenu]}
+	/varset dump ${maControl.Add[onforce,swonForce]}
+	/varset dump ${set_control_output[${_debug}, maMinion, minion, maControl]}		
 	
 /return
 
@@ -3565,12 +3418,6 @@ sub Bind_command_entcast(string _name, string _target, bool _debug)
 	/call voodoo ${_debug} "${_name}" ${_target} FALSE
 
 /return
-
-
-
-
-
-
 
 
 
@@ -3600,15 +3447,13 @@ sub Bind_command_crew(string _type)
 
 	| bail if no crew type listed
 	/if (!${_type.Length} || !${Range.Between[1,12:${Int[${_type}]}]}) {
-		OUT /crew [\a-w1\ax-\a-w12\ax]
-		/varset dump ${out[12, ""]}
+		/varset dump ${out[12, " /crew [\a-w1\ax-\a-w12\ax]"]}
 		/return
 	}
 	
 	| crew # empty?
 	/if (${lsCrew${_type}.Count} == 1 && ${lsCrew${_type}.First.Value.Equal[EMPTY]}) {
-		OUT ${notice}${sep}lsCrew\a-w${_type}\ax is empty.
-		/varset dump ${out[12, ""]}
+		/varset dump ${out[12, "${notice}${sep}lsCrew\a-w${_type}\ax is empty."]}
 		/return
 	}
 	
@@ -3633,8 +3478,7 @@ sub Bind_command_crew(string _type)
 			}
 			
 			| send invite
-			OUT Inviting${sep}\a-w${cli.Value}\ax
-			/varset dump ${out[12, ""]}
+			/varset dump ${out[12, "Inviting${sep}\a-w${cli.Value}\ax"]}
 			/invite ${cli.Value}
 			/delay 1			
 			/dexecute ${cli.Value} /invite
@@ -3661,7 +3505,7 @@ sub Bind_command_crew(string _type)
 	}
 	
 	OUT Leader${sep}\a-w${Group.Leader}\ax ${dot} Assist:${sep}\a-w${Group.MainAssist}\ax ${dot} Looter${sep}\a-w${Group.MasterLooter}\ax
-	/varset dump ${out[12, ""]}
+	| /varset dump ${out[12, ""]}
 
 /return
 	
@@ -3683,8 +3527,7 @@ sub Bind_command_pull(string _type, int _tmpID, bool _debug)
 	}	else {
 		/call pull_mob_find FALSE
 		/if (TARGET) {
-			OUT No Targets in${sep}\a-wPULLENV\ax
-			/varset dump ${out[9, ""]}
+			/varset dump ${out[9, "No Targets in${sep}\a-wPULLENV\ax"]}
 			/return
 		}
 	}
@@ -3698,8 +3541,7 @@ sub Bind_command_pull(string _type, int _tmpID, bool _debug)
 		/if (${Bool[${Macro.Return}]}) {
 			/dex ${Macro.Return} /advancedpullint ${Me.ID}
 		} else {
-			OUT NO Intervention pullers in range.
-			/varset dump ${out[9, ""]}
+			/varset dump ${out[9, "NO Intervention pullers in range."]}
 		}	
 	
 	| pet pulling
@@ -3708,8 +3550,7 @@ sub Bind_command_pull(string _type, int _tmpID, bool _debug)
 		/if (${Bool[${Macro.Return}]}) {
 			/dex ${Macro.Return} /advancedpullnpet TARGET
 		} else {
-			OUT NO pet pullers in range.
-			/varset dump ${out[9, ""]}
+			/varset dump ${out[9, "NO pet pullers in range."]}
 		}	
 	
 	| nav pulling
@@ -3718,8 +3559,7 @@ sub Bind_command_pull(string _type, int _tmpID, bool _debug)
 		/if (${Bool[${Macro.Return}]}) {
 			/dex ${Macro.Return} /advancedpullnav TARGET
 		} else {
-			OUT NO melee nav pullers in range.
-			/varset dump ${out[9, ""]}
+			/varset dump ${out[9, "NO melee nav pullers in range."]}
 		}	
 
 	| lul pulling
@@ -3780,18 +3620,12 @@ sub Bind_command_pull_pet(int _tmpID, bool _debug)
 
 
 
-
-
-
-
 |***
  * note: control for output granulatiry
  * use: /grain #
  ***|
 #bind control_grain /grain 
-sub Bind_control_grain(string _num)
-
-	/varset dump ${out[12, "/grain aux for list"]}
+sub Bind_control_grain(string _num, bool _debug)
 
 	| output control map
 	/if (${_num.Equal[see]}) {
@@ -3801,9 +3635,28 @@ sub Bind_control_grain(string _num)
 		/call Bind_command_aux grain
 		/return
 	}
+	
+	| remove a grain if it exists
+	/if (${lsGrain.Contains[${_num}]} && ${Range.Between[1,30:${_num}]}) {
+		/call do_raw_edit ${_debug} silent lsGrain ${_num} delete
+	
+	| add a grain if it oes not exist
+	} else /if (!${lsGrain.Contains[${_num}]} && ${Range.Between[1,30:${_num}]}) {
+		/call do_raw_edit ${_debug} silent lsGrain ${_num} add
+		
+	| idiot proofing
+	} else /if (${Bool[${_num}]} && !${Range.Between[1,30:${_num}]}) {
+		/varset dump ${get_shade[FALSE, MQWindow]}		
+	}
 
-
-	| add in raw edit for numbers
-
+	/declare _count int local 0
+	/declare _out string local
+	
+	/for _count 1 to 30
+		/varset _out ${_out} ${dot} \aw${_count}\ax:${If[${lsGrain.Contains[${_count}]},${on},${off}]}
+	/next _count
+	
+	/varset dump ${out[12, "/grain ${_out}"]}
 
 /return FALSE
+

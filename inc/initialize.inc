@@ -33,6 +33,11 @@ sub set_initialize(bool _debug)
   | control list dump variable
   /declare cli listiterator outer
   
+  | control map dumps
+ 	/declare maControl map outer
+ 	/declare maChrControl map outer
+	/declare cmi mapiterator outer
+  
   | set dump variable
   /declare si setiterator outer
    
@@ -221,7 +226,11 @@ sub set_initial_environment(bool _debug)
 
   
   | controls for all classes
-  /call set_data FALSE FALSE lsChr                                    list outer ae|def|fade|spire
+  /varset dump ${maChrControl.Add[ae,stCountAE]}
+  /varset dump ${maChrControl.Add[def,stCountDefensive]}
+  /varset dump ${maChrControl.Add[fade,stPctFade]}
+  /varset dump ${maChrControl.Add[spire,submenu]}
+  
   
   | controls for heal classes
   /if (${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
@@ -229,46 +238,106 @@ sub set_initial_environment(bool _debug)
 
   | controls for mana users
   /if (${lsClassCast.Contains[${Me.Class.ShortName}]}) {
-    /varset dump ${lsChr.Append[manarecover]}
+	  /varset dump ${maChrControl.Add[manarecover,stPctManaRecovery]}
   }
 
   | controls for melee users
   /if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) {
-    /varset dump ${lsChr.Append[hiatus]}
+	  /varset dump ${maChrControl.Add[hiatus,swHiatus]}
   }
 
   | controls by class
   /if (${Select[${Me.Class.ShortName},BER]}) {
+
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
-    /varset dump ${lsChr.Append[line|rest|refresh]}
+	  /varset dump ${maChrControl.Add[line,stCurrent|br]}
+	  /varset dump ${maChrControl.Add[rest,swSongRest]}
+	  /varset dump ${maChrControl.Add[refresh,stSongRefresh]}
+
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
-    /varset dump ${lsChr.Append[consume|parafocus|paragroup]}
+	  /varset dump ${maChrControl.Add[consume,stPctConsume]}
+	  /varset dump ${maChrControl.Add[parafocus,stPctParagonF]}
+	  /varset dump ${maChrControl.Add[paragroup,stPctParagonG]}
+
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
-    /varset dump ${lsChr.Append[arbitrate|divinerez|groupheal|grouphot|hot|issuance|primary|splash|vp|yaulp]}
+	  /varset dump ${maChrControl.Add[arbitrate,stCountArbitrate]}
+	  /varset dump ${maChrControl.Add[divinerez,swDivineCleric]}
+	  /varset dump ${maChrControl.Add[groupheal,stCountHealGroup]}
+	  /varset dump ${maChrControl.Add[grouphot,swHealGroupOverTime]}
+	  /varset dump ${maChrControl.Add[hot,swHealOverTime]}
+	  /varset dump ${maChrControl.Add[issuance,stCountIssuance]}
+	  /varset dump ${maChrControl.Add[primary,submenu]}
+	  /varset dump ${maChrControl.Add[splash,stCountSplash]}
+	  /varset dump ${maChrControl.Add[vp,stPctVP]}
+	  /varset dump ${maChrControl.Add[yaulp,swYaulp]}
+
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
-    /varset dump ${lsChr.Append[wolf|groupheal]} 
+	  /varset dump ${maChrControl.Add[groupheal,stCountHealGroup]}
+	  /varset dump ${maChrControl.Add[wolf,stWolfSpirit]}
+
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
-    /varset dump ${lsChr.Append[charm|gather|bos|crystal|charm]}
+		| /varset dump ${maChrControl.Add[charm,]}
+	  | /varset dump ${maChrControl.Add[gather,]}
+	  /varset dump ${maChrControl.Add[bos,swAABoS]}
+	  /varset dump ${maChrControl.Add[crystal,swAACrystals]}
+
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
-    /varset dump ${lsChr.Append[line|gather|forcetc]}
+	  /varset dump ${maChrControl.Add[line,stCurrent|br]}
+	  /varset dump ${maChrControl.Add[gather,stPctGather]}
+	  /varset dump ${maChrControl.Add[forcetc,swForceTC]}
+
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
-    /varset dump ${lsChr.Append[train|fdhp|fdaggro]}  	
+	  /varset dump ${maChrControl.Add[train,swTrainMelee]}
+	  /varset dump ${maChrControl.Add[fdhp,stPctFDHP]}
+	  /varset dump ${maChrControl.Add[fdaggro,stPctFDAggro]}
+ 
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
-    /varset dump ${lsChr.Append[blood|bloom]}  	
+	  /varset dump ${maChrControl.Add[blood,swblood]}
+	  /varset dump ${maChrControl.Add[bloom,stPctBloom]}
+
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
-    /varset dump ${lsChr.Append[attraction|harmonious|loh|mg|flash|stun|yaulp]}
+	  /varset dump ${maChrControl.Add[yaulp,swYaulp]}
+	  /varset dump ${maChrControl.Add[attraction,swAttraction]}
+	  /varset dump ${maChrControl.Add[harmonious,swHarmonious]}
+	  /varset dump ${maChrControl.Add[loh,stPctLoH]}
+	  /varset dump ${maChrControl.Add[mg,stPctMG]}
+	  /varset dump ${maChrControl.Add[flash,submenu]}
+	  /varset dump ${maChrControl.Add[stun,submenu]}
+
   } else /if (${Select[${Me.Class.ShortName},RNG]}) {
-    /varset dump ${lsChr.Append[summer]}
+	  /varset dump ${maChrControl.Add[summer,swSummer]}
+
   } else /if (${Select[${Me.Class.ShortName},ROG]}) {
-    /varset dump ${lsChr.Append[sos|blind]}
+	  /varset dump ${maChrControl.Add[sos,swSoS]}
+	  /varset dump ${maChrControl.Add[blind,swBlinding]}
+
   } else /if (${Select[${Me.Class.ShortName},SHD]}) {
-    /varset dump ${lsChr.Append[attraction|harmonious|vot|flash|skin|stance]}
+	  /varset dump ${maChrControl.Add[attraction,swAttraction]}
+	  /varset dump ${maChrControl.Add[harmonious,swHarmonious]}
+	  /varset dump ${maChrControl.Add[vot,swVoT]}
+	  /varset dump ${maChrControl.Add[flash,submenu]}
+	  /varset dump ${maChrControl.Add[skin,swSkin]}
+	  /varset dump ${maChrControl.Add[stance,swStance]}
+
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
-  	/varset dump ${lsChr.Append[cannihps|cannimanna|surge|talisman|groupheal|grouphot|hot]}
+	  /varset dump ${maChrControl.Add[groupheal,stCountHealGroup]}
+	  /varset dump ${maChrControl.Add[hot,swHealOverTime]}
+	  /varset dump ${maChrControl.Add[grouphot,swHealGroupOverTime]}
+	  /varset dump ${maChrControl.Add[cannihps,stPctCanniHP]}
+	  /varset dump ${maChrControl.Add[cannimanna,stPctCanniManna]}
+	  /varset dump ${maChrControl.Add[surge,swSurge]}
+	  /varset dump ${maChrControl.Add[talisman,swTalisman]}
+
   } else /if (${Select[${Me.Class.ShortName},WAR]}) {
-    /varset dump ${lsChr.Append[attraction|flash]}
+	  /varset dump ${maChrControl.Add[attraction,swAttraction]}
+	  /varset dump ${maChrControl.Add[flash,submenu]}
+
   } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
-    /varset dump ${lsChr.Append[line|mb|gather|concussion]}
+	  /varset dump ${maChrControl.Add[line,stCurrent|br]}
+	  /varset dump ${maChrControl.Add[mb,swManaBurn]}
+	  /varset dump ${maChrControl.Add[gather,stPctGather]}
+	  /varset dump ${maChrControl.Add[concussion,stPctConcussion]}
+
   }
 
   

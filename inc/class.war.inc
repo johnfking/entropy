@@ -482,27 +482,8 @@ sub set_control_WAR(string _type, string _verbage, string _silent, bool _debug)
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return 
-	/varset _out
-	/declare _lichr listiterator local
-	/vardata _lichr lsChr.First.Clone
-	/while (!${_lichr.IsEnd}) {
-		/varset _out ${_out} ${If[${lsChr.First.Value.Equal[${_lichr.Value}]},,${dot}]} ${info}${_lichr.Value}\ax
-		/if (${_lichr.Value.Equal[fade]}) /varset _out ${_out}:${If[${maChr.Find[stPctFade].Value},${num}${maChr.Find[stPctFade].Value}\ax,${r0}]}
-		/if (${_lichr.Value.Equal[ae]}) /varset _out ${_out}:${If[${maChr.Find[stCountAE].Value},${num}${maChr.Find[stCountAE].Value}\ax,${r0}]}
-		/if (${_lichr.Value.Equal[def]}) /varset _out ${_out}:${If[${maChr.Find[stCountDefensive].Value},${num}${maChr.Find[stCountDefensive].Value}\ax,${r0}]}
-		/if (${_lichr.Value.Equal[spire]}) /varset _out ${_out}:${submenu}
-		/if (${_lichr.Value.Equal[flash]}) /varset _out ${_out}:${If[${maChr.Find[stPctShieldFlash].Value},${num}${maChr.Find[stPctShieldFlash].Value}\ax,${r0}]}
-		/if (${_lichr.Value.Equal[attraction]}) /varset _out ${_out}:${If[${maChr.Find[swAttraction].Value},${on},${off}]}
-		/if (${_lichr.Value.Equal[hiatus]}) /varset _out ${_out}:${If[${maChr.Find[swHiatus].Value},${on},${off}]}
-		/varset dump ${_lichr.Advance}
-	}	
-	/varset dump ${out[14, "${_out}"]}
-		
+	/varset dump ${set_control_output[${_debug}, maChr, chr, maChrControl]}
+	
 /return
-
-
-
-
-
 
 
