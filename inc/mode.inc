@@ -108,50 +108,16 @@ sub mode_get_mob(bool _debug)
 	GETINPUT
 	ISMEDEAD
 
-	CLEARCURSOR TRUE
+	/call check_cursor ${_debug} TRUE CLEAR
 
-	/if (!${Spawn[TARGET].ID} || ${Spawn[TARGET].Dead} || ${Target.Dead}) {
-		/call set_stop NOECHO
-		/call clear_combat
-		/return
+	/if (!${Spawn[id TARGET].ID} || ${Spawn[id TARGET].Dead} || ${Target.Dead}) {
+		/call set_stop ${_debug} SILENT
+		/call clear_combat ${_debug}
+		/return FALSE
 	}
 
-	| /call check_watch_spawn
 
-	| get us to the mob
-	| /if (${Spawn[TARGET].Distance} > ${setCombatDistance} && ${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} > ${setMobAgro}) {
-	/if (${Spawn[TARGET].Distance} > ${setCombatDistance} && ${Spawn[TARGET].Distance} > ${setMobAgro}) {
-		/squelch /face ID TARGET nolook ${If[${swFaceFast},fast,]}
-		
-		| use nav for movement
-		/if (${setTieMode.Equal[nav]} && ${Bool[${Plugin[MQ2Nav]}]} && !${Navigation.Active}) {
-			| /echo nav to TARGET
-			/if (${Navigation.Active}) /nav stop log=off
-			/squelch /nav ID TARGET log=off
-
-		| use stick for movement
-		} else /if (${setTieMode.Equal[stick]} && ${Bool[${Plugin[MQ2MoveUtils]}]} && !${Stick.Active}) {
-			/squelch /stick ID TARGET ${setCombatDistance} UW
-		}
-		
-	| at the mob, do something about it		
-	} else /if (${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} <= ${setMobAgro}) {
-		/squelch /face ID TARGET nolook ${If[${swFaceFast},fast,]}
-		/squelch /target ID TARGET
-	}
-					
-	/if (${Spawn[TARGET].Distance} < ${setMobAgro} && ${Spawn[TARGET].Distance} > 31) {
-		/squelch /target ID TARGET
-		/if (${Me.Pet.ID} && !${Me.Pet.Target.ID}) /pet attack
-		/if (${Target.ID} && ${Spawn[TARGET].LineOfSight}) /range
-	} else /if (${Spawn[TARGET].Distance} < ${setCombatDistance}) {
-		/call set_combat COMBAT
-		/if (${Me.Pet.ID} && !${Me.Pet.Target.ID}) /pet attack
-		
-		/if (${Bool[${ModeNuke}]}) {
-			/if (${validate_cast[FALSE, FIND, "${ModeNuke}", TARGET]}) /call core_cast2 "${ModeNuke}" FIND TARGET FALSE 
-		}
-	} 
+	/call get_target_navpull ${_debug} TARGET
 
 	/if (${Spawn[TARGET].ID} && ${Spawn[TARGET].Distance} > ${setCombatDistance}) /goto :movetomob	
 
@@ -246,7 +212,7 @@ sub mode_forage(bool _debug)
 	/doability forage
 	/delay 1s
 	
-	/call check_cursor ${_debug} TRUE
+	/call check_cursor ${_debug} TRUE CLEAR
 	SETHUD FALSE
 	
 /return TRUE
@@ -290,27 +256,57 @@ sub mode_drag(bool _debug)
 
 |***
  *	DES: turns the toon into a hunter of things.
- *	USE: /call mode_hunt | /mode hunt
- *  NOTE: works better in open zones. don't say i didn't wan you.
- ***|
-sub mode_hunt(bool _debug)
-	/declare _count int local 0
-	/doevents
+ *	USE: /mode hunt
+  ***|
+sub mode_hunt2(bool _debug)
+	DEBUG \atmode_hunt2\ax()
+	
+	GETINPUT
 	ISMEDEAD
 
-	SETHUD "Hunt"
+	SETHUD "mode hunt"
+	
+	/declare _lsHunt list local
+	/varset dump ${_lsHunt.Delimiter[|]}
+	/varset dump ${_lsHunt.Append[${stModeData}]}
+	/declare _lihunt listiterator local
+	/vardata _lihunt _lsHunt.First.Clone
+	/while (!${_lihunt.IsEnd}) {
+		/if (${Spawn[npc ${_lihunt.Value} radius 999999 targetable].ID}) {
+			/varset stAssTarID ${NearestSpawn[npc ${_lihunt.Value}].ID}
+			/break 
+		}
+		/varset dump ${_lihunt.Advance}
+	}	
+	
+	/if (${Spawn[id TARGET].ID}) {
+		/call get_target_navpull ${_debug} TARGET
+	}	else /if (!${Spawn[id TARGET].ID}) {
+		/call clear_combat ${_debug}
+		SETHUD FALSE
+		/return FALSE		
+	}
+	
+	/call set_combat ${_debug}
+	/delay 1s
+	SETHUD FALSE
+	
+/return TRUE
+
+
+	
+	
+	
 	CLEARCURSOR TRUE
 	/varset swModeToken TRUE
 	
 	/for _count 1 to ${HuntMobList.Count[|]}
-		/if (${Spawn[npc ${HuntMobList.Arg[${_count},|]} radius ${setModeAgro} targetable].ID}) {
+		/if (${Spawn[npc ${HuntMobList.Arg[${_count},|]} radius PULLENV targetable].ID}) {
 			/varset Target2Kill ${NearestSpawn[npc ${HuntMobList.Arg[${_count},|]}].ID}
-			/call echos hunt 0 0 TARGET 0
-			/goto :haveatarget
+			/break 
 		}
 	/next _count	
 
-	:haveatarget
 	/if (!TARGET) {
 		/call timer_set timer_wait_for_mob_to_kill ${tHunt_delay}
 		/call check_buff_routines TRUE
@@ -408,69 +404,69 @@ sub mode_petfarm(bool _debug)
 
 
 
-
-
 |***
- *	DES: Harvest Mode
- *	USE: /call mode_Harvest | /mode harvest
- *  NOTE: Will run around and pick up shit off the ground
+ *	DES: runs around and picks up shit
+ *	USE: /mode harvest
  ***|
 sub mode_harvest(bool _debug)
+	DEBUG \atmode_harvest\ax()
+
 	ISMEDEAD
-	/declare _count int local
-	SETHUD "Harvest"
-	/if (!${swAutoCursor}) /varset swAutoCursor TRUE
-
-	CLEARCURSOR TRUE
-	/for _count 1 to ${HarvestList.Count[|]}
-		/if (${FindItemCount[${HarvestList.Arg[${_count},|]}]} >= (${setModeHarvestCount})) {
-			/varset swModeHarvest FALSE
-			/autoinventory
-			/return
-		}
-		/if (${GroundItemCount[${HarvestList.Arg[${_count},|]}]}) {
-			/call get_ground_harvest "${HarvestList.Arg[${_count},|]}"
-		} else {
-			/if (!${timer_Harvest_delay}) /call timer_set timer_Harvest_delay ${tHarvest_delay}
-		}
-	/next _count	
-
+	GETINPUT
+	
+	SETHUD "mode harvest"
+	
+	/declare _lsCollect list local
+	/varset dump ${_lsCollect.Delimiter[|]}
+	/varset dump ${_lsCollect.Append[${stModeData}]}
+	/declare _licol listiterator local
+	/vardata _licol _lsCollect.First.Clone
+	
+	/while (!${_licol.IsEnd}) {
+		/if (${GroundItemCount[${_licol.Value}]}) {
+			/call get_ground_item ${_debug} "${_licol.Value}"
+		} 
+		/varset dump ${_licol.Advance}
+	}	
+	
+	/delay 1s
 	SETHUD FALSE
-/return
 
+/return
+	
 
 
 |***
- * note: Collection go getter thingie
- * use: /mode collect
+ *	DES: moves to the ground item and picks it up
+ *	USE: /call get_ground_harvest DEBUG [ITEM NAME]
+ *  NOTE: 
  ***|
-sub mode_collect(bool _debug)
-	DEBUG \atmode_collect\ax()
+sub get_ground_item(bool _debug, string _tmpItem)
+	DEBUG \atget_ground_item\ax(\a-w"${_tmpItem}"\ax)
 
-	/if (!${GroundItemCount[Glowing Globe]}) {
+	/if (!${GroundItemCount[${_tmpItem}]}) {
 		/return FALSE
 		/delay 2
 	}
 
 	/if (!${Navigation.MeshLoaded}) {
- 		/varset dump ${maMode.Add[collect,FALSE]}
+ 		/varset dump ${maMode.Add[harvest,FALSE]}
  		/varset dump ${out[0, "${notice} ${dot} NO Nav Mesh for this zone."]}
  		/return	FALSE
 	}
 
 	ISMEDEAD
-	SETHUD "mode collect"
 
 	/declare _item ground local
 	/vardata _item Ground.First
 	/declare _count int local 1
-	/declare _distfinal int local 999999
+	/declare _distfinal int local 99999
 	/declare _locY int local
 	/declare _locX int local
 	/declare _locZ int local
 	
 	/while (${_count} <= ${GroundItemCount}) {
-		/if (${_item.DisplayName.Find[Glowing Globe]}) {
+		/if (${_item.DisplayName.Find[${_tmpItem}]}) {
 			DEBUG ${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}${sep}\a-wlocyxz ${_item.Y} ${_item.X} ${_item.Z}\ax
 			/if (${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}) {
 				/if (${_item.Distance} < ${_distfinal}) {
@@ -489,84 +485,18 @@ sub mode_collect(bool _debug)
 		/vardata _item _item.Next
 	}
 
-	/nav locyxz ${_locY} ${_locX} ${_locZ} | dist=16 log=off
+	/nav locyxz ${_locY} ${_locX} ${_locZ} |dist=18 log=off
 	/delay 2s
 	/delay 3m !${Navigation.Active}
 					
-	/if (${Ground[Glowing Globe].Distance3D} < 19) {
-		/call Bind_command_grab "glowing" ${_debug}
+	/if (${Ground[${_tmpItem}].Distance3D} <= 19) {
+		/call Bind_command_grab "${_tmpItem}" ${_debug}
 		/delay 5
 		
-		/call check_cursor ${_debug} TRUE
+		/call check_cursor ${_debug} TRUE CLEAR
 	}
 
-	SETHUD FALSE
-
-/return
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-|***
- *	DES: moves to the ground item and picks it up
- *	USE: /call get_ground_harvest "ITEM NAME"
- *  NOTE: 
- ***|
-sub get_ground_harvest(string _tmpItem, bool _debug)
-	/squelch /itemtarget ${_tmpItem}
-	/delay 2s ${Bool[${Ground.ID}]}
-	/if (${Bool[${Ground.ID}]}) {
-		/if (${Ground.Distance3D} < ${setModeAgro}) {
-			
-		/if (${Bool[${Plugin[MQ2Nav]}]} && ${setTieMode.Equal[nav]}) {	
-			/if (${Navigation.MeshLoaded}) {	
-				/delay 1 
-				
-				/if (${Navigation.PathExists[item]}) {
-	        /nav item log=off
-	    	} else /if (!${Navigation.PathExists[item]}) {
-	    		/echo no path
-	    	}
-				
-				/if (${Ground.Distance3D} < 19) /call Bind_grab ${_tmpItem}
-	
-				/nav stop log=off
-				
-			} else /if (!${Navigation.MeshLoaded}) {
-				OUT NO Nav Mesh for this zone. Returning to Stick.
-				/call Bind_setTieControl mode stick
-			}
-				
-
-		} else {
-			:loopMove 
-			/face nolook loc ${Ground.Y}, ${Ground.X}
-			/delay 1 
-			/keypress forward hold 
-			/if (${Ground.Distance3D} > 19) /goto :loopMove
-			/keypress forward
-			/click left item
-			/delay 5s (${Cursor.ID})
-			/delay ${Math.Rand[10]}
-			/autoinventory
-			CLEARCURSOR TRUE
-			/delay 5s (!${Cursor.ID})
-			/delay ${Math.Rand[10]}
-		}
-
-	}
-/return
-
+/return TRUE
 
 
 
@@ -818,29 +748,44 @@ sub mode_summon(bool _debug)
 
 |***
  * note: Scorched Earth Mode
- * use: /mode scorch
+ * use: /mode hunt
  ***|
-sub mode_scorch(bool _debug, int _tmpID)
-	DEBUG \atmode_scorch\ax(\a-w${_tmpID}\ax)
+sub mode_hunt(bool _debug)
+	DEBUG \atmode_hunt\ax(\a-w\ax)
 
 	/varset dump ${maOver.Add[swOverPctEngage,TRUE]}
 	/varset dump ${maOver.Add[swOverLOS,TRUE]}
 	/varset swModeToken TRUE
-	/call clear_combat
+	/call clear_combat ${_debug}
 	/declare _count int local 0
 
-	SETHUD "mode scorch"
-	| find a mob
-	/call pull_mob_find ${_debug}
-	
-	DEBUG pull_mob_find.return${sep}\a-w${Macro.Return}\ax
+	SETHUD "mode hunt"
+
+	/if (${Bool[${stModeData}]}) {
+		/declare _lsHunt list local
+		/varset dump ${_lsHunt.Delimiter[|]}
+		/varset dump ${_lsHunt.Append[${stModeData}]}
+		/declare _lihunt listiterator local
+		/vardata _lihunt _lsHunt.First.Clone
+		/while (!${_lihunt.IsEnd}) {
+			/if (${Spawn[npc ${_lihunt.Value} radius PULLENV targetable].ID}) {
+				/varset stAssTarID ${NearestSpawn[npc ${_lihunt.Value}].ID}
+				/break 
+			}
+			/varset dump ${_lihunt.Advance}
+		}	
+		/if (!TARGET) /return FALSE
+	} else /if (!${Bool[${stModeData}]}) {
+		/call pull_mob_find ${_debug}
+		DEBUG pull_mob_find.return${sep}\a-w${Macro.Return}\ax		
+	}
+
+
 
 	/if (!TARGET) {
 		DEBUG \arNO\ax stAssTarID
 		SETHUD FALSE
 		/return FALSE
-	} else {
-		/if (!${_tmpID}) /varset _tmpID TARGET
 	}
 
 	:checkpath
@@ -858,6 +803,8 @@ sub mode_scorch(bool _debug, int _tmpID)
 	/declare _movetorange float local ${Math.Calc[${Spawn[TARGET].MaxRangeTo}*.9]}
 	
 	/call pull_mob_move_to ${_debug} TARGET ${_movetorange} on
+	
+	/if (${Spawn[id TARGET].Dead}) /return TRUE
 
 	/nav id TARGET |distance=${_movetorange} lineofsight=${If[${maOver.Find[swOverLOS].Value},,los]} log=off
 	/delay 1s ${Me.Moving}

@@ -22,6 +22,7 @@ sub set_SHD(bool _debug)
 	/call set_data_map FALSE maChr stAAUnity														"Dark Lord's Unity (Azia)"							"${auxna} class aa unity buff"
 
  	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map FALSE maChr stHiatus															PREGEN|1											"${auxna} name of hiatus stamina recovery disc"
  	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
 
  	/call set_data_map FALSE maChr stAlliance 													PREGEN|1											"${auxna} alliance spell .. damn useless thing"

@@ -1,15 +1,32 @@
-|******************************************************************
+ *
+ * entropy
  * changelog.txt
- * entropy.mac
  * exspes
  *
  * plugins: MQ2Collections, MQ2Nav, MQ2Map, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
  *
- ******************************************************************|
+ ***|
 
 
 
 
+A191211.01
+- adjustments to /here
+- debugs added
+  tie - all tie related.. stuff
+- lots of help updates
+- fixed my stupid keyboard changing the case on letters..
+- /mode - redesign of /mode collect and harvest
+  collect is no more. deleted. gone buhby..
+  data - sets the data you are interested in for the mode. setting data as "*Blue Mushroom" would 
+         let harvest pick up all the blue mushrooms on the map
+         you can also use this for hunting specific mob names
+  harvest - puks up the groundspawns set in data
+  scorch - deleted
+  hunt - kills everything. if you put a mob in data, it will only go after that mob. can use more then one mob name
+- added a line for hiatus discs to accomodate the ToV expanion. stHiatus
+- corretion to observations typo
+  
 
 
 
@@ -23,7 +40,7 @@ A191208.01
 
 
 A191207.01
-- added in more melle checks for facing a target to all class files
+- added in more melee checks for facing a target to all class files
 - more adjustments to the pulling tag routine
 - /home
   onauto - (switch) will set a home camp whenever auto is enabled

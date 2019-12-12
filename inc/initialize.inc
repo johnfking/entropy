@@ -27,7 +27,7 @@ sub set_initialize(bool _debug)
 	| map iterator dump variable
   /declare mi mapiterator outer
   
-  | normal list iterator dump variable
+  | list iterator dump variable
   /declare li listiterator outer
   
   | control list dump variable
@@ -38,7 +38,7 @@ sub set_initialize(bool _debug)
  	/declare maChrControl map outer
 	/declare cmi mapiterator outer
   
-  | set dump variable
+  | set iterator dump variable
   /declare si setiterator outer
    
   | hook map
@@ -107,10 +107,10 @@ sub set_initialize(bool _debug)
   | generate DEBUGS
   /declare maDebug map outer
   /declare _lsout list local
-  /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mez,melee,minion,pull,rest,rez,target,zone,debuff,def,face]}
+  /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mez,melee,minion,pull,rest,rez,target,zone,debuff,def,face,tie]}
   /varset dump ${_lsout.Append[buff,buffammo,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass,buffnow,bufftemp]}
   /varset dump ${_lsout.Append[cast,castitem,castnuke,castdot]}
-  /varset dump ${_lsout.Append[mode,modeforage,modedrag,modecollect,modesummon,modescorch,modepetfarm]}
+  /varset dump ${_lsout.Append[mode,modeforage,modedrag,modesummon,modepetfarm,modeharvest,modehunt]}
   
   | class specific debuffs
   /if (${Select[${Me.Class.ShortName},BER]}) {
@@ -373,7 +373,7 @@ sub set_initial_environment(bool _debug)
   | generate modes
   /declare maMode map outer
   /declare _lsout list local
-  /varset dump ${_lsout.Append[forage,drag,collect,summon,scorch,petfarm]}
+  /varset dump ${_lsout.Append[forage,drag,summon,petfarm,harvest,hunt]}
 
 	/declare _lisie listiterator local
   /vardata _lisie _lsout.First.Clone
@@ -381,6 +381,9 @@ sub set_initial_environment(bool _debug)
     /varset dump ${maMode.Add[${_lisie.Value},FALSE]}
     /varset dump ${_lisie.Advance}
   } 
+  
+  | mode "set" optional data
+  /call set_data FALSE FALSE stModeData                            		string outer FALSE
   
 
 /return
@@ -399,8 +402,8 @@ sub sql_set_zone_schema(bool _debug)
   | zone fields
   /declare lsZoneProperty list outer
   /varset dump ${lsZoneProperty.Delimiter["|"]}
-  /varset dump ${lsZoneProperty.Append[lsZoneNamed|lsZoneExclude|lsZoneHunt|lsZoneCharm|lsZoneHarvest|lsZoneRange|lsZoneNoMez|lsZoneNoCast]}
-  /varset dump ${lsZoneProperty.Append[lsZoneNoMelee|lsZoneNoFire|lsZoneNoPoison|lsZoneNoMagic|lsZoneNoCorruption|lsZoneNoCold|lsZoneNoDisease]}
+  /varset dump ${lsZoneProperty.Append[lsZoneNamed|lsZoneExclude|lsZoneCharm|lsZoneRange|lsZoneNoMez|lsZoneNoCast|lsZoneNoMelee]}
+  /varset dump ${lsZoneProperty.Append[lsZoneNoFire|lsZoneNoPoison|lsZoneNoMagic|lsZoneNoCorruption|lsZoneNoCold|lsZoneNoDisease]}
 
 	/declare _lisszs listiterator local
   /vardata _lisszs lsZoneProperty.First

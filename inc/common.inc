@@ -1066,7 +1066,7 @@ sub set_observers(bool _debug, string _map, string _action)
 		DEBUG ${sep}_toon\aw ${_count}\ax::\at${_toon}\ax
 
 		| start our trip throught the map
-		/devlare _miso mapiterator local
+		/declare _miso mapiterator local
 		/vardata _miso ${_map}.First.Clone
 		/while (!${_miso.IsEnd}) {
 			| we're skipping the TLO for monitoring
@@ -2915,10 +2915,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 				/delay 5 ${Me.Moving}
 			}
 
-			| /delay 2
-			| make sure we have the targets attention.
-			| /delay 2s ${Target.AggroHolder.Name.Equal[${Me.DisplayName}]}
-			| DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \ayhave target\ax
+
 			/return TRUE
 			
 		}
@@ -2950,8 +2947,10 @@ sub pull_mob_find(bool _debug, int _spCount)
 	
 	/if (!${Bool[${_spCount}]}) /varset _spCount 0
 
-	/if (HOME && !${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
-		/call Bind_control_home return
+	/if (!${swModeToken}) {
+		/if (HOME && !${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
+			/call Bind_control_home return
+		}
 	}
 	
 	/if (${_spCount}) {
@@ -4317,17 +4316,17 @@ sub cast_list(bool _debug, string _lsList, int _tmpID)
 	/declare _liCL listiterator local
 	/vardata _liCL ${_lsList}.First.Clone
 	/while (!${_liCL.IsEnd}) {
-		/if (!AUTO) /return
+		/if (!AUTO) /return FALSE
 		
 		DEBUG ${sep}_liCL.Value${sep}\a-w${_liCL.Value}\ax
 		/if (${is_ready[${_debug}, "${_liCL.Value}"]}) {
 			/call voodoo ${_debug} "${_liCL.Value}" ${_tmpID} FALSE
-			/return
+			/return TRUE
 		}
 		/varset dump ${_liCL.Advance}
 	}	
 
-/return
+/return TRUE
 
 
 
@@ -4367,7 +4366,7 @@ sub check_buff_cycle_unity(bool _debug)
 		/if (!${_found}) /break
 	/next _count
 
-	/if (${_found}) /return
+	/if (${_found}) /return TRUE
 
 	/call voodoo ${_debug} "${_spell}" 0 FALSE
 
@@ -4402,7 +4401,7 @@ sub check_buff_cycle_aura(bool _debug)
 			/if (!${check_basic_tags[FALSE, Aura1, ${Me.DisplayName}]}) /return FALSE
 			/call voodoo FALSE "${_a1}" 0 FALSE
 		}
-		/return
+		/return TRUE
 	}
 		
 	| Aura: Bard
@@ -4413,7 +4412,7 @@ sub check_buff_cycle_aura(bool _debug)
 				/call voodoo ${_debug} "${_a1}" 0 FALSE
 			}
 		}
-		/return
+		/return TRUE
 	}
 
 	| everyone else...
@@ -4454,7 +4453,7 @@ sub check_buff_cycle_aura(bool _debug)
 		}
 	/next _aura
 		
-/return
+/return TRUE
 
 
 
@@ -4533,7 +4532,7 @@ sub check_buff_cycle(bool _debug, bool _force)
 		}
 	}
 
-/return
+/return TRUE
 
 
 
@@ -4602,7 +4601,7 @@ sub check_buff_cycle_powersource(bool _debug)
 		/return FALSE
 	}
 
-/return
+/return TRUE
 
 
 
@@ -4682,7 +4681,8 @@ sub check_item_cycle(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maItems.Find[stItem${_count}].Value}" ${_tmpID} FALSE
 
 	/next _count
-/return
+	
+/return TRUE
 
 
 
@@ -4718,7 +4718,7 @@ sub do_mana_recovery(bool _debug)
 		/varset dump ${_midmc.Advance}
   }
 
-/return
+/return TRUE
 
 
 
@@ -4742,7 +4742,7 @@ sub cast_yaulp(bool _debug)
 	CHECKEXIT
 	/call voodoo ${_debug} "${maChr.Find[stYaulp].Value}" 0 FALSE
 
-/return
+/return TRUE
 
 
 
@@ -4909,7 +4909,6 @@ sub check_buff_cycle_self(bool _debug)
 	/declare _found bool local
 	/declare _spell string local FALSE
 
-
 	/for _count 1 to 50
 		/if (!${Me.FreeBuffSlots}) /return
 		/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
@@ -4919,7 +4918,6 @@ sub check_buff_cycle_self(bool _debug)
 
 		/varset _spell ${set_rank[FALSE, "${maBuffs.Find[stBuff${_count}].Value.Arg[1,+]}"]}
 		/varset _found TRUE
-
 
 		| stacking / exist ?
 		/if (${Spell[${_spell}].HasSPA[374]} || ${Spell[${_spell}].HasSPA[340]} || ${Spell[${_spell}].HasSPA[470]}) {
@@ -4940,7 +4938,6 @@ sub check_buff_cycle_self(bool _debug)
 				/if (!${Me.Buff[${Spell[${Spell[${_spell}].Base2[${_i}]}].Name}].ID}) /varset _found FALSE
 
 			/next _i
-
 
 		} else /if (${FindItem[${_spell}].ID}) {
 			DEBUG ${sep}Found Item ID${sep}\a-w${_spell}\ax${sep}${Spell[${FindItem[=${_spell}].Clicky.SpellID}].Name}
@@ -4988,7 +4985,7 @@ sub check_buff_cycle_self(bool _debug)
 	
 	SETHUD FALSE
 
-/return
+/return TRUE
 
 
 
@@ -5135,7 +5132,7 @@ sub check_buff_cycle_self(bool _debug)
 	
 	SETHUD FALSE
 		
-/return
+/return TRUE
 
 
 
@@ -5824,15 +5821,15 @@ sub cast_stamina_recovery(bool _debug)
 	/declare _endurancePoint int local 0
 	
 	| haitus switch
-	/if (${maChr.Find[swHiatus].Value} && ${Me.CombatAbilityReady[${Spell[Hiatus].RankName}]} && ${Me.PctEndurance} < 20) {
+	/if (${maChr.Find[swHiatus].Value} && ${Me.CombatAbilityReady[${Spell[${maChr.Find[stHiatus].Value}].RankName}]} && ${Me.PctEndurance} < 20) {
 		DEBUG rest${sep}\a-whiatus\ax
-		/if (${Me.CombatAbility[Hiatus Rk. III]} && (${Me.CurrentEndurance} < 102500 && ${Me.PctEndurance} < 34)) /varset _endurancePoint 34
-		/if (${Me.CombatAbility[Hiatus Rk. II]} && (${Me.CurrentEndurance} < 97500 && ${Me.PctEndurance} < 32)) /varset _endurancePoint 32
-		/if (${Me.CombatAbility[Hiatus]} && (${Me.CurrentEndurance} < 92500 && ${Me.PctEndurance} < 29)) /varset _endurancePoint 29
+		/if (${Me.CombatAbility[${maChr.Find[stHiatus].Value} Rk. III]} && (${Me.CurrentEndurance} < 102500 && ${Me.PctEndurance} < 34)) /varset _endurancePoint 34
+		/if (${Me.CombatAbility[${maChr.Find[stHiatus].Value} Rk. II]} && (${Me.CurrentEndurance} < 97500 && ${Me.PctEndurance} < 32)) /varset _endurancePoint 32
+		/if (${Me.CombatAbility[${maChr.Find[stHiatus].Value}]} && (${Me.CurrentEndurance} < 92500 && ${Me.PctEndurance} < 29)) /varset _endurancePoint 29
 		
 	 	/if (${Me.PctEndurance} < ${_endurancePoint}) {
-	 		/if (${is_ready[${_debug}, "${Spell[Hiatus].RankName}"]}) {
-	 			/call voodoo ${_debug} "${Spell[Hiatus].RankName}" 0 FALSE
+	 		/if (${is_ready[${_debug}, "${maChr.Find[stHiatus].Value}"]}) {
+	 			/call voodoo ${_debug} "${maChr.Find[stHiatus].Value}" 0 FALSE
 	 		}
 	 	}		
 		/return TRUE
@@ -6377,7 +6374,7 @@ sub do_loot(bool _debug)
 			/if (${sqlite.Status[lootquery].NotEqual[Success]} || !${sqlite.Rows[lootquery]}) {
 				/varset _notfound TRUE
 				DEBUG ${sep}${_advlItem}${sep}\a-wnot in database\ax
-				/if (${Advloot.Slist[${_Scount}].Nodrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
+				/if (${Advloot.SList[${_scount}].Nodrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
 					/varset dump ${out[0, "${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]"]}
 					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
 					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave") \ay${sqlite.Status[lootquery]}\ax
@@ -6446,11 +6443,6 @@ sub do_loot(bool _debug)
 /return
 
 
-						/nomodkey /shift /itemnotify in Pack${Int[${Math.Calc[${FindItem[=Scale Ore].ItemSlot}-22]}]} ${Math.Calc[${FindItem[=Scale Ore].ItemSlot2}+1]} leftmouseup
-
-
-
-
 
 |***
  * note: Cures/removes debuffs, we hope...
@@ -6485,7 +6477,7 @@ sub check_cure(bool _debug)
 				/return
 			}
 			
-			| Paladin splash
+			| Paladin SplaSh
 			| /if (${Select[${Me.Class.ShortName},PAL]}) {
 			| 	/call Bind_pal_splash
 			| 	/delay 5
@@ -8459,7 +8451,7 @@ sub get_target_multipull(bool _debug)
 				/break
 			}
 			| target within melee
-			/if (${Spawn[TARGET].Distance} <= ${Spawn[TARGET].MaxRangeTo}) {
+			/if (${Spawn[TARGET].Distance} <= ${Spawn[TARGET].MaxRangeTo}*.9) {
 				DEBUG ${sep}/while \a-gbreak_MaxRangeTo\ax
 				/break
 			}
@@ -8747,7 +8739,7 @@ sub check_mode(bool _debug, string _verbage)
   | normal check routine
   /while (!${_mimode.IsEnd}) {
   	/if (${_mimode.Value}) {
-  		DEBUG  mode_${_mimode.Key}
+  		DEBUG mode_${_mimode.Key}
   		/call mode_${_mimode.Key} ${maDebug.Find[mode${_mimode.Key}].Value}
   	}
 		/varset dump ${_mimode.Advance}

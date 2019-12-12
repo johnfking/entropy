@@ -53,7 +53,7 @@
 #define NUKE "${maCC.Find[swCombatNuke].Value}"
 #define DOT "${maCC.Find[swCombatDoT].Value}"
 #define HEAL "${maCC.Find[swCombatHeal].Value}"
-#define CHECKTIE "/if (${maTie.Find[swSetTie].Value} && !${timer_Check_Tie}) /call set_tie FALSE"
+#define CHECKTIE "/if (${maTie.Find[swSetTie].Value} && !${timer_Check_Tie}) /call set_tie ${maDebug.Find[tie].Value}"
 #define CHECKCURSOR "/if (${Cursor.ID} && !${timer_Check_Cursor} && ((AUTO && ${maEnv.Find[swAutoInv].Value}) || ${maEntropy.Find[swAutoInvManual].Value})) /call check_cursor"
 #define HUDPATH "/noparse /ini .\..\MQ2HUD.ini"
 #define SETHUD "/call set_hud_data"
@@ -111,15 +111,21 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A191208.01
+	/call set_data FALSE maEnv build													map outer A191211.01
 	
 	| prep macro
 	/call prepare_the_end FALSE
 
 	| environment notices
- 	/if (${maEntropy.Find[swMaintenance].Value}) OUT ${notice} ${dot} Enabled${sep}\a-wmaintenance mode\ax
- 	/if (${maEntropy.Find[swEventsInc].Value}) OUT ${notice} ${dot} Enabled${sep}\a-wevents\ax
- 	/if (${maOver.Find[swOverLOS].Value}) OUT ${notice} ${dot} Disabled${sep}\a-wline of sight validation\ax
+ 	/if (${maEntropy.Find[swMaintenance].Value}) {
+ 		/varset dump ${out[0, "${notice} ${dot} Enabled${sep}\a-wmaintenance mode\ax"]}
+ 	}
+ 	/if (${maEntropy.Find[swEventsInc].Value}) {
+ 		/varset dump ${out[0, "${notice} ${dot} Enabled${sep}\a-wevents\ax"]}
+ 	}
+ 	/if (${maOver.Find[swOverLOS].Value}) {
+ 		/varset dump ${out[0, "${notice} ${dot} Disabled${sep}\a-wline of sight validation\ax"]}
+ 	}
  
 	/if (!${timer_Check_Zone_ID}) /call check_zone_id FALSE FALSE
 	
@@ -257,7 +263,7 @@ sub main(string _debug, string _param1, string _auto)
 		 /mqlog .. SyntaxError: ${MacroQuest.SyntaxError}
 		 /mqlog .. RunningTime: ${MacroQuest.Running}
 	} else {
-		OUT Current Build ${info}${maEnv.Find[build].Value}\ax ${dot} ${bad}Ended\ax
+		/varset dump ${out[0, "Current Build ${info}${maEnv.Find[build].Value}\ax ${dot} ${bad}Ended\ax"]}
 		/mqlog ${maEnv.Find[build].Value} .. Clean Exit
 	}
 	/if (${swDanNet}) {

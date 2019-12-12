@@ -22,6 +22,7 @@ sub set_MNK(bool _debug)
 	/call set_data_map ${_debug} maChr stAAUnity												FALSE													"${auxna} class aa unity buff"
 
   /call set_data_map ${_debug} maChr stRest 													PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map FALSE maChr stHiatus															PREGEN|1											"${auxna} name of hiatus stamina recovery disc"
  	/call set_data_map ${_debug} maChr swHiatus													FALSE													"${auxsw} use hiatus rest disc"
 	/call set_data_map ${_debug} maChr swTrainMelee											FALSE													"${auxsw} alternate skills for training"
 
@@ -197,7 +198,7 @@ sub burn_MNK(bool _debug)
 	
 | 	Check if we're using a disc, if not use Heel, if another, cancel it and use Heel
 
-	/if (!${Me.ActiveDisc.Name.ID}) {
+	/if (!${Me.ActiveDisc.ID}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
 		/if (!${maCC.Find[swFlyingkick].Value} || !${maCC.Find[swEaglestrike].Value}) {
 			/varset dump ${maCC.Add[swKick,FALSE]}
@@ -209,7 +210,7 @@ sub burn_MNK(bool _debug)
 		}
 		/call voodoo ${_debug} "${maChr.Find[stHeel].Value}" TARGET FALSE
 		}
-	} else /if (${Me.ActiveDisc.Name.ID} && !${Me.ActiveDisc.Name.Find[Heel]}) {
+	} else /if (${Me.ActiveDisc.ID} && !${Me.ActiveDisc.Name.Find[Heel]}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
 			/stopdisc
 			/if (!${maCC.Find[swFlyingkick].Value} || !${maCC.Find[swEaglestrike].Value}) {

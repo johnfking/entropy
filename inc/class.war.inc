@@ -25,6 +25,7 @@ sub set_WAR(bool _debug)
 	/call set_data_map FALSE maChr swAttraction													FALSE													"${auxsw} use the attraction aa to help with agro/pulling"
 
  	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map FALSE maChr stHiatus															PREGEN|1											"${auxna} name of hiatus stamina recovery disc"
  	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
 
 

@@ -44,7 +44,7 @@ sub Bind_control_debug(string _type, bool _debug)
  * use: /mode []
  ***|
 #bind control_mode /mode
-sub Bind_control_mode(string _type, bool _debug)
+sub Bind_control_mode(string _type, string _verbage, bool _debug)
 	DEBUG \atBind_control_mode\ax(\a-w${_type}\ax)
 	
   | output control map
@@ -54,7 +54,8 @@ sub Bind_control_mode(string _type, bool _debug)
 	} else /if (${_type.Equal[aux]}) {
 		/call Bind_command_aux mode
 		/return		
-
+	} else /if (${_type.Equal[data]}) {
+		/varset stModeData ${_verbage}
 	} else /if (${maMode.Contains[${_type}]}) {
 		/varset dump ${maMode.Add[${_type},${If[${maMode.Find[${_type}].Value},FALSE,TRUE]}]}
 	}
@@ -65,6 +66,7 @@ sub Bind_control_mode(string _type, bool _debug)
 		/varset _out ${_out} ${If[${mi.Key.Equal[${maMode.First}]},,${dot}]} ${If[${mi.Value},\ag${mi.Key}\ax,${info}${mi.Key}\ax]}
 		/varset dump ${mi.Advance}
   }
+  /varset _out ${_out} ${dot} \awdata\ax:(${num}${If[${Bool[${stModeData}]},${stModeData},${off}]}\ax)
 	/varset dump ${out[12, "/mode ${_out}"]}
 
 /return
@@ -186,7 +188,6 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 						| delete the key if the value is null and move to next
 						/if (${Select[${_value},NULL]}) {
 							/ini "${_lootini}" "${_section}" "${_key}" NULL
-							| /varcalc _loopKey ${_loopKey}+1
 							/continue
 						}
 
@@ -283,7 +284,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 			/call clear_combat FALSE
 		} else /if (${_type.Equal[auto]}) {
 			/if ((${maCC.Find[swPullSetHome].Value} && PULL) || ${maHome.Find[swonAuto].Value}) {
-				/call Bind_control_home set
+				/if (!${swModeToken}) /call Bind_control_home set
 			}
 		}
 		/return TRUE
@@ -812,17 +813,21 @@ sub Bind_command_tie(string _type, bool _debug)
 
 	| tie toon not in zone?
 	/if (!${Bool[${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}]}) {
+		DEBUG ${sep}tietoon is \arNOT\ax in zone
 		/varset dump ${maTie.Add[swSetTie, FALSE]}
 		/return FALSE
 	}
 
 	/if (${_type.Equal[on]}) {
+		DEBUG ${sep}setting tie${sep}${on}
 		/if (${maTie.Find[swSetTie].Value}) /return
 		/if (${Bool[${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}]}) /varset dump ${maTie.Add[swSetTie, TRUE]}
 	} else /if (${_type.Equal[off]}) {
+		DEBUG ${sep}setting tie${sep}${off}
 		/if (!${maTie.Find[swSetTie].Value}) /return
 		/if (${Bool[${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}]}) /varset dump ${maTie.Add[swSetTie, FALSE]}
 	} else {
+		DEBUG ${sep}setting tie${sep}[\a-yswap\ax]
 		/if (${Bool[${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}]}) /varset dump ${maTie.Add[swSetTie,${If[${maTie.Find[swSetTie].Value},FALSE,TRUE]}]}  
 	}
 
@@ -2015,10 +2020,10 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	| output control map
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maCC ${_verbage}
-		/return
+		/return TRUE
 	} else /if (${_type.Equal[aux]}) {
 		/call Bind_command_aux cc ${_verbage}
-		/return		
+		/return TRUE
 
 	| set assist
 	} else /if (${_type.Equal[ass]}) {
@@ -2076,7 +2081,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		/varset dump ${maControl.Add[name,stGlyph|br]}
 		/varset dump ${maControl.Add[raid,swGlyphRaid]}
 		/varset dump ${set_control_output[${_debug}, maCC, "cc glyph", maControl]}	
-		/return
+		/return TRUE
 		
 	| set combat mode	
 	} else /if (${_type.Equal[mode]}) {
@@ -2115,7 +2120,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		/varset dump ${maControl.Add[nuke,swCombatNuke]}
 		/varset dump ${maControl.Add[range,swCombatRange]}
 		/varset dump ${set_control_output[${_debug}, maCC, "cc mode", maControl]}	
-		/return
+		/return TRUE
 	
 	| set melee things to do
 	} else /if (${_type.Equal[melee]}) {
@@ -2167,7 +2172,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 			/varset dump ${cli.Advance}
 		}	
 		/varset dump ${out[12, "/cc melee ${_out}"]}
-		/return
+		/return TRUE
 	
 	| set dot refresh time in seconds
 	} else /if (${_type.Equal[dotrefresh]}) {
@@ -2219,7 +2224,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		} else /if (${_verbage.Equal[pet]}) {
 			/if (!${Select[${Me.Class.ShortName},MAG,ENC,DRU,SHM,SHD,NEC,BST]}) {
 				/varset dump ${get_shade[FALSE, MQWindow]}
-				/return
+				/return TRUE
 			}
 			/call do_raw_edit ${_debug} SILENT stPullMode "pet"
 		| nav pulling	
@@ -2243,7 +2248,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 			/varset dump ${_liP.Advance}
 		}	
 		/varset dump ${out[12, "/cc pull ${_outP}"]}
-		/return
+		/return TRUE
 
 	| set stop nuke %
 	} else /if (${_type.Equal[stopnuke]}) {
@@ -2290,7 +2295,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 				/pet attack
 			}
 		}
-		/return
+		/return TRUE
 
 	| shortcut to broadcast opverride engage pct to force instant engage
 	} else /if (${_type.Equal[kill]}) {
@@ -2312,7 +2317,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 			
 	}
 	
-	/if (${_silent.Equal[SILENT]}) /return
+	/if (${_silent.Equal[SILENT]}) /return TRUE
 	
 	/varset dump ${maControl.Clear}
 	/varset dump ${maControl.Add[ass,submenu]}
@@ -2331,7 +2336,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	/varset dump ${maControl.Add[alliance,swAlliance]}
 	/varset dump ${set_control_output[${_debug}, maCC, cc, maControl]}		
 
-/return
+/return TRUE
 
 
 
@@ -2344,8 +2349,8 @@ sub Bind_command_aux(string _type, bool _debug)
 
 	| /varset _debug TRUE
 	/declare _lsout list local 
-	/varset dump ${_lsout.Append[bandolier,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit]}
-	/varset dump ${_lsout.Append[entropy,env,grab,grain,heal,home,minion,navto,off,on,over,see,take,tag,tc,tie]}
+	/varset dump ${_lsout.Append[alto,bandolier,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter]}
+	/varset dump ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,minion,navto,off,on,over,repeat,see,splash,take,tag,tc,tie]}
 	
 	/if (${_lsout.Contains[${_type}]}) {
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY help_var
@@ -2358,7 +2363,7 @@ sub Bind_command_aux(string _type, bool _debug)
 			/varset dump ${out[0, "${If[${sqlite.Result[dummy ${_count} help_var].Find[${_type}]},,${sqlite.Result[dummy ${_count} help_var]}${sep}]}\a-g${Parse[2,${sqlite.Result[dummy ${_count} value]}]}\ax"]}
 		/next _count
 		/varset dump ${out[18, "${eol}"]} 
-		/return
+		/return TRUE
 	}
 
 	/echo
@@ -2372,9 +2377,9 @@ sub Bind_command_aux(string _type, bool _debug)
 		/varset dump ${cli.Advance}
 	}	
 	/varset dump ${out[0, "/aux ${_out}"]}
-	/return		
+	/return TRUE
 
-/return
+/return TRUE
 
 
 
@@ -2456,7 +2461,7 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
 
 	}
 	
-/return
+/return TRUE
 
 
 
@@ -2465,10 +2470,17 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
  * use: /alto
  ***| 	
 #bind command_alto /alto
-sub Bind_command_alto(bool _debug)
+sub Bind_command_alto(string _debug)
+
+	/if (${_debug.Equal[aux]}) {
+		/call Bind_command_aux alto
+		/return TRUE
+	}	
+
 	/call set_stop FALSE
 	/call clear_combat FALSE
-/return
+	
+/return TRUE
 
 
 
@@ -2482,7 +2494,7 @@ sub Bind_command_navto(string _verbage, bool _debug)
 
 	/if (!${Target.ID} && !${Bool[${_verbage}]}) {
 		OUT ${notice}${sep}need name or target.
-		/return
+		/return TRUE
 	}
 
 	/if (${Target.ID} && !${Bool[${_verbage}]}) {
@@ -2519,7 +2531,7 @@ sub Bind_command_navto(string _verbage, bool _debug)
 		/varset dump ${maCC.Add[swPull,TRUE]}	
 	}
 	
-/return	
+/return TRUE
 
 
 
@@ -2530,9 +2542,14 @@ sub Bind_command_navto(string _verbage, bool _debug)
 #bind command_repeat /repeat
 sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug)
 	DEBUG \atBind_command_repeat\ax(\a-w${_verbage}, ${_sender}, ${_tmpID}\ax)
-	
+
+	/if (${_verbage.Equal[aux]}) {
+		/call Bind_command_aux repeat
+		/return TRUE
+	}	
+		
 	/makemevisible
-	
+	/varset dump ${out[21, "${broadcast}${sep}\a-w/repeate ${_verbage}\ax"]}
 	| sender
 	/if (!${Bool[${_sender}]}) {
 		| need a target
@@ -2543,7 +2560,7 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
 		
 		| tell everyone else to speak up
 		/dgexecute /repeat "${_verbage}" ${Me.DisplayName} ${Target.ID}
-		/return
+		/return TRUE
 	}
 
 	| everyone else
@@ -2558,7 +2575,7 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
 		}
 	}
 	
-/return
+/return TRUE
 
 
 
@@ -2568,7 +2585,7 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
  * use: /dex NAME /splash | /splash
  ***|
 #bind command_splash /splash
-sub Bind_command_splash(bool _debug)
+sub Bind_command_splash(string _other, bool _debug)
 	DEBUG \atBind_command_splash\ax()
 	
 	/if (!${check_class[TRUE, |PAL|CLR]}) /return FALSE
@@ -2596,11 +2613,17 @@ sub Bind_command_splash(bool _debug)
  * use: /enter
  ***|
 #bind command_enter /enter
-sub Bind_command_enter(bool _other, bool _debug)
+sub Bind_command_enter(string _other, bool _debug)
+	DEBUG \atBind_command_enter\ax()
+	
+	/if (${_other.Equal[aux]}) {
+		/call Bind_command_aux enter
+		/return TRUE
+	}	
 
 	/if (!${Bool[${_other}]} && ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]} > 1) {
 		/dgexecute ${maComm.Find[stEntropyGroup_all].Value} /enter TRUE
-		OUT ${broadcast}${sep}\a-w/enter\ax
+		/varset dump ${out[21, "${broadcast}${sep}\a-w/enter\ax"]}
 	}
 
 	/varset dump ${set_data_timer[FALSE, Try_Door, RESTART]}
@@ -2618,7 +2641,7 @@ sub Bind_command_enter(bool _other, bool _debug)
 		/delay 1s
 	}
 
-/return
+/return TRUE
 
 
 
@@ -2627,45 +2650,50 @@ sub Bind_command_enter(bool _other, bool _debug)
  * use: /invis
  ***|
 #bind command_invis /invis
-sub Bind_command_invis(bool _other, bool _debug)
+sub Bind_command_invis(string _other, bool _debug)
+
+	/if (${_other.Equal[aux]}) {
+		/call Bind_command_aux invis
+		/return TRUE
+	}
 
 	/if (!${Bool[${_other}]} && ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]} > 1) {
 		/dgexecute ${maComm.Find[stEntropyGroup_all].Value} /invis TRUE
-		OUT ${broadcast}${sep}\a-w/invis\ax
+		/varset dump ${out[21, "${broadcast}${sep}\a-w/invis\ax"]}
 	}
 
 	| bards can blow me
 	/if (${Me.AltAbilityReady[Shauri's Sonorous Clouding]} && ${Select[${Me.Class.ShortName},BRD]}) {
 		/call pulse_stop
 		/call voodoo FALSE "Shauri's Sonorous Clouding" 0 FALSE
-		/return
+		/return TRUE
 		
 	| Invis vs Normies  casters	
 	} else /if (${Me.AltAbilityReady[Group Perfected Invisibility]} && ${Select[${Me.Class.ShortName},WIZ,MAG,ENC]}) {
 		/call voodoo FALSE "Group Perfected Invisibility" 0 FALSE
-		/return
+		/return TRUE
 	
 	| Invis Vs undead casters
 	} else /if (${Me.AltAbilityReady[Group Perfected Invisibility to Undead]} && ${Select[${Me.Class.ShortName},CLR,SHD,NEC,PAL]}) {
 		/delay 3
 		/call voodoo FALSE "Group Perfected Invisibility to Undead" 0 FALSE
-		/return
+		/return TRUE
 		
 	| shaman	
 	} else /if (${Me.AltAbilityReady[Group Silent Presence]} && ${Select[${Me.Class.ShortName},SHM]}) {
 		/delay 5
 		/call voodoo FALSE "Group Silent Presence" ${Me.ID} FALSE
-		/return
+		/return TRUE
 	
 	| rangers and druids
 	}	else /if (${Me.AltAbilityReady[Shared Camouflage]} && ${Select[${Me.Class.ShortName},RNG,DRU]}) {
 		/return
 		/delay 15
 		/call voodoo FALSE "Shared Camouflage" 0 FALSE
-		/return
+		/return TRUE
 	}
 	
-/return
+/return TRUE
 
 
 
@@ -2675,7 +2703,6 @@ sub Bind_command_invis(bool _other, bool _debug)
  ***| 
 #bind command_port /port
 sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
-	| /varset _debug TRUE
 	DEBUG \atBind_command_port\ax(\a-w${_type}, ${_nick1}, ${_nick2}\ax)
 	
 	/declare _count int local 0
@@ -2780,7 +2807,7 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 			/varset _portName ${sqlite.Result[dummy 1 name1]}
 			
 		} else {
-			OUT not a valid item port
+			/varset dump ${out[0, "not a valid item port"]}
 		}
 		
 		/if (${Bool[${_portName}]}) {
@@ -2805,12 +2832,12 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 		/next _count
 		
 		/if (${_list.Contains[${_nick1}]}) {
-			DEBUG AA
+			DEBUG ${sep}AA
 			/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='aa' AND nick1="${_nick1}"
 			/varset _portName ${sqlite.Result[dummy 1 name1]}
 			
 		} else {
-			OUT not a valid AA port
+			/varset dump ${out[0, "not a valid AA port"]}
 		}		
 		
 		
@@ -2853,7 +2880,13 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
  * use: /off  
  ***|
 #bind command_off /command_off
-sub Bind_command_off(bool _debug)
+sub Bind_command_off(string _verbage, bool _debug)
+
+	/if (${_verbage.Equal[aux]}) {
+		/call Bind_command_aux off
+		/return TRUE
+	}
+
 	DEBUG \atBind_command_off\ax()
 	
 	/declare _count int local 0
@@ -2876,7 +2909,13 @@ sub Bind_command_off(bool _debug)
  * use: /on  
  ***|
 #bind command_on /command_on
-sub Bind_command_on(bool _debug)
+sub Bind_command_on(string _verbage, bool _debug)
+
+	/if (${_verbage.Equal[aux]}) {
+		/call Bind_command_aux on
+		/return TRUE
+	}
+
 	DEBUG \atBind_command_on\ax()
 	
 	/declare _count int local 0
@@ -2920,12 +2959,11 @@ sub Bind_command_here(string _type)
 
 	/if (${_type.Equal[aux]}) {
 		/call Bind_command_aux here
-		/return		
+		/return TRUE
 	}
 
-
 	/if (!${Bool[${_type}]} && ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]} > 1) {
-		OUT ${broadcast}${sep}\a-w/here\ax
+		/varset dump ${out[21, "${broadcast}${sep}\a-w/here\ax"]}
 		/dgexecute ${maComm.Find[stEntropyGroup_all].Value} /here TRUE
 		/return
 	}
@@ -2933,14 +2971,14 @@ sub Bind_command_here(string _type)
 	ISMEDEAD
 
 	| disable Tie
-	/varset dump ${maTie.Add[swSetTie,FALSE]}
+	/call Bind_command_tie off ${maDebug.Find[tie].Value}
 	| sort movements
 	/if (${Stick.Active}) /squelch /stick off
 	| stop mq2nav
-	/if (${Navigation.Active}) /squelch /nav stop log=off
+	/if (${Navigation.Active}) /squelch /nav stop |log=off
 
 	| enable auto
-	/varset dump ${maEnv.Add[swAuto,TRUE]}
+	/varset dump ${set_switch_env[FALSE, swAuto, FALSE, TRUE]}
 	
 	/makemevisible
 	/stopcast
@@ -2955,9 +2993,9 @@ sub Bind_command_here(string _type)
 	
 	| reset timers
 	/declare lsTimers list local
-	/varset dump ${lsTimers.Append[Check_Buff_Aura,Check_Buff_Beg,Check_Buff_Crew,Check_Buff_Self,Check_Buff_Shrink,Check_Buff_Unity]}
-	/varset dump ${lsTimers.Append[Check_Minion_Cycle]}
-	/vardata cli lsTimers.First.Clone
+	/varset dump ${lsHereTimers.Append[Check_Buff_Aura,Check_Buff_Beg,Check_Buff_Crew,Check_Buff_Self,Check_Buff_Shrink,Check_Buff_Unity]}
+	/varset dump ${lsHereTimers.Append[Check_Minion_Cycle]}
+	/vardata cli lsHereTimers.First.Clone
 	/while (!${cli.IsEnd}) {
 		/varset dump ${set_data_timer[FALSE, ${cli.Value}, 1m]}
 		/varset dump ${cli.Advance}
@@ -2975,7 +3013,7 @@ sub Bind_command_here(string _type)
 
 	/if (PET && ${Pet.ID} && ${Me.Pet.Target.ID}) /pet back off
 
-/return
+/return TRUE
 
 
 
@@ -2992,6 +3030,7 @@ sub Bind_command_take(string _debug, string _sender)
 	}
 	
 	/if (!${Bool[${_sender}]} && ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]} > 1) {
+		/varset dump ${out[21, "${broadcast}${sep}\a-w/take\ax"]}
 		/dgexecute /take FALSE ${Me.DisplayName}
 	} 
 
@@ -3024,6 +3063,10 @@ sub Bind_command_take(string _debug, string _sender)
 sub Bind_command_grab(string _name, bool _debug)
 	DEBUG Bind_command_grab(\a-w${_name}\ax)
 
+	/if (${_name.Equal[aux]}) {
+		/call Bind_command_aux grab
+		/return TRUE
+	}	
 	| typed something wrong
 	/if (${_name.Equal[NULL]} || !${Bool[${_name}]} || ${_name.Equal[info]} ) {
 		OUT /grab ${info}NAME\ax of mapfilter spawn name you want to pick up.
@@ -3038,7 +3081,7 @@ sub Bind_command_grab(string _name, bool _debug)
 		/invoke ${Ground[${_name}].Grab}
 	}
 	
-/return
+/return TRUE
 
 
 
