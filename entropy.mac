@@ -54,7 +54,7 @@
 #define DOT "${maCC.Find[swCombatDoT].Value}"
 #define HEAL "${maCC.Find[swCombatHeal].Value}"
 #define CHECKTIE "/if (${maTie.Find[swSetTie].Value} && !${timer_Check_Tie}) /call set_tie ${maDebug.Find[tie].Value}"
-#define CHECKCURSOR "/if (${Cursor.ID} && !${timer_Check_Cursor} && ((AUTO && ${maEnv.Find[swAutoInv].Value}) || ${maEntropy.Find[swAutoInvManual].Value})) /call check_cursor"
+#define CHECKCURSOR "/if (${Cursor.ID} && !${timer_Check_Cursor} && ((AUTO && ${maEnv.Find[swAutoInv].Value}) || ${maEntropy.Find[swAutoInvManual].Value})) /call check_cursor ${maDebug.Find[loot].Value}"
 #define HUDPATH "/noparse /ini .\..\MQ2HUD.ini"
 #define SETHUD "/call set_hud_data"
 #define ISDEAD "/if (${Target.Dead}) /call clear_combat FALSE"
@@ -111,7 +111,7 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A191211.01
+	/call set_data FALSE maEnv build													map outer A191214.01
 	
 	| prep macro
 	/call prepare_the_end FALSE
@@ -127,7 +127,7 @@ sub main(string _debug, string _param1, string _auto)
  		/varset dump ${out[0, "${notice} ${dot} Disabled${sep}\a-wline of sight validation\ax"]}
  	}
  
-	/if (!${timer_Check_Zone_ID}) /call check_zone_id FALSE FALSE
+	/if (!${timer_Check_Zone_ID}) /call check_zone_id ${maDebug.Find[zone].Value} FALSE
 	
 	| echo help on a new build or updates
 	/if (${Bool[${maData.Find[stPreviousBuild].Value}]}) {
@@ -151,6 +151,12 @@ sub main(string _debug, string _param1, string _auto)
 
  	| main loop
 	/while (!${maEntropy.Find[swMaintenance].Value}) {
+
+		| housekeeping first!
+		/if (!${timer_Check_Housekeeping}) {
+			/call check_housekeeping FALSE
+		}		
+
 		GETINPUT main_loop swAuto|${maEnv.Find[swAuto].Value}
 		ISMEDEAD
 		CHECKCURSOR
@@ -383,4 +389,50 @@ sub prepare_the_end(bool _debug)
 
 	
 	
+
+|***
+ * note: macro and dannet integrity check routine
+ * use: 
+ ***|
+sub check_housekeeping(bool _debug)
+
+	/declare _count int local 0
 	
+	| remove any excess dannet crew joins
+	/if (!${Group.Members}) {
+		/for _count 1 to 12
+			/if (${DanNet.Peers[crew${_count}].Find[${Me.DisplayName}]}) {
+				/dleave crew${_count}
+			}
+		/next _count	
+		/varset stCurrentCrew EMPTY
+	}
+	
+
+	| fix dannet crew join marker if mac restarts
+	/if (${Group.Members} && ${stCurrentCrew.Equal[empty]}) {
+		/for _count 1 to 12
+			| crew # empty?
+			/if (${lsCrew${_count}.Count} == 1 && ${lsCrew${_count}.First.Value.Equal[EMPTY]}) /continue
+			/if (${lsCrew${_count}.Contains[${Group.Member[1]}]} && ${lsCrew${_count}.Contains[${Group.Member[2]}]} && ${lsCrew${_count}.Contains[${Group.Member[3]}]} && ${lsCrew${_count}.Contains[${Group.Member[4]}]} && ${lsCrew${_count}.Contains[${Group.Member[5]}]} && ${lsCrew${_count}.Contains[${Group.Member[0]}]}) {
+				/djoin crew${_count}
+				/varset stCurrentCrew crew${_count}
+			}
+		/next _count
+	}
+
+	
+
+
+	| more shit to come....
+
+
+	
+	
+	
+	
+	/varset dump ${set_data_timer[${_debug}, Check_Housekeeping, RESTART]}
+
+/return TRUE
+
+

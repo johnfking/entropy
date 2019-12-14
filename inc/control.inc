@@ -55,7 +55,16 @@ sub Bind_control_mode(string _type, string _verbage, bool _debug)
 		/call Bind_command_aux mode
 		/return		
 	} else /if (${_type.Equal[data]}) {
-		/varset stModeData ${_verbage}
+		
+		/if (${_verbage.Equal[target]} && ${Target.ID}) {
+			/varset stModeData "${Target.DisplayName}"
+		} else {		
+		
+			/varset stModeData ${_verbage}
+		}
+
+
+
 	} else /if (${maMode.Contains[${_type}]}) {
 		/varset dump ${maMode.Add[${_type},${If[${maMode.Find[${_type}].Value},FALSE,TRUE]}]}
 	}
@@ -614,22 +623,15 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 
 	| gather your crew
 	} else /if (${_type.Equal[gather]}) {
-
+		
 		/if (${_verbage.Equal[all]}) {
-			/declare _clist string local ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}]}
+			/declare _clist string local all
 		} else {
-			| /sqlite ${dbCore} dummy SELECT lstCrew${_verbage} FROM environment WHERE currentBuild="${currentBuild}"
-			| /declare _clist string local ${sqlite.Result[dummy 1 lstCrew${_verbage}]}	
+			/declare _clist string local ${set_dnet_group[FALSE]}
 		}
 
-		/for _count 1 to ${_clist.Count[|]}
-			/if (${_clist.Arg[${_count},|].Equal[${Me.DisplayName}]}) /continue
-			/if (${Bool[${Spawn[pc ${_clist.Arg[${_count},|]}]}]}) {
-				/varset dump ${out[12, "Gathering${sep}\a-w${_clist.Arg[${_count},|]}\ax"]}
-				/dexecute ${_clist.Arg[${_count},|]} /navto ${Me.ID}
-			}
-		
-		/next _count		
+		/varset dump ${out[12, "Gathering${sep}\a-w${_clist}\ax"]}
+		/dgexecute  ${_clist} /navto ${Me.ID}	
 		/return
 
 	} else /if (${_type.Equal[switch]}) {
@@ -2613,16 +2615,22 @@ sub Bind_command_splash(string _other, bool _debug)
  * use: /enter
  ***|
 #bind command_enter /enter
-sub Bind_command_enter(string _other, bool _debug)
+sub Bind_command_enter(string _type, bool _debug)
 	DEBUG \atBind_command_enter\ax()
 	
-	/if (${_other.Equal[aux]}) {
+	/if (${_type.Equal[aux]}) {
 		/call Bind_command_aux enter
 		/return TRUE
 	}	
+	
+	/if (${_type.Equal[all]}) {
+		/declare _group string local all
+	} else {
+		/declare _group string local ${set_dnet_group[FALSE]}
+	}
 
-	/if (!${Bool[${_other}]} && ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]} > 1) {
-		/dgexecute ${maComm.Find[stEntropyGroup_all].Value} /enter TRUE
+	/if (!${Bool[${_type}]} && ${DanNet.PeerCount[${_group}]} > 1) {
+		/dgexecute ${_group} /enter TRUE
 		/varset dump ${out[21, "${broadcast}${sep}\a-w/enter\ax"]}
 	}
 
@@ -2657,9 +2665,15 @@ sub Bind_command_invis(string _other, bool _debug)
 		/return TRUE
 	}
 
-	/if (!${Bool[${_other}]} && ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]} > 1) {
-		/dgexecute ${maComm.Find[stEntropyGroup_all].Value} /invis TRUE
-		/varset dump ${out[21, "${broadcast}${sep}\a-w/invis\ax"]}
+	/if (${_type.Equal[all]}) {
+		/declare _group string local all
+	} else {
+		/declare _group string local ${set_dnet_group[FALSE]}
+	}
+
+	/if (!${Bool[${_type}]} && ${DanNet.PeerCount[${_group}]} > 1) {
+		/dgexecute ${_group} /invis TRUE
+		/varset dump ${out[21, "${broadcast}${sep}\a-w/invis\ax (\a-r${_group}\ax)"]}
 	}
 
 	| bards can blow me
@@ -2880,9 +2894,9 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
  * use: /off  
  ***|
 #bind command_off /command_off
-sub Bind_command_off(string _verbage, bool _debug)
+sub Bind_command_off(string _type, bool _debug)
 
-	/if (${_verbage.Equal[aux]}) {
+	/if (${_type.Equal[aux]}) {
 		/call Bind_command_aux off
 		/return TRUE
 	}
@@ -2892,8 +2906,14 @@ sub Bind_command_off(string _verbage, bool _debug)
 	/declare _count int local 0
 	/declare _toon string local FALSE
 	
-	/for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
-		/varset _toon ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
+	/if (${_type.Equal[all]}) {
+		/declare _group string local all
+	} else {
+		/declare _group string local ${set_dnet_group[FALSE]}
+	}
+
+	/for _count 1 to ${DanNet.PeerCount[${_group}]}
+		/varset _toon ${DanNet.Peers[${_group}].Arg[${_count},|]}
 		/if (${_toon.Equal[${Me.DisplayName}]}) /continue
 		/if (!${Spawn[pc ${_toon}].ID}) /continue
 		/dexecute ${_toon} /env auto off
@@ -2909,9 +2929,9 @@ sub Bind_command_off(string _verbage, bool _debug)
  * use: /on  
  ***|
 #bind command_on /command_on
-sub Bind_command_on(string _verbage, bool _debug)
+sub Bind_command_on(string _type, bool _debug)
 
-	/if (${_verbage.Equal[aux]}) {
+	/if (${_type.Equal[aux]}) {
 		/call Bind_command_aux on
 		/return TRUE
 	}
@@ -2921,8 +2941,14 @@ sub Bind_command_on(string _verbage, bool _debug)
 	/declare _count int local 0
 	/declare _toon string local FALSE
 	
-	/for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
-		/varset _toon ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
+	/if (${_type.Equal[all]}) {
+		/declare _group string local all
+	} else {
+		/declare _group string local ${set_dnet_group[FALSE]}
+	}
+
+	/for _count 1 to ${DanNet.PeerCount[${_group}]}
+		/varset _toon ${DanNet.Peers[${_group}].Arg[${_count},|]}
 		/if (${_toon.Equal[${Me.DisplayName}]}) /continue
 		/if (!${Spawn[pc ${_toon}].ID}) /continue
 		/dexecute ${_toon} /env auto on
@@ -2952,7 +2978,7 @@ sub Bind_command_cls(bool _debug, string _sender)
 
 |***
  * note: fuck, what did the bard do this time?
- * use: /here
+ * use: /here [all]
  ***|
 #bind command_here /here
 sub Bind_command_here(string _type)
@@ -2961,10 +2987,16 @@ sub Bind_command_here(string _type)
 		/call Bind_command_aux here
 		/return TRUE
 	}
+	
+	/if (${_type.Equal[all]}) {
+		/declare _group string local all
+	} else {
+		/declare _group string local ${set_dnet_group[FALSE]}
+	}
 
-	/if (!${Bool[${_type}]} && ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]} > 1) {
+	/if (!${Bool[${_type}]} && ${DanNet.PeerCount[${_group}]} > 1) {
 		/varset dump ${out[21, "${broadcast}${sep}\a-w/here\ax"]}
-		/dgexecute ${maComm.Find[stEntropyGroup_all].Value} /here TRUE
+		/dgexecute ${_group} /here TRUE
 		/return
 	}
 	
@@ -2990,9 +3022,8 @@ sub Bind_command_here(string _type)
 		}
 	}
 	
-	
 	| reset timers
-	/declare lsTimers list local
+	/declare lsHereTimers list local
 	/varset dump ${lsHereTimers.Append[Check_Buff_Aura,Check_Buff_Beg,Check_Buff_Crew,Check_Buff_Self,Check_Buff_Shrink,Check_Buff_Unity]}
 	/varset dump ${lsHereTimers.Append[Check_Minion_Cycle]}
 	/vardata cli lsHereTimers.First.Clone
@@ -3000,7 +3031,6 @@ sub Bind_command_here(string _type)
 		/varset dump ${set_data_timer[FALSE, ${cli.Value}, 1m]}
 		/varset dump ${cli.Advance}
 	}	
-	
 
 	| stop moving
 	/if (${Me.Moving}) {
@@ -3029,9 +3059,15 @@ sub Bind_command_take(string _debug, string _sender)
 		/return		
 	}
 	
-	/if (!${Bool[${_sender}]} && ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]} > 1) {
+	/if (${_type.Equal[all]}) {
+		/declare _group string local all
+	} else {
+		/declare _group string local ${set_dnet_group[FALSE]}
+	}
+
+	/if (!${Bool[${_type}]} && ${DanNet.PeerCount[${_group}]} > 1) {
 		/varset dump ${out[21, "${broadcast}${sep}\a-w/take\ax"]}
-		/dgexecute /take FALSE ${Me.DisplayName}
+		/dgexecute ${_group} /take FALSE ${Me.DisplayName}
 	} 
 
 	| take ports
@@ -3477,7 +3513,7 @@ sub Bind_command_entcast(string _name, string _target, bool _debug)
  *	/makeleader [NAME] .. 	${maCrew.Find[stCrew${_crew}Leader].Value}
  ***|
 #bind command_crew /crew
-sub Bind_command_crew(string _type)
+sub Bind_command_crew(string _type, bool _debug)
 
 	| output control map
 	/if (${_type.Equal[see]}) {
@@ -3487,24 +3523,38 @@ sub Bind_command_crew(string _type)
 		/call Bind_command_aux crew
 		/return
 	}
+	
+	| kill the crew
+	/if (${stCurrentCrew.NotEqual[empty]} && ${_type.Equal[kill]}) {
+		/squelch /dgaexecute ${stCurrentCrew} /disband
+		/delay 2
+		/dgaexecute ${stCurrentCrew} /dleave ${stCurrentCrew}
+		/delay 2
+		/dgaexecute ${stCurrentCrew} /varset stCurrentCrew EMPTY
+		/return TRUE
+	}
+	
 
 	| bail if no crew type listed
 	/if (!${_type.Length} || !${Range.Between[1,12:${Int[${_type}]}]}) {
-		/varset dump ${out[12, " /crew [\a-w1\ax-\a-w12\ax]"]}
-		/return
+		/varset dump ${out[12, "/crew [\a-w1\ax-\a-w12\ax]"]}
+		/return FALSE
 	}
 	
 	| crew # empty?
 	/if (${lsCrew${_type}.Count} == 1 && ${lsCrew${_type}.First.Value.Equal[EMPTY]}) {
-		/varset dump ${out[12, "${notice}${sep}lsCrew\a-w${_type}\ax is empty."]}
-		/return
+		/varset dump ${out[12, "${notice}${sep}lsCrew\a-w${_type}\ax is empty"]}
+		/return FALSE
 	}
 	
+	/varset dump ${out[12, "\agForming\ax${sep}Crew\aw${_type}\ax"]}
 	/vardata cli lsCrew${_type}.First.Clone
 	/while (!${cli.IsEnd}) {
 
 		| skip me
 		/if (${cli.Value.Equal[${Me.DisplayName}]}) {
+			/djoin crew${_type}
+			/varset stCurrentCrew crew${_type}
 			/varset dump ${cli.Advance}
 			/continue
 		}
@@ -3520,37 +3570,61 @@ sub Bind_command_crew(string _type)
 				/continue
 			}
 			
+			| are they in the group already?
+			/if (${Group.Member[${cli.Value}].Index}) {
+				/dexecute ${cli.Value} /varset stCurrentCrew crew${_type}
+				/varset dump ${cli.Advance}
+				/continue
+			}
+			
 			| send invite
 			/varset dump ${out[12, "Inviting${sep}\a-w${cli.Value}\ax"]}
+			
+			| invite the member
 			/invite ${cli.Value}
-			/delay 1			
+			/delay 2			
+		
+			| execute invite accept command
 			/dexecute ${cli.Value} /invite
 			/delay 1
-		
 			
+			| join needed crew channel
+			/dexecute ${cli.Value} /djoin crew${_type}
+			/delay 1
+			
+			| set crew marker
+			/dexecute ${cli.Value} /varset stCurrentCrew crew${_type}
 			/varset dump ${cli.Advance}
 		}	
 	}
 	
+	| lag control
+	/delay ${lsCrew${_type}.Count}s ${Group.Members} == ${Math.Calc[${lsCrew${_type}.Count} - 1]}
+	
+	| dont try to make changes if you're not the boss
+	/if (${Group.Leader.Name.NotEqual[${Me.DisplayName}]}) /goto :notmyresponsibilitybitch
+	
 	| set group assist
-	/if (${Bool[${maCrew.Find[stCrew${_crew}Assist].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_crew}Assist].Value}].Index}) {
-		/grouproles set ${maCrew.Find[stCrew${_crew}Assist].Value} 2
+	/if (${Bool[${maCrew.Find[stCrew${_type}Assist].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index}) {
+		/grouproles set ${maCrew.Find[stCrew${_type}Assist].Value} 2
 	}
 	
 	| set group looter
-	/if (${Bool[${maCrew.Find[stCrew${_crew}Looter].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_crew}Looter].Value}].Index}) {
-		/grouproles set ${maCrew.Find[stCrew${_crew}Looter].Value} 5
+	/if (${Bool[${maCrew.Find[stCrew${_type}Looter].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_type}Looter].Value}].Index}) {
+		/grouproles set ${maCrew.Find[stCrew${_type}Looter].Value} 5
 	}
 	
 	| set group leader
-	/if (${Bool[${maCrew.Find[stCrew${_crew}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_crew}Leader].Value}].Index}) {
-		/makeleader ${maCrew.Find[stCrew${_crew}Leader].Value}
+	/if (${Bool[${maCrew.Find[stCrew${_type}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_type}Leader].Value}].Index}) {
+		/makeleader ${maCrew.Find[stCrew${_type}Leader].Value}
 	}
 	
-	OUT Leader${sep}\a-w${Group.Leader}\ax ${dot} Assist:${sep}\a-w${Group.MainAssist}\ax ${dot} Looter${sep}\a-w${Group.MasterLooter}\ax
-	| /varset dump ${out[12, ""]}
+	/delay 5
+	:notmyresponsibilitybitch
+	/varset dump ${out[12, "\awLeader\ax${sep}\a-w${Group.Leader}\ax ${dot} \awMA\ax${sep}\a-w${Group.MainAssist}\ax ${dot} \awLooter\ax${sep}\a-w${Group.MasterLooter}\ax"]}
+	/varset dump ${out[12, "\agCompleted\ax${sep}Crew\aw${_type}\ax"]}
 
-/return
+/return TRUE
 	
 
 

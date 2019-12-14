@@ -115,8 +115,6 @@ sub misc_combat_BRD(bool _debug)
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
-	
-	
 	/if (AUTO) {
 		/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 		/call stick_to_target FALSE TARGET
@@ -126,6 +124,13 @@ sub misc_combat_BRD(bool _debug)
 		/call voodoo FALSE "Fierce Eye" 0 FALSE
 	}
 	
+ 	/if (${is_ready[FALSE, "Reflexive Retort"]}) {
+ 		/call voodoo FALSE "Reflexive Retort" TARGET FALSE
+ 	}
+
+ 	/if (${is_ready[FALSE, "Relfexive Rejoinder"]}) {
+ 		/call voodoo FALSE "Relfexive Rejoinder" TARGET FALSE
+ 	}	
 	
  	/if (${is_ready[FALSE, "Bladed Song"]}) {
  		/call voodoo FALSE "Bladed Song" 0 FALSE

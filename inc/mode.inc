@@ -108,7 +108,7 @@ sub mode_get_mob(bool _debug)
 	GETINPUT
 	ISMEDEAD
 
-	/call check_cursor ${_debug} TRUE CLEAR
+	/call check_cursor ${_debug} CLEAR
 
 	/if (!${Spawn[id TARGET].ID} || ${Spawn[id TARGET].Dead} || ${Target.Dead}) {
 		/call set_stop ${_debug} SILENT
@@ -171,21 +171,33 @@ sub mode_skill_train(string _skilltype, bool _debug)
 
 
 |***
- *	DES: to help your rusty dagger collection.. why else would you fish?
- *	USE: /call do_fish_mode | /mode fish
- *  NOTE: 
+ * note: everyone needs spare sandals
+ * use: /mode fish
  ***|
 sub mode_fish(bool _debug)
+
 	ISMEDEAD
-	SETHUD "Fish"
+	GETINPUT
+	
+	SETHUD "mode fish"
+	
 	/if (!${Me.Standing}) /stand
-	/if (${Me.ItemReady[Fisherman's Companion]} && !${Me.ItemReady[Brell's Fishin' Pole]}) {
+	
+	/call check_cursor ${_debug} TRUE
+	
+	/if (${Me.ItemReady[Fisherman's Companion]} && !${Me.ItemReady[Brell's Fishin' Pole]} && !${Me.Inventory[mainhand].ID}) {
 		/if (${Me.Invis}) /docommand /makemevisable
-		/if (${validate_cast[FALSE, item, "Fisherman's Companion", ${Me.ID}]}) /call core_cast2 "Fisherman's Companion" item ${Me.ID}
+		/if (${is_ready[${_debug}, "Fisherman's Companion"]}) {
+			/call voodoo ${_debug} "Fisherman's Companion" ${Me.ID} FALSE
+		}
 	}
 	/if (${Me.AbilityReady[fishing]}) /doability fishing
+	
+	/call check_cursor ${_debug} TRUE
+	
 	SETHUD FALSE
-/return
+
+/return TRUE
 
 
 
@@ -212,7 +224,7 @@ sub mode_forage(bool _debug)
 	/doability forage
 	/delay 1s
 	
-	/call check_cursor ${_debug} TRUE CLEAR
+	/call check_cursor ${_debug} TRUE
 	SETHUD FALSE
 	
 /return TRUE
@@ -443,6 +455,8 @@ sub mode_harvest(bool _debug)
  ***|
 sub get_ground_item(bool _debug, string _tmpItem)
 	DEBUG \atget_ground_item\ax(\a-w"${_tmpItem}"\ax)
+	
+	/call check_cursor ${_debug} CLEAR
 
 	/if (!${GroundItemCount[${_tmpItem}]}) {
 		/return FALSE
@@ -460,7 +474,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
 	/declare _item ground local
 	/vardata _item Ground.First
 	/declare _count int local 1
-	/declare _distfinal int local 99999
+	/declare _distfinal int local 999999
 	/declare _locY int local
 	/declare _locX int local
 	/declare _locZ int local
@@ -493,7 +507,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
 		/call Bind_command_grab "${_tmpItem}" ${_debug}
 		/delay 5
 		
-		/call check_cursor ${_debug} TRUE CLEAR
+		/call check_cursor ${_debug} CLEAR
 	}
 
 /return TRUE
@@ -774,24 +788,22 @@ sub mode_hunt(bool _debug)
 			}
 			/varset dump ${_lihunt.Advance}
 		}	
-		/if (!TARGET) /return FALSE
+
 	} else /if (!${Bool[${stModeData}]}) {
 		/call pull_mob_find ${_debug}
 		DEBUG pull_mob_find.return${sep}\a-w${Macro.Return}\ax		
 	}
 
-
-
 	/if (!TARGET) {
 		DEBUG \arNO\ax stAssTarID
-		SETHUD FALSE
-		/return FALSE
+		/call clear_combat ${_debug}
+		/goto :checkforbullshitadds
 	}
 
 	:checkpath
 	/if	(!${Navigation.PathExists[locyxz ${Spawn[TARGET].Y} ${Spawn[TARGET].X} ${Spawn[TARGET].Z}]}) {
 		GETINPUT
-		OUT ${notice}${sep}No Nav Path${sep}\a-w${Spawn[TARGET].DisplayName}\ax
+		/varset dump ${out[0, "${notice}${sep}No Nav Path${sep}\a-w${Spawn[TARGET].DisplayName}\ax"]}
 		/varcalc _count ${_count}+1
 		/if (${_count} > 10) /return FALSE
 		/delay 1s
@@ -800,15 +812,38 @@ sub mode_hunt(bool _debug)
 	}
 
 	| get to the mob
-	/declare _movetorange float local ${Math.Calc[${Spawn[TARGET].MaxRangeTo}*.9]}
+	| /declare _movetorange float local ${Math.Calc[${Spawn[TARGET].MaxRangeTo}*.9]}
 	
-	/call pull_mob_move_to ${_debug} TARGET ${_movetorange} on
+	/call pull_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.9]} off
 	
 	/if (${Spawn[id TARGET].Dead}) /return TRUE
 
-	/nav id TARGET |distance=${_movetorange} lineofsight=${If[${maOver.Find[swOverLOS].Value},,los]} log=off
-	/delay 1s ${Me.Moving}
-
+	| /nav id TARGET |distance=${_movetorange} lineofsight=${If[${maOver.Find[swOverLOS].Value},,los]} log=off
+	
+	
+	/varset dump ${set_target[TARGET]}	
+	
+	
+	| kill our  mob
+	:checkforbullshitadds
+	/while (TARGET || (${SpawnCount[NPC radius ENV PS4]} && !TARGET)) {
+		ISMEDEAD
+		GETINPUT
+	
+		/if (!TARGET) {
+			/varset stAssTarID ${NearestSpawn[npc LOS radius ENV zradius ${maCC.Find[stZRadius].Value}].ID}
+		}
+		
+		/if (TARGET) {
+			/call mode_combat_routine FALSE
+			/delay 1s
+		}
+		/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE	
+		
+	}	
+	
+	
+	
 	/varset dump ${maOver.Add[swOverPctEngage,FALSE]}
 	/varset dump ${maOver.Add[swOverLOS,FALSE]}
 	/varset swModeToken FALSE
@@ -819,3 +854,27 @@ sub mode_hunt(bool _debug)
 
 
 
+
+
+
+
+|***
+ * note: basic combat routine used by modes
+ * use: /mode hunt
+ ***|
+sub mode_combat_routine(bool _debug)
+
+	/varset dump ${set_target[TARGET]}	
+	/call set_combat FALSE
+	/call check_facing ${_debug} TARGET FORCE
+	/if (PET || SWARM) /call send_pet ${maDebug.Find[minon].Value} TARGET
+	/if (SWARM) /call cast_temp_pet FALSE TARGET "${maChr.Find[stTempPet].Value}"
+	/if (AGRO && ${SubDefined[get_agro_${Me.Class.ShortName}]}) /call get_agro_${Me.Class.ShortName}
+	/call misc_combat_${Me.Class.ShortName} FALSE
+	/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
+	/if (MELEE) /call do_melee FALSE TARGET
+	/if (DOT) /call cast_DOT ${maDebug.Find[castdot].Value} lsDoT TARGET
+	/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
+	/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
+
+/return

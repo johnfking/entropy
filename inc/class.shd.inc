@@ -51,6 +51,7 @@ sub set_SHD(bool _debug)
 	/call set_data_list FALSE maChr lsAEHate 														EMPTY													"${auxli} ae hate skills to use"
 	/call set_data_map FALSE maChr stAELifeTap													PREGEN|1											"${auxna} se lifetap nuke"
 	/call set_data_map FALSE maChr stLeechcurse													PREGEN|1											"${auxna} leechcurse disc"
+	/call set_data_map FALSE maChr stGougingBlade												PREGEN|1											"${auxna} gouging blade family disc"
 	
 /return
 
@@ -132,7 +133,7 @@ sub misc_combat_SHD(bool _debug)
 	| AA Voice of Thule AA
 	/if (AGRO && !${timer_Check_VoT} && ${maChr.Find[swVoT].Value}) {
 		/if (!${Me.Buff[Voice of Thule].ID}) {	
-			/if (${is_ready[FALSE, "Voice of Thule"]}) /call voodoo FALSE "Voice of Thule" alt ${Me.ID} FALSE
+			/if (${is_ready[FALSE, "Voice of Thule"]}) /call voodoo FALSE "Voice of Thule" ${Me.ID} FALSE
 			/varset dump ${set_data_timer[FALSE, Check_VoT, RESTART]}
 		}
 	} else /if ((!AGRO && ${Me.Buff[Voice of Thule].ID}) || !${maChr.Find[swVoT].Value}) {
@@ -149,7 +150,7 @@ sub misc_combat_SHD(bool _debug)
 		/if (${SpawnCount[npc OVERLOS radius SAFEENV*2 targetable]} >= ${defCount}) {
 			/if (${is_ready[FALSE, "${maChr.Find[stLeechcurs].Valuee}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) /call voodoo FALSE "${maChr.Find[stLeechcurse].Value}" 0 FALSE
 		}
-		/if (${is_ready[FALSE, "Vicious Bite of Chaos"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) /call voodoo FALSE "Vicious Bite of Chaos" TARGET FALSE
+		/if (${is_ready[FALSE, "Vicious Bite of Chaos"]}) /call voodoo FALSE "Vicious Bite of Chaos" TARGET FALSE
 	}
 
 	| swarm pets
@@ -159,7 +160,7 @@ sub misc_combat_SHD(bool _debug)
 	
 	/if (${is_ready[FALSE, "${maChr.Find[stTempRune].Value}"]}) /call voodoo FALSE "${maChr.Find[stTempRune].Value}" 0 FALSE
 	/if (${is_ready[FALSE, "Thought Leech"]} &&  ${Me.PctMana} <= 60*.PCTHO) /call voodoo FALSE "Thought Leech" TARGET FALSE
-	/if (${is_ready[FALSE, "${maChr.Find[stGougingBlade].Value}"]}) /call voodoo FALSE "${maChr.Find[stGougingBlade].Value}" FALSE
+	/if (${is_ready[FALSE, "${maChr.Find[stGougingBlade].Value}"]}) /call voodoo FALSE "${maChr.Find[stGougingBlade].Value}" TARGET FALSE
 
 /return
 
@@ -177,7 +178,7 @@ sub get_agro_SHD(bool _debug)
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	/if (PET) /call send_pet FALSE TARGET
 	
-	/call cast_challenge TARGET
+	/call cast_challenge FALSE TARGET
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 	
 	| AA pet hate
@@ -198,6 +199,7 @@ sub get_agro_SHD(bool _debug)
 
 	| AE Hate
 	/if (AE# && ${SpawnCount[npc radius SAFEENV targetable PS4]} >= AE#) {
+		/declare mobAECount int local 0
 		/varset mobAECount ${SpawnCount[npc OVERLOS radius 50]}
 		
 		/if (${mobAECount} >= AE#) {

@@ -10,6 +10,30 @@
 
 
 
+A191214.01
+- bard
+  added Reflexive Retort and Relfexive Rejoinder to main combat routine
+- shadowknight
+  several typos corrected
+  removed the HP check for the Gouging Blade line
+- /mode fish is working. will use a Fishermans Companion unless you manually equip another pole
+- cursor/loot several refinements
+
+- /crew #
+  crews work from 1-12
+  lsCrew# contains the list of your crew members
+  each crew will contain a dannet group for control of broadcasted commands
+- /here now defaults to your current crew (no crew=all). /here all broadcasts to everyone
+- /enter now defaults to your current crew (no crew=all). /enter all broadcasts to everyone
+- /on now defaults to your current crew (no crew=all). /on all broadcasts to everyone
+- /off now defaults to your current crew (no crew=all). /off all broadcasts to everyone
+- /invis now defaults to your current crew (no crew=all). /invis all broadcasts to everyone
+- /take now defaults to your current crew (no crew=all). /take all broadcasts to everyone
+- /home gather now defaults to your current crew (no crew=all). /home gather all broadcasts to everyone
+  
+
+ 
+
 A191211.01
 - adjustments to /here
 - debugs added
@@ -27,8 +51,6 @@ A191211.01
 - added a line for hiatus discs to accomodate the ToV expanion. stHiatus
 - corretion to observations typo
   
-
-
 
 A191208.01
 - developed a new method for outputs for / commands. faster and faster!!

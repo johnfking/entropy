@@ -320,7 +320,7 @@ sub set_data_list (bool _debug, string _map, string _env_var, string _value, str
 		/varset dump ${${_map}.Add[${_env_var},"${_value}"]}
 	}
 
-/return
+/return TRUE
 
 
 
@@ -351,7 +351,39 @@ sub set_data_condition(bool _debug, string _env_var, string _value)
 	DEBUG ${sep}dummy INSERT OR IGNORE INTO environment_condition(env_var, value) VALUES('${_env_var}', '${_value}') ${dot} \ay${sqlite.Status[dummy]}\ax
 	/varset dump ${maCondition.Add[${_env_var},"${_value}"]}
 
-/return
+/return TRUE
+
+
+
+|***
+ * note: /creates / sets mis variables
+ * use: /call set_data_var DEBUG [variable] [bool,string,int] [local|outer|global] [value]
+ ***|
+sub set_data_var(bool _debug, string _env_var, string _type, string _scope, string _value)
+	/if (${_debug}) /echo \atset_data\ax(\a-w${_env_var}, ${_type}, ${_scope}, "${_value}"\ax)
+
+	/if (!${Defined[${_env_var}]}) {
+		/declare ${_env_var} ${_type} ${_scope}
+	}	
+
+	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_var WHERE env_var="${_env_var}"
+	DEBUG ${sep}dummy SELECT * FROM environment_var WHERE env_var='${_env_var}' ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
+
+	| data exists. get from DB and call good
+	/if (${sqlite.Rows[dummy]}) {
+		DEBUG ${sep}DATA \agdoes exists\ax
+		DEBUG /varset ${_env_var} ${sqlite.Result[dummy 1 value]}
+		/varset ${_env_var} ${sqlite.Result[dummy 1 value]}
+		/return TRUE
+	
+	} 
+			
+	| no data. add it.
+	/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_var(env_var, value) VALUES("${_env_var}", "${_value}")
+	DEBUG ${sep}dummy INSERT OR IGNORE INTO environment_var(env_var, value) VALUES('${_env_var}', '${_value}') ${dot} \ay${sqlite.Status[dummy]}\ax
+	/varset ${_env_var} ${_value}
+
+/return TRUE
 
 
 
@@ -391,7 +423,7 @@ sub set_data_buffs(bool _debug, string _env_var, string _value)
 		/varset dump ${${_env_var}.Append["${_value}"]}
 	}
 
-/return
+/return TRUE
 
 
 
@@ -422,7 +454,7 @@ sub set_data_crew(bool _debug, string _env_var, string _value)
 			/varset dump ${${_env_var}.Append["${sqlite.Result[dummy 1 value]}"]}
 		}
 		/return TRUE
-	} 
+	}
 			
 	/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_crew(env_var, value) VALUES("${_env_var}", "${_value}")
 	DEBUG ${sep}dummy INSERT OR IGNORE INTO environment_crew(env_var, value) VALUES('${_env_var}', '${_value}') ${dot} \ay${sqlite.Status[dummy]}\ax
@@ -431,8 +463,7 @@ sub set_data_crew(bool _debug, string _env_var, string _value)
 		/varset dump ${${_env_var}.Append["${_value}"]}
 	}
 
-/return
-
+/return TRUE
 
 
 
@@ -472,7 +503,7 @@ sub set_data_items(bool _debug, string _env_var, string _value)
 		/varset dump ${${_env_var}.Append["${_value}"]}
 	}
 
-/return
+/return TRUE
 
 
 
@@ -516,7 +547,7 @@ sub get_input(string _sub, string _variable)
 		/call register_observer ${_sub} ${_variable}
 	}
 	
-/return
+/return TRUE
 
 
 
@@ -1039,6 +1070,7 @@ sub set_observers(bool _debug, string _map, string _action)
 	/declare _timestart				int			local 0
 	/declare _timeend					int			local 0
 	/declare _tlo							string  local ${${_map}.Find[tlo].Value}
+	/declare _miso mapiterator local
 
 	/varset dump ${set_data_timer[FALSE, Check_Observers, RESTART]}
 	
@@ -1066,7 +1098,6 @@ sub set_observers(bool _debug, string _map, string _action)
 		DEBUG ${sep}_toon\aw ${_count}\ax::\at${_toon}\ax
 
 		| start our trip throught the map
-		/declare _miso mapiterator local
 		/vardata _miso ${_map}.First.Clone
 		/while (!${_miso.IsEnd}) {
 			| we're skipping the TLO for monitoring
@@ -1432,9 +1463,6 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub)
 		}
 	}	
 	
-	
-	
-	
 	| are we moving? and not a bard?
 	/if (!${Select[${Me.Class.ShortName},BRD]}) {
 		/if (${Me.Moving}) /return FALSE
@@ -1608,16 +1636,15 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub)
 		}
 		
 		| check for stacking issues
-		/if (${_tmpID} == ${Me.ID}) {
-			/if (${Spell[${_verbage}].SpellType.Equal[Beneficial]} && !${Spell[${_verbage}].Category.Equal[Heals]}) {
+			| DEBUG ${sep}${Spell[${_verbage}].SpellType.Equal[Beneficial]} && !${Spell[${_verbage}].Category.Equal[Heals]} && !${Select[${Spell[${_verbage}].Category},Heals,Combat Inates]}
+		/if (${_tmpID} == ${Me.ID} || ${_tmpID} == 0) {
+			/if (${Spell[${_verbage}].SpellType.Equal[Beneficial]} && !${Select[${Spell[${_verbage}].Category},Heals,Combat Inates]}) {
 				/if (!${Spell[${_verbage}].Stacks}) /return FALSE
 				/if (${Me.Buff[${_verbage}].ID}) /return FALSE
 				/if (${Me.Song[${_verbage}].ID}) /return FALSE		
 			}
 		}
 		
-		
-
 		|** check any subs? yes.. no.. maybe??
 		/if (${SubDefined[${_sub}]} && ${_sub.NotEqual[skiptargetcheck]}) {
 			DEBUG ${sep}/call ${_sub}
@@ -2901,7 +2928,9 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		
 		| melee tag
 		| anything less then what we can range at. magic number is 31 paces
-		} else /if (${Spawn[ID ${_tmpID}].Distance} <= ENV && MELEE) {
+		} 
+		
+		/if (${Spawn[ID ${_tmpID}].Distance} <= ENV && MELEE) {
 			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
 			GETINPUT
 			/attack on
@@ -2910,14 +2939,13 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			| dont argue with me on this. i'm not changing my mind
 			| if we are not in this range, we try and get closer.
 			/if (${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
+				DEBUG ${sep}${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}
 				DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \agNAVTO\ax
 				/nav ID ${_tmpID} |dist=${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} log=off
 				/delay 5 ${Me.Moving}
 			}
-
-
 			/return TRUE
-			
+	
 		}
 				
 	} else /if (!${Spawn[${_tmpID}].LineOfSight} && !${maOver.Find[swOverLOS].Value}) {
@@ -2933,7 +2961,26 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			/call clear_combat FALSE
 			/return FALSE
 		}	
-	
+		
+		
+	/if (${Spawn[ID ${_tmpID}].Distance} <= ENV && MELEE && !RANGE) {
+		DEBUG ${sep}Tag${sep}Melee NO RANGE${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
+		GETINPUT
+		/attack on
+		
+		| we are using 90% of the targets max range to melee just to make sure we get close enough.
+		| dont argue with me on this. i'm not changing my mind
+		| if we are not in this range, we try and get closer.
+		/if (${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
+			DEBUG ${sep}${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}
+			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \agNAVTO\ax
+			/nav ID ${_tmpID} |dist=${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} log=off
+			/delay 5 ${Me.Moving}
+		}
+		/return TRUE
+
+	}		
+		
 /return FALSE
 
 
@@ -3067,7 +3114,7 @@ sub set_spell_to(bool _debug, bool _echo, string _spellname, string _spellgem, b
 	
 	| cant open a book with shit in hands
 	/if (${Cursor.ID}) {
-		/call check_cursor FALSE TRUE CLEAR
+		/call check_cursor ${_debug} CLEAR
 	}
 
 	| set timer for.. whatever
@@ -3737,15 +3784,24 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 	} 
 	
 	| ** end of error control .. start of actually getting something fucking done. ** |
-	
-	
+
 	| does it have a ?
 	/declare _map string local ${get_key_map[${_debug}, ${_variable}]}
 	/declare _list bool local FALSE
 	/declare _found bool local FALSE
 
+
+	| environment_var edits. not for users...
+	/if (${_DBLOC.Arg[1,|].Equal[environment_var]}) {
+
+		/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET value=${Parse[1,"${_value}"]} WHERE ${_DBLOC.Arg[2,|]}="${_variable}"
+		DEBUG ${sep}dummy UPDATE ${_DBLOC.Arg[1,|]} SET value=${Parse[1,"${_value}"]} WHERE ${_DBLOC.Arg[2,|]}="${_variable}" \ay${sqlite.Status[dummy]}\ax
+
+		/varset ${_variable} ${_value}
+		/return TRUE
+
 	| set value as a gem
-	/if (${_value.Find[gem]} && ${_value.Length} < 6) {
+	} else /if (${_value.Find[gem]} && ${_value.Length} < 6) {
 
 		/declare _gemN int local ${get_gem_id[FALSE, ${_value}]}
 
@@ -4153,7 +4209,7 @@ sub check_last_supper(bool _debug)
 		/useitem "${maEnv.Find[stDrink].Value}"
 	}
 			
-/return
+/return TRUE
 
 
 
@@ -4279,7 +4335,7 @@ sub check_buff_cycle_now(bool _debug)
 			/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" 0 FALSE
 	
 			/if (${lsBuff${_count}Tag.Contains[autoinventory]}) {
-				/call check_cursor ${_debug} TRUE CLEAR
+				/call check_cursor ${_debug} CLEAR
 			}
 		
 		/next _count
@@ -4805,7 +4861,7 @@ sub check_buff_cycle_ammo(bool _debug)
 		}
 		/delay 10s !${Me.Casting.ID}
 
-		/call check_cursor FALSE TRUE CLEAR
+		/call check_cursor ${_debug} CLEAR
 
 	/next _count	
 
@@ -6252,14 +6308,15 @@ sub set_timer(bool _debug, string _my_timer, string _my_duration)
 | #Event forcedloreleave "#*#already has #1# and it is lore#*#"
 | #Event forcedloreleave "#*#does not want #1#. It is either on their never list or they have selected No#*#"
 sub Event_forcedloreleave(string line, string _itemName, bool _debug)
-	/if (!${maEnv.Find[swADVLoot].Value}) /return
-	/varset _itemName ${AdvLoot.SList[1].Name}
-	/varset dump ${out[14, "Cursor ${sep} ${cinfo}${_itemName}\ax -> ${oleave}"]}
-	/ini "${INILoot}" "${_itemName.Left[1]}" "${_itemName}" Leave
-	/doevents flush
+	| /if (!${maEnv.Find[swADVLoot].Value}) /return
+	| /varset _itemName ${AdvLoot.SList[1].Name}
+	| /varset dump ${out[14, "Cursor ${sep} ${cinfo}${_itemName}\ax -> ${oleave}"]}
+	| /ini "${INILoot}" "${_itemName.Left[1]}" "${_itemName}" Leave
+	| /doevents flush
 /return
 
 sub do_loot(bool _debug)
+	/if (${maDebug.Find[loot].Value}) /varset _debug TRUE
 	DEBUG \atdo_loot\ax()
 	
 	ISMEDEAD
@@ -6426,7 +6483,7 @@ sub do_loot(bool _debug)
 							/varset dump ${out[14, "Destroying${sep}\a-w${_advlItem}\ax"]}
 							/nomodkey /destroy
 					
-							| /call check_cursor FALSE TRUE CLEAR
+							/call check_cursor ${_debug} CLEAR
 							/if (${Window[ConfirmationDialogBox].Open}) {
 								/delay 1
 								/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
@@ -6630,28 +6687,27 @@ sub check_cure(bool _debug)
 
 |***
  * note: dumb fucks always gotta put that red bouncy ball on my cursor
- * use: /call check_cursor DEBUG [ignoretimer T/F] [clear]
+ * use: /call check_cursor DEBUG [clear]
  ***|
-sub check_cursor(bool _debug, bool _ignoreTimer, string _verbage)
-	DEBUG \atcheck_cursor\ax(\a-w${_ignoreTimer}, ${_verbage}\ax)
-	
-	/if (!${Cursor.ID}) /return
+sub check_cursor(bool _debug, string _verbage)
+	/if (${maDebug.Find[loot].Value}) /varset _debug TRUE
+	DEBUG \atcheck_cursor\ax(\a-w${_verbage}\ax)
+
+
+	| /if (!${Cursor.ID}) /return
 
 	| force clearing the cursor and GTFO
 	/if (${_verbage.Equal[CLEAR]} && ${Me.FreeInventory}) {
-		DEBUG Force Inventory
-		/while (${Cursor.ID} && ${Me.FreeInventory}) {
-			/autoinventory
-			/delay 2
-		}
-		/return TRUE
+		DEBUG ${sep}Force Inventory${sep}\a-w${Cursor.Name}\ax
+		/varset dump ${set_timer[${_debug}, Check_Cursor, 0]}
 	}
 
-	/if (!${_ignoreTimer} && ${timer_Check_Cursor}) /return
+	/if (${timer_Check_Cursor}) /return FALSE
 	ISMEDEAD
 
 	| please bow your heads..  lsAutoInventory has entered the room
 	/if (${lsAutoInventory.Contains[${Cursor.Name}]}) {
+		DEBUG ${sep}lsAutoInventory${sep}\a-w${Cursor.Name}\ax
 		/autoinventory 
 		/return TRUE
 	}
@@ -6661,11 +6717,12 @@ sub check_cursor(bool _debug, bool _ignoreTimer, string _verbage)
 	}
 	
 	| allow for absence of override for not in same zone as master  looter
-	/if (!${maOver.Find[swOverLoot].Value} && !${_ignoreTimer}) /return FALSE
+	| /if (!${maOver.Find[swOverLoot].Value}) /return FALSE
 	
 	/if (!${Cursor.ID}) /return
 	/declare _cursorChoice string local 
 	
+	DEBUG HERE
 	
 	/while (${Cursor.ID}) {
 		| see if the item is in the database
@@ -6678,6 +6735,7 @@ sub check_cursor(bool _debug, bool _ignoreTimer, string _verbage)
 
 		| reload data
 		/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}" LIMIT 1
+		DEBUG lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}" LIMIT 1 \ay${sqlite.Status[dummy]}\ax
 		
 		| wtf we gotta do with the item?
 		| do the things that we do best
@@ -7489,7 +7547,7 @@ sub give_to_pet(string _item, bool _debug)
 			/click left target
 			/delay 5s !${Bool[${Cursor.ID}]}
 		} else {
-			/call check_cursor FALSE TRUE CLEAR
+			/call check_cursor ${_debug} CLEAR
 		}
 	}
 	
@@ -7519,7 +7577,7 @@ sub get_minion_summon_weapons(bool _debug)
 	/declare _openPackSlot int local 0
 	
 	| get everything out of your hands, including your dick
-	/call check_cursor FALSE TRUE CLEAR
+	/call check_cursor ${_debug} CLEAR
 
 	| need a non bag inventory slot or ur fuckled!
 	/varset _openPackSlot ${get_openPackSlot[FALSE, "Pouch of Quellious"]}
@@ -7544,7 +7602,7 @@ sub get_minion_summon_weapons(bool _debug)
 	}
 		
 	| have bag/not opened
-	/call check_cursor FALSE TRUE CLEAR
+	/call check_cursor ${_debug} CLEAR
 		
 	/if (${FindItemCount[=${get_MAG_folded_pack[]}]}) {
 		DEBUG :havemageclosedbag
@@ -7553,26 +7611,25 @@ sub get_minion_summon_weapons(bool _debug)
 			/call Bind_command_swap "${get_MAG_folded_pack[]}" ${_openPackSlot} FALSE
 		}
 
-		/call check_cursor FALSE TRUE CLEAR
+		/call check_cursor ${_debug} CLEAR
 
 		| convert the folded pack
 		/if (${is_ready[FALSE, "${get_MAG_folded_pack[]}"]}) {
 			/call voodoo FALSE "${get_MAG_folded_pack[]}" 0 FALSE
 		}
 
-		/call check_cursor FALSE TRUE CLEAR
+		/call check_cursor ${_debug} CLEAR
 
 	}	
 	
-	
-	/call check_cursor FALSE TRUE CLEAR
+	/call check_cursor ${_debug} CLEAR
 	
 	| have 2 blades
 	:havepetweapons
 	DEBUG :havepetweapons
 	/if (${Cursor.Name.Equal[Pouch of Quellious]}) /autoinventory
 	/for _count 1 to 2
-		/call check_cursor FALSE TRUE CLEAR
+		/call check_cursor ${_debug} CLEAR
 		/delay 2
 		DEBUG \agWEAPON\ax\aw${_count}\ax Pack${Int[${Math.Calc[${FindItem[Pouch of Quellious].ItemSlot}-22]}]} slot-${Int[${Math.Calc[${FindItem[=${maMinion.Find[stPetWeapon].Value}].ItemSlot2}+1]}]}
 		/nomodkey /itemnotify in Pack${Int[${Math.Calc[${FindItem[Pouch of Quellious].ItemSlot}-22]}]} ${Int[${Math.Calc[${FindItem[=${maMinion.Find[stPetWeapon].Value}].ItemSlot2}+1]}]} leftmouseup
@@ -7593,7 +7650,7 @@ sub get_minion_summon_weapons(bool _debug)
 		/invoke ${Window[GiveWnd].DoClose}
 	}
 
-	/call check_cursor FALSE TRUE CLEAR
+	/call check_cursor ${_debug} CLEAR
 
 	:havepouchandnoweapons
 	DEBUG :havepouchandnoweapons
@@ -7604,7 +7661,7 @@ sub get_minion_summon_weapons(bool _debug)
 
 	}
 
-	/if (${Cursor.ID}) /call check_cursor FALSE TRUE CLEAR
+	/if (${Cursor.ID}) /call check_cursor ${_debug} CLEAR
 
 	/if (${Window[InventoryWindow].Open}) /invoke ${Window[InventoryWindow].DoClose}
 	
@@ -8098,7 +8155,7 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 		/if (!${_tmpID}) /return FALSE
 		/call pull_mob_tag ${_debug} ${_tmpID}
 		/if (${Macro.Return}) {
-			/nav stop log=off
+			/nav stop |log=off
 			/break
 		}
 	}
@@ -9226,4 +9283,16 @@ sub set_control_output(bool _debug, string _map, string _outname, string _contro
 
 
 
+|***
+ * note: returns current priority dannet group
+ * use: ${set_dnet_group[DEBUG]}
+ ***|
+sub set_dnet_group(bool _debug)
 
+	/if (${stCurrentCrew.Equal[empty]} || !${Group.Members}) {
+		/return ${maComm.Find[stEntropyGroup_all].Value}
+	} else /if (${stCurrentCrew.NotEqual[empty]}) {
+		/return ${stCurrentCrew}
+	}
+
+/return all

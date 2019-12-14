@@ -64,7 +64,7 @@ sub set_initialize(bool _debug)
   /declare lsMaps list outer
   /varset dump ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maItems,maBuffs,maBuff,maBurn]}
   /varset dump ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
-  /varset dump ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maDeez,maMode,maRezControl,maWatchspawn]}
+  /varset dump ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maRezControl,maWatchspawn]}
   /varset dump ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery]}
 
   
@@ -110,7 +110,7 @@ sub set_initialize(bool _debug)
   /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mez,melee,minion,pull,rest,rez,target,zone,debuff,def,face,tie]}
   /varset dump ${_lsout.Append[buff,buffammo,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass,buffnow,bufftemp]}
   /varset dump ${_lsout.Append[cast,castitem,castnuke,castdot]}
-  /varset dump ${_lsout.Append[mode,modeforage,modedrag,modesummon,modepetfarm,modeharvest,modehunt]}
+  /varset dump ${_lsout.Append[mode,modeforage,modedrag,modesummon,modepetfarm,modeharvest,modehunt,modefish]}
   
   | class specific debuffs
   /if (${Select[${Me.Class.ShortName},BER]}) {
@@ -202,6 +202,7 @@ sub set_initial_environment(bool _debug)
   /varset dump ${set_data_timer[FALSE, Check_Loot, 1s]}
   /varset dump ${set_data_timer[FALSE, Check_Mode, 5]}
   /varset dump ${set_data_timer[FALSE, Check_LoS_Timeout, 10s]}
+  /varset dump ${set_data_timer[FALSE, Check_Housekeeping, 30s]}
 
 
   | /varset dump ${set_data_timer[FALSE, Check_Buff_List_Population, 2s]}
@@ -351,7 +352,6 @@ sub set_initial_environment(bool _debug)
     /call set_data FALSE maComm stFrontDelim                            map outer ON                "dannet lead from delimiters"
     /call set_data FALSE maComm stFullNames                             map outer FALSE             "dannet fullnames"
 
-
     | set DanNet groups
     /declare lsEntropyGroup list outer
     /varset dump ${lsEntropyGroup.Delimiter["|"]}
@@ -373,7 +373,7 @@ sub set_initial_environment(bool _debug)
   | generate modes
   /declare maMode map outer
   /declare _lsout list local
-  /varset dump ${_lsout.Append[forage,drag,summon,petfarm,harvest,hunt]}
+  /varset dump ${_lsout.Append[forage,drag,summon,petfarm,harvest,hunt,fish]}
 
 	/declare _lisie listiterator local
   /vardata _lisie _lsout.First.Clone
@@ -517,6 +517,7 @@ sub sql_set_character_schema(bool _debug)
   /varset dump ${maDBTables.Add[environment_timer,env_timer]}
   /varset dump ${maDBTables.Add[environment_items,env_var]}
   /varset dump ${maDBTables.Add[environment_crew,env_var]}
+  /varset dump ${maDBTables.Add[environment_var,env_var]}
 
   /sqlite ${maData.Find[DBcharacter].Value} SQL_ENV_BUILD SELECT build_number FROM build
   DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[dummy]}\ax
@@ -1046,13 +1047,17 @@ sub set_initialize_crew(bool _debug)
   /declare _count int local 0
 
   /for _count 1 to 12
-    /call set_data_crew FALSE lsCrew${_count}                 EMPTY                         "${auxli} list for crew #${_count}"
-    /call set_data_crew FALSE stCrew${_count}Leader           FALSE                         "${auxli} crew #${_count} leader"
-    /call set_data_crew FALSE stCrew${_count}Looter           FALSE                         "${auxli} crew #${_count} looter"
-    /call set_data_crew FALSE stCrew${_count}Assist           FALSE                         "${auxli} crew #${_count} assist"
+    /call set_data_crew FALSE lsCrew${_count}                 				EMPTY                         "${auxli} list for crew #${_count}"
+    /call set_data_crew FALSE stCrew${_count}Leader          					FALSE                         "${auxli} crew #${_count} leader"
+    /call set_data_crew FALSE stCrew${_count}Looter           				FALSE                         "${auxli} crew #${_count} looter"
+    /call set_data_crew FALSE stCrew${_count}Assist           				FALSE                         "${auxli} crew #${_count} assist"
   /next _count
 
-/return
+	| /call set_data ${_debug} FALSE stCurrentCrew										EMPTY
+	/call set_data ${_debug} FALSE stCurrentCrew												string outer EMPTY
+
+
+/return TRUE
 
 
 
@@ -1068,7 +1073,7 @@ sub set_initialize_map_conditions(bool _debug)
     /call set_data_condition FALSE c${_count}                         FALSE
   /next _count
 
-/return
+/return TRUE
 
 
 
@@ -1087,7 +1092,7 @@ sub set_initialize_map_buffs(bool _debug)
     /call set_data_buffs FALSE lsBuff${_count}Tag                     EMPTY 
   /next _count
 
-/return
+/return TRUE
 
 
 
