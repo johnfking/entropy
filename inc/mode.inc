@@ -13,7 +13,7 @@
  *	DES: set mode type
  *	USE: /mode []
  *  NOTE: starts/ends non-standard modes
- ***|
+
 #bind fredmode /fredmode
 sub Bind_fredmode(string _type, string _verbage, bool _debug)
 	/declare _bind string local Mode
@@ -66,7 +66,7 @@ sub Bind_fredmode(string _type, string _verbage, bool _debug)
 	/varset swAutoCursor ${sql_return[FALSE, swAutoCursor]}
 
 /return
-
+ ***|
 
 
 |***
@@ -93,7 +93,8 @@ sub switch_clear_mode(bool _debug)
 	/varset swOverrideEngagePct ${sql_return[FALSE, swOverrideEngagePct]}
 	/varset swAutoCursor ${sql_return[FALSE, swAutoCursor]}
 	/varset swModeTrainspellSPC FALSE
-/return
+	
+/return TRUE
 
 
 
@@ -157,16 +158,15 @@ sub mode_skill_train(string _skilltype, bool _debug)
 		
 	| Bind Wounds
 	/if (${Me.AbilityReady[Bind Wound]} && ${FindItem[=Bandages].ID}) {
-		/if (${Me.Skill[Bind Wound]} < ${Skill[Bind Wound].SkillCap} && ${Me.PctHPs} < 99*.${tmpHealOverride}) {
-			/squelch /target ID ${Me.ID}
-		  /delay 3s ${Target.ID} == ${Me.ID}
-			/delay 2s
+		/if (${Me.Skill[Bind Wound]} < ${Skill[Bind Wound].SkillCap} && ${Me.PctHPs} < 99*.PCTHO) {
+			/varset dump ${set_target[${Me.ID}]}
 			/doability "Bind Wound"
 		}
 	}
 	
 	SETHUD FALSE
-/return
+	
+/return TRUE
 
 
 
@@ -775,6 +775,8 @@ sub mode_hunt(bool _debug)
 
 	SETHUD "mode hunt"
 
+	:checkpath
+
 	/if (${Bool[${stModeData}]}) {
 		/declare _lsHunt list local
 		/varset dump ${_lsHunt.Delimiter[|]}
@@ -790,40 +792,48 @@ sub mode_hunt(bool _debug)
 		}	
 
 	} else /if (!${Bool[${stModeData}]}) {
-		/call pull_mob_find ${_debug}
+		/call pull_mob_find ${_debug} ${_count}
 		DEBUG pull_mob_find.return${sep}\a-w${Macro.Return}\ax		
 	}
 
 	/if (!TARGET) {
 		DEBUG \arNO\ax stAssTarID
 		/call clear_combat ${_debug}
-		/goto :checkforbullshitadds
+		/return
 	}
 
-	:checkpath
 	/if	(!${Navigation.PathExists[locyxz ${Spawn[TARGET].Y} ${Spawn[TARGET].X} ${Spawn[TARGET].Z}]}) {
 		GETINPUT
 		/varset dump ${out[0, "${notice}${sep}No Nav Path${sep}\a-w${Spawn[TARGET].DisplayName}\ax"]}
 		/varcalc _count ${_count}+1
 		/if (${_count} > 10) /return FALSE
 		/delay 1s
-		/call pull_mob_find FALSE ${_count}
+		| /call pull_mob_find FALSE ${_count}
 		/goto :checkpath
-	}
+	 }
 
 	| get to the mob
 	| /declare _movetorange float local ${Math.Calc[${Spawn[TARGET].MaxRangeTo}*.9]}
 	
-	/call pull_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.9]} off
+	/call pull_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.9]} on
+	
+	| /delay 15s !${Navigation.Active}
 	
 	/if (${Spawn[id TARGET].Dead}) /return TRUE
 
-	| /nav id TARGET |distance=${_movetorange} lineofsight=${If[${maOver.Find[swOverLOS].Value},,los]} log=off
+
+	/varset dump ${maCC.Add[swSetCombat,TRUE]}
+	/varset dump ${set_target[TARGET]}
+		
+	| /call check_facing ${_debug} TARGET FORCE
+	
+	| /if (MELEE) /squelch /attack on
+	/call Bind_control_cc FORCE
+	/call main_${Me.Class.ShortName}
+	/call clear_combat
 	
 	
-	/varset dump ${set_target[TARGET]}	
-	
-	
+	|**
 	| kill our  mob
 	:checkforbullshitadds
 	/while (TARGET || (${SpawnCount[NPC radius ENV PS4]} && !TARGET)) {
@@ -835,14 +845,14 @@ sub mode_hunt(bool _debug)
 		}
 		
 		/if (TARGET) {
-			/call mode_combat_routine FALSE
+			/call Bind_control_cc FORCE
 			/delay 1s
 		}
 		/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE	
 		
 	}	
 	
-	
+	**|
 	
 	/varset dump ${maOver.Add[swOverPctEngage,FALSE]}
 	/varset dump ${maOver.Add[swOverLOS,FALSE]}
@@ -863,18 +873,23 @@ sub mode_hunt(bool _debug)
  * use: /mode hunt
  ***|
 sub mode_combat_routine(bool _debug)
+	DEBUG \atmode_combat_routine\ax()
 
 	/varset dump ${set_target[TARGET]}	
-	/call set_combat FALSE
+
+	/while (TARGET) {	
+	/call set_combat ${_debug}
 	/call check_facing ${_debug} TARGET FORCE
-	/if (PET || SWARM) /call send_pet ${maDebug.Find[minon].Value} TARGET
+	/if (PET || SWARM) /call send_pet ${_debug} TARGET
 	/if (SWARM) /call cast_temp_pet FALSE TARGET "${maChr.Find[stTempPet].Value}"
 	/if (AGRO && ${SubDefined[get_agro_${Me.Class.ShortName}]}) /call get_agro_${Me.Class.ShortName}
 	/call misc_combat_${Me.Class.ShortName} FALSE
-	/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
+	/if (BURN) /call burn_${Me.Class.ShortName} ${_debug}
+	/call check_facing ${_debug} TARGET FORCE
 	/if (MELEE) /call do_melee FALSE TARGET
-	/if (DOT) /call cast_DOT ${maDebug.Find[castdot].Value} lsDoT TARGET
-	/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
-	/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
+	/if (DOT) /call cast_DOT ${_debug} lsDoT TARGET
+	/if (NUKE) /call cast_nuke ${_debug} lsNuke TARGET
+	/call check_item_cycle ${_debug} TARGET
+	
 
 /return

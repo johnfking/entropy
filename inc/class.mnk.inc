@@ -22,7 +22,6 @@ sub set_MNK(bool _debug)
 	/call set_data_map ${_debug} maChr stAAUnity												FALSE													"${auxna} class aa unity buff"
 
   /call set_data_map ${_debug} maChr stRest 													PREGEN|1											"${auxna} name of stamina rest disc"
- 	/call set_data_map FALSE maChr stHiatus															PREGEN|1											"${auxna} name of hiatus stamina recovery disc"
  	/call set_data_map ${_debug} maChr swHiatus													FALSE													"${auxsw} use hiatus rest disc"
 	/call set_data_map ${_debug} maChr swTrainMelee											FALSE													"${auxsw} alternate skills for training"
 
@@ -72,6 +71,7 @@ sub main_MNK(bool _debug)
 			/call set_combat FALSE
 			/if (MELEE && !${timer_Check_Behind}) /call stick_to_target FALSE TARGET
 			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+			/call check_fd ${_debug}
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 			/if (MELEE) /call do_melee FALSE TARGET
@@ -124,6 +124,7 @@ sub misc_combat_MNK(bool _debug)
 	/if (${is_ready[FALSE, "${maChr.Find[stPrecision].Value}"]}) /call voodoo FALSE "${maChr.Find[stPrecision].Value}" TARGET FALSE
 	/if (${is_ready[FALSE, "${maChr.Find[stShuriken].Value}"]}) /call voodoo FALSE "${maChr.Find[stShuriken].Value}" TARGET FALSE
 	/if (${is_ready[FALSE, "${maChr.Find[stStorm].Value}"]}) /call voodoo FALSE "${maChr.Find[stStorm].Value}" 0 FALSE
+	/call check_fd ${_debug}
 
 /return
 
@@ -195,7 +196,7 @@ sub burn_MNK(bool _debug)
 	/if (${is_ready[${_debug}, "Focused Destructive Force"]}) /call voodoo ${_debug} "Focused Destructive Force" TARGET FALSE
 	/if (${is_ready[${_debug}, "${maChr.Find[stMonkey].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stMonkey].Value}" 0 FALSE
 	/if (${is_ready[${_debug}, "Silent Strikes"]}) /call voodoo ${_debug} "Silent Strikes" 0 FALSE
-	
+	/call check_fd ${_debug}
 | 	Check if we're using a disc, if not use Heel, if another, cancel it and use Heel
 
 	/if (!${Me.ActiveDisc.ID}) {
@@ -329,10 +330,25 @@ sub check_fd(bool _debug)
 				/return
 			}
 		}
+	} else /if (!AGRO && AUTO && ${Me.PctAggro} >= ${maChr.Find[stPctFDAggro].Value}) {
+		/if (!${Me.State.Equal[FEIGN]} && !${swIsMeDead}) {	
+			/if (${Me.AbilityReady[Feign Death]}) {
+				/attack off
+				/doability "Feign Death"
+				/delay 5
+			}
+			/doevents MNKfdcheck
+			/if (!AUTO) {
+				/call set_stop FALSE SILENT
+				/call clear_combat FALSE
+				/return
+			}
+		}
 	}
 
+
 	/if (${Me.State.Equal[FEIGN]}) {
-		/if (${Me.PctHPs} > ${maChr.Find[stPctFDHP].Value}} && AUTO && ${Me.PctAggro} <= ${maChr.Find[stPctFDAggro].Value}) /stand
+		/if (${Me.PctHPs} > ${maChr.Find[stPctFDHP].Value} && AUTO && ${Me.PctAggro} <= ${maChr.Find[stPctFDAggro].Value}) /stand
 	}
 	
 /return TRUE

@@ -21,7 +21,6 @@ sub set_BER(bool _debug)
 	/call set_data_map FALSE maChr stAAUnity														FALSE													"${auxna} class aa unity buff"
 
  	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
- 	/call set_data_map FALSE maChr stHiatus															PREGEN|1											"${auxna} name of hiatus stamina recovery disc"
  	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
 
 	/call set_data_map FALSE maChr stRageVolley 												PREGEN|1											"${auxna} "
@@ -49,7 +48,7 @@ sub set_BER(bool _debug)
 	/call set_data_map FALSE maChr stPhantomAssailant										PREGEN|1											"${auxna} "
 	/call set_data_map FALSE maChr stOpenWound													PREGEN|1											"${auxna} "
 
-/return
+/return TRUE
 
 
 
@@ -95,7 +94,7 @@ sub main_BER(bool _debug)
 		}
 	}
 
-/return
+/return TRUE
 
 
 
@@ -236,7 +235,8 @@ sub misc_combat_BER(bool _debug)
 			/call voodoo FALSE "${maChr.Find[stSharedBloodlust].Value}" 0 FALSE
 		}
 	}
-/return
+	
+/return TRUE
 
 
 
@@ -261,7 +261,7 @@ sub check_heal_BER(bool _debug, string _type)
 	
 	SETHUD FALSE
 
-/return
+/return TRUE
 
 
 
@@ -338,7 +338,7 @@ sub burn_BER(bool _debug)
 
 	/if (${Spawn[group PC Shaman].ID}) {
 	 	/if (!${Me.Buff[Savage Spirit].ID} && !${Me.ActiveDisc.ID}) {
-	 		/if (${is_ready[FALSE, "${maChr.Find[stInspiredAnger].Value}}"]}) /call voodoo FALSE "${maChr.Find[stInspiredAnger].Value}" 0 FALSE		
+	 		/if (${is_ready[FALSE, "${maChr.Find[stInspiredAnger].Value}"]}) /call voodoo FALSE "${maChr.Find[stInspiredAnger].Value}" 0 FALSE		
 	 	}
 		/if (!${Me.ActiveDisc.ID} && ${Me.AltAbilityReady[Savage Spirit]}) {
 		 /alt act 465
@@ -366,7 +366,7 @@ sub burn_BER(bool _debug)
 		/if (!${Me.CombatAbilityReady[${Spell[${maChr.Find[stResolve].Value}].RankName}]} && !${Me.CombatAbilityReady[${Spell[${maChr.Find[stVengefulFlurry].Value}].RankName}]}) /disc ${maChr.Find[stCleavingRage].Value}
 	}
 
-/return
+/return TRUE
 
 
 
@@ -411,5 +411,5 @@ sub set_control_BER(string _type, string _verbage, string _silent, bool _debug)
 	/if (${_silent.Equal[SILENT]}) /return 
 	/varset dump ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 	
-/return
+/return TRUE
 

@@ -29,7 +29,6 @@ sub set_CLR(bool _debug)
  	/call set_data_list ${_debug} maChr lsHealRenewal										PREGEN|3											"${auxli} renewal spells to use"
  	/call set_data_list ${_debug} maChr lsHealIntervention							PREGEN|3											"${auxli} intervention spells to use"
  	/call set_data_list ${_debug} maChr lsHealLight											PREGEN|3											"${auxli} light spells to use"
- 	| /call set_data_map FALSE maChr stHealPanic													PREGEN|1											"${auxna} oh shit spell"
 
   /call set_data_map ${_debug} maChr swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas"
   /call set_data_map ${_debug} maChr swCelestialRegen									FALSE													"${auxsw} use celestial regen aa"
@@ -45,7 +44,7 @@ sub set_CLR(bool _debug)
 	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
 
 	| issuance
-	/call set_data_map ${_debug} maChr stCountIssuance									0															"${auxnum} nuymber of mobs in area to use issuance"
+	/call set_data_map ${_debug} maChr stCountIssuance									0															"${auxnum} number of mobs in area to use issuance"
 	/call set_data_map ${_debug} maChr stIssuance												PREGEN|1											"${auxna} issuance spell"
 
 	| swarm pet
@@ -56,7 +55,7 @@ sub set_CLR(bool _debug)
 	/call set_data_map ${_debug} maChr stSplash													PREGEN|1											"${auxna} splash heal"
 
 	| divine rez
-	/call set_data_map ${_debug} maRez swDivineCleric										FALSE													"${auxsw} divin rez other clerics"
+	/call set_data_map ${_debug} maRez swDivineCleric										FALSE													"${auxsw} divine rez other clerics"
 	
 	| Rampage Tank 
 	/call set_data_map ${_debug} maChr stRampageTank										FALSE													"${auxna} rampage tank to not heal (\a-wcompletely ignore\ax)"
@@ -725,7 +724,6 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 
 		| use the weapon.. seriously.. go camp something. put some effort into the class
 		/if (${_verbage.Equal[use]}) {
-			/echo here switch
 			/varset dump ${set_switch_env[FALSE, swSummonPrimary, TRUE]}
 			
 		| spell to summon
@@ -737,7 +735,7 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 		/declare _lsout list local
 		/declare _lichrs listiterator local
 		/varset dump ${_lsout.Append[use,spell]}
-		/vardata li _lsout.First.Clone
+		/vardata _lichrs _lsout.First.Clone
 		/while (!${_lichrs.IsEnd}) {
 			/varset _out ${_out} ${If[${_lichrs.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${_lichrs.Value}\ax
 			/if (${_lichrs.Value.Equal[use]}) /varset _out ${_out}:${If[${maChr.Find[swSummonPrimary].Value},${on},${off}]}

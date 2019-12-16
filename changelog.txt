@@ -9,6 +9,20 @@
 
 
 
+- monk
+  more fd check
+- berserker
+  adjustments to burns
+- cleric
+  small typo on the help. we all know i can't spell
+  fixed a listiterator in the primary weapon summoning
+- mob finding for pulling
+  MQ2nav is now a requirement for pulling!
+  this impacts all things that find a mob to pull. all pull modes, hunter, so on.
+  step calculation has been changed to your pull env/5. 
+  mob acceptance is now based off shortest nav path not shortest mob distance. 
+  meaning it will go for the closest nav'able mob as to not agro other mobs in a longer path that may be closer.
+
 
 A191214.01
 - bard
@@ -18,11 +32,10 @@ A191214.01
   removed the HP check for the Gouging Blade line
 - /mode fish is working. will use a Fishermans Companion unless you manually equip another pole
 - cursor/loot several refinements
-
 - /crew #
   crews work from 1-12
   lsCrew# contains the list of your crew members
-  each crew will contain a dannet group for control of broadcasted commands
+  each crew will contain a dannet group for control of broadcasted commands\
 - /here now defaults to your current crew (no crew=all). /here all broadcasts to everyone
 - /enter now defaults to your current crew (no crew=all). /enter all broadcasts to everyone
 - /on now defaults to your current crew (no crew=all). /on all broadcasts to everyone
@@ -31,8 +44,6 @@ A191214.01
 - /take now defaults to your current crew (no crew=all). /take all broadcasts to everyone
 - /home gather now defaults to your current crew (no crew=all). /home gather all broadcasts to everyone
   
-
- 
 
 A191211.01
 - adjustments to /here

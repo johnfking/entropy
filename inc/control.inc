@@ -63,22 +63,21 @@ sub Bind_control_mode(string _type, string _verbage, bool _debug)
 			/varset stModeData ${_verbage}
 		}
 
-
-
 	} else /if (${maMode.Contains[${_type}]}) {
 		/varset dump ${maMode.Add[${_type},${If[${maMode.Find[${_type}].Value},FALSE,TRUE]}]}
 	}
   
   /declare _out string local
-  /vardata mi maMode.First.Clone
-  /while (!${mi.IsEnd}) {
-		/varset _out ${_out} ${If[${mi.Key.Equal[${maMode.First}]},,${dot}]} ${If[${mi.Value},\ag${mi.Key}\ax,${info}${mi.Key}\ax]}
-		/varset dump ${mi.Advance}
+  /declare _mimode mapiterator local
+  /vardata _mimode maMode.First.Clone
+  /while (!${_mimode.IsEnd}) {
+		/varset _out ${_out} ${If[${_mimode.Key.Equal[${maMode.First}]},,${dot}]} ${If[${_mimode.Value},\ag${_mimode.Key}\ax,${info}${_mimode.Key}\ax]}
+		/varset dump ${_mimode.Advance}
   }
   /varset _out ${_out} ${dot} \awdata\ax:(${num}${If[${Bool[${stModeData}]},${stModeData},${off}]}\ax)
 	/varset dump ${out[12, "/mode ${_out}"]}
 
-/return
+/return TRUE
 
 
 
@@ -165,7 +164,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 			/declare _totalCount int local 0
 			
 			/varset dump ${out[12, "\awImporting Loot File from\ax\at...\ax\a-w${_lootini}\ax"]}
-			/varset dump ${out[12, "On Large loot files this will take a min to build."]}
+			/varset dump ${out[12, "On large loot files this will take a second to build."]}
 			
 				/for _countS 0 to ${Ini[${_lootini}].Count[|]}
 
@@ -1283,7 +1282,7 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 #Bind deez /deez
 sub Bind_deez(string _type, bool _debug)
 
-	
+	/declare _count int local 0
 
 	/if (${_type.Equal[nutz]}) {
 		/varset dump ${out[0, "dannuic said i should put this in to powerlevel people"]}
@@ -1303,39 +1302,32 @@ sub Bind_deez(string _type, bool _debug)
 
 	| fakes a hash	
 	/if (${_type.Equal[hash]}) {
-		
 		/declare alpha list local
 		/varset dump ${alpha.Append[a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z]}
 		/declare numeric list local
 		/varset dump ${numeric.Append[0,1,2,3,4,5,6,7,8,9]}	
 		/declare _hash string local
 		/declare _list string local
-		
 		/declare _an int local 0
 		/declare _count int local 0
-		
 		/for _count 1 to 32
 			/varset _an ${Math.Rand[1,2]}
-			
 			/if (${_an} == 1) {
 				/varset _list alpha
 			} else /if (${_an} == 2) {
 				/varset _list numeric
 			}
 			/varset _hash ${_hash}${${_list}.Item[${Math.Rand[0,${Math.Calc[${${_list}.Count}-1]}]}]}
-
 		/next _count
-		
 		/echo hash:\a-w${_hash}\ax
-	
 	}
+
+
 	
 	| var echos for debugging
 	/if (${_type.Equal[debug]}) {
 		/echo
-		
 		OUT \awmode\ax ${dot} melee${sep}\a-wMELEE\ax  nuke${sep}\a-wNUKE\ax  range${sep}\a-wRANGE\ax  dot${sep}\a-wDOT\ax  heal${sep}\a-wHEAL\ax  
-		
 		OUT {maEnv.Find[swAuto].Value}${sep}\a-w${maEnv.Find[swAuto].Value}\ax .. #auto:\a-wAUTO\ax
 		OUT {maCC.Find[swSetCombat].Value}${sep}\a-w${maCC.Find[swSetCombat].Value}
 		OUT {maCC.Find[swValidAssTarID].Value}${sep}\a-w${maCC.Find[swValidAssTarID].Value}
@@ -1343,12 +1335,11 @@ sub Bind_deez(string _type, bool _debug)
 		OUT {maBurn.Find[swBurnConditionMet].Value}${sep}\a-w${maBurn.Find[swBurnConditionMet].Value}
 		OUT swIsMeDead${sep}\a-w${swIsMeDead}
 		OUT {maEnv.Find[stEnvRadius].Value}${sep}\a-w${maEnv.Find[stEnvRadius].Value}\ax .. #env:\a-wENV\ax
-
 		/varset dump ${out[18, "${eol}"]} 
 	}
 	
 	
-	
+	| map comma test	
 	/if (${_type.Equal[map]}) {
 		/varset dump ${maDeez.Add[001,1]}
 		/varset dump ${maDeez.Add[007,"Bond, James"]}
@@ -1356,7 +1347,7 @@ sub Bind_deez(string _type, bool _debug)
 		/call Bind_command_see maDeez
 	}	
 	
-	
+	| list comma test
 	/if (${_type.Equal[list]}) {
 		/varset dump ${lsDeez.Append[001]}
 		/varset dump ${lsDeez.Append["bond, james"]}
@@ -1364,7 +1355,7 @@ sub Bind_deez(string _type, bool _debug)
 		/call Bind_command_see lsDeez
 	}
 	
-	
+	| item actors test
 	/if (${_type.Equal[actors]}) {
 		/declare MyGroundItem ground local
 		/vardata MyGroundItem Ground.First
@@ -1374,13 +1365,11 @@ sub Bind_deez(string _type, bool _debug)
 		/next _count
 	}	
 	
-	
+	| ground item loop test
 	/if (${_type.Equal[ground]}) { 
-	
 		/declare _item ground local
 		/vardata _item Ground.First
-		/declare _count in local 1
-	
+		/varset _count 1
 		/while (${_count} <= ${GroundItemCount}) {
 			/if (${_item.DisplayName.Find[Glowing Globe]}) {
 				/echo ${_count}/${GroundItemCount} -- ${_item.DisplayName}\ax${sep}Path-\a-w${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}\ax${sep}dis-\a-w${_item.Distance}\ax
@@ -1391,12 +1380,50 @@ sub Bind_deez(string _type, bool _debug)
 		}
 	}
 	
+	| database pull test for a mana click item
 	/if (${_type.Equal[dbtest]}) { 
-	
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM mana_recovery WHERE env_var="Wand of Arcronite Modulation"
-	
 		OUT ${sqlite.Result[dummy 1 value]}
 	}
+	
+	
+	| pathing crawl test
+	/if (${_type.Equal[crawl]}) { 
+	
+		/declare _tmpID int local 0
+		/declare _closest int local 9999999
+		/declare _closestID int local 0
+		
+
+		/for _count 1 to ${SpawnCount[npc range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius PULLENV zradius ${maCC.Find[stZRadius].Value} targetable]}
+			/varset _tmpID ${NearestSpawn[${_count}, npc range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius PULLENV zradius ${maCC.Find[stZRadius].Value}].ID}
+			| /echo ${_tmpID}
+			/if (!${Navigation.PathExists[locyxz ${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]}) /continue
+			
+			OUT  path length to \aw${_tmpID}\ax ${dot} NavDistance${sep}\a-w${Navigation.PathLength[locyxz ${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]}\ax (\aySpawnDistance${sep}${Spawn[${_tmpID}].Distance})
+
+			/if (${Navigation.PathLength[locyxz ${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]} < ${_closest}) {
+				/varset _closest ${Navigation.PathLength[locyxz ${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]}
+				/varset _closestID ${_tmpID}
+			}
+		
+		/next _count
+		OUT closest mob${sep}\ag${_closestID}\ax
+
+	}	
+	
+	| testing for finding closest mob	
+	/if (${_type.Equal[findmob]}) {
+		
+		/call pull_mob_find ${_debug}
+		
+		OUT Closest mob${sep}\awTARGET\ax${sep}\a-w${Spawn[id TARGET].DisplayName}\ax
+		OUT Setting Target
+		/varset dump ${set_target[TARGET]}
+		/varset stAssTarID 0
+		
+	}
+	
 
 /return
 	
@@ -2292,7 +2319,11 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 			/varset dump ${maCC.Add[swValidAssTarID,TRUE]}
 			/varset dump ${maCC.Add[swSetCombat,TRUE]}
 			/varset stAssTarID ${Target.ID}
-			/varset dump ${out[12, "/cc force ${dot} ${tar}${Target.DisplayName}\ax"]}
+			/if (${swModeToken}) {
+				/varset dump ${out[12, "Hunting ${dot} ${tar}${Target.DisplayName}\ax"]}
+			} else {
+				/varset dump ${out[12, "/cc force ${dot} ${tar}${Target.DisplayName}\ax"]}
+			}
 			/if (${maMinion.Find[swonForce].Value}) {
 				/pet attack
 			}
@@ -2305,8 +2336,30 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		/declare _count int local 0
 		/declare _toon string local FALSE
 		
-		/for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
-			/varset _toon ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
+		
+		
+
+	/if (${_type.Equal[all]}) {
+		/declare _group string local all
+	} else {
+		/declare _group string local ${set_dnet_group[FALSE]}
+	}
+
+	| /if (!${Bool[${_verbage}]} && ${DanNet.PeerCount[${_group}]} > 1) {
+		
+
+
+
+	| /if (!${Bool[${_verbage}]} && ${DanNet.PeerCount[${_group}]} > 1) {
+	| 	/varset dump ${out[21, "${broadcast}${sep}\a-w/cc kill\ax"]}
+	| 	/dgexecute ${_group} /here TRUE
+	| 	/return
+	| }		
+		
+		
+		
+		/for _count 1 to ${DanNet.PeerCount[${_group}]}
+			/varset _toon ${DanNet.Peers[${_group}].Arg[${_count},|]}
 			/if (${_toon.Equal[${Me.DisplayName}]}) /continue
 			/if (!${Spawn[pc ${_toon}].ID}) /continue
 
@@ -2336,7 +2389,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	/varset dump ${maControl.Add[bandolier,swBandolier]}
 	/varset dump ${maControl.Add[poison,swPoison]}
 	/varset dump ${maControl.Add[alliance,swAlliance]}
-	/varset dump ${set_control_output[${_debug}, maCC, cc, maControl]}		
+	/varset dump ${set_control_output[${_debug}, maCC, cc, maControl]}
 
 /return TRUE
 
@@ -2352,7 +2405,7 @@ sub Bind_command_aux(string _type, bool _debug)
 	| /varset _debug TRUE
 	/declare _lsout list local 
 	/varset dump ${_lsout.Append[alto,bandolier,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter]}
-	/varset dump ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,minion,navto,off,on,over,repeat,see,splash,take,tag,tc,tie]}
+	/varset dump ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,mode,minion,navto,off,on,over,repeat,see,splash,take,tag,tc,tie]}
 	
 	/if (${_lsout.Contains[${_type}]}) {
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY help_var
@@ -2658,9 +2711,9 @@ sub Bind_command_enter(string _type, bool _debug)
  * use: /invis
  ***|
 #bind command_invis /invis
-sub Bind_command_invis(string _other, bool _debug)
+sub Bind_command_invis(string _type, bool _debug)
 
-	/if (${_other.Equal[aux]}) {
+	/if (${_type.Equal[aux]}) {
 		/call Bind_command_aux invis
 		/return TRUE
 	}

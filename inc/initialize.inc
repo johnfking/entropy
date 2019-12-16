@@ -382,11 +382,7 @@ sub set_initial_environment(bool _debug)
     /varset dump ${_lisie.Advance}
   } 
   
-  | mode "set" optional data
-  /call set_data FALSE FALSE stModeData                            		string outer FALSE
-  
-
-/return
+/return TRUE
 
 
 
@@ -565,7 +561,7 @@ sub set_initialize_map_character_environment(bool _debug)
 |** data **|
   /call set_data FALSE maData stCastReturn                            map outer FALSE
 
-| output granularity
+|** control: grain **|
   /call set_data_list FALSE maEnv lsGrain                           1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30        "${auxnum} visual outputs you wish to see. \aw/verb aux\ax for full list"
 
 |** control: env **|
@@ -615,7 +611,6 @@ sub set_initialize_map_character_environment(bool _debug)
 |** control: heal **|
   /varset dump ${set_data_timer[FALSE, Check_Cure, 6s]}
   /call set_data_map FALSE maHeal stHealAdjust                        0                             "${auxnum} % to overide max health to"
-  /call set_data FALSE FALSE tmpHealAdjust                            float outer 99.99 
   /call set_data_map FALSE maHeal swHealSelf                          FALSE                         "${auxsw} enable self healing"
   /call set_data_map FALSE maHeal swHealGroup                         FALSE                         "${auxsw} enable group healing"
   /call set_data_map FALSE maHeal swHealXTarget                       FALSE                         "${auxsw} enable xtarget healing"
@@ -630,10 +625,13 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_list FALSE maHeal lsHealXTClass                      EMPTY                         "${auxli} classes to populate xtarget for healing use: \a-t/heal xtarget\ax"
   /call set_data_list FALSE maHeal lsNoHealToon                       EMPTY                         "${auxli} fuck these people.. no heals for them.."
 
+  /call set_data FALSE FALSE tmpHealAdjust                            float outer 99.99 
   /call set_data FALSE FALSE hurtID                                   int outer 0
   /call set_data FALSE FALSE hurtPctHP                                int outer 100
   /call set_data FALSE FALSE hurtCLS                                  string outer FALSE
   /call set_data FALSE FALSE hurtCount                                int outer 0
+ 
+ 	| points for healers
   /if (${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
     /call set_data_map FALSE maHeal stHealPointPanic                  80                            "${auxnum} % of health to use panic heal"
     /call set_data_map FALSE maHeal stHealPointHoT                    80                            "${auxnum} % of health to use single heal over time"
@@ -643,10 +641,11 @@ sub set_initialize_map_character_environment(bool _debug)
       /call set_data_map FALSE maHeal stHealPoint${_lishp.Value}      80                   					"${auxnum} % of health to start healing:\a-w${_lishp.Value}\ax"
       /varset dump ${_lishp.Advance}
     }
-	 /call set_data_list FALSE maHeal lsProtectOutsideGroup              EMPTY                         "${auxli} names outside of your group to add to xtarget for healing"
+	/call set_data_list FALSE maHeal lsProtectOutsideGroup              EMPTY                         "${auxli} names outside of your group to add to xtarget for healing"
   /call set_data_list FALSE maHeal lsProtectInsideRaid                EMPTY                         "${auxli} names in a raid to add to your xtarget healing (\a-wbeyond lsHealXTClass\ax)"
   /call set_data_list FALSE maHeal lsProtectNPCList                   EMPTY                         "${auxli} npcs to add to xtarget list for healing"
     
+  | points for everyone else
   } else /if (!${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
     /call set_data_map FALSE maHeal stHealPoint${Me.Class.ShortName}  60
   }
@@ -671,8 +670,8 @@ sub set_initialize_map_character_environment(bool _debug)
   /varset dump ${set_data_timer[FALSE, Check_Buff_Temp, 30s]}
   /varset dump ${set_data_timer[FALSE, Check_Buff_Now, 5s]}
   /varset dump ${set_data_timer[FALSE, Check_Buff_Powersource, 10m]}
-  /call set_data_list FALSE maBuff lsBuffRemove                       EMPTY                         "${auxli} buffs you want auto removed from you"
   /call set_data FALSE maBuff swBuffMaster                            map outer TRUE
+  /call set_data_list FALSE maBuff lsBuffRemove                       EMPTY                         "${auxli} buffs you want auto removed from you"
   /call set_data_map FALSE maBuff swBuffSelf                          FALSE                         "${auxsw} buff yourself"
   /call set_data_map FALSE maBuff swBuffCrew                          FALSE                         "${auxsw} buff your crew (\aynot you\ax)"
   /call set_data_map FALSE maBuff swBuffRaid                          FALSE                         "${auxsw} buff raid members"
@@ -734,6 +733,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 |** control: mode **|
   /call set_data FALSE FALSE swModeToken                              bool outer FALSE
+  /call set_data FALSE FALSE stModeData                            		string outer FALSE
 
 
 |** control: cc **|
@@ -787,7 +787,7 @@ sub set_initialize_map_character_environment(bool _debug)
     /varset dump ${lsMeleeSkill.Append[frenzy]}
     /call set_data_map FALSE maCC swFrenzy                            FALSE                         "${auxsw} some odd form of ocd for zerkers.. who knows."
   }
-  /if (${Select[${Me.Class.ShortName},BRD,BER,PAL,SHD,WAR,RNG]}) {
+  /if (${Select[${Me.Class.ShortName},BRD,BER,PAL,SHD,WAR,RNG,ROG]}) {
     /varset dump ${lsMeleeSkill.Append[disarm]}
     /call set_data_map FALSE maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
   }
@@ -809,23 +809,17 @@ sub set_initialize_map_character_environment(bool _debug)
   }
 
   /call set_data_map FALSE maCC stZRadius                             60                            "${auxnum} the z distance of your universe"
-  /call set_data_map FALSE maCC swBandolier                           FALSE                         "${auxsw} use bandolier swaps"
+  | /call set_data_map FALSE maCC swBandolier                           FALSE                         "${auxsw} use bandolier swaps"
   /call set_data_map FALSE maCC stPctStopNuke                         0                             "${auxnum} % of mob health to stop nuking/dotting it at"
   /call set_data_map FALSE maCC stNukeDelay                           0                             "${auxnum} time to forse between using nukes or dots"
   
-  
-  
   /call set_data_list FALSE maCC lsNoCastWith                         EMPTY                         "${auxli} list of target buffs you dont want to cast with"
   /call set_data_list FALSE maCC lsNoMeleeWith                        EMPTY                         "${auxli} list of target buffs you dont want to melee with"
-  | /call set_data_list FALSE maCC lsRangeItem                          EMPTY                         "${auxli}"
-  | /call set_data_list FALSE maCC lsRangeItemSummon                    EMPTY                         "${auxli}"
-  | /call set_data_map FALSE maCC stRangeItemCount                      0                             "${auxnum}"
   /call set_data_map FALSE maCC stRangeOther                          FALSE                         "${auxna} something else you would like to use for ranged pulling?"
   /call set_data_map FALSE maCC stDotRefresh                          3                             "${auxnum} time left on a dot to refresh it, in seconds"
   
   
-
-  | control: burn
+|** control: burn **|
   /call set_data FALSE maBurn swBurnConditionMet                      map outer FALSE 
   /call set_data_map FALSE maBurn swBurnForce                         FALSE                         "${auxsw} force burn routines"
   /call set_data_map FALSE maBurn swBurnAuto                          FALSE                         "${auxsw} auto burn on named encounters"
