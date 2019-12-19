@@ -424,7 +424,7 @@ sub burn_WAR(bool _debug)
 		/call voodoo FALSE "Wars Sheol's Heroic Blade" 0 FALSE
 	}
 
-	/call cast_AA_spire ${maDebug.Value[spire].Value}
+	/call cast_AA_spire ${maDebug.Find[spire].Value}
 	
 	/call cast_glyph ${maDebug.Value[glyph].Value}
 

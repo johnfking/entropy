@@ -579,7 +579,7 @@ sub burn_CLR(bool _debug)
 	/if (${Me.AltAbilityReady[Channeling the Divine]} && ${Me.AltAbilityReady[Celestial Rapidity]} && !${Me.Buff[Healing Frenzy].ID}) {
 		
 	  | Spire 1:30 min duration 7:30 min reuse
-   	/call cast_AA_spire ${maDebug.Value[spire].Value}
+   	/call cast_AA_spire ${maDebug.Find[spire].Value}
 	  
 	 	| anti agro (pric Silent Casting 1min duration 9 min reuse)
 		/if (!${Me.Buff[Divine Retribution].ID}) {

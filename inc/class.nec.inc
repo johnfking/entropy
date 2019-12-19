@@ -200,7 +200,7 @@ sub burn_NEC(bool _debug)
 	
 	| /if (!${Me.Song[Gift of Deathly Resolve].ID} && ${Me.Buff[Deathly Resolve].ID}) /call cast_nuke FALSE TARGET
 
-	/call cast_AA_spire ${maDebug.Value[spire].Value}
+	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 
 	| Pet Burnage

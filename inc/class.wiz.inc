@@ -218,7 +218,7 @@ sub burn_WIZ(bool _debug)
 		/call voodoo FALSE "${maChr.Find[stTC].Value}" 0 FALSE
 	}
 	
-	/call cast_AA_spire ${maDebug.Value[spire].Value}
+	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 	| boost spell type damage
 	/if (${is_ready[FALSE, "Fury of the Gods"]}) /call voodoo FALSE "Fury of the Gods" 0 FALSE

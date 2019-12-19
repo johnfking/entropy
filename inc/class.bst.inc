@@ -384,7 +384,7 @@ sub burn_BST(bool _debug)
 		/if (${is_ready[FALSE, "BloodLust"]}) {
 			/call voodoo FALSE "BloodLust" 0 FALSE
 		}
-		/call cast_AA_spire ${maDebug.Value[spire].Value}
+		/call cast_AA_spire ${maDebug.Find[spire].Value}
 		
 		/if (${is_ready[FALSE, "${maChr.Find[stSavage].Value}"]} && !${Me.Song[Bestial Alignment].ID}) {
 			/call voodoo FALSE "${maChr.Find[stSavage].Value}" 0 FALSE

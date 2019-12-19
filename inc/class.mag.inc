@@ -248,7 +248,7 @@ sub burn_MAG(bool _debug)
 		}
 	}
 
-	/call cast_AA_spire ${maDebug.Value[spire].Value}
+	/call cast_AA_spire ${maDebug.Find[spire].Value}
 	
 	/if (${is_ready[FALSE, "Silent Casting"]}) {
 		/call voodoo FALSE "Silent Casting" 0 FALSE

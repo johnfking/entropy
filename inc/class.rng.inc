@@ -265,7 +265,7 @@ sub burn_RNG(bool _debug)
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE	
 
-	/call cast_AA_spire ${maDebug.Value[spire].Value}
+	/call cast_AA_spire ${maDebug.Find[spire].Value}
 	
 	| cheeta
 	/if (${is_ready[FALSE, "Scarlet Cheeta's Fang"]}) {

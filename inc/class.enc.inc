@@ -285,7 +285,7 @@ sub burn_ENC(bool _debug)
 		/call voodoo ${_debug} "Mental Contortion" TARGET FALSE
 	}
 
-	/call cast_AA_spire ${maDebug.Value[spire].Value}
+	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 	/if (${is_ready[FALSE, "Improved Twincast"]}) {
 		/call voodoo ${_debug} "Improved Twincast" 0 FALSE

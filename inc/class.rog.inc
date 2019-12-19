@@ -331,7 +331,7 @@ sub burn_ROG(bool _debug)
 	/if (${is_ready[FALSE, "Rogue's Fury"]}) /call voodoo FALSE "Rogue's Fury" 0 FALSE
 	/if (${is_ready[FALSE, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15) /call voodoo FALSE "${maChr.Find[stMark].Value}" TARGET FALSE
 	
-	/call cast_AA_spire ${maDebug.Value[spire].Value}
+	/call cast_AA_spire ${maDebug.Find[spire].Value}
 	
 	/if (${is_ready[FALSE, "Intensity of the Resolute"]} && ${Raid.Members}) /call voodoo FALSE "Intensity of the Resolute" 0 FALSE
   /if (!${Me.ActiveDisc.ID}) {

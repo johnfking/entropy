@@ -294,7 +294,7 @@ sub burn_SHD(bool _debug)
 
 	/if (${is_ready[FALSE, "T`Vyl's Resolve"]}) /call voodoo FALSE "T`Vyl's Resolve" TARGET FALSE
 	/if (${is_ready[FALSE, "${maChr.Find[stCrimsonBlade].Value}"]}) /call voodoo FALSE "${maChr.Find[stCrimsonBlade].Value}" 0 FALSE
-	/call cast_AA_spire ${maDebug.Value[spire].Value}
+	/call cast_AA_spire ${maDebug.Find[spire].Value}
 	/if (${is_ready[FALSE, "Veil of Darkness"]}) /call voodoo FALSE "Veil of Darkness" TARGET FALSE
 	/if (${is_ready[FALSE, "Harm Touch"]}) /call voodoo FALSE "Harm Touch" TARGET FALSE
 	/if (AGRO) {

@@ -332,7 +332,7 @@ sub burn_BER(bool _debug)
 		/if (${is_ready[FALSE, "Intensity of the Resolute"]}) /call voodoo FALSE "Intensity of the Resolute" 0 FALSE
 	}
 	
-	/call cast_AA_spire ${maDebug.Value[spire].Value}
+	/call cast_AA_spire ${maDebug.Find[spire].Value}
 	
 	/if (${is_ready[FALSE, "Blood Pact"]}) /call voodoo FALSE "Blood Pact" 0 FALSE
 

@@ -340,7 +340,7 @@ sub burn_SHM(bool _debug)
 	| Increase spell cost by 14% for 100% exceptional heals on instant heals for 18 seconds
 	/if (${is_ready[FALSE, "Spiritual Blessing"]}) /call voodoo ${_debug} "Spiritual Blessing" TARGET FALSE
 
-	/call cast_AA_spire ${maDebug.Value[spire].Value}
+	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 	/call cast_glyph ${maDebug.Value[glyph].Value}
 

@@ -339,7 +339,7 @@ sub burn_BRD(bool _debug)
  		/call voodoo FALSE "Thousand Blades" 0 FALSE	
  	}
  	
-	/call cast_AA_spire ${maDebug.Value[spire].Value}
+	/call cast_AA_spire ${maDebug.Find[spire].Value}
 	
 	/if (${is_ready[FALSE, "Funeral Dirge"]}) {
 		/call voodoo FALSE "Funeral Dirge" 0 FALSE

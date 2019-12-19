@@ -300,7 +300,7 @@ sub burn_DRU(bool _debug)
 	| heal boost
 	/if (${is_ready[FALSE, "Nature's Blessing"]}) /call voodoo FALSE "Nature's Blessing" 0 FALSE
 
-	/call cast_AA_spire ${maDebug.Value[spire].Value}
+	/call cast_AA_spire ${maDebug.Find[spire].Value}
 	
 	| AA AE heal
 	/if (!${Raid.Members}) {
