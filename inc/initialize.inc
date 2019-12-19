@@ -23,6 +23,7 @@ sub set_initialize(bool _debug)
   /call set_data FALSE FALSE DNReturn string outer FALSE
   /call set_data FALSE FALSE swDBlocked bool outer FALSE
   /call set_data FALSE FALSE DNQReturn string outer FALSE
+  /call set_data FALSE FALSE DNQReturn2 string outer FALSE
 
 	| map iterator dump variable
   /declare mi mapiterator outer
@@ -58,7 +59,6 @@ sub set_initialize(bool _debug)
   
   | PREGEN recorder
   /declare maPREGEN map outer
-  
 
   | list of all maps used with persistant data
   /declare lsMaps list outer
@@ -66,7 +66,6 @@ sub set_initialize(bool _debug)
   /varset dump ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
   /varset dump ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maRezControl,maWatchspawn]}
   /varset dump ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery]}
-
   
   | set all output shortcuts
   /call set_data FALSE FALSE num                                      string outer "\a-t"
@@ -109,8 +108,10 @@ sub set_initialize(bool _debug)
   /declare _lsout list local
   /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mez,melee,minion,pull,rest,rez,target,zone,debuff,def,face,tie]}
   /varset dump ${_lsout.Append[buff,buffammo,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass,buffnow,bufftemp]}
+  /varset dump ${_lsout.Append[spire,glyph]}  
   /varset dump ${_lsout.Append[cast,castitem,castnuke,castdot]}
   /varset dump ${_lsout.Append[mode,modeforage,modedrag,modesummon,modepetfarm,modeharvest,modehunt,modefish]}
+  /varset dump ${_lsout.Append[housekeeping]}
   
   | class specific debuffs
   /if (${Select[${Me.Class.ShortName},BER]}) {
@@ -120,7 +121,9 @@ sub set_initialize(bool _debug)
   	/varset dump ${_lsout.Append[arbitrate]}
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
+  	/varset dump ${_lsout.Append[crystal,gather]}
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
+  	/varset dump ${_lsout.Append[coh,gather,cauldron]}
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
@@ -139,7 +142,7 @@ sub set_initialize(bool _debug)
     /varset dump ${cli.Advance}
   } 
 
-/return
+/return TRUE
 
 
 
@@ -203,6 +206,10 @@ sub set_initial_environment(bool _debug)
   /varset dump ${set_data_timer[FALSE, Check_Mode, 5]}
   /varset dump ${set_data_timer[FALSE, Check_LoS_Timeout, 10s]}
   /varset dump ${set_data_timer[FALSE, Check_Housekeeping, 30s]}
+  
+  
+  
+  | 6/varset dump ${set_data_timer[FALSE, Wait_For_Mob, 1]}
 
 
   | /varset dump ${set_data_timer[FALSE, Check_Buff_List_Population, 2s]}
@@ -278,7 +285,7 @@ sub set_initial_environment(bool _debug)
 
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
 		| /varset dump ${maChrControl.Add[charm,]}
-	  | /varset dump ${maChrControl.Add[gather,]}
+	  /varset dump ${maChrControl.Add[gather,stPctGather]}
 	  /varset dump ${maChrControl.Add[bos,swAABoS]}
 	  /varset dump ${maChrControl.Add[crystal,swAACrystals]}
 
@@ -286,6 +293,7 @@ sub set_initial_environment(bool _debug)
 	  /varset dump ${maChrControl.Add[line,stCurrent|br]}
 	  /varset dump ${maChrControl.Add[gather,stPctGather]}
 	  /varset dump ${maChrControl.Add[forcetc,swForceTC]}
+	  /varset dump ${maChrControl.Add[cauldron,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
 	  /varset dump ${maChrControl.Add[train,swTrainMelee]}
@@ -811,7 +819,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maCC stZRadius                             60                            "${auxnum} the z distance of your universe"
   | /call set_data_map FALSE maCC swBandolier                           FALSE                         "${auxsw} use bandolier swaps"
   /call set_data_map FALSE maCC stPctStopNuke                         0                             "${auxnum} % of mob health to stop nuking/dotting it at"
-  /call set_data_map FALSE maCC stNukeDelay                           0                             "${auxnum} time to forse between using nukes or dots"
+  /call set_data_map FALSE maCC stNukeDelay                           0                             "${auxnum} time to force between using nukes or dots"
   
   /call set_data_list FALSE maCC lsNoCastWith                         EMPTY                         "${auxli} list of target buffs you dont want to cast with"
   /call set_data_list FALSE maCC lsNoMeleeWith                        EMPTY                         "${auxli} list of target buffs you dont want to melee with"

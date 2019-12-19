@@ -2406,6 +2406,7 @@ sub Bind_command_aux(string _type, bool _debug)
 	/declare _lsout list local 
 	/varset dump ${_lsout.Append[alto,bandolier,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter]}
 	/varset dump ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,mode,minion,navto,off,on,over,repeat,see,splash,take,tag,tc,tie]}
+	/varset dump ${_lsout.Append[coh]}
 	
 	/if (${_lsout.Contains[${_type}]}) {
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY help_var
@@ -3105,9 +3106,9 @@ sub Bind_command_here(string _type)
  * use: /take [debug] <SENDER>
  ***|
 #bind command_take /take
-sub Bind_command_take(string _debug, string _sender)
+sub Bind_command_take(string _type, string _debug)
 	
-	/if (${_debug.Equal[aux]}) {
+	/if (${_type.Equal[aux]}) {
 		/call Bind_command_aux take
 		/return		
 	}
@@ -3120,7 +3121,7 @@ sub Bind_command_take(string _debug, string _sender)
 
 	/if (!${Bool[${_type}]} && ${DanNet.PeerCount[${_group}]} > 1) {
 		/varset dump ${out[21, "${broadcast}${sep}\a-w/take\ax"]}
-		/dgexecute ${_group} /take FALSE ${Me.DisplayName}
+		/dgexecute ${_group} /take ${Me.DisplayName} FALSE 
 	} 
 
 	| take ports

@@ -189,7 +189,7 @@ sub burn_MNK(bool _debug)
 	/if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" 0 FALSE
 	/if (${is_ready[${_debug}, "${maChr.Find[stAlliance].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" TARGET FALSE 
 	
-	/call cast_AA_spire ${_debug}
+	/call cast_AA_spire ${maDebug.Value[spire].Value}
 	
 	/if (${is_ready[${_debug}, "${maChr.Find[stBalance].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stBalance].Value}" 0 FALSE
 	/if (${is_ready[${_debug}, "Infusion of Thunder"]}) /call voodoo ${_debug} "Infusion of Thunder" 0 FALSE
@@ -230,7 +230,7 @@ sub burn_MNK(bool _debug)
 	/if (${is_ready[${_debug}, "Five Point Palm"]}) /call voodoo ${_debug} "Five Point Palm" TARGET FALSE
 	/if (${is_ready[${_debug}, "Swift Tail's Chant"]}) /call voodoo ${_debug} "Swift Tail's Chant" 0 FALSE    
 
-  /call cast_glyph ${_debug}
+  /call cast_glyph ${maDebug.Value[glyph].Value}
 
 /return TRUE
 

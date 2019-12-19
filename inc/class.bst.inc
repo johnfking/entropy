@@ -79,12 +79,11 @@ sub main_BST(bool _debug)
 
 		/if (VALID) {
 			/call set_combat FALSE
-			/if (PET || SWARM) /call send_pet ${maDebug.Find[minon].Value} TARGET
 			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+			/if (PET || SWARM) /call send_pet ${maDebug.Find[minon].Value} TARGET
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
 			/call misc_combat_${Me.Class.ShortName} FALSE
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
-
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDoT TARGET
@@ -102,7 +101,7 @@ sub main_BST(bool _debug)
 		}	
 	}
 	
-/return
+/return TRUE
 
 
 
@@ -169,7 +168,7 @@ sub misc_combat_BST(bool _debug)
 		| }
 	}
 	
-/return
+/return TRUE
 
 
 
@@ -230,7 +229,7 @@ sub check_mana_BST(bool _debug)
 		}
 	}
 		
-/return
+/return TRUE
 
 
  
@@ -320,7 +319,8 @@ sub cast_AA_paragon(bool _debug)
 	} else /if (${Bool[${Me.Song[Paragon of Spirit]}]}) {
 		OUT ${owarning} trying to cast ${csp}Paragon of Spirit\ax while its running.	
 	}		
-/return
+	
+/return TRUE
 
 
 
@@ -352,7 +352,6 @@ sub burn_BST(bool _debug)
 		/call voodoo FALSE "Ferociousness" 0 FALSE
 	}
 
-
 	/if (SWARM) {
 		/if (${is_ready[FALSE, "Attack of the Warders"]}) {
 			/call voodoo FALSE "Attack of the Warders" TARGET FALSE
@@ -371,7 +370,7 @@ sub burn_BST(bool _debug)
 		}
 	}
 
-	/call cast_glyph FALSE
+	/call cast_glyph ${maDebug.Value[glyph].Value}
 
 	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stFury].Value}].RankName}]} && !${Me.Song[Frenzy of Spirit].ID} && !${Me.Buff[stDichotomic Fury].ID}) {
 		/if (${is_ready[FALSE, "${maChr.Find[stFury].Value}"]}) {
@@ -385,7 +384,8 @@ sub burn_BST(bool _debug)
 		/if (${is_ready[FALSE, "BloodLust"]}) {
 			/call voodoo FALSE "BloodLust" 0 FALSE
 		}
-		/call cast_AA_spire FALSE
+		/call cast_AA_spire ${maDebug.Value[spire].Value}
+		
 		/if (${is_ready[FALSE, "${maChr.Find[stSavage].Value}"]} && !${Me.Song[Bestial Alignment].ID}) {
 			/call voodoo FALSE "${maChr.Find[stSavage].Value}" 0 FALSE
 		}
@@ -394,20 +394,16 @@ sub burn_BST(bool _debug)
 		}
 	}
 	
-/return
+/return TRUE
 
 
 
-|
 |***
  * note: beastlord specific control
  * use: /chr
  ***|
 sub set_control_BST(string _type, string _verbage, string _silent, bool _debug)
 	DEBUG \atset_control_BST\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
-
-	/declare _li listiterator local
-  /declare _out string local
 
 	| output control map
 	/if (${_type.Equal[see]}) {
@@ -435,7 +431,6 @@ sub set_control_BST(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[ae]}) {
 		/if (!${set_control_num_range[FALSE, stCountAE, "${_verbage}", 0, 99]}) /return
 
-
 	| consume spirit
 	} else /if (${_type.Equal[consume]}) {
 		/if (!${set_control_num_range[FALSE, stPctConsume, "${_verbage}", 0, 99]}) /return
@@ -452,13 +447,12 @@ sub set_control_BST(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[hiatus]}) {
 		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
 
-
 	}
 	
 	/if (${_silent.Equal[SILENT]}) /return 
 	/varset dump ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 	
-/return
+/return TRUE
 
 
 

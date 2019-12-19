@@ -200,7 +200,7 @@ sub burn_NEC(bool _debug)
 	
 	| /if (!${Me.Song[Gift of Deathly Resolve].ID} && ${Me.Buff[Deathly Resolve].ID}) /call cast_nuke FALSE TARGET
 
-	/call cast_AA_spire ${_debug}
+	/call cast_AA_spire ${maDebug.Value[spire].Value}
 
 
 	| Pet Burnage
@@ -224,7 +224,7 @@ sub burn_NEC(bool _debug)
 
 	/if (${validate_cast[${_debug}, "Focus of Arcanum"]}) /call voodoo ${_debug} "Focus of Arcanum" 0 FALSE        
 
-	/call cast_glyph ${_debug}
+	/call cast_glyph ${maDebug.Value[glyph].Value}
 
 /return TRUE
 

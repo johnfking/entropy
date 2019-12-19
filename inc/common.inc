@@ -68,7 +68,7 @@ sub set_data(bool _debug, string _container, string _name, string _type, string 
 		}
 	}
 
-/return
+/return TRUE
 
 
 
@@ -130,7 +130,7 @@ sub set_data_timer(string _debug, string _env_timer, string _value, string _verb
 	| all timers start at 1 so the code will trigger the associated sub on the first cycle. from there we get into a normal routine
 	/varset timer_${_env_timer} 1
 
-/return
+/return TRUE
 
 
 
@@ -208,7 +208,7 @@ sub set_data_map (bool _debug, string _map, string _env_var, string _value, _aux
 	DEBUG ${sep}dummy INSERT OR IGNORE INTO environment_character(env_var,value,aux) VALUES('${_env_var}', '${_value}', '${_aux}') ${dot} \ay${sqlite.Status[dummy]}\ax
 	/varset dump ${${_map}.Add[${_env_var},"${_value}"]}
 
-/return
+/return TRUE
 
 
 
@@ -1434,7 +1434,7 @@ sub check_condition(bool _debug, str _condition)
  * note: this casts things. it doesn't care what it casts, but it will cast it.
  * note: ORDER of selections: ALT, SPELL, DISC, ITEM, SONG
  * note: 
- * note: best to wrap or prep the cast in an is_ready[]
+ * note: best to wrap or prep the cast in an ${is_ready[]}
  * note:
  * use: /call voodoo DEBUG ["name of voodoo to do"] [TARGET ID] [FALSE|sub to check on the way]
  ***| 
@@ -1453,8 +1453,11 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub)
 	/if (${Me.Invis}) /return FALSE
 	/if (${swIsMeDead}) /return FALSE
 	
-	
-	
+	| target alive?
+	| /if (${_tmpID} != 0) {
+	| /if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
+	| }
+		
 	| redirect the current cast to a dichotomic if GoM rocs
 	/if (${_tmpID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]} && ${Spawn[${Target.ID}].Type.NotEqual[pc]}) {
 	
@@ -1531,7 +1534,6 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub)
 
 	/declare _castLoop int local 1
 	/varset dump ${maData.Find[stCastReturn].Value} NOTREADY
-
 
 	| alt abilities
 	/if (${_type.Equal[ALT]}) {
@@ -2186,6 +2188,7 @@ sub is_target_dead(bool _debug, int _tmpID)
 		}
 	}
 	
+	
 	| no target ID? shits dead 'till we get one to check..
 	/if (!${Target.ID}) {
 		/varset _dead TRUE
@@ -2208,7 +2211,6 @@ sub is_target_dead(bool _debug, int _tmpID)
 
 	/if (${_dead}) {
 		/call clear_combat FALSE
-		| /call set_stop FALSE
 	}
 	
 /return ${_dead}
@@ -2691,15 +2693,14 @@ sub get_target_basepull(bool _debug, int _tmpID)
 	:waitformob
 	/if (!${SpawnCount[npc radius ENV PS4 targetable]}) {
 		/declare _wait int local ${Math.Calc[(PULLENV + ${Spawn[TARGET].Distance})*.08]}
-		| /varset dump ${set_temer[${_debug}, Check_LoS_Timeout, RESTART]}
-		/call set_timer FALSE _wait_for_mob ${_wait}s
-	
+		/varset dump ${set_timer[${_debug}, wait_for_mob, ${_wait}s]}
+		
 		/if (!${Spawn[TARGET].Dead}) {
 			/varset dump ${out[9, "Waiting on${sep}${tar}${Spawn[TARGET].DisplayName}\ax${sep}\a-w${_wait}s\ax"]}
 		}
 	
 		/while (TRUE) {
-			DEBUG ${sep}\awTARGET\ax.distance${sep}\a-w${Spawn[TARGET].Distance}\ax${sep}\a-w${_wait_for_mob}\ax
+			DEBUG ${sep}\awTARGET\ax.distance${sep}\a-w${Spawn[TARGET].Distance}\ax${sep}\a-w${wait_for_mob}\ax
 			GETINPUT
 			/delay 5
 			
@@ -2733,15 +2734,15 @@ sub get_target_basepull(bool _debug, int _tmpID)
 			
 			| LoS time reduction
 			/if (!${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} < ENV) {
-				| /varcalc _wait_for_mob ${_wait_for_mob} - 10
+				| /varcalc wait_for_mob ${wait_for_mob} - 10
 				| /call set_timer FALSE _wait_for_mob ${_wait_for_mob}s
-				| /varset dump ${out[9, "Target \arLoS\ax${sep}\a-w${_wait_for_mob}s\ax"]}
+				| /varset dump ${out[9, "Target \arLoS\ax${sep}\a-w${wait_for_mob}s\ax"]}
 				/delay 1s
 			}
 			
 			
 			| timer ran out
-			/if (!${_wait_for_mob}) {
+			/if (!${wait_for_mob}) {
 				/varset dump ${out[9, "Sick of waiting on${sep}\a-w${Spawn[TARGET].DisplayName}\ax"]}
 				/call clear_combat FALSE
 				/break
@@ -2871,7 +2872,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 
 		| attraction pulls/agro
 		/if (${Select[${Me.Class.ShortName},SHD,WAR,PAL]} && ${maChr.Find[swAttraction].Value}) {
-			/if (${Spawn[ID ${_tmpID}].Distance} < PULLENV && ${Spawn[ID ${_tmpID}].Distance} > 30) {
+			/if (${Spawn[ID ${_tmpID}].Distance} < PULLENV && ${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
 				/declare _attraction string local FALSE
 				/if (${Select[${Me.Class.ShortName},SHD]}) /varset _attraction Hate's Attraction
 				/if (${Select[${Me.Class.ShortName},WAR]}) /varset _attraction Warlord's Grasp
@@ -2925,19 +2926,18 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			/if (${Target.ID}) /range
 			/delay 1
 			/return TRUE
-		
-		| melee tag
-		| anything less then what we can range at. magic number is 31 paces
 		} 
 		
-		/if (${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} && MELEE) {
+		
+		| melee tag
+		| we are using 90% of the targets max range to melee just to make sure we get close enough.
+		| dont argue with me on this. i'm not changing my mind
+		| if we are not in this range, we try and get closer.
+		/if (MELEE && ${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} && ${Spawn[ID ${_tmpID}].Distance} <= ENV) {
 			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
 			GETINPUT
 			/attack on
 			
-			| we are using 90% of the targets max range to melee just to make sure we get close enough.
-			| dont argue with me on this. i'm not changing my mind
-			| if we are not in this range, we try and get closer.
 			/if (${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
 				DEBUG ${sep}${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}
 				DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \agNAVTO\ax
@@ -4040,7 +4040,7 @@ sub set_control_chr_spire(bool _debug, string _type, string _verbage)
 	/varset _out ${_out} ${dot} ${info}raid\ax:${If[${maChr.Find[swSpireRaid].Value},${on},${off}]}
 	/varset dump ${out[12, "/chr spire ${_out}"]}
 
-/return
+/return TRUE
 
 
 
@@ -4873,6 +4873,7 @@ sub check_buff_cycle_ammo(bool _debug)
 		/if (${is_ready[${_debug}, "${maBuffs.Find[stBuff${_count}].Value}"]}) {
 			/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" 0 FALSE
 		}
+		/delay 1s ${Me.Casting.ID}
 		/delay 10s !${Me.Casting.ID}
 
 		/call check_cursor ${_debug} CLEAR
@@ -5693,13 +5694,16 @@ sub cast_nuke(bool _debug, string _line, int _tmpID)
 		CHECKEXIT
 		GETINPUT
 	
-		/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return
-		/if (${Me.PctMana} < 2) /continue 
+		/if (${Me.PctMana} < 2) /break 
 	
 		/if (${is_ready[${_debug}, "${_linu.Value}"]}) {
 			/call voodoo ${_debug} "${_linu.Value}" ${_tmpID} FALSE
 		}
-		/varset dump ${set_data_timer[${_debug}, Nuke_Delay, RESTART]}
+
+		| forced delay
+		/if (${maCC.Find[stNukeDelay].Value}) {
+			/varset dump ${set_data_timer[${_debug}, Nuke_Delay, RESTART]}
+		}
 
 		| maintain the loop of nukes till all are cycled.
 		/if (${maCC.Find[stNukeDelay].Value}) {
@@ -5730,18 +5734,20 @@ sub cast_dot(bool _debug, string _line, int _tmpID)
 		GETINPUT
 		/if (${get_target_buff_time_left[${_debug}, "${_licu.Value}"]} >= ${maCC.Find[stDotRefresh].Value}) /return TRUE
 		
-		/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return
+		/if (${Me.PctMana} < 2) /break 
 		
-		/if (${Me.PctMana} < 2) /continue 
-		
-		/if (${is_ready[FALSE, "${_licu.Value}"]}) {
-			/call voodoo FALSE "${_licu.Value}" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${_licu.Value}"]}) {
+			/call voodoo ${_debug} "${_licu.Value}" ${_tmpID} FALSE
+		}
+	
+		| forced delay
+		/if (${maCC.Find[stNukeDelay].Value}) {
+			/varset dump ${set_data_timer[${_debug}, Nuke_Delay, RESTART]}
 		}
 		
-		/varset dump ${set_data_timer[FALSE, Nuke_Delay, RESTART]}
-
 		| maintain the loop of nukes till all are cycled.
 		/if (${maEnv.Find[swNukeLoop].Value}) {
+			SDEBUG ${sep}swNukeLoop delau${sep}\a-w${timer_Nuke_Delay}\ax\ay+\ax
 			/delay 10s !${Me.Casting.ID}
 			/delay 2.5s
 			/delay ${timer_Nuke_Delay}
@@ -5782,8 +5788,8 @@ sub do_melee(bool _debug, int _tmpID)
 	}
 	
 	| disarm
-	/if (${maCC.Find[swDisarm].Value} && !${Skill[Disarm].Auto}) {
-		/if (${Me.AbilityReady[Disarm]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} && AGRO) {
+	/if (${maCC.Find[swDisarm].Value} && !${Skill[Disarm].Auto} && AGRO) {
+		/if (${Me.AbilityReady[Disarm]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
 			/varset dump ${out[8, "Melee${sep}${sp}Disarm\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
 			/doability Disarm
 		}
@@ -5801,7 +5807,7 @@ sub do_melee(bool _debug, int _tmpID)
 	/if (${maCC.Find[swBash].Value} && !${Skill[Bash].Auto}) {
 		/if (${Me.AbilityReady[Bash]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
 			/varset dump ${out[8, "Melee${sep}${sp}Bash\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
-			
+			/doability Bash
 			|**
 			/if (${maCC.Find[swBandolier].Value} && ${Bool[${bandolierBash}]} && ${Bool[${bandolierNormal}]}) {
 				/if (${Target.ID}) {
@@ -6781,8 +6787,12 @@ sub check_cursor(bool _debug, string _verbage)
  * note: will cast ePen pet against all raid leader instructions. because my DPS parse matters, not yours!
  * use: /call cast_temp_pet DEBUG [MOBID] [Temp Spell Name]
  ***|
-sub cast_temp_pet( bool _debug, int _tmpID, string _tmpSpell)
+sub cast_temp_pet(bool _debug, int _tmpID, string _tmpSpell)
 	DEBUG \atcast_temp_pet\ax(\a-w${_tmpID}, ${_tmpSpell}\ax)
+	
+	/if (${Select[${Me.Class.ShortName},CLR,WIZ]}) {
+		/if (${Me.Pet.ID}) /return FALSE
+	}
 	
 	ISMEDEAD
 	CHECKEXIT
@@ -6790,8 +6800,8 @@ sub cast_temp_pet( bool _debug, int _tmpID, string _tmpSpell)
 	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
 	/if (${Target.PctHPs} > ${maMinion.Find[stPctSwarmEngage].Value}) /return FALSE
 	
-	/if (${is_ready[FALSE, "${_tmpSpell}"]}) {
-		/call voodoo FALSE "${_tmpSpell}" ${_tmpID} FALSE
+	/if (${is_ready[${_debug}, "${_tmpSpell}"]}) {
+		/call voodoo ${_debug} "${_tmpSpell}" ${_tmpID} FALSE
 	}
 
 /return TRUE
@@ -7873,19 +7883,21 @@ sub cast_glyph(bool _debug)
 	
 	| buy the AA
 	/if (!${Me.AltAbility[${maCC.Find[stGlyph].Value}].ID} && ${Me.AAPoints} >= ${AltAbility[${maCC.Find[stGlyph].Value}].Cost}) {
+		DEBUG${sep}Buying${sep}\a-w${maCC.Find[stGlyph].Value}\ax
 		/alt buy ${AltAbility[${maCC.Find[stGlyph].Value}].ID}
 	}
 	
-	/if (${is_ready[FALSE, "${maCC.Find[stGlyph].Value}"]}) {
-		/call core_cast2 "${maCC.Find[stGlyph].Value}" 0 FALSE
+	/if (${is_ready[${_debug}, "${maCC.Find[stGlyph].Value}"]}) {
+		/call voodoo ${_debug} "${maCC.Find[stGlyph].Value}" 0 FALSE
 	}
 	
 	| buy it again if you can
 	/if (!${Me.AltAbility[${maCC.Find[stGlyph].Value}].ID} && ${Me.AAPoints} >= ${AltAbility[${maCC.Find[stGlyph].Value}].Cost}) {
+		DEBUG${sep}Buying${sep}\a-w${maCC.Find[stGlyph].Value}\ax (if we used)
 		/alt buy ${AltAbility[${maCC.Find[stGlyph].Value}].ID}
 	}
 
-/return
+/return TRUE
 
 
 
@@ -8290,7 +8302,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	
 	| wait for mob to get to camp
 	:waitformob
-	/declare _wait_for_mob timer local 30s
+	/varset dump ${set_timer[${_debug}, wait_for_mob, 30s]}
 	/varset dump ${out[9, "Waiting on ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
 	/while (${_tmpID} && ${Spawn[${_tmpID}].Distance} > SAFEENV*2) {
 		GETINPUT
@@ -8307,7 +8319,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 		}
 		
 		| timer ran out
-		/if (!${_wait_for_mob}) {
+		/if (!${wait_for_mob}) {
 			DEBUG /while \a-gbreak_Timer\ax
 			/goto :timerfail
 		}
@@ -8397,22 +8409,24 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	}
 	
 	| wait for mob to get to camp
-	/declare _wait_for_mob timer local 30s
+	
+	/varset dump ${set_timer[${_debug}, wait_for_mob, 30s]}
+	
 	/varset dump ${out[9, "Waiting on ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
-	/while (${_tmpID} && ${Spawn[${_tmpID}].Distance} > SAFEENV*2 && ${_wait_for_mob}) {
+	/while (${_tmpID} && ${Spawn[${_tmpID}].Distance} > SAFEENV*2 && ${wait_for_mob}) {
 		GETINPUT
 		/delay 2
 		/if (${SpawnCount[npc radius SAFEENV*2 PS4 targetable]}) {
-			/varset _wait_for_mob 0
+			/varset dump ${set_timer[${_debug}, wait_for_mob, 1]}
 			/break
 		}
 		/if (${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < 100) /break
-		/if (${Spawn[${_tmpID}].Distance} < SAFEENV*2) /break
+		/if (${Spawn[${_tmpID}].Distance} < ENV) /break
 	}	
 
 	SETHUD FALSE
 
-/return
+/return TRUE
 
 
 
@@ -8511,7 +8525,7 @@ sub get_target_multipull(bool _debug)
 	:waitformob
 	/if (!${SpawnCount[npc radius 31 PS4 targetable]}) {
 
-		/declare _wait_for_mob timer local 30s
+		/varset dump ${set_timer[${_debug}, wait_for_mob, 30s]}
 		/varset dump ${out[9, "Waiting on ${dot} ${tar}${Spawn[TARGET].DisplayName}\ax"]}
 		/while (TARGET && ${Spawn[TARGET].Distance} > 31) {
 			GETINPUT
@@ -8540,7 +8554,7 @@ sub get_target_multipull(bool _debug)
 			}
 			
 			| timer ran out
-			/if (!${_wait_for_mob}) {
+			/if (!${wait_for_mob}) {
 				DEBUG ${sep}/while \a-gbreak_Timer\ax
 				/break
 			}

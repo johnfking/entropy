@@ -339,7 +339,7 @@ sub burn_BRD(bool _debug)
  		/call voodoo FALSE "Thousand Blades" 0 FALSE	
  	}
  	
-	/call cast_AA_spire
+	/call cast_AA_spire ${maDebug.Value[spire].Value}
 	
 	/if (${is_ready[FALSE, "Funeral Dirge"]}) {
 		/call voodoo FALSE "Funeral Dirge" 0 FALSE
@@ -354,7 +354,7 @@ sub burn_BRD(bool _debug)
 		/call voodoo FALSE "Frenzied Kicks" 0 FALSE
 	}
 	
-	/call cast_glyph FALSE
+	/call cast_glyph ${maDebug.Value[glyph].Value}
 	
 	/call check_item_cycle FALSE TARGET
 

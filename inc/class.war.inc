@@ -424,8 +424,9 @@ sub burn_WAR(bool _debug)
 		/call voodoo FALSE "Wars Sheol's Heroic Blade" 0 FALSE
 	}
 
-	/call cast_AA_spire
-	/call use_glyph
+	/call cast_AA_spire ${maDebug.Value[spire].Value}
+	
+	/call cast_glyph ${maDebug.Value[glyph].Value}
 
 	/if (${is_ready[FALSE, "Rage of Rallos Zek"]}) {
 		/call voodoo FALSE "Rage of Rallos Zek" 0 FALSE

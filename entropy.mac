@@ -385,9 +385,6 @@ sub prepare_the_end(bool _debug)
 
 /return
 
-
-
-	
 	
 
 |***
@@ -395,11 +392,13 @@ sub prepare_the_end(bool _debug)
  * use: 
  ***|
 sub check_housekeeping(bool _debug)
+	DEBUG \atcheck_housekeeping\ax()
 
 	/declare _count int local 0
 	
 	| remove any excess dannet crew joins
 	/if (!${Group.Members}) {
+		DEBUG ${sep}removing excess dannet groups
 		/for _count 1 to 12
 			/if (${DanNet.Peers[crew${_count}].Find[${Me.DisplayName}]}) {
 				/dleave crew${_count}
@@ -411,10 +410,13 @@ sub check_housekeeping(bool _debug)
 
 	| fix dannet crew join marker if mac restarts
 	/if (${Group.Members} && ${stCurrentCrew.Equal[empty]}) {
+		DEBUG ${sep}finding dannet group to set if needed
+
 		/for _count 1 to 12
 			| crew # empty?
 			/if (${lsCrew${_count}.Count} == 1 && ${lsCrew${_count}.First.Value.Equal[EMPTY]}) /continue
 			/if (${lsCrew${_count}.Contains[${Group.Member[1]}]} && ${lsCrew${_count}.Contains[${Group.Member[2]}]} && ${lsCrew${_count}.Contains[${Group.Member[3]}]} && ${lsCrew${_count}.Contains[${Group.Member[4]}]} && ${lsCrew${_count}.Contains[${Group.Member[5]}]} && ${lsCrew${_count}.Contains[${Group.Member[0]}]}) {
+				DEBUG ${set}setting dannet crew\aw${_count}\ax
 				/djoin crew${_count}
 				/varset stCurrentCrew crew${_count}
 			}
@@ -422,14 +424,7 @@ sub check_housekeeping(bool _debug)
 	}
 
 	
-
-
 	| more shit to come....
-
-
-	
-	
-	
 	
 	/varset dump ${set_data_timer[${_debug}, Check_Housekeeping, RESTART]}
 

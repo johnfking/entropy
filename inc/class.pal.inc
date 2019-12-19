@@ -508,7 +508,7 @@ sub burn_PAL(bool _debug)
 		}
 	}	
 
-	/call cast_AA_spire FALSE
+	/call cast_AA_spire ${maDebug.Value[spire].Value}
 
 	/if (${is_ready[FALSE, "Inquisitor's Judgement"]}) {
 		/call voodoo FALSE "Inquisitor's Judgement" 0 FALSE
@@ -517,7 +517,7 @@ sub burn_PAL(bool _debug)
 		/call voodoo FALSE "Valorous Rage" 0 FALSE
 	}
 
-	/call cast_glyph FALSE
+	/call cast_glyph ${maDebug.Value[glyph].Value}
 	
 /return
 

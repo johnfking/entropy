@@ -102,7 +102,8 @@ sub set_CLR(bool _debug)
 
 /return
 
-
+${Me.Primary.ID}
+${Me.Inventory[mainhand].ID}
 
 |***
  * note: main cleric routine
@@ -119,8 +120,8 @@ sub main_CLR(bool _debug)
 	
 		| sort the summoned cleric primary and any mana regen from VP if needed
 		/if (!${Me.Invis}) {
-			/if (${maChr.Find[swSummonPrimary].Value}) {
-				/if (!${FindItemCount[${Spell[${maChr.Find[stSummonPrimary].Value}].Base[1]}]} && ${InvSlot[mainhand].Item.Name.NotEqual[${FindItem[${Spell[${Me.Gem[13]}].Base[1]}]}]} || !${Me.Primary}) /call cast_nut_smasher FALSE
+			/if (${maChr.Find[swSummonPrimary].Value} && !${Me.Inventory[mainhand].ID}) {
+				/if (!${FindItemCount[${Spell[${maChr.Find[stSummonPrimary].Value}].Base[1]}]} && ${InvSlot[mainhand].Item.Name.NotEqual[${FindItem[${Spell[${Me.Gem[13]}].Base[1]}]}]}) /call cast_nut_smasher FALSE
 				CHECKCURSOR
 			}
 			/if (!${check_exit[FALSE]} && !SAFEZONE && !${Me.Buff[Revival Sickness].ID} && ${maChr.Find[stPctVP].Value}) {
@@ -412,12 +413,10 @@ sub check_heal_CLR(bool _debug, string _type)
  	| single heal over time
 	/if (${maChr.Find[swHealOverTime].Value}) {
 		/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
-			/declare _stacks bool local FALSE
-			/declare _has bool local FALSE
 			/declare _spell string local ${maChr.Find[swHealOverTime].Value.Arg[1,+]}
-			/dquery ${Spawn[${hurtID}].DisplayName} -q "Spell[${_spell}].Stacks" -o _stacks
-			/dquery ${Spawn[${hurtID}].DisplayName} -q "Me.Song[${_spell}].Duration" -o _has
-			/if (${_stacks} && !${_has}) {
+			/dquery ${Spawn[${hurtID}].DisplayName} -q "Spell[${_spell}].Stacks" -o DNQReturn
+			/dquery ${Spawn[${hurtID}].DisplayName} -q "Me.Song[${_spell}].Duration" -o DNQReturn2
+			/if (${DNQReturn} && !${DNQReturn2}) {
 				/if (${is_ready[${_debug}, "${_spell}"]}) {
 					/call voodoo ${_debug} "${maChr.Find[stHealOverTime}.Value}" ${hurtID} FALSE
 				}
@@ -580,7 +579,7 @@ sub burn_CLR(bool _debug)
 	/if (${Me.AltAbilityReady[Channeling the Divine]} && ${Me.AltAbilityReady[Celestial Rapidity]} && !${Me.Buff[Healing Frenzy].ID}) {
 		
 	  | Spire 1:30 min duration 7:30 min reuse
-   	/call cast_AA_spire FALSE
+   	/call cast_AA_spire ${maDebug.Value[spire].Value}
 	  
 	 	| anti agro (pric Silent Casting 1min duration 9 min reuse)
 		/if (!${Me.Buff[Divine Retribution].ID}) {
@@ -641,7 +640,7 @@ sub burn_CLR(bool _debug)
     }
   }
   
-  /call cast_glyph FALSE
+  /call cast_glyph ${maDebug.Value[glyph].Value}
   CHECKREZ
 
 /return

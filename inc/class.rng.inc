@@ -265,7 +265,7 @@ sub burn_RNG(bool _debug)
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE	
 
-	/call cast_AA_spire FALSE
+	/call cast_AA_spire ${maDebug.Value[spire].Value}
 	
 	| cheeta
 	/if (${is_ready[FALSE, "Scarlet Cheeta's Fang"]}) {
@@ -298,7 +298,7 @@ sub burn_RNG(bool _debug)
 				}
 				
 			} else /if (!${Me.ActiveDisc.ID} && !${is_ready[FALSE, "${maChr.Find[stDiscMele].Value}"]} && !${Me.AltAbilityReady[Empowered Blades]} && !${Me.Song[Empowered Blades].ID}) {
-				/call cast_glyph FALSE
+				/call cast_glyph ${maDebug.Value[glyph].Value}
 			} 
 		}
 
@@ -313,7 +313,7 @@ sub burn_RNG(bool _debug)
 					/call voodoo FALSE "${maChr.Find[stDiscRange].Value}" 0 FALSE
 				}
 			} else /if (!${Me.ActiveDisc.ID} && !(${is_ready[FALSE, "${maChr.Find[stDiscRange].Value}"]}) {
-				/call cast_glyph FALSE
+				/call cast_glyph ${maDebug.Value[glyph].Value}
 			}
 		}
 	

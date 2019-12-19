@@ -22,6 +22,8 @@ sub set_ENC(bool _debug)
 
 	| map for mob control
 	/declare maMobControl map outer
+
+	/call set_data_map FALSE maChr stPctGather													0															"${auxnum} % of your mana to usin gather mana AA and crystal if enabled"
 	
 	/call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} alliance spell"
 
@@ -38,6 +40,7 @@ sub set_ENC(bool _debug)
 	/call set_data_map FALSE maChr stPctGather				 									0															"${auxnum} % of manna you want to use gather at"
 
 	| aa crystals
+  /varset dump ${set_data_timer[FALSE, Check_Crystals, 10s]}
 	/call set_data_map FALSE maChr swAACrystals													FALSE													"${auxsw} use aa crystals:\a-wAzure Mind Crystal, Sanguine Mind Crystal/ax"
 	
 	| PBAE stun
@@ -56,8 +59,8 @@ sub main_ENC(bool _debug)
 	
 			
 	/if (AUTO) {
-		/if (${maChr.Find[swAACrystals].Value}) /call check_crystals FALSE
-		/if (${maChr.Find[stPctGather].Value}) /call check_gather FALSE
+		/if (${maChr.Find[swAACrystals].Value} && !${timer_Check_Crystals}) /call check_crystals ${maDebug.Find[crystal].Value}
+		/if (${maChr.Find[stPctGather].Value}) /call check_gather_${Me.Class.ShortName} ${maDebug.Find[gather].Value}
 		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value}
 	}
 
@@ -100,8 +103,9 @@ sub main_ENC(bool _debug)
 	}
 
 	/if (AUTO) {	
+		/if (${maChr.Find[swAACrystals].Value} && !${timer_Check_Crystals}) /call check_crystals ${maDebug.Find[crystal].Value}
 		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-		/if (${maChr.Find[stPctGather].Value}) /call check_gather ${maDebug.Find[manarecover].Value}
+		/if (${maChr.Find[stPctGather].Value}) /call check_gather_${Me.Class.ShortName} ${maDebug.Find[gather].Value}
 		| /if (${switchCharmPet} && ${swPet} && !${Me.Pet.ID}) /call find_mob_to_charm
 	}
 
@@ -162,28 +166,28 @@ sub misc_combat_ENC(bool _debug)
 sub check_crystals(bool _debug)
 	DEBUG \atcheck_crystals\ax()
 	
+	/varset dump ${set_data_timer[FALSE, Check_Crystals, RESTART]}
+	
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
 
+	| mana crystal
 	/if (!${FindItemCount[${Spell[Azure Mind Crystal].Base[1]}]}) {
-		/if (${is_ready[FALSE, "Azure Mind Crystal"]}) {
-			/call voodoo FALSE "Azure Mind Crystal" 0 FALSE
+		/if (${is_ready[${_debug}, "Azure Mind Crystal"]}) {
+			/call voodoo ${_debug} "Azure Mind Crystal" 0 FALSE
 		}
 	}
 
+	| hp crystal
 	/if (!${FindItemCount[${Spell[Sanguine Mind Crystal].Base[1]}]}) {
-		/if (${is_ready[FALSE, "Sanguine Mind Crystal"]}) {
-			/call voodoo FALSE "Sanguine Mind Crystal" 0 FALSE
+		/if (${is_ready[${_debug}, "Sanguine Mind Crystal"]}) {
+			/call voodoo ${_debug} "Sanguine Mind Crystal" 0 FALSE
 		}
 	}
-
-	/if (${maChr.Find[stPctGather].Value}) { 
-
-	}
-
-/return
+		
+/return TRUE
 
 
 
@@ -191,8 +195,8 @@ sub check_crystals(bool _debug)
  * note: needs manna!!!
  * use: /call check_gather DEBUG
  ***|
-sub check_gather(bool _debug)
-	DEBUG \atcheck_gather\ax()
+sub check_gather_ENC(bool _debug)
+	DEBUG \atcheck_gather_${Me.Class.ShortName}\ax()
 	
 	/if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
 	
@@ -203,20 +207,19 @@ sub check_gather(bool _debug)
 
 	| AA manna crystal
 	/if (${maChr.Find[swAACrystals].Value}) {
-		/if (${is_ready[FALSE, "${Spell[Sanguine Mind Crystal].Base[1]}"]}) {
-			/call voodoo FALSE "${Spell[Sanguine Mind Crystal].Base[1]}" item 0 FALSE
-			/return
+		/if (${is_ready[${_debug}, "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}"]}) {
+			/call voodoo ${_debug} "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}" 0 FALSE
 		}
 	}
+	
+	/if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
 
 	| aa Gather Mana 
-	/if (${is_ready[FALSE, "Gather Mana"]}) {
-		/call voodoo FALSE "Gather Mana" 0 FALSE
-		/return
+	/if (${is_ready[${_debug}, "Gather Mana"]}) {
+		/call voodoo ${_debug} "Gather Mana" 0 FALSE
 	}
 
-/return
-
+/return TRUE
 
 
 
@@ -225,7 +228,7 @@ sub check_gather(bool _debug)
  * use: /call check_heal_${Me.Class.ShortName} FALSE Self
  ***|
 sub check_heal_ENC(bool _debug)
-	DEBUG \atcheck_heal_ENC\ax()
+	DEBUG \atcheck_heal_${Me.Class.ShortName}\ax()
 	/if (${Me.PctHPs} > ${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO) /return FALSE
 
 	ISMEDEAD
@@ -261,7 +264,7 @@ sub check_heal_ENC(bool _debug)
  * use: establish all comp/trigger skills
  ***| 
 sub burn_ENC(bool _debug)
-	DEBUG \atburn_ENC\ax()
+	DEBUG \atburn_${Me.Class.ShortName}\ax()
 	
 	ISMEDEAD
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
@@ -282,7 +285,7 @@ sub burn_ENC(bool _debug)
 		/call voodoo ${_debug} "Mental Contortion" TARGET FALSE
 	}
 
-	/call cast_AA_spire ${_debug}
+	/call cast_AA_spire ${maDebug.Value[spire].Value}
 
 	/if (${is_ready[FALSE, "Improved Twincast"]}) {
 		/call voodoo ${_debug} "Improved Twincast" 0 FALSE
@@ -308,7 +311,7 @@ sub burn_ENC(bool _debug)
 	| Group DD Bonus
 	/if (${is_ready[FALSE, "Chromatic Haze"]}) /call voodoo ${_debug} "Chromatic Haze" 0 FALSE
 	
-	/call cast_glyph ${_debug}
+	/call cast_glyph ${maDebug.Value[glyph].Value}
 
 /return
 
@@ -364,7 +367,7 @@ sub find_mob_to_charm(bool _debug)
  * use: /chr
  ***|
 sub set_control_ENC(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_ENC\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+	DEBUG \atset_control_${Me.Class.ShortName}\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
   /declare _out string local
 
@@ -393,6 +396,10 @@ sub set_control_ENC(string _type, string _verbage, string _silent, bool _debug)
 	| use mana click items
 	} else /if (${_type.Equal[manarecover]}) {
 		/if (!${set_control_num_range[FALSE, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
+
+	| set gather use %	
+	} else /if (${_type.Equal[gather]}) {
+		/if (!${set_control_num_range[FALSE, stPctGather, "${_verbage}", 0, 99]}) /return
 		
 	| use AA crystals
 	} else /if (${_type.Equal[crystal]}) {

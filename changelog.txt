@@ -9,6 +9,35 @@
 
 
 
+
+
+A191219.01
+- magician
+  added debugs for mana gather and coh
+  /coh added to the root help
+  isolated the check_gather() sub
+- cleric
+  updated some dannet outer variables for single heal over time spells
+- enchanter
+  isolated the check_gather() sub
+	put the crystal checks on a 10s timer
+- fixed bash not bashing, not sure what it was thinking
+- some adjustments to the /take command
+- pulling
+  corrected some timers in the pulling routines?!?
+  made some adjustmments to the evil 31 pace range issue
+- cast_temp_pet()
+  should no longer try to cast while you have one summoned for clerics and wizards
+- housekeeping
+  fixed the timer failing to start
+- debugs added
+  glyph
+  spire
+  chanter: crystal, gather
+  magician: coh, gather
+  
+
+A191216.01
 - monk
   more fd check
 - berserker
