@@ -354,7 +354,7 @@ sub burn_BRD(bool _debug)
 		/call voodoo FALSE "Frenzied Kicks" 0 FALSE
 	}
 	
-	/call cast_glyph ${maDebug.Value[glyph].Value}
+	/call cast_glyph ${maDebug.Find[glyph].Value}
 	
 	/call check_item_cycle FALSE TARGET
 

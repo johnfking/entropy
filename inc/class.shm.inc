@@ -342,7 +342,7 @@ sub burn_SHM(bool _debug)
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
-	/call cast_glyph ${maDebug.Value[glyph].Value}
+	/call cast_glyph ${maDebug.Find[glyph].Value}
 
 /return
 

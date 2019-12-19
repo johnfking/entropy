@@ -326,7 +326,7 @@ sub burn_BER(bool _debug)
 	/if (${is_ready[FALSE, "Blinding Fury"]}) /call voodoo FALSE "Blinding Fury" 0 FALSE
 	/if (${is_ready[FALSE, "Juggernaut Surge"]}) /call voodoo FALSE "Juggernaut Surge" 0 FALSE
 	
-	/call cast_glyph ${maDebug.Value[glyph].Value}
+	/call cast_glyph ${maDebug.Find[glyph].Value}
 	
 	/if (!${Me.Song[Reckless Abandon].ID} && ${Raid.Members}) {
 		/if (${is_ready[FALSE, "Intensity of the Resolute"]}) /call voodoo FALSE "Intensity of the Resolute" 0 FALSE

@@ -640,7 +640,7 @@ sub burn_CLR(bool _debug)
     }
   }
   
-  /call cast_glyph ${maDebug.Value[glyph].Value}
+  /call cast_glyph ${maDebug.Find[glyph].Value}
   CHECKREZ
 
 /return

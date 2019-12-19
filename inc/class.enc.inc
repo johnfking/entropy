@@ -311,7 +311,7 @@ sub burn_ENC(bool _debug)
 	| Group DD Bonus
 	/if (${is_ready[FALSE, "Chromatic Haze"]}) /call voodoo ${_debug} "Chromatic Haze" 0 FALSE
 	
-	/call cast_glyph ${maDebug.Value[glyph].Value}
+	/call cast_glyph ${maDebug.Find[glyph].Value}
 
 /return
 

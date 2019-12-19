@@ -309,7 +309,7 @@ sub burn_DRU(bool _debug)
 		}
 	}
 
-	/call cast_glyph ${maDebug.Value[glyph].Value}
+	/call cast_glyph ${maDebug.Find[glyph].Value}
 
 /return TRUE
 

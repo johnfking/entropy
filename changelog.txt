@@ -9,9 +9,13 @@
 
 
 
-A191219.01
-- fixed the spire spam
 
+
+A191219.03
+- fixed the glyph spam.. /sigh
+
+A191219.02
+- fixed the spire spam
 
 
 A191219.01

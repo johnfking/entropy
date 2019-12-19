@@ -298,7 +298,7 @@ sub burn_RNG(bool _debug)
 				}
 				
 			} else /if (!${Me.ActiveDisc.ID} && !${is_ready[FALSE, "${maChr.Find[stDiscMele].Value}"]} && !${Me.AltAbilityReady[Empowered Blades]} && !${Me.Song[Empowered Blades].ID}) {
-				/call cast_glyph ${maDebug.Value[glyph].Value}
+				/call cast_glyph ${maDebug.Find[glyph].Value}
 			} 
 		}
 
@@ -313,7 +313,7 @@ sub burn_RNG(bool _debug)
 					/call voodoo FALSE "${maChr.Find[stDiscRange].Value}" 0 FALSE
 				}
 			} else /if (!${Me.ActiveDisc.ID} && !(${is_ready[FALSE, "${maChr.Find[stDiscRange].Value}"]}) {
-				/call cast_glyph ${maDebug.Value[glyph].Value}
+				/call cast_glyph ${maDebug.Find[glyph].Value}
 			}
 		}
 	

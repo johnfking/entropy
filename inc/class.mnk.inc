@@ -230,7 +230,7 @@ sub burn_MNK(bool _debug)
 	/if (${is_ready[${_debug}, "Five Point Palm"]}) /call voodoo ${_debug} "Five Point Palm" TARGET FALSE
 	/if (${is_ready[${_debug}, "Swift Tail's Chant"]}) /call voodoo ${_debug} "Swift Tail's Chant" 0 FALSE    
 
-  /call cast_glyph ${maDebug.Value[glyph].Value}
+  /call cast_glyph ${maDebug.Find[glyph].Value}
 
 /return TRUE
 

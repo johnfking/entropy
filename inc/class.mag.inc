@@ -244,7 +244,7 @@ sub burn_MAG(bool _debug)
 				/call voodoo FALSE "Elemental Union" 0 FALSE
 			}
 		} else /if (!${Me.AltAbilityReady[Heart of Flames]} && !${Me.Buff[Heart of Flames].ID} && !${Me.AltAbilityReady[Elemental Union]} && !${Me.Buff[Elemental Union].ID}) {
-			/call cast_glyph ${maDebug.Value[glyph].Value}
+			/call cast_glyph ${maDebug.Find[glyph].Value}
 		}
 	}
 

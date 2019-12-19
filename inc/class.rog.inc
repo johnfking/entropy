@@ -344,7 +344,7 @@ sub burn_ROG(bool _debug)
 
   /if (${is_ready[FALSE, "${maChr.Find[stAspBleeder].Value}"]} && !${Me.ActiveDisc.ID}) /call voodoo FALSE "${maChr.Find[stAspBleeder].Value}" 0 FALSE
 
-	/call cast_glyph ${maDebug.Value[glyph].Value}
+	/call cast_glyph ${maDebug.Find[glyph].Value}
 
 /return TRUE
 

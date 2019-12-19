@@ -370,7 +370,7 @@ sub burn_BST(bool _debug)
 		}
 	}
 
-	/call cast_glyph ${maDebug.Value[glyph].Value}
+	/call cast_glyph ${maDebug.Find[glyph].Value}
 
 	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stFury].Value}].RankName}]} && !${Me.Song[Frenzy of Spirit].ID} && !${Me.Buff[stDichotomic Fury].ID}) {
 		/if (${is_ready[FALSE, "${maChr.Find[stFury].Value}"]}) {

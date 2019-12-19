@@ -308,7 +308,7 @@ sub burn_SHD(bool _debug)
 		/if (${is_ready[FALSE, "Visage of Decay"]})	/call voodoo FALSE "Visage of Decay" 0 FALSE
 	}
 
-	/call cast_glyph ${maDebug.Value[glyph].Value}
+	/call cast_glyph ${maDebug.Find[glyph].Value}
 
 /return
 

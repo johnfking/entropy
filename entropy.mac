@@ -57,8 +57,6 @@
 #define CHECKCURSOR "/if (${Cursor.ID} && !${timer_Check_Cursor} && ((AUTO && ${maEnv.Find[swAutoInv].Value}) || ${maEntropy.Find[swAutoInvManual].Value})) /call check_cursor ${maDebug.Find[loot].Value}"
 #define HUDPATH "/noparse /ini .\..\MQ2HUD.ini"
 #define SETHUD "/call set_hud_data"
-| #define ISDEAD "/if (${Target.Dead}) /call clear_combat FALSE"
-
 
 #include exspes\inc\initialize.inc
 #include exspes\inc\common.inc
@@ -111,7 +109,7 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A191219.02
+	/call set_data FALSE maEnv build													map outer A191219.03
 	
 	| prep macro
 	/call prepare_the_end FALSE
