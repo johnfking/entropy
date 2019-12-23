@@ -1,4 +1,4 @@
-|*********************************************************************
+i|*********************************************************************
  * entropy
  * initialize.inc
  * all shared/static data initilization
@@ -105,25 +105,36 @@ sub set_initialize(bool _debug)
   
   | generate DEBUGS
   /declare maDebug map outer
-  /declare _lsout list local
-  /varset dump ${_lsout.Append[build,burn,class,cure,edit,heal,loot,mez,melee,minion,pull,rest,rez,target,zone,debuff,def,face,tie]}
-  /varset dump ${_lsout.Append[buff,buffammo,buffbeg,buffunity,buffaura,buffcrew,buffself,buffshrink,buffpoison,buffclass,buffnow,bufftemp]}
-  /varset dump ${_lsout.Append[spire,glyph]}  
-  /varset dump ${_lsout.Append[cast,castitem,castnuke,castdot]}
-  /varset dump ${_lsout.Append[mode,modeforage,modedrag,modesummon,modepetfarm,modeharvest,modehunt,modefish]}
-  /varset dump ${_lsout.Append[housekeeping]}
-  
+  /declare lsDebug list outer
+  | buff
+  /varset dump ${lsDebug.Append[ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp]}
+  | heal
+  /varset dump ${lsDebug.Append[cure,xt,group,pet,self]}
+  | move
+  /varset dump ${lsDebug.Append[face,tie,zone]}
+  | debuff
+  /varset dump ${lsDebug.Append[debuff,mez]}
+  | cast
+  /varset dump ${lsDebug.Append[item,nuke,dot]}
+	| loot
+  /varset dump ${lsDebug.Append[loot]}
+	| mode
+  /varset dump ${lsDebug.Append[forage,drag,summon,petfarm,harvest,hunt,fish]}
+  | combat
+  /varset dump ${lsDebug.Append[def,target,melee,burn,agro,pull]}
+	| other
+  /varset dump ${lsDebug.Append[house,build,edit,minion,rest,rez,spire,glyph]}
   | class specific debuffs
   /if (${Select[${Me.Class.ShortName},BER]}) {
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
-  	/varset dump ${_lsout.Append[arbitrate]}
+  	/varset dump ${lsDebug.Append[arbitrate]}
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
-  	/varset dump ${_lsout.Append[crystal,gather]}
+  	/varset dump ${lsDebug.Append[crystal,gather]}
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
-  	/varset dump ${_lsout.Append[coh,gather,cauldron]}
+  	/varset dump ${lsDebug.Append[coh,gather,cauldron]}
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
@@ -131,16 +142,17 @@ sub set_initialize(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},ROG]}) {
   } else /if (${Select[${Me.Class.ShortName},SHD]}) {
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
-  	/varset dump ${_lsout.Append[talisman,surge,canni]}
+  	/varset dump ${lsDebug.Append[talisman,surge,canni]}
   } else /if (${Select[${Me.Class.ShortName},WAR]}) {
   } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
   }  
   
-  /vardata cli _lsout.First.Clone
-  /while (!${cli.IsEnd}) {
-    /varset dump ${maDebug.Add[${cli.Value},FALSE]}
-    /varset dump ${cli.Advance}
-  } 
+  /declare _lideb listiterator local
+  /vardata _lideb lsDebug.First.Clone
+  /while (!${_lideb.IsEnd}) {
+    /varset dump ${maDebug.Add[${_lideb.Value},FALSE]}
+    /varset dump ${_lideb.Advance}
+  }
 
 /return TRUE
 
@@ -745,6 +757,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** control: cc **|
+  /call set_data FALSE maCC swSetForced                               map outer FALSE
   /call set_data FALSE maCC swSetCombat                               map outer FALSE
   /call set_data FALSE FALSE stAssTarID                               int outer 0
   /call set_data FALSE maCC swValidAssTarID                           map outer FALSE
@@ -777,45 +790,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maCC stManualAssist2                       FALSE                         "${auxna} name of manual assist 2 toon"
   /call set_data_map FALSE maCC stPctEngage                           98                            "${auxnum} mobs % health to engage it"
 
-  | combat melee skills by class
-  /declare lsMeleeSkill list outer 
-  /if (${Select[${Me.Class.ShortName},CLR,PAL,WAR]}) {
-    /varset dump ${lsMeleeSkill.Append[bash]}
-    /call set_data_map FALSE maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit out of things"
-  }
-  /if (${Select[${Me.Class.ShortName},WAR,BRD,RNG,BST,MNK]}) {
-    /varset dump ${lsMeleeSkill.Append[kick]}
-    /call set_data_map FALSE maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
-  }
-  /if (${Select[${Me.Class.ShortName},BRD,ROG,BER]}) {
-    /varset dump ${lsMeleeSkill.Append[intimidation]}
-    /call set_data_map FALSE maCC swIntimidation                      FALSE                         "${auxsw} you think you're all that.. you aint nothing.."
-  }
-  /if (${Select[${Me.Class.ShortName},BER]}) {
-    /varset dump ${lsMeleeSkill.Append[frenzy]}
-    /call set_data_map FALSE maCC swFrenzy                            FALSE                         "${auxsw} some odd form of ocd for zerkers.. who knows."
-  }
-  /if (${Select[${Me.Class.ShortName},BRD,BER,PAL,SHD,WAR,RNG,ROG]}) {
-    /varset dump ${lsMeleeSkill.Append[disarm]}
-    /call set_data_map FALSE maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
-  }
-  /if (${Select[${Me.Class.ShortName},ROG]}) {
-    /varset dump ${lsMeleeSkill.Append[backstab]}
-    /call set_data_map FALSE maCC swBackstab                          FALSE                         "${auxsw} surprise butt sekx!"
-  }
-  /if (${Select[${Me.Class.ShortName},BST,MNK]}) {
-    /varset dump ${lsMeleeSkill.Append[dragonpunch,eaglestrike,tigerclaw,flyingkick,roundkick]}
-    /call set_data_map FALSE maCC swDragonpunch                       FALSE                         "${auxsw} use dragon punch"
-    /call set_data_map FALSE maCC swEaglestrike                       FALSE                         "${auxsw} use eagle strike"
-    /call set_data_map FALSE maCC swTigerclaw                         FALSE                         "${auxsw} use tiger claw"
-    /call set_data_map FALSE maCC swFlyingkick                        FALSE                         "${auxsw} use flying kick"
-    /call set_data_map FALSE maCC swRoundkick                         FALSE                         "${auxsw} use round kick"
-  } 
-  /if (${Select[${Me.Class.ShortName},PAL,WAR,SHD,RNG]}) {
-    /varset dump ${lsMeleeSkill.Append[taunt]}
-    /call set_data_map FALSE maCC swTaunt                             FALSE                         "${auxsw} you mama is sooo fat!"
-  }
-
   /call set_data_map FALSE maCC stZRadius                             60                            "${auxnum} the z distance of your universe"
   | /call set_data_map FALSE maCC swBandolier                           FALSE                         "${auxsw} use bandolier swaps"
   /call set_data_map FALSE maCC stPctStopNuke                         0                             "${auxnum} % of mob health to stop nuking/dotting it at"
@@ -838,12 +812,22 @@ sub set_initialize_map_character_environment(bool _debug)
 
 | /call sql_control FALSE ${chrID} stoponDS                           bool      outer FALSE   
 
+  | combat melee skills by class
+  /declare lsMeleeSkill list outer 
 
   | specific lists by class
+
+	| BERZERKER
   /if (${Select[${Me.Class.ShortName},BER]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use" 
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target"
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
+    /varset dump ${lsMeleeSkill.Append[frenzy,intimidation,disarm]}
+    /call set_data_map FALSE maCC swFrenzy                            FALSE                         "${auxsw} some odd form of ocd for zerkers.. who knows."
+    /call set_data_map FALSE maCC swIntimidation                      FALSE                         "${auxsw} you think you're all that.. you aint nothing.."
+    /call set_data_map FALSE maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
+
+	| BARD
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
@@ -853,23 +837,40 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_list FALSE maChr lsLineMix                         EMPTY                         "${auxli} songs for the group you just cant keep happy" 
     /call set_data_list FALSE maChr lsLineOther                       EMPTY                         "${auxli} B side songs" 
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
+    /varset dump ${lsMeleeSkill.Append[kick,intimidation,disarm]}
+    /call set_data_map FALSE maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
+    /call set_data_map FALSE maCC swIntimidation                      FALSE                         "${auxsw} you think you're all that.. you aint nothing.."
+    /call set_data_map FALSE maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
+
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data_list FALSE maChr lsHealPetLine                     EMPTY                         "${auxli} list of healing spells/aas/items for pets"
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
+    /varset dump ${lsMeleeSkill.Append[dragonpunch,eaglestrike,tigerclaw,flyingkick,roundkick]}
+    /call set_data_map FALSE maCC swDragonpunch                       FALSE                         "${auxsw} use dragon punch"
+    /call set_data_map FALSE maCC swEaglestrike                       FALSE                         "${auxsw} use eagle strike"
+    /call set_data_map FALSE maCC swTigerclaw                         FALSE                         "${auxsw} use tiger claw"
+    /call set_data_map FALSE maCC swFlyingkick                        FALSE                         "${auxsw} use flying kick"
+    /call set_data_map FALSE maCC swRoundkick                         FALSE                         "${auxsw} use round kick"
+
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data FALSE FALSE lsHealMode                             list outer "base|passive|aggressive|heavy"
+    /varset dump ${lsMeleeSkill.Append[bash]}
+    /call set_data_map FALSE maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit out of things"
+
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use" 
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data FALSE FALSE lsHealMode                             list outer "base|passive|aggressive"
+
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
+
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
     /call set_data_list FALSE maChr lsNukeFire                        EMPTY                         "${auxli} fire nukes" 
     /call set_data_list FALSE maChr lsNukeMagic                       EMPTY                         "${auxli} magic nukes"  
@@ -877,31 +878,64 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target"
     /call set_data_list FALSE maChr lsHealPetLine                     EMPTY                         "${auxli} list of healing spells/aas/items for pets"
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
+
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
+    /varset dump ${lsMeleeSkill.Append[kick,dragonpunch,eaglestrike,tigerclaw,flyingkick,roundkick]}
+    /call set_data_map FALSE maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
+    /call set_data_map FALSE maCC swDragonpunch                       FALSE                         "${auxsw} use dragon punch"
+    /call set_data_map FALSE maCC swEaglestrike                       FALSE                         "${auxsw} use eagle strike"
+    /call set_data_map FALSE maCC swTigerclaw                         FALSE                         "${auxsw} use tiger claw"
+    /call set_data_map FALSE maCC swFlyingkick                        FALSE                         "${auxsw} use flying kick"
+    /call set_data_map FALSE maCC swRoundkick                         FALSE                         "${auxsw} use round kick"
+
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data_list FALSE maChr lsHealPetLine                     EMPTY                         "${auxli} list of healing spells/aas/items for pets"
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
+
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
+    /varset dump ${lsMeleeSkill.Append[bash,taunt,disarm]}
+    /call set_data_map FALSE maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit out of things"
+    /call set_data_map FALSE maCC swTaunt                             FALSE                         "${auxsw} you mama is sooo fat!"
+    /call set_data_map FALSE maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
+
   } else /if (${Select[${Me.Class.ShortName},RNG]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
+
+    /varset dump ${lsMeleeSkill.Append[taunt,kick,disarm]}
+    /call set_data_map FALSE maCC swTaunt                             FALSE                         "${auxsw} you mama is sooo fat!"
+    /call set_data_map FALSE maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
+    /call set_data_map FALSE maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
+
   } else /if (${Select[${Me.Class.ShortName},ROG]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
+ 
+		/varset dump ${lsMeleeSkill.Append[backstab,intimidation,disarm]}
+    /call set_data_map FALSE maCC swBackstab                          FALSE                         "${auxsw} surprise butt sekx!"
+    /call set_data_map FALSE maCC swIntimidation                      FALSE                         "${auxsw} you think you're all that.. you aint nothing.."
+    /call set_data_map FALSE maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
+ 
   } else /if (${Select[${Me.Class.ShortName},SHD]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
+ 
+		/varset dump ${lsMeleeSkill.Append[taunt,disarm,bash]}
+    /call set_data_map FALSE maCC swTaunt                             FALSE                         "${auxsw} you mama is sooo fat!"
+    /call set_data_map FALSE maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
+    /call set_data_map FALSE maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit out of things"
+ 
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
@@ -911,6 +945,13 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
+
+    /varset dump ${lsMeleeSkill.Append[bash,taunt,kick,disarm]}
+    /call set_data_map FALSE maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit out of things"
+    /call set_data_map FALSE maCC swTaunt                             FALSE                         "${auxsw} you mama is sooo fat!"
+    /call set_data_map FALSE maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
+    /call set_data_map FALSE maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
+
   } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
     /call set_data_list FALSE maChr lsNukeFire                        EMPTY                         "${auxli} fire nukes" 
     /call set_data_list FALSE maChr lsNukeIce                         EMPTY                         "${auxli} ice nukes"  
@@ -919,8 +960,6 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target"
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
   }
-
-
 
 
 |** control: debuff **|
@@ -1055,9 +1094,7 @@ sub set_initialize_crew(bool _debug)
     /call set_data_crew FALSE stCrew${_count}Assist           				FALSE                         "${auxli} crew #${_count} assist"
   /next _count
 
-	| /call set_data ${_debug} FALSE stCurrentCrew										EMPTY
 	/call set_data ${_debug} FALSE stCurrentCrew												string outer EMPTY
-
 
 /return TRUE
 

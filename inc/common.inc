@@ -81,7 +81,7 @@ sub set_data_timer(string _debug, string _env_timer, string _value, string _verb
 
 	| timer restart
 	/if (${_value.Equal[RESTART]}) {
-		DEBUG RESTART for \aw${_env_timer}\ax${sep}${maTimer.Find[ti${_env_timer}].Value}\ax
+		DEBUG ${sep}\a-yRESTART\ax for \aw${_env_timer}\ax${sep}${maTimer.Find[ti${_env_timer}].Value}\ax
 		/varset timer_${_env_timer} ${maTimer.Find[ti${_env_timer}].Value}
 		/return	
 	}
@@ -112,11 +112,11 @@ sub set_data_timer(string _debug, string _env_timer, string _value, string _verb
 	
 	| data exists. get from DB and call good
 	/if (${sqlite.Rows[dummy]}) {
-		DEBUG ${sep}Timer does exists. map it
+		DEBUG ${sep}Timer \agdoes\ax exists. map it
 		/varset dump ${maTimer.Add[ti${_env_timer},${sqlite.Result[dummy 1 value]}]}
 	
 	} else /if (!${sqlite.Rows[dummy]}) {
-		DEBUG ${sep}Timer does NOT exists. add to DB and map it
+		DEBUG ${sep}Timer does \arNOT\ax exists. add to DB and map it
 		/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT INTO environment_timer(env_timer, value) VALUES('ti${_env_timer}', '${_value}')
 		DEBUG ${sep} /sqlite ${maData.Find[DBcharacter].Value} dummy INSERT INTO environment_timer(env_timer, value) VALUES('ti${_env_timer}', '${_value}') \ay${sqlite.Status[dummy]}\ax
 		/varset dump ${maTimer.Add[ti${_env_timer},${_value}]}
@@ -1940,6 +1940,9 @@ sub moveto_range(int _tmpID, int _range, bool _debug)
 	/declare _tmpY float local 0
 	/declare _dist float local ${Math.Calc[${If[${_range}==0,1,${_range}]} / ${If[${Spawn[${_tmpID}].Distance}==0,1,${Spawn[${_tmpID}].Distance}]}]}
 	
+	DEBUG ${sep}${Math.Calc[${If[${_range}==0,1,${_range}]} / ${If[${Spawn[${_tmpID}].Distance}==0,1,${Spawn[${_tmpID}].Distance}]}]}
+	DEBUG ${sep}_dist${sep}\a-w${_dist}\ax
+	
 	/varcalc _locX ${_dist}*${Me.X} + (1-${_dist})*${Spawn[${_tmpID}].X}	
 	/varcalc _locY ${_dist}*${Me.Y} + (1-${_dist})*${Spawn[${_tmpID}].Y}	
 	/if (${Navigation.PathExists[locyxz ${_locY} ${_locX} ${Me.Z}]} && ${EverQuest.ValidLoc[${_locX} ${_locY} ${Me.Z}]} && ${LineOfSight[${_locY},${_locX},${Me.Z}:${Spawn[${_tmpID}].Y},${Spawn[${_tmpID}].X},${Spawn[${_tmpID}].Z}]}) {
@@ -2188,7 +2191,6 @@ sub is_target_dead(bool _debug, int _tmpID)
 		}
 	}
 	
-	
 	| no target ID? shits dead 'till we get one to check..
 	/if (!${Target.ID}) {
 		/varset _dead TRUE
@@ -2232,7 +2234,8 @@ sub clear_combat(bool _debug)
 	
 	/varset dump ${maCC.Add[swValidAssTarID,FALSE]}
 	/varset dump ${maCC.Add[swSetCombat,FALSE]}
-
+	/varset dump ${maCC.Add[swSetForced,FALSE]}
+	
 	/if (${Me.AutoFire}) /squelch /autofire
 	/if (${Me.Combat}) /squelch /attack off
 	/if (!${Select[${Me.Class.ShortName},BRD]}) {
@@ -2557,7 +2560,7 @@ sub set_combat(bool _debug)
 	CHECKCURSOR
 	
 	| out of range?
-	/if (${Target.Distance} > ENV) /return
+	/if (${Target.Distance} > ENV && !${maCC.Find[swSetForced].Value}) /return
 	
 	
 	/if (${Me.State.NotEqual[STAND]}) /stand
@@ -2633,6 +2636,7 @@ sub get_target_buff_time_left(bool _debug, string _buff)
 	
 	/declare _count int local 0
 	/for _count 1 to ${Target.BuffCount}
+		/if (!${Target.ID} || ${Target.Dead}) /return FALSE
 		/if (!${Target.Buff[${_count}].Name.Find[${_buff}]}) /continue
 		/if (${Target.Buff[${_count}].Caster.Equal[${Me.DisplayName}]}) /break
 	/next _count
@@ -2732,12 +2736,17 @@ sub get_target_basepull(bool _debug, int _tmpID)
 				/break
 			}
 			
+			| target in stupod range out of meele less then range.. hate this spot
+			/if (${Spawn[TARGET].Distance} > ${Spawn[TARGET].MaxRangeTo}*.9 && ${Spawn[TARGET].Distance} < 31) {
+				DEBUG ${sep}/while \a-gbreak_fuckedupRangeTo\ax
+				| /nav ID TARGET |dist=${Math.Calc[${Spawn[ID TARGET].MaxRangeTo}*.9]} log=off
+				| /delay 5 ${Me.Moving}				
+				/break
+			}
+			
 			| LoS time reduction
 			/if (!${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} < ENV) {
-				| /varcalc wait_for_mob ${wait_for_mob} - 10
-				| /call set_timer FALSE _wait_for_mob ${_wait_for_mob}s
-				| /varset dump ${out[9, "Target \arLoS\ax${sep}\a-w${wait_for_mob}s\ax"]}
-				/delay 1s
+				/delay 5
 			}
 			
 			
@@ -2754,7 +2763,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 
 /return
 
-${Spawn[${Target.ID}].MaxRangeTo}
+
 
 
 |***
@@ -2830,7 +2839,7 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 		DEBUG ${sep}pull_mob_prep${sep}\awLoop.Tag\ax${sep}${_tmpID}
 		/call pull_mob_tag ${_debug} ${_tmpID}
 		/if (${Macro.Return}) {
-			/nav stop log=off
+			/nav stop |log=off
 			/break
 		}
 
@@ -2887,17 +2896,18 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		}
 					
 		| aa/spell/disc/item tag
-		/if (${is_ready[${_debug}, "${maCC.Find[stRangeOther].Value}"]}) {			
-			DEBUG ${sep}Tag${sep}Other${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax${sep}\a-w${maCC.Find[stRangeOther].Value}\ax
-			/if (${Spawn[ID ${_tmpID}].Distance} < 80) {
-				/call set_stop ${_debug} SILENT
+		/if (${Bool[${maCC.Find[stRangeOther].Value}]}) {
+			/if (${is_ready[${_debug}, "${maCC.Find[stRangeOther].Value}"]}) {			
+				DEBUG ${sep}Tag${sep}Other${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax${sep}\a-w${maCC.Find[stRangeOther].Value}\ax
+				/if (${Spawn[ID ${_tmpID}].Distance} < 80) {
+					/call set_stop ${_debug} SILENT
+				}
+				/delay 1		
+				/call voodoo ${_debug} "${maCC.Find[stRangeOther].Value}" ${_tmpID} FALSE
+				/delay 5
+				/return TRUE
 			}
-			/delay 1		
-			/call voodoo ${_debug} "${maCC.Find[stRangeOther].Value}" ${_tmpID} FALSE
-			/delay 5
-			/return TRUE
 		}
-
 		
 		| get our target
 		/if (${Target.ID} != ${_tmpID}) {
@@ -2928,25 +2938,29 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			/return TRUE
 		} 
 		
-		
 		| melee tag
 		| we are using 90% of the targets max range to melee just to make sure we get close enough.
 		| dont argue with me on this. i'm not changing my mind
 		| if we are not in this range, we try and get closer.
-		/if (MELEE && ${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} && ${Spawn[ID ${_tmpID}].Distance} <= ENV) {
+		/if (MELEE && ${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
+			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
+			GETINPUT
+			/attack on
+			/return TRUE
+		}
+		
+		| inbetween melee and range distance.. you know that fucked up mo mans land spot...		
+		/if (MELEE && ${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} && ${Spawn[ID ${_tmpID}].Distance} <= ENV) {
 			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
 			GETINPUT
 			/attack on
 			
-			/if (${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
-				DEBUG ${sep}${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}
-				DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \agNAVTO\ax
-				/nav ID ${_tmpID} |dist=${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} log=off
-				/delay 5 ${Me.Moving}
-			}
+			DEBUG ${sep}${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}
+			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \agNAVTO\ax
+			/nav ID ${_tmpID} |dist=${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} log=off
+			/delay 5 ${Me.Moving}
 			/return TRUE
-	
-		}
+		}		
 				
 	} else /if (!${Spawn[${_tmpID}].LineOfSight} && !${maOver.Find[swOverLOS].Value}) {
 		DEBUG Target${sep}\arLOS\ax
@@ -2962,21 +2976,10 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			/return FALSE
 		}	
 		
-		
 	/if (${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} && MELEE && !RANGE) {
 		DEBUG ${sep}Tag${sep}Melee NO RANGE${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
 		GETINPUT
 		/attack on
-		
-		| we are using 90% of the targets max range to melee just to make sure we get close enough.
-		| dont argue with me on this. i'm not changing my mind
-		| if we are not in this range, we try and get closer.
-		/if (${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
-			DEBUG ${sep}${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}
-			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \agNAVTO\ax
-			/nav ID ${_tmpID} |dist=${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} log=off
-			/delay 5 ${Me.Moving}
-		}
 		/return TRUE
 
 	}		
@@ -3638,7 +3641,7 @@ sub get_assist_target(bool _debug)
 		ISMEDEAD
 		GETINPUT
 		/if (TARGET == ${Target.ID}) {
-			/if (${Target.PctHPs} > ${maCC.Find[stPctEngage].Value} && !${swOverrideEngagePct}) {
+			/if (${Target.PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
 				/delay 3
 				/goto :skippingtoMAtarget
 			} 
@@ -3716,7 +3719,7 @@ sub set_zone_lists(bool _debug)
 	/varset dump ${_li.Advance}
 	}
 	
-/return
+/return TRUE
 
 
 
@@ -5713,7 +5716,7 @@ sub cast_nuke(bool _debug, string _line, int _tmpID)
 		}
 		/varset dump ${_linu.Advance}
 	}	
-
+	
 /return
 
 
@@ -5730,8 +5733,10 @@ sub cast_dot(bool _debug, string _line, int _tmpID)
 	/while (!${_licu.IsEnd}) {
 
 		ISMEDEAD
+		ISTMPIDDEAD
 		CHECKEXIT
 		GETINPUT
+		
 		/if (${get_target_buff_time_left[${_debug}, "${_licu.Value}"]} >= ${maCC.Find[stDotRefresh].Value}) /return TRUE
 		
 		/if (${Me.PctMana} < 2) /break 
@@ -5747,14 +5752,14 @@ sub cast_dot(bool _debug, string _line, int _tmpID)
 		
 		| maintain the loop of nukes till all are cycled.
 		/if (${maEnv.Find[swNukeLoop].Value}) {
-			SDEBUG ${sep}swNukeLoop delau${sep}\a-w${timer_Nuke_Delay}\ax\ay+\ax
+			DEBUG ${sep}swNukeLoop delau${sep}\a-w${timer_Nuke_Delay}\ax\ay+\ax
 			/delay 10s !${Me.Casting.ID}
 			/delay 2.5s
 			/delay ${timer_Nuke_Delay}
 		}
 
 		/varset dump ${_licu.Advance}
-	}	
+	}
 
 /return
 
@@ -6322,7 +6327,7 @@ sub set_timer(bool _debug, string _my_timer, string _my_duration)
 	
 /return TRUE
 
-
+${Me.FreeInventory}
 
 |***
  *	DES: advanced loot routine(s)
@@ -6349,11 +6354,11 @@ sub do_loot(bool _debug)
 
 	/varset dump ${set_data_timer[FALSE, Check_Loot, RESTART]}
 
-	/if (${Stick.Active} || !${Me.FreeInventory} || !${Me.UseAdvancedLooting}) /return
+	/if (${Stick.Active} || !${Me.FreeInventory} || !${Me.UseAdvancedLooting}) /return FALSE
 
 	| I am not the raid loot master /sigh
-	/if (${Raid.Members} && ${Raid.MasterLooter.ID} != ${Me.ID} && !${maOver.Find[swOverLoot].Value}) /return
-	/if (!${Raid.Members} && ${Group.Members} && ${Group.MasterLooter.ID} != ${Me.ID} && !${maOver.Find[swOverLoot].Value}) /return
+	/if (${Raid.Members} && ${Raid.MasterLooter.ID} != ${Me.ID} && !${maOver.Find[swOverLoot].Value}) /return FALSE
+	/if (!${Raid.Members} && ${Group.Members} && ${Group.MasterLooter.ID} != ${Me.ID} && !${maOver.Find[swOverLoot].Value}) /return FALSE
 
 	SETHUD "loot whoring"
 
@@ -6718,8 +6723,7 @@ sub check_cursor(bool _debug, string _verbage)
 	/if (${maDebug.Find[loot].Value}) /varset _debug TRUE
 	DEBUG \atcheck_cursor\ax(\a-w${_verbage}\ax)
 
-
-	| /if (!${Cursor.ID}) /return
+	/if (!${Me.FreeInventory}) /return FALSE
 
 	| force clearing the cursor and GTFO
 	/if (${_verbage.Equal[CLEAR]} && ${Me.FreeInventory}) {

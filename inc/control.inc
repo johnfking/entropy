@@ -28,10 +28,12 @@ sub Bind_control_debug(string _type, bool _debug)
 	}
   
   /declare _out string local
-  /vardata mi maDebug.First.Clone
-  /while (!${mi.IsEnd}) {
-		/varset _out ${_out} ${If[${mi.Key.Equal[${maDebug.First}]},,${dot}]} ${If[${mi.Value},\ag${mi.Key}\ax,${info}${mi.Key}\ax]}
-		/varset dump ${mi.Advance}
+  /declare _mideb mapiterator local
+  /vardata _mideb maDebug.First.Clone
+  /while (!${_mideb.IsEnd}) {
+		| /varset _out ${_out} ${If[${_mideb.Key.Equal[${maDebug.First}]},,${dot}]} ${If[${_mideb.Value},\ag${_mideb.Key}\ax,${info}${_mideb.Key}\ax]}
+		/varset _out ${_out} ${If[${_mideb.Key.Equal[${maDebug.First}]},,${dot}]} ${If[${_mideb.Value},\ag${_mideb.Key}\ax,${info}${_mideb.Key}\ax]}
+		/varset dump ${_mideb.Advance}
   }
 	/varset dump ${out[12, "/debug ${_out}"]}
 
@@ -2174,29 +2176,28 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 			/varset dump ${set_switch_env[${_debug}, swRoundkick, TRUE, ${_silent}]}
 		} else /if (${_verbage.Equal[taunt]} && ${lsMeleeSkill.Contains[taunt]}) {
 			/varset dump ${set_switch_env[${_debug}, swTaunt, TRUE, ${_silent}]}
-
 		} else /if (${_verbage.Equal[frenzy]} && ${lsMeleeSkill.Contains[frenzy]}) {
 			/varset dump ${set_switch_env[${_debug}, swFrenzy, TRUE, ${_silent}]}
 		} else /if (${_verbage.Equal[intimidation]} && ${lsMeleeSkill.Contains[intimidation]}) {
 			/varset dump ${set_switch_env[${_debug}, swIntimidation, TRUE, ${_silent}]}
 
 		}	
-		
+	
 		/vardata cli lsMeleeSkill.First.Clone
 		/while (!${cli.IsEnd}) {	
 			/varset _out ${_out} ${If[${cli.Value.Equal[${lsMeleeSkill.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[backstabb]}) /varset _out ${_out}:${If[${maCC.Find[swBackstab].Value},${on},${off}]}
-			/if (${cli.Value.Equal[bash]}) /varset _out ${_out}:${If[${maCC.Find[swBash].Value},${on},${off}]}
-			/if (${cli.Value.Equal[disarm]}) /varset _out ${_out}:${If[${maCC.Find[swDisarm].Value},${on},${off}]}
-			/if (${cli.Value.Equal[dragonpunch]}) /varset _out ${_out}:${If[${maCC.Find[swDragonpunch].Value},${on},${off}]}
-			/if (${cli.Value.Equal[eaglestrike]}) /varset _out ${_out}:${If[${maCC.Find[swEaglestrike].Value},${on},${off}]}
-			/if (${cli.Value.Equal[flyingkick]}) /varset _out ${_out}:${If[${maCC.Find[swFlyingkick].Value},${on},${off}]}
-			/if (${cli.Value.Equal[frenzy]}) /varset _out ${_out}:${If[${maCC.Find[swFrenzy].Value},${on},${off}]}
-			/if (${cli.Value.Equal[intimidation]}) /varset _out ${_out}:${If[${maCC.Find[swIntimidation].Value},${on},${off}]}
-			/if (${cli.Value.Equal[kick]}) /varset _out ${_out}:${If[${maCC.Find[swKick].Value},${on},${off}]}
-			/if (${cli.Value.Equal[roundkick]}) /varset _out ${_out}:${If[${maCC.Find[swRoundkick].Value},${on},${off}]}
-			/if (${cli.Value.Equal[taunt]}) /varset _out ${_out}:${If[${maCC.Find[swTaunt].Value},${on},${off}]}
-			/if (${cli.Value.Equal[tigerclaw]}) /varset _out ${_out}:${If[${maCC.Find[swTigerclaw].Value},${on},${off}]}
+			/if (${cli.Value.Equal[backstabb]}) /varset _out ${_out}:${If[${Skill[backstabb].Auto},\apauto\ax,${If[${maCC.Find[swBackstab].Value},${on},${off}]}]}
+			/if (${cli.Value.Equal[bash]}) /varset _out ${_out}:${If[${Skill[bash].Auto},\apauto\ax,${If[${maCC.Find[swBash].Value},${on},${off}]}]}
+			/if (${cli.Value.Equal[disarm]}) /varset _out ${_out}:${If[${Skill[disarm].Auto},\apauto\ax,${If[${maCC.Find[swDisarm].Value},${on},${off}]}]}
+			/if (${cli.Value.Equal[dragonpunch]}) /varset _out ${_out}:${If[${Skill[dragonpunch].Auto},\apauto\ax,${If[${maCC.Find[swDragonpunch].Value},${on},${off}]}]}
+			/if (${cli.Value.Equal[eaglestrike]}) /varset _out ${_out}:${If[${Skill[eaglestrike].Auto},\apauto\ax,${If[${maCC.Find[swEaglestrike].Value},${on},${off}]}]}
+			/if (${cli.Value.Equal[flyingkick]}) /varset _out ${_out}:${If[${Skill[flyingkick].Auto},\apauto\ax,${If[${maCC.Find[swFlyingkick].Value},${on},${off}]}]}
+			/if (${cli.Value.Equal[frenzy]}) /varset _out ${_out}:${If[${Skill[frenzy].Auto},\apauto\ax,${If[${maCC.Find[swFrenzy].Value},${on},${off}]}]}
+			/if (${cli.Value.Equal[intimidation]}) /varset _out ${_out}:${If[${Skill[intimidation].Auto},\apauto\ax,${If[${maCC.Find[swIntimidation].Value},${on},${off}]}]}
+			/if (${cli.Value.Equal[kick]}) /varset _out ${_out}:${If[${Skill[kick].Auto},\apauto\ax,${If[${maCC.Find[swKick].Value},${on},${off}]}]}
+			/if (${cli.Value.Equal[roundkick]}) /varset _out ${_out}:${If[${Skill[roundkick].Auto},\apauto\ax,${If[${maCC.Find[swRoundkick].Value},${on},${off}]}]}
+			/if (${cli.Value.Equal[taunt]}) /varset _out ${_out}:${If[${Skill[taunt].Auto},\apauto\ax,${If[${maCC.Find[swTaunt].Value},${on},${off}]}]}
+			/if (${cli.Value.Equal[tigerclaw]}) /varset _out ${_out}:${If[${Skill[tigerclaw].Auto},\apauto\ax,${If[${maCC.Find[swTigerclaw].Value},${on},${off}]}]}
 
 			/varset dump ${cli.Advance}
 		}	
@@ -2318,6 +2319,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 			/if (${Me.Invis}) /makemevisible
 			/varset dump ${maCC.Add[swValidAssTarID,TRUE]}
 			/varset dump ${maCC.Add[swSetCombat,TRUE]}
+			/varset dump ${maCC.Add[swSetForced,TRUE]}
 			/varset stAssTarID ${Target.ID}
 			/if (${swModeToken}) {
 				/varset dump ${out[12, "Hunting ${dot} ${tar}${Target.DisplayName}\ax"]}
@@ -2339,11 +2341,11 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		
 		
 
-	/if (${_type.Equal[all]}) {
-		/declare _group string local all
-	} else {
-		/declare _group string local ${set_dnet_group[FALSE]}
-	}
+		/if (${_type.Equal[all]}) {
+			/declare _group string local all
+		} else {
+			/declare _group string local ${set_dnet_group[FALSE]}
+		}
 
 	| /if (!${Bool[${_verbage}]} && ${DanNet.PeerCount[${_group}]} > 1) {
 		
@@ -2472,8 +2474,9 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
 		DEBUG ${sep}\a-gCURSOR\ax _swapslot ${_swapslot}
 
 	| this is G7s fault
-	} else /if (!${FindItemCount[=${_item}]}) {
-		OUT Cannot Find ${_item}
+	} else /if (!${FindItemCount[=${_item}]} && !${Cursor.Name.Equal[${_item}]}) {
+		/varset dump ${out[0, "Cannot Find${sep}\a-w${_item}\ax"]}
+		/squelch /autoinventory
 		/return FALSE
 	}
 	
@@ -2816,8 +2819,13 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 		
 	| guild placable ports
 	} else /if (${Select[${_type},guild]}) {
-
-
+		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='guild'
+		/for _count 1 to ${sqlite.Rows[dummy]}
+			/varset dump ${_list.Append[${sqlite.Result[dummy ${_count} nick1]}]}
+		/next _count
+		
+		/see ${_list}
+		
 	| item ports
 	} else /if (${Select[${_type},item]}) {
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='item'

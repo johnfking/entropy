@@ -148,9 +148,9 @@ sub main_PAL(bool _debug)
 		/if (VALID) {
 			/call set_combat FALSE
 			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-			/if (AGRO) /call get_agro_${Me.Class.ShortName}
-			/call misc_combat_${Me.Class.ShortName} FALSE
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
+			/if (AGRO) /call get_agro_${Me.Class.ShortName} FALSE TARGET
+			/call misc_combat_${Me.Class.ShortName} FALSE TARGET
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (DOT) /call cast_DOT ${maDebug.Find[castdot].Value} lsDoT TARGET
 			/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
@@ -181,89 +181,93 @@ sub main_PAL(bool _debug)
 
 |***
  * note: all other combat .. things
- * use: 
+ * use: /call misc_combat_CLS DEBUG [TARGETID]
  ***|
-sub misc_combat_PAL(bool _debug)
-	DEBUG \atmisc_combat_PAL\ax()
+sub misc_combat_PAL(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
 	
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	ISTMPIDDEAD
 
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} ${_tmpID}
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
 	| spam rune
-	/if (${is_ready[FALSE, "${maChr.Find[stTempRune].Value}"]}) {
-		/call voodoo FALSE "${maChr.Find[stTempRune].Value}" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stTempRune].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stTempRune].Value}" 0 FALSE
 	}
 
-	/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	ISTMPIDDEAD
 	
+	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 		
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 	
 	| AA inquisitors armor stacking control
 	/if (${SpawnCount[npc OVERLOS radius 30 targetable]} >= ${maChr.Find[stCountDefensive].Value} && ${maChr.Find[stCountDefensive].Value}) {
 		/if (!${Me.Song[Group Armor of the Inquisitor].ID}) { 
-			/if (${is_ready[FALSE, "Armor of the Inquisitor"]}) {
-				/call voodoo FALSE "Armor of the Inquisitor" 0 FALSE
+			/if (${is_ready[${_debug}, "Armor of the Inquisitor"]}) {
+				/call voodoo ${_debug} "Armor of the Inquisitor" 0 FALSE
 			}
 
 		| dont use group armor in raids
 		} else /if (!${Me.Song[Armor of the Inquisitor].ID} && !${Raid.Members}) {
-			/if (${is_ready[FALSE, "Group Armor of the Inquisitor"]}) {
-				/call voodoo FALSE "Group Armor of the Inquisitor" 0 FALSE
+			/if (${is_ready[${_debug}, "Group Armor of the Inquisitor"]}) {
+				/call voodoo ${_debug} "Group Armor of the Inquisitor" 0 FALSE
 			}
 		}
 	}
+	
+	ISTMPIDDEAD
 
 	| undead cripple
 	/if (${Target.Body.Name.Equal[Undead]}) {
-		/if (${is_ready[FALSE, "Vanquish the Fallen"]}) {
-			/call voodoo FALSE "Vanquish the Fallen" TARGET FALSE
+		/if (${is_ready[${_debug}, "Vanquish the Fallen"]}) {
+			/call voodoo ${_debug} "Vanquish the Fallen" ${_tmpID} FALSE
 		}
 	}
 	
-/return
+/return TRUE 
 
 
 
 |***
  * note: I'm more important then you are!
- * use: /call get_agro_PAL DEBUG
+ * use: /call get_agro_PAL DEBUG [TARRGETID]
  ***|
-sub get_agro_PAL(bool _debug)
+sub get_agro_PAL(bool _debug, int _tmpID)
 	DEBUG \atget_agro_PAL\ax()
 	
 	ISMEDEAD
 	CHECKEXIT	  
 	GETINPUT
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
-	/call set_combat FALSE
+	ISTMPIDDEAD
+	
+	/call set_combat ${_debug}
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 	
 	| aa LoH
 	/if (${maHeal.Find[swHealSelf].Value} && ${maChr.Find[stPctLoH].Value}) {
 	  /if (${Me.PctHPs} <= ${maChr.Find[stPctLoH].Value}*.PCTHO) {
-			/if (${is_ready[FALSE, "Lay on Hands"]}) {
-				/call voodoo FALSE "Lay on Hands" ${Me.ID} FALSE
+			/if (${is_ready[${_debug}, "Lay on Hands"]}) {
+				/call voodoo ${_debug} "Lay on Hands" ${Me.ID} FALSE
 			}
 		}
 	}	
 
 	| challenge
-	/call cast_challenge ${_debug} TARGET 
+	/call cast_challenge ${_debug} ${_tmpID} 
 
 	| chain stun
-	/if (${is_ready[FALSE, "${maChr.Find[stStun].Value}"]}) {
-		/call voodoo FALSE "${maChr.Find[stStun].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stStun].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stStun].Value}" ${_tmpID}  FALSE
 	}
 
 	/declare _coutAE int local 0
@@ -274,43 +278,44 @@ sub get_agro_PAL(bool _debug)
 	
 		/if (!${Raid.Members} || ${Raid.Members} && ${Raid.MainAssist.Name.Equal[${Me.DisplayName}]}) {
 			/if (${_coutAE} > 1) {
-				/if (${is_ready[FALSE, "Hallowed Lodestar"]}) {
-					/call voodoo FALSE "Hallowed Lodestar" TARGET FALSE
+				/if (${is_ready[${_debug}, "Hallowed Lodestar"]}) {
+					/call voodoo ${_debug} "Hallowed Lodestar" ${_tmpID} FALSE
 				}
 			} else /if (${_coutAE} > 4) {
-				/if (${is_ready[FALSE, alt, "Beacon of the Righteous"]}) {
-					/call voodoo FALSE "Beacon of the Righteous" 0 FALSE
+				/if (${is_ready[${_debug}, "Beacon of the Righteous"]}) {
+					/call voodoo ${_debug} "Beacon of the Righteous" 0 ${_tmpID} 
 				}
 			}
 		}
 	}
+	ISTMPIDDEAD
 
 	/if (${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]}) /return
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID} ]}) /return FALSE
 
 	| AA pet hate (the little sword thingie)
-	/if (${Me.PctAggro} < 80 && ${is_ready[FALSE, "Projection of Piety"]}) {
-		/call voodoo FALSE "Projection of Piety" TARGET FALSE
+	/if (${Me.PctAggro} < 80 && ${is_ready[${_debug}, "Projection of Piety"]}) {
+		/call voodoo ${_debug} "Projection of Piety" ${_tmpID} FALSE
 	}
 
 	| snap hate
 	/if (!${Raid.Members}) {
-		/if (${Me.PctAggro} < 60 && ${is_ready[FALSE, "Ageless Enmity"]}) {
-			/call voodoo FALSE "Ageless Enmity" TARGET FALSE
+		/if (${Me.PctAggro} < 60 && ${is_ready[${_debug}, "Ageless Enmity"]}) {
+			/call voodoo ${_debug} "Ageless Enmity" ${_tmpID} FALSE
 		}
 	}
 
 	| named fake hate
-	/if ((${Me.PctAggro} < 60 || ${lsZoneNamed.Contains[${Target.DisplayName}]}) && ${is_ready[FALSE, "${maChr.Find[stUnflinching].Value}"]}) {
-		/call voodoo FALSE "${maChr.Find[stUnflinching].Value}" TARGET FALSE
+	/if ((${Me.PctAggro} < 60 || ${lsZoneNamed.Contains[${Target.DisplayName}]}) && ${is_ready[${_debug}, "${maChr.Find[stUnflinching].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stUnflinching].Value}" ${_tmpID} FALSE
 	}
 
 	| Valiant Defense line. agro+heal
-	/if (${Me.PctAggro} < 95 && ${is_ready[FALSE, "${maChr.Find[stValiant].Value}"]}) {
-		/call voodoo FALSE "${maChr.Find[stValiant].Value}" TARGET FALSE
+	/if (${Me.PctAggro} < 95 && ${is_ready[${_debug}, "${maChr.Find[stValiant].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stValiant].Value}" ${_tmpID} FALSE
 	}
 	
-/return
+/return TRUE
 
 
 
@@ -399,7 +404,6 @@ sub check_heal_PAL(bool _debug, string _type)
 		/call get_hurt ${_debug} ${_type} 
 	
 		/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
-		/call click_item_heal
 	}	
 	
 	| AA Gift of Life -- not in raids
@@ -475,7 +479,7 @@ sub check_steel(bool _debug)
  * note: Paladin burn routines (like pallys can do any DPS.!)
  * use: seriously why bother
  ***| 
-sub burn_PAL(bool _debug)
+sub burn_PAL(bool _debug, int _tmpID)
 	DEBUG \atburn_PAL\ax()
 
 	ISMEDEAD
@@ -507,6 +511,8 @@ sub burn_PAL(bool _debug)
 			}
 		}
 	}	
+
+	ISTMPIDDEAD
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 

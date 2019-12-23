@@ -82,8 +82,8 @@ sub main_BST(bool _debug)
 			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[minon].Value} TARGET
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
-			/call misc_combat_${Me.Class.ShortName} FALSE
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
+			/call misc_combat_${Me.Class.ShortName} FALSE TARGET
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDoT TARGET
@@ -109,63 +109,67 @@ sub main_BST(bool _debug)
  * note: 
  * use: /call misc_combat_BST DEBUG
  ***|
-sub misc_combat_BST(bool _debug)
-	DEBUG \atmisc_combat_BST\ax()
+sub misc_combat_BST(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat_BST\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	ISTMPIDDEAD
 
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} ${_tmpID}
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	
-	/if (${is_ready[FALSE, "${maChr.Find[stBestial].Value}", ${Me.ID}]} && !${Me.Song[${maChr.Find[stBestial].Value}].ID}) {
-		/call voodoo FALSE "${maChr.Find[stBestial].Value}" disc 0 FALSE
-	}
-	
-	/if (${is_ready[FALSE, "${maChr.Find[stClaws].Value}", TARGET]}) {
-		/call voodoo FALSE "${maChr.Find[stClaws].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stBestial].Value}", ${Me.ID}]} && !${Me.Song[${maChr.Find[stBestial].Value}].ID}) {
+		/call voodoo ${_debug} "${maChr.Find[stBestial].Value}" 0 FALSE
 	}
 	
-	/if (${is_ready[FALSE, "Enduring Frenzy", TARGET]} && !${Target.Buff[Enduring Frenzy].ID}) {
-		/call voodoo FALSE "Enduring Frenzy" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stClaws].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stClaws].Value}" ${_tmpID} FALSE
+	}
+	
+	ISTMPIDDEAD
+	
+	/if (${is_ready[${_debug}, "Enduring Frenzy"]} && !${Target.Buff[Enduring Frenzy].ID}) {
+		/call voodoo ${_debug} "Enduring Frenzy" ${_tmpID} FALSE
 	}
 
-	/if (${is_ready[FALSE, "Chameleon Strike", TARGET]}) {
-		/call voodoo FALSE "Chameleon Strike" TARGET FALSE
+	/if (${is_ready[${_debug}, "Chameleon Strike"]}) {
+		/call voodoo ${_debug} "Chameleon Strike" ${_tmpID} FALSE
 	}
 
-	/if (${is_ready[FALSE, "${maChr.Find[stRake].Value}"]}) {
-		/call voodoo FALSE "${maChr.Find[stRake].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stRake].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stRake].Value}" ${_tmpID} FALSE
 	}
 
-	/if (${is_ready[FALSE, "${maChr.Find[stRending].Value}"]}) {
-		/call voodoo FALSE "${maChr.Find[stRending].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stRending].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stRending].Value}" ${_tmpID} FALSE
 	}
+	
+	ISTMPIDDEAD
 			
 	| do we want the mobs attention?
 	/if (AGRO) {
-		/if (${is_ready[FALSE, "Roaring Strike"]} && ${Me.PctAggro} < 80) {
-			/call voodoo FALSE "Roaring Strike" TARGET FALSE
+		/if (${is_ready[${_debug}, "Roaring Strike"]} && ${Me.PctAggro} < 80) {
+			/call voodoo ${_debug} "Roaring Strike" ${_tmpID} FALSE
 		}
 
 	} else /if (!AGRO) {
-		/if (${is_ready[FALSE, "Roar of Thunder", TARGET]} && ${Me.PctAggro} > 80) {
-			/call voodoo FALSE "Roar of Thunder" TARGET FALSE
+		/if (${is_ready[${_debug}, "Roar of Thunder"]} && ${Me.PctAggro} > 80) {
+			/call voodoo ${_debug} "Roar of Thunder" ${_tmpID} FALSE
 		}		
 		
 	}
 
+	ISTMPIDDEAD
+
 	/if (${Me.Pet.ID}) {
-		| /if (!${Me.Song[Growl].ID} && !${Me.Song[${maChr.Find[stGrowl].Value}].ID} && !${Me.PetBuff[Savage Rage]} && !${Me.Song[${maChr.Find[stSavage].Value}].ID}) {
-			/if (${is_ready[FALSE, "${maChr.Find[stGrowl].Value}"]}) {
-				/call voodoo FALSE "${maChr.Find[stGrowl].Value}" 0 FALSE
-			}
-		| }
+		/if (${is_ready[${_debug}, "${maChr.Find[stGrowl].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stGrowl].Value}" 0 FALSE
+		}
 	}
 	
 /return TRUE
@@ -328,69 +332,76 @@ sub cast_AA_paragon(bool _debug)
  * note: Beast burn routines
  * use: establish all comp/trigger skills
  ***| 
-sub burn_BST(bool _debug)
-	DEBUG burn_BST(${_debug})
+sub burn_BST(bool _debug, int _tmpID)
+	DEBUG \atburn_BST\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	ISTMPIDDEAD
 
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} ${_tmpID}
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	
-	/if (${is_ready[FALSE, "Bestial Alignment"]}) {
-		/call voodoo FALSE "Bestial Alignment" 0 FALSE
+	/if (${is_ready[${_debug}, "Bestial Alignment"]}) {
+		/call voodoo ${_debug} "Bestial Alignment" 0 FALSE
 	}
-	/if (${is_ready[FALSE, "Frenzied Swipes"]}) {
-		/call voodoo FALSE "Frenzied Swipes" 0 FALSE
+	/if (${is_ready[${_debug}, "Frenzied Swipes"]}) {
+		/call voodoo ${_debug} "Frenzied Swipes" 0 FALSE
 	}
-	/if (${is_ready[FALSE, "Ferociousness"]} && !${Me.Song[${maChr.Find[stSavage].Value}].ID}) {
-		/call voodoo FALSE "Ferociousness" 0 FALSE
+	/if (${is_ready[${_debug}, "Ferociousness"]} && !${Me.Song[${maChr.Find[stSavage].Value}].ID}) {
+		/call voodoo ${_debug} "Ferociousness" 0 FALSE
 	}
+	
+	ISTMPIDDEAD
 
 	/if (SWARM) {
-		/if (${is_ready[FALSE, "Attack of the Warders"]}) {
-			/call voodoo FALSE "Attack of the Warders" TARGET FALSE
+		/if (${is_ready[${_debug}, "Attack of the Warders"]}) {
+			/call voodoo ${_debug} "Attack of the Warders" ${_tmpID} FALSE
 		}
 	}
 
 	/if (${Me.Pet.ID}) {
-		/if (${is_ready[FALSE, "Companion's Fury"]}) {
-			/call voodoo FALSE "Companion's Fury" 0 FALSE
+		/if (${is_ready[${_debug}, "Companion's Fury"]}) {
+			/call voodoo ${_debug} "Companion's Fury" 0 FALSE
 		}
 	}
 	
 	/if (MELEE || DOT) {
-		/if (${is_ready[FALSE, "${maChr.Find[stVindication].Value}"]}) {
-			/call voodoo FALSE "${maChr.Find[stVindication].Value}" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stVindication].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stVindication].Value}" 0 FALSE
 		}
 	}
 
+	ISTMPIDDEAD
+	
 	/call cast_glyph ${maDebug.Find[glyph].Value}
 
 	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stFury].Value}].RankName}]} && !${Me.Song[Frenzy of Spirit].ID} && !${Me.Buff[stDichotomic Fury].ID}) {
-		/if (${is_ready[FALSE, "${maChr.Find[stFury].Value}"]}) {
-			/call voodoo FALSE "${maChr.Find[stFury].Value}" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stFury].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stFury].Value}" 0 FALSE
 		}
 	} else {
 		/if (${Me.Song[${maChr.Find[stFury].Value}].ID}) /return
-		/if (${is_ready[FALSE, "Frenzy of Spirit"]}) {
-			/call voodoo FALSE "Frenzy of Spirit" 0 FALSE
+		/if (${is_ready[${_debug}, "Frenzy of Spirit"]}) {
+			/call voodoo ${_debug} "Frenzy of Spirit" 0 FALSE
 		}
-		/if (${is_ready[FALSE, "BloodLust"]}) {
-			/call voodoo FALSE "BloodLust" 0 FALSE
+		/if (${is_ready[${_debug}, "BloodLust"]}) {
+			/call voodoo ${_debug} "BloodLust" 0 FALSE
 		}
+		
+		ISTMPIDDEAD
+		
 		/call cast_AA_spire ${maDebug.Find[spire].Value}
 		
-		/if (${is_ready[FALSE, "${maChr.Find[stSavage].Value}"]} && !${Me.Song[Bestial Alignment].ID}) {
-			/call voodoo FALSE "${maChr.Find[stSavage].Value}" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stSavage].Value}"]} && !${Me.Song[Bestial Alignment].ID}) {
+			/call voodoo ${_debug} "${maChr.Find[stSavage].Value}" 0 FALSE
 		}
-		/if (${is_ready[FALSE, "Group Bestial Alignment"]} && !${Me.Buff[Ferociousness].ID}) {
-			/call voodoo FALSE "Group Bestial Alignment" 0 FALSE
+		/if (${is_ready[${_debug}, "Group Bestial Alignment"]} && !${Me.Buff[Ferociousness].ID}) {
+			/call voodoo ${_debug} "Group Bestial Alignment" 0 FALSE
 		}
 	}
 	

@@ -16,7 +16,7 @@
  * use:  
  ***|
 sub Event_SPEAKLINE(string _target, string _verbage)
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
 	
 	/if (${Spawn[${_target}].Distance} > 50) /echo I need to Move Closer To ${_target}
 
@@ -207,7 +207,7 @@ sub Event_CAST_TAKEHOLD(string line)
 sub Event_COMBAT_DISTANCE(string line)
 	/doevents flush COMBAT_DISTANCE
 	/if (PULL || AGRO) /return
-	/call set_combat ${combat.Upper}
+	/call set_combat FALSE
 /return
 
 
@@ -387,7 +387,7 @@ sub Event_16stein6(string line)
  
 #Event hatchet1 "#*#Hatchet hefts a weighted throwing axe in his offhand#*#"
 sub Event_hatchet1
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED TO RUN AWAY
   /declare running 						int 		local
   /declare distanceNow 				float 	local
@@ -448,7 +448,7 @@ sub Event_hatchet1
 
 #Event hatchet2 "#*#Hatchet lifts his axe high#*#"
 sub Event_hatchet2
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED TO RUN BETWEEN HIS LEGS
   /declare running							int local
   /declare distanceNow					float local
@@ -510,7 +510,7 @@ sub Event_hatchet2
 #Event hatchet3 "#*#Hatchet levels his axe at your upper body#*#"
 #Event hatchet3 "#*#Breakneck hoists an arm back#*#"
 sub Event_hatchet3
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED TO DUCK
   /if (${Me.Class.Name.Equal[BARD]}) /twist off
  :TopDuck
@@ -728,7 +728,7 @@ sub Event_Back
 
 #Event QueenAE 	"#*#Queen Malarian anchors her feet to the ground and prepares to unleash a wave of burning acid#*#"
 sub Event_QueenAE
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo Getting away from Queen
   /if (${Spawn[Queen Malarian].Distance}>30) /return
   /return
@@ -743,7 +743,7 @@ sub Event_QueenAE
 
 #Event QueenAdd "#*#You see the queen glare at you#*#"
 sub Event_QueenAdd
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED to RUN AWAY!
   /target clear
   /play QueenAdd smart
@@ -767,21 +767,21 @@ sub Event_QueenAdd
 
 #Event BrektRock "#*#A shadow passes over you#*#"
 sub Event_BrektRock
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo GET AWAY FROM THE RAID NOW!!
 /return
 
 
 #Event BrektFeet "#*#Lord Brekt prepares to unleash his fury on the mortals at his feet#*#"
 Sub_Event_BrektFeet
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo GET AWAY FROM BREKT'S FEET
 /return
 
 
 #Event BrektDT "#*#You are corrupted by discordant energy#*#"
 Sub_Event_BrekDT
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo Possible got the DT
   /delay 1s ${Me.Buff[Discordant Doom].ID}
   /if (${Me.Buff[Discordant Doom].ID}) /echo I NEED A CURE!!!
@@ -790,7 +790,7 @@ Sub_Event_BrekDT
 
 #Event Mindblight "#*#The maw in the #1# gurgles and coughs up a drop of ooze.#*#"
 sub Event_Mindblight(Line, Direction)
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (${Direction.Equal[southwest]}) {
     /if (${Spawn[npc =The Mindblight].ID}) /return
     /echo Moving NE
@@ -842,7 +842,7 @@ sub Event_mindshear
 
 #Event CV2Corrupt	"#*#Seething Corruption BURNS within you, #1#!#*#"
 sub Event_CV2Corrupt(string Line, string Name)
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (!${Name.Find[${Me.Name}]}) /return
   /echo I NEED to RUN AWAY!
   /target clear
@@ -868,7 +868,7 @@ sub Event_CV2Corrupt(string Line, string Name)
 #Event Beast "#*#Grunkuck looks at #1# with glee!#*#"
 #Event Beast "#*#Grunkuck looks at #1# with strange intent#*#"
 sub Event_Beast(line, person)
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (${person.Equal[${Me}]}) {
     /echo say I got beast ONE!!
     /target clear
@@ -887,7 +887,7 @@ sub Event_Beast(line, person)
 
 #Event LCWhip "#*#A whip wraps around your limbs!#*#"
 sub Event_LCWhip
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED to RUN AWAY!
   /target clear
   /play LCWhip smart
@@ -922,28 +922,28 @@ sub Event_LCWhip
 
 #Event SpineFreeze "#*#Spinerfreezer's eye all focus upon you#*#"
 sub Event_Spinefreeze
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED TO RUN AWAY!!
 /return
 
 
 #Event RunAway "#*#The Tentacle of Terror Mentor points at you#*#"
 sub Event_Runaway
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED TO RUN AWAY!!
 /return
 
 
 #Event CVSisterRun "#*##1# lashes out with debilitating energy#*#"
 sub Event_CVSisterRun(string Line, string Name)
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED TO RUN AWAY FROM ${Name}!!
 /return
 
 
 #Event GolemAEArg "#*#prepares for a massive strike at anyone not hidden from sight#*#"
 sub Event_GolemAEArg
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (!${Spawn[Avatar of Steel].LineOfSight}) /return
   /echo I NEED to RUN AWAY!
   /target clear
@@ -957,7 +957,7 @@ sub Event_GolemAEArg
 
 #Event GolemSteelAdd "#*#drops a piece of steel from its body#*#"
 sub Event_GolemSteelAdd
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo Add UP!!!
   |**
   /return
@@ -974,35 +974,35 @@ sub Event_GolemSteelAdd
 
 #Event RTCure "Seek out the purity stone to remove the filth that surrounds you."
 sub Event_RTCure
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED TO BE CURED!
 /return
 
 
 #Event RTCureDone "You have been cleansed."
 sub Event_RTCureDone
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo CURED
 /return
 
 
 #Event RTJump "Jump from this tower as the ultimate sacrifice to Sholoth!"
 sub Event_RTJump
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED TO JUMP!
 /return
 
 
 #Event RTJumpDone "You have made the proper sacrifice."
 sub Event_RTJumpDone
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I JUMPED
 /return
 
 
 #Event RTSludge "Your feet are stuck in a pool of sludge.#*#"
 sub Event_RTSludge
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo MOVE ME MAFUKKA in SLUDGE!!!
 /return
 
@@ -1015,7 +1015,7 @@ sub Event_RTSludge
 | ** Kael Raid
 #Event DainBanish	"#*#Dain Frostreaver IV shouts 'You will be banished, #1#, #2#, and #3#!#*#"
 sub Event_DainBanish(string Line, string PersonOne, string PersonTwo, string PersonThree)
-   /if (!${swEventsInc}) /return
+   /if (!${maEntropy.Find[events].Value}) /return FALSE
   /declare sPersonOne 		string local ${PersonOne}
   /declare sPersonTwo 		string local ${PersonTwo}
   /declare sPersonThree 	string local ${PersonThree}
@@ -1034,7 +1034,7 @@ sub Event_DainBanish(string Line, string PersonOne, string PersonTwo, string Per
 | ** Crystal Caverns Raid
 #Event danela "#*#A Ry`Gorr miner throws a barrel of dynamite at#1##*#"
 sub Event_danela(string Line, string Person, string Person2)
-   /if (!${swEventsInc}) /return
+   /if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (${Line.Find[${Me.CleanName}]}) {
     /echo I GOT BARREL!!
     /play Danela smart
@@ -1050,7 +1050,7 @@ sub Event_danela(string Line, string Person, string Person2)
 | ** Chapterhouse Raid .. fuck this place
 |#Event chapterhouse "Your bones are burning#*#"
 sub Event_chapterhouse()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED to RUN AWAY!
   /target clear
   /echo running to pool
@@ -1080,7 +1080,7 @@ sub Event_ChaptDot(string line, string Name)
 | ** Breeding Grounds Raid Events
 #Event zalikor "#*#You have been corrupted by the fear crystal#*#"
 sub Event_Zalikor()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (!${Zone.ShortName.Equal[breedinggrounds_raid]}) /return
   /echo I need to RUN!!!
   /if (${Me.Casting.ID}) /call Interrupt
@@ -1095,7 +1095,7 @@ sub Event_Zalikor()
 
 #Event AuraNuke "#*#Zalikor directs his fiery breath toward the aura of #1#."
 sub Event_AuraNuke((string line, string AuraName)
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
 	/echo ${AuraName}
 	/declare RunAway string local FALSE
 	/if (${AuraName.Equal[fire]} && ${Math.Distance[1109,-570]}<=50) {
@@ -1119,7 +1119,7 @@ sub Event_AuraNuke((string line, string AuraName)
 
 #Event eggs "#*#The ground beneath your feet begins to heat as Zalikor flies away#*#"
 sub Event_eggs()
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (!${Zone.ShortName.Equal[breedinggrounds_raid]}) /return
   /varset DoLeash 0
   /echo I need to up top!!!
@@ -1136,7 +1136,7 @@ sub Event_eggs()
 | ** Xorbb Raid
 #Event FindleFireBall1 "#*#You feel an inner warmth as Findlewill points at you#*#"
 sub Event_FindleFireBall1()
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED to RUN! Have Fireball!
   /target clear
   :TopOfFireBallSub
@@ -1173,7 +1173,7 @@ sub Event_FindleFireBall1()
 
 #Event FindleFireBall2	"#*#Findlewill begins casting a fireball #1##*#"
 sub Event_FindleFireBall2(string Line, string Name)
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (${Spawn[Findlewill].Distance}>40) /return
   /echo I NEED to run away from Findle!
   /target clear
@@ -1190,7 +1190,7 @@ sub Event_FindleFireBall2(string Line, string Name)
 
 #Event XorbbEye "#*#You are consumed by a sense of power watching and hating you#*#"
 sub Event_XorbbEye()
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED to RUN! Have Fire Emote!
   /target clear
   /echo Breaking LoS
@@ -1212,7 +1212,7 @@ sub Event_XorbbEye()
 
 #Event Xorbb3 "King Xorbb shouts '|${Me.CleanName}|'"
 sub Event_Xorbb3()
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I need to face away from him for a bit
   /beep
   /stop
@@ -1227,20 +1227,20 @@ sub Event_Xorbb3()
 | ** Chelsith Raid
 #Event SlaveCourage	"#*#a frightened slave looks courageous#*#"
 sub Event_SlaveCourage()
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
 /return
 
 
 #Event ChelsMove "#*#The crowd in the #1# section boos. They want the action brought closer!#*#"
 sub Event_ChelsMove(string Line, string Area)
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo Move mob to ${Area}
 /return
 
 
 #Event KilsevRage	"#*#Kilsev begins to focus his rage at #1##*#"
 sub Event_KilsevRage(string Line, string Person)
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
  /if (${Person.Equal[${Me.CleanName}]}) {
     /echo I HAVE TO KITE!!!
     /if (!${Defined[KilsevRaged]}) {
@@ -1260,7 +1260,7 @@ sub Event_KilsevRage(string Line, string Person)
 
 #Event KilsevRageOff "#*#Kilsev's rage subsides#*#"
 sub Event_KilsevRageOff()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (!${Defined[KilsevRaged]}) {
     /declare KilsevRaged int outer 0
   } else {
@@ -1272,7 +1272,7 @@ sub Event_KilsevRageOff()
 
 #Event VyzhAE		"#*#Vyzh`dra draws power from the crowd's energy#*#"
 sub Event_VyzhAE()
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (!${Defined[VyzhClose]}) {
     /declare VyzhClose int outer 0
   } else {
@@ -1292,7 +1292,7 @@ sub Event_VyzhAE()
 
 #Event VyzhGetClose	"#*#Vyzh`dra commands his tigers to attack#*#"
 sub Event_VyzhGetClose()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo Oh shit move back!1
   /moveto loc ${Spawn[Vyzh`dra the Godslayer].Y} ${Spawn[Vyzh`dra the Godslayer].X}
   /if (!${Defined[VyzhClose]}) {
@@ -1306,7 +1306,7 @@ sub Event_VyzhGetClose()
 
 #Event ChelsStopDPS	"#*#The crowd boos. They think the fight is going too fast#*#"
 sub Event_ChelsStopDPS()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo Stop DPS ${CureList.Find[${Me.Class}]} ${Me.Class}
   /if (!${CureList.Find[${Me.Class}]}) {
     /target myself
@@ -1319,7 +1319,7 @@ sub Event_ChelsStopDPS()
 
 #Event AaryonarGaze	"Aaryonar turns a dreadful gaze upon YOU!"
 sub Event_AaryonarGaze()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /declare CasterClasses string local "|DRU|CLR|SHM|ENC|NEC|MAG|WIZ|"
   /echo OH SHIT HE BE LOOKIN AT ME
   /if (${Target.CleanName.Equal[Aaryonar]}) {
@@ -1347,7 +1347,7 @@ sub Event_AaryonarGaze()
 
 #Event AaryonarGaze	"Aaryonar turns a dreadful gaze upon YOU!"
 sub Event_AaryonarGaze()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
 	/call set_stop NOECHO
 	/call clear_combat
 	/face away "Aaryonar" fast nolook
@@ -1362,7 +1362,7 @@ sub Event_AaryonarGaze()
 
 #Event AaryonarGazeOff "Aaryonar turns his gaze away from you."
 sub Event_AaryonarGazeOff()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo He cant handle looking at my junk!
   /if (${Target.CleanName.Equal[Aaryonar]}) /target clear
 /return
@@ -1371,7 +1371,7 @@ sub Event_AaryonarGazeOff()
 #Event ZlaAE "Zlexak has spotted you!#*#"
 #Event ZlaAE "You are covered in filth#*#"
 sub Event_ZlaAE()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED to RUN AWAY!
   /target clear
   /echo running away
@@ -1415,12 +1415,12 @@ sub Event_Naggy()
 | ** Dead Hills 1 Raid
 |#Event PrimeCloud	"#*#cloud of disease begins to form around #1##*#"
 sub Event_PrimeCloud(string Line, string Person)
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo ${Line.Arg[1]} - ${Line.Arg[2]} - ${Line.Arg[3]} - ${Line.Arg[4]} - ${Line.Arg[5]} - ${Line.Arg[6]} - ${Line.Arg[7]} - ${Line.Arg[8]} - ${Line.Arg[9]}
   /echo ${Line}
   /if (${Line.Find[${Me.CleanName}]}) {
     /echo I HAVE TO KITE!!!
-    /if (!${swEventsInc}) /return
+    /if (!${maEntropy.Find[events].Value}) /return FALSE
     /if(${DoLeash}) /varset DoLeash 0
 
     /if (!${Defined[PrimeCloud]}) {
@@ -1440,7 +1440,7 @@ sub Event_PrimeCloud(string Line, string Person)
 
 #Event PrimeDoT "#*#Your flesh begins to bubble and ooze#*#"
 sub Event_PrimeDoT()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED A CURE!!
 /return
 
@@ -1449,7 +1449,7 @@ sub Event_PrimeDoT()
 
 |#Event CurePrime 	"#1# #*#xulous prime#*#"
 sub Event_CurePrime(string Line string Person)
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (!${Person.Find[You]} && (${Me.Class.Name.Equal[Ranger]} || ${Me.Class.Name.Equal[BeastLord]}) ) {
     /delay 3s ${Me.SpellReady[${DiseaseSpell}]}
     /squelch /stick off
@@ -1463,7 +1463,7 @@ sub Event_CurePrime(string Line string Person)
 #Event BurningPrison	"#*#You are frozen in place#*#"
 #Event BurningPrison	"#*#You are chilled to the bone#*#"
 sub Event_BurningPrison()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (${Me.Buff[Burning Prison].ID}) {
     /if (${Me.AltAbilityReady[Battle Leap]}) {
       /alt activate ${Me.AltAbility[Battle Leap].ID}
@@ -1482,9 +1482,9 @@ sub Event_BurningPrison()
 | Neriak Raids
 #Event NeriakShock "#*#The golem glows and begins to hum, turning its head toward you.#*#"
 sub Event_NeriakShock()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I need to run away from the raid shock emote
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (${DoLeash}) /leash off
   /play shock smart
   /delay 10s ${AdvPath.Waypoints} < 1
@@ -1496,10 +1496,10 @@ sub Event_NeriakShock()
 
 #Event NeriakChill "#*#Take that one's essence, my pet!#*#"
 sub Event_NeriakChill(string line)
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (${line.Find[${Me}]}) {
     /echo I need to run away from the raid got essense emote
-    /if (!${swEventsInc}) /return
+    /if (!${maEntropy.Find[events].Value}) /return FALSE
     /if (${DoLeash}) /leash off
     /play shock smart
     /delay 10s ${AdvPath.Waypoints} < 1
@@ -1512,7 +1512,7 @@ sub Event_NeriakChill(string line)
 
 #Event NeriakCold "#*#Sooo cooooold#*#"
 sub Event_NeriakCold()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (${lstClassMelee.Find[${Me.Class.Name}]}) {
     /echo moving back!
     /squelch /stick 120 moveback
@@ -1524,7 +1524,7 @@ sub Event_NeriakCold()
 
 #Event NeriakPulse "#*#An energy pulse moves toward you.#*#"
 sub Event_NeriakPulse()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I need to run away from the raid from pulse!
   /if (${DoLeash}) /leash off
   /play pulse smart
@@ -1541,7 +1541,7 @@ sub Event_NeriakPulse()
 
 #Event NeriakSpear "#*#you are pinned to the ground with a spear#*#"
 sub Event_NeriakSpear()
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /stand
   /moveto loc 440.50 -668
   /delay 1s
@@ -1558,7 +1558,7 @@ sub Event_NeriakSpear()
 | ** Bixie Raids
 #Event Bixie2Red "#*#red cloud forms above#*#"
 sub Event_Bixie2Red(string line)
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (${line.Find[${Me}]}) {
     /declare tempx float local ${Me.X}
     /declare tempy float local ${Me.Y}
@@ -1575,7 +1575,7 @@ sub Event_Bixie2Red(string line)
 
 #Event Bixie2Yellow "#*#yellow cloud forms above#*#"
 sub Event_Bixie2Yellow(string line)
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /if (${line.Find[${Me}]}) {
     /declare tempx float local ${Me.X}
     /declare tempy float local ${Me.Y}
@@ -1592,14 +1592,14 @@ sub Event_Bixie2Yellow(string line)
 
 #Event Bixie2Safe "#*#spines rains down around#*#"
 sub Event_Bixie2Safe(string line)
- 	/if (!${swEventsInc}) /return
+ 	/if (!${maEntropy.Find[events].Value}) /return FALSE
  /if (${line.Find[${Me}]}) /return Safe
 /return
 
 
 #Event SlaveThokWhip "#*#Slave Driver Thokk coils up his whip and aims for your head#*#"
 sub Event_SlaveThokWhip()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
 	/echo I NEED TO DUCK
 	/if (${Me.Class.Name.Equal[BARD]}) /twist off
 	:TopDuck
@@ -1613,7 +1613,7 @@ sub Event_SlaveThokWhip()
 
 #Event SlaveThokStand	"#*#Slave Driver Thokk's whip passes harmlessly overhead#*#"
 sub Event_SlaveThokStand()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
 	/echo Danger Gone!
   /if (${Me.State.Equal[DUCK]}) /keypress DUCK
 /return
@@ -1622,7 +1622,7 @@ sub Event_SlaveThokStand()
 #Event DSOn "#*#The mark of Nife flashes before your eyes#*#"
 #Event DSOn "#*#Warchanter Neezzee begins to cast a spell. <Chaotic Rune>#*#"
 sub Event_DSOn()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
 	/echo I have DS on
 	/if (${lstClassMelee.Find[${Me.Class.Name}]} || ${lstClassMelee.Find[${Me.Class.ShortName}]}) {
 		/target myself
@@ -1638,7 +1638,7 @@ sub Event_DSOn()
 #Event DSOff "#*#beats on the drum#*#"
 #Event DSOff "#*#The mystic symbol fades#*#"
 sub Event_DSOff()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
 	/echo DS Gone!
 	/if (${lstClassMelee.Find[${Me.Class.Name}]} || ${lstClassMelee.Find[${Me.Class.ShortName}]}) /target clear
 /return
@@ -1647,7 +1647,7 @@ sub Event_DSOff()
 | ** Tower of Rot Raid
 #Event ToRClay "#*#Lord Kyle Bayle raises his ancient claymore high overhead#*#"
 sub Event_ToRClay()
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
 
 	/if (${lstClassMelee.Find[${Me.Class.Name}]} || ${lstClassMelee.Find[${Me.Class.ShortName}]}) {
 		/target myself
@@ -1663,14 +1663,14 @@ sub Event_ToRClay()
 
 #Event ToRClaySafe "#*#Lord Kyle Bayle swings his ancient claymore with frightening force#*#"
 sub Event_ToRClaySafe()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
 	/if (${lstClassMelee.Find[${Me.Class.Name}]} || ${lstClassMelee.Find[${Me.Class.ShortName}]}) /target clear
 /return
 
 
 #Event ToRSplashAcid "#*#A splash of acid strikes you in the face#*#"
 sub Event_ToRSplashAcid()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I got splash emote!
   /target myself
   /if (${Me.Class.Name.Equal[BARD]}) /twist off
@@ -1684,7 +1684,7 @@ sub Event_ToRSplashAcid()
 
 #Event ToRWither "#*#Poison withers your body, you become weak and vulnerable#*#"
 sub Event_ToRWither()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
 	/gsay I need WITHER cure!
 /return
 
@@ -1700,7 +1700,7 @@ sub Event_ToRWither()
 
 #Event AM4 "#*#Electricity begins to form all around your body#*#"
 sub Event_AM4()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
 	/if (!${Zone.ShortName.Equal[arxmentis_raid]}) /return
 	| /echo I have to run away from raid!!!
 	/declare tempx float local ${Me.X}
@@ -1723,7 +1723,7 @@ sub Event_AM4()
 #Event AM1 "#*#You feel faint claws scratching#*#"
 #Event AM1 "#*#Fire begins to form around your feet."
 sub Event_AM1()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
 	/if (!${Zone.ShortName.Equal[arxmentis_raid]}) /return
 	/declare tempx float local ${Me.X}
 	/declare tempy float local ${Me.Y}
@@ -1748,7 +1748,7 @@ sub Event_AM1Safe()
 
 #Event VitioWeapon "#*#weapons out to his sides#*#"
 sub Event_VitioWeapon()
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
 	/declare tempx float local ${Me.X}
 	/declare tempy float local ${Me.Y}
 	/call create_timer VitioWeaponTimer 15s
@@ -1763,7 +1763,7 @@ sub Event_VitioWeapon()
 
 #Event VitioClose		"#*#begins to focus the power of the citadel#*#"
 sub Event_VitioClose()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   | /echo Get close to him!
 	/declare tempx float local ${Me.X}
 	/declare tempy float local ${Me.Y}
@@ -1779,7 +1779,7 @@ sub Event_VitioClose()
 
 #Event AMGolemLT "#*#a mortuis vifens gains health as he drains the life force from those standing nearby#*#"
 sub Event_AMGolemLT()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   | /echo need to get away from golem!
 /return
 
@@ -1787,7 +1787,7 @@ sub Event_AMGolemLT()
 #Event AMRunAwayBlob "#*#|${Me.CleanName}| has attracted the attention of the frigium letum#*#"
 #Event AMRunAwayBlob "#*#a phasma frigasia points a bony finger at you!#*#"
 sub Event_AMRunAwayBlob()
- 	/if (!${swEventsInc}) /return
+ 	/if (!${maEntropy.Find[events].Value}) /return FALSE
 	| /echo Got Blob emote!
   /if (${Spawn[Principal Ex-Vicarum Nomia].Distance}>150) /return
   /target clear
@@ -1801,7 +1801,7 @@ sub Event_AMRunAwayBlob()
 
 #Event AMRunAwayFive "#*#Heads up, |${Me.CleanName}|!#*#"
 sub Event_AMRunAwayFive()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   | /echo Got Heads up Emote!!
   /declare tempx float local ${Me.X}
   /declare tempy float local ${Me.Y}
@@ -1816,7 +1816,7 @@ sub Event_AMRunAwayFive()
 
 #Event AMRunAwayFiveOne "#*#You feel energy gathering. Only motion can set if free#*#"
 sub Event_AMRunAwayFiveOne()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
   | /echo Got Gathering Emote!!
   /declare tempx float local ${Me.X}
   /declare tempy float local ${Me.Y}
@@ -1838,7 +1838,7 @@ sub Event_AMRunAwayFiveOne()
 
 #Event CureAkkapanDot "#*#Terrible fumes engulf you. Run from it#*#"
 sub Event_CureAkkapanDot()
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /declare _rnd int local 0
  	/declare _tempTie bool local ${swSetTie}
 
@@ -1867,7 +1867,7 @@ sub Event_CureAkkapanDot()
 | ** ONE OFF
 | #Event CurePyroignitionDot "#*#Flames erupt where you stand#*#"
 sub Event_CurePyroignitionDot()
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   /declare _rnd int local 0
  	/declare _tempTie bool local ${swSetTie}
 
@@ -1897,7 +1897,7 @@ sub Event_CurePyroignitionDot()
 | ** Wither and Decay Raid
 #Event DecayRaid "#*#Decay spews a pile of living vomit in |${Me.CleanName}|'s direction.#*#"
 sub Event_DecayRaid()
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
 	/declare tempx float local ${Me.X}
 	/declare tempy float local ${Me.Y}
 	/moveto loc -84.35 -88.09
@@ -1913,7 +1913,7 @@ sub Event_DecayRaid()
 | ** Plane of Hate Revisted Raid
 #Event InnyDT "#*#You feel a sense of doom upon you#*#"
 sub Event_InnyDT()
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   | /echo Got Inny DT emote!
   /if (${Spawn[Innoruuk].Distance}>150) /return
   /play CureInnyDT
@@ -1945,7 +1945,7 @@ sub Event_InnyDT()
 | ** Anashti Raid
 | ** ONE OFF
 sub cure_Anashti_DT()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
 	/if (${lstClassMelee.Find[${Me.Class.ShortName}]} && ${Me.Buff[Holistic Health].Duration.TotalSeconds} > 15) /return
   /call set_stop
   /declare tempx float local ${Me.X}
@@ -2031,7 +2031,7 @@ sub MoveToSpot()
  *	Tank classes If they get Withering Physicality XIII they need to use Distillate of Immunization XIII
 
 sub CureDamselofDecay()
-  /if (!${swEventsInc}) /return
+  /if (!${maEntropy.Find[events].Value}) /return FALSE
   ISMEDEAD
 	| DPS classes BST,RNG,MON,ROG,ENC,WIZ,MAG,NEC,SHD,PAL,BRD,BST
 	/if (${Select[${Me.Class.ShortName},BST,RNG,MON,ROG,ENC,WIZ,MAG,NEC,SHD,PAL,BRD,BST]} && (${Me.Buff[Withering Physicality XIII].ID} || ${Me.Buff[Withering Limbs XIII].ID})) {
@@ -2105,7 +2105,7 @@ sub setAkkapanCamp()
 #Event Nexona "#*#tiny dark flame on #*#, |${Me.DisplayName}|#*#"
 #Event Nexona "#*#tiny dark flame on #*#, #*#, and |${Me.DisplayName}|#*#"
 sub Event_Nexona()
-	/if (!${swEventsInc}) /return
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
 	ISMEDEAD
 	/echo Got SILENCE Emote!!
 	/declare tempx float local ${Me.X}
@@ -2128,3 +2128,44 @@ sub Event_Nexona()
 |********************************************************************************************
  ** The Burning Lands (December 11, 2018)
  **|
+ 
+ 
+ 
+ 
+ 
+ 
+|********************************************************************************************
+ ** Torment of Velious (December 18, 2019)
+ **|
+ 
+ 
+ 
+| Icebound Avatar mission
+#Event IceAoW "#*#The ice encrusted Avatar of War shouts that |${Me.DisplayName}| must bend the knee#*#"
+sub Event_IceAoW()
+	/if (!${maEntropy.Find[events].Value}) /return FALSE
+	
+	/if (${Me.State.NotEqual[duck]}) {
+		/keypress DUCK
+	}
+	
+	/delay 11s
+	
+	/if (${Me.State.Equal[duck]}) {
+		/keypress DUCK
+	}
+ 
+/return TRUE
+
+
+
+
+
+Griklor the Restless roars and points at Name.
+is the trigger emote to stick
+there are two success messages to end stick and return to where you started would be perfect
+Griklor the Restless tries to control his mount as shards of deadly ice strike it.
+Griklor's griffon's wings are shredded by deadly ice and Griklor falls to the ground.
+are the two success messages
+ 
+ 

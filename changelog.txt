@@ -11,8 +11,26 @@
 
 
 
+
+
+A191222.01
+- /cc force will now ignore toons /env rad ##
+- do_loot() - small change to item not found when trying to figure out the inventory
+- /cc melee will now show when a skill is set to /autoskill
+- pulling
+  more adjustments to the space between melee and range minimum.. getting closer..
+- paladin, beastlord
+  redesign of taret id passing for subs: burn, misc_combat
+  will migrate same changed to other classes slowly
+- get_target_buff_time_left()
+  fixed (i think) the cast hang when checking buffs while a mob dies
+- events for Icebount AoW mission in TOV
+- working on one for the flying unicorn fucker..
+  
+
 A191219.03
 - fixed the glyph spam.. /sigh
+
 
 A191219.02
 - fixed the spire spam
