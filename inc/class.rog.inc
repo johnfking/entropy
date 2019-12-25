@@ -71,26 +71,27 @@ sub main_ROG(bool _debug)
 	
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Self
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
+		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
+		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
 			/call do_sneak_attack ${maDebug.Find[class].Value}
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/call set_combat FALSE
 			/if (MELEE && !${timer_Check_Behind}) /call stick_to_target FALSE TARGET 
 			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-			/call misc_combat_${Me.Class.ShortName} FALSE
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 			/if (MELEE) /call do_melee FALSE TARGET
-			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 
 		}
 
 		/if (AUTO) {	
 			CHECKFADE
-			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery FALSE
+			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[staminarecover].Value}
 		}
 	}
 
@@ -105,12 +106,12 @@ sub main_ROG(bool _debug)
 sub do_sneak_attack(bool _debug)
 	DEBUG \atdo_sneak_attack\ax()
 
-	/if (!${is_ready[FALSE, "${maChr.Find[stSneakAttack].Value}"]}) /return
+	/if (!${is_ready[${_debug}, "${maChr.Find[stSneakAttack].Value}"]}) /return
 	CHECKEXIT
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	
 	/if (${Target.ID} && ${Me.Invis} && ${Me.Sneaking}) {
-		/call voodoo FALSE "${maChr.Find[stSneakAttack].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stSneakAttack].Value}" TARGET FALSE
 		/doability backstab
 	}
 
@@ -133,43 +134,43 @@ sub misc_combat_ROG(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
-	/if (${is_ready[FALSE, "${maChr.Find[stAssault].Value}"]}) /call voodoo FALSE "${maChr.Find[stAssault].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAssault].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stAssault].Value}" TARGET FALSE
 	
-	/if (${is_ready[FALSE, "Shadow's Flanking"]}) /call voodoo FALSE "Shadow's Flanking" 0 FALSE
-	/if (${is_ready[FALSE, "${maChr.Find[stVision].Value}"]} && !${Me.Song[${maChr.Find[stVision].Value}].ID}) /call voodoo FALSE "${maChr.Find[stVision].Value}" 0 FALSE
-	/if (${is_ready[FALSE, "${maChr.Find[stTwistedShank].Value}"]}) /call voodoo FALSE "${maChr.Find[stTwistedShank].Value}" TARGET FALSE
-	/if (${is_ready[FALSE, "${maChr.Find[stAbsorbingAgent].Value}"]}) /call voodoo FALSE "${maChr.Find[stAbsorbingAgent].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "Shadow's Flanking"]}) /call voodoo ${_debug} "Shadow's Flanking" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stVision].Value}"]} && !${Me.Song[${maChr.Find[stVision].Value}].ID}) /call voodoo ${_debug} "${maChr.Find[stVision].Value}" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stTwistedShank].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stTwistedShank].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAbsorbingAgent].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stAbsorbingAgent].Value}" TARGET FALSE
 
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 
-	/if (${is_ready[FALSE, "${maChr.Find[stShadowHunter].Value}"]}) /call voodoo FALSE "${maChr.Find[stShadowHunter].Value}" TARGET FALSE
-	/if (${is_ready[FALSE, "${maChr.Find[stDisassociative].Value}"]}) /call voodoo FALSE "${maChr.Find[stDisassociative].Value}" TARGET FALSE
-	/if (${is_ready[FALSE, "${maChr.Find[stBleed].Value}"]}) /call voodoo FALSE "${maChr.Find[stBleed].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stShadowHunter].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stShadowHunter].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stDisassociative].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stDisassociative].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stBleed].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stBleed].Value}" TARGET FALSE
 
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 
-	/if (${is_ready[FALSE, "${maChr.Find[stPlay].Value}"]}) {
-		/if (!${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]} || !${is_ready[FALSE, "${maChr.Find[stFrenzy].Value}"]}) {
-			/if (${is_ready[FALSE, "${maChr.Find[stPlay].Value}"]} && !${Bool[${Me.ActiveDisc}]}) /call voodoo FALSE "${maChr.Find[stPlay].Value}" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stPlay].Value}"]}) {
+		/if (!${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]} || !${is_ready[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stPlay].Value}"]} && !${Bool[${Me.ActiveDisc}]}) /call voodoo ${_debug} "${maChr.Find[stPlay].Value}" 0 FALSE
 		}
 	}
 	
-	/if (!${lsZoneNamed.Contains[${Target.DisplayName}]} && !${is_ready[FALSE, "${maChr.Find[stFrenzy].Value}"]}) {
-		/if (${is_ready[FALSE, "${maChr.Find[stPlay].Value}"]} && !${Bool[${Me.ActiveDisc}]}) /call voodoo FALSE "${maChr.Find[stPlay].Value}" 0 FALSE
+	/if (!${lsZoneNamed.Contains[${Target.DisplayName}]} && !${is_ready[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stPlay].Value}"]} && !${Bool[${Me.ActiveDisc}]}) /call voodoo ${_debug} "${maChr.Find[stPlay].Value}" 0 FALSE
 	}		
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 	
-	/if (${Target.ID} && ${is_ready[FALSE, "${maChr.Find[stPhantom].Value}"]}) /call voodoo FALSE "${maChr.Find[stPhantom].Value}" TARGET FALSE
-	/if (${is_ready[FALSE, "${maChr.Find[stHiddenBlade].Value}"]}) /call voodoo FALSE "${maChr.Find[stHiddenBlade].Value}" 0 FALSE
-	/if (${is_ready[FALSE, "${maChr.Find[stHack].Value}"]}) /call voodoo FALSE "${maChr.Find[stHack].Value}" TARGET FALSE
-	/if (${is_ready[FALSE, "${maChr.Find[stBladePoison].Value}"]}) /call voodoo FALSE "${maChr.Find[stBladePoison].Value}" 0 FALSE
-	/if (${is_ready[FALSE, "${maChr.Find[stAggro].Value}"]}) /call voodoo FALSE "${maChr.Find[stAggro].Value}" TARGET FALSE
+	/if (${Target.ID} && ${is_ready[${_debug}, "${maChr.Find[stPhantom].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stPhantom].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stHiddenBlade].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stHiddenBlade].Value}" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stHack].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stHack].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stBladePoison].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stBladePoison].Value}" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAggro].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stAggro].Value}" TARGET FALSE
 	
 	/if (${maChr.Find[swDiscBlinding].Value} && ${Target.Level} <= ${Me.Level}) {
-		/if (${is_ready[FALSE, "${maChr.Find[stBlinding].Value}"]}) /call voodoo FALSE "${maChr.Find[stBlinding].Value}" TARGET FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stBlinding].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stBlinding].Value}" TARGET FALSE
 	}
 	
 /return
@@ -193,11 +194,11 @@ sub check_heal_ROG(bool _debug, string _type)
 
 	/if (!${check_hurt[${_debug}, ${_type}]}) /return FALSE
 
-	/if (${is_ready[FALSE, "Tumble"]}) {
-		/call voodoo FALSE "Tumble" 0 FALSE
+	/if (${is_ready[${_debug}, "Tumble"]}) {
+		/call voodoo ${_debug} "Tumble" 0 FALSE
 	}
 	
-	/call cast_list FALSE lsHealBaseLine ${Me.ID}	
+	/call cast_list ${_debug} lsHealBaseLine ${Me.ID}		
 	
 	SETHUD FALSE
 
@@ -263,8 +264,8 @@ sub click_poison(bool _debug)
 	/if (${FindItemCount[${clickPoisonItem}]} < ${clickPoisonCount} && ${Me.ItemReady[${clickPoisonDispenser}]}) {
 		CHECKCOMBATCAST
 		/if (${Me.Invis}) /makemevisible
-		/if (${is_ready[FALSE, "${clickPoisonDispenser}", ${Me.ID}]}) {
-			/call voodoo FALSE "${clickPoisonDispenser}" 0 FALSE
+		/if (${is_ready[${_debug}, "${clickPoisonDispenser}", ${Me.ID}]}) {
+			/call voodoo ${_debug} "${clickPoisonDispenser}" 0 FALSE
 		}
 		/call sort_cursor TRUE FORCE
 	}
@@ -277,8 +278,8 @@ sub click_poison(bool _debug)
 
 	| CHECKCOMBATCAST
 	/if (${Me.Invis}) /makemevisible
-	/if (${is_ready[FALSE, "${clickPoisonItem}"]}) {
-		/call voodoo FALSE "${clickPoisonItem}" 0 FALSE	
+	/if (${is_ready[${_debug}, "${clickPoisonItem}"]}) {
+		/call voodoo ${_debug} "${clickPoisonItem}" 0 FALSE	
 	}
 	
 /return
@@ -300,7 +301,7 @@ sub burn_ROG(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
 	/if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stPlay].Value}]} && ${Me.CombatAbilityReady[${Spell[${maChr.Find[stFrenzy].Value}].RankName}]}) {
@@ -313,36 +314,36 @@ sub burn_ROG(bool _debug)
 
 	| envenomed blades / dirty fighting stack issue
 	/if (${Target.ID} && ${Me.AltAbilityReady[Dirty Fighting]} && !${Me.Buff[Envenomed Blades].ID}) {
-		/if (${is_ready[FALSE, "Dirty Fighting"]}) /call voodoo FALSE "Dirty Fighting" TARGET FALSE
+		/if (${is_ready[${_debug}, "Dirty Fighting"]}) /call voodoo ${_debug} "Dirty Fighting" TARGET FALSE
 	} else /if (${Me.AltAbilityReady[Envenomed Blades]} && !${Me.Buff[Dirty Fighting].ID}) {
-		/if (${is_ready[FALSE, "Envenomed Blades"]}) /call voodoo FALSE "Envenomed Blades" 0 FALSE
+		/if (${is_ready[${_debug}, "Envenomed Blades"]}) /call voodoo ${_debug} "Envenomed Blades" 0 FALSE
 	}
 
-	/if (${is_ready[FALSE, "${maChr.Find[stDicho].Value}", ${Me.ID}]}) /call voodoo FALSE "${maChr.Find[stDicho].Value}" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stDicho].Value}", ${Me.ID}]}) /call voodoo ${_debug} "${maChr.Find[stDicho].Value}" 0 FALSE
 
 	/if (!AE#) {
-		/if (${is_ready[FALSE, "Focused Rake's Rampage"]}) /call voodoo FALSE "Focused Rake's Rampage" 0 FALSE
+		/if (${is_ready[${_debug}, "Focused Rake's Rampage"]}) /call voodoo ${_debug} "Focused Rake's Rampage" 0 FALSE
 	} else /if (AE#) {
-		/if (${is_ready[FALSE, "Rake's Rampage"]}) /call voodoo FALSE "Rake's Rampage" 0 FALSE
+		/if (${is_ready[${_debug}, "Rake's Rampage"]}) /call voodoo ${_debug} "Rake's Rampage" 0 FALSE
 	}
 
-	/if (${is_ready[FALSE, "${maChr.Find[stPinPoint].Value}"]}) /call voodoo FALSE "${maChr.Find[stPinPoint].Value}" disc TARGET FALSE
-	/if (${is_ready[FALSE, "${maChr.Find[stAggro].Value}"]}) /call voodoo FALSE "${maChr.Find[stAggro].Value}" disc TARGET FALSE
-	/if (${is_ready[FALSE, "Rogue's Fury"]}) /call voodoo FALSE "Rogue's Fury" 0 FALSE
-	/if (${is_ready[FALSE, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15) /call voodoo FALSE "${maChr.Find[stMark].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stPinPoint].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stPinPoint].Value}" disc TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAggro].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stAggro].Value}" disc TARGET FALSE
+	/if (${is_ready[${_debug}, "Rogue's Fury"]}) /call voodoo ${_debug} "Rogue's Fury" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15) /call voodoo ${_debug} "${maChr.Find[stMark].Value}" TARGET FALSE
 	
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 	
-	/if (${is_ready[FALSE, "Intensity of the Resolute"]} && ${Raid.Members}) /call voodoo FALSE "Intensity of the Resolute" 0 FALSE
+	/if (${is_ready[${_debug}, "Intensity of the Resolute"]} && ${Raid.Members}) /call voodoo ${_debug} "Intensity of the Resolute" 0 FALSE
   /if (!${Me.ActiveDisc.ID}) {
-  	/if (${is_ready[FALSE, "${maChr.Find[stFrenzy].Value}"]}) /call voodoo FALSE "${maChr.Find[stFrenzy].Value}" 0 FALSE
+  	/if (${is_ready[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stFrenzy].Value}" 0 FALSE
   	/delay 2
   }
-  /if (${is_ready[FALSE, "${maChr.Find[stTwistedChance].Value}"]} && !${Me.ActiveDisc.ID}) /call voodoo FALSE "${maChr.Find[stTwistedChance].Value}" 0 FALSE
-  /if (${is_ready[FALSE, "${maChr.Find[stEradicator].Value}"]} && !${Me.ActiveDisc.ID}) /call voodoo FALSE "${maChr.Find[stEradicator].Value}" 0 FALSE
-  /if (${is_ready[FALSE, "${maChr.Find[stRazor].Value}"]} && !${Me.ActiveDisc.ID}) /call voodoo FALSE "${maChr.Find[stRazor].Value}" 0 FALSE
+  /if (${is_ready[${_debug}, "${maChr.Find[stTwistedChance].Value}"]} && !${Me.ActiveDisc.ID}) /call voodoo ${_debug} "${maChr.Find[stTwistedChance].Value}" 0 FALSE
+  /if (${is_ready[${_debug}, "${maChr.Find[stEradicator].Value}"]} && !${Me.ActiveDisc.ID}) /call voodoo ${_debug} "${maChr.Find[stEradicator].Value}" 0 FALSE
+  /if (${is_ready[${_debug}, "${maChr.Find[stRazor].Value}"]} && !${Me.ActiveDisc.ID}) /call voodoo ${_debug} "${maChr.Find[stRazor].Value}" 0 FALSE
 
-  /if (${is_ready[FALSE, "${maChr.Find[stAspBleeder].Value}"]} && !${Me.ActiveDisc.ID}) /call voodoo FALSE "${maChr.Find[stAspBleeder].Value}" 0 FALSE
+  /if (${is_ready[${_debug}, "${maChr.Find[stAspBleeder].Value}"]} && !${Me.ActiveDisc.ID}) /call voodoo ${_debug} "${maChr.Find[stAspBleeder].Value}" 0 FALSE
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
 
@@ -366,19 +367,19 @@ sub set_control_ROG(string _type, string _verbage, string _silent, bool _debug)
 		
 	| set ae on/off / count
 	} else /if (${_type.Equal[ae]}) {
-		/if (!${set_control_num_range[FALSE, stCountAE, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
 
 	| defensive mob agro count
 	} else /if (${_type.Equal[def]}) {
-		/if (!${set_control_num_range[FALSE, stCountDefensive, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return
 
 	| set AA fade use %	
 	} else /if (${_type.Equal[fade]}) {
-		/if (!${set_control_num_range[FALSE, stPctFade, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
 
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
-		/call set_control_chr_spire FALSE ${_verbage} ${_silent}
+		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
 		/return
 
 	| auto SOS... or not...

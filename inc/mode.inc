@@ -10,66 +10,6 @@
 
 
 |***
- *	DES: set mode type
- *	USE: /mode []
- *  NOTE: starts/ends non-standard modes
-
-#bind fredmode /fredmode
-sub Bind_fredmode(string _type, string _verbage, bool _debug)
-	/declare _bind string local Mode
-	/declare _list string local ${sql_return[FALSE, lstTypes${_bind}]}
-	/if (${Bool[${_type}]}) {
-		/varset _type ${list_isoloate[lstTypes${_bind}, ${_type}]}
-		}
-	/declare _count int local 0
-	/declare _listout string local
-	/declare _sep bool local		
-	
-	| set mode agro range
-	/if (${_type.Equal[agro]}) {
-		/if (${Range.Between[1,999999:${Int[${_verbage}]}]}) {
-			/call sql_update FALSE ${chrID} setModeAgro ${_verbage}  
-		} else {
-			VOUT /mode agro [${cinfo}${setModeAgro}\ax] allowable range is ${cinfo}1 - 99999\ax
-			/return
-		}	
-		
-	| set harvest counts	
-	} else /if (${_type.Find[harvestcount]}) {
-		/if (${Range.Between[1,999999:${Int[${_verbage}]}]}) {
-			/call sql_update FALSE ${chrID} setModeHarvestCount ${_verbage}  
-		} else {
-			VOUT /${_bind.Lower} harvestcount [${cinfo}${setModeHarvestCount}\ax] allowable range is ${cinfo}1 - 999999\ax
-			/return
-		}	
-
-	| all other switches
-	} else /if (${_list.Find[${_type}]}) {
-		/varset sw${_bind}${_type} ${If[${sw${_bind}${_type}},FALSE,TRUE]}
-		/if ((${_type.Equal[hunt]} || ${_type.Equal[scorch]})) {
-			/call set_stop NOECHO
-			/call clear_combat
-		}
-	}		
-
-	| output
-	/for _count 1 to ${_list.Count[|]}
-		/varset _listout ${_listout} ${If[${_sep},${sep},]} ${If[${sw${_bind}${_list.Arg[${_count},|]}},${cgood},${cinfo}]}${_list.Arg[${_count},|].Lower}\ax
-		/if (${_list.Arg[${_count},|].Equal[agro]}) /varset _listout ${_listout}:${cnum}${setModeAgro}\ax
-		/if (${_list.Arg[${_count},|].Equal[harvestcount]}) /varset _listout ${_listout}:${cnum}${setModeHarvestCount}\ax
-		/varset _sep TRUE
-	/next _count
-	VOUT /${_bind.Lower} [${_listout}]				
-
-	/varset swOverrideLOS ${sql_return[FALSE, swOverrideLOS]}
-	/varset swOverrideEngagePct ${sql_return[FALSE, swOverrideEngagePct]}
-	/varset swAutoCursor ${sql_return[FALSE, swAutoCursor]}
-
-/return
- ***|
-
-
-|***
  *	DES: stop all non standard modes
  *	USE: /call switch_clear_mode
  *	INI: NA
@@ -98,7 +38,6 @@ sub switch_clear_mode(bool _debug)
 
 
 
-
 |***
  *	DES: central get target and kill for hunting modes
  *	USE: /call mode_get_mob
@@ -116,7 +55,6 @@ sub mode_get_mob(bool _debug)
 		/call clear_combat ${_debug}
 		/return FALSE
 	}
-
 
 	/call get_target_navpull ${_debug} TARGET
 
@@ -677,10 +615,11 @@ sub mode_summon(bool _debug)
 		/return FALSE
 	}
 
-	SETHUD "mode fetch corpse"
+	SETHUD "mode summon"
 
 	| set stone to buy
 	/declare _soulstone string local
+	/if (${Me.Level} <= 115) /varset _soulstone Velium Soulstone
 	/if (${Me.Level} <= 110) /varset _soulstone Draconic Soulstone
 	/if (${Me.Level} <= 105) /varset _soulstone	Torrential Soulstone
 	/if (${Me.Level} <= 100) /varset _soulstone	Coalescent Soulstone

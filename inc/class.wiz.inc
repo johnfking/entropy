@@ -63,26 +63,27 @@ sub main_WIZ(bool _debug)
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Self
+		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/if (${check_class_loop[FALSE]}) /return
 	
 		/if (VALID) {
 			/call set_combat FALSE
-			/if (MELEE) /call do_melee FALSE TARGET
 			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
+			/if (MELEE) /call do_melee FALSE TARGET
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName}  ${maDebug.Find[burn].Value}
-			/if (PET || SWARM) /call send_pet FALSE TARGET
-			/if (SWARM) /call cast_temp_pet FALSE TARGET "${maChr.Find[stTempPet].Value}"
+			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
+			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stTempPet].Value}"
 			/if (${maCC.Find[swAlliance].Value}) /call trigger_alliance TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDoT TARGET
+			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
 			/if (NUKE) {
-				/if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} TRUE
+				/if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} ${maDebug.Find[twincast].Value}
 				/call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke${stLine} TARGET
 			}
 			/call misc_combat_${Me.Class.ShortName}
-			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 
 		}
 		
@@ -112,16 +113,16 @@ sub misc_combat_WIZ(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
 	| agro control
 	/if (AGRO) {
 	} else /if (!AGRO) {
-		/if (${is_ready[FALSE, "Arcane Whisper"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) /call voodoo FALSE "Arcane Whisper" TARGET FALSE
-		/if (${is_ready[FALSE, "Mind Crash"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value} && ${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]}) /call voodoo FALSE "Mind Crash" TARGET FALSE
-		/if (${is_ready[FALSE, "Concussive Intuition"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) /call voodoo FALSE "Concussive Intuition" TARGET FALSE
-		/if (${is_ready[FALSE, "${maChr.Find[stConcussion].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctConcussion].Value}) /call voodoo FALSE "${maChr.Find[stConcussion].Value}" TARGET FALSE
+		/if (${is_ready[${_debug}, "Arcane Whisper"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) /call voodoo ${_debug} "Arcane Whisper" TARGET FALSE
+		/if (${is_ready[${_debug}, "Mind Crash"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value} && ${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]}) /call voodoo ${_debug} "Mind Crash" TARGET FALSE
+		/if (${is_ready[${_debug}, "Concussive Intuition"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) /call voodoo ${_debug} "Concussive Intuition" TARGET FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stConcussion].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctConcussion].Value}) /call voodoo ${_debug} "${maChr.Find[stConcussion].Value}" TARGET FALSE
 	}
 	
 /return
@@ -141,21 +142,21 @@ sub check_harvest(bool _debug)
 
 	/if (${Me.Buff[Improved Twincast].ID} || ${Me.Buff[${maChr.Find[stTC].Value}].ID}) /return
 
-	/if (!${is_ready[FALSE, "${maChr.Find[stGather].Value}"]}) {
-		/if (${is_ready[FALSE, "Forceful Rejuvenation"]}) {
-			/call voodoo FALSE "Forceful Rejuvenation" 0 FALSE
+	/if (!${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
+		/if (${is_ready[${_debug}, "Forceful Rejuvenation"]}) {
+			/call voodoo ${_debug} "Forceful Rejuvenation" 0 FALSE
 		}
 		/delay 5			
 	}
 	/if (${Me.PctMana} < ${maChr.Find[stPctGather].Value}*.PCTHO) {
-		/if (${is_ready[FALSE, "${maChr.Find[stGather].Value}"]}) {
-			/if (${is_ready[FALSE, "${maChr.Find[stGather].Value}"]}) {
-				/call voodoo FALSE "${maChr.Find[stGather].Value}" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stGather].Value}" 0 FALSE
 			}
 		}
 		/if (${Me.AltAbilityReady[Harvest of Druzzil]}) {
-			/if (${is_ready[FALSE, "Harvest of Druzzil"]}) {
-				/call voodoo FALSE "Harvest of Druzzil" 0 FALSE
+			/if (${is_ready[${_debug}, "Harvest of Druzzil"]}) {
+				/call voodoo ${_debug} "Harvest of Druzzil" 0 FALSE
 			}
 		}
 	}
@@ -177,8 +178,8 @@ sub check_heal_WIZ(bool _debug, string _type)
 	ISMEDEAD
 	CHECKEXIT
 
-	/call get_hurt FALSE ${_type} 
-	/call cast_list FALSE lsHealBaseLine ${Me.ID}
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type} 
+	/call cast_list ${_debug} lsHealBaseLine ${Me.ID}	
 
 /return
 
@@ -199,46 +200,56 @@ sub burn_WIZ(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	| shhhhh..
-	/if (${is_ready[FALSE, "Silent Casting"]}) /call voodoo FALSE "Silent Casting" 0 FALSE
+	/if (${is_ready[${_debug}, "Silent Casting"]}) /call voodoo ${_debug} "Silent Casting" 0 FALSE
 
 	| next 45 spells +51% crit rate
-	/if (${is_ready[FALSE, "Frenzied Devastation"]}) /call voodoo FALSE "Frenzied Devastation" 0 FALSE
+	/if (${is_ready[${_debug}, "Frenzied Devastation"]}) /call voodoo ${_debug} "Frenzied Devastation" 0 FALSE
 	| increase chance to land
-	/if (${is_ready[FALSE, "Focus of Arcanum"]}) /call voodoo FALSE "Focus of Arcanum" 0 FALSE
+	/if (${is_ready[${_debug}, "Focus of Arcanum"]}) /call voodoo ${_debug} "Focus of Arcanum" 0 FALSE
 
 
 	| alternate twincast
 	/if (!${Me.Buff[${maChr.Find[stTC].Value}].ID}) {
-		/if (${is_ready[FALSE, "Improved Twincast"]}) /call voodoo FALSE "Improved Twincast" 0 FALSE
-	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.AltAbilityReady[Improved Twincast]} && ${is_ready[FALSE, "${maChr.Find[stTC].Value}"]}) {
-		/call voodoo FALSE "${maChr.Find[stTC].Value}" 0 FALSE
+		/if (${is_ready[${_debug}, "Improved Twincast"]}) /call voodoo ${_debug} "Improved Twincast" 0 FALSE
+	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.AltAbilityReady[Improved Twincast]} && ${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stTC].Value}" 0 FALSE
 	}
 	
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 	| boost spell type damage
-	/if (${is_ready[FALSE, "Fury of the Gods"]}) /call voodoo FALSE "Fury of the Gods" 0 FALSE
+	/if (${is_ready[${_debug}, "Fury of the Gods"]}) {
+		/call voodoo ${_debug} "Fury of the Gods" 0 FALSE
+	}
 
-	/if (${is_ready[FALSE, "Arcane Destruction"]}) /call voodoo FALSE "Arcane Destruction" 0 FALSE
+	/if (${is_ready[${_debug}, "Arcane Destruction"]}) {
+		/call voodoo ${_debug} "Arcane Destruction" 0 FALSE
+	}
 	
 	| increase damage
-	/if (${is_ready[FALSE, "Arcane Fury"]}) /call voodoo FALSE "Arcane Fury" 0 FALSE
+	/if (${is_ready[${_debug}, "Arcane Fury"]}) {
+		/call voodoo ${_debug} "Arcane Fury" 0 FALSE
+	}
 	
 	| aww baby
 	/if (${maChr.Find[swManaBurn].Value}) {
 		/varset dump ${set_target[TARGET]}
 		/if (!${Target.Buff[Mana Burn].ID}) {
-			/if (${is_ready[FALSE, "Mana Burn"]}) /call voodoo FALSE "Mana Burn" TARGET FALSE
+			/if (${is_ready[${_debug}, "Mana Burn"]}) {
+				/call voodoo ${_debug} "Mana Burn" TARGET FALSE
+			}
 		}
 	}
 
 	| swarm pet
 	/if (SWARM) {
-		/if (${is_ready[FALSE, "Call of Xuzl"]}) /call voodoo FALSE "Call of Xuzl" TARGET FALSE
+		/if (${is_ready[${_debug}, "Call of Xuzl"]}) {
+			/call voodoo ${_debug} "Call of Xuzl" TARGET FALSE
+		}
 	}
 
 	/call cast_glyph ${maDebug.Value[glyph].Value}
@@ -258,19 +269,19 @@ sub force_twincast_WIZ(bool _debug)
 	CHECKEXIT
 	GETINPUT
 	
-	/varset dump ${set_data_timer[FALSE, Force_TC, 6s]}
+	/varset dump ${set_data_timer[${_debug}, Force_TC, 6s]}
 	
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 
-	/if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[Twincast].ID} && ${is_ready[FALSE, "${maChr.Find[stTC].Value}"]}) {
-		/call voodoo FALSE "${maChr.Find[stTC].Value}" 0 FALSE
+	/if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[Twincast].ID} && ${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stTC].Value}" 0 FALSE
 		/return
 
-	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[${maChr.Find[stTC].Value}].ID} && !${Me.Buff[Twincast].ID} && ${is_ready[FALSE, "${maChr.Find[stNukeTC${stLine}].Value}"]}) {
-		/call voodoo FALSE "${maChr.Find[stNukeTC${stLine}].Value}" TARGET FALSE
+	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[${maChr.Find[stTC].Value}].ID} && !${Me.Buff[Twincast].ID} && ${is_ready[${_debug}, "${maChr.Find[stNukeTC${stLine}].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stNukeTC${stLine}].Value}" TARGET FALSE
 	}
 	
-/return
+/return TRUE
 
 
 
@@ -290,28 +301,28 @@ sub set_control_WIZ(string _type, string _verbage, string _silent, bool _debug)
 		
 	| use mana click items
 	} else /if (${_type.Equal[manarecover]}) {
-		/if (!${set_control_num_range[FALSE, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
 		
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
-		/call set_control_chr_spire FALSE ${_verbage} ${_silent}
+		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
 		/return
 		
 	| set concussion use %	
 	} else /if (${_type.Equal[concussion]}) {
-		/if (!${set_control_num_range[FALSE, stPctConcussion, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctConcussion, "${_verbage}", 0, 99]}) /return
 
 	| set AA fade use %	
 	} else /if (${_type.Equal[fade]}) {
-		/if (!${set_control_num_range[FALSE, stPctFade, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
 
 	| defensive mob agro count
 	} else /if (${_type.Equal[def]}) {
-		/if (!${set_control_num_range[FALSE, stCountDefensive, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return
 
 	| set ae on/off / count
 	} else /if (${_type.Equal[ae]}) {
-		/if (!${set_control_num_range[FALSE, stCountAE, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
 
 
 	} else /if (${_type.Equal[line]}) {
@@ -325,7 +336,7 @@ sub set_control_WIZ(string _type, string _verbage, string _silent, bool _debug)
 
 	| set gather use %	
 	} else /if (${_type.Equal[gather]}) {
-		/if (!${set_control_num_range[FALSE, stPctGather, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctGather, "${_verbage}", 0, 99]}) /return
 
 	| use manaburn
 	} else /if (${_type.Equal[mb]}) {

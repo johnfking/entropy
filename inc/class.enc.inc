@@ -61,20 +61,20 @@ sub main_ENC(bool _debug)
 	/if (AUTO) {
 		/if (${maChr.Find[swAACrystals].Value} && !${timer_Check_Crystals}) /call check_crystals ${maDebug.Find[crystal].Value}
 		/if (${maChr.Find[stPctGather].Value}) /call check_gather_${Me.Class.ShortName} ${maDebug.Find[gather].Value}
-		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value}
+		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
 	}
 
 	
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Self
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
+		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
+		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/call control_routine ${maDebug.Find[mez].Value}
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
-			/if (PET || SWARM) /call send_pet ${maDebug.Find[minion].Value} TARGET
+			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 			/call set_combat FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
@@ -82,16 +82,16 @@ sub main_ENC(bool _debug)
 			/call control_routine ${maDebug.Find[mez].Value}
 
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
-			/call misc_combat_${Me.Class.ShortName} FALSE
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
 
 			/call control_routine ${maDebug.Find[mez].Value}
 
-			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDoT TARGET
+			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
 			/call control_routine ${maDebug.Find[mez].Value}
-			/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
+			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
 			/call control_routine ${maDebug.Find[mez].Value}
 			/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-				/call check_buff_cycle_temp_list FALSE stTerror lsTerrorToon
+				/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTerror lsTerrorToon
 			}
 			/call control_routine ${maDebug.Find[mez].Value}
 			| /if (${swAlliance}) /call trigger_alliance TARGET
@@ -129,7 +129,7 @@ sub misc_combat_ENC(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	| use AA beam of slumber?
@@ -138,21 +138,21 @@ sub misc_combat_ENC(bool _debug)
 			/if (${Me.AltAbilityReady[Beam of Slumber]}) {
 				/if (${Me.Casting.ID}) /stopcast
 				/face ID TARGET ${If[${maHome.Find[swFaceFast].Value},fast,]}
-				/if (${is_ready[FALSE, "Beam of Slumber"]}) /call voodoo FALSE "Beam of Slumber" 0 FALSE
+				/if (${is_ready[${_debug}, "Beam of Slumber"]}) /call voodoo ${_debug} "Beam of Slumber" 0 FALSE
 			} 
 		}
 	}	
 
 	| swarm pet
 	/if (SWARM && AGRO) {
-		/if (${is_ready[FALSE, "Phantasmal Opponent"]} && ${Target.PctHPs} <= ${maMinion.Find[stPctSwarmEngage].Value}) {
-			/call voodoo FALSE "Phantasmal Opponent" 0 FALSE
+		/if (${is_ready[${_debug}, "Phantasmal Opponent"]} && ${Target.PctHPs} <= ${maMinion.Find[stPctSwarmEngage].Value}) {
+			/call voodoo ${_debug} "Phantasmal Opponent" 0 FALSE
 		}
 	}
 
 	| group DPS bonus
-	/if (${is_ready[FALSE, "Chromatic Haze"]}) {
-		/call voodoo FALSE "Chromatic Haze" 0 FALSE
+	/if (${is_ready[${_debug}, "Chromatic Haze"]}) {
+		/call voodoo ${_debug} "Chromatic Haze" 0 FALSE
 	}
 	
 /return
@@ -225,7 +225,7 @@ sub check_gather_ENC(bool _debug)
 
 |***
  * note: chanter self healing? like this is really gonna work. wtf 
- * use: /call check_heal_${Me.Class.ShortName} FALSE Self
+ * use: /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
  ***|
 sub check_heal_ENC(bool _debug)
 	DEBUG \atcheck_heal_${Me.Class.ShortName}\ax()
@@ -237,21 +237,21 @@ sub check_heal_ENC(bool _debug)
 	
 	| AA Sanguine mind crystal summoned item 5 min
 	/if (${maChr.Find[swAACrystals].Value}) {
-		/if (${is_ready[FALSE, "${healCrystal}"]}) {
-			/call voodoo FALSE "${healCrystal}" 0 FALSE
+		/if (${is_ready[${_debug}, "${healCrystal}"]}) {
+			/call voodoo ${_debug} "${healCrystal}" 0 FALSE
 			/return
 		}
 	}	
 	
 	| 3 decoys 10 min
-	/if (${is_ready[FALSE, "Doppelganger"]}) {
-		/call voodoo FALSE "Doppelganger" ${Me.ID} FALSE
+	/if (${is_ready[${_debug}, "Doppelganger"]}) {
+		/call voodoo ${_debug} "Doppelganger" ${Me.ID} FALSE
 		/return
 	}
 	
 	| rune and anti hate 20 min
-	/if (${is_ready[FALSE, "Dimensional Shield"]}) {
-		/call voodoo FALSE "Dimensional Shield" 0 FALSE
+	/if (${is_ready[${_debug}, "Dimensional Shield"]}) {
+		/call voodoo ${_debug} "Dimensional Shield" 0 FALSE
 		/return
 	}
 	
@@ -274,42 +274,42 @@ sub burn_ENC(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
-	/if (${is_ready[FALSE, "Illusions of Grandeur"]}) {
+	/if (${is_ready[${_debug}, "Illusions of Grandeur"]}) {
 		/call voodoo ${_debug} "Illusions of Grandeur" 0 FALSE
 	}
 
-	/if (${is_ready[FALSE, "Mental Contortion"]}) {
+	/if (${is_ready[${_debug}, "Mental Contortion"]}) {
 		/call voodoo ${_debug} "Mental Contortion" TARGET FALSE
 	}
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
-	/if (${is_ready[FALSE, "Improved Twincast"]}) {
+	/if (${is_ready[${_debug}, "Improved Twincast"]}) {
 		/call voodoo ${_debug} "Improved Twincast" 0 FALSE
 	}
 
 	| # DD spell damage bonus
-	/if (${is_ready[FALSE, "Calculated Insanity"]}) {
+	/if (${is_ready[${_debug}, "Calculated Insanity"]}) {
 		/call voodoo ${_debug} "Calculated Insanity" 0 FALSE
 	}
 
 	
-	/if (${is_ready[FALSE, "Silent Casting"]}) {
+	/if (${is_ready[${_debug}, "Silent Casting"]}) {
 		/call voodoo ${_debug} "Silent Casting" 0 FALSE
 	} 
 	
-	/if (${is_ready[FALSE, "Dimensional Shield"]}) {
+	/if (${is_ready[${_debug}, "Dimensional Shield"]}) {
 		/call voodoo ${_debug} "Dimensional Shield" 0 FALSE
 	}
 
 	| resist mod
-	/if (${is_ready[FALSE, "Focus of Arcanum"]}) /call voodoo ${_debug} "Focus of Arcanum" 0 FALSE
+	/if (${is_ready[${_debug}, "Focus of Arcanum"]}) /call voodoo ${_debug} "Focus of Arcanum" 0 FALSE
 
 	| Group DD Bonus
-	/if (${is_ready[FALSE, "Chromatic Haze"]}) /call voodoo ${_debug} "Chromatic Haze" 0 FALSE
+	/if (${is_ready[${_debug}, "Chromatic Haze"]}) /call voodoo ${_debug} "Chromatic Haze" 0 FALSE
 	
 	/call cast_glyph ${maDebug.Find[glyph].Value}
 
@@ -340,12 +340,12 @@ sub find_mob_to_charm(bool _debug)
 
 				/squelch /target ID ${_tmpID}
 				/if (!${Target.Tashed.Duration}) /call cast_tash ${_tmpID}
-				/if (${is_ready[FALSE, spell, "${spellpbaeMez}", ${Me.ID}]}) /call voodoo FALSE "${spellpbaeMez}" 0 0 check_for_adds
+				/if (${is_ready[${_debug}, spell, "${spellpbaeMez}", ${Me.ID}]}) /call voodoo ${_debug} "${spellpbaeMez}" 0 0 check_for_adds
 
 				/if (${Target.Level} <= 46) {
-					/if (${is_ready[FALSE, alt, "Dire Charm", ${_tmpID}]}) /call voodoo FALSE "Dire Charm" alt ${_tmpID} FALSE					
+					/if (${is_ready[${_debug}, alt, "Dire Charm", ${_tmpID}]}) /call voodoo ${_debug} "Dire Charm" alt ${_tmpID} FALSE					
 				} else {
-					/if (${is_ready[FALSE, spell, "${spellCharm}", ${_tmpID}]}) /call voodoo FALSE "${spellCharm}" 0 ${_tmpID} FALSE
+					/if (${is_ready[${_debug}, spell, "${spellCharm}", ${_tmpID}]}) /call voodoo ${_debug} "${spellCharm}" 0 ${_tmpID} FALSE
 				}
 				
 				/if (${Defined[timer_mez_ID${_tmpID}]}) /deletevar timer_mez_ID${_tmpID}
@@ -378,28 +378,28 @@ sub set_control_ENC(string _type, string _verbage, string _silent, bool _debug)
 		
 	| set ae on/off / count
 	} else /if (${_type.Equal[ae]}) {
-		/if (!${set_control_num_range[FALSE, stCountAE, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
 	
 	| defensive mob agro count
 	} else /if (${_type.Equal[def]}) {
-		/if (!${set_control_num_range[FALSE, stCountDefensive, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return
 		
 	| set AA fade use %	
 	} else /if (${_type.Equal[fade]}) {
-		/if (!${set_control_num_range[FALSE, stPctFade, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
 	
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
-		/call set_control_chr_spire FALSE ${_verbage} ${_silent}
+		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
 		/return
 		
 	| use mana click items
 	} else /if (${_type.Equal[manarecover]}) {
-		/if (!${set_control_num_range[FALSE, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
 
 	| set gather use %	
 	} else /if (${_type.Equal[gather]}) {
-		/if (!${set_control_num_range[FALSE, stPctGather, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctGather, "${_verbage}", 0, 99]}) /return
 		
 	| use AA crystals
 	} else /if (${_type.Equal[crystal]}) {

@@ -64,39 +64,40 @@ sub main_MAG(bool _debug)
 
 	/if (AUTO) {
 		/if (${maChr.Find[stPctGather].Value}) /call check_gather_${Me.Class.ShortName} ${maDebug.Find[gather].Value}
-		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value}
+		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
 	}
 
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
-		| /if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Self
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
-		| /if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Pet
+		| /if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
+		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
+		| /if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Pet
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (${check_class_loop[FALSE]}) /return FALSE
 			/call set_combat FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName}
-			/if (PET || SWARM) /call send_pet FALSE TARGET
-			/if (SWARM) /call cast_temp_pet FALSE TARGET "${maChr.Find[stNukeServant].Value}"
+			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
+			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			| /if (${swAlliance}) /call trigger_alliance TARGET
-			/if (DOT) /call cast_dot FALSE lsDoT TARGET
+			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
 			/if (NUKE) {
 				/if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} TRUE
-				/call cast_nuke FALSE lsNuke${stLine} TARGET
+				/call cast_nuke ${maDebug.Find[nuke].Value} lsNuke${stLine} TARGET
 			}
 			/call misc_combat_${Me.Class.ShortName}
-			/call check_item_cycle FALSE TARGET			
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET			
 		}
 
 		/if (AUTO) {	
 			| /call Bind_setMAG rods
 
-			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
+			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			/if (${maChr.Find[stPctGather].Value}) /call check_gather_${Me.Class.ShortName} ${maDebug.Find[gather].Value}
 		}
 	}
@@ -119,18 +120,15 @@ sub misc_combat_MAG(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	| Forece of Elements AA
-	/if (${is_ready[FALSE, "Force of Elements"]}) {
-		/call voodoo FALSE "Force of Elements" TARGET FALSE
+	/if (${is_ready[${_debug}, "Force of Elements"]}) {
+		/call voodoo ${_debug} "Force of Elements" TARGET FALSE
 	}
 	
 /return TRUE
-
-
-
 
 
 |***
@@ -145,8 +143,8 @@ sub cast_nuke_salvo(bool _debug)
 	CHECKEXIT
 	CHECKTIE
 	
-	/if (${is_ready[FALSE, "${maChr.Find[stNukeSalvo].Value}"]}) {
-		/call voodoo FALSE "${maChr.Find[stNukeSalvo].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stNukeSalvo].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stNukeSalvo].Value}" TARGET FALSE
 	}
 	
 /return TRUE
@@ -169,7 +167,7 @@ sub check_heal_MAG(bool _debug, string _type)
 
 	SETHUD "heal ${_type}"
 	
- 	/if (!${get_hurt[FALSE, ${_type}]}) {
+ 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
  	  	
@@ -181,15 +179,15 @@ sub check_heal_MAG(bool _debug, string _type)
 
 	/if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value}) {
 		/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-			/if (${is_ready[FALSE, "Mend Companion"]}) {
-				/call voodoo FALSE "Mend Companion" ${Pet.ID} FALSE
+			/if (${is_ready[${_debug}, "Mend Companion"]}) {
+				/call voodoo ${_debug} "Mend Companion" ${Pet.ID} FALSE
 			}
 		}
 
 		/call cast_list FALSE lsHealPetLine ${Pet.ID}
 	}
 
- 	/if (!${get_hurt[FALSE, ${_type}]}) {
+ 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
 	| heal anything spell
@@ -219,29 +217,29 @@ sub burn_MAG(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
 	
-	/if (${is_ready[FALSE, "Elemental Ward"]}) {
-		/call voodoo FALSE "Elemental Ward" 0 FALSE
+	/if (${is_ready[${_debug}, "Elemental Ward"]}) {
+		/call voodoo ${_debug} "Elemental Ward" 0 FALSE
 	}
 	
 	/if (${Target.PctHPs} > 20) {
-		/if (${is_ready[FALSE, "Focus of Arcanum"]}) {
-			/call voodoo FALSE "Focus of Arcanum" 0 FALSE
+		/if (${is_ready[${_debug}, "Focus of Arcanum"]}) {
+			/call voodoo ${_debug} "Focus of Arcanum" 0 FALSE
 		}
 	}
 	
 	| direct damage bonus
 	/if (${Target.PctHPs} > 10) {
 		/if (${Me.Buff[Elemental Union].ID}) {
-			/if (${is_ready[FALSE, "Heart of Flames"]}) {
-				/call voodoo FALSE "Heart of Flames" 0 FALSE
+			/if (${is_ready[${_debug}, "Heart of Flames"]}) {
+				/call voodoo ${_debug} "Heart of Flames" 0 FALSE
 			}
 		} else /if (!${Me.Buff[Heart of Flames].ID} && !${Me.AltAbilityReady[Heart of Flames]}) {
-			/if (${is_ready[FALSE, "Elemental Union"]}) {
-				/call voodoo FALSE "Elemental Union" 0 FALSE
+			/if (${is_ready[${_debug}, "Elemental Union"]}) {
+				/call voodoo ${_debug} "Elemental Union" 0 FALSE
 			}
 		} else /if (!${Me.AltAbilityReady[Heart of Flames]} && !${Me.Buff[Heart of Flames].ID} && !${Me.AltAbilityReady[Elemental Union]} && !${Me.Buff[Elemental Union].ID}) {
 			/call cast_glyph ${maDebug.Find[glyph].Value}
@@ -250,27 +248,27 @@ sub burn_MAG(bool _debug)
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 	
-	/if (${is_ready[FALSE, "Silent Casting"]}) {
-		/call voodoo FALSE "Silent Casting" 0 FALSE
+	/if (${is_ready[${_debug}, "Silent Casting"]}) {
+		/call voodoo ${_debug} "Silent Casting" 0 FALSE
 	}
-	/if (${is_ready[FALSE, "Heart of Stone"]}) {
-		/call voodoo FALSE "Heart of Stone" 0 FALSE
+	/if (${is_ready[${_debug}, "Heart of Stone"]}) {
+		/call voodoo ${_debug} "Heart of Stone" 0 FALSE
 	}
 
 	| pet AAs
 	/if (PET) {
-		/if (${is_ready[FALSE, "Servant of Ro"]}) {
-			/call voodoo FALSE "Servant of Ro" TARGET FALSE
+		/if (${is_ready[${_debug}, "Servant of Ro"]}) {
+			/call voodoo ${_debug} "Servant of Ro" TARGET FALSE
 		}
-		/if (${is_ready[FALSE, "Companion's Fury"]}) {
-			/call voodoo FALSE "Companion's Fury" ${Pet.ID} FALSE
+		/if (${is_ready[${_debug}, "Companion's Fury"]}) {
+			/call voodoo ${_debug} "Companion's Fury" ${Pet.ID} FALSE
 		}
 	}
 	
 	| swarm pets
 	/if (SWARM) {
-		/if (${is_ready[FALSE, "Host of the Elements"]}) {
-			/call voodoo FALSE "Host of the Elements" TARGiiET FALSE
+		/if (${is_ready[${_debug}, "Host of the Elements"]}) {
+			/call voodoo ${_debug} "Host of the Elements" TARGiiET FALSE
 		}
 	}
 
@@ -295,13 +293,13 @@ sub force_twincast_MAG(bool _debug)
 	/varset dump ${set_data_timer[FALSE, Force_TC, RESTART]}
 	
 	/if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[Twincast].ID}) {
-		/if (${is_ready[FALSE, "${maChr.Find[stTC].Value}"]}) {
-			/call voodoo FALSE "${maChr.Find[stTC].Value}" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stTC].Value}" 0 FALSE
 		}
 		/return
 	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[${maChr.Find[stTC].Value}].ID} && !${Me.Buff[Twincast].ID}) {
-		/if (${is_ready[FALSE, "${stNukeTC${maChr.Find[stLine].Value}}"]}) {
-			/call voodoo FALSE "${stNukeTC${maChr.Find[stLine].Value}}" TARGET FALSE
+		/if (${is_ready[${_debug}, "${stNukeTC${maChr.Find[stLine].Value}}"]}) {
+			/call voodoo ${_debug} "${stNukeTC${maChr.Find[stLine].Value}}" TARGET FALSE
 		}
 	}	
 	

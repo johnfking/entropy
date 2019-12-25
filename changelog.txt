@@ -11,6 +11,40 @@
 
 
 
+A191225.01
+- necromancer
+  several corrections to functionality. like it wasn't functioning. meh..
+- enchanter
+  fixed a bug where chanter would not respond to / commands while in a mez loop
+- ranger
+  fixed a rather glaring issue with the melee burn disc not generating in the DB
+  added in stHealFont - this is the purefont heal line of ranger spells
+- /mode
+  /mode [summon] - updated for the new soulstone
+  /mode [stop] - stops ALL modes
+- /debug
+  /debug [stop] - stops ALL debugs
+  complete redesign. i over ran the 2048 limit 
+  added hundreds of debug entries throughout the code
+- /heal
+  fixed heal switches not showing, or just showing off
+  /heal [tot] - enables _hybrids_ (BST,RNG,PAL) to use heal targets target spells (healpoint based)
+- healing
+  moving heal lists (what class has access to what types of heals) to a sub vice each character file
+- buffs
+  changed buffs so they will read triggers and swap to the trigger for data validation
+  e.g. bard selo's sonata if you have the AA high enough, it will read Selo's Accelerato data
+- observers will now skip spawns that are not in zone
+- tags
+  "epic" is now a valid tag for the item cast routine. it holds a specific place in the combat routine
+  "noagro" to use when you are not using agro skills
+- startup option "forceauto" will start the mac in auto
+  e.g. /mac exspes\entropy forceauto
+- fade, made some adjustments. lets see how it goes
+
+
+
+ 
 
 
 A191222.01

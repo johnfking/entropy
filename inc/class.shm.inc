@@ -86,50 +86,51 @@ sub main_SHM(bool _debug)
 	    /call check_xtarget_build FALSE
 		}
 		/call check_cani ${maDebug.Find[canni].Value}
-		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} TRUE
-		/if (PET || SWARM) /call send_pet FALSE TARGET
+		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
+		/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 
 	}	
 
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Self
-		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Group
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
-		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
-		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Pet
+		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
+		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[group].Value} Group
+		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
+		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[xt].Value} XTarget
+		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Pet
 		/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 		CHECKFADE
 
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-			/call check_buff_cycle_temp_list FALSE stGrowth lsGrowthToon
+			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stGrowth lsGrowthToon
 		}
 
-		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
-		/if (BURN) /call burn_${Me.Class.ShortName} FALSE
+		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
+		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
 			
 			CHECKREZ
 			/call set_combat FALSE
-			/if (PET || SWARM) /call send_pet ${maDebug.Find[minion].Value} TARGET
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
+			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 			/if (MELEE) /call do_melee FALSE TARGET
-			/call misc_combat_${Me.Class.ShortName} FALSE
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDoT TARGET
-			/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
+			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
+			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
 			/if (${maChr.Find[swTalisman].Value}) /call cast_talisman ${maDebug.Find[talisman].Value}
 			/if (${maCC.Find[swAlliance].Value}) /call cast_alliance_SHM ${maDebug.Find[alliance].Value}
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
-			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 		}
 
 		/if (AUTO) {
 			CHECKFADE
 			/call check_cani ${maDebug.Find[canni].Value}
-			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
+			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 		}
 	}
 
@@ -151,7 +152,7 @@ sub misc_combat_SHM(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	/call check_cani ${maDebug.Find[canni].Value}
@@ -175,7 +176,7 @@ sub check_heal_SHM(bool _debug, string _type)
 
 	SETHUD "heal ${_type}"
 	
-	/call get_hurt ${_debug} ${_type}
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 	/declare _count int local 0
 	
 	| Group Regen Heal 
@@ -197,7 +198,7 @@ sub check_heal_SHM(bool _debug, string _type)
 					/if (!${Me.Song[${_groupHOT}].ID}) /varset _found FALSE
 					/if (${Spell[${_groupHOT}].Stacks}) /varset _found FALSE
 				}
-				/if (!${_found} && ${is_ready[FALSE, ${_groupHOT}]}) {
+				/if (!${_found} && ${is_ready[${_debug}, ${_groupHOT}]}) {
 					/call voodoo ${_debug} "${maChr.Find[stHealGroupOverTime].Value}" 0 FALSE
 				}
 			}
@@ -220,22 +221,12 @@ sub check_heal_SHM(bool _debug, string _type)
 	
   | stationary ward heal
   /if (${hurtCount} >= ${maHeal.Find[swHealGroup].Value}) {
-    /if (${is_ready[FALSE, "Call of the Ancients"]}) {
+    /if (${is_ready[${_debug}, "Call of the Ancients"]}) {
     	/call voodoo ${_debug} "Call of the Ancients" ${Me.ID} FALSE
     }
   }
   
-	|** Panic Ancestral Guard
-	/if (${hurtPctHP} < ${PanicPoint}*.PCTHO) {
-		/if (${is_ready[FALSE, "Ancestral Guard"]}) {
-			/if (${Me.Casting.ID}) /stopcast
-			/call voodoo ${_debug} "Ancestral Guard" 0 FALSE
-		}
-	}
-	
-	**|
-  
- 	/if (!${get_hurt[FALSE, ${_type}]}) {
+ 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
 
@@ -323,22 +314,22 @@ sub burn_SHM(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	| swarm aa pet
 	/if (SWARM) {
-		/if (${is_ready[FALSE, "Spirit Call"]}) /call voodoo ${_debug} "Spirit Call" TARGET FALSE
+		/if (${is_ready[${_debug}, "Spirit Call"]}) /call voodoo ${_debug} "Spirit Call" TARGET FALSE
 	}
 
 	| Lower spell resists
-	/if (${is_ready[FALSE, "Dampen Resistance"]}) /call voodoo ${_debug} "Dampen Resistance" TARGET FALSE
+	/if (${is_ready[${_debug}, "Dampen Resistance"]}) /call voodoo ${_debug} "Dampen Resistance" TARGET FALSE
 
 	| Twincast next 6 DOTs/HOTs
-	/if (${is_ready[FALSE, "Fleeting Spirit"]}) /call voodoo ${_debug} "Fleeting Spirit" TARGET FALSE
+	/if (${is_ready[${_debug}, "Fleeting Spirit"]}) /call voodoo ${_debug} "Fleeting Spirit" TARGET FALSE
 
 	| Increase spell cost by 14% for 100% exceptional heals on instant heals for 18 seconds
-	/if (${is_ready[FALSE, "Spiritual Blessing"]}) /call voodoo ${_debug} "Spiritual Blessing" TARGET FALSE
+	/if (${is_ready[${_debug}, "Spiritual Blessing"]}) /call voodoo ${_debug} "Spiritual Blessing" TARGET FALSE
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
@@ -401,7 +392,7 @@ sub check_cani(bool _debug)
 	/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM mana_recovery WHERE env_var="${maChr.Find[stCannibalization].Value}"
 	/if (${Me.PctHPs} < ${sqlite.Result[dummy 1 value]}) /return FALSE
 
-	/if (${is_ready[FALSE, "${maChr.Find[stCannibalization].Value}"]}) {
+	/if (${is_ready[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stCannibalization].Value}" 0 FALSE
 	}
 	

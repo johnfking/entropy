@@ -25,7 +25,7 @@
 #define ISMEDEAD "/if (${is_me_dead[${maRez.Find[debugRez].Value}]}) /call check_for_rezbox"
 #define CHECKEXIT "/if (${check_exit[]}) /return"
 #define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maCC.Find[swPull].Value} && !${Me.Invis} && ${maRez.Find[swRezGive].Value}) /call check_for_corpse ${maDebug.Find[rez].Value}"
-#define CHECKFADE "/if (${maChr.Find[stPctFade].Value} && ${Me.PctHPs} < ${maChr.Find[stPctFade].Value} && ${Me.PctHPs} > 0 && !${Me.Dead}) /call cast_AA_fade FALSE"
+#define CHECKFADE "/if (${maChr.Find[stPctFade].Value}) /call cast_AA_fade ${maDebug.Find[fade].Value}"
 #define OVERLOS "${If[${maOver.Find[swOverLOS].Value},,los]}"
 #define PS4 "playerstate 4"
 #define AUTO "${maEnv.Find[swAuto].Value}"
@@ -98,6 +98,9 @@ sub main(string _debug, string _param1, string _auto)
 	| this is built in to remove dannet usage from entropy to help troubleshoot other plugins. 
 	| DO NOT TOUCH THIS. really. just dont.
 	/declare swDanNet bool outer TRUE
+	
+	| trash variable
+	/declare dump string outer
 
 	| Make sure plugins are loaded. kill macro if not
 	/if (!${check_plugin[FALSE, TRUE, |MQ2SQLite|MQ2DanNet|Mq2Nav|MQ2MoveUtils|MQ2Collections]}) {
@@ -107,12 +110,16 @@ sub main(string _debug, string _param1, string _auto)
 		/endmacro
 	}
 
-	/if (${Bool[${_debug}]}) {
-		/declare dump bool local ${maDebug.Add[${_debug.Lower},TRUE]}
+	| build the debugs
+	/call set_debug FALSE
+
+	/if (${Bool[${_debug}]} && ${_debug.NotEqual[forceauto]}) {
+		/varset dump ${maDebug.Add[${_debug.Lower},TRUE]}
 	}
 
+
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A191222.01
+	/call set_data FALSE maEnv build													map outer A191225.01
 	
 	| prep macro
 	/call prepare_the_end FALSE
@@ -140,12 +147,18 @@ sub main(string _debug, string _param1, string _auto)
 	}
 	
 	/varset dump ${out[0, "\agReady\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax"]}
+	
+	| force on start switch
+	/if (${_debug.Equal[forceauto]}) {
+		/call Bind_control_env auto on
+	}
+	
 
 	| maintenance loop
 	/while (${maEntropy.Find[swMaintenance].Value}) {
 	  GETINPUT main_maintenance_loop swMaintenance|${maEntropy.Find[swMaintenance].Value}
 		/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) {
-			/call check_buff_cycle_now ${maDebug.Find[buffnow].Value}
+			/call check_buff_cycle_now ${maDebug.Find[now].Value}
 		}
 		/delay 1
 	}
@@ -155,13 +168,14 @@ sub main(string _debug, string _param1, string _auto)
 
 		| housekeeping first!
 		/if (!${timer_Check_Housekeeping}) {
-			/call check_housekeeping ${maDebug.Find[house].Value}
+			/call check_housekeeping FALSE
 		}		
 
 		GETINPUT main_loop swAuto|${maEnv.Find[swAuto].Value}
 		ISMEDEAD
 		CHECKCURSOR
 		SETHUD FALSE
+		
 
 		| check food / drink
 		/if (!${timer_Check_FoodDrink}) {
@@ -170,7 +184,7 @@ sub main(string _debug, string _param1, string _auto)
 
 		| check do now things
 		/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) {
-			/call check_buff_cycle_now ${maDebug.Find[buffnow].Value}
+			/call check_buff_cycle_now ${maDebug.Find[now].Value}
 		}
 
 		| mode check
@@ -212,7 +226,7 @@ sub main(string _debug, string _param1, string _auto)
 
 			| fireworks
 			/if (${maEnv.Find[swAAFireworks].Value} && !${timer_Waste_Fireworks}) {
-				/call cast_AA_fireworks FALSE
+				/call cast_AA_fireworks ${maDebug[fireworks].Value}
 			}
 			
 			| some sweeet lovin....

@@ -40,16 +40,9 @@ sub set_BST(bool _debug)
  	/call set_data_map FALSE maChr stPctParagonG 												0															"${auxnum} pct mana to use group paragon aa" 										
 	/call set_data_map FALSE maChr stPctParagonF 												0															"${auxnum} pct mana to use focused paragon aa"
 	/call set_data_map FALSE maChr stPctConsume 												0															"${auxnum} pct mana to use consume aa"
+ 	/call set_data_list FALSE maChr lsHealToT		 												PREGEN|3											"${auxli} targets target healing line of spells"
    
-	/call set_data_map FALSE maCC stMeleeKick														kick													"${auxna} current combat kick method"
-	/declare lsMeleePunch list outer
-	/varset dump ${lsMeleePunch.Append[dragon punch,eagle strike,tiger claw]}
-
-	/call set_data_map FALSE maCC stMeleePunch   												"dragon punch"								"${auxna} current combat punch method"
-	/declare lsMeleeKick list outer
-	/varset dump ${lsMeleeKick.Append[kick,flying kick,round kick]}
-                                          			
-/return
+/return TRUE
 
 
 
@@ -63,32 +56,28 @@ sub main_BST(bool _debug)
 
 	/if (AUTO) {
 		/call check_mana_${Me.Class.ShortName}
-		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value}
+		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
 	}
 
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Self
-		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Group
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
-		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value}  XTarget
-		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[minion].Value} Pet
-		/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+		/call check_heal_routines
 		/if (${check_class_loop[FALSE]}) /return		
 
 		/if (VALID) {
 			/call set_combat FALSE
-			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-			/if (PET || SWARM) /call send_pet ${maDebug.Find[minon].Value} TARGET
+			/call check_heal_routines
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
+			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
-			/call misc_combat_${Me.Class.ShortName} FALSE TARGET
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
+			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDoT TARGET
-			/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
-			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
+			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
+			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 			/if (${maCC.Find[swAlliance].Value}) /call cast_alliance_${Me.Class.ShortName} TARGET
 		
 		}
@@ -119,11 +108,11 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} ${_tmpID}
+	/call check_heal_routines
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	
-	/if (${is_ready[${_debug}, "${maChr.Find[stBestial].Value}", ${Me.ID}]} && !${Me.Song[${maChr.Find[stBestial].Value}].ID}) {
+	/if (${is_ready[${_debug}, "${maChr.Find[stBestial].Value}"]} && !${Me.Song[${maChr.Find[stBestial].Value}].ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stBestial].Value}" 0 FALSE
 	}
 	
@@ -189,8 +178,8 @@ sub check_mana_BST(bool _debug)
 	| consumption of Spirits AA
 	/if (${maChr.Find[stPctConsume].Value}) {
 		/if (${Me.PctMana} < ${maChr.Find[stPctConsume].Value}*.PCTHO) {
-		 	/if (${is_ready[FALSE, "Consumption of Spirit"]}) {
-		 		/call voodoo FALSE "Consumption of Spirit" 0 FALSE
+		 	/if (${is_ready[${_debug}, "Consumption of Spirit"]}) {
+		 		/call voodoo ${_debug} "Consumption of Spirit" 0 FALSE
 		 		/return
 		 	}
 		}
@@ -215,7 +204,7 @@ sub check_mana_BST(bool _debug)
 		/next _count				
 		
 		/if (${_countHurt} > 1) {
-			/call voodoo FALSE "Paragon of Spirit" 0 FALSE
+			/call voodoo ${_debug} "Paragon of Spirit" 0 FALSE
 			/delay 2s
 		}
 	}
@@ -226,8 +215,8 @@ sub check_mana_BST(bool _debug)
 	| self paragon
 	/if (${maChr.Find[stPctParagonF].Value}) {
 		/if (${Me.PctMana} <= ${maChr.Find[stPctParagonF].Value}*.PCTHO || ${Me.PctEndurance} <= ${maChr.Find[stPctParagonF].Value}*.PCTHO) {
-			/if (${is_ready[FALSE, "Focused Paragon of Spirits"]}) {
-				/call voodoo FALSE "Focused Paragon of Spirits" ${Me.ID} FALSE
+			/if (${is_ready[${_debug}, "Focused Paragon of Spirits"]}) {
+				/call voodoo ${_debug} "Focused Paragon of Spirits" ${Me.ID} FALSE
 				/delay 2s
 			}
 		}
@@ -252,7 +241,7 @@ sub check_heal_BST(bool _debug, string _type)
 
 	SETHUD "heal ${_type}"
 	
- 	/if (!${get_hurt[FALSE, ${_type}]}) {
+ 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
  	  	
@@ -261,33 +250,41 @@ sub check_heal_BST(bool _debug, string _type)
 		SETHUD FALSE
 		/return	
 	}  	
+	
+	| ToT heals
+	/if (${Select[${_type},tot]} && ${maHeal.Find[swHealToT].Value}) {
+		/if (${hurtCount} >= 1)  {
+			/call cast_list ${maDebug.Find[tot].Value} lsHealToT ${hurtID}
+			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE			
+		}
+	}
 
+	| PET HEALING
 	/if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value}) {
 		/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-			/if (${is_ready[FALSE, "Mend Companion"]}) {
-				/call voodoo FALSE "Mend Companion" ${Pet.ID} FALSE
+			/if (${is_ready[${_debug}, "Mend Companion"]}) {
+				/call voodoo ${_debug} "Mend Companion" ${Pet.ID} FALSE
 			}
 		}
 
-		/call cast_list FALSE lsHealPetLine ${Pet.ID}
+		/call cast_list ${_debug} lsHealPetLine ${Pet.ID}
 	}
-
-
+	
 	| self healing
 	/if (${Select[${_type},self]} && ${maHeal.Find[swHealSelf].Value}) {
 	 	/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-	 		/if (${is_ready[FALSE, "Warder's Gift", ${hurtID}]}) {
-	 			/call voodoo FALSE "Warder's Gift" 0 FALSE
+	 		/if (${is_ready[${_debug}, "Warder's Gift", ${hurtID}]}) {
+	 			/call voodoo ${_debug} "Warder's Gift" 0 FALSE
 	 		}
 		}
 	}
 
- 	/if (!${get_hurt[FALSE, ${_type}]}) {
+ 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
 	| heal anything spell
 	/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-		/call cast_list FALSE lsHealBaseLine ${hurtID}
+		/call cast_list ${_debug} lsHealBaseLine ${hurtID}
 	}
 
 	SETHUD FALSE
@@ -314,11 +311,11 @@ sub cast_AA_paragon(bool _debug)
 	GETINPUT
 
 	/if (${Me.AltAbilityReady[Mass Group Buff]} && ${Me.AltAbilityReady[Paragon of Spirit]} && !${Me.Song[Paragon of Spirit].ID}) {
-		/if (${is_ready[FALSE, "Mass Group Buff"]}) {
-			/call voodoo FALSE "Mass Group Buff" 0 FALSE
+		/if (${is_ready[${_debug}, "Mass Group Buff"]}) {
+			/call voodoo ${_debug} "Mass Group Buff" 0 FALSE
 		}
-		/if (${is_ready[FALSE, "Paragon of Spirit"]}) {
-			/call voodoo FALSE "Paragon of Spirit" 0 FALSE
+		/if (${is_ready[${_debug}, "Paragon of Spirit"]}) {
+			/call voodoo ${_debug} "Paragon of Spirit" 0 FALSE
 		}
 	} else /if (${Bool[${Me.Song[Paragon of Spirit]}]}) {
 		OUT ${owarning} trying to cast ${csp}Paragon of Spirit\ax while its running.	
@@ -423,36 +420,36 @@ sub set_control_BST(string _type, string _verbage, string _silent, bool _debug)
 		
 	| use mana click items
 	} else /if (${_type.Equal[manarecover]}) {
-		/if (!${set_control_num_range[FALSE, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
 		
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
-		/call set_control_chr_spire FALSE ${_verbage} ${_silent}
+		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
 		/return
 
 	| set AA fade use %	
 	} else /if (${_type.Equal[fade]}) {
-		/if (!${set_control_num_range[FALSE, stPctFade, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
 
 	| defensive mob agro count
 	} else /if (${_type.Equal[def]}) {
-		/if (!${set_control_num_range[FALSE, stCountDefensive, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return
 
 	| set ae on/off / count
 	} else /if (${_type.Equal[ae]}) {
-		/if (!${set_control_num_range[FALSE, stCountAE, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
 
 	| consume spirit
 	} else /if (${_type.Equal[consume]}) {
-		/if (!${set_control_num_range[FALSE, stPctConsume, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctConsume, "${_verbage}", 0, 99]}) /return
 
 	| focused paragon
 	} else /if (${_type.Equal[parafocus]}) {
-		/if (!${set_control_num_range[FALSE, stPctParagonF, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctParagonF, "${_verbage}", 0, 99]}) /return
 
 	| group paragon
 	} else /if (${_type.Equal[paragroup]}) {
-		/if (!${set_control_num_range[FALSE, stPctParagonG, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctParagonG, "${_verbage}", 0, 99]}) /return
 
 	| use hiatus disc
 	} else /if (${_type.Equal[hiatus]}) {

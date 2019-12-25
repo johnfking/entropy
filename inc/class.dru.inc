@@ -75,34 +75,35 @@ sub main_DRU(bool _debug)
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Self
-		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Group
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
-		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
-		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Pet
+		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
+		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[group].Value} Group
+		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
+		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[xt].Value} XTarget
+		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Pet
 		/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 		CHECKFADE
 
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-			/call check_buff_cycle_temp_list FALSE stGrowth lsGrowthToon
+			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stGrowth lsGrowthToon
 		}
-		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
-		/if (BURN) /call burn_${Me.Class.ShortName} FALSE
+		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
+		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
 			CHECKREZ
 			/call set_combat FALSE
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (MELEE) /call do_melee FALSE TARGET
-			/call misc_combat_${Me.Class.ShortName} FALSE
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
-			/if (DOT) /call cast_dot FALSE lsDot TARGET
-			/if (NUKE) /call cast_nuke FALSE lsNuke TARGET
-			/call check_item_cycle FALSE TARGET
+			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
+			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET	
 		}
 
 		/if (AUTO) {	
-			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
+			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			CHECKFADE
 		}
 
@@ -127,24 +128,24 @@ sub misc_combat_DRU(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
-	/if (${is_ready[FALSE, "Season's Wrath"]})) /call voodoo FALSE "Season's Wrath" TARGET FALSE
-	/if (${is_ready[FALSE, "Storm Strike"]})) /call voodoo FALSE "Storm Strike" TARGET FALSE
+	/if (${is_ready[${_debug}, "Season's Wrath"]})) /call voodoo ${_debug} "Season's Wrath" TARGET FALSE
+	/if (${is_ready[${_debug}, "Storm Strike"]})) /call voodoo ${_debug} "Storm Strike" TARGET FALSE
 	
 	| wolf spirit AAs
 	/if (${maChr.Find[stWolfSpirit].Value.Equal[black]}) {	
 		/if (!${Me.Buff[Spirit of the Black Wolf].ID} && ${Me.AltAbilityReady[Group Spirit of the Black Wolf]}) {
-			/if (${is_ready[FALSE, "Group Spirit of the Black Wolf"]}) /call voodoo FALSE "Group Spirit of the Black Wolf" 0 FALSE
+			/if (${is_ready[${_debug}, "Group Spirit of the Black Wolf"]}) /call voodoo ${_debug} "Group Spirit of the Black Wolf" 0 FALSE
 		} else /if (!${Me.Buff[Group Spirit of the Black Wolf].ID} && !${Me.AltAbilityReady[Group Spirit of the Black Wolf]} && ${Me.AltAbilityReady[Spirit of the Black Wolf]}) {
-			/if (${is_ready[FALSE, "Spirit of the Black Wolf"]}) /call voodoo FALSE "Spirit of the Black Wolf" 0 FALSE
+			/if (${is_ready[${_debug}, "Spirit of the Black Wolf"]}) /call voodoo ${_debug} "Spirit of the Black Wolf" 0 FALSE
 		}
 	} else /if (${maChr.Find[stWolfSpirit].Value.Equal[white]}) {	
 		/if (!${Me.Buff[Spirit of the White Wolf].ID} && ${Me.AltAbilityReady[Group Spirit of the White Wolf]}) {
-			/if (${is_ready[FALSE, "Group Spirit of the White Wolf"]}) /call voodoo FALSE "Group Spirit of the White Wolf" 0 FALSE
+			/if (${is_ready[${_debug}, "Group Spirit of the White Wolf"]}) /call voodoo ${_debug} "Group Spirit of the White Wolf" 0 FALSE
 		} else /if (!${Me.Buff[Group Spirit of the White Wolf].ID} && !${Me.AltAbilityReady[Group Spirit of the White Wolf]} && ${Me.AltAbilityReady[Spirit of the White Wolf]}) {
-			/if (${is_ready[FALSE, "Spirit of the White Wolf"]}) /call voodoo FALSE "Spirit of the White Wolf" 0 FALSE
+			/if (${is_ready[${_debug}, "Spirit of the White Wolf"]}) /call voodoo ${_debug} "Spirit of the White Wolf" 0 FALSE
 		}
 	}
 	
@@ -181,21 +182,21 @@ sub check_heal_DRU(bool _debug, string _type)
 
 		/if (${hurtPctHP} < ${maHeal.Find[stHealPointPanic].Value}*.PCTHO) {
 			/if (${Me.Casting.ID}) /stopcast
-			/if (${is_ready[FALSE, "${maChr.Find[stHealPanic].Value}"]}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stHealPanic].Value}"]}) {
 				/call voodoo ${_debug} "${maChr.Find[stHealPanic].Value}" ${hurtID} FALSE
 			}
-			/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		}
 	
 		/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-			/if (${is_ready[FALSE, "Swarm of Fireflies"]}) {
-				/call voodoo FALSE "Swarm of Fireflies" ${hurtID} FALSE
+			/if (${is_ready[${_debug}, "Swarm of Fireflies"]}) {
+				/call voodoo ${_debug} "Swarm of Fireflies" ${hurtID} FALSE
 			}
 		}
 		
 		/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-			/if (${is_ready[FALSE, "Convergence of Spirits"]}) {
-				/call voodoo FALSE "Convergence of Spirits" ${hurtID} FALSE
+			/if (${is_ready[${_debug}, "Convergence of Spirits"]}) {
+				/call voodoo ${_debug} "Convergence of Spirits" ${hurtID} FALSE
 			}
 		}
 		  
@@ -212,20 +213,20 @@ sub check_heal_DRU(bool _debug, string _type)
 			/if (!SAFEZONE) {
 
 			/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-				/if (${is_ready[FALSE, "Wildtender's Survival"]}) {
-					/call voodoo FALSE "Wildtender's Survival" 0 FALSE
+				/if (${is_ready[${_debug}, "Wildtender's Survival"]}) {
+					/call voodoo ${_debug} "Wildtender's Survival" 0 FALSE
 				}
 			}	
 				
-		  	/if (${is_ready[FALSE, "Peaceful Spirit of the Wood"]}) {
-		  		/call voodoo FALSE "Peaceful Spirit of the Wood" ${Me.ID} FALSE
+		  	/if (${is_ready[${_debug}, "Peaceful Spirit of the Wood"]}) {
+		  		/call voodoo ${_debug} "Peaceful Spirit of the Wood" ${Me.ID} FALSE
 		  		/return
 		  	}
 		  	
 		  	/if (!${check_hurt[${_debug}, ${_type}]}) /return FALSE
 		  	
-			 	/if (${is_ready[FALSE, "Blessing of Tunare"]}) {
-			 		/call voodoo FALSE "Blessing of Tunare" 0 FALSE
+			 	/if (${is_ready[${_debug}, "Blessing of Tunare"]}) {
+			 		/call voodoo ${_debug} "Blessing of Tunare" 0 FALSE
 			 		/return
 			 	}
 			}
@@ -240,7 +241,7 @@ sub check_heal_DRU(bool _debug, string _type)
 	  } 
 	}
 	
- 	/if (!${get_hurt[FALSE, ${_type}]}) {
+ 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
 
@@ -279,33 +280,33 @@ sub burn_DRU(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
 	| swarm pets
 	/if (SWARM) {
-		/if (${is_ready[FALSE, "Nature's Guardian"]})) /call voodoo FALSE "Nature's Guardian" TARGET FALSE
+		/if (${is_ready[${_debug}, "Nature's Guardian"]})) /call voodoo ${_debug} "Nature's Guardian" TARGET FALSE
 	}
 	
 	| defense
-	/if (${is_ready[FALSE, "Protection of Direwood"]}) /call voodoo FALSE "Protection of Direwood" 0 FALSE
-	/if (${is_ready[FALSE, "Silent Casting"]}) /call voodoo FALSE "Silent Casting" 0 FALSE
+	/if (${is_ready[${_debug}, "Protection of Direwood"]}) /call voodoo ${_debug} "Protection of Direwood" 0 FALSE
+	/if (${is_ready[${_debug}, "Silent Casting"]}) /call voodoo ${_debug} "Silent Casting" 0 FALSE
 
 	| damage boost
-	/if (${is_ready[FALSE, "Distructive Vortex"]}) /call voodoo FALSE "Distructive Vortex" 0 FALSE
-	/if (${is_ready[FALSE, "Natures Fury"]}) /call voodoo FALSE "Natures Fury" 0 FALSE
-	| /if (${is_ready[FALSE, "Group Spirit of the Black Wolf"]}) /call voodoo FALSE "Group Spirit of the Black Wolf" 0 FALSE
-	/if (${is_ready[FALSE, "Seasons Wrath"]})) /call voodoo FALSE "Seasons Wrath" TARGET FALSE
+	/if (${is_ready[${_debug}, "Distructive Vortex"]}) /call voodoo ${_debug} "Distructive Vortex" 0 FALSE
+	/if (${is_ready[${_debug}, "Natures Fury"]}) /call voodoo ${_debug} "Natures Fury" 0 FALSE
+	| /if (${is_ready[${_debug}, "Group Spirit of the Black Wolf"]}) /call voodoo ${_debug} "Group Spirit of the Black Wolf" 0 FALSE
+	/if (${is_ready[${_debug}, "Seasons Wrath"]})) /call voodoo ${_debug} "Seasons Wrath" TARGET FALSE
 	
 	| heal boost
-	/if (${is_ready[FALSE, "Nature's Blessing"]}) /call voodoo FALSE "Nature's Blessing" 0 FALSE
+	/if (${is_ready[${_debug}, "Nature's Blessing"]}) /call voodoo ${_debug} "Nature's Blessing" 0 FALSE
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 	
 	| AA AE heal
 	/if (!${Raid.Members}) {
-		/if (${is_ready[FALSE, "Nature's Boon"]}) {
-			/call voodoo FALSE "Nature's Boon" 0 FALSE
+		/if (${is_ready[${_debug}, "Nature's Boon"]}) {
+			/call voodoo ${_debug} "Nature's Boon" 0 FALSE
 		}
 	}
 
@@ -332,28 +333,28 @@ sub set_control_DRU(string _type, string _verbage, string _silent, bool _debug)
 		
 	| use mana click items
 	} else /if (${_type.Equal[manarecover]}) {
-		/if (!${set_control_num_range[FALSE, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
 		
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
-		/call set_control_chr_spire FALSE ${_verbage} ${_silent}
+		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
 		/return
 
 	| set AA fade use %	
 	} else /if (${_type.Equal[fade]}) {
-		/if (!${set_control_num_range[FALSE, stPctFade, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
 
 	| set group Heals
 	} else /if (${_type.Equal[groupheal]}) {
-		/if (!${set_control_num_range[FALSE, stCountHealGroup, "${_verbage}", 0, 6]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return
 
 	| defensive mob agro count
 	} else /if (${_type.Equal[def]}) {
-		/if (!${set_control_num_range[FALSE, stCountDefensive, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return
 
 	| set ae on/off / count
 	} else /if (${_type.Equal[ae]}) {
-		/if (!${set_control_num_range[FALSE, stCountAE, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
 
 
 	| wolf spirit AAs

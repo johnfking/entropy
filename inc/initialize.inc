@@ -7,6 +7,85 @@ i|*********************************************************************
 
 
 
+|***
+ * note: builds all the debug variables and lists for the map
+ * use: 
+ ***|
+sub set_debug()
+
+  | generate DEBUGS
+  /declare lsDebuglist list outer
+  /varset dump ${lsDebuglist.Append[buff,heal,move,debuff,cast,loot,mode,combat,other,minion,class]}
+  	
+  | build the variables for the debug lists
+  /declare _licdeb listiterator local
+  /vardata _licdeb lsDebuglist.First.Clone
+  /while (!${_licdeb.IsEnd}) {
+    /declare lsDebug${_licdeb.Value} list outer
+    /varset dump ${_licdeb.Advance}
+  }
+  
+  | buff
+  /varset dump ${lsDebugbuff.Append[ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp]}
+  | heal
+  /varset dump ${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot]}
+  | move
+  /varset dump ${lsDebugmove.Append[face,tie,zone]}
+  | debuff
+  /varset dump ${lsDebugdebuff.Append[debuff,mez]}
+  | minion
+  /varset dump ${lsDebugdebuff.Append[petbuid,lost,sic,temp,heal]}
+  | cast
+  /varset dump ${lsDebugcast.Append[item,nuke,dot]}
+	| loot
+  /varset dump ${lsDebugloot.Append[loot]}
+	| mode
+  /varset dump ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish]}
+  | combat
+  /varset dump ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc]}
+	| other
+  /varset dump ${lsDebugother.Append[build,edit,rest,rez,spire,glyph,fireworks,manarecover,fade]}
+  | class specific debuffs
+  /if (${Select[${Me.Class.ShortName},BER]}) {
+  } else /if (${Select[${Me.Class.ShortName},BRD]}) {
+  } else /if (${Select[${Me.Class.ShortName},BST]}) {
+  } else /if (${Select[${Me.Class.ShortName},CLR]}) {
+  	/varset dump ${lsDebugclass.Append[arbitrate]}
+  } else /if (${Select[${Me.Class.ShortName},DRU]}) {
+  } else /if (${Select[${Me.Class.ShortName},ENC]}) {
+  	/varset dump ${lsDebugclass.Append[crystal,gather]}
+  } else /if (${Select[${Me.Class.ShortName},MAG]}) {
+  	/varset dump ${lsDebugclass.Append[coh,gather,cauldron]}
+  } else /if (${Select[${Me.Class.ShortName},MNK]}) {
+  } else /if (${Select[${Me.Class.ShortName},NEC]}) {
+  } else /if (${Select[${Me.Class.ShortName},PAL]}) {
+  } else /if (${Select[${Me.Class.ShortName},RNG]}) {
+  	/varset dump ${lsDebugclass.Append[summer]}
+  } else /if (${Select[${Me.Class.ShortName},ROG]}) {
+  } else /if (${Select[${Me.Class.ShortName},SHD]}) {
+  } else /if (${Select[${Me.Class.ShortName},SHM]}) {
+  	/varset dump ${lsDebugclass.Append[talisman,surge,canni]}
+  } else /if (${Select[${Me.Class.ShortName},WAR]}) {
+  } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
+  	/varset dump ${lsDebugclass.Append[twincast]}
+  }  
+
+  /declare maDebug map outer
+
+  /declare _ligdeb listiterator local
+  /vardata _ligdeb lsDebuglist.First.Clone
+  /declare _lideb listiterator local
+  /while (!${_ligdeb.IsEnd}) {
+	  /vardata _lideb lsDebug${_ligdeb.Value}.First.Clone
+	  /while (!${_lideb.IsEnd}) {
+	    /varset dump ${maDebug.Add[${_lideb.Value},FALSE]}
+	    /varset dump ${_lideb.Advance}
+	  }			
+    /varset dump ${_ligdeb.Advance}
+  }
+
+/return TRUE
+
 
 
 |***
@@ -17,7 +96,7 @@ sub set_initialize(bool _debug)
   DEBUG \atset_initialize\ax()
 
   | set inital trash variables  
-  /call set_data FALSE FALSE dump string outer FALSE
+  | /call set_data FALSE FALSE dump string outer FALSE
   /call set_data FALSE FALSE bindswap bool outer FALSE
   /call set_data FALSE FALSE swap string outer FALSE
   /call set_data FALSE FALSE DNReturn string outer FALSE
@@ -102,58 +181,6 @@ sub set_initialize(bool _debug)
   /call set_data FALSE FALSE auxli                                    string outer "[\a-wlist\ax]"  
   /call set_data FALSE FALSE eol                                      string outer "\at........\ax \a-gEND OF LINE\ax"  
   
-  
-  | generate DEBUGS
-  /declare maDebug map outer
-  /declare lsDebug list outer
-  | buff
-  /varset dump ${lsDebug.Append[ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp]}
-  | heal
-  /varset dump ${lsDebug.Append[cure,xt,group,pet,self]}
-  | move
-  /varset dump ${lsDebug.Append[face,tie,zone]}
-  | debuff
-  /varset dump ${lsDebug.Append[debuff,mez]}
-  | cast
-  /varset dump ${lsDebug.Append[item,nuke,dot]}
-	| loot
-  /varset dump ${lsDebug.Append[loot]}
-	| mode
-  /varset dump ${lsDebug.Append[forage,drag,summon,petfarm,harvest,hunt,fish]}
-  | combat
-  /varset dump ${lsDebug.Append[def,target,melee,burn,agro,pull]}
-	| other
-  /varset dump ${lsDebug.Append[house,build,edit,minion,rest,rez,spire,glyph]}
-  | class specific debuffs
-  /if (${Select[${Me.Class.ShortName},BER]}) {
-  } else /if (${Select[${Me.Class.ShortName},BRD]}) {
-  } else /if (${Select[${Me.Class.ShortName},BST]}) {
-  } else /if (${Select[${Me.Class.ShortName},CLR]}) {
-  	/varset dump ${lsDebug.Append[arbitrate]}
-  } else /if (${Select[${Me.Class.ShortName},DRU]}) {
-  } else /if (${Select[${Me.Class.ShortName},ENC]}) {
-  	/varset dump ${lsDebug.Append[crystal,gather]}
-  } else /if (${Select[${Me.Class.ShortName},MAG]}) {
-  	/varset dump ${lsDebug.Append[coh,gather,cauldron]}
-  } else /if (${Select[${Me.Class.ShortName},MNK]}) {
-  } else /if (${Select[${Me.Class.ShortName},NEC]}) {
-  } else /if (${Select[${Me.Class.ShortName},PAL]}) {
-  } else /if (${Select[${Me.Class.ShortName},RNG]}) {
-  } else /if (${Select[${Me.Class.ShortName},ROG]}) {
-  } else /if (${Select[${Me.Class.ShortName},SHD]}) {
-  } else /if (${Select[${Me.Class.ShortName},SHM]}) {
-  	/varset dump ${lsDebug.Append[talisman,surge,canni]}
-  } else /if (${Select[${Me.Class.ShortName},WAR]}) {
-  } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
-  }  
-  
-  /declare _lideb listiterator local
-  /vardata _lideb lsDebug.First.Clone
-  /while (!${_lideb.IsEnd}) {
-    /varset dump ${maDebug.Add[${_lideb.Value},FALSE]}
-    /varset dump ${_lideb.Advance}
-  }
-
 /return TRUE
 
 
@@ -185,11 +212,23 @@ sub set_initial_environment(bool _debug)
   /call set_data FALSE FALSE lsClassAASnare                           list outer RNG|DRU|SHD|NEC|ROG|WAR|WIZ|MNK|PAL|BER
   /call set_data FALSE FALSE lsClassAAEradicate                       list outer RNG|DRU|NEC|WIZ|ENC|MAG
   /call set_data FALSE FALSE lsClassCastCure                          list outer CLR|DRU|SHM|BST|PAL|RNG
+  /call set_data FALSE FALSE lsClassHealToT	                          list outer BST|PAL|RNG
   /call set_data FALSE FALSE lsIVU                                    list outer "Group Perfected Invisibility to Undead"|"Perfected Invisibility to Undead"|"Invisibility to Undead"|"Invisibility versus Undead"|"Shauri's Sonorous Clouding"
   /call set_data FALSE FALSE lsIV                                     list outer "Shared Perfected Camouflage"|"Shared Camouflage"|"Camouflage"|"Group Perfected Invisibility"|"Invisibility"|"Perfected Invisibility"|"Phase March"|"Nethervoid March"|"Perfected Silent Presence"|"Cloak of Shadows"|"Gather Umbra"|"Invisibility Cloak"|"Perfected Natural Invisibility"|"Perfected Spirit Walk Invisibility"|"Perfected Group Spirit Walk Invisibility"|"Shauri's Sonorous Clouding"|"Selo's Song of Travel"
   /call set_data FALSE FALSE lsAssistTypes                            list outer g|ma1|ma2|1|2|3
   /call set_data FALSE FALSE lsPullTypes                              list outer base|pet|int|nav|multi
   /call set_data FALSE FALSE lsRezBuffTriggers                        list outer "Revival Sickness"|"Resurrection Sickness"
+
+
+	/call set_data FALSE FALSE lsClassHealToT														list outer PAL|RNG|BST
+	/call set_data FALSE FALSE lsClassHealSelf													list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
+	/call set_data FALSE FALSE lsClassHealGroup													list outer CLR|SHM|PAL|DRU
+	/call set_data FALSE FALSE lsClassHealXT														list outer CLR|SHM|PAL|DRU
+	/call set_data FALSE FALSE lsClassHealPet														list outer CLR|SHM|PAL|DRU|NEC|MAG|BST|SHM|RNG
+	/call set_data FALSE FALSE lsClassHealCure													list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
+
+
+
 
   /call set_data FALSE FALSE lsNoAttackBodyType                       list outer AURA|BANNER|CAMPFIRE|CORPSE|CHEST|ITEM|TRIGGER|TRAP|TIMER|MOUNT|MERCENARY|OBJECT
   /call set_data FALSE FALSE lsNoTargetNPC                            list outer "a campfire"|"a corpse"|"controller"
@@ -218,6 +257,7 @@ sub set_initial_environment(bool _debug)
   /varset dump ${set_data_timer[FALSE, Check_Mode, 5]}
   /varset dump ${set_data_timer[FALSE, Check_LoS_Timeout, 10s]}
   /varset dump ${set_data_timer[FALSE, Check_Housekeeping, 30s]}
+  /varset dump ${set_data_timer[FALSE, Check_Home, 1]}
   
   
   
@@ -392,11 +432,11 @@ sub set_initial_environment(bool _debug)
   
   | generate modes
   /declare maMode map outer
-  /declare _lsout list local
-  /varset dump ${_lsout.Append[forage,drag,summon,petfarm,harvest,hunt,fish]}
+  /declare lsMode list outer
+  /varset dump ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish]}
 
 	/declare _lisie listiterator local
-  /vardata _lisie _lsout.First.Clone
+  /vardata _lisie lsMode.First.Clone
   /while (!${_lisie.IsEnd}) {
     /varset dump ${maMode.Add[${_lisie.Value},FALSE]}
     /varset dump ${_lisie.Advance}
@@ -597,7 +637,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_list FALSE maEnv lsAutoInventory                     EMPTY                         "${auxli} list of shit to auto inventory"
   /call set_data_map FALSE maEnv stBuffGem                            ${Me.NumGems}                 "${auxnum} gem slot to use as a swap for buffing"
   /call set_data_map FALSE maEnv swHoldBuffGem                        FALSE                         "${auxsw} remember and return the spell used in that slot before buffing"
-  /call set_data_map FALSE maEnv stEnvRadius                          60                            "${auxnum} radius you are willing to operate in"
+  /call set_data_map FALSE maEnv stEnvRadius                          31                            "${auxnum} radius you are willing to operate in"
   /call set_data_map FALSE maEnv stEnvSafeRadius                      30                            "${auxnum} radius you consider safe even with mobs in it"
   /call set_data_map FALSE maEnv stLvlPct                             99                            "${auxnum} % of exp in a level you want to maintain"
   /call set_data_map FALSE maEnv stLvlMax                             110                           "${auxnum} level you want to maintain"
@@ -632,6 +672,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /varset dump ${set_data_timer[FALSE, Check_Cure, 6s]}
   /call set_data_map FALSE maHeal stHealAdjust                        0                             "${auxnum} % to overide max health to"
   /call set_data_map FALSE maHeal swHealSelf                          FALSE                         "${auxsw} enable self healing"
+  /call set_data_map FALSE maHeal swHealToT                          	FALSE                         "${auxsw} enable healing your targets target"
   /call set_data_map FALSE maHeal swHealGroup                         FALSE                         "${auxsw} enable group healing"
   /call set_data_map FALSE maHeal swHealXTarget                       FALSE                         "${auxsw} enable xtarget healing"
   /call set_data_map FALSE maHeal swHealPet                           FALSE                         "${auxsw} enable pet healing"
@@ -641,7 +682,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maHeal stCureDiseaseItem                   FALSE                         "${auxna} name of item to cure self diseases"
   /call set_data_map FALSE maHeal stCureCorruptionItem                FALSE                         "${auxna} name of item to cure self corruption"
   /call set_data_list FALSE maHeal lsNoCureDeBuff                     EMPTY                         "${auxli} list of debuffs you DO NOT want to cure"
-  | /call set_data_list FALSE maHeal lsHealItem                         EMPTY                         "${auxli} click heal items you want to waste time using"
   /call set_data_list FALSE maHeal lsHealXTClass                      EMPTY                         "${auxli} classes to populate xtarget for healing use: \a-t/heal xtarget\ax"
   /call set_data_list FALSE maHeal lsNoHealToon                       EMPTY                         "${auxli} fuck these people.. no heals for them.."
 
@@ -846,8 +886,9 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data_list FALSE maChr lsHealPetLine                     EMPTY                         "${auxli} list of healing spells/aas/items for pets"
-    /call set_data FALSE FALSE lsHealMode                             list outer "base"
-    /varset dump ${lsMeleeSkill.Append[dragonpunch,eaglestrike,tigerclaw,flyingkick,roundkick]}
+    /call set_data FALSE FALSE lsHealMode                             list outer "base|tot"
+    /varset dump ${lsMeleeSkill.Append[dragonpunch,eaglestrike,tigerclaw,flyingkick,roundkick,kick]}
+    /call set_data_map FALSE maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
     /call set_data_map FALSE maCC swDragonpunch                       FALSE                         "${auxsw} use dragon punch"
     /call set_data_map FALSE maCC swEaglestrike                       FALSE                         "${auxsw} use eagle strike"
     /call set_data_map FALSE maCC swTigerclaw                         FALSE                         "${auxsw} use tiger claw"
@@ -900,7 +941,7 @@ sub set_initialize_map_character_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
-    /call set_data FALSE FALSE lsHealMode                             list outer "base"
+    /call set_data FALSE FALSE lsHealMode                             list outer "base|aggressive|passive|tot"
     /varset dump ${lsMeleeSkill.Append[bash,taunt,disarm]}
     /call set_data_map FALSE maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit out of things"
     /call set_data_map FALSE maCC swTaunt                             FALSE                         "${auxsw} you mama is sooo fat!"
@@ -909,8 +950,7 @@ sub set_initialize_map_character_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},RNG]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
-    /call set_data FALSE FALSE lsHealMode                             list outer "base"
-
+    /call set_data FALSE FALSE lsHealMode                             list outer "base|tot"
     /varset dump ${lsMeleeSkill.Append[taunt,kick,disarm]}
     /call set_data_map FALSE maCC swTaunt                             FALSE                         "${auxsw} you mama is sooo fat!"
     /call set_data_map FALSE maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
@@ -920,8 +960,7 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
- 
-		/varset dump ${lsMeleeSkill.Append[backstab,intimidation,disarm]}
+ 		/varset dump ${lsMeleeSkill.Append[backstab,intimidation,disarm]}
     /call set_data_map FALSE maCC swBackstab                          FALSE                         "${auxsw} surprise butt sekx!"
     /call set_data_map FALSE maCC swIntimidation                      FALSE                         "${auxsw} you think you're all that.. you aint nothing.."
     /call set_data_map FALSE maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
@@ -930,8 +969,7 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
- 
-		/varset dump ${lsMeleeSkill.Append[taunt,disarm,bash]}
+ 		/varset dump ${lsMeleeSkill.Append[taunt,disarm,bash]}
     /call set_data_map FALSE maCC swTaunt                             FALSE                         "${auxsw} you mama is sooo fat!"
     /call set_data_map FALSE maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
     /call set_data_map FALSE maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit out of things"
@@ -941,11 +979,11 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data_list FALSE maChr lsHealPetLine                     EMPTY                         "${auxli} list of healing spells/aas/items for pets"
     /call set_data FALSE FALSE lsHealMode                             list outer "base|mending|reckless"
+
   } else /if (${Select[${Me.Class.ShortName},WAR]}) {
     /call set_data_list FALSE maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"   
     /call set_data_list FALSE maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target" 
     /call set_data FALSE FALSE lsHealMode                             list outer "base"
-
     /varset dump ${lsMeleeSkill.Append[bash,taunt,kick,disarm]}
     /call set_data_map FALSE maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit out of things"
     /call set_data_map FALSE maCC swTaunt                             FALSE                         "${auxsw} you mama is sooo fat!"
@@ -1222,7 +1260,6 @@ sub set_alias(bool _debug, string _action)
  * note: build all the hud variables
  * use: 
  ***|
-
 sub set_initialize_hud_variables()
 
   | running mode variable
@@ -1234,7 +1271,7 @@ sub set_initialize_hud_variables()
   /varset dump ${lsHUD.Append[build,mode,time]}
   /varset dump ${lsHUD.Append[engage,swpet,engagepet,swswarm,engageswarm,env]}
   /varset dump ${lsHUD.Append[auto,melee,range,nuke,dot,heal,control]}
-  /varset dump ${lsHUD.Append[healmode,override,self,group,xt,pet,cure]}
+  /varset dump ${lsHUD.Append[healmode,override,self,group,xt,pet,cure,tot]}
   /varset dump ${lsHUD.Append[bmaster,bself,bcrew,braid,bbeg,btemp,bunity,baura,bnow,bpet,bammo]}
   /varset dump ${lsHUD.Append[agro,pull,pullarea,pullmode]}
   /varset dump ${lsHUD.Append[tie,tietoon,tiemode]}
@@ -1250,12 +1287,6 @@ sub set_initialize_hud_variables()
   } 
   
 /return
-
-
-
-
-
-
 
 
 
@@ -1340,7 +1371,6 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH entropy build2  19,45,26,140,140,140,"${h_build}"
 
     | healing
-    | HUDPATH entropy h1      3,133,26,100,149,237,"[              ]"
     HUDPATH entropy h2      19,133,26,255,255,255,"${h_healmode}"
     HUDPATH entropy hS1     19,174,26,255,255,255,"${If[${h_self},S,]}"
     HUDPATH entropy hS2     19,174,21,25,25,25,"${If[${h_self},,_]}"
@@ -1352,8 +1382,10 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH entropy hP2     19,201,21,25,25,25,"${If[${h_pet},,_]}"
     HUDPATH entropy hC1     19,210,26,255,255,255,"${If[${h_cure},C,]}"
     HUDPATH entropy hC2     19,210,21,25,25,25,"${If[${h_cure},,_]}"
-    HUDPATH entropy ho1     19,219,26,255,255,255,"${If[${h_override},${h_override},]}"
-    HUDPATH entropy ho2     19,219,21,25,25,25,"${If[${h_override},,__]}"
+   	HUDPATH entropy hT1     19,219,26,255,255,255,"${If[${h_tot},T,]}"
+    HUDPATH entropy hT2     19,219,21,25,25,25,"${If[${h_tot},,_]}"
+    HUDPATH entropy ho1     19,228,26,255,255,255,"${If[${h_override},${h_override},]}"
+    HUDPATH entropy ho2     19,228,21,25,25,25,"${If[${h_override},,__]}"
     
     | tie
     HUDPATH entropy tie1    19,255,26,100,149,237,"${h_tiemode}"
@@ -1362,7 +1394,6 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH entropy tie4    19,280,22,25,25,25,"${If[${Bool[${h_tietoon}]},,____]}"
 
     HUDPATH entropy BG26    3,3,26,0,0,0,██████████████████████████████████████████
-
 
 
     | row 39
@@ -1501,125 +1532,13 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   /call setDeclare hudwatchspawn                                      string    outer FALSE
   /call setDeclare watchSpawnCount                                    int       outer FALSE
-
                                       
-
-      
-  /call setDeclare combat                                             string    outer FALSE
-  /call setDeclare currentLootCount                                   int       outer 0
-  
-
-
-
-
-  /call sql_control FALSE environment swGlyphOutsideRaid              bool      outer FALSE
-  /call sql_control FALSE environment swModePersistent                bool      outer FALSE
-  /call sql_control FALSE environment lsNoInvite                      string    outer FALSE
-
-  
-
   /call sql_control FALSE ${chrID} stoponDS                           bool      outer FALSE   
-  /call sql_control FALSE ${chrID} useGlyph                           string    outer FALSE
-
-  
-
-
-
 
   
   /call sql_control FALSE ${chrID} setBufftoWatch                     string    outer FALSE
-
-
-
 
   /call sql_control FALSE ${chrID} swAlliance                         bool      outer FALSE
   /call sql_control FALSE ${chrID} setAllianceTrigger                 string    outer FALSE

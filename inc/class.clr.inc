@@ -100,10 +100,10 @@ sub set_CLR(bool _debug)
 	/varset dump ${lsHealOrderheavy.Delimiter["|"]}
 	/varset dump ${lsHealOrderheavy.Append[lsHealRenewal|lsHealIntervention|lsHealLight|lsHealRemedy]}
 
-/return
+/return TRUE
 
-${Me.Primary.ID}
-${Me.Inventory[mainhand].ID}
+
+
 
 |***
  * note: main cleric routine
@@ -126,8 +126,8 @@ sub main_CLR(bool _debug)
 			}
 			/if (!${check_exit[FALSE]} && !SAFEZONE && !${Me.Buff[Revival Sickness].ID} && ${maChr.Find[stPctVP].Value}) {
 			 	/if (${Me.PctMana} < ${maChr.Find[stPctVP].Value}*.PCTHO) {
-			 		/if (${is_ready[FALSE, "Veturika's Perseverance"]}) {
-			 			/call voodoo FALSE "Veturika's Perseverance" 0 FALSE
+			 		/if (${is_ready[${_debug}, "Veturika's Perseverance"]}) {
+			 			/call voodoo ${_debug} "Veturika's Perseverance" 0 FALSE
 			 		}
 			 	}
 			}
@@ -137,22 +137,17 @@ sub main_CLR(bool _debug)
 
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
-		CHECKREZ
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Self
-		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Group
-		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure FALSE
-		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} XTarget
-		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[minion].Value} Pet
-		/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+		/call check_heal_routines
+		
 		CHECKFADE
 		| /if (${swAlliance}) /call trigger_alliance
 
+		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-			/call check_buff_cycle_temp_list ${maDebug.Find[bufftemp].Value} stWard lsWardToon
-			/call check_buff_cycle_temp_list ${maDebug.Find[bufftemp].Value} stRetort lsRetortToon
+			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stWard lsWardToon
+			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stRetort lsRetortToon
 		}
-		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
+		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
 		/if (${check_class_loop[FALSE]}) /return
 
@@ -160,21 +155,21 @@ sub main_CLR(bool _debug)
 			CHECKREZ
 			/call set_combat FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
-			/call misc_combat_${Me.Class.ShortName} FALSE
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[castdot].Value} lsDoT TARGET
-			/if (NUKE) /call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke TARGET
-			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
+			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
+			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 		}
 
 		/if (AUTO) {	
-			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
+			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			CHECKFADE
 		}
 
 	}
 
-/return
+/return TRUE
 
 
 
@@ -193,26 +188,26 @@ sub misc_combat_CLR(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 	
 	/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
 
-	/if (SWARM) /call cast_temp_pet FALSE TARGET "${maChr.Find[stTempPet].Value}"
+	/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stTempPet].Value}"
 	
 	
 	| pet AA hammer	
 	/if (${maBurn.Find[swBurnForce].Value} || (${maBurn.Find[swBurnAuto].Value} && ${lsZoneNamed.Contains[${Target.DisplayName}]})) {
-		/if (${is_ready[FALSE, "Celestial Hammer"]}) {
+		/if (${is_ready[${_debug}, "Celestial Hammer"]}) {
 			/call voodoo ${_debug} "Celestial Hammer" TARGET FALSE
 		}
 	}
 	
 	| undead aa nuke
 	/if (${Target.Body.Name.Equal[Undead]}) {
-		/if (${is_ready[FALSE, "Turn Undead"]}) {
+		/if (${is_ready[${_debug}, "Turn Undead"]}) {
 			/call voodoo ${_debug} "Turn Undead" TARGET FALSE
 		}
 	}	
@@ -266,10 +261,11 @@ sub check_heal_CLR(bool _debug, string _type)
 	CHECKEXIT
 	CHECKREZ
 	CHECKFADE
+	GETINPUT
 
 	SETHUD "heal ${_type.Lower}"
 	
-	/call get_hurt ${_debug} ${_type}
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 	/if (${Select[${_type},group]} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
 
 	/if (${Select[${_type},group]} && ${hurtCount} >= ${maChr.Find[stCountHealGroup].Value} && ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
@@ -295,7 +291,7 @@ sub check_heal_CLR(bool _debug, string _type)
 					/if (!${Me.Song[${_groupHOT}].ID}) /varset _found FALSE
 					/if (${Spell[${_groupHOT}].Stacks}) /varset _found FALSE
 				}
-				/if (!${_found} && ${is_ready[FALSE, ${_groupHOT}]}) {
+				/if (!${_found} && ${is_ready[${_debug}, ${_groupHOT}]}) {
 					/call voodoo ${_debug} "${maChr.Find[stHealGroupOverTime].Value}" 0 FALSE
 				}
 			}
@@ -308,7 +304,7 @@ sub check_heal_CLR(bool _debug, string _type)
 		/return	
 	} 
 	
-	/call get_hurt ${_debug} ${_type}
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
 	/if (${Select[${_type},group]}) {
 		/if (${maChr.Find[stCountArbitrate].Value}) {
@@ -317,19 +313,10 @@ sub check_heal_CLR(bool _debug, string _type)
 		/if (${maChr.Find[stCountHealGroup].Value}) {
 			/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
 		}
-		/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 	}
 
 	/if (!SAFEZONE) {
-		|** panic heal
-		/if (${hurtPctHP} < ${maHeal.Find[stHealPointPanic].Value}*.PCTHO) {
-			/if (${Me.Casting.ID}) /stopcast
-			/if (${is_ready[FALSE, "${maChr.Find[stHealPanic].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stHealPanic].Value}" ${hurtID} FALSE
-			}
-			/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
-		}
-		**|
 
 		| Arbitration
 		/if (${Select[${_type},group]}) {
@@ -339,7 +326,7 @@ sub check_heal_CLR(bool _debug, string _type)
 			/if (${maChr.Find[stCountHealGroup].Value}) {
 				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
 			}
-			/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		}
 
 		| Focused Celestial Regeneration - out of raid only
@@ -355,19 +342,23 @@ sub check_heal_CLR(bool _debug, string _type)
 		/if (${Me.Song[Gift of Mana].ID}) {
 			/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) { 
 				/call cast_list ${_debug} lsGoM ${hurtID}
-			 	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+			 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		  }
 		}
 	  
-		CHECKFADE
-		CHECKREZ
+	CHECKTIE
+	ISMEDEAD
+	CHECKEXIT
+	CHECKREZ
+	CHECKFADE
+	GETINPUT
 
 		| Panic AA single target heal
 	  /if (${hurtPctHP} <= ${maHeal.Find[stHealPointPanic].Value}*.PCTHO) {
-			/if (${is_ready[FALSE, "Burst of Life"]}) {
+			/if (${is_ready[${_debug}, "Burst of Life"]}) {
 				/if (${Me.Casting.ID}) /stopcast
 				/call voodoo ${_debug} "Burst of Life" ${hurtID} FALSE
-			 	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+			 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 			}
 	  }
 		
@@ -378,14 +369,14 @@ sub check_heal_CLR(bool _debug, string _type)
 			/if (${maChr.Find[stCountHealGroup].Value}) {
 				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
 			}
-			/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		}	
 	
 		| panic group heal. AA Beacon of life (3 min use)
 	  /if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value} && ${Group.Members} > 1 && ${maChr.Find[stCountHealGroup].Value}) {
 		  /if (${is_ready[${_debug}, "Beacon of Life"]}) {
 		  	/call voodoo ${_debug} "Beacon of Life" 0 FALSE
-			 	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+			 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		  }
 		}		 
 
@@ -396,7 +387,7 @@ sub check_heal_CLR(bool _debug, string _type)
 			/if (${maChr.Find[stCountHealGroup].Value}) {
 				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
 			}
-			/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		}
 
 		/if (${maChr.Find[stCountIssuance].Value}) {
@@ -425,33 +416,35 @@ sub check_heal_CLR(bool _debug, string _type)
 	}
 
 
- 	/if (!${get_hurt[FALSE, ${_type}]}) {
+ 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
 
+	CHECKTIE
 	ISMEDEAD
 	CHECKEXIT
-	CHECKFADE	
 	CHECKREZ
+	CHECKFADE
+	GETINPUT
 		
 	| yes. this is all there is to healing..
 	/declare _liHM listiterator local
 	/vardata _liHM lsHealOrder${maHeal.Find[stHealMode].Value}.First.Clone
 	/while (!${_liHM.IsEnd}) {
 		DEBUG ${sep}_liHM.Value${sep}\a-w${_liHM.Value}\ax
-		/call cast_list FALSE "${_liHM.Value}" ${hurtID}
-		/if (!AUTO) /return
-		/call get_hurt FALSE ${_type} 
+		/call cast_list ${_debug} "${_liHM.Value}" ${hurtID}
+		/if (!AUTO) /return FALSE
+		/call get_hurt ${maDebug.Find[hurt].Value} ${_type} 
 		/if (${Select[${_type},group]} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
 			/call do_arbitration ${maDebug.Find[arbitrate].Value}
 		} else /if (!${hurtCount} || !${maChr.Find[stCountArbitrate].Value}) {
-			/return
+			/return FALSE
 		}
 			
 		/varset dump ${_liHM.Advance}
 	}
 
-/return	
+/return	TRUE
 
 
 
@@ -508,7 +501,7 @@ sub Bind_command_issuance(bool _debug)
 	ISMEDEAD
 	CHECKEXIT
 
-	/if (!${is_ready[FALSE, "${maChr.Find[stIssuance].Value}"]}) /return FALSE
+	/if (!${is_ready[${_debug}, "${maChr.Find[stIssuance].Value}"]}) /return FALSE
 	
 	:castIssuance
 	/if (!${Target.ID} || ${Target.ID} == ${Me.ID} || ${Target.Distance} > 55) {
@@ -543,7 +536,7 @@ sub Bind_command_issuance(bool _debug)
 	
 	CHECKREZ
 
-/return	
+/return	TRUE
 
 
  
@@ -564,13 +557,13 @@ sub burn_CLR(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} TARGET
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
 
 	| Group AA Celestial Regeneration
  	/if (${maChr.Find[swHealGroupOverTime].Value} && ${Group}) {
- 	 	/if (${is_ready[FALSE, "Celestial Regeneration"]} && !${Bool[${Me.Song[Celestial Regeneration]}]} && !${Me.Song[Focused Celestial Regeneration].ID}) {
+ 	 	/if (${is_ready[${_debug}, "Celestial Regeneration"]} && !${Bool[${Me.Song[Celestial Regeneration]}]} && !${Me.Song[Focused Celestial Regeneration].ID}) {
  			/call voodoo ${_debug} "Celestial Regeneration" 0 FALSE
 	  } 
 	}
@@ -583,18 +576,18 @@ sub burn_CLR(bool _debug)
 	  
 	 	| anti agro (pric Silent Casting 1min duration 9 min reuse)
 		/if (!${Me.Buff[Divine Retribution].ID}) {
-			/if (${is_ready[FALSE, "Silent Casting"]}) {
+			/if (${is_ready[${_debug}, "Silent Casting"]}) {
 				/call voodoo ${_debug} "Silent Casting" 0 FALSE
 			}
 		}	
 		
 	 	| 50% chance to twincast (proc:Channeling of the Divine, 45 sec duration 10 min resuse)
-	 	/if (${is_ready[FALSE, "Channeling the Divine"]}) {
+	 	/if (${is_ready[${_debug}, "Channeling the Divine"]}) {
 	 		/call voodoo ${_debug} "Channeling the Divine"  0 FALSE
 	 	}
 	 	
 		| - ~50% to cast times [proc:Celestial Rapidity, 1 min duration 10 min reuse]
-		/if (${is_ready[FALSE, "Celestial Rapidity"]}) {
+		/if (${is_ready[${_debug}, "Celestial Rapidity"]}) {
 			/call voodoo ${_debug} "Celestial Rapidity" 0 FALSE
 		}
 		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
@@ -607,18 +600,18 @@ sub burn_CLR(bool _debug)
 
 		| melee block anti agro (20 min reuse)
 		/if (!${Me.Song[Silent Casting].ID}) {
-			/if (${is_ready[FALSE, "Divine Retribution"]}) {
+			/if (${is_ready[${_debug}, "Divine Retribution"]}) {
 				/call voodoo ${_debug} "Divine Retribution" 0 FALSE
 			}
 		}
 
 		| 100% exceptional heal (proc: Flurry of Life, 1:30 min duration 15 min reuse)
-		/if (${is_ready[FALSE, "Healing Frenzy"]}) {
+		/if (${is_ready[${_debug}, "Healing Frenzy"]}) {
 			/call voodoo ${_debug} "Healing Frenzy" 0 FALSE
 		}
 
 		| heal power bost: 35% (proc Healing Frenzy, 40sec duration 15 min reuse)
-		/if (${is_ready[FALSE, "Flurry of Life"]}) {
+		/if (${is_ready[${_debug}, "Flurry of Life"]}) {
 			/call voodoo ${_debug} "Flurry of Life" 0 FALSE
 		}
 		
@@ -629,13 +622,13 @@ sub burn_CLR(bool _debug)
 	}
 
 	| heal ward (20 min reuse)
-	/if (${is_ready[FALSE, "Exquisite Benediction"]}) {
+	/if (${is_ready[${_debug}, "Exquisite Benediction"]}) {
 		/call voodoo ${_debug} "Exquisite Benediction" 0 FALSE
 	}
 
 	| direct damage boost if using aggressive healing
 	/if (${maHeal.Find[stHealMode].Value.Equal[aggressive]} && !${Me.Song[Silent Casting].ID}) {
-    /if (${is_ready[FALSE, "Battle Frenzy"]}) {
+    /if (${is_ready[${_debug}, "Battle Frenzy"]}) {
     	/call voodoo ${_debug} "Battle Frenzy" 0 FALSE
     }
   }
@@ -643,7 +636,7 @@ sub burn_CLR(bool _debug)
   /call cast_glyph ${maDebug.Find[glyph].Value}
   CHECKREZ
 
-/return
+/return TRUE
 
 
 
@@ -663,16 +656,16 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 		
 	| use mana click items
 	} else /if (${_type.Equal[manarecover]}) {
-		/if (!${set_control_num_range[FALSE, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
 		
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
-		/call set_control_chr_spire FALSE ${_verbage} ${_silent}
+		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
 		/return
 
 	| set AA fade use %	
 	} else /if (${_type.Equal[fade]}) {
-		/if (!${set_control_num_range[FALSE, stPctFade, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
 
 	| to Yaulp or not		
 	} else /if (${_type.Equal[yaulp]}) {
@@ -680,19 +673,19 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 
 	| Veturika's Perseverance	
 	} else /if (${_type.Equal[vp]}) {
-		/if (!${set_control_num_range[FALSE, stPctVP, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctVP, "${_verbage}", 0, 99]}) /return
 
 	| use Issuance Shield 
 	} else /if (${_type.Equal[issuance]}) {
-		/if (!${set_control_num_range[FALSE, stCountIssuance, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountIssuance, "${_verbage}", 0, 99]}) /return
 
 	| use splashes
 	} else /if (${_type.Equal[splash]}) {
-		/if (!${set_control_num_range[FALSE, stCountSplash, ${_verbage}, 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountSplash, ${_verbage}, 0, 99]}) /return
 
 	| set group Heals
 	} else /if (${_type.Equal[groupheal]}) {
-		/if (!${set_control_num_range[FALSE, stCountHealGroup, "${_verbage}", 0, 6]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return
 
 	| use group Heal over Time	
 	} else /if (${_type.Equal[grouphot]}) {
@@ -700,7 +693,7 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 
 	| arbitration (sheild AND AA)	
 	} else /if (${_type.Equal[arbitrate]}) {
-		/if (!${set_control_num_range[FALSE, stCountArbitrate, ${_verbage}, 0, 6]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountArbitrate, ${_verbage}, 0, 6]}) /return
 
 	| use divine rez
 	} else /if (${_type.Equal[divinerez]}) {
@@ -708,11 +701,11 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 
 	| defensive mob agro count
 	} else /if (${_type.Equal[def]}) {
-		/if (!${set_control_num_range[FALSE, stCountDefensive, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return
 
 	| set ae on/off / count
 	} else /if (${_type.Equal[ae]}) {
-		/if (!${set_control_num_range[FALSE, stCountAE, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
 
 	| set ae on/off / count
 	} else /if (${_type.Equal[hot]}) {
