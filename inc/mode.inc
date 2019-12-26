@@ -438,16 +438,24 @@ sub get_ground_item(bool _debug, string _tmpItem)
 	}
 
 	/nav locyxz ${_locY} ${_locX} ${_locZ} |dist=18 log=off
-	/delay 2s
-	/delay 3m !${Navigation.Active}
-					
-	/if (${Ground[${_tmpItem}].Distance3D} <= 19) {
-		/call Bind_command_grab "${_tmpItem}" ${_debug}
-		/delay 5
+	/delay 1s
+	
+	/while (${Me.Moving}) {
 		
-		/call check_cursor ${_debug} CLEAR
+		/if (!${Navigation.Active}) /break
+		/if (!${Me.Moving}) /break
+	
+		/if (${Ground[${_tmpItem}].Distance3D} <= 19) {
+			/nav stop |log=off
+			/call Bind_command_grab "${_tmpItem}" ${_debug}
+			/delay 5
+			/call check_cursor ${_debug} CLEAR
+			/break
+		}	
+		
+		/delay 2
 	}
-
+	
 /return TRUE
 
 

@@ -9,14 +9,25 @@
 
 
 
-
+A191225.02
+-tags
+  "aliasonly" will restrict a buff to /beg only. this overrides all other tags
+- /cure
+  lot of changes. should be more reliable. did i mention a lot of changes
+  **WARNING** cures do not cure song debuffs. working on getting MQ to see them
+- /see
+  added in some  more input validation
+- /take
+  will now accept the current highlighted task in a task window
+  
+  
 
 A191225.01
 - necromancer
   several corrections to functionality. like it wasn't functioning. meh..
 - enchanter
   fixed a bug where chanter would not respond to / commands while in a mez loop
-- ranger
+- ranger 
   fixed a rather glaring issue with the melee burn disc not generating in the DB
   added in stHealFont - this is the purefont heal line of ranger spells
 - /mode
@@ -41,10 +52,6 @@ A191225.01
 - startup option "forceauto" will start the mac in auto
   e.g. /mac exspes\entropy forceauto
 - fade, made some adjustments. lets see how it goes
-
-
-
- 
 
 
 A191222.01

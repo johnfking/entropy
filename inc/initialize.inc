@@ -44,7 +44,7 @@ sub set_debug()
   | combat
   /varset dump ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc]}
 	| other
-  /varset dump ${lsDebugother.Append[build,edit,rest,rez,spire,glyph,fireworks,manarecover,fade]}
+  /varset dump ${lsDebugother.Append[build,edit,rest,rez,spire,glyph,fireworks,manarecover,fade,observe]}
   | class specific debuffs
   /if (${Select[${Me.Class.ShortName},BER]}) {
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
@@ -1191,8 +1191,8 @@ sub set_initialize_map_items(bool _debug)
 
 
 |***
- * note: creats maps for data that users will not change
- * use: dont fucking use it..
+ * note: maps for data that users will not change
+ * use: don't fucking use it..
  ***|
 sub set_initialize_static_map(bool _debug)
   DEBUG \atset_initialize_static_map\ax()

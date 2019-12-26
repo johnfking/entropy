@@ -15,7 +15,7 @@
 
 
 #warning
-#turbo 240
+#turbo 200
 #engine parser 2
 
 #define DEBUG "/if (${_debug}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
@@ -59,7 +59,7 @@
 #define SETHUD "/call set_hud_data"
 #define ISTMPIDDEAD	"/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE"
 
-| #define DEFENSIVE ""
+
 
 #include exspes\inc\initialize.inc
 #include exspes\inc\common.inc
@@ -119,7 +119,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A191225.01
+	/call set_data FALSE maEnv build													map outer A191225.02
 	
 	| prep macro
 	/call prepare_the_end FALSE
@@ -196,7 +196,7 @@ sub main(string _debug, string _param1, string _auto)
 			
 			| check curing observers
 			/if (!${timer_Check_Observers} && ${swDanNet}) { 
-				/if (${maHeal.Find[swHealCure].Value}) /call set_observers FALSE maCure add ${maDebug.Find[cure].Value}
+				/if (${maHeal.Find[swHealCure].Value}) /call set_observers ${maDebug.Find[cure].Value} maCure add
 			} 
 			
 			| sort /heal adj ##

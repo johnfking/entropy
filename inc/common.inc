@@ -1084,7 +1084,7 @@ sub set_observers(bool _debug, string _map, string _action)
 	/declare _timestart				int			local 0
 	/declare _timeend					int			local 0
 	/declare _tlo							string  local ${${_map}.Find[tlo].Value}
-	/declare _miso mapiterator local
+	/declare _miso 						mapiterator local
 
 	/varset dump ${set_data_timer[FALSE, Check_Observers, RESTART]}
 	
@@ -1124,11 +1124,11 @@ sub set_observers(bool _debug, string _map, string _action)
 				/continue
 			}
 			
-			DEBUG ${sep}map(key,value)${sep}${_map}(\a-w${_miso.Key},${_miso.Value}\ax)
+			| DEBUG ${sep}map(key,value)${sep}${_map}(\a-w${_miso.Key},${_miso.Value}\ax)
 			
 			| define or delete the variables as we need
 			/if (${_action.Equal[drop]}) {
-				DEBUG /varset dump lsObserved_${_toon}.Remove[${_miso.Value}]
+				DEBUG ${sep}/varset dump lsObserved_${_toon}.Remove[${_miso.Value}]
 				/if (${Defined[${_toon}_${_miso.Value}]}) /deletevar ${_toon}_${_miso.Value}
 				/varset dump ${lsObserved_${_toon}.Remove[${_miso.Value}]}
 				
@@ -6033,8 +6033,9 @@ sub check_basic_tags(bool _debug, string _type, string _name)
 	}
 	
 	| no cast while not in a raid
-	/if (${ls${_type}Tag.Contains[raid]}) /if (!${Raid.Members}) /return FALSE
-	/if (${ls${_type}Tag.Contains[group]}) /if (!${Group.Members}) /return FALSE
+	/if (${ls${_type}Tag.Contains[aliasonly]}) /return FALSE
+	/if (${ls${_type}Tag.Contains[raid]} && !${Raid.Members}) /return FALSE
+	/if (${ls${_type}Tag.Contains[group]} && !${Group.Members}) /return FALSE
 	/if (${ls${_type}Tag.Contains[noraid]} && ${Raid.Members}) /return FALSE
 	/if (${ls${_type}Tag.Contains[combat]} && ${Select[${Me.CombatState},cooldown,resting,active]}) /return FALSE
 	/if (${ls${_type}Tag.Contains[outdoor]} && (${Me.FeetWet} || ${Zone.Indoor})) /return FALSE
@@ -6594,38 +6595,35 @@ sub do_loot(bool _debug)
 sub check_cure(bool _debug)
 	DEBUG \atcheck_cure\ax()
 	
-	/if (AUTO) /varset dump ${set_data_timer[FALSE, Check_Cure, RESTART]}
+	/varset dump ${set_data_timer[FALSE, Check_Cure, RESTART]}
+
+	/if (!AUTO) /return FALSE
 
 	| dont take time from mobs attention
-	/if ((PULL || AGRO) && ${Me.CombatState.Equal[combat]}) /return
+	/if ((PULL || AGRO) && ${Me.CombatState.Equal[combat]}) /return FALSE
+
+	SETHUD "check cure"
 
 	ISMEDEAD
 	GETINPUT
 
 	| My daughter said you have issues.. She's usually right.
 	/if (${Me.TotalCounters}) {
-		DEBUG ME totalcounters${sep}\a-w${Me.TotalCounters}\ax
+		DEBUG ${sep}\aw${Me.DisplayName.Lower}\ax needs a medic!
 		
 		| Monk
 		/if (${Select[${Me.Class.ShortName},MNK]} && ${Me.AltAbilityReady[Purify Body]}) {
 			/call voodooo FALSE "Purify Body" 0 FALSE
 			/delay 5
-		}
 			
 		| Paladin, Cleric, Shaman, Druid
 		} else /if (${Select[${Me.Class.ShortName},PAL,CLR,SHM,DRU]} && ${Me.AltAbilityReady[Radiant Cure]}) {
 			/if (${Me.CountersCurse} || ${Me.CountersPoison} || ${Me.CountersDisease}) {
 				/call voodoo FALSE "Radiant Cure" 0 FALSE
 				/delay 5
-				/return
+				/varset dump ${set_data_timer[FALSE, Check_Cure, 2s]}
+				/return TRUE
 			}
-			
-			| Paladin SplaSh
-			| /if (${Select[${Me.Class.ShortName},PAL]}) {
-			| 	/call Bind_pal_splash
-			| 	/delay 5
-			| 	/return
-			| }
 
 		| Necromancer
 		} else /if (${Select[${Me.Class.ShortName},NEC]} && ${Me.AltAbilityReady[Embrace the Decay]}) {
@@ -6655,6 +6653,8 @@ sub check_cure(bool _debug)
 			/call voodoo FALSE "${maHeal.Find[stCureDiseaseItem].Value}" ${Me.ID} FALSE
 			/delay 5
 		}
+	} else /if (!${Me.TotalCounters}) {
+		DEBUG ${sep}\aw${Me.DisplayName.Lower}\ax is just fine
 	}
 	
 
@@ -6662,20 +6662,18 @@ sub check_cure(bool _debug)
 	/declare _name string local
 	
 	| each toon
-	DEBUG Total group:${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
 	/for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
 
 		| get the name to something usable
-		/varset _name ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}]}
-		DEBUG ${sep}cast_cure()${sep}\a-weveryone else\ax
-		DEBUG vChecking${sep}\aw${_name}\ax in ${maComm.Find[stEntropyGroup_all].Value}
+		/varset _name ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
+		| DEBUG ${sep}checking${sep}\aw${_name}\ax (\a-r${maComm.Find[stEntropyGroup_all].Value}\ax)
 
 		| are they here?
 		/if (!${Spawn[pc ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}) /continue
 			
 		| if the observer hasnt "observerd" the toon yet. go no further!	
 		/if (!${Defined[${_name}_TotalCounters]}) {
-			DEBUG ${_name} is not being observerd.. \a-wshit coding inc\ax...
+			DEBUG ${sep}\aw${_name}\ax is not being observerd.. \a-wshit coding inc\ax...
 			/continue
 		}
 		
@@ -6687,8 +6685,10 @@ sub check_cure(bool _debug)
 	
 		| are they debuffed at all?
 		/if (!${Bool[${${_name}_TotalCounters}]} && !${Bool[${${_name}_Snared}]} && !${Bool[${${_name}_Mezzed}]}) {
-			DEBUG ${_name} has NOTHING wrong with them.
+			DEBUG ${sep}\aw${_name}\ax is just fine
 			/continue
+		} else /if (${Bool[${${_name}_TotalCounters}]}) {
+			OUT ${sep}\aw${_name}\ax needs a medic! (\a-r${${_name}_TotalCounters\ax)
 		}
 
 		ISMEDEAD
@@ -6700,7 +6700,7 @@ sub check_cure(bool _debug)
 			| 100' 1 min
 			/if (${Select[${Me.Class.ShortName},PAL,CLR,SHM,DRU]} && ${Me.AltAbilityReady[Radiant Cure]} && ${Spawn[pc ${_name}].Distance} < 100 && ${Group.Member[${_name}].ID}) {
 				/call voodoo FALSE "Radiant Cure" alt 0 FALSE
-				/delay 5
+				/varset dump ${set_data_timer[FALSE, Check_Cure, 2s]}
 				/return
 			}
 
@@ -6708,27 +6708,29 @@ sub check_cure(bool _debug)
 			| 200' 5 min
 			/if (${Select[${Me.Class.ShortName},PAL,CLR,DRU]} && ${Me.AltAbilityReady[Purify Soul]} && ${Spawn[pc ${_name}].Distance} < 200) {
 				/call voodoo FALSE "Purify Soul" ${Spawn[pc ${_name}].ID} FALSE
-				/delay 5
+				/varset dump ${set_data_timer[FALSE, Check_Cure, 2s]}
+				/return
 			}
 			
 			| AA Group Purify Soul . were in deep shit if we've gotten this far.
 			| 0/100' 15 min
 			/if (${Select[${Me.Class.ShortName},CLR,DRU]} && ${Me.AltAbilityReady[Group Purify Soul]} && ${Spawn[pc ${_name}].Distance} < 100 && ${Group.Member[${_name}].ID}) {
 				/call voodoo FALSE "Group Purify Soul" alt 0 FALSE
-				/delay 5
+				/varset dump ${set_data_timer[FALSE, Check_Cure, 2s]}
 				/return
 			}
 			
 			| paladin splash 50' range
 			/if (${Select[${Me.Class.ShortName},PAL]} && ${Spawn[pc ${_name}].Distance} < 50) {
-				/call Bind_pal_splash
+				/call Bind_command_splash
+				/varset dump ${set_data_timer[FALSE, Check_Cure, 2s]}
 				/return
 			}
 		}
 
 		| are they debuffed?
 		/if (!${Bool[${${_name}_TotalCounters}]}) /continue
-		DEBUG ${_name}_TotalCounters .. ${${_name}_TotalCounters}
+		DEBUG ${sep}\aw${_name}\aw_TotalCounters${sep}\a-w${${_name}_TotalCounters}\ax
 
 		
 		| is the DB set with the following cures to continue?
@@ -9458,8 +9460,8 @@ sub check_heal_routines()
 	}
 
 	| heal: curing
-	/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) {
-		/call cast_cure ${maDebug.Find[cure].Value}
+	/if (!${timer_Check_Cure} && ${maHeal.Find[swHealCure].Value}) {
+		/call check_cure ${maDebug.Find[cure].Value}
 	}
 	
 	GETINPUT

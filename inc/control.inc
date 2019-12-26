@@ -163,9 +163,9 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 			/return
 		}
 		
-		/declare _spell "${_verbage}"
+		/declare _spell string local "${_verbage}"
 
-		/declare list string local
+		/declare _list string local
 		/declare _count int local 0
 		/varset _spell ${Spell[${_spell}].RankName}
 		/declare _spellID ${Spell[${_spell}].ID}
@@ -174,25 +174,27 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		OUT \aw${_spell}\ax ${sep} ID\a-w ${_spellID}\ax ${sep} Group \a-w${Spell[${_spellID}].SpellGroup}\ax
 		OUT \a-w${Spell[${Int[${Math.Calc[${_spellID} + ${If[${Spell[${_spellID}].SpellGroup},3,1]}]}]}].Name}\ax ${sep} ID \a-w${Spell[${Int[${Math.Calc[${_spellID} + ${If[${Spell[${_spellID}].SpellGroup},3,1]}]}]}].ID}\ax
 		OUT \awSPA Count\ax ${sep} \a-w${Spell[${_spell}].NumEffects}\ax
+		
 		/for _count 1 to ${Spell[${_spell}].NumEffects}
 			OUT #\ay${_count}\ax  
 			/if (${Select[${Spell[${_spell}].Attrib[${_count}]},10]}) /continue
 			/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM eq_spa WHERE env_var='${Spell[${_spell}].Attrib[${_count}]}'
 			OUT ${dot} .Attrib \a-w${Spell[${_spell}].Attrib[${_count}]}\ax ${dot} \a-g${sqlite.Result[dummy 1 value]}\ax
-			OUT ${dot} .Trigger \a-w${Spell[${_spell}].Trigger[${_count}].Name}\ax ${dot} ID:\a-w${Spell[${_spell}].Base2[${_count}]}\ax\ax
+			OUT ${dot} .Trigger \a-w${Spell[${_spell}].Trigger[${_count}].Name}\ax ${dot} ID:\a-w${Spell[${_spell}].Base2[${_count}]}\ax\ax ()
 			OUT ${dot} .Base \a-w${Spell[${_spell}].Base[${_count}]}\ax 
 			OUT ${dot} .Max \a-w${Spell[${_spell}].Max[${_count}]} \ax
 			OUT ${dot} .Calc \a-w${Spell[${_spell}].Calc[${_count}]} \ax
 			OUT ${dot} .Restrictions \a-w${Spell[${_spell}].Restrictions[${_count}]}\ax
 			OUT ${dot} .Extra \a-w${Spell[${_spell}].Extra}\ax
 
-			/varset list ${list} ${Spell[${_spell}].Attrib[${_count}]}
+			/varset _list ${_list} ${Spell[${_spell}].Attrib[${_count}]}
 		/next _count
 		OUT ${dot} ${dot} ${dot} ${dot}
-		OUT \awSPA list\ax ${sep} \a-w${list}\ax
+		OUT \awSPA list\ax ${sep} \a-w${_list}\ax
 		
-		OUT \aw/spellslotinfo\ax
-		/spellslotinfo ${Spell[${_spell}].ID}
+		| OUT \aw/spellslotinfo\ax
+		| /spellslotinfo ${Spell[${_spell}].ID}
+
 
 		/return TRUE
 
@@ -1679,13 +1681,18 @@ sub Bind_noparse_raw_edit(string _variable, string _value, string _add_delete, s
 sub Bind_command_see(string _variable, string _verbage, string _silent)
 	/declare _debug bool local FALSE
 	
-	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
-		/call Bind_command_aux see
-		/return		
-	}
-	
 	DEBUG \atBind_control_see\ax(\a-w${_variable}\ax)
 	DEBUG .Left[2]${sep}\a-w${_variable.Left[2]}\ax
+	
+	
+	| input validations
+	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
+		/call Bind_command_aux see
+		/return	FALSE
+	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item]}) {
+		/varset dump ${out[0, "Crack says your input sucks${sep}\a-w${_variable}\ax"]}
+		/return FALSE		
+	}
 
 	/declare _count int local 0
 	/declare _DBLOC string local
@@ -2674,7 +2681,7 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
 	}	
 		
 	/makemevisible
-	/varset dump ${out[21, "${broadcast}${sep}\a-w/repeate ${_verbage}\ax (\a-r${_group}\ax)"]}
+	/varset dump ${out[21, "${broadcast}${sep}\a-w/repeate ${_verbage}\ax"]}
 	| sender
 	/if (!${Bool[${_sender}]}) {
 		| need a target
@@ -3209,6 +3216,10 @@ sub Bind_command_take(string _type, string _debug)
 	/if (${Window[ConfirmationDialogBox].Child[CD_TextOutPut].Text.Find["Join the expedition"]}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup 
 	/if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["has asked you to join the shared task"]}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
 
+	| accept highlighted task
+	/if (${Window[TaskSelectWnd]}) /nomodkey /notify TaskSelectWnd TSEL_AcceptButton leftmouseup
+
+
 	| rez
 	/if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["Blessing of Resurrection"]}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
 	
@@ -3735,15 +3746,21 @@ sub Bind_command_crew(string _type, bool _debug)
 	| dont try to make changes if you're not the boss
 	/if (${Group.Leader.Name.NotEqual[${Me.DisplayName}]}) /goto :notmyresponsibilitybitch
 	
+	/delay 5
+	
 	| set group assist
 	/if (${Bool[${maCrew.Find[stCrew${_type}Assist].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index}) {
 		/grouproles set ${maCrew.Find[stCrew${_type}Assist].Value} 2
 	}
+
+	/delay 5
 	
 	| set group looter
 	/if (${Bool[${maCrew.Find[stCrew${_type}Looter].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_type}Looter].Value}].Index}) {
 		/grouproles set ${maCrew.Find[stCrew${_type}Looter].Value} 5
 	}
+
+	/delay 5
 	
 	| set group leader
 	/if (${Bool[${maCrew.Find[stCrew${_type}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_type}Leader].Value}].Index}) {
