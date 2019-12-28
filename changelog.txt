@@ -9,6 +9,11 @@
 
 
 
+
+A191227.01
+- fixed som errors in mob acquisition code created from adding the debugs
+
+
 A191225.02
 -tags
   "aliasonly" will restrict a buff to /beg only. this overrides all other tags
@@ -19,7 +24,6 @@ A191225.02
   added in some  more input validation
 - /take
   will now accept the current highlighted task in a task window
-  
   
 
 A191225.01

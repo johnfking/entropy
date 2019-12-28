@@ -67,7 +67,7 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
 	}	
 	/varset _out ${_out} ${dot} \ar<\ax${info}stop\ax\ar>\ax
 	/varset dump ${out[12, "/debug ${_out}"]}
-		
+
 /return TRUE
 
 
@@ -309,7 +309,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 	}	
 	/varset dump ${out[12, "/admin (PID:\a-w${EverQuest.PID}\ax) ${_out}"]}
 
-/return
+/return TRUE
 
 
 
@@ -392,9 +392,10 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 		} else /if (${_verbage.Equal[drink]}) {
 			/varset dump ${do_raw_edit[FALSE, SILENT, stDrink, "${_silent}"]}
 		}
-		OUT /env meal${sep}
-		OUT ${dot} ${info}food\ax:[${If[${Bool[${maEnv.Find[stFood].Value}]},${num}${maEnv.Find[stFood].Value}\ax,${off}]}]
-		OUT ${dot} ${info}drink\ax:[${If[${Bool[${maEnv.Find[stDrink].Value}]},${num}${maEnv.Find[stDrink].Value}\ax,${off}]}]
+		
+		/varset dump ${out[12, "/env meal${sep}"]}
+		/varset dump ${out[12, "${dot} ${info}food\ax:[${If[${Bool[${maEnv.Find[stFood].Value}]},${num}${maEnv.Find[stFood].Value}\ax,${off}]}]"]}
+		/varset dump ${out[12, "${dot} ${info}drink\ax:[${If[${Bool[${maEnv.Find[stDrink].Value}]},${num}${maEnv.Find[stDrink].Value}\ax,${off}]}]"]}
 		/return
 
 	| rese settings
@@ -534,7 +535,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 	/varset dump ${maControl.Add[tribute,swCheckTribute]}
 	/varset dump ${set_control_output[${_debug}, maEnv, env, maControl]}
 
-/return
+/return TRUE
 
 
 
@@ -546,7 +547,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 sub Bind_to_chr(string _type, string _verbage, string _silent, bool _debug)
 	/call set_control_${Me.Class.ShortName} ${_type} "${_verbage}" ${_silent} ${_debug}
 
-/return
+/return TRUE
 
 
 
@@ -561,7 +562,7 @@ sub Bind_command_cb(string _verbage)
 		/call check_buff_cycle ${maDebug.Find[buff].Value} TRUE
 	} 
 
-/return
+/return TRUE
 
 
 
@@ -576,7 +577,7 @@ sub Bind_command_cm(string _verbage)
 		/call check_Minion_cycle ${maDebug.Find[buff].Value} TRUE
 	} 
 
-/return
+/return TRUE
 
 
 
@@ -627,7 +628,6 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 		/varset dump ${maHome.Add[swHomeMarker,FALSE]}
 		/return
 	}
-	
 
 	| output control map
 	/if (${_type.Equal[see]}) {
@@ -787,7 +787,8 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 	/varset dump ${maControl.Add[deathclear,swMoveDeathClear]}
 	/varset dump ${maControl.Add[onauto,swonAuto]}
 	/varset dump ${set_control_output[${_debug}, maHome, home, maControl]}
-/return
+	
+/return TRUE
 
 
 
@@ -843,7 +844,8 @@ sub Bind_control_tc(string _type, string _verbage, string _silent, bool _debug)
 	/varset dump ${maControl.Add[variance,stTieVariance]}
 	/varset dump ${maControl.Add[mode,submenu]}
 	/varset dump ${set_control_output[${_debug}, maTie, tc, maControl]}
-/return
+	
+/return TRUE
 
 
 
@@ -972,7 +974,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 	}	
 	/varset dump ${out[12, "/area ${_out}"]}
 
-/return 
+/return TRUE
 
 	
 	
@@ -996,7 +998,7 @@ sub Bind_command_beg(string _buff, string _operate)
 	| /varset dump ${maBuffRequest.${_operate}[${Me.Name},"${_buff}"]}
 	/dgzexecute /requestbuff ${Me.Name} Add "${_buff}"
 
-/return
+/return TRUE
 
 
 
@@ -1011,7 +1013,7 @@ sub Bind_control_requestbuff(string _toon, string _operate, string _buff)
 	/if (!${Bool[${_operate}]}) /varset _operate Add
 	/varset dump ${maBuffRequest.${_operate}[${_toon},"${_buff}"]}
 
-/return
+/return TRUE
 
 
 
@@ -1262,16 +1264,15 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 	DEBUG \atcontrol_rez\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
   /declare _out string local
-	| /declare _lsout list local
 
 	| output control map
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maRez ${_verbage}
-		/return
+		/return TRUE
 
 	} else /if (${_type.Equal[aux]}) {
 		/call Bind_command_aux rez ${_verbage}
-		/return		
+		/return TRUE
 
 	| give rez
 	} else /if (${_type.Equal[give]}) {
@@ -1309,7 +1310,7 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 			/varset dump ${cli.Advance}
 		}
 		/varset dump ${out[12, "/rez pct ${_out}"]}
-		/return
+		/return TRUE
 
 	}
 	
@@ -1374,8 +1375,6 @@ sub Bind_deez(string _type, bool _debug)
 		/echo hash:\a-w${_hash}\ax
 	}
 
-
-	
 	| var echos for debugging
 	/if (${_type.Equal[debug]}) {
 		/echo
@@ -1389,7 +1388,6 @@ sub Bind_deez(string _type, bool _debug)
 		OUT {maEnv.Find[stEnvRadius].Value}${sep}\a-w${maEnv.Find[stEnvRadius].Value}\ax .. #env:\a-wENV\ax
 		/varset dump ${out[18, "${eol}"]} 
 	}
-	
 	
 	| map comma test	
 	/if (${_type.Equal[map]}) {
@@ -1535,7 +1533,7 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, bool _debug
 		| output control map
 		/if (${_verbage.Equal[see]}) {
 			/call Bind_command_see maBuffRequest ${_silent}
-			/return		
+			/return TRUE
 		}
 		
 		/varset dump ${set_switch_env[${_debug}, swBuffBeg, TRUE, ${_verbage}]}
@@ -1556,26 +1554,27 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, bool _debug
 			/varset dump ${do_raw_edit[${_debug}, SILENT, stAura2Check, "${_silent}"]}
 		}
 		
-		OUT /buff aura${sep}
-		OUT ${dot} ${info}use\ax:${If[${maBuff.Find[swBuffAura].Value},${on},${off}]}
-
-		OUT ${dot} ${info}aura1\ax:[${If[${Bool[${maBuff.Find[stAura1].Value}]},${num}${maBuff.Find[stAura1].Value}\ax,${off}]}]
-		OUT ${dot} ${info}aura1check\ax:[${If[${Bool[${maBuff.Find[stAura1Check].Value}]},${num}${maBuff.Find[stAura1Check].Value}\ax,${off}]}]
-		OUT ${dot} lsAura\aw1\axTag
-		/vardata cli lsAura1Tag.First.Clone
+		| aura 1
+		/varset dump ${out[12, "/buff aura${sep}"]}
+		/varset dump ${out[12, "${dot} ${info}use\ax:${If[${maBuff.Find[swBuffAura].Value},${on},${off}]}"]}
+		/varset dump ${out[12, "${dot} ${info}aura1\ax:[${If[${Bool[${maBuff.Find[stAura1].Value}]},${num}${maBuff.Find[stAura1].Value}\ax,${off}]}]"]}
+		/varset dump ${out[12, "${dot} ${info}aura1check\ax:[${If[${Bool[${maBuff.Find[stAura1Check].Value}]},${num}${maBuff.Find[stAura1Check].Value}\ax,${off}]}]"]}
+		/varset dump ${out[12, "${dot} lsAura\aw1\axTag"]}
+			/vardata cli lsAura1Tag.First.Clone
 		/while (!${cli.IsEnd}) {
-			OUT ${dot}${dot} \a-w${cli.Value}\ax
+			/varset dump ${out[12, "${dot}${dot} \a-w${cli.Value}\ax"]}
 			/varset dump ${cli.Advance}
 		}	
 		/if (!${Select[${Me.Class.ShortName},CLR,ENC]}) /return
 		
+		| aura 2
 		/echo
-		OUT ${dot} ${info}aura2\ax:[${If[${Bool[${maBuff.Find[stAura2].Value}]},${num}${maBuff.Find[stAura2].Value}\ax,${off}]}]
-		OUT ${dot} ${info}aura2check\ax:[${If[${Bool[${maBuff.Find[stAura2Check].Value}]},${num}${maBuff.Find[stAura2Check].Value}\ax,${off}]}]
-		OUT ${dot} lsAura\aw2\axTag
+		/varset dump ${out[12, "${dot} ${info}aura2\ax:[${If[${Bool[${maBuff.Find[stAura2].Value}]},${num}${maBuff.Find[stAura2].Value}\ax,${off}]}]"]}
+		/varset dump ${out[12, "${dot} ${info}aura2check\ax:[${If[${Bool[${maBuff.Find[stAura2Check].Value}]},${num}${maBuff.Find[stAura2Check].Value}\ax,${off}]}]"]}
+		/varset dump ${out[12, "${dot} lsAura\aw2\axTag"]}
 		/vardata cli lsAura2Tag.First.Clone
 		/while (!${cli.IsEnd}) {
-			OUT ${dot}${dot} \a-w${cli.Value}\ax
+			/varset dump ${out[12, "${dot}${dot} \a-w${cli.Value}\ax"]}
 			/varset dump ${cli.Advance}
 		}	
 		/return
@@ -1656,7 +1655,7 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 	/varset dump ${maControl.Add[trainspell,swOverTrainSpell]}
 	/varset dump ${set_control_output[${_debug}, maOver, override, maControl]}		
 	
-/return	
+/return	TRUE
 
 	
 	
@@ -1683,7 +1682,6 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 	
 	DEBUG \atBind_control_see\ax(\a-w${_variable}\ax)
 	DEBUG .Left[2]${sep}\a-w${_variable.Left[2]}\ax
-	
 	
 	| input validations
 	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
@@ -1796,7 +1794,6 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 				/varset dump ${cli.Advance}
 			}			
 		/next _count		
-		
 			
 	| wtf.. list...
 	} else /if (${_variable.Left[2].Equal[ls]} && ${${_variable}.Count}) {
@@ -1911,7 +1908,7 @@ sub Bind_control_burn(string _type, string _verbage, string _silent, bool _debug
 	/varset dump ${maControl.Add[raid,swBurnRaid]}
 	/varset dump ${set_control_output[${_debug}, maBurn, burn, maControl]}		
 	
-/return
+/return TRUE
 
 
 
@@ -1975,7 +1972,7 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 			/varset dump ${cli.Advance}
 		}	
 		/varset dump ${out[12, "/debuff malo ${_out}"]}
-		/return
+		/return TRUE
 
 	} else /if (${_type.Equal[tash]}) {
 		/if (${_verbage.Equal[use]}) {
@@ -1993,8 +1990,7 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 			/varset dump ${cli.Advance}
 		}	
 		/varset dump ${out[12, "/debuff tash ${_out}"]}
-		/return
-
+		/return TRUE
 
 	} else /if (${_type.Equal[slow]}) {
 		/if (${_verbage.Equal[use]}) {
@@ -2013,7 +2009,7 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 			/varset dump ${cli.Advance}
 		}	
 		/varset dump ${out[12, "/debuff slow ${_out}"]}
-		/return
+		/return TRUE
 
 
 	} else /if (${_type.Equal[snare]}) {
@@ -2033,7 +2029,7 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 			/varset dump ${cli.Advance}
 		}	
 		/varset dump ${out[12, "/debuff snare ${_out}"]}
-		/return
+		/return TRUE
 
 	} else /if (${_type.Equal[eradicate]}) {
 		/if (${_verbage.Equal[use]}) {
@@ -2051,7 +2047,7 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 			/varset dump ${cli.Advance}
 		}	
 		/varset dump ${out[12, "/debuff eradicate ${_out}"]}
-		/return
+		/return TRUE
 
 	} else /if (${_type.Equal[cripple]}) {
 		/if (${_verbage.Equal[use]}) {
@@ -2070,7 +2066,7 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 			/varset dump ${cli.Advance}
 		}	
 		/varset dump ${out[12, "/debuff cripple ${_out}"]}
-		/return	
+		/return TRUE
 
 	}
 
@@ -2085,7 +2081,7 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 	/varset dump ${maControl.Add[tash,swTash|sm]}
 	/varset dump ${set_control_output[${_debug}, madeBuff, debuff, maControl]}
 	
-/return
+/return TRUE
 	
 
 
@@ -2145,7 +2141,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 			/varset dump ${cli.Advance}
 		}	
 		/varset dump ${out[12, "/cc ass ${_out}"]}
-		/return
+		/return TRUE
 	
 	| glyphs
 	} else /if (${_type.Equal[glyph]}) {
@@ -2280,7 +2276,6 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		| turn pull on or off
 		/if (${_verbage.Equal[active]}) {
 			/varset dump ${set_switch_env[FALSE, swPull, TRUE, ${_silent}]}
-			| /if (!PULL && HOME) /call Bind_home_control clear FALSE FALSE
 		
 		| pull radius
 		} else /if (${_verbage.Equal[rad]}) {
@@ -2289,7 +2284,6 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		| enable/disable setting home marker when pulling
 		} else /if (${_verbage.Equal[sethome]}) {
 			/varset dump ${set_switch_env[FALSE, swPullSetHome, TRUE, ${_silent}]}
-
 		
 		| base pulling	
 		} else /if (${_verbage.Equal[base]}) {
@@ -2388,9 +2382,6 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		
 		/declare _count int local 0
 		/declare _toon string local FALSE
-		
-		
-		
 
 		/if (${_type.Equal[all]}) {
 			/declare _group string local all
@@ -2445,28 +2436,6 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	/varset dump ${set_control_output[${_debug}, maCC, cc, maControl]}
 
 /return TRUE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -3055,7 +3024,7 @@ sub Bind_command_off(string _type, bool _debug)
 		/dexecute ${_toon} /squelch /target clear
 	/next _count
 	
-/return
+/return TRUE
 
 
 
@@ -3089,7 +3058,7 @@ sub Bind_command_on(string _type, bool _debug)
 		/dexecute ${_toon} /env auto on
 	/next _count
 	
-/return
+/return TRUE
 
 
 
@@ -3107,7 +3076,7 @@ sub Bind_command_cls(bool _debug, string _sender)
 	/hidecorpse NPC
 	/hidecorpse LOOTED
 
-/return
+/return TRUE
 
 
 
@@ -3229,7 +3198,7 @@ sub Bind_command_take(string _type, string _debug)
 	| give trade (inc NPC)
 	/if (${Window[GiveWnd]}) /squelch /notify GiveWnd GVW_Give_Button leftmouseup
 	
-/return
+/return TRUE
 
 
 
@@ -3273,7 +3242,7 @@ sub Bind_command_lesson(bool _debug)
   	/call voodoo FALSE "Lesson of the Devoted" 0 FALSE
   }
   
-/return
+/return TRUE
 
 
 
@@ -3293,7 +3262,7 @@ sub Bind_command_coh(string _verbage, bool _debug)
 		/return
 	}
 	
-/return
+/return TRUE
 
 
 
@@ -3392,7 +3361,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 		/squelch /exec powershell "(get-content ${MacroQuest.Path}\macros\exspes\data\${_fn}).Replace('MD5',(Get-FileHash ${MacroQuest.Path}\macros\exspes\data\${_fn} -Algorithm MD5).Hash) | Set-Content ${MacroQuest.Path}\macros\exspes\data\${_fn}" bg
 		/varset dump ${out[18, "${eol}"]}
 		/echo
-		/return
+		/return TRUE
 
 	| import INI routine	
 	} else /if (${_build.Equal[load]}) {
@@ -3431,10 +3400,10 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 
 		/varset dump ${out[18, "${eol}"]}  
 		/echo
-		/return		
+		/return TRUE
 	}
 
-/return
+/return TRUE
 
 
 
@@ -3515,7 +3484,7 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 	}		
 	/varset dump ${out[12, "/cursor ${_out}"]}
 	
-/return
+/return TRUE
 
 
 
@@ -3581,7 +3550,7 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 		OUT /minion gear${sep}
 		OUT ${dot} ${info}use\ax:${If[${maMinion.Find[swUsePetGear].Value},${on},${off}]}
 		OUT ${dot} ${info}weapon\ax:[${If[${Bool[${maMinion.Find[stPetWeapon].Value}]},${num}${maMinion.Find[stPetWeapon].Value}\ax,${off}]}]
-		/return
+		/return TRUE
 
 
 	| send pets with a force command
@@ -3624,7 +3593,7 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 	/varset dump ${maControl.Add[onforce,swonForce]}
 	/varset dump ${set_control_output[${_debug}, maMinion, minion, maControl]}		
 	
-/return
+/return TRUE
 
 
 
@@ -3638,7 +3607,7 @@ sub Bind_command_entcast(string _name, string _target, bool _debug)
 
 	/call voodoo ${_debug} "${_name}" ${_target} FALSE
 
-/return
+/return TRUE
 
 
 
@@ -3660,10 +3629,10 @@ sub Bind_command_crew(string _type, bool _debug)
 	| output control map
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maCrew
-		/return
+		/return TRUE
 	} else /if (${_type.Equal[aux]}) {
 		/call Bind_command_aux crew
-		/return
+		/return TRUE
 	}
 	
 	| kill the crew

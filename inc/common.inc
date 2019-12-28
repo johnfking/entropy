@@ -3069,7 +3069,7 @@ sub pull_mob_find(bool _debug, int _spCount)
 				
 				| NPCs to not consider
 				/if (${Spawn[id ${_tmpID}].Type.Equal[NPC]}) {
-					/if (${lsNoTargetNPC.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) (
+					/if (${lsNoTargetNPC.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
 						DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetNPC\ax
 						/continue
 					}
@@ -3091,7 +3091,7 @@ sub pull_mob_find(bool _debug, int _spCount)
 					}
 				}
 
-				/if (${lsZoneExclude.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) /continue
+				/if (${lsZoneExclude.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
 					DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsZoneExclude\ax
 					/continue
 				}
@@ -3290,7 +3290,7 @@ sub get_gem_id(bool _debug, string _spellGem)
 
 |***
  * note: If the followng criteria are met, the calling function will be skipped.
- * use: ${check_exitDEBUG}
+ * use: ${check_exit[DEBUG]}
  ***|
 sub check_exit(bool _debug)
 	DEBUG \atcheck_exit\ax()
@@ -5748,6 +5748,7 @@ sub cast_nuke(bool _debug, string _line, int _tmpID)
 	
 	/while (!${_linu.IsEnd}) {
 		DEBUG _linu.Value${sep}\a-w${_linu.Value}\ax
+		/delay 1
 	
 		ISMEDEAD
 		CHECKEXIT
@@ -5787,7 +5788,9 @@ sub cast_dot(bool _debug, string _line, int _tmpID)
 	/declare _licu listiterator local
 	/vardata _licu ${_line}.First.Clone
 	/while (!${_licu.IsEnd}) {
-
+		DEBUG _licu.Value${sep}\a-w${_licu.Value}\ax
+		/delay 1
+		
 		ISMEDEAD
 		ISTMPIDDEAD
 		CHECKEXIT

@@ -130,6 +130,8 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "Chameleon Strike" ${_tmpID} FALSE
 	}
 
+	ISTMPIDDEAD
+
 	/if (${is_ready[${_debug}, "${maChr.Find[stRake].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stRake].Value}" ${_tmpID} FALSE
 	}
