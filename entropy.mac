@@ -119,7 +119,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A200103.02
+	/call set_data FALSE maEnv build													map outer A200103.03
 	
 	| prep macro
 	/call prepare_the_end FALSE
@@ -253,8 +253,7 @@ sub main(string _debug, string _param1, string _auto)
 			/if (!SAFEZONE) {
 				/if (!${Me.Invis} || (${Select[${Me.Class.ShortName},ROG]} && ${maEnv.Find[swSoS].Value})) {	
 					/if (!PULL) {
-						| /call get_assist_target ${maDebug.Find[assist].Value}
-						/call get_assist_target TRUE
+						/call get_assist_target ${maDebug.Find[assist].Value}
 					} else /if (PULL && !TARGET) {
 						/if (${maCC.Find[stPullMode].Value.Equal[base]}) {
 							/call get_target_basepull ${maDebug.Find[pull].Value}						
