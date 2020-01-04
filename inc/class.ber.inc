@@ -12,7 +12,7 @@
 sub set_BER(bool _debug)
 	DEBUG \atset_BER\ax()
 		
-	/call set_data FALSE maData stSpire1																map outer "Spire of lhe Juggernaut"
+	/call set_data FALSE maData stSpire																	map outer "Spire of the Juggernaut"
 	/call set_data FALSE maData stSynergy																map outer "Fury's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Kerasian Axe of Ire"
 	/call set_data FALSE maData stEpic15																map outer "Raging Taelosian Alloy Axe"
@@ -57,33 +57,27 @@ sub set_BER(bool _debug)
  * use: 
  ***|
 sub main_BER(bool _debug)
-	DEBUG main_BER()
+	DEBUG \atmain_BER\ax()
 	
 	GETINPUT
 	ISMEDEAD
 	CHECKTIE
 	CHECKREZ
 
-	/if (AUTO) {
-		| /if (!${timer_click_poison}) /call click_poison FALSE
-		/if (${maEnv.Find[swSoS].Value}) /call set_sos FALSE
-	}
 	
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
+		CHECKREZ
+		/call check_heal_routines
 		/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
-			/call do_sneak_attack FALSE
 			/call set_combat FALSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (MELEE && !${timer_Check_Behind}) /call stick_to_target FALSE TARGET 
 			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET	
 
@@ -103,31 +97,38 @@ sub main_BER(bool _debug)
  * note: 
  * use: 
  ***|
-sub misc_combat_BER(bool _debug)
-	DEBUG \atmisc_combat_BER\ax()
+sub misc_combat_BER(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat_BER\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
 
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
+		/call cast_defensive_cycle ${maDebug.Find[def].Value}
+	}
+	
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}	
 
 	/if (${Me.PctHPs} < 90) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stBattleFrenzy].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stBattleFrenzy].Value}" TARGET FALSE
+			/call voodoo ${_debug} "${maChr.Find[stBattleFrenzy].Value}" ${_tmpID} FALSE
 		}
+	
+		/if (${is_ready[${_debug}, "${maChr.Find[stAugmentedFrenzy].Value}"]} ) {
+			/call voodoo ${_debug} "${maChr.Find[stAugmentedFrenzy].Value}" 0 FALSE
+		}
+
 	}
 	
 	/if (${is_ready[${_debug}, "${maChr.Find[stSappingStrikes].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stSappingStrikes].Value}" 0 FALSE
 	}
 	
-	/if (${Me.Buff[Frenzied Resolve].ID} && ${Spawn[id TARGET].Distance} > ${Spawn[id TARGET].MaxRangeTo}*.8) {
+	/if (${Me.Buff[Frenzied Resolve].ID} && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.8) {
 		/if (${is_ready[${_debug}, "Drawn to Blood"]}) {
 			/call voodoo ${_debug} "Drawn to Blood" 0 FALSE
 		}
@@ -157,18 +158,22 @@ sub misc_combat_BER(bool _debug)
 	}
 		
 	/if (!${Me.Song[Reckless Abandon].ID}) {
-		/if (${is_ready[${_debug}, "Vehement Rage"]}) /call voodoo ${_debug} "Vehement Rage" 0 FALSE
+		/if (${is_ready[${_debug}, "Vehement Rage"]}) {
+			/call voodoo ${_debug} "Vehement Rage" 0 FALSE
+		}
 	}
 
 	| to agro or not ?
 	/if (!AGRO) {
 		/if (${is_ready[${_debug}, "Distraction Attack"]} && ${Me.PctAggro} > 96) /call voodoo ${_debug} "Distraction Attack" 0 FALSE
-		/if (${is_ready[${_debug}, "${maChr.Find[stDivertiveStrike].Value}"]} && ${Me.PctAggro} > 80) /call voodoo ${_debug} "${maChr.Find[stDivertiveStrike].Value}" TARGET FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stDivertiveStrike].Value}"]} && ${Me.PctAggro} > 80) {
+			/call voodoo ${_debug} "${maChr.Find[stDivertiveStrike].Value}" ${_tmpID} FALSE
+		}
 	}
 
 	/if (${Me.PctHPs} < 90) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stOverpoweringFrenzy].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stOverpoweringFrenzy].Value}" TARGET FALSE
+			/call voodoo ${_debug} "${maChr.Find[stOverpoweringFrenzy].Value}" ${_tmpID} FALSE
 		}
 	}
 		
@@ -188,7 +193,7 @@ sub misc_combat_BER(bool _debug)
 
 	| dumb ass zerker has a dicho and a dicho ##. cant use the name to cast with..
 	/if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]} && ${Me.CurrentEndurance} > ${Spell[${maChr.Find[stDichotomic].Value}].EnduranceCost}*2) {
-		/call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" ${_tmpID} FALSE
 	}
 	
 	/if (AE#) {
@@ -200,10 +205,7 @@ sub misc_combat_BER(bool _debug)
 	/if (${Me.PctHPs} > 90 && !${Me.Song[${maChr.Find[stOpenWound].Value}].ID}) {
 		/if (${is_ready[${_debug}, "Bloodfury"]}) /call voodoo ${_debug} "Bloodfury" 0 FALSE
 	}
-	
-	/if (${is_ready[${_debug}, "${maChr.Find[stAugmentedFrenzy].Value}"]} && ${Me.PctHPs} < 90) {
-		/call voodoo ${_debug} "${maChr.Find[stAugmentedFrenzy].Value}" 0 FALSE
-	}
+
 	/if (${is_ready[${_debug}, "${maChr.Find[stCryHavoc].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stCryHavoc].Value}" 0 FALSE
 	}
@@ -214,21 +216,21 @@ sub misc_combat_BER(bool _debug)
 	| swarm pet
 	/if (SWARM) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stPhantomAssailant].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stPhantomAssailant].Value}" TARGET FALSE
+			/call voodoo ${_debug} "${maChr.Find[stPhantomAssailant].Value}" ${_tmpID} FALSE
 		}
 	}
 
 	| axes
 	/if (${is_ready[${_debug}, "${maChr.Find[stRageVolley].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stRageVolley].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stRageVolley].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stAxeofRalos].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stAxeofRalos].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stAxeofRalos].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stAxeThrow].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stAxeThrow].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stAxeThrow].Value}" ${_tmpID} FALSE
 	}
 
 	/if (!${Me.Song[${maChr.Find[stSharedBloodlust].Value}].ID} && ${Me.TargetOfTarget.ID}) {
@@ -292,7 +294,10 @@ sub burn_BER(bool _debug, int _tmpID)
 		/if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stDisconcerting].Value}]}) /goto :loopmakestop
 	}
 	
-	/if (${is_ready[${_debug}, "Desperation"]} && ${Me.PctHPs} < 90) /call voodoo ${_debug} "Desperation" 0 FALSE
+	/if (${is_ready[${_debug}, "Desperation"]} && ${Me.PctHPs} < 90) {
+		/call voodoo ${_debug} "Desperation" 0 FALSE
+	}
+	
 	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stUnsettlingScream].Value}].RankName}]} && ${Me.CurrentEndurance} > ${Spell[${maChr.Find[stUnsettlingScream].Value}].EnduranceCost}) {
 		/disc ${maChr.Find[stUnsettlingScream].Value}
 		/call voodoo ${_debug} "${maChr.Find[stUnsettlingScream].Value}" ${_tmpID} FALSE

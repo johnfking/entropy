@@ -148,8 +148,8 @@ sub misc_combat_SHD(bool _debug)
 	/if (${maHeal.Find[swHealSelf].Value}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stRancor].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) /call voodoo ${_debug} "${maChr.Find[stRancor].Value}" TARGET FALSE
 		/if (${is_ready[${_debug}, "Leech Touch"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) /call voodoo ${_debug} "Leech Touch" TARGET FALSE
-		/if (${SpawnCount[npc OVERLOS radius SAFEENV*2 targetable]} >= ${defCount}) {
-			/if (${is_ready[${_debug}, "${maChr.Find[stLeechcurs].Valuee}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) /call voodoo ${_debug} "${maChr.Find[stLeechcurse].Value}" 0 FALSE
+		/if (${SpawnCount[npc OVERLOS radius SAFEENV*2 targetable]} >= ${maChr.Find[stCountDefensive].Value}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stLeechcurs].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) /call voodoo ${_debug} "${maChr.Find[stLeechcurse].Value}" 0 FALSE
 		}
 		/if (${is_ready[${_debug}, "Vicious Bite of Chaos"]}) /call voodoo ${_debug} "Vicious Bite of Chaos" TARGET FALSE
 	}
@@ -163,7 +163,7 @@ sub misc_combat_SHD(bool _debug)
 	/if (${is_ready[${_debug}, "Thought Leech"]} &&  ${Me.PctMana} <= 60*.PCTHO) /call voodoo ${_debug} "Thought Leech" TARGET FALSE
 	/if (${is_ready[${_debug}, "${maChr.Find[stGougingBlade].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stGougingBlade].Value}" TARGET FALSE
 
-/return
+/return TRUE
 
 
 
@@ -261,7 +261,7 @@ sub check_skin(bool _debug)
 		/varset dump ${set_data_timer[FALSE, Check_Skin, RESTART]}
 	}
 	
-/return
+/return TRUE
 
 
 
@@ -287,31 +287,48 @@ sub burn_SHD(bool _debug)
 	/if (!${Me.ActiveDisc.ID} && ${Me.PctHPs} < 50*.PCTHO) {
 		/if (${is_ready[${_debug}, "Deflection Discipline"]}) {
 			/call voodoo ${_debug} "Deflection Discipline" 0 FALSE
-			/return
+			/return TRUE
 		}
 	}	
 	
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 
-	/if (${is_ready[${_debug}, "T`Vyl's Resolve"]}) /call voodoo ${_debug} "T`Vyl's Resolve" TARGET FALSE
-	/if (${is_ready[${_debug}, "${maChr.Find[stCrimsonBlade].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stCrimsonBlade].Value}" 0 FALSE
+	/if (${is_ready[${_debug}, "T`Vyl's Resolve"]}) {
+		/call voodoo ${_debug} "T`Vyl's Resolve" TARGET FALSE
+	}
+	/if (${is_ready[${_debug}, "${maChr.Find[stCrimsonBlade].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stCrimsonBlade].Value}" 0 FALSE
+	}
+
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
-	/if (${is_ready[${_debug}, "Veil of Darkness"]}) /call voodoo ${_debug} "Veil of Darkness" TARGET FALSE
-	/if (${is_ready[${_debug}, "Harm Touch"]}) /call voodoo ${_debug} "Harm Touch" TARGET FALSE
+
+	/if (${is_ready[${_debug}, "Veil of Darkness"]}) {
+		/call voodoo ${_debug} "Veil of Darkness" TARGET FALSE
+	}
+	/if (${is_ready[${_debug}, "Harm Touch"]}) {
+		/call voodoo ${_debug} "Harm Touch" TARGET FALSE
+	}
+	
 	/if (AGRO) {
-		/if (${is_ready[${_debug}, "Scourge Skin"]}) /call voodoo ${_debug} "Scourge Skin" 0 FALSE
+		/if (${is_ready[${_debug}, "Scourge Skin"]}) {
+			/call voodoo ${_debug} "Scourge Skin" 0 FALSE
+		}
 	}
 
 	| AA Visage of Decay/Death stacking issues
 	/if (!${Me.Buff[Visage of Decay].ID}) {
-		/if (${is_ready[${_debug}, "Visage of Death"]}) /call voodoo ${_debug} "Visage of Death" 0 FALSE
+		/if (${is_ready[${_debug}, "Visage of Death"]}) {
+			/call voodoo ${_debug} "Visage of Death" 0 FALSE
+		}
 	} else /if (!${Me.AltAbilityReady[Visage of Death]} && !${Me.Buff[Visage of Death].ID}) {
-		/if (${is_ready[${_debug}, "Visage of Decay"]})	/call voodoo ${_debug} "Visage of Decay" 0 FALSE
+		/if (${is_ready[${_debug}, "Visage of Decay"]})	{
+			/call voodoo ${_debug} "Visage of Decay" 0 FALSE
+		}
 	}
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
 
-/return
+/return TRUE
 
 
 
@@ -327,7 +344,7 @@ sub set_control_SHD(string _type, string _verbage, string _silent, bool _debug)
 	| output control map
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maChr
-		/return
+		/return TRUE
 
 	| use mana click items
 	} else /if (${_type.Equal[manarecover]}) {
@@ -336,7 +353,7 @@ sub set_control_SHD(string _type, string _verbage, string _silent, bool _debug)
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
 		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
-		/return
+		/return TRUE
 
 	| set AA fade use %	
 	} else /if (${_type.Equal[fade]}) {
@@ -356,15 +373,13 @@ sub set_control_SHD(string _type, string _verbage, string _silent, bool _debug)
 
 	| shield flash
 	} else /if (${_type.Equal[flash]}) {
-		
 		/if (${_verbage.Equal[pct]}) {
 			/if (!${set_control_num_range[${_debug}, stPctShieldFlash, "${_silent}", 0, 99]}) /return
 		} else /if (${_verbage.Equal[count]}) {
 			/if (!${set_control_num_range[${_debug}, stCountShieldFlash, "${_silent}", 0, 99]}) /return
 		}
-
 		OUT /chr flash ${dot} ${info}pct\ax:${If[${Bool[${maChr.Find[stPctShieldFlash].Value}]},${num}${maChr.Find[stPctShieldFlash].Value}\ax,${r0}]} ${dot} ${info}count\ax:${If[${Bool[${maChr.Find[stCountShieldFlash].Value}]},${num}${maChr.Find[stCountShieldFlash].Value}\ax,${r0}]}
-		/return
+		/return TRUE
 		
 	| harmonious
 	} else /if (${_type.Equal[harmonious]}) {
@@ -378,20 +393,18 @@ sub set_control_SHD(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[hiatus]}) {
 		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
 
-	| use hiatus disc
+	| use skin disc
 	} else /if (${_type.Equal[skin]}) {
 		/varset dump ${set_switch_env[${_debug}, swSkin, TRUE, ${_verbage}]}
 
 	| use hiatus disc
 	} else /if (${_type.Equal[stance]}) {
 		/varset dump ${set_switch_env[${_debug}, swStance, TRUE, ${_verbage}]}
-
-
 	
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return 
 	/varset dump ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 	
-/return
+/return TRUE
 

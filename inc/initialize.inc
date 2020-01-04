@@ -30,7 +30,7 @@ sub set_debug()
   | heal
   /varset dump ${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot]}
   | move
-  /varset dump ${lsDebugmove.Append[face,tie,zone]}
+  /varset dump ${lsDebugmove.Append[face,tie,zone,stick]}
   | debuff
   /varset dump ${lsDebugdebuff.Append[debuff,mez]}
   | minion
@@ -42,13 +42,14 @@ sub set_debug()
 	| mode
   /varset dump ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish]}
   | combat
-  /varset dump ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc]}
+  /varset dump ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist]}
 	| other
-  /varset dump ${lsDebugother.Append[build,edit,rest,rez,spire,glyph,fireworks,manarecover,fade,observe]}
+  /varset dump ${lsDebugother.Append[build,edit,rest,rez,spire,glyph,fireworks,manarecover,fade,observe,house]}
   | class specific debuffs
   /if (${Select[${Me.Class.ShortName},BER]}) {
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
+  	/varset dump ${lsDebugclass.Append[para]}
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
   	/varset dump ${lsDebugclass.Append[arbitrate]}
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
@@ -219,7 +220,6 @@ sub set_initial_environment(bool _debug)
   /call set_data FALSE FALSE lsPullTypes                              list outer base|pet|int|nav|multi
   /call set_data FALSE FALSE lsRezBuffTriggers                        list outer "Revival Sickness"|"Resurrection Sickness"
 
-
 	/call set_data FALSE FALSE lsClassHealToT														list outer PAL|RNG|BST
 	/call set_data FALSE FALSE lsClassHealSelf													list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
 	/call set_data FALSE FALSE lsClassHealGroup													list outer CLR|SHM|PAL|DRU
@@ -227,46 +227,57 @@ sub set_initial_environment(bool _debug)
 	/call set_data FALSE FALSE lsClassHealPet														list outer CLR|SHM|PAL|DRU|NEC|MAG|BST|SHM|RNG
 	/call set_data FALSE FALSE lsClassHealCure													list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
 
-
-
-
+	| things we ont want pullers attacking
   /call set_data FALSE FALSE lsNoAttackBodyType                       list outer AURA|BANNER|CAMPFIRE|CORPSE|CHEST|ITEM|TRIGGER|TRAP|TIMER|MOUNT|MERCENARY|OBJECT
   /call set_data FALSE FALSE lsNoTargetNPC                            list outer "a campfire"|"a corpse"|"controller"
   /call set_data FALSE FALSE lsNoTargetPC                             list outer "eye of"
   /call set_data FALSE FALSE lsNoTargetMagic                          list outer "eye of"
+  /call set_data FALSE FALSE lsNoTargetAnimation	                    list outer 16|43|44|146
 
   | spell types we let through the checking/validation methods
   /call set_data FALSE FALSE lsFreePassSpells                         list outer Beneficial|Pet
 
   | bandolier setting
-  /call set_data FALSE FALSE lsBandolier                              list outer "1h|2h|range|no"
+  /call set_data FALSE F=ALSE lsBandolier                             list outer "1h|2h|range|no"
+
+
+	| increment lists
+	/call set_data FALSE FALSE lsCount6			                            list outer "0|1|2|3|4|5"
+	/call set_data FALSE FALSE lsCount10		                            list outer "1|2|3|4|5|6|7|8|9|10"
+	/call set_data FALSE FALSE lsCount12		                            list outer "1|2|3|4|5|6|7|8|9|10|11|12"
+	/call set_data FALSE FALSE lsCount20		                            list outer "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20"
+	/call set_data FALSE FALSE lsCount50		                            list outer "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50"
+	| /call set_data FALSE FALSE lsCount			                            list outer ""
+	| /call set_data FALSE FALSE lsCount			                            list outer ""
+
 
 
   | timers  for everyone
   /varset dump ${set_data_timer[FALSE, Try_Door, 4s]}
   /varset dump ${set_data_timer[FALSE, Check_Ammo, 5s]}
   /varset dump ${set_data_timer[FALSE, Nuke_Delay, 1]}
-  /varset dump ${set_data_timer[FALSE, Check_Cursor, 5s]}
+  /varset dump ${set_data_timer[FALSE, Check_Cursor, 1s]}
   /varset dump ${set_data_timer[FALSE, Check_Zone_ID, 10s]}
   /varset dump ${set_data_timer[FALSE, Check_Observers, 1m]}
   /varset dump ${set_data_timer[FALSE, Check_Poison, 1m]}
   /varset dump ${set_data_timer[FALSE, Check_deBuffs, 6s]}
-  /varset dump ${set_data_timer[FALSE, Check_Behind, 10s]}
+  /varset dump ${set_data_timer[FALSE, Check_Behind, 5s]}
+  | /varset dump ${set_data_timer[FALSE, Check_Stick, 1s]}
   /varset dump ${set_data_timer[FALSE, Check_Tribute, 1m]}
   /varset dump ${set_data_timer[FALSE, Check_Loot, 1s]}
   /varset dump ${set_data_timer[FALSE, Check_Mode, 5]}
   /varset dump ${set_data_timer[FALSE, Check_LoS_Timeout, 10s]}
-  /varset dump ${set_data_timer[FALSE, Check_Housekeeping, 30s]}
+  /varset dump ${set_data_timer[FALSE, Check_Housekeeping, 1m]}
   /varset dump ${set_data_timer[FALSE, Check_Home, 1]}
   
+  | get the stick timer started
+  /varset dump ${set_timer[${_debug}, timer_check_stick, 1s]}
   
   
-  | 6/varset dump ${set_data_timer[FALSE, Wait_For_Mob, 1]}
-
+  
+  | /varset dump ${set_data_timer[FALSE, Wait_For_Mob, 1]}
 
   | /varset dump ${set_data_timer[FALSE, Check_Buff_List_Population, 2s]}
-  
-
 
   | /call timer_set FALSE tCheck_Runes                                  string    outer 10s   timer_check_runes
   | /call timer_set FALSE tScorchedEarth_ignore                         string    outer 30s   timer_scorched_earth_ignore
@@ -369,9 +380,10 @@ sub set_initial_environment(bool _debug)
 	  /varset dump ${maChrControl.Add[summer,swSummer]}
 
   } else /if (${Select[${Me.Class.ShortName},ROG]}) {
-	  /varset dump ${maChrControl.Add[sos,swSoS]}
+	  | /varset dump ${maChrControl.Add[sos,swSoS]}
 	  /varset dump ${maChrControl.Add[blind,swBlinding]}
-
+	  /varset dump ${maChrControl.Add[poison,stLegPoison]}
+	  
   } else /if (${Select[${Me.Class.ShortName},SHD]}) {
 	  /varset dump ${maChrControl.Add[attraction,swAttraction]}
 	  /varset dump ${maChrControl.Add[harmonious,swHarmonious]}
@@ -505,7 +517,7 @@ sub sql_set_zone_schema(bool _debug)
     }     
   }
 
- /return TRUE
+/return TRUE
 
 
 
@@ -814,7 +826,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maCC stPullRadius                          0                             "${auxnum} radius to pull mobs from"
   /call set_data_map FALSE maCC swPullSetHome                         FALSE                         "${auxsw} suto set home marker when pulling is enabled"
 
-  /call set_data_map FALSE maCC swPoison                              FALSE                         "${auxsw} use poisons (\a-wsetup in buffs for summoning/clicking\ax)"
+  | /call set_data_map FALSE maCC swPoison                              FALSE                         "${auxsw} use poisons (\a-wsetup in buffs for summoning/clicking\ax)"
   /call set_data_map FALSE maCC swBandolier                           FALSE                         "${auxsw} (\a-w1/aux bandolier\ax for help" 
 
   | glyph
@@ -1487,7 +1499,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
     | row 78
     HUDPATH entropy body1   3,73,78,0,255,0,"${If[${Target.LineOfSight},${Target.Body},]}"
     HUDPATH entropy body2   3,73,78,255,0,0,"${If[${Target.LineOfSight},,${Target.Body}]}"
-    HUDPATH entropy body3   3,145,78,140,140,140,"${Target.Distance}"
+    HUDPATH entropy body3   3,145,78,140,140,140,"${Target.Distance} (${Math.Calc[${Spawn[${Target.ID}].MaxRangeTo}*.9]})"
     HUDPATH entropy eng0    3,5,77,100,149,237,"[     ][     ][     ][                       ]"
     HUDPATH entropy eng1    19,10,78,255,255,255,"${If[${h_engage},${h_engage},]}"
     HUDPATH entropy eng2    19,12,73,25,25,25,"${If[(!${h_engage},__,]}"

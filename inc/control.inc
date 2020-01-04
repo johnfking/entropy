@@ -510,6 +510,15 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 		/varset dump ${out[12, "Gator's bitches better be using jimmies!"]}
 		/return
 
+	| auto SOS... or not... ROGUES ONLY
+	} else /if (${_type.Equal[sos]}) {
+		/if (${Select[${Me.Class.ShortName},ROG]}) {
+			/varset dump ${set_switch_env[${_debug}, swSoS, TRUE, ${_verbage}]}
+		} else {
+			/varset dump ${get_shade[FALSE, MQWindow]}
+			/return FALSE
+		}
+
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return
@@ -533,6 +542,11 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 	/varset dump ${maControl.Add[takegi,swTakeGroupInvite]}
 	/varset dump ${maControl.Add[saferadius,stEnvSafeRadius]}
 	/varset dump ${maControl.Add[tribute,swCheckTribute]}
+	
+	/if (${Select[${Me.Class.ShortName},ROG]}) {
+		/varset dump ${maControl.Add[sos,swSoS]}
+	}
+	
 	/varset dump ${set_control_output[${_debug}, maEnv, env, maControl]}
 
 /return TRUE
@@ -731,14 +745,21 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 
 		| check variance for home position
 		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} < ${maHome.Find[stHomeVariance].Value}) {
-			/return
+			/return TRUE
 		}
 		
 		SETHUD "'goin home"
 		
-		/delay 2
 		/doevents flush
-		/nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} dist=${maHome.Find[stHomeVariance].Value} log=off
+		/delay 2
+		
+		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} < SAFEENV && PULL) {
+			DEBUG move backwords
+			/nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=off facing=backward
+		} else {
+			/nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=off
+		}
+		
 		/delay 2 ${Navigation.Active}
 		/while (${Navigation.Active}) {
 			/delay 2	
@@ -1330,10 +1351,10 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 
 |***
  * note: testing control. not for in game use...
- * use: 
+ * use:  please see note: and stop asking stupid questions
  ***|
 #Bind deez /deez
-sub Bind_deez(string _type, bool _debug)
+sub Bind_deez(string _type, string _verbage)
 
 	/declare _count int local 0
 
@@ -1473,7 +1494,59 @@ sub Bind_deez(string _type, bool _debug)
 		/varset stAssTarID 0
 		
 	}
+	
+	/if (${_type.Equal[legs]})  {
+		/echo Test 1: ${FindItem[=Battleworn Stalwart Moon Shadowscale Leggings].Spell}
+		/echo Test 2: ${FindItem[=Battleworn Stalwart Moon Shadowscale Leggings].SpellID}
+		/echo Test 3: ${FindItem[=Battleworn Stalwart Moon Shadowscale Leggings].Spell.SpellID}
+		/echo Test 4: ${FindItem[=Battleworn Stalwart Moon Shadowscale Leggings].Clicky}
+		/echo Test 5: ${FindItem[=Battleworn Stalwart Moon Shadowscale Leggings].Clicky.Spell}
+		/echo Test 6: ${FindItem[=Battleworn Stalwart Moon Shadowscale Leggings].Clicky.SpellID}	
+	}
+	
 
+
+	| get spawn info.  in a radius
+	/if (${_type.Equal[spawn]})  {
+		OUT SpawnCount${sep}\a-w${SpawnCount[radius ${_verbage}]}
+		/declare _tmpID int local
+	
+		/for _count 1 to ${SpawnCount[radius ${_verbage}]}
+			/varset _tmpID ${NearestSpawn[${_count}, radius ${_verbage}].ID}
+			
+			/if (${_tmpID} == ${Me.ID}) {
+				OUT #\ag${_count}\ax${sep}name:\a-wMe\ax
+				/echo
+				/continue
+			}
+			
+			OUT #\ag${_count}\ax${sep}name:\a-w${Spawn[id ${_tmpID}].Name}\ax
+			OUT ${sep}Dis(\a-r${Spawn[${_tmpID}].Distance}\ax) ${dot} Y(\a-r${Spawn[id ${_tmpID}].Y}\ax)X(\a-r${Spawn[id ${_tmpID}].X}\ax)
+			OUT ${sep}Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax)
+			/echo
+		/next _count
+	
+	}
+	| get spawn info.  in a radius
+	/if (${_type.Equal[spawn2]})  {
+		OUT SpawnCount${sep}\a-w${SpawnCount[radius ${_verbage}]}
+		/declare _tmpID int local
+	
+		/for _count 1 to ${_verbage}
+			/varset _tmpID ${NearestSpawn[${_count}].ID}
+			
+			/if (${_tmpID} == ${Me.ID}) {
+				OUT #\ag${_count}\ax${sep}name:\a-wMe\ax
+				/echo
+				/continue
+			}
+			
+			OUT #\ag${_count}\ax${sep}name:\a-w${Spawn[id ${_tmpID}].Name}\ax ${dot} Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax)
+		/next _count
+	
+	}	
+	
+	
 /return TRUE
 	
 	
@@ -1687,7 +1760,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
 		/call Bind_command_aux see
 		/return	FALSE
-	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item]}) {
+	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target]}) {
 		/varset dump ${out[0, "Crack says your input sucks${sep}\a-w${_variable}\ax"]}
 		/return FALSE		
 	}
@@ -1696,7 +1769,16 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 	/declare _DBLOC string local
 	/declare _tmpAux string local
 
-	/if (${_variable.Equal[buff]}) {
+
+	| shows us detailed target info
+	/if (${_variable.Equal[target]}) {
+		OUT name:\aw${Target.DisplayName}\ax (\a-r${Target.Name}\ax) ${sep} \ay${Target.ID}\ax
+		OUT dis(\a-r${Target.Distance}\ax) ${dot} Y(\a-r${Target.Y}\ax)X(\a-r${Target.X}\ax)
+		OUT animation(\a-r${Target.Animation}\ax) ${dot} body(\a-r${Target.Body}\ax)
+
+
+	| see the buff info
+	} else /if (${_variable.Equal[buff]}) {
 		/if (${_verbage.Equal[list]}) {
 			/echo
 			/varset dump ${out[12, "\awBuff List\ax${sep}"]}
@@ -2765,7 +2847,7 @@ sub Bind_command_invis(string _type, bool _debug)
 	}
 
 	/if (${_type.Equal[all]}) {
-		/declare _group string local all
+		/declare _group string local ${maComm.Find[stEntropyGroup_all].Value}
 	} else {
 		/declare _group string local ${set_dnet_group[FALSE]}
 	}
@@ -3238,9 +3320,10 @@ sub Bind_command_grab(string _name, bool _debug)
  ***|
 #bind command_lesson /lesson
 sub Bind_command_lesson(bool _debug)
-  /if (${is_ready[FALSE, "Lesson of the Devoted"]}) {
-  	/call voodoo FALSE "Lesson of the Devoted" 0 FALSE
-  }
+
+  /if (${is_ready[${_debug}, "Lesson of the Devoted"]}) /return FALSE
+
+  /call voodoo FALSE "Lesson of the Devoted" 0 FALSE
   
 /return TRUE
 
@@ -3421,18 +3504,23 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 			/varset dump ${get_shade[FALSE, MQWindow]}
 		} else {
 			/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
+			/if (!${sqlite.Rows[lootquery]}) {
+				/varset dump ${out[0, "DB settings for item${sep}\a-w${Cursor.Name}\ax"]}
+				/varset dump ${out[0, "${notice}${sep}\a-wnot in loot database\ax"]}
+				/varset dump ${out[18, "${eol}"]}
+				/return FALSE
+			}
 			/varset dump ${out[0, "DB settings for item${sep}\a-w${sqlite.Result[lootquery 1 item]}\ax"]}
 			/varset dump ${out[0, "action${sep}\a-w${sqlite.Result[lootquery 1 action]}\ax"]}
 			/varset dump ${out[0, "pass${sep}\a-w${sqlite.Result[lootquery 1 pass]}\ax"]}
 			/varset dump ${out[0, "count${sep}\a-w${sqlite.Result[lootquery 1 count]}\ax"]}
 			/varset dump ${out[18, "${eol}"]}
-			/echo
 		}
-		/return
+		/return TRUE
 
 	} else /if (${_type.Equal[aux]}) {
 		/call Bind_command_aux cursor ${_verbage}
-		/return		
+		/return TRUE
 	}
 	
 	
@@ -3457,17 +3545,16 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 			/varset dump ${get_shade[FALSE, MQWindow]}
 		}
 		
-		
-		
 		/sqlite ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${_item}"
 		DEBUG ${sep}lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${_item}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
-		/varset dump ${out[14, "Set${sep}${_item}${sep}\a-w${_type.Lower}\ax"]}
+		OUT /cursor ${_item}${sep}\a-w${_type.Lower}\ax
+		/return TRUE
 
 	} else /if (${_type.Equal[pass]}) {
 		/sqlite ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}"
 		DEBUG ${sep}lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
-		/varset dump ${out[14, "Set${sep}pass${sep}\a-w${_verbage}\ax"]}
-
+		OUT /cursor pass${sep}\a-w${_verbage}\ax
+		/return TRUE
 	} else /if (${_type.Equal[count]}) {
 
 	
@@ -3681,6 +3768,10 @@ sub Bind_command_crew(string _type, bool _debug)
 				/continue
 			}
 			
+			| drop what they are doing!
+			/dexecute ${cli.Value} /disband
+			/dexecute ${cli.Value} /raiddisband
+			
 			| are they in the group already?
 			/if (${Group.Member[${cli.Value}].Index}) {
 				/dexecute ${cli.Value} /varset stCurrentCrew crew${_type}
@@ -3893,4 +3984,5 @@ sub Bind_control_grain(string _num, bool _debug)
 	/varset dump ${out[12, "/grain ${_out}"]}
 
 /return FALSE
+
 

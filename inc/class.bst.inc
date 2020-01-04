@@ -37,6 +37,7 @@ sub set_BST(bool _debug)
   /call set_data_map FALSE maChr stFury 															PREGEN|1											"${auxna} furry disc (ruaabri)"
   /call set_data_map FALSE maChr stSavage 														PREGEN|1											"${auxna} savagery disc"
 
+	/varset dump ${set_data_timer[FALSE, Check_Para, 2s]}
  	/call set_data_map FALSE maChr stPctParagonG 												0															"${auxnum} pct mana to use group paragon aa" 										
 	/call set_data_map FALSE maChr stPctParagonF 												0															"${auxnum} pct mana to use focused paragon aa"
 	/call set_data_map FALSE maChr stPctConsume 												0															"${auxnum} pct mana to use consume aa"
@@ -75,6 +76,7 @@ sub main_BST(bool _debug)
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/if (MELEE) /call do_melee FALSE TARGET
+			| /if (!${target_reset[${_debug}, TARGET, dead]}) /return FALSE
 			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
 			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
@@ -84,7 +86,7 @@ sub main_BST(bool _debug)
 
 		/if (AUTO) {	
 			CHECKFADE
-			/call check_mana_BST FALSE
+			/if (!${timer_Check_Para}) /call check_mana_BST ${maDebug.Find[para].Value}
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[rest].Value}
 		}	
@@ -102,35 +104,56 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_BST\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	ISTMPIDDEAD
+	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
 
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
 
-	/call check_heal_routines
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
+
+	| do we want the mobs attention?
+	/if (AGRO) {
+		/if (${is_ready[${_debug}, "Roaring Strike"]}) {
+			/call voodoo ${_debug} "Roaring Strike" ${_tmpID} FALSE
+		}
+
+	} else /if (!AGRO) {
+		/if (${is_ready[${_debug}, "Chameleon Strike"]}) {
+			/call voodoo ${_debug} "Chameleon Strike" ${_tmpID} FALSE
+		}
+		/if (${is_ready[${_debug}, "Roar of Thunder"]}) {
+			/call voodoo ${_debug} "Roar of Thunder" ${_tmpID} FALSE
+		}		
+	}
+
+	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
 	
 	/if (${is_ready[${_debug}, "${maChr.Find[stBestial].Value}"]} && !${Me.Song[${maChr.Find[stBestial].Value}].ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stBestial].Value}" 0 FALSE
 	}
 	
-	/if (${is_ready[${_debug}, "${maChr.Find[stClaws].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stClaws].Value}" ${_tmpID} FALSE
+	/if (!AE#) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stClaws].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stClaws].Value}" ${_tmpID} FALSE
+		}
+	} else /if (AE#) {
+		
 	}
 	
-	ISTMPIDDEAD
+	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
 	
 	/if (${is_ready[${_debug}, "Enduring Frenzy"]} && !${Target.Buff[Enduring Frenzy].ID}) {
 		/call voodoo ${_debug} "Enduring Frenzy" ${_tmpID} FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Chameleon Strike"]}) {
-		/call voodoo ${_debug} "Chameleon Strike" ${_tmpID} FALSE
-	}
-
-	ISTMPIDDEAD
+	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stRake].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stRake].Value}" ${_tmpID} FALSE
@@ -140,25 +163,10 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stRending].Value}" ${_tmpID} FALSE
 	}
 	
-	ISTMPIDDEAD
+	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
 			
-	| do we want the mobs attention?
-	/if (AGRO) {
-		/if (${is_ready[${_debug}, "Roaring Strike"]} && ${Me.PctAggro} < 80) {
-			/call voodoo ${_debug} "Roaring Strike" ${_tmpID} FALSE
-		}
-
-	} else /if (!AGRO) {
-		/if (${is_ready[${_debug}, "Roar of Thunder"]} && ${Me.PctAggro} > 80) {
-			/call voodoo ${_debug} "Roar of Thunder" ${_tmpID} FALSE
-		}		
-		
-	}
-
-	ISTMPIDDEAD
-
 	/if (${Me.Pet.ID}) {
-		/if (${is_ready[${_debug}, "${maChr.Find[stGrowl].Value}"]}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stGrowl].Value}"]} && !${Me.Song[${maChr.Find[stGrowl].Value}].ID}) {
 			/call voodoo ${_debug} "${maChr.Find[stGrowl].Value}" 0 FALSE
 		}
 	}
@@ -174,6 +182,9 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 sub check_mana_BST(bool _debug)
 	DEBUG \atcheck_mana_BST\ax()
 
+
+	/varset dump ${set_data_timer[${_debug}, Check_Para, RESTART]}
+	
 	ISMEDEAD
 	CHECKEXIT
 	
@@ -182,46 +193,61 @@ sub check_mana_BST(bool _debug)
 		/if (${Me.PctMana} < ${maChr.Find[stPctConsume].Value}*.PCTHO) {
 		 	/if (${is_ready[${_debug}, "Consumption of Spirit"]}) {
 		 		/call voodoo ${_debug} "Consumption of Spirit" 0 FALSE
-		 		/return
 		 	}
 		}
 	}
-	
-	| Paragon Group Members	NOT IN RAID.... if 2+ need stamina or mana
-	/if (${Group.Members} && !${Raid.Members} && ${Me.AltAbilityReady[Paragon of Spirit]}) {
-		/declare _count int local 0
-		/declare _countHurt int local 0
 
-		/for _count 0 to ${Group.Members}
-			ISMEDEAD
-			CHECKEXIT
-			/if (${Group.Member[${_count}].Name.Equal[${Me.DisplayName}]}) /continue
-			/if (${Group.Member[${_count}].PctMana} >= ${maChr.Find[stPctParagonG].Value}*.PCTHO && ${Group.Member[${_count}].PctEndurance} >= ${maChr.Find[stPctParagonG].Value}*.PCTHO) /continue
-			/if (${Group.Member[${_count}].Distance} > 100) /continue
-			/if (${Group.Member[${_count}].Type.Equal[CORPSE]}) /continue
-			/if (${Group.Member[${_count}].Class.ShortName.Equal[BRD]}) /continue
-			
-
-			/varcalc _countHurt ${_countHurt}+1
-		/next _count				
-		
-		/if (${_countHurt} > 1) {
-			/call voodoo ${_debug} "Paragon of Spirit" 0 FALSE
-			/delay 2s
-		}
-	}
-	
 	/if (${Me.Song[Paragon of Spirit].ID}) /return FALSE
 	/if (${Me.Song[Focused Paragon of Spirit].ID}) /return FALSE
-		
+
 	| self paragon
+	DEBUG ${sep}checking${sep}\a-wfocused paragon\ax
 	/if (${maChr.Find[stPctParagonF].Value}) {
 		/if (${Me.PctMana} <= ${maChr.Find[stPctParagonF].Value}*.PCTHO || ${Me.PctEndurance} <= ${maChr.Find[stPctParagonF].Value}*.PCTHO) {
 			/if (${is_ready[${_debug}, "Focused Paragon of Spirits"]}) {
 				/call voodoo ${_debug} "Focused Paragon of Spirits" ${Me.ID} FALSE
-				/delay 2s
 			}
 		}
+	}
+
+	/if (${Me.Song[Paragon of Spirit].ID}) /return FALSE
+	/if (${Me.Song[Focused Paragon of Spirit].ID}) /return FALSE
+
+	| Paragon Group Members	NOT IN RAID.... if 2+ need stamina or mana
+	DEBUG ${sep}checking${sep}\a-wparagon\ax
+	| /if (!${Group.Members} || ${Raid.Members} || !${Me.AltAbilityReady[Paragon of Spirit]}) /return TRUE
+
+	/declare _below int local 0
+	/declare _liC6 listiterator local
+	/vardata _liC6 lsCount6.First.Clone
+
+	/while (!${_liC6.IsEnd}) {
+		DEBUG ${sep}${_liC6.Value}${sep}\a-w${Group.Member[${_liC6.Value}].DisplayName}\ax
+		ISMEDEAD
+		CHECKEXIT
+		/if (${Group.Member[${_liC6.Value}].Class.ShortName.Equal[BRD]}) {
+			/varset dump ${_liC6.Advance}
+			/continue
+		}
+		/if (${Group.Member[${_liC6.Value}].PctMana} >= ${maChr.Find[stPctParagonG].Value}*.PCTHO) {
+			/varset dump ${_liC6.Advance}
+			/continue
+		}
+		/if (${Group.Member[${_liC6.Value}].Distance} > 100) {
+			/varset dump ${_liC6.Advance}
+			/continue
+		}
+		/if (${Group.Member[${_liC6.Value}].Type.Equal[CORPSE]}) {
+			/varset dump ${_liC6.Advance}
+			/continue
+		}
+
+		/varcalc _below ${_below}+1
+		/varset dump ${_liC6.Advance}
+	}	
+	
+	/if (${_below} >= 1) {
+		/call voodoo ${_debug} "Paragon of Spirit" 0 FALSE
 	}
 		
 /return TRUE
@@ -335,7 +361,7 @@ sub burn_BST(bool _debug, int _tmpID)
 	DEBUG \atburn_BST\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	ISTMPIDDEAD
+	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
 
 	CHECKEXIT
 	GETINPUT
@@ -355,7 +381,7 @@ sub burn_BST(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "Ferociousness" 0 FALSE
 	}
 	
-	ISTMPIDDEAD
+	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
 
 	/if (SWARM) {
 		/if (${is_ready[${_debug}, "Attack of the Warders"]}) {
@@ -375,11 +401,11 @@ sub burn_BST(bool _debug, int _tmpID)
 		}
 	}
 
-	ISTMPIDDEAD
+	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
 	
 	/call cast_glyph ${maDebug.Find[glyph].Value}
 
-	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stFury].Value}].RankName}]} && !${Me.Song[Frenzy of Spirit].ID} && !${Me.Buff[stDichotomic Fury].ID}) {
+	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stFury].Value}].RankName}]} && !${Me.Song[Frenzy of Spirit].ID} && !${Me.Buff[${maChr.Find[stDichotomic].Value}].ID}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stFury].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stFury].Value}" 0 FALSE
 		}
@@ -392,7 +418,7 @@ sub burn_BST(bool _debug, int _tmpID)
 			/call voodoo ${_debug} "BloodLust" 0 FALSE
 		}
 		
-		ISTMPIDDEAD
+		/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
 		
 		/call cast_AA_spire ${maDebug.Find[spire].Value}
 		

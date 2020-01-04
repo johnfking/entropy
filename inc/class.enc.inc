@@ -46,7 +46,7 @@ sub set_ENC(bool _debug)
 	| PBAE stun
 	/call set_data_map FALSE maChr stAEStun															PREGEN|1											"${auxna} name of your point blank ae stun"
 
-/return
+/return TRUE
   
 
 
@@ -68,21 +68,22 @@ sub main_ENC(bool _debug)
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/call control_routine ${maDebug.Find[mez].Value}
+		/call check_heal_routines
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 			/call set_combat FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) {
+				/call cast_defensive_cycle ${maDebug.Find[def].Value}
+			}
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
 			/call control_routine ${maDebug.Find[mez].Value}
 
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 
 			/call control_routine ${maDebug.Find[mez].Value}
 
@@ -118,17 +119,21 @@ sub main_ENC(bool _debug)
  * note: basic DPS discs
  * use: 
  ***|
-sub misc_combat_ENC(bool _debug)
-	DEBUG \atmisc_combat_ENC\ax()
+sub misc_combat_ENC(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
 
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
+		/call cast_defensive_cycle ${maDebug.Find[def].Value}
+	}
+	
+	
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 	
@@ -178,6 +183,7 @@ sub check_crystals(bool _debug)
 		/if (${is_ready[${_debug}, "Azure Mind Crystal"]}) {
 			/call voodoo ${_debug} "Azure Mind Crystal" 0 FALSE
 		}
+		/call check_cursor ${_debug} CLEAR
 	}
 
 	| hp crystal
@@ -185,6 +191,7 @@ sub check_crystals(bool _debug)
 		/if (${is_ready[${_debug}, "Sanguine Mind Crystal"]}) {
 			/call voodoo ${_debug} "Sanguine Mind Crystal" 0 FALSE
 		}
+		/call check_cursor ${_debug} CLEAR
 	}
 		
 /return TRUE
@@ -263,8 +270,8 @@ sub check_heal_ENC(bool _debug)
  * note: toast should not be burnt
  * use: establish all comp/trigger skills
  ***| 
-sub burn_ENC(bool _debug)
-	DEBUG \atburn_${Me.Class.ShortName}\ax()
+sub burn_ENC(bool _debug, int _tmpID)
+	DEBUG \atburn_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
 	
 	ISMEDEAD
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE

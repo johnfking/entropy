@@ -161,8 +161,17 @@ sub mode_forage(bool _debug)
 	
 	/doability forage
 	/delay 1s
+
+
+	/while (${Cursor.ID})	{
+		GETINPUT
+		ISMEDEAD
+		
+		/call check_cursor ${_debug} TRUE
+		/if (!${Cursor.ID}) /break
+		/delay 2
+	}
 	
-	/call check_cursor ${_debug} TRUE
 	SETHUD FALSE
 	
 /return TRUE
@@ -723,6 +732,7 @@ sub mode_hunt(bool _debug)
 	SETHUD "mode hunt"
 
 	:checkpath
+	GETINPUT
 
 	/if (${Bool[${stModeData}]}) {
 		/declare _lsHunt list local
@@ -746,7 +756,7 @@ sub mode_hunt(bool _debug)
 	/if (!TARGET) {
 		DEBUG \arNO\ax stAssTarID
 		/call clear_combat ${_debug}
-		/return
+		/return FALSE
 	}
 
 	/if	(!${Navigation.PathExists[locyxz ${Spawn[TARGET].Y} ${Spawn[TARGET].X} ${Spawn[TARGET].Z}]}) {
@@ -755,17 +765,12 @@ sub mode_hunt(bool _debug)
 		/varcalc _count ${_count}+1
 		/if (${_count} > 10) /return FALSE
 		/delay 1s
-		| /call pull_mob_find FALSE ${_count}
 		/goto :checkpath
 	 }
 
 	| get to the mob
-	| /declare _movetorange float local ${Math.Calc[${Spawn[TARGET].MaxRangeTo}*.9]}
-	
 	/call pull_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.9]} on
-	
-	| /delay 15s !${Navigation.Active}
-	
+		
 	/if (${Spawn[id TARGET].Dead}) /return TRUE
 
 
@@ -774,32 +779,9 @@ sub mode_hunt(bool _debug)
 		
 	| /call check_facing ${_debug} TARGET FORCE
 	
-	| /if (MELEE) /squelch /attack on
 	/call Bind_control_cc FORCE
 	/call main_${Me.Class.ShortName}
 	/call clear_combat
-	
-	
-	|**
-	| kill our  mob
-	:checkforbullshitadds
-	/while (TARGET || (${SpawnCount[NPC radius ENV PS4]} && !TARGET)) {
-		ISMEDEAD
-		GETINPUT
-	
-		/if (!TARGET) {
-			/varset stAssTarID ${NearestSpawn[npc LOS radius ENV zradius ${maCC.Find[stZRadius].Value}].ID}
-		}
-		
-		/if (TARGET) {
-			/call Bind_control_cc FORCE
-			/delay 1s
-		}
-		/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE	
-		
-	}	
-	
-	**|
 	
 	/varset dump ${maOver.Add[swOverPctEngage,FALSE]}
 	/varset dump ${maOver.Add[swOverLOS,FALSE]}
@@ -807,7 +789,7 @@ sub mode_hunt(bool _debug)
 
 	SETHUD FALSE
 
-/return
+/return TRUE
 
 
 

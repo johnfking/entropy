@@ -1,4 +1,3 @@
- *
  * entropy
  * changelog.txt
  * exspes
@@ -10,8 +9,50 @@
 
 
 
+
+
+
+
+
+A200103.02
+- rogue
+  sos switch should not show up under /chr only /env
+  and... complete overhall
+- enchanter
+  bastards should autoinventory the damn crystals better
+- beastlord
+  redesign consume/focused/group paragon routine. should check gorup a little better
+- timer
+  reduced the default time for tiCheck_Behind from 10 to 5 seconds. undate your DB if you like
+- check_cursor() - i've removed the while loop. i dont like crashes
+  now its a 1 shot deal with timer adjustments to do again if needed
+  also... if something shows up on your cursor thats lore, 
+  and you have it set to leave, it will now be automagically changed to ignore.
+- /mode 
+  hunt - added in some checks so it will read commands while in the mode
+  forage - some corrections to account for the new cursor item handeling
+- several changes to the housekeeping routine
+- pulling
+  split the tagging from the prep routine, removed the delays
+  items/aas/discs/spells will now work. if you set something beyond their range, it's your problem
+- voodoo
+  added in an option for exceeding cast ranges based on /env rad
+- tags
+  "target" requires whatever is being use has a target. you dot havd a target, it will fail
+- tank attraction skills have been removed from the main tag routine and placed
+  into the waiting routine to use if the mob doesnt want to get all the way to the puller
+- valid target adjustments for more body/animation types
+- stick_to_target() - rewrite. this is the stick to a mob/stick behind control
+- HUD
+  added the target max meleerange*.9 next to target distance
+- out of group people should assist the MA toon now. i think
+
+
+
 A191227.01
-- fixed som errors in mob acquisition code created from adding the debugs
+- fixed some errors in mob acquisition code created from adding the debugs
+- shadowknight
+  several adjustments
 
 
 A191225.02

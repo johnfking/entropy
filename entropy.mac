@@ -22,7 +22,7 @@
 #define SDEBUG "/echo \ay+[\ax\aw${Time.Second}\ax\at::\ax\aw${Macro.CurLine}\ax\ay]\ax(\a-t${Macro.RunTime}\ax) \ay--\ax "
 #define OUT "/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,\at.\ax]}"
 #define GETINPUT "/call get_input"
-#define ISMEDEAD "/if (${is_me_dead[${maRez.Find[debugRez].Value}]}) /call check_for_rezbox"
+#define ISMEDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox"
 #define CHECKEXIT "/if (${check_exit[]}) /return"
 #define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maCC.Find[swPull].Value} && !${Me.Invis} && ${maRez.Find[swRezGive].Value}) /call check_for_corpse ${maDebug.Find[rez].Value}"
 #define CHECKFADE "/if (${maChr.Find[stPctFade].Value}) /call cast_AA_fade ${maDebug.Find[fade].Value}"
@@ -35,7 +35,7 @@
 #define TARGET "${stAssTarID}"
 #define TIE	"${maTie.Find[swSetTie].Value}"
 #define HOME "${maHome.Find[swHomeMarker].Value}"
-#define MA1 "${maCC.Find[stManualAssist2].Value}"
+#define MA1 "${maCC.Find[stManualAssist1].Value}"
 #define MA2 "${maCC.Find[stManualAssist2].Value}"
 #define VALID "${maCC.Find[swValidAssTarID].Value}"
 #define COMBAT "${maCC.Find[swSetCombat].Value}"
@@ -119,7 +119,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A191227.01
+	/call set_data FALSE maEnv build													map outer A200103.02
 	
 	| prep macro
 	/call prepare_the_end FALSE
@@ -135,7 +135,9 @@ sub main(string _debug, string _param1, string _auto)
  		/varset dump ${out[0, "${notice} ${dot} Disabled${sep}\a-wline of sight validation\ax"]}
  	}
  
-	/if (!${timer_Check_Zone_ID}) /call check_zone_id ${maDebug.Find[zone].Value} FALSE
+	/if (!${timer_Check_Zone_ID}) {
+		/call check_zone_id ${maDebug.Find[zone].Value} FALSE
+	}
 	
 	| echo help on a new build or updates
 	/if (${Bool[${maData.Find[stPreviousBuild].Value}]}) {
@@ -167,9 +169,9 @@ sub main(string _debug, string _param1, string _auto)
 	/while (!${maEntropy.Find[swMaintenance].Value}) {
 
 		| housekeeping first!
-		/if (!${timer_Check_Housekeeping}) {
-			/call check_housekeeping FALSE
-		}		
+		| /if (!${timer_Check_Housekeeping}) {
+		| 	/call check_housekeeping ${maDebug.Find[house].Value}
+		| }		
 
 		GETINPUT main_loop swAuto|${maEnv.Find[swAuto].Value}
 		ISMEDEAD
@@ -216,7 +218,9 @@ sub main(string _debug, string _param1, string _auto)
 
 			| rest
 			/if (PCTREST) {
-				/if (!PULL || (PULL && !${SpawnCount[npc radius SAFEENV PS4]})) /call do_rest ${maDebug.Find[rest].Value}
+				/if (!PULL || (PULL && !${SpawnCount[npc radius SAFEENV PS4]})) {
+					/call do_rest ${maDebug.Find[rest].Value}
+				}
 			}		
 
 			| check exp
@@ -235,7 +239,9 @@ sub main(string _debug, string _param1, string _auto)
 			}
 			
 			/if (${Me.PctEndurance} < 32) {
-				/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery
+				/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) {
+					/call cast_stamina_recovery
+				}
 			}
 			
 			| check loot
@@ -247,7 +253,8 @@ sub main(string _debug, string _param1, string _auto)
 			/if (!SAFEZONE) {
 				/if (!${Me.Invis} || (${Select[${Me.Class.ShortName},ROG]} && ${maEnv.Find[swSoS].Value})) {	
 					/if (!PULL) {
-						/call get_assist_target ${maDebug.Find[target].Value}
+						| /call get_assist_target ${maDebug.Find[assist].Value}
+						/call get_assist_target TRUE
 					} else /if (PULL && !TARGET) {
 						/if (${maCC.Find[stPullMode].Value.Equal[base]}) {
 							/call get_target_basepull ${maDebug.Find[pull].Value}						
@@ -270,7 +277,9 @@ sub main(string _debug, string _param1, string _auto)
 		CHECKTIE
 
 		/call main_${Me.Class.ShortName} FALSE
-		/if (!AUTO) /delay 1
+		/if (!AUTO) {
+			/delay 1
+		}
 
 	} 
 	 
@@ -292,7 +301,7 @@ sub main(string _debug, string _param1, string _auto)
 	}
 	/endmacro	
  
-/return
+/return TRUE
 
 
 
@@ -386,7 +395,9 @@ sub prepare_the_end(bool _debug)
 	/call set_initialize_crew FALSE
 	
 	| start up the DPS meter
-	/if (${SubDefined[DPSMeter_Init]}) /call DPSMeter_Init
+	/if (${SubDefined[DPSMeter_Init]}) {
+		/call DPSMeter_Init
+	}
 
 	| set class databits'n-bytes
 	/call set_${Me.Class.ShortName} ${maDebug.Find[build].Value}
@@ -398,44 +409,39 @@ sub prepare_the_end(bool _debug)
 	/call set_initialize_hud_variables
 	
 
-/return
+/return TRUE
 
 	
 
 |***
  * note: macro and dannet integrity check routine
  * use: 
- ***|
+
 sub check_housekeeping(bool _debug)
 	DEBUG \atcheck_housekeeping\ax()
 
 	/varset dump ${set_data_timer[${_debug}, Check_Housekeeping, RESTART]}
 	
+	/if (${Select[${Me.CombatState},combat]}) /return FALSE
+	
 	| nothing to do here. move on.
-	/if (!${Group.Members} && !${Bool[${stCurrentCrew}]}) /return TRUE
+	/if (!${Group.Members} && ${stCurrentCrew.Equal[EMPTY]}) /return TRUE
+
 	| nothing to see here either
 	/if (${Group.Members} && ${DanNet.Peers[${stCurrentCrew}].Find[${Me.DisplayName}]}) /return TRUE
-
-	
-	| extract the actual crew #
-	| /if (${Bool[${stCurrentCrew}]}) {
-	| 	/declare _crewN int local ${stCurrentCrew.Right[-4]}
-	| }
-	
-
-
-	/declare _count int local 0
-
 
 	| remove any excess dannet crew joins
 	/if (!${Group.Members}) {
 		DEBUG ${sep}removing excess dannet groups
-		/if (!${Bool[${stCurrentCrew}]}) /return FALSE
-		/for _count 1 to 12
-			/if (${DanNet.Peers[crew${_count}].Find[${Me.DisplayName}]}) {
-				/dleave crew${_count}
+		/if (${stCurrentCrew.Equal[EMPTY]}) /return FALSE
+		/declare _liCount listiterator local
+		/vardata _liCount lsCount12.First.Clone
+		/while (!${_liCount.IsEnd}) {
+			/if (${DanNet.Peers[crew${_liCount.Value}].Find[${Me.DisplayName}]}) {
+				/dleave crew${_liCount.Value}
 			}
-		/next _count	
+			/varset dump ${_liCount.Advance}
+		}	
 		/varset stCurrentCrew EMPTY
 	}
 	
@@ -444,31 +450,51 @@ sub check_housekeeping(bool _debug)
 	/if (${Group.Members} && ${stCurrentCrew.Equal[empty]}) {
 		DEBUG ${sep}finding dannet group to set if needed
 
-		/for _count 1 to 12
-			| crew # empty?
-			/if (${lsCrew${_count}.Count} == 1 && ${lsCrew${_count}.First.Value.Equal[EMPTY]}) /continue
-			/if (${lsCrew${_count}.Contains[${Group.Member[1]}]} && ${lsCrew${_count}.Contains[${Group.Member[2]}]} && ${lsCrew${_count}.Contains[${Group.Member[3]}]} && ${lsCrew${_count}.Contains[${Group.Member[4]}]} && ${lsCrew${_count}.Contains[${Group.Member[5]}]} && ${lsCrew${_count}.Contains[${Group.Member[0]}]}) {
-				DEBUG ${sep}setting dannet crew\aw${_count}\ax
-				/djoin crew${_count}
-				/varset stCurrentCrew crew${_count}
-			}
-		/next _count
-	}
+		| group members
+		/declare _liCT listiterator local
+		/vardata _liCT lsCount6.First.Clone
 
+		| group counts
+		/declare _liCG listiterator local
+		/vardata _liCG lsCount12.First.Clone
+		/declare _fail bool local
+		/while (!${_liCG.IsEnd}) {
+			/varset _fail FALSE
+			
+			| crew # empty?
+			/if (${lsCrew${_liCG.Value}.Count} == 1 && ${lsCrew${_liCG.Value}.First.Value.Equal[EMPTY]}) {
+				DEBUG ${sep}lsCrew${_liCG.Value}${sep}\a-w${lsCrew${_liCG.Value}.First.Value}\ax
+				/varset dump ${_liCG.Advance}
+				/continue
+			}
+
+			| check each group member
+			/while (!${_liCT.IsEnd}) {
+				/if (!${lsCrew${_liCG.Value}.Contains[${Group.Member[${_liCT.Value}]}]}) {
+					DEBUG ${sep}failed${sep}\a-w${Group.Member[${_liCT.Value}]}\ax
+					/varset _fail TRUE
+					/varset dump /varset dump ${_liCT.Advance}
+					/continue
+				}
+				/varset dump ${_liCT.Advance}
+			}
+				
+			| if everyone in the group matches the crew list. make sure you are in the channel
+			/if (!${_fail}) {
+				DEBUG ${sep}setting dannet crew\aw${_liCG.Value}\ax
+				/djoin crew${_liCG.Value}
+				/varset stCurrentCrew crew${_liCG.Value}
+				/return TRUE				
+			}	
+			/delay 1
+			/varset dump ${_liCG.Advance}
+		}	
+
+	}
 	
 	| more shit to come....
-	
 	
 	DEBUG ${sep}housekeeping${sep}\a-wDONE\ax
 	
 /return TRUE
-
-
-
-
-
-${Bool[${stCurrentCrew}]}
-
-
-${stCurrentCrew.Right[-4]}
-
+ ***|
