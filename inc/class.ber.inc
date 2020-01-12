@@ -2,7 +2,7 @@
  * entropy
  * class.clr.inc
  ***|
- 
+
 
 
 |***
@@ -11,7 +11,7 @@
  ***|
 sub set_BER(bool _debug)
 	DEBUG \atset_BER\ax()
-		
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Juggernaut"
 	/call set_data FALSE maData stSynergy																map outer "Fury's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Kerasian Axe of Ire"
@@ -54,17 +54,17 @@ sub set_BER(bool _debug)
 
 |***
  * note: i have one purpose,  otherwise i'm useless
- * use: 
+ * use:
  ***|
 sub main_BER(bool _debug)
 	DEBUG \atmain_BER\ax()
-	
+
 	GETINPUT
 	ISMEDEAD
 	CHECKTIE
 	CHECKREZ
 
-	
+
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
@@ -79,11 +79,11 @@ sub main_BER(bool _debug)
 			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/call check_item_cycle ${maDebug.Find[item].Value} TARGET	
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 
 		}
 
-		/if (AUTO) {	
+		/if (AUTO) {
 			CHECKFADE
 			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery
 		}
@@ -94,8 +94,8 @@ sub main_BER(bool _debug)
 
 
 |***
- * note: 
- * use: 
+ * note:
+ * use:
  ***|
 sub misc_combat_BER(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_BER\ax(\a-w${_tmpID}\ax)
@@ -110,53 +110,53 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
 		/call cast_defensive_cycle ${maDebug.Find[def].Value}
 	}
-	
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}	
+
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 
 	/if (${Me.PctHPs} < 90) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stBattleFrenzy].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stBattleFrenzy].Value}" ${_tmpID} FALSE
 		}
-	
+
 		/if (${is_ready[${_debug}, "${maChr.Find[stAugmentedFrenzy].Value}"]} ) {
 			/call voodoo ${_debug} "${maChr.Find[stAugmentedFrenzy].Value}" 0 FALSE
 		}
 
 	}
-	
+
 	/if (${is_ready[${_debug}, "${maChr.Find[stSappingStrikes].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stSappingStrikes].Value}" 0 FALSE
 	}
-	
+
 	/if (${Me.Buff[Frenzied Resolve].ID} && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.8) {
 		/if (${is_ready[${_debug}, "Drawn to Blood"]}) {
 			/call voodoo ${_debug} "Drawn to Blood" 0 FALSE
 		}
 	}
-	
+
 	/if (!${Me.Song[Battle Leap].ID}) {
 		/if (${is_ready[${_debug}, "Battle Leap"]} && !${Me.Underwater}) /call voodoo ${_debug} "Battle Leap" 0 FALSE
 	}
-	
+
 	/if (!BURN) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stDisconcerting].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stDisconcerting].Value}" 0 FALSE			
+			/call voodoo ${_debug} "${maChr.Find[stDisconcerting].Value}" 0 FALSE
 		}
 		/if (${is_ready[${_debug}, "Reckless Abandon"]}) {
 			/call voodoo ${_debug} "Reckless Abandon" 0 FALSE
 		}
 	}
-		
+
 	/if (${is_ready[${_debug}, "Binding Axe"]}) {
 		/call voodoo ${_debug} "Binding Axe" 0 FALSE
 	}
-	
+
 	/if (AE#) {
 		/if (${is_ready[${_debug}, "Rampage"]} && ${Me.Song[Strike of Savagery].ID}) {
 			/call voodoo ${_debug} "Rampage" 0 FALSE
 		}
 	}
-		
+
 	/if (!${Me.Song[Reckless Abandon].ID}) {
 		/if (${is_ready[${_debug}, "Vehement Rage"]}) {
 			/call voodoo ${_debug} "Vehement Rage" 0 FALSE
@@ -176,14 +176,14 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 			/call voodoo ${_debug} "${maChr.Find[stOverpoweringFrenzy].Value}" ${_tmpID} FALSE
 		}
 	}
-		
+
 	| endurance regeneration
 	/if (${Me.PctHPs} > 75 && ${Me.PctEndurance} < 50) {
 		/if (${is_ready[${_debug}, "Communion of Blood"]}) {
 			/call voodoo ${_debug} "Communion of Blood" 0 FALSE
 		}
 	}
-	
+
 	| this hits up to 8 targets and can cause fear.
 	/if (AE#) {
 		/if (${is_ready[${_debug}, "War Cry of the Braxi"]}) {
@@ -195,7 +195,7 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]} && ${Me.CurrentEndurance} > ${Spell[${maChr.Find[stDichotomic].Value}].EnduranceCost}*2) {
 		/call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" ${_tmpID} FALSE
 	}
-	
+
 	/if (AE#) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stViciousSpiral].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stViciousSpiral].Value}" 0 FALSE
@@ -212,7 +212,7 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "${maChr.Find[stFesteringRage].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stFesteringRage].Value}" 0 FALSE
 	}
-	
+
 	| swarm pet
 	/if (SWARM) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stPhantomAssailant].Value}"]}) {
@@ -238,7 +238,7 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 			/call voodoo ${_debug} "${maChr.Find[stSharedBloodlust].Value}" 0 FALSE
 		}
 	}
-	
+
 /return TRUE
 
 
@@ -260,8 +260,8 @@ sub check_heal_BER(bool _debug, string _type)
 
 	/if (${Me.PctHPs} > ${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO) /return FALSE
 
-	/call cast_list ${_debug} lsHealBaseLine ${Me.ID}	
-	
+	/call cast_list ${_debug} lsHealBaseLine ${Me.ID}
+
 	SETHUD FALSE
 
 /return TRUE
@@ -271,7 +271,7 @@ sub check_heal_BER(bool _debug, string _type)
 |***
  * note: Berzerker burn routines
  * use: if you're not burning. you are doing it wrong..
- ***| 
+ ***|
 sub burn_BER(bool _debug, int _tmpID)
 	DEBUG \atburn_BER\ax(\aw${_tmpID}\ax)
 
@@ -283,9 +283,9 @@ sub burn_BER(bool _debug, int _tmpID)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}	
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
-	
+
 	/if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stDisconcerting].Value}]}) {
 		:loopmakestop
 		/delay 5
@@ -293,16 +293,16 @@ sub burn_BER(bool _debug, int _tmpID)
 		/delay 5
 		/if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stDisconcerting].Value}]}) /goto :loopmakestop
 	}
-	
+
 	/if (${is_ready[${_debug}, "Desperation"]} && ${Me.PctHPs} < 90) {
 		/call voodoo ${_debug} "Desperation" 0 FALSE
 	}
-	
+
 	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stUnsettlingScream].Value}].RankName}]} && ${Me.CurrentEndurance} > ${Spell[${maChr.Find[stUnsettlingScream].Value}].EnduranceCost}) {
 		/disc ${maChr.Find[stUnsettlingScream].Value}
 		/call voodoo ${_debug} "${maChr.Find[stUnsettlingScream].Value}" ${_tmpID} FALSE
 	}
-		
+
 	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stCryOfChaos].Value}].RankName}]} && !${Me.Song[${maChr.Find[stCryOfChaos].Value}].ID}) {
 		/delay ${Math.Rand[8]}s ${Me.Song[${maChr.Find[stCryOfChaos].Value}].ID}
 		/if (!${Me.Song[${maChr.Find[stCryOfChaos].Value}].ID}) {
@@ -315,8 +315,8 @@ sub burn_BER(bool _debug, int _tmpID)
 				/disc ${maChr.Find[stCryOfChaos].Value}
 			}
 		}
-	} 
-	
+	}
+
 	| AA rampage choice
 	/if (AE# && ${SpawnCount[npc group radius 50 PS4]} >= AE#) {
 		/if (${is_ready[${_debug}, "Furious Rampage"]}) {
@@ -330,7 +330,7 @@ sub burn_BER(bool _debug, int _tmpID)
 			/call voodoo ${_debug} "Silent Strikes" 0 FALSE
 		}
 	}
-	
+
 	/if (${is_ready[${_debug}, "Untamed Rage"]}) {
 		/call voodoo ${_debug} "Untamed Rage" 0 FALSE
 	}
@@ -341,17 +341,17 @@ sub burn_BER(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "Juggernaut Surge"]}) {
 		/call voodoo ${_debug} "Juggernaut Surge" 0 FALSE
 	}
-	
+
 	/call cast_glyph ${maDebug.Find[glyph].Value}
-	
+
 	/if (!${Me.Song[Reckless Abandon].ID} && ${Raid.Members}) {
 		/if (${is_ready[${_debug}, "Intensity of the Resolute"]}) {
 			/call voodoo ${_debug} "Intensity of the Resolute" 0 FALSE
 		}
 	}
-	
+
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
-	
+
 	/if (${is_ready[${_debug}, "Blood Pact"]}) {
 		/call voodoo ${_debug} "Blood Pact" 0 FALSE
 	}
@@ -359,7 +359,7 @@ sub burn_BER(bool _debug, int _tmpID)
 	/if (${Spawn[group PC Shaman].ID}) {
 	 	/if (!${Me.Buff[Savage Spirit].ID} && !${Me.ActiveDisc.ID}) {
 	 		/if (${is_ready[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]}) {
-	 			/call voodoo ${_debug} "${maChr.Find[stInspiredAnger].Value}" 0 FALSE		
+	 			/call voodoo ${_debug} "${maChr.Find[stInspiredAnger].Value}" 0 FALSE
 	 		}
 	 	}
 		/if (!${Me.ActiveDisc.ID} && ${Me.AltAbilityReady[Savage Spirit]}) {
@@ -375,11 +375,11 @@ sub burn_BER(bool _debug, int _tmpID)
 		}
 		/if (!${Me.Buff[Savage Spirit].ID} && !${Me.ActiveDisc.ID}) {
 			/if (${is_ready[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stInspiredAnger].Value}" 0 FALSE		
+				/call voodoo ${_debug} "${maChr.Find[stInspiredAnger].Value}" 0 FALSE
 			}
 		}
 	}
-	
+
 	/if (!${Me.Buff[Savage Spirit].ID} && !${Me.ActiveDisc.ID}) {
 
 		/if (${Me.PctHPs} < 88) {
@@ -406,14 +406,14 @@ sub burn_BER(bool _debug, int _tmpID)
  ***|
 sub set_control_BER(string _type, string _verbage, string _silent, bool _debug)
 	DEBUG \atset_control_BER\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
-	
+
 	/declare _out string local
 
 	| output control map
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maChr ${_verbage}
 		/return
-		
+
 	| set ae on/off / count
 	} else /if (${_type.Equal[ae]}) {
 		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
@@ -422,7 +422,7 @@ sub set_control_BER(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[def]}) {
 		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return
 
-	| set AA fade use %	
+	| set AA fade use %
 	} else /if (${_type.Equal[fade]}) {
 		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
 
@@ -433,12 +433,12 @@ sub set_control_BER(string _type, string _verbage, string _silent, bool _debug)
 
 	| use hiatus disc
 	} else /if (${_type.Equal[hiatus]}) {
-		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
-		
+		/invoke ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return 
-	/varset dump ${set_control_output[${_debug}, maChr, chr, maChrControl]}
-	
+	/if (${_silent.Equal[SILENT]}) /return
+	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
+
 /return TRUE
 

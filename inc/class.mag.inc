@@ -2,7 +2,7 @@
  * entropy
  * class.mag.inc
  ***|
- 
+
 
 
 |***
@@ -11,7 +11,7 @@
  ***|
 sub set_MAG(bool _debug)
 	DEBUG \atset_MAG\ax()
-	
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Elements"
 	/call set_data FALSE maData stSynergy																map outer "Conjurer's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Orb of Mastery"
@@ -24,20 +24,20 @@ sub set_MAG(bool _debug)
 	/call set_data_map FALSE maChr stDichotomic													PREGEN|1											"${auxna} Dichotomic spell"
 	/call set_data_map FALSE maChr stCoHGroup														PREGEN|1											"${auxna} group target call of the hero"
 	/call set_data_map FALSE maChr stCoH																PREGEN|1											"${auxna} single target call of the hero"
-	
-	
+
+
 	/call set_data_map FALSE maChr stGather															PREGEN|1											"${auxna} spell or item to use to recover manna (not rods or aas)"
 	/call set_data_map FALSE maChr stPctGather			 										0															"${auxnum} percent to start using gather tricks"
 
 	| current nuke line
 	/declare lsNukeLine list outer
-	/varset dump ${lsNukeLine.Append[base,fire,magic]}
+	/invoke ${lsNukeLine.Append[base,fire,magic]}
 	/call set_data_map FALSE maChr stCurrent														base
 	/call set_data FALSE FALSE stLine																		string outer ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
 	/call set_data_map FALSE maChr stNukeSalvo													PREGEN|1											"${auxna} nuke that relys on area pet count to do more damage"
 	/call set_data_map FALSE maChr stNukeServant 												PREGEN|1											"${auxna} the little spam pets mages love to use so much."
 
-	/varset dump ${set_data_timer[FALSE, Force_TC, 6s]}
+	/invoke ${set_data_timer[FALSE, Force_TC, 6s]}
 	/call set_data_map FALSE maChr swForceTC														FALSE													"${auxsw} force using twincast aa/spells as much as possible"
 	/call set_data_map FALSE maChr stTC																	PREGEN|1											"${auxna} whatever the hell you want to use for twincast"
 	/call set_data_map FALSE maChr stNukeTCFire													PREGEN|1											"${auxna} fire line twincast spell"
@@ -54,7 +54,7 @@ sub set_MAG(bool _debug)
 
 |***
  * note: main magician routine
- * use: 
+ * use:
  ***|
 sub main_MAG(bool _debug)
 	DEBUG \atmain_MAG\ax()
@@ -91,10 +91,10 @@ sub main_MAG(bool _debug)
 				/call cast_nuke ${maDebug.Find[nuke].Value} lsNuke${stLine} TARGET
 			}
 			/call misc_combat_${Me.Class.ShortName}
-			/call check_item_cycle ${maDebug.Find[item].Value} TARGET			
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 		}
 
-		/if (AUTO) {	
+		/if (AUTO) {
 			| /call Bind_setMAG rods
 
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
@@ -111,7 +111,7 @@ sub main_MAG(bool _debug)
  ***|
 sub misc_combat_MAG(bool _debug)
 	DEBUG \atmisc_combat_MAG\ax()
-	
+
 	ISMEDEAD
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 
@@ -120,14 +120,14 @@ sub misc_combat_MAG(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
-	
+
 	| Forece of Elements AA
 	/if (${is_ready[${_debug}, "Force of Elements"]}) {
 		/call voodoo ${_debug} "Force of Elements" TARGET FALSE
 	}
-	
+
 /return TRUE
 
 
@@ -142,23 +142,23 @@ sub cast_nuke_salvo(bool _debug)
 
 	CHECKEXIT
 	CHECKTIE
-	
+
 	/if (${is_ready[${_debug}, "${maChr.Find[stNukeSalvo].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stNukeSalvo].Value}" TARGET FALSE
 	}
-	
+
 /return TRUE
 
 
 
- 
+
 |***
  * note: "One can never have enough socks." - dumbledor
  * use:  when you or your agro whore pet get hurt
  ***|
 sub check_heal_MAG(bool _debug, string _type)
 	DEBUG \atcheck_heal_MAG\ax(\a-w${_type}\ax)
-	
+
 	CHECKTIE
 	ISMEDEAD
 	CHECKEXIT
@@ -166,16 +166,16 @@ sub check_heal_MAG(bool _debug, string _type)
 	CHECKFADE
 
 	SETHUD "heal ${_type}"
-	
+
  	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
- 	  	
+
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
 		SETHUD FALSE
-		/return	
-	}  	
+		/return
+	}
 
 	/if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value}) {
 		/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
@@ -204,11 +204,11 @@ sub check_heal_MAG(bool _debug, string _type)
 |***
  * note: we like fire...
  * use: establish all comp/trigger skills
- *	NOTE: 
- ***| 
+ *	NOTE:
+ ***|
 sub burn_MAG(bool _debug)
 	DEBUG \atburn_MAG\ax()
-	
+
 	ISMEDEAD
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 
@@ -217,20 +217,20 @@ sub burn_MAG(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
-	
+
 	/if (${is_ready[${_debug}, "Elemental Ward"]}) {
 		/call voodoo ${_debug} "Elemental Ward" 0 FALSE
 	}
-	
+
 	/if (${Target.PctHPs} > 20) {
 		/if (${is_ready[${_debug}, "Focus of Arcanum"]}) {
 			/call voodoo ${_debug} "Focus of Arcanum" 0 FALSE
 		}
 	}
-	
+
 	| direct damage bonus
 	/if (${Target.PctHPs} > 10) {
 		/if (${Me.Buff[Elemental Union].ID}) {
@@ -247,7 +247,7 @@ sub burn_MAG(bool _debug)
 	}
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
-	
+
 	/if (${is_ready[${_debug}, "Silent Casting"]}) {
 		/call voodoo ${_debug} "Silent Casting" 0 FALSE
 	}
@@ -264,7 +264,7 @@ sub burn_MAG(bool _debug)
 			/call voodoo ${_debug} "Companion's Fury" ${Pet.ID} FALSE
 		}
 	}
-	
+
 	| swarm pets
 	/if (SWARM) {
 		/if (${is_ready[${_debug}, "Host of the Elements"]}) {
@@ -282,16 +282,16 @@ sub burn_MAG(bool _debug)
  ***|
 sub force_twincast_MAG(bool _debug)
 	DEBUG \atforce_twincast_MAG\ax()
-	
+
 	/if (!${maChr.Find[swForceTC].Value} || ${timer_Force_TC}) /return
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
-	
+
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	
-	/varset dump ${set_data_timer[FALSE, Force_TC, RESTART]}
-	
+
+	/invoke ${set_data_timer[FALSE, Force_TC, RESTART]}
+
 	/if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[Twincast].ID}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stTC].Value}" 0 FALSE
@@ -301,52 +301,52 @@ sub force_twincast_MAG(bool _debug)
 		/if (${is_ready[${_debug}, "${stNukeTC${maChr.Find[stLine].Value}}"]}) {
 			/call voodoo ${_debug} "${stNukeTC${maChr.Find[stLine].Value}}" TARGET FALSE
 		}
-	}	
-	
+	}
+
 /return TRUE
 
 
 
 |***
  * note: All that you buy, beg, borrow or steal.
- * use: 
+ * use:
  ***|
 sub check_gather_MAG(bool _debug)
 	DEBUG \atcheck_gather_${Me.Class.ShortName}\ax()
 
 	/if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
-	
+
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
 
 	/if (${Me.Buff[Improved Twincast].ID} || ${Me.Buff[Twincast].ID}) /return FALSE
 
-	| pet consumption for manna		
+	| pet consumption for manna
 	/if (${Pet.ID} && ${Me.PctMana} <= 10 ) {
 		/if (${is_ready[${_debug}, "Elemental Conversion"]}) {
 			/call voodoo ${_debug} "Elemental Conversion" 0 FALSE
 		}
 	}
-	
+
 	/if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stGather].Value}" 0 FALSE
 	}
 
-	
+
 	/if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
 
 	/if (!${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]} && !${Me.AltAbilityReady[Forceful Rejuvenation]}) /return FALSE
-		
+
 	| force rejuv if we can proc gather spell again
 	/if (!${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
 		/if (${is_ready[${_debug}, "Forceful Rejuvenation"]}) {
 			/call voodoo ${_debug} "Forceful Rejuvenation" 0 FALSE
 		}
 	}
-	
+
 	/if (${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stGather].Value}" 0 FALSE
 	}
@@ -366,7 +366,7 @@ sub Bind_control_mag_coh(string _sender, string _verbage, bool _debug)
 	| output control map
 	/if (${_sender.Equal[aux]}) {
 		/call Bind_command_aux coh
-		/return	
+		/return
 	}
 
   /if (${_verbage.Equal[group]}) {
@@ -402,26 +402,26 @@ sub check_cauldron(bool _debug)
 	}
 
 	/if (!${is_ready[${_debug}, "${maChr.Find[stCauldron].Value}"]}) {
-		/varset dump ${set_timer[${_debug}, Check_Cauldron, ${Math.Calc[${FindItem[${maChr.Find[stCauldron].Value}].Timer.TotalMinutes}]}m]}
+		/invoke ${set_timer[${_debug}, Check_Cauldron, ${Math.Calc[${FindItem[${maChr.Find[stCauldron].Value}].Timer.TotalMinutes}]}m]}
 		/return FALSE
 	}
-	
+
 	CHECKEXIT
 	CHECKTIE
 
 	/call voodoo ${_debug}  "${maChr.Find[stCauldron].Value}" 0 FALSE
-	
+
 	/while (${Cursor.ID}) {
 		/call sort_cursor TRUE
 		/delay 5
 	}
 
-	/varset dump ${set_timer[${_debug}, Check_Cauldron, ${Math.Calc[${FindItem[${maChr.Find[stCauldron].Value}].Timer.TotalMinutes} + 1]}m]}
-	
+	/invoke ${set_timer[${_debug}, Check_Cauldron, ${Math.Calc[${FindItem[${maChr.Find[stCauldron].Value}].Timer.TotalMinutes} + 1]}m]}
+
 /return TRUE
 
 
-		
+
 |***
  * note: mage specific control
  * use: /chr
@@ -435,21 +435,21 @@ sub set_control_MAG(string _type, string _verbage, string _silent, bool _debug)
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maChr ${_verbage}
 		/return
-		
+
 	| use mana click items
 	} else /if (${_type.Equal[manarecover]}) {
 		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
-		
+
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
 		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
 		/return
-		
-	| set concussion use %	
+
+	| set concussion use %
 	} else /if (${_type.Equal[concussion]}) {
 		/if (!${set_control_num_range[${_debug}, stPctConcussion, "${_verbage}", 0, 99]}) /return
 
-	| set AA fade use %	
+	| set AA fade use %
 	} else /if (${_type.Equal[fade]}) {
 		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
 
@@ -466,37 +466,37 @@ sub set_control_MAG(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[cauldron]}) {
 
 		/if (${_verbage.Equal[use]}) {
-			/varset dump ${set_switch_env[${_debug}, swCauldron, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swCauldron, TRUE, ${_silent}]}
 		} else /if (${_verbage.Equal[item]}) {
-			/varset dump ${do_raw_edit[TRUE, SILENT, stCauldron, "${_silent}"]}
+			/invoke ${do_raw_edit[TRUE, SILENT, stCauldron, "${_silent}"]}
 		}
 
 		/varset _out ${info}use\ax:${If[${maChr.Find[swCauldron].Value},${on},${off}]}
 		/varset _out ${_out} ${dot} ${info}item\ax:[${If[${Bool[${maChr.Find[stCauldron].Value}]},${num}${maChr.Find[stCauldron].Value}\ax,${off}]}]
-		/varset dump ${out[12, "/chr cauldron ${_out}"]}
+		/invoke ${out[12, "/chr cauldron ${_out}"]}
 		/return
 
 	} else /if (${_type.Equal[line]}) {
 		/if (!${lsNukeLine.Contains[${_verbage.Lower}]}) {
-			/varset dump ${out[12, "usage${sep}/chr line [\a-wbase\ax|\a-wfire\ax|\a-wmagic\ax]"]}
+			/invoke ${out[12, "usage${sep}/chr line [\a-wbase\ax|\a-wfire\ax|\a-wmagic\ax]"]}
 			/return
 		}
-		/varset dump ${do_raw_edit[${_debug}, SILENT, stCurrent, "${_verbage.Lower}"]}
+		/invoke ${do_raw_edit[${_debug}, SILENT, stCurrent, "${_verbage.Lower}"]}
 		/varset stLine ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
 
-	| set gather use %	
+	| set gather use %
 	} else /if (${_type.Equal[gather]}) {
 		/if (!${set_control_num_range[${_debug}, stPctGather, "${_verbage}", 0, 99]}) /return
-	
+
 	| force twincast attempts
 	} else /if (${_type.Equal[forcetc]}) {
-		/varset dump ${set_switch_env[${_debug}, swForceTC, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swForceTC, TRUE, ${_verbage}]}
 
 	}
-	
-	/if (${_silent.Equal[SILENT]}) /return 
-	/varset dump ${set_control_output[${_debug}, maChr, chr, maChrControl]}
-	
+
+	/if (${_silent.Equal[SILENT]}) /return
+	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
+
 /return TRUE
 
 

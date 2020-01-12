@@ -2,7 +2,7 @@
  * entropy
  * class.shm.inc
  ***|
- 
+
 
 
 |***
@@ -19,24 +19,24 @@ sub set_SHM(bool _debug)
 	/call set_data ${_debug} maData stEpic2															map outer "Blessed Spiritstaff of the Heyokah"
 	/call set_data ${_debug} maData stFade															map outer FALSE
 	/call set_data_map ${_debug} maChr stAAUnity												"Visionary's Unity"						"${auxna} class aa unity buff"
-		
-	/varset dump ${set_data_timer[${_debug}, Check_Talisman, 30s]}
+
+	/invoke ${set_data_timer[${_debug}, Check_Talisman, 30s]}
 	/call set_data_map ${_debug} maChr stTalisman	 											PREGEN|1											"${auxna} talisman spell"
 	/call set_data_map ${_debug} maChr swTalisman			 									FALSE													"${auxsw} use talisman spell"
-	                                        		
+
 	/call set_data_list ${_debug} maChr lsNukeTC									 			PREGEN|2											"${auxli} heal twincast nukes"
 	/call set_data_map ${_debug} maChr stCannibalization								PREGEN|1											"${auxna} canni spell"
-	                                         		
+
 	/call set_data_map ${_debug} maChr stPctCanniHP				 							60														"${auxnum} HP level to stop using canni"
 	/call set_data_map ${_debug} maChr stPctCanniManna				 					60														"${auxnum} mana level to start using canni"
 
 	/call set_data_map ${_debug} maChr swSurge													FALSE													"${auxsw} use surge healing"
- 
+
  	/call set_data_map ${_debug} maChr stDichotomic											PREGEN|1											"${auxna} dichotomic spell"
  	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
- 
+
  	/call set_data_map ${_debug} maChr stHealSurge											PREGEN|1											"${auxna} area surg spell"
-  /call set_data_list ${_debug} maChr lsHealMending										PREGEN|3											"${auxli} main list of heal spells"											
+  /call set_data_list ${_debug} maChr lsHealMending										PREGEN|3											"${auxli} main list of heal spells"
 	/call set_data_list ${_debug} maChr lsHealIntervention							PREGEN|3											"${auxli} intervention nuke/healing spells"
 	/call set_data_list ${_debug} maChr lsHealReckless									PREGEN|3											"${auxli} recless healing spells"
 
@@ -55,16 +55,16 @@ sub set_SHM(bool _debug)
 
 	| set heal orders
 	/declare lsHealOrderbase list outer
-	/varset dump ${lsHealOrderbase.Delimiter["|"]}
-	/varset dump ${lsHealOrderbase.Append[lsHealBaseLine]}
+	/invoke ${lsHealOrderbase.Delimiter["|"]}
+	/invoke ${lsHealOrderbase.Append[lsHealBaseLine]}
 
 	/declare lsHealOrdermending list outer
-	/varset dump ${lsHealOrdermending.Delimiter["|"]}
-	/varset dump ${lsHealOrdermending.Append[lsHealMending|lsHealReckless]}
+	/invoke ${lsHealOrdermending.Delimiter["|"]}
+	/invoke ${lsHealOrdermending.Append[lsHealMending|lsHealReckless]}
 
 	/declare lsHealOrderreckless list outer
-	/varset dump ${lsHealOrderreckless.Delimiter["|"]}
-	/varset dump ${lsHealOrderreckless.Append[lsHealReckless|lsHealMending]}
+	/invoke ${lsHealOrderreckless.Delimiter["|"]}
+	/invoke ${lsHealOrderreckless.Append[lsHealReckless|lsHealMending]}
 
 /return
 
@@ -72,14 +72,14 @@ sub set_SHM(bool _debug)
 
 |***
  * note: main shaman routine
- * use: 
+ * use:
  ***|
 sub main_SHM(bool _debug)
 	DEBUG main_SHM()
 	GETINPUT
 	ISMEDEAD
 	CHECKTIE
-	
+
 	| correct any and all XTarget healing spots
 	/if (AUTO) {
 	  /if (${maHeal.Find[swHealXTarget].Value} && !${timer_Check_Xtarget_Build}) {
@@ -89,7 +89,7 @@ sub main_SHM(bool _debug)
 		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
 		/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 
-	}	
+	}
 
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
@@ -111,11 +111,11 @@ sub main_SHM(bool _debug)
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
-			
+
 			CHECKREZ
 			/call set_combat FALSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET	
+			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
@@ -143,7 +143,7 @@ sub main_SHM(bool _debug)
  ***|
 sub misc_combat_SHM(bool _debug)
 	DEBUG \atmisc_combat_SHM\ax()
-	
+
 	ISMEDEAD
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 
@@ -152,22 +152,22 @@ sub misc_combat_SHM(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
-	
+
 	/call check_cani ${maDebug.Find[canni].Value}
-	
+
 /return
 
 
 
 |***
- * note: 
- * use: 
+ * note:
+ * use:
  ***|
 sub check_heal_SHM(bool _debug, string _type)
 	DEBUG \atcheck_heal_SHM\ax(\a-w${_type}\ax)
-	
+
 	CHECKTIE
 	ISMEDEAD
 	CHECKEXIT
@@ -175,11 +175,11 @@ sub check_heal_SHM(bool _debug, string _type)
 	CHECKFADE
 
 	SETHUD "heal ${_type}"
-	
+
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 	/declare _count int local 0
-	
-	| Group Regen Heal 
+
+	| Group Regen Heal
  	/if (${maChr.Find[swHealGroupOverTime].Value} && !SAFEZONE && ${Group.Members} && COMBAT && ${maChr.Find[stCountAE].Value}) {
 	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= ${maChr.Find[stCountAE].Value}) {
 	 		/declare _groupHOT string local ${Set_Rank[False, ${maChr.Find[stHealGroupOverTime].Value.Arg[1,+]}]}
@@ -204,47 +204,47 @@ sub check_heal_SHM(bool _debug, string _type)
 			}
 		}
 	}
-	
+
 	| no one is hurt. we're out of here
 	/if (!${hurtCount}) {
 	  | check for surge
 	  /if (${maChr.Find[swSurge].Value}) {
 			/if (${SpawnCount[npc radius ENV PS4 targetable]}) /call cast_surge_heal ${maDebug.Find[surge].Value}
-		}	
-		
+		}
+
 		SETHUD FALSE
 		/return FALSE
-		
+
 	}
 
 	CHECKREZ
-	
+
   | stationary ward heal
   /if (${hurtCount} >= ${maHeal.Find[swHealGroup].Value}) {
     /if (${is_ready[${_debug}, "Call of the Ancients"]}) {
     	/call voodoo ${_debug} "Call of the Ancients" ${Me.ID} FALSE
     }
   }
-  
+
  	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
 
 	ISMEDEAD
 	CHECKEXIT
-	CHECKFADE	
+	CHECKFADE
 	CHECKREZ
-		
+
 	/declare _liHM listiterator local
 	/vardata _liHM lsHealOrder${maHeal.Find[stHealMode].Value}.First.Clone
 	/while (!${_liHM.IsEnd}) {
 		DEBUG ${sep}_liHM.Value${sep}\a-w${_liHM.Value}\ax
 		/call cast_list FALSE "${_liHM.Value}" ${hurtID}
-		/varset dump ${_liHM.Advance}
-	}  
+		/invoke ${_liHM.Advance}
+	}
 
 	SETHUD FALSE
-	
+
 /return
 
 
@@ -267,14 +267,14 @@ sub cast_surge_heal(bool _debug)
 	DEBUG assist_name: ${_tmpID}
 
 	/if (!${Spawn[${_tmpID}].LineOfSight}) /return FALSE
-	
+
   /if (!${Me.Song[Healing Twincast].ID}) {
 	 	/declare _li listiterator local
 		/vardata _li lsNukeTC.First.Clone
 		/while (!${_li.IsEnd}) {
 
 			/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return
-			/if (${Me.PctMana} < 2) /continue 
+			/if (${Me.PctMana} < 2) /continue
 
 			/if (${is_ready[${_debug}, "${_li.Value}"]}) {
 				/call voodoo ${_debug} "${_li.Value}" ${_tmpID} FALSE
@@ -282,19 +282,19 @@ sub cast_surge_heal(bool _debug)
 			/delay 15 !${Me.Casting.ID}
 			/if (${Me.Song[Healing Twincast].ID}) /break
 
-			/varset dump ${_li.Advance}
-		}	 
- 	 
+			/invoke ${_li.Advance}
+		}
+
 	}
-	
+
 	/if (!${Me.Song[Healing Twincast].ID}) /return FALSE
 
-	| spalsh surge heal	
+	| spalsh surge heal
 	/delay 2.25s ${Me.SpellReady[${Spell[${maChr.Find[stHealSurge].Value}].RankName}]}
 	/if (${is_ready[${_debug}, "${maChr.Find[stHealSurge].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stHealSurge].Value}" ${_tmpID} FALSE
 	}
-	
+
 /return TRUE
 
 
@@ -302,10 +302,10 @@ sub cast_surge_heal(bool _debug)
 |***
  * note: Shaman burn routines
  * use: normal burn stuf
- ***| 
+ ***|
 sub burn_SHM(bool _debug)
 	DEBUG \atburn_SHM\ax()
-	
+
 	ISMEDEAD
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 
@@ -314,9 +314,9 @@ sub burn_SHM(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
-	
+
 	| swarm aa pet
 	/if (SWARM) {
 		/if (${is_ready[${_debug}, "Spirit Call"]}) /call voodoo ${_debug} "Spirit Call" TARGET FALSE
@@ -345,44 +345,44 @@ sub burn_SHM(bool _debug)
  ***|
 sub cast_talisman(bool _debug)
 	DEBUG \atcast_talisman\ax()
-	
-	/varset dump ${set_data_timer[${_debug}, Check_Talisman, RESTART]}
-	
+
+	/invoke ${set_data_timer[${_debug}, Check_Talisman, RESTART]}
+
 	/if (${Me.Buff[${maChr.Find[stTalisman].Value}].ID}) /return FALSE
-	
+
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	
+
 	/if (${is_ready[${_debug}, "${maChr.Find[stTalisman].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stTalisman].Value}" ${Me.ID} FALSE
 	}
-	
+
 /return TRUE
 
 
 
 |***
  *	DES: We want Mana
- *	USE: 
- *  NOTE: 
+ *	USE:
+ *  NOTE:
  ***|
 sub check_cani(bool _debug)
 	DEBUG \atcheck_cani\ax()
-	
+
 	/if (!${maChr.Find[stPctCanniManna].Value}) /return
-	
+
 	CHECKEXIT
 	GETINPUT
 	ISMEDEAD
-		
+
 	| use the aa cani
 	/if (${Me.PctMana} <= ${maChr.Find[stPctCanniManna].Value}*.PCTHO && ${Me.PctHPs} >= ${maChr.Find[stPctCanniHP].Value}) {
 		/if (${is_ready[${_debug}, "Cannibalization"]}) {
 			/call voodoo ${_debug} "Cannibalization" 0 FALSE
 		}
 	}
-	
+
 	| if canni spell is not ready bail..
 	/if (!${is_ready[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) /return FALSE
 	/if (${Me.PctMana} >= ${maChr.Find[stPctCanniManna].Value}) /return FALSE
@@ -395,7 +395,7 @@ sub check_cani(bool _debug)
 	/if (${is_ready[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stCannibalization].Value}" 0 FALSE
 	}
-	
+
 /return
 
 
@@ -411,17 +411,17 @@ sub cast_alliance_SHM(bool _debug)
 	GETINPUT
 
 	/if (!${is_ready[${_debug}, "${maChr.Find[stAlliance].Value}"]}) /return FALSE
-	
+
 	/declare _name string local ${get_assist_info[${_debug}, name}
 	/declare _tmpID int local ${get_assist_info[${_debug}, id}
-	
-	/varset dump ${set_target[${_name}]}
-	
+
+	/invoke ${set_target[${_name}]}
+
 	/delay 5 ${Target.BuffsPopulated}
 	/if (${Target.BuffsPopulated} && !${Target.Buff[${maChr.Find[stAlliance].Value}].ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" ${_tmpID} FALSE
 	}
-	
+
 /return
 
 
@@ -439,25 +439,25 @@ sub set_control_SHM(string _type, string _verbage, string _silent, bool _debug)
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maChr ${_verbage}
 		/return
-		
+
 	| use mana click items
 	} else /if (${_type.Equal[manarecover]}) {
 		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
-		
+
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
 		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
 		/return
 
-	| set AA fade use %	
+	| set AA fade use %
 	} else /if (${_type.Equal[fade]}) {
 		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
 
-	| 	
+	|
 	} else /if (${_type.Equal[cannihps]}) {
 		/if (!${set_control_num_range[${_debug}, stPctCanniHP, "${_verbage}", 0, 99]}) /return
 
-	| 
+	|
 	} else /if (${_type.Equal[cannimanna]}) {
 		/if (!${set_control_num_range[${_debug}, stPctCanniManna, "${_verbage}", 0, 99]}) /return
 
@@ -465,17 +465,17 @@ sub set_control_SHM(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[groupheal]}) {
 		/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return
 
-	| use group Heal over Time	
+	| use group Heal over Time
 	} else /if (${_type.Equal[grouphot]}) {
-		/varset dump ${set_switch_env[${_debug}, swHealGroupOverTime, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swHealGroupOverTime, TRUE, ${_verbage}]}
 
-	| 
+	|
 	} else /if (${_type.Equal[surge]}) {
-		/varset dump ${set_switch_env[${_debug}, swSurge, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swSurge, TRUE, ${_verbage}]}
 
-	| 
+	|
 	} else /if (${_type.Equal[talisman]}) {
-		/varset dump ${set_switch_env[${_debug}, swTalisman, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swTalisman, TRUE, ${_verbage}]}
 
 	| defensive mob agro count
 	} else /if (${_type.Equal[def]}) {
@@ -487,14 +487,14 @@ sub set_control_SHM(string _type, string _verbage, string _silent, bool _debug)
 
 	| set ae on/off / count
 	} else /if (${_type.Equal[hot]}) {
-		/varset dump ${set_switch_env[${_debug}, swHealOverTime, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swHealOverTime, TRUE, ${_verbage}]}
 
 	}
 
-	
-	/if (${_silent.Equal[SILENT]}) /return 
-	/varset dump ${set_control_output[${_debug}, maChr, chr, maChrControl]}
-	
+
+	/if (${_silent.Equal[SILENT]}) /return
+	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
+
 /return
 
 

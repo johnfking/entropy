@@ -1,8 +1,8 @@
 |***
  * entropy
- * class.clr.inc
+ * class.rog.inc
  ***|
- 
+
 
 
 |***
@@ -11,7 +11,7 @@
  ***|
 sub set_ROG(bool _debug)
 	DEBUG \atset_ROG\ax()
-	
+
 	/call set_data ${_debug} maData stSpire															map outer "Spire of the Rake"
 	/call set_data ${_debug} maData stSynergy														map outer "Blackguard's Synergy"
 	/call set_data ${_debug} maData stEpic1															map outer "Ragebringer"
@@ -23,7 +23,7 @@ sub set_ROG(bool _debug)
  	/call set_data_map ${_debug} maChr stRest 													PREGEN|1											"${auxna} name of stamina rest disc"
  	/call set_data_map ${_debug} maChr stHiatus													PREGEN|1											"${auxna} name of hiatus stamina recovery disc"
  	/call set_data_map ${_debug} maChr swHiatus													FALSE													"${auxsw} use hiatus rest disc"
-	
+
 	/call set_data_map ${_debug} maChr stDichotomic											PREGEN|1											"${auxna} Dichotomic disc family"
 	/call set_data_map ${_debug} maChr stAggro 													PREGEN|1											"${auxna} Misdirection disc family"
 	/call set_data_map ${_debug} maChr stAssault 												PREGEN|1											"${auxna} Assault disc family"
@@ -57,7 +57,7 @@ sub set_ROG(bool _debug)
 
 |***
  * note: stabb'em in the ass
- * use: 
+ * use:
  ***|
 sub main_ROG(bool _debug)
 	DEBUG \atmain_ROG\ax()
@@ -70,7 +70,7 @@ sub main_ROG(bool _debug)
 	/if (AUTO) {
 		/if (${maEnv.Find[swSoS].Value}) /call set_sos FALSE
 	}
-	
+
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
@@ -80,8 +80,8 @@ sub main_ROG(bool _debug)
 
 		/if (VALID) {
 			/call do_sneak_attack ${maDebug.Find[class].Value} TARGET
-			/call set_combat FALSE
-			| /if (MELEE && !${timer_check_stick}) /call stick_to_target ${maDebug.Find[stick].Value} TARGET 
+			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			| /if (MELEE && !${timer_check_stick}) /call stick_to_target ${maDebug.Find[stick].Value} TARGET
 			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
@@ -90,7 +90,7 @@ sub main_ROG(bool _debug)
 
 		}
 
-		/if (AUTO) {	
+		/if (AUTO) {
 			CHECKFADE
 			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[staminarecover].Value}
 		}
@@ -110,7 +110,7 @@ sub do_sneak_attack(bool _debug, int _tmpID)
 	/if (!${is_ready[${_debug}, "${maChr.Find[stSneakAttack].Value}"]}) /return FALSE
 	CHECKEXIT
 	/call target_reset ${_debug} ${_tmpID} all
-	
+
 	/if (${Target.ID} && ${Me.Invis} && ${Me.Sneaking}) {
 		/call voodoo ${_debug} "${maChr.Find[stSneakAttack].Value}" ${_tmpID} FALSE
 		/doability backstab
@@ -135,16 +135,16 @@ sub misc_combat_ROG(bool _debug, int _tmpID)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}	
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
-	
+
 	/if (${is_ready[${_debug}, "${maChr.Find[stAssault].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stAssault].Value}" ${_tmpID} FALSE
 	}
-	
+
 	/if (${is_ready[${_debug}, "Shadow's Flanking"]}) {
 		/call voodoo ${_debug} "Shadow's Flanking" 0 FALSE
-	
+
 	}
 	/if (${is_ready[${_debug}, "${maChr.Find[stVision].Value}"]} && !${Me.Song[${maChr.Find[stVision].Value}].ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stVision].Value}" 0 FALSE
@@ -174,15 +174,15 @@ sub misc_combat_ROG(bool _debug, int _tmpID)
 			}
 		}
 	}
-	
+
 	/if (!${lsZoneNamed.Contains[${Target.DisplayName}]} && !${is_ready[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stPlay].Value}"]} && !${Bool[${Me.ActiveDisc}]}) {
 			/call voodoo ${_debug} "${maChr.Find[stPlay].Value}" 0 FALSE
 		}
-	}	
-		
+	}
+
 	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
-	
+
 	/if (${Target.ID} && ${is_ready[${_debug}, "${maChr.Find[stPhantom].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stPhantom].Value}" ${_tmpID} FALSE
 	}
@@ -195,21 +195,21 @@ sub misc_combat_ROG(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "${maChr.Find[stBladePoison].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stBladePoison].Value}" 0 FALSE
 	}
-	
+
 	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
-	
+
 	/if (!AGRO) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stAggro].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stAggro].Value}" ${_tmpID} FALSE
 		}
 	}
-	
+
 	/if (${maChr.Find[swBlinding].Value} && ${Target.Level} <= ${Me.Level}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stBlinding].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stBlinding].Value}" ${_tmpID} FALSE
 		}
 	}
-	
+
 /return TRUE
 
 
@@ -234,9 +234,9 @@ sub check_heal_ROG(bool _debug, string _type)
 	/if (${is_ready[${_debug}, "Tumble"]}) {
 		/call voodoo ${_debug} "Tumble" 0 FALSE
 	}
-	
-	/call cast_list ${_debug} lsHealBaseLine ${Me.ID}		
-	
+
+	/call cast_list ${_debug} lsHealBaseLine ${Me.ID}
+
 	SETHUD FALSE
 
 /return
@@ -256,7 +256,7 @@ sub set_sos(bool _debug)
 
 	ISMEDEAD
 	CHECKTIE
-	
+
 	/declare _sos bool local FALSE
 
 	/if (${Me.Invis} && ${Me.Sneaking} && !${Me.AbilityReady[hide]} && !${Me.AbilityReady[sneak]}) {
@@ -265,18 +265,18 @@ sub set_sos(bool _debug)
 
 	/if (!${Me.Invis} && ${Me.AbilityReady[hide]} && ${Me.Sneaking} && !${Me.AbilityReady[sneak]} ) {
 		/if (${Me.AbilityReady[hide]}) /doability hide
-		/return	
+		/return
 	} else /if (!${Me.Invis} && ${Me.Sneaking} && !${Me.AbilityReady[sneak]}) {
 		/if (${Me.AbilityReady[sneak]}) /doability sneak
 		/return
 	}
-	
+
 	/if (!${_sos} && ${Me.AbilityReady[hide]} && ${Me.AbilityReady[sneak]}) {
 		/doability hide
 		/delay 1
 		/doability sneak
 	}
-	
+
 /return TRUE
 
 
@@ -284,7 +284,7 @@ sub set_sos(bool _debug)
 |***
  * note: burn routines
  * use: seriously. if you are not buning constantly, you are doing something wrong. wtf you thinking.
- ***| 
+ ***|
 sub burn_ROG(bool _debug, int _tmpID)
 	DEBUG \atburn_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
 
@@ -296,7 +296,7 @@ sub burn_ROG(bool _debug, int _tmpID)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}	
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
 	/if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stPlay].Value}]} && ${Me.CombatAbilityReady[${Spell[${maChr.Find[stFrenzy].Value}].RankName}]}) {
@@ -306,7 +306,7 @@ sub burn_ROG(bool _debug, int _tmpID)
 		/delay 5
 		/if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stPlay].Value}]} && ${Me.CombatAbilityReady[${Spell[${maChr.Find[stFrenzy].Value}].RankName}]}) /goto :loopmakestop
 	}
-	
+
 	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) {
@@ -332,11 +332,11 @@ sub burn_ROG(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15) {
 		/call voodoo ${_debug} "${maChr.Find[stMark].Value}" ${_tmpID} FALSE
 	}
-	
+
 	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
-	
+
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
-	
+
 	/if (${is_ready[${_debug}, "Intensity of the Resolute"]} && ${Raid.Members}) {
 		/call voodoo ${_debug} "Intensity of the Resolute" 0 FALSE
 	}
@@ -355,7 +355,7 @@ sub burn_ROG(bool _debug, int _tmpID)
   /if (${is_ready[${_debug}, "${maChr.Find[stRazor].Value}"]} && !${Me.ActiveDisc.ID}) {
   	/call voodoo ${_debug} "${maChr.Find[stRazor].Value}" 0 FALSE
   }
-  
+
   /if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
 
   /if (${is_ready[${_debug}, "${maChr.Find[stAspBleeder].Value}"]} && !${Me.ActiveDisc.ID}) {
@@ -374,14 +374,14 @@ sub burn_ROG(bool _debug, int _tmpID)
  ***|
 sub set_control_ROG(string _type, string _verbage, string _silent, bool _debug)
 	DEBUG \atset_control_ROG\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
-	
+
 	/declare _out string local
 
 	| output control map
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maChr ${_verbage}
 		/return
-		
+
 	| set ae on/off / count
 	} else /if (${_type.Equal[ae]}) {
 		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return FALSE
@@ -390,7 +390,7 @@ sub set_control_ROG(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[def]}) {
 		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return FALSE
 
-	| set AA fade use %	
+	| set AA fade use %
 	} else /if (${_type.Equal[fade]}) {
 		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return FALSE
 
@@ -401,20 +401,20 @@ sub set_control_ROG(string _type, string _verbage, string _silent, bool _debug)
 
 	| use blinding disc
 	} else /if (${_type.Equal[blind]}) {
-		/varset dump ${set_switch_env[${_debug}, swBlinding, TRUE, ${_verbage}]}
-		
+		/invoke ${set_switch_env[${_debug}, swBlinding, TRUE, ${_verbage}]}
+
 	| use hiatus disc
 	} else /if (${_type.Equal[hiatus]}) {
-		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
-	
+		/invoke ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+
 	| leg poisons to keep
 	} else /if (${_type.Equal[poison]}) {
 		/if (!${set_control_num_range[${_debug}, stLegPoison, "${_verbage}", 0, 99]}) /return FALSE
-	
+
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return 
-	/varset dump ${set_control_output[${_debug}, maChr, chr, maChrControl]}
-	
+	/if (${_silent.Equal[SILENT]}) /return
+	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
+
 /return TRUE
 

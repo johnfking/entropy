@@ -1,6 +1,6 @@
 |***
  *	modes.inc
- *	Core Mode Specific Functions
+ *	Mode Specific Functions
  *	for doing strange stuff....
  *
  *
@@ -13,7 +13,7 @@
  *	DES: stop all non standard modes
  *	USE: /call switch_clear_mode
  *	INI: NA
- *  NOTE: 
+ *  NOTE:
  ***|
 sub switch_clear_mode(bool _debug)
 /return
@@ -25,15 +25,15 @@ sub switch_clear_mode(bool _debug)
 
 	/for _count 1 to ${_list.Count[|]}
 		/if (${swMode${_list.Arg[${_count},|]}}) {
-			/varset swMode${_list.Arg[${_count},|]} FALSE  
+			/varset swMode${_list.Arg[${_count},|]} FALSE
 		}
-	/next _count	
-	
+	/next _count
+
 	/varset swOverrideLOS ${sql_return[FALSE, swOverrideLOS]}
 	/varset swOverrideEngagePct ${sql_return[FALSE, swOverrideEngagePct]}
 	/varset swAutoCursor ${sql_return[FALSE, swAutoCursor]}
 	/varset swModeTrainspellSPC FALSE
-	
+
 /return TRUE
 
 
@@ -41,7 +41,7 @@ sub switch_clear_mode(bool _debug)
 |***
  *	DES: central get target and kill for hunting modes
  *	USE: /call mode_get_mob
- *  NOTE: 
+ *  NOTE:
  ***|
 sub mode_get_mob(bool _debug)
 	:movetomob
@@ -58,7 +58,7 @@ sub mode_get_mob(bool _debug)
 
 	/call get_target_navpull ${_debug} TARGET
 
-	/if (${Spawn[TARGET].ID} && ${Spawn[TARGET].Distance} > ${setCombatDistance}) /goto :movetomob	
+	/if (${Spawn[TARGET].ID} && ${Spawn[TARGET].Distance} > ${setCombatDistance}) /goto :movetomob
 
 /return
 
@@ -70,7 +70,7 @@ sub mode_get_mob(bool _debug)
  *  NOTE: This is not working yet...
  ***|
 sub mode_skill_train(string _skilltype, bool _debug)
-	
+
 	|**
 	/declare _sep bool local
 	/declare _listout string local
@@ -78,8 +78,8 @@ sub mode_skill_train(string _skilltype, bool _debug)
 	/declare _bind string local ${Me.Class.ShortName.Lower}
   /declare _type string	local |beg|bindwound
 	**|
-	
-	
+
+
 	ISMEDEAD
 	SETHUD "Skill Train"
 	/delay 1
@@ -89,21 +89,21 @@ sub mode_skill_train(string _skilltype, bool _debug)
 	/if (${Me.Skill[Bash]} < ${Skill[Bash].SkillCap} && ${Me.AbilityReady[Bash]}) /doability Bash
 	/if (${Me.Skill[Kick]} < ${Skill[Kick].SkillCap} && ${Me.AbilityReady[Kick]}) /doability Kick
 	/if (${Me.Skill[Sneak]} < ${Skill[Sneak].SkillCap} && ${Me.AbilityReady[Sneak]}) /doability sneak
-	
+
 	/if (${Target.ID} && ${Target.ID} != ${Me.ID}) {
 		/if (${Me.Skill[Begging]} < ${Skill[Begging].SkillCap} && ${Me.AbilityReady[Begging]}) /doability begging
 	}
-		
+
 	| Bind Wounds
 	/if (${Me.AbilityReady[Bind Wound]} && ${FindItem[=Bandages].ID}) {
 		/if (${Me.Skill[Bind Wound]} < ${Skill[Bind Wound].SkillCap} && ${Me.PctHPs} < 99*.PCTHO) {
-			/varset dump ${set_target[${Me.ID}]}
+			/invoke ${set_target[${Me.ID}]}
 			/doability "Bind Wound"
 		}
 	}
-	
+
 	SETHUD FALSE
-	
+
 /return TRUE
 
 
@@ -116,13 +116,13 @@ sub mode_fish(bool _debug)
 
 	ISMEDEAD
 	GETINPUT
-	
+
 	SETHUD "mode fish"
-	
+
 	/if (!${Me.Standing}) /stand
-	
+
 	/call check_cursor ${_debug} TRUE
-	
+
 	/if (${Me.ItemReady[Fisherman's Companion]} && !${Me.ItemReady[Brell's Fishin' Pole]} && !${Me.Inventory[mainhand].ID}) {
 		/if (${Me.Invis}) /docommand /makemevisable
 		/if (${is_ready[${_debug}, "Fisherman's Companion"]}) {
@@ -130,9 +130,9 @@ sub mode_fish(bool _debug)
 		}
 	}
 	/if (${Me.AbilityReady[fishing]}) /doability fishing
-	
+
 	/call check_cursor ${_debug} TRUE
-	
+
 	SETHUD FALSE
 
 /return TRUE
@@ -147,18 +147,18 @@ sub mode_forage(bool _debug)
 	DEBUG \atmode_forage\ax()
 
 	/if (${Select[${Me.CombatState},combat]}) /return
-	
+
 	/if (!${Me.AbilityReady[forage]}) {
 		/return FALSE
-	}	
-	
+	}
+
 	ISMEDEAD
 	SETHUD "mode forage"
-	
+
 	/if (!${Me.Standing}) {
 		/stand
 	}
-	
+
 	/doability forage
 	/delay 1s
 
@@ -166,14 +166,14 @@ sub mode_forage(bool _debug)
 	/while (${Cursor.ID})	{
 		GETINPUT
 		ISMEDEAD
-		
+
 		/call check_cursor ${_debug} TRUE
 		/if (!${Cursor.ID}) /break
 		/delay 2
 	}
-	
+
 	SETHUD FALSE
-	
+
 /return TRUE
 
 
@@ -187,9 +187,9 @@ sub mode_drag(bool _debug)
 
 	/declare _count 		int local
 	/declare _corpseID 	int local
-		
+
 	SETHUD "mode drag"
-	
+
 	GETINPUT
 	ISMEDEAD
 
@@ -206,9 +206,9 @@ sub mode_drag(bool _debug)
 			}
 		/next _count
 	}
-	
+
 	SETHUD FALSE
-	
+
 /return
 
 
@@ -219,52 +219,52 @@ sub mode_drag(bool _debug)
   ***|
 sub mode_hunt2(bool _debug)
 	DEBUG \atmode_hunt2\ax()
-	
+
 	GETINPUT
 	ISMEDEAD
 
 	SETHUD "mode hunt"
-	
+
 	/declare _lsHunt list local
-	/varset dump ${_lsHunt.Delimiter[|]}
-	/varset dump ${_lsHunt.Append[${stModeData}]}
+	/invoke ${_lsHunt.Delimiter[|]}
+	/invoke ${_lsHunt.Append[${stModeData}]}
 	/declare _lihunt listiterator local
 	/vardata _lihunt _lsHunt.First.Clone
 	/while (!${_lihunt.IsEnd}) {
 		/if (${Spawn[npc ${_lihunt.Value} radius 999999 targetable].ID}) {
 			/varset stAssTarID ${NearestSpawn[npc ${_lihunt.Value}].ID}
-			/break 
+			/break
 		}
-		/varset dump ${_lihunt.Advance}
-	}	
-	
+		/invoke ${_lihunt.Advance}
+	}
+
 	/if (${Spawn[id TARGET].ID}) {
 		/call get_target_navpull ${_debug} TARGET
 	}	else /if (!${Spawn[id TARGET].ID}) {
 		/call clear_combat ${_debug}
 		SETHUD FALSE
-		/return FALSE		
+		/return FALSE
 	}
-	
+
 	/call set_combat ${_debug}
 	/delay 1s
 	SETHUD FALSE
-	
+
 /return TRUE
 
 
-	
-	
-	
+
+
+
 	CLEARCURSOR TRUE
 	/varset swModeToken TRUE
-	
+
 	/for _count 1 to ${HuntMobList.Count[|]}
 		/if (${Spawn[npc ${HuntMobList.Arg[${_count},|]} radius PULLENV targetable].ID}) {
 			/varset Target2Kill ${NearestSpawn[npc ${HuntMobList.Arg[${_count},|]}].ID}
-			/break 
+			/break
 		}
-	/next _count	
+	/next _count
 
 	/if (!TARGET) {
 		/call timer_set timer_wait_for_mob_to_kill ${tHunt_delay}
@@ -278,11 +278,11 @@ sub mode_hunt2(bool _debug)
 	/if (${Spawn[TARGET].ID}) {
 		/call mode_get_mob
 	} else /if (${Spawn[TARGET].Dead} || !${Spawn[TARGET].ID} || !${timer_scorched_earth_fail}) {
-		/if (!${timer_scorched_earth_fail}) /call timer_set timer_scorched_earth_ignore_$TARGET ${tScorchedEarth_ignore} 
+		/if (!${timer_scorched_earth_fail}) /call timer_set timer_scorched_earth_ignore_$TARGET ${tScorchedEarth_ignore}
 		/call set_stop NOECHO
 		/call clear_combat
-	}	
-		
+	}
+
 	/varset swModeToken FALSE
 	SETHUD FALSE
 /return
@@ -297,18 +297,18 @@ sub mode_petfarm(bool _debug)
 	DEBUG \atmode_petfarm\ax()
 
 	/if (!${lsClassPet.Contains[${Me.Class.ShortName}]} || SAFEZONE) {
-		/varset dump ${maMode.Add[${_mimode.Key},FALSE]}
+		/invoke ${maMode.Add[${_mimode.Key},FALSE]}
 		/return FALSE
 	}
 
 	ISMEDEAD
 
-	/varset dump ${maOver.Add[swOverPctEngage,TRUE]}
-	/varset dump ${maOver.Add[swOverLOS,TRUE]}
+	/invoke ${maOver.Add[swOverPctEngage,TRUE]}
+	/invoke ${maOver.Add[swOverLOS,TRUE]}
 	/varset swModeToken TRUE
-	
+
 	SETHUD "mode petfarm"
-	
+
 	GETINPUT
 
 	/if (AUTO) {
@@ -328,17 +328,17 @@ sub mode_petfarm(bool _debug)
 		/call where_the_fuck_is_my_pet ${_debug} FORCE
 		/return FALSE
 	}
-	
+
 	CHECKTIE
 	/doevents
-	/varset dump ${set_target[TARGET]}
+	/invoke ${set_target[TARGET]}
 
 	/pet attack
-	
+
 	CHECKTIE
-	
-	/varset dump ${set_timer[${_debug}, timer_mob_get, 20s]}
-		
+
+	/invoke ${set_timer[${_debug}, timer_mob_get, 20s]}
+
 	/while (TARGET) {
 		GETINPUT
 		/delay 1s
@@ -348,17 +348,17 @@ sub mode_petfarm(bool _debug)
 		/if (${Spawn[TARGET].Distance} > PULLENV) /break
 		DEBUG ${sep}here${sep}\a-w${timer_mob_get}\ax \agTARGET\ax
 		/if (!${timer_mob_get}) /break
-	
-	}		
 
-	/varset dump ${maOver.Add[swOverPctEngage,FALSE]}
-	/varset dump ${maOver.Add[swOverLOS,FALSE]}
-	/varset swModeToken FALSE	
+	}
+
+	/invoke ${maOver.Add[swOverPctEngage,FALSE]}
+	/invoke ${maOver.Add[swOverLOS,FALSE]}
+	/varset swModeToken FALSE
 	/call where_the_fuck_is_my_pet ${_debug} FORCE
 	/call clear_combat
-	
+
 	SETHUD FALSE
-	
+
 /return
 
 
@@ -372,37 +372,37 @@ sub mode_harvest(bool _debug)
 
 	ISMEDEAD
 	GETINPUT
-	
+
 	SETHUD "mode harvest"
-	
+
 	/declare _lsCollect list local
-	/varset dump ${_lsCollect.Delimiter[|]}
-	/varset dump ${_lsCollect.Append[${stModeData}]}
+	/invoke ${_lsCollect.Delimiter[|]}
+	/invoke ${_lsCollect.Append[${stModeData}]}
 	/declare _licol listiterator local
 	/vardata _licol _lsCollect.First.Clone
-	
+
 	/while (!${_licol.IsEnd}) {
 		/if (${GroundItemCount[${_licol.Value}]}) {
 			/call get_ground_item ${_debug} "${_licol.Value}"
-		} 
-		/varset dump ${_licol.Advance}
-	}	
-	
+		}
+		/invoke ${_licol.Advance}
+	}
+
 	/delay 1s
 	SETHUD FALSE
 
 /return
-	
+
 
 
 |***
  *	DES: moves to the ground item and picks it up
  *	USE: /call get_ground_harvest DEBUG [ITEM NAME]
- *  NOTE: 
+ *  NOTE:
  ***|
 sub get_ground_item(bool _debug, string _tmpItem)
 	DEBUG \atget_ground_item\ax(\a-w"${_tmpItem}"\ax)
-	
+
 	/call check_cursor ${_debug} CLEAR
 
 	/if (!${GroundItemCount[${_tmpItem}]}) {
@@ -411,8 +411,8 @@ sub get_ground_item(bool _debug, string _tmpItem)
 	}
 
 	/if (!${Navigation.MeshLoaded}) {
- 		/varset dump ${maMode.Add[harvest,FALSE]}
- 		/varset dump ${out[0, "${notice} ${dot} NO Nav Mesh for this zone."]}
+ 		/invoke ${maMode.Add[harvest,FALSE]}
+ 		/invoke ${out[0, "${notice} ${dot} NO Nav Mesh for this zone."]}
  		/return	FALSE
 	}
 
@@ -425,7 +425,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
 	/declare _locY int local
 	/declare _locX int local
 	/declare _locZ int local
-	
+
 	/while (${_count} <= ${GroundItemCount}) {
 		/if (${_item.DisplayName.Find[${_tmpItem}]}) {
 			DEBUG ${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}${sep}\a-wlocyxz ${_item.Y} ${_item.X} ${_item.Z}\ax
@@ -448,35 +448,35 @@ sub get_ground_item(bool _debug, string _tmpItem)
 
 	/nav locyxz ${_locY} ${_locX} ${_locZ} |dist=18 log=off
 	/delay 1s
-	
+
 	/while (${Me.Moving}) {
-		
+
 		/if (!${Navigation.Active}) /break
 		/if (!${Me.Moving}) /break
-	
+
 		/if (${Ground[${_tmpItem}].Distance3D} <= 19) {
 			/nav stop |log=off
 			/call Bind_command_grab "${_tmpItem}" ${_debug}
 			/delay 5
 			/call check_cursor ${_debug} CLEAR
 			/break
-		}	
-		
+		}
+
 		/delay 2
 	}
-	
+
 /return TRUE
 
 
 
 |***
  *	DES: Alcohol Tolerance
- *	USE: /call mode_get_waisted 
- *  NOTE: 
+ *	USE: /call mode_get_waisted
+ *  NOTE:
  ***|
 sub mode_get_waisted(bool _debug)
 	/declare _ale string 	local Summoned: Ale
-	/declare _aleCount int local 20	
+	/declare _aleCount int local 20
 	/declare _pole string	local Brell's Fishin' Pole
 	/declare _box string local Fisherman's Companion
 
@@ -492,13 +492,13 @@ sub mode_get_waisted(bool _debug)
 	SETHUD "Drink"
 	/if (!${swAutoCursor}) /varset swAutoCursor TRUE
 	| check max stats too ?
-	
+
 	| need booze! keep a stock on hand
 	/if (${FindItemCount[${_ale}]} < ${_aleCount} && ${Me.ItemReady[${_pole}]} && !${Me.Drunk}) {
 		/if (${validate_cast[FALSE, item, "${_pole}", ${Me.ID}]}) /call core_cast2 "${_pole}" item ${Me.ID} FALSE
 		CLEARCURSOR TRUE
 	}
-	
+
 	| lets get lit
 	/if (${FindItemCount[${_ale}]} && ${Me.Drunk} < ${Skill[Alcohol Tolerance].SkillCap}) {
 		VOUT Drinking ${sep} ${cinfo}${_ale}\ax
@@ -510,9 +510,9 @@ sub mode_get_waisted(bool _debug)
 
 
 |***
- *	DES: 
- *	USE: /call mode_get_drunk 
- *  NOTE: 
+ *	DES:
+ *	USE: /call mode_get_drunk
+ *  NOTE:
  ***|
 sub mode_get_drunk(bool _debug)
 	/if (!${FindItem[${modeDrinkofChoice}].ID} || !${Bool[${modeDrinkofChoice}]}) {
@@ -531,12 +531,12 @@ sub mode_get_drunk(bool _debug)
 	}
 
 	| maxed skill turn this off
-	/if (${Me.Skill[Alcohol Tolerance]} == ${Skill[Alcohol Tolerance].SkillCap}) {	
+	/if (${Me.Skill[Alcohol Tolerance]} == ${Skill[Alcohol Tolerance].SkillCap}) {
 		VOUT Alcohol Tolerance Maxed ${sep} (${cnum}${Me.Skill[Alcohol Tolerance]}\ax)
 		/varset swModeDrink FALSE
 		/return
 	}
-	
+
 	SETHUD FALSE
 /return
 
@@ -545,12 +545,12 @@ sub mode_get_drunk(bool _debug)
 |***
  *	DES: train spells
  *	USE: /call mode_trainspell | /mode trainspell
- *  NOTE: 
+ *  NOTE:
  ***|
 sub mode_trainspell(string _type, bool _debug)
 	ISMEDEAD
 	SETHUD "Train Spell"
-	
+
 	/if (${_type.Equal[specialize]} && !${swModeTrainspellSPC}) {
 		/varset swModeTrainspellSPC TRUE
 	}
@@ -561,21 +561,21 @@ sub mode_trainspell(string _type, bool _debug)
 
 	| figure out what we want to cast
 	/for _count 1 to ${_skill.Count[|]}
-		
-		| validate skill caps and spell. if cap is maxed, move on		
+
+		| validate skill caps and spell. if cap is maxed, move on
 		/if (!${swOverrideTrainSpell}) {
 			/if (${Me.Skill[${If[${swModeTrainspellSPC},specialize ,]}${_skill.Arg[${_count},|]}]} == ${Me.SkillCap[${If[${swModeTrainspellSPC},specialize ,]}${_skill.Arg[${_count},|]}]}) /continue
 		}
-		
+
 		| if the skill spell is set to FALSE, move on
 		/if (!${Bool[${_skill.Arg[${_count},|]}]}) /continue
-		
+
 		| if the spell is FALSE, move on
 		/if (!${Bool[${Spell[${${_skill.Arg[${_count},|]}}].Skill}]}) /continue
 
 		| if I already have the spell memed, move on
 		/if (!${Me.Gem[${_count}].Name.Equal[${${_skill.Arg[${_count},|]}}]}) /call mem_spell TRUE "${${_skill.Arg[${_count},|]}}" ${_count} FALSE
-		
+
 		/varset _gem[${_count}] TRUE
 	/next _count
 
@@ -592,7 +592,7 @@ sub mode_trainspell(string _type, bool _debug)
 |***
  *	DES: open something
  *	USE: /call mode_open | /mode open
- *  NOTE: 
+ *  NOTE:
  ***|
 sub mode_open(string _type, bool _debug)
 	ISMEDEAD
@@ -609,7 +609,7 @@ sub mode_open(string _type, bool _debug)
 		/open
 		/delay 1s
 		/return
-	} 
+	}
 
 	SETHUD FALSE
 /return
@@ -628,7 +628,7 @@ sub mode_summon(bool _debug)
 
 	| in the lobby?
 	/if (${Zone.ShortName.NotEqual[GuildLobby]}) {
-		/varset dump ${maMode.Add[summon,FALSE]}
+		/invoke ${maMode.Add[summon,FALSE]}
 		/return FALSE
 	}
 
@@ -710,7 +710,7 @@ sub mode_summon(bool _debug)
   /delay 5
 
 	/squelch /target clear
-	/varset dump ${maMode.Add[summon,FALSE]}
+	/invoke ${maMode.Add[summon,FALSE]}
 
 /return FALSE
 
@@ -723,11 +723,14 @@ sub mode_summon(bool _debug)
 sub mode_hunt(bool _debug)
 	DEBUG \atmode_hunt\ax(\a-w\ax)
 
-	/varset dump ${maOver.Add[swOverPctEngage,TRUE]}
-	/varset dump ${maOver.Add[swOverLOS,TRUE]}
+	/invoke ${maOver.Add[swOverPctEngage,TRUE]}
+	/invoke ${maOver.Add[swOverLOS,TRUE]}
 	/varset swModeToken TRUE
 	/call clear_combat ${_debug}
 	/declare _count int local 0
+	/declare _lsHunt list local
+	/declare _lihunt listiterator local
+
 
 	SETHUD "mode hunt"
 
@@ -735,22 +738,20 @@ sub mode_hunt(bool _debug)
 	GETINPUT
 
 	/if (${Bool[${stModeData}]}) {
-		/declare _lsHunt list local
-		/varset dump ${_lsHunt.Delimiter[|]}
-		/varset dump ${_lsHunt.Append[${stModeData}]}
-		/declare _lihunt listiterator local
+		/invoke ${_lsHunt.Delimiter[|]}
+		/invoke ${_lsHunt.Append[${stModeData}]}
 		/vardata _lihunt _lsHunt.First.Clone
 		/while (!${_lihunt.IsEnd}) {
 			/if (${Spawn[npc ${_lihunt.Value} radius PULLENV targetable].ID}) {
 				/varset stAssTarID ${NearestSpawn[npc ${_lihunt.Value}].ID}
-				/break 
+				/break
 			}
-			/varset dump ${_lihunt.Advance}
-		}	
+			/invoke ${_lihunt.Advance}
+		}
 
 	} else /if (!${Bool[${stModeData}]}) {
 		/call pull_mob_find ${_debug} ${_count}
-		DEBUG pull_mob_find.return${sep}\a-w${Macro.Return}\ax		
+		DEBUG pull_mob_find.return${sep}\a-w${Macro.Return}\ax
 	}
 
 	/if (!TARGET) {
@@ -761,7 +762,7 @@ sub mode_hunt(bool _debug)
 
 	/if	(!${Navigation.PathExists[locyxz ${Spawn[TARGET].Y} ${Spawn[TARGET].X} ${Spawn[TARGET].Z}]}) {
 		GETINPUT
-		/varset dump ${out[0, "${notice}${sep}No Nav Path${sep}\a-w${Spawn[TARGET].DisplayName}\ax"]}
+		/invoke ${out[0, "${notice}${sep}No Nav Path${sep}\a-w${Spawn[TARGET].DisplayName}\ax"]}
 		/varcalc _count ${_count}+1
 		/if (${_count} > 10) /return FALSE
 		/delay 1s
@@ -770,21 +771,21 @@ sub mode_hunt(bool _debug)
 
 	| get to the mob
 	/call pull_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.9]} on
-		
+
 	/if (${Spawn[id TARGET].Dead}) /return TRUE
 
 
-	/varset dump ${maCC.Add[swSetCombat,TRUE]}
-	/varset dump ${set_target[TARGET]}
-		
+	/invoke ${maCC.Add[swSetCombat,TRUE]}
+	/invoke ${set_target[TARGET]}
+
 	| /call check_facing ${_debug} TARGET FORCE
-	
+
 	/call Bind_control_cc FORCE
 	/call main_${Me.Class.ShortName}
 	/call clear_combat
-	
-	/varset dump ${maOver.Add[swOverPctEngage,FALSE]}
-	/varset dump ${maOver.Add[swOverLOS,FALSE]}
+
+	/invoke ${maOver.Add[swOverPctEngage,FALSE]}
+	/invoke ${maOver.Add[swOverLOS,FALSE]}
 	/varset swModeToken FALSE
 
 	SETHUD FALSE
@@ -804,9 +805,9 @@ sub mode_hunt(bool _debug)
 sub mode_combat_routine(bool _debug)
 	DEBUG \atmode_combat_routine\ax()
 
-	/varset dump ${set_target[TARGET]}	
+	/invoke ${set_target[TARGET]}
 
-	/while (TARGET) {	
+	/while (TARGET) {
 	/call set_combat ${_debug}
 	/call check_facing ${_debug} TARGET FORCE
 	/if (PET || SWARM) /call send_pet ${_debug} TARGET
@@ -819,6 +820,559 @@ sub mode_combat_routine(bool _debug)
 	/if (DOT) /call cast_DOT ${_debug} lsDoT TARGET
 	/if (NUKE) /call cast_nuke ${_debug} lsNuke TARGET
 	/call check_item_cycle ${_debug} TARGET
-	
+
 
 /return
+
+
+
+
+
+
+
+
+
+
+
+
+quest giver: Missionary Ada
+quest Name: The Way Back Home
+quest phrases: go look
+
+
+
+
+
+
+|*********************
+farms
+********************|
+
+
+
+sub tov_ew_ada(bool _debug)
+	DEBUG \attov_ew_ada\ax()
+
+	/if (${Target.ID}) /squelch /target clear
+
+	/declare _quest string local The Way Back Home
+	/declare _count int local 0
+
+	/if (!${Task[${_quest}].ID}) {
+		/call task_get ${_debug} "${_quest}"
+		/if (!${Macro.Return}) {
+			/invoke ${out[23, "Failed to get${sep}\a-w${_quest}\ax"]}
+		} else /if (${Macro.Return}) {
+			/invoke ${out[23, "Quest started${sep}\a-w${_quest}\ax"]}
+		}
+	}
+
+	/if (${Me.Sitting}) /stand
+	/squelch /hidecorpse always
+
+	/call Bind_control_cc pull rad 45
+	/call Bind_control_cc pull active on
+	/call Bind_control_cc agro on
+
+	| how big is the quest?
+	/sqlite ${maData.Find[DBstatic].Value} farmcount SELECT count(*) as data from farm where task="${_quest}"
+	DEBUG ${sep}count${sep}\a-w${sqlite.Result[farmcount 1 data]}\ax
+
+	| get the data we need for this step
+	/for _count 0 to ${Math.Calc[${sqlite.Result[farmcount 1 data]} -1]}
+		/sqlite ${maData.Find[DBstatic].Value} farmquery${_count} SELECT * FROM farm WHERE task="${_quest}" AND stepn="${_count}"
+		/if (!${_count}) /continue
+		OUT ${dot}loading${sep}\aw${_count}\ax${sep}\a-w${sqlite.Result[farmquery${_count} 1 step]}\ax
+	/next _count
+	/echo
+
+
+	| step 1
+		/invoke ${out[23, "\agSTEP 1\ax${sep}\a-w${sqlite.Result[farmquery1 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery1 1 step]}].Status}\ax)"]}
+		:tov_ew_ada_step1
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery1 1 step]}].Status.NotEqual[Done]}) {
+			/call task_output ${_debug} 1
+			DEBUG ${sep}step${sep}${sqlite.Result[farmquery1 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery1 1 step]}].Status}\ax)
+			GETINPUT
+			ISMEDEAD
+			/if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery1 1 ivu]}]} && ${Me.AltAbilityReady[Group Perfected Invisibility to Undead]}) {
+				/call voodoo FALSE "Group Perfected Invisibility to Undead" 0 FALSE
+			}
+			/call Bind_command_navto loc "${sqlite.Result[farmquery1 1 locyxz]}" FALSE
+			/delay 2s
+		}
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery1 1 step]}].Status.NotEqual[done]}) /goto :tov_ew_ada_step1
+
+
+	| step 2
+		/invoke ${out[23, "\agSTEP 2\ax${sep}\a-w${sqlite.Result[farmquery2 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status}\ax)"]}
+		:tov_ew_ada_step2
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status.NotEqual[Done]}) {
+			/call task_output ${_debug} 3
+			DEBUG ${sep}step${sep}${sqlite.Result[farmquery2 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status}\ax)
+			GETINPUT
+			ISMEDEAD
+			/if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery2 1 ivu]}]} && ${Me.AltAbilityReady[Group Perfected Invisibility to Undead]}) {
+				/call voodoo FALSE "Group Perfected Invisibility to Undead" 0 FALSE
+			}
+			/call Bind_command_navto loc "${sqlite.Result[farmquery2 1 locyxz]}" FALSE
+			/delay 2s
+		}
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status.NotEqual[done]}) /goto :tov_ew_ada_step2
+
+
+	| step 3
+		/invoke ${out[23, "\agSTEP 3\ax${sep}\a-w${sqlite.Result[farmquery3 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery3 1 step]}].Status}\ax)"]}
+		:tov_ew_ada_step3
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery3 1 step]}].Status.NotEqual[Done]}) {
+			/call task_output ${_debug} 2
+			DEBUG ${sep}step${sep}${sqlite.Result[farmquery3 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery3 1 step]}].Status}\ax)
+			GETINPUT
+			ISMEDEAD
+			/if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery3 1 ivu]}]} && ${Me.AltAbilityReady[Group Perfected Invisibility to Undead]}) {
+				/call voodoo ${_debug} "Group Perfected Invisibility to Undead" 0 FALSE
+			}
+			/call Bind_command_navto loc "${sqlite.Result[farmquery3 1 locyxz]}" FALSE
+			/delay 2s
+		}
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery3 1 step]}].Status.NotEqual[done]}) /goto :tov_ew_ada_step3
+
+
+	| step 4
+		/invoke ${out[23, "\agSTEP 5\ax${sep}\a-w${sqlite.Result[farmquery4 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery4 1 step]}].Status}\ax)"]}
+		:tov_ew_ada_step4
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery4 1 step]}].Status.NotEqual[Done]}) {
+			/call task_output ${_debug} 4
+			DEBUG ${sep}step${sep}${sqlite.Result[farmquery4 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery4 1 step]}].Status}\ax)
+			GETINPUT
+			ISMEDEAD
+			/if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery4 1 ivu]}]} && ${Me.AltAbilityReady[Group Perfected Invisibility to Undead]}) {
+				/call voodoo ${_debug} "Group Perfected Invisibility to Undead" 0 FALSE
+			}
+			/call Bind_command_navto loc "${sqlite.Result[farmquery4 1 locyxz]}" FALSE
+			/delay 2s
+		}
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery4 1 step]}].Status.NotEqual[done]}) /goto :tov_ew_ada_step4
+
+
+	| step 5/6
+		/declare _tmpStep int local 0
+		/declare _tmpMob string local
+		/declare _tmpObj string local ${Task[${_quest}].Step}
+		/if (${_tmpObj.Find[huge]}) {
+			/varset _tmpStep 6
+		} else /if (${_tmpObj.Find[small]}) {
+			/varset _tmpStep 5
+		}
+		| set mob name for use
+		/varset _tmpMob ${sqlite.Result[farmquery${_tmpStep} 1 questmob]}
+
+
+		/invoke ${out[23, "\agSTEP ${_tmpStep}\ax${sep}\a-w${sqlite.Result[farmquery${_tmpStep} 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery${_tmpStep} 1 step]}].Status}\ax)"]}
+		:tov_ew_ada_step5_6
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery${_tmpStep} 1 step]}].Status.NotEqual[Done]}) {
+			/call task_output ${_debug} 4
+			DEBUG ${sep}step${sep}${sqlite.Result[farmquery${_tmpStep} 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery${_tmpStep} 1 step]}].Status}\ax)
+			GETINPUT
+			ISMEDEAD
+			/if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery${_tmpStep} 1 ivu]}]} && ${Me.AltAbilityReady[Group Perfected Invisibility to Undead]}) {
+				/call voodoo ${_debug} "Group Perfected Invisibility to Undead" 0 FALSE
+			}
+			/call Bind_command_navto loc "${sqlite.Result[farmquery${_tmpStep} 1 locyxz]}" FALSE
+
+		}
+
+		:tov_ew_ada_step5_6_wait
+		SDEBUG waiting for${sep}\a-w${_tmpMob}\ax
+
+		| kill spawn
+		/if (!${Spawn[npc radius 45 ${_tmpMob}].ID}) {
+			/delay 1s
+			/goto :tov_ew_ada_step5_6
+		} else /if (${Spawn[npc radius 45 ${_tmpMob}].ID}) {
+			/dismount
+			SDEBUG ${dot}found${sep}\a-w${_tmpMob}\ax
+			/invoke ${set_target[${Spawn[${_tmpMob}].ID}]}
+			/target ID ${set_target[${Spawn[${_tmpMob}].ID}]}
+			/delay 1s ${Target.ID} == ${Spawn[${_tmpMob}].ID}
+		}
+
+		:tov_ew_ada_step5_6_killing
+			/face fast nolook
+			/squelch /stick id moveback ${Math.Calc[${Spawn[id ${Target.ID}].MaxRangeTo}*.6]}
+			/call task_combatloop ${Spawn[${_tmpMob}].ID}
+			/delay 5
+			/if (${sqlite.Result[farmquery${_tmpStep} 1 step].NotEqual[done]}) /goto :tov_ew_ada_step5_6_killing
+
+
+	| step 7
+		/invoke ${out[23, "\agSTEP 6\ax${sep}\a-w${sqlite.Result[farmquery7 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery7 1 step]}].Status}\ax)"]}
+		/delay 5
+		/advloot shared "Simple Velium Pendant" giveto ${Me.Name}
+		/delay 5
+		/advloot personal "Simple Velium Pendant" loot
+		/delay 5
+		/if (${Window[ConfirmationDialogBox].Open}) {
+			/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+		}
+		/delay 5
+
+
+
+
+
+	| step 8
+
+
+
+
+
+	/return TRUE
+
+
+
+/squelch /stick id moveback ${Math.Calc[${Spawn[id ${Target.ID}].MaxRangeTo}*.6]}
+
+/stick ID ${Math.Calc[${Spawn[id ${Target.ID}].MaxRangeTo}*.6]}
+
+${Task[${_quest}].Objective[5].Equal[${sqlite.Result[farmquery5 1 step]}]}
+
+
+
+
+
+:Start
+/if (${Zone.ShortName.Equal[eastwastestwo]}) {
+        /goto :Mission
+    }
+    /goto :Start
+
+
+:Mission
+	/call command_navto ${Spawn[npc Missionary Ada].ID}
+	/invoke ${set_target[${Spawn[npc Missionary Ada].ID}]}
+	/say go look
+	/delay 5s
+
+	/if (${Me.AltAbilityReady[Group Perfected Invisibility to Undead]}) {
+		/call voodoo FALSE "Group Perfected Invisibility to Undead" 0 FALSE
+	}
+
+
+
+/if (${Bool[${Task[The Way Back Home].Title}]}) {
+
+
+
+
+
+/goto :Mission
+
+
+:Nav1
+/nav locyxz 1605.96 -1847.82 -24.6491
+/goto :Nav1
+
+
+
+${Task[The Way Back Home].Step.Index}
+
+| good
+:Nav1
+/if (${Task[The Way Back Home].Step.Index}==2) {
+/goto :Nav2
+}
+/goto :Nav1
+
+
+| good
+:Nav2
+/nav locyxz 1819 -1212 -2
+/goto :Nav3
+
+
+| good ????
+:Nav3
+/if (${Task[The Way Back Home].Step.Index}==3) {
+/goto :Nav4
+}
+/goto :Nav3
+
+
+
+:Nav4
+/nav locyxz 978.891 -1247.02 -36.0067
+/goto :Nav5
+
+:Nav5
+/if (${Task[The Way Back Home].Step.Index}==4) {
+/goto :Nav6
+}
+/goto :Nav5
+
+| good
+:Nav6
+/nav locyxz -330.943 -1718.13 -43.9086
+/goto :Nav7
+
+:Nav7
+/if (${Task[The Way Back Home].Step.Index}==5) {
+    /nav stop
+    /doevents
+}
+/goto :Nav7
+
+Sub Event_Kodiak(string Line)
+    /nav stop
+    /nav loc -979.802 -1768.92 -25.7416
+    /delay 15s !${Navigation.Active}
+
+
+
+:kodiak
+/delay 15s
+/target ${Spawn[a rabid tundra kodiak].CleanName}
+/if (${Navigation.PathExists[target]}) {
+        /nav target | dist=11
+    }
+/delay 15s !${Navigation.Active}
+/attack
+/delay 5s
+/nav target | dist=11
+/if (${Me.XTarget}==0) /goto :kickkodiak
+/goto :kodiak
+
+
+
+:kickkodiak
+/advloot personal Simple Velium Pendant loot
+/alt act 1212
+/nav loc -2477 -2391 -4
+/delay 60s ${Navigation.Active}==FALSE
+/kickp t
+
+Sub Event_Coldain(string Line)
+    /nav stop
+    /nav locxyz -267.9 -1347.5 -12
+    /delay 15s !${Navigation.Active}
+:coldain
+
+/delay 15s
+
+/target ${Spawn[a restless aged Coldain].CleanName}
+/if (${Navigation.PathExists[target]}) {
+        /nav target | dist=11
+    }
+:loop
+/if (${Spawn[a restless aged Coldain].CleanName}==TRUE) {
+    /attack
+    /goto :loop
+}
+/if (${Me.Combat}) {
+    /nav target | dist=11
+} else /if (${Me.XTarget}==0 && ${Bool[${Spawn[a restless aged Coldain].CleanName}]}) {
+    /goto :coldain
+} else /if (${Me.XTarget}==0 && ${Bool[!${Spawn[a restless aged Coldain].CleanName}]}) {
+    /goto :kickcoldain
+}
+
+:kickcoldain
+
+/advloot shared "Simple Velium Pendant" giveto ${Me.Name}
+/advloot personal "Simple Velium Pendant" loot
+
+/if (${Window[ConfirmationDialogBox].Open}) {
+	/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+}
+
+
+
+
+	/if (${Me.AltAbilityReady[Group Perfected Invisibility to Undead]}) {
+		/call voodoo FALSE "Group Perfected Invisibility to Undead" 0 FALSE
+	}
+
+
+/nav loc -2477 -2391 -4
+/delay 60s ${Navigation.Active}==FALSE
+/kickp t
+
+/shift /itemnotify ${FindItem[=Simple Velium Pendant].InvSlot} leftmouseup
+/target Missionary
+/click left target
+/notify TradeWnd TRDW_Trade_Button leftmouseup
+
+/kickplayer task
+
+
+
+
+
+
+|***
+ * note: gets a task
+ * use: /call get_task DEBUG [name of task/quest]
+ ***|
+sub task_get(bool _debug, string _verbage)
+	DEBUG \attask_get\ax(\a-w${_verbage}\ax)
+
+	| get the dat a we need to get quest started
+	/sqlite ${maData.Find[DBstatic].Value} farmquery SELECT * FROM farm WHERE step="start" AND task="${_verbage}"
+
+	| are we in the right zone?
+	/if (${Zone.ShortName.NotEqual[${sqlite.Result[farmquery 1 zonesn]}]}) {
+		DEBUG ${sep}wrong zone${sep}\a-w${sqlite.Result[farmquery 1 zonesn]}\ax
+		/return FALSE
+	}
+
+	| target mob up
+	/if (!${Spawn[${sqlite.Result[farmquery 1 questmob]}].ID}) {
+		DEBUG ${sep}mob not up${sep}\a-w${Spawn[${sqlite.Result[farmquery 1 questmob]}].DisplayName}\ax
+		/return FALSE
+	}
+
+	| get to quest target we should be kinda close for a say
+	/while (${Spawn[${sqlite.Result[farmquery 1 questmob]}].Distance} > 60) {
+		/if (!${Me.Moving} || !${Navigation.Active}) {
+			/call Bind_command_navto "${Spawn[${sqlite.Result[farmquery 1 questmob]}].ID}"
+		}
+		/delay 5
+	}
+
+	/invoke ${set_target[${Spawn[${sqlite.Result[farmquery 1 questmob]}].ID}]}
+
+	/makemevisible
+	/say ${sqlite.Result[farmquery 1 phrase]}
+
+	| give quest window time to populate
+	/delay 5s ${Task[${_verbage}].Index}
+
+	/if (!${Task[${_verbage}].Index}) /return FALSE
+
+/return TRUE
+
+
+
+|***
+ * note: outputs task details
+ * use: /call task_output DEBUG [query#]
+ ***|
+sub task_output(bool _debug, string _verbage)
+	DEBUG \attask_output\ax(\a-w${_verbage}\ax)
+
+	/if (${Bool[${sqlite.Result[farmquery${_verbage} 1 questmob]}]}) {
+		/invoke ${out[23, "mob${sep}\a-w${sqlite.Result[farmquery${_verbage} 1 questmob]}\ax"]}
+	}
+	/if (${Bool[${sqlite.Result[farmquery 1 locyxz]}]}) {
+		/invoke ${out[23, "locyxz${sep}\a-w${sqlite.Result[farmquery${_verbage} 1 locyxz]}"]}
+	}
+	/if (${Bool[${sqlite.Result[farmquery${_verbage} 1 invis]}]} || ${Bool[${sqlite.Result[farmquery${_verbage} 1 ivu]}]} || ${Bool[${sqlite.Result[farmquery${_verbage} 1 sos]}]}) {
+		/invoke ${out[23, "IV${sep}\a-w${sqlite.Result[farmquery${_verbage} 1 invis]}\ax IVU${sep}\a-w${sqlite.Result[farmquery${_verbage} 1 ivu]}\ax SoS${sep}\a-w${sqlite.Result[farmquery${_verbage} 1 sos]}\ax"]}
+	}
+	/if (${Bool[${sqlite.Result[farmquery${_verbage} 1 phrase]}]}) {
+		/invoke ${out[23, "phrase${sep}\a-w${sqlite.Result[farmquery${_verbage} 1 phrase]}\ax"]}
+	}
+
+/return TRUE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/return
+
+
+| current step.. always
+${Task[The Way Back Home].Step}
+
+/nav locyxz 1605.96 -1847.82 -24.6491
+
+| id if have task?
+${Task[The Way Back Home].ID}
+
+
+
+${Task[The Way Back Home].Objective[1].Instruction}
+
+
+${Task[The Way Back Home].Objective[${Task[The Way Back Home].Step}].Status.Equal[Done]}
+
+
+
+${Task[The Way Back Home].Objective[1].Status}
+
+${sqlite.Result[farmquery 1 locyxz]}
+
+${Task[The Way Back Home].Index}
+
+
+
+${Task[The Way Back Home].Step.Equal[kodiak]}
+
+
+
+
+
+sub task_combatloop(int _tmpID)
+
+	/call check_heal_routines
+	/if (${maChr.Find[swYaulp].Value}) {
+		/if (!${timer_Check_Yaulp}) /call cast_yaulp FALSE
+	}
+
+	/call set_combat_control ${maDebug.Find[decision].Value} ${_tmpID}
+	/if (AGRO && ${8}) /call get_agro_${Me.Class.ShortName} FALSE ${_tmpID}
+	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
+
+	/call check_item_cycle ${maDebug.Find[item].Value} ${_tmpID} epic
+	/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} ${_tmpID}
+	/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} ${_tmpID}
+	/if (MELEE) /call do_melee FALSE ${_tmpID}
+	/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT ${_tmpID}
+	/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke ${_tmpID}
+	/call check_item_cycle ${maDebug.Find[item].Value} ${_tmpID}
+	/call check_deBuffs ${maDebug.Find[debuff].Value} ${_tmpID}
+
+
+	| class specific thingies
+	/if (${Select[${Me.Class.ShortName},PAL]}) {
+		/if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
+		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
+			/call check_buff_cycle_temp_self ${maDebug.Find[temp].Value} stSteel
+			/call check_buff_cycle_temp_self ${maDebug.Find[temp].Value} stStance
+		}
+	}
+
+	/if (${maChr.Find[stPctManaRecovery].Value}) {
+		/call do_mana_recovery ${maDebug.Find[manarecover].Value}
+	}
+	/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) {
+		/call cast_stamina_recovery ${maDebug.Find[rest].Value}
+	}
+
+
+
+/return TRUE

@@ -1,8 +1,8 @@
 |***
- *	entropy
- *	class.rng.inc
+ * entropy
+ * class.rng.inc
  ***|
- 
+
 
 
 
@@ -12,7 +12,7 @@
  ***|
 sub set_RNG(bool _debug)
 	DEBUG \atset_RNG\ax()
-		
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Pathfinders"
 	/call set_data FALSE maData stSynergy																map outer "Outrider's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Earthcaller"
@@ -24,7 +24,7 @@ sub set_RNG(bool _debug)
 	/call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} alliance spell"
 
 	| spam summer nuke
-	/varset dump ${set_data_timer[FALSE, Summer_Nuke, 1s]}
+	/invoke ${set_data_timer[FALSE, Summer_Nuke, 1s]}
 	/call set_data_map FALSE maChr stSummer		 													PREGEN|1											"${auxna} summer line nuke spell"
 	/call set_data_map FALSE maChr swSummer															FALSE													"${auxsw} use summer nuke line spell"
 
@@ -56,14 +56,14 @@ sub set_RNG(bool _debug)
 	/call set_data_map FALSE maChr stDiscMeleeSingle			 							PREGEN|1											"${auxna} single melee disc"
 
 /return TRUE
-                                     		
+
 
 
 
 
 |***
  * note: Main Ranger Routine
- * use: 
+ * use:
  ***|
 sub main_RNG(bool _debug)
 	DEBUG \atmain_RNG\ax()
@@ -78,7 +78,7 @@ sub main_RNG(bool _debug)
 		/if (${check_class_loop[FALSE]}) /return FALSE
 
 		/if (VALID) {
-			/call set_combat FALSE
+			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/call check_heal_routines
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
@@ -87,19 +87,19 @@ sub main_RNG(bool _debug)
 			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
 			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
 			/if (${maChr.Find[swSummer].Value} && !${timer_Summer_Nuke}) /call cast_nuke_summer ${maDebug.Find[summer].Value} TARGET
-			/call check_item_cycle ${maDebug.Find[item].Value} TARGET	
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 			| /if (${swAlliance}) /call trigger_alliance TARGET
 
 		}
-	
-		/if (AUTO) {	
+
+		/if (AUTO) {
 			CHECKFADE
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[staminarecover].Value}
 		}
-		
+
 	}
-	
+
 /return TRUE
 
 
@@ -110,7 +110,7 @@ sub main_RNG(bool _debug)
  ***|
 sub misc_combat_RNG(bool _debug)
 	DEBUG \atmisc_combat_RNG\ax()
-	
+
 	ISMEDEAD
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 
@@ -119,9 +119,9 @@ sub misc_combat_RNG(bool _debug)
 	CHECKTIE
 
 	/call check_heal_routines
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
-		
+
 	| agro control
 	/if (AGRO) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stDiscEnrage].Value}"]}) {
@@ -131,7 +131,7 @@ sub misc_combat_RNG(bool _debug)
 		/if (${is_ready[${_debug}, "${maChr.Find[stDiscJolt].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stDiscJolt].Value}" TARGET FALSE
 		}
-	}	
+	}
 
 	| elemental arrows rotation
 	/if (!${Target.Buff[Elemental Arrow].ID}) {
@@ -139,28 +139,28 @@ sub misc_combat_RNG(bool _debug)
 			/call voodoo ${_debug} "Elemental Arrow" TARGET FALSE
 		}
 	}
-	
+
 	/if (!${maChr.Find[stCountAE].Value}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stDiscMeleeSingle].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stDiscMeleeSingle].Value}" TARGET FALSE
 		}
-	} else /if (${SpawnCount[npc OVERLOS radius 60 PS4 targetable]} >= ${maChr.Find[stCountAE].Value} && ${maChr.Find[stCountAE].Value}) {	
+	} else /if (${SpawnCount[npc OVERLOS radius 60 PS4 targetable]} >= ${maChr.Find[stCountAE].Value} && ${maChr.Find[stCountAE].Value}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stDiscMeleeAE].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stDiscMeleeAE].Value}" TARGET FALSE
 		}
 	}
-	
+
 /return TRUE
 
 
 
 |***
  * note: MGB ranger Auspice if both AAs are ready
- * use: 
+ * use:
  ***|
 sub cast_AA_auspice(bool _debug)
 	DEBUG \atcast_AA_auspice\ax()
-	
+
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
@@ -172,8 +172,8 @@ sub cast_AA_auspice(bool _debug)
 			/call voodoo ${_debug} "Auspice of the Hunter" 0 FALSE
 		}
 	} else /if (${Me.Song[Auspice of the Hunter].ID}) {
-		OUT ${bad}QUIT\ax trying to cast ${sp}Auspice of the Hunter\ax while its running.	
-	}		
+		OUT ${bad}QUIT\ax trying to cast ${sp}Auspice of the Hunter\ax while its running.
+	}
 /return TRUE
 
 
@@ -184,7 +184,7 @@ sub cast_AA_auspice(bool _debug)
  ***|
 sub check_heal_RNG(bool _debug, string _type)
 	DEBUG \atcheck_heal_RNG\ax(\a-w${_type}\ax)
-	
+
 	CHECKTIE
 	ISMEDEAD
 	CHECKEXIT
@@ -192,24 +192,24 @@ sub check_heal_RNG(bool _debug, string _type)
 	CHECKFADE
 
 	SETHUD "heal ${_type}"
-	
+
 	/call get_hurt FALSE ${_type}
-  	
+
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
 		SETHUD FALSE
 		/return	FALSE
-	}  
+	}
 
 	| ToT heals
 	/if (${Select[${_type},tot]} && ${maHeal.Find[swHealToT].Value}) {
 		/if (${hurtCount} >= 1)  {
 			/call cast_list ${_debug} lsHealToT ${hurtID}
-			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE			
+			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		}
 	}
-	
-	
+
+
 	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 
 	| Reflexive Healing Disc
@@ -218,14 +218,14 @@ sub check_heal_RNG(bool _debug, string _type)
 			/call voodoo ${_debug} "${maChr.Find[stDiscHeal].Value}" TARGET FALSE
 		}
 	}
-	
-	
+
+
 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 	CHECKREZ
 	CHECKFADE
-		
+
 	/call cast_list ${_debug} "lsHealBaseLine" ${hurtID}
-	
+
 	SETHUD FALSE
 
 /return TRUE
@@ -242,8 +242,8 @@ sub cast_nuke_summer(bool _debug, int _tmpID)
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 	ISMEDEAD
 	CHECKEXIT
-	/varset dump ${set_data_timer[${_debug}, Summer_Nuke, RESTART]}
-	
+	/invoke ${set_data_timer[${_debug}, Summer_Nuke, RESTART]}
+
 	/if (${is_ready[${_debug}, "${maChr.Find[stSummer].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stSummer].Value}" ${_tmpID} FALSE
 	}
@@ -254,8 +254,8 @@ sub cast_nuke_summer(bool _debug, int _tmpID)
 
 |***
  * note: really should be starting fires
- * use: 
- ***| 
+ * use:
+ ***|
 sub burn_RNG(bool _debug, int _tmpID)
 	DEBUG \atburn_RNG\ax(\a-w${_tmpID}\ax)
 
@@ -267,21 +267,21 @@ sub burn_RNG(bool _debug, int _tmpID)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}	
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE	
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
-	
+
 	| cheeta
 	/if (${is_ready[${_debug}, "Scarlet Cheeta's Fang"]}) {
 		/call voodoo ${_debug} "Scarlet Cheeta's Fang" 0 FALSE
 	}
-	
+
 	| auspice
 	/if (${is_ready[${_debug}, "Auspice of the Hunter"]}) {
 		/call voodoo ${_debug} "Auspice of the Hunter" 0 FALSE
 	}
-	
+
 	|**
 	| MELEE
 	/if (MELEE) {
@@ -296,20 +296,20 @@ sub burn_RNG(bool _debug, int _tmpID)
 				/if (${is_ready[${_debug}, "Empowered Blades"]}) {
 					/call voodoo ${_debug} "Empowered Blades" 0 FALSE
 				}
-				
+
 			} else /if (!${Me.ActiveDisc.ID} && !${Me.Song[Empowered Blades].ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
 				/if (${is_ready[${_debug}, "${maChr.Find[stDiscMele].Value}"]}) {
 					/call voodoo ${_debug} "${maChr.Find[stDiscMele].Value}" 0 FALSE
 				}
-				
+
 			} else /if (!${Me.ActiveDisc.ID} && !${is_ready[${_debug}, "${maChr.Find[stDiscMele].Value}"]} && !${Me.AltAbilityReady[Empowered Blades]} && !${Me.Song[Empowered Blades].ID}) {
 				/call cast_glyph ${maDebug.Find[glyph].Value}
-			} 
+			}
 		}
 
 
 	}
-	
+
 	| RANGE
 	/if (RANGE) {
 		/if (${Target.Distance} >= 31) {
@@ -321,10 +321,10 @@ sub burn_RNG(bool _debug, int _tmpID)
 				/call cast_glyph ${maDebug.Find[glyph].Value}
 			}
 		}
-	
+
 	}
 	**|
-	
+
 	| attack / dmg AA
 	/if (${is_ready[${_debug}, "Outrider's Accuracy"]}) {
 		/call voodoo ${_debug} "Outrider's Accuracy" 0 FALSE
@@ -332,33 +332,33 @@ sub burn_RNG(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "Outrider's Attack"]}) {
 		/call voodoo ${_debug} "Outrider's Attack" 0 FALSE
 	}
-	
+
 	| guardian buff (group first)
 	/if (!${Me.Song[Guardian of the Forest].ID} && ${Me.AltAbilityReady[Group Guardian of the Forest]}) {
 		/if (${is_ready[${_debug}, "Group Guardian of the Forest"]}) {
 			/call voodoo ${_debug} "Group Guardian of the Forest" 0 FALSE
 		}
-		
-	} else /if (!${Me.Song[Group Guardian of the Forest].ID} && ${Me.AltAbilityReady[Guardian of the Forest]}) {  
+
+	} else /if (!${Me.Song[Group Guardian of the Forest].ID} && ${Me.AltAbilityReady[Guardian of the Forest]}) {
 		/if (${is_ready[${_debug}, "Guardian of the Forest"]}) {
 			/call voodoo ${_debug} "Guardian of the Forest" 0 FALSE
 		}
 	}
-		
+
 	| swarm pets
 	/if (SWARM) {
 		/if (${is_ready[${_debug}, "Pack Hunt"]}) {
-			/call voodoo ${_debug} "Pack Hunt" ${_tmpID} FALSE   
+			/call voodoo ${_debug} "Pack Hunt" ${_tmpID} FALSE
 		}
 	}
-	
-	| ae regen 
+
+	| ae regen
 	/if (${is_ready[${_debug}, "${maChr.Find[stDiscHeal].Value}"]} && !${Me.Song[Bladespur Reflection].ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stDiscHeal].Value}" ${_tmpID} FALSE
 	}
-			
+
  /return TRUE
- 	
+
 
 
 |***
@@ -369,7 +369,7 @@ sub set_control_RNG(string _type, string _verbage, string _silent, bool _debug)
 	DEBUG \atset_control_RNG\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
   /declare _out string local
-  
+
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maChr ${_verbage}
 		/return
@@ -377,7 +377,7 @@ sub set_control_RNG(string _type, string _verbage, string _silent, bool _debug)
 	| use mana click items
 	} else /if (${_type.Equal[manarecover]}) {
 		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
-		
+
 	| set ae on/off / count
 	} else /if (${_type.Equal[ae]}) {
 		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
@@ -386,7 +386,7 @@ sub set_control_RNG(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[def]}) {
 		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return
 
-	| set AA fade use %	
+	| set AA fade use %
 	} else /if (${_type.Equal[fade]}) {
 		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
 
@@ -395,19 +395,19 @@ sub set_control_RNG(string _type, string _verbage, string _silent, bool _debug)
 		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
 		/return
 
-	| summer switch	
+	| summer switch
 	} else /if (${_type.Equal[summer]}) {
-		/varset dump ${set_switch_env[${_debug}, swSummer, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swSummer, TRUE, ${_verbage}]}
 
 	| use hiatus disc
 	} else /if (${_type.Equal[hiatus]}) {
-		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
 
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return 
-	/varset dump ${set_control_output[${_debug}, maChr, chr, maChrControl]}
-	
+	/if (${_silent.Equal[SILENT]}) /return
+	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
+
 /return
 
 

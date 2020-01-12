@@ -7,7 +7,97 @@
  ***|
 
 
+on the to do list
+--------------------
+- work on dps adaptation system
+- find a way to grade debuffs and overwrite if needed
+- finish check dead routines for other classes
+- finish target id passing for all classes to misc_ombat() and burn()
+- find out why the fuck chanter just stops doing shit
+- get remove verb working for /area
+- mage pet weapons?
+- /navto NULL when requestor is not in zone
+- find a way to convert lines for the new condition system
 
+
+
+--------------------
+
+
+
+
+
+A200112.01
+- /crew
+  fixed a possible infinite loop. is there any other kind?
+  crews should not try to invite their friends either
+- mission farming
+  ## WARNING - this is still in testing, and not completely.. completed..
+  /mode farm MISSIONNAME
+  can get a list of existing missions with `/aux farm`
+  these will be a case by case design
+- /build
+  set - smaller version of a load. works off sets.ini in the data directory structured like the following:
+
+  [clericraid]
+  ; settings for a handsoff heal only cleric
+  stCountArbitrate=0
+  stCountSplash=1
+  swBuffSelf=FALSE
+  swBuffAmmo=FALSE
+  swBuffBeg=FALSE
+  swBuffCrew=FALSE
+  swRezGive=FALSE
+  swRezCombat=FALSE
+  swHealXTarget=TRUE
+
+	e.g. doing a /build set clericraid
+	will load those settings directly. nothing else. can make as many sets as you like.
+	DO NOT use for lists. least not yet.
+	the point of this is speed and something simpler to use
+	setting this up is completely manual
+
+- pulling
+  more refinements to nav pulling. still not happy with the delays in pulling with spells
+  will see about pulling the cast range out and using that as a max moveto for the target
+  nav - should skip excludes(or type) mobs better
+- debugs
+  more updates to te debugs for pulling
+  "cb" will debug the /cb command
+
+- CHANGES TO CONDITIONS!!!!
+  conditions are no longer attached as a +c# (+c4 or whatever) to the thing you are wanting to check.
+  they are now their own entry e.g. stBuff5Con=#, # being the number of the condition you want to use
+  application is the same, if the condition evaluates to FALSE then the whatever will not be done.
+  setting a condition to 0 will disable the condition check. 0 is the default.
+
+- /condition (new command)
+  /condition 4 "!${Select[${Me.Class.ShortName},DRU]}" would add that condition to slot 4
+  /condition 8 clear - would set the condition back to false/default
+  /condition list - will show all set conditions
+
+- buffing
+  self buffs should obey the off switch again. i'll try to not beak it anymore
+
+- /buff
+  the /buff command will now accept editing for buffs for example:
+  /buff 1 gem13 - will set buff 1 to the spell in gem 13
+  /buff 1 - will turn buff 1 on or off
+  /buff 5 con 19 - will set buff 5 to condition 19. whatever you have there
+  /buff 46 alias soe - will set the alias of buff 46 to soe
+  /buff list - will list all the buffs being used and their on/off status
+  /buff 12 see - will show you everthing you have set for buff 12
+  /buff 1 cursor - will set the buff name to whatever is on your cursor
+  /buff 10 tag "crew|self" add - will add those two tags to your tag list for buff 10
+  /buff 14 tag clear - will clear all tags for buff 14
+  /buff 28 clear - will rest it to all defaults and turn off
+
+- dps click items
+  /clickitem (new command, i'll change the name when i can use /item 'til then, suck it up)
+  now have an on off switch like buffs do
+  now attach conditions the same way buffs do
+  already did tags the samee as everything else
+  has all the same edit options as /buff
 
 
 A200103.03
@@ -26,9 +116,9 @@ A200103.02
   reduced the default time for tiCheck_Behind from 10 to 5 seconds. undate your DB if you like
 - check_cursor() - i've removed the while loop. i dont like crashes
   now its a 1 shot deal with timer adjustments to do again if needed
-  also... if something shows up on your cursor thats lore, 
+  also... if something shows up on your cursor thats lore,
   and you have it set to leave, it will now be automagically changed to ignore.
-- /mode 
+- /mode
   hunt - added in some checks so it will read commands while in the mode
   forage - some corrections to account for the new cursor item handeling
 - several changes to the housekeeping routine
@@ -65,14 +155,14 @@ A191225.02
   added in some  more input validation
 - /take
   will now accept the current highlighted task in a task window
-  
+
 
 A191225.01
 - necromancer
   several corrections to functionality. like it wasn't functioning. meh..
 - enchanter
   fixed a bug where chanter would not respond to / commands while in a mez loop
-- ranger 
+- ranger
   fixed a rather glaring issue with the melee burn disc not generating in the DB
   added in stHealFont - this is the purefont heal line of ranger spells
 - /mode
@@ -80,7 +170,7 @@ A191225.01
   /mode [stop] - stops ALL modes
 - /debug
   /debug [stop] - stops ALL debugs
-  complete redesign. i over ran the 2048 limit 
+  complete redesign. i over ran the 2048 limit
   added hundreds of debug entries throughout the code
 - /heal
   fixed heal switches not showing, or just showing off
@@ -112,7 +202,7 @@ A191222.01
   fixed (i think) the cast hang when checking buffs while a mob dies
 - events for Icebount AoW mission in TOV
 - working on one for the flying unicorn fucker..
-  
+
 
 A191219.03
 - fixed the glyph spam.. /sigh
@@ -146,7 +236,7 @@ A191219.01
   spire
   chanter: crystal, gather
   magician: coh, gather
-  
+
 
 A191216.01
 - monk
@@ -159,8 +249,8 @@ A191216.01
 - mob finding for pulling
   MQ2nav is now a requirement for pulling!
   this impacts all things that find a mob to pull. all pull modes, hunter, so on.
-  step calculation has been changed to your pull env/5. 
-  mob acceptance is now based off shortest nav path not shortest mob distance. 
+  step calculation has been changed to your pull env/5.
+  mob acceptance is now based off shortest nav path not shortest mob distance.
   meaning it will go for the closest nav'able mob as to not agro other mobs in a longer path that may be closer.
 
 
@@ -183,7 +273,7 @@ A191214.01
 - /invis now defaults to your current crew (no crew=all). /invis all broadcasts to everyone
 - /take now defaults to your current crew (no crew=all). /take all broadcasts to everyone
 - /home gather now defaults to your current crew (no crew=all). /home gather all broadcasts to everyone
-  
+
 
 A191211.01
 - adjustments to /here
@@ -193,7 +283,7 @@ A191211.01
 - fixed my stupid keyboard changing the case on letters..
 - /mode - redesign of /mode collect and harvest
   collect is no more. deleted. gone buhby..
-  data - sets the data you are interested in for the mode. setting data as "*Blue Mushroom" would 
+  data - sets the data you are interested in for the mode. setting data as "*Blue Mushroom" would
          let harvest pick up all the blue mushrooms on the map
          you can also use this for hunting specific mob names
   harvest - puks up the groundspawns set in data
@@ -201,7 +291,7 @@ A191211.01
   hunt - kills everything. if you put a mob in data, it will only go after that mob. can use more then one mob name
 - added a line for hiatus discs to accomodate the ToV expanion. stHiatus
 - corretion to observations typo
-  
+
 
 A191208.01
 - developed a new method for outputs for / commands. faster and faster!!
@@ -218,12 +308,12 @@ A191207.01
 - /home
   onauto - (switch) will set a home camp whenever auto is enabled
 - /pull
-  nav - uses nav to find a valid mob, goes and gets it and brings it back to the group for spanking  
+  nav - uses nav to find a valid mob, goes and gets it and brings it back to the group for spanking
   int - uses a cleric or shaman to heal you with an interventions heal that nukes tour target and agros it back to the group.
 - /debug
   face - facing movements
   def - class defensive cycle routines
-  
+
 
 
 A191206.01
@@ -257,7 +347,7 @@ ok, time to start this
     - reqires /env auto enabled
     - best to use with a high pull radius
     - follows /cc mode Range|Melee usage
-  petfarm - NOT FOR USE IN NON NOOB ZONE!! 
+  petfarm - NOT FOR USE IN NON NOOB ZONE!!
     - sends pet to kill shit
     - if you increase your /cc pull rad ## over your pet range, you are stupid
     - obeys exclude list

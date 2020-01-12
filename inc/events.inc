@@ -6,18 +6,18 @@
  * Most of this is commented on purpose. Verant/Soe/DB are all well known for using the same emotes in more then one expansion.
  * if you want to use something in particular, just uncomment the related section and restart the mac
  * this file is not updated very often, so your changes should be relatively safe
- *   
+ *
  ***|
 
 
 
 |***
  * note: many events require movement to a mob to echo a response.
- * use:  
+ * use:
  ***|
 sub Event_SPEAKLINE(string _target, string _verbage)
 	/if (!${maEntropy.Find[events].Value}) /return FALSE
-	
+
 	/if (${Spawn[${_target}].Distance} > 50) /echo I need to Move Closer To ${_target}
 
 	/call clear_combat
@@ -29,7 +29,7 @@ sub Event_SPEAKLINE(string _target, string _verbage)
 	/navto "${_target}"
 	/delay 10s !${Navigation.Active}
 	/delay 1s
-	
+
 	/say ${_verbage}
 
 /return
@@ -39,14 +39,16 @@ sub Event_SPEAKLINE(string _target, string _verbage)
 |***
  * note: advanced pulling summon correction
  * use : auto
- ***|  
- 
+ ***|
+
 #event AP_IN_PROGRESS								"You are stunned!"
 #event AP_IN_PROGRESS								"You have been summoned!"
 sub Event_AP_IN_PROGRESS(string line)
 	/if (!AUTO) /return
 	/if (HOME && PULL) {
-		/if (${Me.Stunned}) /delay 3s !${Me.Stunned}
+		/if (${Me.Stunned}) {
+			/delay 3s !${Me.Stunned}
+		}
 		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} < ${maHome.Find[stHomeVariance].Value}) /return
 		/nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=off
 		/delay 5s !${Me.Moving}
@@ -56,35 +58,31 @@ sub Event_AP_IN_PROGRESS(string line)
 
 
 
-
-
-
-        
 |***
  * note: cast return events
- * use: not for you 
- ***|    
+ * use: not for you
+ ***|
 #event CAST_BEGIN                  "You begin casting#*#"
 #event CAST_BEGIN                  "You begin singing#*#"
 #event CAST_BEGIN                  "Your #1# begins to glow.#*#"
 sub Event_CAST_BEGIN(string line)
-	/varset dump ${maData.Add[stCastReturn,SUCCESS]}
+	/invoke ${maData.Add[stCastReturn,SUCCESS]}
 /return
 
 #event CAST_CANNOTSEE              "You cannot see your target#*#"
 sub Event_CAST_CANNOTSEE(string line)
-	/varset dump ${maData.Add[stCastReturn,CANNOTSEE]}
+	/invoke ${maData.Add[stCastReturn,CANNOTSEE]}
 /return
 
 #event CAST_COLLAPSE               "Your gate is too unstable, and collapses#*#"
 sub Event_CAST_COLLAPSE(string line)
-	/varset dump ${maData.Add[stCastReturn,COLLAPSE]}
+	/invoke ${maData.Add[stCastReturn,COLLAPSE]}
 /return
 
 #event CAST_COMPONENTS             "You are missing some required components#*#"
 #event CAST_COMPONENTS             "Your ability to use this item has been disabled because you do not have at least a gold membership#*#"
 sub Event_CAST_COMPONENTS(string line)
-	/varset dump ${maData.Add[stCastReturn,COMPONENTS]}
+	/invoke ${maData.Add[stCastReturn,COMPONENTS]}
 /return
 
 #event CAST_DISTRACTED             "You need to play a#*#instrument for this song#*#"
@@ -93,19 +91,19 @@ sub Event_CAST_COMPONENTS(string line)
 #event CAST_DISTRACTED             "You *CANNOT* cast spells, you have been silenced#*#"
 #event CAST_DISTRACTED             "You do not have sufficient focus to maintain that ability."
 sub Event_CAST_DISTRACTED(string line)
-	/varset dump ${maData.Add[stCastReturn,DISTRACTED]}
+	/invoke ${maData.Add[stCastReturn,DISTRACTED]}
 /return
 
 
-#event CAST_FDFAIL                 "#1# has fallen to the ground.#*#" 
+#event CAST_FDFAIL                 "#1# has fallen to the ground.#*#"
 sub Event_CAST_FDFAIL(string line, string _name)
-	/varset dump ${maData.Add[stCastReturn,FDFAIL]}
+	/invoke ${maData.Add[stCastReturn,FDFAIL]}
 /return
 
 #event CAST_FIZZLE                 "Your spell fizzles#*#"
 #event CAST_FIZZLE                 "You miss a note, bringing your song to a close#*#"
 sub Event_CAST_FIZZLE(string line)
-	/varset dump ${maData.Add[stCastReturn,FIZZLE]}
+	/invoke ${maData.Add[stCastReturn,FIZZLE]}
 /return
 
 #event CAST_IMMUNE                 "Your target has no mana to affect#*#"
@@ -116,13 +114,13 @@ sub Event_CAST_FIZZLE(string line)
 #event CAST_IMMUNE                 "Your target cannot be mesmerized#*#"
 #event CAST_IMMUNE                 "Your target looks unaffected#*#"
 sub Event_CAST_IMMUNE(string line)
-	/varset dump ${maData.Add[stCastReturn,IMMUNE]}
+	/invoke ${maData.Add[stCastReturn,IMMUNE]}
 /return
 
 #event CAST_INTERRUPTED            "Your spell is interrupted#*#"
 #event CAST_INTERRUPTED            "Your casting has been interrupted#*#"
 sub Event_CAST_INTERRUPTED(string line)
-	/varset dump ${maData.Add[stCastReturn,INTERRUPTED]}
+	/invoke ${maData.Add[stCastReturn,INTERRUPTED]}
 /return
 
 #event CAST_NOMOUNT                "You can only summon a mount on dry land#*#"
@@ -130,72 +128,72 @@ sub Event_CAST_INTERRUPTED(string line)
 #event CAST_NOMOUNT                "You can not summon a mount here#*#"
 #event CAST_NOMOUNT                "You must have both the Horse Models and your current Luclin Character Model enabled to summon a mount#*#"
 sub Event_CAST_NOMOUNT(string line)
-	/varset dump ${maData.Add[stCastReturn,NOMOUNT]}
+	/invoke ${maData.Add[stCastReturn,NOMOUNT]}
 /return
 
 #event CAST_NOTARGET               "You must first select a target for this spell#*#"
 #event CAST_NOTARGET               "This spell only works on#*#"
 #event CAST_NOTARGET               "You must first target a group member#*#"
 sub Event_CAST_NOTARGET(string line)
-	/varset dump ${maData.Add[stCastReturn,NOTARGET]}
+	/invoke ${maData.Add[stCastReturn,NOTARGET]}
 /return
 
 #event CAST_NOTREADY               "Spell recast time not yet met#*#"
 sub Event_CAST_NOTREADY
-	/varset dump ${maData.Add[stCastReturn,NOTREADY]}
+	/invoke ${maData.Add[stCastReturn,NOTREADY]}
 /return
 
 #event CAST_OUTDOORS               "This spell does not work here#*#"
 #event CAST_OUTDOORS               "You can only cast this spell in the outdoors#*#"
 sub Event_CAST_OUTDOORS(string line)
-	/varset dump ${maData.Add[stCastReturn,OUTOFMANA]}
+	/invoke ${maData.Add[stCastReturn,OUTOFMANA]}
 /return
-   
+
 #event CAST_OUTOFMANA              "Insufficient Mana to cast this spell#*#"
 sub Event_CAST_OUTOFMANA(string line)
-	/varset dump ${maData.Add[stCastReturn,OUTOFMANA]}
+	/invoke ${maData.Add[stCastReturn,OUTOFMANA]}
 /return
 
 #event CAST_OUTOFRANGE             "Your target is out of range, get closer#*#"
 sub Event_CAST_OUTOFRANGE(string line)
-	/varset dump ${maData.Add[stCastReturn,OUTOFRANGE]}
+	/invoke ${maData.Add[stCastReturn,OUTOFRANGE]}
 /return
 
 #event CAST_RECOVER                "You haven't recovered yet#*#"
 #event CAST_RECOVER                "Spell recovery time not yet met#*#"
 sub Event_CAST_RECOVER(string line)
-	/varset dump ${maData.Add[stCastReturn,RECOVER]}
+	/invoke ${maData.Add[stCastReturn,RECOVER]}
 /return
 
 #event CAST_RESISTED               "Your target resisted the #1# spell#*#"
-#event CAST_RESISTED               "#*# resisted your #1#!"                                   
+#event CAST_RESISTED               "#*# resisted your #1#!"
 sub Event_CAST_RESISTED(string line, string _name)
-	/varset dump ${maData.Add[stCastReturn,RESISTED]}
+	/invoke ${maData.Add[stCastReturn,RESISTED]}
 /return
 
 #event CAST_RESISTEDYOU            "You resist the #1# spell#*#"
 #event CAST_RESISTEDYOU            "You resist #*#"
 sub Event_CAST_RESISTEDYOU(string line)
-	/varset dump ${maData.Add[stCastReturn,RESISTEDYOU]}
+	/invoke ${maData.Add[stCastReturn,RESISTEDYOU]}
 /return
 
 #event CAST_STANDING               "You must be standing to cast a spell#*#"
 sub Event_CAST_STANDING(string line)
-	/varset dump ${maData.Add[stCastReturn,RESTART]}
+	/invoke ${maData.Add[stCastReturn,RESTART]}
 /return
 
 #event CAST_STUNNED                "You can't cast spells while stunned#*#"
-#event CAST_STUNNED                "You are stunned#*#" 
+#event CAST_STUNNED                "You are stunned#*#"
 sub Event_CAST_STUNNED(string line)
-	/varset dump ${maData.Add[stCastReturn,STUNNED]}
+	/invoke ${maData.Add[stCastReturn,STUNNED]}
 /return
 
 #event CAST_TAKEHOLD               "Your spell did not take hold#*#"
 #event CAST_TAKEHOLD               "Your spell would not have taken hold#*#"
 #event CAST_TAKEHOLD               "Your spell is too powerfull for your intended target#*#"
-#event CAST_TAKEHOLD               "This pet may not be made invisible#*#"    
+#event CAST_TAKEHOLD               "This pet may not be made invisible#*#"
 sub Event_CAST_TAKEHOLD(string line)
-	/varset dump ${maData.Add[stCastReturn,TAKEHOLD]}
+	/invoke ${maData.Add[stCastReturn,TAKEHOLD]}
 /return
 
 
@@ -214,8 +212,8 @@ sub Event_COMBAT_DISTANCE(string line)
 
 |***
  * use: catch when a zone happens
- ***| 
-#event Zone "You have entered #*#" 
+ ***|
+#event Zone "You have entered #*#"
 | #event Zone "LOADING, PLEASE WAIT..."
 sub Event_Zone(string _line)
 	/call check_mode FALSE RESET
@@ -227,11 +225,11 @@ sub Event_Zone(string _line)
 |***
  * note: raid and group invite accept controls
  * use: EVENTS
- ***| 
+ ***|
 #event Join "#1# invites you to join a #2#.#*#"
 sub Event_Join(string line, string _sender, string _groupraid)
 	| DEBUG \atEvent_Join\ax(\a-w${_sender}, ${_groupraid}\ax)
-	
+
 	/if (!${is_lsSafeNames[FALSE, ${_sender}]}) /return FALSE
 
 	| group invites
@@ -243,7 +241,7 @@ sub Event_Join(string line, string _sender, string _groupraid)
 			/invite
 		}
 	}
-	
+
 	| raid invites
 	/if (${_groupraid.Equal[raid]}) {
 		/delay 1s
@@ -259,9 +257,42 @@ sub Event_Join(string line, string _sender, string _groupraid)
 				/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
 				/return
 			}
-			/raidaccept	
-		} 		
+			/raidaccept
+		}
 	}
+
+/return
+
+
+
+
+|**
+stTTLType
+stTTLStartTime
+stTTLEndTime
+stTTLDuration
+stTTLID
+
+
+#Event TTLstart "#2# is #1# by YOUR #4# for #3# points of non-melee damage.#*#"
+#Event TTLstart "#2# has taken #3# damage from your #5#.#*#"
+#Event TTLstart "You #1# #2# for #3# points of damage.#*#"
+#Event TTLstart "You #1# #2# for #3# points of #4# damage by #5#.#*#"
+#Event TTLstart "You try to #*#, but miss"
+#Event TTLstart "|${Me.Pet.CleanName}| #1# #2# for #3# points of damage.#*#"
+#Event TTLstart "|${Me.Pet.CleanName}| #1# #2# for #3# points of #4# damage by #5#.#*#"
+#Event TTLstart "|${Me}|`s pet #1# #2# for #3# points of damage.#*#"
+#Event TTLstart "|${Me}|`s pet #1# #2# for #3# points of #4# damage by #5#.#*#"
+
+sub BEvent_TTLstart (string _line)
+	/invoke ${maTTL.Add[stTTLStartTime,${Time.SecondsSinceMidnight}]}
+	/invoke ${maTTL.Add[stTTLID,TARGET]}
+	/invoke ${maTTL.Add[stTTLType,${Spawn[TARGET].DisplayName}]}
+
+
+
+
+
 
 /return
 
@@ -271,6 +302,15 @@ sub Event_Join(string line, string _sender, string _groupraid)
 
 
 
+
+
+
+
+#Event TTLend "You have slain #1#!"
+#Event TTLend "#1# has been slain by #*#"
+
+
+**|
 
 
 
@@ -384,7 +424,7 @@ sub Event_16stein6(string line)
  ** Depths of Darkhollow (September 2005)
 
 
- 
+
 #Event hatchet1 "#*#Hatchet hefts a weighted throwing axe in his offhand#*#"
 sub Event_hatchet1
   /if (!${maEntropy.Find[events].Value}) /return FALSE
@@ -407,7 +447,7 @@ sub Event_hatchet1
      /keypress forward
      /echo I am far from Hatchet!!!
      /return
-   }   
+   }
    /if (${distanceTimer} == 0) {
      /if (${Me.Sneaking}) {
        /varset distanceModifier 2
@@ -1019,7 +1059,7 @@ sub Event_DainBanish(string Line, string PersonOne, string PersonTwo, string Per
   /declare sPersonOne 		string local ${PersonOne}
   /declare sPersonTwo 		string local ${PersonTwo}
   /declare sPersonThree 	string local ${PersonThree}
-  
+
   /if (${sPersonOne.Equal[${Me.CleanName}]} || ${sPersonTwo.Equal[${Me.CleanName}]} || ${sPersonThree.Equal[${Me.CleanName}]}) {
     /echo Running out of arena
     /play RunFromArena smart
@@ -1834,7 +1874,7 @@ sub Event_AMRunAwayFiveOne()
 
 |********************************************************************************************
  ** The Broken Mirror (November 2015)
- 
+
 
 #Event CureAkkapanDot "#*#Terrible fumes engulf you. Run from it#*#"
 sub Event_CureAkkapanDot()
@@ -1844,7 +1884,7 @@ sub Event_CureAkkapanDot()
 
   /if (${swSetTie}) {
   	/varset _tempTie TRUE
-  	/varset swSetTie FALSE 
+  	/varset swSetTie FALSE
   }
 
   /varset _rnd ${Int[${Math.Calc[${Math.Rand[5]}+1]}]}
@@ -1873,9 +1913,9 @@ sub Event_CurePyroignitionDot()
 
   /if (${swSetTie}) {
   	/varset _tempTie ${swSetTie}
-  	/call Event_SetVar NA swSetTie Movement FALSE 
+  	/call Event_SetVar NA swSetTie Movement FALSE
   }
-  
+
   /varset _rnd ${Int[${Math.Calc[${Math.Rand[3]}+1]}]}
   :loopmovetospot
 	 	/if (${_rnd} == 1) /moveto loc 1321 -1337
@@ -1889,7 +1929,7 @@ sub Event_CurePyroignitionDot()
 		}
 
   /if (${_tempTie}) {
-  	/call Event_SetVar NA swSetTie Movement TRUE 
+  	/call Event_SetVar NA swSetTie Movement TRUE
   }
 /return
 
@@ -1959,7 +1999,7 @@ sub cure_Anashti_DT()
 /return
 
 
-| ** Plane of Health 
+| ** Plane of Health
 | ** ONE OFF
 sub CureDeathStrikeDT()
 | =[Tue May 24 03:45:19 2016] Your Location is 2595.22, 977.81, -35.55
@@ -2022,7 +2062,7 @@ sub MoveToSpot()
 
 
 |***
- *	DES: cure debufs for Damsel of Decay 
+ *	DES: cure debufs for Damsel of Decay
  *	USE: auto
  *	DPS classes if they get Withering Physicality XIII they need to use Distillate of Immunization XV (64 Counters to cycle it twice)
  *	DPS classes if they get Withering Limbs XIII they need to use a Distillate of Immunization XIII (56 Counters to Cycle once) I was Lazy but this could be Level VII through XIII, and not cycle it twice.
@@ -2038,13 +2078,13 @@ sub CureDamselofDecay()
 		/if (${Me.Buff[Withering Physicality XIII].ID} && ${Me.ItemReady[Distillate of Immunization XIII]}) /call core_cast2 "Distillate of Immunization XIII" item 0 FALSE
 		/if (${Me.Buff[Withering Limbs XIII].ID} && ${Me.ItemReady[Distillate of Immunization XIII]}) /call core_cast2 "Distillate of Immunization XIII" item 0 FALSE
 	}
-		
+
 	| healers CLR,SHM,DRU
 	/if (${Select[${Me.Class.ShortName},CLR,SHM,DRU]} && (${Me.Buff[Withering Physicality XIII].ID} || ${Me.Buff[Withering Faith XIII].ID})) {
 		/if (${Me.Buff[Withering Physicality XIII].ID} && ${Me.ItemReady[Distillate of Immunization XIII]}) /call core_cast2 "Distillate of Immunization XIII" item 0 FALSE
 		/if (${Me.Buff[Withering Faith XIII].ID} && ${Me.ItemReady[Distillate of Immunization XV]}) /call core_cast2 "Distillate of Immunization XV" item 0 FALSE
 	}
-	
+
 	| TANKS WAR,SHD,PAL
 	/if (${Select[${Me.Class.ShortName},WAR,SHD,PAL]} && ${Me.Buff[Withering Physicality XIII].ID}) {
 		/if (${Me.Buff[Withering Physicality XIII].ID} && ${Me.ItemReady[Distillate of Immunization XIII]}) /call core_cast2 "Distillate of Immunization XIII" item 0 FALSE
@@ -2128,33 +2168,33 @@ sub Event_Nexona()
 |********************************************************************************************
  ** The Burning Lands (December 11, 2018)
  **|
- 
- 
- 
- 
- 
- 
+
+
+
+
+
+
 |********************************************************************************************
  ** Torment of Velious (December 18, 2019)
  **|
- 
- 
- 
+
+
+
 | Icebound Avatar mission
 #Event IceAoW "#*#The ice encrusted Avatar of War shouts that |${Me.DisplayName}| must bend the knee#*#"
 sub Event_IceAoW()
 	/if (!${maEntropy.Find[events].Value}) /return FALSE
-	
+
 	/if (${Me.State.NotEqual[duck]}) {
 		/keypress DUCK
 	}
-	
+
 	/delay 11s
-	
+
 	/if (${Me.State.Equal[duck]}) {
 		/keypress DUCK
 	}
- 
+
 /return TRUE
 
 
@@ -2167,5 +2207,5 @@ there are two success messages to end stick and return to where you started woul
 Griklor the Restless tries to control his mount as shards of deadly ice strike it.
 Griklor's griffon's wings are shredded by deadly ice and Griklor falls to the ground.
 are the two success messages
- 
- 
+
+

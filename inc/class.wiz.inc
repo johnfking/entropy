@@ -2,7 +2,7 @@
  * entropy
  * class.wiz.inc
  ***|
- 
+
 
 
 |***
@@ -23,50 +23,50 @@ sub set_WIZ(bool _debug)
 
 	/call set_data_map FALSE maChr stPctGather													0															"${auxnum} % of your mana to start using gather spells and AAs"
 	/call set_data_map FALSE maChr stGather															PREGEN|1											"${auxna} name of mana gather spell (\a-wNOT THE AA\ax)"
-	
+
 	/call set_data_map FALSE maChr stTempPet														PREGEN|1											"${auxna} temp flame'ie pig sticker pet spell"
 
 	/call set_data_map FALSE maChr swManaBurn		 												FALSE													"${auxsw} use aa manaburn during burns"
-	
+
 	/call set_data_map FALSE maChr stConcussion													PREGEN|1											"${auxna} name of anti agro spell cause you nuke to damn much and dont let tank get agro"
 	/call set_data_map FALSE maChr stPctConcussion											0															"${auxnum} % of your agro you want to try and cover your ass at"
 
 	| current nuke line
 	/declare lsNukeLine list outer
-	/varset dump ${lsNukeLine.Append[base,fire,ice,magic]}
+	/invoke ${lsNukeLine.Append[base,fire,ice,magic]}
 	/call set_data_map FALSE maChr stCurrent														base
 	/call set_data FALSE FALSE stLine																		string outer ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
-	
-	/varset dump ${set_data_timer[FALSE, Force_TC, 6s]}
+
+	/invoke ${set_data_timer[FALSE, Force_TC, 6s]}
 	/call set_data_map FALSE maChr stTC																	PREGEN|1											"${auxna} whatever the hell you want to use for twincast"
 	/call set_data_map FALSE maChr swForceTC														FALSE													"${auxsw} force using twincast aa/spells as much as possible"
 	/call set_data_map FALSE maChr stNukeTCFire													PREGEN|1											"${auxna} fire line twincast spell"
 	/call set_data_map FALSE maChr stNukeTCIce													PREGEN|1											"${auxna} ice line twincast spell"
 	/call set_data_map FALSE maChr stNukeTCMagic												PREGEN|1											"${auxna} magic line twincast spell"
 	/call set_data_map FALSE maChr stNukeTCBase													FALSE													"${auxna} base line twincast spell"
-	
-	
-/return	
 
-	
-	
+
+/return
+
+
+
 |***
  * note: main wizzeurd routine
- * use: 
+ * use:
  ***|
 sub main_WIZ(bool _debug)
 	DEBUG \atmain_WIZ\ax()
 
 	/if (AUTO) {
 	}
-	
+
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
 		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/if (${check_class_loop[FALSE]}) /return
-	
+
 		/if (VALID) {
 			/call set_combat FALSE
 			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
@@ -86,14 +86,14 @@ sub main_WIZ(bool _debug)
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 
 		}
-		
-		/if (AUTO) {	
+
+		/if (AUTO) {
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			/if (${Me.PctMana} <= ${maChr.Find[stPctGather].Value}*.PCTHO) /call check_harvest ${maDebug.Find[mannarecover].Value}
 			CHECKFADE
-		}	
-	}	
-	
+		}
+	}
+
 /return TRUE
 
 
@@ -113,7 +113,7 @@ sub misc_combat_WIZ(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
 	| agro control
@@ -124,7 +124,7 @@ sub misc_combat_WIZ(bool _debug)
 		/if (${is_ready[${_debug}, "Concussive Intuition"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) /call voodoo ${_debug} "Concussive Intuition" TARGET FALSE
 		/if (${is_ready[${_debug}, "${maChr.Find[stConcussion].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctConcussion].Value}) /call voodoo ${_debug} "${maChr.Find[stConcussion].Value}" TARGET FALSE
 	}
-	
+
 /return
 
 
@@ -135,7 +135,7 @@ sub misc_combat_WIZ(bool _debug)
  ***|
 sub check_harvest(bool _debug)
 	DEBUG \atcheck_harvest\ax()
-	
+
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
@@ -146,7 +146,7 @@ sub check_harvest(bool _debug)
 		/if (${is_ready[${_debug}, "Forceful Rejuvenation"]}) {
 			/call voodoo ${_debug} "Forceful Rejuvenation" 0 FALSE
 		}
-		/delay 5			
+		/delay 5
 	}
 	/if (${Me.PctMana} < ${maChr.Find[stPctGather].Value}*.PCTHO) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
@@ -178,8 +178,8 @@ sub check_heal_WIZ(bool _debug, string _type)
 	ISMEDEAD
 	CHECKEXIT
 
-	/call get_hurt ${maDebug.Find[hurt].Value} ${_type} 
-	/call cast_list ${_debug} lsHealBaseLine ${Me.ID}	
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+	/call cast_list ${_debug} lsHealBaseLine ${Me.ID}
 
 /return
 
@@ -188,10 +188,10 @@ sub check_heal_WIZ(bool _debug, string _type)
 |***
  * note: Wizard burn routines
  * use: bug guns?
- ***| 
+ ***|
 sub burn_WIZ(bool _debug)
 	DEBUG \atburn_WIZ\ax()
-	
+
 	ISMEDEAD
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 
@@ -200,9 +200,9 @@ sub burn_WIZ(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
-	
+
 	| shhhhh..
 	/if (${is_ready[${_debug}, "Silent Casting"]}) /call voodoo ${_debug} "Silent Casting" 0 FALSE
 
@@ -218,7 +218,7 @@ sub burn_WIZ(bool _debug)
 	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.AltAbilityReady[Improved Twincast]} && ${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stTC].Value}" 0 FALSE
 	}
-	
+
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 	| boost spell type damage
@@ -229,15 +229,15 @@ sub burn_WIZ(bool _debug)
 	/if (${is_ready[${_debug}, "Arcane Destruction"]}) {
 		/call voodoo ${_debug} "Arcane Destruction" 0 FALSE
 	}
-	
+
 	| increase damage
 	/if (${is_ready[${_debug}, "Arcane Fury"]}) {
 		/call voodoo ${_debug} "Arcane Fury" 0 FALSE
 	}
-	
+
 	| aww baby
 	/if (${maChr.Find[swManaBurn].Value}) {
-		/varset dump ${set_target[TARGET]}
+		/invoke ${set_target[TARGET]}
 		/if (!${Target.Buff[Mana Burn].ID}) {
 			/if (${is_ready[${_debug}, "Mana Burn"]}) {
 				/call voodoo ${_debug} "Mana Burn" TARGET FALSE
@@ -253,7 +253,7 @@ sub burn_WIZ(bool _debug)
 	}
 
 	/call cast_glyph ${maDebug.Value[glyph].Value}
-	
+
 /return
 
 
@@ -268,9 +268,9 @@ sub force_twincast_WIZ(bool _debug)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	
-	/varset dump ${set_data_timer[${_debug}, Force_TC, 6s]}
-	
+
+	/invoke ${set_data_timer[${_debug}, Force_TC, 6s]}
+
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
 
 	/if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[Twincast].ID} && ${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
@@ -280,7 +280,7 @@ sub force_twincast_WIZ(bool _debug)
 	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[${maChr.Find[stTC].Value}].ID} && !${Me.Buff[Twincast].ID} && ${is_ready[${_debug}, "${maChr.Find[stNukeTC${stLine}].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stNukeTC${stLine}].Value}" TARGET FALSE
 	}
-	
+
 /return TRUE
 
 
@@ -298,21 +298,21 @@ sub set_control_WIZ(string _type, string _verbage, string _silent, bool _debug)
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maChr ${_verbage}
 		/return
-		
+
 	| use mana click items
 	} else /if (${_type.Equal[manarecover]}) {
 		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
-		
+
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
 		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
 		/return
-		
-	| set concussion use %	
+
+	| set concussion use %
 	} else /if (${_type.Equal[concussion]}) {
 		/if (!${set_control_num_range[${_debug}, stPctConcussion, "${_verbage}", 0, 99]}) /return
 
-	| set AA fade use %	
+	| set AA fade use %
 	} else /if (${_type.Equal[fade]}) {
 		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
 
@@ -330,28 +330,28 @@ sub set_control_WIZ(string _type, string _verbage, string _silent, bool _debug)
 			OUT usage${sep}/chr line [\a-wbase\ax|\a-wfire\ax|\a-wice\ax|\a-wmagic\ax]
 			/return
 		}
-		/varset dump ${do_raw_edit[${_debug}, SILENT, stCurrent, "${_verbage.Lower}"]}
+		/invoke ${do_raw_edit[${_debug}, SILENT, stCurrent, "${_verbage.Lower}"]}
 		/varset stLine ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
 
 
-	| set gather use %	
+	| set gather use %
 	} else /if (${_type.Equal[gather]}) {
 		/if (!${set_control_num_range[${_debug}, stPctGather, "${_verbage}", 0, 99]}) /return
 
 	| use manaburn
 	} else /if (${_type.Equal[mb]}) {
-		/varset dump ${set_switch_env[${_debug}, swManaBurn, TRUE, ${_verbage}]}
-		
+		/invoke ${set_switch_env[${_debug}, swManaBurn, TRUE, ${_verbage}]}
+
 	| force twincast attempts
 	} else /if (${_type.Equal[forcetc]}) {
-		/varset dump ${set_switch_env[${_debug}, swForceTC, TRUE, ${_verbage}]}
-		
+		/invoke ${set_switch_env[${_debug}, swForceTC, TRUE, ${_verbage}]}
+
 
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return 
-	/varset dump ${set_control_output[${_debug}, maChr, chr, maChrControl]}
-	
+	/if (${_silent.Equal[SILENT]}) /return
+	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
+
 /return
 
 

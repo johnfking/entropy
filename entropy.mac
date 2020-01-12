@@ -1,9 +1,9 @@
 |*********************************************************************
  * entropy
  * entropy.mac
- * "I am here because your gods found you lacking." 
+ * "I am here because your gods found you lacking."
  *
- * evil overlord: 
+ * evil overlord:
  *  exspes007
  * evil overlord advisors:
  *  Knightly, dannuic, Saar, thatguy, Crack, Madix, alynel
@@ -22,7 +22,7 @@
 #define SDEBUG "/echo \ay+[\ax\aw${Time.Second}\ax\at::\ax\aw${Macro.CurLine}\ax\ay]\ax(\a-t${Macro.RunTime}\ax) \ay--\ax "
 #define OUT "/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,\at.\ax]}"
 #define GETINPUT "/call get_input"
-#define ISMEDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox"
+#define ISMEDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}"
 #define CHECKEXIT "/if (${check_exit[]}) /return"
 #define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maCC.Find[swPull].Value} && !${Me.Invis} && ${maRez.Find[swRezGive].Value}) /call check_for_corpse ${maDebug.Find[rez].Value}"
 #define CHECKFADE "/if (${maChr.Find[stPctFade].Value}) /call cast_AA_fade ${maDebug.Find[fade].Value}"
@@ -94,18 +94,18 @@
 sub main(string _debug, string _param1, string _auto)
 	/declare _boottimestart int local ${MacroQuest.Running}
 	/mqclear
-	
-	| this is built in to remove dannet usage from entropy to help troubleshoot other plugins. 
+
+	| this is built in to remove dannet usage from entropy to help troubleshoot other plugins.
 	| DO NOT TOUCH THIS. really. just dont.
 	/declare swDanNet bool outer TRUE
-	
+
 	| trash variable
 	/declare dump string outer
 
 	| Make sure plugins are loaded. kill macro if not
 	/if (!${check_plugin[FALSE, TRUE, |MQ2SQLite|MQ2DanNet|Mq2Nav|MQ2MoveUtils|MQ2Collections]}) {
 		/echo Make sure the following plugins are loaded
-		/echo I'm not going to auto load the damnt things for you.
+		/echo I'm not going to auto load the damn things for you.
 		/echo \a-wMQ2SQLite, MQ2DanNet, Mq2Nav, MQ2MoveUtils, MQ2Collections\ax
 		/endmacro
 	}
@@ -114,47 +114,47 @@ sub main(string _debug, string _param1, string _auto)
 	/call set_debug FALSE
 
 	/if (${Bool[${_debug}]} && ${_debug.NotEqual[forceauto]}) {
-		/varset dump ${maDebug.Add[${_debug.Lower},TRUE]}
+		/invoke ${maDebug.Add[${_debug.Lower},TRUE]}
 	}
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A200103.03
-	
+	/call set_data FALSE maEnv build													map outer A200112.01
+
 	| prep macro
 	/call prepare_the_end FALSE
 
 	| environment notices
  	/if (${maEntropy.Find[swMaintenance].Value}) {
- 		/varset dump ${out[0, "${notice} ${dot} Enabled${sep}\a-wmaintenance mode\ax"]}
+ 		/invoke ${out[0, "${notice} ${dot} Enabled${sep}\a-wmaintenance mode\ax"]}
  	}
  	/if (${maEntropy.Find[swEventsInc].Value}) {
- 		/varset dump ${out[0, "${notice} ${dot} Enabled${sep}\a-wevents\ax"]}
+ 		/invoke ${out[0, "${notice} ${dot} Enabled${sep}\a-wevents\ax"]}
  	}
  	/if (${maOver.Find[swOverLOS].Value}) {
- 		/varset dump ${out[0, "${notice} ${dot} Disabled${sep}\a-wline of sight validation\ax"]}
+ 		/invoke ${out[0, "${notice} ${dot} Disabled${sep}\a-wline of sight validation\ax"]}
  	}
- 
+
 	/if (!${timer_Check_Zone_ID}) {
 		/call check_zone_id ${maDebug.Find[zone].Value} FALSE
 	}
-	
+
 	| echo help on a new build or updates
 	/if (${Bool[${maData.Find[stPreviousBuild].Value}]}) {
 		/if (${maData.Find[stPreviousBuild].Value.NotEqual[${maEnv.Find[build].Value}]}) {
-			/varset dump ${out[0, "Help${sep}\a-w/aux\ax or \a-w/command aux\ax"]}
+			/invoke ${out[0, "Help${sep}\a-w/aux\ax or \a-w/command aux\ax"]}
 		}
 	} else /if (!${Bool[${maData.Find[stPreviousBuild].Value}]}) {
-		/varset dump ${out[0, "Help${sep}\a-w/aux\ax or \a-w/command aux\ax"]}
+		/invoke ${out[0, "Help${sep}\a-w/aux\ax or \a-w/command aux\ax"]}
 	}
-	
-	/varset dump ${out[0, "\agReady\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax"]}
-	
+
+	/invoke ${out[0, "\agReady\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax"]}
+
 	| force on start switch
 	/if (${_debug.Equal[forceauto]}) {
 		/call Bind_control_env auto on
 	}
-	
+
 
 	| maintenance loop
 	/while (${maEntropy.Find[swMaintenance].Value}) {
@@ -169,15 +169,15 @@ sub main(string _debug, string _param1, string _auto)
 	/while (!${maEntropy.Find[swMaintenance].Value}) {
 
 		| housekeeping first!
-		| /if (!${timer_Check_Housekeeping}) {
-		| 	/call check_housekeeping ${maDebug.Find[house].Value}
-		| }		
+		/if (!${timer_Check_Housekeeping}) {
+			/call check_housekeeping ${maDebug.Find[house].Value}
+		}
 
 		GETINPUT main_loop swAuto|${maEnv.Find[swAuto].Value}
 		ISMEDEAD
 		CHECKCURSOR
 		SETHUD FALSE
-		
+
 
 		| check food / drink
 		/if (!${timer_Check_FoodDrink}) {
@@ -192,25 +192,25 @@ sub main(string _debug, string _param1, string _auto)
 		| mode check
 		/if (!${timer_Check_Mode}) {
 			/call check_mode ${maDebug.Find[mode].Value}
-		}		
-		
+		}
+
 		/if (AUTO) {
-			
+
 			| check curing observers
-			/if (!${timer_Check_Observers} && ${swDanNet}) { 
+			/if (!${timer_Check_Observers} && ${swDanNet}) {
 				/if (${maHeal.Find[swHealCure].Value}) /call set_observers ${maDebug.Find[cure].Value} maCure add
-			} 
-			
+			}
+
 			| sort /heal adj ##
 			/if (PCTHO != ${maHeal.Find[stHealAdjust].Value}) {
 				/varset tmpHealAdjust ${If[${maHeal.Find[stHealAdjust].Value},${Float[${maHeal.Find[stHealAdjust].Value}].Centi},99.99]}
 			}
-			
-			| check tribute			
+
+			| check tribute
 			/if (${maEnv.Find[swCheckTribute].Value}) {
-				/if (!${timer_Check_Tribute}) /call check_tribute				
+				/if (!${timer_Check_Tribute}) /call check_tribute
 			}
-			
+
 			| home check
 			/if (HOME && !${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
 				/call Bind_control_home return
@@ -221,7 +221,7 @@ sub main(string _debug, string _param1, string _auto)
 				/if (!PULL || (PULL && !${SpawnCount[npc radius SAFEENV PS4]})) {
 					/call do_rest ${maDebug.Find[rest].Value}
 				}
-			}		
+			}
 
 			| check exp
 			/if (${maEnv.Find[swCorrectEXPAA].Value}) {
@@ -232,31 +232,31 @@ sub main(string _debug, string _param1, string _auto)
 			/if (${maEnv.Find[swAAFireworks].Value} && !${timer_Waste_Fireworks}) {
 				/call cast_AA_fireworks ${maDebug[fireworks].Value}
 			}
-			
+
 			| some sweeet lovin....
 			/if (!${timer_Check_Buff_Cycle}) {
 				/call check_buff_cycle ${maDebug.Find[buff].Value}
 			}
-			
+
 			/if (${Me.PctEndurance} < 32) {
 				/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) {
 					/call cast_stamina_recovery
 				}
 			}
-			
+
 			| check loot
 			/if (${maEnv.Find[swADVLoot].Value} && !${timer_Check_Loot}) {
 				/if (AUTO && (${Group.Members} && ${Group.MasterLooter.ID} == ${Me.ID}) && ${Me.UseAdvancedLooting} && !${AdvLoot.LootInProgress} && !${Stick.Active}) /call do_loot ${maDebug.Find[loot].Value}
-			}			
-	
-			| do we pull or assist	
+			}
+
+			| do we pull or assist
 			/if (!SAFEZONE) {
-				/if (!${Me.Invis} || (${Select[${Me.Class.ShortName},ROG]} && ${maEnv.Find[swSoS].Value})) {	
+				/if (!${Me.Invis} || (${Select[${Me.Class.ShortName},ROG]} && ${maEnv.Find[swSoS].Value})) {
 					/if (!PULL) {
 						/call get_assist_target ${maDebug.Find[assist].Value}
 					} else /if (PULL && !TARGET) {
 						/if (${maCC.Find[stPullMode].Value.Equal[base]}) {
-							/call get_target_basepull ${maDebug.Find[pull].Value}						
+							/call get_target_basepull ${maDebug.Find[pull].Value}
 						} else {
 							/call prep_advanced_pulling ${maDebug.Find[pull].Value}
 							/if (${SubDefined[get_target_${maCC.Find[stPullMode].Value}pull]}) {
@@ -266,7 +266,7 @@ sub main(string _debug, string _param1, string _auto)
 					}
 				}
 			}
-			
+
 			/delay 1
 		}
 
@@ -280,10 +280,10 @@ sub main(string _debug, string _param1, string _auto)
 			/delay 1
 		}
 
-	} 
-	 
- 
-	:OnExit	
+	}
+
+
+	:OnExit
 	/if (!${MacroQuest.LastCommand.Find[/end]} && !${MacroQuest.LastCommand.Find[/camp]}) {
 		 /mqlog ${maEnv.Find[build].Value} .. ERROR SOMEWHERE
 		 /mqlog .. LastCMD: ${MacroQuest.LastCommand}
@@ -292,15 +292,14 @@ sub main(string _debug, string _param1, string _auto)
 		 /mqlog .. SyntaxError: ${MacroQuest.SyntaxError}
 		 /mqlog .. RunningTime: ${MacroQuest.Running}
 	} else {
-		/varset dump ${out[0, "Current Build ${info}${maEnv.Find[build].Value}\ax ${dot} ${bad}Ended\ax"]}
+		/invoke ${out[0, "Current Build ${info}${maEnv.Find[build].Value}\ax ${dot} ${bad}Ended\ax"]}
 		/mqlog ${maEnv.Find[build].Value} .. Clean Exit
 	}
 	/if (${swDanNet}) {
 		/if (${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) /dleave ${maComm.Find[stEntropyGroup_all].Value}
 	}
-	/endmacro	
- 
-/return TRUE
+
+/return
 
 
 
@@ -339,18 +338,18 @@ sub prepare_the_end(bool _debug)
 	/if (${check_plugin[FALSE, FALSE, |mq2rez]}) {
 		/plugin mq2rez unload noauto
 	}
-	
-	| set all initial variables	
+
+	| set all initial variables
 	/call set_initialize
 
 	/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,\at.\ax]} \a-tEntropy\ax${sep}\a-w${maEnv.Find[build].Value}\ax
-	
+
 	| pull static data
 	/call set_initialize_static_map FALSE
-		
+
 	| map the macro/game environment
 	/call set_initial_environment FALSE
-	
+
 	| set comm requirements
 	/if (${swDanNet}) {
 		/if (${DanNet.LocalEcho}) /squelch /dnet localecho ${maComm.Find[stLocalEcho].Value}
@@ -359,19 +358,19 @@ sub prepare_the_end(bool _debug)
 		/if (${DanNet.FullNames}) /squelch /dnet fullnames ${maComm.Find[stFullNames].Value}
 		/dnet timeout ${maComm.Find[stNetworkTimeout].Value}
 	}
-			
+
 	| set blocked buffs
 	/call set_buffs_blocked FALSE SILENT
 
 	| check zone schema
 	/call sql_set_zone_schema ${maDebug.Find[zone].Value}
-	
+
 	| check loot schema
 	/call sql_set_loot_schema ${maDebug.Find[loot].Value}
 
 	| check character shema
 	/call sql_set_character_schema FALSE
-	
+
 	| get the conditions.
 	/call set_initialize_map_conditions FALSE
 
@@ -383,16 +382,16 @@ sub prepare_the_end(bool _debug)
 
 	| get items
 	/call set_initialize_map_items FALSE
-	
+
 	| set any aliases needs
 	/call set_alias FALSE add
 
 	| build the zone lists
 	/call set_zone_lists ${maDebug.Find[zone].Value}
-	
+
 	| build crew data
 	/call set_initialize_crew FALSE
-	
+
 	| start up the DPS meter
 	/if (${SubDefined[DPSMeter_Init]}) {
 		/call DPSMeter_Init
@@ -403,26 +402,26 @@ sub prepare_the_end(bool _debug)
 
  	| check game cash?
 	/call check_free_ingame_cash FALSE
-	
+
 	| set hud variables
 	/call set_initialize_hud_variables
-	
+
 
 /return TRUE
 
-	
+
 
 |***
  * note: macro and dannet integrity check routine
- * use: 
-
+ * use:
+ ***|
 sub check_housekeeping(bool _debug)
 	DEBUG \atcheck_housekeeping\ax()
 
-	/varset dump ${set_data_timer[${_debug}, Check_Housekeeping, RESTART]}
-	
+	/invoke ${set_data_timer[${_debug}, Check_Housekeeping, RESTART]}
+
 	/if (${Select[${Me.CombatState},combat]}) /return FALSE
-	
+
 	| nothing to do here. move on.
 	/if (!${Group.Members} && ${stCurrentCrew.Equal[EMPTY]}) /return TRUE
 
@@ -439,11 +438,11 @@ sub check_housekeeping(bool _debug)
 			/if (${DanNet.Peers[crew${_liCount.Value}].Find[${Me.DisplayName}]}) {
 				/dleave crew${_liCount.Value}
 			}
-			/varset dump ${_liCount.Advance}
-		}	
+			/invoke ${_liCount.Advance}
+		}
 		/varset stCurrentCrew EMPTY
 	}
-	
+
 
 	| fix dannet crew join marker if mac restarts
 	/if (${Group.Members} && ${stCurrentCrew.Equal[empty]}) {
@@ -459,11 +458,11 @@ sub check_housekeeping(bool _debug)
 		/declare _fail bool local
 		/while (!${_liCG.IsEnd}) {
 			/varset _fail FALSE
-			
+
 			| crew # empty?
 			/if (${lsCrew${_liCG.Value}.Count} == 1 && ${lsCrew${_liCG.Value}.First.Value.Equal[EMPTY]}) {
 				DEBUG ${sep}lsCrew${_liCG.Value}${sep}\a-w${lsCrew${_liCG.Value}.First.Value}\ax
-				/varset dump ${_liCG.Advance}
+				/invoke ${_liCG.Advance}
 				/continue
 			}
 
@@ -472,28 +471,28 @@ sub check_housekeeping(bool _debug)
 				/if (!${lsCrew${_liCG.Value}.Contains[${Group.Member[${_liCT.Value}]}]}) {
 					DEBUG ${sep}failed${sep}\a-w${Group.Member[${_liCT.Value}]}\ax
 					/varset _fail TRUE
-					/varset dump /varset dump ${_liCT.Advance}
+					/invoke /invoke ${_liCT.Advance}
 					/continue
 				}
-				/varset dump ${_liCT.Advance}
+				/invoke ${_liCT.Advance}
 			}
-				
+
 			| if everyone in the group matches the crew list. make sure you are in the channel
 			/if (!${_fail}) {
 				DEBUG ${sep}setting dannet crew\aw${_liCG.Value}\ax
 				/djoin crew${_liCG.Value}
 				/varset stCurrentCrew crew${_liCG.Value}
-				/return TRUE				
-			}	
+				/return TRUE
+			}
 			/delay 1
-			/varset dump ${_liCG.Advance}
-		}	
+			/invoke ${_liCG.Advance}
+		}
 
 	}
-	
+
 	| more shit to come....
-	
+
 	DEBUG ${sep}housekeeping${sep}\a-wDONE\ax
-	
+
 /return TRUE
- ***|
+

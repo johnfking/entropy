@@ -2,7 +2,7 @@
  * entropy
  * class.clr.inc
  ***|
- 
+
 
 
 |***
@@ -11,7 +11,7 @@
  ***|
 sub set_BST(bool _debug)
 	DEBUG \atset_BST\ax()
-	
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Savage Lord"
 	/call set_data FALSE maData stSynergy																map outer "Primalist's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Claw of the Savage Spirit"
@@ -37,20 +37,19 @@ sub set_BST(bool _debug)
   /call set_data_map FALSE maChr stFury 															PREGEN|1											"${auxna} furry disc (ruaabri)"
   /call set_data_map FALSE maChr stSavage 														PREGEN|1											"${auxna} savagery disc"
 
-	/varset dump ${set_data_timer[FALSE, Check_Para, 2s]}
- 	/call set_data_map FALSE maChr stPctParagonG 												0															"${auxnum} pct mana to use group paragon aa" 										
+	/invoke ${set_data_timer[FALSE, Check_Para, 2s]}
+ 	/call set_data_map FALSE maChr stPctParagonG 												0															"${auxnum} pct mana to use group paragon aa"
 	/call set_data_map FALSE maChr stPctParagonF 												0															"${auxnum} pct mana to use focused paragon aa"
 	/call set_data_map FALSE maChr stPctConsume 												0															"${auxnum} pct mana to use consume aa"
  	/call set_data_list FALSE maChr lsHealToT		 												PREGEN|3											"${auxli} targets target healing line of spells"
-   
-/return TRUE
 
+/return TRUE
 
 
 
 |***
  * note: main beastlord routine
- * use: 
+ * use:
  ***|
 sub main_BST(bool _debug)
 	DEBUG \atmain_BST\ax()
@@ -64,10 +63,10 @@ sub main_BST(bool _debug)
 		GETINPUT
 		CHECKREZ
 		/call check_heal_routines
-		/if (${check_class_loop[FALSE]}) /return		
+		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
-			/call set_combat FALSE
+			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/call check_heal_routines
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
@@ -81,23 +80,23 @@ sub main_BST(bool _debug)
 			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 			/if (${maCC.Find[swAlliance].Value}) /call cast_alliance_${Me.Class.ShortName} TARGET
-		
+
 		}
 
-		/if (AUTO) {	
+		/if (AUTO) {
 			CHECKFADE
 			/if (!${timer_Check_Para}) /call check_mana_BST ${maDebug.Find[para].Value}
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[rest].Value}
-		}	
+		}
 	}
-	
+
 /return TRUE
 
 
 
 |***
- * note: 
+ * note:
  * use: /call misc_combat_BST DEBUG
  ***|
 sub misc_combat_BST(bool _debug, int _tmpID)
@@ -113,7 +112,7 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 	/if (SWARM || PET) {
 		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	}
-	
+
 	/if (AUTO && MELEE) {
 		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	}
@@ -130,25 +129,25 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 		}
 		/if (${is_ready[${_debug}, "Roar of Thunder"]}) {
 			/call voodoo ${_debug} "Roar of Thunder" ${_tmpID} FALSE
-		}		
+		}
 	}
 
 	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
-	
+
 	/if (${is_ready[${_debug}, "${maChr.Find[stBestial].Value}"]} && !${Me.Song[${maChr.Find[stBestial].Value}].ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stBestial].Value}" 0 FALSE
 	}
-	
+
 	/if (!AE#) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stClaws].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stClaws].Value}" ${_tmpID} FALSE
 		}
 	} else /if (AE#) {
-		
+
 	}
-	
+
 	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
-	
+
 	/if (${is_ready[${_debug}, "Enduring Frenzy"]} && !${Target.Buff[Enduring Frenzy].ID}) {
 		/call voodoo ${_debug} "Enduring Frenzy" ${_tmpID} FALSE
 	}
@@ -162,15 +161,15 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "${maChr.Find[stRending].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stRending].Value}" ${_tmpID} FALSE
 	}
-	
+
 	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
-			
+
 	/if (${Me.Pet.ID}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stGrowl].Value}"]} && !${Me.Song[${maChr.Find[stGrowl].Value}].ID}) {
 			/call voodoo ${_debug} "${maChr.Find[stGrowl].Value}" 0 FALSE
 		}
 	}
-	
+
 /return TRUE
 
 
@@ -183,11 +182,11 @@ sub check_mana_BST(bool _debug)
 	DEBUG \atcheck_mana_BST\ax()
 
 
-	/varset dump ${set_data_timer[${_debug}, Check_Para, RESTART]}
-	
+	/invoke ${set_data_timer[${_debug}, Check_Para, RESTART]}
+
 	ISMEDEAD
 	CHECKEXIT
-	
+
 	| consumption of Spirits AA
 	/if (${maChr.Find[stPctConsume].Value}) {
 		/if (${Me.PctMana} < ${maChr.Find[stPctConsume].Value}*.PCTHO) {
@@ -226,41 +225,41 @@ sub check_mana_BST(bool _debug)
 		ISMEDEAD
 		CHECKEXIT
 		/if (${Group.Member[${_liC6.Value}].Class.ShortName.Equal[BRD]}) {
-			/varset dump ${_liC6.Advance}
+			/invoke ${_liC6.Advance}
 			/continue
 		}
 		/if (${Group.Member[${_liC6.Value}].PctMana} >= ${maChr.Find[stPctParagonG].Value}*.PCTHO) {
-			/varset dump ${_liC6.Advance}
+			/invoke ${_liC6.Advance}
 			/continue
 		}
 		/if (${Group.Member[${_liC6.Value}].Distance} > 100) {
-			/varset dump ${_liC6.Advance}
+			/invoke ${_liC6.Advance}
 			/continue
 		}
 		/if (${Group.Member[${_liC6.Value}].Type.Equal[CORPSE]}) {
-			/varset dump ${_liC6.Advance}
+			/invoke ${_liC6.Advance}
 			/continue
 		}
 
 		/varcalc _below ${_below}+1
-		/varset dump ${_liC6.Advance}
-	}	
-	
+		/invoke ${_liC6.Advance}
+	}
+
 	/if (${_below} >= 1) {
 		/call voodoo ${_debug} "Paragon of Spirit" 0 FALSE
 	}
-		
+
 /return TRUE
 
 
- 
+
 |***
  * note: healing for beastlord
  * use:  when you or your agro whore pet get hurt
  ***|
 sub check_heal_BST(bool _debug, string _type)
 	DEBUG \atcheck_heal_BST\ax(\a-w${_type}\ax)
-	
+
 	CHECKTIE
 	ISMEDEAD
 	CHECKEXIT
@@ -268,22 +267,22 @@ sub check_heal_BST(bool _debug, string _type)
 	CHECKFADE
 
 	SETHUD "heal ${_type}"
-	
+
  	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
- 	  	
+
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
 		SETHUD FALSE
-		/return	
-	}  	
-	
+		/return
+	}
+
 	| ToT heals
 	/if (${Select[${_type},tot]} && ${maHeal.Find[swHealToT].Value}) {
 		/if (${hurtCount} >= 1)  {
 			/call cast_list ${maDebug.Find[tot].Value} lsHealToT ${hurtID}
-			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE			
+			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		}
 	}
 
@@ -297,7 +296,7 @@ sub check_heal_BST(bool _debug, string _type)
 
 		/call cast_list ${_debug} lsHealPetLine ${Pet.ID}
 	}
-	
+
 	| self healing
 	/if (${Select[${_type},self]} && ${maHeal.Find[swHealSelf].Value}) {
 	 	/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
@@ -324,7 +323,7 @@ sub check_heal_BST(bool _debug, string _type)
 |***
  *	DES: MGB beast Paragon if both AAs are ready
  *	USE: /paragon
- *  NOTE: 
+ *  NOTE:
  ***|
 #bind cast_AA_paragon /paragon
 sub Bind_cast_AA_paragon(bool _debug)
@@ -346,9 +345,9 @@ sub cast_AA_paragon(bool _debug)
 			/call voodoo ${_debug} "Paragon of Spirit" 0 FALSE
 		}
 	} else /if (${Bool[${Me.Song[Paragon of Spirit]}]}) {
-		OUT ${owarning} trying to cast ${csp}Paragon of Spirit\ax while its running.	
-	}		
-	
+		OUT ${owarning} trying to cast ${csp}Paragon of Spirit\ax while its running.
+	}
+
 /return TRUE
 
 
@@ -356,7 +355,7 @@ sub cast_AA_paragon(bool _debug)
  |***
  * note: Beast burn routines
  * use: establish all comp/trigger skills
- ***| 
+ ***|
 sub burn_BST(bool _debug, int _tmpID)
 	DEBUG \atburn_BST\ax(\a-w${_tmpID}\ax)
 
@@ -370,7 +369,7 @@ sub burn_BST(bool _debug, int _tmpID)
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
-	
+
 	/if (${is_ready[${_debug}, "Bestial Alignment"]}) {
 		/call voodoo ${_debug} "Bestial Alignment" 0 FALSE
 	}
@@ -380,7 +379,7 @@ sub burn_BST(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "Ferociousness"]} && !${Me.Song[${maChr.Find[stSavage].Value}].ID}) {
 		/call voodoo ${_debug} "Ferociousness" 0 FALSE
 	}
-	
+
 	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
 
 	/if (SWARM) {
@@ -394,7 +393,7 @@ sub burn_BST(bool _debug, int _tmpID)
 			/call voodoo ${_debug} "Companion's Fury" 0 FALSE
 		}
 	}
-	
+
 	/if (MELEE || DOT) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stVindication].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stVindication].Value}" 0 FALSE
@@ -402,7 +401,7 @@ sub burn_BST(bool _debug, int _tmpID)
 	}
 
 	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
-	
+
 	/call cast_glyph ${maDebug.Find[glyph].Value}
 
 	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stFury].Value}].RankName}]} && !${Me.Song[Frenzy of Spirit].ID} && !${Me.Buff[${maChr.Find[stDichotomic].Value}].ID}) {
@@ -417,11 +416,11 @@ sub burn_BST(bool _debug, int _tmpID)
 		/if (${is_ready[${_debug}, "BloodLust"]}) {
 			/call voodoo ${_debug} "BloodLust" 0 FALSE
 		}
-		
+
 		/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
-		
+
 		/call cast_AA_spire ${maDebug.Find[spire].Value}
-		
+
 		/if (${is_ready[${_debug}, "${maChr.Find[stSavage].Value}"]} && !${Me.Song[Bestial Alignment].ID}) {
 			/call voodoo ${_debug} "${maChr.Find[stSavage].Value}" 0 FALSE
 		}
@@ -429,7 +428,7 @@ sub burn_BST(bool _debug, int _tmpID)
 			/call voodoo ${_debug} "Group Bestial Alignment" 0 FALSE
 		}
 	}
-	
+
 /return TRUE
 
 
@@ -445,17 +444,17 @@ sub set_control_BST(string _type, string _verbage, string _silent, bool _debug)
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maChr
 		/return
-		
+
 	| use mana click items
 	} else /if (${_type.Equal[manarecover]}) {
 		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
-		
+
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
 		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
 		/return
 
-	| set AA fade use %	
+	| set AA fade use %
 	} else /if (${_type.Equal[fade]}) {
 		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
 
@@ -481,15 +480,15 @@ sub set_control_BST(string _type, string _verbage, string _silent, bool _debug)
 
 	| use hiatus disc
 	} else /if (${_type.Equal[hiatus]}) {
-		/varset dump ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
 
 	}
-	
-	/if (${_silent.Equal[SILENT]}) /return 
-	/varset dump ${set_control_output[${_debug}, maChr, chr, maChrControl]}
-	
+
+	/if (${_silent.Equal[SILENT]}) /return
+	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
+
 /return TRUE
 
 
 
-		
+

@@ -2,7 +2,7 @@
  * entropy
  * class.nec.inc
  ***|
- 
+
 
 
 |***
@@ -28,9 +28,9 @@ sub set_NEC(bool _debug)
   /call set_data_map ${_debug} maChr stDichotomic 										PREGEN|1											"${auxna} dichotomic spell"
 
 
-	/varset dump ${set_data_timer[${_debug}, Check_Blood, 8s]}
+	/invoke ${set_data_timer[${_debug}, Check_Blood, 8s]}
 	/call set_data_map ${_debug} maChr swblood													FALSE													"${auxsw} use  blood spell"
-	/call set_data_map ${_debug} maChr stBlood													PREGEN|1											"${auxna} name of current call for blood spell"		
+	/call set_data_map ${_debug} maChr stBlood													PREGEN|1											"${auxna} name of current call for blood spell"
 
 	/call set_data_map ${_debug} maChr stPctBloom				 								0															"${auxnum} % of manna you want to use bloom at"
 
@@ -40,7 +40,7 @@ sub set_NEC(bool _debug)
 
 |***
  * note: Main Necro Routine
- * use: 
+ * use:
  ***|
 sub main_NEC(bool _debug
 	DEBUG \atmain_NEC\ax()
@@ -56,9 +56,9 @@ sub main_NEC(bool _debug
 		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/if (${check_class_loop[FALSE]}) /return
-	
+
 		/if (VALID) {
-			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET	
+			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/call set_combat FALSE
 			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
@@ -74,26 +74,26 @@ sub main_NEC(bool _debug
 			/call check_item_cycle /call check_cure ${maDebug.Find[castitem].Value} TARGET
 
 		}
-		
-		/if (AUTO) {	
+
+		/if (AUTO) {
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			/if (${Me.PctMana} <= ${maChr.Find[stPctBloom].Value}*.PCTHO) /call cast_bloom ${maDebug.Find[mannarecover].Value}
 			CHECKFADE
-		}	
-	}	
-	
-		
+		}
+	}
+
+
 /return
 
 
 
 |***
  * note: why are we healing the dead?
- * use: 
+ * use:
  ***|
 sub check_heal_NEC(bool _debug, string _type)
 	DEBUG \atcheck_heal_NEC\ax()
-	
+
 	CHECKTIE
 	ISMEDEAD
 	CHECKEXIT
@@ -101,32 +101,32 @@ sub check_heal_NEC(bool _debug, string _type)
 	CHECKFADE
 
 	SETHUD "heal ${_type}"
-	
+
  	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
- 	  	
+
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
 		SETHUD FALSE
 		/return	FALSE
-	}  	
+	}
 
 	/if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value}) {
 		/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
 			/call cast_list ${_debug} lsHealPetMend ${Pet.ID}
 		}
-		
+
 		/if (${is_ready[${_debug}, "Mend Companion"]}) {
 			/call voodoo ${_debug} "Mend Companion" ${Pet.ID} FALSE
-		}		
+		}
 
 	}
 
  	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
- 	
+
 	| heal anything spell
 	/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
 		/call cast_list ${_debug} lsHealBaseLine ${hurtID}
@@ -144,12 +144,12 @@ sub check_heal_NEC(bool _debug, string _type)
 
 
 |***
- * note: the extra stuff 
- * use: normal routine 
+ * note: the extra stuff
+ * use: normal routine
  ***|
 sub misc_combat_NEC(bool _debug)
 	DEBUG \atmisc_combat_NEC\ax()
-	
+
 	ISMEDEAD
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 
@@ -158,13 +158,13 @@ sub misc_combat_NEC(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
 	| aa wake the dead
 	/if (SWARM) {
 		| wake the dead
-		/if (${SpawnCount[corpse radius ${Spell[Wake the Dead].MyRange}]} > 3) { 
+		/if (${SpawnCount[corpse radius ${Spell[Wake the Dead].MyRange}]} > 3) {
 			/if (${is_ready[${_debug}, "Wake the Dead"]} && ${Target.PctHPs} > 15) /call voodoo ${_debug} "Wake the Dead" TARGET FALSE
 		}
 		| aa swarm of decay
@@ -172,7 +172,7 @@ sub misc_combat_NEC(bool _debug)
 		| aa Rise of bones
 		/if (${is_ready[${_debug}, "Rise of Bones"]}) /call voodoo ${_debug} "Rise of Bones" TARGET FALSE
 	}
-	
+
 	/if (${is_ready[${_debug}, "Hand of Death"]}) /call voodoo ${_debug} "Hand of Death" TARGET FALSE
 
 /return TRUE
@@ -182,10 +182,10 @@ sub misc_combat_NEC(bool _debug)
 |***
  * note: “You should never attack a necromancer in a cemetery; it’s like chasing Rambo into a building full of loaded guns." --Laurell K. Hamilton, Dead Ice
  * use: burn the dead
- ***| 
+ ***|
 sub burn_NEC(bool _debug)
 	DEBUG \atburn_NEC\ax()
-	
+
 	ISMEDEAD
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 
@@ -194,11 +194,11 @@ sub burn_NEC(bool _debug)
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET	
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
-	
+
 	| /if (${Me.Song[Gift of Deathly Resolve].ID}) /call cast_DOT FALSE TARGET
-	
+
 	| /if (!${Me.Song[Gift of Deathly Resolve].ID} && ${Me.Buff[Deathly Resolve].ID}) /call cast_nuke FALSE TARGET
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
@@ -207,7 +207,7 @@ sub burn_NEC(bool _debug)
 	| Pet Burnage
 	/if (PET && ${Me.Pet.ID}) {
 		/if (${is_ready[${_debug}, "Companion's Fury"]}) /call voodoo ${_debug} "Companion's Fury" ${Me.Pet.ID} FALSE
-	}   
+	}
 
 	/if (${Target.PctHPs} > 15 && ${Me.PctHPs} > 90) {
 		/if (${is_ready[${_debug}, "Life Burn"]}) /call voodoo ${_debug} "Life Burn" TARGET FALSE
@@ -215,15 +215,15 @@ sub burn_NEC(bool _debug)
 
 	/if (!${Me.Buff[Spire of Necromancy].ID}) {
 		/if (${is_ready[${_debug}, "Embalmer's Carapace"]}) /call voodoo ${_debug} "Embalmer's Carapace" TARGET FALSE
-	}		
-	
+	}
+
 	/if (${is_ready[${_debug}, "Funeral Pyre"]}) /call voodoo ${_debug} "Funeral Pyre" TARGET FALSE
 
 	/if (${is_ready[${_debug}, "Gift of Deathly Resolve"]}) /call voodoo ${_debug} "Gift of Deathly Resolve" 0 FALSE
 
 	/if (${is_ready[${_debug}, "Mercurial Torment"]}) /call voodoo ${_debug} "Mercurial Torment" 0 FALSE
 
-	/if (${is_ready[${_debug}, "Focus of Arcanum"]}) /call voodoo ${_debug} "Focus of Arcanum" 0 FALSE        
+	/if (${is_ready[${_debug}, "Focus of Arcanum"]}) /call voodoo ${_debug} "Focus of Arcanum" 0 FALSE
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
 
@@ -237,31 +237,31 @@ sub burn_NEC(bool _debug)
  ***|
 sub cast_blood(bool _debug, int _tmpID)
 	DEBUG \atcast_blood\ax(\a-w${_tmpID}\ax)
-	
+
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	
-	/varset dump ${set_data_timer[${_debug}, Check_Blood, RESTART]}
+
+	/invoke ${set_data_timer[${_debug}, Check_Blood, RESTART]}
 	/if (${Me.Song[Chaotic Power].ID}) /return FALSE
-	
+
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
-	
+
 	/if (${is_ready[${_debug}, "${maChr.Find[stBlood].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stBlood].Value}" ${_tmpID} FALSE
 	}
-	
+
 /return TRUE
 
 
- 
+
 |***
  * note: We want Mana
  * use: /chr bloom #
  ***|
 sub cast_bloom(bool _debug)
 	DEBUG \atcast_bloom\ax()
-	
+
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
@@ -270,15 +270,15 @@ sub cast_bloom(bool _debug)
 	/if (${is_ready[${_debug}, "Death Bloom"]}) {
 		/call voodoo ${_debug} "Death Bloom" 0 FALSE
 	}
-	
+
 /return TRUE
- 
- 
- 
- 
- 
- 
- 
+
+
+
+
+
+
+
 |***
  * note: Class controls
  * use: /chr []
@@ -293,17 +293,17 @@ sub set_control_NEC(string _type, string _verbage, string _silent, bool _debug)
 		/call Bind_command_see maChr ${_verbage}
 		/return
 
-		
+
 	| use mana click items
 	} else /if (${_type.Equal[manarecover]}) {
 		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
-		
+
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
 		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
 		/return
-		
-	| set AA fade use %	
+
+	| set AA fade use %
 	} else /if (${_type.Equal[fade]}) {
 		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
 
@@ -317,22 +317,22 @@ sub set_control_NEC(string _type, string _verbage, string _silent, bool _debug)
 
 	| use blood nuke line
 	} else /if (${_type.Equal[blood]}) {
-		/varset dump ${set_switch_env[${_debug}, swblood, TRUE, ${_verbage}]}
-		
+		/invoke ${set_switch_env[${_debug}, swblood, TRUE, ${_verbage}]}
+
 	| use bloom mana recovery
 	} else /if (${_type.Equal[bloom]}) {
-		/varset dump ${set_switch_env[${_debug}, stPctBloom, TRUE, ${_verbage}]}
-		
+		/invoke ${set_switch_env[${_debug}, stPctBloom, TRUE, ${_verbage}]}
+
 
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return 
-	/varset dump ${set_control_output[${_debug}, maChr, chr, maChrControl]}
-	
+	/if (${_silent.Equal[SILENT]}) /return
+	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
+
 /return
 
 
 
- 
- 
- 
+
+
+
