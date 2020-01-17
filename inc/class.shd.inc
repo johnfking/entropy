@@ -62,7 +62,7 @@ sub set_SHD(bool _debug)
  * use: self absorbed asses.. think they can tank but in reality wet TP is tougher.
  ***|
 sub main_SHD(bool _debug)
-	DEBUG main_SHD()
+	DEBUG \atmain_SHD\ax()
 
 	/if (AUTO) {
 		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle FALSE
@@ -71,9 +71,7 @@ sub main_SHD(bool _debug)
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 
 	/while (${check_combat_status[FALSE]}) {
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call cast_cure FALSE
-		/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+		/call check_heal_routines
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
@@ -106,6 +104,39 @@ sub main_SHD(bool _debug)
 			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[staminarecover].Value}
 		}
 	}
+
+/return TRUE
+
+
+
+|***
+ * note: healing
+ * use: /call check_heal_self_${Me.Class.ShortName}
+ ***|
+sub check_heal_SHD(bool _debug, string _type)
+	DEBUG \atcheck_heal_${Me.Class.ShortName}\ax(\a-w${_type}\ax)
+
+	CHECKTIE
+	ISMEDEAD
+	CHECKEXIT
+	CHECKREZ
+	CHECKFADE
+
+	SETHUD "heal ${_type}"
+
+	/call get_hurt FALSE ${_type}
+
+	| if no one is hurt. back to the start
+	/if (!${hurtCount}) {
+		SETHUD FALSE
+		/return	FALSE
+	}
+
+	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+
+	/call cast_list ${_debug} "lsHealBaseLine" ${hurtID}
+
+	SETHUD FALSE
 
 /return TRUE
 

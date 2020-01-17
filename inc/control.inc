@@ -570,6 +570,16 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 			/return FALSE
 		}
 
+	} else /if (${_type.Equal[SET]}) {
+
+		/if (${Select[${_verbage},FALSE,off]} || !${Ini[${maData.Find[INIset].Value}].Find[${_verbage}]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stBuildSetCurrent, FALSE]}
+		} else {
+			/call Bind_control_build set ${_verbage}
+			/return TRUE
+		}
+
+
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return
@@ -593,6 +603,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 	/invoke ${maControl.Add[takegi,swTakeGroupInvite]}
 	/invoke ${maControl.Add[saferadius,stEnvSafeRadius]}
 	/invoke ${maControl.Add[tribute,swCheckTribute]}
+	/invoke ${maControl.Add[set,stCurrentSet|br]}
 
 	/if (${Select[${Me.Class.ShortName},ROG]}) {
 		/invoke ${maControl.Add[sos,swSoS]}
@@ -1266,6 +1277,9 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	} else /if (${_type.Equal[verb]}) {
 		/if (!${set_control_num_range[${_debug}, stVerb, "${_verbage}", 1, 10]}) /return
 
+	| remember the set build at mac start
+	} else /if (${_type.Equal[rememberset]}) {
+		/invoke ${set_switch_env[FALSE, swBuildSetRemember, TRUE, ${_verbage}]}
 
 	| enable auto adding mobs to lists
 	} else /if (${_type.Equal[autolist]}) {
@@ -1317,7 +1331,8 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	/invoke ${maControl.Add[hud,submenu]}
 	/invoke ${maControl.Add[manautoinv,swAutoInvManual]}
 	/invoke ${maControl.Add[maintenance,swMaintenance]}
-	/invoke ${maControl.Add[nettimeout,nettimeout]}
+	/invoke ${maControl.Add[nettimeout,stNetworkTimeout]}
+	/invoke ${maControl.Add[rememberset,swBuildSetRemember]}
 	/invoke ${set_control_output[${_debug}, maEntropy, entropy, maControl]}
 
 /return TRUE
@@ -1431,7 +1446,6 @@ sub Bind_deez(string _type, string _verbage)
 		/declare _hash string local
 		/declare _list string local
 		/declare _an int local 0
-		/declare _count int local 0
 		/for _count 1 to 32
 			/varset _an ${Math.Rand[1,2]}
 			/if (${_an} == 1) {
@@ -1441,7 +1455,7 @@ sub Bind_deez(string _type, string _verbage)
 			}
 			/varset _hash ${_hash}${${_list}.Item[${Math.Rand[0,${Math.Calc[${${_list}.Count}-1]}]}]}
 		/next _count
-		/echo hash:\a-w${_hash}\ax
+		/echo hash: \a-w${_hash}\ax
 	}
 
 	| var echos for debugging
@@ -1851,13 +1865,11 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 	/declare _DBLOC string local
 	/declare _tmpAux string local
 
-
 	| shows us detailed target info
 	/if (${_variable.Equal[target]}) {
 		OUT name:\aw${Target.DisplayName}\ax (\a-r${Target.Name}\ax) ${sep} \ay${Target.ID}\ax
 		OUT dis(\a-r${Target.Distance}\ax) ${dot} Y(\a-r${Target.Y}\ax)X(\a-r${Target.X}\ax)
 		OUT animation(\a-r${Target.Animation}\ax) ${dot} body(\a-r${Target.Body}\ax)
-
 
 	| see the buff info
 	} else /if (${_variable.Equal[buff]}) {
@@ -1890,7 +1902,6 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/declare _tmpC string local ${maBuffs.Find[stBuff${_verbage}].Value.Arg[2,+c]}
 		/invoke ${out[12, "\awBuff #${_verbage}\ax${sep}${If[${maBuffs.Find[swBuff${_verbage}].Value},${on},${off}]}"]}
 		/invoke ${out[12, "stBuff\aw${_verbage}\ax${sep}\a-w${maBuffs.Find[stBuff${_verbage}].Value}\ax"]}
-
 
 		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maBuffs.Find[stBuff${_verbage}Con].Value}"
 		/if (${sqlite.Rows[dummy]}) {
@@ -3620,31 +3631,29 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 	} else /if (${_build.Equal[set]}) {
 		DEBUG ${sep}set${sep}\a-w${_nickname}\ax
 
-		/varset _fqn exspes\\data\\sets.ini
 		/declare _loadtimestart int local ${MacroQuest.Running}
 
 		/declare _lsset list local
 		/invoke ${_lsset.Delimiter["|"]}
-		/invoke ${_lsset.Append[${Ini[${_fqn},${_nickname}]}]}
+		/invoke ${_lsset.Append[${Ini[${maData.Find[INIset].Value},${_nickname}]}]}
 		/declare _liset listiterator local
 		/vardata _liset _lsset.First.Clone
-		OUT setting${sep}\a-w${_nickname}\ax
+		| OUT setting${sep}\a-w${_nickname}\ax
+		| /call do_raw_edit ${_debug} SILENT stBuildSetCurrent ${_nickname}
+		/invoke ${do_raw_edit[ ${_debug}, SILENT, stBuildSetCurrent, "${_nickname}"]}
 		/while (!${_liset.IsEnd}) {
 			/if (${Bool[${_liset.Value}]}) {
 				| OUT ${_liset.Value}${sep}\a-w${Ini[${_fqn},${_nickname},${_liset.Value}]}\ax
-				/call do_raw_edit ${_debug} SILENT ${_liset.Value} ${Ini[${_fqn},${_nickname},${_liset.Value}]}
+				/call do_raw_edit ${_debug} SILENT ${_liset.Value} ${Ini[${maData.Find[INIset].Value},${_nickname},${_liset.Value}]}
 			}
 			/invoke ${_liset.Advance}
 		}
 		OUT setting${sep}\a-w${_nickname}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_loadtimestart}) / 10) / 60]}s\ax
 		/return TRUE
 
-
 	}
 
 /return TRUE
-
-
 
 
 

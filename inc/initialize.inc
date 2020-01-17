@@ -40,11 +40,11 @@ sub set_debug()
 	| loot
   /invoke ${lsDebugloot.Append[loot]}
 	| mode
-  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm]}
+  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush]}
   | combat
   /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision]}
 	| other
-  /invoke ${lsDebugother.Append[build,edit,rest,rez,spire,glyph,fireworks,manarecover,fade,observe,house,ttl]}
+  /invoke ${lsDebugother.Append[build,init,edit,rest,rez,spire,glyph,fireworks,manarecover,fade,observe,house,ttl]}
   | class specific debugs
   /if (${Select[${Me.Class.ShortName},BER]}) {
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
@@ -454,7 +454,7 @@ sub set_initial_environment(bool _debug)
   | generate modes
   /declare maMode map outer
   /declare lsMode list outer
-  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm]}
+  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush]}
 
 	/declare _lisie listiterator local
   /vardata _lisie lsMode.First.Clone
@@ -664,6 +664,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maEnv stLvlPct                             99                            "${auxnum} % of exp in a level you want to maintain"
   /call set_data_map FALSE maEnv stLvlMax                             110                           "${auxnum} level you want to maintain"
   /call set_data_map FALSE maEnv swCorrectEXPAA                       FALSE                         "${auxsw} use exp/aa adjust functions"
+  /call set_data_map FALSE maEnv stBuildSetCurrent										FALSE                         "${auxna} name of current \a-w/build set\ax"
 
   /invoke ${set_data_timer[FALSE, Waste_Fireworks, 15m]}
   /call set_data_map FALSE maEnv swAAFireworks                        FALSE                         "${auxsw} waste aa on fireworks"
@@ -1100,7 +1101,8 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_list FALSE maEntropy lsSafeNames                     EMPTY                         "${auxli} list of people you trust (\a-wDanNet connections trusted by default\ax)"
   /call set_data_map FALSE maEntropy swAutoList                       FALSE                         "${auxsw} autopopulate zone listsnames for some mob types"
   /call set_data_map FALSE maEntropy stBuffRefresh                    0                             "${auxnum} time in seconds to refrsh a buff before it fades. 0=wait till it fades"
-  /call set_data_map FALSE maEntropy swAutoInvManual                  0                             "${auxsw} obey autoinventory fast list even in manual mode"
+  /call set_data_map FALSE maEntropy swAutoInvManual                  FALSE                         "${auxsw} obey autoinventory fast list even in manual mode"
+  /call set_data_map FALSE maEntropy swBuildSetRemember								FALSE                         "${auxsw} remember and refresh a set on macro boot"
 
   | GoM list
   /call set_data_list FALSE maChr lsGoM                               EMPTY                         "${auxli} things to use on a gift of mana aa proc"
@@ -1128,7 +1130,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
   | can cast?
   /if (${lsClassCast.Contains[${Me.Class.ShortName}]}) {
-    /call set_data_map FALSE maChr stPctManaRecovery                     0                             "${auxna} % to use whatever manna recovery things entropy can find on you"
+    /call set_data_map FALSE maChr stPctManaRecovery                     0                          "${auxna} % to use whatever manna recovery things entropy can find on you"
   }
 
 
@@ -1307,6 +1309,7 @@ sub set_initialize_hud_variables()
   /invoke ${lsHUD.Append[buauto,bupct,bucount,buraid]}
   /invoke ${lsHUD.Append[rpct,rfull,rrod,rbuff,rcombat]}
   /invoke ${lsHUD.Append[zgive,ztake,zcombat,zeveryone,ztoken]}
+  /invoke ${lsHUD.Append[eset]}
 
 	/declare _lisihv listiterator local
   /vardata _lisihv lsHUD.First.Clone
@@ -1347,12 +1350,11 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 
 
-    | row 0
+	| row 0
 
     HUDPATH entropy note0   19,134,0,0,0,0,"${stHUDNotice}"
 
     HUDPATH entropy BG0     3,131,0,0,0,0,██████████████████████████
-
 
     | conbat controls
     | HUDPATH entropy cc1     3,133,14,100,149,237,cc
@@ -1385,19 +1387,15 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH entropy ccC2    19,300,9,25,25,25,"${If[${h_control},,_]}"
 
 
-
-
-    | row 13
+	| row 13
     HUDPATH entropy BG13    3,131,13,0,0,0,██████████████████████████
 
 
-
-
-    | row 26
+	| row 26
 
     | build mode
     HUDPATH entropy build1  3,5,26,100,149,237,build
-    HUDPATH entropy build2  19,45,26,140,140,140,"${h_build}"
+    HUDPATH entropy build2  19,40,26,140,140,140,"${h_build}"
 
     | healing
     HUDPATH entropy h2      19,133,26,255,255,255,"${h_healmode}"
@@ -1425,11 +1423,11 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH entropy BG26    3,3,26,0,0,0,██████████████████████████████████████████
 
 
-    | row 39
+	| row 39
     HUDPATH entropy mode1   19,5,39,100,149,237,mode
-    HUDPATH entropy mode2   19,45,39,255,255,255,"${h_mode}"
+    HUDPATH entropy mode2   19,40,39,255,255,255,"${h_mode}"
 
-    | buffing
+	| buffing
     HUDPATH entropy b1      19,133,39,0,255,0,"${If[${h_bmaster},buff,]}"
     HUDPATH entropy b2      19,133,39,255,0,0,"${If[${h_bmaster},,buff]}"
     HUDPATH entropy bS1     19,157,39,255,255,255,"${If[${h_bself},S,]}"
@@ -1467,11 +1465,11 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 
 
-    | row 52
+	| row 52
 
     | toons loc
-    HUDPATH entropy loc1    3,5,52,100,149,237,"loc"
-    HUDPATH entropy loc2    3,44,52,140,140,140,"${Int[${Me.Y}]}, ${Int[${Me.X}]}, ${Int[${Me.Z}]}"
+    HUDPATH entropy yxz1    3,5,52,100,149,237,"yxz"
+    HUDPATH entropy yxz2    3,40,52,140,140,140,"${Int[${Me.Y}]}, ${Int[${Me.X}]}, ${Int[${Me.Z}]}"
 
 
     | rest
@@ -1491,10 +1489,10 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
     HUDPATH entropy BG52    3,3,52,0,0,0,██████████████████████████████████████████
 
+	| row 65
 
-
-
-    | row 65
+    HUDPATH entropy envset1    3,5,65,100,149,237,"set"
+    HUDPATH entropy envset2    19,40,65,140,140,140,"${h_eset}"
 
     | rez
     HUDPATH entropy rez1    19,255,65,0,255,0,${If[${h_ztake},rez,]}
@@ -1509,9 +1507,6 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH entropy rez10   19,302,60,25,25,25,${If[${h_ztoken},,_]}
 
     HUDPATH entropy BG65    3,3,65,0,0,0,██████████████████████████████████████████
-
-
-
 
     | row 78
     HUDPATH entropy body1   3,73,78,0,255,0,"${If[${Target.LineOfSight},${Target.Body},]}"
@@ -1528,7 +1523,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 
 
-    | row 91
+	| row 91
     HUDPATH entropy target  3,5,91,100,149,237,"${If[${Target.ID},[${Target.Class.ShortName} ${Target.Level}] ${Target.Name} ${If[${Bool[${Target.Guild}]},<${Target.Guild}>, ]}, ]}"
     HUDPATH entropy time1   19,290,91,146,149,180,"${If[${h_time},${Time.Time24},${GameTime}]}"
     HUDPATH entropy BG91    3,3,91,0,0,0,██████████████████████████████████████████

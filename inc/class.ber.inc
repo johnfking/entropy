@@ -134,8 +134,10 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 		}
 	}
 
-	/if (!${Me.Song[Battle Leap].ID}) {
-		/if (${is_ready[${_debug}, "Battle Leap"]} && !${Me.Underwater}) /call voodoo ${_debug} "Battle Leap" 0 FALSE
+	/if (!${Me.Song[Battle Leap].ID} && !${Me.Song[Group Bestial Alignment].ID}) {
+		/if (${is_ready[${_debug}, "Battle Leap"]} && !${Me.Underwater}) {
+			/call voodoo ${_debug} "Battle Leap" 0 FALSE
+		}
 	}
 
 	/if (!BURN) {

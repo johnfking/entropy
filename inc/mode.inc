@@ -21,7 +21,10 @@ sub switch_clear_mode(bool _debug)
 
 	/declare _count int local 0
 	/declare _list string local ${sql_return[FALSE, lstTypesMode]}
-	/if (${swModeToken}) /varset swModeToken FALSE
+
+	/if (${swModeToken}) {
+		/varset swModeToken FALSE
+	}
 
 	/for _count 1 to ${_list.Count[|]}
 		/if (${swMode${_list.Arg[${_count},|]}}) {
@@ -81,7 +84,7 @@ sub mode_skill_train(string _skilltype, bool _debug)
 
 
 	ISMEDEAD
-	SETHUD "Skill Train"
+	SETHUD "mode skill train"
 	/delay 1
 
 	/if (${Me.Skill[Taunt]} < ${Skill[Taunt].SkillCap} && ${Me.AbilityReady[Taunt]}) /doability Taunt
@@ -129,7 +132,12 @@ sub mode_fish(bool _debug)
 			/call voodoo ${_debug} "Fisherman's Companion" ${Me.ID} FALSE
 		}
 	}
-	/if (${Me.AbilityReady[fishing]}) /doability fishing
+
+	/call check_cursor ${_debug} TRUE
+
+	/if (${Me.AbilityReady[fishing]}) {
+		/doability fishing
+	}
 
 	/call check_cursor ${_debug} TRUE
 
@@ -161,7 +169,6 @@ sub mode_forage(bool _debug)
 
 	/doability forage
 	/delay 1s
-
 
 	/while (${Cursor.ID})	{
 		GETINPUT
@@ -510,35 +517,38 @@ sub mode_get_waisted(bool _debug)
 
 
 |***
- *	DES:
- *	USE: /call mode_get_drunk
- *  NOTE:
+ * note: alcohol tolerance
+ * use: /call mode_lush
  ***|
-sub mode_get_drunk(bool _debug)
-	/if (!${FindItem[${modeDrinkofChoice}].ID} || !${Bool[${modeDrinkofChoice}]}) {
+sub mode_lush(bool _debug)
+	DEBUG \atmode_lush\ax()
+
+	/if (!${FindItem[=${stModeData}].ID} || !${Bool[${stModeData}]}) {
 		/varset swModeDrink FALSE
 		/return
 	}
+
 	SETHUD "mode lush"
 
 	| start drinking.
 	/while (${Me.Skill[Alcohol Tolerance]} < ${Skill[Alcohol Tolerance].SkillCap}) {
-		/if (!${Me.ItemReady[=${modeDrinkofChoice}]}) /break
-		| /if (${Me.Drunk} < 200) /useitem ${modeDrinkofChoice}
-		/if (${Me.Drunk} < 200) /call core_cast2 "${modeDrinkofChoice}" item 0 FALSE
+		/if (!${Me.ItemReady[=${stModeData}]}) /break
+		/if (${Me.Drunk} < 200) {
+			/call voodoo ${_debug} "${stModeData}" 0 FALSE
+		}
 		/delay 2
-		/delay 2s ${Me.Drunk} < 200
+		/delay 2s ${Me.Drunk} <  190
 	}
 
 	| maxed skill turn this off
 	/if (${Me.Skill[Alcohol Tolerance]} == ${Skill[Alcohol Tolerance].SkillCap}) {
-		VOUT Alcohol Tolerance Maxed ${sep} (${cnum}${Me.Skill[Alcohol Tolerance]}\ax)
-		/varset swModeDrink FALSE
-		/return
+		OUT Alcohol Tolerance Maxed ${sep} (${cnum}${Me.Skill[Alcohol Tolerance]}\ax)
+		/return TRUE
 	}
 
 	SETHUD FALSE
-/return
+
+/return TRUE
 
 
 

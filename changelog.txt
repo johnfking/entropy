@@ -19,11 +19,30 @@ on the to do list
 - /navto NULL when requestor is not in zone
 - find a way to convert lines for the new condition system
 
-
-
 --------------------
 
 
+
+
+
+
+- warrior
+  put a check in for Group Bestial Alignment for Battle Leap
+- berserker
+  put a check in for Group Bestial Alignment for Battle Leap
+- shadowknight
+  i put the heal section back in for them. not sure where it went or what it was thinking when it left
+- fixed a debug error
+- HUD
+  updated to display the current set that is running for the character
+- sets
+	/env set NAME - will load and store the current set in the database for use later if needed.
+  /entropy rememberset - (on/off) will force a reload of the set at the start of the mac
+- /mode
+  "lush" will drink whatever you have set as /mode data "drink name" till you are shit faced
+  it will keep you that way until the bar tender you are hitting on kicks your ass out for the night
+  or you are max alcohol tolerance
+- corrected a bad check for item dps clicking
 
 
 
@@ -38,7 +57,6 @@ A200112.01
   these will be a case by case design
 - /build
   set - smaller version of a load. works off sets.ini in the data directory structured like the following:
-
   [clericraid]
   ; settings for a handsoff heal only cleric
   stCountArbitrate=0
@@ -50,13 +68,11 @@ A200112.01
   swRezGive=FALSE
   swRezCombat=FALSE
   swHealXTarget=TRUE
-
 	e.g. doing a /build set clericraid
 	will load those settings directly. nothing else. can make as many sets as you like.
 	DO NOT use for lists. least not yet.
 	the point of this is speed and something simpler to use
 	setting this up is completely manual
-
 - pulling
   more refinements to nav pulling. still not happy with the delays in pulling with spells
   will see about pulling the cast range out and using that as a max moveto for the target
@@ -64,21 +80,17 @@ A200112.01
 - debugs
   more updates to te debugs for pulling
   "cb" will debug the /cb command
-
 - CHANGES TO CONDITIONS!!!!
   conditions are no longer attached as a +c# (+c4 or whatever) to the thing you are wanting to check.
   they are now their own entry e.g. stBuff5Con=#, # being the number of the condition you want to use
   application is the same, if the condition evaluates to FALSE then the whatever will not be done.
   setting a condition to 0 will disable the condition check. 0 is the default.
-
 - /condition (new command)
   /condition 4 "!${Select[${Me.Class.ShortName},DRU]}" would add that condition to slot 4
   /condition 8 clear - would set the condition back to false/default
   /condition list - will show all set conditions
-
 - buffing
   self buffs should obey the off switch again. i'll try to not beak it anymore
-
 - /buff
   the /buff command will now accept editing for buffs for example:
   /buff 1 gem13 - will set buff 1 to the spell in gem 13
@@ -91,7 +103,6 @@ A200112.01
   /buff 10 tag "crew|self" add - will add those two tags to your tag list for buff 10
   /buff 14 tag clear - will clear all tags for buff 14
   /buff 28 clear - will rest it to all defaults and turn off
-
 - dps click items
   /clickitem (new command, i'll change the name when i can use /item 'til then, suck it up)
   now have an on off switch like buffs do

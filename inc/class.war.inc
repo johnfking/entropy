@@ -217,7 +217,7 @@ sub misc_combat_WAR(bool _debug)
 		/call voodoo ${_debug} "Vehement Rage" 0 FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Battle Leap"]} && !${Me.Song[Battle Leap Warcry].ID}) {
+	/if (${is_ready[${_debug}, "Battle Leap"]} && !${Me.Song[Battle Leap Warcry].ID} && !${Me.Song[Group Bestial Alignment].ID}) {
 		/call voodoo ${_debug} "Battle Leap" 0 FALSE
 	}
 

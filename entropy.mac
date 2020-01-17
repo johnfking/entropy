@@ -119,7 +119,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A200112.01
+	/call set_data FALSE maEnv build													map outer A200117.01
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -146,6 +146,10 @@ sub main(string _debug, string _param1, string _auto)
 		}
 	} else /if (!${Bool[${maData.Find[stPreviousBuild].Value}]}) {
 		/invoke ${out[0, "Help${sep}\a-w/aux\ax or \a-w/command aux\ax"]}
+	}
+
+	/if (${maEntropy.Find[swBuildSetRemember].Value}) {
+		/call Bind_control_env set ${maEnv.Find[stBuildSetCurrent].Value}
 	}
 
 	/invoke ${out[0, "\agReady\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax"]}
@@ -296,7 +300,9 @@ sub main(string _debug, string _param1, string _auto)
 		/mqlog ${maEnv.Find[build].Value} .. Clean Exit
 	}
 	/if (${swDanNet}) {
-		/if (${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) /dleave ${maComm.Find[stEntropyGroup_all].Value}
+		/if (${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) {
+			/dleave ${maComm.Find[stEntropyGroup_all].Value}
+		}
 	}
 
 /return
@@ -323,6 +329,9 @@ sub prepare_the_end(bool _debug)
 
 	| set zone database
 	/call set_data FALSE maData DBzone										  						map outer macros\\exspes\\data\\zone.sqlite
+
+	| set ini set location
+	/call set_data FALSE maData INIset										  						map outer exspes\\data\\sets.ini
 
 	| fuck MQ2Melee
 	/if (${check_plugin[FALSE, FALSE, |mq2melee]}) {
@@ -398,7 +407,7 @@ sub prepare_the_end(bool _debug)
 	}
 
 	| set class databits'n-bytes
-	/call set_${Me.Class.ShortName} ${maDebug.Find[build].Value}
+	/call set_${Me.Class.ShortName} ${maDebug.Find[init].Value}
 
  	| check game cash?
 	/call check_free_ingame_cash FALSE

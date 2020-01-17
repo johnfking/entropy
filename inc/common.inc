@@ -2886,7 +2886,7 @@ sub get_target_buff_time_left(bool _debug, string _buff)
 		/if (!${Target.ID} || ${Target.Dead}) /return FALSE
 		/if (!${Target.Buff[${_count}].Name.Find[${_buff}]}) /continue
 		/if (${Target.Buff[${_count}].Caster.Equal[${Me.DisplayName}]}) {
-			DEBUG ${sep}FOUND${sep}\a-w${_buff}\ax ${\a-r${Target.BuffDuration[${_count}].TotalSeconds}\ax)}
+			DEBUG ${sep}FOUND${sep}\a-w${_buff}\ax (\a-r${Target.BuffDuration[${_count}].TotalSeconds}\ax)
 			/break
 		}
 	/next _count
@@ -4952,7 +4952,7 @@ sub check_buff_cycle(bool _debug, bool _force)
 		/if (AUTO && !${maBuff.Find[swBuffMaster].Value}) {
 			/invoke ${out[0, "Master Buff Switch${sep}${off}"]}
 		} else {
-			/invoke ${out[0, "Buff Cycle${sep}\a-wForced\ax"]}
+			| /invoke ${out[0, "Buff Cycle${sep}\a-wForced\ax"]}
 		}
 	}
 
@@ -5171,9 +5171,12 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 			/continue
 		}
 
-		/if (!${maItems.Find[stItem${_liC20.Value}].Value}) /continue
+		| /if (!${maItems.Find[stItem${_liC20.Value}].Value}) /continue
 
-		/if (!${check_condition[${_debug}, ${maItems.Find[stItem${_liC20.Value}Con].Value}]}) /continue
+		/if (!${check_condition[${_debug}, ${maItems.Find[stItem${_liC20.Value}Con].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
 
 		| check for specific tags, like epics
 		/if (${Bool[${_tag}]}) {
@@ -8036,24 +8039,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
 		/invoke ${li.Advance}
 	}
 
-/return
-
-
-
-
-
-
-
-${Target.Tashed}
-
-
-
-
-
-
-
-
-
+/return TRUE
 
 
 
@@ -8076,21 +8062,33 @@ sub check_minion_cycle(bool _debug, bool _force)
 	}
 
 	| summon minion
-	/if (!${Pet.ID}) /call check_minion_cycle_summon TRUE
+	/if (!${Pet.ID}) {
+		/call check_minion_cycle_summon TRUE
+	}
 
 	| buffs
-	/if (${maMinion.Find[swPetBuff].Value} && (!${timer_Check_Minion_Buff} || ${_force})) /call check_minion_cycle_buff ${_debug}
+	/if (${maMinion.Find[swPetBuff].Value} && (!${timer_Check_Minion_Buff} || ${_force})) {
+		/call check_minion_cycle_buff ${_debug}
+	}
 
 	| get weapons?
-	/if (${maMinion.Find[swUsePetGear].Value}) /call check_minion_cycle_weapons ${_debug}
+	/if (${maMinion.Find[swUsePetGear].Value}) {
+		/call check_minion_cycle_weapons ${_debug}
+	}
 
-	/if (${Pet.ID} && ${Bool[${maMinion.Find[stPetIllusion].Value}]}) /call check_minion_cycle_Illusion ${_debug}
+	/if (${Pet.ID} && ${Bool[${maMinion.Find[stPetIllusion].Value}]}) {
+		/call check_minion_cycle_Illusion ${_debug}
+	}
 
 	| shrink
-	/if (${maMinion.Find[swPetShrink].Value} && (!${timer_Check_Minion_Shrink} || ${_force})) /call check_minion_cycle_shrink ${_debug}
+	/if (${maMinion.Find[swPetShrink].Value} && (!${timer_Check_Minion_Shrink} || ${_force})) {
+		/call check_minion_cycle_shrink ${_debug}
+	}
 
 
-	/if (AUTO) /invoke ${set_data_timer[${_debug}, Check_Minion_Cycle, RESTART]}
+	/if (AUTO) {
+		/invoke ${set_data_timer[${_debug}, Check_Minion_Cycle, RESTART]}
+	}
 
 	/if (${_force}) {
 		/if (${maMinion.Find[swPet].Value}) {
@@ -8098,7 +8096,7 @@ sub check_minion_cycle(bool _debug, bool _force)
 		}
 	}
 
-/return
+/return TRUE
 
 
 
@@ -8182,9 +8180,11 @@ sub check_minion_cycle_buff(bool _debug)
 
 	/next _count
 
-	/if (${Target.ID}) /squelch /target clear
+	/if (${Target.ID}) {
+		/squelch /target clear
+	}
 
-/return
+/return TRUE
 
 
 
@@ -8227,9 +8227,11 @@ sub check_minion_cycle_summon(bool _debug)
 	/pet hold on
 	/pet ghold on
 
-	/if (AUTO) /invoke ${set_data_timer[FALSE, Check_Minion_Buff, 1]}
+	/if (AUTO) {
+		/invoke ${set_data_timer[FALSE, Check_Minion_Buff, 1]}
+	}
 
-/return
+/return FALSE
 
 
 
@@ -8239,7 +8241,6 @@ sub check_minion_cycle_summon(bool _debug)
  ***|
 sub check_minion_cycle_weapons(bool _debug)
 	DEBUG \atcheck_minion_cycle_weapons\ax()
-
 
 	ISMEDEAD
 	CHECKEXIT
@@ -8281,7 +8282,7 @@ sub check_minion_cycle_weapons(bool _debug)
 
 	/if (${Pet.ID}) /call get_minion_summon_weapons FALSE
 
-/return
+/return TRUE
 
 
 
@@ -8305,7 +8306,7 @@ sub check_minion_cycle_Illusion(bool _debug)
 		/call voodoo FALSE "${maMinion.Find[stPetIllusion].Value}" ${Pet.ID} FALSE
 	}
 
-/return
+/return TRUE
 
 
 
@@ -8348,7 +8349,7 @@ sub give_to_pet(string _item, bool _debug)
 		}
 	}
 
-/return
+/return TRUE
 
 
 
@@ -8460,7 +8461,9 @@ sub get_minion_summon_weapons(bool _debug)
 
 	/if (${Cursor.ID}) /call check_cursor ${_debug} CLEAR
 
-	/if (${Window[InventoryWindow].Open}) /invoke ${Window[InventoryWindow].DoClose}
+	/if (${Window[InventoryWindow].Open}) {
+		/invoke ${Window[InventoryWindow].DoClose}
+	}
 
 /return
 
@@ -8614,7 +8617,7 @@ sub cast_shield_flash(bool _debug, string _type)
 
 |***
  * note: swaps bandolier
- *	USE: /call set_bandolier DEBUG [1h|2h|range|no]
+ * use: /call set_bandolier DEBUG [1h|2h|range|no]
  ***|
 sub set_bandolier(bool _debug)
 	DEBUG \atset_bandolier\ax()
@@ -8722,6 +8725,7 @@ sub set_hud_data(string _mode)
 	/while (!${_lishd.IsEnd}) {
 		/if (${Me.Buff[${_lishd.Value}].ID}) {
 			| /varset stHUDNotice ${stHUDNotice} IV
+			/break
 		}
 		/invoke ${_lishd.Advance}
 	}
@@ -8730,6 +8734,7 @@ sub set_hud_data(string _mode)
 	/while (!${_lishd.IsEnd}) {
 		/if (${Me.Buff[${_lishd.Value}].ID}) {
 			| /varset stHUDNotice ${stHUDNotice} IVU
+			/break
 		}
 		/invoke ${_lishd.Advance}
 	}
@@ -8752,7 +8757,6 @@ sub set_hud_data(string _mode)
 	/varset h_heal					${maCC.Find[swCombatHeal].Value}
 	/varset h_control				${maCC.Find[swCombatControl].Value}
 	/varset h_env						${maEnv.Find[stEnvRadius].Value}
-
 
 	| healing
 	/varset h_healmode			${maHeal.Find[stHealMode].Value}
@@ -8807,7 +8811,11 @@ sub set_hud_data(string _mode)
 	/varset h_zeveryone			${maRez.Find[swRezEveryone].Value}
 	/varset h_ztoken				${maRez.Find[swRezToken].Value}
 
-/return
+	| character build
+	/varset h_eset					${maEnv.Find[stBuildSetCurrent].Value}
+
+
+/return TRUE
 
 
 
@@ -10129,7 +10137,9 @@ sub set_dnet_group(bool _debug)
 sub check_heal_routines()
 
 	| check for any defensives first
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
+		/call cast_defensive_cycle ${maDebug.Find[def].Value}
+	}
 
 	| heal: target of target
 	/if (${lsClassHealToT.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealToT].Value}) {
