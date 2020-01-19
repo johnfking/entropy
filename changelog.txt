@@ -23,9 +23,31 @@ on the to do list
 
 
 
+A200119.01
+- cleric
+  considerable changes to divine arbitration and group healing.
+  forcing a group heal after an arbitrate is no longer a thing.
+  the code re-evaluates group health every arbitrate and will group heal if needed
+  will no longer use turn undead unles dots are enabled
+- custom.inc
+  has been moved to the data folder.
+- /cb has options now [a|s|c|b|t|u]
+  a-aura
+  s-self/shrink/ammo/class-specific
+  c-crew
+  b-check beg queue
+  t-temp
+  u-unity aa buff
+  these options for will force the line of buffs checked even if you have them turned off
+- housekeeping
+  auto removal from the core_communications dannet group
+- buffing
+  class tags should work properly. must be used in conjunction with crew tag!!!
+- /tie
+  corrected spawn targeting for mode stick
 
 
-
+A200117.01
 - warrior
   put a check in for Group Bestial Alignment for Battle Leap
 - berserker
@@ -43,7 +65,6 @@ on the to do list
   it will keep you that way until the bar tender you are hitting on kicks your ass out for the night
   or you are max alcohol tolerance
 - corrected a bad check for item dps clicking
-
 
 
 A200112.01

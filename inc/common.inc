@@ -814,10 +814,8 @@ sub get_hurt(bool _debug, string _type)
 			}
 
 		/next _count
-
-		DEBUG ${sep}worst hurt${sep}\a-w${hurtID} ${hurtCLS}@${hurtPctHP}\ax
-		DEBUG ${sep}hurt count${sep}\a-w${hurtCount}\ax
 		/return ${hurtCount}
+
 
 
 	| check xtarget hurt
@@ -864,15 +862,21 @@ sub get_hurt(bool _debug, string _type)
 	| self only pet hurt
 	} else /if (${_type.Equal[mypet]}) {
 		/if (!${Me.Pet.ID}) /return FALSE
-    /if (${Me.Pet.PctHPs} >= ${PetPoint}) /return FALSE
-    /if (${Me.Pet.Distance} > ENV) /return FALSE
+    /if (${Me.Pet.PctHPs} >= ${maHeal.Find[stHealPoint${Me.Pet.Class.ShortName}].Value}) {
+    	/return 0
+    }
+    /if (${Me.Pet.Distance} > ENV) {
+    	/return 0
+    }
 
 		/varset hurtID ${Me.Pet.ID}
 		/varset hurtPctHP ${Me.Pet.PctHPs}
 		/varset hurtCLS Pet
-	  /if (${hurtPctHP} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) /return FALSE
+	  /if (${hurtPctHP} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+	  	/return 0
+	  }
 		/varset hurtCount 1
-		/return ${hurtCount}
+		/return 1
 
 	| set self hurt
 	} else /if (${_type.Equal[self]}) {
@@ -880,9 +884,11 @@ sub get_hurt(bool _debug, string _type)
 		/varset hurtPctHP ${Me.PctHPs}
 		/varset hurtCLS ${Me.Class.ShortName}
 
-		/if (${hurtPctHP} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) /return FALSE
+		/if (${hurtPctHP} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+			/return 0
+		}
 		/varset hurtCount 1
-		/return ${hurtCount}
+		/return 1
 
 
 	| target of target hurt
@@ -893,16 +899,19 @@ sub get_hurt(bool _debug, string _type)
 		DEBUG ${sep}hurtID:\a-w${hurtID}\ax ${dot} hurtPctHP:\a-w${hurtPctHP}\ax ${dot} hurtCLS:\a-w${hurtCLS}\ax
 
 		DEBUG ${hurtPctHP} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO
-		/if (${hurtPctHP} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) /return FALSE
+		/if (${hurtPctHP} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+			/return 0
+		}
 		/varset hurtID ${Target.ID}
 		/varset hurtCount 1
 
 		DEBUG ${sep}hurtID:\a-w${hurtID}\ax ${dot} hurtPctHP:\a-w${hurtPctHP}\ax ${dot} hurtCLS:\a-w${hurtCLS}\ax
 
-		/return ${hurtCount}
+		/return 1
 
 	}
-/return FALSE
+
+/return 0
 
 
 
@@ -1147,7 +1156,7 @@ sub set_observers(bool _debug, string _map, string _action)
 	/for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
 		/varset _timestart ${MacroQuest.Running}
 
-		| skip toons that ar not here
+		| skip toons that are not here
 		/if (!${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}) /continue
 
 		| were going to use the dannet default all group to get names from. can be hatever you like tho
@@ -4627,8 +4636,12 @@ sub set_tie(bool _debug)
 	} else /if (${maTie.Find[stTieMode].Value.Equal[stick]}) {
 		DEBUG ${sep}mode${sep}\a-wstick\ax
 		| all present and or accounted for SIR!
-		/if (${Spawn[pc ${_ID}].Distance} > ${maTie.Find[stTieVariance].Value}) {
-			/if (${Target.ID}) /squelch /target clear
+		/if (${Spawn[ID ${_ID}].Distance} > ${maTie.Find[stTieVariance].Value}) {
+			/if (${Target.ID}) {
+				/squelch /target clear
+			}
+
+			/echo here
 			/squelch /face ID ${_ID} ${If[${maHome.Find[swFaceFast].Value},fast,]}
 			/squelch /stick ID ${_ID} ${maTie.Find[stTieVariance].Value} UW
 		}
@@ -4636,7 +4649,7 @@ sub set_tie(bool _debug)
 		:okweresticking
 		ISMEDEAD
 		GETINPUT
-		/if (${Spawn[pc ${_ID}].Distance} <= ${maTie.Find[stTieVariance].Value}) {
+		/if (${Spawn[ID ${_ID}].Distance} <= ${maTie.Find[stTieVariance].Value}) {
 			/squelch /stick off
 			/return
 		}
@@ -4904,9 +4917,9 @@ sub check_buff_cycle_aura(bool _debug)
 
 						DEBUG ${sep}/if Me.Aura[${_count}].Name.Equal[${_a${_aura}c}]
 						/if (${Me.Aura[${_count}].Name.Equal[${_a${_aura}c}]}) {
-						/varset _found${_aura} TRUE
+							/varset _found${_aura} TRUE
 
-						DEBUG ${sep}/if Me.Aura[${_count}].Name.Equal[${_a${_aura}}]
+							DEBUG ${sep}/if Me.Aura[${_count}].Name.Equal[${_a${_aura}}]
 						} else /if (${Me.Aura[${_count}].Name.Equal[${_a${_aura}}]}) {
 							/varset _found${_aura} TRUE
 						}
@@ -4930,14 +4943,14 @@ sub check_buff_cycle_aura(bool _debug)
 
 /return TRUE
 
-
+${Me.Aura[1].Name}
 
 |***
  * note: do all the damn buffs
  * use: /call check_buff_cycle DEBUG <FORCE>
  ***|
-sub check_buff_cycle(bool _debug, bool _force)
-	DEBUG \atcheck_buff_cycle\ax(\a-w${_force}\ax)
+sub check_buff_cycle(bool _debug, bool _force, string _verbage)
+	DEBUG \atcheck_buff_cycle\ax(\a-w${_force}, ${_verbage}\ax)
 
 	/if (AUTO) {
 		/invoke ${set_data_timer[${_debug}, Check_Buff_Cycle, RESTART]}
@@ -4951,40 +4964,37 @@ sub check_buff_cycle(bool _debug, bool _force)
 		/declare _buffcycletimestart int local ${MacroQuest.Running}
 		/if (AUTO && !${maBuff.Find[swBuffMaster].Value}) {
 			/invoke ${out[0, "Master Buff Switch${sep}${off}"]}
-		} else {
-			| /invoke ${out[0, "Buff Cycle${sep}\a-wForced\ax"]}
 		}
 	}
 
-| ${If[${_force},${_debug},]}
 
 	| unity
-	/if (${maBuff.Find[swBuffUnity].Value} && ((AUTO && !${timer_Check_Buff_Unity}) || ${_force})) {
+	/if ((${maBuff.Find[swBuffUnity].Value} || ${_verbage.Equal[u]}) && ((AUTO && !${timer_Check_Buff_Unity}) || ${_force})) {
 		/call check_buff_cycle_unity ${If[${_force},${_debug},${maDebug.Find[unity].Value}]}
 	}
 
 	| aura
-	/if (${maBuff.Find[swBuffAura].Value} && ((AUTO && !${timer_Check_Buff_Aura}) || ${_force})) {
+	/if ((${maBuff.Find[swBuffAura].Value} || ${_verbage.Equal[a]}) && ((AUTO && !${timer_Check_Buff_Aura}) || ${_force})) {
 		/call check_buff_cycle_aura ${If[${_force},${_debug},${maDebug.Find[aura].Value}]}
 	}
 
 	| shrink
-	/if (${maBuff.Find[swBuffShrink].Value} && ((AUTO && !${timer_Check_Buff_Shrink}) || ${_force})) {
+	/if ((${maBuff.Find[swBuffShrink].Value} || ${_verbage.Equal[s]}) && ((AUTO && !${timer_Check_Buff_Shrink}) || ${_force})) {
 		/call check_buff_cycle_shrink ${If[${_force},${_debug},${maDebug.Find[shrink].Value}]}
 	}
 
 	| self
-	/if (${maBuff.Find[swBuffSelf].Value} && ((AUTO && !${timer_Check_Buff_Self}) || ${_force})) {
+	/if ((${maBuff.Find[swBuffSelf].Value} || ${_verbage.Equal[s]}) && ((AUTO && !${timer_Check_Buff_Self}) || ${_force})) {
 		/call check_buff_cycle_self ${If[${_force},${_debug},${maDebug.Find[buffself].Value}]}
 	}
 
 	| crew
-	/if (${maBuff.Find[swBuffCrew].Value} && ((AUTO && !${timer_Check_Buff_Crew}) || ${_force})) {
+	/if ((${maBuff.Find[swBuffCrew].Value} || ${_verbage.Equal[c]}) && ((AUTO && !${timer_Check_Buff_Crew}) || ${_force})) {
 		/call check_buff_cycle_crew ${If[${_force},${_debug},${maDebug.Find[crew].Value}]}
 	}
 
 	| beg
-	/if (${maBuff.Find[swBuffBeg].Value} && ((AUTO && !${timer_Check_Buff_Beg}) || ${_force})) {
+	/if ((${maBuff.Find[swBuffBeg].Value} || ${_verbage.Equal[b]}) && ((AUTO && !${timer_Check_Buff_Beg}) || ${_force})) {
 		/call check_buff_cycle_beg ${If[${_force},${_debug},${maDebug.Find[beg].Value}]}
 	}
 
@@ -4994,13 +5004,13 @@ sub check_buff_cycle(bool _debug, bool _force)
 	}
 
 	| ranged ammo
-	/if (${maBuff.Find[swBuffAmmo].Value} && ((AUTO && !${timer_Check_Ammo}) && (!${Me.Inventory[ammo].ID} || ${_force}))) {
+	/if ((${maBuff.Find[swBuffAmmo].Value} || ${_verbage.Equal[s]}) && ((AUTO && !${timer_Check_Ammo}) && (!${Me.Inventory[ammo].ID} || ${_force}))) {
 		/call check_buff_cycle_ammo ${If[${_force},${_debug},${maDebug.Find[ammo].Value}]}
 	}
 
 
 	| class specific buffs. buff self required
-	/if (${maBuff.Find[swBuffSelf].Value} && (!${timer_Check_Buff_Self} || ${_force})) {
+	/if ((${maBuff.Find[swBuffSelf].Value} || ${_verbage.Equal[s]}) && (!${timer_Check_Buff_Self} || ${_force})) {
 		/if (${Select[${Me.Class.ShortName},BER]}) {
 		} else /if (${Select[${Me.Class.ShortName},BRD]}) {
 		} else /if (${Select[${Me.Class.ShortName},BST]}) {
@@ -5936,10 +5946,11 @@ sub check_buff_cycle_crew(bool _debug)
 
 		| each buff
 		/for _count 1 to 50
+			| SDEBUG ${_count}
 
 			/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
 			/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) /continue
-			/if (!${check_basic_tags[FALSE, Buff${_count}, ${_toonName}]}) /continue
+			/if (!${check_basic_tags[${_debug}, Buff${_count}, ${_toonName}]}) /continue
 
 			DEBUG ${sep}\agBUFF\ax#${sep}\a-w${_count}\ax \a-p---------------------\ax
 
@@ -6689,17 +6700,27 @@ sub check_basic_tags(bool _debug, string _type, string _name)
 	| }
 
 	| /if (!${Bool[${_name}]} || ${_name.Equal[FALSE]}) /return TRUE
-	| /if (!${Spawn[${_name}].ID}) /return FALSE
+	| /if (!${Spawn[${_name} ].ID}) /return FALSE
 
 	| class
-	| /declare _li listiterator local
-	| /vardata _li lsClassAll.First.Clone
-	| /while (!${_li.IsEnd}) {
-	| 	/if (${ls${_type}Tag.Contains[${_li.Value}]}) {
-	| 		/if (${Spawn[${_name}].Class.ShortName.NotEqual[${_li.Value}]}) /return FALSE
-	| 	}
-	| 	/invoke ${_li.Advance}
-	| }
+	/declare _marker bool FALSE
+	/declare _contains FALSE
+	/declare _li listiterator local
+	/vardata _li lsClassAll.First.Clone
+	/while (!${_li.IsEnd}) {
+		/if (${ls${_type}Tag.Contains[${_li.Value}]}) {
+			/varset _contains TRUE
+			/if (${Spawn[${_name}].Class.ShortName.Equal[${_li.Value}]}) {
+				DEBUG ${sep}\ayfound tag\ax${sep}\a-w${_li.Value}\ax
+				/varset _marker TRUE
+				/break
+			}
+		}
+		/invoke ${_li.Advance}
+	}
+	/if (${_contains} && !${_marker}) {
+		/return FALSE
+	}
 
 	| one of your crew
 	| /if (${ls${_type}Tag.Contains[crew]}) {
@@ -7355,7 +7376,7 @@ sub check_cure(bool _debug)
 
 			| paladin splash 50' range
 			/if (${Select[${Me.Class.ShortName},PAL]} && ${Spawn[pc ${_name}].Distance} < 50) {
-				/call Bind_command_splash
+				/call Bind_command_splash FALSE
 				/invoke ${set_data_timer[FALSE, Check_Cure, 2s]}
 				/return
 			}
@@ -10306,3 +10327,48 @@ sub control_TTL(bool _debug, string _verbage)
 
 
 /invoke ${maTTL.Add[stTTLType,${Me.DisplayName}]}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -51,7 +51,7 @@ sub set_debug()
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
   	/invoke ${lsDebugclass.Append[para]}
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
-  	/invoke ${lsDebugclass.Append[arbitrate]}
+  	/invoke ${lsDebugclass.Append[arbitrate,splash]}
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
   	/invoke ${lsDebugclass.Append[crystal,gather]}
@@ -60,6 +60,7 @@ sub set_debug()
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
+  	/invoke ${lsDebugclass.Append[splash]}
   } else /if (${Select[${Me.Class.ShortName},RNG]}) {
   	/invoke ${lsDebugclass.Append[summer]}
   } else /if (${Select[${Me.Class.ShortName},ROG]}) {
@@ -713,6 +714,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data FALSE FALSE hurtPctHP                                int outer 100
   /call set_data FALSE FALSE hurtCLS                                  string outer FALSE
   /call set_data FALSE FALSE hurtCount                                int outer 0
+
 
  	| points for healers
   /if (${lsClassHeal.Contains[${Me.Class.ShortName}]}) {

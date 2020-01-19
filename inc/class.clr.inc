@@ -62,7 +62,7 @@ sub set_CLR(bool _debug)
 
 	| arbitration
 
-	/call set_data_map ${_debug} maChr swArbitratetoHealGroup						FALSE													"${auxsw} heal group immediately after an arbitration"
+	| /call set_data_map ${_debug} maChr swArbitratetoHealGroup						FALSE													"${auxsw} heal group immediately after an arbitration"
 	/call set_data_map ${_debug} maChr swArbitrate											FALSE													"${auxsw} use aa arbitrate and epic sheild"
 	/call set_data_map ${_debug} maChr stCountArbitrate									0															"${auxnum} num of group hurt to use arbitration aa/epic"
 
@@ -205,19 +205,14 @@ sub misc_combat_CLR(bool _debug)
 		}
 	}
 
-	| undead aa nuke
-	/if (${Target.Body.Name.Equal[Undead]}) {
+	| undead aa dot
+	/if (${Target.Body.Name.Equal[Undead]} && DOT) {
 		/if (${is_ready[${_debug}, "Turn Undead"]}) {
 			/call voodoo ${_debug} "Turn Undead" TARGET FALSE
 		}
 	}
 
-	/if (AUTO && ${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
-		/call get_hurt FALSE Group
-		/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
-	}
-
-/return
+/return TRUE
 
 
 
@@ -245,7 +240,7 @@ sub cast_nut_smasher(bool _debug)
 		/return
 	}
 
-/return
+/return TRUE
 
 
 
@@ -266,9 +261,23 @@ sub check_heal_CLR(bool _debug, string _type)
 	SETHUD "heal ${_type.Lower}"
 
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
-	/if (${Select[${_type},group]} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
 
-	/if (${Select[${_type},group]} && ${hurtCount} >= ${maChr.Find[stCountHealGroup].Value} && ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
+
+	| arbitrate / group heal
+	/if (${Select[${_type},group]}) {
+		/if (${maChr.Find[stCountArbitrate].Value}) {
+			/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
+				/call do_arbitration ${maDebug.Find[arbitrate].Value}
+				/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+			}
+		}
+		/if (${maChr.Find[stCountHealGroup].Value}) {
+			/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) {
+				/call cast_list ${_debug} lsHealGroup ${Me.ID}
+			}
+		}
+	}
+
 
 	/declare _count int local 0
 
@@ -304,29 +313,25 @@ sub check_heal_CLR(bool _debug, string _type)
 		/return
 	}
 
-	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+ 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+ 		/return FALSE
+ 	}
 
-	/if (${Select[${_type},group]}) {
-		/if (${maChr.Find[stCountArbitrate].Value}) {
-			/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
-		}
-		/if (${maChr.Find[stCountHealGroup].Value}) {
-			/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
-		}
-		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
-	}
+	| /if (!SAFEZONE) {
 
-	/if (!SAFEZONE) {
-
-		| Arbitration
+		| arbitrate / group heal
 		/if (${Select[${_type},group]}) {
 			/if (${maChr.Find[stCountArbitrate].Value}) {
-				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
+				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
+					/call do_arbitration ${maDebug.Find[arbitrate].Value}
+					/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+				}
 			}
 			/if (${maChr.Find[stCountHealGroup].Value}) {
-				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
+				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) {
+					/call cast_list ${_debug} lsHealGroup ${Me.ID}
+				}
 			}
-			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		}
 
 		| Focused Celestial Regeneration - out of raid only
@@ -342,64 +347,67 @@ sub check_heal_CLR(bool _debug, string _type)
 		/if (${Me.Song[Gift of Mana].ID}) {
 			/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
 				/call cast_list ${_debug} lsGoM ${hurtID}
-			 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
+			 	| /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		  }
 		}
 
-	CHECKTIE
-	ISMEDEAD
-	CHECKEXIT
-	CHECKREZ
-	CHECKFADE
-	GETINPUT
+		/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+
+		CHECKTIE
+		ISMEDEAD
+		CHECKEXIT
+		CHECKREZ
+		CHECKFADE
+		GETINPUT
+
+		| splash heal
+		/if (${maChr.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
+			/if (${SpawnCount[npc radius ENV]} >= ${maChr.Find[stCountSplash].Value}) {
+				/call Bind_command_splash ${maDebug.Find[splash].Value}
+			}
+		}
+
 
 		| Panic AA single target heal
 	  /if (${hurtPctHP} <= ${maHeal.Find[stHealPointPanic].Value}*.PCTHO) {
 			/if (${is_ready[${_debug}, "Burst of Life"]}) {
 				/if (${Me.Casting.ID}) /stopcast
 				/call voodoo ${_debug} "Burst of Life" ${hurtID} FALSE
-			 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 			}
 	  }
 
+		| arbitrate / group heal
 		/if (${Select[${_type},group]}) {
 			/if (${maChr.Find[stCountArbitrate].Value}) {
-				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
+				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
+					/call do_arbitration ${maDebug.Find[arbitrate].Value}
+					/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+				}
 			}
 			/if (${maChr.Find[stCountHealGroup].Value}) {
-				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
+				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) {
+					/call cast_list ${_debug} lsHealGroup ${Me.ID}
+				}
 			}
-			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		}
 
 		| panic group heal. AA Beacon of life (3 min use)
 	  /if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value} && ${Group.Members} > 1 && ${maChr.Find[stCountHealGroup].Value}) {
 		  /if (${is_ready[${_debug}, "Beacon of Life"]}) {
 		  	/call voodoo ${_debug} "Beacon of Life" 0 FALSE
-			 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		  }
 		}
 
-		/if (${Select[${_type},group]}) {
-			/if (${maChr.Find[stCountArbitrate].Value}) {
-				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
-			}
-			/if (${maChr.Find[stCountHealGroup].Value}) {
-				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /call cast_list ${_debug} lsHealGroup ${Me.ID}
-			}
-			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
-		}
+		/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+
 
 		/if (${maChr.Find[stCountIssuance].Value}) {
-			/if (${SpawnCount[npc radius ENV PS4]} >= ${maChr.Find[stCountIssuance].Value}) /call Bind_command_issuance FALSE
+			/if (${SpawnCount[npc radius ENV PS4]} >= ${maChr.Find[stCountIssuance].Value}) {
+				/call Bind_command_issuance FALSE
+			}
 		}
 
-		| splash heal
-		/if (${maChr.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
-			/if (${SpawnCount[npc radius ENV PS4]} >= ${maChr.Find[stCountSplash].Value}) /call Bind_command_splash FALSE
-		}
-
-	}
+	| }
 
  	| single heal over time
 	/if (${maChr.Find[swHealOverTime].Value}) {
@@ -420,6 +428,25 @@ sub check_heal_CLR(bool _debug, string _type)
  		/return FALSE
  	}
 
+	| arbitrate / group heal
+	/if (${Select[${_type},group]}) {
+		/if (${maChr.Find[stCountArbitrate].Value}) {
+			/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
+				/call do_arbitration ${maDebug.Find[arbitrate].Value}
+				/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+			}
+		}
+		/if (${maChr.Find[stCountHealGroup].Value}) {
+			/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) {
+				/call cast_list ${_debug} lsHealGroup ${Me.ID}
+			 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+					/return FALSE
+				}
+			}
+		}
+	}
+
+
 	CHECKTIE
 	ISMEDEAD
 	CHECKEXIT
@@ -435,12 +462,9 @@ sub check_heal_CLR(bool _debug, string _type)
 		/call cast_list ${_debug} "${_liHM.Value}" ${hurtID}
 		/if (!AUTO) /return FALSE
 		/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
-		/if (${Select[${_type},group]} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value} && ${maChr.Find[stCountArbitrate].Value}) {
-			/call do_arbitration ${maDebug.Find[arbitrate].Value}
-		} else /if (!${hurtCount} || !${maChr.Find[stCountArbitrate].Value}) {
+		/if (!${hurtCount}) {
 			/return FALSE
 		}
-
 		/invoke ${_liHM.Advance}
 	}
 
@@ -460,8 +484,13 @@ sub do_arbitration(bool _debug)
 
 	/declare _arbDone bool local FALSE
 
+  | AA arb
+  /if (${is_ready[${_debug}, "Divine Arbitration"]}) {
+    /call voodoo ${_debug} "Divine Arbitration" 0 FALSE
+    /varset _arbDone TRUE
+
 	| Second epic shield
-  /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
+  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
     /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
     /varset _arbDone TRUE
 
@@ -470,22 +499,14 @@ sub do_arbitration(bool _debug)
     /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
     /varset _arbDone TRUE
 
-  | AA arb
-  } else /if (${is_ready[${_debug}, "Divine Arbitration"]}) {
-    /call voodoo ${_debug} "Divine Arbitration" 0 FALSE
-    /varset _arbDone TRUE
   }
 
-  | should we group heal?
-  DEBUG ${sep}\a-w(${maChr.Find[swArbitratetoHealGroup].Value} && ${_arbDone}) || (${maChr.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maChr.Find[stCountHealGroup].Value})\ax
-	/if ((${maChr.Find[swArbitratetoHealGroup].Value} && ${_arbDone}) || (${maChr.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maChr.Find[stCountHealGroup].Value})) {
-		/invoke ${out[3, "Arbitration done"]}
-	  /call cast_list ${_debug} lsHealGroup ${Me.ID}
+	/if (${_arbDone}) {
+		/invoke ${out[3, "arbitration done"]}
+		/delay 1
 	}
 
-	CHECKREZ
-
-/return
+/return TRUE
 
 
 

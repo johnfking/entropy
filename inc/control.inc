@@ -72,7 +72,6 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
 
 
 
-
 |***
  * note: mode control
  * use: /mode []
@@ -119,8 +118,6 @@ sub Bind_control_mode(string _type, string _verbage, bool _debug)
 			/call ${_verbage}
 			/return TRUE
 		}
-
-
 
 	} else /if (${maMode.Contains[${_type}]}) {
 		/invoke ${maMode.Add[${_type},${If[${maMode.Find[${_type}].Value},FALSE,TRUE]}]}
@@ -208,7 +205,6 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 		| OUT \aw/spellslotinfo\ax
 		| /spellslotinfo ${Spell[${_spell}].ID}
-
 
 		/return TRUE
 
@@ -339,13 +335,6 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 			/echo
 			/return
 		}
-
-
-
-
-
-
-
 
 	}
 
@@ -483,7 +472,6 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 		/invoke ${set_control_output[${_debug}, maEnv, "env rest", maControl]}
 		/return
 
-
 	} else /if (${_type.Equal[moblvlmin]}) {
 		/invoke ${set_switch_env[FALSE, stMobLvlMin, TRUE, ${_verbage}]}
 
@@ -579,7 +567,6 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 			/return TRUE
 		}
 
-
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return
@@ -632,9 +619,9 @@ sub Bind_to_chr(string _type, string _verbage, string _silent, bool _debug)
  * use: /cb
  ***|
 #bind command_cb /cb
-sub Bind_command_cb()
+sub Bind_command_cb(string _verbage)
 
-	/call check_buff_cycle ${maDebug.Find[cb].Value} TRUE
+	/call check_buff_cycle ${maDebug.Find[cb].Value} TRUE ${_verbage}
 
 /return TRUE
 
