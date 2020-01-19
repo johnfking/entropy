@@ -23,6 +23,14 @@ on the to do list
 
 
 
+
+
+
+A200119.02
+- druid
+  corrected the hurt validation checks
+
+
 A200119.01
 - cleric
   considerable changes to divine arbitration and group healing.

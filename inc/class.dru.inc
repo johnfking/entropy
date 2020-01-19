@@ -168,7 +168,7 @@ sub check_heal_DRU(bool _debug, string _type)
 
 	SETHUD "heal ${_type}"
 
-	/call check_hurt FALSE ${_type}
+	/call get_hurt FALSE ${_type}
 	/declare _count int local 0
 
 	/if (!${hurtCount}) {
@@ -202,7 +202,7 @@ sub check_heal_DRU(bool _debug, string _type)
 
 	}
 
-	/if (!${check_hurt[${_debug}, ${_type}]}) /return FALSE
+	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 
 	GETINPUT
 
@@ -223,7 +223,7 @@ sub check_heal_DRU(bool _debug, string _type)
 		  		/return
 		  	}
 
-		  	/if (!${check_hurt[${_debug}, ${_type}]}) /return FALSE
+		  	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 
 			 	/if (${is_ready[${_debug}, "Blessing of Tunare"]}) {
 			 		/call voodoo ${_debug} "Blessing of Tunare" 0 FALSE
@@ -231,7 +231,7 @@ sub check_heal_DRU(bool _debug, string _type)
 			 	}
 			}
 
-		 	/if (!${check_hurt[${_debug}, ${_type}]}) /return FALSE
+		 	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 
 		  | group heal?
 			/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) {
