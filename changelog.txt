@@ -18,7 +18,7 @@ on the to do list
 - mage pet weapons?
 - /navto NULL when requestor is not in zone
 - find a way to convert lines for the new condition system
-
+- tag entry validation (cause people are making up shit now)
 --------------------
 
 
@@ -26,9 +26,29 @@ on the to do list
 
 
 
+A200128.01
+- tag
+  noagro/agro - varibale checks adjusted. not actual agro, this is checking the /cc agro switch
+- /tc
+  mode stick will function again
+- pull
+  quite a few small adjustments to catch a bug for a pull w/groupassist vs a pull w/o a group assist
+- lots of little adjustments all over to shorten if statements
+- some logic adjustments to curing (not related to tov ice but might help)
+- ranger
+  i'm still fighting with the burn section. but i at least know what the problem is
+- druid
+  got rid of some dublicated aa usage
+- cleric
+  adjustments to arbitration
+
+
+
 A200119.02
+- repo updated
 - druid
   corrected the hurt validation checks
+  adjustment to Season's Wrath
 
 
 A200119.01

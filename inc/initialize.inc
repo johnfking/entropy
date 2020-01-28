@@ -44,7 +44,7 @@ sub set_debug()
   | combat
   /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision]}
 	| other
-  /invoke ${lsDebugother.Append[build,init,edit,rest,rez,spire,glyph,fireworks,manarecover,fade,observe,house,ttl]}
+  /invoke ${lsDebugother.Append[build,init,edit,rest,rez,spire,glyph,fireworks,manarecover,fade,observe,house,ttl,flow]}
   | class specific debugs
   /if (${Select[${Me.Class.ShortName},BER]}) {
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
@@ -673,7 +673,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maEnv swTakeGroupInvite                    FALSE                         "${auxsw} take group invites from people you trust"
   /call set_data_map FALSE maEnv swTakeRaidInvite                     FALSE                         "${auxsw} take raid invites from people you trust"
   /call set_data_map FALSE maEnv swSoS                                FALSE                         "${auxsw} rogue sos switch"
-  /call set_data_list FALSE maEnv lsSafeListToon                      EMPTY                         "${auxli} list of people you trust"
+  | /call set_data_list FALSE maEnv lsSafeListToon                      EMPTY                         "${auxli} list of people you trust"
 
   | rest
   /call set_data_map FALSE maEnv stPctRest                            0                             "${auxnum} % health/mana to rest at"
@@ -1272,7 +1272,9 @@ sub set_alias(bool _debug, string _action)
   /if (${_action.Equal[add]}) {
     /vardata mi maAlias.First.Clone
     /while (!${mi.IsEnd}) {
-      /if (!${Alias[${mi.Key}]}) /squelch /alias ${mi.Key} ${mi.Value}
+      | /if (!${Alias[${mi.Key}]}) {
+      	/squelch /alias ${mi.Key} ${mi.Value}
+      | }
       /invoke ${mi.Advance}
     }
 

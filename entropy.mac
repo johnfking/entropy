@@ -59,6 +59,7 @@
 #define HUDPATH "/noparse /ini .\..\MQ2HUD.ini"
 #define SETHUD "/call set_hud_data"
 #define ISTMPIDDEAD	"/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE"
+#define FLOW "/if (${maDebug.Find[flow].Value}) /echo \ay-\ax\amflow\ay-\ax ${dot} T:\a-w${stAssTarID}\ax ${sep}"
 
 
 
@@ -120,7 +121,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A200119.02
+	/call set_data FALSE maEnv build													map outer A200128.01
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -257,7 +258,9 @@ sub main(string _debug, string _param1, string _auto)
 			| do we pull or assist
 			/if (!SAFEZONE) {
 				/if (!${Me.Invis} || (${Select[${Me.Class.ShortName},ROG]} && ${maEnv.Find[swSoS].Value})) {
-					/if (!PULL) {
+
+
+					/if (!PULL || (PULL && (${Group.MainAssist.ID} != ${Me.ID}) && ${SpawnCount[NPC radius ENV PS4]})) {
 						/call get_assist_target ${maDebug.Find[assist].Value}
 					} else /if (PULL && !TARGET) {
 						/if (${maCC.Find[stPullMode].Value.Equal[base]}) {
@@ -269,6 +272,8 @@ sub main(string _debug, string _param1, string _auto)
 							}
 						}
 					}
+
+
 				}
 			}
 
@@ -369,9 +374,6 @@ sub prepare_the_end(bool _debug)
 		/dnet timeout ${maComm.Find[stNetworkTimeout].Value}
 	}
 
-	| set blocked buffs
-	/call set_buffs_blocked FALSE SILENT
-
 	| check zone schema
 	/call sql_set_zone_schema ${maDebug.Find[zone].Value}
 
@@ -432,6 +434,14 @@ sub check_housekeeping(bool _debug)
 
 	/if (${Select[${Me.CombatState},combat]}) /return FALSE
 
+	| correct assist vs puller issues for group MA
+	/if (PULL && (${Group.MainAssist.ID} == ${Me.ID}) && ${Bool[${maCC.Find[stAssistMode].Value}]}) {
+		/call do_raw_edit ${_debug} SILENT stAssistMode FALSE
+	}
+
+	| set blocked buffs
+	/call set_buffs_blocked FALSE SILENT
+
 	| make sure we are not in the core_communications group. does not play well with others
 	/if (${DanNet.Peers[core_communications].Find[${Me.DisplayName}]}) {
 		/squelch /dleave core_communications
@@ -457,7 +467,6 @@ sub check_housekeeping(bool _debug)
 		}
 		/varset stCurrentCrew EMPTY
 	}
-
 
 	| fix dannet crew join marker if mac restarts
 	/if (${Group.Members} && ${stCurrentCrew.Equal[empty]}) {

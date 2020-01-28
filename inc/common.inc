@@ -594,14 +594,20 @@ sub set_buffs_blocked(bool _debug, string _silent)
 	DEBUG \atset_buffs_blocked\ax(\a-w${_silent}\ax)
 	/declare _count int local 0
 
-	/if (!${Defined[lsBlockedBuffsMe]}) /declare lsBlockedBuffsMe string outer
+	/if (!${Defined[lsBlockedBuffsMe]}) {
+		/declare lsBlockedBuffsMe string outer
+	}
 
 	| cycle the blocked buffs and add them to a string
 	/for _count 1 to 40
 		| skip empty ones
-		/if (!${Me.BlockedBuff[${_count}].ID}) /continue
-		/varset lsBlockedBuffsMe ${lsBlockedBuffsMe}|${Me.BlockedBuff[${_count}].ID}
-		| /invoke ${lsBlockedBuffsMe.Append["${Me.BlockedBuff[${_count}]}"]}
+		/if (!${Me.BlockedBuff[${_count}].ID}) {
+			/continue
+		}
+		/if (!${lsBlockedBuffsMe.Find[${Me.BlockedBuff[${_count}].ID}]}) {
+			/varset lsBlockedBuffsMe ${lsBlockedBuffsMe}|${Me.BlockedBuff[${_count}].ID}
+		}
+
 	/next _count
 
 
@@ -1436,7 +1442,7 @@ sub is_me_dead(bool _debug)
 		}
 
 		/call set_stop FALSE SILENT
-		/call clear_combat FALSE
+		/call clear_combat ${_debug}
 		/if (${Me.Casting.ID}) /stopcast
 
 	}
@@ -2271,7 +2277,7 @@ sub is_target_dead(bool _debug, int _tmpID)
 	/if (!AUTO) {
 		/if (!${Bool[${_tmpID}]} && ${Target.ID}) /varset _tmpID ${Target.ID}
 		/if (!${Bool[${_tmpID}]}) {
-			/call clear_combat FALSE
+			/call clear_combat ${_debug}
 			/return TRUE
 		}
 	}
@@ -2297,7 +2303,7 @@ sub is_target_dead(bool _debug, int _tmpID)
 	}
 
 	/if (${_dead}) {
-		/call clear_combat FALSE
+		/call clear_combat ${_debug}
 	}
 
 /return ${_dead}
@@ -2403,10 +2409,10 @@ sub is_target_valid(bool _debug, int _tmpID)
 	| check smart assists
 	/if (${Target.ID}) {
 		/if (${Select[${maCC.Find[stAssistMode].Value},1,2,3]} && ${Spawn[${_tmpID}].ID} != ${Me.XTarget[1].ID}) {
-			/call clear_combat FALSE
+			/call clear_combat ${_debug}
 			/return FALSE
 		} else /if (${Select[${maCC.Find[stAssistMode].Value},g]} && ${Group.MainAssist.ID} && !${Bool[${Spawn[${Group.MainAssist}].Dead}]} && ${Spawn[${_tmpID}].ID} != ${Me.XTarget[1].ID}) {
-			/call clear_combat FALSE
+			/call clear_combat ${_debug}
 			/return FALSE
 		}
 	}
@@ -2576,7 +2582,7 @@ sub check_combat_status(bool _debug)
 			/return TRUE
 		} else /if (!${Target.ID}) {
 			/if (COMBAT || VALID) {
-				/call clear_combat
+				/call clear_combat ${_debug}
 			}
 			/return FALSE
 		}
@@ -2613,7 +2619,7 @@ sub check_combat_status(bool _debug)
 		}
 
 		/if (!VALID || !${Spawn[TARGET].ID}) {
-			/call clear_combat FALSE
+			/call clear_combat ${_debug}
 			/return FALSE
 
 		} else /if (VALID && ${Spawn[TARGET].ID}) {
@@ -2888,19 +2894,56 @@ sub set_combat_melee(bool _debug, int _tmpID)
 sub get_target_buff_time_left(bool _debug, string _buff)
 	DEBUG \atget_target_buff_time_left\ax(\a-w${_buff}\ax)
 
-	/if (!${Target.ID} || ${Target.Dead}) /return FALSE
+	/if (!${Target.ID} || ${Target.Dead}) {
+		/return 0
+	}
 
 	/declare _count int local 0
 	/for _count 1 to ${Target.BuffCount}
-		/if (!${Target.ID} || ${Target.Dead}) /return FALSE
-		/if (!${Target.Buff[${_count}].Name.Find[${_buff}]}) /continue
+
+		/if (!${Target.ID} || ${Target.Dead}) {
+			/return 0
+		}
+
+		/if (!${Target.Buff[${_count}].Name.Find[${_buff}]}) {
+			/continue
+		}
+
 		/if (${Target.Buff[${_count}].Caster.Equal[${Me.DisplayName}]}) {
 			DEBUG ${sep}FOUND${sep}\a-w${_buff}\ax (\a-r${Target.BuffDuration[${_count}].TotalSeconds}\ax)
 			/break
 		}
+
 	/next _count
 
 /return ${Target.BuffDuration[${_count}].TotalSeconds}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2915,6 +2958,11 @@ sub get_target_basepull(bool _debug, int _tmpID)
 	ISMEDEAD
 	GETINPUT
 	CHECKTIE
+
+	/if (TARGET && ${Spawn[TARGET].ID}) {
+		DEBUG ${sep}we already have a target${sep}\a-wTARGET\ax
+		/return TRUE
+	}
 
 	SETHUD "pull base"
 
@@ -2935,7 +2983,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 		/if (HOME && !${SpawnCount[npc radius 15 PS4 targetable]}) {
 			/call Bind_control_home return
 		}
-		/return
+		/return FALSE
 	}
 
 	| Could you describe the ruckus, sir?
@@ -2947,32 +2995,33 @@ sub get_target_basepull(bool _debug, int _tmpID)
 
 
 	| Screws fall out all the time, the world is an imperfect place.
-
-	| /call pull_mob_prep ${_debug} TARGET
-	| /if (!${Macro.Return}) /return FALSE
-
-	| /call pull_mob_tag ${_debug} TARGET
-
-	/if (!${pull_mob_prep[${_debug}, TARGET]}) {
-		/return FALSE
-	}
+	/call pull_mob_prep ${_debug} TARGET
+	/if (!${Macro.Return}) /return FALSE
 
 	/call pull_mob_tag ${_debug} TARGET
+
+	| /if (!${pull_mob_prep[${_debug}, TARGET]}) {
+	| 	SETHUD FALSE
+	| 	/return FALSE
+	| }
+
+	| /call pull_mob_tag ${_debug} TARGET
 
 	/if (MELEE) /attack on
 
 	| wait for mob to get to camp
-	DEBUG ${sep}loop \a-w:waitformob\ax
+	DEBUG ${sep}loop\a-w:waitformob\ax
 	:waitformob
 	/if (!${SpawnCount[npc radius ENV PS4 targetable]}) {
 		/declare _wait int local ${Math.Calc[(PULLENV + ${Spawn[TARGET].Distance})*.08]}
+		DEBUG ${sep}_wait${sep}\ay${_wait}\ax
 		/invoke ${set_timer[${_debug}, wait_for_mob, ${_wait}s]}
 
 		/if (!${Spawn[TARGET].Dead}) {
 			/invoke ${out[9, "Waiting on${sep}${tar}${Spawn[TARGET].DisplayName}\ax${sep}\a-w${_wait}s\ax"]}
 		}
 
-		/while (TRUE) {
+		/while (${wait_for_mob}) {
 			DEBUG ${sep}\awTARGET\ax.distance${sep}\a-w${Spawn[TARGET].Distance}\ax${sep}\a-w${wait_for_mob}\ax
 			GETINPUT
 			/delay 5
@@ -2982,8 +3031,8 @@ sub get_target_basepull(bool _debug, int _tmpID)
 			}
 
 			/if (!TARGET || ${Spawn[TARGET].Dead}) {
-				/call clear_combat FALSE
 				DEBUG ${sep}/while \a-gbreak_NO_target\ax
+				/call clear_combat ${_debug}
 				/break
 			}
 
@@ -2994,7 +3043,8 @@ sub get_target_basepull(bool _debug, int _tmpID)
 			}
 
 			| target LOS & within tag range
-			/if (${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} < ENV && ${Spawn[TARGET].Distance} < 100 && RANGE) {
+			| /if (${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} < ENV && ${Spawn[TARGET].Distance} < 100 && RANGE) {
+			/if (${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} < ENV && ${Spawn[TARGET].Distance} < 100) {
 				DEBUG ${sep}/while \a-gbreak_tag\ax
 				/break
 			}
@@ -3005,11 +3055,9 @@ sub get_target_basepull(bool _debug, int _tmpID)
 				/break
 			}
 
-			| target in stupod range out of meele less then range.. hate this spot
+			| target in stupid range out of meele less then range.. hate this spot
 			/if (${Spawn[TARGET].Distance} > ${Spawn[TARGET].MaxRangeTo}*.9 && ${Spawn[TARGET].Distance} < 31) {
-				DEBUG ${sep}/while \a-gbreak_fuckedupRangeTo\ax
-				| /nav ID TARGET |dist=${Math.Calc[${Spawn[ID TARGET].MaxRangeTo}*.9]} log=off
-				| /delay 5 ${Me.Moving}
+				DEBUG ${sep}/while \a-gbreak_MaxRangeTo <> 31\ax
 				/break
 			}
 
@@ -3018,20 +3066,21 @@ sub get_target_basepull(bool _debug, int _tmpID)
 				/delay 5
 			}
 
-			/if (${maChr.Find[swAttraction].Value}) {
+			/if (${maChr.Find[swAttraction].Value} && (${Me.TargetOfTarget.ID} != ${Me.ID}) && ${Spawn[TARGET].LineOfSight}) {
 				/call pull_mob_attraction ${_debug} TARGET FALSE
 			}
-
 
 			| timer ran out
 			/if (!${wait_for_mob}) {
 				/invoke ${out[9, "Sick of waiting on${sep}\a-w${Spawn[TARGET].DisplayName}\ax"]}
-				/call clear_combat FALSE
+				/call clear_combat ${_debug}
 				/break
 			}
 		}
+
 	}
 
+	DEBUG ${sep}\arCLOSING\ax${sep}\atget_target_basepull\ax (\a-rTARGET\ax)
 	SETHUD FALSE
 
 /return
@@ -3067,8 +3116,8 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 	/if (!${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]} && !${Select[${Me.Class.ShortName},MAG,NEC,BST,ENC]}) {
 
 		| keep tabs on targets range if they are the puller. advanced pullers fetching we do not care about yet
-		/if (${Spawn[ID ${_tmpID}].Distance} > PULLENV && PULL) {
-			/call clear_combat FALSE
+		/if (${Spawn[${_tmpID}].Distance} > PULLENV) {
+			/call clear_combat ${_debug}
 			/return FALSE
 		}
 
@@ -3102,7 +3151,7 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 				/if (${_losfail}) /break
 			}
 			/if (${_losfail}) {
-				/call clear_combat FALSE
+				/call clear_combat ${_debug}
 				/return FALSE
 			}
 		}
@@ -3273,7 +3322,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			/if (${Spawn[ID ${_tmpID}].Distance} > PULLENV) /break
 			/if (!${Spawn[ID ${_tmpID}].ID}) /break
 		}
-		/call clear_combat FALSE
+		/call clear_combat ${_debug}
 		/return FALSE
 	}
 
@@ -3296,7 +3345,9 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 sub pull_mob_find(bool _debug, int _spCount)
 	DEBUG \atpull_mob_find\ax(\a-w${_spCount}\ax)
 
-	/if (!${Bool[${_spCount}]}) /varset _spCount 0
+	/if (!${Bool[${_spCount}]}) {
+		/varset _spCount 0
+	}
 
 	/if (!${swModeToken}) {
 		/if (HOME && !${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
@@ -3309,7 +3360,9 @@ sub pull_mob_find(bool _debug, int _spCount)
 	}
 
 	| we have an existign target and not using a mode
-	/if (TARGET && !${_spCount} && !${swModeToken}) /return TARGET
+	/if (TARGET && !${_spCount} && !${swModeToken}) {
+		/return TARGET
+	}
 
 	/declare _tmpID int local
 	/declare _tmpAgroRange int local ${Int[${Math.Calc[PULLENV/5]}]}
@@ -4809,8 +4862,6 @@ sub check_buff_cycle_unity(bool _debug)
 		}
 	}
 
-	/if (!${maBuff.Find[swBuffTemp].Value}) /return FALSE
-
 	CHECKTIE
 	ISMEDEAD
 	CHECKEXIT
@@ -4848,6 +4899,21 @@ sub check_buff_cycle_unity(bool _debug)
 	SETHUD FALSE
 
 /return TRUE
+
+
+
+
+| testing trigger returns for ranger / sk / cleric
+${Spell[Wildstalker's Unity (Azia)].Trigger[1]}
+${Spell[Wildstalker's Unity (Beza)].Trigger[1]}
+${Spell[Dark Lord's Unity (Azia)].Trigger[1]}
+${Spell[Dark Lord's Unity (Beza)].Trigger[1]}
+${Spell[Saint's Unity].Trigger[1]}
+
+${Me.Spell[Wildstalker's Unity (Beza)].Trigger[1]}
+${Me.Spell[Wildstalker's Unity (Azia)].Trigger[1]}
+
+
 
 
 
@@ -5297,18 +5363,24 @@ sub cast_yaulp(bool _debug)
  ***|
 sub set_target(int _tmpID)
 
-	/if (!${Bool[${_tmpID}]}) /return TRUE
+	/if (!${Bool[${_tmpID}]}) {
+		/return TRUE
+	}
 
 	/if (${Spawn[npc corpse ${_tmpID}].ID}) {
 		/return FALSE
 	}
 
-	/if (${Target.ID} == ${_tmpID}) /return TRUE
+	/if (${Target.ID} == ${_tmpID}) {
+		/return TRUE
+	}
 
 	/squelch /target id ${_tmpID}
 	/delay 1s ${Target.ID} == ${_tmpID}
 
-	/if (${Target.ID} != ${_tmpID}) /return FALSE
+	/if (${Target.ID} != ${_tmpID}) {
+		/return FALSE
+	}
 
 /return TRUE
 
@@ -6174,17 +6246,25 @@ sub is_lsSafeNames(bool _debug, string _name)
 	DEBUG \atis_lsSafeNames\ax(\a-w${_name}\ax)
 
 	| override and accept everyone
-	/if (${maOver.Find[swOverSafeNames].Value}) /return TRUE
+	/if (${maOver.Find[swOverSafeNames].Value}) {
+		/return TRUE
+	}
 
 	| auto accept ${DanNetMacroChannel} channel toons
-	/if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_name.Lower}]}) /return TRUE
+	/if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_name.Lower}]}) {
+		/return TRUE
+	}
 
 	| basic safe list check
-	/if (${maEntropy.Find[lsSafeNames].Value.Find[${_name}]}) /return TRUE
+	/if (${maEntropy.Find[lsSafeNames].Value.Find[${_name}]}) {
+		/return TRUE
+	}
 
 	| guild safe list check
 	/if (${maEnv.Find[swSafelistGuild].Value} && ${Bool[${Me.Guild}]}) {
-		/if (${Spawn[PC ${_name}].Guild.Equal[${Me.Guild}]}) /return TRUE
+		/if (${Spawn[PC ${_name}].Guild.Equal[${Me.Guild}]}) {
+			/return TRUE
+		}
 	}
 
 /return FALSE
@@ -6230,7 +6310,9 @@ sub check_buff_cycle_temp_list(bool _debug, string _spell, string _toonList)
 		}
 	}
 
-	/if (!${maBuff.Find[swBuffTemp].Value}) /return FALSE
+	/if (!${maBuff.Find[swBuffTemp].Value}) {
+		/return FALSE
+	}
 
 	CHECKTIE
 	ISMEDEAD
@@ -6242,7 +6324,9 @@ sub check_buff_cycle_temp_list(bool _debug, string _spell, string _toonList)
 	/varset _spellCHK ${maChr.Find[${_spell}].Value.Arg[1,+]}
 
 	| ready?
-	/if (!${is_ready[${_debug}, "${_spellCHK}"]}) /return FALSE
+	/if (!${is_ready[${_debug}, "${_spellCHK}"]}) {
+		/return FALSE
+	}
 
 	| me?
 	/if (${maBuff.Find[swBuffSelf].Value}) {
@@ -6275,7 +6359,9 @@ sub check_buff_cycle_temp_list(bool _debug, string _spell, string _toonList)
 		/if (${Bool[${DNQReturn}]}) /varset _castSpell FALSE
 
 
-		/if (${_castSpell}) /call voodoo ${_debug} "${maChr.Find[${_spell}].Value}" ${Spawn[=${_libt.Value} pc].ID} FALSE
+		/if (${_castSpell}) {
+			/call voodoo ${_debug} "${maChr.Find[${_spell}].Value}" ${Spawn[=${_libt.Value} pc].ID} FALSE
+		}
 		/invoke ${_libt.Advance}
 	}
 
@@ -6326,12 +6412,18 @@ sub cast_item_summon(bool _debug, string _var)
 sub cast_challenge(bool _debug, int _tmpID)
 	DEBUG \atcast_challenge\ax(\a-w${_tmpID}\ax)
 
-	/if (${Target.Buff[${maChr.Find[stChallenge].Value}].ID}) /return
+	/if (${Target.Buff[${maChr.Find[stChallenge].Value}].ID}) {
+		/return TRUE
+	}
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
 
-	/if (${get_target_buff_time_left[${_debug}, "${maChr.Find[stChallenge].Value}"]} >= ${maCC.Find[stDotRefresh].Value}) /return TRUE
+
+	| /if (${get_target_buff_time_left[${_debug}, "${maChr.Find[stChallenge].Value}"]} >= ${maCC.Find[stDotRefresh].Value}) {
+	/if (${Target.BuffDuration[${maChr.Find[stChallenge].Value}].TotalSeconds} >= ${maCC.Find[stDotRefresh].Value}) {
+		/return TRUE
+	}
 
 	/if (${is_Ready[${_debug}, "${maChr.Find[stChallenge].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stChallenge].Value}" ${_tmpID} FALSE
@@ -6352,8 +6444,11 @@ sub cast_nuke(bool _debug, string _line, int _tmpID)
 	/vardata _linuke ${_line}.First.Clone
 
 	/if (${Spawn[${_tmpID}].Dead}) /return FALSE
-	/if (${Target.ID} != ${_tmpID}) /return FALSE
-	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) /return FALSE
+	| /if (${Target.ID} != ${_tmpID}) /return FALSE
+
+	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+		/return FALSE
+	}
 
 	/while (!${_linuke.IsEnd}) {
 		DEBUG ${sep}_linuke.Value${sep}\a-w${_linuke.Value}\ax
@@ -6364,13 +6459,19 @@ sub cast_nuke(bool _debug, string _line, int _tmpID)
 		CHECKEXIT
 		GETINPUT
 
-		/if (${Me.PctMana} < 2) /return FALSE
+		/if (${Me.PctMana} < 2) {
+			/return FALSE
+		}
 
 		/if (!${is_ready[${_debug}, "${_linuke.Value}"]}) {
 			/invoke ${_linuke.Advance}
 			/continue
 		}
-		/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
+		/if (!${target_reset[${_debug}, ${_tmpID}, all]}) {
+			/return FALSE
+		}
+
+		/invoke ${set_target[${_tmpID}]}
 
 		/call voodoo ${_debug} "${_linuke.Value}" ${_tmpID} FALSE
 
@@ -6386,7 +6487,9 @@ sub cast_nuke(bool _debug, string _line, int _tmpID)
 			/delay ${timer_Nuke_Delay}
 		}
 
-		/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
+		/if (!${target_reset[${_debug}, ${_tmpID}, all]}) {
+			/return FALSE
+		}
 
 		/invoke ${_linuke.Advance}
 	}
@@ -6420,9 +6523,16 @@ sub cast_dot(bool _debug, string _line, int _tmpID)
 			/invoke ${_lidot.Advance}
 			/continue
 		}
-		/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
 
-		/if (${get_target_buff_time_left[${_debug}, "${_lidot.Value}"]} >= ${maCC.Find[stDotRefresh].Value}) {
+
+		/if (!${target_reset[${_debug}, ${_tmpID}, all]}) {
+			/return FALSE
+		}
+
+		/invoke ${set_target[${_tmpID}]}
+
+		| /if (${get_target_buff_time_left[${_debug}, "${_lidot.Value}"]} >= ${maCC.Find[stDotRefresh].Value}) {
+		/if (${Target.BuffDuration[${_lidot.Value}].TotalSeconds} >= ${maCC.Find[stDotRefresh].Value}) {
 			/invoke ${_lidot.Advance}
 			/continue
 		}
@@ -6646,12 +6756,8 @@ sub check_harmonious(bool _debug)
 		}
 	}
 
-/return
+/return TRUE
 
-${maBuffs.Find[st${_type}].Value}
-
-
-${maBuffs.Find[stBuff44].Value}
 
 
 |***
@@ -6662,34 +6768,99 @@ sub check_basic_tags(bool _debug, string _type, string _name)
 	DEBUG \atcheck_basic_tags\ax(\a-w${_type}, ${_name}\ax)
 
 	| is the master switch off?
-	/if (!${maBuff.Find[swBuffMaster].Value}) /return FALSE
-
-	| no buffing in combat
-	/if (${ls${_type}Tag.Contains[nocombat]} && AUTO) {
-		/if (${Select[${Me.CombatState},combat]}) /return FALSE
-		/if (${SpawnCount[npc radius SAFEENV PS4]}) /return FALSE
+	/if (!${maBuff.Find[swBuffMaster].Value}) {
+		/return FALSE
 	}
 
-	/if (${ls${_type}Tag.Contains[aliasonly]}) /return FALSE
-	/if (${ls${_type}Tag.Contains[raid]} && !${Raid.Members}) /return FALSE
-	/if (${ls${_type}Tag.Contains[group]} && !${Group.Members}) /return FALSE
-	/if (${ls${_type}Tag.Contains[noraid]} && ${Raid.Members}) /return FALSE
-	/if (${ls${_type}Tag.Contains[combat]} && !${Select[${Me.CombatState},combat]}) /return FALSE
-	/if (${ls${_type}Tag.Contains[outdoor]} && (${Me.FeetWet} || ${Zone.Indoor})) /return FALSE
-	/if (${ls${_type}Tag.Contains[puller]} && PULL) /return FALSE
-	/if (${ls${_type}Tag.Contains[agro]} && !${Bool[${maCC.Find[stAssistMode].Value}]}) /return FALSE
-	/if (${ls${_type}Tag.Contains[noagro]} && ${Bool[${maCC.Find[stAssistMode].Value}]}) /return FALSE
-	/if (${ls${_type}Tag.Contains[burn]} && !BURN) /return FALSE
-	/if (${ls${_type}Tag.Contains[nosafezone]} && SAFEZONE) /return FALSE
-	/if (${ls${_type}Tag.Contains[matarget]} && (${Target.ID} != TARGET)) /return FALSE
-	/if (${ls${_type}Tag.Contains[pet]} && !${Pet.ID}) /return FALSE
-	/if (${ls${_type}Tag.Contains[target]} && !${Target.ID}) /return FALSE
-	/if (${ls${_type}Tag.Contains[swarm]} && !SWARM) /return FALSE
+	| no buffing in combat
+	/if (${ls${_type}Tag.Contains[nocombat]} && AUTO && COMBAT) {
+		| /if (${Select[${Me.CombatState},combat]}) /return FALSE
+		/return FALSE
+		| /if (${SpawnCount[npc radius SAFEENV PS4]}) /return FALSE
+	}
 
+	| obey no tags. only use the aliase for this spell
+	/if (${ls${_type}Tag.Contains[aliasonly]}) {
+		/return FALSE
+	}
+
+	| must be in a raid
+	/if (${ls${_type}Tag.Contains[raid]} && !${Raid.Members}) {
+		/return FALSE
+	}
+
+	| must be in a group
+	/if (${ls${_type}Tag.Contains[group]} && !${Group.Members}) {
+		/return FALSE
+	}
+
+	| must be in a raid
+	/if (${ls${_type}Tag.Contains[noraid]} && ${Raid.Members}) {
+		/return FALSE
+	}
+
+	| /if (${ls${_type}Tag.Contains[combat]} && !${Select[${Me.CombatState},combat]}) /return FALSE
+	| not in a combat routine
+	/if (${ls${_type}Tag.Contains[combat]} && !COMBAT) {
+		/return FALSE
+	}
+
+	| must be outdoors
+	/if (${ls${_type}Tag.Contains[outdoor]} && (${Me.FeetWet} || ${Zone.Indoor})) {
+		/return FALSE
+	}
+
+	| must have pull enabled
+	/if (${ls${_type}Tag.Contains[puller]} && PULL) {
+		/return FALSE
+	}
+
+	| must have agro enabled
+	/if (${ls${_type}Tag.Contains[agro]} && !AGRO) {
+		/return FALSE
+	}
+
+	| cannot have agro enabled
+	/if (${ls${_type}Tag.Contains[noagro]} && AGRO) {
+		/return FALSE
+	}
+
+	| must be burning
+	/if (${ls${_type}Tag.Contains[burn]} && !BURN) {
+		/return FALSE
+	}
+
+	| cannot be in a safe zone
+	/if (${ls${_type}Tag.Contains[nosafezone]} && SAFEZONE) {
+		/return FALSE
+	}
+
+	| current target must be the MAs target
+	/if (${ls${_type}Tag.Contains[matarget]} && (${Target.ID} != TARGET)) {
+		/return FALSE
+	}
+
+	| must have a pet (static)
+	/if (${ls${_type}Tag.Contains[pet]} && !${Pet.ID}) {
+		/return FALSE
+	}
+
+	| must have a target
+	/if (${ls${_type}Tag.Contains[target]} && !${Target.ID}) {
+		/return FALSE
+	}
+
+	| must have swarm pets enable
+	/if (${ls${_type}Tag.Contains[swarm]} && !SWARM) {
+		/return FALSE
+	}
+
+	| you must be the main assist
 	/if (${ls${_type}Tag.Contains[ma]}) {
 		/if (${Me.ID} != ${get_assist_info[FALSE, ID]}) /return FALSE
 	}
 
+	| used for items that summon something
 	/if (${ls${_type}Tag.Contains[summonitem]}) {
 		/if (${check_basic_tags_summonitem[FALSE, ${_type}]}) /return FALSE
 	}
@@ -6702,7 +6873,7 @@ sub check_basic_tags(bool _debug, string _type, string _name)
 	| /if (!${Bool[${_name}]} || ${_name.Equal[FALSE]}) /return TRUE
 	| /if (!${Spawn[${_name} ].ID}) /return FALSE
 
-	| class
+	| checks to match a class shortname
 	/declare _marker bool FALSE
 	/declare _contains FALSE
 	/declare _li listiterator local
@@ -6828,7 +6999,7 @@ sub check_for_corpse(bool _debug)
 		}
 	/next _count
 
-	 SETHUD "resurrect"
+	SETHUD "resurrect"
 
 	| clerics first group or raid
 	/if (${SpawnCount[pccorpse cleric raid radius ${maRez.Find[stMaxRezRange].Value}]} && ${Raid.Members} || ${SpawnCount[pccorpse cleric group radius ${maRez.Find[stMaxRezRange].Value}]}) {
@@ -6949,7 +7120,7 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 	ISMEDEAD
 	CHECKEXIT
 
-	SETHUD "rez"
+	SETHUD "resurrect"
 
 	| ignore the people we dont like
 	/if (${lsNoRezToon.Contains[${Spawn[pccorpse ${_tmpID}].DisplayName}]}) {
@@ -7013,6 +7184,7 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
  ***|
 sub get_item_convert(bool _debug, string _item, string _fullname)
 	DEBUG \atget_item_convert\ax(\a-w${_item}, ${_fullname}\ax)
+
 	/while (!${FindItem[${_fullname}].ID}) {
 		GETINPUT
 		ISMEDEAD
@@ -7031,7 +7203,9 @@ sub get_item_convert(bool _debug, string _item, string _fullname)
 sub set_timer(bool _debug, string _my_timer, string _my_duration)
 	DEBUG \atset_timer\ax(\a-w${_my_timer}, ${_my_duration}\ax)
 
-	/if (!${Defined[${_my_timer}]}) /declare ${_my_timer} timer outer
+	/if (!${Defined[${_my_timer}]}) {
+		/declare ${_my_timer} timer outer
+	}
 	/varset ${_my_timer} ${_my_duration}
 
 /return TRUE
@@ -7229,7 +7403,7 @@ sub do_loot(bool _debug)
 							}
 							/delay 3 !${Cursor.ID}
 						}
-						| evil delete code end...
+| evil delete code end...
 					}
 				}
 			/next _pcount
@@ -7271,20 +7445,14 @@ sub check_cure(bool _debug)
 			/delay 5
 
 		| Paladin, Cleric, Shaman, Druid
-		} else /if (${Select[${Me.Class.ShortName},PAL,CLR,SHM,DRU]} && ${Me.AltAbilityReady[Radiant Cure]}) {
-			/if (${Me.CountersCurse} || ${Me.CountersPoison} || ${Me.CountersDisease}) {
-				/call voodoo FALSE "Radiant Cure" 0 FALSE
-				/delay 5
-				/invoke ${set_data_timer[FALSE, Check_Cure, 2s]}
-				/return TRUE
-			}
+		} else /if (${Select[${Me.Class.ShortName},PAL,CLR,SHM,DRU]} && ${Me.AltAbilityReady[Radiant Cure]} && (${Me.CountersCurse} || ${Me.CountersPoison} || ${Me.CountersDisease})) {
+			/call voodoo FALSE "Radiant Cure" 0 FALSE
+			/delay 5
 
 		| Necromancer
-		} else /if (${Select[${Me.Class.ShortName},NEC]} && ${Me.AltAbilityReady[Embrace the Decay]}) {
-			/if (${Me.CountersCurse} || ${Me.CountersPoison} || ${Me.CountersDisease} || ${Me.CountersCorruption}) {
-				/call voodoo FALSE "Embrace the Decay" 0 FALSE
-				/delay 5
-			}
+		} else /if (${Select[${Me.Class.ShortName},NEC]} && ${Me.AltAbilityReady[Embrace the Decay]} && (${Me.CountersCurse} || ${Me.CountersPoison} || ${Me.CountersDisease} || ${Me.CountersCorruption})) {
+			/call voodoo FALSE "Embrace the Decay" 0 FALSE
+			/delay 5
 		}
 
 		| cure with items self only
@@ -7320,7 +7488,7 @@ sub check_cure(bool _debug)
 
 		| get the name to something usable
 		/varset _name ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
-		| DEBUG ${sep}checking${sep}\aw${_name}\ax (\a-r${maComm.Find[stEntropyGroup_all].Value}\ax)
+		DEBUG ${sep}checking${sep}\aw${_name}\ax (\a-r${maComm.Find[stEntropyGroup_all].Value}\ax)
 
 		| are they here?
 		/if (!${Spawn[pc ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}) /continue
@@ -7342,7 +7510,7 @@ sub check_cure(bool _debug)
 			DEBUG ${sep}\aw${_name}\ax is just fine
 			/continue
 		} else /if (${Bool[${${_name}_TotalCounters}]}) {
-			OUT ${sep}\aw${_name}\ax needs a medic! (\a-r${${_name}_TotalCounters\ax)
+			OUT ${sep}\aw${_name}\ax needs a medic! (\a-r${${_name}_TotalCounters}\ax)
 		}
 
 		ISMEDEAD
@@ -7369,7 +7537,7 @@ sub check_cure(bool _debug)
 			| AA Group Purify Soul . were in deep shit if we've gotten this far.
 			| 0/100' 15 min
 			/if (${Select[${Me.Class.ShortName},CLR,DRU]} && ${Me.AltAbilityReady[Group Purify Soul]} && ${Spawn[pc ${_name}].Distance} < 100 && ${Group.Member[${_name}].ID}) {
-				/call voodoo FALSE "Group Purify Soul" alt 0 FALSE
+				/call voodoo FALSE "Group Purify Soul" 0 FALSE
 				/invoke ${set_data_timer[FALSE, Check_Cure, 2s]}
 				/return
 			}
@@ -7383,12 +7551,15 @@ sub check_cure(bool _debug)
 		}
 
 		| are they debuffed?
-		/if (!${Bool[${${_name}_TotalCounters}]}) /continue
 		DEBUG ${sep}\aw${_name}\aw_TotalCounters${sep}\a-w${${_name}_TotalCounters}\ax
-
+		/if (!${Bool[${${_name}_TotalCounters}]}) {
+			/continue
+		}
 
 		| is the DB set with the following cures to continue?
-		/if (!${Bool[${maHeal.Find[stCureCurse].Value}]} && !${Bool[${maHeal.Find[stCureCorruption].Value}]} && !${Bool[${maHeal.Find[stCurePoison].Value}]} && !${Bool[${maHeal.Find[stCureDisease].Value}]}) /continue
+		/if (!${Bool[${maHeal.Find[stCureCurse].Value}]} && !${Bool[${maHeal.Find[stCureCorruption].Value}]} && !${Bool[${maHeal.Find[stCurePoison].Value}]} && !${Bool[${maHeal.Find[stCureDisease].Value}]}) {
+			/continue
+		}
 
 		| cure with spell
 		/if (${Bool[${maHeal.Find[stCureCurse].Value}]} && ${${_name}_CountersCurse}) {
@@ -7510,6 +7681,7 @@ sub check_cursor(bool _debug, string _verbage)
 sub cast_temp_pet(bool _debug, int _tmpID, string _tmpSpell)
 	DEBUG \atcast_temp_pet\ax(\a-w${_tmpID}, ${_tmpSpell}\ax)
 
+	| these classes can only have one pet at a time (not counting  AA and spell combo. but i'n not gonna sort that shit)
 	/if (${Select[${Me.Class.ShortName},CLR,WIZ]}) {
 		/if (${Me.Pet.ID}) /return FALSE
 	}
@@ -7912,24 +8084,21 @@ sub check_deBuffs(bool _debug, int _tmpID)
 	}
 
 	|**
-	documenting this for my fucking sanity
-	debuff cycle:
-	loop through: Tash,Malo,Slow,Snare,Cripple
-	for each cycle a mob id list is maintained in the form of: lsdeBuff[TYPE]
-	a timer is maintained for each IT in the list in the form of: timer_[TYPE]_ID[MOBID]
-	the timer is based off the debuf duration less 6 seconds.
+		documenting this for my fucking sanity
+		debuff cycle:
+		loop through: Tash,Malo,Slow,Snare,Cripple
+		for each cycle a mob id list is maintained in the form of: lsdeBuff[TYPE]
+		a timer is maintained for each IT in the list in the form of: timer_[TYPE]_ID[MOBID]
+		the timer is based off the debuf duration less 6 seconds.
 
-	if a timer exists and the ID is in the list, we ignore the mob.
-	if a timer does not exist and it is debuffed, it is added to that list, a timer remaining is created and it is added to the list
-	if a timer does exist and it is not in hte list, add to the list and move on (should not happen)
-	if no debuff, no timer, and no id in list. debuff the shit
+		if a timer exists and the ID is in the list, we ignore the mob.
+		if a timer does not exist and it is debuffed, it is added to that list, a timer remaining is created and it is added to the list
+		if a timer does exist and it is not in hte list, add to the list and move on (should not happen)
+		if no debuff, no timer, and no id in list. debuff the shit
 
-	this code does not check spells or sub procs of spells/ass/items. it works only off target debuff member checking.
-	what this means: you may not get the best slow or cripple. the code accepts whatever is there as a valid debuff and moves on.
-
-
+		this code does not check spells or sub procs of spells/ass/items. it works only off target debuff member checking.
+		what this means: you may not get the best slow or cripple. the code accepts whatever is there as a valid debuff and moves on.
 	**|
-
 
 	/declare _lsout list local
 	/invoke ${_lsout.Append[Tash,Malo,Slow,Snare,Cripple]}
@@ -10226,7 +10395,7 @@ sub target_reset(bool _debug, int _tmpID, string _type)
 			}
 
 			/if (!${Bool[${_tmpID}]}) {
-				/call clear_combat FALSE
+				/call clear_combat ${_debug}
 				/return TRUE
 			}
 		}
@@ -10239,7 +10408,6 @@ sub target_reset(bool _debug, int _tmpID, string _type)
 		}
 
 		| xtargets dead?
-
 
 		| targets dead? were done here
 		/if (${Target.Dead}) {
@@ -10255,7 +10423,7 @@ sub target_reset(bool _debug, int _tmpID, string _type)
 		}
 
 		/if (${_dead}) {
-			/call clear_combat FALSE
+			/call clear_combat ${_debug}
 			/return FALSE
 		}
 
@@ -10337,6 +10505,71 @@ sub control_TTL(bool _debug, string _verbage)
 
 
 
+|***
+ * note: cast or trigger alliance on target
+ * use: /call trigger_alliance TARGETID
+
+sub trigger_alliance(bool _debug, int _tmpID)
+	DEBUG \attrigger_alliance\ax(\a-w${_tmpID}\ax)
+	ISMEDEAD
+	GETINPUT
+
+	| early GTFO if not ready
+	/if (!${Me.CombatAbilityReady[${Spell[${${Me.Class.ShortName}Alliance}].RankName}]} && ${Me.CombatAbility[${Spell[${${Me.Class.ShortName}Alliance}].RankName}]}) /return
+	/if (!${Me.SpellReady[${Spell[${${Me.Class.ShortName}Alliance}].RankName}]} && ${Me.Book[${Spell[${${Me.Class.ShortName}Alliance}].RankName}]}) /return
+
+	| correct healer targets to the assists ID, not the mobs..
+	/if (${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
+		/if (${Raid.Members}) {
+			/varset _tmpID ${Spawn[pc ${Raid.MainAssist}].ID}
+		} else /if (!${Raid.Members} && ${Group}) {
+			/varset _tmpID ${Spawn[pc ${Group.MainAssist}].ID}
+		} else /if (${Bool[${setMA1}]} && ${Bool[${Spawn[pc ${setMA1}].ID}]} && !${Bool[${Spawn[pc ${setMA1}].Dead}]}) {
+			/varset _tmpID ${Spawn[pc ${setMA1}].ID}
+		} else /if (${Bool[${setMA2}]} && ${Bool[${Spawn[pc ${setMA2}].ID}]} && !${Bool[${Spawn[pc ${setMA2}].Dead}]}) {
+			/varset _tmpID ${Spawn[pc ${setMA2}].ID}
+		}
+	}
+
+	| is the spawn still alive?
+	/if (${is_target_dead[${_tmpID}]}) /return FALSE
+
+	| adjust our current target
+	/varset dump ${set_Target[${_tmpID}]}
+
+	| are we there yet?
+	/delay 5 ${Target.BuffsPopulated}
+
+	| have the alliance on it already?
+	/if (${Target.BuffsPopulated}) {
+		/if (${Target.Buff[${${Me.Class.ShortName}Alliance}].ID}) /return FALSE
+		/if (${Bool[${Target.Buff[${${Me.Class.ShortName}Alliance}]}]}) /return FALSE
+		/if ((${Spawn[${Target.Buff[${${Me.Class.ShortName}Alliance}].Caster}].ID} == ${Me.ID})) /return FALSE
+	} else /if (!${Target.BuffsPopulated}) {
+		/return FALSE
+	}
+
+	| alliance time
+	/if (!${Target.BuffDuration[${${Me.Class.ShortName}Alliance}].TotalSeconds}) {
+		/if (${validate_cast[FALSE, FIND, "${Spell[${${Me.Class.ShortName}Alliance}].RankName}", ${_tmpID}]}) /call core_cast2 "${Spell[${${Me.Class.ShortName}Alliance}].RankName}" FIND ${_tmpID} FALSE
+		/return
+	}
+
+	| if theres no forced casted trigger, gtfo
+	/if (!${Bool[${${Me.Class.ShortName}AllianceTrigger}]}) /return
+
+	/declare _count int local 0
+
+	| is one of the trigger spells ready?
+	/for _count 1 to ${setAllianceTrigger.Count[|]}
+		/if (${Me.SpellReady[${Spell[${setAllianceTrigger.Arg[${_count},|]}].RankName}]}) {
+			/if (${validate_cast[FALSE, FIND, "${Spell[${setAllianceTrigger.Arg[${_count},|]}].RankName}", ${_tmpID}]}) /call core_cast2 "${Spell[${setAllianceTrigger.Arg[${_count},|]}].RankName}" FIND ${_tmpID} FALSE
+			/continue
+		}
+	/next _count
+
+/return
+ ***|
 
 
 

@@ -1556,7 +1556,7 @@ sub Bind_deez(string _type, string _verbage)
 
 
 	| get spawn info.  in a radius
-	/if (${_type.Equal[spawn]})  {
+	/if (${_type.Equal[spawn]}) {
 		OUT SpawnCount${sep}\a-w${SpawnCount[radius ${_verbage}]}
 		/declare _tmpID int local
 
@@ -1577,7 +1577,7 @@ sub Bind_deez(string _type, string _verbage)
 
 	}
 	| get spawn info.  in a radius
-	/if (${_type.Equal[spawn2]})  {
+	/if (${_type.Equal[spawn2]}) {
 		OUT SpawnCount${sep}\a-w${SpawnCount[radius ${_verbage}]}
 		/declare _tmpID int local
 
@@ -1592,6 +1592,32 @@ sub Bind_deez(string _type, string _verbage)
 
 			OUT #\ag${_count}\ax${sep}name:\a-w${Spawn[id ${_tmpID}].Name}\ax ${dot} Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax)
 		/next _count
+
+	}
+
+
+	/if (${_type.Equal[dataset]}) {
+
+    /declare i int local 0
+    /if (!${Defined[spawnList]}) {
+    	/declare spawnList list outer
+    }
+    /invoke ${spawnList.Clear}
+    /declare testme spawn local 0
+
+    /for i 1 to 4
+        /vardata testme NearestSpawn[${i}, npc targetable radius 100]
+        /invoke ${spawnList.Append[${NearestSpawn[${i}, npc targetable radius 100}]}
+    /next i
+
+    /declare lis listiterator local
+    /vardata lis spawnList.First.Clone
+    /while (!${lis.IsEnd}) {
+    	/echo LOS on: ${lis.Value} = ${Spawn[${lis.Value}].LineOfSight}
+    	/invoke ${lis.Advance}
+    }
+
+
 
 	}
 
@@ -2295,7 +2321,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	| set assist
 	} else /if (${_type.Equal[ass]}) {
 		/if (${_verbage.Equal[g]}) {
-			/call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[g]},g,FALSE\ax]}
+			/call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[g]},g,FALSE]}
 		} else /if (${_verbage.Equal[ma1]}) {
 			/call do_raw_edit ${_debug} SILENT stAssistMode "ma1"
 			/if (${Bool[${_silent}]} && ${_silent.NotEqual[SILENT]}) {
@@ -2307,12 +2333,11 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 				/call do_raw_edit ${_debug} SILENT stManualAssist2 "${_silent}"
 			}
 		} else /if (${_verbage.Equal[1]}) {
-			/echo here
-			/call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[1]},1,FALSE\ax]}
+			/call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[1]},1,FALSE]}
 		} else /if (${_verbage.Equal[2]}) {
-			/call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[2]},2,FALSE\ax]}
+			/call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[2]},2,FALSE]}
 		} else /if (${_verbage.Equal[3]}) {
-			/call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[3]},3,FALSE\ax]}
+			/call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[3]},3,FALSE]}
 		}
 
 		/if (${_silent.Equal[SILENT]}) /return
@@ -2892,22 +2917,24 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
  * use: /dex NAME /splash | /splash
  ***|
 #bind command_splash /splash
-sub Bind_command_splash(string _other, bool _debug)
+sub Bind_command_splash(bool _debug)
 	DEBUG \atBind_command_splash\ax()
 
-	/if (!${check_class[TRUE, |PAL|CLR]}) /return FALSE
+	/if (!${check_class[TRUE, |PAL|CLR]}) {
+		/return FALSE
+	}
 
-	| cleric
+	| paladin
 	/if (${Me.Class.ShortName.Equal[PAL]}) {
-		/if (${is_ready[FALSE, "${maChr.Find[stSplashCure].Value}"]}) {
-		/call voodoo FALSE "${maChr.Find[stSplashCure].Value}" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stSplashCure].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stSplashCure].Value}" 0 FALSE
 		}
 	}
 
 	| cleric
 	/if (${Me.Class.ShortName.Equal[CLR]}) {
-		/if (${is_ready[FALSE, "${maChr.Find[stSplash].Value}"]}) {
-			/call voodoo FALSE "${maChr.Find[stSplash].Value}" ${Me.ID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stSplash].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stSplash].Value}" ${Me.ID} FALSE
 		}
 	}
 

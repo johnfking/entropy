@@ -239,7 +239,7 @@ sub check_heal_RNG(bool _debug, string _type)
 sub cast_nuke_summer(bool _debug, int _tmpID)
 	DEBUG \atcast_nuke_summer\ax(\a-w${_tmpID}\ax)
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
 	ISMEDEAD
 	CHECKEXIT
 	/invoke ${set_data_timer[${_debug}, Summer_Nuke, RESTART]}
@@ -266,15 +266,17 @@ sub burn_RNG(bool _debug, int _tmpID)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) {
+		/call cast_defensive_cycle ${maDebug.Find[def].Value}
+	}
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 	| cheeta
-	/if (${is_ready[${_debug}, "Scarlet Cheeta's Fang"]}) {
-		/call voodoo ${_debug} "Scarlet Cheeta's Fang" 0 FALSE
+	/if (${is_ready[${_debug}, "Scarlet Cheetah's Fang"]}) {
+		/call voodoo ${_debug} "Scarlet Cheetah's Fang" 0 FALSE
 	}
 
 	| auspice
@@ -282,10 +284,10 @@ sub burn_RNG(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "Auspice of the Hunter" 0 FALSE
 	}
 
-	|**
 	| MELEE
+	|**
 	/if (MELEE) {
-		/if (${Target.Distance} <= ${Spawn[TARGET].MaxRangeTo}*.9) {
+		/if (${Target.Distance} <= ${Spawn[${_tmpID}].MaxRangeTo}*.9) {
 
 			| weapon proc
 			/if (${is_ready[${_debug}, "Imbued Ferocity"]}) {
@@ -309,21 +311,21 @@ sub burn_RNG(bool _debug, int _tmpID)
 
 
 	}
+	**|
 
+	|**
 	| RANGE
-	/if (RANGE) {
-		/if (${Target.Distance} >= 31) {
+	/if (RANGE && ${Target.Distance} >= 31) {
 			/if (${Me.ActiveDisc.ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
 				/if (${is_ready[${_debug}, "${maChr.Find[stDiscRange].Value}"]}) {
 					/call voodoo ${_debug} "${maChr.Find[stDiscRange].Value}" 0 FALSE
 				}
-			} else /if (!${Me.ActiveDisc.ID} && !(${is_ready[${_debug}, "${maChr.Find[stDiscRange].Value}"]}) {
+			} else /if (!${Me.ActiveDisc.ID} && !${is_ready[${_debug}, "${maChr.Find[stDiscRange].Value}"]}) {
 				/call cast_glyph ${maDebug.Find[glyph].Value}
 			}
 		}
-
-	}
 	**|
+
 
 	| attack / dmg AA
 	/if (${is_ready[${_debug}, "Outrider's Accuracy"]}) {

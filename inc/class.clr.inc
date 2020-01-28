@@ -177,38 +177,43 @@ sub main_CLR(bool _debug)
  * note: Combat skills, Disciplines and Alternate abilities.
  * use: /call misc_combat_${Me.Class.ShortName}
  ***|
-sub misc_combat_CLR(bool _debug)
+sub misc_combat_CLR(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_CLR\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
 
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
+		/call cast_defensive_cycle ${maDebug.Find[def].Value}
+	}
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
+		/call cast_defensive_cycle ${maDebug.Find[def].Value}
+	}
 
 	/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
 
-	/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stTempPet].Value}"
+	/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} ${_tmpID} "${maChr.Find[stTempPet].Value}"
 
 
 	| pet AA hammer
 	/if (${maBurn.Find[swBurnForce].Value} || (${maBurn.Find[swBurnAuto].Value} && ${lsZoneNamed.Contains[${Target.DisplayName}]})) {
 		/if (${is_ready[${_debug}, "Celestial Hammer"]}) {
-			/call voodoo ${_debug} "Celestial Hammer" TARGET FALSE
+			/call voodoo ${_debug} "Celestial Hammer" ${_tmpID} FALSE
 		}
 	}
 
 	| undead aa dot
 	/if (${Target.Body.Name.Equal[Undead]} && DOT) {
 		/if (${is_ready[${_debug}, "Turn Undead"]}) {
-			/call voodoo ${_debug} "Turn Undead" TARGET FALSE
+			/call voodoo ${_debug} "Turn Undead" ${_tmpID} FALSE
 		}
 	}
 
@@ -286,7 +291,6 @@ sub check_heal_CLR(bool _debug, string _type)
 	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= ${maChr.Find[stCountAE].Value}) {
 	 		/declare _groupHOT string local ${Set_Rank[False, ${maChr.Find[stHealGroupOverTime].Value.Arg[1,+]}]}
 			/if (!${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID}) {
-
 				/declare _found bool TRUE
 				| check regen SPA
 				/if (${Spell[${_groupHOT}].HasSPA[374]}) {
