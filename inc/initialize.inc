@@ -1,4 +1,4 @@
-i|*********************************************************************
+|*********************************************************************
  * entropy
  * initialize.inc
  * all shared/static data initilization
@@ -26,7 +26,7 @@ sub set_debug()
   }
 
   | buff
-  /invoke ${lsDebugbuff.Append[cb,ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp]}
+  /invoke ${lsDebugbuff.Append[cb,ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp,bocked]}
   | heal
   /invoke ${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot]}
   | move
@@ -40,7 +40,7 @@ sub set_debug()
 	| loot
   /invoke ${lsDebugloot.Append[loot]}
 	| mode
-  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush]}
+  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill]}
   | combat
   /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision]}
 	| other
@@ -248,7 +248,7 @@ sub set_initial_environment(bool _debug)
   /call set_data FALSE FALSE lsFreePassSpells                         list outer Beneficial|Pet
 
   | bandolier setting
-  /call set_data FALSE F=ALSE lsBandolier                             list outer "1h|2h|range|no"
+  /call set_data FALSE FALSE lsBandolier                             list outer "1h|2h|range|no"
 
 
 	| increment lists
@@ -455,7 +455,7 @@ sub set_initial_environment(bool _debug)
   | generate modes
   /declare maMode map outer
   /declare lsMode list outer
-  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush]}
+  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill]}
 
 	/declare _lisie listiterator local
   /vardata _lisie lsMode.First.Clone
@@ -712,7 +712,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data FALSE FALSE tmpHealAdjust                            float outer 99.99
   /call set_data FALSE FALSE hurtID                                   int outer 0
   /call set_data FALSE FALSE hurtPctHP                                int outer 100
-  /call set_data FALSE FALSE hurtCLS                                  string outer FALSE
+  /call set_data FALSE FALSE hurtCLS                                  string outer ${Me.Class.ShortName}
   /call set_data FALSE FALSE hurtCount                                int outer 0
 
 
@@ -1315,6 +1315,11 @@ sub set_initialize_hud_variables()
   /invoke ${lsHUD.Append[zgive,ztake,zcombat,zeveryone,ztoken]}
   /invoke ${lsHUD.Append[eset]}
 
+  | dev hud variables
+  /invoke ${lsHUD.Append[dcombat,dburn,denv,dpull,dsafe]}
+
+
+
 	/declare _lisihv listiterator local
   /vardata _lisihv lsHUD.First.Clone
   /while (!${_lisihv.IsEnd}) {
@@ -1528,22 +1533,146 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 
 	| row 91
-    HUDPATH entropy target  3,5,91,100,149,237,"${If[${Target.ID},[${Target.Class.ShortName} ${Target.Level}] ${Target.Name} ${If[${Bool[${Target.Guild}]},<${Target.Guild}>, ]}, ]}"
-    HUDPATH entropy time1   19,290,91,146,149,180,"${If[${h_time},${Time.Time24},${GameTime}]}"
-    HUDPATH entropy BG91    3,3,91,0,0,0,██████████████████████████████████████████
+    HUDPATH entropy target		3,5,91,100,149,237,"${If[${Target.ID},[${Target.Class.ShortName} ${Target.Level}] ${Target.Name} ${If[${Bool[${Target.Guild}]},<${Target.Guild}>, ]}, ]}"
+    HUDPATH entropy time1			19,290,91,146,149,180,"${If[${h_time},${Time.Time24},${GameTime}]}"
+    HUDPATH entropy BG91    	3,3,91,0,0,0,██████████████████████████████████████████
 
 
-  | dev hud
+  | cursor over hud
+  } else /if (${_verbage.Equal[cursor]}) {
+
+    HUDPATH cursor over				21,4,50,0,255,0,${If[${EverQuest.LastMouseOver},${EverQuest.LastMouseOver.Name},]}
+    HUDPATH cursor overbg			21,2,50,0,0,0,${If[${EverQuest.LastMouseOver},█████████████████████████,]}
+
+
+
+  | additional development hud
   } else /if (${_verbage.Equal[dev]}) {
 
-    HUDPATH DEV over        21,4,50,0,255,0,"${If[${EverQuest.LastMouseOver},${EverQuest.LastMouseOver.Name},]}"
-    HUDPATH DEV overbg      21,2,50,0,0,0,"${If[${EverQuest.LastMouseOver},█████████████████████████,]}"
+    HUDPATH dev HL1    						3,3,95,247,152,10,________________________________________________________
+    HUDPATH dev HL2    						3,3,96,247,152,10,________________________________________________________
+
+	| row 110
+    | HUDPATH dev devCurSub 19,5,110,100,149,237,${Macro.CurSub}
+    HUDPATH dev BG110    					3,3,110,0,0,0,██████████████████████████████████████████
+
+
+	| row 123
+    HUDPATH dev devCombat1	 		  19,5,123,100,149,237,combat
+    HUDPATH dev devCombat2	 		  19,45,123,0,255,0,${If[${h_dcombat},T,]}
+    HUDPATH dev devCombat3	 		  19,45,123,255,0,0,${If[${h_dcombat},,F]}
+
+
+    HUDPATH dev devBurn1	 		 		19,80,123,100,149,237,burn
+    HUDPATH dev devBurn2	 			  19,110,123,0,255,0,${If[${h_dburn},T,]}
+    HUDPATH dev devBurn3	 		  	19,110,123,255,0,0,${If[${h_dburn},,F]}
+
+    HUDPATH dev hurtID1						19,130,123,100,149,237,hID
+    HUDPATH dev hurtID2		 			  19,150,123,255,255,255,${hurtID}
+
+
+    HUDPATH dev BG123    					3,3,123,0,0,0,██████████████████████████████████████████
+
+	| row 136
+    HUDPATH dev devTargetID1 	  	19,5,136,100,149,237,targetID
+    HUDPATH dev devTargetID2 		 	19,45,136,255,255,255,${Target.ID}
+
+    HUDPATH dev stEnvRadius1			19,80,136,100,149,237,env#
+    HUDPATH dev stEnvRadius2			19,110,136,255,255,255,"${SpawnCount[NPC radius ${h_denv}]}"
+
+    HUDPATH dev hurtPctHP1				19,130,136,100,149,237,h%
+    HUDPATH dev hurtPctHP2		 		19,150,136,255,255,255,${hurtPctHP}
+
+
+    HUDPATH dev BG136    					3,3,136,0,0,0,██████████████████████████████████████████
+
+	| row 149
+    HUDPATH dev devASSTargetID1   19,5,149,100,149,237,AssID
+    HUDPATH dev devASSTargetID2  	19,45,149,255,255,255,${stAssTarID}
+
+    HUDPATH dev stEnvSafeRadius1	19,80,149,100,149,237,env#
+    HUDPATH dev stEnvSafeRadius2	19,110,149,255,255,255,"${SpawnCount[NPC radius ${h_dsafe} playerstate 4]}"
+
+    HUDPATH dev hurtCLS1				19,130,149,100,149,237,hCL
+    HUDPATH dev hurtCLS2		 		19,150,149,255,255,255,${hurtCLS}
+
+
+    HUDPATH dev BG149  			 		 	3,3,149,0,0,0,██████████████████████████████████████████
+
+
+	| row 162
+    HUDPATH dev devIsDead1  			19,5,162,100,149,237,IsDead
+    HUDPATH dev devIsDead2	 		  19,45,162,0,255,0,${If[${swIsMeDead},T,]}
+    HUDPATH dev devIsDead3	 		  19,45,162,255,0,0,${If[${swIsMeDead},,F]}
+
+    HUDPATH dev stPullRadius1			19,80,162,100,149,237,pull#
+    HUDPATH dev stPullRadius2			19,110,162,255,255,255,"${SpawnCount[NPC radius ${h_dpull}]}"
+
+    HUDPATH dev hurtCount1				19,130,162,100,149,237,h#
+    HUDPATH dev hurtCount2		 		19,150,162,255,255,255,${hurtCount}
+
+
+
+    HUDPATH dev BG162    					3,3,162,0,0,0,██████████████████████████████████████████
+
+    HUDPATH dev HL3    						3,3,166,247,152,10,________________________________________________________
+    HUDPATH dev HL4    						3,3,167,247,152,10,________________________________________________________
+
+
+	| row 181
+		HUDPATH dev tTIE1							19,5,181,100,149,237,tie
+		HUDPATH dev tTIE2							19,30,181,255,239,0,${timer_Check_Tie}
+		HUDPATH dev tb1								19,50,181,100,149,237,b
+		HUDPATH dev tb2								19,70,181,255,239,0,${timer_Check_Buff_Cycle}
+
+		HUDPATH dev tbC1							19,105,181,100,149,237,bC
+		HUDPATH dev tbC2							19,125,181,255,239,0,${timer_Check_Buff_Crew}
+
+		HUDPATH dev tbR1							19,160,181,100,149,237,bR
+		HUDPATH dev tbR2							19,185,181,255,239,0,${timer_Check_Buff_Raid}
+
+    HUDPATH dev BG181    					3,3,181,0,0,0,██████████████████████████████████████████
+
+	| row 194
+
+		HUDPATH dev tCure1						19,5,194,100,149,237,cure
+		HUDPATH dev tCure2						19,30,194,255,239,0,${timer_Check_Cure}
+
+		HUDPATH dev tbN1							19,50,194,100,149,237,bN
+		HUDPATH dev tbN2							19,70,194,255,239,0,${timer_Check_Buff_Now}
+		HUDPATH dev tbA1							19,105,194,100,149,237,bA
+		HUDPATH dev tbA2							19,125,194,255,239,0,${timer_Check_Buff_Aura}
+
+    HUDPATH dev BG194    					3,3,194,0,0,0,██████████████████████████████████████████
+
+	| row207
+
+		HUDPATH dev tbS1							19,50,207,100,149,237,bS
+		HUDPATH dev tbS2							19,70,207,255,239,0,${timer_Check_Buff_Self}
+		HUDPATH dev tbB1							19,105,207,100,149,237,bB
+		HUDPATH dev tbB2							19,125,207,255,239,0,${timer_Check_Buff_Beg}
+
+    HUDPATH dev BG207    					3,3,207,0,0,0,██████████████████████████████████████████
+
+	| row 220
+
+		HUDPATH dev tbU1							19,50,220,100,149,237,bU
+		HUDPATH dev tbU2							19,70,220,255,239,0,${timer_Check_Buff_Unity}
+		HUDPATH dev tbT1							19,105,220,100,149,237,bT
+		HUDPATH dev tbT2							19,125,220,255,239,0,${timer_Check_Buff_Temp}
+
+    HUDPATH dev BG220    					3,3,220,0,0,0,██████████████████████████████████████████
+
+
+
+
 
   }
 
 
 
 /return
+
 
 
 

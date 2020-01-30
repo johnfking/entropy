@@ -562,7 +562,7 @@ sub check_plugin(bool _debug, bool _error, string _plugin)
 	DEBUG \atcheck_plugin\ax(\a-w${_error}, ${_plugin}\ax)
 
 	/if (!${Bool[${_plugin}]}) {
-		/invoke ${out[0, "${bad}ERROR\ax${sep}validate_plugin()"]}
+		/invoke ${out[0, "\arERROR\ax\a-p::\axvalidate_plugin()"]}
 		/endmacro
 	}
 	/declare _plugcount int local 0
@@ -592,9 +592,11 @@ sub check_plugin(bool _debug, bool _error, string _plugin)
  ***|
 sub set_buffs_blocked(bool _debug, string _silent)
 	DEBUG \atset_buffs_blocked\ax(\a-w${_silent}\ax)
+
 	/declare _count int local 0
 
 	/if (!${Defined[lsBlockedBuffsMe]}) {
+		DEBUG ${sep}setting ${sep}\a-wlsBlockedBuffsMe\ax
 		/declare lsBlockedBuffsMe string outer
 	}
 
@@ -605,13 +607,15 @@ sub set_buffs_blocked(bool _debug, string _silent)
 			/continue
 		}
 		/if (!${lsBlockedBuffsMe.Find[${Me.BlockedBuff[${_count}].ID}]}) {
+			DEBUG ${sep}adding${sep}${Me.BlockedBuff[${_count}].ID}${sep}\a-w${Spell[${Me.BlockedBuff[${_count}].ID}].Name}\ax
 			/varset lsBlockedBuffsMe ${lsBlockedBuffsMe}|${Me.BlockedBuff[${_count}].ID}
 		}
 
 	/next _count
 
-
-	/if (${_silent.Equal[SILENT]}) /return TRUE
+	/if (${_silent.Equal[SILENT]}) {
+		/return TRUE
+	}
 	/invoke ${out[0, "Marking Blocked Buffs"]}
 
 /return
@@ -1572,7 +1576,9 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		/declare _condition string local ${_verbage.Arg[2,+]}
 		DEBUG ${sep}condition${sep}\aw${_condition}\ax
 		/varset _verbage ${_verbage.Arg[1,+]}
-		/if (!${check_condition[FALSE, ${_condition}]}) /return FALSE
+		/if (!${check_condition[FALSE, ${_condition}]}) {
+			/return FALSE
+		}
 	}
 
 	/declare _type string local FALSE
@@ -1597,6 +1603,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			} else /if (${Me.CombatAbilityReady[${Me.CombatAbility[${Spell[${_verbage}].RankName}]}]}) {
 				DEBUG _type${sep}\a-wDISC\ax
 				/varset _type DISC
+
 			| click item
 			} else /if (${Me.ItemReady[=${_verbage}]}) {
 				DEBUG _type${sep}\a-wITEM\ax
@@ -1733,7 +1740,8 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			}
 		}
 
-		|** check any subs? yes.. no.. maybe??
+		|**
+		| check any subs? yes.. no.. maybe??
 		/if (${SubDefined[${_sub}]} && ${_sub.NotEqual[skiptargetcheck]}) {
 			DEBUG ${sep}/call ${_sub}
 			/call ${_sub}
@@ -1796,7 +1804,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
  				GETINPUT
 
 				| good cast
-				/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
+				/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,BLOCKED]}) {
 					/if (${Select[${Me.Class.ShortName},BRD]}) /call pulse_stop
 					/break
 				}
@@ -2193,6 +2201,7 @@ sub check_xtarget_build(bool _debug, string _forced)
 
 				/varcalc _b ${_b}+1
 				/xtarget set ${_b} ${NearestSpawn[${_x}, pc ${_lixt.Value} raid radius ENV]}
+				/delay 1
 			/next _x
 
 			/invoke ${_lixt.Advance}
@@ -4069,13 +4078,17 @@ sub get_assist_target(bool _debug)
  * use: GETINPUT [sub] [variable]
  ***|
 sub register_observer(string _sub, string _variable)
-	/if (!${maEntropy.Find[swHookSub].Value}) /return FALSE
+
+	/if (!${maEntropy.Find[swHookSub].Value}) {
+		/return FALSE
+	}
 
 	/if (${maHook.Contains[hook_${_sub}]}) {
 		/if (${maHook.Find[hook_${_sub}].Value.Arg[2,|].Equal[${_variable.Arg[2,|]}]}) {
 			/return FALSE
 		}
 		/invoke ${maHook.Add[hook_${_sub},${_variable}]}
+
 		/if (${SubDefined[hook_${_sub}]}) {
 			/call hook_${_sub} ${_variable}
 			/return ${Macro.Return}
@@ -5641,16 +5654,29 @@ sub check_buff_cycle_self(bool _debug)
 
 		| DEBUG _count ${_count}
 
-		/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) /continue
-		/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
+		/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) {
+			/continue
+		}
 
-		/if (!${lsBuff${_count}Tag.Contains[self]}) /continue
+		/if (!${maBuffs.Find[swBuff${_count}].Value}) {
+			/continue
+		}
+
+		/if (!${lsBuff${_count}Tag.Contains[self]}) {
+			/continue
+		}
+
 		DEBUG ${sep}buff:${_count}${sep}\a-w${maBuffs.Find[stBuff${_count}].Value}\ax
-		/if (!${check_basic_tags[FALSE, Buff${_count}, ${Me.DisplayName}]}) /continue
+		/if (!${check_basic_tags[FALSE, Buff${_count}, ${Me.DisplayName}]}) {
+			/continue
+		}
 
 		/varset _spell ${set_rank[FALSE, "${maBuffs.Find[stBuff${_count}].Value.Arg[1,+]}"]}
 
-		/if (!${check_condition[${_debug}, ${maBuffs.Find[stBuff${_count}Con].Value}]}) /continue
+		/if (!${check_condition[${_debug}, ${maBuffs.Find[stBuff${_count}Con].Value}]}) {
+			/continue
+		}
+
 
 
 		/varset _found TRUE
@@ -6774,12 +6800,16 @@ sub check_basic_tags(bool _debug, string _type, string _name)
 
 	| no buffing in combat
 	/if (${ls${_type}Tag.Contains[nocombat]} && AUTO && COMBAT) {
-		| /if (${Select[${Me.CombatState},combat]}) /return FALSE
-		/return FALSE
-		| /if (${SpawnCount[npc radius SAFEENV PS4]}) /return FALSE
+		/if (HEAL) {
+			/if (${SpawnCount[npc radius SAFEENV PS4]}) {
+				/return FALSE
+			}
+		} else {
+			/return FALSE
+		}
 	}
 
-	| obey no tags. only use the aliase for this spell
+	| obey no tags. only use the aliase for this .. thing..
 	/if (${ls${_type}Tag.Contains[aliasonly]}) {
 		/return FALSE
 	}
@@ -6922,23 +6952,38 @@ sub check_basic_tags_summonitem(bool _debug, string _buff)
 sub check_for_corpse(bool _debug)
 	DEBUG \atcheck_for_corpse\ax()
 
-	/if (${Me.State.Equal[HOVER]} || ${Me.Hovering} || ${Me.Dead}) /return FALSE
-
+	/if (${Me.State.Equal[HOVER]} || ${Me.Hovering} || ${Me.Dead}) {
+		/return FALSE
+	}
 	| fuck your corpse
-	/if (!${maRez.Find[swRezGive].Value}) /return	FALSE
+	/if (!${maRez.Find[swRezGive].Value}) {
+		/return	FALSE
+	}
 	| no one dead
-	/if (!${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}) /return FALSE
+	/if (!${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}) {
+		/return FALSE
+	}
 	| no combat rez
-	/if (!${maRez.Find[swRezCombat].Value} && ${SpawnCount[npc radius ENV PS4]}) /return FALSE
+	/if (!${maRez.Find[swRezCombat].Value} && ${SpawnCount[npc radius ENV PS4]}) {
+		/return FALSE
+	}
 	| no safe zone ressing
-	/if (SAFEZONE) /return FALSE
+	/if (SAFEZONE) {
+		/return FALSE
+	}
 	| not enough manna for AA rez
-	/if (${Me.PctMana} < 2 && !${maRez.Find[swRezToken].Value}) /return FALSE
+	/if (${Me.PctMana} < 2 && !${maRez.Find[swRezToken].Value}) {
+		/return FALSE
+	}
 
 	| no emergency tokens AND dont use them when a cleric is around
 	/if (${maRez.Find[swRezToken].Value}) {
-		/if (!${Me.ItemReady[Token of Resurrection]}) /return FALSE
-		/if (${Spawn[pc CLR radius ${maRez.Find[stMaxRezRange].Value}].ID}) /return FALSE
+		/if (!${Me.ItemReady[Token of Resurrection]}) {
+			/return FALSE
+		}
+		/if (${Spawn[pc CLR radius ${maRez.Find[stMaxRezRange].Value}].ID}) {
+			/return FALSE
+		}
 
 		| disable rezemergency if you dont have tokens or are on a TLP box
 		/if (!${FindItemCount[=Token of Resurrection]}) {
@@ -6987,16 +7032,16 @@ sub check_for_corpse(bool _debug)
 	/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}
 		/varset _tmpID ${NearestSpawn[${_count},pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}
 
-		| for the people that suck ass (not in a good way)
-		/if (${lsNoRezToon.Contains[${Spawn[${_tmpID}].Name}]}) {
-			/if (!${Defined[timer_corpse_${_tmpID}]}) /declare timer_corpse_${_tmpID} timer outer 7200
-			/continue
-		}
-
 		/if (!${Defined[timer_corpse_${_tmpID}]}) {
 			/declare timer_corpse_${_tmpID} timer outer 1
 			/delay 1
 		}
+
+		| for the people that suck ass (not in a good way)
+		/if (${lsNoRezToon.Contains[${Spawn[${_tmpID}].Name}]}) {
+			/varset timer_corpse_${_tmpID} 7200
+		}
+
 	/next _count
 
 	SETHUD "resurrect"
@@ -8896,8 +8941,8 @@ sub cast_AA_spire(bool _debug)
 
 
 |***
- * note: uses the aa Spire you have set
- * use: /call cast_AA_spire
+ * note: set hud varaibles
+ * use: not for your use
  ***|
 sub set_hud_data(string _mode)
 
@@ -9003,6 +9048,17 @@ sub set_hud_data(string _mode)
 
 	| character build
 	/varset h_eset					${maEnv.Find[stBuildSetCurrent].Value}
+
+
+
+	| build dev variables
+	/varset h_dcombat					${maCC.Find[swSetCombat].Value}
+	/varset h_dburn						${maBurn.Find[swBurnConditionMet].Value}
+	/varset h_denv						${maEnv.Find[stEnvRadius].Value}
+	/varset h_dsafe						${maEnv.Find[stEnvSafeRadius].Value}
+	/varset h_dpull						${maCC.Find[stPullRadius].Value}
+
+
 
 
 /return TRUE

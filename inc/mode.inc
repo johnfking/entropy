@@ -14,7 +14,7 @@
  *	USE: /call switch_clear_mode
  *	INI: NA
  *  NOTE:
- ***|
+
 sub switch_clear_mode(bool _debug)
 /return
 
@@ -38,14 +38,14 @@ sub switch_clear_mode(bool _debug)
 	/varset swModeTrainspellSPC FALSE
 
 /return TRUE
-
+ ***|
 
 
 |***
  *	DES: central get target and kill for hunting modes
  *	USE: /call mode_get_mob
  *  NOTE:
- ***|
+
 sub mode_get_mob(bool _debug)
 	:movetomob
 	GETINPUT
@@ -64,34 +64,45 @@ sub mode_get_mob(bool _debug)
 	/if (${Spawn[TARGET].ID} && ${Spawn[TARGET].Distance} > ${setCombatDistance}) /goto :movetomob
 
 /return
-
+ ***|
 
 
 |***
- *	DES: Train non spell skills. Best to use during a duel with a pet.
- *	USE:
- *  NOTE: This is not working yet...
+ * note: Train non spell skills. Best to use during a duel with a pet.
+ * use: /mode train
  ***|
-sub mode_skill_train(string _skilltype, bool _debug)
-
-	|**
-	/declare _sep bool local
-	/declare _listout string local
-	/declare _count int local 0
-	/declare _bind string local ${Me.Class.ShortName.Lower}
-  /declare _type string	local |beg|bindwound
-	**|
-
+sub mode_trainskill(bool _debug)
+	DEBUG \atmode_train\ax()
 
 	ISMEDEAD
-	SETHUD "mode skill train"
+	SETHUD "mode trainskill"
+	/makemevisible
 	/delay 1
 
-	/if (${Me.Skill[Taunt]} < ${Skill[Taunt].SkillCap} && ${Me.AbilityReady[Taunt]}) /doability Taunt
-	/if (${Me.Skill[Disarm]} < ${Skill[Disarm].SkillCap} && ${Me.AbilityReady[Disarm]}) /doability Disarm
-	/if (${Me.Skill[Bash]} < ${Skill[Bash].SkillCap} && ${Me.AbilityReady[Bash]}) /doability Bash
-	/if (${Me.Skill[Kick]} < ${Skill[Kick].SkillCap} && ${Me.AbilityReady[Kick]}) /doability Kick
-	/if (${Me.Skill[Sneak]} < ${Skill[Sneak].SkillCap} && ${Me.AbilityReady[Sneak]}) /doability sneak
+	/if (${Me.Skill[Taunt]} < ${Skill[Taunt].SkillCap} && ${Me.AbilityReady[Taunt]}) {
+		DEBUG ${sep}taunt
+		/doability Taunt
+	}
+
+	/if (${Me.Skill[Disarm]} < ${Skill[Disarm].SkillCap} && ${Me.AbilityReady[Disarm]}) {
+		DEBUG ${sep}disarm
+		/doability Disarm
+	}
+
+	/if (${Me.Skill[Bash]} < ${Skill[Bash].SkillCap} && ${Me.AbilityReady[Bash]}) {
+		DEBUG ${sep}bash
+		/doability Bash
+	}
+
+	/if (${Me.Skill[Kick]} < ${Skill[Kick].SkillCap} && ${Me.AbilityReady[Kick]}) {
+		DEBUG ${sep}kick
+		/doability Kick
+	}
+
+	/if (${Me.Skill[Sneak]} < ${Skill[Sneak].SkillCap} && ${Me.AbilityReady[Sneak]}) {
+		DEBUG ${sep}sneak
+		/doability sneak
+	}
 
 	/if (${Target.ID} && ${Target.ID} != ${Me.ID}) {
 		/if (${Me.Skill[Begging]} < ${Skill[Begging].SkillCap} && ${Me.AbilityReady[Begging]}) /doability begging
@@ -100,6 +111,7 @@ sub mode_skill_train(string _skilltype, bool _debug)
 	| Bind Wounds
 	/if (${Me.AbilityReady[Bind Wound]} && ${FindItem[=Bandages].ID}) {
 		/if (${Me.Skill[Bind Wound]} < ${Skill[Bind Wound].SkillCap} && ${Me.PctHPs} < 99*.PCTHO) {
+			DEBUG ${sep}bind
 			/invoke ${set_target[${Me.ID}]}
 			/doability "Bind Wound"
 		}
@@ -136,6 +148,7 @@ sub mode_fish(bool _debug)
 	/call check_cursor ${_debug} TRUE
 
 	/if (${Me.AbilityReady[fishing]}) {
+		DEBUG ${sep}fish
 		/doability fishing
 	}
 
@@ -154,7 +167,9 @@ sub mode_fish(bool _debug)
 sub mode_forage(bool _debug)
 	DEBUG \atmode_forage\ax()
 
-	/if (${Select[${Me.CombatState},combat]}) /return
+	/if (${Select[${Me.CombatState},combat]}) {
+		/return FALSE
+	}
 
 	/if (!${Me.AbilityReady[forage]}) {
 		/return FALSE
@@ -167,6 +182,7 @@ sub mode_forage(bool _debug)
 		/stand
 	}
 
+	DEBUG ${sep}forage
 	/doability forage
 	/delay 1s
 
@@ -221,9 +237,9 @@ sub mode_drag(bool _debug)
 
 
 |***
- *	DES: turns the toon into a hunter of things.
+ * note: turns the toon into a hunter of things.
  *	USE: /mode hunt
-  ***|
+ ***|
 sub mode_hunt2(bool _debug)
 	DEBUG \atmode_hunt2\ax()
 
@@ -410,9 +426,12 @@ sub mode_harvest(bool _debug)
 sub get_ground_item(bool _debug, string _tmpItem)
 	DEBUG \atget_ground_item\ax(\a-w"${_tmpItem}"\ax)
 
-	/call check_cursor ${_debug} CLEAR
+	/if (${Cursor.ID}) {
+		/call check_cursor ${_debug} CLEAR
+	}
 
 	/if (!${GroundItemCount[${_tmpItem}]}) {
+		DEBUG ${sep}no ground item count
 		/return FALSE
 		/delay 2
 	}
@@ -456,16 +475,28 @@ sub get_ground_item(bool _debug, string _tmpItem)
 	/nav locyxz ${_locY} ${_locX} ${_locZ} |dist=18 log=off
 	/delay 1s
 
-	/while (${Me.Moving}) {
+	/while (${Me.Moving} || ${Ground[${_tmpItem}].Distance3D} <= 19) {
+		DEBUG ${sep}whileloop${sep}\a-wMe.Moving\ax
 
-		/if (!${Navigation.Active}) /break
-		/if (!${Me.Moving}) /break
+		/if (${Cursor.ID}) {
+			/call check_cursor ${_debug} CLEAR
+		}
 
 		/if (${Ground[${_tmpItem}].Distance3D} <= 19) {
+			DEBUG ${sep}distance${sep}\a-w${Ground[${_tmpItem}].Distance3D}\ax
 			/nav stop |log=off
 			/call Bind_command_grab "${_tmpItem}" ${_debug}
-			/delay 5
-			/call check_cursor ${_debug} CLEAR
+			/if (${Cursor.ID}) {
+				/call check_cursor ${_debug} CLEAR
+			}
+			/break
+		}
+
+		/if (!${Navigation.Active}) {
+			/break
+		}
+
+		/if (!${Me.Moving}) {
 			/break
 		}
 

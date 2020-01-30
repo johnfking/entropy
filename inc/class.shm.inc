@@ -363,14 +363,17 @@ sub cast_talisman(bool _debug)
 
 
 |***
- *	DES: We want Mana
- *	USE:
- *  NOTE:
+ * note: We want Mana
+ * use: /chr
  ***|
 sub check_cani(bool _debug)
 	DEBUG \atcheck_cani\ax()
 
-	/if (!${maChr.Find[stPctCanniManna].Value}) /return
+	/if (!${maChr.Find[stPctCanniManna].Value}) {
+		DEBUG ${sep}canni disabled
+		/return TRUE
+	}
+
 
 	CHECKEXIT
 	GETINPUT
@@ -384,19 +387,31 @@ sub check_cani(bool _debug)
 	}
 
 	| if canni spell is not ready bail..
-	/if (!${is_ready[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) /return FALSE
-	/if (${Me.PctMana} >= ${maChr.Find[stPctCanniManna].Value}) /return FALSE
-	/if (${Me.PctHPs} <= ${maChr.Find[stPctCanniHP].Value}) /return FALSE
+	/if (!${is_ready[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) {
+		DEBUG ${sep}not ready${sep}\a-w${maChr.Find[stCannibalization].Value}\ax
+		/return FALSE
+	}
+	/if (${Me.PctMana} >= ${maChr.Find[stPctCanniManna].Value}) {
+		DEBUG ${sep}returning - too much mana${sep}\a-w${Me.PctMana} >= ${maChr.Find[stPctCanniManna].Value}\ax
+		/return FALSE
+	}
+	/if (${Me.PctHPs} <= ${maChr.Find[stPctCanniHP].Value}) {
+		DEBUG ${sep}returning - HP too low${sep}\a-w${Me.PctHPs} <= ${maChr.Find[stPctCanniHP].Value}\ax
+		/return FALSE
+	}
 
 	| check HP requirements
 	/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM mana_recovery WHERE env_var="${maChr.Find[stCannibalization].Value}"
-	/if (${Me.PctHPs} < ${sqlite.Result[dummy 1 value]}) /return FALSE
+	/if (${Me.PctHPs} < ${sqlite.Result[dummy 1 value]}) {
+		DEBUG ${sep}canni usage would kill us${sep}\a-w${Me.PctHPs} < ${sqlite.Result[dummy 1 value]}\ax
+		/return FALSE
+	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stCannibalization].Value}" 0 FALSE
 	}
 
-/return
+/return TRUE
 
 
 

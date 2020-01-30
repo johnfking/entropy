@@ -106,6 +106,12 @@ sub Event_CAST_FIZZLE(string line)
 	/invoke ${maData.Add[stCastReturn,FIZZLE]}
 /return
 
+
+#event CAST_BLOCKED								"Your #*# did not take hold on #*#. (Blocked by #*#.)"
+sub Event_CAST_IMMUNE(string line)
+	/invoke ${maData.Add[stCastReturn,BLOCKED]}
+/return
+
 #event CAST_IMMUNE                 "Your target has no mana to affect#*#"
 #event CAST_IMMUNE                 "Your target is immune to changes in its attack speed#*#"
 #event CAST_IMMUNE                 "Your target is immune to changes in its run speed#*#"
@@ -199,12 +205,14 @@ sub Event_CAST_TAKEHOLD(string line)
 
 
 |***
- *	USE: correct range distance when too close
+ * use: correct range distance when too close
  ***|
 | #event COMBAT_DISTANCE									"Your Target is too close to use a ranged weapon#*#"
 sub Event_COMBAT_DISTANCE(string line)
 	/doevents flush COMBAT_DISTANCE
-	/if (PULL || AGRO) /return
+	/if (PULL || AGRO) {
+		/return
+	}
 	/call set_combat FALSE
 /return
 

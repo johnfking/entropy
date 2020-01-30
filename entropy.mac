@@ -121,7 +121,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A200128.01
+	/call set_data FALSE maEnv build													map outer A200130.01
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -179,7 +179,7 @@ sub main(string _debug, string _param1, string _auto)
 			/call check_housekeeping ${maDebug.Find[house].Value}
 		}
 
-		GETINPUT main_loop swAuto|${maEnv.Find[swAuto].Value}
+		GETINPUT hook_main_loop swAuto|${maEnv.Find[swAuto].Value}
 		ISMEDEAD
 		CHECKCURSOR
 		SETHUD FALSE

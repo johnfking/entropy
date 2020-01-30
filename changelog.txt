@@ -9,7 +9,7 @@
 
 on the to do list
 --------------------
-- work on dps adaptation system
+- work on dps adaptation system, ttl
 - find a way to grade debuffs and overwrite if needed
 - finish check dead routines for other classes
 - finish target id passing for all classes to misc_ombat() and burn()
@@ -17,12 +17,27 @@ on the to do list
 - get remove verb working for /area
 - mage pet weapons?
 - /navto NULL when requestor is not in zone
-- find a way to convert lines for the new condition system
 - tag entry validation (cause people are making up shit now)
 --------------------
 
 
 
+
+
+
+A200130.01
+- mode
+  train - trains basic skills (beg, bash, kick, taunt, disarm, sneak)
+  it only trains the skills if you have them
+  stops trying to rain that skill when it is maxed
+  works best on a duel with a pet class, just target the pet and get some sleep
+  harvest - some corrections to movement and grabbing
+- tag
+  combat/nocombat - adjusted to get rid of EQ combat detection. now it works off class combat/nocombat routines
+- /debug
+  buff->blocked - blocked buffs as they are added
+- buffs blicked by higher buffs should be handled a bit better in the cast routine
+- more debugging tools
 
 
 
@@ -41,7 +56,6 @@ A200128.01
   got rid of some dublicated aa usage
 - cleric
   adjustments to arbitration
-
 
 
 A200119.02

@@ -63,7 +63,7 @@ sub set_CLR(bool _debug)
 	| arbitration
 
 	| /call set_data_map ${_debug} maChr swArbitratetoHealGroup						FALSE													"${auxsw} heal group immediately after an arbitration"
-	/call set_data_map ${_debug} maChr swArbitrate											FALSE													"${auxsw} use aa arbitrate and epic sheild"
+	| /call set_data_map ${_debug} maChr swArbitrate											FALSE													"${auxsw} use aa arbitrate and epic sheild"
 	/call set_data_map ${_debug} maChr stCountArbitrate									0															"${auxnum} num of group hurt to use arbitration aa/epic"
 
 	| yaulp
@@ -231,7 +231,7 @@ sub cast_nut_smasher(bool _debug)
 	CHECKTIE
 	ISMEDEAD
 	CHECKEXIT
-	GETINPUT
+	GETINPUT clr_summon_primary stSummonPrimary|${maChr.Find[stSummonPrimary].Value}
 	CHECKREZ
 
 	/if (!${FindItem[${Spell[${maChr.Find[stSummonPrimary].Value}].Base[1]}].ID}) {
@@ -242,7 +242,6 @@ sub cast_nut_smasher(bool _debug)
 
 	/if (${InvSlot[mainhand].Item.ID} != ${Spell[${maChr.Find[stSummonPrimary].Value}].Base[1]}) {
 		/call Bind_command_swap "${FindItem[${Spell[${maChr.Find[stSummonPrimary].Value}].RankName.Base[1]}].Name}" 13 ${_debug}
-		/return
 	}
 
 /return TRUE
@@ -261,7 +260,7 @@ sub check_heal_CLR(bool _debug, string _type)
 	CHECKEXIT
 	CHECKREZ
 	CHECKFADE
-	GETINPUT
+	GETINPUT clr_heal_start type|${_type}
 
 	SETHUD "heal ${_type.Lower}"
 
@@ -321,7 +320,7 @@ sub check_heal_CLR(bool _debug, string _type)
  		/return FALSE
  	}
 
-	| /if (!SAFEZONE) {
+	/if (!SAFEZONE) {
 
 		| arbitrate / group heal
 		/if (${Select[${_type},group]}) {
@@ -362,7 +361,7 @@ sub check_heal_CLR(bool _debug, string _type)
 		CHECKEXIT
 		CHECKREZ
 		CHECKFADE
-		GETINPUT
+		GETINPUT clr_heal_mid type|${_type}
 
 		| splash heal
 		/if (${maChr.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
@@ -411,7 +410,7 @@ sub check_heal_CLR(bool _debug, string _type)
 			}
 		}
 
-	| }
+	}
 
  	| single heal over time
 	/if (${maChr.Find[swHealOverTime].Value}) {
@@ -456,7 +455,7 @@ sub check_heal_CLR(bool _debug, string _type)
 	CHECKEXIT
 	CHECKREZ
 	CHECKFADE
-	GETINPUT
+	GETINPUT clr_heal_end type|${_type}
 
 	| yes. this is all there is to healing..
 	/declare _liHM listiterator local
@@ -485,6 +484,7 @@ sub do_arbitration(bool _debug)
 
 	ISMEDEAD
 	CHECKEXIT
+	GETINPUT clr_arbitrate NA|NA
 
 	/declare _arbDone bool local FALSE
 
@@ -545,11 +545,6 @@ sub Bind_command_issuance(bool _debug)
 		}
 	}
 
-	/if (AUTO && ${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
-		/call get_hurt FALSE Group
-		/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
-	}
-
 	| should we recast?
 	/if (BURN) {
 		/if (${is_Ready[${_debug}, "Forceful Rejuvenation"]}) {
@@ -578,7 +573,7 @@ sub burn_CLR(bool _debug)
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 
 	CHECKEXIT
-	GETINPUT
+	GETINPUT clr_burn NA|NA
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
