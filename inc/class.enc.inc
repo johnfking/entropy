@@ -103,7 +103,7 @@ sub main_ENC(bool _debug)
 			/call control_routine ${maDebug.Find[mez].Value}
 			| /if (${swAlliance}) /call trigger_alliance TARGET
 
-			/call check_item_cycle FALSE ${maDebug.Find[item].Value}
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 
 		}
 

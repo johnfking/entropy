@@ -25,8 +25,8 @@ sub set_DRU(bool _debug)
 	/call set_data_map FALSE maChr stCountHealGroup											0															"${auxnum} number in group hurt to use a group heal"
  	/call set_data_list FALSE maChr lsHealGroup													PREGEN|2											"${auxli} group heal spells"
  	/call set_data_map FALSE maChr stHealPanic													PREGEN|1											"${auxna} purple club spell"
- 	/call set_data_map FALSE maChr lsHealAdrenaline				 							PREGEN|1											"${auxli} Adrenaline line of heals (medium cast)"
- 	/call set_data_map FALSE maChr lsHealPuravida				 								PREGEN|2											"${auxli} Puravida line of heals (long cast)"
+ 	/call set_data_list FALSE maChr lsHealAdrenaline										PREGEN|1											"${auxli} Adrenaline line of heals (medium cast)"
+ 	/call set_data_list FALSE maChr lsHealPuravida				 							PREGEN|2											"${auxli} Puravida line of heals (long cast)"
 
  	/call set_data_map FALSE maChr stWolfSpirit													FALSE													"${auxna} name of group wolf aa [\a-wFALSE - white - black\ax]"
 
@@ -300,8 +300,12 @@ sub burn_DRU(bool _debug, int _tmpID)
 		/call cast_defensive_cycle ${maDebug.Find[def].Value}
 	}
 
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
 
 	| swarm pets
 	/if (SWARM) {

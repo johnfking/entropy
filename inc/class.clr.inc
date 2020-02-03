@@ -136,7 +136,7 @@ sub main_CLR(bool _debug)
 	}
 
 	/while (${check_combat_status[FALSE]}) {
-		GETINPUT
+		GETINPUT clr_main_loop NA|NA
 		/call check_heal_routines
 
 		CHECKFADE
@@ -181,10 +181,11 @@ sub misc_combat_CLR(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_CLR\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
-
+	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+		/return FALSE
+	}
 	CHECKEXIT
-	GETINPUT
+	GETINPUT misc_combat_CLR NA|NA
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
@@ -539,10 +540,12 @@ sub Bind_command_issuance(bool _debug)
 		}
 	}
 
-	/if (!${Spawn[${Target.ID}].CanSplashLand}) /return
+	/if (!${Spawn[${Target.ID}].CanSplashLand}) {
+		/return FALSE
+	}
+
 	/if (${Spawn[${Target.ID}].Distance} < 59) {
 		/call voodoo ${_debug} "${maChr.Find[stIssuance].Value}" ${Target.ID} FALSE
-		}
 	}
 
 	| should we recast?
@@ -570,15 +573,23 @@ sub burn_CLR(bool _debug)
 	DEBUG \atburn_CLR\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+		/return FALSE
+	}
 
 	CHECKEXIT
 	GETINPUT clr_burn NA|NA
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) {
+		/call cast_defensive_cycle ${maDebug.Find[def].Value}
+	}
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} TARGET
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	}
 
 
 	| Group AA Celestial Regeneration

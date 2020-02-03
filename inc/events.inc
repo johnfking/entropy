@@ -20,7 +20,8 @@ sub Event_SPEAKLINE(string _target, string _verbage)
 
 	/if (${Spawn[${_target}].Distance} > 50) /echo I need to Move Closer To ${_target}
 
-	/call clear_combat
+	/invoke ${target_reset[${_debug}, 0, clear]}
+	| /call clear_combat
 	/stick off
 
 	/target ${_target}
@@ -69,6 +70,11 @@ sub Event_CAST_BEGIN(string line)
 	/invoke ${maData.Add[stCastReturn,SUCCESS]}
 /return
 
+#event CAST_OVERWRITTEN						 "Your#*#has been overwritten#*#"
+sub Event_CAST_OVERWRITTEN(string line)
+	/invoke ${maData.Add[stCastReturn,OVERWRITTEN]}
+/return
+
 #event CAST_CANNOTSEE              "You cannot see your target#*#"
 sub Event_CAST_CANNOTSEE(string line)
 	/invoke ${maData.Add[stCastReturn,CANNOTSEE]}
@@ -82,7 +88,7 @@ sub Event_CAST_COLLAPSE(string line)
 #event CAST_COMPONENTS             "You are missing some required components#*#"
 #event CAST_COMPONENTS             "Your ability to use this item has been disabled because you do not have at least a gold membership#*#"
 sub Event_CAST_COMPONENTS(string line)
-	/invoke ${maData.Add[stCastReturn,COMPONENTS]}
+	/invoke ${maData.Add[stCastReturn,COMPONENT]}
 /return
 
 #event CAST_DISTRACTED             "You need to play a#*#instrument for this song#*#"
@@ -94,7 +100,6 @@ sub Event_CAST_DISTRACTED(string line)
 	/invoke ${maData.Add[stCastReturn,DISTRACTED]}
 /return
 
-
 #event CAST_FDFAIL                 "#1# has fallen to the ground.#*#"
 sub Event_CAST_FDFAIL(string line, string _name)
 	/invoke ${maData.Add[stCastReturn,FDFAIL]}
@@ -105,7 +110,6 @@ sub Event_CAST_FDFAIL(string line, string _name)
 sub Event_CAST_FIZZLE(string line)
 	/invoke ${maData.Add[stCastReturn,FIZZLE]}
 /return
-
 
 #event CAST_BLOCKED								"Your #*# did not take hold on #*#. (Blocked by #*#.)"
 sub Event_CAST_IMMUNE(string line)
@@ -152,7 +156,7 @@ sub Event_CAST_NOTREADY
 #event CAST_OUTDOORS               "This spell does not work here#*#"
 #event CAST_OUTDOORS               "You can only cast this spell in the outdoors#*#"
 sub Event_CAST_OUTDOORS(string line)
-	/invoke ${maData.Add[stCastReturn,OUTOFMANA]}
+	/invoke ${maData.Add[stCastReturn,NOTOUTDOORS]}
 /return
 
 #event CAST_OUTOFMANA              "Insufficient Mana to cast this spell#*#"
@@ -197,7 +201,7 @@ sub Event_CAST_STUNNED(string line)
 #event CAST_TAKEHOLD               "Your spell did not take hold#*#"
 #event CAST_TAKEHOLD               "Your spell would not have taken hold#*#"
 #event CAST_TAKEHOLD               "Your spell is too powerfull for your intended target#*#"
-#event CAST_TAKEHOLD               "This pet may not be made invisible#*#"
+| #event CAST_TAKEHOLD               "This pet may not be made invisible#*#"
 sub Event_CAST_TAKEHOLD(string line)
 	/invoke ${maData.Add[stCastReturn,TAKEHOLD]}
 /return

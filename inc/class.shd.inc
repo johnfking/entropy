@@ -53,7 +53,7 @@ sub set_SHD(bool _debug)
 	/call set_data_map FALSE maChr stLeechcurse													PREGEN|1											"${auxna} leechcurse disc"
 	/call set_data_map FALSE maChr stGougingBlade												PREGEN|1											"${auxna} gouging blade family disc"
 
-/return
+/return TRUE
 
 
 
@@ -76,11 +76,11 @@ sub main_SHD(bool _debug)
 
 		/if (VALID) {
 			/call set_combat FALSE
-			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-			/if (AGRO) /call get_agro_${Me.Class.ShortName}
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
+			/if (AGRO) /call get_agro_${Me.Class.ShortName} TARGET
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
 			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
@@ -121,8 +121,30 @@ sub check_heal_SHD(bool _debug, string _type)
 	CHECKEXIT
 	CHECKREZ
 	CHECKFADE
+	GETINPUT check_heal_SHD NA|NA
 
 	SETHUD "heal ${_type}"
+
+	| tap 'dat ass..
+	/if (${maHeal.Find[swHealSelf].Value}) {
+
+		/if (${is_ready[${_debug}, "${maChr.Find[stRancor].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
+			/call voodoo ${_debug} "${maChr.Find[stRancor].Value}" ${_tmpID} FALSE
+		}
+
+		/if (${is_ready[${_debug}, "Leech Touch"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
+			/call voodoo ${_debug} "Leech Touch" ${_tmpID} FALSE
+		}
+
+		/if (${SpawnCount[npc OVERLOS radius SAFEENV*2 targetable]} >= ${maChr.Find[stCountDefensive].Value}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stLeechcurs].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
+				/call voodoo ${_debug} "${maChr.Find[stLeechcurse].Value}" 0 FALSE
+			}
+		}
+		/if (${is_ready[${_debug}, "Vicious Bite of Chaos"]}) {
+			/call voodoo ${_debug} "Vicious Bite of Chaos" ${_tmpID} FALSE
+		}
+	}
 
 	/call get_hurt FALSE ${_type}
 
@@ -146,19 +168,19 @@ sub check_heal_SHD(bool _debug, string _type)
  * note: kill all the things!
  * use: this shits auto, learn to love it.
  ***|
-sub misc_combat_SHD(bool _debug)
-	DEBUG \atmisc_combat_SHD\ax()
+sub misc_combat_SHD(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat_SHD\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
 
 	CHECKEXIT
-	GETINPUT
+	GETINPUT misc_combat_SHD _tmpID|${_tmpID}
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 
@@ -173,26 +195,26 @@ sub misc_combat_SHD(bool _debug)
 	}
 
 	| get me sum...
-	/if (AGRO) /call get_agro_${Me.Class.ShortName}
-
-	| tap 'dat ass..
-	/if (${maHeal.Find[swHealSelf].Value}) {
-		/if (${is_ready[${_debug}, "${maChr.Find[stRancor].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) /call voodoo ${_debug} "${maChr.Find[stRancor].Value}" TARGET FALSE
-		/if (${is_ready[${_debug}, "Leech Touch"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) /call voodoo ${_debug} "Leech Touch" TARGET FALSE
-		/if (${SpawnCount[npc OVERLOS radius SAFEENV*2 targetable]} >= ${maChr.Find[stCountDefensive].Value}) {
-			/if (${is_ready[${_debug}, "${maChr.Find[stLeechcurs].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) /call voodoo ${_debug} "${maChr.Find[stLeechcurse].Value}" 0 FALSE
-		}
-		/if (${is_ready[${_debug}, "Vicious Bite of Chaos"]}) /call voodoo ${_debug} "Vicious Bite of Chaos" TARGET FALSE
+	/if (AGRO) {
+		/call get_agro_${Me.Class.ShortName} ${_tmpID}
 	}
 
 	| swarm pets
 	/if (SWARM) {
-		/if (${is_ready[${_debug}, "Chattering Bones"]}) /call voodoo ${_debug} "Chattering Bones" TARGET FALSE
+		/if (${is_ready[${_debug}, "Chattering Bones"]}) {
+			/call voodoo ${_debug} "Chattering Bones" ${_tmpID} FALSE
+		}
 	}
 
-	/if (${is_ready[${_debug}, "${maChr.Find[stTempRune].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stTempRune].Value}" 0 FALSE
-	/if (${is_ready[${_debug}, "Thought Leech"]} &&  ${Me.PctMana} <= 60*.PCTHO) /call voodoo ${_debug} "Thought Leech" TARGET FALSE
-	/if (${is_ready[${_debug}, "${maChr.Find[stGougingBlade].Value}"]}) /call voodoo ${_debug} "${maChr.Find[stGougingBlade].Value}" TARGET FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stTempRune].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stTempRune].Value}" 0 FALSE
+	}
+	/if (${is_ready[${_debug}, "Thought Leech"]} &&  ${Me.PctMana} <= 60*.PCTHO) {
+		/call voodoo ${_debug} "Thought Leech" ${_tmpID} FALSE
+	}
+	/if (${is_ready[${_debug}, "${maChr.Find[stGougingBlade].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stGougingBlade].Value}" ${_tmpID} FALSE
+	}
 
 /return TRUE
 
@@ -202,20 +224,24 @@ sub misc_combat_SHD(bool _debug)
  * note: we are agro gods.
  * use: /call get_agro_${Me.Class.ShortName}
  ***|
-sub get_agro_SHD(bool _debug)
-	DEBUG get_agro_SHD()
+sub get_agro_SHD(bool _debug, int _tmpID)
+	DEBUG \atget_agro_SHD\ax()
+
 	ISMEDEAD
 	CHECKEXIT
-	GETINPUT
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
-	/if (PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
+	GETINPUT get_agro_SHD _tmpID|${_tmpID}
 
-	/call cast_challenge FALSE TARGET
+	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return
+	/if (PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+
+	/call cast_challenge FALSE ${_tmpID}
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 
 	| AA pet hate
 	/if (${Me.PctAggro} < 80 || ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
-		/if (${is_ready[${_debug}, "Projection of Doom"]}) /call voodoo ${_debug} "Projection of Doom" TARGET FALSE
+		/if (${is_ready[${_debug}, "Projection of Doom"]}) {
+			/call voodoo ${_debug} "Projection of Doom" ${_tmpID} FALSE
+		}
 	}
 
 	| single hate
@@ -224,7 +250,7 @@ sub get_agro_SHD(bool _debug)
 	/while (!${_ligas.IsEnd}) {
 		/if (${Me.PctAggro} > 90 || ${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]}) /break
 		/if (${is_ready[${_debug}, "${_ligas.Value}"]}) {
-			/call voodoo ${_debug} "${_ligas.Value}" TARGET FALSE
+			/call voodoo ${_debug} "${_ligas.Value}" ${_tmpID} FALSE
 		}
 		/invoke ${_ligas.Advance}
 	}
@@ -238,7 +264,7 @@ sub get_agro_SHD(bool _debug)
 			/vardata li lsAEHate.First.Clone
 			/while (!${_ligas.IsEnd}) {
 				/if (${is_ready[${_debug}, "${_ligas.Value}"]}) {
-					/call voodoo ${_debug} "${_ligas.Value}" TARGET FALSE
+					/call voodoo ${_debug} "${_ligas.Value}" ${_tmpID} FALSE
 				}
 				/invoke ${_ligas.Advance}
 			}
@@ -247,7 +273,7 @@ sub get_agro_SHD(bool _debug)
 		| AE lifetap
 		/if (${mobAECount} >= AE# && !${SpawnCount[pc enchanter radius SAFEENV*2]}) {
 			/if (${is_ready[${_debug}, "${maChr.Find[stAELifeTap].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stAELifeTap].Value}" TARGET FALSE
+				/call voodoo ${_debug} "${maChr.Find[stAELifeTap].Value}" ${_tmpID} FALSE
 			}
 		}
 	}
@@ -255,23 +281,24 @@ sub get_agro_SHD(bool _debug)
 	| fake hate
 	/if (${Me.PctAggro} < 90 || ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
 		/if (${is_ready[${_debug}, "Ageless Enmity"]}) {
-			/call voodoo ${_debug} "Ageless Enmity" TARGET FALSE
+			/call voodoo ${_debug} "Ageless Enmity" ${_tmpID} FALSE
 		}
 	}
 	| named fake hate
 	/if (${lsZoneNamed.Contains[${Target.DisplayName}]}) {
 		/if (${Me.PctAggro} < 90 || ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
 			/if (${is_ready[${_debug}, "Mindless Hatred"]} && ${Target.Level} <= 110) {
-				/call voodoo ${_debug} "Mindless Hatred" TARGET FALSE
+				/call voodoo ${_debug} "Mindless Hatred" ${_tmpID} FALSE
 			}
 		}
 		/if (${Me.PctAggro} < 90 || ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
 			/if (${is_ready[${_debug}, "${maChr.Find[stAcrimony].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stAcrimony].Value}" TARGET FALSE
+				/call voodoo ${_debug} "${maChr.Find[stAcrimony].Value}" ${_tmpID} FALSE
 			}
 		}
 	}
-/return
+
+/return TRUE
 
 
 
@@ -284,9 +311,16 @@ sub check_skin(bool _debug)
 
 	ISMEDEAD
 	SIMPLEEXIT
-	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
-	GETINPUT
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
+	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) {
+		/call cast_shield_flash FALSE aa
+	}
+
+	GETINPUT check_skin NA|NA
+
+	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) {
+		/return FALSE
+	}
+
 	/if (!${Me.Buff[${maChr.Find[stSkin].Value}].ID} && ${is_ready[${_debug}, "${maChr.Find[stSkin].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stSkin].Value}" 0 FALSE
 		/invoke ${set_data_timer[FALSE, Check_Skin, RESTART]}
@@ -300,19 +334,19 @@ sub check_skin(bool _debug)
  * note: burn it with fire!
  * use:
  ***|
-sub burn_SHD(bool _debug)
+sub burn_SHD(bool _debug, int _tmpID)
 	DEBUG \atburn_SHD\ax()
 
 	ISMEDEAD
 	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
 
 	CHECKEXIT
-	GETINPUT
+	GETINPUT burn_SHD _tmpID|${_tmpID}
 	CHECKTIE
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
 	| deflection
 	/if (!${Me.ActiveDisc.ID} && ${Me.PctHPs} < 50*.PCTHO) {
@@ -325,7 +359,7 @@ sub burn_SHD(bool _debug)
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 
 	/if (${is_ready[${_debug}, "T`Vyl's Resolve"]}) {
-		/call voodoo ${_debug} "T`Vyl's Resolve" TARGET FALSE
+		/call voodoo ${_debug} "T`Vyl's Resolve" ${_tmpID} FALSE
 	}
 	/if (${is_ready[${_debug}, "${maChr.Find[stCrimsonBlade].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stCrimsonBlade].Value}" 0 FALSE
@@ -334,10 +368,10 @@ sub burn_SHD(bool _debug)
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 	/if (${is_ready[${_debug}, "Veil of Darkness"]}) {
-		/call voodoo ${_debug} "Veil of Darkness" TARGET FALSE
+		/call voodoo ${_debug} "Veil of Darkness" ${_tmpID} FALSE
 	}
 	/if (${is_ready[${_debug}, "Harm Touch"]}) {
-		/call voodoo ${_debug} "Harm Touch" TARGET FALSE
+		/call voodoo ${_debug} "Harm Touch" ${_tmpID} FALSE
 	}
 
 	/if (AGRO) {

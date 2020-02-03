@@ -22,7 +22,44 @@ on the to do list
 
 
 
-
+A200201.03
+- REPO update
+- cleric
+  more adjustments to arbitration
+  fixed an errant }.. they like to breed..
+- druid
+  corected the heal lists lsHealAdrenaline and lsHealPuravida so they are actually lists now
+- shadowknight
+  lots of little updates to bring current to pally design
+- /buff
+  self & now - will adapt for target spells better
+  now -  will return the target you had before casting targetless spells/items
+- voodoo()
+  aditional placements for targeting adjustments
+- build set (ini) unique entries
+  primary=NAME will swap that item as primary
+  secondary=NAME will swap that item as secondary
+  range=NAME will swap that item as range
+  spellset=NAME will mem that spellset
+- tags
+  corrected several that read pet when they should have been minion
+	epic - used to identify an epic
+	ma - mow matches target against the current assist roll. if they dont match, its refused
+- check_engage()
+  adjustment to radius check for mob counts
+- hooks added to: common.inc, class.clr.inc, class.sk.inc
+- target_reset() replacing
+  set_target, clear_combat, is_target_dead and XTarget1 assist correction subs
+- NOTICE -
+  manual mode forced combat will no longer release corpse targets. so you can attack them now if you like
+- /crew
+  increased some delays to detect when the correct rolls are present
+- macro should end properly now
+- /cc proc
+  support for bandolier swapping for procing weapons
+  use - enable/disable
+  proc - name of bandolier with the proc weapon
+  swap - name of the bandolier to use when proc is not needed
 
 
 A200130.01
@@ -38,7 +75,6 @@ A200130.01
   buff->blocked - blocked buffs as they are added
 - buffs blicked by higher buffs should be handled a bit better in the cast routine
 - more debugging tools
-
 
 
 A200128.01

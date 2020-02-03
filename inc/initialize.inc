@@ -42,7 +42,7 @@ sub set_debug()
 	| mode
   /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill]}
   | combat
-  /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision]}
+  /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc]}
 	| other
   /invoke ${lsDebugother.Append[build,init,edit,rest,rez,spire,glyph,fireworks,manarecover,fade,observe,house,ttl,flow]}
   | class specific debugs
@@ -243,6 +243,10 @@ sub set_initial_environment(bool _debug)
   /call set_data FALSE FALSE lsNoTargetPC                             list outer "eye of"
   /call set_data FALSE FALSE lsNoTargetMagic                          list outer "eye of"
   /call set_data FALSE FALSE lsNoTargetAnimation	                    list outer 16|43|44|146
+
+  | custom /build set variables
+  /call set_data FALSE FALSE lsBuildSet							                  list outer primary|secondary|range|spellset
+
 
   | spell types we let through the checking/validation methods
   /call set_data FALSE FALSE lsFreePassSpells                         list outer Beneficial|Pet
@@ -645,7 +649,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data FALSE maData stCastReturn                            map outer FALSE
 
 |** control: grain **|
-  /call set_data_list FALSE maEnv lsGrain                           1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30        "${auxnum} visual outputs you wish to see. \aw/verb aux\ax for full list"
+  /call set_data_list FALSE maEnv lsGrain                           	1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30        "${auxnum} visual outputs you wish to see. \aw/verb aux\ax for full list"
 
 |** control: env **|
   /call set_data FALSE maEnv swAuto                                   map outer FALSE
@@ -835,6 +839,12 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maCC swAlliance			                      FALSE                         "${auxsw} enable class alliance"
 
   | /call set_data_map FALSE maCC swAstCombatPref	                      FALSE                         "${auxna} combat preference [\a-wmelee\ax|\a-wrange\ax]"
+
+  /invoke ${set_data_timer[FALSE, Check_Proc_Bandolier, 5s]}
+  /call set_data_map FALSE maCC swProc                                FALSE                         "${auxsw} enable enable bandolier for a procing weapon"
+  /call set_data_map FALSE maCC stProcBandolier												FALSE                         "${auxna} name of bandolier with procing weapon"
+  /call set_data_map FALSE maCC stSwapBandolier												FALSE                         "${auxna} name of bandolier to swap back to after the proc"
+
 
 
   /call set_data_map FALSE maCC swPull                                FALSE                         "${auxsw} enable pulling (\a-wselect mobs to kill\ax)"
@@ -1316,7 +1326,7 @@ sub set_initialize_hud_variables()
   /invoke ${lsHUD.Append[eset]}
 
   | dev hud variables
-  /invoke ${lsHUD.Append[dcombat,dburn,denv,dpull,dsafe]}
+  /invoke ${lsHUD.Append[dcombat,dburn,denv,dpull,dsafe,dcaststatus]}
 
 
 
@@ -1577,7 +1587,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH dev devTargetID1 	  	19,5,136,100,149,237,targetID
     HUDPATH dev devTargetID2 		 	19,45,136,255,255,255,${Target.ID}
 
-    HUDPATH dev stEnvRadius1			19,80,136,100,149,237,env#
+    HUDPATH dev stEnvRadius1			19,80,136,100,149,237,env
     HUDPATH dev stEnvRadius2			19,110,136,255,255,255,"${SpawnCount[NPC radius ${h_denv}]}"
 
     HUDPATH dev hurtPctHP1				19,130,136,100,149,237,h%
@@ -1590,7 +1600,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH dev devASSTargetID1   19,5,149,100,149,237,AssID
     HUDPATH dev devASSTargetID2  	19,45,149,255,255,255,${stAssTarID}
 
-    HUDPATH dev stEnvSafeRadius1	19,80,149,100,149,237,env#
+    HUDPATH dev stEnvSafeRadius1	19,80,149,100,149,237,safe
     HUDPATH dev stEnvSafeRadius2	19,110,149,255,255,255,"${SpawnCount[NPC radius ${h_dsafe} playerstate 4]}"
 
     HUDPATH dev hurtCLS1				19,130,149,100,149,237,hCL
@@ -1605,12 +1615,14 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH dev devIsDead2	 		  19,45,162,0,255,0,${If[${swIsMeDead},T,]}
     HUDPATH dev devIsDead3	 		  19,45,162,255,0,0,${If[${swIsMeDead},,F]}
 
-    HUDPATH dev stPullRadius1			19,80,162,100,149,237,pull#
+    HUDPATH dev stPullRadius1			19,80,162,100,149,237,pull
     HUDPATH dev stPullRadius2			19,110,162,255,255,255,"${SpawnCount[NPC radius ${h_dpull}]}"
 
     HUDPATH dev hurtCount1				19,130,162,100,149,237,h#
     HUDPATH dev hurtCount2		 		19,150,162,255,255,255,${hurtCount}
 
+    HUDPATH dev castStatus1				19,250,162,100,149,237,cR
+    HUDPATH dev castStatus2		 		19,265,162,255,255,255,${h_dcaststatus}
 
 
     HUDPATH dev BG162    					3,3,162,0,0,0,██████████████████████████████████████████
@@ -1630,6 +1642,11 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 		HUDPATH dev tbR1							19,160,181,100,149,237,bR
 		HUDPATH dev tbR2							19,185,181,255,239,0,${timer_Check_Buff_Raid}
+
+		HUDPATH dev tMode1						19,215,181,100,149,237,tM
+		HUDPATH dev tMode2						19,240,181,255,239,0,${timer_Check_Mode}
+
+
 
     HUDPATH dev BG181    					3,3,181,0,0,0,██████████████████████████████████████████
 

@@ -138,7 +138,7 @@ sub main_PAL(bool _debug)
 		}
 	}
 
-	/while (${check_combat_status[FALSE]}) {
+	/while (${check_combat_status[false]}) {
 		/call check_heal_routines
 		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
 		/if (${check_class_loop[FALSE]}) /return
@@ -186,7 +186,10 @@ sub misc_combat_PAL(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	ISTMPIDDEAD
+
+	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+		/return FALSE
+	}
 
 	CHECKEXIT
 	GETINPUT
@@ -201,7 +204,9 @@ sub misc_combat_PAL(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stTempRune].Value}" 0 FALSE
 	}
 
-	ISTMPIDDEAD
+	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+		/return FALSE
+	}
 
 	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
@@ -222,7 +227,9 @@ sub misc_combat_PAL(bool _debug, int _tmpID)
 		}
 	}
 
-	ISTMPIDDEAD
+	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+		/return FALSE
+	}
 
 	| undead cripple
 	/if (${Target.Body.Name.Equal[Undead]}) {
@@ -246,7 +253,9 @@ sub get_agro_PAL(bool _debug, int _tmpID)
 	CHECKEXIT
 	GETINPUT
 
-	ISTMPIDDEAD
+	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+		/return FALSE
+	}
 
 	/call set_combat ${_debug}
 	/call check_heal_routines
@@ -259,6 +268,10 @@ sub get_agro_PAL(bool _debug, int _tmpID)
 				/call voodoo ${_debug} "Lay on Hands" ${Me.ID} FALSE
 			}
 		}
+	}
+
+	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+		/return FALSE
 	}
 
 	| challenge
@@ -287,10 +300,14 @@ sub get_agro_PAL(bool _debug, int _tmpID)
 			}
 		}
 	}
-	ISTMPIDDEAD
 
-	/if (${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]}) /return
-	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID} ]}) /return FALSE
+	/if (${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]}) {
+		/return
+	}
+
+	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+		/return FALSE
+	}
 
 	| AA pet hate (the little sword thingie)
 	/if (${Me.PctAggro} < 80 && ${is_ready[${_debug}, "Projection of Piety"]}) {
@@ -481,7 +498,10 @@ sub burn_PAL(bool _debug, int _tmpID)
 	DEBUG \atburn_PAL\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+
+	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+		/return FALSE
+	}
 
 	CHECKEXIT
 	GETINPUT
@@ -510,7 +530,9 @@ sub burn_PAL(bool _debug, int _tmpID)
 		}
 	}
 
-	ISTMPIDDEAD
+	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+		/return FALSE
+	}
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 

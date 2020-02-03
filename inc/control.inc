@@ -298,6 +298,13 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 				}
 			}
 
+		} else /if (${_type.Equal[keymap]}) {
+
+			/call get_key_map TRUE ${_verbage} TRUE
+
+
+
+
 
 		}
 
@@ -336,11 +343,11 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 			/return
 		}
 
-	}
+	| }
 
 	/if (${_silent.Equal[SILENT]}) /return
 	/declare liout list local
-	/invoke ${liout.Append[checkvar,spa,whitewash,import]}
+	/invoke ${liout.Append[checkvar,spa,whitewash,import,keymap,see]}
   /declare _out string local
 	/vardata cli liout.First.Clone
 	/while (!${cli.IsEnd}) {
@@ -359,7 +366,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
  ***|
 #bind control_env /env
 sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG CURSUB(\a-w${_type}, ${_verbage}, ${_silent}\ax)
+	DEBUG \atBind_control_env\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
 	| output control map
 	/if (${_type.Equal[see]}) {
@@ -376,11 +383,16 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 		/invoke ${out[12, "/env ${If[${maEnv.Find[swAuto].Value},${good}auto\ax,${bad}auto\ax]}"]}
 
 		/if (!${maEnv.Find[swAuto].Value}) {
-			/if (HOME) /call Bind_control_home clear
-			/call clear_combat FALSE
+			/if (HOME) {
+				/call Bind_control_home clear
+			}
+			/invoke ${target_reset[${_debug}, 0, clear]}
+			| /call clear_combat FALSE
 		} else /if (${_type.Equal[auto]}) {
 			/if ((${maCC.Find[swPullSetHome].Value} && PULL) || ${maHome.Find[swonAuto].Value}) {
-				/if (!${swModeToken}) /call Bind_control_home set
+				/if (!${swModeToken}) {
+					/call Bind_control_home set
+				}
 			}
 		}
 		/return TRUE
@@ -1785,7 +1797,7 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 	/invoke ${maControl.Add[aura,submenu]}
 	/invoke ${maControl.Add[beg,swBuffBeg]}
 	/invoke ${maControl.Add[crew,swBuffCrew]}
-	/invoke ${maControl.Add[master,swBuffMaster]}
+	/invoke ${maControl.Add[master,swBuffMaster|pr]}
 	/invoke ${maControl.Add[now,swBuffNow]}
 	/invoke ${maControl.Add[ps,swBuffPowersource]}
 	/invoke ${maControl.Add[raid,swBuffRaid]}
@@ -2366,14 +2378,32 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		} else /if (${_verbage.Equal[name]}) {
 			/invoke ${do_raw_edit[FALSE, SILENT, stGlyph, "${_silent}"]}
 		}
-
-
 		/invoke ${maControl.Clear}
 		/invoke ${maControl.Add[group,swGlyphGroup]}
 		/invoke ${maControl.Add[name,stGlyph|br]}
 		/invoke ${maControl.Add[raid,swGlyphRaid]}
 		/invoke ${set_control_output[${_debug}, maCC, "cc glyph", maControl]}
 		/return TRUE
+
+	| procing weapon swaps
+	} else /if (${_type.Equal[proc]}) {
+		/if (${_verbage.Equal[use]}) {
+			/invoke ${set_switch_env[${_debug}, swProc, TRUE, ${_silent}]}
+		} else /if (${_verbage.Equal[proc]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stProcBandolier, "${_silent}"]}
+		} else /if (${_verbage.Equal[swap]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stSwapBandolier, "${_silent}"]}
+		}
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[use,swProc]}
+		/invoke ${maControl.Add[proc,stProcBandolier|br]}
+		/invoke ${maControl.Add[swap,stSwapBandolier|br]}
+
+		/invoke ${set_control_output[${_debug}, maCC, "cc proc", maControl]}
+		/return TRUE
+
+
+
 
 	| set combat mode
 	} else /if (${_type.Equal[mode]}) {
@@ -2639,6 +2669,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	/invoke ${maControl.Add[pull,submenu]}
 	/invoke ${maControl.Add[melee,submenu]}
 	/invoke ${maControl.Add[glyph,submenu]}
+	/invoke ${maControl.Add[proc,submenu]}
 	/invoke ${maControl.Add[stopnuke,stPctStopNuke]}
 	/invoke ${maControl.Add[nukedelay,stNukeDelay]}
 	/invoke ${maControl.Add[engage,stPctEngage]}
@@ -2793,7 +2824,8 @@ sub Bind_command_alto(string _debug)
 	}
 
 	/call set_stop FALSE
-	/call clear_combat FALSE
+	/invoke ${target_reset[${_debug}, 0, clear]}
+	| /call clear_combat FALSE
 
 /return TRUE
 
@@ -2997,46 +3029,48 @@ sub Bind_command_invis(string _type, bool _debug)
 		/return TRUE
 	}
 
+	/if (${Me.Invis}) {
+		/return TRUE
+	}
+
 	/if (${_type.Equal[all]}) {
 		/declare _group string local ${maComm.Find[stEntropyGroup_all].Value}
 	} else {
 		/declare _group string local ${set_dnet_group[FALSE]}
 	}
 
-	/if (!${Bool[${_type}]} && ${DanNet.PeerCount[${_group}]} > 1) {
-		/dgexecute ${_group} /invis TRUE
-		/invoke ${out[21, "${broadcast}${sep}\a-w/invis\ax (\a-r${_group}\ax)"]}
+	/if (!${Bool[${_type}]} || ${_type.Equal[all]}) {
+		DEBUG echo here
+		/if (${DanNet.PeerCount[${_group}]} > 1) {
+			/dgexecute ${_group} /invis TRUE
+			/invoke ${out[21, "${broadcast}${sep}\a-w/invis\ax (\a-r${_group}\ax)"]}
+		}
 	}
 
 	| bards can blow me
 	/if (${Me.AltAbilityReady[Shauri's Sonorous Clouding]} && ${Select[${Me.Class.ShortName},BRD]}) {
 		/call pulse_stop
 		/call voodoo FALSE "Shauri's Sonorous Clouding" 0 FALSE
-		/return TRUE
 
 	| Invis vs Normies  casters
 	} else /if (${Me.AltAbilityReady[Group Perfected Invisibility]} && ${Select[${Me.Class.ShortName},WIZ,MAG,ENC]}) {
 		/call voodoo FALSE "Group Perfected Invisibility" 0 FALSE
-		/return TRUE
 
 	| Invis Vs undead casters
 	} else /if (${Me.AltAbilityReady[Group Perfected Invisibility to Undead]} && ${Select[${Me.Class.ShortName},CLR,SHD,NEC,PAL]}) {
 		/delay 3
 		/call voodoo FALSE "Group Perfected Invisibility to Undead" 0 FALSE
-		/return TRUE
 
 	| shaman
 	} else /if (${Me.AltAbilityReady[Group Silent Presence]} && ${Select[${Me.Class.ShortName},SHM]}) {
 		/delay 5
 		/call voodoo FALSE "Group Silent Presence" ${Me.ID} FALSE
-		/return TRUE
 
 	| rangers and druids
 	}	else /if (${Me.AltAbilityReady[Shared Camouflage]} && ${Select[${Me.Class.ShortName},RNG,DRU]}) {
 		/return
 		/delay 15
 		/call voodoo FALSE "Shared Camouflage" 0 FALSE
-		/return TRUE
 	}
 
 /return TRUE
@@ -3657,8 +3691,22 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 		/invoke ${do_raw_edit[ ${_debug}, SILENT, stBuildSetCurrent, "${_nickname}"]}
 		/while (!${_liset.IsEnd}) {
 			/if (${Bool[${_liset.Value}]}) {
-				| OUT ${_liset.Value}${sep}\a-w${Ini[${_fqn},${_nickname},${_liset.Value}]}\ax
-				/call do_raw_edit ${_debug} SILENT ${_liset.Value} ${Ini[${maData.Find[INIset].Value},${_nickname},${_liset.Value}]}
+				/if (${lsBuildSet.Contains[${_liset.Value}]}) {
+					/if (${_liset.Value.Equal[primary]}) {
+						/call Bind_command_swap "${Ini[${maData.Find[INIset].Value},${_nickname},${_liset.Value}]}" 13 FALSE
+					} else /if (${_liset.Value.Equal[secondary]}) {
+						/call Bind_command_swap "${Ini[${maData.Find[INIset].Value},${_nickname},${_liset.Value}]}" 14 FALSE
+					} else /if (${_liset.Value.Equal[range]}) {
+						/call Bind_command_swap "${Ini[${maData.Find[INIset].Value},${_nickname},${_liset.Value}]}" 11 FALSE
+					} else /if (${_liset.Value.Equal[spellset]}) {
+						/squelch /memspellset ${Ini[${maData.Find[INIset].Value},${_nickname},${_liset.Value}]}
+					}
+
+
+
+				} else {
+					/call do_raw_edit ${_debug} SILENT ${_liset.Value} ${Ini[${maData.Find[INIset].Value},${_nickname},${_liset.Value}]}
+				}
 			}
 			/invoke ${_liset.Advance}
 		}
@@ -3881,7 +3929,7 @@ sub Bind_command_entcast(string _name, string _target, bool _debug)
 
 |***
  * note: builds your group
- * use: /crew [1-12]
+ * use: /crew [1-12|kill]
  *
  *	/grouproles set [NAME] [#]
  *	 1=MainTank
@@ -3951,7 +3999,9 @@ sub Bind_command_crew(string _type, bool _debug)
 
 			| drop what they are doing!
 			/dexecute ${cli.Value} /disband
+			/delay 1
 			/dexecute ${cli.Value} /raiddisband
+			/delay
 
 			| are they in the group already?
 			/if (${Group.Member[${cli.Value}].Index}) {
@@ -3991,23 +4041,21 @@ sub Bind_command_crew(string _type, bool _debug)
 	| dont try to make changes if you're not the boss
 	/if (${Group.Leader.Name.NotEqual[${Me.DisplayName}]}) /goto :notmyresponsibilitybitch
 
-	/delay 5
 
 	| set group assist
+	/delay 3s ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index}
 	/if (${Bool[${maCrew.Find[stCrew${_type}Assist].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index}) {
 		/grouproles set ${maCrew.Find[stCrew${_type}Assist].Value} 2
 	}
 
-	/delay 5
-
 	| set group looter
+	/delay 3s ${Group.Member[${maCrew.Find[stCrew${_type}Looter].Value}].Index}
 	/if (${Bool[${maCrew.Find[stCrew${_type}Looter].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_type}Looter].Value}].Index}) {
 		/grouproles set ${maCrew.Find[stCrew${_type}Looter].Value} 5
 	}
 
-	/delay 5
-
 	| set group leader
+	/delay 5
 	/if (${Bool[${maCrew.Find[stCrew${_type}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_type}Leader].Value}].Index}) {
 		/makeleader ${maCrew.Find[stCrew${_type}Leader].Value}
 	}
@@ -4019,7 +4067,7 @@ sub Bind_command_crew(string _type, bool _debug)
 
 /return TRUE
 
-
+${Group.Member[airavas].Index}
 
 |***
  * note: lets you initiate a single advanced pull routine
