@@ -386,7 +386,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 			/if (HOME) {
 				/call Bind_control_home clear
 			}
-			/invoke ${target_reset[${_debug}, 0, clear]}
+			/invoke ${target[clear]}
 			| /call clear_combat FALSE
 		} else /if (${_type.Equal[auto]}) {
 			/if ((${maCC.Find[swPullSetHome].Value} && PULL) || ${maHome.Find[swonAuto].Value}) {
@@ -2824,7 +2824,7 @@ sub Bind_command_alto(string _debug)
 	}
 
 	/call set_stop FALSE
-	/invoke ${target_reset[${_debug}, 0, clear]}
+	/invoke ${target[clear]}
 	| /call clear_combat FALSE
 
 /return TRUE

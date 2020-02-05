@@ -22,6 +22,15 @@ on the to do list
 
 
 
+
+
+
+A200204.01
+- REPO Update
+- several changes to spellcasting events. (trying to get it to stop spamming auras and invis.)
+- complete rewrite of the targeting system. this will need some watching and adjusting.
+
+
 A200201.03
 - REPO update
 - cleric

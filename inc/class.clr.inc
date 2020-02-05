@@ -181,7 +181,7 @@ sub misc_combat_CLR(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_CLR\ax()
 
 	ISMEDEAD
-	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+	/if (!${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 	CHECKEXIT
@@ -573,7 +573,7 @@ sub burn_CLR(bool _debug)
 	DEBUG \atburn_CLR\ax()
 
 	ISMEDEAD
-	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 

@@ -187,7 +187,7 @@ sub misc_combat_PAL(bool _debug, int _tmpID)
 
 	ISMEDEAD
 
-	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -204,7 +204,7 @@ sub misc_combat_PAL(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stTempRune].Value}" 0 FALSE
 	}
 
-	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -227,7 +227,7 @@ sub misc_combat_PAL(bool _debug, int _tmpID)
 		}
 	}
 
-	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -253,7 +253,7 @@ sub get_agro_PAL(bool _debug, int _tmpID)
 	CHECKEXIT
 	GETINPUT
 
-	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -270,7 +270,7 @@ sub get_agro_PAL(bool _debug, int _tmpID)
 		}
 	}
 
-	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -305,7 +305,7 @@ sub get_agro_PAL(bool _debug, int _tmpID)
 		/return
 	}
 
-	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -499,7 +499,7 @@ sub burn_PAL(bool _debug, int _tmpID)
 
 	ISMEDEAD
 
-	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -530,7 +530,7 @@ sub burn_PAL(bool _debug, int _tmpID)
 		}
 	}
 
-	/if (!${target_reset[${_debug}, ${_tmpID}, dead]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 

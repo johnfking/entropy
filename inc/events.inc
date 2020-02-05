@@ -20,7 +20,7 @@ sub Event_SPEAKLINE(string _target, string _verbage)
 
 	/if (${Spawn[${_target}].Distance} > 50) /echo I need to Move Closer To ${_target}
 
-	/invoke ${target_reset[${_debug}, 0, clear]}
+	/invoke ${target[clear]}
 	| /call clear_combat
 	/stick off
 
@@ -231,6 +231,16 @@ sub Event_Zone(string _line)
 	/call check_mode FALSE RESET
 	/call check_zone_id FALSE FALSE
 /return FALSE
+
+
+|***
+ * use: end macro on a camp
+ ***|
+#event Camp "It will take you about 30 seconds to prepare your camp."
+sub Event_Camp(string line)
+	/endmacro
+/return
+
 
 
 
