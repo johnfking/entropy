@@ -1105,6 +1105,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maOver swOverSafeNames                     FALSE                         "${auxsw} ignore safename checks, trust everyone. pm me your account info please"
   /call set_data_map FALSE maOver swOverTrainSpell                    FALSE                         "${auxsw} ignore spell training caps. cast forever"
   /call set_data_map FALSE maOver swOverEnvAuto		                    FALSE                         "${auxsw} ignore non-persistent auto and start with \a-w/env auto on\ax"
+  /call set_data_map FALSE maOver swOverDSCheck		                    FALSE                         "${auxsw} ignore damage shield checks while melee"
 
 
 |** control: entropy  **|

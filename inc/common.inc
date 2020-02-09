@@ -2950,12 +2950,18 @@ sub set_combat_control(bool _debug, int _tmpID)
 
 	| out of range?
 	/if (${Target.Distance} > ENV && !${maCC.Find[swSetForced].Value}) {
-		/return
+		/return FALSE
 	}
 
-	/if (${Me.State.NotEqual[STAND]}) /stand
-	/if (AUTO && ${Me.State.Equal[FEIGN]}) /squelch /stand
-	/if (!AUTO && ${Me.Invis}) /makemevisible
+	/if (${Me.State.NotEqual[STAND]}) {
+		/squelch /stand
+	}
+	/if (AUTO && ${Me.State.Equal[FEIGN]}) {
+		/squelch /stand
+	}
+	/if (!AUTO && ${Me.Invis}) {
+		/makemevisible
+	}
 
 	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
@@ -2964,9 +2970,9 @@ sub set_combat_control(bool _debug, int _tmpID)
 
 	| range or melee, priority is range!
 	/if (MELEE && RANGE) {
-		DEBUG ${sep}\agmelee\ax \ayor\ax \agrange\ax
+		DEBUG ${sep}\agmelee\ax${sep}\ayor\ax${sep}\agrange\ax
 
-		/if (${lsZoneRange.Contains[${Target.DisplayName}]} || ${lsZoneNoMelee.Contains[${Target.DisplayName}]} || (AUTO && ${Target.DSed.ID} && !AGRO)) {
+		/if (${lsZoneRange.Contains[${Target.DisplayName}]} || ${lsZoneNoMelee.Contains[${Target.DisplayName}]} || (AUTO && ${Target.DSed.ID} && !${maOver.Find[swOverDSCheck].Value} && !AGRO)) {
 			/call set_combat_range ${_debug} ${_tmpID}
 			/return TRUE
 		}
@@ -2982,9 +2988,9 @@ sub set_combat_control(bool _debug, int _tmpID)
 
 	| melee combat only
 	} else /if (MELEE && !RANGE) {
-		DEBUG ${sep}\agmelee\ax \arrange\ax
+		DEBUG ${sep}\agmelee\ax${sep}\arrange\ax
 
-		/if (${lsZoneNoMelee.Contains[${Target.DisplayName}]} || (AUTO && ${Target.DSed.ID} && !AGRO)) {
+		/if (${lsZoneNoMelee.Contains[${Target.DisplayName}]} || (AUTO && ${Target.DSed.ID} && !${maOver.Find[swOverDSCheck].Value} && !AGRO)) {
 			/call set_combat_range ${_debug} ${_tmpID}
 			/return TRUE
 		}
@@ -2994,7 +3000,7 @@ sub set_combat_control(bool _debug, int _tmpID)
 
 	| range combat only
 	} else /if (RANGE && !MELEE) {
-		DEBUG ${sep}\agrange\ax \armelee\ax
+		DEBUG ${sep}\agrange\ax${sep}\armelee\ax
 
 		/call set_combat_range ${_debug} ${_tmpID}
 

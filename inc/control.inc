@@ -1839,6 +1839,8 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 		/invoke ${set_switch_env[FALSE, swOverTrainSpell, TRUE, ${_verbage}]}
 	} else /if (${_type.Equal[envauto]}) {
 		/invoke ${set_switch_env[FALSE, swOverEnvAuto, TRUE, ${_verbage}]}
+	} else /if (${_type.Equal[dscheck]}) {
+		/invoke ${set_switch_env[FALSE, swOverDSCheck, TRUE, ${_verbage}]}
 
 	}
 
@@ -1850,6 +1852,7 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 	/invoke ${maControl.Add[loot,swOverLoot]}
 	/invoke ${maControl.Add[safenames,swOverSafeNames]}
 	/invoke ${maControl.Add[trainspell,swOverTrainSpell]}
+	/invoke ${maControl.Add[dscheck,swOverDSCheck]}
 	/invoke ${maControl.Add[envauto,swOverEnvAuto]}
 	/invoke ${set_control_output[${_debug}, maOver, override, maControl]}
 

@@ -22,6 +22,15 @@ on the to do list
 
 
 
+
+A200208.02
+- /override
+  dscheck - will force ignoring of all damage shield checks on mobs for melee combat
+- monk
+  fixed a stupid FD bug.. though it was rather entertaining
+  several updates to inc to bring current
+
+
 A200208.01
 - targeting system (should read this)
   i started the targeting system over.. again. the previous one wasnt mutable enough.
