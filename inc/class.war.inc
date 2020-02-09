@@ -114,7 +114,10 @@ sub misc_combat_WAR(bool _debug)
 	DEBUG \atmisc_combat_WAR\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
+
 
 	CHECKEXIT
 	GETINPUT
@@ -235,7 +238,10 @@ sub get_agro_WAR(bool _debug)
 	ISMEDEAD
 	GETINPUT
 	CHECKEXIT
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
+
 
 
 	| (60 seconds) and ae taunt
@@ -328,7 +334,10 @@ sub burn_WAR(bool _debug)
 	DEBUG burn_WAR(${_debug})
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
+
 
 	CHECKEXIT
 	GETINPUT

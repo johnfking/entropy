@@ -998,6 +998,7 @@ sub check_facing(bool _debug, int _tmpID, string _adjust)
  ***|
 sub cast_defensive_cycle(bool _debug)
 	DEBUG \atcast_defensive_cycle\ax()
+	FLOW cast_defensive_cycle
 
 	/declare _li listiterator string local
 	/vardata _li lsMitigationCycle.First.Clone
@@ -1020,10 +1021,17 @@ sub cast_defensive_cycle(bool _debug)
  ***|
 sub is_defensive_active(bool _debug, string _abort, int _range)
 	DEBUG \atis_defensive_active\ax(\a-w${_abort}, ${_range}\ax)
+	FLOW is_defensive_active
 
-	/if (!AUTO || !${maChr.Find[stCountDefensive].Value}) /return TRUE
+	| this system is not for use in manual mode
+	/if (!AUTO || !${maChr.Find[stCountDefensive].Value})  {
+		/return TRUE
+	}
 
-	/if (!${maChr.Count[lsMitigationCycle]} && !${maChr.Count[lsMitigationCyclecheck]}) /return TRUE
+	| if nothing is set, go away
+	/if (!${maChr.Count[lsMitigationCycle]} && !${maChr.Count[lsMitigationCyclecheck]}) {
+		/return TRUE
+	}
 
 	/declare _li listiterator string local
 	/vardata _li lsMitigationCyclecheck.First.Clone
@@ -1034,9 +1042,13 @@ sub is_defensive_active(bool _debug, string _abort, int _range)
 		/invoke ${_li.Advance}
 	}
 
-	/if (${SpawnCount[npc radius ${_range} PS4 targetable]} < ${maChr.Find[stCountDefensive].Value}) /return TRUE
+	/if (${SpawnCount[npc radius ${_range} PS4 targetable]} < ${maChr.Find[stCountDefensive].Value}) {
+		/return TRUE
+	}
 
-	/if (${_abort.Equal[burn]} && BURN) /return FALSE
+	/if (${_abort.Equal[burn]} && BURN) {
+		/return FALSE
+	}
 
 /return FALSE
 
@@ -1048,10 +1060,15 @@ sub is_defensive_active(bool _debug, string _abort, int _range)
  ***|
 sub is_ready(bool _debug, string _verbage)
 	DEBUG \atis_ready\ax(\a-w${_verbage}\ax)
+	FLOW is_ready
 
-	/if (!${Bool[${_verbage}]}) /return FALSE
+	/if (!${Bool[${_verbage}]}) {
+		/return FALSE
+	}
 
-	/if (${swIsMeDead}) /return FALSE
+	/if (${swIsMeDead}) {
+		/return FALSE
+	}
 
 	/if (${_verbage.Find[+]}) {
 		/varset _verbage ${_verbage.Arg[1,+]}
@@ -1099,6 +1116,7 @@ sub is_ready(bool _debug, string _verbage)
  ***|
 sub get_assist_info(bool _debug, string _type)
 	DEBUG \atget_assist_info\ax(\a-w${_type}\ax)
+	FLOW get_assist_info
 
 	/declare _assist local string FALSE
 
@@ -1138,6 +1156,7 @@ sub get_assist_info(bool _debug, string _type)
  ***|
 sub set_observers(bool _debug, string _map, string _action)
 	DEBUG \atset_observers\ax(\a-w${_map}, ${_action}\ax)
+	FLOW set_observers
 
 	/declare _count						int 		local 0
 	/declare _actionO					string	local FALSE
@@ -1228,6 +1247,7 @@ sub set_observers(bool _debug, string _map, string _action)
  ***|
 sub set_switch_env(bool _debug, string _switch, bool _sql, string _verbage)
 	DEBUG \atset_switch\ax(\a-w${_switch}, ${_sql}, ${_verbage}\ax)
+	FLOW set_switch_env
 
 	/declare _map string local ${get_key_map[${_debug}, ${_switch}]}
 	DEBUG _map${sep}${_map}
@@ -1284,6 +1304,7 @@ sub check_class(bool _debug, string _class)
  ***|
 sub cast_AA_fireworks(bool _debug)
 	DEBUG \atcast_AA_fireworks\ax()
+	FLOW cast_AA_fireworks
 
 	/invoke ${set_data_timer[FALSE, Waste_Fireworks, RESTART]}
 
@@ -1309,6 +1330,7 @@ sub cast_AA_fireworks(bool _debug)
  ***|
 sub check_for_rezbox(bool _debug)
 	DEBUG \atcheck_for_rezbox\ax()
+	FLOW check_for_rezbox
 
 	GETINPUT rez_box_found swIsMeDead|${swIsMeDead}
 
@@ -1419,6 +1441,7 @@ sub check_for_rezbox(bool _debug)
  ***|
 sub is_me_dead(bool _debug)
 	DEBUG \atis_me_dead\ax()
+	FLOW is_me_dead
 
 	GETINPUT is_me_dead swIsMeDead|${swIsMeDead}
 
@@ -1465,6 +1488,7 @@ sub is_me_dead(bool _debug)
  ***|
 sub check_buff_cycle_shrink(bool _debug)
 	DEBUG \atcheck_buff_cycle_shrink\ax()
+	FLOW check_buff_cycle_shrink
 
 	SETHUD "buff shrink"
 
@@ -1502,6 +1526,7 @@ sub check_buff_cycle_shrink(bool _debug)
  ***|
 sub check_condition(bool _debug, str _condition)
 	DEBUG \atcheck_condition\ax(\a-w${_condition}\ax)
+	FLOW check_condition
 
 	/sqlite ${maData.Find[DBcharacter].Value} condition SELECT value FROM environment_condition WHERE env_var="c${_condition}"
 
@@ -1531,6 +1556,7 @@ sub check_condition(bool _debug, str _condition)
  ***|
 sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOverride)
 	DEBUG \atvoodoo\ax(\a-w${_verbage}, ${_tmpID}, ${_sub}, ${_rangeOverride}\ax)
+	FLOW voodoo
 	ISMEDEAD
 
 	| critical errors
@@ -1541,17 +1567,22 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 	}
 
 	| generic validations
-	/if (${Me.Invis}) /return FALSE
-	/if (${swIsMeDead}) /return FALSE
+	/if (${Me.Invis}) {
+		/return FALSE
+	}
+	/if (${swIsMeDead}) {
+		/return FALSE
+	}
+
 
 	| redirect the current cast to a dichotomic if GoM procs
-	/if (${_tmpID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]} && ${Spawn[${Target.ID}].Type.NotEqual[pc]}) {
-
+	| -- this has been moved to spells
+	| /if (${_tmpID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]} && ${Spawn[${Target.ID}].Type.NotEqual[pc]}) {
 		| nuke 1
-		/if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) {
-			/varset _verbage ${maChr.Find[stDichotomic].Value}
-		}
-	}
+	| 	/if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) {
+	| 		/varset _verbage ${maChr.Find[stDichotomic].Value}
+	| 	}
+	| }
 
 	| are we moving? and not a bard?
 	/if (!${Select[${Me.Class.ShortName},BRD]}) {
@@ -1625,10 +1656,6 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		/varset _verbage ${Spell[${_verbage}].RankName}
 	}
 
-	| make sure we have our target if one is passed 0 is assumed no target required
-	| /if (${_tmpID} != 0) {
-	| 	/invoke ${set_target[${_tmpID}]}
-	| }
 
 	/declare _castLoop int local 1
 	/invoke ${maData.Find[stCastReturn].Value} NOTREADY
@@ -1648,10 +1675,9 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 		/delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
 
-		| make sure we have our target if one is passed 0 is assumed no target required
-		/if (${_tmpID} != 0) {
+		| make sure we have our target if one is passed. 0 is assumed no target required
+		/if (${_tmpID}) {
 			/invoke ${target[set, ${_tmpID}]}
-			| /invoke ${set_target[${_tmpID}]}
 		}
 
 		/if (${_tmpID} == 0) {
@@ -1705,22 +1731,32 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		| /if (${check_no_cast_buff[FALSE]}) /return FALSE
 
 		| am i casting a spell?
-		/if (${Me.Casting.ID}) /return FALSE
+		/if (${Me.Casting.ID}) {
+			/return FALSE
+		}
 
 		| global cooldown
-		/if (${Me.SpellInCooldown}) /return FALSE
+		/if (${Me.SpellInCooldown}) {
+			/return FALSE
+		}
 
 		| correct rank name
 		/varset _verbage ${Spell[${_verbage}].RankName}
 
 		| have it?
-		/if (!${Bool[${Me.Book[${_verbage}]}]}) /return FALSE
+		/if (!${Bool[${Me.Book[${_verbage}]}]}) {
+			/return FALSE
+		}
 
 		| gem in cooldown?
-		/if (${Me.GemTimer[${_verbage}]}) /return FALSE
+		/if (${Me.GemTimer[${_verbage}]}) {
+			/return FALSE
+		}
 
 		| enough manna to cast?
-		/if (${Me.CurrentMana} < ${Spell[${_verbage}].Mana}) /return FALSE
+		/if (${Me.CurrentMana} < ${Spell[${_verbage}].Mana}) {
+			/return FALSE
+		}
 
 		| dont fail buffs so they can be memed when needed
 		/if (!${Me.SpellReady[${_verbage}]} && !${Spell[${_verbage}].Category.Equal[Heals]}) {
@@ -1729,16 +1765,22 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			/if (${Spell[${_verbage}].SpellType.Equal[Pet]}) /varset _pass TRUE
 			/if (${Spell[${_verbage}].SpellType.Equal[aura]}) /varset _pass TRUE
 
-			/if (!${_pass}) /return FALSE
+			/if (!${_pass}) {
+				/return FALSE
+			}
 		}
 
 		| check cast range
 		/if (${Spell[${_verbage}].Range}) {
-			/if (${Spawn[${_tmpID}].Distance} > ${Spell[${_verbage}].MyRange}) /return FALSE
+			/if (${Spawn[${_tmpID}].Distance} > ${Spell[${_verbage}].MyRange}) {
+				/return FALSE
+			}
 		}
 		| check AE range
 		/if (${Spell[${_verbage}].TargetType.Equal[Group V2]}) {
-			/if (${Spawn[${_tmpID}].Distance} > ${Spell[${_verbage}].AERange}) /return FALSE
+			/if (${Spawn[${_tmpID}].Distance} > ${Spell[${_verbage}].AERange}) {
+				/return FALSE
+			}
 		}
 
 		| check for stacking issues
@@ -1758,10 +1800,9 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		}
 
 
-		| make sure we have our target if one is passed 0 is assumed no target required
-		/if (${_tmpID} != 0) {
+		| make sure we have our target if one is passed. 0 is assumed no target required
+		/if (${_tmpID}) {
 			/invoke ${target[set, ${_tmpID}]}
-			| /invoke ${set_target[${_tmpID}]}
 		}
 
 		| types vs zone control
@@ -1819,10 +1860,6 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		| is the spell memed
 		/if (${Me.Gem[${_verbage}]}) {
 
-			/if (${_tmpID} != 0 && && ${Target.ID} != ${_tmpID}) {
-				/return FALSE
-			}
-
 			| echos
 			/if (${_tmpID} == 0) {
 				/invoke ${out[3, "Cast${sep}${sp}${_verbage}\ax"]}
@@ -1833,10 +1870,22 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			/while (${_castLoop}) {
 
 				/if (${Me.Invis}) {
-					/return FALSE
+					/invoke ${maData.Add[stCastReturn,DISTRACTED]}
+					/break
 				}
 
 				/cast ${Me.Gem[${_verbage}]}
+				/delay 1
+
+ 				GETINPUT
+
+				| cant cast
+				/if (${Select[${maData.Find[stCastReturn].Value},DISTRACTED]}) {
+					/if (${Select[${Me.Class.ShortName},BRD]}) {
+						/call pulse_stop
+					}
+					/break
+				}
 
 				| set delays for casting. GTFO out of this as fast as possible
 				/delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
@@ -1846,11 +1895,11 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 					/delay 3
 				}
 
- 				GETINPUT
-
-				| good/cant cast
-				/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,BLOCKED,DISTRACTED]}) {
-					/if (${Select[${Me.Class.ShortName},BRD]}) /call pulse_stop
+				| good
+				/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,BLOCKED]}) {
+					/if (${Select[${Me.Class.ShortName},BRD]}) {
+						/call pulse_stop
+					}
 					/break
 				}
 				| spell is not ready
@@ -1880,6 +1929,11 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 		| CHECK DISK DURATION VS ACTIVE DISC FOR STACKING ISSUES/ BLOCKED DISCS
 		/if (${Me.ActiveDisc.Name.Equal[${_verbage}]}) /return FALSE
+
+		| make sure we have our target if one is passed. 0 is assumed no target required
+		/if (${_tmpID}) {
+			/invoke ${target[set, ${_tmpID}]}
+		}
 
 		/if (${_tmpID} == 0) {
 			/invoke ${out[4, "Disc${sep}${sp}${_verbage}\ax"]}
@@ -1919,6 +1973,11 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			| /if (${Spell[${FindItem[=${_verbage}].Spell}].SpellType.Equal[Beneficial]} && !${Spell[${FindItem[=${_verbage}].Spell}].Stacks}) /return FALSE
 		}
 
+		| make sure we have our target if one is passed. 0 is assumed no target required
+		/if (${_tmpID}) {
+			/invoke ${target[set, ${_tmpID}]}
+		}
+
 		/if (${_tmpID} == 0 || ${_tmpID} == ${Me.ID}) {
 			/invoke ${out[7, "Item${sep}${sp}${_verbage}\ax"]}
 		} else /if (${_tmpID} != 0 && ${Target.ID}) {
@@ -1932,7 +1991,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 			| get out if its a no cast click item
 			/if (!${FindItem[=${_verbage}].CastTime}) {
-				DEBUG NO CAST TIME
+				| DEBUG NO CAST TIME
 				/if (${Select[${Me.Class.ShortName},BRD]}) /call pulse_stop
 				/invoke ${maData.Add[stCastReturn,SUCCESS]}
 				/return
@@ -1974,6 +2033,11 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		| mem spell if needed??
 		/if (!${Me.Gem[${_verbage}]}) {
 			/call set_spell_to ${_debug} TRUE "${_verbage}" ${maEnv.Find[stBuffGem].Value} TRUE
+		}
+
+		| make sure we have our target if one is passed. 0 is assumed no target required
+		/if (${_tmpID}) {
+			/invoke ${target[set, ${_tmpID}]}
 		}
 
 		/if (${_tmpID} == 0) {
@@ -2498,6 +2562,7 @@ sub get_resident_class(bool _debug, string _class, int _distance)
 **|
 sub is_target_valid(bool _debug, int _tmpID)
 	DEBUG \atis_target_valid\ax(\a-w${_tmpID}\ax)
+	FLOW is_target_valid
 
 	/if (!AUTO) {
 		/return TRUE
@@ -2562,6 +2627,7 @@ sub is_target_valid(bool _debug, int _tmpID)
  ***|
 sub is_burn_valid(bool _debug)
 	DEBUG \atis_burn_valid\ax()
+	FLOW is_burn_valid
 
 	| dont do shit in safe zone..
 	/if (${maEnv.Find[swZoneSafe].Value}) {
@@ -2634,6 +2700,7 @@ sub is_burn_valid(bool _debug)
  ***|
 sub check_class_loop(bool _debug)
 	DEBUG \atcheck_class_loop\ax()
+	FLOW check_class_loop
 
 	/if (AUTO) {
 		| no target.. were done
@@ -2675,9 +2742,11 @@ sub check_class_loop(bool _debug)
  **|
 sub check_combat_status(bool _debug)
 	DEBUG \atcheck_combat_status\ax()
+	FLOW check_combat_status
 
 	CHECKCURSOR
 
+	/delay 1
  	| manual mode
 	/if (!AUTO) {
 		DEBUG ${sep}Manual combat check
@@ -2723,9 +2792,12 @@ sub check_combat_status(bool _debug)
 	} else /if (AUTO) {
 		DEBUG ${sep}auto combat check
 
-
-		/if (${Me.Invis} && ${Me.Class.ShortName.NotEqual[ROG]}) /return FALSE
-		/if (${Me.Invis} && ${Me.Class.ShortName.Equal[ROG]} && !${maEnv.Find[swSoS].Value}) /return FALSE
+		/if (${Me.Invis} && ${Me.Class.ShortName.NotEqual[ROG]}) {
+			/return FALSE
+		}
+		/if (${Me.Invis} && ${Me.Class.ShortName.Equal[ROG]} && !${maEnv.Find[swSoS].Value}) {
+			/return FALSE
+		}
 
 		/if (${Me.Class.ShortName.Equal[BRD]}) {
 			/if (${Me.Song[Rallying Solo].ID}) /return FALSE
@@ -2741,7 +2813,7 @@ sub check_combat_status(bool _debug)
 			/return FALSE
 
 		} else /if (VALID && ${Spawn[TARGET].ID}) {
-			DEBUG ${sep} \ayelse /if (VALID && ${Spawn[TARGET].ID})\ax
+			DEBUG ${sep}\ayelse /if (VALID && ${Spawn[TARGET].ID})\ax
 			| /if (!SAFEZONE) /call set_base_target_timers TARGET
 			| /if (${Me.Class.ShortName.Equal[BRD]}) {
 				| /if (${Me.Song[${spellRestSong}].ID}) /stopsong
@@ -2764,6 +2836,7 @@ sub check_combat_status(bool _debug)
  ***|
 sub set_combat(bool _debug)
 	DEBUG \atset_combat\ax()
+	FLOW set_combat
 
 	/if (${target[isdead, TARGET]}) {
 		/return FALSE
@@ -2812,7 +2885,6 @@ sub set_combat(bool _debug)
 				/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 				/if ((AUTO || ${swModeToken}) && !${timer_check_stick}) {
 					/call set_combat_control ${maDebug.Find[decision].Value} TARGET
-					| /call stick_to_target ${maDebug.Find[stick].Value} TARGET
 				}
 			}
 
@@ -2835,12 +2907,18 @@ sub set_combat(bool _debug)
 				/squelch /attack off
 				/return FALSE
 			} else {
-				/if (${Me.AutoFire}) /squelch /autofire
+				/if (${Me.AutoFire}) {
+					/squelch /autofire
+				}
 				/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+
+				/if (${maCC.Find[swProc].Value} && !${timer_Check_Proc_Bandolier}) {
+					/call check_melee_proc ${_debug}
+				}
+
 				/squelch /attack on
 				/if (AUTO && !${timer_check_stick}) {
 					/call set_combat_control ${maDebug.Find[decision].Value} TARGET
-					| /call stick_to_target ${maDebug.Find[stick].Value} TARGET
 				}
 			}
 		}
@@ -2858,6 +2936,7 @@ sub set_combat(bool _debug)
  ***|
 sub set_combat_control(bool _debug, int _tmpID)
 	DEBUG \atset_combat_control\ax(\a-w${_tmpID}\ax)
+	FLOW set_combat_control
 
 	ISMEDEAD
 
@@ -2870,7 +2949,9 @@ sub set_combat_control(bool _debug, int _tmpID)
 
 
 	| out of range?
-	/if (${Target.Distance} > ENV && !${maCC.Find[swSetForced].Value}) /return
+	/if (${Target.Distance} > ENV && !${maCC.Find[swSetForced].Value}) {
+		/return
+	}
 
 	/if (${Me.State.NotEqual[STAND]}) /stand
 	/if (AUTO && ${Me.State.Equal[FEIGN]}) /squelch /stand
@@ -2931,6 +3012,7 @@ sub set_combat_control(bool _debug, int _tmpID)
  ***|
 sub set_combat_range(bool _debug, int _tmpID)
 	DEBUG \atset_combat_range\ax(\a-w${_tmpID}\ax)
+	FLOW set_combat_range
 
 	/if (${Stick.Active}) {
 		/squelch /stick off
@@ -2954,13 +3036,18 @@ sub set_combat_range(bool _debug, int _tmpID)
 
 |***
  * note: sets melee combat
- * use: /call set_combat_range DEBUG [TARGETID]
+ * use: /call set_combat_melee DEBUG [TARGETID]
  ***|
 sub set_combat_melee(bool _debug, int _tmpID)
 	DEBUG \atset_combat_melee\ax(\a-w${_tmpID}\ax)
+	FLOW set_combat_melee
 
 	/if (${Me.AutoFire}) {
 		/squelch /autofire
+	}
+
+	/if (${maCC.Find[swProc].Value} && !${timer_Check_Proc_Bandolier}) {
+		/call check_melee_proc ${_debug}
 	}
 
 	/squelch /attack on
@@ -3031,6 +3118,7 @@ sub set_combat_melee(bool _debug, int _tmpID)
  ***|
 sub get_target_buff_time_left(bool _debug, string _buff)
 	DEBUG \atget_target_buff_time_left\ax(\a-w${_buff}\ax)
+	FLOW get_target_buff_time_left
 
 	/if (!${Target.ID} || ${Target.Dead}) {
 		/return 0
@@ -3065,6 +3153,7 @@ sub get_target_buff_time_left(bool _debug, string _buff)
  ***|
 sub get_target_basepull(bool _debug, int _tmpID)
 	DEBUG \atget_target_basepull\ax(\a-w${_tmpID}\ax)
+	FLOW get_target_basepull
 
 	ISMEDEAD
 	GETINPUT get_target_basepull NA|NA
@@ -3199,13 +3288,13 @@ sub get_target_basepull(bool _debug, int _tmpID)
 
 
 
-
 |***
  * note: various conditions for the target in question
  * use: /call pull_mob_prep DEBUG [TARGETID]
  ***|
 sub pull_mob_prep(bool _debug, int _tmpID)
 	DEBUG \atpull_mob_prep\ax(\a-w${_tmpID}\ax)
+	FLOW pull_mob_prep
 
 	/declare _count int local 0
 	/declare _los string local los
@@ -3314,6 +3403,7 @@ sub pull_mob_prep(bool _debug, int _tmpID)
  ***|
 sub pull_mob_tag(bool _debug, int _tmpID)
 	DEBUG \atpull_mob_tag\ax(\a-w${_tmpID}\ax)
+	FLOW pull_mob_tag
 
 	/declare _count int local 0
 
@@ -3458,6 +3548,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
  ***|
 sub pull_mob_find(bool _debug, int _spCount)
 	DEBUG \atpull_mob_find\ax(\a-w${_spCount}\ax)
+	FLOW pull_mob_find
 
 	/if (!${Bool[${_spCount}]}) {
 		/varset _spCount 0
@@ -3628,6 +3719,7 @@ sub pull_mob_find(bool _debug, int _spCount)
  ***|
 sub set_spell_to(bool _debug, bool _echo, string _spellname, string _spellgem, bool _wait)
 	DEBUG \atset_spell_to\ax(\a-w${_echo}, ${_spellname}, ${_spellgem}, ${_wait}\ax)
+	FLOW set_spell_to
 
  	/if (${Me.Gem[${_spellname}]}) /return TRUE
 	ISMEDEAD
@@ -3752,6 +3844,7 @@ sub set_line_to(bool _debug, string _line)
  ***|
 sub get_gem_id(bool _debug, string _spellGem)
 	DEBUG \atget_gem_id\ax(\a-w${_spellGem}\ax)
+	FLOW get_gem_id
 
 	/declare _gem int local 0
 	/if (${_spellGem.Length} == 1 || ${_spellGem.Length} == 4) {
@@ -3768,14 +3861,19 @@ sub get_gem_id(bool _debug, string _spellGem)
  * note: If the followng criteria are met, the calling function will be skipped.
  * use: ${check_exit[DEBUG]}
  ***|
-sub check_exit(bool _debug)
+sub check_exit(bool _debug, string _call)
 	DEBUG \atcheck_exit\ax()
+	FLOW check_exit::${_call}
 
 	| invis
-	/if (${Me.Invis}) /return TRUE
+	/if (${Me.Invis}) {
+		/return TRUE
+	}
 
 	| movement
-	/if (${Me.Moving} && !${Select[${Me.Class.ShortName},BRD]}) /return TRUE
+	/if (${Me.Moving} && !${Select[${Me.Class.ShortName},BRD]}) {
+		/return TRUE
+	}
 
 	| SELF STATES
 	/if (${Me.Invulnerable.ID}) /return TRUE
@@ -3802,6 +3900,7 @@ sub check_exit(bool _debug)
  ***|
 sub check_engaged(bool _debug)
 	DEBUG \atcheck_engaged\ax()
+	FLOW check_engaged
 
 	GETINPUT check_engaged NA|NA
 
@@ -3852,6 +3951,7 @@ sub check_engaged(bool _debug)
  ***|
 sub do_rest(bool _debug)
 	DEBUG \atdo_rest\ax()
+	FLOW do_rest
 
 	| the dead dont need to rest
 	/if (!AUTO || ${swIsMeDead}) /return FALSE
@@ -4042,6 +4142,7 @@ sub do_rest(bool _debug)
  ***|
 sub get_assist_target(bool _debug)
 	DEBUG \atget_assist_target\ax()
+	FLOW get_assist_target
 
 	/if (!AUTO) /return
 
@@ -4194,6 +4295,7 @@ sub get_assist_target(bool _debug)
  * use: GETINPUT [sub] [variable]
  ***|
 sub register_hook(string _sub, string _variable)
+	FLOW register_hook
 
 	/if (!${maEntropy.Find[swHookSub].Value}) {
 		/return FALSE
@@ -4223,6 +4325,7 @@ sub register_hook(string _sub, string _variable)
  ***|
 sub set_zone_lists(bool _debug)
 	DEBUG \atset_zone_lists\ax()
+	FLOW set_zone_lists
 
 	| check zone exists
 	/sqlite ${maData.Find[DBzone].Value} dummy SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}'
@@ -4265,6 +4368,7 @@ sub set_zone_lists(bool _debug)
  ***|
 sub get_key_map(bool _debug, string _key, bool _validate)
 	DEBUG\atget_key_map\ax(\a-w${_key}\ax)
+	FLOW get_key_map
 
 	/declare _liglm listiterator local
 	/vardata _liglm lsMaps.First.Clone
@@ -4288,6 +4392,7 @@ sub get_key_map(bool _debug, string _key, bool _validate)
  ***|
 sub get_key_DBLOC(bool _debug, string _key)
 	DEBUG\atget_key_DBLOC\ax(\a-w${_key}\ax)
+	FLOW get_key_DBLOC
 
 	/declare _mikey mapiterator local
 	/vardata _mikey maDBTables.First.Clone
@@ -4312,6 +4417,7 @@ sub get_key_DBLOC(bool _debug, string _key)
  ***|
 sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, string _add_delete, string _verbage)
 	DEBUG \atdo_raw_edit\ax(\aw${_silent}, ${_variable}, ${Parse[1,${_value}]}, ${_add_delete}, ${_verbage}\ax)
+	FLOW do_raw_edit
 
 	| ** error control ** |
 
@@ -4564,6 +4670,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
  ***|
 sub set_control_chr_spire(bool _debug, string _type, string _verbage)
 	DEBUG \atset_control_chr_spire\ax(\a-w${_type}\ax)
+	FLOW set_control_chr_spire
 
   /declare _out string local
 
@@ -4589,6 +4696,7 @@ sub set_control_chr_spire(bool _debug, string _type, string _verbage)
  ***|
 sub set_control_heal_point(bool _debug, int _verbage)
 	DEBUG \atset_control_heal_point\ax(\a-w${_verbage}\ax)
+	FLOW set_control_heal_point
 
 	/declare _out string local
 
@@ -4626,6 +4734,7 @@ sub set_control_heal_point(bool _debug, int _verbage)
  ***|
 sub set_control_chr_xtclass(bool _debug, string _verbage)
 	DEBUG \atset_control_chr_xtclass\ax(\a-w${_verbage}\ax)
+	FLOW set_control_chr_xtclass
 
 	| fix user entry
 	/if (!${Bool[${_verbage}]} && ${lsClassAll.Contains[${Target.Class.ShortName}]}) {
@@ -4667,6 +4776,7 @@ sub set_control_chr_xtclass(bool _debug, string _verbage)
  ***|
 sub check_zone_id(bool _debug, bool _force)
 	DEBUG \atcheck_zone_id\ax(\a-w${_force}\ax)
+	FLOW check_zone_id
 
 	GETINPUT check_zone_id stCurrentZoneID|${maEnv.Find[stCurrentZoneID].Value}
 
@@ -4715,6 +4825,7 @@ sub check_zone_id(bool _debug, bool _force)
  ***|
 sub check_expaa_adjust(bool _debug)
 	DEBUG \atcheck_expaa_adjust\ax()
+	FLOW check_expaa_adjust
 
 	ISMEDEAD
 	CHECKEXIT
@@ -4746,6 +4857,7 @@ sub check_expaa_adjust(bool _debug)
  ***|
 sub check_last_supper(bool _debug)
 	DEBUG \atcheck_last_supper\ax()
+	FLOW check_last_supper
 
 	/invoke ${set_data_timer[FALSE, Check_FoodDrink, RESTART]}
 
@@ -4773,6 +4885,7 @@ sub check_last_supper(bool _debug)
  **|
 sub set_tie(bool _debug)
 	DEBUG \atset_tie\ax()
+	FLOW set_tie
 
 	/if (AUTO) {
 		/invoke ${set_data_timer[FALSE, Check_Tie, RESTART]}
@@ -4873,10 +4986,19 @@ sub set_tie(bool _debug)
  ***|
 sub cast_AA_fade(bool _debug)
 	DEBUG \a-tcast_AA_fade\as()
+	FLOW cast_AA_fade
+
+	/if (!${Bool[${maChr.Find[stPctFade].Value}]}) {
+		/return FALSE
+	}
 
 	ISMEDEAD
-	/if (${Me.PctHPs} > ${maChr.Find[stPctFade].Value}) /return FALSE
-	/if (!${SpawnCount[npc radius ENV]}) /return FALSE
+	/if (${Me.PctHPs} > ${maChr.Find[stPctFade].Value}) {
+		/return FALSE
+	}
+	/if (!${SpawnCount[npc radius ENV PS4]}) {
+		/return FALSE
+	}
 
 	| made it this far. may as well see if the shit works
 	/if (${is_ready[${_debug}, "${maData.Find[stFade].Value}"]}) {
@@ -4893,9 +5015,11 @@ sub cast_AA_fade(bool _debug)
  ***|
 sub check_buff_cycle_now(bool _debug)
 	DEBUG \atcheck_buff_cycle_now\ax()
+	FLOW check_buff_cycle_now
+
+	/invoke ${set_data_timer[${_debug}, Check_Buff_Now, RESTART]}
 
 	/if (AUTO) {
-		/invoke ${set_data_timer[${_debug}, Check_Buff_Now, RESTART]}
 		/if (!${maBuff.Find[swBuffMaster].Value}) {
 			/return FALSE
 		}
@@ -4959,7 +5083,7 @@ sub check_buff_cycle_now(bool _debug)
 		/if (${Select[${_targetIDorg},NULL]}) {
 			/squelch /target clear
 		} else /if (!${Select[${_targetIDorg},NULL]}) {
-			/invoke ${target[set, ${_targetIDorg}]}
+			| /invoke ${target[set, ${_targetIDorg}]}
 			| /invoke ${set_target[${_targetIDorg}]}
 		}
 
@@ -5020,6 +5144,7 @@ sub cast_list(bool _debug, string _lsList, int _tmpID)
  ***|
 sub check_buff_cycle_unity(bool _debug)
 	DEBUG \atcheck_buff_cycle_unity\ax()
+	FLOW check_buff_cycle_unity
 
 	SETHUD "buff unity"
 
@@ -5090,6 +5215,7 @@ ${Me.Spell[Wildstalker's Unity (Azia)].Trigger[1]}
  ***|
 sub check_buff_cycle_aura(bool _debug)
 	DEBUG \atcheck_buff_cycle_aura\ax()
+	FLOW check_buff_cycle_aura
 
 	SETHUD "buff aura"
 
@@ -5163,7 +5289,7 @@ sub check_buff_cycle_aura(bool _debug)
 
 				DEBUG ${sep}_found${_aura}${sep}\a-w${_found${_aura}}\ax
 				/if (!${_found${_aura}}) {
-					/call voodoo ${_debug} "${_a${_aura}}" ${Me.ID} FALSE
+					/call voodoo ${_debug} "${_a${_aura}}" 0 FALSE
 				} else /if (${_found${_aura}}) {
 					/varset _found${_aura} FALSE
 				}
@@ -5176,7 +5302,7 @@ sub check_buff_cycle_aura(bool _debug)
 
 /return TRUE
 
-${Me.Aura[1].Name}
+
 
 |***
  * note: do all the damn buffs
@@ -5184,6 +5310,7 @@ ${Me.Aura[1].Name}
  ***|
 sub check_buff_cycle(bool _debug, bool _force, string _verbage)
 	DEBUG \atcheck_buff_cycle\ax(\a-w${_force}, ${_verbage}\ax)
+	FLOW check_buff_cycle
 
 	/if (AUTO) {
 		/invoke ${set_data_timer[${_debug}, Check_Buff_Cycle, RESTART]}
@@ -5291,6 +5418,7 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
  ***|
 sub check_buff_cycle_powersource(bool _debug)
 	DEBUG \atcheck_buff_cycle_powersource\ax()
+	FLOW check_buff_cycle_powersource
 
 	/invoke ${set_data_timer[${_debug}, Check_Buff_Powersource, RESTART]}
 
@@ -5402,6 +5530,7 @@ ${FindItemCount[${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spel
  ***|
 sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 	DEBUG \atcheck_item_cycle\ax(\a-w${_tmpID}, ${_tag}\ax)
+	FLOW check_item_cycle
 
 	/declare _liC20 listiterator local
 	/vardata _liC20 lsCount20.First.Clone
@@ -5410,13 +5539,19 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 		GETINPUT check_item_cycle NA|NA
 		ISMEDEAD
 
+		| check the switch
+		/if (!${Bool[${maItems.Find[swItem${_liC20.Value}].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| check the item name
 		/if (!${Bool[${maItems.Find[stItem${_liC20.Value}].Value}]}) {
 			/invoke ${_liC20.Advance}
 			/continue
 		}
 
-		| /if (!${maItems.Find[stItem${_liC20.Value}].Value}) /continue
-
+		| apply any conditions
 		/if (!${check_condition[${_debug}, ${maItems.Find[stItem${_liC20.Value}Con].Value}]}) {
 			/invoke ${_liC20.Advance}
 			/continue
@@ -5476,6 +5611,7 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
  ***|
 sub do_mana_recovery(bool _debug)
 	DEBUG \atdo_mana_recovery\ax()
+	FLOW do_mana_recovery
 
 	/if (${Me.PctMana} > ${maChr.Find[stPctManaRecovery].Value}*.PCTHO) /return FALSE
 	/if (!${lsClassCast.Contains[${Me.Class.ShortName}]}) /return FALSE
@@ -5512,6 +5648,7 @@ sub do_mana_recovery(bool _debug)
  ***|
 sub cast_yaulp(bool _debug)
 	DEBUG \atcast_yaulp\ax()
+	FLOW cast_yaulp
 
 	/invoke ${set_data_timer[FALSE, Check_Yaulp, RESTART]}
 
@@ -5535,6 +5672,7 @@ sub cast_yaulp(bool _debug)
  * use: ${set_target[ID]} | /call set_target [ID]
  ***|
 sub set_target(int _tmpID)
+	FLOW set_target
 
 	/if (!${Bool[${_tmpID}]}) {
 		/return TRUE
@@ -5565,6 +5703,7 @@ sub set_target(int _tmpID)
  ***|
 sub check_buff_cycle_ammo(bool _debug)
 	DEBUG \atcheck_buff_cycle_ammo\ax()
+	FLOW check_buff_cycle_ammo
 
 	SETHUD "buff ammo"
 
@@ -5668,6 +5807,7 @@ ${Spell[${maBuffs.Find[stBuff30].Value}].NumEffects}
  ***|
 sub check_buff_cycle_leg_poison(bool _debug)
 	DEBUG \atcheck_buff_cycle_leg_poison\ax()
+	FLOW check_buff_cycle_leg_poison
 
 	SETHUD "buff leg poison"
 
@@ -5789,6 +5929,7 @@ ${Spell[${FindItem[=${_spell}].Clicky.SpellID}].Name}
  ***|
 sub check_buff_cycle_self(bool _debug)
 	DEBUG \atcheck_buff_cycle_self\ax()
+	FLOW check_buff_cycle_self
 
 	SETHUD "buff self"
 
@@ -5836,8 +5977,6 @@ sub check_buff_cycle_self(bool _debug)
 		/if (!${check_condition[${_debug}, ${maBuffs.Find[stBuff${_count}Con].Value}]}) {
 			/continue
 		}
-
-
 
 		/varset _found TRUE
 
@@ -5934,8 +6073,9 @@ sub check_buff_cycle_self(bool _debug)
  * note: buffs all your toons
  * use: automatic any peers
  ***|
-/sub check_buff_cycle_crew(bool _debug)
-	DEBUG \atcheck_buff_cycle_crew\ax()
+sub check_buff_cycle_crew2(bool _debug)
+	DEBUG \atcheck_buff_cycle_crew\ax()\
+	FLOW check_buff_cycle_crew
 
 	/if (AUTO) /invoke ${set_data_timer[FALSE, Check_Buff_Crew, RESTART]}
 	/if (!${maBuff.Find[swBuffMaster].Value}) /return FALSE
@@ -5995,7 +6135,7 @@ sub check_buff_cycle_self(bool _debug)
 			| /if (${lsBuff${_count}Tag.Contains[crew]} && ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_toonName}]} && ${Spawn[${_toonName}].ID}) /varset _target TRUE
 
 			| main assist
-			/if (${lsBuff${_count}Tag.Contains[ma]} && (${Group.MainAssist.Name.Equal[${_toonName}]} || ${maCC.Find[stManualAssist1].Value.Equal[${_toonName}]} || ${maCC.Find[stManualAssist2].Value.Equal[${_toonName}]})) /varset _target TRUE
+			/if (${lsBuff${_count}Tag.Contains[ma]} && (${Group.MainAssist.Name.Equal[${_toonName}]} || ${maCC.Find[stManualAssist1].Value.Equal[${_toonName}]} || ${${maCC.Find[stManualAssist2].Value}.Find[${_toonName}]})) /varset _target TRUE
 
 			| group only
 			/if (${lsBuff${_count}Tag.Contains[group]} && ${Group.Member[[${_toonName}].ID} && ${Group.Member[[${_toonName}].Present}) /varset _target TRUE
@@ -6083,6 +6223,7 @@ sub check_buff_cycle_self(bool _debug)
  ***|
 sub check_buff_cycle_beg(bool _debug)
 	DEBUG \atcheck_buff_cycle_beg\ax()
+	FLOW check_buff_cycle_beg
 
 	SETHUD "buff beg"
 
@@ -6157,6 +6298,7 @@ sub check_buff_cycle_beg(bool _debug)
  ***|
 sub check_buff_cycle_crew(bool _debug)
 	DEBUG \atcheck_buff_cycle_crew\ax()
+	FLOW check_buff_cycle_crew
 
 	SETHUD "buff crew"
 
@@ -6436,6 +6578,7 @@ sub check_buff_cycle_crew(bool _debug)
  ***|
 sub is_lsSafeNames(bool _debug, string _name)
 	DEBUG \atis_lsSafeNames\ax(\a-w${_name}\ax)
+	FLOW is_lsSafeNames
 
 	| override and accept everyone
 	/if (${maOver.Find[swOverSafeNames].Value}) {
@@ -6469,6 +6612,7 @@ sub is_lsSafeNames(bool _debug, string _name)
  ***|
 sub check_buff_cycle_temp_self(bool _debug, string _spell)
 	DEBUG \atcheck_buff_cycle_temp_self\ax(\a-w${_spell}\ax)
+	FLOW check_buff_cycle_temp_self
 
 	/if (${target[isdead, TARGET]}) {
 		/return FALSE
@@ -6496,6 +6640,7 @@ sub check_buff_cycle_temp_self(bool _debug, string _spell)
  ***|
 sub check_buff_cycle_temp_list(bool _debug, string _spell, string _toonList)
 	DEBUG \atcheck_buff_cycle_temp\ax(\a-w${_spell}, ${_toonList}\ax)
+	FLOW check_buff_cycle_temp_list
 
 	SETHUD "buff temp"
 
@@ -6573,6 +6718,7 @@ sub check_buff_cycle_temp_list(bool _debug, string _spell, string _toonList)
  ***|
 sub cast_item_summon(bool _debug, string _var)
 	DEBUG \atcast_item_summon\ax()
+	FLOW cast_item_summon
 
 	CHECKTIE
 	ISMEDEAD
@@ -6607,6 +6753,7 @@ sub cast_item_summon(bool _debug, string _var)
  ***|
 sub cast_challenge(bool _debug, int _tmpID)
 	DEBUG \atcast_challenge\ax(\a-w${_tmpID}\ax)
+	FLOW cast_challenge
 
 	/if (${Target.Buff[${maChr.Find[stChallenge].Value}].ID}) {
 		/return TRUE
@@ -6635,6 +6782,7 @@ sub cast_challenge(bool _debug, int _tmpID)
  ***|
 sub cast_nuke(bool _debug, string _line, int _tmpID)
 	DEBUG \atcast_nuke\ax(\a-w${_line}, ${_tmpID}\ax)
+	FLOW cast_nuke
 
 	/declare _linuke listiterator local
 	/vardata _linuke ${_line}.First.Clone
@@ -6697,6 +6845,7 @@ sub cast_nuke(bool _debug, string _line, int _tmpID)
  ***|
 sub cast_dot(bool _debug, string _line, int _tmpID)
 	DEBUG \atcast_dot\ax(\a-w${_line}, ${_tmpID}\ax)
+	FLOW cast_dot
 
 	/declare _lidot listiterator local
 	/vardata _lidot ${_line}.First.Clone
@@ -6756,6 +6905,7 @@ sub cast_dot(bool _debug, string _line, int _tmpID)
  ***|
 sub do_melee(bool _debug, int _tmpID)
 	DEBUG \atdo_melee\ax(\a-w${_tmpID}\ax)
+	FLOW do_melee
 
 	ISMEDEAD
 	CHECKEXIT
@@ -6895,6 +7045,7 @@ sub do_melee(bool _debug, int _tmpID)
  ***|
 sub cast_stamina_recovery(bool _debug)
 	DEBUG \atcast_stamina_recovery\ax()
+	FLOW cast_stamina_recovery
 
 	/if (${Me.PctEndurance} > 34) {
 		/return FALSE
@@ -6948,6 +7099,7 @@ sub cast_stamina_recovery(bool _debug)
  ***|
 sub check_harmonious(bool _debug)
 	DEBUG \atcheck_harmonious\ax()
+	FLOW check_harmonious
 
 	ISMEDEAD
 	CHECKEXIT
@@ -6971,6 +7123,7 @@ sub check_harmonious(bool _debug)
  ***|
 sub check_basic_tags(bool _debug, string _type, string _name)
 	DEBUG \atcheck_basic_tags\ax(\a-w${_type}, ${_name}\ax)
+	FLOW check_basic_tags
 
 	| is the master switch off?
 	/if (!${maBuff.Find[swBuffMaster].Value}) {
@@ -7116,6 +7269,7 @@ sub check_basic_tags(bool _debug, string _type, string _name)
  * use: ${check_basic_tags_summonitem[DEBUG, BUFF##]}
  ***|
 sub check_basic_tags_summonitem(bool _debug, string _buff)
+	FLOW check_basic_tags_summonitem
 
 	/declare _count int local
 	/varset _count ${FindItemCount[${Spell[${Spell[${maBuffs.Find[st${_buff}].Value}].RankName}].Base[1]}]}
@@ -7130,6 +7284,7 @@ sub check_basic_tags_summonitem(bool _debug, string _buff)
  ***|
 sub check_for_corpse(bool _debug)
 	DEBUG \atcheck_for_corpse\ax()
+	FLOW check_for_corpse
 
 	/if (${Me.State.Equal[HOVER]} || ${Me.Hovering} || ${Me.Dead}) {
 		/return FALSE
@@ -7335,6 +7490,7 @@ sub check_for_corpse(bool _debug)
  ***|
 sub cast_rez(bool _debug, int _tmpID, string _rez)
 	DEBUG \atcast_rez\ax(\a-w${_tmpID}, ${_rez}\ax)
+	FLOW check_for_corpse
 
 
 	/if (${Me.Dead}) /return FALSE
@@ -7410,6 +7566,7 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
  ***|
 sub get_item_convert(bool _debug, string _item, string _fullname)
 	DEBUG \atget_item_convert\ax(\a-w${_item}, ${_fullname}\ax)
+	FLOW get_item_convert
 
 	/while (!${FindItem[${_fullname}].ID}) {
 		GETINPUT get_item_convert NA|NA
@@ -7456,6 +7613,7 @@ sub Event_forcedloreleave(string line, string _itemName, bool _debug)
 
 sub do_loot(bool _debug)
 	DEBUG \atdo_loot\ax()
+	FLOW do_loot
 
 	ISMEDEAD
 	GETINPUT do_loot NA|NA
@@ -7648,6 +7806,7 @@ sub do_loot(bool _debug)
  ***|
 sub check_cure(bool _debug)
 	DEBUG \atcheck_cure\ax()
+	FLOW check_cure
 
 	/invoke ${set_data_timer[FALSE, Check_Cure, RESTART]}
 
@@ -7838,6 +7997,7 @@ sub check_cure(bool _debug)
  ***|
 sub check_cursor(bool _debug, string _verbage)
 	DEBUG \atcheck_cursor\ax(\a-w${_verbage}\ax)
+	FLOW check_cursor
 
 	SETHUD "cursor"
 
@@ -7914,6 +8074,7 @@ sub check_cursor(bool _debug, string _verbage)
  ***|
 sub cast_temp_pet(bool _debug, int _tmpID, string _tmpSpell)
 	DEBUG \atcast_temp_pet\ax(\a-w${_tmpID}, ${_tmpSpell}\ax)
+	FLOW cast_temp_pet
 
 	| these classes can only have one pet at a time (not counting  AA and spell combo. but i'n not gonna sort that shit)
 	/if (${Select[${Me.Class.ShortName},CLR,WIZ]}) {
@@ -7946,6 +8107,7 @@ sub cast_temp_pet(bool _debug, int _tmpID, string _tmpSpell)
  ***|
 sub send_pet(bool _debug, int _tmpID)
 	DEBUG \atsend_pet\ax(\a-w${_tmpID}\ax)
+	FLOW send_pet
 
 	/if (!${_tmpID}) /return FALSE
 	/if (!AUTO && !${maMinion.Find[swonForce].Value}) /return FALSE
@@ -8213,6 +8375,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
  ***|
 sub check_deBuffs(bool _debug, int _tmpID)
 	DEBUG \atcheck_deBuffs\ax(\a-w${_tmpID}\ax)
+	FLOW check_deBuffs
 
 	| check distance or bail early
 	/if (${Spawn[${_tmpID}].Distance} > ENV) {
@@ -8483,6 +8646,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
  ***|
 sub check_minion_cycle(bool _debug, bool _force)
 	DEBUG \atcheck_minion_cycle\ax(\a-w${_force}\ax)
+	FLOW check_minion_cycle
 
 	/if (AUTO) /invoke ${set_data_timer[${_debug}, Check_Minion_Cycle, RESTART]}
 
@@ -8540,6 +8704,7 @@ sub check_minion_cycle(bool _debug, bool _force)
  ***|
 sub check_minion_cycle_shrink(bool _debug)
 	DEBUG \atcheck_minion_cycle_shrink\ax()
+	FLOW check_minion_cycle_shrink
 
 	ISMEDEAD
 	CHECKEXIT
@@ -8569,6 +8734,7 @@ sub check_minion_cycle_shrink(bool _debug)
  ***|
 sub check_minion_cycle_buff(bool _debug)
 	DEBUG \atcheck_minion_cycle_buff\ax()
+	FLOW check_minion_cycle_buff
 
 	/if (AUTO) /invoke ${set_data_timer[${_debug}, Check_Minion_Buff, RESTART]}
 
@@ -8629,6 +8795,7 @@ sub check_minion_cycle_buff(bool _debug)
  ***|
 sub check_minion_cycle_summon(bool _debug)
 	DEBUG \atcheck_minion_cycle_summon\ax()
+	FLOW check_minion_cycle_summon
 
 	ISMEDEAD
 	CHECKEXIT
@@ -8676,6 +8843,7 @@ sub check_minion_cycle_summon(bool _debug)
  ***|
 sub check_minion_cycle_weapons(bool _debug)
 	DEBUG \atcheck_minion_cycle_weapons\ax()
+	FLOW check_minion_cycle_weapons
 
 	ISMEDEAD
 	CHECKEXIT
@@ -8733,6 +8901,7 @@ sub check_minion_cycle_weapons(bool _debug)
  ***|
 sub check_minion_cycle_Illusion(bool _debug)
 	DEBUG \atcheck_minion_cycle_Illusion\ax()
+	FLOW check_minion_cycle_Illusion
 
 	ISMEDEAD
 	CHECKEXIT
@@ -8759,6 +8928,7 @@ sub check_minion_cycle_Illusion(bool _debug)
  ***|
 sub get_openPackSlot(bool _debug, string _orFind)
 	DEBUG \atget_openPackSlot\ax(\a-w${_orFind}\ax)
+	FLOW get_openPackSlot
 
 	/declare _count int local 0
 
@@ -8778,6 +8948,7 @@ sub get_openPackSlot(bool _debug, string _orFind)
  ***|
 sub give_to_pet(string _item, bool _debug)
 	DEBUG \atgive_to_pet\ax(\a-w${_item}\ax)
+	FLOW give_to_pet
 
 	/invoke ${target[set, ${Pet.ID}]}
 	| /invoke ${set_target[${Pet.ID}]}
@@ -8803,6 +8974,7 @@ sub give_to_pet(string _item, bool _debug)
  ***|
 sub get_minion_summon_weapons(bool _debug)
 	DEBUG \atget_minion_summon_weapons\ax()
+	FLOW get_minion_summon_weapons
 
 	/if (!PET || !${Pet.ID} || !${maMinion.Find[swUsePetGear].Value}) /return FALSE
 
@@ -8919,6 +9091,7 @@ sub get_minion_summon_weapons(bool _debug)
  ***|
 sub item_delete(bool _debug, string _item)
 	DEBUG \atitem_delete\ax(\a-w${_item}\ax)
+	FLOW item_delete
 
 	/if (!${FindItem[=${_item}].ID}) /return FALSE
 
@@ -8949,6 +9122,7 @@ sub item_delete(bool _debug, string _item)
  ***|
 sub item_find(bool _debug, string _item)
 	DEBUG \atitem_find\ax(\a-w${_item}\ax)
+	FLOW item_find
 
 	/if (!${FindItem[=${_item}].ID}) /return FALSE
 
@@ -8980,6 +9154,7 @@ sub item_find(bool _debug, string _item)
  ***|
 sub get_MAG_folded_pack(bool _debug)
 	DEBUG \atget_MAG_folded_pack\ax()
+	FLOW get_MAG_folded_pack
 
 	/if (!${Defined[stMAGFoldedPack]}) {
 		/declare stMAGFoldedPack string outer
@@ -9006,7 +9181,11 @@ sub get_MAG_folded_pack(bool _debug)
  ***|
 sub cast_shield_flash(bool _debug, string _type)
 	DEBUG \atcast_shield_flash\ax(\a-w${_type}\ax)
-	/if (!AUTO) /return
+	FLOW cast_shield_flash
+
+	/if (!AUTO) {
+		/return FALSE
+	}
 
 	| health low enough || enough mobs in range
 	/if (${Me.PctHPs} > ${maChr.Find[stPctShieldFlash].Value} && ${SpawnCount[npc radius SAFEENV PS4 targetable]} < ${maChr.Find[stCountShieldFlash].Value}) /return FALSE
@@ -9065,6 +9244,7 @@ sub cast_shield_flash(bool _debug, string _type)
  ***|
 sub set_bandolier(bool _debug)
 	DEBUG \atset_bandolier\ax()
+	FLOW set_bandolier
 
 	/if (${bandolierSwap.Equal[${bandolier${_band}}]}) /return TRUE
 	/if (!${swBandolier}) /return FALSE
@@ -9084,6 +9264,7 @@ sub set_bandolier(bool _debug)
  ***|
 sub cast_glyph(bool _debug)
 	DEBUG \atcast_glyph\ax()
+	FLOW cast_glyph
 
 	/if (${maCC.Find[stGlyph].Value.Equal[FALSE]}) /return FALSE
 
@@ -9122,6 +9303,7 @@ sub cast_glyph(bool _debug)
  ***|
 sub cast_AA_spire(bool _debug)
 	DEBUG \atcast_AA_spire\aw()
+	FLOW cast_AA_spire
 
 	ISMEDEAD
 	CHECKEXIT
@@ -9279,6 +9461,7 @@ sub set_hud_data(string _mode)
  ***|
 sub set_AA_agro(bool _debug)
 	DEBUG \atset_AA_agro\ax()
+	FLOW set_AA_agro
 
 	ISMEDEAD
 	GETINPUT set_AA_agro NA|NA
@@ -9361,6 +9544,7 @@ sub set_AA_agro(bool _debug)
  ***|
 sub get_target_intpull(bool _debug, int _tmpID)
 	DEBUG \atget_target_intpull\ax(\a-w${_tmpID}\ax)
+	FLOW get_target_intpull
 
 	/if (!AUTO || !PULL) {
 		/return FALSE
@@ -9402,6 +9586,7 @@ sub get_target_intpull(bool _debug, int _tmpID)
  ***|
 sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 	DEBUG \atpull_mob_move_to\ax(\a-w${_tmpID}, ${_dist}, ${_LoS}\ax)
+	FLOW pull_mob_move_to
 
 	/nav ID ${_tmpID} |distance=${_dist} lineofsight=${_LoS} log=off
 	/delay 1s ${Me.Moving}
@@ -9446,6 +9631,7 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
  ***|
 sub get_target_petpull(bool _debug, int _tmpID)
 	DEBUG \atget_target_petpull(${_debug}, ${_tmpID})
+	FLOW get_target_petpull
 
 	ISMEDEAD
 	GETINPUT get_target_petpull _tmpID|${_tmpID}
@@ -9569,6 +9755,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
  ***|
 sub get_target_navpull(bool _debug, int _tmpID)
 	DEBUG \atget_target_navpull\ax(\a-w${_tmpID}\ax)
+	FLOW get_target_navpull
 
 	ISMEDEAD
 	GETINPUT get_target_navpull _tmpID|${_tmpID}
@@ -9694,6 +9881,8 @@ sub get_target_calmpull(bool _debug, int _tmpID)
  ***|
 sub get_target_multipull(bool _debug)
 	DEBUG \atget_target_multipull\ax()
+	FLOW get_target_multipull
+
 	/declare _count int local 0
 	/declare _multiTimer timer local 30s
 
@@ -9822,6 +10011,8 @@ sub prep_advanced_pulling(bool _debug)
  ***|
 sub find_priest(bool _debug, int _distance)
 	DEBUG \atfind_priest\ax()
+	FLOW find_priest
+
 	/declare _count int local 0
 	/declare _toonName string local
 
@@ -9852,6 +10043,8 @@ sub find_priest(bool _debug, int _distance)
  ***|
 sub where_the_fuck_is_my_pet(bool _debug, bool _force)
 	DEBUG \atwhere_the_fuck_is_my_pet\ax(\a-w${_force}\ax)
+	FLOW where_the_fuck_is_my_pet
+
 
 	/if (!${Me.Pet.ID}) /return
 
@@ -9875,6 +10068,7 @@ sub where_the_fuck_is_my_pet(bool _debug, bool _force)
  ***|
 sub set_pull_observer(bool _debug, string _verbage)
 	DEBUG \atset_pull_observer\ax(${_verbage})
+	FLOW set_pull_observer
 
 	| try to remember to move this after testing...
 	/return TRUE
@@ -9921,6 +10115,7 @@ sub set_pull_observer(bool _debug, string _verbage)
  ***|
 sub get_name_multipull(bool _debug, string _groupList)
 	DEBUG \atget_name_multipull\ax(\a-w${_groupList}\ax)
+	FLOW get_name_multipull
 
 	/declare _countGroup int local 0
 	/declare _countName	int local 0
@@ -9980,6 +10175,7 @@ sub out(int _lvl, string _verbage)
  ***|
 sub check_tribute(bool _debug)
 	DEBUG \atcheck_tribute\aw()
+	FLOW check_tribute
 
 	/invoke ${set_data_timer[FALSE, Check_Tribute, RESTART]}
 
@@ -10053,6 +10249,7 @@ return
  ***|
 sub check_mode(bool _debug, string _verbage)
 	DEBUG \atcheck_mode\ax()
+	FLOW check_mode
 
 	/invoke ${set_data_timer[FALSE, Check_Mode, RESTART]}
 
@@ -10092,6 +10289,7 @@ sub check_mode(bool _debug, string _verbage)
  ***|
 sub set_loot_item(bool _debug, string _item)
 	DEBUG \atset_loot_item\ax(\a-w${_item}\ax)
+	FLOW set_loot_item
 
 	| check for the item in the DB
 	/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${_item}"
@@ -10125,6 +10323,7 @@ sub set_loot_item(bool _debug, string _item)
  ***|
 sub vendor_buy( bool _debug, string _itemtoBuy, int _buyAmount)
 	DEBUG \atvendor_buy\ax(\a-w${_itemtoBuy}, ${_buyAmount}\ax)
+	FLOW vendor_buy
 
 	/if (!${Select[${Target.Type},npc,pet]} || !${Target.ID} || ${Target.Type.Equal[pet]} && !${Target.DisplayName.Find[familiar]}) /return FALSE
 	/declare _count int local 0
@@ -10196,14 +10395,6 @@ sub vendor_buy( bool _debug, string _itemtoBuy, int _buyAmount)
 
 
 
-
-
-
-
-
-
-
-
 |***
  * note: this is used to cycle the control map and handle the IDs in it. final return will be an unmezzed mob ID, if any
  * use: /call check_control_routine DEBUG
@@ -10211,6 +10402,7 @@ sub vendor_buy( bool _debug, string _itemtoBuy, int _buyAmount)
 sub control_routine(bool _debug)
 	| /varset _debug TRUE
 	DEBUG \atcontrol_routine\ax()
+	FLOW control_routine
 
 	/if (!AUTO) /return FALSE
 	/if (!${madeBuff.Find[swMez].Value}) /return FALSE
@@ -10270,6 +10462,7 @@ sub control_routine(bool _debug)
  ***|
 sub control_area(bool _debug)
 	DEBUG \atcontrol_area\ax()
+	FLOW control_area
 
 	/declare _agroCount int local 0
 	/declare _count int local 0
@@ -10341,6 +10534,7 @@ sub control_area(bool _debug)
  ***|
 sub control_map(bool _debug, string _type)
 	DEBUG \atcontrol_map\ax(\a-w${_type}\ax)
+	FLOW control_map
 
 	/declare _returnCount int local 0
 	GETINPUT control_map
@@ -10414,6 +10608,7 @@ sub control_map(bool _debug, string _type)
  ***|
 sub control_mezae(bool _debug)
 	DEBUG \atcontrol_mezae\ax()
+	FLOW control_mezae
 
 	ISMEDEAD
 	GETINPUT control_mezae NA|NA
@@ -10460,6 +10655,7 @@ sub control_mezae(bool _debug)
  ***|
 sub control_mez(bool _debug, int _tmpID)
 	DEBUG \atcontrol_mez\ax(${_tmpID})
+	FLOW control_mez
 
 	/if (!${_tmpID}) /return FALSE
 
@@ -10535,6 +10731,7 @@ sub control_mez(bool _debug, int _tmpID)
  ***|
 sub set_control_output(bool _debug, string _map, string _outname, string _control)
 	DEBUG \atset_control_output\ax(\a-w${_map}, "${_outname}", ${_control}\ax)
+	FLOW set_control_output
 
 	/declare _out string local
 	/declare _value string local
@@ -10584,6 +10781,7 @@ sub set_control_output(bool _debug, string _map, string _outname, string _contro
  * use: ${set_dnet_group[DEBUG]}
  ***|
 sub set_dnet_group(bool _debug)
+	FLOW set_dnet_group
 
 	/if (${stCurrentCrew.Equal[empty]} || !${Group.Members}) {
 		/return ${maComm.Find[stEntropyGroup_all].Value}
@@ -10600,6 +10798,7 @@ sub set_dnet_group(bool _debug)
  * use: ${set_dnet_group[DEBUG]}
  ***|
 sub check_heal_routines()
+	FLOW check_heal_routines
 
 	| check for any defensives first
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
@@ -10646,14 +10845,27 @@ sub check_heal_routines()
 |***
  * note: checks/corrects a/the a target
  * note: returns FALSE if a target is dead or does not exist, returns TRUE otherwise
- * use: /call target [all|assist|isdead|clear|set] [TARGETID]
- * use: ${target[all|assist|isdead|clear|set, [TARGETID]]}
+ * use: /call target [|assist|isdead|clear|set] [TARGETID]
+ * use: ${target[assist|isdead|clear|set, [TARGETID]]}
  ***|
 sub target(string _type, int _tmpID)
+	FLOW target
+
+	/declare _debug bool local FALSE
 
 	/if (${maDebug.Find[target].Value}) {
-		/declare _debug bool local TRUE
+		/varset _debug TRUE
 		DEBUG \attarget\ax(\a-w${_type}, ${_tmpID}\ax)
+	}
+
+	| check assist (XTarget[1] vs. _tmpID
+	/if (!PULL && AUTO) {
+		/if (${Select[${_type},assist]}) {
+			/if (${Me.XTarget[1].ID} != ${_tmpID}) {
+				/call get_assist_target ${_debug}
+			}
+			/return TRUE
+		}
 	}
 
 	/declare _isdead bool local FALSE
@@ -10661,38 +10873,35 @@ sub target(string _type, int _tmpID)
 	| set a target
 	/if (${Select[${_type},set]}) {
 		/if (!${Bool[${_tmpID}]}) {
+			DEBUG ${sep}\a-y${_type}\ax${sep}${_tmpID}
 			/return TRUE
 		}
 
 		/if (${Spawn[npc corpse ${_tmpID}].ID}) {
+			DEBUG ${sep}\a-y${_type}\ax${sep}corpse
 			/varset _isdead TRUE
 		}
 
 		/if (${Target.ID} == ${_tmpID}) {
+			DEBUG ${sep}\a-y${_type}\ax${sep}good
 			/return TRUE
 		}
 
+		DEBUG ${sep}\a-y${_type}\ax${sep}setting
 		/squelch /target id ${_tmpID}
 		/delay 1s ${Target.ID} == ${_tmpID}
 
 		/if ((${Target.ID} == ${_tmpID}) && !${_isdead}) {
+		DEBUG ${sep}\a-y${_type}\ax${sep}isset
 			/return TRUE
 		}
 
 	}
 
-	| check assist (XTarget[1] vs. _tmpID
-	/if (!PULL && AUTO) {
-		/if (${Select[${_type},all,assist]}) {
-			/if (${Me.XTarget[1].ID} != ${_tmpID}) {
-				/call get_assist_target ${_debug}
-			}
-		}
-	}
-
 	| is the target  ..  dead?
 	| return TRUE if dead otherwise return FALSE
-	/if (${Select[${_type},all,isdead]} || ${_isdead}) {
+	/if (${Select[${_type},isdead]} || ${_isdead}) {
+		DEBUG ${sep}\a-y${_type}\ax${sep}
 
 		/if (!AUTO) {
 			/if (!${Bool[${_tmpID}]} && ${Target.ID}) {
@@ -10707,22 +10916,22 @@ sub target(string _type, int _tmpID)
 
 		| reasons to consider something dead
 		/if (${_tmpID} == 0 || !${Bool[${_tmpID}]}) {
-			DEBUG ${sep}!_tmpID
+			DEBUG ${sep}\a-y${_type}\ax${sep}!_tmpID
 			/varset _isdead TRUE
 		} else /if (!${Target.ID}) {
-			DEBUG ${sep}!target-id
+			DEBUG ${sep}\a-y${_type}\ax${sep}!target-id
 			/varset _isdead TRUE
 		} else /if (${Target.Dead}) {
-			DEBUG ${sep}target-dead
+			DEBUG ${sep}\a-y${_type}\ax${sep}target-dead
 			/varset _isdead TRUE
 		} else /if (${Target.Type.Equal[Corpse]}) {
-			DEBUG ${sep}target-corpse
+			DEBUG ${sep}\a-y${_type}\ax${sep}target-corpse
 			/varset _isdead TRUE
 		} else /if (${Spawn[${_tmpID}].Dead}) {
-			DEBUG ${sep}spawn-dead
+			DEBUG ${sep}\a-y${_type}\ax${sep}spawn-dead
 			/varset _isdead TRUE
 		} else /if (!${Spawn[${_tmpID}].ID}) {
-			DEBUG ${sep}!spawn-id
+			DEBUG ${sep}\a-y${_type}\ax${sep}!spawn-id
 			/varset _isdead TRUE
 		}
 
@@ -10734,7 +10943,7 @@ sub target(string _type, int _tmpID)
 
 	| clear/reset all combat
 	/if (${Select[${_type},clear]} || ${_isdead}) {
-
+		DEBUG ${sep}\a-y${_type}\ax${sep}
 		GETINPUT target_clear NA|NA
 
 		/if (${SubDefined[DPSMeter_Reset]}) {
@@ -10768,10 +10977,8 @@ sub target(string _type, int _tmpID)
 		/if (${Stick.Active}) {
 			/squelch /stick off
 		}
-		/if (AUTO) {
-			/if (${Target.ID}) {
-				/squelch /target clear
-			}
+		/if (${Target.ID}) {
+			/squelch /target clear
 		}
 		/return TRUE
 	}
@@ -10786,6 +10993,7 @@ sub target(string _type, int _tmpID)
  ***|
 sub pull_mob_attraction(bool _debug, int _tmpID, bool _force)
 	DEBUG \atpull_mob_attraction\ax(\a-w${_tmpID}, ${_force}\ax)
+	FLOW pull_mob_attraction
 
 	| /if (!${maChr.Find[swAttraction].Value} && !${_force}) /return FALSE
 	/if (${Spawn[ID ${_tmpID}].Distance} > PULLENV) /return FALSE
@@ -10929,6 +11137,7 @@ sub trigger_alliance(bool _debug, int _tmpID)
  ***|
 sub check_melee_proc(bool _debug)
 	DEBUG \atcheck_melee_proc\ax()
+	FLOW check_melee_proc
 
   /invoke ${set_data_timer[${_debug}, Check_Proc_Bandolier, RESTART]}
 
@@ -10945,7 +11154,7 @@ sub check_melee_proc(bool _debug)
 
 	| if the proc exists anywhere!!, make sure we are back to the swap bandolier and bail
 	/if (${Me.Buff[${_buff}].ID} || ${Me.Song[${_buff}].ID} || ${Target.Buff[${_buff}].ID}) {
-		DEBUG ${sep}no buff found${sep}\a-w${_buff}\ax
+		DEBUG ${sep}buff found${sep}\a-w${_buff}\ax
 		/if (!${Me.Bandolier[${maCC.Find[stSwapBandolier].Value}].Active}) {
 			/invoke ${Me.Bandolier[${maCC.Find[stSwapBandolier].Value}].Activate}
 		}
@@ -10963,12 +11172,4 @@ sub check_melee_proc(bool _debug)
 /return TRUE
 
 
-
-
-
-${Me.Bandolier[avatar].Active}
-${Me.Bandolier[avatar].Activate}
-${FindItem[${Me.Bandolier[avatar].Item[1]}].Base2[1]}
-${maCC.Find[stSwapBandolier].Value}
-${maCC.Find[stProcBandolier].Value}
 

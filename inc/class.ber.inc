@@ -187,10 +187,8 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 	}
 
 	| this hits up to 8 targets and can cause fear.
-	/if (AE#) {
-		/if (${is_ready[${_debug}, "War Cry of the Braxi"]}) {
-			/call voodoo ${_debug} "War Cry of the Braxi" 0 FALSE
-		}
+	/if (${is_ready[${_debug}, "Braxi's Howl"]}) {
+		/call voodoo ${_debug} "Braxi's Howl" 0 FALSE
 	}
 
 	| dumb ass zerker has a dicho and a dicho ##. cant use the name to cast with..
@@ -278,7 +276,10 @@ sub burn_BER(bool _debug, int _tmpID)
 	DEBUG \atburn_BER\ax(\aw${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
+
 
 	CHECKEXIT
 	GETINPUT

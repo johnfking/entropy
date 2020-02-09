@@ -53,6 +53,7 @@ sub set_BST(bool _debug)
  ***|
 sub main_BST(bool _debug)
 	DEBUG \atmain_BST\ax()
+	FLOW main_BST
 
 	/if (AUTO) {
 		/call check_mana_${Me.Class.ShortName}
@@ -66,6 +67,7 @@ sub main_BST(bool _debug)
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
+			FLOW main_BST VALID
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/call check_heal_routines
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
@@ -75,7 +77,6 @@ sub main_BST(bool _debug)
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/if (MELEE) /call do_melee FALSE TARGET
-			| /if (!${target_reset[${_debug}, TARGET, dead]}) /return FALSE
 			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
 			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
@@ -101,11 +102,14 @@ sub main_BST(bool _debug)
  ***|
 sub misc_combat_BST(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_BST\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat_BST
 
 	ISMEDEAD
-	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
-	CHECKEXIT
+	CHECKEXIT misc_combat_BST
 	GETINPUT
 	CHECKTIE
 
@@ -132,7 +136,9 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 		}
 	}
 
-	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stBestial].Value}"]} && !${Me.Song[${maChr.Find[stBestial].Value}].ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stBestial].Value}" 0 FALSE
@@ -142,17 +148,11 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 		/if (${is_ready[${_debug}, "${maChr.Find[stClaws].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stClaws].Value}" ${_tmpID} FALSE
 		}
-	} else /if (AE#) {
-
 	}
-
-	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
 
 	/if (${is_ready[${_debug}, "Enduring Frenzy"]} && !${Target.Buff[Enduring Frenzy].ID}) {
 		/call voodoo ${_debug} "Enduring Frenzy" ${_tmpID} FALSE
 	}
-
-	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stRake].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stRake].Value}" ${_tmpID} FALSE
@@ -162,7 +162,9 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stRending].Value}" ${_tmpID} FALSE
 	}
 
-	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	/if (${Me.Pet.ID}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stGrowl].Value}"]} && !${Me.Song[${maChr.Find[stGrowl].Value}].ID}) {
@@ -180,12 +182,13 @@ sub misc_combat_BST(bool _debug, int _tmpID)
  ***|
 sub check_mana_BST(bool _debug)
 	DEBUG \atcheck_mana_BST\ax()
+	FLOW check_mana_BST
 
 
 	/invoke ${set_data_timer[${_debug}, Check_Para, RESTART]}
 
 	ISMEDEAD
-	CHECKEXIT
+	CHECKEXIT check_mana_BST
 
 	| consumption of Spirits AA
 	/if (${maChr.Find[stPctConsume].Value}) {
@@ -223,7 +226,7 @@ sub check_mana_BST(bool _debug)
 	/while (!${_liC6.IsEnd}) {
 		DEBUG ${sep}${_liC6.Value}${sep}\a-w${Group.Member[${_liC6.Value}].DisplayName}\ax
 		ISMEDEAD
-		CHECKEXIT
+		CHECKEXIT check_mana_BST2
 		/if (${Group.Member[${_liC6.Value}].Class.ShortName.Equal[BRD]}) {
 			/invoke ${_liC6.Advance}
 			/continue
@@ -259,10 +262,11 @@ sub check_mana_BST(bool _debug)
  ***|
 sub check_heal_BST(bool _debug, string _type)
 	DEBUG \atcheck_heal_BST\ax(\a-w${_type}\ax)
+	FLOW check_heal_BST
 
 	CHECKTIE
 	ISMEDEAD
-	CHECKEXIT
+	CHECKEXIT check_heal_BST
 	CHECKREZ
 	CHECKFADE
 
@@ -321,20 +325,21 @@ sub check_heal_BST(bool _debug, string _type)
 
 
 |***
- *	DES: MGB beast Paragon if both AAs are ready
- *	USE: /paragon
- *  NOTE:
+ * note: MGB beast Paragon if both AAs are ready
+ *use: /paragon
  ***|
 #bind cast_AA_paragon /paragon
 sub Bind_cast_AA_paragon(bool _debug)
-	/if (${Select[${Me.Class.ShortName},BST]}) /call cast_AA_paragon
+	/if (${Select[${Me.Class.ShortName},BST]}) {
+		/call cast_AA_paragon
+	}
 /return
 
 
 sub cast_AA_paragon(bool _debug)
 	DEBUG \atcast_AA_paragon\ax()
 	ISMEDEAD
-	CHECKEXIT
+	CHECKEXIT Bind_cast_AA_paragon
 	GETINPUT
 
 	/if (${Me.AltAbilityReady[Mass Group Buff]} && ${Me.AltAbilityReady[Paragon of Spirit]} && !${Me.Song[Paragon of Spirit].ID}) {
@@ -352,17 +357,19 @@ sub cast_AA_paragon(bool _debug)
 
 
 
- |***
+|***
  * note: Beast burn routines
  * use: establish all comp/trigger skills
  ***|
 sub burn_BST(bool _debug, int _tmpID)
 	DEBUG \atburn_BST\ax(\a-w${_tmpID}\ax)
+	FLOW burn_BST
 
 	ISMEDEAD
-	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
-
-	CHECKEXIT
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
+	CHECKEXIT burn_BST
 	GETINPUT
 	CHECKTIE
 
@@ -380,7 +387,9 @@ sub burn_BST(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "Ferociousness" 0 FALSE
 	}
 
-	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	/if (SWARM) {
 		/if (${is_ready[${_debug}, "Attack of the Warders"]}) {
@@ -400,7 +409,9 @@ sub burn_BST(bool _debug, int _tmpID)
 		}
 	}
 
-	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
 
@@ -417,7 +428,9 @@ sub burn_BST(bool _debug, int _tmpID)
 			/call voodoo ${_debug} "BloodLust" 0 FALSE
 		}
 
-		/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
+		/if (${target[isdead, ${_tmpID}]}) {
+			/return FALSE
+		}
 
 		/call cast_AA_spire ${maDebug.Find[spire].Value}
 

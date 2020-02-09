@@ -145,7 +145,10 @@ sub misc_combat_SHM(bool _debug)
 	DEBUG \atmisc_combat_SHM\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
+
 
 	CHECKEXIT
 	GETINPUT
@@ -256,7 +259,10 @@ sub check_heal_SHM(bool _debug, string _type)
 sub cast_surge_heal(bool _debug)
 	DEBUG \atcast_surge_heal\ax()
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
+
 
 	CHECKEXIT
 	ISMEDEAD
@@ -273,7 +279,10 @@ sub cast_surge_heal(bool _debug)
 		/vardata _li lsNukeTC.First.Clone
 		/while (!${_li.IsEnd}) {
 
-			/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return
+			/if (${target[isdead, ${_tmpID}]}) {
+				/return FALSE
+			}
+
 			/if (${Me.PctMana} < 2) /continue
 
 			/if (${is_ready[${_debug}, "${_li.Value}"]}) {
@@ -307,7 +316,10 @@ sub burn_SHM(bool _debug)
 	DEBUG \atburn_SHM\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
+
 
 	CHECKEXIT
 	GETINPUT

@@ -80,7 +80,7 @@ sub main_WIZ(bool _debug)
 			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
 			/if (NUKE) {
 				/if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} ${maDebug.Find[twincast].Value}
-				/call cast_nuke ${maDebug.Find[castnuke].Value} lsNuke${stLine} TARGET
+				/call cast_nuke ${maDebug.Find[nuke].Value} lsNuke${stLine} TARGET
 			}
 			/call misc_combat_${Me.Class.ShortName}
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
@@ -106,7 +106,10 @@ sub misc_combat_WIZ(bool _debug)
 	DEBUG \atmisc_combat_WIZ\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
+
 
 	CHECKEXIT
 	GETINPUT
@@ -193,7 +196,10 @@ sub burn_WIZ(bool _debug)
 	DEBUG \atburn_WIZ\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
+
 
 	CHECKEXIT
 	GETINPUT
@@ -271,14 +277,21 @@ sub force_twincast_WIZ(bool _debug)
 
 	/invoke ${set_data_timer[${_debug}, Force_TC, 6s]}
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
 
-	/if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[Twincast].ID} && ${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stTC].Value}" 0 FALSE
+
+	/if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[Twincast].ID}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stTC].Value}" 0 FALSE
+		}
 		/return
 
-	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[${maChr.Find[stTC].Value}].ID} && !${Me.Buff[Twincast].ID} && ${is_ready[${_debug}, "${maChr.Find[stNukeTC${stLine}].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stNukeTC${stLine}].Value}" TARGET FALSE
+	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[${maChr.Find[stTC].Value}].ID} && !${Me.Buff[Twincast].ID}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stNukeTC${stLine}].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stNukeTC${stLine}].Value}" TARGET FALSE
+		}
 	}
 
 /return TRUE

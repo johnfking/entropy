@@ -151,7 +151,9 @@ sub misc_combat_NEC(bool _debug)
 	DEBUG \atmisc_combat_NEC\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
 
 	CHECKEXIT
 	GETINPUT
@@ -187,7 +189,10 @@ sub burn_NEC(bool _debug)
 	DEBUG \atburn_NEC\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
+
 
 	CHECKEXIT
 	GETINPUT
@@ -245,7 +250,10 @@ sub cast_blood(bool _debug, int _tmpID)
 	/invoke ${set_data_timer[${_debug}, Check_Blood, RESTART]}
 	/if (${Me.Song[Chaotic Power].ID}) /return FALSE
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
+
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stBlood].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stBlood].Value}" ${_tmpID} FALSE

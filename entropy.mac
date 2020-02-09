@@ -59,7 +59,7 @@
 #define HUDPATH "/noparse /ini .\..\MQ2HUD.ini"
 #define SETHUD "/call set_hud_data"
 #define ISTMPIDDEAD	"/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE"
-#define FLOW "/if (${maDebug.Find[flow].Value}) /echo \ay-\ax\amflow\ay-\ax ${dot} T:\a-w${stAssTarID}\ax ${sep}"
+#define FLOW "/if (${maDebug.Find[flow].Value}) /varset flow ${stAssTarID} :: "
 
 
 
@@ -115,13 +115,13 @@ sub main(string _debug, string _param1, string _auto)
 	| build the debugs
 	/call set_debug FALSE
 
-	/if (${Bool[${_debug}]} && ${_debug.NotEqual[forceauto]}) {
+	/if (${Bool[${_debug}]}) {
 		/invoke ${maDebug.Add[${_debug.Lower},TRUE]}
 	}
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A200204.01
+	/call set_data FALSE maEnv build													map outer A200208.01
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -135,6 +135,10 @@ sub main(string _debug, string _param1, string _auto)
  	}
  	/if (${maOver.Find[swOverLOS].Value}) {
  		/invoke ${out[0, "${notice} ${dot} Disabled${sep}\a-wline of sight validation\ax"]}
+ 	}
+ 	/if (${maOver.Find[swOverEnvAuto].Value}) {
+ 		/invoke ${out[0, "${notice} ${dot} Enabled${sep}\a-wenvrironment auto on\ax"]}
+ 		/invoke ${maEnv.Add[swAuto,TRUE]}
  	}
 
 	/if (!${timer_Check_Zone_ID}) {
@@ -173,6 +177,7 @@ sub main(string _debug, string _param1, string _auto)
 
  	| main loop
 	/while (!${maEntropy.Find[swMaintenance].Value}) {
+		FLOW MAIN LOOP
 
 		| housekeeping first!
 		/if (!${timer_Check_Housekeeping}) {
@@ -205,6 +210,11 @@ sub main(string _debug, string _param1, string _auto)
 			| check curing observers
 			/if (!${timer_Check_Observers} && ${swDanNet}) {
 				/if (${maHeal.Find[swHealCure].Value}) /call set_observers ${maDebug.Find[cure].Value} maCure add
+			}
+
+			/if (!${timer_Check_Target}) {
+				/invoke ${target[isdead, TARGET]}
+				/invoke ${set_data_timer[FALSE, Check_Target, RESTART]}
 			}
 
 			| sort /heal adj ##

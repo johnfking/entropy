@@ -172,7 +172,9 @@ sub misc_combat_SHD(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_SHD\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	CHECKEXIT
 	GETINPUT misc_combat_SHD _tmpID|${_tmpID}
@@ -231,7 +233,10 @@ sub get_agro_SHD(bool _debug, int _tmpID)
 	CHECKEXIT
 	GETINPUT get_agro_SHD _tmpID|${_tmpID}
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
+
 	/if (PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 
 	/call cast_challenge FALSE ${_tmpID}
@@ -317,7 +322,7 @@ sub check_skin(bool _debug)
 
 	GETINPUT check_skin NA|NA
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) {
+	/if (${target[isdead, TARGET]}) {
 		/return FALSE
 	}
 
@@ -331,14 +336,16 @@ sub check_skin(bool _debug)
 
 
 |***
- * note: burn it with fire!
+ * note: don't touch me there...
  * use:
  ***|
 sub burn_SHD(bool _debug, int _tmpID)
 	DEBUG \atburn_SHD\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
 
 	CHECKEXIT
 	GETINPUT burn_SHD _tmpID|${_tmpID}

@@ -472,17 +472,17 @@ sub get_ground_item(bool _debug, string _tmpItem)
 		/vardata _item _item.Next
 	}
 
-	/nav locyxz ${_locY} ${_locX} ${_locZ} |dist=18 log=off
+	/nav locyxz ${_locY} ${_locX} ${_locZ} |dist=10 log=off
 	/delay 1s
 
-	/while (${Me.Moving} || ${Ground[${_tmpItem}].Distance3D} <= 19) {
+	/while (${Me.Moving} || ${Ground[${_tmpItem}].Distance3D} <= 11) {
 		DEBUG ${sep}whileloop${sep}\a-wMe.Moving\ax
 
 		/if (${Cursor.ID}) {
 			/call check_cursor ${_debug} CLEAR
 		}
 
-		/if (${Ground[${_tmpItem}].Distance3D} <= 19) {
+		/if (${Ground[${_tmpItem}].Distance3D} <= 11) {
 			DEBUG ${sep}distance${sep}\a-w${Ground[${_tmpItem}].Distance3D}\ax
 			/nav stop |log=off
 			/call Bind_command_grab "${_tmpItem}" ${_debug}

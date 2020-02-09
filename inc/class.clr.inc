@@ -148,14 +148,14 @@ sub main_CLR(bool _debug)
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stRetort lsRetortToon
 		}
 		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
+		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
 			CHECKREZ
 			/call set_combat FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (!${timer_Check_deBuffs}) /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
 			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
@@ -178,7 +178,7 @@ sub main_CLR(bool _debug)
  * use: /call misc_combat_${Me.Class.ShortName}
  ***|
 sub misc_combat_CLR(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_CLR\ax()
+	DEBUG \atmisc_combat_CLR\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
 	/if (!${target[isdead, ${_tmpID}]}) {
@@ -507,7 +507,7 @@ sub do_arbitration(bool _debug)
   }
 
 	/if (${_arbDone}) {
-		/invoke ${out[3, "arbitration done"]}
+		| /invoke ${out[3, "arbitration done"]}
 		/delay 1
 	}
 
@@ -569,8 +569,8 @@ sub Bind_command_issuance(bool _debug)
  * "It's the day we burn this mother fucker to the ground." squeaked Piglet
  * "My favorite day." said Pooh
  ***|
-sub burn_CLR(bool _debug)
-	DEBUG \atburn_CLR\ax()
+sub burn_CLR(bool _debug, int _tmpID)
+	DEBUG \atburn_CLR\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -605,7 +605,7 @@ sub burn_CLR(bool _debug)
 	  | Spire 1:30 min duration 7:30 min reuse
    	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
-	 	| anti agro (pric Silent Casting 1min duration 9 min reuse)
+	 	| anti agro (Silent Casting 1min duration 9 min reuse)
 		/if (!${Me.Buff[Divine Retribution].ID}) {
 			/if (${is_ready[${_debug}, "Silent Casting"]}) {
 				/call voodoo ${_debug} "Silent Casting" 0 FALSE

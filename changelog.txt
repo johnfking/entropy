@@ -11,18 +11,39 @@ on the to do list
 --------------------
 - work on dps adaptation system, ttl
 - find a way to grade debuffs and overwrite if needed
-- finish check dead routines for other classes
 - finish target id passing for all classes to misc_ombat() and burn()
 - find out why the fuck chanter just stops doing shit
 - get remove verb working for /area
 - mage pet weapons?
 - /navto NULL when requestor is not in zone
 - tag entry validation (cause people are making up shit now)
+- i'm gonna have to externalize all the AAs
 --------------------
 
 
 
-
+A200208.01
+- targeting system (should read this)
+  i started the targeting system over.. again. the previous one wasnt mutable enough.
+  and it needs to adapt to changing target types and states on the fly.
+  debugging can be done with `/debug combat target` if you think its being stupid.
+  basically now, if an assist is called, it assists, sets and validates the target all in three connecteded steps.
+  set will set and validate target state, or simply check if the target is dead.
+	all classes have been adjusted to the new system.
+- /override
+  envauto - will force the mac start with /env auto on
+- zerker
+  corrected Braxi's Howl. removed the AE requirement
+- voodoo
+  spell casting has been adjusted to watch for events that prevent casting. like duplications of auras
+- /buff
+  now - timer has been corrected. it shouldnt try to cast 100+ times a second
+- /alto
+  in manual mode, this will now clear the curent target
+- check_AA_fade()
+  added additional checks for playerstate 4 mobs and off (0%)
+- /clickitem
+  the off switch will be obeyed now
 
 
 A200204.01

@@ -112,7 +112,10 @@ sub misc_combat_RNG(bool _debug)
 	DEBUG \atmisc_combat_RNG\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
+
 
 	CHECKEXIT
 	GETINPUT
@@ -239,7 +242,10 @@ sub check_heal_RNG(bool _debug, string _type)
 sub cast_nuke_summer(bool _debug, int _tmpID)
 	DEBUG \atcast_nuke_summer\ax(\a-w${_tmpID}\ax)
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
+
 	ISMEDEAD
 	CHECKEXIT
 	/invoke ${set_data_timer[${_debug}, Summer_Nuke, RESTART]}
@@ -260,7 +266,9 @@ sub burn_RNG(bool _debug, int _tmpID)
 	DEBUG \atburn_RNG\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
+	/if (${target[isdead, TARGET]}) {
+		/return FALSE
+	}
 
 	CHECKEXIT
 	GETINPUT

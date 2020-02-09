@@ -113,7 +113,7 @@ sub misc_combat_MAG(bool _debug)
 	DEBUG \atmisc_combat_MAG\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${target[isdead, TARGET]}) /return FALSE
 
 	CHECKEXIT
 	GETINPUT
@@ -210,7 +210,7 @@ sub burn_MAG(bool _debug)
 	DEBUG \atburn_MAG\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return FALSE
+	/if (${target[isdead, TARGET]}) /return FALSE
 
 	CHECKEXIT
 	GETINPUT
@@ -284,7 +284,7 @@ sub force_twincast_MAG(bool _debug)
 	DEBUG \atforce_twincast_MAG\ax()
 
 	/if (!${maChr.Find[swForceTC].Value} || ${timer_Force_TC}) /return
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return
+	/if (${target[isdead, TARGET]}) /return FALSE
 
 	ISMEDEAD
 	CHECKEXIT

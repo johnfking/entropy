@@ -1837,8 +1837,11 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 		/invoke ${set_switch_env[FALSE, swOverSafeNames, TRUE, ${_verbage}]}
 	} else /if (${_type.Equal[trainspell]}) {
 		/invoke ${set_switch_env[FALSE, swOverTrainSpell, TRUE, ${_verbage}]}
+	} else /if (${_type.Equal[envauto]}) {
+		/invoke ${set_switch_env[FALSE, swOverEnvAuto, TRUE, ${_verbage}]}
 
 	}
+
 
 	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
@@ -1847,6 +1850,7 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 	/invoke ${maControl.Add[loot,swOverLoot]}
 	/invoke ${maControl.Add[safenames,swOverSafeNames]}
 	/invoke ${maControl.Add[trainspell,swOverTrainSpell]}
+	/invoke ${maControl.Add[envauto,swOverEnvAuto]}
 	/invoke ${set_control_output[${_debug}, maOver, override, maControl]}
 
 /return	TRUE
@@ -1975,7 +1979,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 			/declare _licountitem listiterator local
 		  /vardata _licountitem lsCount20.First.Clone
 		  /while (!${_licountitem.IsEnd}) {
-				/if (${maItems.Find[stItem${_licountitem.Value}].Value.NotEqual[FALSE]}) {
+				/if (${Bool[${maItems.Find[stItem${_licountitem.Value}].Value}]}) {
 					/invoke ${out[12, "\awstItem${_licountitem.Value}\ax${sep}${If[${maItems.Find[swItem${_licountitem.Value}].Value},${on},${off}]}${sep}\a-w${maItems.Find[stItem${_licountitem.Value}].Value}\ax"]}
 				}
 		    /invoke ${_licountitem.Advance}
@@ -2825,7 +2829,7 @@ sub Bind_command_alto(string _debug)
 
 	/call set_stop FALSE
 	/invoke ${target[clear]}
-	| /call clear_combat FALSE
+
 
 /return TRUE
 
@@ -3068,7 +3072,6 @@ sub Bind_command_invis(string _type, bool _debug)
 
 	| rangers and druids
 	}	else /if (${Me.AltAbilityReady[Shared Camouflage]} && ${Select[${Me.Class.ShortName},RNG,DRU]}) {
-		/return
 		/delay 15
 		/call voodoo FALSE "Shared Camouflage" 0 FALSE
 	}
@@ -3999,9 +4002,9 @@ sub Bind_command_crew(string _type, bool _debug)
 
 			| drop what they are doing!
 			/dexecute ${cli.Value} /disband
-			/delay 1
+			/delay 1s
 			/dexecute ${cli.Value} /raiddisband
-			/delay
+			/delay 1s
 
 			| are they in the group already?
 			/if (${Group.Member[${cli.Value}].Index}) {
@@ -4018,15 +4021,12 @@ sub Bind_command_crew(string _type, bool _debug)
 
 			| invite the member
 			/invite ${cli.Value}
-			/delay 2
 
 			| execute invite accept command
 			/dexecute ${cli.Value} /invite
-			/delay 1
 
 			| join needed crew channel
 			/dexecute ${cli.Value} /djoin crew${_type}
-			/delay 1
 
 			| set crew marker
 			/dexecute ${cli.Value} /varset stCurrentCrew crew${_type}
@@ -4036,38 +4036,52 @@ sub Bind_command_crew(string _type, bool _debug)
 	}
 
 	| lag control
-	/delay ${lsCrew${_type}.Count}s ${Group.Members} == ${Math.Calc[${lsCrew${_type}.Count} - 1]}
+	/delay 1s
 
 	| dont try to make changes if you're not the boss
-	/if (${Group.Leader.Name.NotEqual[${Me.DisplayName}]}) /goto :notmyresponsibilitybitch
-
-
-	| set group assist
-	/delay 3s ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index}
-	/if (${Bool[${maCrew.Find[stCrew${_type}Assist].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index}) {
-		/grouproles set ${maCrew.Find[stCrew${_type}Assist].Value} 2
+	/if (${Group.Leader.Name.NotEqual[${Me.DisplayName}]}) {
+		/goto :notmyresponsibilitybitch
 	}
 
+	| set group assist
 	| set group looter
-	/delay 3s ${Group.Member[${maCrew.Find[stCrew${_type}Looter].Value}].Index}
+	/delay 1s
 	/if (${Bool[${maCrew.Find[stCrew${_type}Looter].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_type}Looter].Value}].Index}) {
 		/grouproles set ${maCrew.Find[stCrew${_type}Looter].Value} 5
 	}
 
+	/delay 1s
+	/if (${Bool[${maCrew.Find[stCrew${_type}Assist].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index}) {
+		/grouproles set ${maCrew.Find[stCrew${_type}Assist].Value} 2
+	}
+
 	| set group leader
-	/delay 5
+	/delay 1s
+	/echo 	/if (${Bool[${maCrew.Find[stCrew${_type}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_type}Leader].Value}].Index}) {
 	/if (${Bool[${maCrew.Find[stCrew${_type}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_type}Leader].Value}].Index}) {
 		/makeleader ${maCrew.Find[stCrew${_type}Leader].Value}
 	}
 
-	/delay 5
 	:notmyresponsibilitybitch
 	/invoke ${out[12, "\awLeader\ax${sep}\a-w${Group.Leader}\ax ${dot} \awMA\ax${sep}\a-w${Group.MainAssist}\ax ${dot} \awLooter\ax${sep}\a-w${Group.MasterLooter}\ax"]}
 	/invoke ${out[12, "\agCompleted\ax${sep}Crew\aw${_type}\ax"]}
 
 /return TRUE
 
-${Group.Member[airavas].Index}
+
+
+
+
+
+${maCrew.Find[stCrew2Leader].Value}
+
+
+
+
+
+
+
+
 
 |***
  * note: lets you initiate a single advanced pull routine
@@ -4310,8 +4324,6 @@ sub Bind_command_clickitem(string _type, string _verbage, string _verbage2, stri
 	}
 
 /return TRUE
-
-
 
 
 

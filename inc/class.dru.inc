@@ -123,8 +123,9 @@ sub misc_combat_DRU(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_DRU\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
-
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
@@ -290,7 +291,10 @@ sub burn_DRU(bool _debug, int _tmpID)
 	DEBUG \atburn_DRU\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
+
 
 	CHECKEXIT
 	GETINPUT

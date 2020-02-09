@@ -14,6 +14,7 @@
 sub set_debug()
 
   | generate DEBUGS
+  /declare flow string outer FALSE
   /declare lsDebuglist list outer
   /invoke ${lsDebuglist.Append[buff,heal,move,debuff,cast,loot,mode,combat,other,minion,class]}
 
@@ -283,6 +284,7 @@ sub set_initial_environment(bool _debug)
   /invoke ${set_data_timer[FALSE, Check_LoS_Timeout, 10s]}
   /invoke ${set_data_timer[FALSE, Check_Housekeeping, 1m]}
   /invoke ${set_data_timer[FALSE, Check_Home, 1]}
+  /invoke ${set_data_timer[FALSE, Check_Target, 5s]}
 
   | get the stick timer started
   /invoke ${set_timer[${_debug}, timer_check_stick, 1s]}
@@ -1102,6 +1104,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maOver swOverLoot                          FALSE                         "${auxsw} attempt to loot regardless of master looter"
   /call set_data_map FALSE maOver swOverSafeNames                     FALSE                         "${auxsw} ignore safename checks, trust everyone. pm me your account info please"
   /call set_data_map FALSE maOver swOverTrainSpell                    FALSE                         "${auxsw} ignore spell training caps. cast forever"
+  /call set_data_map FALSE maOver swOverEnvAuto		                    FALSE                         "${auxsw} ignore non-persistent auto and start with \a-w/env auto on\ax"
 
 
 |** control: entropy  **|
@@ -1142,7 +1145,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
   | can cast?
   /if (${lsClassCast.Contains[${Me.Class.ShortName}]}) {
-    /call set_data_map FALSE maChr stPctManaRecovery                     0                          "${auxna} % to use whatever manna recovery things entropy can find on you"
+    /call set_data_map FALSE maChr stPctManaRecovery                   0                      	    "${auxna} % to use whatever manna recovery things entropy can find on you"
   }
 
 
@@ -1232,7 +1235,6 @@ sub set_initialize_map_items(bool _debug)
 
 
 
-
 |***
  * note: maps for data that users will not change
  * use: don't fucking use it..
@@ -1263,7 +1265,7 @@ sub set_initialize_static_map(bool _debug)
     /invoke ${_mi.Advance}
   }
 
-/return
+/return TRUE
 
 
 
@@ -1297,7 +1299,7 @@ sub set_alias(bool _debug, string _action)
     }
   }
 
-/return
+/return TRUE
 
 
 
@@ -1327,8 +1329,6 @@ sub set_initialize_hud_variables()
 
   | dev hud variables
   /invoke ${lsHUD.Append[dcombat,dburn,denv,dpull,dsafe,dcaststatus]}
-
-
 
 	/declare _lisihv listiterator local
   /vardata _lisihv lsHUD.First.Clone
@@ -1563,7 +1563,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH dev HL2    						3,3,96,247,152,10,________________________________________________________
 
 	| row 110
-    | HUDPATH dev devCurSub 19,5,110,100,149,237,${Macro.CurSub}
+    HUDPATH dev devflow 				19,5,110,100,149,237,${flow}
     HUDPATH dev BG110    					3,3,110,0,0,0,██████████████████████████████████████████
 
 
@@ -1694,75 +1694,6 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-  /call setDeclare hudwatchspawn                                      string    outer FALSE
-  /call setDeclare watchSpawnCount                                    int       outer FALSE
-
-  /call sql_control FALSE ${chrID} stoponDS                           bool      outer FALSE
-
-
-  /call sql_control FALSE ${chrID} setBufftoWatch                     string    outer FALSE
-
-  /call sql_control FALSE ${chrID} swAlliance                         bool      outer FALSE
-  /call sql_control FALSE ${chrID} setAllianceTrigger                 string    outer FALSE
-  /call sql_control FALSE ${chrID} swForceFadeRest                    bool      outer FALSE
-
-
-  /call sql_control FALSE ${chrID} watchSpawn                         string    outer FALSE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  | General class combat skills
-
-  /call sql_control FALSE ${chrID} bandolierNormal                    string    outer FALSE
-  /call setDeclare bandolierSwap                                      string    outer ${bandolierNormal}
-  /call sql_control FALSE ${chrID} bandolierBash                      string    outer FALSE
-  /call sql_control FALSE ${chrID} bandolierBurn                      string    outer FALSE
-  /call sql_control FALSE ${chrID} bandolierRange                     string    outer FALSE
-
-
-
-
-
-
-
-  | Mode stuffs
-  | Train Spell spells
-  /if (${Bool[${Me.Class.CanCast}]}) {
-    /call sql_control FALSE ${chrID} abjuration                       string    outer FALSE
-    /call sql_control FALSE ${chrID} alteration                       string    outer FALSE
-    /call sql_control FALSE ${chrID} conjuration                      string    outer FALSE
-    /call sql_control FALSE ${chrID} divination                       string    outer FALSE
-    /call sql_control FALSE ${chrID} evocation                        string    outer FALSE
-  }
 
 
 

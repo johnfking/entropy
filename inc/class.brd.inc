@@ -100,7 +100,7 @@ sub main_BRD(bool _debug)
 sub misc_combat_BRD(bool _debug, int _tmpID)
 	ISMEDEAD
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/call clear_combat
 		/call pulse_stop
 		/return
@@ -139,10 +139,10 @@ sub misc_combat_BRD(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "Cacophony"]}) /call voodoo ${_debug} "Cacophony" ${_tmpID} FALSE
 	/if (${Spawn[TARGET].PctHPs} > 30) {
 		/if (${is_ready[${_debug}, "Boastful Bellow"]}) /call voodoo ${_debug} "Boastful Bellow" ${_tmpID} FALSE
-		/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) {
+		/if (${target[isdead, ${_tmpID}]}) {
 			/call pulse_stop
 			/call clear_combat
-			/return
+			/return FALSE
 		}
 	}
 
@@ -184,9 +184,10 @@ sub cast_servant_swarm(bool _debug, int _tmpID)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
+		/call pulse_stop
 		/call clear_combat
-		/return
+		/return FALSE
 	}
 
 	/if (AUTO) {
@@ -219,12 +220,6 @@ sub cast_servant_swarm(bool _debug, int _tmpID)
 sub pulse_line(bool _debug)
 	DEBUG \atpulse_line\ax()
 
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) {
-		/call clear_combat
-		/call pulse_stop
-		/return
-	}
-
 	/declare _skip bool local FALSE
 
 	SETHUD "pulse"
@@ -233,10 +228,10 @@ sub pulse_line(bool _debug)
 	/vardata _lipl lsLine${stLine}.First.Clone
 	/while (!${_lipl.IsEnd}) {
 
-		/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) {
-			/call clear_combat
+		/if (${target[isdead, TARGET]}) {
 			/call pulse_stop
-			/return
+			/call clear_combat
+			/return FALSE
 		}
 
 		/call control_routine FALSE
@@ -319,11 +314,11 @@ sub burn_BRD(bool _debug)
 	DEBUG \atburn_BRD\ax()
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) {
-		/call clear_combat
-		/call pulse_stop
-		/return
-	}
+		/if (${target[isdead, ${_tmpID}]}) {
+			/call pulse_stop
+			/call clear_combat
+			/return FALSE
+		}
 
 	CHECKEXIT
 	GETINPUT

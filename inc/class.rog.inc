@@ -81,7 +81,6 @@ sub main_ROG(bool _debug)
 		/if (VALID) {
 			/call do_sneak_attack ${maDebug.Find[class].Value} TARGET
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
-			| /if (MELEE && !${timer_check_stick}) /call stick_to_target ${maDebug.Find[stick].Value} TARGET
 			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
@@ -107,9 +106,11 @@ sub main_ROG(bool _debug)
 sub do_sneak_attack(bool _debug, int _tmpID)
 	DEBUG \atdo_sneak_attack\ax(\a-w${_tmpID}\ax)
 
-	/if (!${is_ready[${_debug}, "${maChr.Find[stSneakAttack].Value}"]}) /return FALSE
+	/if (!${is_ready[${_debug}, "${maChr.Find[stSneakAttack].Value}"]}) {
+		/return FALSE
+	}
+
 	CHECKEXIT
-	/call target_reset ${_debug} ${_tmpID} all
 
 	/if (${Target.ID} && ${Me.Invis} && ${Me.Sneaking}) {
 		/call voodoo ${_debug} "${maChr.Find[stSneakAttack].Value}" ${_tmpID} FALSE
@@ -128,7 +129,9 @@ sub misc_combat_ROG(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	CHECKEXIT
 	GETINPUT
@@ -153,7 +156,9 @@ sub misc_combat_ROG(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stTwistedShank].Value}" ${_tmpID} FALSE
 	}
 
-	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stShadowHunter].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stShadowHunter].Value}" ${_tmpID} FALSE
@@ -165,7 +170,9 @@ sub misc_combat_ROG(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stBleed].Value}" ${_tmpID} FALSE
 	}
 
-	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stPlay].Value}"]}) {
 		/if (!${lsZoneNamed.Contains[${Spawn[${_tmpID}].DisplayName}]} || !${is_ready[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) {
@@ -181,7 +188,9 @@ sub misc_combat_ROG(bool _debug, int _tmpID)
 		}
 	}
 
-	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	/if (${Target.ID} && ${is_ready[${_debug}, "${maChr.Find[stPhantom].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stPhantom].Value}" ${_tmpID} FALSE
@@ -196,7 +205,9 @@ sub misc_combat_ROG(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stBladePoison].Value}" 0 FALSE
 	}
 
-	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	/if (!AGRO) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stAggro].Value}"]}) {
@@ -289,7 +300,9 @@ sub burn_ROG(bool _debug, int _tmpID)
 	DEBUG \atburn_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	CHECKEXIT
 	GETINPUT
@@ -307,7 +320,9 @@ sub burn_ROG(bool _debug, int _tmpID)
 		/if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stPlay].Value}]} && ${Me.CombatAbilityReady[${Spell[${maChr.Find[stFrenzy].Value}].RankName}]}) /goto :loopmakestop
 	}
 
-	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" 0 FALSE
@@ -333,7 +348,9 @@ sub burn_ROG(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stMark].Value}" ${_tmpID} FALSE
 	}
 
-	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
@@ -356,7 +373,9 @@ sub burn_ROG(bool _debug, int _tmpID)
   	/call voodoo ${_debug} "${maChr.Find[stRazor].Value}" 0 FALSE
   }
 
-  /if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
   /if (${is_ready[${_debug}, "${maChr.Find[stAspBleeder].Value}"]} && !${Me.ActiveDisc.ID}) {
   	/call voodoo ${_debug} "${maChr.Find[stAspBleeder].Value}" 0 FALSE

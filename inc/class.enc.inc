@@ -137,7 +137,7 @@ sub misc_combat_ENC(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
+	/invoke ${target[assist]}
 
 	CHECKEXIT
 	GETINPUT
@@ -162,7 +162,7 @@ sub misc_combat_ENC(bool _debug, int _tmpID)
 		}
 	}
 
-	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) /return FALSE
 
 	| swarm pet
 	/if (SWARM && AGRO) {
@@ -212,7 +212,7 @@ sub check_crystals(bool _debug)
 		| /call check_cursor ${_debug} CLEAR
 	}
 
-	/if (!${target_reset[ ${_debug}, TARGET, all]}) /return FALSE
+	/invoke ${target[assist]}
 
 /return TRUE
 
@@ -246,7 +246,7 @@ sub check_gather_ENC(bool _debug)
 		/call voodoo ${_debug} "Gather Mana" 0 FALSE
 	}
 
-	/if (!${target_reset[ ${_debug}, TARGET, all]}) /return FALSE
+	/invoke ${target[assist]}
 
 /return TRUE
 
@@ -296,7 +296,9 @@ sub burn_ENC(bool _debug, int _tmpID)
 	DEBUG \atburn_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	CHECKEXIT
 	GETINPUT
@@ -314,7 +316,7 @@ sub burn_ENC(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "Mental Contortion" ${_tmpID} FALSE
 	}
 
-	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) /return FALSE
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
@@ -327,7 +329,7 @@ sub burn_ENC(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "Calculated Insanity" 0 FALSE
 	}
 
-	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) /return FALSE
 
 	/if (${is_ready[${_debug}, "Silent Casting"]}) {
 		/call voodoo ${_debug} "Silent Casting" 0 FALSE
@@ -343,7 +345,7 @@ sub burn_ENC(bool _debug, int _tmpID)
 	| Group DD Bonus
 	/if (${is_ready[${_debug}, "Chromatic Haze"]}) /call voodoo ${_debug} "Chromatic Haze" 0 FALSE
 
-	/if (!${target_reset[ ${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) /return FALSE
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
 
