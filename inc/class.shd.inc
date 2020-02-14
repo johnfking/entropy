@@ -198,7 +198,7 @@ sub misc_combat_SHD(bool _debug, int _tmpID)
 
 	| get me sum...
 	/if (AGRO) {
-		/call get_agro_${Me.Class.ShortName} ${_tmpID}
+		/call get_agro_${Me.Class.ShortName} ${_debug} ${_tmpID}
 	}
 
 	| swarm pets
@@ -269,7 +269,7 @@ sub get_agro_SHD(bool _debug, int _tmpID)
 			/vardata li lsAEHate.First.Clone
 			/while (!${_ligas.IsEnd}) {
 				/if (${is_ready[${_debug}, "${_ligas.Value}"]}) {
-					/call voodoo ${_debug} "${_ligas.Value}" ${_tmpID} FALSE
+					/call voodoo ${_debug} "${_ligas.Value}" 0 FALSE
 				}
 				/invoke ${_ligas.Advance}
 			}
@@ -278,7 +278,7 @@ sub get_agro_SHD(bool _debug, int _tmpID)
 		| AE lifetap
 		/if (${mobAECount} >= AE# && !${SpawnCount[pc enchanter radius SAFEENV*2]}) {
 			/if (${is_ready[${_debug}, "${maChr.Find[stAELifeTap].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stAELifeTap].Value}" ${_tmpID} FALSE
+				/call voodoo ${_debug} "${maChr.Find[stAELifeTap].Value}" 0 FALSE
 			}
 		}
 	}
@@ -292,7 +292,7 @@ sub get_agro_SHD(bool _debug, int _tmpID)
 	| named fake hate
 	/if (${lsZoneNamed.Contains[${Target.DisplayName}]}) {
 		/if (${Me.PctAggro} < 90 || ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
-			/if (${is_ready[${_debug}, "Mindless Hatred"]} && ${Target.Level} <= 110) {
+			/if (${is_ready[${_debug}, "Mindless Hatred"]} && ${Target.Level} <= ${Me.Level}) {
 				/call voodoo ${_debug} "Mindless Hatred" ${_tmpID} FALSE
 			}
 		}
@@ -322,10 +322,6 @@ sub check_skin(bool _debug)
 
 	GETINPUT check_skin NA|NA
 
-	/if (${target[isdead, TARGET]}) {
-		/return FALSE
-	}
-
 	/if (!${Me.Buff[${maChr.Find[stSkin].Value}].ID} && ${is_ready[${_debug}, "${maChr.Find[stSkin].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stSkin].Value}" 0 FALSE
 		/invoke ${set_data_timer[FALSE, Check_Skin, RESTART]}
@@ -343,7 +339,7 @@ sub burn_SHD(bool _debug, int _tmpID)
 	DEBUG \atburn_SHD\ax()
 
 	ISMEDEAD
-	/if (${target[isdead, TARGET]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 

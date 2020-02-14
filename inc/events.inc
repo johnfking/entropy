@@ -16,12 +16,13 @@
  * use:
  ***|
 sub Event_SPEAKLINE(string _target, string _verbage)
-	/if (!${maEntropy.Find[events].Value}) /return FALSE
+	/if (!${maEntropy.Find[events].Value}) {
+		/return FALSE
+	}
 
 	/if (${Spawn[${_target}].Distance} > 50) /echo I need to Move Closer To ${_target}
 
 	/invoke ${target[clear]}
-	| /call clear_combat
 	/stick off
 
 	/target ${_target}
@@ -44,7 +45,7 @@ sub Event_SPEAKLINE(string _target, string _verbage)
 
 #event AP_IN_PROGRESS								"You are stunned!"
 #event AP_IN_PROGRESS								"You have been summoned!"
-sub Event_AP_IN_PROGRESS(string line)
+sub Event_AP_IN_PROGRESS(string _line)
 	/if (!AUTO) /return
 	/if (HOME && PULL) {
 		/if (${Me.Stunned}) {
@@ -66,28 +67,33 @@ sub Event_AP_IN_PROGRESS(string line)
 #event CAST_BEGIN                  "You begin casting#*#"
 #event CAST_BEGIN                  "You begin singing#*#"
 #event CAST_BEGIN                  "Your #1# begins to glow.#*#"
-sub Event_CAST_BEGIN(string line)
+sub Event_CAST_BEGIN(string _line, bool _debug)
+	EDEBUG SUCCESS
 	/invoke ${maData.Add[stCastReturn,SUCCESS]}
 /return
 
 #event CAST_OVERWRITTEN						 "Your#*#has been overwritten#*#"
-sub Event_CAST_OVERWRITTEN(string line)
+sub Event_CAST_OVERWRITTEN(string _line, bool _debug)
+	EDEBUG OVERWRITTEN
 	/invoke ${maData.Add[stCastReturn,OVERWRITTEN]}
 /return
 
 #event CAST_CANNOTSEE              "You cannot see your target#*#"
-sub Event_CAST_CANNOTSEE(string line)
+sub Event_CAST_CANNOTSEE(string _line, bool _debug)
+	EDEBUG CANNOTSEE
 	/invoke ${maData.Add[stCastReturn,CANNOTSEE]}
 /return
 
 #event CAST_COLLAPSE               "Your gate is too unstable, and collapses#*#"
-sub Event_CAST_COLLAPSE(string line)
+sub Event_CAST_COLLAPSE(string _line, bool _debug)
+	EDEBUG COLLAPSE
 	/invoke ${maData.Add[stCastReturn,COLLAPSE]}
 /return
 
 #event CAST_COMPONENTS             "You are missing some required components#*#"
 #event CAST_COMPONENTS             "Your ability to use this item has been disabled because you do not have at least a gold membership#*#"
-sub Event_CAST_COMPONENTS(string line)
+sub Event_CAST_COMPONENTS(string _line, bool _debug)
+	EDEBUG COMPONENT
 	/invoke ${maData.Add[stCastReturn,COMPONENT]}
 /return
 
@@ -96,23 +102,27 @@ sub Event_CAST_COMPONENTS(string line)
 #event CAST_DISTRACTED             "You can't cast spells while invulnerable#*#"
 #event CAST_DISTRACTED             "You *CANNOT* cast spells, you have been silenced#*#"
 #event CAST_DISTRACTED             "You do not have sufficient focus to maintain that ability."
-sub Event_CAST_DISTRACTED(string line)
+sub Event_CAST_DISTRACTED(string _line, bool _debug)
+	EDEBUG DISTRACTED
 	/invoke ${maData.Add[stCastReturn,DISTRACTED]}
 /return
 
 #event CAST_FDFAIL                 "#1# has fallen to the ground.#*#"
-sub Event_CAST_FDFAIL(string line, string _name)
+sub Event_CAST_FDFAIL(string _line, string _name, bool _debug)
+	EDEBUG FDFAIL
 	/invoke ${maData.Add[stCastReturn,FDFAIL]}
 /return
 
 #event CAST_FIZZLE                 "Your spell fizzles#*#"
 #event CAST_FIZZLE                 "You miss a note, bringing your song to a close#*#"
-sub Event_CAST_FIZZLE(string line)
+sub Event_CAST_FIZZLE(string _line, bool _debug)
+	EDEBUG FIZZLE
 	/invoke ${maData.Add[stCastReturn,FIZZLE]}
 /return
 
 #event CAST_BLOCKED								"Your #*# did not take hold on #*#. (Blocked by #*#.)"
-sub Event_CAST_IMMUNE(string line)
+sub Event_CAST_IMMUNE(string _line, bool _debug)
+	EDEBUG BLOCKED
 	/invoke ${maData.Add[stCastReturn,BLOCKED]}
 /return
 
@@ -123,13 +133,15 @@ sub Event_CAST_IMMUNE(string line)
 #event CAST_IMMUNE                 "Your target is immune to the stun portion of this effect#*#"
 #event CAST_IMMUNE                 "Your target cannot be mesmerized#*#"
 #event CAST_IMMUNE                 "Your target looks unaffected#*#"
-sub Event_CAST_IMMUNE(string line)
+sub Event_CAST_IMMUNE(string _line, bool _debug)
+	EDEBUG IMMUNE
 	/invoke ${maData.Add[stCastReturn,IMMUNE]}
 /return
 
 #event CAST_INTERRUPTED            "Your spell is interrupted#*#"
 #event CAST_INTERRUPTED            "Your casting has been interrupted#*#"
-sub Event_CAST_INTERRUPTED(string line)
+sub Event_CAST_INTERRUPTED(string _line, bool _debug)
+	EDEBUG INTERRUPTED
 	/invoke ${maData.Add[stCastReturn,INTERRUPTED]}
 /return
 
@@ -137,64 +149,75 @@ sub Event_CAST_INTERRUPTED(string line)
 #event CAST_NOMOUNT                "You need to be in a more open area to summon a mount#*#"
 #event CAST_NOMOUNT                "You can not summon a mount here#*#"
 #event CAST_NOMOUNT                "You must have both the Horse Models and your current Luclin Character Model enabled to summon a mount#*#"
-sub Event_CAST_NOMOUNT(string line)
+sub Event_CAST_NOMOUNT(string _line, bool _debug)
+	EDEBUG NOMOUNT
 	/invoke ${maData.Add[stCastReturn,NOMOUNT]}
 /return
 
 #event CAST_NOTARGET               "You must first select a target for this spell#*#"
 #event CAST_NOTARGET               "This spell only works on#*#"
 #event CAST_NOTARGET               "You must first target a group member#*#"
-sub Event_CAST_NOTARGET(string line)
+sub Event_CAST_NOTARGET(string _line, bool _debug)
+	EDEBUG NOTARGET
 	/invoke ${maData.Add[stCastReturn,NOTARGET]}
 /return
 
 #event CAST_NOTREADY               "Spell recast time not yet met#*#"
-sub Event_CAST_NOTREADY
+sub Event_CAST_NOTREADY(string _line, bool _debug)
+	EDEBUG NOTREADY
 	/invoke ${maData.Add[stCastReturn,NOTREADY]}
 /return
 
 #event CAST_OUTDOORS               "This spell does not work here#*#"
 #event CAST_OUTDOORS               "You can only cast this spell in the outdoors#*#"
-sub Event_CAST_OUTDOORS(string line)
+sub Event_CAST_OUTDOORS(string _line, bool _debug)
+	EDEBUG NOTOUTDOORS
 	/invoke ${maData.Add[stCastReturn,NOTOUTDOORS]}
 /return
 
 #event CAST_OUTOFMANA              "Insufficient Mana to cast this spell#*#"
-sub Event_CAST_OUTOFMANA(string line)
+sub Event_CAST_OUTOFMANA(string _line, bool _debug)
+	EDEBUG OUTOFMANA
 	/invoke ${maData.Add[stCastReturn,OUTOFMANA]}
 /return
 
 #event CAST_OUTOFRANGE             "Your target is out of range, get closer#*#"
-sub Event_CAST_OUTOFRANGE(string line)
+sub Event_CAST_OUTOFRANGE(string _line, bool _debug)
+	EDEBUG OUTOFRANGE
 	/invoke ${maData.Add[stCastReturn,OUTOFRANGE]}
 /return
 
 #event CAST_RECOVER                "You haven't recovered yet#*#"
 #event CAST_RECOVER                "Spell recovery time not yet met#*#"
-sub Event_CAST_RECOVER(string line)
+sub Event_CAST_RECOVER(string _line, bool _debug)
+	EDEBUG RECOVER
 	/invoke ${maData.Add[stCastReturn,RECOVER]}
 /return
 
 #event CAST_RESISTED               "Your target resisted the #1# spell#*#"
 #event CAST_RESISTED               "#*# resisted your #1#!"
-sub Event_CAST_RESISTED(string line, string _name)
+sub Event_CAST_RESISTED(string _line, string _name, bool _debug)
+	EDEBUG RESISTED
 	/invoke ${maData.Add[stCastReturn,RESISTED]}
 /return
 
 #event CAST_RESISTEDYOU            "You resist the #1# spell#*#"
 #event CAST_RESISTEDYOU            "You resist #*#"
-sub Event_CAST_RESISTEDYOU(string line)
+sub Event_CAST_RESISTEDYOU(string _line, bool _debug)
+	EDEBUG RESISTEDYOU
 	/invoke ${maData.Add[stCastReturn,RESISTEDYOU]}
 /return
 
 #event CAST_STANDING               "You must be standing to cast a spell#*#"
-sub Event_CAST_STANDING(string line)
+sub Event_CAST_STANDING(string _line, bool _debug)
+	EDEBUG RESTART
 	/invoke ${maData.Add[stCastReturn,RESTART]}
 /return
 
 #event CAST_STUNNED                "You can't cast spells while stunned#*#"
 #event CAST_STUNNED                "You are stunned#*#"
-sub Event_CAST_STUNNED(string line)
+sub Event_CAST_STUNNED(string _line, bool _debug)
+	EDEBUG STUNNED
 	/invoke ${maData.Add[stCastReturn,STUNNED]}
 /return
 
@@ -202,7 +225,8 @@ sub Event_CAST_STUNNED(string line)
 #event CAST_TAKEHOLD               "Your spell would not have taken hold#*#"
 #event CAST_TAKEHOLD               "Your spell is too powerfull for your intended target#*#"
 | #event CAST_TAKEHOLD               "This pet may not be made invisible#*#"
-sub Event_CAST_TAKEHOLD(string line)
+sub Event_CAST_TAKEHOLD(string _line, bool _debug)
+	EDEBUG TAKEHOLD
 	/invoke ${maData.Add[stCastReturn,TAKEHOLD]}
 /return
 
@@ -212,7 +236,7 @@ sub Event_CAST_TAKEHOLD(string line)
  * use: correct range distance when too close
  ***|
 | #event COMBAT_DISTANCE									"Your Target is too close to use a ranged weapon#*#"
-sub Event_COMBAT_DISTANCE(string line)
+sub Event_COMBAT_DISTANCE(string _line)
 	/doevents flush COMBAT_DISTANCE
 	/if (PULL || AGRO) {
 		/return
@@ -221,13 +245,13 @@ sub Event_COMBAT_DISTANCE(string line)
 /return
 
 
-
 |***
  * use: catch when a zone happens
  ***|
 #event Zone "You have entered #*#"
 | #event Zone "LOADING, PLEASE WAIT..."
 sub Event_Zone(string _line)
+	EDEBUG zoning
 	/call check_mode FALSE RESET
 	/call check_zone_id FALSE FALSE
 /return FALSE
@@ -237,11 +261,10 @@ sub Event_Zone(string _line)
  * use: end macro on a camp
  ***|
 #event Camp "It will take you about 30 seconds to prepare your camp."
-sub Event_Camp(string line)
+sub Event_Camp(string _line)
+	EDEBUG camping
 	/endmacro
 /return
-
-
 
 
 |***
@@ -249,7 +272,7 @@ sub Event_Camp(string line)
  * use: EVENTS
  ***|
 #event Join "#1# invites you to join a #2#.#*#"
-sub Event_Join(string line, string _sender, string _groupraid)
+sub Event_Join(string _line, string _sender, string _groupraid)
 	| DEBUG \atEvent_Join\ax(\a-w${_sender}, ${_groupraid}\ax)
 
 	/if (!${is_lsSafeNames[FALSE, ${_sender}]}) /return FALSE
@@ -287,52 +310,33 @@ sub Event_Join(string line, string _sender, string _groupraid)
 
 
 
-
-|**
-stTTLType
-stTTLStartTime
-stTTLEndTime
-stTTLDuration
-stTTLID
-
-
-#Event TTLstart "#2# is #1# by YOUR #4# for #3# points of non-melee damage.#*#"
-#Event TTLstart "#2# has taken #3# damage from your #5#.#*#"
-#Event TTLstart "You #1# #2# for #3# points of damage.#*#"
-#Event TTLstart "You #1# #2# for #3# points of #4# damage by #5#.#*#"
-#Event TTLstart "You try to #*#, but miss"
-#Event TTLstart "|${Me.Pet.CleanName}| #1# #2# for #3# points of damage.#*#"
-#Event TTLstart "|${Me.Pet.CleanName}| #1# #2# for #3# points of #4# damage by #5#.#*#"
-#Event TTLstart "|${Me}|`s pet #1# #2# for #3# points of damage.#*#"
-#Event TTLstart "|${Me}|`s pet #1# #2# for #3# points of #4# damage by #5#.#*#"
-
-sub BEvent_TTLstart (string _line)
-	/invoke ${maTTL.Add[stTTLStartTime,${Time.SecondsSinceMidnight}]}
-	/invoke ${maTTL.Add[stTTLID,TARGET]}
-	/invoke ${maTTL.Add[stTTLType,${Spawn[TARGET].DisplayName}]}
-
-
-
-
-
-
+|***
+ * note: time to live events
+ * use: /ttl
+ ***|
+#event TTLstart "#2# is #1# by YOUR #4# for #3# points of non-melee damage.#*#"
+#event TTLstart "#2# has taken #3# damage from your #5#.#*#"
+#event TTLstart "You #1# #2# for #3# points of damage.#*#"
+#event TTLstart "You #1# #2# for #3# points of #4# damage by #5#.#*#"
+| #event TTLstart "You try to #*#, but miss"
+#event TTLstart "|${Me.Pet.DisplayName}| #1# #2# for #3# points of damage.#*#"
+#event TTLstart "|${Me.Pet.DisplayName}| #1# #2# for #3# points of #4# damage by #5#.#*#"
+#event TTLstart "|${Me}|`s pet #1# #2# for #3# points of damage.#*#"
+#event TTLstart "|${Me}|`s pet #1# #2# for #3# points of #4# damage by #5#.#*#"
+sub Event_TTLstart(string Line, string YHType, string _mob, int YHDamage, string YHSpellDamageType, string YHSpellName)
+	/if (${maTTL.Find[swTTL].Value}) {
+		/call control_ttl ${maDebug.Find[ttl].Value} start "${_mob.Lower}"
+	}
 /return
 
 
-
-
-
-
-
-
-
-
-
-#Event TTLend "You have slain #1#!"
-#Event TTLend "#1# has been slain by #*#"
-
-
-**|
+#event TTLend "You have slain #1#!"
+#event TTLend "#1# has been slain by #*#"
+sub Event_TTLend(string _line, string _mob)
+	/if (${maTTL.Find[swTTL].Value}) {
+		/call control_ttl ${maDebug.Find[ttl].Value} end "${_mob.Lower}"
+	}
+/return
 
 
 
@@ -451,7 +455,7 @@ sub Event_16stein6(string line)
 sub Event_hatchet1
   /if (!${maEntropy.Find[events].Value}) /return FALSE
   /echo I NEED TO RUN AWAY
-  /declare running 						int 		local
+  /declare running 						it 		local
   /declare distanceNow 				float 	local
   /declare distanceBefore 		float 	local
   /declare distanceModifier 	int 		local

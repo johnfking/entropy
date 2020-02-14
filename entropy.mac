@@ -19,8 +19,8 @@
 #engine parser 2
 
 #define DEBUG "/if (${_debug}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
-| #define D3BUG "/echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
 #define SDEBUG "/echo \ay+[\ax\aw${Time.Second}\ax\at::\ax\aw${Macro.CurLine}\ax\ay]\ax(\a-t${Macro.RunTime}\ax) \ay--\ax "
+#define EDEBUG "/if (${maDebug.Find[event].Value}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax${sep}\a-t----\ax${submenu}"
 #define OUT "/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,\at.\ax]}"
 #define GETINPUT "/call get_input"
 #define ISMEDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}"
@@ -59,7 +59,7 @@
 #define HUDPATH "/noparse /ini .\..\MQ2HUD.ini"
 #define SETHUD "/call set_hud_data"
 #define ISTMPIDDEAD	"/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE"
-#define FLOW "/if (${maDebug.Find[flow].Value}) /varset flow ${stAssTarID} :: "
+#define FLOW "/if (${maDebug.Find[flow].Value}) /varset flow ${stAssTarID} ::"
 
 
 
@@ -67,7 +67,7 @@
 #include exspes\inc\common.inc
 #include exspes\inc\control.inc
 #include exspes\inc\events.inc
-#include exspes\inc\dpsmeter.inc
+| #include exspes\inc\dpsmeter.inc
 #include exspes\inc\mode.inc
 #include exspes\data\custom.inc
 #include exspes\inc\class.ber.inc
@@ -121,7 +121,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A200208.02
+	/call set_data FALSE maEnv build													map outer A200213.01
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -246,7 +246,7 @@ sub main(string _debug, string _param1, string _auto)
 
 			| fireworks
 			/if (${maEnv.Find[swAAFireworks].Value} && !${timer_Waste_Fireworks}) {
-				/call cast_AA_fireworks ${maDebug[fireworks].Value}
+				/call cast_AA_fireworks ${maDebug.Find[fireworks].Value}
 			}
 
 			| some sweeet lovin....

@@ -1284,6 +1284,12 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	} else /if (${_type.Equal[autolist]}) {
 		/invoke ${set_switch_env[FALSE, swAutoList, TRUE, ${_verbage}]}
 
+	| count of cast loop attempts
+	} else /if (${_type.Equal[castloops]}) {
+		/invoke ${set_switch_env[FALSE, stCastLoop, TRUE, ${_verbage}]}
+
+
+
 	} else /if (${_type.Equal[hud]}) {
 
 		| adjust hud clock
@@ -1324,6 +1330,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[autolist,swAutoList]}
 	/invoke ${maControl.Add[buffrefresh,stBuffRefresh]}
+	/invoke ${maControl.Add[castloops,stCastLoop]}
 	/invoke ${maControl.Add[dpsmeter,swDPSMeter]}
 	/invoke ${maControl.Add[events,swEventsInc]}
 	/invoke ${maControl.Add[hook,swHookSub]}
@@ -1628,8 +1635,17 @@ sub Bind_deez(string _type, string _verbage)
     	/echo LOS on: ${lis.Value} = ${Spawn[${lis.Value}].LineOfSight}
     	/invoke ${lis.Advance}
     }
+	}
 
 
+
+	/if (${_type.Equal[nametest]}) {
+
+		/invoke ${maTTL.Add["bob was here",5]}
+		/invoke ${maTTL.Add[bob,5]}
+
+		/echo ${maTTL.Find["bob was here"].Value}
+		/echo ${maTTL.Find[bob].Value}
 
 	}
 
@@ -2062,7 +2078,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 	| set
 	} else /if (${_variable.Left[2].Equal[se]} && ${${_variable}.Count}) {
 		/invoke ${out[12, "\aw${_variable}\ax ${dot} \a-g${${_variable}.Count}\ax ${If[${${_variable}} > 1 || ${${_variable}} == 0,items,item]}"]}
-		/vardata si se${_variable}.First.Clone
+		/vardata si ${_variable}.First.Clone
 		/while (!${si.IsEnd}) {
 			/invoke ${out[12, "${si.Value}"]}
 			/invoke ${si.Advance}
@@ -2396,21 +2412,15 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[proc]}) {
 		/if (${_verbage.Equal[use]}) {
 			/invoke ${set_switch_env[${_debug}, swProc, TRUE, ${_silent}]}
-		} else /if (${_verbage.Equal[proc]}) {
+		} else /if (${_verbage.Equal[bandolier]}) {
 			/invoke ${do_raw_edit[${_debug}, SILENT, stProcBandolier, "${_silent}"]}
-		} else /if (${_verbage.Equal[swap]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stSwapBandolier, "${_silent}"]}
 		}
 		/invoke ${maControl.Clear}
 		/invoke ${maControl.Add[use,swProc]}
-		/invoke ${maControl.Add[proc,stProcBandolier|br]}
-		/invoke ${maControl.Add[swap,stSwapBandolier|br]}
+		/invoke ${maControl.Add[bandolier,stProcBandolier|br]}
 
 		/invoke ${set_control_output[${_debug}, maCC, "cc proc", maControl]}
 		/return TRUE
-
-
-
 
 	| set combat mode
 	} else /if (${_type.Equal[mode]}) {
@@ -2702,7 +2712,7 @@ sub Bind_command_aux(string _type, bool _debug)
 	/declare _lsout list local
 	/invoke ${_lsout.Append[alto,bandolier,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter]}
 	/invoke ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,mode,minion,navto,off,on,over,repeat,see,splash,take,tag,tc,tie]}
-	/invoke ${_lsout.Append[coh,farm]}
+	/invoke ${_lsout.Append[coh,farm,ttl]}
 
 	/if (${_lsout.Contains[${_type}]}) {
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY help_var
@@ -4073,19 +4083,6 @@ sub Bind_command_crew(string _type, bool _debug)
 
 
 
-
-
-
-${maCrew.Find[stCrew2Leader].Value}
-
-
-
-
-
-
-
-
-
 |***
  * note: lets you initiate a single advanced pull routine
  * use: /pull.. i mean wtf do you want?
@@ -4329,4 +4326,52 @@ sub Bind_command_clickitem(string _type, string _verbage, string _verbage2, stri
 /return TRUE
 
 
+
+|***
+ * note: control for /ttl
+ * use:
+ ***|
+#bind control_TTL /ttl
+sub Bind_control_TTL(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atBind_control_TTL\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
+
+
+	| output control map
+	/if (${_type.Equal[see]}) {
+		/call Bind_command_see maTTL
+		/return TRUE
+	} else /if (${_type.Equal[aux]}) {
+		/call Bind_command_aux ttl
+		/return TRUE
+
+
+
+	| set the switch to use
+	} else /if (${_type.Equal[logic]}) {
+		/invoke ${set_switch_env[${_debug}, swTTL, TRUE, ${_verbage}]}
+
+	| clear the TTL statiestics
+	} else /if (${_type.Equal[clear]}) {
+		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT swTTL FROM environment_character
+
+		/invoke ${maTTL.Clear}
+
+
+		/invoke ${maTTL.Add[swTTL,${sqlite.Result[dummy 1 swTTL]}]}
+		/invoke ${maTTL.Add[stTTLTimeStart,0]}
+
+	}
+
+
+	/if (${_silent.Equal[SILENT]}) /return
+	/invoke ${maControl.Clear}
+	/invoke ${maControl.Add[logic,swTTL]}
+	/invoke ${set_control_output[${_debug}, maTTL, ttl, maControl]}
+
+
+
+
+
+
+/return
 

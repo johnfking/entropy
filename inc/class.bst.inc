@@ -128,9 +128,9 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 		}
 
 	} else /if (!AGRO) {
-		/if (${is_ready[${_debug}, "Chameleon Strike"]}) {
-			/call voodoo ${_debug} "Chameleon Strike" ${_tmpID} FALSE
-		}
+		| /if (${is_ready[${_debug}, "Chameleon Strike"]}) {
+		| 	/call voodoo ${_debug} "Chameleon Strike" ${_tmpID} FALSE
+		| }
 		/if (${is_ready[${_debug}, "Roar of Thunder"]}) {
 			/call voodoo ${_debug} "Roar of Thunder" ${_tmpID} FALSE
 		}

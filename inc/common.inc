@@ -1574,16 +1574,6 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		/return FALSE
 	}
 
-
-	| redirect the current cast to a dichotomic if GoM procs
-	| -- this has been moved to spells
-	| /if (${_tmpID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]} && ${Spawn[${Target.ID}].Type.NotEqual[pc]}) {
-		| nuke 1
-	| 	/if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) {
-	| 		/varset _verbage ${maChr.Find[stDichotomic].Value}
-	| 	}
-	| }
-
 	| are we moving? and not a bard?
 	/if (!${Select[${Me.Class.ShortName},BRD]}) {
 		/if (${Me.Moving}) /return FALSE
@@ -1657,21 +1647,28 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 	}
 
 
-	/declare _castLoop int local 1
-	/invoke ${maData.Find[stCastReturn].Value} NOTREADY
+	/declare _castLoop int local ${maEntropy.Find[stCastLoop].Value}
+
+	| /invoke ${maData.Find[stCastReturn].Value} NOTREADY
 
 	| alt abilities
 	/if (${_type.Equal[ALT]}) {
 		DEBUG ${sep}alt${sep}${_verbage}
 
-		/if (${Me.CurrentMana} < ${Spell[${_verbage}].Mana}) /return FALSE
+		/if (${Me.CurrentMana} < ${Spell[${_verbage}].Mana}) {
+			/return FALSE
+		}
 
 		| /if (${Spell[${_verbage}].SpellType.Equal[Beneficial]} && ${_tmpID} == 0) {
 		| 	/if (!${Spell[${AltAbility[${_verbage}].Spell.ID}].Stacks}) /return FALSE
 		| }
 
-		/if (${Me.Buff[${_verbage}].ID}) /return FALSE
-		/if (${Me.Song[${_verbage}].ID}) /return FALSE
+		/if (${Me.Buff[${_verbage}].ID}) {
+			/return FALSE
+		}
+		/if (${Me.Song[${_verbage}].ID}) {
+			/return FALSE
+		}
 
 		/delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
 
@@ -1867,25 +1864,16 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 				/invoke ${out[3, "Cast${sep}${sp}${_verbage}\ax ${dot} ${tar}${Spawn[id ${_tmpID}].DisplayName}\ax"]}
 			}
 
-			/while (${_castLoop}) {
+			/while (${_castLoop} > 0) {
 
 				/if (${Me.Invis}) {
+					/varset _castLoop 0
 					/invoke ${maData.Add[stCastReturn,DISTRACTED]}
 					/break
 				}
 
 				/cast ${Me.Gem[${_verbage}]}
-				/delay 1
 
- 				GETINPUT
-
-				| cant cast
-				/if (${Select[${maData.Find[stCastReturn].Value},DISTRACTED]}) {
-					/if (${Select[${Me.Class.ShortName},BRD]}) {
-						/call pulse_stop
-					}
-					/break
-				}
 
 				| set delays for casting. GTFO out of this as fast as possible
 				/delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
@@ -1894,16 +1882,26 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 				/while (${Me.Casting.ID} || ${Window[CastingWindow].Open} || ${Me.SpellInCooldown}) {
 					/delay 3
 				}
+				/doevents
 
-				| good
-				/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,BLOCKED]}) {
+				| cant cast
+				/if (${Select[${maData.Find[stCastReturn].Value},DISTRACTED]}) {
+					/varset _castLoop 0
 					/if (${Select[${Me.Class.ShortName},BRD]}) {
 						/call pulse_stop
 					}
 					/break
-				}
+
+				| good
+				} else /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,BLOCKED]}) {
+					/varset _castLoop 0
+					/if (${Select[${Me.Class.ShortName},BRD]}) {
+						/call pulse_stop
+					}
+					/break
+
 				| spell is not ready
-				/if (${Select[${maData.Find[stCastReturn].Value},NOTREADY]}) {
+				} else /if (${Select[${maData.Find[stCastReturn].Value},NOTREADY]}) {
 					/varcalc _castLoop ${_castLoop}-1
 					/delay 2
 				}
@@ -4398,7 +4396,6 @@ sub get_key_map(bool _debug, string _key, bool _validate)
  ***|
 sub get_key_DBLOC(bool _debug, string _key)
 	DEBUG\atget_key_DBLOC\ax(\a-w${_key}\ax)
-	FLOW get_key_DBLOC
 
 	/declare _mikey mapiterator local
 	/vardata _mikey maDBTables.First.Clone
@@ -6853,6 +6850,7 @@ sub cast_dot(bool _debug, string _line, int _tmpID)
 	DEBUG \atcast_dot\ax(\a-w${_line}, ${_tmpID}\ax)
 	FLOW cast_dot
 
+
 	/declare _lidot listiterator local
 	/vardata _lidot ${_line}.First.Clone
 	/while (!${_lidot.IsEnd}) {
@@ -6865,6 +6863,22 @@ sub cast_dot(bool _debug, string _line, int _tmpID)
 
 		/if (${Me.PctMana} < 2) {
 			/return FALSE
+		}
+
+		| TTL evaluations
+		/if (${maTTL.Find[swTTL].Value}) {
+			/if (${maTTL.Contains[${Spawn[${_tmpID}].DisplayName}]}) {
+				| check overall durations of the average kill +2 tics over the spell duration time
+				/if (${Spell[${Spell[${_lidot.Value}].RankName}].Duration} > ${Math.Calc[${maTTL.Find[${Spawn[${_tmpID}].DisplayName}].Value.Arg[2,|]} + (${maTTL.Find[${Spawn[${_tmpID}].DisplayName}].Value.Arg[2,|]}*.5)]}) {
+					/invoke ${_lidot.Advance}
+					/continue
+				}
+				| if mob is less then 50% hp and spell duration is > 1/2 your average kill time
+				/if (${Spawn[${_tmpID}].PctHPs} < 50 && ${Spell[${Spell[${_lidot.Value}].RankName}].Duration} > ${Math.Calc[${maTTL.Find[${Spawn[${_tmpID}].DisplayName}].Value.Arg[2,|]} / 2]}) {
+					/invoke ${_lidot.Advance}
+					/continue
+				}
+			}
 		}
 
 		/if (!${is_ready[${_debug}, "${_lidot.Value}"]}) {
@@ -11023,50 +11037,6 @@ sub pull_mob_attraction(bool _debug, int _tmpID, bool _force)
 
 
 
-
-
-
-
-sub control_TTL(bool _debug, string _verbage)
-	DEBUG \atcontrol_TTL\ax(\a-w${_verbage}\ax)
-
-
-
-	/if (${_verbage.Equal[start]}) {
-
-		/invoke ${maTTL.Add[stTTLStartTime,${Time.SecondsSinceMidnight}]}
-		/invoke ${maTTL.Add[stTTLID,TARGET]}
-		/invoke ${maTTL.Add[stTTLType,${Spawn[TARGET].DisplayName}]}
-
-
-		/return
-	}
-
-
-
-
-
-
-
-
-
-
-
-/return TRUE
-
-
-
-/invoke ${maTTL.Add[stTTLType,${Me.DisplayName}]}
-
-
-
-
-
-
-
-
-
-
 |***
  * note: cast or trigger alliance on target
  * use: /call trigger_alliance TARGETID
@@ -11141,7 +11111,7 @@ sub trigger_alliance(bool _debug, int _tmpID)
  * note: swap to a bandolier for a proc
  * use: /cc proc
  ***|
-sub check_melee_proc(bool _debug)
+sub check_melee_proc_1(bool _debug)
 	DEBUG \atcheck_melee_proc\ax()
 	FLOW check_melee_proc
 
@@ -11179,3 +11149,137 @@ sub check_melee_proc(bool _debug)
 
 
 
+
+
+
+
+|***
+ * note: swap to a bandolier for a proc
+ * use: /cc proc
+ ***|
+sub check_melee_proc(bool _debug)
+	DEBUG \atcheck_melee_proc\ax()
+	FLOW check_melee_proc
+
+  /invoke ${set_data_timer[${_debug}, Check_Proc_Bandolier, RESTART]}
+
+	| make sure the settings we need are there
+	| if there is no prov bandolier set. notify and turn the use back to false
+	| let the user sort the issues and re-enable
+	/if (!${Bool[${maCC.Find[stProcBandolier].Value}]}) {
+		OUT go set /cc proc [\a-wproc\ax] settings
+	  /invoke ${set_data_timer[${_debug}, Check_Proc_Bandolier, 10s]}
+		/invoke ${set_switch_env[${_debug}, swProc, TRUE, FALSE]}
+		/return FALSE
+	}
+
+	| set the buff we need to look for
+	/declare _buff string local ${FindItem[${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Item[1]}].Spell}
+
+
+
+	| if the proc exists anywhere!!, make sure we are back to the swap bandolier and bail
+	/if ((${Me.Buff[${_buff}].ID} || ${Me.Song[${_buff}].ID} || ${Target.Buff[${_buff}].ID}) && ${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Active}) {
+		DEBUG ${sep}buff found${sep}\a-w${_buff}\ax
+
+		| primary
+		/if (${Bool[${maData.Find[stMainhand].Value}]}) {
+			/call Bind_command_swap "${maData.Find[stMainhand].Value}" 13 ${_debug}
+		}
+
+		| secondary
+		/if (${Bool[${maData.Find[stOffhand].Value}]}) {
+			/call Bind_command_swap "${maData.Find[stOffhand].Value}" 14 ${_debug}
+		}
+
+		| ranged
+		/if (${Bool[${maData.Find[stRanged].Value}]}) {
+			/call Bind_command_swap "${maData.Find[stRanged].Value}" 11 ${_debug}
+		}
+
+		| ammo
+		/if (${Bool[${maData.Find[stAmmo].Value}]}) {
+			/call Bind_command_swap "${maData.Find[stAmmo].Value}" 22 ${_debug}
+		}
+
+		/return TRUE
+	}
+
+	| if the proc doesn't exist anywhere
+	| switch the bandolier and check again on next timer.
+	/if (!${Me.Buff[${_buff}].ID} && !${Me.Song[${_buff}].ID} && !${Target.Buff[${_buff}].ID}) {
+		/if (!${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Active}) {
+			/invoke ${maData.Add[stMainhand,${Me.Inventory[mainhand].Name}]}
+			/invoke ${maData.Add[stOffhand,${Me.Inventory[offhand].Name}]}
+			/invoke ${maData.Add[stRanged,${Me.Inventory[ranged].Name}]}
+			/invoke ${maData.Add[stAmmo,${Me.Inventory[ammo].Name}]}
+			/invoke ${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Activate}
+		}
+	}
+
+/return TRUE
+
+
+
+
+sub control_ttl(bool _debug, string _verbage, string _mob)
+	DEBUG \atcontrol_ttl\ax(\a-w${_verbage}, "${_mob}"\ax)
+
+
+	/if ((!${Target.ID} || ${Target.Dead}) && ${_verbage.NotEqual[end]}) {
+		/doevents flush TTLstart
+		/return TRUE
+	}
+
+	| start the things for the things that need things
+	/if (${_verbage.Equal[start]}) {
+		/if (${maTTL.Find[stTTLTimeStart].Value} > 0) {
+			DEBUG ${sep}TTL timer${sep}\a-wbreaking\ax
+			/return TRUE
+		}
+		| set the initial timer
+		/invoke ${maTTL.Add[stTTLTimeStart,${Time.SecondsSinceMidnight}]}
+
+
+		| sort out the mob count
+		/if (${maTTL.Contains[${_mob}]}) {
+			/declare _mobcount int local ${Math.Calc[${maTTL.Find[${_mob}].Value.Arg[1,|]} + 1]}
+
+			/if (${_mobcount} > 0) {
+				/declare _lasttime int local ${maTTL.Find[${_mob}].Value.Arg[2,|]}
+			} else {
+				/declare _lasttime int local 0
+			}
+
+			/invoke ${maTTL.Add[${_mob},${_mobcount}|${_lasttime}]}
+		} else {
+			/declare _mobcount int local 1
+			/invoke ${maTTL.Add[${_mob},${_mobcount}|1]}
+		}
+		| /echo ${_mob},${_mobcount}
+		/return TRUE
+
+	| set the things to the things for all of the things that the things need
+	} else /if (${_verbage.Equal[end]}) {
+		| time from the last kill
+		/declare _lasttime int local ${maTTL.Find[${_mob}].Value.Arg[2,|]}
+		DEBUG ${sep}_lasttime${sep}\a-w${_lasttime}\ax :: ${maTTL.Find[${_mob}].Value.Arg[2,|]}
+		| time from, this kill
+		/declare _killtime int local ${Math.Calc[${Time.SecondsSinceMidnight}-${maTTL.Find[stTTLTimeStart].Value}].Int}
+		DEBUG ${sep}_killtime${sep}\a-w${_killtime}\ax
+		| get mob count
+		/declare _mobcount int local ${maTTL.Find[${_mob}].Value.Arg[1,|]}
+
+		| put all the shit back together
+		/if (${_mobcount} > 1) {
+			/invoke ${maTTL.Add[${_mob},${_mobcount}|${Math.Calc[(${_lasttime} + ${_killtime}) / 2].Int}]}
+		} else {
+			/invoke ${maTTL.Add[${_mob},${_mobcount}|${_killtime}]}
+		}
+
+		| reset the running time
+		/invoke ${maTTL.Add[stTTLTimeStart,0]}
+		/return TRUE
+	}
+
+/return

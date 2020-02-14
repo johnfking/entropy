@@ -43,9 +43,9 @@ sub set_debug()
 	| mode
   /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill]}
   | combat
-  /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc]}
+  /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl]}
 	| other
-  /invoke ${lsDebugother.Append[build,init,edit,rest,rez,spire,glyph,fireworks,manarecover,fade,observe,house,ttl,flow]}
+  /invoke ${lsDebugother.Append[build,init,edit,rest,rez,spire,glyph,fireworks,manarecover,fade,observe,house,flow,event]}
   | class specific debugs
   /if (${Select[${Me.Class.ShortName},BER]}) {
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
@@ -143,20 +143,16 @@ sub set_initialize(bool _debug)
   /declare maPREGEN map outer
 
   | TTL stuff
-  /declare maTTL set outer
-  /call set_data FALSE maTTL stTTLType																map outer 1
-  /call set_data FALSE maTTL stTTLStartTime														map outer 1
-  /call set_data FALSE maTTL stTTLEndTime															map outer 1
-  /call set_data FALSE maTTL stTTLDuration														map outer 1
-  /call set_data FALSE maTTL stTTLID																	map outer 1
+  /declare maTTL map outer
+  /call set_data FALSE maTTL stTTLTimeStart														map outer 0
 
 
-  | list of all maps used with persistant data
+  | list of all maps used with usable data
   /declare lsMaps list outer
   /invoke ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maItems,maBuffs,maBuff,maBurn]}
   /invoke ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
   /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maRezControl,maWatchspawn]}
-  /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery]}
+  /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL]}
 
   | set all output shortcuts
   /call set_data FALSE FALSE num                                      string outer "\a-t"
@@ -1119,6 +1115,11 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map FALSE maEntropy stBuffRefresh                    0                             "${auxnum} time in seconds to refrsh a buff before it fades. 0=wait till it fades"
   /call set_data_map FALSE maEntropy swAutoInvManual                  FALSE                         "${auxsw} obey autoinventory fast list even in manual mode"
   /call set_data_map FALSE maEntropy swBuildSetRemember								FALSE                         "${auxsw} remember and refresh a set on macro boot"
+  /call set_data_map FALSE maEntropy stCastLoop												1			                   			"${auxna} number of castloop attempts, event based"
+
+|** control: TTL  **|
+  /call set_data_map FALSE maTTL swTTL				                        FALSE                         "${auxsw} use ttl logic"
+
 
   | GoM list
   /call set_data_list FALSE maChr lsGoM                               EMPTY                         "${auxli} things to use on a gift of mana aa proc"
@@ -1368,43 +1369,44 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 **|
 
-
-
 	| row 0
 
-    HUDPATH entropy note0   19,134,0,0,0,0,"${stHUDNotice}"
+    HUDPATH entropy IVU1   	3,134,0,0,255,0,${If[${Me.SPA[28]}||${Me.SPA[315]},IVU,]}
+    HUDPATH entropy IVU2   	3,134,0,255,0,0,${If[${Me.SPA[28]}||${Me.SPA[315]},,IVU]}
+    HUDPATH entropy INV1   	3,153,0,0,255,0,${If[${Me.SPA[12]}||${Me.SPA[314]},IV,]}
+    HUDPATH entropy INV2   	3,153,0,255,0,0,${If[${Me.SPA[12]}||${Me.SPA[314]},,IV]}
 
     HUDPATH entropy BG0     3,131,0,0,0,0,██████████████████████████
 
     | conbat controls
     | HUDPATH entropy cc1     3,133,14,100,149,237,cc
-    HUDPATH entropy ccA1    19,134,14,255,255,0,"${If[${h_auto},A,]}"
-    HUDPATH entropy ccA2    19,134,9,25,25,25,"${If[${h_auto},,_]}"
-    HUDPATH entropy ccEnv1  19,146,14,140,140,140,"${h_env}"
+    HUDPATH entropy ccA1    19,134,14,255,255,0,${If[${h_auto},A,]}
+    HUDPATH entropy ccA2    19,134,9,25,25,25,${If[${h_auto},,_]}
+    HUDPATH entropy ccEnv1  19,146,14,140,140,140,${h_env}
 
     | pulling
-    HUDPATH entropy ccPM1   19,170,14,0,255,0,"${If[${h_pull},${h_pullmode},]}"
-    HUDPATH entropy ccPM2   19,170,14,255,0,0,"${If[${h_pull},,${h_pullmode}]}"
-    HUDPATH entropy ccPR1   19,200,14,255,255,255,"${If[${h_pullarea},${h_pullarea},]}"
-    HUDPATH entropy ccPR2   19,200,9,25,25,25,"${If[${h_pullarea},,___]}"
+    HUDPATH entropy ccPM1   19,170,14,0,255,0,${If[${h_pull},${h_pullmode},]}
+    HUDPATH entropy ccPM2   19,170,14,255,0,0,${If[${h_pull},,${h_pullmode}]}
+    HUDPATH entropy ccPR1   19,200,14,255,255,255,${If[${h_pullarea},${h_pullarea},]}
+    HUDPATH entropy ccPR2   19,200,9,25,25,25,${If[${h_pullarea},,___]}
 
     | agro
-    HUDPATH entropy ccAg1   19,225,14,255,255,255,"${If[${h_agro},A,]}"
-    HUDPATH entropy ccAg2   19,225,9,25,25,25,"${If[${h_agro},,_]}"
+    HUDPATH entropy ccAg1   19,225,14,255,255,255,${If[${h_agro},A,]}
+    HUDPATH entropy ccAg2   19,225,9,25,25,25,${If[${h_agro},,_]}
 
     | conbat modes
-    HUDPATH entropy ccM1    19,255,14,255,255,255,"${If[${h_melee},M,]}"
-    HUDPATH entropy ccM2    19,255,9,25,25,25,"${If[${h_melee},,_]}"
-    HUDPATH entropy ccR1    19,264,14,255,255,255,"${If[${h_range},R,]}"
-    HUDPATH entropy ccR2    19,264,9,25,25,25,"${If[${h_range},,_]}"
-    HUDPATH entropy ccN1    19,273,14,255,255,255,"${If[${h_nuke},N,]}"
-    HUDPATH entropy ccN2    19,273,9,25,25,25,"${If[${h_nuke},,_]}"
-    HUDPATH entropy ccD1    19,282,14,255,255,255,"${If[${h_dot},D,]}"
-    HUDPATH entropy ccD2    19,282,9,25,25,25,"${If[${h_dot},,_]}"
-    HUDPATH entropy ccH1    19,291,14,255,255,255,"${If[${h_heal},H,]}"
-    HUDPATH entropy ccH2    19,291,9,25,25,25,"${If[${h_heal},,_]}"
-    HUDPATH entropy ccC1    19,300,14,255,255,255,"${If[${h_control},C,]}"
-    HUDPATH entropy ccC2    19,300,9,25,25,25,"${If[${h_control},,_]}"
+    HUDPATH entropy ccM1    19,255,14,255,255,255,${If[${h_melee},M,]}
+    HUDPATH entropy ccM2    19,255,9,25,25,25,${If[${h_melee},,_]}
+    HUDPATH entropy ccR1    19,264,14,255,255,255,${If[${h_range},R,]}
+    HUDPATH entropy ccR2    19,264,9,25,25,25,${If[${h_range},,_]}
+    HUDPATH entropy ccN1    19,273,14,255,255,255,${If[${h_nuke},N,]}
+    HUDPATH entropy ccN2    19,273,9,25,25,25,${If[${h_nuke},,_]}
+    HUDPATH entropy ccD1    19,282,14,255,255,255,${If[${h_dot},D,]}
+    HUDPATH entropy ccD2    19,282,9,25,25,25,${If[${h_dot},,_]}
+    HUDPATH entropy ccH1    19,291,14,255,255,255,${If[${h_heal},H,]}
+    HUDPATH entropy ccH2    19,291,9,25,25,25,${If[${h_heal},,_]}
+    HUDPATH entropy ccC1    19,300,14,255,255,255,${If[${h_control},C,]}
+    HUDPATH entropy ccC2    19,300,9,25,25,25,${If[${h_control},,_]}
 
 
 	| row 13
@@ -1415,30 +1417,30 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
     | build mode
     HUDPATH entropy build1  3,5,26,100,149,237,build
-    HUDPATH entropy build2  19,40,26,140,140,140,"${h_build}"
+    HUDPATH entropy build2  19,40,26,140,140,140,${h_build}
 
     | healing
-    HUDPATH entropy h2      19,133,26,255,255,255,"${h_healmode}"
-    HUDPATH entropy hS1     19,174,26,255,255,255,"${If[${h_self},S,]}"
-    HUDPATH entropy hS2     19,174,21,25,25,25,"${If[${h_self},,_]}"
-    HUDPATH entropy hG1     19,183,26,255,255,255,"${If[${h_group},G,]}"
-    HUDPATH entropy hG2     19,183,21,25,25,25,"${If[${h_group},,_]}"
-    HUDPATH entropy hX1     19,192,26,255,255,255,"${If[${h_xt},X,]}"
-    HUDPATH entropy hX2     19,192,21,25,25,25,"${If[${h_xt},,_]}"
-    HUDPATH entropy hP1     19,201,26,255,255,255,"${If[${h_pet},P,]}"
-    HUDPATH entropy hP2     19,201,21,25,25,25,"${If[${h_pet},,_]}"
-    HUDPATH entropy hC1     19,210,26,255,255,255,"${If[${h_cure},C,]}"
-    HUDPATH entropy hC2     19,210,21,25,25,25,"${If[${h_cure},,_]}"
-   	HUDPATH entropy hT1     19,219,26,255,255,255,"${If[${h_tot},T,]}"
-    HUDPATH entropy hT2     19,219,21,25,25,25,"${If[${h_tot},,_]}"
-    HUDPATH entropy ho1     19,228,26,255,255,255,"${If[${h_override},${h_override},]}"
-    HUDPATH entropy ho2     19,228,21,25,25,25,"${If[${h_override},,__]}"
+    HUDPATH entropy h2      19,133,26,255,255,255,${h_healmode}
+    HUDPATH entropy hS1     19,174,26,255,255,255,${If[${h_self},S,]}
+    HUDPATH entropy hS2     19,174,21,25,25,25,${If[${h_self},,_]}
+    HUDPATH entropy hG1     19,183,26,255,255,255,${If[${h_group},G,]}
+    HUDPATH entropy hG2     19,183,21,25,25,25,${If[${h_group},,_]}
+    HUDPATH entropy hX1     19,192,26,255,255,255,${If[${h_xt},X,]}
+    HUDPATH entropy hX2     19,192,21,25,25,25,${If[${h_xt},,_]}
+    HUDPATH entropy hP1     19,201,26,255,255,255,${If[${h_pet},P,]}
+    HUDPATH entropy hP2     19,201,21,25,25,25,${If[${h_pet},,_]}
+    HUDPATH entropy hC1     19,210,26,255,255,255,${If[${h_cure},C,]}
+    HUDPATH entropy hC2     19,210,21,25,25,25,${If[${h_cure},,_]}
+   	HUDPATH entropy hT1     19,219,26,255,255,255,${If[${h_tot},T,]}
+    HUDPATH entropy hT2     19,219,21,25,25,25,${If[${h_tot},,_]}
+    HUDPATH entropy ho1     19,228,26,255,255,255,${If[${h_override},${h_override},]}
+    HUDPATH entropy ho2     19,228,21,25,25,25,${If[${h_override},,__]}
 
     | tie
-    HUDPATH entropy tie1    19,255,26,100,149,237,"${h_tiemode}"
-    HUDPATH entropy tie2    19,280,26,0,255,0,"${If[${Bool[${h_tietoon}]},${If[${Bool[${Spawn[${h_tietoon}]}]},${h_tietoon},]},]}"
-    HUDPATH entropy tie3    19,280,26,255,0,0,"${If[${Bool[${h_tietoon}]},${If[!${Bool[${Spawn[${h_tietoon}]}]},${If[${Bool[${h_tietoon}]},${h_tietoon},]},]},]}"
-    HUDPATH entropy tie4    19,280,22,25,25,25,"${If[${Bool[${h_tietoon}]},,____]}"
+    HUDPATH entropy tie1    19,255,26,100,149,237,${h_tiemode}
+    HUDPATH entropy tie2    19,280,26,0,255,0,${If[${Bool[${h_tietoon}]},${If[${Bool[${Spawn[${h_tietoon}]}]},${h_tietoon},]},]}
+    HUDPATH entropy tie3    19,280,26,255,0,0,${If[${Bool[${h_tietoon}]},${If[!${Bool[${Spawn[${h_tietoon}]}]},${If[${Bool[${h_tietoon}]},${h_tietoon},]},]},]}
+    HUDPATH entropy tie4    19,280,22,25,25,25,${If[${Bool[${h_tietoon}]},,____]}
 
     HUDPATH entropy BG26    3,3,26,0,0,0,██████████████████████████████████████████
 
@@ -1448,37 +1450,37 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH entropy mode2   19,40,39,255,255,255,"${h_mode}"
 
 	| buffing
-    HUDPATH entropy b1      19,133,39,0,255,0,"${If[${h_bmaster},buff,]}"
-    HUDPATH entropy b2      19,133,39,255,0,0,"${If[${h_bmaster},,buff]}"
-    HUDPATH entropy bS1     19,157,39,255,255,255,"${If[${h_bself},S,]}"
-    HUDPATH entropy bS2     19,157,34,25,25,25,"${If[${h_bself},,_]}"
-    HUDPATH entropy bC1     19,166,39,255,255,255,"${If[${h_bcrew},C,]}"
-    HUDPATH entropy bC2     19,166,34,25,25,25,"${If[${h_bcrew},,_]}"
-    HUDPATH entropy bR1     19,175,39,255,255,255,"${If[${h_braid},R,]}"
-    HUDPATH entropy bR2     19,175,34,25,25,25,"${If[${h_braid},,_]}"
-    HUDPATH entropy bB1     19,184,39,255,255,255,"${If[${h_bbeg},B,]}"
-    HUDPATH entropy bB2     19,184,34,25,25,25,"${If[${h_bbeg},,_]}"
-    HUDPATH entropy bT1     19,193,39,255,255,255,"${If[${h_btemp},T,]}"
-    HUDPATH entropy bT2     19,193,34,25,25,25,"${If[${h_btemp},,_]}"
-    HUDPATH entropy bU1     19,202,39,255,255,255,"${If[${h_bunity},U,]}"
-    HUDPATH entropy bU2     19,202,34,25,25,25,"${If[${h_bunity},,_]}"
-    HUDPATH entropy bA1     19,211,39,255,255,255,"${If[${h_baura},A,]}"
-    HUDPATH entropy bA2     19,211,34,25,25,25,"${If[${h_baura},,_]}"
-    HUDPATH entropy bN1     19,220,39,255,255,255,"${If[${h_bnow},N,]}"
-    HUDPATH entropy bN2     19,220,34,25,25,25,"${If[${h_bnow},,_]}"
-    HUDPATH entropy bP1     19,229,39,255,255,255,"${If[${h_bpet},P,]}"
-    HUDPATH entropy bP2     19,229,34,25,25,25,"${If[${h_bpet},,_]}"
+    HUDPATH entropy b1      19,133,39,0,255,0,${If[${h_bmaster},buff,]}
+    HUDPATH entropy b2      19,133,39,255,0,0,${If[${h_bmaster},,buff]}
+    HUDPATH entropy bS1     19,157,39,255,255,255,${If[${h_bself},S,]}
+    HUDPATH entropy bS2     19,157,34,25,25,25,${If[${h_bself},,_]}
+    HUDPATH entropy bC1     19,166,39,255,255,255,${If[${h_bcrew},C,]}
+    HUDPATH entropy bC2     19,166,34,25,25,25,${If[${h_bcrew},,_]}
+    HUDPATH entropy bR1     19,175,39,255,255,255,${If[${h_braid},R,]}
+    HUDPATH entropy bR2     19,175,34,25,25,25,${If[${h_braid},,_]}
+    HUDPATH entropy bB1     19,184,39,255,255,255,${If[${h_bbeg},B,]}
+    HUDPATH entropy bB2     19,184,34,25,25,25,${If[${h_bbeg},,_]}
+    HUDPATH entropy bT1     19,193,39,255,255,255,${If[${h_btemp},T,]}
+    HUDPATH entropy bT2     19,193,34,25,25,25,${If[${h_btemp},,_]}
+    HUDPATH entropy bU1     19,202,39,255,255,255,${If[${h_bunity},U,]}
+    HUDPATH entropy bU2     19,202,34,25,25,25,${If[${h_bunity},,_]}
+    HUDPATH entropy bA1     19,211,39,255,255,255,${If[${h_baura},A,]}
+    HUDPATH entropy bA2     19,211,34,25,25,25,${If[${h_baura},,_]}
+    HUDPATH entropy bN1     19,220,39,255,255,255,${If[${h_bnow},N,]}
+    HUDPATH entropy bN2     19,220,34,25,25,25,${If[${h_bnow},,_]}
+    HUDPATH entropy bP1     19,229,39,255,255,255,${If[${h_bpet},P,]}
+    HUDPATH entropy bP2     19,229,34,25,25,25,${If[${h_bpet},,_]}
 
 
     | burn
-    HUDPATH entropy burn1   19,255,39,0,255,0,"${If[${h_buauto},burn,]}"
-    HUDPATH entropy burn2   19,255,39,255,0,0,"${If[${h_buauto},,burn]}"
-    HUDPATH entropy burn4   19,280,39,255,255,255,"${If[${h_bupct},${h_bupct},]}"
-    HUDPATH entropy burn5   19,280,34,25,25,25,"${If[${h_bupct},,__]}"
-    HUDPATH entropy burn6   19,295,39,255,255,255,"${If[${h_bucount},${h_bucount},]}"
-    HUDPATH entropy burn7   19,295,34,25,25,25,"${If[${h_bucount},,__]}"
-    HUDPATH entropy burn8   19,310,39,255,255,255,"${If[${h_buraid},R,]}"
-    HUDPATH entropy burn9   19,310,34,25,25,25,"${If[${h_buraid},,_]}"
+    HUDPATH entropy burn1   19,255,39,0,255,0,${If[${h_buauto},burn,]}
+    HUDPATH entropy burn2   19,255,39,255,0,0,${If[${h_buauto},,burn]}
+    HUDPATH entropy burn4   19,280,39,255,255,255,${If[${h_bupct},${h_bupct},]}
+    HUDPATH entropy burn5   19,280,34,25,25,25,${If[${h_bupct},,__]}
+    HUDPATH entropy burn6   19,295,39,255,255,255,${If[${h_bucount},${h_bucount},]}
+    HUDPATH entropy burn7   19,295,34,25,25,25,${If[${h_bucount},,__]}
+    HUDPATH entropy burn8   19,310,39,255,255,255,${If[${h_buraid},R,]}
+    HUDPATH entropy burn9   19,310,34,25,25,25,${If[${h_buraid},,_]}
 
     HUDPATH entropy BG39    3,3,39,0,0,0,██████████████████████████████████████████
 
@@ -1488,7 +1490,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
 	| row 52
 
     | toons loc
-    HUDPATH entropy yxz1    3,5,52,100,149,237,"yxz"
+    HUDPATH entropy yxz1    3,5,52,100,149,237,yxz
     HUDPATH entropy yxz2    3,40,52,140,140,140,"${Int[${Me.Y}]}, ${Int[${Me.X}]}, ${Int[${Me.Z}]}"
 
 
@@ -1511,8 +1513,8 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 	| row 65
 
-    HUDPATH entropy envset1    3,5,65,100,149,237,"set"
-    HUDPATH entropy envset2    19,40,65,140,140,140,"${h_eset}"
+    HUDPATH entropy envset1    3,5,65,100,149,237,set
+    HUDPATH entropy envset2    19,40,65,140,140,140,${h_eset}
 
     | rez
     HUDPATH entropy rez1    19,255,65,0,255,0,${If[${h_ztake},rez,]}
@@ -1529,23 +1531,23 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH entropy BG65    3,3,65,0,0,0,██████████████████████████████████████████
 
     | row 78
-    HUDPATH entropy body1   3,73,78,0,255,0,"${If[${Target.LineOfSight},${Target.Body},]}"
-    HUDPATH entropy body2   3,73,78,255,0,0,"${If[${Target.LineOfSight},,${Target.Body}]}"
-    HUDPATH entropy body3   3,145,78,140,140,140,"${Target.Distance} (${Math.Calc[${Spawn[${Target.ID}].MaxRangeTo}*.9]})"
+    HUDPATH entropy body1   3,73,78,0,255,0,${If[${Target.LineOfSight},${Target.Body},]}
+    HUDPATH entropy body2   3,73,78,255,0,0,${If[${Target.LineOfSight},,${Target.Body}]}
+    HUDPATH entropy body3   3,145,78,140,140,140,${Target.Distance} (${Math.Calc[${Spawn[${Target.ID}].MaxRangeTo}*.9]})
     HUDPATH entropy eng0    3,5,77,100,149,237,"[     ][     ][     ][                       ]"
-    HUDPATH entropy eng1    19,10,78,255,255,255,"${If[${h_engage},${h_engage},]}"
-    HUDPATH entropy eng2    19,12,73,25,25,25,"${If[(!${h_engage},__,]}"
-    HUDPATH entropy eng5    19,31,78,255,255,255,"${If[${h_swpet},${h_engagepet},]}"
-    HUDPATH entropy eng6    19,31,73,25,25,25,"${If[!${h_swpet},__,]}"
-    HUDPATH entropy eng8    19,52,78,255,255,255,"${If[${h_swswarm},${h_engageswarm},]}"
-    HUDPATH entropy eng9    19,52,73,25,25,25,"${If[!${h_swswarm},__,]}"
+    HUDPATH entropy eng1    19,10,78,255,255,255,${If[${h_engage},${h_engage},]}
+    HUDPATH entropy eng2    19,12,73,25,25,25,${If[(!${h_engage},__,]}
+    HUDPATH entropy eng5    19,31,78,255,255,255,${If[${h_swpet},${h_engagepet},]}
+    HUDPATH entropy eng6    19,31,73,25,25,25,${If[!${h_swpet},__,]}
+    HUDPATH entropy eng8    19,52,78,255,255,255,${If[${h_swswarm},${h_engageswarm},]}
+    HUDPATH entropy eng9    19,52,73,25,25,25,${If[!${h_swswarm},__,]}
     HUDPATH entropy BG78    3,3,78,0,0,0,██████████████████████████████████████████
 
 
 
 	| row 91
     HUDPATH entropy target		3,5,91,100,149,237,"${If[${Target.ID},[${Target.Class.ShortName} ${Target.Level}] ${Target.Name} ${If[${Bool[${Target.Guild}]},<${Target.Guild}>, ]}, ]}"
-    HUDPATH entropy time1			19,290,91,146,149,180,"${If[${h_time},${Time.Time24},${GameTime}]}"
+    HUDPATH entropy time1			19,290,91,146,149,180,${If[${h_time},${Time.Time24},${GameTime}]}
     HUDPATH entropy BG91    	3,3,91,0,0,0,██████████████████████████████████████████
 
 

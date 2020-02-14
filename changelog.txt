@@ -23,6 +23,34 @@ on the to do list
 
 
 
+A200213.01
+- HUD
+  updated to show invis and invis vs undead markers
+- shadowknight
+  fixed an issue with target los on agro routines
+- fireworks
+  corrected a debug value error
+- TTL
+  Time to Live is now working
+  entropy can keep track opf the mobs you kill/how many and the overall average time it takes you to kill them
+  /ttl [logic] (on/off) - enables the tracking logic for kills/averages
+
+  current rules (to skip casting):
+  spell cast time > TTL+50%
+  mobHP < 50%  and spell duration > 1/2 TTL
+  *NOTICE* currently only applied to dots for testing
+
+- bandolier proc
+  the the commands are now /cc proc bandolier NAME, and /cc proc use
+  the code will remember what you had before and switch back to that after the proc lands
+- /debug
+  other event - debugs event results
+- voodoo()
+  some more adjustments to the casting routine for duplication of casts when already casted
+- /entropy
+  castloop - (default 1) controls the number of recast attempts based on some event responses
+
+
 A200208.02
 - /override
   dscheck - will force ignoring of all damage shield checks on mobs for melee combat
