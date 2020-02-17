@@ -72,7 +72,9 @@ sub main_BST(bool _debug)
 			/call check_heal_routines
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
-			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
+			/if (!${timer_Check_deBuffs}) {
+				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			}
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stNukeServant].Value}"

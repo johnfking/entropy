@@ -80,7 +80,9 @@ sub main_MAG(bool _debug)
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
+			/if (!${timer_Check_deBuffs}) {
+				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			}
 			/if (BURN) /call burn_${Me.Class.ShortName}
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stNukeServant].Value}"

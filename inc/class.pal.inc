@@ -154,7 +154,9 @@ sub main_PAL(bool _debug)
 			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
 			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
-			/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			/if (!${timer_Check_deBuffs}) {
+				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			}
 			| /if (${swAlliance}) /call cast_alliance_${Me.Class.ShortName} TARGET
 			/if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) {
 				/call check_harmonious

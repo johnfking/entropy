@@ -118,7 +118,9 @@ sub main_SHM(bool _debug)
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
-			/if (!${timer_Check_deBuffs}) /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			/if (!${timer_Check_deBuffs}) {
+				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			}
 			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
 			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
 			/if (${maChr.Find[swTalisman].Value}) /call cast_talisman ${maDebug.Find[talisman].Value}

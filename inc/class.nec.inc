@@ -62,7 +62,9 @@ sub main_NEC(bool _debug
 			/call set_combat FALSE
 			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-			/if (!${timer_Check_deBuffs}) /call check_deBuffs /call check_cure ${maDebug.Find[debuff].Value} TARGET
+			/if (!${timer_Check_deBuffs}) {
+				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			}
 			/if (BURN) /call burn_${Me.Class.ShortName} /call check_cure ${maDebug.Find[burn].Value}
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/if (${maCC.Find[swAlliance].Value}) /call trigger_alliance TARGET

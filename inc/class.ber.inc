@@ -79,7 +79,11 @@ sub main_BER(bool _debug)
 			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
+			/if (!${timer_Check_deBuffs}) {
+				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			}
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
+
 
 		}
 
@@ -101,7 +105,9 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_BER\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (!${target_reset[${_debug}, ${_tmpID}, all]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	CHECKEXIT
 	GETINPUT

@@ -19,7 +19,6 @@ sub set_CLR(bool _debug)
 	/call set_data ${_debug} maData stEpic2															map outer "Aegis of Superior Divinity"
 	/call set_data ${_debug} maData stFade															map outer "Divine Peace"
 	/call set_data ${_debug} maData stCompleteHeal											map outer "Complete Heal"
-	/call set_data_map ${_debug} maChr stAAUnity												"Saint's Unity"								"${auxna} class aa unity buff"
 
 	| Veturika's Preserverance
 	/call set_data_map ${_debug} maChr stPctVP													0															"${auxnum} % of manna to use veturikas perseverance"
@@ -82,6 +81,36 @@ sub set_CLR(bool _debug)
 	| primary weapon
   /call set_data_map ${_debug} maChr swSummonPrimary									FALSE													"${auxsw} use summoned primary hammer"
   /call set_data_map ${_debug} maChr stSummonPrimary									PREGEN|1											"${auxna} name of primary hammer spell"
+
+	| AAs
+	/call set_data_map ${_debug} maChr stAAUnity												"Saint's Unity"										"${auxna} class aa unity buff"
+	/call set_data_map ${_debug} maChr stAADivineArbitration						"Divine Arbitration"
+	/call set_data_map ${_debug} maChr stAACelestialRegeneration				"Celestial Regeneration"
+	/call set_data_map ${_debug} maChr stAAFocusedCelestialRegeneration	"Focused Celestial Regeneration"
+	/call set_data_map ${_debug} maChr stAABurstofLife									"Burst of Life"
+	/call set_data_map ${_debug} maChr stAABeaconofLife									"Beacon of Life"
+	/call set_data_map ${_debug} maChr stAAForcefulRejuvenation					"Forceful Rejuvenation"
+	/call set_data_map ${_debug} maChr stAAChannelingtheDivine					"Channeling the Divine"
+	/call set_data_map ${_debug} maChr stAADivineRetribution						"Divine Retribution"
+	/call set_data_map ${_debug} maChr stAASilentCasting								"Silent Casting"
+	/call set_data_map ${_debug} maChr stAAHealingFrenzy								"Healing Frenzy"
+	/call set_data_map ${_debug} maChr stAAFlurryofLife									"Flurry of Life"
+	/call set_data_map ${_debug} maChr stAAExquisiteBenediction					"Exquisite Benediction"
+	/call set_data_map ${_debug} maChr stAABattleFrenzy									"Battle Frenzy"
+	/call set_data_map ${_debug} maChr stAACelestialRapidity						"Celestial Rapidity"
+	/call set_data_map ${_debug} maChr stAATurnUndead										"Turn Undead"
+	/call set_data_map ${_debug} maChr stAACelestialHammer							"Celestial Hammer"
+	/call set_data_map ${_debug} maChr stAA
+	/call set_data_map ${_debug} maChr stAA
+	/call set_data_map ${_debug} maChr stAA
+	/call set_data_map ${_debug} maChr stAA
+	/call set_data_map ${_debug} maChr stAA
+	/call set_data_map ${_debug} maChr stAA
+	/call set_data_map ${_debug} maChr stAA
+	/call set_data_map ${_debug} maChr stAA
+	/call set_data_map ${_debug} maChr stAA
+
+
 
 	| set heal orders
 	/declare lsHealOrderbase list outer
@@ -156,7 +185,9 @@ sub main_CLR(bool _debug)
 			/call set_combat FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
-			/if (!${timer_Check_deBuffs}) /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			/if (!${timer_Check_deBuffs}) {
+				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			}
 			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
 			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
@@ -206,15 +237,15 @@ sub misc_combat_CLR(bool _debug, int _tmpID)
 
 	| pet AA hammer
 	/if (${maBurn.Find[swBurnForce].Value} || (${maBurn.Find[swBurnAuto].Value} && ${lsZoneNamed.Contains[${Target.DisplayName}]})) {
-		/if (${is_ready[${_debug}, "Celestial Hammer"]}) {
-			/call voodoo ${_debug} "Celestial Hammer" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAACelestialHammer].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAACelestialHammer].Value}" ${_tmpID} FALSE
 		}
 	}
 
 	| undead aa dot
 	/if (${Target.Body.Name.Equal[Undead]} && DOT) {
-		/if (${is_ready[${_debug}, "Turn Undead"]}) {
-			/call voodoo ${_debug} "Turn Undead" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAATurnUndead].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAATurnUndead].Value}" ${_tmpID} FALSE
 		}
 	}
 
@@ -267,23 +298,6 @@ sub check_heal_CLR(bool _debug, string _type)
 
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
-
-	| arbitrate / group heal
-	/if (${Select[${_type},group]}) {
-		/if (${maChr.Find[stCountArbitrate].Value}) {
-			/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
-				/call do_arbitration ${maDebug.Find[arbitrate].Value}
-				/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
-			}
-		}
-		/if (${maChr.Find[stCountHealGroup].Value}) {
-			/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) {
-				/call cast_list ${_debug} lsHealGroup ${Me.ID}
-			}
-		}
-	}
-
-
 	/declare _count int local 0
 
 	| Group Regen Heal
@@ -327,7 +341,18 @@ sub check_heal_CLR(bool _debug, string _type)
 		/if (${Select[${_type},group]}) {
 			/if (${maChr.Find[stCountArbitrate].Value}) {
 				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
-					/call do_arbitration ${maDebug.Find[arbitrate].Value}
+					| /call do_arbitration ${maDebug.Find[arbitrate].Value}
+
+				  | AA arb
+				  /if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
+				    /call voodoo ${_debug} "${maChr.Find[stAADivineArbitration].Value}" 0 FALSE
+					| Second epic shield
+				  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
+				    /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
+				  | First epic shield
+				  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
+				    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
+				  }
 					/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 				}
 			}
@@ -340,9 +365,9 @@ sub check_heal_CLR(bool _debug, string _type)
 
 		| Focused Celestial Regeneration - out of raid only
 		/if (!${Raid.Members}) {
-			/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO && !${Me.Song[Celestial Regeneration].ID}) {
-				/if (${is_ready[${_debug}, "Focused Celestial Regeneration"]}) {
-					/call voodoo ${_debug} "Focused Celestial Regeneration" ${hurtID} FALSE
+			/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO && !${Me.Song[${maChr.Find[stAACelestialRegeneration].Value}].ID}) {
+				/if (${is_ready[${_debug}, "${maChr.Find[stAAFocusedCelestialRegeneration].Value}"]}) {
+					/call voodoo ${_debug} "${maChr.Find[stAAFocusedCelestialRegeneration].Value}" ${hurtID} FALSE
 				}
 			}
 		}
@@ -351,7 +376,6 @@ sub check_heal_CLR(bool _debug, string _type)
 		/if (${Me.Song[Gift of Mana].ID}) {
 			/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
 				/call cast_list ${_debug} lsGoM ${hurtID}
-			 	| /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		  }
 		}
 
@@ -374,31 +398,18 @@ sub check_heal_CLR(bool _debug, string _type)
 
 		| Panic AA single target heal
 	  /if (${hurtPctHP} <= ${maHeal.Find[stHealPointPanic].Value}*.PCTHO) {
-			/if (${is_ready[${_debug}, "Burst of Life"]}) {
-				/if (${Me.Casting.ID}) /stopcast
-				/call voodoo ${_debug} "Burst of Life" ${hurtID} FALSE
+			/if (${is_ready[${_debug}, "${maChr.Find[stAABurstofLife].Value}"]}) {
+				/if (${Me.Casting.ID}) {
+					/stopcast
+				}
+				/call voodoo ${_debug} "${maChr.Find[stAABurstofLife].Value}" ${hurtID} FALSE
 			}
 	  }
 
-		| arbitrate / group heal
-		/if (${Select[${_type},group]}) {
-			/if (${maChr.Find[stCountArbitrate].Value}) {
-				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
-					/call do_arbitration ${maDebug.Find[arbitrate].Value}
-					/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
-				}
-			}
-			/if (${maChr.Find[stCountHealGroup].Value}) {
-				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) {
-					/call cast_list ${_debug} lsHealGroup ${Me.ID}
-				}
-			}
-		}
-
 		| panic group heal. AA Beacon of life (3 min use)
 	  /if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value} && ${Group.Members} > 1 && ${maChr.Find[stCountHealGroup].Value}) {
-		  /if (${is_ready[${_debug}, "Beacon of Life"]}) {
-		  	/call voodoo ${_debug} "Beacon of Life" 0 FALSE
+		  /if (${is_ready[${_debug}, "${maChr.Find[stAABeaconofLife].Value}"]}) {
+		  	/call voodoo ${_debug} "${maChr.Find[stAABeaconofLife].Value}" 0 FALSE
 		  }
 		}
 
@@ -431,25 +442,6 @@ sub check_heal_CLR(bool _debug, string _type)
  	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
-
-	| arbitrate / group heal
-	/if (${Select[${_type},group]}) {
-		/if (${maChr.Find[stCountArbitrate].Value}) {
-			/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
-				/call do_arbitration ${maDebug.Find[arbitrate].Value}
-				/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
-			}
-		}
-		/if (${maChr.Find[stCountHealGroup].Value}) {
-			/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) {
-				/call cast_list ${_debug} lsHealGroup ${Me.ID}
-			 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
-					/return FALSE
-				}
-			}
-		}
-	}
-
 
 	CHECKTIE
 	ISMEDEAD
@@ -487,29 +479,29 @@ sub do_arbitration(bool _debug)
 	CHECKEXIT
 	GETINPUT clr_arbitrate NA|NA
 
-	/declare _arbDone bool local FALSE
+	| /declare _arbDone bool local FALSE
 
   | AA arb
-  /if (${is_ready[${_debug}, "Divine Arbitration"]}) {
-    /call voodoo ${_debug} "Divine Arbitration" 0 FALSE
-    /varset _arbDone TRUE
+  /if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAADivineArbitration].Value}" 0 FALSE
+    | /varset _arbDone TRUE
 
 	| Second epic shield
   } else /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
     /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
-    /varset _arbDone TRUE
+    | /varset _arbDone TRUE
 
   | First epic shield
   } else /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
     /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
-    /varset _arbDone TRUE
+    | /varset _arbDone TRUE
 
   }
 
-	/if (${_arbDone}) {
+	| /if (${_arbDone}) {
 		| /invoke ${out[3, "arbitration done"]}
-		/delay 1
-	}
+	| 	/delay 1
+	| }
 
 /return TRUE
 
@@ -550,8 +542,8 @@ sub Bind_command_issuance(bool _debug)
 
 	| should we recast?
 	/if (BURN) {
-		/if (${is_Ready[${_debug}, "Forceful Rejuvenation"]}) {
-			/call voodoo ${_debug} "Forceful Rejuvenation" 0 FALSE
+		/if (${is_Ready[${_debug}, "${maChr.Find[stAAForcefulRejuvenation].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAForcefulRejuvenation].Value}" 0 FALSE
 			/delay 4s !${Me.Casting.ID}
 			/goto :castIssuance
 		}
@@ -573,94 +565,90 @@ sub burn_CLR(bool _debug, int _tmpID)
 	DEBUG \atburn_CLR\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${target[isdead, ${_tmpID}]}) {
-		/return FALSE
-	}
-
 	CHECKEXIT
 	GETINPUT clr_burn NA|NA
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) {
-		/call cast_defensive_cycle ${maDebug.Find[def].Value}
-	}
-	/if (SWARM || PET) {
-		/call send_pet ${maDebug.Find[sic].Value} TARGET
-	}
-	/if (AUTO && MELEE) {
-		/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (${Bool[${_tmpID}]}) {
+		/if (${target[isdead, ${_tmpID}]}) {
+			/return FALSE
+		}
+
+		/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) {
+			/call cast_defensive_cycle ${maDebug.Find[def].Value}
+		}
+		/if (SWARM || PET) {
+			/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+		}
+		/if (AUTO && MELEE) {
+			/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+		}
 	}
 
 
 	| Group AA Celestial Regeneration
  	/if (${maChr.Find[swHealGroupOverTime].Value} && ${Group}) {
- 	 	/if (${is_ready[${_debug}, "Celestial Regeneration"]} && !${Bool[${Me.Song[Celestial Regeneration]}]} && !${Me.Song[Focused Celestial Regeneration].ID}) {
- 			/call voodoo ${_debug} "Celestial Regeneration" 0 FALSE
+ 	 	/if (${is_ready[${_debug}, "${maChr.Find[stAACelestialRegeneration].Value}"]}) {
+ 	 		/if (!${Bool[${Me.Song[${maChr.Find[stAACelestialRegeneration].Value}]}]} && !${Me.Song[${maChr.Find[stAAFocusedCelestialRegeneration].Value}].ID}) {
+ 				/call voodoo ${_debug} "${maChr.Find[stAACelestialRegeneration].Value}" 0 FALSE
+ 			}
 	  }
 	}
 
 	| stage 1
-	/if (${Me.AltAbilityReady[Channeling the Divine]} && ${Me.AltAbilityReady[Celestial Rapidity]} && !${Me.Buff[Healing Frenzy].ID}) {
+	/if ((${Me.AltAbilityReady[${maChr.Find[stAAChannelingtheDivine].Value}]} || ${Me.AltAbilityReady[${maChr.Find[stAACelestialRapidity].Value}]}) && !${Me.Buff[${maChr.Find[stAAHealingFrenzy].Value}].ID}) {
 
 	  | Spire 1:30 min duration 7:30 min reuse
    	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 	 	| anti agro (Silent Casting 1min duration 9 min reuse)
-		/if (!${Me.Buff[Divine Retribution].ID}) {
-			/if (${is_ready[${_debug}, "Silent Casting"]}) {
-				/call voodoo ${_debug} "Silent Casting" 0 FALSE
+		/if (!${Me.Buff[${maChr.Find[stAADivineRetribution].Value}].ID}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAASilentCasting].Value}" 0 FALSE
 			}
 		}
 
 	 	| 50% chance to twincast (proc:Channeling of the Divine, 45 sec duration 10 min resuse)
-	 	/if (${is_ready[${_debug}, "Channeling the Divine"]}) {
-	 		/call voodoo ${_debug} "Channeling the Divine"  0 FALSE
+	 	/if (${is_ready[${_debug}, "${maChr.Find[stAAChannelingtheDivine].Value}"]}) {
+	 		/call voodoo ${_debug} "${maChr.Find[stAAChannelingtheDivine].Value}" 0 FALSE
 	 	}
 
 		| - ~50% to cast times [proc:Celestial Rapidity, 1 min duration 10 min reuse]
-		/if (${is_ready[${_debug}, "Celestial Rapidity"]}) {
-			/call voodoo ${_debug} "Celestial Rapidity" 0 FALSE
-		}
-		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
-			/call get_hurt FALSE Group
-			/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
+		/if (${is_ready[${_debug}, "${maChr.Find[stAACelestialRapidity].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAACelestialRapidity].Value}" 0 FALSE
 		}
 
 	| stage 2
-	} else /if (${Me.AltAbilityReady[Healing Frenzy]} && ${Me.AltAbilityReady[Flurry of Life]} && ${Me.Buff[${maData.Find[stSpire${maChr.Find[stSpireGroup].Value}].Value}].ID} && !${Me.Buff[${maData.Find[stSpire${maChr.Find[stSpireRaid].Value}].Value}].ID}) {
+	} else /if ((${Me.AltAbilityReady[${maChr.Find[stAAHealingFrenzy].Value}]} || ${Me.AltAbilityReady[${maChr.Find[stAAFlurryofLife].Value}]}) && !${Me.Buff[${maData.Find[stSpire].Value}].ID}) {
 
 		| melee block anti agro (20 min reuse)
-		/if (!${Me.Song[Silent Casting].ID}) {
-			/if (${is_ready[${_debug}, "Divine Retribution"]}) {
-				/call voodoo ${_debug} "Divine Retribution" 0 FALSE
+		/if (!${Me.Song[${maChr.Find[stAASilentCasting].Value}].ID}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stAADivineRetribution].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAADivineRetribution].Value}" 0 FALSE
 			}
 		}
 
-		| 100% exceptional heal (proc: Flurry of Life, 1:30 min duration 15 min reuse)
-		/if (${is_ready[${_debug}, "Healing Frenzy"]}) {
-			/call voodoo ${_debug} "Healing Frenzy" 0 FALSE
-		}
-
 		| heal power bost: 35% (proc Healing Frenzy, 40sec duration 15 min reuse)
-		/if (${is_ready[${_debug}, "Flurry of Life"]}) {
-			/call voodoo ${_debug} "Flurry of Life" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAHealingFrenzy].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAHealingFrenzy].Value}" 0 FALSE
 		}
 
-		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
-			/call get_hurt FALSE Group
-			/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) /call do_arbitration ${maDebug.Find[arbitrate].Value}
+		| 100% exceptional heal (proc: Flurry of Life, 1:30 min duration 15 min reuse)
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAFlurryofLife].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAFlurryofLife].Value}" 0 FALSE
 		}
+
 	}
 
 	| heal ward (20 min reuse)
-	/if (${is_ready[${_debug}, "Exquisite Benediction"]}) {
-		/call voodoo ${_debug} "Exquisite Benediction" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAExquisiteBenediction].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAExquisiteBenediction].Value}" 0 FALSE
 	}
 
 	| direct damage boost if using aggressive healing
-	/if (${maHeal.Find[stHealMode].Value.Equal[aggressive]} && !${Me.Song[Silent Casting].ID}) {
-    /if (${is_ready[${_debug}, "Battle Frenzy"]}) {
-    	/call voodoo ${_debug} "Battle Frenzy" 0 FALSE
+	/if (${maHeal.Find[stHealMode].Value.Equal[aggressive]} && !${Me.Song[${maChr.Find[stAASilentCasting].Value}].ID}) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stAABattleFrenzy].Value}"]}) {
+    	/call voodoo ${_debug} "${maChr.Find[stAABattleFrenzy].Value}" 0 FALSE
     }
   }
 

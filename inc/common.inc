@@ -1854,6 +1854,9 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			/return FALSE
 		}
 
+		/declare _castTime int local 0
+
+
 		| is the spell memed
 		/if (${Me.Gem[${_verbage}]}) {
 
@@ -1876,7 +1879,33 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 
 				| set delays for casting. GTFO out of this as fast as possible
-				/delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
+				| /delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
+
+
+
+				/varset _castTime ${Math.Calc[${Spell[${_verbage}].MyCastTime}+50]}
+				DEBUG ${sep}_castTime${sep}\a-w${_castTime}\ax
+
+				/if (${_castTime} < 1000) {
+					/delay ${Spell[${_verbage}].MyCastTime} !${Me.Casting.ID}
+
+				} else {
+					/invoke ${set_timer[${_debug}, _tiCastTime, ${_castTime}]}
+					/while (${_tiCastTime} > 0) {
+						/if (${Spawn[id ${_tmpID}].Dead}) {
+							/stopcast
+							/return FALSE
+						}
+						/if (!${Me.Casting.ID}) {
+							/break
+						}
+						/delay 3
+
+					}
+				}
+
+
+
 
 				| delay for longer casts if there is any, cooldowns or open spell cast windows
 				/while (${Me.Casting.ID} || ${Window[CastingWindow].Open} || ${Me.SpellInCooldown}) {
@@ -3604,10 +3633,11 @@ sub pull_mob_find(bool _debug, int _spCount)
 				ISMEDEAD
 
 				/varset _tmpID ${NearestSpawn[${If[${_spCount},${Math.Calc[${_count}+${_spCount}]},${_count}]}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value}].ID}
+				DEBUG ${sep}_tmpID${sep}\a-w${_tmpID}\ax
 
-				/if (!${Navigation.PathExists[locyxz ${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]}) {
-					DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists\ax
-					/continue
+				/if (!${Navigation.PathExists[id ${_tmpID}]}) {
+					| SDEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-yid ${_tmpID}\ax]\ax
+					| /continue
 				}
 
 				/varset _navRange ${Navigation.PathLength[locyxz ${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]}
@@ -7403,24 +7433,26 @@ sub check_for_corpse(bool _debug)
 	| clerics first group or raid
 	/if (${SpawnCount[pccorpse cleric raid radius ${maRez.Find[stMaxRezRange].Value}]} && ${Raid.Members} || ${SpawnCount[pccorpse cleric group radius ${maRez.Find[stMaxRezRange].Value}]}) {
 		/for _count 1 to ${SpawnCount[pccorpse cleric radius ${maRez.Find[stMaxRezRange].Value}]}
-		ISMEDEAD
-		/if (!${timer_corpse_${NearestSpawn[${_count},pccorpse cleric radius ${maRez.Find[stMaxRezRange].Value}].ID}}) {
-			/varset _tmpID ${NearestSpawn[${_count},pccorpse cleric radius ${maRez.Find[stMaxRezRange].Value}].ID}
-			/if (${Select[${Me.Class.ShortName},CLR]}) {
-				/if (${maRez.Find[swDivineCleric].Value} && ${Me.AltAbilityReady[${_divinerezCLR}]}) /call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} ${_divinerezCLR}
-			} else /if (${Select[${Me.Class.ShortName},CLR,DRU,PAL,SHM,NEC]} && ${Me.AltAbilityReady[${_rez${Me.Class.ShortName}}]}) {
-				/call cast_rez ${_debug} ${_tmpID} ${_rez${Me.Class.ShortName}}
-			} else /if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
-				/call cast_rez ${_debug} ${_tmpID} ${_rezEmergency}
+			ISMEDEAD
+			/if (!${Defined[timer_corpse_${NearestSpawn[${_count},pccorpse cleric radius ${maRez.Find[stMaxRezRange].Value}].ID}]}) /continue
+			/if (!${timer_corpse_${NearestSpawn[${_count},pccorpse cleric radius ${maRez.Find[stMaxRezRange].Value}].ID}}) {
+				/varset _tmpID ${NearestSpawn[${_count},pccorpse cleric radius ${maRez.Find[stMaxRezRange].Value}].ID}
+				/if (${Select[${Me.Class.ShortName},CLR]}) {
+					/if (${maRez.Find[swDivineCleric].Value} && ${Me.AltAbilityReady[${_divinerezCLR}]}) /call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} ${_divinerezCLR}
+				} else /if (${Select[${Me.Class.ShortName},CLR,DRU,PAL,SHM,NEC]} && ${Me.AltAbilityReady[${_rez${Me.Class.ShortName}}]}) {
+					/call cast_rez ${_debug} ${_tmpID} ${_rez${Me.Class.ShortName}}
+				} else /if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
+					/call cast_rez ${_debug} ${_tmpID} ${_rezEmergency}
+				}
+				/return
 			}
-			/return
-		}
 		/next _count
 	}
 
 	| group members
 	/if (${SpawnCount[pccorpse group radius ${maRez.Find[stMaxRezRange].Value}]}) {
 		/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value} group]}
+		/if (!${Defined[timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} group].ID}]}) /continue
 		/if (!${timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} group].ID}}) {
 			/varset _tmpID ${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} group].ID}
 			/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
@@ -7437,6 +7469,7 @@ sub check_for_corpse(bool _debug)
 	/if (${Raid.Members}) {
 		/if (${SpawnCount[pccorpse raid tank radius ${maRez.Find[stMaxRezRange].Value}]}) {
 			/for _count 1 to ${SpawnCount[pccorpse raid radius ${maRez.Find[stMaxRezRange].Value} tank]}
+			/if (!${Defined[timer_corpse_${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value} tank].ID}]}) /continue
 			/if (!${timer_corpse_${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value} tank].ID}}) {
 				/varset _tmpID ${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value} tank].ID}
 				/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]} && (!${lsRezTokenToon.CountOf[EMPTY]} && ${lsRezTokenToon.Count} != 1)) {
@@ -7452,6 +7485,7 @@ sub check_for_corpse(bool _debug)
 		| remaining raid members
 		/if (${SpawnCount[pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}]}) {
 			/for _count 1 to ${SpawnCount[pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}]}
+			/if (!${Defined[timer_corpse_${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}].ID}]}) /continue
 			/if (!${timer_corpse_${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}].ID}}) {
 				/varset _tmpID ${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}].ID}
 				/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
@@ -7468,6 +7502,7 @@ sub check_for_corpse(bool _debug)
 	| guildies - all the time
 	/if (${SpawnCount[pccorpse guild radius ${maRez.Find[stMaxRezRange].Value}]}) {
 		/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value} GUILD]}
+		/if (!${Defined[timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} guild].ID}]}) /continue
 		/if (!${timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} guild].ID}}) {
 			/varset _tmpID ${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} guild].ID}
 			/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
@@ -7485,6 +7520,7 @@ sub check_for_corpse(bool _debug)
 	/if (${maRez.Find[swRezEveryone].Value}) {
 		/if (${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}) {
 			/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}
+			/if (!${Defined[timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}]}) /continue
 			/if (!${timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}}) {
 				/varset _tmpID ${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}
 				/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {

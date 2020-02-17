@@ -63,7 +63,9 @@ sub main_BRD(bool _debug)
 			/call set_combat FALSE
 			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
+			/if (!${timer_Check_deBuffs}) {
+				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			}
 			/call control_routine FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName}

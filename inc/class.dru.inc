@@ -98,7 +98,9 @@ sub main_DRU(bool _debug)
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (MELEE) /call do_melee FALSE TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
-			/if (!${timer_Check_deBuffs}) /call check_deBuffs FALSE TARGET
+			/if (!${timer_Check_deBuffs}) {
+				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			}
 			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
 			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET

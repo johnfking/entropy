@@ -249,11 +249,15 @@ sub Event_COMBAT_DISTANCE(string _line)
  * use: catch when a zone happens
  ***|
 #event Zone "You have entered #*#"
+| #event Zone "|${Me.DisplayName}| creates a mistic portal."
 | #event Zone "LOADING, PLEASE WAIT..."
 sub Event_Zone(string _line)
 	EDEBUG zoning
 	/call check_mode FALSE RESET
 	/call check_zone_id FALSE FALSE
+	/if (${maHome.Find[swHomeMarker].Value}) {
+		/call Bind_control_home clear
+	}
 /return FALSE
 
 

@@ -87,6 +87,9 @@ sub main_RNG(bool _debug)
 			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
 			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
 			/if (${maChr.Find[swSummer].Value} && !${timer_Summer_Nuke}) /call cast_nuke_summer ${maDebug.Find[summer].Value} TARGET
+			/if (!${timer_Check_deBuffs}) {
+				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			}
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 			| /if (${swAlliance}) /call trigger_alliance TARGET
 

@@ -9,18 +9,27 @@
 
 on the to do list
 --------------------
-- work on dps adaptation system, ttl
 - find a way to grade debuffs and overwrite if needed
 - finish target id passing for all classes to misc_ombat() and burn()
 - find out why the fuck chanter just stops doing shit
 - get remove verb working for /area
 - mage pet weapons?
-- /navto NULL when requestor is not in zone
 - tag entry validation (cause people are making up shit now)
 - i'm gonna have to externalize all the AAs
 --------------------
 
 
+
+A200217.01
+- cleric
+  externalized the AAs
+  this is a test run to see if its even wort the effort to do the others
+- /navto "NULL" fixed
+- enabled debuffing for all classes
+- added evac checks to zone variable resetting
+- the various zoing abilities/spells will now clear the home markers
+- pulling
+  commented out a nav.path check for now. should solve the pickup issues when someone else is pulling
 
 
 A200213.01

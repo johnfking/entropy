@@ -2890,6 +2890,10 @@ sub Bind_command_navto(string _verbage, string _loc, bool _debug)
 
 	| nav to closest spawn matching name
 	}	else /if (!${Target.ID} && ${Bool[${_verbage}]} && ${_verbage.NotEqual[loc]}) {
+		/if (!${Spawn[${_verbage}].ID}) {
+			/invoke ${out[22, "not in zone${sep}\a-w${_verbage}\ax"]}
+			/return FALSE
+		}
 		DEBUG navto${sep}\a-wspawn\ax
 		/invoke ${out[22, "/navto \a-w${Spawn[${_verbage}].DisplayName}\ax"]}
 		/nav ID ${Spawn[${_verbage}].ID} |dist=${maHome.Find[stHomeVariance].Value} log=off

@@ -85,7 +85,9 @@ sub main_ENC(bool _debug)
 			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
 				/call cast_defensive_cycle ${maDebug.Find[def].Value}
 			}
-			/if (!${timer_Check_deBuffs}) /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			/if (!${timer_Check_deBuffs}) {
+				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+			}
 			/call control_routine ${maDebug.Find[mez].Value}
 
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
