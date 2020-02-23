@@ -12,6 +12,10 @@
 sub set_BST(bool _debug)
 	DEBUG \atset_BST\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Savage Lord"
 	/call set_data FALSE maData stSynergy																map outer "Primalist's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Claw of the Savage Spirit"
@@ -42,6 +46,11 @@ sub set_BST(bool _debug)
 	/call set_data_map FALSE maChr stPctParagonF 												0															"${auxnum} pct mana to use focused paragon aa"
 	/call set_data_map FALSE maChr stPctConsume 												0															"${auxnum} pct mana to use consume aa"
  	/call set_data_list FALSE maChr lsHealToT		 												PREGEN|3											"${auxli} targets target healing line of spells"
+
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
 
 /return TRUE
 
@@ -79,8 +88,8 @@ sub main_BST(bool _debug)
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
-			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
+			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 			/if (${maCC.Find[swAlliance].Value}) /call cast_alliance_${Me.Class.ShortName} TARGET
 
@@ -317,7 +326,7 @@ sub check_heal_BST(bool _debug, string _type)
  	}
 	| heal anything spell
 	/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-		/call cast_list ${_debug} lsHealBaseLine ${hurtID}
+		/call cast_cycle_heal ${_debug} ${hurtID}
 	}
 
 	SETHUD FALSE
@@ -375,7 +384,7 @@ sub burn_BST(bool _debug, int _tmpID)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 

@@ -12,6 +12,10 @@
 sub set_ROG(bool _debug)
 	DEBUG \atset_ROG\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data ${_debug} maData stSpire															map outer "Spire of the Rake"
 	/call set_data ${_debug} maData stSynergy														map outer "Blackguard's Synergy"
 	/call set_data ${_debug} maData stEpic1															map outer "Ragebringer"
@@ -52,6 +56,11 @@ sub set_ROG(bool _debug)
 
 	/call set_data_map ${_debug} maChr stLegPoison											0															"${auxna} number of summon leg poisons to keep. dont forget the buff tag (\a-wsummonpoison\ax) for legs"
 
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
+
 /return TRUE
 
 
@@ -75,13 +84,13 @@ sub main_ROG(bool _debug)
 		GETINPUT
 		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
-		/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+		CHECKDEFENSE
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
 			/call do_sneak_attack ${maDebug.Find[class].Value} TARGET
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
-			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+			CHECKDEFENSE
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
@@ -140,7 +149,7 @@ sub misc_combat_ROG(bool _debug, int _tmpID)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
@@ -249,7 +258,7 @@ sub check_heal_ROG(bool _debug, string _type)
 		/call voodoo ${_debug} "Tumble" 0 FALSE
 	}
 
-	/call cast_list ${_debug} lsHealBaseLine ${Me.ID}
+	/call cast_cycle_heal ${_debug} ${hurtID}
 
 	SETHUD FALSE
 
@@ -311,7 +320,7 @@ sub burn_ROG(bool _debug, int _tmpID)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 

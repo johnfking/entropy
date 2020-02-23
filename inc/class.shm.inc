@@ -99,7 +99,7 @@ sub main_SHM(bool _debug)
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[xt].Value} XTarget
 		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Pet
-		/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+		CHECKDEFENSE
 		CHECKFADE
 
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
@@ -121,8 +121,8 @@ sub main_SHM(bool _debug)
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
-			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
-			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
+			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/if (${maChr.Find[swTalisman].Value}) /call cast_talisman ${maDebug.Find[talisman].Value}
 			/if (${maCC.Find[swAlliance].Value}) /call cast_alliance_SHM ${maDebug.Find[alliance].Value}
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
@@ -156,7 +156,7 @@ sub misc_combat_SHM(bool _debug)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
@@ -222,8 +222,6 @@ sub check_heal_SHM(bool _debug, string _type)
 
 	}
 
-	CHECKREZ
-
   | stationary ward heal
   /if (${hurtCount} >= ${maHeal.Find[swHealGroup].Value}) {
     /if (${is_ready[${_debug}, "Call of the Ancients"]}) {
@@ -240,13 +238,7 @@ sub check_heal_SHM(bool _debug, string _type)
 	CHECKFADE
 	CHECKREZ
 
-	/declare _liHM listiterator local
-	/vardata _liHM lsHealOrder${maHeal.Find[stHealMode].Value}.First.Clone
-	/while (!${_liHM.IsEnd}) {
-		DEBUG ${sep}_liHM.Value${sep}\a-w${_liHM.Value}\ax
-		/call cast_list FALSE "${_liHM.Value}" ${hurtID}
-		/invoke ${_liHM.Advance}
-	}
+	/call cast_cycle_heal ${_debug} ${hurtID}
 
 	SETHUD FALSE
 
@@ -327,7 +319,7 @@ sub burn_SHM(bool _debug)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 

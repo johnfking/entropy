@@ -13,6 +13,10 @@
 sub set_RNG(bool _debug)
 	DEBUG \atset_RNG\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Pathfinders"
 	/call set_data FALSE maData stSynergy																map outer "Outrider's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Earthcaller"
@@ -55,6 +59,11 @@ sub set_RNG(bool _debug)
 	| focused melee disc
 	/call set_data_map FALSE maChr stDiscMeleeSingle			 							PREGEN|1											"${auxna} single melee disc"
 
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
+
 /return TRUE
 
 
@@ -84,8 +93,8 @@ sub main_RNG(bool _debug)
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
-			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
+			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/if (${maChr.Find[swSummer].Value} && !${timer_Summer_Nuke}) /call cast_nuke_summer ${maDebug.Find[summer].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
@@ -230,7 +239,7 @@ sub check_heal_RNG(bool _debug, string _type)
 	CHECKREZ
 	CHECKFADE
 
-	/call cast_list ${_debug} "lsHealBaseLine" ${hurtID}
+	/call cast_cycle_heal ${_debug} ${hurtID}
 
 	SETHUD FALSE
 

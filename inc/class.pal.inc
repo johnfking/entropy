@@ -11,6 +11,11 @@
  ***|
 sub set_PAL(bool _debug)
 	DEBUG \atset_PAL\ax()
+
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of Chivalry"
 	/call set_data FALSE maData stSynergy																map outer "Knight's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Fiery Defender"
@@ -36,9 +41,6 @@ sub set_PAL(bool _debug)
  	/call set_data_map FALSE maChr stAlliance 													PREGEN|1											"${auxna} alliance spell .. damn useless thing"
 
 	| heals
- 	/call set_data_list FALSE maChr lsHealPanic 												PREGEN|3											"${auxli} panic instant no target spells"
- 	/call set_data_list FALSE maChr lsHealTouch 												PREGEN|3											"${auxli} touch line of spells"
- 	/call set_data_list FALSE maChr lsHealBurst 												PREGEN|3											"${auxli} burst healing line of spells"
  	/call set_data_list FALSE maChr lsHealToT		 												PREGEN|3											"${auxli} targets target healing line of spells"
  	/call set_data_map FALSE maChr stHealLight 													PREGEN|1											"${auxna} light heal spell"
  	/call set_data_map FALSE maChr stSplashPanic 												PREGEN|1											"${auxna} fast cast panic splash spell"
@@ -101,6 +103,11 @@ sub set_PAL(bool _debug)
 	/invoke ${lsHealOrderpassive.Delimiter["|"]}
 	/invoke ${lsHealOrderpassive.Append[lsHealToT]}
 
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
+
 /return TRUE
 
 
@@ -145,14 +152,14 @@ sub main_PAL(bool _debug)
 
 		/if (VALID) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
-			/if (AGRO) /call get_agro_${Me.Class.ShortName} FALSE TARGET
+			/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/call check_heal_routines
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
-			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
+			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
@@ -196,6 +203,7 @@ sub misc_combat_PAL(bool _debug, int _tmpID)
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
+	CHECKDEFENSE
 
 	/call check_heal_routines
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} ${_tmpID}
@@ -215,7 +223,7 @@ sub misc_combat_PAL(bool _debug, int _tmpID)
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 
 	| AA inquisitors armor stacking control
-	/if (${SpawnCount[npc OVERLOS radius 30 targetable]} >= ${maChr.Find[stCountDefensive].Value} && ${maChr.Find[stCountDefensive].Value}) {
+	/if (${SpawnCount[npc OVERLOS radius 30 targetable]} >= ${maDefense.Find[stCountDef].Value} && ${maDefense.Find[stCountDef].Value}) {
 		/if (!${Me.Song[Group Armor of the Inquisitor].ID}) {
 			/if (${is_ready[${_debug}, "Armor of the Inquisitor"]}) {
 				/call voodoo ${_debug} "Armor of the Inquisitor" 0 FALSE
@@ -259,6 +267,8 @@ sub get_agro_PAL(bool _debug, int _tmpID)
 		/return FALSE
 	}
 
+	CHECKDEFENSE
+
 	/call set_combat ${_debug}
 	/call check_heal_routines
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
@@ -281,7 +291,7 @@ sub get_agro_PAL(bool _debug, int _tmpID)
 
 	| chain stun
 	/if (${is_ready[${_debug}, "${maChr.Find[stStun].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stStun].Value}" ${_tmpID}  FALSE
+		/call voodoo ${_debug} "${maChr.Find[stStun].Value}" ${_tmpID} FALSE
 	}
 
 	/declare _coutAE int local 0
@@ -329,7 +339,7 @@ sub get_agro_PAL(bool _debug, int _tmpID)
 	}
 
 	| Valiant Defense line. agro+heal
-	/if (${Me.PctAggro} < 95 && ${is_ready[${_debug}, "${maChr.Find[stValiant].Value}"]}) {
+	/if (${Me.PctAggro} < 98 && ${is_ready[${_debug}, "${maChr.Find[stValiant].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stValiant].Value}" ${_tmpID} FALSE
 	}
 
@@ -348,7 +358,7 @@ sub check_heal_PAL(bool _debug, string _type)
 	ISMEDEAD
 	CHECKEXIT
 	CHECKREZ
-	CHECKFADE
+	CHECKDEFENSE
 
 	SETHUD "heal ${_type}"
 
@@ -455,13 +465,7 @@ sub check_heal_PAL(bool _debug, string _type)
 	CHECKREZ
 	CHECKFADE
 
-	/declare _liHM listiterator local
-	/vardata _liHM lsHealOrder${maHeal.Find[stHealMode].Value}.First.Clone
-	/while (!${_liHM.IsEnd}) {
-		/call cast_list ${_debug} "${_liHM.Value}" ${hurtID}
-		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
-		/invoke ${_liHM.Advance}
-	}
+	/call cast_cycle_heal ${_debug} ${hurtID}
 
 	SETHUD FALSE
 
@@ -481,9 +485,13 @@ sub cast_AA_marrs_gift(bool _debug)
 
 	/invoke ${set_data_timer[FALSE, Check_Marrs_Gift, RESTART]}
 
-	/if (!${is_ready[${_debug}, "Marr's Gift"]}) /return FALSE
+	/if (!${is_ready[${_debug}, "Marr's Gift"]}) {
+		/return FALSE
+	}
 
-	/if (SAFEZONE || !${maHeal.Find[swHealGroup].Value}) /return FALSE
+	/if (SAFEZONE || !${maHeal.Find[swHealGroup].Value}) {
+		/return FALSE
+	}
 
 	/if ((${Me.PctMana} < ${maChr.Find[stPctMG].Value}*.PCTHO) || (${Me.PctHPs} < ${maChr.Find[stPctMG].Value}*.PCTHO)) {
 		/call voodoo ${_debug} "Marr's Gift" 0 FALSE
@@ -509,7 +517,8 @@ sub burn_PAL(bool _debug, int _tmpID)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
+
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
@@ -581,10 +590,6 @@ sub set_control_PAL(string _type, string _verbage, string _silent, bool _debug)
 	| to Yaulp or not
 	} else /if (${_type.Equal[yaulp]}) {
 		/invoke ${set_switch_env[${_debug}, swYaulp, TRUE, ${_verbage}]}
-
-	| defensive mob agro count
-	} else /if (${_type.Equal[def]}) {
-		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return
 
 	| set ae on/off / count
 	} else /if (${_type.Equal[ae]}) {

@@ -12,6 +12,10 @@
 sub set_MAG(bool _debug)
 	DEBUG \atset_MAG\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Elements"
 	/call set_data FALSE maData stSynergy																map outer "Conjurer's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Orb of Mastery"
@@ -48,6 +52,11 @@ sub set_MAG(bool _debug)
 	/call set_data_map FALSE maChr swCauldron														FALSE													"${auxsw} click cauldron to get prizes or not?"
 	/call set_data_map FALSE maChr stCauldron														FALSE													"${auxna} name of the cauldron item you wish to use"
 
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
+
 /return TRUE
 
 
@@ -78,7 +87,7 @@ sub main_MAG(bool _debug)
 		/if (${check_class_loop[FALSE]}) /return FALSE
 			/call set_combat FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+			CHECKDEFENSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
@@ -87,7 +96,7 @@ sub main_MAG(bool _debug)
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			| /if (${swAlliance}) /call trigger_alliance TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) {
 				/if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} TRUE
 				/call cast_nuke ${maDebug.Find[nuke].Value} lsNuke${stLine} TARGET
@@ -121,7 +130,7 @@ sub misc_combat_MAG(bool _debug)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
@@ -186,7 +195,7 @@ sub check_heal_MAG(bool _debug, string _type)
 			}
 		}
 
-		/call cast_list FALSE lsHealPetLine ${Pet.ID}
+		| /call cast_list FALSE lsHealPetLine ${Pet.ID}
 	}
 
  	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
@@ -194,7 +203,7 @@ sub check_heal_MAG(bool _debug, string _type)
  	}
 	| heal anything spell
 	/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-		/call cast_list FALSE lsHealBaseLine ${hurtID}
+		/call cast_cycle_heal ${_debug} ${hurtID}
 	}
 
 	SETHUD FALSE
@@ -218,7 +227,7 @@ sub burn_MAG(bool _debug)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 

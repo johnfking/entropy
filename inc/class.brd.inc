@@ -12,6 +12,10 @@
 sub set_BRD(bool _debug)
 	DEBUG \atset_BRD\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Minstrels"
 	/call set_data FALSE maData stSynergy																map outer "Troubadour's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Singing Short Sword"
@@ -19,22 +23,15 @@ sub set_BRD(bool _debug)
 	/call set_data FALSE maData stEpic2																	map outer "Blade of Vesagran"
 	/call set_data FALSE maData stFade																	map outer "Fading Memories"
 	/call set_data_map FALSE maChr stAAUnity														FALSE													"${auxna} class aa unity buff"
-
-
 	/call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} alliance song"
-
 	/call set_data_map FALSE maChr stNukeServant 												PREGEN|1											"${auxna} spam pet song"
 
 	| map for mob control
 	/declare maMobControl map outer
 
-
-
 	/call set_data_map FALSE maChr swSongRest														FALSE													"${auxna} enable song while resting"
 	/call set_data_map FALSE maChr stSongRest														FALSE													"${auxna} song to use while group resting"
-
 	/call set_data_map FALSE maChr stSongRefresh												6															"${auxnum} remaining duration on a song to refresh. in seconds"
-
 
 	| current song line
 	/declare lsLineSong list outer
@@ -42,6 +39,10 @@ sub set_BRD(bool _debug)
 	/call set_data_map FALSE maChr stCurrent														mix													"${auxna} current song line to play"
 	/call set_data FALSE FALSE stLine																		string outer ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
 
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
 
 /return
 
@@ -61,7 +62,7 @@ sub main_BRD(bool _debug)
 		/if (VALID) {
 			/call control_routine FALSE
 			/call set_combat FALSE
-			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+			CHECKDEFENSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
@@ -74,10 +75,10 @@ sub main_BRD(bool _debug)
 			/if (SWARM) /call cast_servant_swarm FALSE TARGET
 			/call control_routine FALSE
 			| /if (${swAlliance}) /call trigger_alliance TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/call pulse_line FALSE
 			/call control_routine FALSE
-			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
+			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call misc_combat_${Me.Class.ShortName} TARGET
 			/call control_routine FALSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
@@ -112,7 +113,7 @@ sub misc_combat_BRD(bool _debug, int _tmpID)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	/call check_item_cycle ${maDebug.Find[item].Value} ${_tmpID}
@@ -168,7 +169,7 @@ sub check_heal_BRD(bool _debug)
 	SETHUD "heal ${_type}"
 
 	/if (!${check_hurt[${_debug}, ${_type}]}) /return FALSE
-	/call cast_list ${_debug} lsHealBaseLine ${Me.ID}
+	/call cast_cycle_heal ${_debug} ${hurtID}
 
 	SETHUD FALSE
 
@@ -326,7 +327,7 @@ sub burn_BRD(bool _debug)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 

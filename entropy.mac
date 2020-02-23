@@ -58,7 +58,7 @@
 #define CHECKCURSOR "/if (${Cursor.ID} && !${timer_Check_Cursor} && ((AUTO && ${maEnv.Find[swAutoInv].Value}) || ${maEntropy.Find[swAutoInvManual].Value})) /call check_cursor ${maDebug.Find[loot].Value}"
 #define HUDPATH "/noparse /ini .\..\MQ2HUD.ini"
 #define SETHUD "/call set_hud_data"
-#define ISTMPIDDEAD	"/if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE"
+#define CHECKDEFENSE	"/call check_defense_cycle ${maDebug.Find[def].Value}"
 #define FLOW "/if (${maDebug.Find[flow].Value}) /varset flow ${stAssTarID} ::"
 
 
@@ -121,7 +121,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A200217.01
+	/call set_data FALSE maEnv build													map outer A200223.05
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -392,39 +392,56 @@ sub prepare_the_end(bool _debug)
 	/call sql_set_loot_schema ${maDebug.Find[loot].Value}
 
 	| check character shema
-	/call sql_set_character_schema FALSE
-
-	| get the conditions.
-	/call set_initialize_map_conditions FALSE
+	/call sql_set_character_schema ${maDebug.Find[init].Value}
 
 	| set all character maps
-	/call set_initialize_map_character_environment FALSE
+	/call set_initialize_map_character_environment ${maDebug.Find[init].Value}
 
 	| get buffs
-	/call set_initialize_map_buffs FALSE
+	/call set_initialize_map_buffs ${maDebug.Find[init].Value}
+
+
+	/call set_initialize_map_20
 
 	| get items
-	/call set_initialize_map_items FALSE
+	| /call set_initialize_map_items ${maDebug.Find[init].Value}
+
+	| build defense
+	| /call set_initialize_map_defense ${maDebug.Find[init].Value}
+
+	| build heal
+	| /call set_initialize_map_heal ${maDebug.Find[init].Value}
+
+	| build heal
+	| /call set_initialize_map_nuke ${maDebug.Find[init].Value}
+
+	| build heal
+	| /call set_initialize_map_dot ${maDebug.Find[init].Value}
 
 	| set any aliases needs
-	/call set_alias FALSE add
+	/call set_alias ${maDebug.Find[init].Value} add
 
 	| build the zone lists
 	/call set_zone_lists ${maDebug.Find[zone].Value}
 
 	| build crew data
-	/call set_initialize_crew FALSE
+	/call set_initialize_crew ${maDebug.Find[init].Value}
 
 	| start up the DPS meter
-	/if (${SubDefined[DPSMeter_Init]}) {
-		/call DPSMeter_Init
-	}
+	| /if (${SubDefined[DPSMeter_Init]}) {
+	| 	/call DPSMeter_Init
+	| }
 
 	| set class databits'n-bytes
 	/call set_${Me.Class.ShortName} ${maDebug.Find[init].Value}
 
+
+	| get the conditions.
+	/call set_initialize_map_conditions ${maDebug.Find[init].Value}
+
+
  	| check game cash?
-	/call check_free_ingame_cash FALSE
+	/call check_free_ingame_cash ${maDebug.Find[init].Value}
 
 	| set hud variables
 	/call set_initialize_hud_variables

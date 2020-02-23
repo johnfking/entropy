@@ -12,6 +12,10 @@
 sub set_DRU(bool _debug)
 	DEBUG \atset_DRU\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of Nature"
 	/call set_data FALSE maData stSynergy																map outer "Preserver's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Nature Walker's Scimitar"
@@ -49,6 +53,11 @@ sub set_DRU(bool _debug)
 	/declare lsHealOrderpassive list outer
 	/invoke ${lsHealOrderpassive.Delimiter["|"]}
 	/invoke ${lsHealOrderpassive.Append[lsHealPuravida|lsHealAdrenaline|lsHealRejuvilation]}
+
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
 
 /return
 
@@ -101,8 +110,8 @@ sub main_DRU(bool _debug)
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
-			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
-			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
+			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 		}
 
@@ -270,14 +279,7 @@ sub check_heal_DRU(bool _debug, string _type)
 	CHECKFADE
 	CHECKREZ
 
-	/declare _liHM listiterator local
-	/vardata _liHM lsHealOrder${maHeal.Find[stHealMode].Value}.First.Clone
-	/while (!${_liHM.IsEnd}) {
-		DEBUG ${sep}_liHM.Value${sep}\a-w${_liHM.Value}\ax
-		/call cast_list FALSE "${_liHM.Value}" ${hurtID}
-		/return TRUE
-		/invoke ${_liHM.Advance}
-	}
+	/call cast_cycle_heal ${_debug} ${hurtID}
 
 	SETHUD FALSE
 

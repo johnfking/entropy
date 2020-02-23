@@ -12,6 +12,10 @@
 sub set_WIZ(bool _debug)
 	DEBUG \atset_WIZ\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of Arcanum"
 	/call set_data FALSE maData stSynergy																map outer "Evoker's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Staff of the Four"
@@ -45,6 +49,11 @@ sub set_WIZ(bool _debug)
 	/call set_data_map FALSE maChr stNukeTCMagic												PREGEN|1											"${auxna} magic line twincast spell"
 	/call set_data_map FALSE maChr stNukeTCBase													FALSE													"${auxna} base line twincast spell"
 
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
+
 
 /return
 
@@ -69,7 +78,6 @@ sub main_WIZ(bool _debug)
 
 		/if (VALID) {
 			/call set_combat FALSE
-			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (!${timer_Check_deBuffs}) {
@@ -79,10 +87,10 @@ sub main_WIZ(bool _debug)
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stTempPet].Value}"
 			/if (${maCC.Find[swAlliance].Value}) /call trigger_alliance TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) {
 				/if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} ${maDebug.Find[twincast].Value}
-				/call cast_nuke ${maDebug.Find[nuke].Value} lsNuke${stLine} TARGET
+				/call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			}
 			/call misc_combat_${Me.Class.ShortName}
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
@@ -117,7 +125,7 @@ sub misc_combat_WIZ(bool _debug)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
@@ -184,7 +192,7 @@ sub check_heal_WIZ(bool _debug, string _type)
 	CHECKEXIT
 
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
-	/call cast_list ${_debug} lsHealBaseLine ${Me.ID}
+	/call cast_cycle_heal ${_debug} ${hurtID}
 
 /return
 
@@ -207,7 +215,7 @@ sub burn_WIZ(bool _debug)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 

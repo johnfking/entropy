@@ -12,6 +12,10 @@
 sub set_NEC(bool _debug)
 	DEBUG \atset_NEC\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of Necromancy"
 	/call set_data FALSE maData stSynergy																map outer "Defiler's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Scythe of the Shadowed Soul"
@@ -33,6 +37,11 @@ sub set_NEC(bool _debug)
 	/call set_data_map ${_debug} maChr stBlood													PREGEN|1											"${auxna} name of current call for blood spell"
 
 	/call set_data_map ${_debug} maChr stPctBloom				 								0															"${auxnum} % of manna you want to use bloom at"
+
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
 
 /return
 
@@ -60,7 +69,7 @@ sub main_NEC(bool _debug
 		/if (VALID) {
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/call set_combat FALSE
-			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+			CHECKDEFENSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
@@ -69,9 +78,9 @@ sub main_NEC(bool _debug
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/if (${maCC.Find[swAlliance].Value}) /call trigger_alliance TARGET
 			/if (${maChr.Find[swblood].Value} && ${timer_Check_Blood}) /call cast_blood ${maDebug.Find[blood].Value} TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
-			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
-			/if (MELEE) /call use_skill_melee TARGET
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
+			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
+			/if (MELEE) /call do_melee FALSE TARGET
 			/call misc_combat_${Me.Class.ShortName}
 			/call check_item_cycle /call check_cure ${maDebug.Find[castitem].Value} TARGET
 
@@ -84,8 +93,7 @@ sub main_NEC(bool _debug
 		}
 	}
 
-
-/return
+/return TRUE
 
 
 
@@ -131,17 +139,19 @@ sub check_heal_NEC(bool _debug, string _type)
 
 	| heal anything spell
 	/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-		/call cast_list ${_debug} lsHealBaseLine ${hurtID}
+		/call cast_cycle_heal ${_debug} ${hurtID}
 	}
 
 	| aa Dying grasp
-	/if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.PCTHO} && ${is_ready[${_debug}, "Dying Grasp"]}) {
-		/call voodoo ${_debug} "Dying Grasp" TARGET FALSE
+	/if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.PCTHO}) {
+		/if (${is_ready[${_debug}, "Dying Grasp"]}) {
+			/call voodoo ${_debug} "Dying Grasp" TARGET FALSE
+		}
 	}
 
 	SETHUD FALSE
 
-/return
+/return tRUE
 
 
 
@@ -161,7 +171,7 @@ sub misc_combat_NEC(bool _debug)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
@@ -200,7 +210,7 @@ sub burn_NEC(bool _debug)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
 
@@ -285,10 +295,6 @@ sub cast_bloom(bool _debug)
 
 
 
-
-
-
-
 |***
  * note: Class controls
  * use: /chr []
@@ -340,9 +346,3 @@ sub set_control_NEC(string _type, string _verbage, string _silent, bool _debug)
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
 /return
-
-
-
-
-
-

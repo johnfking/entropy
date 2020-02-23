@@ -12,6 +12,10 @@
 sub set_BER(bool _debug)
 	DEBUG \atset_BER\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Juggernaut"
 	/call set_data FALSE maData stSynergy																map outer "Fury's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Kerasian Axe of Ire"
@@ -48,6 +52,11 @@ sub set_BER(bool _debug)
 	/call set_data_map FALSE maChr stPhantomAssailant										PREGEN|1											"${auxna} "
 	/call set_data_map FALSE maChr stOpenWound													PREGEN|1											"${auxna} "
 
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
+
 /return TRUE
 
 
@@ -69,21 +78,20 @@ sub main_BER(bool _debug)
 		GETINPUT
 		CHECKREZ
 		/call check_heal_routines
-		/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+		CHECKDEFENSE
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
 			/call set_combat FALSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]} != TRUE) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+			CHECKDEFENSE
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
-
 
 		}
 
@@ -113,9 +121,7 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
-		/call cast_defensive_cycle ${maDebug.Find[def].Value}
-	}
+	CHECKDEFENSE
 
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 
@@ -197,7 +203,7 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "Braxi's Howl" 0 FALSE
 	}
 
-	| dumb ass zerker has a dicho and a dicho ##. cant use the name to cast with..
+	| serper dicho
 	/if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]} && ${Me.CurrentEndurance} > ${Spell[${maChr.Find[stDichotomic].Value}].EnduranceCost}*2) {
 		/call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" ${_tmpID} FALSE
 	}
@@ -266,7 +272,7 @@ sub check_heal_BER(bool _debug, string _type)
 
 	/if (${Me.PctHPs} > ${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO) /return FALSE
 
-	/call cast_list ${_debug} lsHealBaseLine ${Me.ID}
+	/call cast_cycle_heal ${_debug} ${hurtID}
 
 	SETHUD FALSE
 
@@ -291,7 +297,7 @@ sub burn_BER(bool _debug, int _tmpID)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 

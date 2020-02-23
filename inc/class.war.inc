@@ -13,6 +13,10 @@
 sub set_WAR(bool _debug)
 	DEBUG \atset_WAR\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data FALSE maData stSpire 																map outer "Spire of the Warlord"
 	/call set_data FALSE maData stSynergy																map outer "Myrmidon's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Jagged Blade of War"
@@ -62,6 +66,11 @@ sub set_WAR(bool _debug)
 	/call set_data_map FALSE maChr stOnslaught													PREGEN|1											"${auxna} Savage Onslaught Discipline family disc"
 	/call set_data_map FALSE maChr stOffensive													PREGEN|1											"${auxna} Offensive Discipline family disc"
 
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
+
 /return
 
 
@@ -84,15 +93,14 @@ sub main_WAR(bool _debug)
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
-			/call set_combat FALSE
-			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-			/if (AGRO) /call get_agro_${Me.Class.ShortName}
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
+			/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} TARGET
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
-			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
+			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
@@ -112,11 +120,11 @@ sub main_WAR(bool _debug)
  * note: the things we to to irritate chanters and clerics
  * use:
  ***|
-sub misc_combat_WAR(bool _debug)
-	DEBUG \atmisc_combat_WAR\ax()
+sub misc_combat_WAR(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat_WAR\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${target[isdead, TARGET]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -125,13 +133,12 @@ sub misc_combat_WAR(bool _debug)
 	GETINPUT
 	CHECKTIE
 
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
-	/if (AGRO) /call get_agro_${Me.Class.ShortName}
+	/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} ${_tmpID}
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
-
+	CHECKDEFENSE
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stNoTime].Value}"]} && !${Me.Buff[${maChr.Find[stDichotomic].Value}].ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stNoTime].Value}" 0 FALSE
@@ -139,11 +146,11 @@ sub misc_combat_WAR(bool _debug)
 
 	| stShocking blocks Brace for Impact
 	/if (${is_ready[${_debug}, "${maChr.Find[stShocking].Value}"]} && !${Me.Buff[Brace for Impact].ID}) {
-		/call voodoo ${_debug} "${maChr.Find[stShocking].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stShocking].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stRunes].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stRunes].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stRunes].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stDefense].Value}"]}) {
@@ -152,11 +159,11 @@ sub misc_combat_WAR(bool _debug)
 
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stProvoke].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stProvoke].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stProvoke].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stCommanding].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stCommanding].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stCommanding].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${is_ready[${_debug}, "Brace for Impact"]} && !${Me.Buff[${maChr.Find[stShocking].Value}].ID}) {
@@ -168,7 +175,7 @@ sub misc_combat_WAR(bool _debug)
 	}
 
 	/if (${is_ready[${_debug}, "Gut Punch"]}) {
-		/call voodoo ${_debug} "Gut Punch" TARGET FALSE
+		/call voodoo ${_debug} "Gut Punch" ${_tmpID} FALSE
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stField].Value}"]} && !${Me.Song[${maChr.Find[stField].Value}].ID}) {
@@ -176,7 +183,7 @@ sub misc_combat_WAR(bool _debug)
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stShield].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stShield].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stShield].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${is_ready[${_debug}, "Imperator's Command"]}) {
@@ -184,15 +191,15 @@ sub misc_combat_WAR(bool _debug)
 	}
 
 	/if (${is_ready[${_debug}, "Knee Strike"]}) {
-		/call voodoo ${_debug} "Knee Strike" TARGET FALSE
+		/call voodoo ${_debug} "Knee Strike" ${_tmpID} FALSE
 	}
 
-	/call check_facing ${maDebug.Find[face].Value} TARGET FALSE
+	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FALSE
 
 	| Duplicating these two sub calls here b/c don't want to lose agro or mitigation while firing off this other stuff.
-	/if (AGRO) /call get_agro_${Me.Class.ShortName}
+	/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} ${_tmpID}
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 
 	/if (AE# && ${SpawnCount[npc radius ENV targetable PS4]} >= AE#) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stExpanse].Value}"]}) {
@@ -206,7 +213,7 @@ sub misc_combat_WAR(bool _debug)
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stPrecision].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stPrecision].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stPrecision].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stReprisal].Value}"]}) {
@@ -234,13 +241,13 @@ sub misc_combat_WAR(bool _debug)
  * note:
  * use:
  ***|
-sub get_agro_WAR(bool _debug)
-	DEBUG \atget_agro_WAR\ax()
+sub get_agro_WAR(bool _debug, int _tmpID)
+	DEBUG \atget_agro_WAR\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
 	GETINPUT
 	CHECKEXIT
-	/if (${target[isdead, TARGET]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -255,7 +262,7 @@ sub get_agro_WAR(bool _debug)
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stProvoke].Value}"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
-		/call voodoo ${_debug} "${maChr.Find[stProvoke].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stProvoke].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stShout].Value}"]}) {
@@ -264,14 +271,14 @@ sub get_agro_WAR(bool _debug)
 
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stBazu].Value}"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
-		/call voodoo ${_debug} "${maChr.Find[stBazu].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stBazu].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
 		/if (${is_ready[${_debug}, "Rage of the Forsaken"]}) {
-			/call voodoo ${_debug} "Rage of the Forsaken" TARGET FALSE
+			/call voodoo ${_debug} "Rage of the Forsaken" ${_tmpID} FALSE
 			/if (${is_ready[${_debug}, "Blast of Anger"]}) {
-				/call voodoo ${_debug} "Blast of Anger" TARGET FALSE
+				/call voodoo ${_debug} "Blast of Anger" ${_tmpID} FALSE
 			}
 		}
 	}
@@ -281,7 +288,7 @@ sub get_agro_WAR(bool _debug)
 			/call voodoo ${_debug} "Area Taunt" 0 FALSE
 		}
 		/if (${is_ready[${_debug}, "${maChr.Find[stWhirling].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stWhirling].Value}" TARGET FALSE
+			/call voodoo ${_debug} "${maChr.Find[stWhirling].Value}" ${_tmpID} FALSE
 		}
 		/if (${is_ready[${_debug}, "${maChr.Find[stRallying].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stRallying].Value}" 0 FALSE
@@ -291,11 +298,11 @@ sub get_agro_WAR(bool _debug)
 
 	| 20% agro boost AA with 2/10 uptime
 	/if (${is_ready[${_debug}, "Warlord's Fury"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
-		/call voodoo ${_debug} "Warlord's Fury" TARGET FALSE
+		/call voodoo ${_debug} "Warlord's Fury" ${_tmpID} FALSE
 	}
 
 	/if (${is_ready[${_debug}, "Blast of Anger"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
-		/call voodoo ${_debug} "Blast of Anger" TARGET FALSE
+		/call voodoo ${_debug} "Blast of Anger" ${_tmpID} FALSE
 	}
 
 /return
@@ -320,8 +327,7 @@ sub check_heal_WAR(bool _debug, string _type)
  		/return FALSE
  	}
 
-	| heal
-	/call cast_list ${_debug} lsHealBaseLine ${Me.ID}
+	/call cast_cycle_heal ${_debug} ${hurtID}
 
 /return
 
@@ -332,11 +338,11 @@ sub check_heal_WAR(bool _debug, string _type)
  * not: burn routines
  * use:
  ***|
-sub burn_WAR(bool _debug)
-	DEBUG burn_WAR(${_debug})
+sub burn_WAR(bool _debug, int _tmpID)
+	DEBUG \atburn_WAR\x(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${target[isdead, TARGET]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -345,12 +351,12 @@ sub burn_WAR(bool _debug)
 	GETINPUT
 	CHECKTIE
 
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
 	/if (${maChr.Find[stPctShieldFlash].Value} && ${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE disc
 
-	/if (!${is_defensive_active[${_debug}, BURN, SAFEENV]}) /call cast_defensive_cycle ${_debug}
+	CHECKDEFENSE
 
 	/if (AGRO && ${swBurnControl} && TARGET && (${NameList.Find[${Target.DisplayName}]} && !${swOverrideName})) {
 		/if (${is_ready[${_debug}, "Fortitude Discipline"]}) {
@@ -360,7 +366,7 @@ sub burn_WAR(bool _debug)
 
 		} else {
 			/if (AGRO && ${is_ready[${_debug}, "${maChr.Find[stWarriors].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stWarriors].Value}" TARGET FALSE
+				/call voodoo ${_debug} "${maChr.Find[stWarriors].Value}" ${_tmpID} FALSE
 			}
 			/if (AGRO && ${is_ready[${_debug}, "Mark of the Mage Hunter"]}) {
 				/call voodoo ${_debug} "Mark of the Mage Hunter" 0 FALSE
@@ -382,7 +388,7 @@ sub burn_WAR(bool _debug)
 
 		} else {
 			/if (!${Me.ActiveDisc.Name.Equal[${maChr.Find[stEvasive].Value}]} && !${Me.ActiveDisc.Name.Equal[Fortitude Discipline]} && !${Me.Buff[${maChr.Find[stWarriors].Value}].ID}) {
-				/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+				CHECKDEFENSE
 			}
 		}
 	}
@@ -410,10 +416,10 @@ sub burn_WAR(bool _debug)
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stAttention].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stAttention].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stAttention].Value}" ${_tmpID} FALSE
 	}
 	/if (${is_ready[${_debug}, "${maChr.Find[stPhantom].Value}"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
-		/call voodoo ${_debug} "${maChr.Find[stPhantom].Value}" TARGET FALSE
+		/call voodoo ${_debug} "${maChr.Find[stPhantom].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${Me.AltAbilityReady[Resplendent Glory]} && !${Me.Song[Hold the Line].ID}) {

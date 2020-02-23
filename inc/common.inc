@@ -139,14 +139,19 @@ sub set_data_timer(string _debug, string _env_timer, string _value, string _verb
 
 |***
  * note: generate initial environment sql and map
- * use: /call set_data_map DEBUG [map name] [variable] [value] [aux]
+ * use: /call set_data_map DEBUG [map name] [variable] [value] <aux> <table>
  ***|
-sub set_data_map (bool _debug, string _map, string _env_var, string _value, _aux)
-	DEBUG \atset_data_map\ax(\a-w${_map}, ${_env_var}, "${_value}", "${_aux}"\ax)
+sub set_data_map (bool _debug, string _map, string _env_var, string _value, _aux, _table)
+	DEBUG \atset_data_map\ax(\a-w${_map}, ${_env_var}, "${_value}", "${_aux}", ${_table}\ax)
 
 	| make sure map container exists
 	/if (!${Defined[${_map}]}) {
 		/declare ${_map} map outer
+	}
+
+	| set the default database suffix
+	/if (!${Bool[${_table}]}) {
+		/varset _table character
 	}
 
 	| record pregen data
@@ -155,8 +160,8 @@ sub set_data_map (bool _debug, string _map, string _env_var, string _value, _aux
 	}
 
 	| is the data there already?
-	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_character WHERE env_var="${_env_var}"
-	DEBUG ${sep}dummy SELECT * FROM environment_character WHERE env_var='${_env_var}' ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
+	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_env_var}"
+	DEBUG ${sep}dummy SELECT * FROM environment_${_table} WHERE env_var='${_env_var}' ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
 
 	| data exists. get from DB and call good
 	/if (${sqlite.Rows[dummy]}) {
@@ -207,8 +212,8 @@ sub set_data_map (bool _debug, string _map, string _env_var, string _value, _aux
 		}
 	}
 
-	/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_character(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${Parse[1,${_aux}]}")
-	DEBUG ${sep}dummy INSERT OR IGNORE INTO environment_character(env_var,value,aux) VALUES('${_env_var}', '${_value}', '${_aux}') ${dot} \ay${sqlite.Status[dummy]}\ax
+	/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${_aux}")
+	DEBUG ${sep}dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES('${_env_var}', '${_value}', '${_aux}') ${dot} \ay${sqlite.Status[dummy]}\ax
 	/invoke ${${_map}.Add[${_env_var},"${_value}"]}
 
 /return TRUE
@@ -219,8 +224,8 @@ sub set_data_map (bool _debug, string _map, string _env_var, string _value, _aux
  * note: generate initial environment sql and list
  * use: /call set_data_list DEBUG [list name] [variable] [value] [aux]
  ***|
-sub set_data_list (bool _debug, string _map, string _env_var, string _value, string _aux)
-	DEBUG \atset_data_list\ax(\a-w${_map}, ${_env_var}, "${_value}", "${_aux}"\ax)
+sub set_data_list (bool _debug, string _map, string _env_var, string _value, string _aux, string _table)
+	DEBUG \atset_data_list\ax(\a-w${_map}, ${_env_var}, "${_value}", "${_aux}", ${_table}\ax)
 
 	| make sure list container exists
 	/if (!${Defined[${_env_var}]}) {
@@ -233,14 +238,19 @@ sub set_data_list (bool _debug, string _map, string _env_var, string _value, str
 		/declare ${_map} map outer
 	}
 
+	| set the default database suffix
+	/if (!${Bool[${_table}]}) {
+		/varset _table character
+	}
+
 	| record pregen data
 	/if (${_value.Arg[1,|].Equal[PREGEN]}) {
 		/invoke ${maPREGEN.Add[${_env_var},${_value.Arg[2,|]}]}
 	}
 
 	| is the data there already?
-	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_character WHERE env_var="${_env_var}"
-	DEBUG ${sep}dummy SELECT * FROM environment_character WHERE env_var='${_env_var}' ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
+	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_env_var}"
+	DEBUG ${sep}dummy SELECT * FROM environment_${_table} WHERE env_var='${_env_var}' ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
 
 	| data exists. get from DB and call it good
 	/if (${sqlite.Rows[dummy]}) {
@@ -311,8 +321,8 @@ sub set_data_list (bool _debug, string _map, string _env_var, string _value, str
 		}
 
 		| put shit into the database.. took us this long to get here. may as well do something
-		/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_character(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${Parse[1,${_aux}]}")
-		DEBUG ${sep}  dummy INSERT OR IGNORE INTO environment_character(env_var,value,aux) VALUES('${_env_var}', "${_value}", '${Parse[1,${_aux}]}') ${dot} \ay${sqlite.Status[dummy]}\ax
+		/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${Parse[1,${_aux}]}")
+		DEBUG ${sep}  dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES('${_env_var}', "${_value}", '${Parse[1,${_aux}]}') ${dot} \ay${sqlite.Status[dummy]}\ax
 
 	}
 
@@ -330,7 +340,7 @@ sub set_data_list (bool _debug, string _map, string _env_var, string _value, str
 |***
  * note: /creates / sets conditions
  * use: /call set_data_condition DEBUG [variable] [value]
- ***|
+
 sub set_data_condition(bool _debug, string _env_var, string _value)
 
 	/if (!${Defined[maCondition]}) {
@@ -355,13 +365,13 @@ sub set_data_condition(bool _debug, string _env_var, string _value)
 	/invoke ${maCondition.Add[${_env_var},"${_value}"]}
 
 /return TRUE
-
+ ***|
 
 
 |***
  * note: /creates / sets mis variables
  * use: /call set_data_var DEBUG [variable] [bool,string,int] [local|outer|global] [value]
- ***|
+
 sub set_data_var(bool _debug, string _env_var, string _type, string _scope, string _value)
 	/if (${_debug}) /echo \atset_data\ax(\a-w${_env_var}, ${_type}, ${_scope}, "${_value}"\ax)
 
@@ -387,7 +397,7 @@ sub set_data_var(bool _debug, string _env_var, string _type, string _scope, stri
 	/varset ${_env_var} ${_value}
 
 /return TRUE
-
+ ***|
 
 
 |***
@@ -433,7 +443,7 @@ sub set_data_buffs(bool _debug, string _env_var, string _value)
 |***
  * note: /creates / sets crew
  * use: /call set_data_crew DEBUG [variable] [value]
- ***|
+
 sub set_data_crew(bool _debug, string _env_var, string _value)
 	DEBUG \atset_data_crew\ax(\a-w${_env_var}, ${_value}\ax)
 
@@ -467,13 +477,13 @@ sub set_data_crew(bool _debug, string _env_var, string _value)
 	}
 
 /return TRUE
-
+ ***|
 
 
 |***
  * note: /creates / sets items
  * use: /call set_data_items DEBUG [variable] [value]
- ***|
+
 sub set_data_items(bool _debug, string _env_var, string _value)
 	DEBUG \atset_data_items\ax(\a-w${_env_var}, ${_value}\ax)
 
@@ -482,8 +492,8 @@ sub set_data_items(bool _debug, string _env_var, string _value)
 		/invoke ${${_env_var}.Delimiter["|"]}
 	}
 
-	/if (!${Defined[maItems]}) {
-		/declare maItems map outer
+	/if (!${Defined[maItem]}) {
+		/declare maItem map outer
 	}
 
 	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_items WHERE env_var="${_env_var}"
@@ -491,8 +501,8 @@ sub set_data_items(bool _debug, string _env_var, string _value)
 
 	/if (${sqlite.Rows[dummy]}) {
 		DEBUG ${sep}DATA \agdoes exists\ax
-		/invoke ${maItems.Add[${sqlite.Result[dummy 1 env_var]},${sqlite.Result[dummy 1 value]}]}
-		DEBUG maItems${sep}${maItems.Find[${sqlite.Result[dummy 1 value]}]}
+		/invoke ${maItem.Add[${sqlite.Result[dummy 1 env_var]},${sqlite.Result[dummy 1 value]}]}
+		DEBUG maItem${sep}${maItem.Find[${sqlite.Result[dummy 1 value]}]}
 		/if (${_env_var.Left[2].Equal[ls]}) {
 			/invoke ${${_env_var}.Append["${sqlite.Result[dummy 1 value]}"]}
 		}
@@ -501,12 +511,102 @@ sub set_data_items(bool _debug, string _env_var, string _value)
 
 	/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_items(env_var, value) VALUES("${_env_var}", "${_value}")
 	DEBUG ${sep}dummy INSERT OR IGNORE INTO environment_items(env_var, value) VALUES('${_env_var}', '${_value}') ${dot} \ay${sqlite.Status[dummy]}\ax
-	/invoke ${maItems.Add[${_env_var},"${_value}"]}
+	/invoke ${maItem.Add[${_env_var},"${_value}"]}
 	/if (${_env_var.Left[2].Equal[ls]}) {
 		/invoke ${${_env_var}.Append["${_value}"]}
 	}
 
 /return TRUE
+ ***|
+
+
+|***
+ * note: creates / sets defense
+ * use: /call set_data_defense DEBUG [variable] [value]
+
+sub set_data_defense(bool _debug, string _env_var, string _value)
+	DEBUG \atset_data_defense\ax(\a-w${_env_var}, ${_value}\ax)
+
+	/if (!${Defined[${_env_var}]} && ${_env_var.Left[2].Equal[ls]}) {
+		/declare ${_env_var} list outer
+		/invoke ${${_env_var}.Delimiter["|"]}
+	}
+
+	/if (!${Defined[maDefense]}) {
+		/declare maDefense map outer
+	}
+
+	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_defense WHERE env_var="${_env_var}"
+	DEBUG ${sep}dummy SELECT * FROM environment_defense WHERE env_var='${_env_var}' ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
+
+	/if (${sqlite.Rows[dummy]}) {
+		DEBUG ${sep}DATA \agdoes exists\ax
+		/invoke ${maDefense.Add[${sqlite.Result[dummy 1 env_var]},${sqlite.Result[dummy 1 value]}]}
+		DEBUG maDefense${sep}${maDefense.Find[${sqlite.Result[dummy 1 value]}]}
+		/if (${_env_var.Left[2].Equal[ls]}) {
+			/invoke ${${_env_var}.Append["${sqlite.Result[dummy 1 value]}"]}
+		}
+		/return TRUE
+	}
+
+	/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_defense(env_var, value) VALUES("${_env_var}", "${_value}")
+	DEBUG ${sep}dummy INSERT OR IGNORE INTO environment_defense(env_var, value) VALUES('${_env_var}', '${_value}') ${dot} \ay${sqlite.Status[dummy]}\ax
+	/invoke ${maDefense.Add[${_env_var},"${_value}"]}
+	/if (${_env_var.Left[2].Equal[ls]}) {
+		/invoke ${${_env_var}.Append["${_value}"]}
+	}
+
+/return TRUE
+ ***|
+
+
+|***
+ * note: creates / sets healing
+ * use: /call set_data_heal DEBUG [variable] [value]
+
+sub set_data_heal(bool _debug, string _env_var, string _value, string _aux)
+	DEBUG \atset_data_heal\ax(\a-w${_env_var}, ${_value}, "${_aux}"\ax)
+
+	/if (!${Defined[${_env_var}]} && ${_env_var.Left[2].Equal[ls]}) {
+		/declare ${_env_var} list outer
+		/invoke ${${_env_var}.Delimiter["|"]}
+	}
+
+	/if (!${Defined[maHeal]}) {
+		/declare maHeal map outer
+	}
+
+	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_heal WHERE env_var="${_env_var}"
+	DEBUG ${sep}dummy SELECT * FROM environment_heal WHERE env_var='${_env_var}' ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
+
+	/if (${sqlite.Rows[dummy]}) {
+		DEBUG ${sep}DATA \agdoes exists\ax
+		/invoke ${maHeal.Add[${sqlite.Result[dummy 1 env_var]},${sqlite.Result[dummy 1 value]}]}
+		DEBUG maHeal${sep}${maHeal.Find[${sqlite.Result[dummy 1 value]}]}
+		/if (${_env_var.Left[2].Equal[ls]}) {
+			/invoke ${${_env_var}.Append["${sqlite.Result[dummy 1 value]}"]}
+		}
+		/return TRUE
+	}
+
+	| /sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_heal(env_var, value, aux) VALUES("${_env_var}", "${_value}", "${_aux}")
+	| DEBUG ${sep}dummy INSERT OR IGNORE INTO environment_heal(env_var, value) VALUES('${_env_var}', '${_value}', ) ${dot} \ay${sqlite.Status[dummy]}\ax
+
+	/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_heal(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${_aux}")
+	DEBUG ${sep}dummy INSERT OR IGNORE INTO environment_heal(env_var,value,aux) VALUES('${_env_var}', '${_value}', '${_aux}') ${dot} \ay${sqlite.Status[dummy]}\ax
+
+
+	/invoke ${maHeal.Add[${_env_var},"${_value}"]}
+	/if (${_env_var.Left[2].Equal[ls]}) {
+		/invoke ${${_env_var}.Append["${_value}"]}
+	}
+
+/return TRUE
+ ***|
+
+
+
+
 
 
 
@@ -805,7 +905,7 @@ sub get_hurt(bool _debug, string _type)
 			/if (${Group.Member[${_count}].PctHPs} > ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}) /continue
 			/if (${Group.Member[${_count}].Distance} > ENV) /continue
 			/if (!${Group.Member[${_count}].Present} || ${Group.Member[${_count}].Dead}) /continue
-			/if (${Group.Member[${_count}].DisplayName.Equal[${maChr.Find[stRampageTank].Value}]}) /continue
+			/if (${Group.Member[${_count}].DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}) /continue
 			/if (${lsNoHealToon.Contains[${Group.Member[${_count}].DisplayName}]}) /continue
 
 			DEBUG ${sep}_tmpWeight${sep}\a-w${_tmpWeight}\ax
@@ -837,7 +937,7 @@ sub get_hurt(bool _debug, string _type)
 	  	/if (${Me.XTarget[${_count}].Dead}) /continue
 	  	/if (${Me.XTarget[${_count}].PctHPs} > ${hurtPctHP}) /continue
 	  	/if (${Me.XTarget[${_count}].Distance} > ENV) /continue
-			/if (${Me.XTarget[${_count}].DisplayName.Equal[${maChr.Find[stRampageTank].Value}]}) /continue
+			/if (${Me.XTarget[${_count}].DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}) /continue
 			/if (${lsNoHealToon.Contains[${Me.XTarget[${_count}].DisplayName}]}) /continue
 	  	/if (!${Me.XTarget[${_count}].Type.Equal[PC]} && !${lsProtectNPCList.Contains[${Me.XTarget[${_count}].DisplayName}]}) /continue
 			/if (${Me.XTarget[${_count}].PctHPs} > ${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}*.PCTHO) /continue
@@ -1413,10 +1513,18 @@ sub check_for_rezbox(bool _debug)
 			/delay 2s !${Me.State.Equal[HOVER]}
 			/delay 2s !${Me.Hovering}
 			/delay 2s !${Me.Dead}
+
 			/varset stAssTarID 0
+			/invoke ${maCC.Add[swValidAssTarID,FALSE]}
+			/invoke ${maCC.Add[swSetCombat,FALSE]}
+			/invoke ${maCC.Add[swSetForced,FALSE]}
+			/invoke ${set_data_timer[FALSE, Check_Behind, 0]}
+
 			/call set_stop FALSE SILENT
 			/varset swIsMeDead FALSE
 			/varset _swValidRezFound FALSE
+
+
 
 			/if (${maHome.Find[swHomeMarker].Value}) {
 				/call Bind_control_home clear
@@ -2012,7 +2120,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		}
 
 		/while (${_castLoop}) {
-			DEBUG While
+			| DEBUG While
 			/useitem "${_verbage}"
 			/delay 2
 
@@ -2025,7 +2133,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 
 			} else {
-				DEBUG CAST TIME
+				| DEBUG CAST TIME
 				/delay 8
 				/delay ${Math.Calc[${FindItem[${_verbage}].CastTime.Float}+5]}s !${Me.Casting.ID}
 				/while (${Me.Casting.ID} || ${Window[CastingWindow].Open}) {
@@ -2283,22 +2391,44 @@ sub check_xtarget_build(bool _debug, string _forced)
 		/next _count
 	}
 
+		**|
+
 	| protect PCs when outside group
-	/if (!${Raid.Members} && ${lsProtectOutsideGroup.Count}]}) {
-		/for _x 1 to ${ProtectOutsideGroup.Count[|]}
-			/varset _name ${Spawn[=${ProtectOutsideGroup.Arg[${_x},|]} pc].DisplayName}
-			/if (${Spawn[pc ${_name}].Distance} > ENV) /continue
-			/if (${Group.Member[${_name}].ID}) /continue
-			/if (${_b} > ${Me.XTargetSlots} || !${Bool[${Spawn[pc ${_name}]}]}) /continue
+	/if (!${Raid.Members} && ${lsProtectOutsideGroup.Count}) {
+
+		/declare _lipcxt listiterator local
+		/vardata _lipcxt lsProtectOutsideGroup.First.Clone
+		/while (!${_lipcxt.IsEnd}) {
+
+			/varset _name ${Spawn[${_lipcxt.Value} pc].DisplayName}
+
+			| in our range of operaions?
+			/if (${Spawn[pc ${_name}].Distance} > ENV || !${Bool[${Spawn[pc ${_name}]}]}) {
+				/invoke ${_lipcxt.Advance}
+				/continue
+			}
+
+			| are they already in our group?
+			/if (${Group.Member[${_name}].ID}) {
+				/invoke ${_lipcxt.Advance}
+				/continue
+			}
+
+			| out of xtarget slots?
+			/if (${_b} > ${Me.XTargetSlots})
+				/break
+			}
+
 			/if (${Bool[${Me.XTarget[${_name}]}]}) {
 				/varcalc _b ${_b}+1
 			} else /if (${Bool[${Spawn[pc ${_name}]}]}) {
 				/varcalc _b ${_b}+1
 				/xtarget set ${_b} ${Spawn[pc ${_name}].Name}
 			}
-		/next _x
+
+		/invoke ${_lipcxt.Advance}
 	}
-	**|
+
 
 	| set raid member classes to protect
 	/if (${Raid.Members}) {
@@ -4751,7 +4881,7 @@ sub set_control_heal_point(bool _debug, int _verbage)
 		/varset _out ${_out} ${If[${_lichp.Value.Equal[${lsClassAll.First}]},,${dot}]} ${info}${_lichp.Value}\ax:${num}${maHeal.Find[stHealPoint${_lichp.Value}].Value}\ax
 		/invoke ${_lichp.Advance}
 	}
-	/varset _out ${_out} ${dot}${info}PANIC\ax:${num}${maHeal.Find[stHealPointPanic].Value}\ax
+
 	/varset _out ${_out} ${dot}${info}HOT\ax:${num}${maHeal.Find[stHealPointHoT].Value}\ax
 
 	/invoke ${out[12, "/heal point ${_out}"]}
@@ -5074,15 +5204,22 @@ sub check_buff_cycle_now(bool _debug)
 			/invoke ${_licountself.Advance}
 			/continue
 		}
+		/if (!${is_ready[${_debug}, "${maBuffs.Find[stBuff${_licountself.Value}].Value}"]}) {
+			/invoke ${_licountself.Advance}
+			/continue
+		}
 		/if (!${lsBuff${_licountself.Value}Tag.Contains[alwaysup]}) {
 			/invoke ${_licountself.Advance}
 			/continue
 		}
-		/if (!${check_basic_tags[${_debug}, Buff${_licountself.Value}, ${Me.DisplayName}]}) {
+
+		/if (!${check_condition[${_debug}, ${maBuffs.Find[stBuff${_licountself.Value}Con].Value}]}) {
 			/invoke ${_licountself.Advance}
 			/continue
 		}
-		/if (!${is_ready[${_debug}, "${maBuffs.Find[stBuff${_licountself.Value}].Value}"]}) {
+
+		/call check_basic_tags ${_debug} Buff${_licountself.Value} ${Me.DisplayName} "${maBuffs.Find[stBuff${_licountself.Value}].Value}"
+		/if (!${Macro.Return}) {
 			/invoke ${_licountself.Advance}
 			/continue
 		}
@@ -5227,27 +5364,11 @@ sub check_buff_cycle_unity(bool _debug)
 
 
 
-
-| testing trigger returns for ranger / sk / cleric
-${Spell[Wildstalker's Unity (Azia)].Trigger[1]}
-${Spell[Wildstalker's Unity (Beza)].Trigger[1]}
-${Spell[Dark Lord's Unity (Azia)].Trigger[1]}
-${Spell[Dark Lord's Unity (Beza)].Trigger[1]}
-${Spell[Saint's Unity].Trigger[1]}
-
-${Me.Spell[Wildstalker's Unity (Beza)].Trigger[1]}
-${Me.Spell[Wildstalker's Unity (Azia)].Trigger[1]}
-
-
-
-
-
 |***
  * note: Check for running auras, If they are duped, remove the second one
  * use: /call check_aura
  ***|
 sub check_buff_cycle_aura(bool _debug)
-	DEBUG \atcheck_buff_cycle_aura\ax()
 	FLOW check_buff_cycle_aura
 
 	SETHUD "buff aura"
@@ -5264,16 +5385,17 @@ sub check_buff_cycle_aura(bool _debug)
 	CHECKEXIT
 	GETINPUT check_buff_cycle_aura NA|NA
 
-	/declare _a1 		string local ${set_rank[${_debug}, ${maBuff.Find[stAura1].Value.Arg[1,+]}]}
+	/declare _a1 		string local ${set_rank[${_debug}, ${maBuff.Find[stAura1].Value}]}
 	/declare _a1c 	string local ${maBuff.Find[stAura1Check].Value}
-	/declare _a2 		string local ${set_rank[${_debug}, ${maBuff.Find[stAura2].Value.Arg[1,+]}]}
+	/declare _a2 		string local ${set_rank[${_debug}, ${maBuff.Find[stAura2].Value}]}
 	/declare _a2c 	string local ${maBuff.Find[stAura2Check].Value}
 
 	| Aura: berzerker, monk, warrior
 	/if (${check_class[FALSE, |BER|MNK|WAR]}) {
 		DEBUG ${sep}(\a-rBER|MNK|WAR\ax)
 		/if (${Bool[${_a1c}]} && !${Bool[${Me.Aura[1].Name.Equal[${_a1c}]}]}) {
-			/if (!${check_basic_tags[FALSE, Aura1, ${Me.DisplayName}]}) /return FALSE
+			/call check_basic_tags ${_debug} Aura1 ${Me.DisplayName} "${_a1c}"
+			/if (!${Macro.Return}) /return FALSE
 			/call voodoo FALSE "${_a1}" 0 FALSE
 		}
 	}
@@ -5282,7 +5404,8 @@ sub check_buff_cycle_aura(bool _debug)
 	/if (${check_class[FALSE, |BRD]}) {
 		DEBUG ${sep}(\a-rBRD\ax)
 		/if (${Bool[${_a1c}]} && !${Bool[${Me.Aura[1].Name.Equal[${_a1c}]}]}) {
-			/if (!${check_basic_tags[FALSE, Aura1, ${Me.DisplayName}]}) /return FALSE
+			/call check_basic_tags ${_debug} Aura1 ${Me.DisplayName} "${_a1c}"
+			/if (!${Macro.Return}) /return FALSE
 			/if (${is_ready[${_debug}, "${_a1}"]}) {
 				/call voodoo ${_debug} "${_a1}" 0 FALSE
 			}
@@ -5300,19 +5423,25 @@ sub check_buff_cycle_aura(bool _debug)
 		/for _aura 1 to 2
 			DEBUG ${sep}Aura ${_aura}${sep}\a-w${_a1}\ax
 			DEBUG ${sep}Aura ${_aura} check${sep}\a-w${_a1c}\ax
+
+			| check each arua for each slot
 			/if (${Bool[${_a${_aura}}]}) {
 				/for _count 1 to 2
 					/if (${Bool[${_a${_aura}c}]}) {
-						/if (!${check_basic_tags[${_debug}, Aura${_count}, ${Me.DisplayName}]}) {
+						/call check_basic_tags ${_debug} Aura${_count} ${Me.DisplayName} "${_a${_aura}}"
+						/if (!${Macro.Return}) {
+							/continue
 							/varset _found${_aura} TRUE
 						}
 
 						DEBUG ${sep}/if Me.Aura[${_count}].Name.Equal[${_a${_aura}c}]
 						/if (${Me.Aura[${_count}].Name.Equal[${_a${_aura}c}]}) {
+							DEBUG ${sep} _found${_aura} TRUE
 							/varset _found${_aura} TRUE
 
 							DEBUG ${sep}/if Me.Aura[${_count}].Name.Equal[${_a${_aura}}]
 						} else /if (${Me.Aura[${_count}].Name.Equal[${_a${_aura}}]}) {
+							DEBUG ${sep} _found${_aura} TRUE
 							/varset _found${_aura} TRUE
 						}
 
@@ -5357,6 +5486,15 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
 		/declare _buffcycletimestart int local ${MacroQuest.Running}
 		/if (AUTO && !${maBuff.Find[swBuffMaster].Value}) {
 			/invoke ${out[0, "Master Buff Switch${sep}${off}"]}
+		}
+	}
+
+	| remember buff slot?
+	/if (${maEnv.Find[swHoldBuffGem].Value}) {
+		/if (${Me.Gem[${maEnv.Find[stBuffGem].Value}].ID})  {
+			/declare _tmpSpell string local FALSE
+			DEBUG ${sep}hold buff gem${sep}\a-w${Me.Gem[${maEnv.Find[stBuffGem].Value}]}\ax
+			/varset _tmpSpell ${Me.Gem[${maEnv.Find[stBuffGem].Value}]}
 		}
 	}
 
@@ -5434,12 +5572,21 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
 		}
 	}
 
+
+	| reapply buff slot?
+	/if (${maEnv.Find[swHoldBuffGem].Value}) {
+		/if (${Bool[${_tmpSpell}]}) {
+			DEBUG ${sep}reset buff gem${sep}\a-w${Me.Gem[${maEnv.Find[stBuffGem].Value}]}\ax
+			/call set_spell_to ${_debug} TRUE "${_tmpSpell}" ${maEnv.Find[stBuffGem].Value} FALSE
+		}
+	}
+
+
 	/if (${_force}) {
 		/if (${maBuff.Find[swBuffMaster].Value}) {
 			/invoke ${out[0, "Buff Cycle${sep}\a-wCompleted\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_buffcycletimestart}) / 10) / 60]}s\ax"]}
 		}
 	}
-
 
 /return TRUE
 
@@ -5469,7 +5616,6 @@ sub check_buff_cycle_powersource(bool _debug)
 			/break
 		}
 	/next _count
-
 
 	/if (!${Bool[${_psName}]}) /return FALSE
 
@@ -5509,129 +5655,6 @@ sub check_buff_cycle_powersource(bool _debug)
 
 	}	else {
 		/return FALSE
-	}
-
-/return TRUE
-
-
-
-
-
-
-
-${Me.Inventory[powersource].PctPower.Equal[NULL]}
-${Me.Inventory[powersource].Power}
-${Me.Inventory[powersource].ID}
-
-InvSlot21
-
-
-
-${Me.Inventory[powersource].Name}
-
-${FindItem[Sealed Translucent Energeian Light Orb].Effect}
-
-
-Sealed Translucent Energeian Light Orb
-
-Translucent Energeian Light Orb
-
-Scorpikis Worry Stone
-
-${Spell[${FindItem[Sealed Translucent Energeian Light Orb].Clicky.SpellID}].Name}
-Translucent
-${Spell[${FindItem[Sealed  Energeian Light Orb].Clicky.SpellID}].ID}
-
-${FindItem[Sealed Translucent Energeian Light Orb].Clicky.Name}
-
-			/if (${Me.Buff[${Spell[${FindItem[=${_verbage}].Clicky.SpellID}].Name}].ID}) /return FALSE
-
-
-${FindItemCount[${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}]}
-
-
-
-
-
-
-
-
-
-|***
- * note: clicks stuff
- * use: /call check_item_cycle DEBUG [TARGETID]
- ***|
-sub check_item_cycle(bool _debug, int _tmpID, string _tag)
-	DEBUG \atcheck_item_cycle\ax(\a-w${_tmpID}, ${_tag}\ax)
-	FLOW check_item_cycle
-
-	/declare _liC20 listiterator local
-	/vardata _liC20 lsCount20.First.Clone
-	/while (!${_liC20.IsEnd}) {
-
-		GETINPUT check_item_cycle NA|NA
-		ISMEDEAD
-
-		| check the switch
-		/if (!${Bool[${maItems.Find[swItem${_liC20.Value}].Value}]}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		| check the item name
-		/if (!${Bool[${maItems.Find[stItem${_liC20.Value}].Value}]}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		| apply any conditions
-		/if (!${check_condition[${_debug}, ${maItems.Find[stItem${_liC20.Value}Con].Value}]}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		| check for specific tags, like epics
-		/if (${Bool[${_tag}]}) {
-			/if (!${lsItem${_liC20.Value}Tag.Contains[${_tag}]}) {
-				/invoke ${_liC20.Advance}
-				/continue
-			}
-		}
-
-		/if (!${is_ready[${_debug}, "${maItems.Find[stItem${_liC20.Value}].Value}"]}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		/if (!${check_basic_tags[${_debug}, Item${_liC20.Value}, FALSE]}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		DEBUG ${sep}_liC20.Value${sep}\a-w${_liC20.Value}\ax${sep}passed tags
-		/delay 1
-		/if (${lsItem${_liC20.Value}Tag.Contains[self]}) {
-			/if (!${Me.BuffDuration[${maItems.Find[stItem${_liC20.Value}].Value}]}) /varset _tmpID ${Me.ID}
-		}
-
-		/if (${FindItem[${maItems.Find[stItem${_liC20.Value}].Value}].Spell.Duration.TotalSeconds} && ${FindItem[${maItems.Find[stItem${_liC20.Value}].Value}].Spell.Range}) {
-			/invoke ${target[set, ${_tmpID}]}
-			| /invoke ${set_target[${_tmpID}]}
-			/if (${Target.BuffDuration[${maItems.Find[stItem${_liC20.Value}].Value}].TotalSeconds}) {
-				/invoke ${_liC20.Advance}
-				/continue
-			}
-		}
-
-		| /if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
-
-		/if (${target[isdead, ${_tmpID}]}) {
-			/return FALSE
-		}
-
-		/call voodoo ${_debug} "${maItems.Find[stItem${_liC20.Value}].Value}" ${_tmpID} FALSE
-
-		/invoke ${_liC20.Advance}
 	}
 
 /return TRUE
@@ -5758,7 +5781,7 @@ sub check_buff_cycle_ammo(bool _debug)
 		/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) /continue
 		/if (!${lsBuff${_count}Tag.Contains[summonrange]}) /continue
 
-			DEBUG ${sep}_count${sep}\a-wBuff${_count}${sep}${maBuffs.Find[stBuff${_count}].Value}
+		DEBUG ${sep}_count${sep}\a-wBuff${_count}${sep}${maBuffs.Find[stBuff${_count}].Value}
 
 		/if (${Select[${Me.Class.ShortName},BER]}) {
 			/if (${FindItemCount[=${Spell[${maBuffs.Find[stBuff${_count}].Value}].Base[1]}]} && !${Me.Inventory[ammo].ID}) {
@@ -5778,59 +5801,13 @@ sub check_buff_cycle_ammo(bool _debug)
 			/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" 0 FALSE
 		}
 		/delay 1s ${Me.Casting.ID}
-		/delay 10s !${Me.Casting.ID}
+		/delay 15s !${Me.Casting.ID}
 
 		/call check_cursor ${_debug} CLEAR
 
 	/next _count
 
 /return TRUE
-
-
-
-| zerker
-${maBuffs.Find[stBuff2].Value}
-| count
-${FindItemCount[=${Spell[${maBuffs.Find[stBuff${_count}].Value}].Base[1]}]}
-| name
-${FindItem[=${Spell[${maBuffs.Find[stBuff${_count}].Value}].Base[1]}].Name}
-
-
-
-
-${FindItemCount[${Spell[${FindItem[=${maBuffs.Find[stBuff2].Value}].Spell}].Base[1]}]}
-${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff2].Value}].Spell}].Base[1]}].Name}
-${FindItem[${Spell[${FindItem[${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}
-
-43
-/itemnotify "${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff30].Value}].Spell}].Base[1]}].Name}" leftmouseup
-
-${FindItem[${Spell[${FindItem[${maBuffs.Find[stBuff30].Value}].Spell}].Base[1]}].Name}
-
-${FindItemCount[${Spell[${FindItem[=${maBuffs.Find[stBuff43].Value}].Spell}].Base[1]}]}
-
-${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff43].Value}].Spell}].Base[1]}].Name}
-
-${Spell[${FindItem[=${maBuffs.Find[stBuff30].Value}].Spell}].Base[1]}
-
-/nomodkey /shiftkey /itemnotify "${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff43].Value}].Spell}].Base[1]}].Name}" 22 FALSE
-
-/swap "${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff43].Value}].Spell}].Base[1]}].Name}" 22 FALSE
-
-
-${FindItemCount[${Spell[${maBuffs.Find[stBuff30].Value}].Base[1]}]}
-
-51573
-${FindItemCount[79498]}
-
-79498
-
-${Me.AltAbilityReady[${maBuffs.Find[stBuff30].Value}]}
-${Spell[${maBuffs.Find[stBuff30].Value}].NumEffects}
-
-
-
-
 
 
 
@@ -5870,8 +5847,6 @@ sub check_buff_cycle_leg_poison(bool _debug)
 			/makemevisible
 		}
 
-
-
 		/if (${is_ready[${_debug}, "${maBuffs.Find[stBuff${_count}].Value}"]}) {
 			/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" 0 FALSE
 			/delay 5 ${Me.Casting.ID}
@@ -5891,68 +5866,6 @@ sub check_buff_cycle_leg_poison(bool _debug)
 	SETHUD FALSE
 
 /return TRUE
-
-
-
-
-
-
-${FindItem[=${maBuffs.Find[stBuff5].Value}].Clicky.SummonedID}
-
-${FindItemCount[${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Clicky.SpellID}].Base[1]}]}
-
-
-| Secretion of the Mamba
-${FindItem[=${maBuffs.Find[stBuff5].Value}].Spell}
-${FindItem[=${maBuffs.Find[stBuff5].Value}].Clicky.SpellID}
-
-
-
-
-${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Spell}].Base[1]}
-
-
-${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Spell}].Trigger}
-
-
-${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Clicky.SpellID}].NumEffects}
-
-
-
-${maBuffs.Find[stBuff5].Value}
-
-
-
-${Spell[${maBuffs.Find[stBuff5].Value}].Trigger}
-
-
-
-
-
-
-
-${Spell[${FindItem[=${maBuffs.Find[stBuff5].Value}].Clicky.SpellID}].Name}
-${Spell[${FindItem[=${_spell}].Clicky.SpellID}].Name}
-${Spell[${FindItem[=${_spell}].Clicky.SpellID}].Name}
-${Spell[${FindItem[=${_spell}].Clicky.SpellID}].Name}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -5985,8 +5898,7 @@ sub check_buff_cycle_self(bool _debug)
 	/declare _spell string local FALSE
 
 	/for _count 1 to 50
-
-		| DEBUG _count ${_count}
+		DEBUG _count ${_count}
 
 		/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) {
 			/continue
@@ -6000,16 +5912,14 @@ sub check_buff_cycle_self(bool _debug)
 			/continue
 		}
 
-		DEBUG ${sep}buff:${_count}${sep}\a-w${maBuffs.Find[stBuff${_count}].Value}\ax
-		/if (!${check_basic_tags[FALSE, Buff${_count}, ${Me.DisplayName}]}) {
-			/continue
-		}
-
-		/varset _spell ${set_rank[FALSE, "${maBuffs.Find[stBuff${_count}].Value.Arg[1,+]}"]}
-
 		/if (!${check_condition[${_debug}, ${maBuffs.Find[stBuff${_count}Con].Value}]}) {
 			/continue
 		}
+
+		/call check_basic_tags ${_debug} Buff${_count} ${Me.DisplayName} "${maBuffs.Find[stBuff${_count}].Value}"
+		/if (!${Macro.Return}) /continue
+
+		/varset _spell "${maBuffs.Find[stBuff${_count}].Value}"
 
 		/varset _found TRUE
 
@@ -6386,7 +6296,8 @@ sub check_buff_cycle_crew(bool _debug)
 
 			/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
 			/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) /continue
-			/if (!${check_basic_tags[${_debug}, Buff${_count}, ${_toonName}]}) /continue
+			/call check_basic_tags ${_debug} Buff${_count} ${_toonName} "${maBuffs.Find[stBuff${_count}].Value}"
+			/if (!${Macro.Return}) /continue
 
 			DEBUG ${sep}\agBUFF\ax#${sep}\a-w${_count}\ax \a-p---------------------\ax
 
@@ -6522,7 +6433,8 @@ sub check_buff_cycle_crew(bool _debug)
 			/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
 			/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) /continue
 
-			/if (!${check_basic_tags[FALSE, Buff${_count}, ${_toonName}]}) /continue
+			/call check_basic_tags ${_debug} Buff${_count} ${_toonName} "${maBuffs.Find[stBuff${_count}].Value}"
+			/if (!${Macro.Return}) /continue
 
 			| pretend the target does not have the spell
 			/varset _target FALSE
@@ -6791,13 +6703,13 @@ sub cast_challenge(bool _debug, int _tmpID)
 	/if (${Target.Buff[${maChr.Find[stChallenge].Value}].ID}) {
 		/return TRUE
 	}
+
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT cast_challenge NA|NA
 
-
-	| /if (${get_target_buff_time_left[${_debug}, "${maChr.Find[stChallenge].Value}"]} >= ${maCC.Find[stDotRefresh].Value}) {
-	/if (${Target.BuffDuration[${maChr.Find[stChallenge].Value}].TotalSeconds} >= ${maCC.Find[stDotRefresh].Value}) {
+	/if (${Target.BuffDuration[${maChr.Find[stChallenge].Value}].TotalSeconds}) {
+		DEBUG ${sep}Target.BuffDuration${sep}\a-w${Target.BuffDuration[${maChr.Find[stChallenge].Value}].TotalSeconds}\ax
 		/return TRUE
 	}
 
@@ -6813,7 +6725,7 @@ sub cast_challenge(bool _debug, int _tmpID)
  * note: cast nukes lists
  * use: /call cast_nuke DEBUG [line] [targetid]
  ***|
-sub cast_nuke(bool _debug, string _line, int _tmpID)
+ sub cast_nuke(bool _debug, string _line, int _tmpID)
 	DEBUG \atcast_nuke\ax(\a-w${_line}, ${_tmpID}\ax)
 	FLOW cast_nuke
 
@@ -6869,7 +6781,6 @@ sub cast_nuke(bool _debug, string _line, int _tmpID)
 	}
 
 /return TRUE
-
 
 
 |***
@@ -6966,6 +6877,8 @@ sub do_melee(bool _debug, int _tmpID)
 	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
+
+	CHECKDEFENSE
 
 	/invoke ${target[set, ${_tmpID}]}
 
@@ -7169,10 +7082,10 @@ sub check_harmonious(bool _debug)
 
 |***
  * note: checks tags for buffs..
- * use: ${check_basic_tags[DEBUG, type, name]}
+ * use: ${check_basic_tags[DEBUG, type, toonname, spellname]}
  ***|
-sub check_basic_tags(bool _debug, string _type, string _name)
-	DEBUG \atcheck_basic_tags\ax(\a-w${_type}, ${_name}\ax)
+sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
+	DEBUG \atcheck_basic_tags\ax(\a-w${_type}, ${_name}, ${_spell}\ax)
 	FLOW check_basic_tags
 
 	| is the master switch off?
@@ -7189,6 +7102,16 @@ sub check_basic_tags(bool _debug, string _type, string _name)
 		} else {
 			/return FALSE
 		}
+	}
+
+	| no active eq combat
+	/if (${ls${_type}Tag.Contains[noactivecombat]} && ${Select[${Me.CombatState},active]}) {
+		/return FALSE
+	}
+
+	| no active disc running
+	/if (${ls${_type}Tag.Contains[noactivedisc]} && ${Me.ActiveDisc.ID}) {
+		/return FALSE
 	}
 
 	| obey no tags. only use the aliase for this .. thing..
@@ -7211,7 +7134,6 @@ sub check_basic_tags(bool _debug, string _type, string _name)
 		/return FALSE
 	}
 
-	| /if (${ls${_type}Tag.Contains[combat]} && !${Select[${Me.CombatState},combat]}) /return FALSE
 	| not in a combat routine
 	/if (${ls${_type}Tag.Contains[combat]} && !COMBAT) {
 		/return FALSE
@@ -7262,6 +7184,21 @@ sub check_basic_tags(bool _debug, string _type, string _name)
 		/return FALSE
 	}
 
+	| must have a target and iut must be undead
+	/if (${ls${_type}Tag.Contains[targetundead]} && ${Target.Body.Name.NotEqual[undead]}) {
+		/return FALSE
+	}
+
+	| must have a target and it must be humanoid
+	/if (${ls${_type}Tag.Contains[targethumanoid]} && ${Target.Body.Name.NotEqual[humanoid]}) {
+		/return FALSE
+	}
+
+	| must have a target and it must be plant
+	/if (${ls${_type}Tag.Contains[targetplant]} && ${Target.Body.Name.NotEqual[plant]}) {
+		/return FALSE
+	}
+
 	| must have swarm pets enable
 	/if (${ls${_type}Tag.Contains[swarm]} && !SWARM) {
 		/return FALSE
@@ -7284,6 +7221,19 @@ sub check_basic_tags(bool _debug, string _type, string _name)
 
 	| /if (!${Bool[${_name}]} || ${_name.Equal[FALSE]}) /return TRUE
 	| /if (!${Spawn[${_name} ].ID}) /return FALSE
+
+
+	| mem to a specific gem?
+	/declare _count int local 0
+	| /echo here${sep}\a-w${_spell}\ax
+	/for _count 1 to 13
+
+		/if (${ls${_type}Tag.Contains[g${_count}]}) {
+			DEBUG ${sep}found forded gem#${sep}\a-wg${_count}\ax .. (${_spell}) -- (!${Me.Gem[${_count}].Name.Equal[${Spell[${_spell}].RankName}]})
+			/call set_spell_to ${_debug} TRUE "${Spell[${_spell}].RankName}" ${_count} TRUE
+			/break
+		}
+	/next _count
 
 	| checks to match a class shortname
 	/declare _marker bool FALSE
@@ -7351,10 +7301,7 @@ sub check_for_corpse(bool _debug)
 	/if (!${maRez.Find[swRezCombat].Value} && ${SpawnCount[npc radius ENV PS4]}) {
 		/return FALSE
 	}
-	| no safe zone ressing
-	/if (SAFEZONE) {
-		/return FALSE
-	}
+
 	| not enough manna for AA rez
 	/if (${Me.PctMana} < 2 && !${maRez.Find[swRezToken].Value}) {
 		/return FALSE
@@ -8792,7 +8739,9 @@ sub check_minion_cycle_buff(bool _debug)
 	DEBUG \atcheck_minion_cycle_buff\ax()
 	FLOW check_minion_cycle_buff
 
-	/if (AUTO) /invoke ${set_data_timer[${_debug}, Check_Minion_Buff, RESTART]}
+	/if (AUTO) {
+		/invoke ${set_data_timer[${_debug}, Check_Minion_Buff, RESTART]}
+	}
 
 	/if (!${Pet.ID}) /return FALSE
 
@@ -8810,7 +8759,8 @@ sub check_minion_cycle_buff(bool _debug)
 		| minion buffs?
 		/if (!${lsBuff${_count}Tag.Contains[minion]}) /continue
 
-		/if (!${check_basic_tags[FALSE, Buff${_count}, FALSE]}) /continue
+		/call check_basic_tags ${_debug} Buff${_count} FALSE "${maBuffs.Find[stBuff${_count}].Value}"
+		/if (!${Macro.Return}) /continue
 
 		DEBUG _count${sep}\a-w${_count}
 
@@ -8874,7 +8824,7 @@ sub check_minion_cycle_summon(bool _debug)
 			/invoke ${out[0, "Missing pet component."]}
 			/invoke ${out[0, "Shutting pets off 'till you go buy some."]}
 			/invoke ${out[0, "Don't forget to turn back on."]}
-			/call set_switch pet swPet FALSE
+			/invoke ${set_switch_env[${_debug}, swPet, TRUE, FALSE]}
 			/return FALSE
 		}
 	}
@@ -9441,7 +9391,7 @@ sub set_hud_data(string _mode)
 	/varset h_env						${maEnv.Find[stEnvRadius].Value}
 
 	| healing
-	/varset h_healmode			${maHeal.Find[stHealMode].Value}
+	| /varset h_healmode			${maHeal.Find[stHealMode].Value}
 	/varset h_override			${maHeal.Find[stHealAdjust].Value}
 	/varset h_self					${maHeal.Find[swHealSelf].Value}
 	/varset h_group					${maHeal.Find[swHealGroup].Value}
@@ -11319,3 +11269,422 @@ sub control_ttl(bool _debug, string _verbage, string _mob)
 	}
 
 /return
+
+
+
+
+
+
+
+|***
+ * note: defensive things
+ * use: /call check_defense_cycle DEBUG [TARGETID]
+ ***|
+sub check_defense_cycle(bool _debug, int _tmpID)
+	DEBUG \atcheck_defense_cycle\ax(\a-w${_tmpID}\ax)
+	FLOW check_defense_cycle
+
+	DEBUG ${sep}spawncount${sep}\a-w${SpawnCount[NPC radius SAFEENV PS4]} < ${maDefense.Find[stCountDef].Value}\ax
+	DEBUG ${sep}HP%${sep}\a-w${Me.PctHPs} > ${maDefense.Find[stPctDef].Value}\ax
+
+	/if ((${SpawnCount[NPC radius SAFEENV PS4]} < ${maDefense.Find[stCountDef].Value}) && (${Me.PctHPs} > ${maDefense.Find[stPctDef].Value})) {
+		DEBUG ${sep}not in danger
+		/return FALSE
+	}
+
+	/declare _liC20 listiterator local
+	/vardata _liC20 lsCount20.First.Clone
+	/while (!${_liC20.IsEnd}) {
+
+		GETINPUT check_defense_cycle NA|NA
+		ISMEDEAD
+
+		| check the switch
+		/if (!${Bool[${maDefense.Find[swDefense${_liC20.Value}].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| check the item name
+		/if (!${Bool[${maDefense.Find[stDefense${_liC20.Value}].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+
+		| defens thing is ready?
+		/if (!${is_ready[${_debug}, "${maDefense.Find[stDefense${_liC20.Value}].Value}"]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| apply any conditions
+		/if (!${check_condition[${_debug}, ${maDefense.Find[stDefense${_liC20.Value}Con].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| check any tags
+		/call check_basic_tags ${_debug} Defense${_liC20.Value} FALSE "${maDefense.Find[stDefense${_liC20.Value}].Value}"
+		/if (!${Macro.Return}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		DEBUG ${sep}_liC20.Value${sep}\a-w${_liC20.Value}\ax${sep}passed tags
+
+		/if (${lsDefense${_liC20.Value}Tag.Contains[self]}) {
+			/if (!${Me.Buff[${maDefense.Find[stDefense${_liC20.Value}].Value}].ID}) {
+				/varset _tmpID ${Me.ID}
+			}
+		}
+
+		| targetable item with a range?
+		/if (${FindItem[${maDefense.Find[stDefense${_liC20.Value}].Value}].Spell.Duration.TotalSeconds} && ${FindItem[${maDefense.Find[stDefense${_liC20.Value}].Value}].Spell.Range}) {
+			/invoke ${target[set, ${_tmpID}]}
+			/if (${Target.BuffDuration[${maDefense.Find[stDefense${_liC20.Value}].Value}].TotalSeconds}) {
+				/invoke ${_liC20.Advance}
+				/continue
+			}
+		}
+
+		ISMEDEAD
+
+		/call voodoo ${_debug} "${maDefense.Find[stDefense${_liC20.Value}].Value}" ${_tmpID} FALSE
+
+		/invoke ${_liC20.Advance}
+	}
+
+/return TRUE
+
+
+
+|***
+ * note: clicks stuff
+ * use: /call check_item_cycle DEBUG [TARGETID]
+ ***|
+sub check_item_cycle(bool _debug, int _tmpID, string _tag)
+	DEBUG \atcheck_item_cycle\ax(\a-w${_tmpID}, ${_tag}\ax)
+	FLOW check_item_cycle
+
+	/declare _liC20 listiterator local
+	/vardata _liC20 lsCount20.First.Clone
+	/while (!${_liC20.IsEnd}) {
+
+		GETINPUT check_item_cycle NA|NA
+		ISMEDEAD
+
+		| check the switch
+		/if (!${Bool[${maItem.Find[swItem${_liC20.Value}].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| check the item name
+		/if (!${Bool[${maItem.Find[stItem${_liC20.Value}].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| apply any conditions
+		/if (!${check_condition[${_debug}, ${maItem.Find[stItem${_liC20.Value}Con].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| check for specific tags, like epics
+		/if (${Bool[${_tag}]}) {
+			/if (!${lsItem${_liC20.Value}Tag.Contains[${_tag}]}) {
+				/invoke ${_liC20.Advance}
+				/continue
+			}
+		}
+
+		/if (!${is_ready[${_debug}, "${maItem.Find[stItem${_liC20.Value}].Value}"]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/call check_basic_tags ${_debug} Item${_liC20.Value} FALSE "${maItem.Find[stItem${_liC20.Value}].Value}"
+		/if (!${Macro.Return}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		DEBUG ${sep}_liC20.Value${sep}\a-w${_liC20.Value}\ax${sep}passed tags
+		/delay 1
+		/if (${lsItem${_liC20.Value}Tag.Contains[self]}) {
+			/if (!${Me.BuffDuration[${maItem.Find[stItem${_liC20.Value}].Value}]}) /varset _tmpID ${Me.ID}
+		}
+
+		/if (${FindItem[${maItem.Find[stItem${_liC20.Value}].Value}].Spell.Duration.TotalSeconds} && ${FindItem[${maItem.Find[stItem${_liC20.Value}].Value}].Spell.Range}) {
+			/invoke ${target[set, ${_tmpID}]}
+			| /invoke ${set_target[${_tmpID}]}
+			/if (${Target.BuffDuration[${maItem.Find[stItem${_liC20.Value}].Value}].TotalSeconds}) {
+				/invoke ${_liC20.Advance}
+				/continue
+			}
+		}
+
+		| /if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
+
+		/if (${target[isdead, ${_tmpID}]}) {
+			/return FALSE
+		}
+
+		/call voodoo ${_debug} "${maItem.Find[stItem${_liC20.Value}].Value}" ${_tmpID} FALSE
+
+		/invoke ${_liC20.Advance}
+	}
+
+/return TRUE
+
+
+|***
+ * note: casts heals from maHeal
+ * use: /call cast_cycle_heal DEBUG [TARGETID]
+ ***|
+sub cast_cycle_heal(bool _debug, int _tmpID)
+	DEBUG \atcast_cycle_heal\ax(\a-w${_tmpID}\ax)
+	FLOW cast_cycle_heal
+
+	/declare _liC20 listiterator local
+	/vardata _liC20 lsCount20.First.Clone
+	/while (!${_liC20.IsEnd}) {
+
+		GETINPUT cast_cycle_heal NA|NA
+		ISMEDEAD
+		CHECKEXIT
+
+		| check the switch
+		/if (!${Bool[${maHeal.Find[swHeal${_liC20.Value}].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| check the item name
+		/if (!${Bool[${maHeal.Find[stHeal${_liC20.Value}].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/if (!${is_ready[${_debug}, "${maHeal.Find[stHeal${_liC20.Value}].Value}"]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| apply any conditions
+		/if (!${check_condition[${_debug}, ${maHeal.Find[stHeal${_liC20.Value}Con].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/call check_basic_tags ${_debug} Heal${_liC20.Value} FALSE "${maHeal.Find[stHeal${_liC20.Value}Con].Value}"
+		/if (!${Macro.Return}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/call voodoo ${_debug} "${maHeal.Find[stHeal${_liC20.Value}].Value}" ${_tmpID} FALSE
+
+		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]}) {
+			/break
+		}
+
+		/invoke ${_liC20.Advance}
+	}
+
+/return TRUE
+
+
+
+
+|***
+ * note: casts nukes from maNuke
+ * use: /call cast_cycle_nuke DEBUG [TARGETID]
+ ***|
+sub cast_cycle_nuke(bool _debug, int _tmpID)
+	DEBUG \atcast_cycle_nuke\ax(\a-w${_tmpID}\ax)
+	FLOW cast_cycle_nuke
+
+	/declare _liC20 listiterator local
+	/vardata _liC20 lsCount20.First.Clone
+	/while (!${_liC20.IsEnd}) {
+
+		/if (${Me.PctMana} < 2) {
+			/return FALSE
+		}
+
+		GETINPUT cast_cycle_nuke NA|NA
+		ISMEDEAD
+		CHECKEXIT
+
+		/if (${target[isdead, ${_tmpID}]}) {
+			/return FALSE
+		}
+
+		| stopnuke %
+		/if (${maNuke.Find[stPctStopNuke].Value}) {
+			/if (${Spawn[${_tmpID}].PctHPs} <= ${maNuke.Find[stPctStopNuke].Value}) {
+				/return FALSE
+			}
+		}
+
+		/invoke ${target[set, ${_tmpID}]}
+
+		| check the switch
+		/if (!${Bool[${maNuke.Find[swNuke${_liC20.Value}].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| check the name
+		/if (!${Bool[${maNuke.Find[stNuke${_liC20.Value}].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/if (!${is_ready[${_debug}, "${maNuke.Find[stNuke${_liC20.Value}].Value}"]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| apply any conditions
+		/if (!${check_condition[${_debug}, ${maNuke.Find[stNuke${_liC20.Value}Con].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/call check_basic_tags ${_debug} Nuke${_liC20.Value} FALSE "${maNuke.Find[stNuke${_liC20.Value}].Value}"
+		/if (!${Macro.Return}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/call voodoo ${_debug} "${maNuke.Find[stNuke${_liC20.Value}].Value}" ${_tmpID} FALSE
+
+		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]} && !${maNuke.Find[stNukeDelay].Value}) {
+			/break
+		}
+
+		| forced delay
+		/if (${maNuke.Find[stNukeDelay].Value}) {
+			/invoke ${set_data_timer[${_debug}, Nuke_Delay, RESTART]}
+		}
+
+		| maintain the loop of nukes till all are cycled.
+		/if (${maNuke.Find[stNukeDelay].Value}) {
+			/delay 10s !${Me.Casting.ID}
+			/delay 2.5s
+			/delay ${timer_Nuke_Delay}
+		}
+
+		/invoke ${_liC20.Advance}
+	}
+
+/return TRUE
+
+
+
+|***
+ * note: casts dots from maDoT
+ * use: /call cast_cycle_dot DEBUG [TARGETID]
+ ***|
+sub cast_cycle_dot(bool _debug, int _tmpID)
+	DEBUG \atcast_cycle_dot\ax(\a-w${_tmpID}\ax)
+	FLOW cast_cycle_dot
+
+	/declare _liC20 listiterator local
+	/vardata _liC20 lsCount20.First.Clone
+	/while (!${_liC20.IsEnd}) {
+
+		/if (${Me.PctMana} < 2) {
+			/return FALSE
+		}
+
+		/if (${target[isdead, ${_tmpID}]}) {
+			/return FALSE
+		}
+
+		| stopdot %
+		/if (${maDoT.Find[stPctStopDoT].Value}) {
+			/if (${Spawn[${_tmpID}].PctHPs} <= ${maDoT.Find[stPctStopDoT].Value}) {
+				/return FALSE
+			}
+		}
+
+		| TTL evaluations
+		/if (${maTTL.Find[swTTL].Value}) {
+			/if (${maTTL.Contains[${Spawn[${_tmpID}].DisplayName}]}) {
+				| check overall durations of the average kill +2 tics over the spell duration time
+				/if (${Spell[${Spell[${_lidot.Value}].RankName}].Duration} > ${Math.Calc[${maTTL.Find[${Spawn[${_tmpID}].DisplayName}].Value.Arg[2,|]} + (${maTTL.Find[${Spawn[${_tmpID}].DisplayName}].Value.Arg[2,|]}*.5)]}) {
+					/invoke ${_lidot.Advance}
+					/continue
+				}
+				| if mob is less then 50% hp and spell duration is > 1/2 your average kill time
+				/if (${Spawn[${_tmpID}].PctHPs} < 50 && ${Spell[${Spell[${_lidot.Value}].RankName}].Duration} > ${Math.Calc[${maTTL.Find[${Spawn[${_tmpID}].DisplayName}].Value.Arg[2,|]} / 2]}) {
+					/invoke ${_lidot.Advance}
+					/continue
+				}
+			}
+		}
+
+		GETINPUT cast_cycle_dot NA|NA
+		ISMEDEAD
+		CHECKEXIT
+
+		/if (${target[isdead, ${_tmpID}]}) {
+			/return FALSE
+		}
+
+		/invoke ${target[set, ${_tmpID}]}
+
+		/if (${Target.ID} == ${_tmpID}) {
+			/if (${Target.BuffDuration[${_lidot.Value}].TotalSeconds} >= ${maCC.Find[stDotRefresh].Value}) {
+				/invoke ${_lidot.Advance}
+				/continue
+			}
+		} else {
+			/return FALSE
+		}
+
+		| check the switch
+		/if (!${Bool[${maNuke.Find[swDoT${_liC20.Value}].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| check the name
+		/if (!${Bool[${maNuke.Find[stDoT${_liC20.Value}].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/if (!${is_ready[${_debug}, "${maDoT.Find[stDoT${_liC20.Value}].Value}"]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| apply any conditions
+		/if (!${check_condition[${_debug}, ${maDoT.Find[stDoT${_liC20.Value}Con].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/call check_basic_tags ${_debug} DoT${_liC20.Value} FALSE "${maDoT.Find[stDoT${_liC20.Value}].Value}"
+		/if (!${Macro.Return}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/call voodoo ${_debug} "${maDoT.Find[stDoT${_liC20.Value}].Value}" ${_tmpID} FALSE
+
+		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]}) {
+			/break
+		}
+
+
+		/invoke ${_liC20.Advance}
+	}
+
+/return TRUE

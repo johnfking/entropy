@@ -12,6 +12,10 @@
 sub set_SHD(bool _debug)
 	DEBUG \atset_SHD\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Reavers"
 	/call set_data FALSE maData stSynergy																map outer "Knight's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Innoruuk's Curse"
@@ -53,6 +57,11 @@ sub set_SHD(bool _debug)
 	/call set_data_map FALSE maChr stLeechcurse													PREGEN|1											"${auxna} leechcurse disc"
 	/call set_data_map FALSE maChr stGougingBlade												PREGEN|1											"${auxna} gouging blade family disc"
 
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
+
 /return TRUE
 
 
@@ -76,14 +85,14 @@ sub main_SHD(bool _debug)
 
 		/if (VALID) {
 			/call set_combat FALSE
-			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+			CHECKDEFENSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
-			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
+			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
@@ -158,7 +167,7 @@ sub check_heal_SHD(bool _debug, string _type)
 
 	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 
-	/call cast_list ${_debug} "lsHealBaseLine" ${hurtID}
+	/call cast_cycle_heal ${_debug} ${hurtID}
 
 	SETHUD FALSE
 
@@ -182,7 +191,7 @@ sub misc_combat_SHD(bool _debug, int _tmpID)
 	GETINPUT misc_combat_SHD _tmpID|${_tmpID}
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
@@ -349,7 +358,7 @@ sub burn_SHD(bool _debug, int _tmpID)
 	GETINPUT burn_SHD _tmpID|${_tmpID}
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 

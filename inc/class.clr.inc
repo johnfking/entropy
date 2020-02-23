@@ -12,6 +12,10 @@
 sub set_CLR(bool _debug)
 	DEBUG \atset_CLR\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data ${_debug} maData stSpire															map outer "Spire of the Vicar"
 	/call set_data ${_debug} maData stSynergy														map outer "Templar's Synergy"
 	/call set_data ${_debug} maData stEpic1															map outer "Water Sprinkler of Nem Ankh"
@@ -23,22 +27,16 @@ sub set_CLR(bool _debug)
 	| Veturika's Preserverance
 	/call set_data_map ${_debug} maChr stPctVP													0															"${auxnum} % of manna to use veturikas perseverance"
 
-	| healing
- 	/call set_data_list ${_debug} maChr lsHealRemedy										PREGEN|3											"${auxli} remedy spells to use"
- 	/call set_data_list ${_debug} maChr lsHealRenewal										PREGEN|3											"${auxli} renewal spells to use"
- 	/call set_data_list ${_debug} maChr lsHealIntervention							PREGEN|3											"${auxli} intervention spells to use"
- 	/call set_data_list ${_debug} maChr lsHealLight											PREGEN|3											"${auxli} light spells to use"
-
   /call set_data_map ${_debug} maChr swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas"
   /call set_data_map ${_debug} maChr swCelestialRegen									FALSE													"${auxsw} use celestial regen aa"
-  /call set_data_map ${_debug} maChr stHealGroupOverTime							PREGEN|1											"${auxna} group heal over time spell"
+  /call set_data_map ${_debug} maHeal stHealGroupOverTime							PREGEN|1											"${auxna} group heal over time spell"	heal
 
 
 	/call set_data_map ${_debug} maChr swHealOverTime										FALSE													"${auxsw} % of members health to use heal over time"
-	/call set_data_map ${_debug} maChr stHealOverTime										PREGEN|1											"${auxna} heal over time spelll"
+	/call set_data_map ${_debug} maHeal stHealOverTime									PREGEN|1											"${auxna} heal over time spelll" heal
 
 	/call set_data_map ${_debug} maChr stCountHealGroup									0															"${auxnum} number in group hurt to use a group heal"
- 	/call set_data_list ${_debug} maChr lsHealGroup											PREGEN|2											"${auxli} group heal spells"
+ 	/call set_data_map ${_debug} maChr stHealGroup											PREGEN|1											"${auxli} group heal spells" heal
 
 	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
 
@@ -51,18 +49,15 @@ sub set_CLR(bool _debug)
 
 	| splash
 	/call set_data_map ${_debug} maChr stCountSplash										0															"${auxnum} number of hurt to use a splash heal"
-	/call set_data_map ${_debug} maChr stSplash													PREGEN|1											"${auxna} splash heal"
+	/call set_data_map ${_debug} maHeal stSplash												PREGEN|1											"${auxna} splash heal"	heal
 
 	| divine rez
 	/call set_data_map ${_debug} maRez swDivineCleric										FALSE													"${auxsw} divine rez other clerics"
 
 	| Rampage Tank
-	/call set_data_map ${_debug} maChr stRampageTank										FALSE													"${auxna} rampage tank to not heal (\a-wcompletely ignore\ax)"
+	/call set_data_map ${_debug} maHeal stRampageTank										FALSE													"${auxna} rampage tank to not heal (\a-wcompletely ignore\ax)"	heal
 
 	| arbitration
-
-	| /call set_data_map ${_debug} maChr swArbitratetoHealGroup						FALSE													"${auxsw} heal group immediately after an arbitration"
-	| /call set_data_map ${_debug} maChr swArbitrate											FALSE													"${auxsw} use aa arbitrate and epic sheild"
 	/call set_data_map ${_debug} maChr stCountArbitrate									0															"${auxnum} num of group hurt to use arbitration aa/epic"
 
 	| yaulp
@@ -100,34 +95,11 @@ sub set_CLR(bool _debug)
 	/call set_data_map ${_debug} maChr stAACelestialRapidity						"Celestial Rapidity"
 	/call set_data_map ${_debug} maChr stAATurnUndead										"Turn Undead"
 	/call set_data_map ${_debug} maChr stAACelestialHammer							"Celestial Hammer"
-	/call set_data_map ${_debug} maChr stAA
-	/call set_data_map ${_debug} maChr stAA
-	/call set_data_map ${_debug} maChr stAA
-	/call set_data_map ${_debug} maChr stAA
-	/call set_data_map ${_debug} maChr stAA
-	/call set_data_map ${_debug} maChr stAA
-	/call set_data_map ${_debug} maChr stAA
-	/call set_data_map ${_debug} maChr stAA
-	/call set_data_map ${_debug} maChr stAA
 
-
-
-	| set heal orders
-	/declare lsHealOrderbase list outer
-	/invoke ${lsHealOrderbase.Delimiter["|"]}
-	/invoke ${lsHealOrderbase.Append[lsHealBaseLine]}
-
-	/declare lsHealOrderaggressive list outer
-	/invoke ${lsHealOrderaggressive.Delimiter["|"]}
-	/invoke ${lsHealOrderaggressive.Append[lsHealIntervention|lsHealRemedy|lsHealRenewal|lsHealLight]}
-
-	/declare lsHealOrderpassive list outer
-	/invoke ${lsHealOrderpassive.Delimiter["|"]}
-	/invoke ${lsHealOrderpassive.Append[lsHealRemedy|lsHealIntervention|lsHealRenewal|lsHealLight]}
-
-	/declare lsHealOrderheavy list outer
-	/invoke ${lsHealOrderheavy.Delimiter["|"]}
-	/invoke ${lsHealOrderheavy.Append[lsHealRenewal|lsHealIntervention|lsHealLight|lsHealRemedy]}
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
 
 /return TRUE
 
@@ -188,8 +160,8 @@ sub main_CLR(bool _debug)
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
-			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
-			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
+			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 		}
 
@@ -223,16 +195,24 @@ sub misc_combat_CLR(bool _debug, int _tmpID)
 		/call cast_defensive_cycle ${maDebug.Find[def].Value}
 	}
 
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
 
 	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
 		/call cast_defensive_cycle ${maDebug.Find[def].Value}
 	}
 
-	/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
+	/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) {
+		/call cast_yaulp FALSE
+	}
 
-	/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} ${_tmpID} "${maChr.Find[stTempPet].Value}"
+	/if (SWARM) {
+		/call cast_temp_pet ${maDebug.Find[temp].Value} ${_tmpID} "${maChr.Find[stTempPet].Value}"
+	}
 
 
 	| pet AA hammer
@@ -303,7 +283,7 @@ sub check_heal_CLR(bool _debug, string _type)
 	| Group Regen Heal
  	/if (${maChr.Find[swHealGroupOverTime].Value} && !SAFEZONE && ${Group.Members} && COMBAT && ${maChr.Find[stCountAE].Value}) {
 	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= ${maChr.Find[stCountAE].Value}) {
-	 		/declare _groupHOT string local ${Set_Rank[False, ${maChr.Find[stHealGroupOverTime].Value.Arg[1,+]}]}
+	 		/declare _groupHOT string local ${Set_Rank[False, ${maHeal.Find[stHealGroupOverTime].Value.Arg[1,+]}]}
 			/if (!${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID}) {
 				/declare _found bool TRUE
 				| check regen SPA
@@ -319,7 +299,7 @@ sub check_heal_CLR(bool _debug, string _type)
 					/if (${Spell[${_groupHOT}].Stacks}) /varset _found FALSE
 				}
 				/if (!${_found} && ${is_ready[${_debug}, ${_groupHOT}]}) {
-					/call voodoo ${_debug} "${maChr.Find[stHealGroupOverTime].Value}" 0 FALSE
+					/call voodoo ${_debug} "${maHeal.Find[stHealGroupOverTime].Value}" 0 FALSE
 				}
 			}
 		}
@@ -338,10 +318,9 @@ sub check_heal_CLR(bool _debug, string _type)
 	/if (!SAFEZONE) {
 
 		| arbitrate / group heal
-		/if (${Select[${_type},group]}) {
+		/if (${Select[${_type},group]} && ${Group}) {
 			/if (${maChr.Find[stCountArbitrate].Value}) {
 				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
-					| /call do_arbitration ${maDebug.Find[arbitrate].Value}
 
 				  | AA arb
 				  /if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
@@ -353,12 +332,24 @@ sub check_heal_CLR(bool _debug, string _type)
 				  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
 				    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
 				  }
-					/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 				}
 			}
+
+			| panic group heal. AA Beacon of life (3 min use)
 			/if (${maChr.Find[stCountHealGroup].Value}) {
+			  /if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) {
+				  /if (${is_ready[${_debug}, "${maChr.Find[stAABeaconofLife].Value}"]}) {
+				  	/call voodoo ${_debug} "${maChr.Find[stAABeaconofLife].Value}" 0 FALSE
+				  }
+				}
+
+				/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+
+				| group heal
 				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) {
-					/call cast_list ${_debug} lsHealGroup ${Me.ID}
+				  /if (${is_ready[${_debug}, "${maHeal.Find[stHealGroup].Value}"]}) {
+						/call voodoo ${_debug} "${maHeal.Find[stHealGroup].Value}" 0 FALSE
+					}
 				}
 			}
 		}
@@ -397,7 +388,7 @@ sub check_heal_CLR(bool _debug, string _type)
 
 
 		| Panic AA single target heal
-	  /if (${hurtPctHP} <= ${maHeal.Find[stHealPointPanic].Value}*.PCTHO) {
+	  /if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.5*.PCTHO) {
 			/if (${is_ready[${_debug}, "${maChr.Find[stAABurstofLife].Value}"]}) {
 				/if (${Me.Casting.ID}) {
 					/stopcast
@@ -405,13 +396,6 @@ sub check_heal_CLR(bool _debug, string _type)
 				/call voodoo ${_debug} "${maChr.Find[stAABurstofLife].Value}" ${hurtID} FALSE
 			}
 	  }
-
-		| panic group heal. AA Beacon of life (3 min use)
-	  /if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value} && ${Group.Members} > 1 && ${maChr.Find[stCountHealGroup].Value}) {
-		  /if (${is_ready[${_debug}, "${maChr.Find[stAABeaconofLife].Value}"]}) {
-		  	/call voodoo ${_debug} "${maChr.Find[stAABeaconofLife].Value}" 0 FALSE
-		  }
-		}
 
 		/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
@@ -431,8 +415,8 @@ sub check_heal_CLR(bool _debug, string _type)
 			/dquery ${Spawn[${hurtID}].DisplayName} -q "Spell[${_spell}].Stacks" -o DNQReturn
 			/dquery ${Spawn[${hurtID}].DisplayName} -q "Me.Song[${_spell}].Duration" -o DNQReturn2
 			/if (${DNQReturn} && !${DNQReturn2}) {
-				/if (${is_ready[${_debug}, "${_spell}"]}) {
-					/call voodoo ${_debug} "${maChr.Find[stHealOverTime}.Value}" ${hurtID} FALSE
+				/if (${is_ready[${_debug}, "${maHeal.Find[stHealOverTime}.Value}"]}) {
+					/call voodoo ${_debug} "${maHeal.Find[stHealOverTime}.Value}" ${hurtID} FALSE
 				}
 			}
 		}
@@ -450,60 +434,10 @@ sub check_heal_CLR(bool _debug, string _type)
 	CHECKFADE
 	GETINPUT clr_heal_end type|${_type}
 
-	| yes. this is all there is to healing..
-	/declare _liHM listiterator local
-	/vardata _liHM lsHealOrder${maHeal.Find[stHealMode].Value}.First.Clone
-	/while (!${_liHM.IsEnd}) {
-		DEBUG ${sep}_liHM.Value${sep}\a-w${_liHM.Value}\ax
-		/call cast_list ${_debug} "${_liHM.Value}" ${hurtID}
-		/if (!AUTO) /return FALSE
-		/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
-		/if (!${hurtCount}) {
-			/return FALSE
-		}
-		/invoke ${_liHM.Advance}
-	}
+	/call cast_cycle_heal ${_debug} ${hurtID}
 
 /return	TRUE
 
-
-
-|***
- * note: Use cleric divine arbitration AA or Epic shield click. then group heal if it is to be so
- * use: auto based on /chr arbitrate #
- ***|
-sub do_arbitration(bool _debug)
-	DEBUG \atdo_arbitration\ax()
-
-	ISMEDEAD
-	CHECKEXIT
-	GETINPUT clr_arbitrate NA|NA
-
-	| /declare _arbDone bool local FALSE
-
-  | AA arb
-  /if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAADivineArbitration].Value}" 0 FALSE
-    | /varset _arbDone TRUE
-
-	| Second epic shield
-  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
-    /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
-    | /varset _arbDone TRUE
-
-  | First epic shield
-  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
-    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
-    | /varset _arbDone TRUE
-
-  }
-
-	| /if (${_arbDone}) {
-		| /invoke ${out[3, "arbitration done"]}
-	| 	/delay 1
-	| }
-
-/return TRUE
 
 
 
@@ -519,9 +453,11 @@ sub Bind_command_issuance(bool _debug)
 	ISMEDEAD
 	CHECKEXIT
 
-	/if (!${is_ready[${_debug}, "${maChr.Find[stIssuance].Value}"]}) /return FALSE
-
 	:castIssuance
+	/if (!${is_ready[${_debug}, "${maChr.Find[stIssuance].Value}"]}) {
+		/return FALSE
+	}
+
 	/if (!${Target.ID} || ${Target.ID} == ${Me.ID} || ${Target.Distance} > 55) {
 		/if (${NearestSpawn[2, pc radius 55].ID}) {
 			/invoke ${set_target[${NearestSpawn[2, pc radius 55].ID}]}

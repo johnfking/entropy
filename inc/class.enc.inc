@@ -12,6 +12,10 @@
 sub set_ENC(bool _debug)
 	DEBUG \atset_ENC\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data FALSE maData stSpire																	map outer "Spire of Enchantment"
 	/call set_data FALSE maData stSynergy																map outer "Begulier's Synergy"
 	/call set_data FALSE maData stEpic1																	map outer "Staff of the Serpent"
@@ -45,6 +49,11 @@ sub set_ENC(bool _debug)
 
 	| PBAE stun
 	/call set_data_map FALSE maChr stAEStun															PREGEN|1											"${auxna} name of your point blank ae stun"
+
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
 
 /return TRUE
 
@@ -95,9 +104,9 @@ sub main_ENC(bool _debug)
 
 			/call control_routine ${maDebug.Find[mez].Value}
 
-			/if (DOT) /call cast_dot ${maDebug.Find[dot].Value} lsDoT TARGET
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/call control_routine ${maDebug.Find[mez].Value}
-			/if (NUKE) /call cast_nuke ${maDebug.Find[nuke].Value} lsNuke TARGET
+			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call control_routine ${maDebug.Find[mez].Value}
 			/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
 				/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTerror lsTerrorToon
@@ -260,31 +269,40 @@ sub check_gather_ENC(bool _debug)
  ***|
 sub check_heal_ENC(bool _debug)
 	DEBUG \atcheck_heal_${Me.Class.ShortName}\ax()
-	/if (${Me.PctHPs} > ${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO) /return FALSE
 
 	ISMEDEAD
 	CHECKEXIT
 	CHECKTIE
 
-	| AA Sanguine mind crystal summoned item 5 min
-	/if (${maChr.Find[swAACrystals].Value}) {
-		/if (${is_ready[${_debug}, "${healCrystal}"]}) {
-			/call voodoo ${_debug} "${healCrystal}" 0 FALSE
-			/return
+	/IF (${Select[${_type},self]}) {
+		/if (${Me.PctHPs} > ${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO) {
+
+			| AA Sanguine mind crystal summoned item 5 min
+			/if (${maChr.Find[swAACrystals].Value}) {
+				/if (${is_ready[${_debug}, "${healCrystal}"]}) {
+					/call voodoo ${_debug} "${healCrystal}" 0 FALSE
+				}
+			}
+
+			| rune and anti hate 20 min
+			/if (${is_ready[${_debug}, "Dimensional Shield"]}) {
+				/call voodoo ${_debug} "Dimensional Shield" 0 FALSE
+				/return
+			}
+
+			| 3 decoys 10 min
+			/if (${is_ready[${_debug}, "Doppelganger"]}) {
+				/call voodoo ${_debug} "Doppelganger" ${Me.ID} FALSE
+			}
+
 		}
 	}
 
-	| 3 decoys 10 min
-	/if (${is_ready[${_debug}, "Doppelganger"]}) {
-		/call voodoo ${_debug} "Doppelganger" ${Me.ID} FALSE
-		/return
-	}
+ 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+ 		/return FALSE
+ 	}
 
-	| rune and anti hate 20 min
-	/if (${is_ready[${_debug}, "Dimensional Shield"]}) {
-		/call voodoo ${_debug} "Dimensional Shield" 0 FALSE
-		/return
-	}
+	/call cast_cycle_heal ${_debug} ${hurtID}
 
 /return TRUE
 
@@ -306,7 +324,7 @@ sub burn_ENC(bool _debug, int _tmpID)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 

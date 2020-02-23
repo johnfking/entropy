@@ -12,6 +12,10 @@
 sub set_MNK(bool _debug)
 	DEBUG \atset_MNK\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
 	/call set_data ${_debug} maData stSpire															map outer "Spire of the Sensei"
 	/call set_data ${_debug} maData stSynergy														map outer "Calanin's Synergy"
 	/call set_data ${_debug} maData stEpic1															map outer "Celestial Fists"
@@ -44,7 +48,12 @@ sub set_MNK(bool _debug)
 	/call set_data_map ${_debug} maChr stDeath													PREGEN|1											"${auxna} Delay Death disc family"
 	/call set_data_map ${_debug} maChr stWu															PREGEN|1											"${auxna} Fists of Wu disc family"
 
-/return
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
+
+/return TRUE
 
 
 
@@ -70,7 +79,7 @@ sub main_MNK(bool _debug)
 		/if (VALID) {
 			/call set_combat FALSE
 			/if (MELEE && !${timer_Check_Behind}) /call stick_to_target FALSE TARGET
-			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+			CHECKDEFENSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/call check_fd ${_debug}
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
@@ -110,7 +119,7 @@ sub misc_combat_MNK(bool _debug, int _tmpID)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) /call cast_defensive_cycle ${maDebug.Find[def].Value}
+	CHECKDEFENSE
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
@@ -171,7 +180,7 @@ sub misc_combat_MNK(bool _debug, int _tmpID)
 
 	/call check_fd ${_debug}
 
-/return
+/return TRUE
 
 
 
@@ -207,11 +216,11 @@ sub check_heal_MNK(bool _debug, string _type)
 		/return
 	}
 
-	/call cast_list ${_debug} lsHealBaseLine ${Me.ID}
+	/call cast_cycle_heal ${_debug} ${hurtID}
 
 	SETHUD FALSE
 
-/return
+/return TRUE
 
 
 
