@@ -401,37 +401,37 @@ sub set_data_var(bool _debug, string _env_var, string _type, string _scope, stri
 
 
 |***
- * note: /creates / sets buffs
- * use: /call set_data_buffs DEBUG [variable] [value]
+ * note: /creates / sets buff
+ * use: /call set_data_buff DEBUG [variable] [value]
  ***|
-sub set_data_buffs(bool _debug, string _env_var, string _value)
-	DEBUG \atset_data_buffs\ax(\a-w${_env_var}, ${_value}\ax)
+sub set_data_buff(bool _debug, string _env_var, string _value)
+	DEBUG \atset_data_buff\ax(\a-w${_env_var}, ${_value}\ax)
 
 	/if (!${Defined[${_env_var}]} && ${_env_var.Left[2].Equal[ls]}) {
 		/declare ${_env_var} list outer
 		/invoke ${${_env_var}.Delimiter["|"]}
 	}
 
-	/if (!${Defined[maBuffs]}) {
-		/declare maBuffs map outer
+	/if (!${Defined[maBuff]}) {
+		/declare maBuff map outer
 	}
 
-	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_buffs WHERE env_var="${_env_var}"
-	DEBUG ${sep}dummy SELECT * FROM environment_buffs WHERE env_var='${_env_var}' ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
+	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_buff WHERE env_var="${_env_var}"
+	DEBUG ${sep}dummy SELECT * FROM environment_buff WHERE env_var='${_env_var}' ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
 
 	/if (${sqlite.Rows[dummy]}) {
 		DEBUG ${sep}DATA \agdoes exists\ax
-		/invoke ${maBuffs.Add[${sqlite.Result[dummy 1 env_var]},${sqlite.Result[dummy 1 value]}]}
-		DEBUG maBuffs${sep}${maBuffs.Find[${sqlite.Result[dummy 1 value]}]}
+		/invoke ${maBuff.Add[${sqlite.Result[dummy 1 env_var]},${sqlite.Result[dummy 1 value]}]}
+		DEBUG maBuff${sep}${maBuff.Find[${sqlite.Result[dummy 1 value]}]}
 		/if (${_env_var.Left[2].Equal[ls]}) {
 			/invoke ${${_env_var}.Append["${sqlite.Result[dummy 1 value]}"]}
 		}
 		/return TRUE
 	}
 
-	/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_buffs(env_var, value) VALUES("${_env_var}", "${_value}")
-	DEBUG ${sep}dummy INSERT OR IGNORE INTO environment_buffs(env_var, value) VALUES('${_env_var}', '${_value}') ${dot} \ay${sqlite.Status[dummy]}\ax
-	/invoke ${maBuffs.Add[${_env_var},"${_value}"]}
+	/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_buff(env_var, value) VALUES("${_env_var}", "${_value}")
+	DEBUG ${sep}dummy INSERT OR IGNORE INTO environment_buff(env_var, value) VALUES('${_env_var}', '${_value}') ${dot} \ay${sqlite.Status[dummy]}\ax
+	/invoke ${maBuff.Add[${_env_var},"${_value}"]}
 	/if (${_env_var.Left[2].Equal[ls]}) {
 		/invoke ${${_env_var}.Append["${_value}"]}
 	}
@@ -462,7 +462,7 @@ sub set_data_crew(bool _debug, string _env_var, string _value)
 	/if (${sqlite.Rows[dummy]}) {
 		DEBUG ${sep}DATA \agdoes exists\ax
 		/invoke ${maCrew.Add[${sqlite.Result[dummy 1 env_var]},${sqlite.Result[dummy 1 value]}]}
-		DEBUG maCrew${sep}${maBuffs.Find[${sqlite.Result[dummy 1 value]}]}
+		DEBUG maCrew${sep}${maBuff.Find[${sqlite.Result[dummy 1 value]}]}
 		/if (${_env_var.Left[2].Equal[ls]}) {
 			/invoke ${${_env_var}.Append["${sqlite.Result[dummy 1 value]}"]}
 		}
@@ -2402,6 +2402,12 @@ sub check_xtarget_build(bool _debug, string _forced)
 
 			/varset _name ${Spawn[${_lipcxt.Value} pc].DisplayName}
 
+			| i hate people
+			/if (${lsNoHealToon.Contains[${_name}]}) {
+				/invoke ${_lipcxt.Advance}
+				/continue
+			}
+
 			| in our range of operaions?
 			/if (${Spawn[pc ${_name}].Distance} > ENV || !${Bool[${Spawn[pc ${_name}]}]}) {
 				/invoke ${_lipcxt.Advance}
@@ -2465,6 +2471,10 @@ sub check_xtarget_build(bool _debug, string _forced)
 			/for _x 1 to ${SpawnCount[pc ${_lixt.Value} raid radius ENV]}
 
 				/if (${_b} > ${Me.XTargetSlots}) /break
+
+
+				| yes.. i still hate people
+				/if (${lsNoHealToon.Contains[${NearestSpawn[${_x}, pc ${_lixt.Value} raid].DisplayName}]}) /continue
 
 				| are they a group member?
 				/if (${Group.Member[${NearestSpawn[${_x}, pc ${_lixt.Value} raid]}].ID}) /continue
@@ -5200,11 +5210,11 @@ sub check_buff_cycle_now(bool _debug)
   /vardata _licountself lsCount50.First.Clone
   /while (!${_licountself.IsEnd}) {
 
-		/if (!${maBuffs.Find[swBuff${_licountself.Value}].Value}) {
+		/if (!${maBuff.Find[swBuff${_licountself.Value}].Value}) {
 			/invoke ${_licountself.Advance}
 			/continue
 		}
-		/if (!${is_ready[${_debug}, "${maBuffs.Find[stBuff${_licountself.Value}].Value}"]}) {
+		/if (!${is_ready[${_debug}, "${maBuff.Find[stBuff${_licountself.Value}].Value}"]}) {
 			/invoke ${_licountself.Advance}
 			/continue
 		}
@@ -5213,18 +5223,18 @@ sub check_buff_cycle_now(bool _debug)
 			/continue
 		}
 
-		/if (!${check_condition[${_debug}, ${maBuffs.Find[stBuff${_licountself.Value}Con].Value}]}) {
+		/if (!${check_condition[${_debug}, ${maBuff.Find[stBuff${_licountself.Value}Con].Value}]}) {
 			/invoke ${_licountself.Advance}
 			/continue
 		}
 
-		/call check_basic_tags ${_debug} Buff${_licountself.Value} ${Me.DisplayName} "${maBuffs.Find[stBuff${_licountself.Value}].Value}"
+		/call check_basic_tags ${_debug} Buff${_licountself.Value} ${Me.DisplayName} "${maBuff.Find[stBuff${_licountself.Value}].Value}"
 		/if (!${Macro.Return}) {
 			/invoke ${_licountself.Advance}
 			/continue
 		}
 
-		/varset _spell ${maBuffs.Find[stBuff${_licountself.Value}].Value}
+		/varset _spell ${maBuff.Find[stBuff${_licountself.Value}].Value}
 
 		| trigger swap AAs... fuck DBG and their shit..
 		/if (${Spell[${_spell}].NumEffects} == 1)  {
@@ -5611,8 +5621,8 @@ sub check_buff_cycle_powersource(bool _debug)
 		/if (!${lsBuff${_count}Tag.Contains[powersource]}) {
 			/continue
 		} else /if (!${lsBuff${_count}Tag.Contains[powersource]}) {
-			DEBUG buff${_count}${sep}\a-w${maBuffs.Find[stBuff${_count}].Value}\ax
-			/varset _psName ${maBuffs.Find[stBuff${_count}].Value}
+			DEBUG buff${_count}${sep}\a-w${maBuff.Find[stBuff${_count}].Value}\ax
+			/varset _psName ${maBuff.Find[stBuff${_count}].Value}
 			/break
 		}
 	/next _count
@@ -5777,28 +5787,28 @@ sub check_buff_cycle_ammo(bool _debug)
 
 	/declare _count int local 0
 	/for _count 1 to 50
-		/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
-		/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) /continue
+		/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
+		/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
 		/if (!${lsBuff${_count}Tag.Contains[summonrange]}) /continue
 
-		DEBUG ${sep}_count${sep}\a-wBuff${_count}${sep}${maBuffs.Find[stBuff${_count}].Value}
+		DEBUG ${sep}_count${sep}\a-wBuff${_count}${sep}${maBuff.Find[stBuff${_count}].Value}
 
 		/if (${Select[${Me.Class.ShortName},BER]}) {
-			/if (${FindItemCount[=${Spell[${maBuffs.Find[stBuff${_count}].Value}].Base[1]}]} && !${Me.Inventory[ammo].ID}) {
-				/call Bind_command_swap "${FindItem[=${Spell[${maBuffs.Find[stBuff${_count}].Value}].Base[1]}].Name}" 22 ${_debug}
+			/if (${FindItemCount[=${Spell[${maBuff.Find[stBuff${_count}].Value}].Base[1]}]} && !${Me.Inventory[ammo].ID}) {
+				/call Bind_command_swap "${FindItem[=${Spell[${maBuff.Find[stBuff${_count}].Value}].Base[1]}].Name}" 22 ${_debug}
 				/delay 5
 				/return TRUE
 			}
 		} else {
-			/if (${FindItemCount[${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}]} && !${Me.Inventory[ammo].ID}) {
-				/call Bind_command_swap "${FindItem[=${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}" 22 ${_debug}
+			/if (${FindItemCount[${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].Base[1]}]} && !${Me.Inventory[ammo].ID}) {
+				/call Bind_command_swap "${FindItem[=${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}" 22 ${_debug}
 				/delay 5
 				/return TRUE
 			}
 		}
 
-		/if (${is_ready[${_debug}, "${maBuffs.Find[stBuff${_count}].Value}"]}) {
-			/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" 0 FALSE
+		/if (${is_ready[${_debug}, "${maBuff.Find[stBuff${_count}].Value}"]}) {
+			/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" 0 FALSE
 		}
 		/delay 1s ${Me.Casting.ID}
 		/delay 15s !${Me.Casting.ID}
@@ -5834,12 +5844,12 @@ sub check_buff_cycle_leg_poison(bool _debug)
 
 	/declare _count int local 0
 	/for _count 1 to 50
-		/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
-		/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) /continue
+		/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
+		/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
 		/if (!${lsBuff${_count}Tag.Contains[summonpoison]}) /continue
 
 		| do we have enough summoned
-		/if (${FindItemCount[${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Clicky.SpellID}].Base[1]}]} >= ${maChr.Find[stLegPoison].Value}) {
+		/if (${FindItemCount[${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Clicky.SpellID}].Base[1]}]} >= ${maChr.Find[stLegPoison].Value}) {
 			/return FALSE
 		}
 
@@ -5847,8 +5857,8 @@ sub check_buff_cycle_leg_poison(bool _debug)
 			/makemevisible
 		}
 
-		/if (${is_ready[${_debug}, "${maBuffs.Find[stBuff${_count}].Value}"]}) {
-			/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" 0 FALSE
+		/if (${is_ready[${_debug}, "${maBuff.Find[stBuff${_count}].Value}"]}) {
+			/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" 0 FALSE
 			/delay 5 ${Me.Casting.ID}
 			/delay 3s !${Me.Casting.ID}
 		}
@@ -5857,7 +5867,7 @@ sub check_buff_cycle_leg_poison(bool _debug)
 			/autoinventory
 		}
 
-		/if (${Cursor.Name.Equal[${FindItem[${Spell[${FindItem[=${maBuffs.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}]}) {
+		/if (${Cursor.Name.Equal[${FindItem[${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}]}) {
 			/autoinventory
 		}
 
@@ -5900,11 +5910,11 @@ sub check_buff_cycle_self(bool _debug)
 	/for _count 1 to 50
 		DEBUG _count ${_count}
 
-		/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) {
+		/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) {
 			/continue
 		}
 
-		/if (!${maBuffs.Find[swBuff${_count}].Value}) {
+		/if (!${maBuff.Find[swBuff${_count}].Value}) {
 			/continue
 		}
 
@@ -5912,14 +5922,14 @@ sub check_buff_cycle_self(bool _debug)
 			/continue
 		}
 
-		/if (!${check_condition[${_debug}, ${maBuffs.Find[stBuff${_count}Con].Value}]}) {
+		/if (!${check_condition[${_debug}, ${maBuff.Find[stBuff${_count}Con].Value}]}) {
 			/continue
 		}
 
-		/call check_basic_tags ${_debug} Buff${_count} ${Me.DisplayName} "${maBuffs.Find[stBuff${_count}].Value}"
+		/call check_basic_tags ${_debug} Buff${_count} ${Me.DisplayName} "${maBuff.Find[stBuff${_count}].Value}"
 		/if (!${Macro.Return}) /continue
 
-		/varset _spell "${maBuffs.Find[stBuff${_count}].Value}"
+		/varset _spell "${maBuff.Find[stBuff${_count}].Value}"
 
 		/varset _found TRUE
 
@@ -5976,7 +5986,7 @@ sub check_buff_cycle_self(bool _debug)
 			/continue
 		}
 
-		/call voodoo FALSE "${maBuffs.Find[stBuff${_count}].Value}" ${Me.ID} FALSE
+		/call voodoo FALSE "${maBuff.Find[stBuff${_count}].Value}" ${Me.ID} FALSE
 
 		/if (${lsBuff${_count}Tag.Contains[autoinventory]}) {
 			/autoinventory
@@ -6057,11 +6067,11 @@ sub check_buff_cycle_crew2(bool _debug)
 		| each buff
 		/for _count 1 to 50
 			| set the spell
-			/varset _spell ${set_rank[FALSE, "${maBuffs.Find[stBuff${_count}].Value.Arg[1,+]}"]}
+			/varset _spell ${set_rank[FALSE, "${maBuff.Find[stBuff${_count}].Value.Arg[1,+]}"]}
 			DEBUG ${sep}\aw${_count}\ax${sep}\a-w${_spell}\ax${sep}\at${Spell[${_spell}].NumEffects}\ax
 
 			| buff turned off
-			/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
+			/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
 
 			| skip self only
 			/if (${lsBuff${_count}Tag.Count} == 1 && (${lsBuff${_count}Tag.Contains[self]} || ${Spell[${_spell}].TargetType.Equal[Self]} || ${lsBuff${_count}Tag.Contains[minion]})) /continue
@@ -6114,7 +6124,7 @@ sub check_buff_cycle_crew2(bool _debug)
 				/next _i
 
 				/if (!${_found} && ${_target}) {
-					/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" ${Spawn[${_toonName}].ID} FALSE
+					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Spawn[${_toonName}].ID} FALSE
 					/continue
 				}
 
@@ -6143,7 +6153,7 @@ sub check_buff_cycle_crew2(bool _debug)
 				}
 
 				/if (${_target}) {
-					/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" ${Spawn[${_toonName}].ID} FALSE
+					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Spawn[${_toonName}].ID} FALSE
 					/continue
 				}
 
@@ -6197,15 +6207,15 @@ sub check_buff_cycle_beg(bool _debug)
 	  /vardata _licountbeg lsCount50.First.Clone
 	  /while (!${_licountbeg.IsEnd}) {
 
-			/if (!${maBuffs.Find[swBuff${_licountbeg.Value}].Value}) {
+			/if (!${maBuff.Find[swBuff${_licountbeg.Value}].Value}) {
 				/invoke ${_licountbeg.Advance}
 				/continue
 			}
-			/if (!${Bool[${maBuffs.Find[stBuff${_licountbeg.Value}].Value}]}) {
+			/if (!${Bool[${maBuff.Find[stBuff${_licountbeg.Value}].Value}]}) {
 				/invoke ${_licountbeg.Advance}
 				/continue
 			}
-			/if (!${Bool[${maBuffs.Find[stBuff${_licountbeg.Value}Alias].Value}]}) {
+			/if (!${Bool[${maBuff.Find[stBuff${_licountbeg.Value}Alias].Value}]}) {
 				/invoke ${_licountbeg.Advance}
 				/continue
 			}
@@ -6214,9 +6224,9 @@ sub check_buff_cycle_beg(bool _debug)
 			| 	/continue
 			| }
 
-			/if (${maBuffs.Find[stBuff${_licountbeg.Value}Alias].Value.Find[${_mibb.Value}]}) {
-				DEBUG ${sep}BEG \ap${_mibb.Value}\ax found${sep}\aw${_licountbeg.Value}\ax${sep}\a-w${maBuffs.Find[stBuff${_licountbeg.Value}].Value}\ax for \a-y${_mibb.Key}\ax
-				/call voodoo ${_debug} "${maBuffs.Find[stBuff${_licountbeg.Value}].Value}" ${Spawn[${_mibb.Key}].ID} FALSE
+			/if (${maBuff.Find[stBuff${_licountbeg.Value}Alias].Value.Find[${_mibb.Value}]}) {
+				DEBUG ${sep}BEG \ap${_mibb.Value}\ax found${sep}\aw${_licountbeg.Value}\ax${sep}\a-w${maBuff.Find[stBuff${_licountbeg.Value}].Value}\ax for \a-y${_mibb.Key}\ax
+				/call voodoo ${_debug} "${maBuff.Find[stBuff${_licountbeg.Value}].Value}" ${Spawn[${_mibb.Key}].ID} FALSE
 			}
 
 			/invoke ${_licountbeg.Advance}
@@ -6294,9 +6304,9 @@ sub check_buff_cycle_crew(bool _debug)
 		/for _count 1 to 50
 			| SDEBUG ${_count}
 
-			/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
-			/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) /continue
-			/call check_basic_tags ${_debug} Buff${_count} ${_toonName} "${maBuffs.Find[stBuff${_count}].Value}"
+			/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
+			/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
+			/call check_basic_tags ${_debug} Buff${_count} ${_toonName} "${maBuff.Find[stBuff${_count}].Value}"
 			/if (!${Macro.Return}) /continue
 
 			DEBUG ${sep}\agBUFF\ax#${sep}\a-w${_count}\ax \a-p---------------------\ax
@@ -6315,7 +6325,7 @@ sub check_buff_cycle_crew(bool _debug)
 				/if (${Group.MainAssist.Name.Equal[${_toonName}]} || ${maCC.Find[stManualAssist1].Value.Equal[${_toonName}]} || ${maCC.Find[stManualAssist2].Value.Equal[${_toonName}]}) /varset _target TRUE
 			}
 
-			/varset _spell ${set_rank[FALSE, "${maBuffs.Find[stBuff${_count}].Value.Arg[1,+]}"]}
+			/varset _spell ${set_rank[FALSE, "${maBuff.Find[stBuff${_count}].Value.Arg[1,+]}"]}
 			DEBUG ${sep}\aw${_count}\ax${sep}\a-w${_spell}\ax${sep}\at${Spell[${_spell}].NumEffects}\ax
 
 			| skip self only
@@ -6363,7 +6373,7 @@ sub check_buff_cycle_crew(bool _debug)
 
 				DEBUG ${sep}${sep}\ay****\ax Found:${_found} .. Target:${_target}
 				/if (!${_found} && ${_target}) {
-					/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" ${Spawn[${_toonName}].ID} FALSE
+					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Spawn[${_toonName}].ID} FALSE
 					/return
 					/continue
 				}
@@ -6391,7 +6401,7 @@ sub check_buff_cycle_crew(bool _debug)
 				}
 
 				/if (${_target}) {
-					/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" ${Spawn[${_toonName}].ID} FALSE
+					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Spawn[${_toonName}].ID} FALSE
 					/continue
 				}
 
@@ -6430,10 +6440,10 @@ sub check_buff_cycle_crew(bool _debug)
 		| maybe 50 buffs was a bit much.
 		/for _count 1 to 50
 
-			/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
-			/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) /continue
+			/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
+			/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
 
-			/call check_basic_tags ${_debug} Buff${_count} ${_toonName} "${maBuffs.Find[stBuff${_count}].Value}"
+			/call check_basic_tags ${_debug} Buff${_count} ${_toonName} "${maBuff.Find[stBuff${_count}].Value}"
 			/if (!${Macro.Return}) /continue
 
 			| pretend the target does not have the spell
@@ -6445,7 +6455,7 @@ sub check_buff_cycle_crew(bool _debug)
 			| skip self only
 			/if (${lsBuff${_count}Tag.Count} == 1 && (${lsBuff${_count}Tag.Contains[self]} || ${Spell[${_spell}].TargetType.Equal[Self]} || ${lsBuff${_count}Tag.Contains[minion]})) /continue
 
-			/varset _spell ${set_rank[FALSE, "${maBuffs.Find[stBuff${_count}].Value.Arg[1,+]}"]}
+			/varset _spell ${set_rank[FALSE, "${maBuff.Find[stBuff${_count}].Value.Arg[1,+]}"]}
 			DEBUG ${sep}\aw${_count}\ax${sep}\a-w${_spell}\ax${sep}\at${Spell[${_spell}].NumEffects}\ax
 
 			| distance check
@@ -6479,7 +6489,7 @@ sub check_buff_cycle_crew(bool _debug)
 				/next _i
 
 				/if (!${_found} && ${Target.ID} == ${Group.Member[${_toonName}].ID}) {
-					/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" ${Group.Member[${_toonName}].ID} FALSE
+					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Group.Member[${_toonName}].ID} FALSE
 					/continue
 				}
 
@@ -6498,7 +6508,7 @@ sub check_buff_cycle_crew(bool _debug)
 				/if (!${Target.Buff[${_spellTrigger}].ID}) /varset _found FALSE
 
 				/if (!${_found} && ${Target.ID} == ${Group.Member[${_toonName}].ID}) {
-					/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" ${Group.Member[${_toonName}].ID} FALSE
+					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Group.Member[${_toonName}].ID} FALSE
 					/continue
 				}
 			}
@@ -7272,7 +7282,7 @@ sub check_basic_tags_summonitem(bool _debug, string _buff)
 	FLOW check_basic_tags_summonitem
 
 	/declare _count int local
-	/varset _count ${FindItemCount[${Spell[${Spell[${maBuffs.Find[st${_buff}].Value}].RankName}].Base[1]}]}
+	/varset _count ${FindItemCount[${Spell[${Spell[${maBuff.Find[st${_buff}].Value}].RankName}].Base[1]}]}
 
 /return ${_count}
 
@@ -8753,18 +8763,18 @@ sub check_minion_cycle_buff(bool _debug)
 	| maybe 50 buffs was a bit much.
 	/for _count 1 to 50
 
-		/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
-		/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) /continue
+		/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
+		/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
 
 		| minion buffs?
 		/if (!${lsBuff${_count}Tag.Contains[minion]}) /continue
 
-		/call check_basic_tags ${_debug} Buff${_count} FALSE "${maBuffs.Find[stBuff${_count}].Value}"
+		/call check_basic_tags ${_debug} Buff${_count} FALSE "${maBuff.Find[stBuff${_count}].Value}"
 		/if (!${Macro.Return}) /continue
 
 		DEBUG _count${sep}\a-w${_count}
 
-		/varset _spell ${set_rank[FALSE, "${maBuffs.Find[stBuff${_count}].Value.Arg[1,+]}"]}
+		/varset _spell ${set_rank[FALSE, "${maBuff.Find[stBuff${_count}].Value.Arg[1,+]}"]}
 		DEBUG ${sep}\aw${_count}\ax${sep}\a-w${_spell}\ax${sep}\at${Spell[${_spell}].NumEffects}\ax
 
 		| distance check
@@ -8775,7 +8785,7 @@ sub check_minion_cycle_buff(bool _debug)
 		| /invoke ${set_target[${Pet.ID}]}
 
 		| have the buff?
-		/if (${Pet.Buff[${maBuffs.Find[stBuff${_count}].Value}]}) /continue
+		/if (${Pet.Buff[${maBuff.Find[stBuff${_count}].Value}]}) /continue
 
 		| give the game a second to populate the targets buffs
 		/delay 1s ${Target.BuffsPopulated}
@@ -8783,7 +8793,7 @@ sub check_minion_cycle_buff(bool _debug)
 		| stacks
 		/if (!${Spell[${_spell}].StacksTarget}) /continue
 
-		/call voodoo ${_debug} "${maBuffs.Find[stBuff${_count}].Value}" ${Pet.ID} FALSE
+		/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Pet.ID} FALSE
 
 	/next _count
 
@@ -8873,19 +8883,19 @@ sub check_minion_cycle_weapons(bool _debug)
 
 		/declare _count int local 0
 		/for _count 1 to 50
-			/if (!${maBuffs.Find[swBuff${_count}].Value}) /continue
-			/if (!${Bool[${maBuffs.Find[stBuff${_count}].Value}]}) /continue
+			/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
+			/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
 			/if (!${lsBuff${_count}Tag.Contains[summonweapons]}) /continue
 			DEBUG _count${sep}${_count}
 
-			/if (${FindItem[=${Spell[${maBuffs.Find[stBuff${_count}].Value}].Base[1]}].ID}) /return TRUE
+			/if (${FindItem[=${Spell[${maBuff.Find[stBuff${_count}].Value}].Base[1]}].ID}) /return TRUE
 
-			| /if (${is_ready[FALSE, "${maBuffs.Find[stBuff${_count}].Value}"]}) {
-				/call voodoo FALSE "${maBuffs.Find[stBuff${_count}].Value}" ${Me.ID} FALSE
+			| /if (${is_ready[FALSE, "${maBuff.Find[stBuff${_count}].Value}"]}) {
+				/call voodoo FALSE "${maBuff.Find[stBuff${_count}].Value}" ${Me.ID} FALSE
 			| }
 			/delay 10s !${Me.Casting.ID}
 
-			/if (${Cursor.Name.Equal[${FindItem[${Spell[${maBuffs.Find[stBuff${_count}].Value}].Base[1]}].Name}]}) {
+			/if (${Cursor.Name.Equal[${FindItem[${Spell[${maBuff.Find[stBuff${_count}].Value}].Base[1]}].Name}]}) {
 				/autoinventory
 				/break
 			}
@@ -11640,8 +11650,8 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 		/invoke ${target[set, ${_tmpID}]}
 
 		/if (${Target.ID} == ${_tmpID}) {
-			/if (${Target.BuffDuration[${_lidot.Value}].TotalSeconds} >= ${maCC.Find[stDotRefresh].Value}) {
-				/invoke ${_lidot.Advance}
+			/if (${Target.BuffDuration[${_liC20.Value}].TotalSeconds} >= ${maDoT.Find[stDotRefresh].Value}) {
+				/invoke ${_liC20.Advance}
 				/continue
 			}
 		} else {

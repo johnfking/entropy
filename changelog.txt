@@ -21,6 +21,19 @@ on the to do list
 
 
 
+
+
+A200225.01
+- i've moved healing variables out of the character database table and into the heal table
+  you will need to reset your healing as if it was a brand new DB
+- database table environment_buffs has been renamed to environment_buff to keep up the pattern
+- maBuffs map is gone. all buffs fall under maBuff map. again, to keep up the pattern
+- dots
+  corrected a bad variable in the loop cycle
+
+
+
+
 A200223.05
 -- WARNING, THIS UPDATE WILL BREAK YOU !
 -- A LOT
@@ -34,26 +47,20 @@ A200223.05
   /heal # con # - to add a condition # to that heal
   /heal # tag NAME - to add a tag to that heal
   /heal # clear - resets that # to defaults
-
   There are no more heal modes. no passive, no aggressive, you design as you see fit.
   does not impact group heals/group regens or AAs.. yet.
-
 - nuking has been completely changed
   /nuke (all the same commands as heal)
   /nuke delay - delay in 1/10s of a second after a cast before you move on
   /nuke pctstop - % of targets health to stop nuking
-
 - defensive cycle has been completely changed
   /defense (all the same commands as heal)
-
 - dotting has been completely changed
   /dot (all the same commands as heal and nuke)
   /dot refresh - min time left in seconds before you will refresh a dot
-  /dot pctstop - % of targets health to stop nuking
-
+  /dot pctstop - % of targets health to stop dotting
 - HUD
   removed the heal mode and adjust the remaining healing positions
-
 - tag
   targetundead - makes sure the target is undead
   targethumanoid - makes sure the target is humanoid
@@ -61,21 +68,14 @@ A200223.05
   g# - g(1-13) will force meming of a spell in that specific gem slot
   noactivecombat - means out of active eq combat
   noactivedisc - no active discs running in the Combat Abilities window
-
 - /clickitem
   rebuilt to match naming conventions of other designs for heal/nuke/dot/defense/so on to keep a standard
-
 - corrected a self target bug on item clicks
 - buff cycle should return the proper buff gem when done
 - some adjustments to variable resets when you are rezed
 - system added to remove stale data fropm the character database
 - check_minion_cycle_summon() fixed an old function call when no components were on toon
 - xtarget healing will work for PCs out of raid/out of group (lsProtectOutsideGroup)
-
-
-
-
-
 
 
 A200217.01

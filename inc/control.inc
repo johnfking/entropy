@@ -156,7 +156,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 	} else /if (${_type.Equal[sqlcheck]}) {
 		/echo
 		/invoke ${out[0, "Checking database for stale data${sep}"]}
-		/call sql_check_delete ${maDebug.Find[sql].Value}
+		/call sql_check ${maDebug.Find[sql].Value}
 		/return TRUE
 
 	| delete aliases
@@ -305,7 +305,6 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 			}
 
 		} else /if (${_type.Equal[keymap]}) {
-
 			/call get_key_map TRUE ${_verbage} TRUE
 
 		}
@@ -349,7 +348,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 	/if (${_silent.Equal[SILENT]}) /return
 	/declare liout list local
-	/invoke ${liout.Append[checkvar,spa,whitewash,import,keymap,see]}
+	/invoke ${liout.Append[checkvar,spa,whitewash,import,keymap,see,sqlcheck]}
   /declare _out string local
 	/vardata cli liout.First.Clone
 	/while (!${cli.IsEnd}) {
@@ -1727,7 +1726,7 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 		| see the buff
 		/if (!${Bool[${_verbage}]}) {
 			/invoke ${set_switch_env[${_debug}, swBuff${_type}, TRUE, ${_verbage}]}
-			/invoke ${out[12, "\awBuff${_type}\ax${sep}${If[${maBuffs.Find[swBuff${_type}].Value},${on},${off}]}${sep}\a-w${maBuffs.Find[stBuff${_type}].Value}\ax"]}
+			/invoke ${out[12, "\awBuff${_type}\ax${sep}${If[${maBuff.Find[swBuff${_type}].Value},${on},${off}]}${sep}\a-w${maBuff.Find[stBuff${_type}].Value}\ax"]}
 			/return TRUE
 		} else /if (${_verbage.Equal[see]}) {
 			/call Bind_command_see buff ${_type}
@@ -2145,8 +2144,8 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 			/echo
 			/invoke ${out[12, "\awBuff List\ax${sep}"]}
 			/for _count 1 to 50
-				/if (${maBuffs.Find[stBuff${_count}].Value.NotEqual[FALSE]}) {
-					/invoke ${out[12, "\awstBuff${_count}\ax${sep}${If[${maBuffs.Find[swBuff${_count}].Value},${on},${off}]}${sep}\a-w${maBuffs.Find[stBuff${_count}].Value}\ax"]}
+				/if (${maBuff.Find[stBuff${_count}].Value.NotEqual[FALSE]}) {
+					/invoke ${out[12, "\awstBuff${_count}\ax${sep}${If[${maBuff.Find[swBuff${_count}].Value},${on},${off}]}${sep}\a-w${maBuff.Find[stBuff${_count}].Value}\ax"]}
 				}
 			/next _count
 			/if (${_silent.NotEqual[silent]}) ${out[18, "${eol}"]}
@@ -2155,8 +2154,8 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 
 		| buff spa
 		} else /if (${_verbage.Equal[spa]}) {
-			DEBUG /call Bind_control_admin spa "${maBuffs.Find[stBuff${_silent}].Value}"
-			/call Bind_control_admin spa "${maBuffs.Find[stBuff${_silent}].Value}"
+			DEBUG /call Bind_control_admin spa "${maBuff.Find[stBuff${_silent}].Value}"
+			/call Bind_control_admin spa "${maBuff.Find[stBuff${_silent}].Value}"
 			/return TRUE
 		}
 
@@ -2165,18 +2164,18 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 			/return
 		}
 
-		/declare _tmpC string local ${maBuffs.Find[stBuff${_verbage}].Value.Arg[2,+c]}
-		/invoke ${out[12, "\awBuff #${_verbage}\ax${sep}${If[${maBuffs.Find[swBuff${_verbage}].Value},${on},${off}]}"]}
-		/invoke ${out[12, "stBuff\aw${_verbage}\ax${sep}\a-w${maBuffs.Find[stBuff${_verbage}].Value}\ax"]}
+		/declare _tmpC string local ${maBuff.Find[stBuff${_verbage}].Value.Arg[2,+c]}
+		/invoke ${out[12, "\awBuff #${_verbage}\ax${sep}${If[${maBuff.Find[swBuff${_verbage}].Value},${on},${off}]}"]}
+		/invoke ${out[12, "stBuff\aw${_verbage}\ax${sep}\a-w${maBuff.Find[stBuff${_verbage}].Value}\ax"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maBuffs.Find[stBuff${_verbage}Con].Value}"
+		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maBuff.Find[stBuff${_verbage}Con].Value}"
 		/if (${sqlite.Rows[dummy]}) {
-			OUT stBuff\aw${_verbage}\axCon${sep}\a-w${maBuffs.Find[stBuff${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
+			OUT stBuff\aw${_verbage}\axCon${sep}\a-w${maBuff.Find[stBuff${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
 		} else {
-			OUT stBuff\aw${_verbage}\axCon${sep}\a-w${maBuffs.Find[stBuff${_verbage}Con].Value}\ax
+			OUT stBuff\aw${_verbage}\axCon${sep}\a-w${maBuff.Find[stBuff${_verbage}Con].Value}\ax
 		}
 
-		/invoke ${out[12, "stBuff\aw${_verbage}\axAlias${sep}\a-w${maBuffs.Find[stBuff${_verbage}Alias].Value}\ax"]}
+		/invoke ${out[12, "stBuff\aw${_verbage}\axAlias${sep}\a-w${maBuff.Find[stBuff${_verbage}Alias].Value}\ax"]}
 		/invoke ${out[12, "lsBuff\aw${_verbage}\axTag"]}
 
 		/vardata cli lsBuff${_verbage}Tag.First.Clone

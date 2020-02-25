@@ -149,7 +149,7 @@ sub set_initialize(bool _debug)
 
   | list of all maps used with usable data
   /declare lsMaps list outer
-  /invoke ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maBuffs,maBuff,maBurn]}
+  /invoke ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maBuff,maBurn]}
   /invoke ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
   /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maRezControl,maWatchspawn]}
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL]}
@@ -274,7 +274,6 @@ sub set_initial_environment(bool _debug)
   /invoke ${set_data_timer[FALSE, Check_Poison, 1m]}
   /invoke ${set_data_timer[FALSE, Check_deBuffs, 6s]}
   /invoke ${set_data_timer[FALSE, Check_Behind, 5s]}
-  | /invoke ${set_data_timer[FALSE, Check_Stick, 1s]}
   /invoke ${set_data_timer[FALSE, Check_Tribute, 1m]}
   /invoke ${set_data_timer[FALSE, Check_Loot, 1s]}
   /invoke ${set_data_timer[FALSE, Check_Mode, 5]}
@@ -285,28 +284,6 @@ sub set_initial_environment(bool _debug)
 
   | get the stick timer started
   /invoke ${set_timer[${_debug}, timer_check_stick, 1s]}
-
-
-
-  | /invoke ${set_data_timer[FALSE, Wait_For_Mob, 1]}
-
-  | /invoke ${set_data_timer[FALSE, Check_Buff_List_Population, 2s]}
-
-  | /call timer_set FALSE tCheck_Runes                                  string    outer 10s   timer_check_runes
-  | /call timer_set FALSE tScorchedEarth_ignore                         string    outer 30s   timer_scorched_earth_ignore
-  | /call timer_set FALSE tScorchedEarth_fail                           string    outer 1m    timer_auto_cursor_pause
-  | /call timer_set FALSE tCheck_Runes                                  string    outer 10s   timer_check_runes
-  | /call timer_set FALSE tScorchedEarth_fail                           string    outer 1m    timer_scorched_earth_fail
-  | /call timer_set FALSE tScorchedEarth_delay                          string    outer 5s    timer_ScorchedEarth_delay
-  | /call timer_set FALSE tCheck_Familiar                               string    outer 30s   timer_Check_Familiar
-  | /call timer_set FALSE tHarvest_delay                                string    outer 1s    timer_Harvest_delay
-  | /call timer_set FALSE tWatch_Spawn                                  string    outer 1s    timer_check_watch_spawn
-  | /call timer_set FALSE tPetfarm_delay                                string    outer 1s    timer_Petfarm_delay
-  | /call timer_set FALSE tMGB_Buff                                     string    outer 5m    timer_check_buffs_mgb
-  | /call timer_set FALSE tHunt_delay                                   string    outer 30s   timer_wait_for_mob_to_kill
-  | /call timer_set FALSE tHUD_Death_Check                              string    outer 10s   timer_HUD_death_check
-  | /call timer_set FALSE tMode_Open                                    string    outer 1s    timer_mode_open
-  | /call timer_set FALSE tCheck_status                                 string    outer 2s    timer_check_status
 
 
   | controls for all classes
@@ -613,8 +590,10 @@ sub sql_set_character_schema(bool _debug)
 		/declare _boottimestart int local ${MacroQuest.Running}
 	}
 
+
+
   /declare maDBTables map outer
-  /invoke ${maDBTables.Add[environment_buffs,env_var]}
+  /invoke ${maDBTables.Add[environment_buff,env_var]}
   /invoke ${maDBTables.Add[environment_character,env_var]}
   /invoke ${maDBTables.Add[environment_condition,env_var]}
   /invoke ${maDBTables.Add[environment_timer,env_timer]}
@@ -636,6 +615,9 @@ sub sql_set_character_schema(bool _debug)
     | /return TRUE
   } else /if (${sqlite.Status[SQL_ENV_BUILD].Find[no such table:]} || ${sqlite.Result[SQL_ENV_BUILD 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
 
+		| fix any existing database variable issues.
+	  /call sql_check ${maDebug.Find[sql].Value}
+
     /if (${sqlite.Status[SQL_ENV_BUILD].Find[no such table:]}) {
       | character build match
       /sqlite ${maData.Find[DBcharacter].Value} dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY)
@@ -655,7 +637,6 @@ sub sql_set_character_schema(bool _debug)
       DEBUG ${sep}CREATE TABLE IF NOT EXISTS '${_mi.Key}' \ay${sqlite.Status[dummy]}\ax
       /invoke ${_mi.Advance}
     }
-    /call sql_check_delete ${maDebug.Find[sql].Value}
   }
 
 	/if (${maDebug.Find[init].Value}) {
@@ -732,47 +713,45 @@ sub set_initialize_map_character_environment(bool _debug)
 
 |** control: heal **|
   /invoke ${set_data_timer[FALSE, Check_Cure, 6s]}
-  /call set_data_map ${_debug} maHeal stHealAdjust                        0                             "${auxnum} % to overide max health to"
-  /call set_data_map ${_debug} maHeal swHealSelf                          FALSE                         "${auxsw} enable self healing"
-  /call set_data_map ${_debug} maHeal swHealToT                          	FALSE                         "${auxsw} enable healing your targets target"
-  /call set_data_map ${_debug} maHeal swHealGroup                         FALSE                         "${auxsw} enable group healing"
-  /call set_data_map ${_debug} maHeal swHealXTarget                       FALSE                         "${auxsw} enable xtarget healing"
-  /call set_data_map ${_debug} maHeal swHealPet                           FALSE                         "${auxsw} enable pet healing"
-  /call set_data_map ${_debug} maHeal swHealCure                          FALSE                         "${auxsw} enable curing"
-  /call set_data_map ${_debug} maHeal stCureCurseItem                     FALSE                         "${auxna} name of item to cure self curses"
-  /call set_data_map ${_debug} maHeal stCurePoisonItem                    FALSE                         "${auxna} name of item to cure self poisons"
-  /call set_data_map ${_debug} maHeal stCureDiseaseItem                   FALSE                         "${auxna} name of item to cure self diseases"
-  /call set_data_map ${_debug} maHeal stCureCorruptionItem                FALSE                         "${auxna} name of item to cure self corruption"
-  /call set_data_list ${_debug} maHeal lsNoCureDeBuff                     EMPTY                         "${auxli} list of debuffs you DO NOT want to cure"
-  /call set_data_list ${_debug} maHeal lsHealXTClass                      EMPTY                         "${auxli} classes to populate xtarget for healing use: \a-t/heal xtarget\ax"
-  /call set_data_list ${_debug} maHeal lsNoHealToon                       EMPTY                         "${auxli} fuck these people.. no heals for them.."
+  /call set_data_map ${_debug} maHeal stHealAdjust                        0                             "${auxnum} % to overide max health to" 																				heal
+  /call set_data_map ${_debug} maHeal swHealSelf                          FALSE                         "${auxsw} enable self healing" 																								heal
+  /call set_data_map ${_debug} maHeal swHealToT                          	FALSE                         "${auxsw} enable healing your targets target" 																heal
+  /call set_data_map ${_debug} maHeal swHealGroup                         FALSE                         "${auxsw} enable group healing" 																							heal
+  /call set_data_map ${_debug} maHeal swHealXTarget                       FALSE                         "${auxsw} enable xtarget healing" 																						heal
+  /call set_data_map ${_debug} maHeal swHealPet                           FALSE                         "${auxsw} enable pet healing" 																								heal
+  /call set_data_map ${_debug} maHeal swHealCure                          FALSE                         "${auxsw} enable curing" 																											heal
+  /call set_data_map ${_debug} maHeal stCureCurseItem                     FALSE                         "${auxna} name of item to cure self curses" 																	heal
+  /call set_data_map ${_debug} maHeal stCurePoisonItem                    FALSE                         "${auxna} name of item to cure self poisons" 																	heal
+  /call set_data_map ${_debug} maHeal stCureDiseaseItem                   FALSE                         "${auxna} name of item to cure self diseases" 																heal
+  /call set_data_map ${_debug} maHeal stCureCorruptionItem                FALSE                         "${auxna} name of item to cure self corruption" 															heal
+  /call set_data_list ${_debug} maHeal lsNoCureDeBuff                     EMPTY                         "${auxli} list of debuffs you DO NOT want to cure" 														heal
+  /call set_data_list ${_debug} maHeal lsHealXTClass                      EMPTY                         "${auxli} classes to populate xtarget for healing use: \a-t/heal xtarget\ax" 	heal
+  /call set_data_list ${_debug} maHeal lsNoHealToon                       EMPTY                         "${auxli} fuck these people.. no heals for them.." 														heal
 
-  /call set_data ${_debug} ${_debug} tmpHealAdjust                            float outer 99.99
-  /call set_data ${_debug} ${_debug} hurtID                                   int outer 0
-  /call set_data ${_debug} ${_debug} hurtPctHP                                int outer 100
-  /call set_data ${_debug} ${_debug} hurtCLS                                  string outer ${Me.Class.ShortName}
-  /call set_data ${_debug} ${_debug} hurtCount                                int outer 0
+  /call set_data ${_debug} FALSE tmpHealAdjust                            float outer 99.99
+  /call set_data ${_debug} FALSE hurtID                                   int outer 0
+  /call set_data ${_debug} FALSE hurtPctHP                                int outer 100
+  /call set_data ${_debug} FALSE hurtCLS                                  string outer ${Me.Class.ShortName}
+  /call set_data ${_debug} FALSE hurtCount                                int outer 0
 
 
  	| points for healers
   /if (${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
-    /call set_data_map ${_debug} maHeal stHealPointHoT                    80                            "${auxnum} % of health to use single heal over time"
+    /call set_data_map ${_debug} maHeal stHealPointHoT                    80                            "${auxnum} % of health to use single heal over time"													heal
 		/declare _lishp listiterator local
     /vardata _lishp lsClassAll.First
     /while (!${_lishp.IsEnd}) {
-      /call set_data_map ${_debug} maHeal stHealPoint${_lishp.Value}      80                   					"${auxnum} % of health to start healing:\a-w${_lishp.Value}\ax"
+      /call set_data_map ${_debug} maHeal stHealPoint${_lishp.Value}      80                   					"${auxnum} % of health to start healing:\a-w${_lishp.Value}\ax"								heal
       /invoke ${_lishp.Advance}
     }
-	/call set_data_list ${_debug} maHeal lsProtectOutsideGroup              EMPTY                         "${auxli} names outside of your group to add to xtarget for healing"
-  /call set_data_list ${_debug} maHeal lsProtectInsideRaid                EMPTY                         "${auxli} names in a raid to add to your xtarget healing (\a-wbeyond lsHealXTClass\ax)"
-  /call set_data_list ${_debug} maHeal lsProtectNPCList                   EMPTY                         "${auxli} npcs to add to xtarget list for healing"
+	/call set_data_list ${_debug} maHeal lsProtectOutsideGroup              EMPTY                         "${auxli} names outside of your group to add to xtarget for healing" heal
+  /call set_data_list ${_debug} maHeal lsProtectInsideRaid                EMPTY                         "${auxli} names in a raid to add to your xtarget healing (\a-wbeyond lsHealXTClass\ax)" heal
+  /call set_data_list ${_debug} maHeal lsProtectNPCList                   EMPTY                         "${auxli} npcs to add to xtarget list for healing" heal
 
   | points for everyone else
   } else /if (!${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
-    /call set_data_map ${_debug} maHeal stHealPoint${Me.Class.ShortName}  60
+    /call set_data_map ${_debug} maHeal stHealPoint${Me.Class.ShortName}  60														"${auxnum} % of health to start healing:\a-w${Me.Class.ShortName}\ax" heal
   }
-
-  /call set_data_map ${_debug} maHeal stHealMode                          base                          "[\a-wbase\ax|\a-wpassive\ax|\a-waggressive\ax] heal mode to use"
 
   /if (${lsClassCastCure.Contains[${Me.Class.ShortName}]}) {
     /call set_data_map ${_debug} maHeal stCureCurse                       FALSE                         "${auxna} name of cure curse spell"												heal
@@ -981,8 +960,8 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_map ${_debug} maCC swRoundkick                         FALSE                         "${auxsw} use round kick"
 
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
-    | /call set_data_list ${_debug} maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"
-    | /call set_data_list ${_debug} maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target"
+    /call set_data_list ${_debug} maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"
+    /call set_data_list ${_debug} maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target"
     /invoke ${lsMeleeSkill.Append[bash]}
     /call set_data_map ${_debug} maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit out of things"
 
@@ -1253,11 +1232,11 @@ sub set_initialize_map_buffs(bool _debug)
 
   /declare _count int local 0
   /for _count 1 to 50
-    /call set_data_map ${_debug} maBuffs swBuff${_count}              FALSE													"${auxsw} buff ${_count} switch"	buffs
-    /call set_data_map ${_debug} maBuffs stBuff${_count}              FALSE													"${auxna} buff ${_count} name"	buffs
-    /call set_data_map ${_debug} maBuffs stBuff${_count}Alias         FALSE													"${auxna} buff ${_count} alias"	buffs
-    /call set_data_list ${_debug} maBuffs lsBuff${_count}Tag          EMPTY													"${auxli} buff ${_count} tag list"	buffs
-    /call set_data_map ${_debug} maBuffs stBuff${_count}Con           0															"${auxnum} buff ${_count} condition"	buffs
+    /call set_data_map ${_debug} maBuff swBuff${_count}              FALSE													"${auxsw} buff ${_count} switch"	buff
+    /call set_data_map ${_debug} maBuff stBuff${_count}              FALSE													"${auxna} buff ${_count} name"	buff
+    /call set_data_map ${_debug} maBuff stBuff${_count}Alias         FALSE													"${auxna} buff ${_count} alias"	buff
+    /call set_data_list ${_debug} maBuff lsBuff${_count}Tag          EMPTY													"${auxli} buff ${_count} tag list"	buff
+    /call set_data_map ${_debug} maBuff stBuff${_count}Con           0															"${auxnum} buff ${_count} condition"	buff
   /next _count
 
 	/if (${maDebug.Find[init].Value}) {
@@ -1267,150 +1246,6 @@ sub set_initialize_map_buffs(bool _debug)
 
 
 /return TRUE
-
-
-
-|***
- * note: set/build items
- * use:
-
-sub set_initialize_map_items(bool _debug)
-  DEBUG \atset_initialize_map_items\ax()
-
-	/if (${maDebug.Find[init].Value}) {
-		/declare _boottimestart int local ${MacroQuest.Running}
-	}
-
-  /declare _count int local 0
-  /for _count 1 to 20
-    /call set_data_map ${_debug} maItems swItem${_count}              FALSE													"${auxsw} item ${_count} switch"	items
-    /call set_data_map ${_debug} maItems stItem${_count}              FALSE													"${auxna} item ${_count} name"	items
-    /call set_data_list ${_debug} maItems lsItem${_count}Tag          EMPTY													"${auxli} item ${_count} tag list"	items
-    /call set_data_map ${_debug} maItems stItem${_count}Con           0															"${auxnum} item ${_count} condition"	items
-  /next _count
-
-	/if (${maDebug.Find[init].Value}) {
-		OUT \agset_initialize_map_items\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
-		/mqp
-	}
-
-/return TRUE
- ***|
-
-
-|***
- * note: set/build defense
- * use:
-
-sub set_initialize_map_defense(bool _debug)
-  DEBUG \atset_initialize_map_defense\ax()
-
-	/if (${maDebug.Find[init].Value}) {
-		/declare _boottimestart int local ${MacroQuest.Running}
-	}
-
-  /declare _count int local 0
-  /for _count 1 to 20
-    /call set_data_map ${_debug} maDefense swDefense${_count}         FALSE													"${auxsw} defense ${_count} switch"	defense
-    /call set_data_map ${_debug} maDefense stDefense${_count}         FALSE													"${auxna} defense ${_count} name"	defense
-    /call set_data_list ${_debug} maDefense lsDefense${_count}Tag     EMPTY													"${auxli} defense ${_count} tag list"	defense
-    /call set_data_map ${_debug} maDefense stDefense${_count}Con      0															"${auxnum} defense ${_count} condition"	defense
-  /next _count
-
-	/if (${maDebug.Find[init].Value}) {
-		OUT \agset_initialize_map_defense\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
-		/mqp
-	}
-
-/return TRUE
- ***|
-
-
-|***
- * note: set/build heal
- * use:
-
-sub set_initialize_map_heal(bool _debug)
-  DEBUG \atset_initialize_map_heal\ax()
-
- 	/if (${maDebug.Find[init].Value}) {
-		/declare _boottimestart int local ${MacroQuest.Running}
-	}
-
-	/declare _count int local 0
-  /for _count 1 to 20
-    /call set_data_map ${_debug} maHeal swHeal${_count}              	FALSE													"${auxsw} heal ${_count} switch"	heal
-    /call set_data_map ${_debug} maHeal stHeal${_count}              	FALSE													"${auxna} heal ${_count} name"	heal
-    /call set_data_list ${_debug} maHeal lsHeal${_count}Tag           EMPTY													"${auxli} heal ${_count} tag list"	heal
-    /call set_data_map ${_debug} maHeal stHeal${_count}Con           	0															"${auxnum} heal ${_count} condition"	heal
-  /next _count
-
-	/if (${maDebug.Find[init].Value}) {
-		OUT \agset_initialize_map_heal\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
-		/mqp
-	}
-
-/return TRUE
- ***|
-
-|***
- * note: set/build nuke
- * use:
-
-sub set_initialize_map_nuke(bool _debug)
-  DEBUG \atset_initialize_map_nuke\ax()
-
- 	/if (${maDebug.Find[init].Value}) {
-		/declare _boottimestart int local ${MacroQuest.Running}
-	}
-
-	/declare _count int local 0
-  /for _count 1 to 20
-    /call set_data_map ${_debug} maNuke swNuke${_count}              	FALSE													"${auxsw} nuke ${_count} switch"	nuke
-    /call set_data_map ${_debug} maNuke stNuke${_count}              	FALSE													"${auxna} nuke ${_count} name"	nuke
-    /call set_data_list ${_debug} maNuke lsNuke${_count}Tag           EMPTY													"${auxli} nuke ${_count} tag list"	nuke
-    /call set_data_map ${_debug} maNuke stNuke${_count}Con           	0															"${auxnum} nuke ${_count} condition"	nuke
-  /next _count
-
-	/if (${maDebug.Find[init].Value}) {
-		OUT \agset_initialize_map_heal\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
-		/mqp
-	}
-
-/return TRUE
- ***|
-
-|***
- * note: set/build all the dots!
- * use:
-
-sub set_initialize_map_dot(bool _debug)
-  DEBUG \atset_initialize_map_dot\ax()
-
- 	/if (${maDebug.Find[init].Value}) {
-		/declare _boottimestart int local ${MacroQuest.Running}
-	}
-
-	/declare _count int local 0
-  /for _count 1 to 20
-    /call set_data_map ${_debug} maDoT swDoT${_count}              	FALSE													"${auxsw} dot ${_count} switch"	dot
-    /call set_data_map ${_debug} maDoT stDoT${_count}              	FALSE													"${auxna} dot ${_count} name"	dot
-    /call set_data_list ${_debug} maDoT lsDoT${_count}Tag           EMPTY													"${auxli} dot ${_count} tag list"	dot
-    /call set_data_map ${_debug} maDoT stDoT${_count}Con           	0															"${auxnum} dot ${_count} condition"	dot
-  /next _count
-
-	/if (${maDebug.Find[init].Value}) {
-		OUT \agset_initialize_map_heal\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
-		/mqp
-	}
-
-/return TRUE
- ***|
-
-
-
-
-
 
 
 
@@ -1951,58 +1786,58 @@ sub set_initialize_hud(bool _debug, string _verbage)
  * note: find and remove stale entries from the character database
  * use:
  ***|
-sub sql_check_delete(bool _debug)
-	DEBUG \atsql_check_delete\ax()
+sub sql_check(bool _debug)
+	DEBUG \atsql_check\ax()
 
-	/declare sqlDel map local
-	/invoke ${sqlDel.Add[testVartoDelete,character]}
-	/invoke ${sqlDel.Add[lsHealRemedy,character]}
-	/invoke ${sqlDel.Add[lsHealRenewal,character]}
-	/invoke ${sqlDel.Add[lsHealIntervention,character]}
-	/invoke ${sqlDel.Add[lsHealLight,character]}
-	/invoke ${sqlDel.Add[lsHealBaseLine,character]}
-	/invoke ${sqlDel.Add[lsNuke,character]}
-	/invoke ${sqlDel.Add[lsDoT,character]}
-	/invoke ${sqlDel.Add[lsLineTank,character]}
-	/invoke ${sqlDel.Add[lsLineCaster,character]}
-	/invoke ${sqlDel.Add[lsLineMelee,character]}
-	/invoke ${sqlDel.Add[lsLineMix,character]}
-	/invoke ${sqlDel.Add[lsLineOther,character]}
-	/invoke ${sqlDel.Add[lsHealPetLine,character]}
-	/invoke ${sqlDel.Add[lsNukeFire,character]}
-	/invoke ${sqlDel.Add[lsNukeMagic,character]}
-	/invoke ${sqlDel.Add[lsNukeBase,character]}
-	/invoke ${sqlDel.Add[stHealPanic,character]}
-	/invoke ${sqlDel.Add[lsHealAdrenaline,character]}
-	/invoke ${sqlDel.Add[lsHealPuravida,character]}
-	/invoke ${sqlDel.Add[lsHealTouch,character]}
-	/invoke ${sqlDel.Add[lsHealBurst,character]}
-	/invoke ${sqlDel.Add[stCountDefensive,character]}
-	/invoke ${sqlDel.Add[lsMitigationCycle,character]}
-	/invoke ${sqlDel.Add[lsMitigationCyclecheck,character]}
-	| /invoke ${sqlDel.Add[]}
+	/declare _field string local FALSE
+	/declare _table string local FALSE
 
+	/declare _count int local 0
+	/sqlite ${maData.Find[DBstatic].Value} dummycount SELECT Count(*) as data FROM stale_data
 
-	/declare misql mapiterator local
-  /vardata misql sqlDel.First.Clone
-  /while (!${misql.IsEnd}) {
+	/for _count 1 to ${sqlite.Result[dummycount 1 data]}
 
-  	DEBUG ${sep}${misql.Key}${sep}\a-w${misql.Value}\ax
+		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM stale_data WHERE ROWID=${_count}
+		/varset _table ${sqlite.Result[dummy 1 value]}
+		/varset _field ${sqlite.Result[dummy 1 env_var]}
+		DEBUG ${sep}${_field}${sep}\a-w${_table}\ax
 
-		| is the data there?
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${misql.Value} WHERE env_var="${misql.Key}"
-		DEBUG ${sep}dummy SELECT * FROM environment_${misql.Value} WHERE env_var="${misql.Key}" ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
+		| table to remove
+		/if (${_table.Equal[tabletodrop]}) {
+			/sqlite ${maData.Find[DBcharacter].Value} dummy DROP TABLE IF EXISTS ${_field}
 
-		| if the variable exists, delete it
-		/if (${sqlite.Rows[dummy]}) {
-			/sqlite ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${misql.Value} WHERE env_var="${misql.Key}"
+		| field to remove
+		} else {
+			| is the data there?
+			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_field}"
+			DEBUG ${sep}dummy SELECT * FROM environment_${_table} WHERE env_var="${_field}" ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
+
+			/if (${sqlite.Rows[dummy]}) {
+				/sqlite ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_table} WHERE env_var="${sqlite.Result[dummy 1 env_var]}"
+			}
 		}
 
-		/invoke ${sqlite.Clear[dummy]}
-    /invoke ${misql.Advance}
-  }
+	/next _count
 
+	| rename environment_buffs to singular
+	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_buffs WHERE env_var="stBuff1"
+	/if (${sqlite.Rows[dummy]}) {
+		/sqlite ${maData.Find[DBcharacter].Value} dummy ALTER TABLE "environment_buffs" RENAME TO "environment_buff"
+	}
 
 /return TRUE
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

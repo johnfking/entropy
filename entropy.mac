@@ -15,7 +15,7 @@
 
 
 #warning
-#turbo 200
+#turbo 240
 #engine parser 2
 
 #define DEBUG "/if (${_debug}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
@@ -121,7 +121,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A200223.05
+	/call set_data FALSE maEnv build													map outer A200225.01
 
 	| prep macro
 	/call prepare_the_end FALSE
