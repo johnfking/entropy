@@ -140,11 +140,11 @@ sub check_heal_SHD(bool _debug, string _type)
 	/if (${maHeal.Find[swHealSelf].Value}) {
 
 		/if (${is_ready[${_debug}, "${maChr.Find[stRancor].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
-			/call voodoo ${_debug} "${maChr.Find[stRancor].Value}" ${_tmpID} FALSE
+			/call voodoo ${_debug} "${maChr.Find[stRancor].Value}" TARGET FALSE
 		}
 
 		/if (${is_ready[${_debug}, "Leech Touch"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
-			/call voodoo ${_debug} "Leech Touch" ${_tmpID} FALSE
+			/call voodoo ${_debug} "Leech Touch" TARGET FALSE
 		}
 
 		/if (${SpawnCount[npc OVERLOS radius SAFEENV*2 targetable]} >= ${maChr.Find[stCountDefensive].Value}) {
@@ -153,7 +153,7 @@ sub check_heal_SHD(bool _debug, string _type)
 			}
 		}
 		/if (${is_ready[${_debug}, "Vicious Bite of Chaos"]}) {
-			/call voodoo ${_debug} "Vicious Bite of Chaos" ${_tmpID} FALSE
+			/call voodoo ${_debug} "Vicious Bite of Chaos" TARGET FALSE
 		}
 	}
 

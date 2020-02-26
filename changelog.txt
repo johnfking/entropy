@@ -23,6 +23,12 @@ on the to do list
 
 
 
+A200226.01
+- corrected a visual output typo for the DoT tag lsit
+- shadowknight
+  corrected a bad target ID in the self healing
+
+
 A200225.01
 - i've moved healing variables out of the character database table and into the heal table
   you will need to reset your healing as if it was a brand new DB
@@ -30,8 +36,6 @@ A200225.01
 - maBuffs map is gone. all buffs fall under maBuff map. again, to keep up the pattern
 - dots
   corrected a bad variable in the loop cycle
-
-
 
 
 A200223.05

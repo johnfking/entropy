@@ -11609,16 +11609,19 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 	/while (!${_liC20.IsEnd}) {
 
 		/if (${Me.PctMana} < 2) {
+			DEBUG ${sep}<2%manna
 			/return FALSE
 		}
 
 		/if (${target[isdead, ${_tmpID}]}) {
+			DEBUG ${sep}target dead
 			/return FALSE
 		}
 
 		| stopdot %
 		/if (${maDoT.Find[stPctStopDoT].Value}) {
 			/if (${Spawn[${_tmpID}].PctHPs} <= ${maDoT.Find[stPctStopDoT].Value}) {
+				DEBUG ${sep}${Spawn[${_tmpID}].PctHPs} <= ${maDoT.Find[stPctStopDoT].Value}
 				/return FALSE
 			}
 		}
@@ -11626,6 +11629,7 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 		| TTL evaluations
 		/if (${maTTL.Find[swTTL].Value}) {
 			/if (${maTTL.Contains[${Spawn[${_tmpID}].DisplayName}]}) {
+				DEBUG ${sep}ttl
 				| check overall durations of the average kill +2 tics over the spell duration time
 				/if (${Spell[${Spell[${_lidot.Value}].RankName}].Duration} > ${Math.Calc[${maTTL.Find[${Spawn[${_tmpID}].DisplayName}].Value.Arg[2,|]} + (${maTTL.Find[${Spawn[${_tmpID}].DisplayName}].Value.Arg[2,|]}*.5)]}) {
 					/invoke ${_lidot.Advance}
@@ -11644,13 +11648,15 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 		CHECKEXIT
 
 		/if (${target[isdead, ${_tmpID}]}) {
+			DEBUG ${sep}dead2
 			/return FALSE
 		}
 
 		/invoke ${target[set, ${_tmpID}]}
 
 		/if (${Target.ID} == ${_tmpID}) {
-			/if (${Target.BuffDuration[${_liC20.Value}].TotalSeconds} >= ${maDoT.Find[stDotRefresh].Value}) {
+			/if (${Target.BuffDuration[${maDoT.Find[stDoT${_liC20.Value}].Value}].TotalSeconds} >= ${maDoT.Find[stDotRefresh].Value}) {
+				DEBUG ${sep}dot refresh fail
 				/invoke ${_liC20.Advance}
 				/continue
 			}
@@ -11659,30 +11665,35 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 		}
 
 		| check the switch
-		/if (!${Bool[${maNuke.Find[swDoT${_liC20.Value}].Value}]}) {
+		/if (!${Bool[${maDoT.Find[swDoT${_liC20.Value}].Value}]}) {
+			DEBUG ${sep}switch off${sep}\a-w${maDoT.Find[stDoT${_liC20.Value}].Value}\ax
 			/invoke ${_liC20.Advance}
 			/continue
 		}
 
 		| check the name
-		/if (!${Bool[${maNuke.Find[stDoT${_liC20.Value}].Value}]}) {
+		/if (!${Bool[${maDoT.Find[stDoT${_liC20.Value}].Value}]}) {
+			DEBUG ${sep}no name${sep}\a-w${maDoT.Find[stDoT${_liC20.Value}].Value}\ax
 			/invoke ${_liC20.Advance}
 			/continue
 		}
 
 		/if (!${is_ready[${_debug}, "${maDoT.Find[stDoT${_liC20.Value}].Value}"]}) {
+			DEBUG ${sep}not ready${sep}\a-w${maDoT.Find[stDoT${_liC20.Value}].Value}\ax
 			/invoke ${_liC20.Advance}
 			/continue
 		}
 
 		| apply any conditions
 		/if (!${check_condition[${_debug}, ${maDoT.Find[stDoT${_liC20.Value}Con].Value}]}) {
+			DEBUG ${sep}condition fail${sep}\a-w${maDoT.Find[stDoT${_liC20.Value}].Value}\ax
 			/invoke ${_liC20.Advance}
 			/continue
 		}
 
 		/call check_basic_tags ${_debug} DoT${_liC20.Value} FALSE "${maDoT.Find[stDoT${_liC20.Value}].Value}"
 		/if (!${Macro.Return}) {
+			DEBUG ${sep}tag fail${sep}\a-w${maDoT.Find[stDoT${_liC20.Value}].Value}\ax
 			/invoke ${_liC20.Advance}
 			/continue
 		}

@@ -1990,7 +1990,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 			OUT stDoT\aw${_verbage}\axCon${sep}\a-w${maDoT.Find[stDoT${_verbage}Con].Value}\ax
 		}
 
-		/invoke ${out[12, "lsNuke\aw${_verbage}\axTag"]}
+		/invoke ${out[12, "lsDoT\aw${_verbage}\axTag"]}
 
 		/declare hli listiterator local
 		/vardata hli lsDoT${_verbage}Tag.First.Clone
@@ -1998,9 +1998,6 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 			/invoke ${out[12, "${dot}\a-w${hli.Value}\ax"]}
 			/invoke ${hli.Advance}
 		}
-
-
-
 
 	| see nuke info
 	} else /if (${_variable.Equal[nuke]}) {

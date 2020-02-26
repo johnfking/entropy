@@ -960,8 +960,8 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_map ${_debug} maCC swRoundkick                         FALSE                         "${auxsw} use round kick"
 
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
-    /call set_data_list ${_debug} maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"
-    /call set_data_list ${_debug} maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target"
+    | /call set_data_list ${_debug} maChr lsNuke                            EMPTY                         "${auxli} list of nukes to use"
+    | /call set_data_list ${_debug} maChr lsDoT                             EMPTY                         "${auxli} list of dots to keep on a target"
     /invoke ${lsMeleeSkill.Append[bash]}
     /call set_data_map ${_debug} maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit out of things"
 
