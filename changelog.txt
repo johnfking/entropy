@@ -10,7 +10,6 @@
 on the to do list
 --------------------
 - find a way to grade debuffs and overwrite if needed
-- finish target id passing for all classes to misc_ombat() and burn()
 - find out why the fuck chanter just stops doing shit
 - get remove verb working for /area
 - mage pet weapons?
@@ -21,6 +20,26 @@ on the to do list
 
 
 
+
+
+
+
+
+
+A200228.01
+- cleric
+  removed a missed variable:stHealMode
+- /entropy
+  engine # - [1|2]
+  the engine options will be used to change how code flow is done
+- /agro new control like heal or nuke
+  20 slots to build agro skills with tags and conditions
+  this will override the existing agro routines for PAL|WAR|SHD
+  requires engine 2
+- corrected a bad variable for mq2discord filtering
+- heal points have been moved from the character table to the heal table
+  you will need to reset them, they default to 80
+- many updates to /aux
 
 
 A200226.01

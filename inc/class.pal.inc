@@ -269,6 +269,11 @@ sub get_agro_PAL(bool _debug, int _tmpID)
 
 	CHECKDEFENSE
 
+	/if (ENGINE2) {
+		/call check_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
+		/return TRUE
+	}
+
 	/call set_combat ${_debug}
 	/call check_heal_routines
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa

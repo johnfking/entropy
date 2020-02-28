@@ -590,8 +590,6 @@ sub sql_set_character_schema(bool _debug)
 		/declare _boottimestart int local ${MacroQuest.Running}
 	}
 
-
-
   /declare maDBTables map outer
   /invoke ${maDBTables.Add[environment_buff,env_var]}
   /invoke ${maDBTables.Add[environment_character,env_var]}
@@ -603,7 +601,7 @@ sub sql_set_character_schema(bool _debug)
   /invoke ${maDBTables.Add[environment_heal,env_var]}
   /invoke ${maDBTables.Add[environment_nuke,env_var]}
   /invoke ${maDBTables.Add[environment_dot,env_var]}
-
+  /invoke ${maDBTables.Add[environment_agro,env_var]}
 
   /sqlite ${maData.Find[DBcharacter].Value} SQL_ENV_BUILD SELECT build_number FROM build
   DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[dummy]}\ax
@@ -1143,6 +1141,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy swAutoInvManual                  FALSE                         "${auxsw} obey autoinventory fast list even in manual mode"
   /call set_data_map ${_debug} maEntropy swBuildSetRemember								FALSE                         "${auxsw} remember and refresh a set on macro boot"
   /call set_data_map ${_debug} maEntropy stCastLoop												1			                   			"${auxna} number of castloop attempts, event based"
+  /call set_data_map ${_debug} maEntropy stEngine													1			                   			"${auxna} code engine"
 
 |** control: TTL  **|
   /call set_data_map ${_debug} maTTL swTTL				                        FALSE                         "${auxsw} use ttl logic"
@@ -1268,6 +1267,7 @@ sub set_initialize_map_20(bool _debug)
 	/invoke ${_tmpMap.Add[Heal,heal]}
 	/invoke ${_tmpMap.Add[Defense,defense]}
 	/invoke ${_tmpMap.Add[Item,item]}
+	/invoke ${_tmpMap.Add[Agro,agro]}
 
 
   /vardata _tmi _tmpMap.First.Clone
@@ -1826,6 +1826,7 @@ sub sql_check(bool _debug)
 	}
 
 /return TRUE
+
 
 
 

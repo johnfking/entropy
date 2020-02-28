@@ -1325,7 +1325,9 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	} else /if (${_type.Equal[castloops]}) {
 		/invoke ${set_switch_env[FALSE, stCastLoop, TRUE, ${_verbage}]}
 
-
+	| code engine
+	} else /if (${_type.Equal[engine]}) {
+		/if (!${set_control_num_range[${_debug}, stEngine, "${_verbage}", 1, 2]}) /return
 
 	} else /if (${_type.Equal[hud]}) {
 
@@ -1366,7 +1368,8 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[autolist,swAutoList]}
-	/invoke ${maControl.Add[buffrefresh,stBuffRefresh]}
+	/invoke ${maControl.Add[autolist,swAutoList]}
+	/invoke ${maControl.Add[engine,stEngine]}
 	/invoke ${maControl.Add[castloops,stCastLoop]}
 	/invoke ${maControl.Add[dpsmeter,swDPSMeter]}
 	/invoke ${maControl.Add[events,swEventsInc]}
@@ -1877,7 +1880,7 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 		/call Bind_command_see maOver ${_verbage}
 		/return TRUE
 	} else /if (${_type.Equal[aux]}) {
-		/call Bind_command_aux over ${_verbage}
+		/call Bind_command_aux override ${_verbage}
 		/return TRUE
 
 	} else /if (${_type.Equal[los]}) {
@@ -1940,7 +1943,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
 		/call Bind_command_aux see
 		/return	FALSE
-	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke]}) {
+	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro]}) {
 		/invoke ${out[0, "Crack says your input sucks${sep}\a-w${_variable}\ax"]}
 		/return FALSE
 	}
@@ -1954,6 +1957,53 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		OUT name:\aw${Target.DisplayName}\ax (\a-r${Target.Name}\ax) ${sep} \ay${Target.ID}\ax
 		OUT dis(\a-r${Target.Distance}\ax) ${dot} Y(\a-r${Target.Y}\ax)X(\a-r${Target.X}\ax)
 		OUT animation(\a-r${Target.Animation}\ax) ${dot} body(\a-r${Target.Body}\ax)
+
+
+	| see agro info
+	} else /if (${_variable.Equal[agro]}) {
+
+		/if (${_verbage.Equal[list]}) {
+			/echo
+			/invoke ${out[12, "\awAgro List\ax${sep}"]}
+
+			/declare _licountdot listiterator local
+		  /vardata _licountdot lsCount20.First.Clone
+		  /while (!${_licountdot.IsEnd}) {
+				/if (${Bool[${maAgro.Find[stAgro${_licountdot.Value}].Value}]}) {
+					/invoke ${out[12, "\awstAgro${_licountdot.Value}\ax${sep}${If[${maAgro.Find[swAgro${_licountdot.Value}].Value},${on},${off}]}${sep}\a-w${maAgro.Find[stAgro${_licountdot.Value}].Value}\ax"]}
+				}
+		    /invoke ${_licountdot.Advance}
+		  }
+
+			/if (${_silent.NotEqual[silent]}) ${out[18, "${eol}"]}
+			/echo
+			/return
+		}
+
+		/if (!${Range.Between[1,20:${Int[${_verbage}]}]}) {
+			/call Bind_command_aux dot
+			/return
+		}
+		/invoke ${out[12, "\awAgro #${_verbage}\ax${sep}${If[${maAgro.Find[swAgro${_verbage}].Value},${on},${off}]}"]}
+		/invoke ${out[12, "stAgro\aw${_verbage}\ax${sep}\a-w${maAgro.Find[stAgro${_verbage}].Value}\ax"]}
+
+		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maAgro.Find[stAgro${_verbage}Con].Value}"
+		/if (${sqlite.Rows[dummy]}) {
+			OUT stAgro\aw${_verbage}\axCon${sep}\a-w${maAgro.Find[stAgro${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
+		} else {
+			OUT stAgro\aw${_verbage}\axCon${sep}\a-w${maAgro.Find[stAgro${_verbage}Con].Value}\ax
+		}
+
+		/invoke ${out[12, "lsAgro\aw${_verbage}\axTag"]}
+
+		/declare hli listiterator local
+		/vardata hli lsAgro${_verbage}Tag.First.Clone
+		/while (!${hli.IsEnd}) {
+			/invoke ${out[12, "${dot}\a-w${hli.Value}\ax"]}
+			/invoke ${hli.Advance}
+		}
+
+
 
 	| see dot info
 	} else /if (${_variable.Equal[dot]}) {
@@ -2909,11 +2959,11 @@ sub Bind_command_aux(string _type, bool _debug)
 	| /varset _debug TRUE
 	/declare _lsout list local
 	/invoke ${_lsout.Append[alto,bandolier,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter]}
-	/invoke ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,mode,minion,navto,off,on,over,repeat,see,splash,take,tag,tc,tie]}
-	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem]}
+	/invoke ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,mode,minion,navto,off,on,override,repeat,see,splash,take,tag,tc,tie]}
+	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro]}
 
 	/if (${_lsout.Contains[${_type}]}) {
-		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY help_var
+		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY ROWID
 		DEBUG dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY help_var
 		/declare _count int local 0
 		/mqclear
@@ -4717,8 +4767,6 @@ sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _s
 
 
 
-
-
 |***
  * note:control for /dot
  * use:
@@ -4792,3 +4840,77 @@ sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _si
 /return	TRUE
 
 
+
+
+
+
+
+
+
+
+|***
+ * note:control for /agro
+ * use:
+ ***|
+#Bind control_agro /agro
+sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
+	DEBUG \atcontrol_agro\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+
+	/if (ENGINE1) {
+		/invoke ${out[0, "/agro is only available with engine 2 enabled."]}
+		/return FALSE
+	}
+
+	| output control map
+	/if (${_type.Equal[see]}) {
+		/call Bind_command_see maAgro ${_verbage}
+		/return
+	} else /if (${_type.Equal[aux]}) {
+		/call Bind_command_aux agro ${_verbage}
+		/return
+
+	} else /if (${_type.Equal[list]}) {
+		/call Bind_command_see agro list
+		/return	TRUE
+
+	| heal number entered
+	} else /if (${Range.Between[1,20:${Int[${_type}]}]}) {
+
+		| see the agro #
+		/if (${_verbage.Equal[see]}) {
+			/call Bind_command_see agro ${_type}
+			/return
+		}
+
+		/if (!${Bool[${_verbage}]} && ${_verbage.NotEqual[FALSE]}) {
+			/invoke ${set_switch_env[${_debug}, swAgro${_type}, TRUE, ${_verbage}]}
+			/invoke ${out[12, "\awAgro${_type}\ax${sep}${If[${maAgro.Find[swAgro${_type}].Value},${on},${off}]}${sep}\a-w${maAgro.Find[stAgro${_type}].Value}\ax"]}
+			/return TRUE
+
+		} else /if (${Select[${_verbage},clear]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swAgro${_type}" FALSE
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stAgro${_type}" FALSE
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stAgro${_type}Con" "0"
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsAgro${_type}Tag" clear
+
+		} else /if (${Select[${_verbage},con]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stAgro${_type}Con" "${_verbage2}"
+
+		} else /if (${Select[${_verbage},tag]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsAgro${_type}Tag" ${_verbage2} ${_silent}
+
+		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stAgro${_type}" "${_verbage}"
+		}
+
+		/call Bind_command_see agro ${_type}
+
+		/return TRUE
+
+	}
+
+	| /if (${_silent.Equal[SILENT]}) /return
+	| /invoke ${maControl.Clear}
+	| /invoke ${set_control_output[${_debug}, maAgro, agro, maControl]}
+
+/return	TRUE

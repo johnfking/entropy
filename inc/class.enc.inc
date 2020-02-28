@@ -91,9 +91,7 @@ sub main_ENC(bool _debug)
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/call set_combat FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
-				/call cast_defensive_cycle ${maDebug.Find[def].Value}
-			}
+			CHECKDEFENSE
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
@@ -104,7 +102,7 @@ sub main_ENC(bool _debug)
 
 			/call control_routine ${maDebug.Find[mez].Value}
 
-			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
+			| /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/call control_routine ${maDebug.Find[mez].Value}
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call control_routine ${maDebug.Find[mez].Value}
@@ -154,10 +152,7 @@ sub misc_combat_ENC(bool _debug, int _tmpID)
 	GETINPUT
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
-		/call cast_defensive_cycle ${maDebug.Find[def].Value}
-	}
-
+	CHECKDEFENSE
 
 	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
@@ -168,7 +163,9 @@ sub misc_combat_ENC(bool _debug, int _tmpID)
 			/if (${Me.AltAbilityReady[Beam of Slumber]}) {
 				/if (${Me.Casting.ID}) /stopcast
 				/face ID ${_tmpID} ${If[${maHome.Find[swFaceFast].Value},fast,]}
-				/if (${is_ready[${_debug}, "Beam of Slumber"]}) /call voodoo ${_debug} "Beam of Slumber" 0 FALSE
+				/if (${is_ready[${_debug}, "Beam of Slumber"]}) {
+					/call voodoo ${_debug} "Beam of Slumber" 0 FALSE
+				}
 			}
 		}
 	}
@@ -177,8 +174,10 @@ sub misc_combat_ENC(bool _debug, int _tmpID)
 
 	| swarm pet
 	/if (SWARM && AGRO) {
-		/if (${is_ready[${_debug}, "Phantasmal Opponent"]} && ${Target.PctHPs} <= ${maMinion.Find[stPctSwarmEngage].Value}) {
-			/call voodoo ${_debug} "Phantasmal Opponent" 0 FALSE
+		/if (${Target.PctHPs} <= ${maMinion.Find[stPctSwarmEngage].Value}) {
+			/if (${is_ready[${_debug}, "Phantasmal Opponent"]}) {
+				/call voodoo ${_debug} "Phantasmal Opponent" 0 FALSE
+			}
 		}
 	}
 
@@ -245,9 +244,9 @@ sub check_gather_ENC(bool _debug)
 
 	| AA manna crystal
 	/if (${maChr.Find[swAACrystals].Value}) {
-		/if (${is_ready[${_debug}, "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}"]}) {
-			/call voodoo ${_debug} "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}" 0 FALSE
-		}
+		| /if (${is_ready[${_debug}, "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}"]}) {
+		| 	/call voodoo ${_debug} "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}" 0 FALSE
+		| }
 	}
 
 	/if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
@@ -360,10 +359,14 @@ sub burn_ENC(bool _debug, int _tmpID)
 	}
 
 	| resist mod
-	/if (${is_ready[${_debug}, "Focus of Arcanum"]}) /call voodoo ${_debug} "Focus of Arcanum" 0 FALSE
+	/if (${is_ready[${_debug}, "Focus of Arcanum"]}) {
+		/call voodoo ${_debug} "Focus of Arcanum" 0 FALSE
+	}
 
 	| Group DD Bonus
-	/if (${is_ready[${_debug}, "Chromatic Haze"]}) /call voodoo ${_debug} "Chromatic Haze" 0 FALSE
+	/if (${is_ready[${_debug}, "Chromatic Haze"]}) {
+		/call voodoo ${_debug} "Chromatic Haze" 0 FALSE
+	}
 
 	/if (${target[isdead, ${_tmpID}]}) /return FALSE
 

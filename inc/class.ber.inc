@@ -73,7 +73,6 @@ sub main_BER(bool _debug)
 	CHECKTIE
 	CHECKREZ
 
-
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
@@ -91,8 +90,9 @@ sub main_BER(bool _debug)
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
+			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
-
 		}
 
 		/if (AUTO) {

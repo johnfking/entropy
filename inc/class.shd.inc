@@ -250,6 +250,11 @@ sub get_agro_SHD(bool _debug, int _tmpID)
 
 	/if (PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 
+	/if (ENGINE2) {
+		/call check_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
+		/return TRUE
+	}
+
 	/call cast_challenge FALSE ${_tmpID}
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 
@@ -292,6 +297,10 @@ sub get_agro_SHD(bool _debug, int _tmpID)
 				/call voodoo ${_debug} "${maChr.Find[stAELifeTap].Value}" 0 FALSE
 			}
 		}
+	}
+
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
 	}
 
 	| fake hate
@@ -386,6 +395,10 @@ sub burn_SHD(bool _debug, int _tmpID)
 	}
 	/if (${is_ready[${_debug}, "Harm Touch"]}) {
 		/call voodoo ${_debug} "Harm Touch" ${_tmpID} FALSE
+	}
+
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
 	}
 
 	/if (AGRO) {

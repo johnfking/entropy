@@ -191,19 +191,13 @@ sub misc_combat_CLR(bool _debug, int _tmpID)
 	GETINPUT misc_combat_CLR NA|NA
 	CHECKTIE
 
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
-		/call cast_defensive_cycle ${maDebug.Find[def].Value}
-	}
+	CHECKDEFENSE
 
 	/if (SWARM || PET) {
 		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	}
 	/if (AUTO && MELEE) {
 		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
-	}
-
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
-		/call cast_defensive_cycle ${maDebug.Find[def].Value}
 	}
 
 	/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) {
@@ -213,7 +207,6 @@ sub misc_combat_CLR(bool _debug, int _tmpID)
 	/if (SWARM) {
 		/call cast_temp_pet ${maDebug.Find[temp].Value} ${_tmpID} "${maChr.Find[stTempPet].Value}"
 	}
-
 
 	| pet AA hammer
 	/if (${maBurn.Find[swBurnForce].Value} || (${maBurn.Find[swBurnAuto].Value} && ${lsZoneNamed.Contains[${Target.DisplayName}]})) {
@@ -266,6 +259,7 @@ sub cast_nut_smasher(bool _debug)
  ***|
 sub check_heal_CLR(bool _debug, string _type)
 	DEBUG \atcheck_heal_CLR\ax(\a-w${_type}\ax)
+ FLOW check_heal_CLR ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -510,9 +504,7 @@ sub burn_CLR(bool _debug, int _tmpID)
 			/return FALSE
 		}
 
-		/if (!${is_defensive_active[${maDebug.Find[def].Value}, BURN, SAFEENV]}) {
-			/call cast_defensive_cycle ${maDebug.Find[def].Value}
-		}
+		CHECKDEFENSE
 		/if (SWARM || PET) {
 			/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 		}
@@ -582,7 +574,7 @@ sub burn_CLR(bool _debug, int _tmpID)
 	}
 
 	| direct damage boost if using aggressive healing
-	/if (${maHeal.Find[stHealMode].Value.Equal[aggressive]} && !${Me.Song[${maChr.Find[stAASilentCasting].Value}].ID}) {
+	/if (!${Me.Song[${maChr.Find[stAASilentCasting].Value}].ID}) {
     /if (${is_ready[${_debug}, "${maChr.Find[stAABattleFrenzy].Value}"]}) {
     	/call voodoo ${_debug} "${maChr.Find[stAABattleFrenzy].Value}" 0 FALSE
     }

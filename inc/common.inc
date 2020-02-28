@@ -1092,87 +1092,24 @@ sub check_facing(bool _debug, int _tmpID, string _adjust)
 
 
 |***
- * note: During combat, keeps one defensive up at all times if possible from a user defined list of ????,
- * note: starting from the top and moving progressively trhough the list until it finds a useable ability only if no other ability is up
- * use: /call cast_defensive_cycle DEBUG
- ***|
-sub cast_defensive_cycle(bool _debug)
-	DEBUG \atcast_defensive_cycle\ax()
-	FLOW cast_defensive_cycle
-
-	/declare _li listiterator string local
-	/vardata _li lsMitigationCycle.First.Clone
-	/while (!${_li.IsEnd}) {
-		ISMEDEAD
-		/if (${is_ready[FALSE, "${_li.Value}"]}) {
-			/call voodoo FALSE "${_li.Value}" 0 FALSE
-			/return TRUE
-		}
-		/invoke ${_li.Advance}
-	}
-
-/return FALSE
-
-
-
-|***
- * note: check if we can run a definsive mitigation
- * use: /if (${is_defensive_active[DEBUG, [burn|???], [range]]})
- ***|
-sub is_defensive_active(bool _debug, string _abort, int _range)
-	DEBUG \atis_defensive_active\ax(\a-w${_abort}, ${_range}\ax)
-	FLOW is_defensive_active
-
-	| this system is not for use in manual mode
-	/if (!AUTO || !${maChr.Find[stCountDefensive].Value})  {
-		/return TRUE
-	}
-
-	| if nothing is set, go away
-	/if (!${maChr.Count[lsMitigationCycle]} && !${maChr.Count[lsMitigationCyclecheck]}) {
-		/return TRUE
-	}
-
-	/declare _li listiterator string local
-	/vardata _li lsMitigationCyclecheck.First.Clone
-	/while (!${_li.IsEnd}) {
-		/if (${Me.Buff[${_li.Value}].ID}) /return TRUE
-		/if (${Me.Song[${_li.Value}].ID}) /return TRUE
-		/if (${Me.ActiveDisc[${_li.Value}].ID}) /return TRUE
-		/invoke ${_li.Advance}
-	}
-
-	/if (${SpawnCount[npc radius ${_range} PS4 targetable]} < ${maChr.Find[stCountDefensive].Value}) {
-		/return TRUE
-	}
-
-	/if (${_abort.Equal[burn]} && BURN) {
-		/return FALSE
-	}
-
-/return FALSE
-
-
-
-|***
  * note: is something ready to be used? i dont GAF what it is, is it ready?
  * use: ${is_ready[DEBUG, "Thingtocheck"]}
  ***|
 sub is_ready(bool _debug, string _verbage)
 	DEBUG \atis_ready\ax(\a-w${_verbage}\ax)
-	FLOW is_ready
+	FLOW is_ready::${_verbage}
 
 	/if (!${Bool[${_verbage}]}) {
 		/return FALSE
 	}
 
-	/if (${swIsMeDead}) {
-		/return FALSE
-	}
+	| /if (${swIsMeDead}) {
+	| 	/return FALSE
+	| }
 
-	/if (${_verbage.Find[+]}) {
-		/varset _verbage ${_verbage.Arg[1,+]}
-	}
+	| /if (${_verbage.Find[+]}) {
+	| 	/varset _verbage ${_verbage.Arg[1,+]}
+	| }
 
 	| alt ability
 	/if (${Me.AltAbilityReady[${_verbage}]}) {
@@ -1187,7 +1124,8 @@ sub is_ready(bool _debug, string _verbage)
 			/if (!${lsFreePassSpells.Contains[${Spell[${Spell[${_verbage}].RankName}].SpellType}]}) /return FALSE
 		}
 
-		/if (!${Me.SpellReady[${Spell[${_verbage}].RankName}]} && !${Spell[${Spell[${_verbage}].RankName}].Category.Equal[Auras]}) /return FALSE
+		| /if (!${Me.SpellReady[${Spell[${_verbage}].RankName}]} && !${Spell[${Spell[${_verbage}].RankName}].Category.Equal[Auras]}) /return FALSE
+		/if (!${Me.SpellReady[${Spell[${_verbage}].RankName}]}) /return FALSE
 		DEBUG ${sep}\a-ySPELL READY\ax${sep}\a-w${Spell[${_verbage}].RankName}\ax
 		/return TRUE
 
@@ -1434,11 +1372,12 @@ sub check_for_rezbox(bool _debug)
 
 	GETINPUT rez_box_found swIsMeDead|${swIsMeDead}
 
+	| dont rezz me
+	/if (!${maRez.Find[swRezTake].Value}) /return
+
+
 	| do I have corpses around ?
 	/if (!${SpawnCount[pccorpse name ${Me.DisplayName}]}) {
-
-		| dont rezz me
-		/if (!${maRez.Find[swRezTake].Value}) /return
 
 		| not dead? GO AWAY
 		/if (!${swIsMeDead}) /return
@@ -1580,6 +1519,7 @@ sub is_me_dead(bool _debug)
 
 		/call set_stop FALSE SILENT
 		/invoke ${target[clear]}
+		FLOW is_me_dead
 		/if (${Me.Casting.ID}) {
 			/stopcast
 		}
@@ -1664,7 +1604,7 @@ sub check_condition(bool _debug, str _condition)
  ***|
 sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOverride)
 	DEBUG \atvoodoo\ax(\a-w${_verbage}, ${_tmpID}, ${_sub}, ${_rangeOverride}\ax)
-	FLOW voodoo
+	FLOW voodoo ${_verbage}|${_tmpID}|${_sub}|${_rangeOverride}
 	ISMEDEAD
 
 	| critical errors
@@ -1783,6 +1723,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		| make sure we have our target if one is passed. 0 is assumed no target required
 		/if (${_tmpID}) {
 			/invoke ${target[set, ${_tmpID}]}
+			FLOW voodoo ${_verbage}|${_tmpID}|${_sub}|${_rangeOverride}
 		}
 
 		/if (${_tmpID} == 0) {
@@ -1908,6 +1849,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		| make sure we have our target if one is passed. 0 is assumed no target required
 		/if (${_tmpID}) {
 			/invoke ${target[set, ${_tmpID}]}
+			FLOW voodoo ${_verbage}|${_tmpID}|${_sub}|${_rangeOverride}
 		}
 
 		| types vs zone control
@@ -2068,6 +2010,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		| make sure we have our target if one is passed. 0 is assumed no target required
 		/if (${_tmpID}) {
 			/invoke ${target[set, ${_tmpID}]}
+			FLOW voodoo ${_verbage}|${_tmpID}|${_sub}|${_rangeOverride}
 		}
 
 		/if (${_tmpID} == 0) {
@@ -2111,6 +2054,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		| make sure we have our target if one is passed. 0 is assumed no target required
 		/if (${_tmpID}) {
 			/invoke ${target[set, ${_tmpID}]}
+			FLOW voodoo ${_verbage}|${_tmpID}|${_sub}|${_rangeOverride}
 		}
 
 		/if (${_tmpID} == 0 || ${_tmpID} == ${Me.ID}) {
@@ -2173,6 +2117,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		| make sure we have our target if one is passed. 0 is assumed no target required
 		/if (${_tmpID}) {
 			/invoke ${target[set, ${_tmpID}]}
+			FLOW voodoo ${_verbage}|${_tmpID}|${_sub}|${_rangeOverride}
 		}
 
 		/if (${_tmpID} == 0) {
@@ -2507,6 +2452,7 @@ sub check_xtarget_build(bool _debug, string _forced)
  ***|
 sub stick_to_target(bool _debug, int _tmpID)
 	DEBUG \atstick_to_target\ax(\a-w${_tmpID}\ax)
+	FLOW stick_to_target ${_tmpID}
 
 	/if (${timer_check_stick}) /return FALSE
 
@@ -2517,6 +2463,7 @@ sub stick_to_target(bool _debug, int _tmpID)
 	| /if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
 
 	/if (${target[isdead, ${_tmpID}]}) {
+		FLOW stick_to_target ${_tmpID}
 		/return FALSE
 	}
 
@@ -2568,6 +2515,7 @@ sub stick_to_target(bool _debug, int _tmpID)
  ***|
 sub is_target_dead(bool _debug, int _tmpID)
 	DEBUG \atis_target_dead\ax(\a-w${_tmpID}\ax)
+	FLOW is_target_dead ${_tmpID}
 
 	ISMEDEAD
 
@@ -2581,6 +2529,7 @@ sub is_target_dead(bool _debug, int _tmpID)
 		/if (!${Bool[${_tmpID}]}) {
 			DEBUG ${sep}!auto !_tmpID clear_combat
 			/invoke ${target[clear]}
+			FLOW is_target_dead ${_tmpID}
 			/return TRUE
 		}
 	}
@@ -2609,6 +2558,7 @@ sub is_target_dead(bool _debug, int _tmpID)
 	/if (${_dead}) {
 		| SDEBUG ${sep}dead clear_combat
 		/invoke ${target[clear]}
+		FLOW is_target_dead ${_tmpID}
 	}
 
 /return ${_dead}
@@ -2621,6 +2571,7 @@ sub is_target_dead(bool _debug, int _tmpID)
  ***|
 sub clear_combat(bool _debug)
 	DEBUG \atclear_combat\ax()
+	FLOW clear_combat
 
 	GETINPUT clear_combat NA|NA
 
@@ -2662,7 +2613,6 @@ sub clear_combat(bool _debug)
 		/squelch /stick off
 	}
 	/if (AUTO && ${Target.ID}) {
-		/echo here
 		/squelch /target clear
 	}
 
@@ -2729,7 +2679,7 @@ sub get_resident_class(bool _debug, string _class, int _distance)
 **|
 sub is_target_valid(bool _debug, int _tmpID)
 	DEBUG \atis_target_valid\ax(\a-w${_tmpID}\ax)
-	FLOW is_target_valid
+	FLOW is_target_valid ${_tmpID}
 
 	/if (!AUTO) {
 		/return TRUE
@@ -2746,9 +2696,11 @@ sub is_target_valid(bool _debug, int _tmpID)
 	/if (${Target.ID}) {
 		/if (${Select[${maCC.Find[stAssistMode].Value},1,2,3]} && ${Spawn[${_tmpID}].ID} != ${Me.XTarget[1].ID}) {
 			/invoke ${target[clear]}
+			FLOW is_target_valid ${_tmpID}
 			/return FALSE
 		} else /if (${Select[${maCC.Find[stAssistMode].Value},g]} && ${Group.MainAssist.ID} && !${Bool[${Spawn[${Group.MainAssist}].Dead}]} && ${Spawn[${_tmpID}].ID} != ${Me.XTarget[1].ID}) {
 			/invoke ${target[clear]}
+			FLOW is_target_valid ${_tmpID}
 			/return FALSE
 		}
 	}
@@ -2876,6 +2828,7 @@ sub check_class_loop(bool _debug)
 		| /if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return TRUE
 
 		/if (${target[isdead, TARGET]}) {
+			FLOW check_class_loop
 			/return TRUE
 		}
 
@@ -2888,12 +2841,10 @@ sub check_class_loop(bool _debug)
 			| target dead. end
 			| /if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return TRUE
 
-
-
-		/if (${target[isdead, TARGET]}) {
-			/return TRUE
-		}
-
+			/if (${target[isdead, TARGET]}) {
+				FLOW check_class_loop
+				/return TRUE
+			}
 
 		}
 
@@ -2937,6 +2888,7 @@ sub check_combat_status(bool _debug)
 		} else /if (!${Target.ID}) {
 			/if (COMBAT || VALID) {
 				/invoke ${target[clear]}
+				FLOW check_combat_status
 			}
 			/return FALSE
 		}
@@ -2977,6 +2929,7 @@ sub check_combat_status(bool _debug)
 
 		/if (!VALID || !${Spawn[TARGET].ID}) {
 			/invoke ${target[clear]}
+			FLOW check_combat_status
 			/return FALSE
 
 		} else /if (VALID && ${Spawn[TARGET].ID}) {
@@ -3007,6 +2960,7 @@ sub set_combat(bool _debug)
 
 	/if (${target[isdead, TARGET]}) {
 		/return FALSE
+		FLOW set_combat
 	}
 
 
@@ -3103,7 +3057,7 @@ sub set_combat(bool _debug)
  ***|
 sub set_combat_control(bool _debug, int _tmpID)
 	DEBUG \atset_combat_control\ax(\a-w${_tmpID}\ax)
-	FLOW set_combat_control
+	FLOW set_combat_control ${_tmpID}
 
 	ISMEDEAD
 
@@ -3111,6 +3065,7 @@ sub set_combat_control(bool _debug, int _tmpID)
 
 	| validate the target
 	/if (${target[isdead, ${_tmpID}]}) {
+		FLOW set_combat_control ${_tmpID}
 		/return FALSE
 	}
 
@@ -3213,7 +3168,7 @@ sub set_combat_range(bool _debug, int _tmpID)
  ***|
 sub set_combat_melee(bool _debug, int _tmpID)
 	DEBUG \atset_combat_melee\ax(\a-w${_tmpID}\ax)
-	FLOW set_combat_melee
+	FLOW set_combat_melee ${_tmpID}
 
 	/if (${Me.AutoFire}) {
 		/squelch /autofire
@@ -3238,6 +3193,7 @@ sub set_combat_melee(bool _debug, int _tmpID)
 	| /if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
 
 	/if (${target[isdead, ${_tmpID}]}) {
+		FLOW set_combat_melee ${_tmpID}
 		/return FALSE
 	}
 
@@ -3291,7 +3247,7 @@ sub set_combat_melee(bool _debug, int _tmpID)
  ***|
 sub get_target_buff_time_left(bool _debug, string _buff)
 	DEBUG \atget_target_buff_time_left\ax(\a-w${_buff}\ax)
-	FLOW get_target_buff_time_left
+	FLOW get_target_buff_time_left ${_buff}
 
 	/if (!${Target.ID} || ${Target.Dead}) {
 		/return 0
@@ -3326,7 +3282,7 @@ sub get_target_buff_time_left(bool _debug, string _buff)
  ***|
 sub get_target_basepull(bool _debug, int _tmpID)
 	DEBUG \atget_target_basepull\ax(\a-w${_tmpID}\ax)
-	FLOW get_target_basepull
+	FLOW get_target_basepull ${_tmpID}
 
 	ISMEDEAD
 	GETINPUT get_target_basepull NA|NA
@@ -3363,7 +3319,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 	/if (TARGET) {
 		/if (${Target.ID} != TARGET) {
 			/invoke ${target[set, TARGET]}
-			| /invoke ${set_target[TARGET]}
+			FLOW get_target_basepull ${_tmpID}
 		}
 	}
 
@@ -3407,6 +3363,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 			/if (!TARGET || ${Spawn[TARGET].Dead}) {
 				DEBUG ${sep}/while \a-gbreak_NO_target\ax
 				/invoke ${target[clear]}
+				FLOW get_target_basepull ${_tmpID}
 				/break
 			}
 
@@ -3448,6 +3405,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 			/if (!${wait_for_mob}) {
 				/invoke ${out[9, "Sick of waiting on${sep}\a-w${Spawn[TARGET].DisplayName}\ax"]}
 				/invoke ${target[clear]}
+				FLOW get_target_basepull ${_tmpID}
 				/break
 			}
 		}
@@ -3467,7 +3425,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
  ***|
 sub pull_mob_prep(bool _debug, int _tmpID)
 	DEBUG \atpull_mob_prep\ax(\a-w${_tmpID}\ax)
-	FLOW pull_mob_prep
+	FLOW pull_mob_prep ${_tmpID}
 
 	/declare _count int local 0
 	/declare _los string local los
@@ -3488,10 +3446,12 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 	| get the mob to us for non pet classes..
 	DEBUG ${sep}pull_mob_prep${sep}\awLoop.Start\ax${sep}${_tmpID}
 	/if (!${target[isdead, ${_tmpID}]} && !${Select[${Me.Class.ShortName},MAG,NEC,BST,ENC]}) {
+		FLOW pull_mob_prep ${_tmpID}
 
 		| keep tabs on targets range if they are the puller. advanced pullers fetching we do not care about yet
 		/if (${Spawn[${_tmpID}].Distance} > PULLENV) {
 			/invoke ${target[clear]}
+			FLOW pull_mob_prep ${_tmpID}
 			/return FALSE
 		}
 
@@ -3543,6 +3503,7 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 
 		| /delay 2
 		/if (${target[isdead, ${_tmpID}]}) {
+			FLOW pull_mob_prep ${_tmpID}
 			/return FALSE
 		}
 
@@ -3558,7 +3519,7 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 		DEBUG ${sep}Pet Range${sep}${_tmpID}
 		/if (${Target.ID} != ${_tmpID}) {
 			/invoke ${target[set, ${_tmpID}]}
-			| /invoke ${set_target[${_tmpID}]}
+			FLOW pull_mob_prep ${_tmpID}
 		}
 		/if (${Target.ID} && !${Bool[${Me.Pet.Target}]}) {
 			/squelch /pet attack
@@ -3576,7 +3537,7 @@ sub pull_mob_prep(bool _debug, int _tmpID)
  ***|
 sub pull_mob_tag(bool _debug, int _tmpID)
 	DEBUG \atpull_mob_tag\ax(\a-w${_tmpID}\ax)
-	FLOW pull_mob_tag
+	FLOW pull_mob_tag ${_tmpID}
 
 	/declare _count int local 0
 
@@ -3590,7 +3551,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		| get our target
 		/if (${Target.ID} != ${_tmpID}) {
 			/invoke ${target[set, ${_tmpID}]}
-			| /invoke ${set_target[${_tmpID}]}
+			FLOW pull_mob_tag ${_tmpID}
 		}
 
 		| aa/spell/disc/item tag
@@ -3700,6 +3661,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			/if (!${Spawn[ID ${_tmpID}].ID}) /break
 		}
 		/invoke ${target[clear]}
+		FLOW pull_mob_tag ${_tmpID}
 		/return FALSE
 	}
 
@@ -3721,7 +3683,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
  ***|
 sub pull_mob_find(bool _debug, int _spCount)
 	DEBUG \atpull_mob_find\ax(\a-w${_spCount}\ax)
-	FLOW pull_mob_find
+	FLOW pull_mob_find ${_spCount}
 
 	/if (!${Bool[${_spCount}]}) {
 		/varset _spCount 0
@@ -4953,7 +4915,9 @@ sub check_zone_id(bool _debug, bool _force)
 
 	GETINPUT check_zone_id stCurrentZoneID|${maEnv.Find[stCurrentZoneID].Value}
 
-	/if (${timer_Check_Zone_ID} && !${_force}) /return FALSE
+	/if (${timer_Check_Zone_ID} && !${_force}) {
+		/return FALSE
+	}
 
 	/invoke ${set_data_timer[${_debug}, Check_Zone_ID, RESTART]}
 	/declare _zoned bool local FALSE
@@ -4982,7 +4946,15 @@ sub check_zone_id(bool _debug, bool _force)
 	/return
 	| yah. we zoned and stuff
 	/if (${_zoned}) {
-		/if (${maBurn.Find[swBurnForce].Value}) /invoke ${maBurn.Add[swBurnForce,FALSE]}
+
+		/call set_stop
+		/call clear_combat
+		/invoke ${target[clear]}
+		FLOW check_zone_id
+
+		/if (${maBurn.Find[swBurnForce].Value}) {
+			/invoke ${maBurn.Add[swBurnForce,FALSE]}
+		}
 		/if (HOME) /call Bind_control_home clear FALSE silent FALSE
 		| /if (!${swModePersistent}) /call switch_clear_mode
 		/if (AUTO && ${maChr.Find[stShrink].Value}) /call check_shrink
@@ -6463,6 +6435,7 @@ sub check_buff_cycle_crew(bool _debug)
 
 			| target the group member
 			/invoke ${target[set, ${Group.Member[${_toonName}].ID}]}
+			FLOW check_buff_cycle_crew
 			| /invoke ${set_target[${Group.Member[${_toonName}].ID}]}
 
 			| give the game a second to populate the targets buffs
@@ -6570,6 +6543,7 @@ sub check_buff_cycle_temp_self(bool _debug, string _spell)
 	FLOW check_buff_cycle_temp_self
 
 	/if (${target[isdead, TARGET]}) {
+		FLOW check_buff_cycle_temp_self
 		/return FALSE
 	}
 
@@ -6737,7 +6711,7 @@ sub cast_challenge(bool _debug, int _tmpID)
  ***|
  sub cast_nuke(bool _debug, string _line, int _tmpID)
 	DEBUG \atcast_nuke\ax(\a-w${_line}, ${_tmpID}\ax)
-	FLOW cast_nuke
+	FLOW cast_nuke ${_line}|${_tmpID}
 
 	/declare _linuke listiterator local
 	/vardata _linuke ${_line}.First.Clone
@@ -6767,11 +6741,12 @@ sub cast_challenge(bool _debug, int _tmpID)
 		| /if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
 
 		/if (${target[isdead, ${_tmpID}]}) {
+			FLOW cast_nuke ${_line}|${_tmpID}
 			/return FALSE
 		}
 
 		/invoke ${target[set, ${_tmpID}]}
-		| /invoke ${set_target[${_tmpID}]}
+		FLOW cast_nuke ${_line}|${_tmpID}
 
 		/call voodoo ${_debug} "${_linuke.Value}" ${_tmpID} FALSE
 
@@ -6799,7 +6774,7 @@ sub cast_challenge(bool _debug, int _tmpID)
  ***|
 sub cast_dot(bool _debug, string _line, int _tmpID)
 	DEBUG \atcast_dot\ax(\a-w${_line}, ${_tmpID}\ax)
-	FLOW cast_dot
+	FLOW cast_dot ${_line}|${_tmpID}
 
 
 	/declare _lidot listiterator local
@@ -6838,6 +6813,7 @@ sub cast_dot(bool _debug, string _line, int _tmpID)
 		}
 
 		/if (${target[isdead, ${_tmpID}]}) {
+			FLOW cast_dot ${_line}|${_tmpID}
 			/return FALSE
 		}
 
@@ -6876,7 +6852,7 @@ sub cast_dot(bool _debug, string _line, int _tmpID)
  ***|
 sub do_melee(bool _debug, int _tmpID)
 	DEBUG \atdo_melee\ax(\a-w${_tmpID}\ax)
-	FLOW do_melee
+	FLOW do_melee ${_tmpID}
 
 	ISMEDEAD
 	CHECKEXIT
@@ -6885,12 +6861,14 @@ sub do_melee(bool _debug, int _tmpID)
 	| /if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return
 
 	/if (${target[isdead, ${_tmpID}]}) {
+		FLOW do_melee ${_tmpID}
 		/return FALSE
 	}
 
 	CHECKDEFENSE
 
 	/invoke ${target[set, ${_tmpID}]}
+	FLOW do_melee ${_tmpID}
 
 	/if (AUTO || ${swModeToken}) {
 		| /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
@@ -7503,7 +7481,7 @@ sub check_for_corpse(bool _debug)
  ***|
 sub cast_rez(bool _debug, int _tmpID, string _rez)
 	DEBUG \atcast_rez\ax(\a-w${_tmpID}, ${_rez}\ax)
-	FLOW check_for_corpse
+	FLOW check_for_corpse ${_tmpID}|${_rez}
 
 
 	/if (${Me.Dead}) /return FALSE
@@ -7534,7 +7512,7 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 			DEBUG casting no token
 			/delay 5s !${Me.Casting.ID}
 			/invoke ${target[set, ${_tmpID}]}
-			| /invoke ${set_target[${_tmpID}]}
+			FLOW check_for_corpse ${_tmpID}|${_rez}
 
 			/if (${is_ready[${_debug}, "${_rez}"]}) {
 				/call voodoo ${_debug} "${_rez}" ${_tmpID} skiptargetcheck
@@ -7545,7 +7523,7 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 			DEBUG clicking token
 			/delay 5s !${Me.Casting.ID}
 			/invoke ${target[set, ${_tmpID}]}
-			| /invoke ${set_target[${_tmpID}]}
+			FLOW check_for_corpse ${_tmpID}|${_rez}
 			/if (${is_ready[${_debug}, "Token of Resurrection"]}) {
 				/call voodoo ${_debug} "Token of Resurrection" ${_tmpID} skiptargetcheck
 			}
@@ -8087,7 +8065,7 @@ sub check_cursor(bool _debug, string _verbage)
  ***|
 sub cast_temp_pet(bool _debug, int _tmpID, string _tmpSpell)
 	DEBUG \atcast_temp_pet\ax(\a-w${_tmpID}, ${_tmpSpell}\ax)
-	FLOW cast_temp_pet
+	FLOW cast_temp_pet ${_tmpID}|${_tmpSpell}
 
 	| these classes can only have one pet at a time (not counting  AA and spell combo. but i'n not gonna sort that shit)
 	/if (${Select[${Me.Class.ShortName},CLR,WIZ]}) {
@@ -8101,6 +8079,7 @@ sub cast_temp_pet(bool _debug, int _tmpID, string _tmpSpell)
 	| /if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
 
 	/if (${target[isdead, ${_tmpID}]}) {
+		FLOW cast_temp_pet ${_tmpID}|${_tmpSpell}
 		/return FALSE
 	}
 
@@ -8120,7 +8099,7 @@ sub cast_temp_pet(bool _debug, int _tmpID, string _tmpSpell)
  ***|
 sub send_pet(bool _debug, int _tmpID)
 	DEBUG \atsend_pet\ax(\a-w${_tmpID}\ax)
-	FLOW send_pet
+	FLOW send_pet ${_tmpID}
 
 	/if (!${_tmpID}) /return FALSE
 	/if (!AUTO && !${maMinion.Find[swonForce].Value}) /return FALSE
@@ -8134,8 +8113,7 @@ sub send_pet(bool _debug, int _tmpID)
 	/if (PET) {
 		/if (${Spawn[id ${_tmpID}].PctHPs} < ${maMinion.Find[stPctPetEngage].Value}) {
 			/invoke ${target[set, ${_tmpID}]}
-			| /invoke ${set_target[${_tmpID}]}
-			| /invoke ${out[10, "Sending minion${sep}\a-w${Spawn[id ${_tmpID}].DisplayName}\ax"]}
+			FLOW send_pet ${_tmpID}
 			/pet attack
 		}
 	}
@@ -8144,7 +8122,7 @@ sub send_pet(bool _debug, int _tmpID)
 	/if (SWARM) {
 		/if (${Spawn[id ${_tmpID}].PctHPs}  < ${maMinion.Find[stPctSwarmEngage].Value}) {
 			/invoke ${target[set, ${_tmpID}]}
-			| /invoke ${set_target[${_tmpID}]}
+			FLOW send_pet ${_tmpID}
 			/pet swarm
 		}
 	}
@@ -8388,7 +8366,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
  ***|
 sub check_deBuffs(bool _debug, int _tmpID)
 	DEBUG \atcheck_deBuffs\ax(\a-w${_tmpID}\ax)
-	FLOW check_deBuffs
+	FLOW check_deBuffs ${_tmpID}
 
 	| check distance or bail early
 	/if (${Spawn[${_tmpID}].Distance} > ENV) {
@@ -8402,7 +8380,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
 	GETINPUT check_deBuffs _tmpID|${_tmpID}
 
 	/invoke ${target[set, ${_tmpID}]}
-	| /invoke ${set_target[${_tmpID}]}
+	FLOW check_deBuffs ${_tmpID}
 
 	/declare _count int local 0
 	/declare _mobCount int local 0
@@ -8526,7 +8504,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
 
 	| make sure we have a target and the buff list is current
 	/invoke ${target[set, ${_tmpID}]}
-	| /invoke ${set_target[${_tmpID}]}
+	FLOW check_deBuffs ${_tmpID}
 	/delay 1s ${Target.BuffsPopulated}
 
 	| start the debuff cycle
@@ -8782,7 +8760,7 @@ sub check_minion_cycle_buff(bool _debug)
 
 		| target the group member
 		/invoke ${target[set, ${Pet.ID}]}
-		| /invoke ${set_target[${Pet.ID}]}
+		FLOW check_minion_cycle_buff
 
 		| have the buff?
 		/if (${Pet.Buff[${maBuff.Find[stBuff${_count}].Value}]}) /continue
@@ -8964,10 +8942,10 @@ sub get_openPackSlot(bool _debug, string _orFind)
  ***|
 sub give_to_pet(string _item, bool _debug)
 	DEBUG \atgive_to_pet\ax(\a-w${_item}\ax)
-	FLOW give_to_pet
+	FLOW give_to_pet ${_item}
 
 	/invoke ${target[set, ${Pet.ID}]}
-	| /invoke ${set_target[${Pet.ID}]}
+	FLOW give_to_pet ${_item}
 
 	ISMEDEAD
 	GETINPUT give_to_pet NA|NA
@@ -9212,10 +9190,6 @@ sub cast_shield_flash(bool _debug, string _type)
 	} else /if (${_type.Equal[disc]}) {
 		/if (!${is_ready[FALSE, "${maChr.Find[stFlash].Value}"]}) /return FALSE
 	}
-
-	| do not use while another defensive line is running
-	/if (${is_defensive_active[FALSE, FALSE, SAFEENV]}) /return FALSE
-
 
 	| mark current bandolier and swap to flash
 	/declare _Bandolier string local FALSE
@@ -9560,7 +9534,7 @@ sub set_AA_agro(bool _debug)
  ***|
 sub get_target_intpull(bool _debug, int _tmpID)
 	DEBUG \atget_target_intpull\ax(\a-w${_tmpID}\ax)
-	FLOW get_target_intpull
+	FLOW get_target_intpull ${_tmpID}
 
 	/if (!AUTO || !PULL) {
 		/return FALSE
@@ -9582,7 +9556,7 @@ sub get_target_intpull(bool _debug, int _tmpID)
 	}
 
 	/invoke ${target[set, TARGET]}
-	| /invoke ${set_target[TARGET]}
+	FLOW get_target_intpull ${_tmpID}
 
 	/delay 1s
 	/dex ${get_resident_class[${_debug}, CLR, 60]} /advancedpullint ${Me.ID} ${_debug}
@@ -9646,8 +9620,8 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
  * use: /call get_target_petpull DEBUG [targetID]
  ***|
 sub get_target_petpull(bool _debug, int _tmpID)
-	DEBUG \atget_target_petpull(${_debug}, ${_tmpID})
-	FLOW get_target_petpull
+	DEBUG \atget_target_petpull\ax(\a-w${_tmpID}\ax)
+	FLOW get_target_petpull ${_tmpID}
 
 	ISMEDEAD
 	GETINPUT get_target_petpull _tmpID|${_tmpID}
@@ -9672,7 +9646,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	}
 
 	/invoke ${target[set, ${_tmpID}]}
-	| /invoke ${set_target[${_tmpID}]}
+	FLOW get_target_petpull ${_tmpID}
 
 	/invoke ${set_timer[${_debug}, timer_giveUpPull, 30s]}
 
@@ -9771,7 +9745,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
  ***|
 sub get_target_navpull(bool _debug, int _tmpID)
 	DEBUG \atget_target_navpull\ax(\a-w${_tmpID}\ax)
-	FLOW get_target_navpull
+	FLOW get_target_navpull ${_tmpID}
 
 	ISMEDEAD
 	GETINPUT get_target_navpull _tmpID|${_tmpID}
@@ -9817,7 +9791,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	| set the target
 	/invoke ${out[9, "Fetching${sep}${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
 	/invoke ${target[set, ${_tmpID}]}
-	| /invoke ${set_target[${_tmpID}]}
+	FLOW get_target_navpull ${_tmpID}
 
 	| if the mob is kinda close??
 	/if (${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < 100) {
@@ -10178,7 +10152,7 @@ sub get_name_multipull(bool _debug, string _groupList)
 sub out(int _lvl, string _verbage)
 
 	/if (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0) {
-		/echo ${If[${Bool[${Plugin[MQ2Discord]}]},${maEnv.Find[stVerbLvl].Value},\at.\ax]} ${_verbage}
+		/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,\at.\ax]} ${_verbage}
 	}
 
 /return
@@ -10671,7 +10645,7 @@ sub control_mezae(bool _debug)
  ***|
 sub control_mez(bool _debug, int _tmpID)
 	DEBUG \atcontrol_mez\ax(${_tmpID})
-	FLOW control_mez
+	FLOW control_mez ${_tmpID}
 
 	/if (!${_tmpID}) /return FALSE
 
@@ -10684,7 +10658,7 @@ sub control_mez(bool _debug, int _tmpID)
 	/while (${_resistCount} < 4) {
 
 		/invoke ${target[set, ${_tmpID}]}
-		| /invoke ${set_target[${_tmpID}]}
+		FLOW control_mez ${_tmpID}
 		/if (${_tmpID} == TARGET) {
 			/return FALSE
 		}
@@ -10817,9 +10791,7 @@ sub check_heal_routines()
 	FLOW check_heal_routines
 
 	| check for any defensives first
-	/if (!${is_defensive_active[${maDebug.Find[def].Value}, FALSE, SAFEENV]}) {
-		/call cast_defensive_cycle ${maDebug.Find[def].Value}
-	}
+	CHECKDEFENSE
 
 	| heal: target of target
 	/if (${lsClassHealToT.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealToT].Value}) {
@@ -10865,7 +10837,7 @@ sub check_heal_routines()
  * use: ${target[assist|isdead|clear|set, [TARGETID]]}
  ***|
 sub target(string _type, int _tmpID)
-	FLOW target
+	FLOW target ${_type}|${_tmpID}
 
 	/declare _debug bool local FALSE
 
@@ -10888,28 +10860,34 @@ sub target(string _type, int _tmpID)
 
 	| set a target
 	/if (${Select[${_type},set]}) {
-		/if (!${Bool[${_tmpID}]}) {
-			DEBUG ${sep}\a-y${_type}\ax${sep}${_tmpID}
-			/return TRUE
-		}
 
-		/if (${Spawn[npc corpse ${_tmpID}].ID}) {
-			DEBUG ${sep}\a-y${_type}\ax${sep}corpse
+		/if (${Spawn[${_tmpID}].ID} && ${Spawn[${_tmpID}].Type.NotEqual[Corpse]}) {
+
+			/if (!${Bool[${_tmpID}]}) {
+				DEBUG ${sep}\a-y${_type}\ax${sep}${_tmpID}
+				/return TRUE
+			}
+
+			/if (${Spawn[npc corpse ${_tmpID}].ID}) {
+				DEBUG ${sep}\a-y${_type}\ax${sep}corpse
+				/varset _isdead TRUE
+			}
+
+			/if (${Target.ID} == ${_tmpID}) {
+				DEBUG ${sep}\a-y${_type}\ax${sep}good
+				/return TRUE
+			}
+
+			DEBUG ${sep}\a-y${_type}\ax${sep}setting
+			/squelch /target id ${_tmpID}
+			/delay 1s ${Target.ID} == ${_tmpID}
+
+			/if ((${Target.ID} == ${_tmpID}) && !${_isdead}) {
+				DEBUG ${sep}\a-y${_type}\ax${sep}isset
+				/return TRUE
+			}
+		} else /if (!${Spawn[${_tmpID}].ID} || ${Spawn[${_tmpID}].Type.NotEqual[Corpse]}) {
 			/varset _isdead TRUE
-		}
-
-		/if (${Target.ID} == ${_tmpID}) {
-			DEBUG ${sep}\a-y${_type}\ax${sep}good
-			/return TRUE
-		}
-
-		DEBUG ${sep}\a-y${_type}\ax${sep}setting
-		/squelch /target id ${_tmpID}
-		/delay 1s ${Target.ID} == ${_tmpID}
-
-		/if ((${Target.ID} == ${_tmpID}) && !${_isdead}) {
-		DEBUG ${sep}\a-y${_type}\ax${sep}isset
-			/return TRUE
 		}
 
 	}
@@ -11282,17 +11260,13 @@ sub control_ttl(bool _debug, string _verbage, string _mob)
 
 
 
-
-
-
-
 |***
  * note: defensive things
- * use: /call check_defense_cycle DEBUG [TARGETID]
+ * use: /call check_cycle_defense DEBUG [TARGETID]
  ***|
-sub check_defense_cycle(bool _debug, int _tmpID)
-	DEBUG \atcheck_defense_cycle\ax(\a-w${_tmpID}\ax)
-	FLOW check_defense_cycle
+sub check_cycle_defense(bool _debug, int _tmpID)
+	DEBUG \atcheck_cycle_defense\ax(\a-w${_tmpID}\ax)
+	FLOW check_cycle_defense ${_tmpID}
 
 	DEBUG ${sep}spawncount${sep}\a-w${SpawnCount[NPC radius SAFEENV PS4]} < ${maDefense.Find[stCountDef].Value}\ax
 	DEBUG ${sep}HP%${sep}\a-w${Me.PctHPs} > ${maDefense.Find[stPctDef].Value}\ax
@@ -11352,6 +11326,7 @@ sub check_defense_cycle(bool _debug, int _tmpID)
 		| targetable item with a range?
 		/if (${FindItem[${maDefense.Find[stDefense${_liC20.Value}].Value}].Spell.Duration.TotalSeconds} && ${FindItem[${maDefense.Find[stDefense${_liC20.Value}].Value}].Spell.Range}) {
 			/invoke ${target[set, ${_tmpID}]}
+			FLOW check_cycle_defense ${_tmpID}
 			/if (${Target.BuffDuration[${maDefense.Find[stDefense${_liC20.Value}].Value}].TotalSeconds}) {
 				/invoke ${_liC20.Advance}
 				/continue
@@ -11375,7 +11350,7 @@ sub check_defense_cycle(bool _debug, int _tmpID)
  ***|
 sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 	DEBUG \atcheck_item_cycle\ax(\a-w${_tmpID}, ${_tag}\ax)
-	FLOW check_item_cycle
+	FLOW check_item_cycle ${_tmpID}|${_tag}
 
 	/declare _liC20 listiterator local
 	/vardata _liC20 lsCount20.First.Clone
@@ -11429,7 +11404,7 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 
 		/if (${FindItem[${maItem.Find[stItem${_liC20.Value}].Value}].Spell.Duration.TotalSeconds} && ${FindItem[${maItem.Find[stItem${_liC20.Value}].Value}].Spell.Range}) {
 			/invoke ${target[set, ${_tmpID}]}
-			| /invoke ${set_target[${_tmpID}]}
+			FLOW check_item_cycle ${_tmpID}|${_tag}
 			/if (${Target.BuffDuration[${maItem.Find[stItem${_liC20.Value}].Value}].TotalSeconds}) {
 				/invoke ${_liC20.Advance}
 				/continue
@@ -11439,6 +11414,7 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 		| /if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
 
 		/if (${target[isdead, ${_tmpID}]}) {
+			FLOW check_item_cycle ${_tmpID}|${_tag}
 			/return FALSE
 		}
 
@@ -11448,6 +11424,7 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 	}
 
 /return TRUE
+
 
 
 |***
@@ -11515,7 +11492,7 @@ sub cast_cycle_heal(bool _debug, int _tmpID)
  ***|
 sub cast_cycle_nuke(bool _debug, int _tmpID)
 	DEBUG \atcast_cycle_nuke\ax(\a-w${_tmpID}\ax)
-	FLOW cast_cycle_nuke
+	FLOW cast_cycle_nuke ${_tmpID}
 
 	/declare _liC20 listiterator local
 	/vardata _liC20 lsCount20.First.Clone
@@ -11530,6 +11507,7 @@ sub cast_cycle_nuke(bool _debug, int _tmpID)
 		CHECKEXIT
 
 		/if (${target[isdead, ${_tmpID}]}) {
+			FLOW cast_cycle_nuke ${_tmpID}
 			/return FALSE
 		}
 
@@ -11541,6 +11519,7 @@ sub cast_cycle_nuke(bool _debug, int _tmpID)
 		}
 
 		/invoke ${target[set, ${_tmpID}]}
+		FLOW cast_cycle_nuke ${_tmpID}
 
 		| check the switch
 		/if (!${Bool[${maNuke.Find[swNuke${_liC20.Value}].Value}]}) {
@@ -11573,7 +11552,12 @@ sub cast_cycle_nuke(bool _debug, int _tmpID)
 
 		/call voodoo ${_debug} "${maNuke.Find[stNuke${_liC20.Value}].Value}" ${_tmpID} FALSE
 
-		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]} && !${maNuke.Find[stNukeDelay].Value}) {
+
+		/if (${Select[${maData.Find[stCastReturn].Value},OUTOFMANA,STUNNED]} && !${maNuke.Find[stNukeDelay].Value}) {
+			/break
+		}
+
+		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED]} && !${maNuke.Find[stNukeDelay].Value}) {
 			/break
 		}
 
@@ -11602,7 +11586,7 @@ sub cast_cycle_nuke(bool _debug, int _tmpID)
  ***|
 sub cast_cycle_dot(bool _debug, int _tmpID)
 	DEBUG \atcast_cycle_dot\ax(\a-w${_tmpID}\ax)
-	FLOW cast_cycle_dot
+	FLOW cast_cycle_dot ${_tmpID}
 
 	/declare _liC20 listiterator local
 	/vardata _liC20 lsCount20.First.Clone
@@ -11614,6 +11598,7 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 		}
 
 		/if (${target[isdead, ${_tmpID}]}) {
+			FLOW cast_cycle_dot ${_tmpID}
 			DEBUG ${sep}target dead
 			/return FALSE
 		}
@@ -11648,11 +11633,13 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 		CHECKEXIT
 
 		/if (${target[isdead, ${_tmpID}]}) {
+			FLOW cast_cycle_dot ${_tmpID}
 			DEBUG ${sep}dead2
 			/return FALSE
 		}
 
 		/invoke ${target[set, ${_tmpID}]}
+		FLOW cast_cycle_dot ${_tmpID}
 
 		/if (${Target.ID} == ${_tmpID}) {
 			/if (${Target.BuffDuration[${maDoT.Find[stDoT${_liC20.Value}].Value}].TotalSeconds} >= ${maDoT.Find[stDotRefresh].Value}) {
@@ -11709,3 +11696,79 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 	}
 
 /return TRUE
+
+
+
+
+
+
+
+|***
+ * note: casts dots from maAgro
+ * use: /call cast_cycle_agro DEBUG [TARGETID]
+ ***|
+sub cast_cycle_agro(bool _debug, int _tmpID)
+	DEBUG \atcast_cycle_agro\ax(\a-w${_tmpID}\ax)
+	FLOW cast_cycle_agro ${_tmpID}
+
+	/declare _liC20 listiterator local
+	/vardata _liC20 lsCount20.First.Clone
+	/while (!${_liC20.IsEnd}) {
+
+		/if (${target[isdead, ${_tmpID}]}) {
+			FLOW cast_cycle_agro ${_tmpID}
+			DEBUG ${sep}target dead
+			/return FALSE
+		}
+
+		GETINPUT cast_cycle_agro NA|NA
+		ISMEDEAD
+		CHECKEXIT
+
+		/invoke ${target[set, ${_tmpID}]}
+		FLOW cast_cycle_agro ${_tmpID}
+
+		| check the switch
+		/if (!${Bool[${maAgro.Find[swAgro${_liC20.Value}].Value}]}) {
+			DEBUG ${sep}switch off${sep}\a-w${maAgro.Find[stAgro${_liC20.Value}].Value}\ax
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| check the name
+		/if (!${Bool[${maAgro.Find[stAgro${_liC20.Value}].Value}]}) {
+			DEBUG ${sep}no name${sep}\a-w${maAgro.Find[stAgro${_liC20.Value}].Value}\ax
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/if (!${is_ready[${_debug}, "${maAgro.Find[stAgro${_liC20.Value}].Value}"]}) {
+			DEBUG ${sep}not ready${sep}\a-w${maAgro.Find[stAgro${_liC20.Value}].Value}\ax
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| apply any conditions
+		/if (!${check_condition[${_debug}, ${maAgro.Find[stAgro${_liC20.Value}Con].Value}]}) {
+			DEBUG ${sep}condition fail${sep}\a-w${maAgro.Find[stAgro${_liC20.Value}].Value}\ax
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/call check_basic_tags ${_debug} Agro${_liC20.Value} FALSE "${maAgro.Find[stAgro${_liC20.Value}].Value}"
+		/if (!${Macro.Return}) {
+			DEBUG ${sep}tag fail${sep}\a-w${maAgro.Find[stAgro${_liC20.Value}].Value}\ax
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/call voodoo ${_debug} "${maAgro.Find[stAgro${_liC20.Value}].Value}" ${_tmpID} FALSE
+
+		/invoke ${_liC20.Advance}
+	}
+
+/return TRUE
+
+
+
+

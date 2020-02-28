@@ -88,8 +88,7 @@ sub main_WAR(bool _debug)
 
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
-		/if (${maHeal.Find[swHealSelf].Value}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
+		/call check_heal_routines
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
@@ -251,6 +250,10 @@ sub get_agro_WAR(bool _debug, int _tmpID)
 		/return FALSE
 	}
 
+	/if (ENGINE2) {
+		/call check_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
+		/return TRUE
+	}
 
 
 	| (60 seconds) and ae taunt
