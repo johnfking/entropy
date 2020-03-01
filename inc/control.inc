@@ -664,7 +664,7 @@ sub Bind_command_watchspawn(string _variable, bool _debug)
 	DEBUG \atBind_command_watchspawn\ax(\a-w${_spawn}\ax)
 	/return
 
-	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[help]}) {
+	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
 		/call Bind_command_aux watchspawn
 		/mapshow reset
 		/return
@@ -3880,7 +3880,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 	| set stuff to not export/import
 	/declare _skipMap list local
 	/invoke ${_skipMap.Append[maDebug,maTimer,Gems,maCrew,maMode,maDeez,maPREGEN,maRezControl,maWatchspawn]}
-	/invoke ${_skipMap.Append[maBuffRequest,maHook,maData,maManaRecovery,maDeez]}
+	/invoke ${_skipMap.Append[maBuffRequest,maHook,maData,maManaRecovery,maDeez,maTTL]}
 	/declare _skipKey list local
 	/invoke ${_skipKey.Append[swBuffMaster,swIsMeDead,swSetCombat,swValidAssTarID,swSnapStuck,swHomeMarker,verbosity,swZoneSafe,swAuto]}
 	/invoke ${_skipKey.Append[stCurrentZoneID,stCastReturn,build,swSetTie,swBurnConditionMet]}
@@ -3904,17 +3904,18 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 		/ini "${_fqn}" "Header" "MQBuild" "${MacroQuest.BuildDate}"
 
 		/declare _mi mapiterator local
-		/vardata cli lsMaps.First.Clone
-		/while (!${cli.IsEnd}) {
+		/declare _limaps listiterator local
+		/vardata _limaps lsMaps.First.Clone
+		/while (!${_limaps.IsEnd}) {
 
 			| skip the maps we dont want to export
-			/if (${_skipMap.Contains[${cli.Value}]}) {
-				/invoke ${cli.Advance}
+			/if (${_skipMap.Contains[${_limaps.Value}]}) {
+				/invoke ${_limaps.Advance}
 				/continue
 			}
 
-			/echo \at...\ax\a-w${cli.Value}\ax
-				/vardata _mi ${cli.Value}.First.Clone
+			/echo \at...\ax\a-w${_limaps.Value}\ax
+				/vardata _mi ${_limaps.Value}.First.Clone
 				/while (!${_mi.IsEnd}) {
 					/if (${_skipKey.Contains[${_mi.Key}]}) {
 						/invoke ${_mi.Advance}
@@ -3930,17 +3931,17 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 					}
 
 					| OUTPUT TO THE INI
-					/if (${cli.Value.Equal[maCondition]}) {
+					/if (${_limaps.Value.Equal[maCondition]}) {
 						/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition ORDER BY ROWID
 						/for _count 1 to ${sqlite.Rows[dummy]}
-							/ini "${_fqn}" ${cli.Value} "${sqlite.Result[dummy ${_count} env_var]}" "${Parse[2, ${sqlite.Result[dummy ${_count} value]}]}"
+							/ini "${_fqn}" ${_limaps.Value} "${sqlite.Result[dummy ${_count} env_var]}" "${Parse[2, ${sqlite.Result[dummy ${_count} value]}]}"
 						/next _count
 					} else {
-						/ini "${_fqn}" ${cli.Value} "${_mi.Key}" "${Parse[1,${_mi.Value}]}"
+						/ini "${_fqn}" ${_limaps.Value} "${_mi.Key}" "${Parse[1,${_mi.Value}]}"
 					}
 					/invoke ${_mi.Advance}
 				}
-			/invoke ${cli.Advance}
+			/invoke ${_limaps.Advance}
 		}
 
 		/if (${Me.NumGems} && ${lsClassCast.Contains[${Me.Class.ShortName}]}) {
@@ -4681,8 +4682,6 @@ sub Bind_control_defense(string _type, string _verbage, string _verbage2, string
 
 		/return TRUE
 
-
-
 	| count of mobs to activate defensive
 	} else /if (${_type.Equal[count]}) {
 		/if (!${set_control_num_range[${_debug}, stCountDef, "${_verbage}", 0, 99]}) /return
@@ -4693,7 +4692,7 @@ sub Bind_control_defense(string _type, string _verbage, string _verbage2, string
 
 	}
 
-
+	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[count,stCountDef]}
 	/invoke ${maControl.Add[pct,stPctDef]}
 	/invoke ${set_control_output[${_debug}, maDefense, defense, maControl]}

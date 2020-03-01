@@ -22,7 +22,13 @@ on the to do list
 
 
 
-
+A200301.01
+- fixed my fix that fixed spire conditions
+- correct the map name for the spam DPS in /build exporting
+- /TTL some more adjustments
+- an absolute shittone of debugging added for macro flow
+- corrected a variable error in the mana gather routine.
+  hopefully it will solve the class hangs
 
 A200229.03
 - fixed my addition of conditions to spires. least i think i did.

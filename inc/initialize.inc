@@ -153,7 +153,7 @@ sub set_initialize(bool _debug)
   /invoke ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
   /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maRezControl,maWatchspawn]}
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL]}
-  /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscCombat]}
+  /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS]}
 
   | set all output shortcuts
   /call set_data ${_debug} FALSE num                                      string outer "\a-t"
@@ -1406,25 +1406,26 @@ sub set_alias(bool _debug, string _action)
 	}
 
   /declare maAlias map outer
+  /declare _maal mapiterator local
   /invoke ${maAlias.Add[/on,/command_on]}
   /invoke ${maAlias.Add[/off,/command_off]}
 
   | add aliases
   /if (${_action.Equal[add]}) {
-    /vardata mi maAlias.First.Clone
-    /while (!${mi.IsEnd}) {
+    /vardata _maal maAlias.First.Clone
+    /while (!${_maal.IsEnd}) {
       | /if (!${Alias[${mi.Key}]}) {
-      	/squelch /alias ${mi.Key} ${mi.Value}
+      	/squelch /alias ${_maal.Key} ${_maal.Value}
       | }
-      /invoke ${mi.Advance}
+      /invoke ${_maal.Advance}
     }
 
   | delete established aliases
   } else /if (${_action.Equal[delete]}) {
-    /vardata mi maAlias.First.Clone
-    /while (!${mi.IsEnd}) {
-      /squelch /alias ${mi.Key} delete
-      /invoke ${mi.Advance}
+    /vardata _maal maAlias.First.Clone
+    /while (!${_maal.IsEnd}) {
+      /squelch /alias ${_maal.Key} delete
+      /invoke ${_maal.Advance}
     }
   }
 

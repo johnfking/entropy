@@ -304,13 +304,13 @@ sub get_agro_PAL(bool _debug, int _tmpID)
 	/call cast_challenge ${_debug} ${_tmpID}
 
 	| chain stun
-	/if (${is_ready[${_debug}, "${maChr.Find[stStun].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stStun].Value}" ${_tmpID} FALSE
-	}
+	| /if (${is_ready[${_debug}, "${maChr.Find[stStun].Value}"]}) {
+	| 	/call voodoo ${_debug} "${maChr.Find[stStun].Value}" ${_tmpID} FALSE
+| 	}
 
 	/declare _coutAE int local 0
 
-	| AE Stuns
+	|** AE Stuns
 	/if (${SpawnCount[npc OVERLOS radius 60 PS4 targetable]} >= AE# && AE#) {
 		/varset _coutAE ${SpawnCount[npc OVERLOS radius 60 PS4 targetable]}
 
@@ -326,6 +326,7 @@ sub get_agro_PAL(bool _debug, int _tmpID)
 			}
 		}
 	}
+	**|
 
 	/if (${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]}) {
 		/return

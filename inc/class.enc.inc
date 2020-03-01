@@ -144,11 +144,13 @@ sub main_ENC(bool _debug)
  ***|
 sub misc_combat_ENC(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat_ENC ${_tmpID} (1)
 
 	ISMEDEAD
 	/invoke ${target[assist]}
 
 	CHECKEXIT misc_combat_ENC
+	FLOW misc_combat_ENC ${_tmpID} (2)
 	GETINPUT
 	CHECKTIE
 
@@ -243,11 +245,13 @@ sub check_crystals(bool _debug)
  ***|
 sub check_gather_ENC(bool _debug)
 	DEBUG \atcheck_gather_${Me.Class.ShortName}\ax()
+	FLOW check_gather_ENC (1)
 
 	/if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
 
 	ISMEDEAD
 	CHECKEXIT check_gather_ENC
+	FLOW check_gather_ENC (2)
 	GETINPUT
 	CHECKTIE
 
@@ -277,9 +281,12 @@ sub check_gather_ENC(bool _debug)
  ***|
 sub check_heal_ENC(bool _debug)
 	DEBUG \atcheck_heal_${Me.Class.ShortName}\ax()
+	FLOW check_heal_ENC (1)
+
 
 	ISMEDEAD
 	CHECKEXIT check_heal_ENC
+	FLOW check_heal_ENC (2)
 	CHECKTIE
 
 	/IF (${Select[${_type},self]}) {
@@ -322,6 +329,7 @@ sub check_heal_ENC(bool _debug)
  ***|
 sub burn_ENC(bool _debug, int _tmpID)
 	DEBUG \atburn_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
+	FLOW burn_ENC (1)
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -329,6 +337,7 @@ sub burn_ENC(bool _debug, int _tmpID)
 	}
 
 	CHECKEXIT burn_ENC
+	FLOW burn_ENC (2)
 	GETINPUT
 	CHECKTIE
 
