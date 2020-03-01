@@ -24,6 +24,9 @@ on the to do list
 
 
 
+A200229.03
+- fixed my addition of conditions to spires. least i think i did.
+
 
 A200229.02
 - /build will export conditions properly now

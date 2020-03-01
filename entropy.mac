@@ -122,7 +122,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A200229.02
+	/call set_data FALSE maEnv build													map outer A200229.03
 
 	| prep macro
 	/call prepare_the_end FALSE

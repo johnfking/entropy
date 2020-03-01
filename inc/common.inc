@@ -9111,8 +9111,8 @@ sub cast_AA_spire(bool _debug)
 
 
 	| apply any conditions
-	/if (!${check_condition[${_debug}, ${maMiscDPS.Find[stMiscDPS${_liC50.Value}Con].Value}]}) {
-		DEBUG ${sep}condition fail${sep}\a-w${maMiscDPS.Find[stMiscDPS${_liC50.Value}].Value}\ax
+	/if (!${check_condition[${_debug}, ${maChr.Find[stSpireCon].Value}]}) {
+		DEBUG ${sep}condition fail${sep}\a-w${maChr.Find[stSpireCon].Value}\ax
 		/invoke ${_liC50.Advance}
 		/continue
 	}
