@@ -127,17 +127,23 @@ sub misc_combat_WAR(bool _debug, int _tmpID)
 		/return FALSE
 	}
 
-
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
 
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
-
-	/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} ${_tmpID}
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
 
 	CHECKDEFENSE
+
+	/if (ENGINE2) {
+		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/return TRUE
+	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stNoTime].Value}"]} && !${Me.Buff[${maChr.Find[stDichotomic].Value}].ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stNoTime].Value}" 0 FALSE

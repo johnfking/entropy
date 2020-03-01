@@ -123,7 +123,14 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 
 	CHECKDEFENSE
 
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+
+	/if (ENGINE2) {
+		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/return TRUE
+	}
 
 	/if (${Me.PctHPs} < 90) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stBattleFrenzy].Value}"]}) {

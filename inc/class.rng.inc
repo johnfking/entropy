@@ -134,8 +134,17 @@ sub misc_combat_RNG(bool _debug)
 	CHECKTIE
 
 	/call check_heal_routines
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} TARGET
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	}
+
+	/if (ENGINE2) {
+		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/return TRUE
+	}
 
 	| agro control
 	/if (AGRO) {

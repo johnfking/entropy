@@ -101,7 +101,7 @@ sub main_MAG(bool _debug)
 				/if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} TRUE
 				/call cast_nuke ${maDebug.Find[nuke].Value} lsNuke${stLine} TARGET
 			}
-			/call misc_combat_${Me.Class.ShortName}
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 		}
 
@@ -120,23 +120,32 @@ sub main_MAG(bool _debug)
  * note: Combat skills, Disciplines and Alternate abilities.
  * use: /call misc_combat_${Me.Class.ShortName}
  ***|
-sub misc_combat_MAG(bool _debug)
-	DEBUG \atmisc_combat_MAG\ax()
+sub misc_combat_MAG(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat_MAG\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${target[isdead, TARGET]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) /return FALSE
 
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
 
 	CHECKDEFENSE
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
+
+	/if (ENGINE2) {
+		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/return TRUE
+	}
 
 	| Forece of Elements AA
 	/if (${is_ready[${_debug}, "Force of Elements"]}) {
-		/call voodoo ${_debug} "Force of Elements" TARGET FALSE
+		/call voodoo ${_debug} "Force of Elements" ${_tmpID} FALSE
 	}
 
 /return TRUE

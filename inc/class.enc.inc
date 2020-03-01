@@ -102,7 +102,7 @@ sub main_ENC(bool _debug)
 
 			/call control_routine ${maDebug.Find[mez].Value}
 
-			| /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
+			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/call control_routine ${maDebug.Find[mez].Value}
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call control_routine ${maDebug.Find[mez].Value}
@@ -148,14 +148,23 @@ sub misc_combat_ENC(bool _debug, int _tmpID)
 	ISMEDEAD
 	/invoke ${target[assist]}
 
-	CHECKEXIT
+	CHECKEXIT misc_combat_ENC
 	GETINPUT
 	CHECKTIE
 
 	CHECKDEFENSE
 
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
+
+	/if (ENGINE2) {
+		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/return TRUE
+	}
 
 	| use AA beam of slumber?
 	/if (${maChr.Find[swAABoS].Value} && ${madeBuff.Find[swMez].Value}) {
@@ -170,7 +179,9 @@ sub misc_combat_ENC(bool _debug, int _tmpID)
 		}
 	}
 
-	/if (${target[isdead, ${_tmpID}]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
 
 	| swarm pet
 	/if (SWARM && AGRO) {
@@ -200,7 +211,7 @@ sub check_crystals(bool _debug)
 	/invoke ${set_data_timer[FALSE, Check_Crystals, RESTART]}
 
 	ISMEDEAD
-	CHECKEXIT
+	CHECKEXIT check_crystals
 	GETINPUT
 	CHECKTIE
 
@@ -210,7 +221,6 @@ sub check_crystals(bool _debug)
 			/call voodoo ${_debug} "Azure Mind Crystal" 0 FALSE
 		}
 		/autoinventory
-		| /call check_cursor ${_debug} CLEAR
 	}
 
 	| hp crystal
@@ -219,7 +229,6 @@ sub check_crystals(bool _debug)
 			/call voodoo ${_debug} "Sanguine Mind Crystal" 0 FALSE
 		}
 		/autoinventory
-		| /call check_cursor ${_debug} CLEAR
 	}
 
 	/invoke ${target[assist]}
@@ -238,15 +247,15 @@ sub check_gather_ENC(bool _debug)
 	/if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
 
 	ISMEDEAD
-	CHECKEXIT
+	CHECKEXIT check_gather_ENC
 	GETINPUT
 	CHECKTIE
 
 	| AA manna crystal
 	/if (${maChr.Find[swAACrystals].Value}) {
-		| /if (${is_ready[${_debug}, "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}"]}) {
-		| 	/call voodoo ${_debug} "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}" 0 FALSE
-		| }
+		/if (${is_ready[${_debug}, "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}"]}) {
+			/call voodoo ${_debug} "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}" 0 FALSE
+		}
 	}
 
 	/if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
@@ -270,7 +279,7 @@ sub check_heal_ENC(bool _debug)
 	DEBUG \atcheck_heal_${Me.Class.ShortName}\ax()
 
 	ISMEDEAD
-	CHECKEXIT
+	CHECKEXIT check_heal_ENC
 	CHECKTIE
 
 	/IF (${Select[${_type},self]}) {
@@ -319,13 +328,17 @@ sub burn_ENC(bool _debug, int _tmpID)
 		/return FALSE
 	}
 
-	CHECKEXIT
+	CHECKEXIT burn_ENC
 	GETINPUT
 	CHECKTIE
 
 	CHECKDEFENSE
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
 
 	/if (${is_ready[${_debug}, "Illusions of Grandeur"]}) {
 		/call voodoo ${_debug} "Illusions of Grandeur" 0 FALSE

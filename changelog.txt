@@ -25,6 +25,16 @@ on the to do list
 
 
 
+A200229.02
+- /build will export conditions properly now
+- /condition, rebuild of the command. should give better/accurate parsed/visual outputs
+- /miscdps
+  designed as an alernative to the coded misc_combat routines
+  allows you to set up your own spam dps routine and not use whats hardcoded
+  this is a blunt force DPS design, you are required to do all your own conditions if you use this
+  requires engine 2 enabled
+- /chr spire con - # condition number to aply to spires
+
 
 A200228.01
 - cleric

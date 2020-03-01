@@ -45,7 +45,7 @@ sub set_debug()
   | combat
   /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl]}
 	| other
-  /invoke ${lsDebugother.Append[build,init,edit,rest,rez,spire,glyph,fireworks,manarecover,fade,observe,house,flow,event]}
+  /invoke ${lsDebugother.Append[build,init,edit,rest,rez,spire,glyph,fireworks,manarecover,fade,observe,house,flow,event,exit]}
   | class specific debugs
   /if (${Select[${Me.Class.ShortName},BER]}) {
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
@@ -153,7 +153,7 @@ sub set_initialize(bool _debug)
   /invoke ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
   /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maRezControl,maWatchspawn]}
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL]}
-  /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense]}
+  /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscCombat]}
 
   | set all output shortcuts
   /call set_data ${_debug} FALSE num                                      string outer "\a-t"
@@ -602,6 +602,7 @@ sub sql_set_character_schema(bool _debug)
   /invoke ${maDBTables.Add[environment_nuke,env_var]}
   /invoke ${maDBTables.Add[environment_dot,env_var]}
   /invoke ${maDBTables.Add[environment_agro,env_var]}
+  /invoke ${maDBTables.Add[environment_miscdps,env_var]}
 
   /sqlite ${maData.Find[DBcharacter].Value} SQL_ENV_BUILD SELECT build_number FROM build
   DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[dummy]}\ax
@@ -859,7 +860,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /invoke ${set_data_timer[FALSE, Check_Proc_Bandolier, 5s]}
   /call set_data_map ${_debug} maCC swProc                                FALSE                         "${auxsw} enable enable bandolier for a procing weapon"
   /call set_data_map ${_debug} maCC stProcBandolier												FALSE                         "${auxna} name of bandolier with procing weapon"
-  /call set_data_map ${_debug} maCC stSwapBandolier												FALSE                         "${auxna} name of bandolier to swap back to after the proc"
+  | /call set_data_map ${_debug} maCC stSwapBandolier												FALSE                         "${auxna} name of bandolier to swap back to after the proc"
 
 
 
@@ -1078,7 +1079,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
   /call set_data_map ${_debug} madeBuff swTash                            FALSE                         "${auxsw} use tash"
   /call set_data_map ${_debug} madeBuff stTash                            FALSE                         "${auxna} single target tash"
-  /call set_data_map ${_debug} madeBuff stAETash                          FALSE                         "${auxna} ae tash cause fauck all the mobs"
+  /call set_data_map ${_debug} madeBuff stAETash                          FALSE                         "${auxna} ae tash cause fuck all the mobs"
   /declare lsdeBuffTash list outer
 
   /call set_data_map ${_debug} madeBuff swSlow                            FALSE                         "${auxsw} use slow"
@@ -1161,6 +1162,7 @@ sub set_initialize_map_character_environment(bool _debug)
   | spire
   /call set_data_map ${_debug} maChr swSpireRaid                          FALSE                         "${auxsw} use while in group for burns"
   /call set_data_map ${_debug} maChr swSpireGroup                         FALSE													"${auxsw} use while in a raid for burns"
+  /call set_data_map ${_debug} maChr stSpireCon         	                0															"${auxnum} number of the condition to use for spires"
 
   | heal classes
   /if (${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
@@ -1214,7 +1216,6 @@ sub set_initialize_crew(bool _debug)
 	}
 
 /return TRUE
-
 
 
 
@@ -1290,6 +1291,48 @@ sub set_initialize_map_20(bool _debug)
   }
 
 /return TRUE
+
+
+
+|***
+ * note: set/build the 50 count skill maps
+ * use:
+ ***|
+sub set_initialize_map_50(bool _debug)
+  DEBUG \atset_initialize_map_50\ax()
+
+ 	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
+	/declare _tmpMap map local
+	/declare _tmi mapiterator local
+	/declare _liC50 listiterator local
+	/invoke ${_tmpMap.Add[MiscDPS,miscdps]}
+
+
+  /vardata _tmi _tmpMap.First.Clone
+  /while (!${_tmi.IsEnd}) {
+		/vardata _liC50 lsCount50.First.Clone
+		/while (!${_liC50.IsEnd}) {
+	    /call set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC50.Value}				FALSE		"${auxsw} ${_tmi.Value} ${_liC50.Value} switch"	${_tmi.Value}
+	    /call set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC50.Value}				FALSE		"${auxna} ${_tmi.Value} ${_liC50.Value} name"	${_tmi.Value}
+	    /call set_data_list ${_debug} ma${_tmi.Key} ls${_tmi.Key}${_liC50.Value}Tag		EMPTY		"${auxli} ${_tmi.Value} ${_liC50.Value} tag list"	${_tmi.Value}
+	    /call set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC50.Value}Con		0				"${auxnum} ${_tmi.Value} ${_liC50.Value} condition"	${_tmi.Value}
+			/invoke ${_liC50.Advance}
+		}
+
+		/if (${maDebug.Find[init].Value}) {
+			OUT \agset_initialize_map_heal\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+			/mqp
+		}
+
+    /invoke ${_tmi.Advance}
+  }
+
+/return TRUE
+
+
 
 
 |***

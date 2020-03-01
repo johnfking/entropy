@@ -24,7 +24,7 @@
 #define OUT "/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,\at.\ax]}"
 #define GETINPUT "/call get_input"
 #define ISMEDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}"
-#define CHECKEXIT "/if (${check_exit[]}) /return"
+#define CHECKEXIT "/if (${check_exit[${maDebug.Find[exit].Value}]}) /return"
 #define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maCC.Find[swPull].Value} && !${Me.Invis} && ${maRez.Find[swRezGive].Value}) /call check_for_corpse ${maDebug.Find[rez].Value}"
 #define CHECKFADE "/if (${maChr.Find[stPctFade].Value}) /call cast_AA_fade ${maDebug.Find[fade].Value}"
 #define OVERLOS "${If[${maOver.Find[swOverLOS].Value},,los]}"
@@ -122,7 +122,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A200228.01
+	/call set_data FALSE maEnv build													map outer A200229.02
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -401,23 +401,11 @@ sub prepare_the_end(bool _debug)
 	| get buffs
 	/call set_initialize_map_buffs ${maDebug.Find[init].Value}
 
-
+	| build maps with 20 counts
 	/call set_initialize_map_20
 
-	| get items
-	| /call set_initialize_map_items ${maDebug.Find[init].Value}
-
-	| build defense
-	| /call set_initialize_map_defense ${maDebug.Find[init].Value}
-
-	| build heal
-	| /call set_initialize_map_heal ${maDebug.Find[init].Value}
-
-	| build heal
-	| /call set_initialize_map_nuke ${maDebug.Find[init].Value}
-
-	| build heal
-	| /call set_initialize_map_dot ${maDebug.Find[init].Value}
+	| build maps with 50 counts
+	/call set_initialize_map_50
 
 	| set any aliases needs
 	/call set_alias ${maDebug.Find[init].Value} add
@@ -436,17 +424,14 @@ sub prepare_the_end(bool _debug)
 	| set class databits'n-bytes
 	/call set_${Me.Class.ShortName} ${maDebug.Find[init].Value}
 
-
 	| get the conditions.
 	/call set_initialize_map_conditions ${maDebug.Find[init].Value}
-
 
  	| check game cash?
 	/call check_free_ingame_cash ${maDebug.Find[init].Value}
 
 	| set hud variables
 	/call set_initialize_hud_variables
-
 
 /return TRUE
 

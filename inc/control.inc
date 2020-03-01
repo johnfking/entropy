@@ -1943,7 +1943,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
 		/call Bind_command_aux see
 		/return	FALSE
-	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro]}) {
+	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps]}) {
 		/invoke ${out[0, "Crack says your input sucks${sep}\a-w${_variable}\ax"]}
 		/return FALSE
 	}
@@ -1958,6 +1958,51 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		OUT dis(\a-r${Target.Distance}\ax) ${dot} Y(\a-r${Target.Y}\ax)X(\a-r${Target.X}\ax)
 		OUT animation(\a-r${Target.Animation}\ax) ${dot} body(\a-r${Target.Body}\ax)
 
+
+
+	| see dot info
+	} else /if (${_variable.Equal[miscdps]}) {
+
+		/if (${_verbage.Equal[list]}) {
+			/echo
+			/invoke ${out[12, "\awMiscDPS List\ax${sep}"]}
+
+			/declare _licountmiscdps listiterator local
+		  /vardata _licountmiscdps lsCount50.First.Clone
+		  /while (!${_licountmiscdps.IsEnd}) {
+				/if (${Bool[${maMiscDPS.Find[stMiscDPS${_licountmiscdps.Value}].Value}]}) {
+					/invoke ${out[12, "\awstMiscDPS${_licountmiscdps.Value}\ax${sep}${If[${maMiscDPS.Find[swMiscDPS${_licountmiscdps.Value}].Value},${on},${off}]}${sep}\a-w${maMiscDPS.Find[stMiscDPS${_licountmiscdps.Value}].Value}\ax"]}
+				}
+		    /invoke ${_licountmiscdps.Advance}
+		  }
+
+			/if (${_silent.NotEqual[silent]}) ${out[18, "${eol}"]}
+			/echo
+			/return
+		}
+
+		/if (!${Range.Between[1,50:${Int[${_verbage}]}]}) {
+			/call Bind_command_aux dot
+			/return
+		}
+		/invoke ${out[12, "\awMiscDPS #${_verbage}\ax${sep}${If[${maMiscDPS.Find[swMiscDPS${_verbage}].Value},${on},${off}]}"]}
+		/invoke ${out[12, "stMiscDPS\aw${_verbage}\ax${sep}\a-w${maMiscDPS.Find[stMiscDPS${_verbage}].Value}\ax"]}
+
+		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maMiscDPS.Find[stMiscDPS${_verbage}Con].Value}"
+		/if (${sqlite.Rows[dummy]}) {
+			OUT stMiscDPS\aw${_verbage}\axCon${sep}\a-w${maMiscDPS.Find[stMiscDPS${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
+		} else {
+			OUT stMiscDPS\aw${_verbage}\axCon${sep}\a-w${maMiscDPS.Find[stMiscDPS${_verbage}Con].Value}\ax
+		}
+
+		/invoke ${out[12, "lsMiscDPS\aw${_verbage}\axTag"]}
+
+		/declare hli listiterator local
+		/vardata hli lsMiscDPS${_verbage}Tag.First.Clone
+		/while (!${hli.IsEnd}) {
+			/invoke ${out[12, "${dot}\a-w${hli.Value}\ax"]}
+			/invoke ${hli.Advance}
+		}
 
 	| see agro info
 	} else /if (${_variable.Equal[agro]}) {
@@ -2960,7 +3005,7 @@ sub Bind_command_aux(string _type, bool _debug)
 	/declare _lsout list local
 	/invoke ${_lsout.Append[alto,bandolier,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter]}
 	/invoke ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,mode,minion,navto,off,on,override,repeat,see,splash,take,tag,tc,tie]}
-	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro]}
+	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro,miscdps]}
 
 	/if (${_lsout.Contains[${_type}]}) {
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY ROWID
@@ -3885,7 +3930,14 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 					}
 
 					| OUTPUT TO THE INI
-					/ini "${_fqn}" ${cli.Value} "${_mi.Key}" "${Parse[1,${_mi.Value}]}"
+					/if (${cli.Value.Equal[maCondition]}) {
+						/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition ORDER BY ROWID
+						/for _count 1 to ${sqlite.Rows[dummy]}
+							/ini "${_fqn}" ${cli.Value} "${sqlite.Result[dummy ${_count} env_var]}" "${Parse[2, ${sqlite.Result[dummy ${_count} value]}]}"
+						/next _count
+					} else {
+						/ini "${_fqn}" ${cli.Value} "${_mi.Key}" "${Parse[1,${_mi.Value}]}"
+					}
 					/invoke ${_mi.Advance}
 				}
 			/invoke ${cli.Advance}
@@ -4490,8 +4542,9 @@ sub Bind_control_grain(string _num, bool _debug)
  * note: condition editing shortcut
  * use: /condition # "code"
  ***|
-#bind command_condition /condition
-sub Bind_command_condition(string _type, string _verbage, bool _debug)
+#bind_noparse command_condition /condition
+sub Bind_noparse_command_condition(string _type, string _verbage, bool _debug)
+	DEBUG \atBind_noparse_command_condition\ax(\a-w${_type}, ${Parse[1,${_verbage}]}\ax)
 
 	| output control map
 	/if (${_type.Equal[see]}) {
@@ -4513,9 +4566,11 @@ sub Bind_command_condition(string _type, string _verbage, bool _debug)
 
 		} else /if (${Bool[${_verbage}]}) {
 
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "c${_type}" "${_verbage}"
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "c${_type}" "${Parse[1, ${_verbage}]}"
+			DEBUG ${sep}do_raw_edit ${maDebug.Find[edit].Value} SILENT c${_type} "${Parse[1,${_verbage}]}"
 		}
 
+		/echo
 		/call Bind_command_see condition ${_type}
 
 	}
@@ -4909,8 +4964,71 @@ sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _s
 
 	}
 
-	| /if (${_silent.Equal[SILENT]}) /return
-	| /invoke ${maControl.Clear}
-	| /invoke ${set_control_output[${_debug}, maAgro, agro, maControl]}
+/return	TRUE
+
+
+
+
+|***
+ * note:control for /miscdps
+ * use:
+ ***|
+#Bind control_miscdps /miscdps
+sub Bind_control_miscdps(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
+	DEBUG \atcontrol_miscdps\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+
+	/if (ENGINE1) {
+		/invoke ${out[0, "/miscdps is only available with engine 2 enabled."]}
+		/return FALSE
+	}
+
+	| output control map
+	/if (${_type.Equal[see]}) {
+		/call Bind_command_see maMiscDPS ${_verbage}
+		/return
+	} else /if (${_type.Equal[aux]}) {
+		/call Bind_command_aux miscdps ${_verbage}
+		/return
+
+	} else /if (${_type.Equal[list]}) {
+		/call Bind_command_see miscdps list
+		/return	TRUE
+
+	| heal number entered
+	} else /if (${Range.Between[1,50:${Int[${_type}]}]}) {
+
+		| see the miscdps #
+		/if (${_verbage.Equal[see]}) {
+			/call Bind_command_see miscdps ${_type}
+			/return
+		}
+
+		/if (!${Bool[${_verbage}]} && ${_verbage.NotEqual[FALSE]}) {
+			/invoke ${set_switch_env[${_debug}, swMiscDPS${_type}, TRUE, ${_verbage}]}
+			/invoke ${out[12, "\awMiscDPS${_type}\ax${sep}${If[${maMiscDPS.Find[swMiscDPS${_type}].Value},${on},${off}]}${sep}\a-w${maMiscDPS.Find[stMiscDPS${_type}].Value}\ax"]}
+			/return TRUE
+
+		} else /if (${Select[${_verbage},clear]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swMiscDPS${_type}" FALSE
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stMiscDPS${_type}" FALSE
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stMiscDPS${_type}Con" "0"
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsMiscDPS${_type}Tag" clear
+
+		} else /if (${Select[${_verbage},con]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stMiscDPS${_type}Con" "${_verbage2}"
+
+		} else /if (${Select[${_verbage},tag]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsMiscDPS${_type}Tag" ${_verbage2} ${_silent}
+
+		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stMiscDPS${_type}" "${_verbage}"
+		}
+
+		/call Bind_command_see miscdps ${_type}
+
+		/return TRUE
+
+	}
 
 /return	TRUE
+

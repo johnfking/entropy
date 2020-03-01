@@ -151,16 +151,26 @@ sub misc_combat_SHM(bool _debug)
 		/return FALSE
 	}
 
-
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
 
 	CHECKDEFENSE
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} TARGET
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	}
 
 	/call check_cani ${maDebug.Find[canni].Value}
+
+
+	/if (ENGINE2) {
+		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/return TRUE
+	}
+
 
 /return
 

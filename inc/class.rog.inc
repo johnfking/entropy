@@ -150,8 +150,18 @@ sub misc_combat_ROG(bool _debug, int _tmpID)
 	CHECKTIE
 
 	CHECKDEFENSE
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
+
+	/if (ENGINE2) {
+		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/return TRUE
+	}
+
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stAssault].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stAssault].Value}" ${_tmpID} FALSE

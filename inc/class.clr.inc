@@ -200,6 +200,12 @@ sub misc_combat_CLR(bool _debug, int _tmpID)
 		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	}
 
+	/if (ENGINE2) {
+		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/return TRUE
+	}
+
+
 	/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) {
 		/call cast_yaulp FALSE
 	}

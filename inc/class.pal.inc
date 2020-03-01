@@ -206,8 +206,17 @@ sub misc_combat_PAL(bool _debug, int _tmpID)
 	CHECKDEFENSE
 
 	/call check_heal_routines
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[minion].Value} ${_tmpID}
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[minion].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
+
+	/if (ENGINE2) {
+		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/return TRUE
+	}
 
 	| spam rune
 	/if (${is_ready[${_debug}, "${maChr.Find[stTempRune].Value}"]}) {

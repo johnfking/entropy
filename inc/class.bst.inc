@@ -132,6 +132,11 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	}
 
+	/if (ENGINE2) {
+		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/return TRUE
+	}
+
 	| do we want the mobs attention?
 	/if (AGRO) {
 		/if (${is_ready[${_debug}, "Roaring Strike"]}) {
