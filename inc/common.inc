@@ -1030,45 +1030,6 @@ sub get_hurt(bool _debug, string _type)
  * note: checks facing of a target and immediate distance
  * use: /call check_facing DEBUG [TARGET ID] [adjust position FORCE/FALSE]
  ***|
-sub check_facing2(bool _debug, int _tmpID, string _adjust)
-	DEBUG \atcheck_facing\ax(\a-w${_tmpID}, ${_adjust}\ax)
-
-	/if (!AUTO && !${swModeToken}) /return FALSE
-
-	| already facing the bastard OR NOT?
-
-	| /if (${Spawn[${_tmpID}].Distance} <= ENV) {
-		/if (!${Range.Between[0,${maHome.Find[stFaceArc].Value}:${Math.Abs[${Math.Calc[${Target.HeadingTo.Degrees}-${Me.Heading.Degrees}]}]}]}) {
-			/squelch /face id ${_tmpID} nolook ${If[${maHome.Find[swFaceFast].Value},fast,]}
-		}
-
-
-	| } else {
-
-
-	| }
-
-
-
-	DEBUG ${sep}${Math.Abs[${Me.Heading.Degrees} - ${Spawn[${_tmpID}].HeadingTo.Degrees}]} > ${maHome.Find[stFaceArc].Value}
-	| /if (${Math.Abs[${Me.Heading.Degrees} - ${Spawn[${_tmpID}].HeadingTo.Degrees}]} > ${maHome.Find[stFaceArc].Value}) {
-	| 	DEBUG ${sep}facing is off, adjusting
-		| /if (!${Range.Between[0,${maHome.Find[stFaceArc].Value}:${Math.Abs[${Math.Calc[${Target.HeadingTo.Degrees}-${Me.Heading.Degrees}]}]}]}) {
-	| 		/squelch /face id ${_tmpID} nolook ${If[${maHome.Find[swFaceFast].Value},fast,]}
-		| }
-	| }
-
-	/if (${_adjust.Equal[FORCE]}) {
-		/declare _mobdist float local ${Spawn[id ${_tmpID}].Distance}
-
-		/if ((${_mobdist} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.9 && ${_mobdist} < ${Spawn[id ${_tmpID}].MaxRangeTo}+1) || ${_mobdist} < ${Spawn[id ${_tmpID}].MaxRangeTo}*.2) {
-			DEBUG ${sep}distance is off, adjusting
-			/squelch /stick moveback ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.9]}
-		}
-	}
-
-/return TRUE
-
 sub check_facing(bool _debug, int _tmpID, string _adjust)
 	DEBUG \atcheck_facing\ax(\a-w${_tmpID}, ${_adjust}\ax)
 	/if (!AUTO && !${swModeToken}) /return FALSE
@@ -2966,6 +2927,10 @@ sub set_combat(bool _debug)
 		FLOW set_combat
 	}
 
+	| home check
+	/if (HOME && ${maHome.Find[swinCombat].Value}) {
+		/call Bind_control_home return
+	}
 
 	CHECKCURSOR
 
@@ -7086,6 +7051,11 @@ sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
 		}
 	}
 
+	| force a 1 second delay
+	/if (${ls${_type}Tag.Contains[delay1s]}) {
+		/delay 1s
+	}
+
 	| no active eq combat
 	/if (${ls${_type}Tag.Contains[noactivecombat]} && ${Select[${Me.CombatState},active]}) {
 		/return FALSE
@@ -7280,7 +7250,7 @@ sub check_for_corpse(bool _debug)
 		/return FALSE
 	}
 	| no combat rez
-	/if (!${maRez.Find[swRezCombat].Value} && ${SpawnCount[npc radius ENV PS4]}) {
+	/if (!${maRez.Find[swRezCombat].Value} && COMBAT) {
 		/return FALSE
 	}
 
@@ -7298,8 +7268,9 @@ sub check_for_corpse(bool _debug)
 			/return FALSE
 		}
 
-		| disable rezemergency if you dont have tokens or are on a TLP box
+		| disable rezemergency if you dont have tokens
 		/if (!${FindItemCount[=Token of Resurrection]}) {
+			DEBUG ${sep}shutting down token rezing
 			/invoke ${do_raw_edit[FALSE, SILENT, swRezToken, FALSE]}
 			/invoke ${out[0, "${Me.DisplayName} needs Rez Tokens...."]}
 		}
@@ -7308,7 +7279,9 @@ sub check_for_corpse(bool _debug)
 	| set rez name/type
 	| necro stuff
 	/if (${Select[${Me.Class.ShortName},NEC]}) {
-		/if (!${FindItem[Essence Emerald].ID}) /return FALSE
+		/if (!${FindItem[=Essence Emerald].ID}) {
+			/return FALSE
+		}
 		/declare _rezNEC												string	local "Convergence"
 
 	| cleric stuff
@@ -7478,9 +7451,15 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 	FLOW cast_rez ${_tmpID}|${_rez} (1)
 
 
-	/if (${Me.Dead}) /return FALSE
-	/if (!${Defined[timer_corpse_${_tmpID}]}) /return FALSE
-	/if (${timer_corpse_${_tmpID}}) /return FALSE
+	/if (${Me.Dead}) {
+		/return FALSE
+	}
+	/if (!${Defined[timer_corpse_${_tmpID}]}) {
+		/return FALSE
+	}
+	/if (${timer_corpse_${_tmpID}}) {
+		/return FALSE
+	}
 
 	ISMEDEAD
 	CHECKEXIT cast_rez ${_tmpID}|${_rez}
@@ -7495,7 +7474,7 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 	}
 
 	| get the corpse close to us
-	/if (${Spawn[pccorpse ${_tmpID}].Distance} > 10 && ${Spawn[pccorpse ${_tmpID}].Distance} <= ${maRez.Find[stMaxRezRange].Value}) {
+	/if (${Spawn[pccorpse ${_tmpID}].Distance} > 10 && ${Spawn[pccorpse ${_tmpID}].Distance} <= 100) {
 		/squelch /corpse
 	}
 
@@ -7506,7 +7485,11 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 		/if (!${maRez.Find[swRezToken].Value}) {
 			DEBUG casting no token
 			/delay 5s !${Me.Casting.ID}
-			/invoke ${target[set, ${_tmpID}]}
+			| /invoke ${target[set, ${_tmpID}]}
+
+			/squelch /target id ${_tmpID}
+			/delay 1s ${Target.ID} == ${_tmpID}
+
 			FLOW check_for_corpse ${_tmpID}|${_rez}
 
 			/if (${is_ready[${_debug}, "${_rez}"]}) {
@@ -7517,7 +7500,12 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 		} else /if (${maRez.Find[swRezToken].Value}) {
 			DEBUG clicking token
 			/delay 5s !${Me.Casting.ID}
-			/invoke ${target[set, ${_tmpID}]}
+
+			/squelch /target id ${_tmpID}
+			/delay 1s ${Target.ID} == ${_tmpID}
+
+
+			| /invoke ${target[set, ${_tmpID}]}
 			FLOW check_for_corpse ${_tmpID}|${_rez}
 			/if (${is_ready[${_debug}, "Token of Resurrection"]}) {
 				/call voodoo ${_debug} "Token of Resurrection" ${_tmpID} skiptargetcheck
@@ -8155,6 +8143,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
 	/declare _mobCount int local 0
 	/declare _tmpMobID int local
 	/declare _tmpSpell string local
+	/declare _lideb listiterator local
 
 	| eradicate (dispell thingies)
 	/if (${madeBuff.Find[swEradicate].Value}) {
@@ -8272,7 +8261,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
 
 	/declare _lsout list local
 	/invoke ${_lsout.Append[Tash,Malo,Slow,Snare,Cripple]}
-	/vardata li _lsout.First.Clone
+	/vardata _lideb _lsout.First.Clone
 	/declare _tmpTLO string local
 
 	| make sure we have a target and the buff list is current
@@ -8281,120 +8270,120 @@ sub check_deBuffs(bool _debug, int _tmpID)
 	/delay 1s ${Target.BuffsPopulated}
 
 	| start the debuff cycle
-	/while (!${li.IsEnd}) {
-		DEBUG ${sep}checking${sep}\a-w${li.Value}\ax (${If[${madeBuff.Find[sw${li.Value}].Value},${on},${off}]})
+	/while (!${_lideb.IsEnd}) {
+		DEBUG ${sep}checking${sep}\a-w${_lideb.Value}\ax (${If[${madeBuff.Find[sw${_lideb.Value}].Value},${on},${off}]})
 
-		/if (${li.Value.Equal[Slow]}) {
+		/if (${_lideb.Value.Equal[Slow]}) {
 			/varset _tmpTLO Slowed
-		} else /if (${li.Value.Equal[Snare]}) {
+		} else /if (${_lideb.Value.Equal[Snare]}) {
 			/varset _tmpTLO Snared
-		} else /if (${li.Value.Equal[Tash]}) {
+		} else /if (${_lideb.Value.Equal[Tash]}) {
 			/varset _tmpTLO Tashed
-		} else /if (${li.Value.Equal[Cripple]}) {
+		} else /if (${_lideb.Value.Equal[Cripple]}) {
 			/varset _tmpTLO Crippled
-		} else /if (${li.Value.Equal[Malo]}) {
+		} else /if (${_lideb.Value.Equal[Malo]}) {
 			/varset _tmpTLO Maloed
 		}
 
 		| is the debuf turned on
-		/if (${madeBuff.Find[sw${li.Value}].Value}) {
+		/if (${madeBuff.Find[sw${_lideb.Value}].Value}) {
 
 			| check if there is a debff timer for this debuff/mob. if not, create it
-			/if (!${Defined[timer_${li.Value.Lower}_ID${_tmpID}]}) {
-				/invoke ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, 0]}
+			/if (!${Defined[timer_${_lideb.Value.Lower}_ID${_tmpID}]}) {
+				/invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, 0]}
 			}
 
 			| add if already there?
 			DEBUG checking:
 			DEBUG \ar....\ax ${_tmpTLO}${sep}\a-w${Target.${_tmpTLO}}\ax(\a-r${Target.${_tmpTLO}.ID}\ax)
-			| DEBUG \ar....\ax single debuff${sep}\a-w${Target.Buff[${madeBuff.Find[st${li.Value}].Value}].ID}\ax
-			| DEBUG \ar....\ax ae debuff${sep}\a-w${Target.Buff[${madeBuff.Find[stAE${li.Value}].Value}].ID}\ax
-			DEBUG \ar....\ax timer set${sep}\a-w${timer_${li.Value.Lower}_ID${_tmpID}}\ax
-			DEBUG \ar....\ax in list${sep}\a-w${lsdeBuff${li.Value}.Contains[${_tmpID}]}\ax
-			| /if ((${Target.${_tmpTLO}.ID} || ${Target.Buff[${madeBuff.Find[st${li.Value}].Value}].ID} || ${Target.Buff[${madeBuff.Find[stAE${li.Value}].Value}].ID}) && (!${timer_${li.Value.Lower}_ID${_tmpID}} || !${lsdeBuff${li.Value}.Contains[${_tmpID}]})) {
+			| DEBUG \ar....\ax single debuff${sep}\a-w${Target.Buff[${madeBuff.Find[st${_lideb.Value}].Value}].ID}\ax
+			| DEBUG \ar....\ax ae debuff${sep}\a-w${Target.Buff[${madeBuff.Find[stAE${_lideb.Value}].Value}].ID}\ax
+			DEBUG \ar....\ax timer set${sep}\a-w${timer_${_lideb.Value.Lower}_ID${_tmpID}}\ax
+			DEBUG \ar....\ax in list${sep}\a-w${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}\ax
+			| /if ((${Target.${_tmpTLO}.ID} || ${Target.Buff[${madeBuff.Find[st${_lideb.Value}].Value}].ID} || ${Target.Buff[${madeBuff.Find[stAE${_lideb.Value}].Value}].ID}) && (!${timer_${_lideb.Value.Lower}_ID${_tmpID}} || !${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]})) {
 
 			| our target is debuffed for this cycle. make sure it is marked and move on to next check
-			/if (${Target.${_tmpTLO}.ID} || ${Target.Buff[${madeBuff.Find[st${li.Value}].Value}].ID} || ${Target.Buff[${madeBuff.Find[stAE${li.Value}].Value}].ID}) {
+			/if (${Target.${_tmpTLO}.ID} || ${Target.Buff[${madeBuff.Find[st${_lideb.Value}].Value}].ID} || ${Target.Buff[${madeBuff.Find[stAE${_lideb.Value}].Value}].ID}) {
 
 				| in the list
-				/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
-					DEBUG ${sep}adding ID:\a-r${_tmpID}\ax to \a-wlsdeBuff${li.Value}\ax
-					/invoke ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+				/if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
+					DEBUG ${sep}adding ID:\a-r${_tmpID}\ax to \a-wlsdeBuff${_lideb.Value}\ax
+					/invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpID}]}
 				}
 
 				| timer set?
 				/if (${Target.${_tmpTLO}.Duration.TotalSeconds}) {
-					DEBUG ${sep}adjusting${sep}\a-wtimer_${li.Value.Lower}_ID${_tmpID}\ax
-					/invoke ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, ${Math.Calc[${Target.${_tmpTLO}.Duration.TotalSeconds}-6]}]}
+					DEBUG ${sep}adjusting${sep}\a-wtimer_${_lideb.Value.Lower}_ID${_tmpID}\ax
+					/invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, ${Math.Calc[${Target.${_tmpTLO}.Duration.TotalSeconds}-6]}]}
 				}
 
 				| it is now marked and in the debuf list
-				/invoke ${li.Advance}
+				/invoke ${_lideb.Advance}
 				/continue
 			}
 
 			| if we've made it this far, cause shits not dealt with
-			/if (!${timer_${li.Value.Lower}_ID${_tmpID}} || !${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
-				DEBUG ${sep}\arNO\ax timer or not in list${sep}\a-wlsdeBuff${li.Value}\ax
-				/if (${Bool[${madeBuff.Find[stAE${li.Value}].Value}]} && AE#) {
-					/varset _mobCount ${SpawnCount[npc loc ${Spawn[id ${_tmpID}].X} ${Spawn[id ${_tmpID}].Y} radius ${Spell[${madeBuff.Find[stAE${li.Value}].Value}].AERange}]}
+			/if (!${timer_${_lideb.Value.Lower}_ID${_tmpID}} || !${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
+				DEBUG ${sep}\arNO\ax timer or not in list${sep}\a-wlsdeBuff${_lideb.Value}\ax
+				/if (${Bool[${madeBuff.Find[stAE${_lideb.Value}].Value}]} && AE#) {
+					/varset _mobCount ${SpawnCount[npc loc ${Spawn[id ${_tmpID}].X} ${Spawn[id ${_tmpID}].Y} radius ${Spell[${madeBuff.Find[stAE${_lideb.Value}].Value}].AERange}]}
 				} else {
 					/varset _mobCount 0
 				}
 				DEBUG ${sep}_mobCount${sep}\a-w${_mobCount}\ax
 
-				/if (${is_ready[${_debug}, "${madeBuff.Find[st${li.Value}].Value}"]}) {
-					/if (!AE# || (AE# && !${is_ready[${_debug}, "${madeBuff.Find[stAE${li.Value}].Value}"]})) {
-						DEBUG ${sep}sw${li.Value}${sep}\a-wSINGLE\ax
+				/if (${is_ready[${_debug}, "${madeBuff.Find[st${_lideb.Value}].Value}"]}) {
+					/if (!AE# || (AE# && !${is_ready[${_debug}, "${madeBuff.Find[stAE${_lideb.Value}].Value}"]})) {
+						DEBUG ${sep}sw${_lideb.Value}${sep}\a-wSINGLE\ax
 
 						| cast the damn thing already
-						/call voodoo ${_debug} "${madeBuff.Find[st${li.Value}].Value}" ${_tmpID} FALSE
+						/call voodoo ${_debug} "${madeBuff.Find[st${_lideb.Value}].Value}" ${_tmpID} FALSE
 
 						| sort our returns and act
 						/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
-							/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
-								/invoke ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+							/if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
+								/invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpID}]}
 							}
-							/invoke ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[st${li.Value}].Value}].Duration.TotalSeconds}s]}
+							/invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[st${_lideb.Value}].Value}].Duration.TotalSeconds}s]}
 
 						| fizzle, we try again shortly
 						} else /if (${Select[${maData.Find[stCastReturn].Value},RESISTED,NOTREADY,FIZZLE,DISTRACTED]}) {
-							/invoke ${set_timer[FALSE, timer_${li.Value.Lower}_ID${_tmpID}, 6s]}
+							/invoke ${set_timer[FALSE, timer_${_lideb.Value.Lower}_ID${_tmpID}, 6s]}
 
 						| immune, mark the mob as no touch. (long timer)
 						} else /if (${Select[${maData.Find[stCastReturn].Value},IMMUNE,TAKEHOLD]}) {
-							/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
-								/invoke ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+							/if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
+								/invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpID}]}
 							}
-							/invoke ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, 10m]}
+							/invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, 10m]}
 						}
 					}
 				}
 
 				/if (AE# && ${_mobCount} >= AE#) {
-					/if (${is_ready[${_debug}, "${madeBuff.Find[stAE${li.Value}].Value}"]}) {
-						DEBUG ${sep}sw${li.Value}${sep}\a-wMULTI\ax
-						/call voodoo ${_debug} "${madeBuff.Find[stAE${li.Value}].Value}" ${_tmpID} FALSE
+					/if (${is_ready[${_debug}, "${madeBuff.Find[stAE${_lideb.Value}].Value}"]}) {
+						DEBUG ${sep}sw${_lideb.Value}${sep}\a-wMULTI\ax
+						/call voodoo ${_debug} "${madeBuff.Find[stAE${_lideb.Value}].Value}" ${_tmpID} FALSE
 						/if (${maData.Find[stCastReturn].Value.Equal[SUCCESS]}) {
-							/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
-								/invoke ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+							/if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
+								/invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpID}]}
 							}
-							/invoke ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[stAE${li.Value}].Value}].Duration.TotalSeconds}s]}
+							/invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[stAE${_lideb.Value}].Value}].Duration.TotalSeconds}s]}
 							/for _count 1 to ${_mobCount}
-								/varset _tmpMobID ${Spawn[${_tmpID}].NearestSpawn[${_count} ,npc radius ${Spell[${madeBuff.Find[stAE${li.Value}].Value}].AERange}].ID}
+								/varset _tmpMobID ${Spawn[${_tmpID}].NearestSpawn[${_count} ,npc radius ${Spell[${madeBuff.Find[stAE${_lideb.Value}].Value}].AERange}].ID}
 								/if (${_tmpMobID} == 0) /break
-								/if (!${lsdeBuff${li.Value}.Contains[${_tmpMobID}]}) {
-									/invoke ${lsdeBuff${li.Value}.Append[${_tmpMobID}]}
+								/if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpMobID}]}) {
+									/invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpMobID}]}
 								}
-								/invoke ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpMobID}, ${madeBuff.Find[stTimerSnare].Value}]}
+								/invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpMobID}, ${madeBuff.Find[stTimerSnare].Value}]}
 							/next _count
 						} else /if (${Select[${maData.Find[stCastReturn].Value},RESISTED,NOTREADY,FIZZLE,DISTRACTED]}) {
-							/invoke ${set_timer[FALSE, timer_${li.Value.Lower}_ID${_tmpID}, 6s]}
+							/invoke ${set_timer[FALSE, timer_${_lideb.Value.Lower}_ID${_tmpID}, 6s]}
 						} else /if (${Select[${maData.Find[stCastReturn].Value},IMMUNE,TAKEHOLD]}) {
-							/if (!${lsdeBuff${li.Value}.Contains[${_tmpID}]}) {
-								/invoke ${lsdeBuff${li.Value}.Append[${_tmpID}]}
+							/if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
+								/invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpID}]}
 							}
-							/invoke ${set_timer[${_debug}, timer_${li.Value.Lower}_ID${_tmpID}, 10m]}
+							/invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, 10m]}
 						}
 					}
 				}
@@ -8403,7 +8392,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
 			}
 		}
 
-		/invoke ${li.Advance}
+		/invoke ${_lideb.Advance}
 	}
 
 /return TRUE

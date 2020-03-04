@@ -83,13 +83,15 @@ sub main_WIZ(bool _debug)
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
-			/if (BURN) /call burn_${Me.Class.ShortName}  ${maDebug.Find[burn].Value}
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stTempPet].Value}"
 			/if (${maCC.Find[swAlliance].Value}) /call trigger_alliance TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) {
-				/if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} ${maDebug.Find[twincast].Value}
+				/if (${maChr.Find[swForceTC].Value}) {
+					/call force_twincast_${Me.Class.ShortName} ${maDebug.Find[twincast].Value} TARGET
+				}
 				/call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			}
 			/call misc_combat_${Me.Class.ShortName}
@@ -112,11 +114,11 @@ sub main_WIZ(bool _debug)
  * note: Combat skills, Disciplines and Alternate abilities.
  * use: /call misc_combat_${Me.Class.ShortName}
  ***|
-sub misc_combat_WIZ(bool _debug)
-	DEBUG \atmisc_combat_WIZ\ax()
+sub misc_combat_WIZ(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat_WIZ\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${target[isdead, TARGET]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -127,25 +129,33 @@ sub misc_combat_WIZ(bool _debug)
 
 	CHECKDEFENSE
 	/if (SWARM || PET) {
-		/call send_pet ${maDebug.Find[sic].Value} TARGET
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	}
 	/if (AUTO && MELEE) {
-		/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	}
 
 
 	/if (ENGINE2) {
-		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
 		/return TRUE
 	}
 
 	| agro control
 	/if (AGRO) {
 	} else /if (!AGRO) {
-		/if (${is_ready[${_debug}, "Arcane Whisper"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) /call voodoo ${_debug} "Arcane Whisper" TARGET FALSE
-		/if (${is_ready[${_debug}, "Mind Crash"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value} && ${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]}) /call voodoo ${_debug} "Mind Crash" TARGET FALSE
-		/if (${is_ready[${_debug}, "Concussive Intuition"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) /call voodoo ${_debug} "Concussive Intuition" TARGET FALSE
-		/if (${is_ready[${_debug}, "${maChr.Find[stConcussion].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctConcussion].Value}) /call voodoo ${_debug} "${maChr.Find[stConcussion].Value}" TARGET FALSE
+		/if (${is_ready[${_debug}, "Arcane Whisper"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) {
+			/call voodoo ${_debug} "Arcane Whisper" ${_tmpID} FALSE
+		}
+		/if (${is_ready[${_debug}, "Mind Crash"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value} && ${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]}) {
+			/call voodoo ${_debug} "Mind Crash" ${_tmpID} FALSE
+		}
+		/if (${is_ready[${_debug}, "Concussive Intuition"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) /{
+			call voodoo ${_debug} "Concussive Intuition" ${_tmpID} FALSE
+		}
+		/if (${is_ready[${_debug}, "${maChr.Find[stConcussion].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctConcussion].Value}) {
+			/call voodoo ${_debug} "${maChr.Find[stConcussion].Value}" ${_tmpID} FALSE
+		}
 	}
 
 /return
@@ -212,11 +222,11 @@ sub check_heal_WIZ(bool _debug, string _type)
  * note: Wizard burn routines
  * use: bug guns?
  ***|
-sub burn_WIZ(bool _debug)
-	DEBUG \atburn_WIZ\ax()
+sub burn_WIZ(bool _debug, int _tmpID)
+	DEBUG \atburn_WIZ\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${target[isdead, TARGET]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -226,21 +236,33 @@ sub burn_WIZ(bool _debug)
 	CHECKTIE
 
 	CHECKDEFENSE
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
 
 	| shhhhh..
-	/if (${is_ready[${_debug}, "Silent Casting"]}) /call voodoo ${_debug} "Silent Casting" 0 FALSE
+	/if (${is_ready[${_debug}, "Silent Casting"]}) {
+		/call voodoo ${_debug} "Silent Casting" 0 FALSE
+	}
 
 	| next 45 spells +51% crit rate
-	/if (${is_ready[${_debug}, "Frenzied Devastation"]}) /call voodoo ${_debug} "Frenzied Devastation" 0 FALSE
+	/if (${is_ready[${_debug}, "Frenzied Devastation"]}) {
+		/call voodoo ${_debug} "Frenzied Devastation" 0 FALSE
+	}
 	| increase chance to land
-	/if (${is_ready[${_debug}, "Focus of Arcanum"]}) /call voodoo ${_debug} "Focus of Arcanum" 0 FALSE
+	/if (${is_ready[${_debug}, "Focus of Arcanum"]}) {
+		/call voodoo ${_debug} "Focus of Arcanum" 0 FALSE
+	}
 
 
 	| alternate twincast
 	/if (!${Me.Buff[${maChr.Find[stTC].Value}].ID}) {
-		/if (${is_ready[${_debug}, "Improved Twincast"]}) /call voodoo ${_debug} "Improved Twincast" 0 FALSE
+		/if (${is_ready[${_debug}, "Improved Twincast"]}) {
+			/call voodoo ${_debug} "Improved Twincast" 0 FALSE
+		}
 	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.AltAbilityReady[Improved Twincast]} && ${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stTC].Value}" 0 FALSE
 	}
@@ -274,11 +296,11 @@ sub burn_WIZ(bool _debug)
 	| swarm pet
 	/if (SWARM) {
 		/if (${is_ready[${_debug}, "Call of Xuzl"]}) {
-			/call voodoo ${_debug} "Call of Xuzl" TARGET FALSE
+			/call voodoo ${_debug} "Call of Xuzl" ${_tmpID} FALSE
 		}
 	}
 
-	/call cast_glyph ${maDebug.Value[glyph].Value}
+	/call cast_glyph ${maDebug.Find[glyph].Value}
 
 /return
 
@@ -288,8 +310,8 @@ sub burn_WIZ(bool _debug)
  * note: Control for getting Twincast either spell or Proc
  * use: /call force_twincast_wiz DEBUG
  ***|
-sub force_twincast_WIZ(bool _debug)
-	DEBUG \atforce_twincast_WIZ\ax()
+sub force_twincast_WIZ(bool _debug, int _tmpID)
+	DEBUG \atforce_twincast_WIZ\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
 	CHECKEXIT
@@ -297,7 +319,7 @@ sub force_twincast_WIZ(bool _debug)
 
 	/invoke ${set_data_timer[${_debug}, Force_TC, 6s]}
 
-	/if (${target[isdead, TARGET]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -310,7 +332,7 @@ sub force_twincast_WIZ(bool _debug)
 
 	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[${maChr.Find[stTC].Value}].ID} && !${Me.Buff[Twincast].ID}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stNukeTC${stLine}].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stNukeTC${stLine}].Value}" TARGET FALSE
+			/call voodoo ${_debug} "${maChr.Find[stNukeTC${stLine}].Value}" ${_tmpID} FALSE
 		}
 	}
 

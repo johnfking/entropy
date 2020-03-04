@@ -214,7 +214,7 @@ sub misc_combat_PAL(bool _debug, int _tmpID)
 	}
 
 	/if (ENGINE2) {
-		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
 		/return TRUE
 	}
 
@@ -279,7 +279,7 @@ sub get_agro_PAL(bool _debug, int _tmpID)
 	CHECKDEFENSE
 
 	/if (ENGINE2) {
-		/call check_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
+		/call cast_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
 		/return TRUE
 	}
 

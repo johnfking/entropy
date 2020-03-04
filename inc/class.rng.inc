@@ -142,7 +142,7 @@ sub misc_combat_RNG(bool _debug)
 	}
 
 	/if (ENGINE2) {
-		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
 		/return TRUE
 	}
 

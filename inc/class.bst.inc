@@ -133,7 +133,7 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 	}
 
 	/if (ENGINE2) {
-		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
 		/return TRUE
 	}
 

@@ -200,7 +200,7 @@ sub misc_combat_SHD(bool _debug, int _tmpID)
 	}
 
 	/if (ENGINE2) {
-		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
 		/return TRUE
 	}
 
@@ -261,7 +261,7 @@ sub get_agro_SHD(bool _debug, int _tmpID)
 	/if (PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 
 	/if (ENGINE2) {
-		/call check_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
+		/call cast_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
 		/return TRUE
 	}
 

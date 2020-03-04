@@ -99,7 +99,7 @@ sub main_MAG(bool _debug)
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) {
 				/if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} TRUE
-				/call cast_nuke ${maDebug.Find[nuke].Value} lsNuke${stLine} TARGET
+				/call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			}
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
@@ -139,7 +139,7 @@ sub misc_combat_MAG(bool _debug, int _tmpID)
 	}
 
 	/if (ENGINE2) {
-		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
 		/return TRUE
 	}
 

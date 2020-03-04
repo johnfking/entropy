@@ -49,6 +49,7 @@ sub set_debug()
   | class specific debugs
   /if (${Select[${Me.Class.ShortName},BER]}) {
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
+  	/invoke ${lsDebugclass.Append[pulse]}
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
   	/invoke ${lsDebugclass.Append[para]}
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
@@ -153,7 +154,7 @@ sub set_initialize(bool _debug)
   /invoke ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
   /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maRezControl,maWatchspawn]}
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL]}
-  /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS]}
+  /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong]}
 
   | set all output shortcuts
   /call set_data ${_debug} FALSE num                                      string outer "\a-t"
@@ -261,7 +262,6 @@ sub set_initial_environment(bool _debug)
 	/call set_data ${_debug} FALSE lsCount50		                            list outer "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50"
 	| /call set_data ${_debug} FALSE lsCount			                            list outer ""
 	| /call set_data ${_debug} FALSE lsCount			                            list outer ""
-
 
 
   | timers  for everyone
@@ -599,6 +599,7 @@ sub sql_set_character_schema(bool _debug)
   /invoke ${maDBTables.Add[environment_crew,env_var]}
   /invoke ${maDBTables.Add[environment_defense,env_var]}
   /invoke ${maDBTables.Add[environment_heal,env_var]}
+  /invoke ${maDBTables.Add[environment_song,env_var]}
   /invoke ${maDBTables.Add[environment_nuke,env_var]}
   /invoke ${maDBTables.Add[environment_dot,env_var]}
   /invoke ${maDBTables.Add[environment_agro,env_var]}
@@ -828,6 +829,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHome stFaceArc                           15                            "${auxnum} [\a-w1-45\az] acceptable range of facing and still be on target"
   /call set_data ${_debug} maHome swSnapStuck                             map outer FALSE
 	/call set_data_map ${_debug} maHome swonAuto		                        FALSE                         "${auxsw} set home camp on auto"
+	/call set_data_map ${_debug} maHome swinCombat	                        FALSE                         "${auxsw} keep home camp while in combat"
 
 |** control: tie **|
   /invoke ${set_data_timer[${_debug}, Check_Tie, 5]}
@@ -1269,7 +1271,7 @@ sub set_initialize_map_20(bool _debug)
 	/invoke ${_tmpMap.Add[Defense,defense]}
 	/invoke ${_tmpMap.Add[Item,item]}
 	/invoke ${_tmpMap.Add[Agro,agro]}
-
+	/invoke ${_tmpMap.Add[Song,song]}
 
   /vardata _tmi _tmpMap.First.Clone
   /while (!${_tmi.IsEnd}) {
@@ -1310,7 +1312,6 @@ sub set_initialize_map_50(bool _debug)
 	/declare _liC50 listiterator local
 	/invoke ${_tmpMap.Add[MiscDPS,miscdps]}
 
-
   /vardata _tmi _tmpMap.First.Clone
   /while (!${_tmi.IsEnd}) {
 		/vardata _liC50 lsCount50.First.Clone
@@ -1331,7 +1332,6 @@ sub set_initialize_map_50(bool _debug)
   }
 
 /return TRUE
-
 
 
 
@@ -1356,8 +1356,8 @@ sub set_initialize_map_conditions(bool _debug)
 		/mqp
 	}
 
-
 /return TRUE
+
 
 
 |***

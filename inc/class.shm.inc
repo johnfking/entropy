@@ -94,11 +94,7 @@ sub main_SHM(bool _debug)
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
-		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[group].Value} Group
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
-		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[xt].Value} XTarget
-		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Pet
+		/call check_heal_routines
 		CHECKDEFENSE
 		CHECKFADE
 
@@ -107,7 +103,7 @@ sub main_SHM(bool _debug)
 		}
 
 		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value}
+		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
@@ -167,7 +163,7 @@ sub misc_combat_SHM(bool _debug)
 
 
 	/if (ENGINE2) {
-		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
 		/return TRUE
 	}
 
@@ -224,7 +220,9 @@ sub check_heal_SHM(bool _debug, string _type)
 	/if (!${hurtCount}) {
 	  | check for surge
 	  /if (${maChr.Find[swSurge].Value}) {
-			/if (${SpawnCount[npc radius ENV PS4 targetable]}) /call cast_surge_heal ${maDebug.Find[surge].Value}
+			/if (${SpawnCount[npc radius ENV PS4 targetable]}) {
+				/call cast_surge_heal ${maDebug.Find[surge].Value}
+			}
 		}
 
 		SETHUD FALSE
@@ -316,11 +314,11 @@ sub cast_surge_heal(bool _debug)
  * note: Shaman burn routines
  * use: normal burn stuf
  ***|
-sub burn_SHM(bool _debug)
-	DEBUG \atburn_SHM\ax()
+sub burn_SHM(bool _debug, int _tmpID)
+	DEBUG \atburn_SHM\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${target[isdead, TARGET]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -330,22 +328,34 @@ sub burn_SHM(bool _debug)
 	CHECKTIE
 
 	CHECKDEFENSE
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
 
 	| swarm aa pet
 	/if (SWARM) {
-		/if (${is_ready[${_debug}, "Spirit Call"]}) /call voodoo ${_debug} "Spirit Call" TARGET FALSE
+		/if (${is_ready[${_debug}, "Spirit Call"]}) {
+			/call voodoo ${_debug} "Spirit Call" ${_tmpID} FALSE
+		}
 	}
 
 	| Lower spell resists
-	/if (${is_ready[${_debug}, "Dampen Resistance"]}) /call voodoo ${_debug} "Dampen Resistance" TARGET FALSE
+	/if (${is_ready[${_debug}, "Dampen Resistance"]}) {
+		/call voodoo ${_debug} "Dampen Resistance" ${_tmpID} FALSE
+	}
 
 	| Twincast next 6 DOTs/HOTs
-	/if (${is_ready[${_debug}, "Fleeting Spirit"]}) /call voodoo ${_debug} "Fleeting Spirit" TARGET FALSE
+	/if (${is_ready[${_debug}, "Fleeting Spirit"]}) {
+		/call voodoo ${_debug} "Fleeting Spirit" ${_tmpID} FALSE
+	}
 
 	| Increase spell cost by 14% for 100% exceptional heals on instant heals for 18 seconds
-	/if (${is_ready[${_debug}, "Spiritual Blessing"]}) /call voodoo ${_debug} "Spiritual Blessing" TARGET FALSE
+	/if (${is_ready[${_debug}, "Spiritual Blessing"]}) {
+		/call voodoo ${_debug} "Spiritual Blessing" ${_tmpID} FALSE
+	}
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 

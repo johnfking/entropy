@@ -141,7 +141,7 @@ sub misc_combat_WAR(bool _debug, int _tmpID)
 	CHECKDEFENSE
 
 	/if (ENGINE2) {
-		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/call cast_cycle_miscdps ${maDebug.Find[misc].Value} ${_tmpID}
 		/return TRUE
 	}
 
@@ -161,7 +161,6 @@ sub misc_combat_WAR(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "${maChr.Find[stDefense].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stDefense].Value}" 0 FALSE
 	}
-
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stProvoke].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stProvoke].Value}" ${_tmpID} FALSE
@@ -202,7 +201,9 @@ sub misc_combat_WAR(bool _debug, int _tmpID)
 	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FALSE
 
 	| Duplicating these two sub calls here b/c don't want to lose agro or mitigation while firing off this other stuff.
-	/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} ${_tmpID}
+	/if (AGRO) {
+		/call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} ${_tmpID}
+	}
 
 	CHECKDEFENSE
 
@@ -257,7 +258,7 @@ sub get_agro_WAR(bool _debug, int _tmpID)
 	}
 
 	/if (ENGINE2) {
-		/call check_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
+		/call cast_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
 		/return TRUE
 	}
 
@@ -292,17 +293,18 @@ sub get_agro_WAR(bool _debug, int _tmpID)
 		}
 	}
 
-	/if (AE# && ${SpawnCount[npc radius ENV targetable PS4]} >= AE#) {
-		/if (${is_ready[${_debug}, "Area Taunt"]}) {
-			/call voodoo ${_debug} "Area Taunt" 0 FALSE
+	/if (AE#) {
+		/if (${SpawnCount[npc radius ENV targetable PS4]} >= AE#) {
+			/if (${is_ready[${_debug}, "Area Taunt"]}) {
+				/call voodoo ${_debug} "Area Taunt" 0 FALSE
+			}
+			/if (${is_ready[${_debug}, "${maChr.Find[stWhirling].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stWhirling].Value}" ${_tmpID} FALSE
+			}
+			/if (${is_ready[${_debug}, "${maChr.Find[stRallying].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stRallying].Value}" 0 FALSE
+			}
 		}
-		/if (${is_ready[${_debug}, "${maChr.Find[stWhirling].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stWhirling].Value}" ${_tmpID} FALSE
-		}
-		/if (${is_ready[${_debug}, "${maChr.Find[stRallying].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stRallying].Value}" 0 FALSE
-		}
-
 	}
 
 	| 20% agro boost AA with 2/10 uptime
@@ -360,66 +362,72 @@ sub burn_WAR(bool _debug, int _tmpID)
 	GETINPUT
 	CHECKTIE
 
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
 
 	/if (${maChr.Find[stPctShieldFlash].Value} && ${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE disc
 
 	CHECKDEFENSE
 
-	/if (AGRO && ${swBurnControl} && TARGET && (${NameList.Find[${Target.DisplayName}]} && !${swOverrideName})) {
+	/if (AGRO) {
 		/if (${is_ready[${_debug}, "Fortitude Discipline"]}) {
 			/stopdisc
 			/delay 10 !${Me.ActiveDisc.ID}
 			/call voodoo ${_debug} "Fortitude Discipline" 0 FALSE
 
 		} else {
-			/if (AGRO && ${is_ready[${_debug}, "${maChr.Find[stWarriors].Value}"]}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stWarriors].Value}"]}) {
 				/call voodoo ${_debug} "${maChr.Find[stWarriors].Value}" ${_tmpID} FALSE
 			}
-			/if (AGRO && ${is_ready[${_debug}, "Mark of the Mage Hunter"]}) {
+			/if (${is_ready[${_debug}, "Mark of the Mage Hunter"]}) {
 				/call voodoo ${_debug} "Mark of the Mage Hunter" 0 FALSE
 			}
 		}
-	}
 
-	| Defensive burn routine (swAgro) (but see below re: mitigation).
-	/if (AGRO && ${is_ready[${_debug}, "${maChr.Find[stEvasive].Value}"]} && !${Me.ActiveDisc.Name.Equal[Fortitude Discipline]} && (!${Me.Buff[${maChr.Find[stWarriors].Value}].ID} || ${SpawnCount[npc radius ENV targetable PS4]} >= ${maBurn.Find[stBurnCount].Value})) {
-		/stopdisc
-		/delay 10 !${Me.ActiveDisc.ID}
-		/call voodoo ${_debug} "${maChr.Find[stEvasive].Value}" 0 FALSE
-
-	} else {
-		/if (AGRO && (${is_ready[${_debug}, "Fortitude Discipline"]} && ${SpawnCount[npc radius ENV targetable PS4]} >= ${maBurn.Find[stBurnCount].Value}) && !${Me.ActiveDisc.Name.Equal[${maChr.Find[stEvasive].Value}]} && !${Me.Buff[${maChr.Find[stWarriors].Value}].ID}) {
+		| Defensive burn routine (AGRO) (but see below re: mitigation).
+		/if (${is_ready[${_debug}, "${maChr.Find[stEvasive].Value}"]} && !${Me.ActiveDisc.Name.Equal[Fortitude Discipline]} && (!${Me.Buff[${maChr.Find[stWarriors].Value}].ID} || ${SpawnCount[npc radius ENV targetable PS4]} >= ${maBurn.Find[stBurnCount].Value})) {
 			/stopdisc
 			/delay 10 !${Me.ActiveDisc.ID}
-			/call voodoo ${_debug} "Fortitude Discipline" 0 FALSE
+			/call voodoo ${_debug} "${maChr.Find[stEvasive].Value}" 0 FALSE
 
 		} else {
-			/if (!${Me.ActiveDisc.Name.Equal[${maChr.Find[stEvasive].Value}]} && !${Me.ActiveDisc.Name.Equal[Fortitude Discipline]} && !${Me.Buff[${maChr.Find[stWarriors].Value}].ID}) {
-				CHECKDEFENSE
-			}
-		}
-	}
-
-	| Offensive burn routine (!AGRO).
-	/if (!AGRO && ${is_ready[${_debug}, "${maChr.Find[stMighty].Value}"]} && !${Me.ActiveDisc.Name.Equal[${maChr.Find[stOnslaught].Value}]} && !${Me.ActiveDisc.Name.Equal[${maChr.Find[stOffensive].Value}]}) {
-		/stopdisc
-		/delay 10 !${Me.ActiveDisc.ID}
-		/call voodoo ${_debug} "${maChr.Find[stMighty].Value}" 0 FALSE
-
-	} else {
-		/if (!AGRO && ${is_ready[${_debug}, "${maChr.Find[stOnslaught].Value}"]} && !${Me.ActiveDisc.Name.Equal[${maChr.Find[stMighty].Value}]} && !${Me.ActiveDisc.Name.Equal[${maChr.Find[stOffensive].Value}]}) {
-			/stopdisc
-			/delay 10 !${Me.ActiveDisc.ID}
-			/call voodoo ${_debug} "${maChr.Find[stOnslaught].Value}" 0 FALSE
-
-		} else {
-			/if (!AGRO && ${is_ready[${_debug}, "${maChr.Find[stOffensive].Value}"]} && !${Me.ActiveDisc.Name.Equal[${maChr.Find[stMighty].Value}]} && !${Me.ActiveDisc.Name.Equal[${maChr.Find[stOnslaught].Value}]}) {
+			/if ((${is_ready[${_debug}, "Fortitude Discipline"]} && ${SpawnCount[npc radius ENV targetable PS4]} >= ${maBurn.Find[stBurnCount].Value}) && !${Me.ActiveDisc.Name.Equal[${maChr.Find[stEvasive].Value}]} && !${Me.Buff[${maChr.Find[stWarriors].Value}].ID}) {
 				/stopdisc
 				/delay 10 !${Me.ActiveDisc.ID}
-				/call voodoo ${_debug} "${maChr.Find[stOffensive].Value}" 0 FALSE
+				/call voodoo ${_debug} "Fortitude Discipline" 0 FALSE
 
+			} else {
+				/if (!${Me.ActiveDisc.Name.Equal[${maChr.Find[stEvasive].Value}]} && !${Me.ActiveDisc.Name.Equal[Fortitude Discipline]} && !${Me.Buff[${maChr.Find[stWarriors].Value}].ID}) {
+					CHECKDEFENSE
+				}
+			}
+		}
+
+	} else /if (!AGRO) {
+
+		| Offensive burn routine (!AGRO).
+		/if (${is_ready[${_debug}, "${maChr.Find[stMighty].Value}"]} && !${Me.ActiveDisc.Name.Equal[${maChr.Find[stOnslaught].Value}]} && !${Me.ActiveDisc.Name.Equal[${maChr.Find[stOffensive].Value}]}) {
+			/stopdisc
+			/delay 10 !${Me.ActiveDisc.ID}
+			/call voodoo ${_debug} "${maChr.Find[stMighty].Value}" 0 FALSE
+
+		} else {
+			/if (${is_ready[${_debug}, "${maChr.Find[stOnslaught].Value}"]} && !${Me.ActiveDisc.Name.Equal[${maChr.Find[stMighty].Value}]} && !${Me.ActiveDisc.Name.Equal[${maChr.Find[stOffensive].Value}]}) {
+				/stopdisc
+				/delay 10 !${Me.ActiveDisc.ID}
+				/call voodoo ${_debug} "${maChr.Find[stOnslaught].Value}" 0 FALSE
+
+			} else {
+				/if (${is_ready[${_debug}, "${maChr.Find[stOffensive].Value}"]} && !${Me.ActiveDisc.Name.Equal[${maChr.Find[stMighty].Value}]} && !${Me.ActiveDisc.Name.Equal[${maChr.Find[stOnslaught].Value}]}) {
+					/stopdisc
+					/delay 10 !${Me.ActiveDisc.ID}
+					/call voodoo ${_debug} "${maChr.Find[stOffensive].Value}" 0 FALSE
+
+				}
 			}
 		}
 	}
@@ -459,7 +467,7 @@ sub burn_WAR(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "Rage of Rallos Zek" 0 FALSE
 	}
 
-/return
+/return TRUE
 
 
 

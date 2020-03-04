@@ -34,10 +34,10 @@ sub set_BRD(bool _debug)
 	/call set_data_map FALSE maChr stSongRefresh												6															"${auxnum} remaining duration on a song to refresh. in seconds"
 
 	| current song line
-	/declare lsLineSong list outer
-	/invoke ${lsLineSong.Append[tank,caster,melee,mix,other,]}
-	/call set_data_map FALSE maChr stCurrent														mix													"${auxna} current song line to play"
-	/call set_data FALSE FALSE stLine																		string outer ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
+	| /declare lsLineSong list outer
+	| /invoke ${lsLineSong.Append[tank,caster,melee,mix,other,]}
+	| /call set_data_map FALSE maChr stCurrent														mix													"${auxna} current song line to play"
+	/call set_data_list ${_debug} maSong lsLine													EMPTY													"${auxli} list of song numbers to sing"
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -53,9 +53,7 @@ sub main_BRD(bool _debug)
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
-
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
+		/call check_heal_routines
 		/call control_routine FALSE
 		/if (${check_class_loop[FALSE]}) /return FALSE
 
@@ -69,17 +67,17 @@ sub main_BRD(bool _debug)
 			}
 			/call control_routine FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (BURN) /call burn_${Me.Class.ShortName}
+			/if (BURN) /call burn_${Me.Class.ShortName} TARGET
 			/call control_routine FALSE
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (SWARM) /call cast_servant_swarm FALSE TARGET
 			/call control_routine FALSE
 			| /if (${swAlliance}) /call trigger_alliance TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
-			/call pulse_line FALSE
+			/call pulse_line ${maDebug.Find[pulse].Value} target
 			/call control_routine FALSE
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
-			/call misc_combat_${Me.Class.ShortName} TARGET
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/call control_routine FALSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 
@@ -122,7 +120,7 @@ sub misc_combat_BRD(bool _debug, int _tmpID)
 	}
 
 	/if (ENGINE2) {
-		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
 		/return TRUE
 	}
 
@@ -147,9 +145,13 @@ sub misc_combat_BRD(bool _debug, int _tmpID)
  		/call voodoo ${_debug} "Bladed Song" 0 FALSE
  	}
 
-	/if (${is_ready[${_debug}, "Cacophony"]}) /call voodoo ${_debug} "Cacophony" ${_tmpID} FALSE
+	/if (${is_ready[${_debug}, "Cacophony"]}) {
+		/call voodoo ${_debug} "Cacophony" ${_tmpID} FALSE
+	}
 	/if (${Spawn[TARGET].PctHPs} > 30) {
-		/if (${is_ready[${_debug}, "Boastful Bellow"]}) /call voodoo ${_debug} "Boastful Bellow" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "Boastful Bellow"]}) {
+			/call voodoo ${_debug} "Boastful Bellow" ${_tmpID} FALSE
+		}
 		/if (${target[isdead, ${_tmpID}]}) {
 			/call pulse_stop
 			/call clear_combat
@@ -226,20 +228,20 @@ sub cast_servant_swarm(bool _debug, int _tmpID)
 
 |***
  * note: sings the line of songs for group support
- * use: /call pulse_line debug
+ * use: /call pulse_line debug [TARGET]
  ***|
-sub pulse_line(bool _debug)
-	DEBUG \atpulse_line\ax()
+sub pulse_line(bool _debug, _tmpID)
+	DEBUG \atpulse_line\ax(\a-w${_tmpID}\ax)
 
 	/declare _skip bool local FALSE
 
 	SETHUD "pulse"
 
 	/declare _lipl listiterator local
-	/vardata _lipl lsLine${stLine}.First.Clone
+	/vardata _lipl lsLine.First.Clone
 	/while (!${_lipl.IsEnd}) {
 
-		/if (${target[isdead, TARGET]}) {
+		/if (${target[isdead, ${_tmpID}]}) {
 			/call pulse_stop
 			/call clear_combat
 			/return FALSE
@@ -247,24 +249,56 @@ sub pulse_line(bool _debug)
 
 		/call control_routine FALSE
 
-		/if (AUTO) {
-			/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
-			/call stick_to_target FALSE TARGET
-		}
-
-		| song not ready
-		/if (!${is_ready[${_debug}, "${_lipl.Value}"]}) /varset _skip TRUE
-
-		| song has time left
-		/if (${Me.Song[${_lipl.Value}].Duration} > ${maChr.Find[stSongRefresh].Value}*10) /varset _skip TRUE
-
-		/if (${_skip}) {
+		| is the song on?
+		| check the switch
+		/if (!${Bool[${maSong.Find[swSong${_lipl.Value}].Value}]}) {
+			DEBUG ${sep}switch off${sep}\a-w${maSong.Find[stSong${_lipl.Value}].Value}\ax
 			/invoke ${_lipl.Advance}
 			/continue
 		}
 
-		/call voodoo ${_debug} "${_lipl.Value}" 0 FALSE
+		| check the name
+		/if (!${Bool[${maSong.Find[stSong${_lipl.Value}].Value}]}) {
+			DEBUG ${sep}no name${sep}\a-w${maSong.Find[stSong${_lipl.Value}].Value}\ax
+			/invoke ${_lipl.Advance}
+			/continue
+		}
+
+		/if (!${is_ready[${_debug}, "${maSong.Find[stSong${_lipl.Value}].Value}"]}) {
+			DEBUG ${sep}not ready${sep}\a-w${maSong.Find[stSong${_lipl.Value}].Value}\ax
+			/invoke ${_lipl.Advance}
+			/continue
+		}
+
+		| apply any conditions
+		/if (!${check_condition[${_debug}, ${maSong.Find[stSong${_lipl.Value}Con].Value}]}) {
+			DEBUG ${sep}condition fail${sep}\a-w${maSong.Find[stSong${_lipl.Value}].Value}\ax
+			/invoke ${_lipl.Advance}
+			/continue
+		}
+
+		/call check_basic_tags ${_debug} Song${_lipl.Value} FALSE "${maSong.Find[stSong${_lipl.Value}].Value}"
+		/if (!${Macro.Return}) {
+			DEBUG ${sep}tag fail${sep}\a-w${maSong.Find[stSong${_lipl.Value}].Value}\ax
+			/invoke ${_lipl.Advance}
+			/continue
+		}
+
+		| song has time left
+		/if (${Me.Song[${Spell[${maSong.Find[stSong${_lipl.Value}].Value}].RankName}].Duration} > ${maChr.Find[stSongRefresh].Value}*10) {
+			/invoke ${_lipl.Advance}
+			/continue
+		}
+
+		/if (AUTO) {
+			/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+			/call stick_to_target FALSE ${_tmpID}
+		}
+
+		/call voodoo ${_debug} "${maSong.Find[stSong${_lipl.Value}].Value}" 0 FALSE
+
 		/invoke ${_lipl.Advance}
+
 	}
 
 	SETHUD FALSE
@@ -321,8 +355,8 @@ sub cast_AA_rallying(bool _debug)
  * note: Bard burn routines
  * use: establish all comp/trigger skills
  ***|
-sub burn_BRD(bool _debug)
-	DEBUG \atburn_BRD\ax()
+sub burn_BRD(bool _debug, int _tmpID)
+	DEBUG \atburn_BRD\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
 		/if (${target[isdead, ${_tmpID}]}) {
@@ -336,8 +370,12 @@ sub burn_BRD(bool _debug)
 	CHECKTIE
 
 	CHECKDEFENSE
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
 
 	/call control_routine FALSE
 
@@ -362,7 +400,7 @@ sub burn_BRD(bool _debug)
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
 
-	/call check_item_cycle ${maDebug.Find[item].Value} TARGET
+	/call check_item_cycle ${maDebug.Find[item].Value} ${_tmpID}
 
 /return TRUE
 

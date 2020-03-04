@@ -534,7 +534,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 
 	| set operation radius
 	} else /if (${_type.Equal[rad]}) {
-		/if (!${set_control_num_range[${_debug}, stEnvRadius, "${_verbage}", 0, 999]}) /return
+		/if (!${set_control_num_range[${_debug}, stEnvRadius, "${_verbage}", 0, 9999]}) /return
 
 	} else /if (${_type.Equal[incharge]}) {
 		/declare _count int local 0
@@ -848,6 +848,9 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 	} else /if (${_type.Equal[onauto]}) {
 		/invoke ${set_switch_env[FALSE, swonAuto, TRUE, ${_verbage}]}
 
+	} else /if (${_type.Equal[incombat]}) {
+		/invoke ${set_switch_env[FALSE, swinCombat, TRUE, ${_verbage}]}
+
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return
@@ -866,6 +869,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 	/invoke ${maControl.Add[mount,stMount]}
 	/invoke ${maControl.Add[deathclear,swMoveDeathClear]}
 	/invoke ${maControl.Add[onauto,swonAuto]}
+	/invoke ${maControl.Add[incombat,swinCombat]}
 	/invoke ${set_control_output[${_debug}, maHome, home, maControl]}
 
 /return TRUE
@@ -1426,7 +1430,7 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 
 	| rez radius
 	} else /if (${_type.Equal[rad]}) {
-		/if (!${set_control_num_range[FALSE, stMaxRezRange, "${_verbage}", 0, 100]}) /return
+		/if (!${set_control_num_range[FALSE, stMaxRezRange, "${_verbage}", 0, 200]}) /return
 
 	| set rez accept percent
 	} else /if (${_type.Equal[pct]}) {
@@ -1447,6 +1451,7 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[give,swRezGive]}
+	/invoke ${maControl.Add[pct,stPctMinRez]}
 	/invoke ${maControl.Add[rad,stMaxRezRange]}
 	/invoke ${maControl.Add[token,swRezToken]}
 	/invoke ${maControl.Add[everyone,swRezEveryone]}
@@ -1927,6 +1932,9 @@ sub Bind_noparse_raw_edit(string _variable, string _value, string _add_delete, s
 /return	TRUE
 
 
+${MacroQuest.LastCommand.Arg[1,/]}
+
+
 
 |***
  * note: lets see what we can see
@@ -1943,7 +1951,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
 		/call Bind_command_aux see
 		/return	FALSE
-	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps]}) {
+	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song]}) {
 		/invoke ${out[0, "Crack says your input sucks${sep}\a-w${_variable}\ax"]}
 		/return FALSE
 	}
@@ -1960,7 +1968,52 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 
 
 
-	| see dot info
+	| see song info
+	} else /if (${_variable.Equal[song]}) {
+
+		/if (${_verbage.Equal[list]}) {
+			/echo
+			/invoke ${out[12, "\awSong List\ax${sep}"]}
+
+			/declare _licountsong listiterator local
+		  /vardata _licountsong lsCount20.First.Clone
+		  /while (!${_licountsong.IsEnd}) {
+				/if (${Bool[${maSong.Find[stSong${_licountsong.Value}].Value}]}) {
+					/invoke ${out[12, "\awstSong${_licountsong.Value}\ax${sep}${If[${maSong.Find[swSong${_licountsong.Value}].Value},${on},${off}]}${sep}\a-w${maSong.Find[stSong${_licountsong.Value}].Value}\ax"]}
+				}
+		    /invoke ${_licountsong.Advance}
+		  }
+
+			/if (${_silent.NotEqual[silent]}) ${out[18, "${eol}"]}
+			/echo
+			/return
+		}
+
+		/if (!${Range.Between[1,20:${Int[${_verbage}]}]}) {
+			/call Bind_command_aux song
+			/return
+		}
+		/invoke ${out[12, "\awSong #${_verbage}\ax${sep}${If[${maSong.Find[swSong${_verbage}].Value},${on},${off}]}"]}
+		/invoke ${out[12, "stSong\aw${_verbage}\ax${sep}\a-w${maSong.Find[stSong${_verbage}].Value}\ax"]}
+
+		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maSong.Find[stSong${_verbage}Con].Value}"
+		/if (${sqlite.Rows[dummy]}) {
+			OUT stSong\aw${_verbage}\axCon${sep}\a-w${maSong.Find[stSong${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
+		} else {
+			OUT stSong\aw${_verbage}\axCon${sep}\a-w${maSong.Find[stSong${_verbage}Con].Value}\ax
+		}
+
+		/invoke ${out[12, "lsSong\aw${_verbage}\axTag"]}
+
+		/declare hli listiterator local
+		/vardata hli lsSong${_verbage}Tag.First.Clone
+		/while (!${hli.IsEnd}) {
+			/invoke ${out[12, "${dot}\a-w${hli.Value}\ax"]}
+			/invoke ${hli.Advance}
+		}
+
+
+	| see miscDPS info
 	} else /if (${_variable.Equal[miscdps]}) {
 
 		/if (${_verbage.Equal[list]}) {
@@ -1982,7 +2035,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		}
 
 		/if (!${Range.Between[1,50:${Int[${_verbage}]}]}) {
-			/call Bind_command_aux dot
+			/call Bind_command_aux miscdps
 			/return
 		}
 		/invoke ${out[12, "\awMiscDPS #${_verbage}\ax${sep}${If[${maMiscDPS.Find[swMiscDPS${_verbage}].Value},${on},${off}]}"]}
@@ -2026,7 +2079,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		}
 
 		/if (!${Range.Between[1,20:${Int[${_verbage}]}]}) {
-			/call Bind_command_aux dot
+			/call Bind_command_aux agro
 			/return
 		}
 		/invoke ${out[12, "\awAgro #${_verbage}\ax${sep}${If[${maAgro.Find[swAgro${_verbage}].Value},${on},${off}]}"]}
@@ -3005,7 +3058,7 @@ sub Bind_command_aux(string _type, bool _debug)
 	/declare _lsout list local
 	/invoke ${_lsout.Append[alto,bandolier,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter]}
 	/invoke ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,mode,minion,navto,off,on,override,repeat,see,splash,take,tag,tc,tie]}
-	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro,miscdps]}
+	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro,miscdps,song]}
 
 	/if (${_lsout.Contains[${_type}]}) {
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY ROWID
@@ -3974,12 +4027,23 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 			/if (${Select[${_section},Header,NULL]}) /continue
 			/echo \at...\ax\a-w${_section}\ax
 
-			/for _countK 1 to ${Ini[${_fqn},${_section}].Count[|]}
-				/varset _key ${Ini[${_fqn},${_section} ].Arg[${_countK},|]}
-				/if (${Select[${_key},NULL]}) /continue
-				DEBUG ${_key}=${Parse[2,${Ini[${_fqn},${_section},${_key}]}]}
-				/call do_raw_edit FALSE SILENT ${_key} "${Parse[2,${Ini[${_fqn},${_section},${_key},noparse]}]}" OVERRIDE
-			/next _countK
+			/if (${_section.Equal[maCondition]}) {
+				/for _countK 1 to ${Ini[${_fqn},${_section}].Count[|]}
+					/varset _key ${Ini[${_fqn},${_section} ].Arg[${_countK},|]}
+					/if (${Select[${_key},NULL]}) /continue
+						/varset _value ${Ini[${_fqn},${_section},${Parse[1,${_key}]},noparse]}
+						DEBUG ${sep}dummy UPDATE environment_condition SET value="${Parse[1,${_value}]}" WHERE env_var="${_key}"
+						/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE environment_condition SET value="${Parse[1,${_value}]}" WHERE env_var="${_key}"
+					/next _countK
+			} else {
+				/for _countK 1 to ${Ini[${_fqn},${_section}].Count[|]}
+					/varset _key ${Ini[${_fqn},${_section} ].Arg[${_countK},|]}
+					/if (${Select[${_key},NULL]}) /continue
+					DEBUG ${_key}=${Ini[${_fqn},${_section},${Parse[1,${_key}]},noparse]}
+					/call do_raw_edit FALSE SILENT ${_key} "${Ini[${_fqn},${_section},${Parse[1,${_key}]},noparse]}" OVERRIDE
+				/next _countK
+			}
+
 		/next _countS
 
 		| load spells
@@ -4967,7 +5031,6 @@ sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _s
 
 
 
-
 |***
  * note:control for /miscdps
  * use:
@@ -5031,3 +5094,67 @@ sub Bind_control_miscdps(string _type, string _verbage, string _verbage2, string
 
 /return	TRUE
 
+
+
+|***
+ * note:control for /miscdps
+ * use:
+ ***|
+#Bind control_song /song
+sub Bind_control_song(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
+	DEBUG \atcontrol_song\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+
+	/if (!${Select[${Me.Class.ShortName},BRD]}) {
+		/invoke ${out[0, "You are not a bard.. Might think you are.. but.."]}
+		/return FALSE
+	}
+
+	| output control map
+	/if (${_type.Equal[see]}) {
+		/call Bind_command_see maSong ${_verbage}
+		/return
+	} else /if (${_type.Equal[aux]}) {
+		/call Bind_command_aux song ${_verbage}
+		/return
+
+	} else /if (${_type.Equal[list]}) {
+		/call Bind_command_see song list
+		/return	TRUE
+
+	| heal number entered
+	} else /if (${Range.Between[1,50:${Int[${_type}]}]}) {
+
+		| see the #
+		/if (${_verbage.Equal[see]}) {
+			/call Bind_command_see song ${_type}
+			/return
+		}
+
+		/if (!${Bool[${_verbage}]} && ${_verbage.NotEqual[FALSE]}) {
+			/invoke ${set_switch_env[${_debug}, swSong${_type}, TRUE, ${_verbage}]}
+			/invoke ${out[12, "\awSong${_type}\ax${sep}${If[${maSong.Find[swSong${_type}].Value},${on},${off}]}${sep}\a-w${maSong.Find[stSong${_type}].Value}\ax"]}
+			/return TRUE
+
+		} else /if (${Select[${_verbage},clear]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swSong${_type}" FALSE
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSong${_type}" FALSE
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSong${_type}Con" "0"
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsSong${_type}Tag" clear
+
+		} else /if (${Select[${_verbage},con]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSong${_type}Con" "${_verbage2}"
+
+		} else /if (${Select[${_verbage},tag]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsSong${_type}Tag" ${_verbage2} ${_silent}
+
+		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSong${_type}" "${_verbage}"
+		}
+
+		/call Bind_command_see song ${_type}
+
+		/return TRUE
+
+	}
+
+/return	TRUE

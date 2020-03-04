@@ -10,7 +10,6 @@
 on the to do list
 --------------------
 - find a way to grade debuffs and overwrite if needed
-- find out why the fuck chanter just stops doing shit
 - get remove verb working for /area
 - mage pet weapons?
 - tag entry validation (cause people are making up shit now)
@@ -20,6 +19,27 @@ on the to do list
 
 
 
+A200304.01
+- magician
+  fixed the nuke routine call
+- wizard
+  bad debug variable
+  several other small adjustments
+- shaman
+  several small updates
+- bard
+  (it is being worked on)
+- corrected the named of check_cycle_miscdps() and check_cycle_agro()
+- /home
+  incombat - will set the toon to maintain their camp even in combat
+  i'm expecting this to cause issues with small variances for home camps. it will need testing.
+- /rez
+  pct - min # rez you are willing to take. 0 rezes are auto ignored, 100 are auto taken
+  fixed the targeting failure loop
+- tag
+  delay1s - forces a 1 second delay
+- /build
+  load - will import conditions correctly from saves
 
 
 A200301.01

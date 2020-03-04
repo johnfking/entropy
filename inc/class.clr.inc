@@ -201,7 +201,7 @@ sub misc_combat_CLR(bool _debug, int _tmpID)
 	}
 
 	/if (ENGINE2) {
-		/call check_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
 		/return TRUE
 	}
 
@@ -265,7 +265,7 @@ sub cast_nut_smasher(bool _debug)
  ***|
 sub check_heal_CLR(bool _debug, string _type)
 	DEBUG \atcheck_heal_CLR\ax(\a-w${_type}\ax)
- FLOW check_heal_CLR ${_type}
+	FLOW check_heal_CLR ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -281,7 +281,7 @@ sub check_heal_CLR(bool _debug, string _type)
 	/declare _count int local 0
 
 	| Group Regen Heal
- 	/if (${maChr.Find[swHealGroupOverTime].Value} && !SAFEZONE && ${Group.Members} && COMBAT && ${maChr.Find[stCountAE].Value}) {
+ 	/if (${maChr.Find[swHealGroupOverTime].Value} && !SAFEZONE && ${Group.Members} && COMBAT && AE#) {
 	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= ${maChr.Find[stCountAE].Value}) {
 	 		/declare _groupHOT string local ${Set_Rank[False, ${maHeal.Find[stHealGroupOverTime].Value.Arg[1,+]}]}
 			/if (!${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID}) {
