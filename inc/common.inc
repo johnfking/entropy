@@ -1536,7 +1536,7 @@ sub check_buff_cycle_shrink(bool _debug)
  ***|
 sub check_condition(bool _debug, str _condition)
 	DEBUG \atcheck_condition\ax(\a-w${_condition}\ax)
-	FLOW check_condition
+	FLOW check_condition|${_condition}
 
 	/sqlite ${maData.Find[DBcharacter].Value} condition SELECT value FROM environment_condition WHERE env_var="c${_condition}"
 
@@ -1611,7 +1611,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		/declare _condition string local ${_verbage.Arg[2,+]}
 		DEBUG ${sep}condition${sep}\aw${_condition}\ax
 		/varset _verbage ${_verbage.Arg[1,+]}
-		/if (!${check_condition[FALSE, ${_condition}]}) {
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${_condition}]}) {
 			/return FALSE
 		}
 	}
@@ -3287,7 +3287,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 	/if (TARGET) {
 		/if (${Target.ID} != TARGET) {
 			/invoke ${target[set, TARGET]}
-			FLOW get_target_basepull ${_tmpID}
+			FLOW get_target_basepull TARGET
 		}
 	}
 
@@ -3325,7 +3325,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 			/delay 5
 
 			/if (!${Select[${Me.Class.ShortName},RNG]} && !${Me.Inventory[ammo].ID}) {
-				/call check_buff_cycle_ammo FALSE TRUE
+				/call check_buff_cycle_ammo ${maDebug.Find[ammo].Value} TRUE
 			}
 
 			/if (!TARGET || ${Spawn[TARGET].Dead}) {
@@ -4693,11 +4693,15 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 			/invoke ${out[16, "List Updated${sep}\a-w${_variable}\ax Count${sep}\a-w${${_variable}.Count}\ax"]}
 		} else /if (${Bool[${_map}]}) {
 			DEBUG MAP output
-			OUT /edit ${_variable}${sep}\a-w${Parse[1, ${sqlite.Result[dummy 1 value]}]}\ax
+			/if (${lsGrain.Contains[24]}) {
+				OUT /edit ${_variable}${sep}\a-w${Parse[1, ${sqlite.Result[dummy 1 value]}]}\ax
+			}
 
 		} else /if (${_found}) {
 			DEBUG FOUND output
-			OUT /edit ${_variable}\ax${sep}${num}${Parse[0,"${_value}"]}\ax
+			/if (${lsGrain.Contains[24]}) {
+				OUT /edit ${_variable}\ax${sep}${num}${Parse[0,"${_value}"]}\ax
+			}
 		} else {
 
 		}
@@ -5123,7 +5127,7 @@ sub check_buff_cycle_now(bool _debug)
 			/continue
 		}
 
-		/if (!${check_condition[${_debug}, ${maBuff.Find[stBuff${_licountself.Value}Con].Value}]}) {
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maBuff.Find[stBuff${_licountself.Value}Con].Value}]}) {
 			/invoke ${_licountself.Advance}
 			/continue
 		}
@@ -5845,7 +5849,7 @@ sub check_buff_cycle_self(bool _debug)
 			/continue
 		}
 
-		/if (!${check_condition[${_debug}, ${maBuff.Find[stBuff${_count}Con].Value}]}) {
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maBuff.Find[stBuff${_count}Con].Value}]}) {
 			/continue
 		}
 
@@ -7637,7 +7641,9 @@ sub do_loot(bool _debug)
 					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
 					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave") \ay${sqlite.Status[lootquery]}\ax
 				} else {
-					 OUT ${add} ${dot} ${_advlItem} = ${keep} [default]
+					/if (${lsGrain.Contains[14]}) {
+					 	OUT ${add} ${dot} ${_advlItem} = ${keep} [default]
+					}
 					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep")
 					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep") \ay${sqlite.Status[lootquery]}\ax
 				}
@@ -7706,7 +7712,9 @@ sub do_loot(bool _debug)
 					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
 					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave") \ay${sqlite.Status[lootquery]}\ax
 				} else {
-					 OUT ${add} ${dot} ${_advlItem} = ${keep} [default]
+					/if (${lsGrain.Contains[14]}) {
+						OUT ${add} ${dot} ${_advlItem} = ${keep} [default]
+					}
 					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep")
 					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep") \ay${sqlite.Status[lootquery]}\ax
 				}
@@ -9080,8 +9088,7 @@ sub cast_AA_spire(bool _debug)
 
 
 	| apply any conditions
-	/if (!${check_condition[${_debug}, ${maChr.Find[stSpireCon].Value}]}) {
-		DEBUG ${sep}condition fail${sep}\a-w${maChr.Find[stSpireCon].Value}\ax
+	/if (!${check_condition[${maDebug.Find[condition].Value}, ${maChr.Find[stSpireCon].Value}]}) {
 		/return FALSE
 	}
 
@@ -10775,7 +10782,7 @@ sub target(string _type, int _tmpID)
  ***|
 sub pull_mob_attraction(bool _debug, int _tmpID, bool _force)
 	DEBUG \atpull_mob_attraction\ax(\a-w${_tmpID}, ${_force}\ax)
-	FLOW pull_mob_attraction
+	FLOW pull_mob_attraction ${_tmpID}|${_force}
 
 	| /if (!${maChr.Find[swAttraction].Value} && !${_force}) /return FALSE
 	/if (${Spawn[ID ${_tmpID}].Distance} > PULLENV) /return FALSE
@@ -10794,11 +10801,9 @@ sub pull_mob_attraction(bool _debug, int _tmpID, bool _force)
 		/return FALSE
 	}
 
-	/call voodoo ${_debug} "${_attraction}" ${_tmpID} FALSE
+	/call voodoo ${_debug} "${_attraction}" ${_tmpID} FALSE PULLENV
 
 /return TRUE
-
-
 
 |***
  * note: cast or trigger alliance on target
@@ -11044,7 +11049,7 @@ sub cast_cycle_defense(bool _debug, int _tmpID)
 		}
 
 		| apply any conditions
-		/if (!${check_condition[${_debug}, ${maDefense.Find[stDefense${_liC20.Value}Con].Value}]}) {
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maDefense.Find[stDefense${_liC20.Value}Con].Value}]}) {
 			/invoke ${_liC20.Advance}
 			/continue
 		}
@@ -11113,7 +11118,7 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 		}
 
 		| apply any conditions
-		/if (!${check_condition[${_debug}, ${maItem.Find[stItem${_liC20.Value}Con].Value}]}) {
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maItem.Find[stItem${_liC20.Value}Con].Value}]}) {
 			/invoke ${_liC20.Advance}
 			/continue
 		}
@@ -11205,7 +11210,7 @@ sub cast_cycle_heal(bool _debug, int _tmpID)
 		}
 
 		| apply any conditions
-		/if (!${check_condition[${_debug}, ${maHeal.Find[stHeal${_liC20.Value}Con].Value}]}) {
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maHeal.Find[stHeal${_liC20.Value}Con].Value}]}) {
 			/invoke ${_liC20.Advance}
 			/continue
 		}
@@ -11283,7 +11288,7 @@ sub cast_cycle_nuke(bool _debug, int _tmpID)
 		}
 
 		| apply any conditions
-		/if (!${check_condition[${_debug}, ${maNuke.Find[stNuke${_liC20.Value}Con].Value}]}) {
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maNuke.Find[stNuke${_liC20.Value}Con].Value}]}) {
 			/invoke ${_liC20.Advance}
 			/continue
 		}
@@ -11417,8 +11422,7 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 		}
 
 		| apply any conditions
-		/if (!${check_condition[${_debug}, ${maDoT.Find[stDoT${_liC20.Value}Con].Value}]}) {
-			DEBUG ${sep}condition fail${sep}\a-w${maDoT.Find[stDoT${_liC20.Value}].Value}\ax
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maDoT.Find[stDoT${_liC20.Value}Con].Value}]}) {
 			/invoke ${_liC20.Advance}
 			/continue
 		}
@@ -11490,8 +11494,7 @@ sub cast_cycle_agro(bool _debug, int _tmpID)
 		}
 
 		| apply any conditions
-		/if (!${check_condition[${_debug}, ${maAgro.Find[stAgro${_liC20.Value}Con].Value}]}) {
-			DEBUG ${sep}condition fail${sep}\a-w${maAgro.Find[stAgro${_liC20.Value}].Value}\ax
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maAgro.Find[stAgro${_liC20.Value}Con].Value}]}) {
 			/invoke ${_liC20.Advance}
 			/continue
 		}
@@ -11559,8 +11562,7 @@ sub cast_cycle_miscdps(bool _debug, int _tmpID)
 		}
 
 		| apply any conditions
-		/if (!${check_condition[${_debug}, ${maMiscDPS.Find[stMiscDPS${_liC50.Value}Con].Value}]}) {
-			DEBUG ${sep}condition fail${sep}\a-w${maMiscDPS.Find[stMiscDPS${_liC50.Value}].Value}\ax
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maMiscDPS.Find[stMiscDPS${_liC50.Value}Con].Value}]}) {
 			/invoke ${_liC50.Advance}
 			/continue
 		}

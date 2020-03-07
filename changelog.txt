@@ -19,6 +19,18 @@ on the to do list
 
 
 
+
+A200306.01
+- bards (hate bards)
+  /song, like /nuke or /heal or /dot will contain all the songs you want the bard to be singing
+  /line #|#|#|#|#|#|# and so on creates the order that you will sing the songs loaded into /song
+- /debug
+  admin condition - detailed debug on conditions processed
+- /grain
+  24 - edit commands
+- tanks attraction pulling, fixed an issue with the range control
+
+
 A200304.01
 - magician
   fixed the nuke routine call
@@ -49,6 +61,7 @@ A200301.01
 - an absolute shittone of debugging added for macro flow
 - corrected a variable error in the mana gather routine.
   hopefully it will solve the class hangs
+
 
 A200229.03
 - fixed my addition of conditions to spires. least i think i did.

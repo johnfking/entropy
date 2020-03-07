@@ -3058,7 +3058,7 @@ sub Bind_command_aux(string _type, bool _debug)
 	/declare _lsout list local
 	/invoke ${_lsout.Append[alto,bandolier,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter]}
 	/invoke ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,mode,minion,navto,off,on,override,repeat,see,splash,take,tag,tc,tie]}
-	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro,miscdps,song]}
+	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro,miscdps,song,line]}
 
 	/if (${_lsout.Contains[${_type}]}) {
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY ROWID
@@ -3188,7 +3188,6 @@ sub Bind_command_alto(string _debug)
 
 	/call set_stop FALSE
 	/invoke ${target[clear]}
-
 
 /return TRUE
 
@@ -5158,3 +5157,37 @@ sub Bind_control_song(string _type, string _verbage, string _verbage2, string _s
 	}
 
 /return	TRUE
+
+
+
+|***
+ * note: simple line adjustment command
+ * use: /line #|#|#|#|#|#|# and so on
+ ***|
+#bind command_line /line
+sub Bind_command_line(string _line)
+
+	| output control map
+	/if (${_line.Equal[see]}) {
+		/call Bind_command_see lsLine
+		/return
+	} else /if (${_line.Equal[aux]}) {
+		/call Bind_command_aux line
+		/return
+	}
+
+
+	| clear the current line data
+	/invoke ${lsLine.Clear}
+	/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE environment_character SET value="EMPTY" WHERE env_var="lsLine"
+
+	| add the new data
+	/call do_raw_edit FALSE TRUE lsLine ${_line} add
+
+/return TRUE
+
+
+
+
+
+
