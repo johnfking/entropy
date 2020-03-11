@@ -16,6 +16,9 @@ on the to do list
 --------------------
 
 
+A200310.02
+- commented something out that i shouldnt have.. /shrug
+
 A200310.01
 - magician
   fixed an issue with cauldrons.. people still play mages?

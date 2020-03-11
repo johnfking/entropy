@@ -5198,7 +5198,7 @@ sub set_rank(bool _debug, string _spell)
 |***
  * note: casts an in order value from a list at passed target ID
  * use: /call cast_list DEBUG [lsNAME] [TARGETID]
-
+ ***|
 sub cast_list(bool _debug, string _lsList, int _tmpID)
 	DEBUG \atcast_list\ax(\a-w${_lsList}, ${_tmpID}\ax)
 
@@ -5218,7 +5218,7 @@ sub cast_list(bool _debug, string _lsList, int _tmpID)
 	}
 
 /return TRUE
- ***|
+
 
 
 |***
