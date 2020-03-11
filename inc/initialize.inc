@@ -646,8 +646,8 @@ sub sql_set_character_schema(bool _debug)
 
 
 |***
- * note:
- * use:
+ * note: creat the base character environments
+ * use: no touching!
  ***|
 sub set_initialize_map_character_environment(bool _debug)
 
@@ -689,7 +689,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEnv swTakeGroupInvite                    FALSE                         "${auxsw} take group invites from people you trust"
   /call set_data_map ${_debug} maEnv swTakeRaidInvite                     FALSE                         "${auxsw} take raid invites from people you trust"
   /call set_data_map ${_debug} maEnv swSoS                                FALSE                         "${auxsw} rogue sos switch"
-  | /call set_data_list ${_debug} maEnv lsSafeListToon                      EMPTY                         "${auxli} list of people you trust"
 
   | rest
   /call set_data_map ${_debug} maEnv stPctRest                            0                             "${auxnum} % health/mana to rest at"
@@ -731,7 +730,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data ${_debug} FALSE hurtCLS                                  string outer ${Me.Class.ShortName}
   /call set_data ${_debug} FALSE hurtCount                                int outer 0
 
-
  	| points for healers
   /if (${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
     /call set_data_map ${_debug} maHeal stHealPointHoT                    80                            "${auxnum} % of health to use single heal over time"													heal
@@ -757,7 +755,13 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_map ${_debug} maHeal stCureCorruption                  FALSE                         "${auxna} name of corruption cure spell"									heal
   }
 
-  /call set_data_list ${_debug} maNuke lsLineHeal	                       	EMPTY                        	"${auxli} alternate cast order for heals" 								heal
+  /call set_data_list ${_debug} maHeal lsLineHeal	                       	EMPTY                        	"${auxli} alternate cast order for heals" 								heal
+
+  | xtarget sets heal classes
+  /if (${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
+    /declare lsXTargetClass list outer
+    /invoke ${set_data_timer[FALSE, Check_Xtarget_Build, 10m]}
+  }
 
 
 |** control: buff **|
@@ -799,11 +803,10 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maDefense stPctDef	                        FALSE                         "${auxna} pct of health to activate a defensive"
 
 
-
 |** control: rez **|
   /call set_data ${_debug} FALSE swIsMeDead                               bool outer FALSE
   /call set_data ${_debug} FALSE lsRezPct                                 list outer "10|20|35|50|60|75|90|93|96"
-  /call set_data_list FA${_debug}LSE maRez lsNoRezToon                         EMPTY                         "${auxli} names of people you never want to rez"
+  /call set_data_list FA${_debug}LSE maRez lsNoRezToon                		EMPTY                         "${auxli} names of people you never want to rez"
   /call set_data_list ${_debug} maRez lsRezTokenToon                      EMPTY                         "${auxli} list of class shortnames you want to use a rez token on"
   /call set_data_map ${_debug} maRez swRezGive                            FALSE                         "${auxsw} rez people"
   /call set_data_map ${_debug} maRez swRezTake                            FALSE                         "${auxsw} take rezes"
@@ -829,6 +832,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data ${_debug} maHome swSnapStuck                             map outer FALSE
 	/call set_data_map ${_debug} maHome swonAuto		                        FALSE                         "${auxsw} set home camp on auto"
 	/call set_data_map ${_debug} maHome swinCombat	                        FALSE                         "${auxsw} keep home camp while in combat"
+
 
 |** control: tie **|
   /invoke ${set_data_timer[${_debug}, Check_Tie, 5]}
@@ -856,14 +860,9 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maCC swCombatControl                       FALSE                         "${auxsw} enable crowd control modes in or out of combat"
   /call set_data_map ${_debug} maCC swAlliance			                      FALSE                         "${auxsw} enable class alliance"
 
-  | /call set_data_map ${_debug} maCC swAstCombatPref	                      FALSE                         "${auxna} combat preference [\a-wmelee\ax|\a-wrange\ax]"
-
   /invoke ${set_data_timer[FALSE, Check_Proc_Bandolier, 5s]}
   /call set_data_map ${_debug} maCC swProc                                FALSE                         "${auxsw} enable enable bandolier for a procing weapon"
   /call set_data_map ${_debug} maCC stProcBandolier												FALSE                         "${auxna} name of bandolier with procing weapon"
-  | /call set_data_map ${_debug} maCC stSwapBandolier												FALSE                         "${auxna} name of bandolier to swap back to after the proc"
-
-
 
   /call set_data_map ${_debug} maCC swPull                                FALSE                         "${auxsw} enable pulling (\a-wselect mobs to kill\ax)"
   /call set_data_map ${_debug} maCC stPullMode                            base                          "${auxna} [\a-wbase-nav-int-pet-multi\ax] the mode of pulling you wish to use while looking for said mobs"
@@ -871,13 +870,12 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maCC swPullSetHome                         FALSE                         "${auxsw} suto set home marker when pulling is enabled"
 
   | /call set_data_map ${_debug} maCC swPoison                              FALSE                         "${auxsw} use poisons (\a-wsetup in buffs for summoning/clicking\ax)"
-  /call set_data_map ${_debug} maCC swBandolier                           FALSE                         "${auxsw} (\a-w1/aux bandolier\ax for help"
+  /call set_data_map ${_debug} maCC swBandolier                           FALSE                         "${auxsw} (\a-w1/aux bandolier\ax for help)"
 
   | glyph
   /call set_data_map ${_debug} maCC swGlyphGroup                          FALSE                         "${auxsw} use glyph in a group"
   /call set_data_map ${_debug} maCC swGlyphRaid                           FALSE                         "${auxsw} use glyph in a raid"
   /call set_data_map ${_debug} maCC stGlyph                               FALSE                         "${auxna} name of the glyph you want to use"
-
 
   | agro on or off and current agro mode (g,1,2,3,ma1,ma2)
   /call set_data_map ${_debug} maCC swAgro                                FALSE                         "${auxsw} use any agro skills you can (\a-wtaunt not included separate control under /cc\ax)"
@@ -887,36 +885,10 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maCC stPctEngage                           98                            "${auxnum} mobs % health to engage it"
 
   /call set_data_map ${_debug} maCC stZRadius                             60                            "${auxnum} the z distance of your universe"
-  | /call set_data_map ${_debug} maCC swBandolier                           FALSE                         "${auxsw} use bandolier swaps"
 
   /call set_data_list ${_debug} maCC lsNoCastWith                         EMPTY                         "${auxli} list of target buffs you dont want to cast with"
   /call set_data_list ${_debug} maCC lsNoMeleeWith                        EMPTY                         "${auxli} list of target buffs you dont want to melee with"
   /call set_data_map ${_debug} maCC stRangeOther                          FALSE                         "${auxna} something else you would like to use for ranged pulling?"
-
-
-|** control: dot **|
-  /call set_data_map ${_debug} maDoT stDotRefresh                         3                             "${auxnum} time left on a dot to refresh it, in seconds"
-  /call set_data_map ${_debug} maDoT stPctStopDoT                       	0                            	"${auxnum} % of mob health to stop dotting it at"
-  /call set_data_list ${_debug} maDoT lsLineDoT		                       	EMPTY                        	"${auxli} alternate cast order for dots" dot
-
-
-|** control: nuke **|
-  /call set_data_map ${_debug} maNuke stPctStopNuke                       0                             "${auxnum} % of mob health to stop nuking it at"
-  /call set_data_map ${_debug} maNuke stNukeDelay                         0                             "${auxnum} time to force between using nukes or dots"
-  /call set_data_list ${_debug} maNuke lsLineNuke	                       	EMPTY                        	"${auxli} alternate cast order for nukes" nuke
-
-
-
-|** control: burn **|
-  /call set_data ${_debug} maBurn swBurnConditionMet                      map outer FALSE
-  /call set_data_map ${_debug} maBurn swBurnForce                         FALSE                         "${auxsw} force burn routines"
-  /call set_data_map ${_debug} maBurn swBurnAuto                          FALSE                         "${auxsw} auto burn on named encounters"
-  /call set_data_map ${_debug} maBurn stPctBurnEngage                     99                            "${auxnum} % of mobs health to start burns"
-  /call set_data_map ${_debug} maBurn stBurnCount                         0                             "${auxnum} number of mobs in your area to auto engage burns"
-  /call set_data_map ${_debug} maBurn swBurnRaid                          FALSE                         "${auxsw} use burns on raids"
-
-
-| /call sql_control FALSE ${chrID} stoponDS                           bool      outer FALSE
 
   | combat melee skills by class
   /declare lsMeleeSkill list outer
@@ -1002,6 +974,29 @@ sub set_initialize_map_character_environment(bool _debug)
   }
 
 
+|** control: dot **|
+  /call set_data_map ${_debug} maDoT stDotRefresh                         3                             "${auxnum} time left on a dot to refresh it, in seconds"
+  /call set_data_map ${_debug} maDoT stPctStopDoT                       	0                            	"${auxnum} % of mob health to stop dotting it at"
+  /call set_data_list ${_debug} maDoT lsLineDoT		                       	EMPTY                        	"${auxli} alternate cast order for dots" dot
+
+
+|** control: nuke **|
+  /call set_data_map ${_debug} maNuke stPctStopNuke                       0                             "${auxnum} % of mob health to stop nuking it at"
+  /call set_data_map ${_debug} maNuke stNukeDelay                         0                             "${auxnum} time to force between using nukes or dots"
+  /call set_data_list ${_debug} maNuke lsLineNuke	                       	EMPTY                        	"${auxli} alternate cast order for nukes" nuke
+
+
+|** control: burn **|
+  /call set_data ${_debug} maBurn swBurnConditionMet                      map outer FALSE
+  /call set_data_map ${_debug} maBurn swBurnForce                         FALSE                         "${auxsw} force burn routines"
+  /call set_data_map ${_debug} maBurn swBurnAuto                          FALSE                         "${auxsw} auto burn on named encounters"
+  /call set_data_map ${_debug} maBurn stPctBurnEngage                     99                            "${auxnum} % of mobs health to start burns"
+  /call set_data_map ${_debug} maBurn stBurnCount                         0                             "${auxnum} number of mobs in your area to auto engage burns"
+  /call set_data_map ${_debug} maBurn swBurnRaid                          FALSE                         "${auxsw} use burns on raids"
+
+	| /call sql_control FALSE ${chrID} stoponDS                           bool      outer FALSE
+
+
 |** control: debuff **|
   /call set_data_map ${_debug} madeBuff swCripple                         FALSE                         "${auxsw} use cripples"
   /call set_data_map ${_debug} madeBuff stCripple                         FALSE                         "${auxna} single target cripple"
@@ -1084,17 +1079,11 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy stCastLoop												1			                   			"${auxna} number of castloop attempts, event based"
   /call set_data_map ${_debug} maEntropy stEngine													1			                   			"${auxna} code engine"
 
-|** control: TTL  **|
-  /call set_data_map ${_debug} maTTL swTTL				                        FALSE                         "${auxsw} use ttl logic"
-
-
   | GoM list
   /call set_data_list ${_debug} maChr lsGoM                               EMPTY                         "${auxli} things to use on a gift of mana aa proc"
 
+	| ae count you act on
   /call set_data_map ${_debug} maChr stCountAE                            0                             "${auxnum} number of mobs in your area to even consider using ae skills"
-  | /call set_data_map ${_debug} maChr stCountDefensive                     0                             "${auxnum} number of mobs in your area to start triggering mitigation cycle"
-  | /call set_data_list ${_debug} maChr lsMitigationCycle                   EMPTY                         "${auxli} list of things to use to mitigate damage"
-  | /call set_data_list ${_debug} maChr lsMitigationCyclecheck              EMPTY                         "${auxli} list of effects for mitigation items to check against"
 
   | fade
   /call set_data_map ${_debug} maChr stPctFade                            0                             "${auxnum} % of your healt to use class aa fade skill"
@@ -1104,16 +1093,19 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maChr swSpireGroup                         FALSE													"${auxsw} use while in a raid for burns"
   /call set_data_map ${_debug} maChr stSpireCon         	                0															"${auxnum} number of the condition to use for spires"
 
-  | heal classes
-  /if (${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
-    /declare lsXTargetClass list outer
-    /invoke ${set_data_timer[FALSE, Check_Xtarget_Build, 10m]}
-  }
-
   | can cast?
   /if (${lsClassCast.Contains[${Me.Class.ShortName}]}) {
     /call set_data_map ${_debug} maChr stPctManaRecovery                   0                      	    "${auxna} % to use whatever manna recovery things entropy can find on you"
   }
+
+
+|** control: clickitem  **|
+  /call set_data_list ${_debug} maItem lsLineItem	                       	EMPTY                        	"${auxli} alternate cast order for clickitems" item
+
+
+|** control: TTL  **|
+  /call set_data_map ${_debug} maTTL swTTL				                        FALSE                         "${auxsw} use ttl logic"
+
 
 
 	/if (${maDebug.Find[init].Value}) {

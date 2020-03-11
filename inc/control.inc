@@ -5183,8 +5183,11 @@ sub Bind_control_song(string _type, string _verbage, string _verbage2, string _s
 #bind command_line /line
 sub Bind_command_line(string _type, string _line)
 
+	/declare lsControl list local
+	/invoke ${lsControl.Append[nuke,song,dot,heal,item]}
+
 	| error control
-	/if (!${Select[${_type},nuke,dot,song,heal]}) {
+	/if (!${lsControl.Contains[${_type}]}) {
 		/invoke ${out[0, "/line \awnuke\ax|\awdot\ax|\awsong\ax|\awheal\ax \aw#|#|#|#|#\ax"]}
 		/return FALSE
 	}
@@ -5192,7 +5195,7 @@ sub Bind_command_line(string _type, string _line)
 	/declare _type_env string local ${_type}
 
 	| adjust to proper case
-	/if (${Select[${_type},nuke,song,heal]}) {
+	/if (${Select[${_type},nuke,song,heal,item]}) {
 		/varset _type ${_type.Left[1].Upper}${_type.Right[-1].Lower}
 	} else /if (${Select[${_type},dot]}) {
 		/varset _type DoT

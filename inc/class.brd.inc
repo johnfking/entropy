@@ -37,7 +37,7 @@ sub set_BRD(bool _debug)
 	| /declare lsLineSong list outer
 	| /invoke ${lsLineSong.Append[tank,caster,melee,mix,other,]}
 	| /call set_data_map FALSE maChr stCurrent														mix													"${auxna} current song line to play"
-	/call set_data_list ${_debug} maSong lsLineSong												EMPTY													"${auxli} list of song numbers to sing" dot
+	/call set_data_list ${_debug} maSong lsLineSong												EMPTY												"${auxli} list of song numbers to sing"  song
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax

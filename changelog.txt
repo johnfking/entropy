@@ -16,8 +16,20 @@ on the to do list
 --------------------
 
 
+
+
+A200311.02
+- REPO update
+- lots of old commeted code/variables removed
+- bard
+  moved the song line from dots to song where it supposed to be
+- /line has been extended to clickitem casts
+  /line item #|#|#|#|#
+
+
 A200310.02
 - commented something out that i shouldnt have.. /shrug
+
 
 A200310.01
 - magician

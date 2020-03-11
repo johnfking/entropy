@@ -9022,7 +9022,7 @@ sub set_bandolier(bool _debug)
 	FLOW set_bandolier
 
 	/if (${bandolierSwap.Equal[${bandolier${_band}}]}) /return TRUE
-	/if (!${swBandolier}) /return FALSE
+	/if (!${maCC.Find[swBandolier].Value}) /return FALSE
 	/if (!${Bool[${bandolierNormal}]}) /return FALSE
 	/if (!${Bool[${bandolier${_band}}]}) /return FALSE
 	/delay 1
@@ -11097,8 +11097,15 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 	DEBUG \atcheck_item_cycle\ax(\a-w${_tmpID}, ${_tag}\ax)
 	FLOW check_item_cycle ${_tmpID}|${_tag}
 
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineItem.Contains[EMPTY]} && ${lsLineItem.Count} == 1) {
+		DEBUG ${sep}resetting the empty clickitem line
+		/invoke ${lsLineItem.Clear}
+		/invoke ${lsLineItem.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+	}
+
 	/declare _liC20 listiterator local
-	/vardata _liC20 lsCount20.First.Clone
+	/vardata _liC20 lsLineItem.First.Clone
 	/while (!${_liC20.IsEnd}) {
 
 		GETINPUT check_item_cycle NA|NA
