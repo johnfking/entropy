@@ -980,19 +980,56 @@ sub Bind_command_tie(string _type, bool _debug)
 sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug)
 	DEBUG \atBind_control_area\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
-	| make sure were on/in the right zone
-	| /call validate_zone FALSE FALSE
-
 	| get the zone data
 	/sqlite ${maData.Find[DBzone].Value} curZoneData SELECT * FROM zone WHERE ShortName="${Zone.ShortName.Lower}"
 
-	| output control map
-	/if (${_type.Equal[map]}) {
-		| /call Bind_control_admin iterate map Area
-		/invoke ${out[12, "no map yet sorry"]}
+	/declare _element string local FALSE
+	/if (${_type.Equal[exclude]}) {
+		/varset _element lsZoneExclude
+	} else /if (${_type.Equal[named]}) {
+		/varset _element lsZoneNamed
+	} else /if (${_type.Equal[ranged]}) {
+		/varset _element lsZoneRanged
+	} else /if (${_type.Equal[hunt]}) {
+		/varset _element lsZoneHunt
+	} else /if (${_type.Equal[nomez]}) {
+		/varset _element lsZoneNoMez
+	} else /if (${_type.Equal[nocast]}) {
+		/varset _element lsZoneNoCast
+	} else /if (${_type.Equal[nomelee]}) {
+		/varset _element lsZoneNoMelee
+	} else /if (${_type.Equal[nomagic]}) {
+		/varset _element lsZoneNoMagic
+	} else /if (${_type.Equal[nodisease]}) {
+		/varset _element lsZoneNoDisease
+	} else /if (${_type.Equal[nofire]}) {
+		/varset _element lsZoneNoFire
+	} else /if (${_type.Equal[nopoision]}) {
+		/varset _element lsZoneNoPoison
+	} else /if (${_type.Equal[nocold]}) {
+		/varset _element lsZoneNoCold
+	} else /if (${_type.Equal[nocorruption]}) {
+		/varset _element lsZoneNoCorruption
+	}
+
+
+	| check whats in the lists
+	/if (!${Target.ID} && ${_verbage.Equal[list]}) {
+		/call Bind_command_see ${_element}
+		/return TRUE
+	} else /if (${Target.ID} && ${_verbage.Equal[list]}) {
+		/if (${${_element}.CountOf[${Target.DisplayName}]}) {
+			/invoke ${out[0, "${_type} list contains${sep}\a-w${Target.DisplayName}\ax"]}
+			/return TRUE
+		}	else {
+			/invoke ${out[0, "${_type} list does not contain${sep}\a-w${Target.DisplayName}\ax"]}
+			/return TRUE
+		}
+	}
+
 
 	| safezone toggle
-	} else /if (${_type.Equal[Safe]}) {
+	/if (${_type.Equal[Safe]}) {
 		/if (${maEnv.Find[swZoneSafe].Value} || ${_verbage.Equal[FALSE]}) {
 			/sqlite ${maData.Find[DBzone].Value} dummy UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' and element='swZoneSafe'
 			/invoke ${maEnv.Add[swZoneSafe,FALSE]}
@@ -1009,42 +1046,13 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 		/return
 
 	| remaining list adjustments
-	} else /if (${Select[${_type},exclude,named,ranged,hunt,nomez,nocast,nomelee,nomagic,nodisease,nofire,nopoision,nocold,nocorruption]}) {
-		/declare _element string local FALSE
-
-		/if (${_type.Equal[exclude]}) {
-			/varset _element lsZoneExclude
-		} else /if (${_type.Equal[named]}) {
-			/varset _element lsZoneNamed
-		} else /if (${_type.Equal[ranged]}) {
-			/varset _element lsZoneRanged
-		} else /if (${_type.Equal[hunt]}) {
-			/varset _element lsZoneHunt
-		} else /if (${_type.Equal[nomez]}) {
-			/varset _element lsZoneNoMez
-		} else /if (${_type.Equal[nocast]}) {
-			/varset _element lsZoneNoCast
-		} else /if (${_type.Equal[nomelee]}) {
-			/varset _element lsZoneNoMelee
-		} else /if (${_type.Equal[nomagic]}) {
-			/varset _element lsZoneNoMagic
-		} else /if (${_type.Equal[nodisease]}) {
-			/varset _element lsZoneNoDisease
-		} else /if (${_type.Equal[nofire]}) {
-			/varset _element lsZoneNoFire
-		} else /if (${_type.Equal[nopoision]}) {
-			/varset _element lsZoneNoPoison
-		} else /if (${_type.Equal[nocold]}) {
-			/varset _element lsZoneNoCold
-		} else /if (${_type.Equal[nocorruption]}) {
-			/varset _element lsZoneNoCorruption
-		}
+	} else /if (${Select[${_type},exclude,named,ranged,hunt,nomez,nocast,nomelee,nomagic,nodisease,nofire,nopoision,nocold,nocorruption]} && ${Target.ID}) {
 
 		| Add a property to a mob
 		/sqlite ${maData.Find[DBzone].Value} dummy INSERT INTO zone_control VALUES ("${Zone.ShortName}", "${_element}", "${Target.DisplayName}")
 		/invoke ${out[12, "/area ${_type} ${dot} ${num}${_element}\ax${sep}\a-w${Target.DisplayName}\ax"]}
 		/call set_zone_lists FALSE
-		/return
+		/return TRUE
 
 	}
 
@@ -1974,6 +1982,8 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/if (${_verbage.Equal[list]}) {
 			/echo
 			/invoke ${out[12, "\awSong List\ax${sep}"]}
+			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_song WHERE env_var="lsLineSong"
+			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 
 			/declare _licountsong listiterator local
 		  /vardata _licountsong lsCount20.First.Clone
@@ -2109,6 +2119,8 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/if (${_verbage.Equal[list]}) {
 			/echo
 			/invoke ${out[12, "\awDoT List\ax${sep}"]}
+			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_dot WHERE env_var="lsLineDoT"
+			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 
 			/declare _licountdot listiterator local
 		  /vardata _licountdot lsCount20.First.Clone
@@ -2153,6 +2165,8 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/if (${_verbage.Equal[list]}) {
 			/echo
 			/invoke ${out[12, "\awNuke List\ax${sep}"]}
+			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_nuke WHERE env_var="lsLineNuke"
+			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 
 			/declare _licountnuke listiterator local
 		  /vardata _licountnuke lsCount20.First.Clone
@@ -2198,6 +2212,8 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/if (${_verbage.Equal[list]}) {
 			/echo
 			/invoke ${out[12, "\awHeal List\ax${sep}"]}
+			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_heal WHERE env_var="lsLineHeal"
+			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 
 			/declare _licountheal listiterator local
 		  /vardata _licountheal lsCount20.First.Clone
@@ -3058,7 +3074,7 @@ sub Bind_command_aux(string _type, bool _debug)
 	/declare _lsout list local
 	/invoke ${_lsout.Append[alto,bandolier,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter]}
 	/invoke ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,mode,minion,navto,off,on,override,repeat,see,splash,take,tag,tc,tie]}
-	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro,miscdps,song,line]}
+	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro,miscdps,song,line,area]}
 
 	/if (${_lsout.Contains[${_type}]}) {
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY ROWID
@@ -5162,27 +5178,41 @@ sub Bind_control_song(string _type, string _verbage, string _verbage2, string _s
 
 |***
  * note: simple line adjustment command
- * use: /line #|#|#|#|#|#|# and so on
+ * use: /line [nuke|dot|song|heal] #|#|#|#|#|#|# and so on
  ***|
 #bind command_line /line
-sub Bind_command_line(string _line)
+sub Bind_command_line(string _type, string _line)
+
+	| error control
+	/if (!${Select[${_type},nuke,dot,song,heal]}) {
+		/invoke ${out[0, "/line \awnuke\ax|\awdot\ax|\awsong\ax|\awheal\ax \aw#|#|#|#|#\ax"]}
+		/return FALSE
+	}
+
+	/declare _type_env string local ${_type}
+
+	| adjust to proper case
+	/if (${Select[${_type},nuke,song,heal]}) {
+		/varset _type ${_type.Left[1].Upper}${_type.Right[-1].Lower}
+	} else /if (${Select[${_type},dot]}) {
+		/varset _type DoT
+	}
 
 	| output control map
 	/if (${_line.Equal[see]}) {
-		/call Bind_command_see lsLine
+		/call Bind_command_see lsLine${_type}
 		/return
 	} else /if (${_line.Equal[aux]}) {
 		/call Bind_command_aux line
 		/return
 	}
 
-
 	| clear the current line data
-	/invoke ${lsLine.Clear}
-	/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE environment_character SET value="EMPTY" WHERE env_var="lsLine"
+	/invoke ${lsLine${_type}.Clear}
+	/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE environment_${_type_env} SET value="EMPTY" WHERE env_var="lsLine${_type}"
 
 	| add the new data
-	/call do_raw_edit FALSE TRUE lsLine ${_line} add
+	/call do_raw_edit FALSE TRUE lsLine${_type} ${_line} add
 
 /return TRUE
 

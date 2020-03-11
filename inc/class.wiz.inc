@@ -54,8 +54,7 @@ sub set_WIZ(bool _debug)
 		/mqp
 	}
 
-
-/return
+/return TRUE
 
 
 
@@ -94,7 +93,7 @@ sub main_WIZ(bool _debug)
 				}
 				/call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			}
-			/call misc_combat_${Me.Class.ShortName}
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 
 		}
@@ -112,7 +111,7 @@ sub main_WIZ(bool _debug)
 
 |***
  * note: Combat skills, Disciplines and Alternate abilities.
- * use: /call misc_combat_${Me.Class.ShortName}
+ * use: /call misc_combat_${Me.Class.ShortName} DEBUG TARGETID
  ***|
 sub misc_combat_WIZ(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_WIZ\ax(\a-w${_tmpID}\ax)
@@ -135,9 +134,8 @@ sub misc_combat_WIZ(bool _debug, int _tmpID)
 		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	}
 
-
 	/if (ENGINE2) {
-		/call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+		/call cast_cycle_miscdps ${maDebug.Find[misc].Value} ${_tmpID}
 		/return TRUE
 	}
 
@@ -158,7 +156,7 @@ sub misc_combat_WIZ(bool _debug, int _tmpID)
 		}
 	}
 
-/return
+/return TRUE
 
 
 
@@ -194,7 +192,7 @@ sub check_harvest(bool _debug)
 		}
 	}
 
-/return
+/return TRUE
 
 
 
@@ -214,7 +212,7 @@ sub check_heal_WIZ(bool _debug, string _type)
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 	/call cast_cycle_heal ${_debug} ${hurtID}
 
-/return
+/return TRUE
 
 
 
@@ -302,7 +300,7 @@ sub burn_WIZ(bool _debug, int _tmpID)
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
 
-/return
+/return TRUE
 
 
 
@@ -407,7 +405,7 @@ sub set_control_WIZ(string _type, string _verbage, string _silent, bool _debug)
 	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
-/return
+/return TRUE
 
 
 

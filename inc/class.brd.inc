@@ -37,14 +37,14 @@ sub set_BRD(bool _debug)
 	| /declare lsLineSong list outer
 	| /invoke ${lsLineSong.Append[tank,caster,melee,mix,other,]}
 	| /call set_data_map FALSE maChr stCurrent														mix													"${auxna} current song line to play"
-	/call set_data_list ${_debug} maSong lsLine													EMPTY													"${auxli} list of song numbers to sing"
+	/call set_data_list ${_debug} maSong lsLineSong												EMPTY													"${auxli} list of song numbers to sing" dot
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
 		/mqp
 	}
 
-/return
+/return TRUE
 
 
 sub main_BRD(bool _debug)
@@ -233,12 +233,17 @@ sub cast_servant_swarm(bool _debug, int _tmpID)
 sub pulse_line(bool _debug, _tmpID)
 	DEBUG \atpulse_line\ax(\a-w${_tmpID}\ax)
 
-	/declare _skip bool local FALSE
-
 	SETHUD "pulse"
 
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineSong.Contains[EMPTY]} && ${lsLineSong.Count} == 1) {
+		DEBUG ${sep}resetting the empty line
+		/invoke ${lsLineSong.Clear}
+		/invole ${lsLineSong.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+	}
+
 	/declare _lipl listiterator local
-	/vardata _lipl lsLine.First.Clone
+	/vardata _lipl lsLineSong.First.Clone
 	/while (!${_lipl.IsEnd}) {
 
 		/if (${target[isdead, ${_tmpID}]}) {
@@ -321,7 +326,7 @@ sub pulse_stop(string _marker, bool _debug)
 		/delay 10 !${Me.Casting.ID}
 	}
 
-/return
+/return TRUE
 
 
 
@@ -485,6 +490,6 @@ sub set_control_BRD(string _type, string _verbage, string _silent, bool _debug)
 	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
-/return
+/return TRUE
 
 

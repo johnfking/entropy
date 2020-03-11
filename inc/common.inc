@@ -1333,7 +1333,6 @@ sub check_for_rezbox(bool _debug)
 	| dont rezz me
 	/if (!${maRez.Find[swRezTake].Value}) /return
 
-
 	| do I have corpses around ?
 	/if (!${SpawnCount[pccorpse name ${Me.DisplayName}]}) {
 
@@ -5199,7 +5198,7 @@ sub set_rank(bool _debug, string _spell)
 |***
  * note: casts an in order value from a list at passed target ID
  * use: /call cast_list DEBUG [lsNAME] [TARGETID]
- ***|
+
 sub cast_list(bool _debug, string _lsList, int _tmpID)
 	DEBUG \atcast_list\ax(\a-w${_lsList}, ${_tmpID}\ax)
 
@@ -5219,7 +5218,7 @@ sub cast_list(bool _debug, string _lsList, int _tmpID)
 	}
 
 /return TRUE
-
+ ***|
 
 
 |***
@@ -6732,7 +6731,7 @@ sub cast_challenge(bool _debug, int _tmpID)
 |***
  * note: cast dot lists
  * use: /call cast_dot DEBUG [listname] [targetid]
- ***|
+
 sub cast_dot(bool _debug, string _line, int _tmpID)
 	DEBUG \atcast_dot\ax(\a-w${_line}, ${_tmpID}\ax)
 	FLOW cast_dot ${_line}|${_tmpID}
@@ -6804,7 +6803,7 @@ sub cast_dot(bool _debug, string _line, int _tmpID)
 	}
 
 /return TRUE
-
+ ***|
 
 
 |***
@@ -7061,7 +7060,7 @@ sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
 	}
 
 	| no active eq combat
-	/if (${ls${_type}Tag.Contains[noactivecombat]} && ${Select[${Me.CombatState},active]}) {
+	/if (${ls${_type}Tag.Contains[noactivecombat]} && ${Select[${Me.CombatState},combat]} && ${SpawnCount[npc radius SAFEENV PS4]}) {
 		/return FALSE
 	}
 
@@ -7519,7 +7518,7 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 		| if cast was good, set the timers.
 		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
 			/call set_timer timer_corpse_${_tmpID} 5m
-			/invoke ${out[0, "${Me.Class.ShortName} Rez: ${Spawn[${_tmpID}].DisplayName}"]}
+			| /invoke ${out[0, "Rez${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax"]}
 		} else {
 			/if (${Select[${Me.Class.ShortName},CLR]}) {
 				/call set_timer timer_corpse_${_tmpID} 30s
@@ -11183,8 +11182,16 @@ sub cast_cycle_heal(bool _debug, int _tmpID)
 	DEBUG \atcast_cycle_heal\ax(\a-w${_tmpID}\ax)
 	FLOW cast_cycle_heal ${_tmpID} (1)
 
+
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
+		DEBUG ${sep}resetting the empty heal line
+		/invoke ${lsLineHeal.Clear}
+		/invoke ${lsLineHeal.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+	}
+
 	/declare _liC20 listiterator local
-	/vardata _liC20 lsCount20.First.Clone
+	/vardata _liC20 lsLineHeal.First.Clone
 	/while (!${_liC20.IsEnd}) {
 
 		GETINPUT cast_cycle_heal NA|NA
@@ -11242,8 +11249,15 @@ sub cast_cycle_nuke(bool _debug, int _tmpID)
 	DEBUG \atcast_cycle_nuke\ax(\a-w${_tmpID}\ax)
 	FLOW cast_cycle_nuke ${_tmpID} (1)
 
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineNuke.Contains[EMPTY]} && ${lsLineNuke.Count} == 1) {
+		DEBUG ${sep}resetting the empty nuke line
+		/invoke ${lsLineNuke.Clear}
+		/invoke ${lsLineNuke.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+	}
+
 	/declare _liC20 listiterator local
-	/vardata _liC20 lsCount20.First.Clone
+	/vardata _liC20 lsLineNuke.First.Clone
 	/while (!${_liC20.IsEnd}) {
 
 		/if (${Me.PctMana} < 2) {
@@ -11337,8 +11351,15 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 	DEBUG \atcast_cycle_dot\ax(\a-w${_tmpID}\ax)
 	FLOW cast_cycle_dot ${_tmpID} (1)
 
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineDoT.Contains[EMPTY]} && ${lsLineDoT.Count} == 1) {
+		DEBUG ${sep}resetting the empty dot line
+		/invoke ${lsLineDoT.Clear}
+		/invoke ${lsLineDoT.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+	}
+
 	/declare _liC20 listiterator local
-	/vardata _liC20 lsCount20.First.Clone
+	/vardata _liC20 lsLineDoT.First.Clone
 	/while (!${_liC20.IsEnd}) {
 
 		/if (${Me.PctMana} < 2) {

@@ -343,7 +343,7 @@ sub set_initial_environment(bool _debug)
 	  /invoke ${maChrControl.Add[line,stCurrent|br]}
 	  /invoke ${maChrControl.Add[gather,stPctGather]}
 	  /invoke ${maChrControl.Add[forcetc,swForceTC]}
-	  /invoke ${maChrControl.dd[cauldron,submenu]}
+	  /invoke ${maChrControl.Add[cauldron,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
 	  /invoke ${maChrControl.Add[train,swTrainMelee]}
@@ -757,6 +757,8 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_map ${_debug} maHeal stCureCorruption                  FALSE                         "${auxna} name of corruption cure spell"									heal
   }
 
+  /call set_data_list ${_debug} maNuke lsLineHeal	                       	EMPTY                        	"${auxli} alternate cast order for heals" 								heal
+
 
 |** control: buff **|
   /invoke ${set_data_timer[${_debug}, Check_Buff_Cycle, 1m]}
@@ -895,11 +897,13 @@ sub set_initialize_map_character_environment(bool _debug)
 |** control: dot **|
   /call set_data_map ${_debug} maDoT stDotRefresh                         3                             "${auxnum} time left on a dot to refresh it, in seconds"
   /call set_data_map ${_debug} maDoT stPctStopDoT                       	0                            	"${auxnum} % of mob health to stop dotting it at"
+  /call set_data_list ${_debug} maDoT lsLineDoT		                       	EMPTY                        	"${auxli} alternate cast order for dots" dot
 
 
 |** control: nuke **|
   /call set_data_map ${_debug} maNuke stPctStopNuke                       0                             "${auxnum} % of mob health to stop nuking it at"
   /call set_data_map ${_debug} maNuke stNukeDelay                         0                             "${auxnum} time to force between using nukes or dots"
+  /call set_data_list ${_debug} maNuke lsLineNuke	                       	EMPTY                        	"${auxli} alternate cast order for nukes" nuke
 
 
 

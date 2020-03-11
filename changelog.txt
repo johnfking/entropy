@@ -10,14 +10,34 @@
 on the to do list
 --------------------
 - find a way to grade debuffs and overwrite if needed
-- get remove verb working for /area
 - mage pet weapons?
 - tag entry validation (cause people are making up shit now)
 - i'm gonna have to externalize all the AAs
-- look into exporting a few select maps in controlled order for the ini build
 --------------------
 
 
+A200310.01
+- magician
+  fixed an issue with cauldrons.. people still play mages?
+- events.inc
+  fixed a bad event switch check all over the file (lots of them)
+- /area
+  delete TARGET - will remove the target from all settings for that zone
+  if you do not have a target:
+  area <option> list - will list all the targets that are in that option.
+  e.g. /area exclude list - will list all the mobs set to exclude for that zone
+	if you do have a target:
+  area <option> list - will will let you know if that single target is in that list
+- tag
+  noactivecombat - adjusted to work a "little" better. obeys safe env as well
+- /line command has been extended
+  /line heal #|#|#|#|#
+  /line nuke #|#|#|#|#
+  /line dot #|#|#|#|#
+  /line song #|#|#|#|#
+  will give you the option of changing the order which these routines fire.
+  the # is the number of the loaded skill for that routine. ie /heal 3 would be #3
+  this is not a requirement. lines left empty will default to 1-20 like they do now
 
 
 A200306.01
