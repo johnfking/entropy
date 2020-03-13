@@ -1523,7 +1523,7 @@ sub check_buff_cycle_shrink(bool _debug)
 		/varcalc _count ${_count}+1
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -2180,7 +2180,7 @@ sub set_stop(bool _debug, string _silent)
 		/pet back off
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -3275,7 +3275,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 
 	| When you grow up, your heart dies.
 	/if (!TARGET) {
-		SETHUD FALSE
+		SETHUD EMPTY
 		/if (HOME && !${SpawnCount[npc radius 15 PS4 targetable]}) {
 			/call Bind_control_home return
 		}
@@ -3298,7 +3298,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 	/call pull_mob_tag ${_debug} TARGET
 
 	| /if (!${pull_mob_prep[${_debug}, TARGET]}) {
-	| 	SETHUD FALSE
+	| 	SETHUD EMPTY
 	| 	/return FALSE
 	| }
 
@@ -3380,7 +3380,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 	}
 
 	DEBUG ${sep}\arCLOSING\ax${sep}\atget_target_basepull\ax (\a-rTARGET\ax)
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return
 
@@ -4176,7 +4176,7 @@ sub do_rest(bool _debug)
 		/goto :loopneedmorerest
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -5274,7 +5274,7 @@ sub check_buff_cycle_unity(bool _debug)
 		/call voodoo ${_debug} "${_spell}" 0 FALSE
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -5377,7 +5377,7 @@ sub check_buff_cycle_aura(bool _debug)
 		/next _aura
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -5798,7 +5798,7 @@ sub check_buff_cycle_leg_poison(bool _debug)
 
 	/next _count
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -5942,7 +5942,7 @@ sub check_buff_cycle_self(bool _debug)
 
 	/next _count
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -6090,7 +6090,7 @@ sub check_buff_cycle_crew2(bool _debug)
 
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -6166,7 +6166,7 @@ sub check_buff_cycle_beg(bool _debug)
 		/invoke ${_mibb.Advance}
   }
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return
 
@@ -6450,7 +6450,7 @@ sub check_buff_cycle_crew(bool _debug)
 
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -6593,7 +6593,7 @@ sub check_buff_cycle_temp_list(bool _debug, string _spell, string _toonList)
 		/invoke ${_libt.Advance}
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -7439,7 +7439,7 @@ sub check_for_corpse(bool _debug)
 		}
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -7531,7 +7531,7 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -7775,7 +7775,7 @@ sub do_loot(bool _debug)
 		}
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -7966,7 +7966,7 @@ sub check_cure(bool _debug)
 
 	/next _count
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return
 
@@ -8043,7 +8043,7 @@ sub check_cursor(bool _debug, string _verbage)
 		/invoke ${set_data_timer[${_debug}, Check_Cursor, 5]}
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -9113,6 +9113,7 @@ sub cast_AA_spire(bool _debug)
 
 
 
+
 |***
  * note: set hud varaibles
  * use: not for your use
@@ -9127,25 +9128,6 @@ sub set_hud_data(string _mode)
 		/varset h_mode
 	}
 
-	| check for Invis
-	/declare _lishd listiterator local
-	/vardata _lishd lsIV.First.Clone
-	/while (!${_lishd.IsEnd}) {
-		/if (${Me.Buff[${_lishd.Value}].ID}) {
-			| /varset stHUDNotice ${stHUDNotice} IV
-			/break
-		}
-		/invoke ${_lishd.Advance}
-	}
-
-	/vardata _lishd lsIVU.First.Clone
-	/while (!${_lishd.IsEnd}) {
-		/if (${Me.Buff[${_lishd.Value}].ID}) {
-			| /varset stHUDNotice ${stHUDNotice} IVU
-			/break
-		}
-		/invoke ${_lishd.Advance}
-	}
 
 	/varset h_time 					${maData.Find[swHUDTime].Value}
 
@@ -9232,6 +9214,7 @@ sub set_hud_data(string _mode)
 
 
 /return TRUE
+
 
 
 
@@ -9341,7 +9324,7 @@ sub get_target_intpull(bool _debug, int _tmpID)
 	}
 
 	/if (!TARGET) {
-		SETHUD FALSE
+		SETHUD EMPTY
 		/return FALSE
 	}
 
@@ -9354,7 +9337,7 @@ sub get_target_intpull(bool _debug, int _tmpID)
 
 	/call pull_mob_prep ${_debug} TARGET
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -9427,7 +9410,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 
 	/if (PULL && !TARGET) {
 		DEBUG ${sep}\arNO\ax stAssTarID
-		SETHUD FALSE
+		SETHUD EMPTY
 		/return FALSE
 	} else {
 		/if (!${_tmpID}) {
@@ -9523,7 +9506,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 		/call Bind_control_home return FALSE silent FALSE
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return
 
@@ -9551,7 +9534,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
 
 	/if (PULL && !TARGET) {
 		DEBUG ${sep}\arNO\ax${sep}\a-wstAssTarID\ax
-		SETHUD FALSE
+		SETHUD EMPTY
 		/return FALSE
 	} else {
 		/if (!${_tmpID}) /varset _tmpID TARGET
@@ -9630,7 +9613,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
 		/if (${Spawn[${_tmpID}].Distance} < ENV) /break
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -9672,7 +9655,7 @@ sub get_target_multipull(bool _debug)
 
 	/if (!TARGET) {
 		DEBUG ${sep}\arNO\ax stAssTarID
-		SETHUD FALSE
+		SETHUD EMPTY
 		/return FALSE
 	}
 
@@ -11608,5 +11591,44 @@ sub cast_cycle_miscdps(bool _debug, int _tmpID)
 	}
 
 /return TRUE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

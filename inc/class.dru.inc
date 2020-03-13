@@ -84,11 +84,7 @@ sub main_DRU(bool _debug)
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
-		/if (${maHeal.Find[swHealSelf].Value} && !${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
-		/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[group].Value} Group
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
-		/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[xt].Value} XTarget
-		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Pet
+		/call check_heal_routines
 		CHECKDEFENSE
 		CHECKFADE
 
@@ -206,7 +202,7 @@ sub check_heal_DRU(bool _debug, string _type)
 	/declare _count int local 0
 
 	/if (!${hurtCount}) {
-		SETHUD FALSE
+		SETHUD EMPTY
 		/return
 	}
 
@@ -286,7 +282,7 @@ sub check_heal_DRU(bool _debug, string _type)
 
 	/call cast_cycle_heal ${_debug} ${hurtID}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 

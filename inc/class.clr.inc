@@ -307,7 +307,7 @@ sub check_heal_CLR(bool _debug, string _type)
 
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
-		SETHUD FALSE
+		SETHUD EMPTY
 		/return
 	}
 

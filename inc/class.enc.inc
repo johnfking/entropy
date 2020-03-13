@@ -83,8 +83,8 @@ sub main_ENC(bool _debug)
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
+		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/call control_routine ${maDebug.Find[mez].Value}
-		/call check_heal_routines
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {

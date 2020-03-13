@@ -56,7 +56,7 @@
 #define HEAL "${maCC.Find[swCombatHeal].Value}"
 #define CHECKTIE "/if (${maTie.Find[swSetTie].Value} && !${timer_Check_Tie}) /call set_tie ${maDebug.Find[tie].Value}"
 #define CHECKCURSOR "/if (${Cursor.ID} && !${timer_Check_Cursor} && ((AUTO && ${maEnv.Find[swAutoInv].Value}) || ${maEntropy.Find[swAutoInvManual].Value})) /call check_cursor ${maDebug.Find[loot].Value}"
-#define HUDPATH "/noparse /ini .\..\MQ2HUD.ini"
+#define HUDPATH "/ini .\..\MQ2HUD.ini"
 #define SETHUD "/call set_hud_data"
 #define CHECKDEFENSE	"/call cast_cycle_defense ${maDebug.Find[def].Value}"
 #define FLOW "/if (${maDebug.Find[flow].Value}) /varset flow ${stAssTarID} ::"
@@ -98,10 +98,6 @@ sub main(string _debug, string _param1, string _auto)
 	/declare _boottimestart int local ${MacroQuest.Running}
 	/mqclear
 
-	| this is built in to remove dannet usage from entropy to help troubleshoot other plugins.
-	| DO NOT TOUCH THIS. really. just dont.
-	/declare swDanNet bool outer TRUE
-
 	| trash variable
 	/declare dump string outer
 
@@ -122,7 +118,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A200311.02
+	/call set_data FALSE maEnv build													map outer A200313.01
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -188,7 +184,7 @@ sub main(string _debug, string _param1, string _auto)
 		GETINPUT main_loop swAuto|${maEnv.Find[swAuto].Value}
 		ISMEDEAD
 		CHECKCURSOR
-		SETHUD FALSE
+		SETHUD EMPTY
 
 
 		| check food / drink
@@ -209,7 +205,7 @@ sub main(string _debug, string _param1, string _auto)
 		/if (AUTO) {
 
 			| check curing observers
-			/if (!${timer_Check_Observers} && ${swDanNet}) {
+			/if (!${timer_Check_Observers}) {
 				/if (${maHeal.Find[swHealCure].Value}) /call set_observers ${maDebug.Find[cure].Value} maCure add
 			}
 
@@ -316,10 +312,8 @@ sub main(string _debug, string _param1, string _auto)
 		/invoke ${out[0, "Current Build ${info}${maEnv.Find[build].Value}\ax ${dot} ${bad}Ended\ax"]}
 		/mqlog ${maEnv.Find[build].Value} .. Clean Exit
 	}
-	/if (${swDanNet}) {
-		/if (${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) {
-			/dleave ${maComm.Find[stEntropyGroup_all].Value}
-		}
+	/if (${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) {
+		/dleave ${maComm.Find[stEntropyGroup_all].Value}
 	}
 	/endmacro
 
@@ -378,13 +372,11 @@ sub prepare_the_end(bool _debug)
 	/call set_initial_environment FALSE
 
 	| set comm requirements
-	/if (${swDanNet}) {
-		/if (${DanNet.LocalEcho}) /squelch /dnet localecho ${maComm.Find[stLocalEcho].Value}
-		/if (${DanNet.CommandEcho}) /squelch /dnet commandecho ${maComm.Find[stCommandEcho].Value}
-		/if (!${DanNet.FrontDelim}) /squelch /dnet frontdelim ${maComm.Find[stFrontDelim].Value}
-		/if (${DanNet.FullNames}) /squelch /dnet fullnames ${maComm.Find[stFullNames].Value}
-		/dnet timeout ${maComm.Find[stNetworkTimeout].Value}
-	}
+	/if (${DanNet.LocalEcho}) /squelch /dnet localecho ${maComm.Find[stLocalEcho].Value}
+	/if (${DanNet.CommandEcho}) /squelch /dnet commandecho ${maComm.Find[stCommandEcho].Value}
+	/if (!${DanNet.FrontDelim}) /squelch /dnet frontdelim ${maComm.Find[stFrontDelim].Value}
+	/if (${DanNet.FullNames}) /squelch /dnet fullnames ${maComm.Find[stFullNames].Value}
+	/dnet timeout ${maComm.Find[stNetworkTimeout].Value}
 
 	| check zone schema
 	/call sql_set_zone_schema ${maDebug.Find[zone].Value}
@@ -528,9 +520,20 @@ sub check_housekeeping(bool _debug)
 
 	}
 
+	| error control
+	/if (${maCC.Find[swCombatHeal].Value} && !${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
+		/invoke ${set_switch_env[${_debug}, swCombatHeal, TRUE, FALSE]}
+	}
+	/if (${maCC.Find[swCombatControl].Value} && !${Select[${Me.Class.ShortName},ENC,BRD]}) {
+		/invoke ${set_switch_env[${_debug}, swCombatControl, TRUE, FALSE]}
+	}
+
+
+
 	| more shit to come....
 
 	DEBUG ${sep}housekeeping${sep}\a-wDONE\ax
 
 /return TRUE
+
 

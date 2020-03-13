@@ -17,6 +17,14 @@ on the to do list
 
 
 
+A200313.01
+- HUD
+  made some changes in preperation for MQ2Next parsing and paths
+- /cc mode
+  heal has been limited to clerics, shaman and druids
+  cc has been limited to enchanters and bards. it will be expanded to necros and mages later
+- removed the dannet contrl switch. it is no longer optional
+
 
 A200311.02
 - REPO update

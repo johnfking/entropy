@@ -225,7 +225,7 @@ sub check_heal_SHM(bool _debug, string _type)
 			}
 		}
 
-		SETHUD FALSE
+		SETHUD EMPTY
 		/return FALSE
 
 	}
@@ -248,7 +248,7 @@ sub check_heal_SHM(bool _debug, string _type)
 
 	/call cast_cycle_heal ${_debug} ${hurtID}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return
 

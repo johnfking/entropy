@@ -34,10 +34,7 @@ sub set_BRD(bool _debug)
 	/call set_data_map FALSE maChr stSongRefresh												6															"${auxnum} remaining duration on a song to refresh. in seconds"
 
 	| current song line
-	| /declare lsLineSong list outer
-	| /invoke ${lsLineSong.Append[tank,caster,melee,mix,other,]}
-	| /call set_data_map FALSE maChr stCurrent														mix													"${auxna} current song line to play"
-	/call set_data_list ${_debug} maSong lsLineSong												EMPTY												"${auxli} list of song numbers to sing"  song
+	/call set_data_list ${_debug} maSong lsLineSong											EMPTY												"${auxli} list of song numbers to sing"  song
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -53,7 +50,7 @@ sub main_BRD(bool _debug)
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
-		/call check_heal_routines
+		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/call control_routine FALSE
 		/if (${check_class_loop[FALSE]}) /return FALSE
 
@@ -181,7 +178,7 @@ sub check_heal_BRD(bool _debug)
 	/if (!${check_hurt[${_debug}, ${_type}]}) /return FALSE
 	/call cast_cycle_heal ${_debug} ${hurtID}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -306,7 +303,7 @@ sub pulse_line(bool _debug, _tmpID)
 
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 

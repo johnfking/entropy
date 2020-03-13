@@ -83,7 +83,7 @@ sub main_RNG(bool _debug)
 	CHECKREZ
 
 	/while (${check_combat_status[FALSE]}) {
-		/call check_heal_routines
+		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/if (${check_class_loop[FALSE]}) /return FALSE
 
 		/if (VALID) {
@@ -221,7 +221,7 @@ sub check_heal_RNG(bool _debug, string _type)
 
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
-		SETHUD FALSE
+		SETHUD EMPTY
 		/return	FALSE
 	}
 
@@ -250,7 +250,7 @@ sub check_heal_RNG(bool _debug, string _type)
 
 	/call cast_cycle_heal ${_debug} ${hurtID}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 

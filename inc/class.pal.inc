@@ -146,7 +146,7 @@ sub main_PAL(bool _debug)
 	}
 
 	/while (${check_combat_status[false]}) {
-		/call check_heal_routines
+		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
 		/if (${check_class_loop[FALSE]}) /return
 
@@ -380,7 +380,7 @@ sub check_heal_PAL(bool _debug, string _type)
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
 	/if (!${hurtCount}) {
-		SETHUD FALSE
+		SETHUD EMPTY
 		/return	FALSE
 	}
 
@@ -482,7 +482,7 @@ sub check_heal_PAL(bool _debug, string _type)
 
 	/call cast_cycle_heal ${_debug} ${hurtID}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 

@@ -76,7 +76,7 @@ sub main_BER(bool _debug)
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
 		CHECKREZ
-		/call check_heal_routines
+		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		CHECKDEFENSE
 		/if (${check_class_loop[FALSE]}) /return
 
@@ -281,7 +281,7 @@ sub check_heal_BER(bool _debug, string _type)
 
 	/call cast_cycle_heal ${_debug} ${hurtID}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 

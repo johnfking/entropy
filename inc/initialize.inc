@@ -110,6 +110,7 @@ sub set_initialize(bool _debug)
   /call set_data ${_debug} FALSE DNQReturn string outer FALSE
   /call set_data ${_debug} FALSE DNQReturn2 string outer FALSE
 
+
 	| map iterator dump variable
   /declare mi mapiterator outer
 
@@ -405,28 +406,26 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} maEnv stCurrentZoneID                          	map outer FALSE
 
   | Comm
-  /if (${swDanNet}) {
-    /call set_data ${_debug} maComm stLocalEcho                             map outer FALSE             "dannet local echo"
-    /call set_data ${_debug} maComm stCommandEcho                           map outer FALSE             "dannet local command echo"
-    /call set_data ${_debug} maComm stFrontDelim                            map outer ON                "dannet lead from delimiters"
-    /call set_data ${_debug} maComm stFullNames                             map outer FALSE             "dannet fullnames"
+  /call set_data ${_debug} maComm stLocalEcho                     	        map outer FALSE             "dannet local echo"
+  /call set_data ${_debug} maComm stCommandEcho                   	        map outer FALSE             "dannet local command echo"
+  /call set_data ${_debug} maComm stFrontDelim                     	       	map outer ON                "dannet lead from delimiters"
+  /call set_data ${_debug} maComm stFullNames                      	       	map outer FALSE             "dannet fullnames"
 
-    | set DanNet groups
-    /declare lsEntropyGroup list outer
-    /invoke ${lsEntropyGroup.Delimiter["|"]}
+  | set DanNet groups
+  /declare lsEntropyGroup list outer
+  /invoke ${lsEntropyGroup.Delimiter["|"]}
 
-    /invoke ${lsEntropyGroup.Append[all|1|2|3|4|5|6|7|8|9|10|11]}
+  /invoke ${lsEntropyGroup.Append[all|1|2|3|4|5|6|7|8|9|10|11]}
 
-		/declare _lidn listiterator local
-    /vardata _lidn lsEntropyGroup.First
-    /while (!${_lidn.IsEnd}) {
-      /invoke ${maComm.Add[stEntropyGroup_${_lidn.Value},entropy${_lidn.Value}]}
-      /invoke ${_lidn.Advance}
-    }
-
-    | join the group
-    /djoin ${maComm.Find[stEntropyGroup_all].Value}
+	/declare _lidn listiterator local
+  /vardata _lidn lsEntropyGroup.First
+  /while (!${_lidn.IsEnd}) {
+    /invoke ${maComm.Add[stEntropyGroup_${_lidn.Value},entropy${_lidn.Value}]}
+    /invoke ${_lidn.Advance}
   }
+
+  | join the group
+  /djoin ${maComm.Find[stEntropyGroup_all].Value}
 
 
   | generate modes
@@ -656,6 +655,9 @@ sub set_initialize_map_character_environment(bool _debug)
 	}
 
   /declare _count int local 0
+
+	| hude mode cycle variable
+  | /call set_data ${_debug} FALSE stCycleMode	                            string outer EMPTY
 
 |** data **|
   /call set_data ${_debug} maData stCastReturn                            map outer FALSE
@@ -1365,6 +1367,7 @@ sub set_alias(bool _debug, string _action)
 
 
 
+
 |***
  * note: build all the hud variables
  * use:
@@ -1403,6 +1406,8 @@ sub set_initialize_hud_variables()
 
 
 
+
+
 |***
  * note: HUD pregeneration
  * use:
@@ -1414,6 +1419,14 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
   | main HUD for Entropy
   /if (${_verbage.Equal[entropy]}) {
+
+
+
+
+
+
+
+
 
 
 |**
@@ -1431,42 +1444,41 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 	| row 0
 
-    HUDPATH entropy IVU1   	3,134,0,0,255,0,${If[${Me.SPA[28]}||${Me.SPA[315]},IVU,]}
-    HUDPATH entropy IVU2   	3,134,0,255,0,0,${If[${Me.SPA[28]}||${Me.SPA[315]},,IVU]}
-    HUDPATH entropy INV1   	3,153,0,0,255,0,${If[${Me.SPA[12]}||${Me.SPA[314]},IV,]}
-    HUDPATH entropy INV2   	3,153,0,255,0,0,${If[${Me.SPA[12]}||${Me.SPA[314]},,IV]}
+    HUDPATH entropy IVU1   	${Parse[0, "3,134,0,0,255,0,${If[${Me.SPA[28]}||${Me.SPA[315]},IVU,]}"]}
+    HUDPATH entropy IVU2   	${Parse[0, "3,134,0,255,0,0,${If[${Me.SPA[28]}||${Me.SPA[315]},,IVU]}"]}
+    HUDPATH entropy INV1   	${Parse[0, "3,153,0,0,255,0,${If[${Me.SPA[12]}||${Me.SPA[314]},IV,]}"]}
+    HUDPATH entropy INV2   	${Parse[0, "3,153,0,255,0,0,${If[${Me.SPA[12]}||${Me.SPA[314]},,IV]}"]}
 
     HUDPATH entropy BG0     3,131,0,0,0,0,██████████████████████████
 
     | conbat controls
-    | HUDPATH entropy cc1     3,133,14,100,149,237,cc
-    HUDPATH entropy ccA1    19,134,14,255,255,0,${If[${h_auto},A,]}
-    HUDPATH entropy ccA2    19,134,9,25,25,25,${If[${h_auto},,_]}
-    HUDPATH entropy ccEnv1  19,146,14,140,140,140,${h_env}
+    HUDPATH entropy ccA1    ${Parse[0, "19,134,14,255,255,0,${If[${h_auto},A,]}"]}
+    HUDPATH entropy ccA2    ${Parse[0, "19,134,9,25,25,25,${If[${h_auto},,_]}"]}
+    HUDPATH entropy ccEnv1  ${Parse[0, "19,146,14,140,140,140,${h_env}"]}
 
     | pulling
-    HUDPATH entropy ccPM1   19,170,14,0,255,0,${If[${h_pull},${h_pullmode},]}
-    HUDPATH entropy ccPM2   19,170,14,255,0,0,${If[${h_pull},,${h_pullmode}]}
-    HUDPATH entropy ccPR1   19,200,14,255,255,255,${If[${h_pullarea},${h_pullarea},]}
-    HUDPATH entropy ccPR2   19,200,9,25,25,25,${If[${h_pullarea},,___]}
+    HUDPATH entropy ccPM1   ${Parse[0, "19,170,14,0,255,0,${If[${h_pull},${h_pullmode},]}"]}
+    HUDPATH entropy ccPM2   ${Parse[0, "19,170,14,255,0,0,${If[${h_pull},,${h_pullmode}]}"]}
+    HUDPATH entropy ccPR1   ${Parse[0, "19,200,14,255,255,255,${If[${h_pullarea},${h_pullarea},]}"]}
+    HUDPATH entropy ccPR2   ${Parse[0, "19,200,9,25,25,25,${If[${h_pullarea},,___]}"]}
 
     | agro
-    HUDPATH entropy ccAg1   19,225,14,255,255,255,${If[${h_agro},A,]}
-    HUDPATH entropy ccAg2   19,225,9,25,25,25,${If[${h_agro},,_]}
+    HUDPATH entropy ccAg1   ${Parse[0, "19,225,14,255,255,255,${If[${h_agro},A,]}"]}
+    HUDPATH entropy ccAg2   ${Parse[0, "19,225,9,25,25,25,${If[${h_agro},,_]}"]}
 
     | conbat modes
-    HUDPATH entropy ccM1    19,255,14,255,255,255,${If[${h_melee},M,]}
-    HUDPATH entropy ccM2    19,255,9,25,25,25,${If[${h_melee},,_]}
-    HUDPATH entropy ccR1    19,264,14,255,255,255,${If[${h_range},R,]}
-    HUDPATH entropy ccR2    19,264,9,25,25,25,${If[${h_range},,_]}
-    HUDPATH entropy ccN1    19,273,14,255,255,255,${If[${h_nuke},N,]}
-    HUDPATH entropy ccN2    19,273,9,25,25,25,${If[${h_nuke},,_]}
-    HUDPATH entropy ccD1    19,282,14,255,255,255,${If[${h_dot},D,]}
-    HUDPATH entropy ccD2    19,282,9,25,25,25,${If[${h_dot},,_]}
-    HUDPATH entropy ccH1    19,291,14,255,255,255,${If[${h_heal},H,]}
-    HUDPATH entropy ccH2    19,291,9,25,25,25,${If[${h_heal},,_]}
-    HUDPATH entropy ccC1    19,300,14,255,255,255,${If[${h_control},C,]}
-    HUDPATH entropy ccC2    19,300,9,25,25,25,${If[${h_control},,_]}
+    HUDPATH entropy ccM1    ${Parse[0, "19,255,14,255,255,255,${If[${h_melee},M,]}"]}
+    HUDPATH entropy ccM2    ${Parse[0, "19,255,9,25,25,25,${If[${h_melee},,_]}"]}
+    HUDPATH entropy ccR1    ${Parse[0, "19,264,14,255,255,255,${If[${h_range},R,]}"]}
+    HUDPATH entropy ccR2    ${Parse[0, "19,264,9,25,25,25,${If[${h_range},,_]}"]}
+    HUDPATH entropy ccN1    ${Parse[0, "19,273,14,255,255,255,${If[${h_nuke},N,]}"]}
+    HUDPATH entropy ccN2    ${Parse[0, "19,273,9,25,25,25,${If[${h_nuke},,_]}"]}
+    HUDPATH entropy ccD1    ${Parse[0, "19,282,14,255,255,255,${If[${h_dot},D,]}"]}
+    HUDPATH entropy ccD2    ${Parse[0, "19,282,9,25,25,25,${If[${h_dot},,_]}"]}
+    HUDPATH entropy ccH1    ${Parse[0, "19,291,14,255,255,255,${If[${h_heal},H,]}"]}
+    HUDPATH entropy ccH2    ${Parse[0, "19,291,9,25,25,25,${If[${h_heal},,_]}"]}
+    HUDPATH entropy ccC1    ${Parse[0, "19,300,14,255,255,255,${If[${h_control},C,]}"]}
+    HUDPATH entropy ccC2    ${Parse[0, "19,300,9,25,25,25,${If[${h_control},,_]}"]}
 
 
 	| row 13
@@ -1477,70 +1489,70 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
     | build mode
     HUDPATH entropy build1  3,5,26,100,149,237,build
-    HUDPATH entropy build2  19,40,26,140,140,140,${h_build}
+    HUDPATH entropy build2  ${Parse[0, "19,40,26,140,140,140,${h_build}"]}
 
     | healing
     | HUDPATH entropy h2      19,133,26,255,255,255,${h_healmode}
-    HUDPATH entropy hS1     19,133,26,255,255,255,${If[${h_self},S,]}
-    HUDPATH entropy hS2     19,133,21,25,25,25,${If[${h_self},,_]}
-    HUDPATH entropy hG1     19,142,26,255,255,255,${If[${h_group},G,]}
-    HUDPATH entropy hG2     19,142,21,25,25,25,${If[${h_group},,_]}
-    HUDPATH entropy hX1     19,151,26,255,255,255,${If[${h_xt},X,]}
-    HUDPATH entropy hX2     19,151,21,25,25,25,${If[${h_xt},,_]}
-    HUDPATH entropy hP1     19,160,26,255,255,255,${If[${h_pet},P,]}
-    HUDPATH entropy hP2     19,160,21,25,25,25,${If[${h_pet},,_]}
-    HUDPATH entropy hC1     19,169,26,255,255,255,${If[${h_cure},C,]}
-    HUDPATH entropy hC2     19,169,21,25,25,25,${If[${h_cure},,_]}
-   	HUDPATH entropy hT1     19,178,26,255,255,255,${If[${h_tot},T,]}
-    HUDPATH entropy hT2     19,178,21,25,25,25,${If[${h_tot},,_]}
-    HUDPATH entropy ho1     19,187,26,255,255,255,${If[${h_override},${h_override},]}
-    HUDPATH entropy ho2     19,187,21,25,25,25,${If[${h_override},,__]}
+    HUDPATH entropy hS1     ${Parse[0, "19,133,26,255,255,255,${If[${h_self},S,]}"]}
+    HUDPATH entropy hS2     ${Parse[0, "19,133,21,25,25,25,${If[${h_self},,_]}"]}
+    HUDPATH entropy hG1     ${Parse[0, "19,142,26,255,255,255,${If[${h_group},G,]}"]}
+    HUDPATH entropy hG2     ${Parse[0, "19,142,21,25,25,25,${If[${h_group},,_]}"]}
+    HUDPATH entropy hX1     ${Parse[0, "19,151,26,255,255,255,${If[${h_xt},X,]}"]}
+    HUDPATH entropy hX2     ${Parse[0, "19,151,21,25,25,25,${If[${h_xt},,_]}"]}
+    HUDPATH entropy hP1     ${Parse[0, "19,160,26,255,255,255,${If[${h_pet},P,]}"]}
+    HUDPATH entropy hP2     ${Parse[0, "19,160,21,25,25,25,${If[${h_pet},,_]}"]}
+    HUDPATH entropy hC1     ${Parse[0, "19,169,26,255,255,255,${If[${h_cure},C,]}"]}
+    HUDPATH entropy hC2     ${Parse[0, "19,169,21,25,25,25,${If[${h_cure},,_]}"]}
+   	HUDPATH entropy hT1     ${Parse[0, "19,178,26,255,255,255,${If[${h_tot},T,]}"]}
+    HUDPATH entropy hT2     ${Parse[0, "19,178,21,25,25,25,${If[${h_tot},,_]}"]}
+    HUDPATH entropy ho1     ${Parse[0, "19,187,26,255,255,255,${If[${h_override},${h_override},]}"]}
+    HUDPATH entropy ho2     ${Parse[0, "19,187,21,25,25,25,${If[${h_override},,__]}"]}
 
     | tie
-    HUDPATH entropy tie1    19,255,26,100,149,237,${h_tiemode}
-    HUDPATH entropy tie2    19,280,26,0,255,0,${If[${Bool[${h_tietoon}]},${If[${Bool[${Spawn[${h_tietoon}]}]},${h_tietoon},]},]}
-    HUDPATH entropy tie3    19,280,26,255,0,0,${If[${Bool[${h_tietoon}]},${If[!${Bool[${Spawn[${h_tietoon}]}]},${If[${Bool[${h_tietoon}]},${h_tietoon},]},]},]}
-    HUDPATH entropy tie4    19,280,22,25,25,25,${If[${Bool[${h_tietoon}]},,____]}
+    HUDPATH entropy tie1    ${Parse[0, "19,255,26,100,149,237,${h_tiemode}"]}
+    HUDPATH entropy tie2    ${Parse[0, "19,280,26,0,255,0,${If[${Bool[${h_tietoon}]},${If[${Bool[${Spawn[${h_tietoon}]}]},${h_tietoon},]},]}"]}
+    HUDPATH entropy tie3    ${Parse[0, "19,280,26,255,0,0,${If[${Bool[${h_tietoon}]},${If[!${Bool[${Spawn[${h_tietoon}]}]},${If[${Bool[${h_tietoon}]},${h_tietoon},]},]},]}"]}
+    HUDPATH entropy tie4    ${Parse[0, "19,280,22,25,25,25,${If[${Bool[${h_tietoon}]},,____]}"]}
 
     HUDPATH entropy BG26    3,3,26,0,0,0,██████████████████████████████████████████
 
 
 	| row 39
     HUDPATH entropy mode1   19,5,39,100,149,237,mode
-    HUDPATH entropy mode2   19,40,39,255,255,255,"${h_mode}"
+    HUDPATH entropy mode2   ${Parse[0, "19,40,39,255,255,255,${If[${h_mode.Equal[EMPTY]},,${h_mode}]}"]}
 
 	| buffing
-    HUDPATH entropy b1      19,133,39,0,255,0,${If[${h_bmaster},buff,]}
-    HUDPATH entropy b2      19,133,39,255,0,0,${If[${h_bmaster},,buff]}
-    HUDPATH entropy bS1     19,157,39,255,255,255,${If[${h_bself},S,]}
-    HUDPATH entropy bS2     19,157,34,25,25,25,${If[${h_bself},,_]}
-    HUDPATH entropy bC1     19,166,39,255,255,255,${If[${h_bcrew},C,]}
-    HUDPATH entropy bC2     19,166,34,25,25,25,${If[${h_bcrew},,_]}
-    HUDPATH entropy bR1     19,175,39,255,255,255,${If[${h_braid},R,]}
-    HUDPATH entropy bR2     19,175,34,25,25,25,${If[${h_braid},,_]}
-    HUDPATH entropy bB1     19,184,39,255,255,255,${If[${h_bbeg},B,]}
-    HUDPATH entropy bB2     19,184,34,25,25,25,${If[${h_bbeg},,_]}
-    HUDPATH entropy bT1     19,193,39,255,255,255,${If[${h_btemp},T,]}
-    HUDPATH entropy bT2     19,193,34,25,25,25,${If[${h_btemp},,_]}
-    HUDPATH entropy bU1     19,202,39,255,255,255,${If[${h_bunity},U,]}
-    HUDPATH entropy bU2     19,202,34,25,25,25,${If[${h_bunity},,_]}
-    HUDPATH entropy bA1     19,211,39,255,255,255,${If[${h_baura},A,]}
-    HUDPATH entropy bA2     19,211,34,25,25,25,${If[${h_baura},,_]}
-    HUDPATH entropy bN1     19,220,39,255,255,255,${If[${h_bnow},N,]}
-    HUDPATH entropy bN2     19,220,34,25,25,25,${If[${h_bnow},,_]}
-    HUDPATH entropy bP1     19,229,39,255,255,255,${If[${h_bpet},P,]}
-    HUDPATH entropy bP2     19,229,34,25,25,25,${If[${h_bpet},,_]}
+    HUDPATH entropy b1      ${Parse[0, "19,133,39,0,255,0,${If[${h_bmaster},buff,]}"]}
+    HUDPATH entropy b2      ${Parse[0, "19,133,39,255,0,0,${If[${h_bmaster},,buff]}"]}
+    HUDPATH entropy bS1     ${Parse[0, "19,157,39,255,255,255,${If[${h_bself},S,]}"]}
+    HUDPATH entropy bS2     ${Parse[0, "19,157,34,25,25,25,${If[${h_bself},,_]}"]}
+    HUDPATH entropy bC1     ${Parse[0, "19,166,39,255,255,255,${If[${h_bcrew},C,]}"]}
+    HUDPATH entropy bC2     ${Parse[0, "19,166,34,25,25,25,${If[${h_bcrew},,_]}"]}
+    HUDPATH entropy bR1     ${Parse[0, "19,175,39,255,255,255,${If[${h_braid},R,]}"]}
+    HUDPATH entropy bR2     ${Parse[0, "19,175,34,25,25,25,${If[${h_braid},,_]}"]}
+    HUDPATH entropy bB1     ${Parse[0, "19,184,39,255,255,255,${If[${h_bbeg},B,]}"]}
+    HUDPATH entropy bB2     ${Parse[0, "19,184,34,25,25,25,${If[${h_bbeg},,_]}"]}
+    HUDPATH entropy bT1     ${Parse[0, "19,193,39,255,255,255,${If[${h_btemp},T,]}"]}
+    HUDPATH entropy bT2     ${Parse[0, "19,193,34,25,25,25,${If[${h_btemp},,_]}"]}
+    HUDPATH entropy bU1     ${Parse[0, "19,202,39,255,255,255,${If[${h_bunity},U,]}"]}
+    HUDPATH entropy bU2     ${Parse[0, "19,202,34,25,25,25,${If[${h_bunity},,_]}"]}
+    HUDPATH entropy bA1     ${Parse[0, "19,211,39,255,255,255,${If[${h_baura},A,]}"]}
+    HUDPATH entropy bA2     ${Parse[0, "19,211,34,25,25,25,${If[${h_baura},,_]}"]}
+    HUDPATH entropy bN1     ${Parse[0, "19,220,39,255,255,255,${If[${h_bnow},N,]}"]}
+    HUDPATH entropy bN2     ${Parse[0, "19,220,34,25,25,25,${If[${h_bnow},,_]}"]}
+    HUDPATH entropy bP1     ${Parse[0, "19,229,39,255,255,255,${If[${h_bpet},P,]}"]}
+    HUDPATH entropy bP2     ${Parse[0, "19,229,34,25,25,25,${If[${h_bpet},,_]}"]}
 
 
     | burn
-    HUDPATH entropy burn1   19,255,39,0,255,0,${If[${h_buauto},burn,]}
-    HUDPATH entropy burn2   19,255,39,255,0,0,${If[${h_buauto},,burn]}
-    HUDPATH entropy burn4   19,280,39,255,255,255,${If[${h_bupct},${h_bupct},]}
-    HUDPATH entropy burn5   19,280,34,25,25,25,${If[${h_bupct},,__]}
-    HUDPATH entropy burn6   19,295,39,255,255,255,${If[${h_bucount},${h_bucount},]}
-    HUDPATH entropy burn7   19,295,34,25,25,25,${If[${h_bucount},,__]}
-    HUDPATH entropy burn8   19,310,39,255,255,255,${If[${h_buraid},R,]}
-    HUDPATH entropy burn9   19,310,34,25,25,25,${If[${h_buraid},,_]}
+    HUDPATH entropy burn1   ${Parse[0, "19,255,39,0,255,0,${If[${h_buauto},burn,]}"]}
+    HUDPATH entropy burn2   ${Parse[0, "19,255,39,255,0,0,${If[${h_buauto},,burn]}"]}
+    HUDPATH entropy burn4   ${Parse[0, "19,280,39,255,255,255,${If[${h_bupct},${h_bupct},]}"]}
+    HUDPATH entropy burn5   ${Parse[0, "19,280,34,25,25,25,${If[${h_bupct},,__]}"]}
+    HUDPATH entropy burn6   ${Parse[0, "19,295,39,255,255,255,${If[${h_bucount},${h_bucount},]}"]}
+    HUDPATH entropy burn7   ${Parse[0, "19,295,34,25,25,25,${If[${h_bucount},,__]}"]}
+    HUDPATH entropy burn8   ${Parse[0, "19,310,39,255,255,255,${If[${h_buraid},R,]}"]}
+    HUDPATH entropy burn9   ${Parse[0, "19,310,34,25,25,25,${If[${h_buraid},,_]}"]}
 
     HUDPATH entropy BG39    3,3,39,0,0,0,██████████████████████████████████████████
 
@@ -1551,22 +1563,22 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
     | toons loc
     HUDPATH entropy yxz1    3,5,52,100,149,237,yxz
-    HUDPATH entropy yxz2    3,40,52,140,140,140,"${Int[${Me.Y}]}, ${Int[${Me.X}]}, ${Int[${Me.Z}]}"
+    HUDPATH entropy yxz2    ${Parse[0, "3,40,52,140,140,140,${Int[${Me.Y}]}, ${Int[${Me.X}]}, ${Int[${Me.Z}]}"]}
 
 
     | rest
-    HUDPATH entropy rest1   19,255,52,0,255,0,${If[${Me.CombatState.Equal[resting]},rest,]}
-    HUDPATH entropy rest2   19,255,52,255,0,0,${If[${Me.CombatState.Equal[resting]},,rest]}
-    HUDPATH entropy rest3   19,280,52,255,255,255,"${If[${h_rpct},${h_rpct},]}"
-    HUDPATH entropy rest4   19,280,47,25,25,25,"${If[${h_rpct},,__]}"
-    HUDPATH entropy rest5   19,295,52,255,255,255,"${If[${h_rfull},F,]}"
-    HUDPATH entropy rest6   19,295,47,25,25,25,"${If[${h_rfull},,_]}"
-    HUDPATH entropy rest7   19,304,52,255,255,255,"${If[${h_rrod},R,]}"
-    HUDPATH entropy rest8   19,304,47,25,25,25,"${If[${h_rrod},,_]}"
-    HUDPATH entropy rest9   19,313,52,255,255,255,"${If[${h_rbuff},B,]}"
-    HUDPATH entropy rest10  19,313,47,25,25,25,"${If[${h_rbuff},,_]}"
-    HUDPATH entropy rest11  19,322,52,255,255,255,"${If[${h_rcombat},C,]}"
-    HUDPATH entropy rest12  19,322,47,25,25,25,"${If[${h_rcombat},,_]}"
+    HUDPATH entropy rest1   ${Parse[0, "19,255,52,0,255,0,${If[${Me.CombatState.Equal[resting]},rest,]}"]}
+    HUDPATH entropy rest2   ${Parse[0, "19,255,52,255,0,0,${If[${Me.CombatState.Equal[resting]},,rest]}"]}
+    HUDPATH entropy rest3   ${Parse[0, "19,280,52,255,255,255,${If[${h_rpct},${h_rpct},]}"]}
+    HUDPATH entropy rest4   ${Parse[0, "19,280,47,25,25,25,${If[${h_rpct},,__]}"]}
+    HUDPATH entropy rest5   ${Parse[0, "19,295,52,255,255,255,${If[${h_rfull},F,]}"]}
+    HUDPATH entropy rest6   ${Parse[0, "19,295,47,25,25,25,${If[${h_rfull},,_]}"]}
+    HUDPATH entropy rest7   ${Parse[0, "19,304,52,255,255,255,${If[${h_rrod},R,]}"]}
+    HUDPATH entropy rest8   ${Parse[0, "19,304,47,25,25,25,${If[${h_rrod},,_]}"]}
+    HUDPATH entropy rest9   ${Parse[0, "19,313,52,255,255,255,${If[${h_rbuff},B,]}"]}
+    HUDPATH entropy rest10  ${Parse[0, "19,313,47,25,25,25,${If[${h_rbuff},,_]}"]}
+    HUDPATH entropy rest11  ${Parse[0, "19,322,52,255,255,255,${If[${h_rcombat},C,]}"]}
+    HUDPATH entropy rest12  ${Parse[0, "19,322,47,25,25,25,${If[${h_rcombat},,_]}"]}
 
 
     HUDPATH entropy BG52    3,3,52,0,0,0,██████████████████████████████████████████
@@ -1574,41 +1586,82 @@ sub set_initialize_hud(bool _debug, string _verbage)
 	| row 65
 
     HUDPATH entropy envset1    3,5,65,100,149,237,set
-    HUDPATH entropy envset2    19,40,65,140,140,140,${h_eset}
+    HUDPATH entropy envset2    ${Parse[0, "19,40,65,140,140,140,${h_eset}"]}
 
     | rez
-    HUDPATH entropy rez1    19,255,65,0,255,0,${If[${h_ztake},rez,]}
-    HUDPATH entropy rez2    19,255,65,255,0,0,${If[${h_ztake},,rez]}
-    HUDPATH entropy rez3    19,275,65,255,255,255,${If[${h_zgive},G,]}
-    HUDPATH entropy rez4    19,275,60,25,25,25,${If[${h_zgive},,_]}
-    HUDPATH entropy rez5    19,284,65,255,255,255,${If[${h_zcombat},C,]}
-    HUDPATH entropy rez6    19,284,60,25,25,25,${If[${h_zcombat},,_]}
-    HUDPATH entropy rez7    19,293,65,255,255,255,${If[${h_zeveryone},E,]}
-    HUDPATH entropy rez8    19,293,60,25,25,25,${If[${h_zeveryone},,_]}
-    HUDPATH entropy rez9    19,302,65,255,255,255,${If[${h_ztoken},T,]}
-    HUDPATH entropy rez10   19,302,60,25,25,25,${If[${h_ztoken},,_]}
+    HUDPATH entropy rez1    ${Parse[0, "19,255,65,0,255,0,${If[${h_ztake},rez,]}"]}
+    HUDPATH entropy rez2    ${Parse[0, "19,255,65,255,0,0,${If[${h_ztake},,rez]}"]}
+    HUDPATH entropy rez3    ${Parse[0, "19,275,65,255,255,255,${If[${h_zgive},G,]}"]}
+    HUDPATH entropy rez4    ${Parse[0, "19,275,60,25,25,25,${If[${h_zgive},,_]}"]}
+    HUDPATH entropy rez5    ${Parse[0, "19,284,65,255,255,255,${If[${h_zcombat},C,]}"]}
+    HUDPATH entropy rez6    ${Parse[0, "19,284,60,25,25,25,${If[${h_zcombat},,_]}"]}
+    HUDPATH entropy rez7    ${Parse[0, "19,293,65,255,255,255,${If[${h_zeveryone},E,]}"]}
+    HUDPATH entropy rez8    ${Parse[0, "19,293,60,25,25,25,${If[${h_zeveryone},,_]}"]}
+    HUDPATH entropy rez9    ${Parse[0, "19,302,65,255,255,255,${If[${h_ztoken},T,]}"]}
+    HUDPATH entropy rez10   ${Parse[0, "19,302,60,25,25,25,${If[${h_ztoken},,_]}"]}
 
     HUDPATH entropy BG65    3,3,65,0,0,0,██████████████████████████████████████████
 
     | row 78
-    HUDPATH entropy body1   3,73,78,0,255,0,${If[${Target.LineOfSight},${Target.Body},]}
-    HUDPATH entropy body2   3,73,78,255,0,0,${If[${Target.LineOfSight},,${Target.Body}]}
-    HUDPATH entropy body3   3,145,78,140,140,140,${Target.Distance} (${Math.Calc[${Spawn[${Target.ID}].MaxRangeTo}*.9]})
-    HUDPATH entropy eng0    3,5,77,100,149,237,"[     ][     ][     ][                       ]"
-    HUDPATH entropy eng1    19,10,78,255,255,255,${If[${h_engage},${h_engage},]}
-    HUDPATH entropy eng2    19,12,73,25,25,25,${If[(!${h_engage},__,]}
-    HUDPATH entropy eng5    19,31,78,255,255,255,${If[${h_swpet},${h_engagepet},]}
-    HUDPATH entropy eng6    19,31,73,25,25,25,${If[!${h_swpet},__,]}
-    HUDPATH entropy eng8    19,52,78,255,255,255,${If[${h_swswarm},${h_engageswarm},]}
-    HUDPATH entropy eng9    19,52,73,25,25,25,${If[!${h_swswarm},__,]}
+    HUDPATH entropy body1   ${Parse[0, "3,73,78,0,255,0,${If[${Target.LineOfSight},${Target.Body},]}"]}
+    HUDPATH entropy body2   ${Parse[0, "3,73,78,255,0,0,${If[${Target.LineOfSight},,${Target.Body}]}"]}
+    HUDPATH entropy body3   ${Parse[0, "3,145,78,140,140,140,${Target.Distance} (${Math.Calc[${Spawn[${Target.ID}].MaxRangeTo}*.9]})"]}
+    HUDPATH entropy eng0    "3,5,77,100,149,237,[     ][     ][     ][                       ]"
+    HUDPATH entropy eng1    ${Parse[0, "19,10,78,255,255,255,${If[${h_engage},${h_engage},]}"]}
+    HUDPATH entropy eng2    ${Parse[0, "19,12,73,25,25,25,${If[(!${h_engage},__,]}"]}
+    HUDPATH entropy eng5    ${Parse[0, "19,31,78,255,255,255,${If[${h_swpet},${h_engagepet},]}"]}
+    HUDPATH entropy eng6    ${Parse[0, "19,31,73,25,25,25,${If[!${h_swpet},__,]}"]}
+    HUDPATH entropy eng8    ${Parse[0, "19,52,78,255,255,255,${If[${h_swswarm},${h_engageswarm},]}"]}
+    HUDPATH entropy eng9    ${Parse[0, "19,52,73,25,25,25,${If[!${h_swswarm},__,]}"]}
     HUDPATH entropy BG78    3,3,78,0,0,0,██████████████████████████████████████████
 
 
 
 	| row 91
-    HUDPATH entropy target		3,5,91,100,149,237,"${If[${Target.ID},[${Target.Class.ShortName} ${Target.Level}] ${Target.Name} ${If[${Bool[${Target.Guild}]},<${Target.Guild}>, ]}, ]}"
-    HUDPATH entropy time1			19,290,91,146,149,180,${If[${h_time},${Time.Time24},${GameTime}]}
-    HUDPATH entropy BG91    	3,3,91,0,0,0,██████████████████████████████████████████
+    HUDPATH entropy target		${Parse[0, "3,5,91,100,149,237,${If[${Target.ID},[${Target.Class.ShortName} ${Target.Level}] ${Target.Name} ${If[${Bool[${Target.Guild}]},<${Target.Guild}>, ]}, ]}"]}
+    HUDPATH entropy time1			${Parse[0, "19,290,91,146,149,180,${If[${h_time},${Time.Time24},${GameTime}]}"]}
+    HUDPATH entropy BG91    	"3,3,91,0,0,0,██████████████████████████████████████████"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   | cursor over hud
@@ -1632,13 +1685,13 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 	| row 123
     HUDPATH dev devCombat1	 		  19,5,123,100,149,237,combat
-    HUDPATH dev devCombat2	 		  19,45,123,0,255,0,${If[${h_dcombat},T,]}
-    HUDPATH dev devCombat3	 		  19,45,123,255,0,0,${If[${h_dcombat},,F]}
+    HUDPATH dev devCombat2	 		  19,45,123,0,255,0,${If[${maCC.Find[swSetCombat].Value},T,]}
+    HUDPATH dev devCombat3	 		  19,45,123,255,0,0,${If[${maCC.Find[swSetCombat].Value},,F]}
 
 
     HUDPATH dev devBurn1	 		 		19,80,123,100,149,237,burn
-    HUDPATH dev devBurn2	 			  19,110,123,0,255,0,${If[${h_dburn},T,]}
-    HUDPATH dev devBurn3	 		  	19,110,123,255,0,0,${If[${h_dburn},,F]}
+    HUDPATH dev devBurn2	 			  19,110,123,0,255,0,${If[${maBurn.Find[swBurnConditionMet].Value},T,]}
+    HUDPATH dev devBurn3	 		  	19,110,123,255,0,0,${If[${maBurn.Find[swBurnConditionMet].Value},,F]}
 
     HUDPATH dev hurtID1						19,130,123,100,149,237,hID
     HUDPATH dev hurtID2		 			  19,150,123,255,255,255,${hurtID}
@@ -1651,7 +1704,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH dev devTargetID2 		 	19,45,136,255,255,255,${Target.ID}
 
     HUDPATH dev stEnvRadius1			19,80,136,100,149,237,env
-    HUDPATH dev stEnvRadius2			19,110,136,255,255,255,"${SpawnCount[NPC radius ${h_denv}]}"
+    HUDPATH dev stEnvRadius2			19,110,136,255,255,255,"${SpawnCount[NPC radius ${maEnv.Find[stEnvRadius].Value}]}"
 
     HUDPATH dev hurtPctHP1				19,130,136,100,149,237,h%
     HUDPATH dev hurtPctHP2		 		19,150,136,255,255,255,${hurtPctHP}
@@ -1661,10 +1714,15 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 	| row 149
     HUDPATH dev devASSTargetID1   19,5,149,100,149,237,AssID
+
+
+
+
+
     HUDPATH dev devASSTargetID2  	19,45,149,255,255,255,${stAssTarID}
 
     HUDPATH dev stEnvSafeRadius1	19,80,149,100,149,237,safe
-    HUDPATH dev stEnvSafeRadius2	19,110,149,255,255,255,"${SpawnCount[NPC radius ${h_dsafe} playerstate 4]}"
+    HUDPATH dev stEnvSafeRadius2	19,110,149,255,255,255,"${SpawnCount[NPC radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}"
 
     HUDPATH dev hurtCLS1				19,130,149,100,149,237,hCL
     HUDPATH dev hurtCLS2		 		19,150,149,255,255,255,${hurtCLS}
@@ -1679,13 +1737,13 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH dev devIsDead3	 		  19,45,162,255,0,0,${If[${swIsMeDead},,F]}
 
     HUDPATH dev stPullRadius1			19,80,162,100,149,237,pull
-    HUDPATH dev stPullRadius2			19,110,162,255,255,255,"${SpawnCount[NPC radius ${h_dpull}]}"
+    HUDPATH dev stPullRadius2			19,110,162,255,255,255,"${SpawnCount[NPC radius ${maCC.Find[stPullRadius].Value}]}"
 
     HUDPATH dev hurtCount1				19,130,162,100,149,237,h#
     HUDPATH dev hurtCount2		 		19,150,162,255,255,255,${hurtCount}
 
     HUDPATH dev castStatus1				19,250,162,100,149,237,cR
-    HUDPATH dev castStatus2		 		19,265,162,255,255,255,${h_dcaststatus}
+    HUDPATH dev castStatus2		 		19,265,162,255,255,255,${maData.Find[stCastReturn].Value}
 
 
     HUDPATH dev BG162    					3,3,162,0,0,0,██████████████████████████████████████████

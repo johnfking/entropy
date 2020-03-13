@@ -823,7 +823,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 		/while (${Navigation.Active}) {
 			/delay 2
 		}
-		SETHUD FALSE
+		SETHUD EMPTY
 		| /if (${swActivePull}) /varset swActivePull FALSE
 		/return
 
@@ -1341,6 +1341,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	} else /if (${_type.Equal[engine]}) {
 		/if (!${set_control_num_range[${_debug}, stEngine, "${_verbage}", 1, 2]}) /return
 
+	| hud adjustments
 	} else /if (${_type.Equal[hud]}) {
 
 		| adjust hud clock
@@ -1357,12 +1358,15 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 		| reset the MQhud ini file
 		} else /if (${_verbage.Equal[update]}) {
 			/call set_initialize_hud FALSE ${_silent}
-			/loadhud ${_silent}
+			/squelch /loadhud ${_silent}
+			/return TRUE
 
 		| delete the hud
 		} else /if (${_verbage.Equal[delete]}) {
 			/ini ".\..\MQ2HUD.ini" "${_silent}" NULL NULL
 			/invoke ${out[12, "Deleting MQ2HUD.INI${sep}\a-w${_silent}\ax"]}
+			/squelch /unloadhud ${_silent}
+			/return TRUE
 
 		}
 
@@ -2821,21 +2825,33 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 
 		| enable combat: Heal
 		} else /if (${_verbage.Equal[heal]}) {
+			/if (!${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
+				/return FALSE
+			}
 			/invoke ${set_switch_env[${_debug}, swCombatHeal, TRUE, ${_silent}]}
 
 		| enable combat: Heal
 		} else /if (${_verbage.Equal[cc]}) {
+			/if (!${Select[${Me.Class.ShortName},ENC,BRD]}) {
+				/return FALSE
+			}
 			/invoke ${set_switch_env[${_debug}, swCombatControl, TRUE, ${_silent}]}
 
 		}
 
 		/invoke ${maControl.Clear}
-		/invoke ${maControl.Add[cc,swCombatControl]}
+		/invoke ${maControl.Add[range,swCombatRange]}
 		/invoke ${maControl.Add[dot,swCombatDoT]}
-		/invoke ${maControl.Add[heal,swCombatHeal]}
 		/invoke ${maControl.Add[melee,swCombatMelee]}
 		/invoke ${maControl.Add[nuke,swCombatNuke]}
-		/invoke ${maControl.Add[range,swCombatRange]}
+
+		/if (${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
+			/invoke ${maControl.Add[heal,swCombatHeal]}
+		}
+		/if (${Select[${Me.Class.ShortName},ENC,BRD]}) {
+			/invoke ${maControl.Add[cc,swCombatControl]}
+		}
+
 		/invoke ${set_control_output[${_debug}, maCC, "cc mode", maControl]}
 		/return TRUE
 

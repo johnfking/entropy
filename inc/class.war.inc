@@ -88,7 +88,7 @@ sub main_WAR(bool _debug)
 
 	/while (${check_combat_status[FALSE]}) {
 		GETINPUT
-		/call check_heal_routines
+		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/if (${check_class_loop[FALSE]}) /return
 
 		/if (VALID) {
@@ -334,7 +334,7 @@ sub check_heal_WAR(bool _debug, string _type)
 	SETHUD "heal ${_type}"
 
  	/if (!${get_hurt[FALSE, Self]} || ${Me.PctHPs} >= ${maHeal.Find[stHealPointWAR].Value}*.PCTHO) {
-		SETHUD FALSE
+		SETHUD EMPTY
  		/return FALSE
  	}
 

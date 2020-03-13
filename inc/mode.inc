@@ -117,7 +117,7 @@ sub mode_trainskill(bool _debug)
 		}
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -154,7 +154,7 @@ sub mode_fish(bool _debug)
 
 	/call check_cursor ${_debug} TRUE
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -195,7 +195,7 @@ sub mode_forage(bool _debug)
 		/delay 2
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -230,7 +230,7 @@ sub mode_drag(bool _debug)
 		/next _count
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return
 
@@ -265,13 +265,13 @@ sub mode_hunt2(bool _debug)
 		/call get_target_navpull ${_debug} TARGET
 	}	else /if (!${Spawn[id TARGET].ID}) {
 		/call clear_combat ${_debug}
-		SETHUD FALSE
+		SETHUD EMPTY
 		/return FALSE
 	}
 
 	/call set_combat ${_debug}
 	/delay 1s
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -307,7 +307,7 @@ sub mode_hunt2(bool _debug)
 	}
 
 	/varset swModeToken FALSE
-	SETHUD FALSE
+	SETHUD EMPTY
 /return
 
 
@@ -346,7 +346,7 @@ sub mode_petfarm(bool _debug)
 
 	/if (!TARGET) {
 		DEBUG \arNO\ax stAssTarID
-		SETHUD FALSE
+		SETHUD EMPTY
 		GETINPUT
 		/call where_the_fuck_is_my_pet ${_debug} FORCE
 		/return FALSE
@@ -380,7 +380,7 @@ sub mode_petfarm(bool _debug)
 	/call where_the_fuck_is_my_pet ${_debug} FORCE
 	/call clear_combat
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return
 
@@ -412,7 +412,7 @@ sub mode_harvest(bool _debug)
 	}
 
 	/delay 1s
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return
 
@@ -542,7 +542,7 @@ sub mode_get_waisted(bool _debug)
 		VOUT Drinking ${sep} ${cinfo}${_ale}\ax
 		/useitem ${_ale}
 	}
-	SETHUD FALSE
+	SETHUD EMPTY
 /return
 
 
@@ -577,7 +577,7 @@ sub mode_lush(bool _debug)
 		/return TRUE
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
@@ -652,7 +652,7 @@ sub mode_open(string _type, bool _debug)
 		/return
 	}
 
-	SETHUD FALSE
+	SETHUD EMPTY
 /return
 
 
@@ -829,7 +829,7 @@ sub mode_hunt(bool _debug)
 	/invoke ${maOver.Add[swOverLOS,FALSE]}
 	/varset swModeToken FALSE
 
-	SETHUD FALSE
+	SETHUD EMPTY
 
 /return TRUE
 
