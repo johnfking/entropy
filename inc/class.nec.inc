@@ -234,6 +234,11 @@ sub burn_NEC(bool _debug, int _tmpID)
 		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	}
 
+	/if (ENGINE2) {
+		/call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+		/return TRUE
+	}
+
 	| /if (${Me.Song[Gift of Deathly Resolve].ID}) /call cast_DOT FALSE TARGET
 
 	| /if (!${Me.Song[Gift of Deathly Resolve].ID} && ${Me.Buff[Deathly Resolve].ID}) /call cast_nuke FALSE TARGET

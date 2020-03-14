@@ -1114,8 +1114,8 @@ sub Bind_control_requestbuff(string _toon, string _operate, string _buff)
  * use:
  ***|
 #Bind control_heal /heal
-sub Bind_control_heal(string _type, string _verbage, string _silent, string _vergbage2, bool _debug)
-	DEBUG \atcontrol_heal\ax(\a-w${_type}, ${_verbage}, ${_silent}, ${_vergbage2}\ax)
+sub Bind_control_heal(string _type, string _verbage, string _silent, string _verbage2, bool _debug)
+	DEBUG \atcontrol_heal\ax(\a-w${_type}, ${_verbage}, ${_silent}, ${_verbage2}\ax)
 
 	| output control map
 	/if (${_type.Equal[see]}) {
@@ -1150,7 +1150,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 		} else /if (${Select[${_verbage},con]}) {
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stHeal${_type}Con" "${_silent}"
 		} else /if (${Select[${_verbage},tag]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsNuke${_type}Tag" ${_silent} ${_verbage2}
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsHeal${_type}Tag" ${_silent} ${_verbage2}
 		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stHeal${_type}" "${_verbage}"
 		}
@@ -1944,10 +1944,6 @@ sub Bind_noparse_raw_edit(string _variable, string _value, string _add_delete, s
 /return	TRUE
 
 
-${MacroQuest.LastCommand.Arg[1,/]}
-
-
-
 |***
  * note: lets see what we can see
  * use: /see [a thing]
@@ -1963,7 +1959,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
 		/call Bind_command_aux see
 		/return	FALSE
-	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song]}) {
+	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song,burn]}) {
 		/invoke ${out[0, "Crack says your input sucks${sep}\a-w${_variable}\ax"]}
 		/return FALSE
 	}
@@ -2257,6 +2253,53 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		}
 
 
+	| see burn info
+	} else /if (${_variable.Equal[burn]}) {
+
+		/if (${_verbage.Equal[list]}) {
+			/echo
+			/invoke ${out[12, "\awBurn List\ax${sep}"]}
+			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_burn WHERE env_var="lsLineBurn"
+			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
+
+			/declare _licountburn listiterator local
+		  /vardata _licountburn lsCount20.First.Clone
+		  /while (!${_licountburn.IsEnd}) {
+				/if (${Bool[${maBurn.Find[stBurn${_licountburn.Value}].Value}]}) {
+					/invoke ${out[12, "\awstBurn${_licountburn.Value}\ax${sep}${If[${maBurn.Find[swBurn${_licountburn.Value}].Value},${on},${off}]}${sep}\a-w${maBurn.Find[stBurn${_licountburn.Value}].Value}\ax"]}
+				}
+		    /invoke ${_licountburn.Advance}
+		  }
+
+			/if (${_silent.NotEqual[silent]}) ${out[18, "${eol}"]}
+			/echo
+			/return
+		}
+
+		/if (!${Range.Between[1,20:${Int[${_verbage}]}]}) {
+			/call Bind_command_aux burn
+			/return
+		}
+		/invoke ${out[12, "\awBurn #${_verbage}\ax${sep}${If[${maBurn.Find[swBurn${_verbage}].Value},${on},${off}]}"]}
+		/invoke ${out[12, "stBurn\aw${_verbage}\ax${sep}\a-w${maBurn.Find[stBurn${_verbage}].Value}\ax"]}
+
+		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maBurn.Find[stBurn${_verbage}Con].Value}"
+		/if (${sqlite.Rows[dummy]}) {
+			OUT stBurn\aw${_verbage}\axCon${sep}\a-w${maBurn.Find[stBurn${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
+		} else {
+			OUT stBurn\aw${_verbage}\axCon${sep}\a-w${maBurn.Find[stBurn${_verbage}Con].Value}\ax
+		}
+
+		/invoke ${out[12, "lsBurn\aw${_verbage}\axTag"]}
+
+		/declare hli listiterator local
+		/vardata hli lsBurn${_verbage}Tag.First.Clone
+		/while (!${hli.IsEnd}) {
+			/invoke ${out[12, "${dot}\a-w${hli.Value}\ax"]}
+			/invoke ${hli.Advance}
+		}
+
+
 	| see defense info
 	} else /if (${_variable.Equal[defense]}) {
 
@@ -2493,8 +2536,8 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
  * use: /burn []
  ***|
 #bind control_burn /burn
-sub Bind_control_burn(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atBind_control_burn\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
+sub Bind_control_burn(string _type, string _verbage, string _silent, string _verbage2, bool _debug)
+	DEBUG \atBind_control_burn\ax(\a-w${_type}, ${_verbage}, ${_silent}, ${_verbage2}\ax)
 
 	| output control map
 	/if (${_type.Equal[see]}) {
@@ -2503,6 +2546,41 @@ sub Bind_control_burn(string _type, string _verbage, string _silent, bool _debug
 	} else /if (${_type.Equal[aux]}) {
 		/call Bind_command_aux burn ${_verbage}
 		/return
+
+	} else /if (${_type.Equal[list]}) {
+		/call Bind_command_see burn list
+		/return	TRUE
+
+	| burn number entered
+	} else /if (${Range.Between[1,20:${Int[${_type}]}]}) {
+
+		| see the defensive #
+		/if (${_verbage.Equal[see]}) {
+			/call Bind_command_see burn ${_type}
+			/return
+		}
+
+		/if (!${Bool[${_verbage}]} && ${_verbage.NotEqual[FALSE]}) {
+			/invoke ${set_switch_env[${_debug}, swBurn${_type}, TRUE, ${_verbage}]}
+			/invoke ${out[12, "\awBurn${_type}\ax${sep}${If[${maBurn.Find[swBurn${_type}].Value},${on},${off}]}${sep}\a-w${maBurn.Find[stBurn${_type}].Value}\ax"]}
+			/return TRUE
+		} else /if (${Select[${_verbage},clear]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swBurn${_type}" FALSE
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBurn${_type}Con" "0"
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBurn${_type}Alias" clear
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBurn${_type}" FALSE
+		} else /if (${Select[${_verbage},con]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBurn${_type}Con" "${_silent}"
+		} else /if (${Select[${_verbage},tag]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsBurn${_type}Tag" ${_silent} ${_verbage2}
+		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBurn${_type}" "${_verbage}"
+		}
+
+		/call Bind_command_see burn ${_type}
+
+		/return TRUE
+
 
 	| Burn Automatic on/off
 	} else /if (${_type.Equal[auto]}) {
@@ -5194,20 +5272,20 @@ sub Bind_control_song(string _type, string _verbage, string _verbage2, string _s
 
 |***
  * note: simple line adjustment command
- * use: /line [nuke|dot|song|heal] #|#|#|#|#|#|# and so on
+ * use: /line [type] #|#|#|#|#|#|# and so on
  ***|
 #bind command_line /line
 sub Bind_command_line(string _type, string _line)
 
 	/declare lsControl list local
-	/invoke ${lsControl.Append[nuke,song,dot,heal,item,miscdps]}
+	/invoke ${lsControl.Append[nuke,song,dot,heal,item,miscdps,agro,defense,burn]}
 
 	| error control
 	/if (!${lsControl.Contains[${_type}]}) {
 		/if (ENGINE1) {
 			/invoke ${out[0, "/line \awnuke\ax|\awdot\ax|\awsong\ax|\awheal\ax|\awdefense\ax \aw#|#|#|#|#\ax"]}
 		} elsae /if (ENGINE2) {
-			/invoke ${out[0, "/line \awnuke\ax|\awdot\ax|\awsong\ax|\awheal\ax|\awdefense\ax|\awagro\ax|\awmiscdps\ax \aw#|#|#|#|#\ax"]}
+			/invoke ${out[0, "/line \awnuke\ax|\awdot\ax|\awsong\ax|\awheal\ax|\awdefense\ax|\awagro\ax|\awmiscdps\ax|\awburn\ax \aw#|#|#|#|#\ax"]}
 		}
 		/return FALSE
 	}

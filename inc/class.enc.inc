@@ -349,6 +349,11 @@ sub burn_ENC(bool _debug, int _tmpID)
 		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	}
 
+	/if (ENGINE2) {
+		/call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+		/return TRUE
+	}
+
 	/if (${is_ready[${_debug}, "Illusions of Grandeur"]}) {
 		/call voodoo ${_debug} "Illusions of Grandeur" 0 FALSE
 	}

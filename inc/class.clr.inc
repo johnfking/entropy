@@ -522,6 +522,12 @@ sub burn_CLR(bool _debug, int _tmpID)
 		}
 	}
 
+	/if (ENGINE2) {
+		/call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+		/return TRUE
+	}
+
+
 
 	| Group AA Celestial Regeneration
  	/if (${maChr.Find[swHealGroupOverTime].Value} && ${Group}) {

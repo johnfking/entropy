@@ -378,8 +378,12 @@ sub burn_SHD(bool _debug, int _tmpID)
 	CHECKTIE
 
 	CHECKDEFENSE
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
 
 	| deflection
 	/if (!${Me.ActiveDisc.ID} && ${Me.PctHPs} < 50*.PCTHO) {
@@ -387,6 +391,11 @@ sub burn_SHD(bool _debug, int _tmpID)
 			/call voodoo ${_debug} "Deflection Discipline" 0 FALSE
 			/return TRUE
 		}
+	}
+
+	/if (ENGINE2) {
+		/call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+		/return TRUE
 	}
 
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa

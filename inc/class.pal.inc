@@ -520,7 +520,7 @@ sub cast_AA_marrs_gift(bool _debug)
  * use: seriously why bother
  ***|
 sub burn_PAL(bool _debug, int _tmpID)
-	DEBUG \atburn_PAL\ax()
+	DEBUG \atburn_PAL\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
 
@@ -534,8 +534,18 @@ sub burn_PAL(bool _debug, int _tmpID)
 
 	CHECKDEFENSE
 
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} TARGET
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	}
+
+	/if (ENGINE2) {
+		/call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+		/return TRUE
+	}
+
 
 	| deflection
 	/if (!${Bool[${Me.ActiveDisc}]} && ${Me.PctHPs} < 50*.PCTHO) {

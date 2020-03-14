@@ -11615,11 +11615,85 @@ sub cast_cycle_miscdps(bool _debug, int _tmpID)
 
 
 
+|***
+ * note: casts burns from maBurn
+ * use: /call cast_cycle_burn DEBUG [TARGETID]
+ ***|
+sub cast_cycle_burn(bool _debug, int _tmpID)
+	DEBUG \atcast_cycle_burn\ax(\a-w${_tmpID}\ax)
+	FLOW cast_cycle_burn ${_tmpID} (1)
+
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineBurn.Contains[EMPTY]} && ${lsLineBurn.Count} == 1) {
+		DEBUG ${sep}resetting the empty burn line
+		/invoke ${lsLineBurn.Clear}
+		/invoke ${lsLineBurn.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+	}
+
+	/declare _liC20 listiterator local
+	/vardata _liC20 lsLineBurn.First.Clone
+	/while (!${_liC20.IsEnd}) {
+
+
+		GETINPUT cast_cycle_burn NA|NA
+		ISMEDEAD
+		CHECKEXIT cast_cycle_burn
+		FLOW cast_cycle_burn ${_tmpID} (2)
+
+		/if (${target[isdead, ${_tmpID}]}) {
+			FLOW cast_cycle_burn ${_tmpID}
+			/return FALSE
+		}
+
+		/invoke ${target[set, ${_tmpID}]}
+		FLOW cast_cycle_burn ${_tmpID}
+
+		| check the switch
+		/if (!${Bool[${maBurn.Find[swBurn${_liC20.Value}].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| check the name
+		/if (!${Bool[${maBurn.Find[stBurn${_liC20.Value}].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/if (!${is_ready[${_debug}, "${maBurn.Find[stBurn${_liC20.Value}].Value}"]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		| apply any conditions
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maBurn.Find[stBurn${_liC20.Value}Con].Value}]}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/call check_basic_tags ${_debug} Burn${_liC20.Value} FALSE "${maBurn.Find[stBurn${_liC20.Value}].Value}"
+		/if (!${Macro.Return}) {
+			/invoke ${_liC20.Advance}
+			/continue
+		}
+
+		/call voodoo ${_debug} "${maBurn.Find[stBurn${_liC20.Value}].Value}" ${_tmpID} FALSE
+
+
+		/if (${Select[${maData.Find[stCastReturn].Value},OUTOFMANA,STUNNED]} && !${maBurn.Find[stBurnDelay].Value}) {
+			/break
+		}
+
+		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED]} && !${maBurn.Find[stBurnDelay].Value}) {
+			/break
+		}
 
 
 
+		/invoke ${_liC20.Advance}
+	}
 
-
+/return TRUE
 
 
 

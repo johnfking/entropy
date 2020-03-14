@@ -17,6 +17,17 @@ on the to do list
 
 
 
+
+A200314.04
+- /burn has been ported to engine 2
+  if you set the engine to 2, you can design your own burn routine
+  this is not a requirement, completely optional
+- /line has been expanded to burn
+  /line burn #|#|#|#|# (engine 2 only)
+- burn controls have been moved from character DB to burn
+  you will need to reset your values
+
+
 A200314.01
 - cleric
   arbitration will now exit heal loop to force recalculations of hurt members.

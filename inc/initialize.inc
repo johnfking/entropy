@@ -600,6 +600,7 @@ sub sql_set_character_schema(bool _debug)
   /invoke ${maDBTables.Add[environment_dot,env_var]}
   /invoke ${maDBTables.Add[environment_agro,env_var]}
   /invoke ${maDBTables.Add[environment_miscdps,env_var]}
+  /invoke ${maDBTables.Add[environment_burn,env_var]}
 
   /sqlite ${maData.Find[DBcharacter].Value} SQL_ENV_BUILD SELECT build_number FROM build
   DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[dummy]}\ax
@@ -991,11 +992,12 @@ sub set_initialize_map_character_environment(bool _debug)
 
 |** control: burn **|
   /call set_data ${_debug} maBurn swBurnConditionMet                      map outer FALSE
-  /call set_data_map ${_debug} maBurn swBurnForce                         FALSE                         "${auxsw} force burn routines"
-  /call set_data_map ${_debug} maBurn swBurnAuto                          FALSE                         "${auxsw} auto burn on named encounters"
-  /call set_data_map ${_debug} maBurn stPctBurnEngage                     99                            "${auxnum} % of mobs health to start burns"
-  /call set_data_map ${_debug} maBurn stBurnCount                         0                             "${auxnum} number of mobs in your area to auto engage burns"
-  /call set_data_map ${_debug} maBurn swBurnRaid                          FALSE                         "${auxsw} use burns on raids"
+  /call set_data_map ${_debug} maBurn swBurnForce                         FALSE                         "${auxsw} force burn routines"																		burn
+  /call set_data_map ${_debug} maBurn swBurnAuto                          FALSE                         "${auxsw} auto burn on named encounters"													burn
+  /call set_data_map ${_debug} maBurn stPctBurnEngage                     99                            "${auxnum} % of mobs health to start burns"												burn
+  /call set_data_map ${_debug} maBurn stBurnCount                         0                             "${auxnum} number of mobs in your area to auto engage burns"			burn
+  /call set_data_map ${_debug} maBurn swBurnRaid                          FALSE                         "${auxsw} use burns on raids"																			burn
+  /call set_data_list ${_debug} maBurn lsaLineBurn                        FALSE                         "${auxli} alternate burn line order"															burn
 
 	| /call sql_control FALSE ${chrID} stoponDS                           bool      outer FALSE
 
@@ -1209,6 +1211,7 @@ sub set_initialize_map_20(bool _debug)
 	/invoke ${_tmpMap.Add[Item,item]}
 	/invoke ${_tmpMap.Add[Agro,agro]}
 	/invoke ${_tmpMap.Add[Song,song]}
+	/invoke ${_tmpMap.Add[Burn,burn]}
 
   /vardata _tmi _tmpMap.First.Clone
   /while (!${_tmi.IsEnd}) {

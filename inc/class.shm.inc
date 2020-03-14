@@ -342,6 +342,11 @@ sub burn_SHM(bool _debug, int _tmpID)
 		}
 	}
 
+	/if (ENGINE2) {
+		/call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+		/return TRUE
+	}
+
 	| Lower spell resists
 	/if (${is_ready[${_debug}, "Dampen Resistance"]}) {
 		/call voodoo ${_debug} "Dampen Resistance" ${_tmpID} FALSE

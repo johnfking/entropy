@@ -330,8 +330,17 @@ sub burn_ROG(bool _debug, int _tmpID)
 	CHECKTIE
 
 	CHECKDEFENSE
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
+
+	/if (ENGINE2) {
+		/call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+		/return TRUE
+	}
 
 	/if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stPlay].Value}]} && ${Me.CombatAbilityReady[${Spell[${maChr.Find[stFrenzy].Value}].RankName}]}) {
 		:loopmakestop

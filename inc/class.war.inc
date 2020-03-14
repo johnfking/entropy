@@ -369,6 +369,11 @@ sub burn_WAR(bool _debug, int _tmpID)
 		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	}
 
+	/if (ENGINE2) {
+		/call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+		/return TRUE
+	}
+
 	/if (${maChr.Find[stPctShieldFlash].Value} && ${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE disc
 
 	CHECKDEFENSE

@@ -90,7 +90,7 @@ sub main_MAG(bool _debug)
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
-			/if (BURN) /call burn_${Me.Class.ShortName}
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			| /if (${swAlliance}) /call trigger_alliance TARGET
@@ -224,20 +224,28 @@ sub check_heal_MAG(bool _debug, string _type)
  * use: establish all comp/trigger skills
  *	NOTE:
  ***|
-sub burn_MAG(bool _debug)
-	DEBUG \atburn_MAG\ax()
+sub burn_MAG(bool _debug, int _tmpID)
+	DEBUG \atburn_MAG\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${target[isdead, TARGET]}) /return FALSE
+	/if (${target[isdead, ${_tmpID}]}) /return FALSE
 
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
 
 	CHECKDEFENSE
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} TARGET
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
 
+	/if (ENGINE2) {
+		/call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+		/return TRUE
+	}
 
 	/if (${is_ready[${_debug}, "Elemental Ward"]}) {
 		/call voodoo ${_debug} "Elemental Ward" 0 FALSE

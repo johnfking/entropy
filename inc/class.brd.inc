@@ -379,6 +379,11 @@ sub burn_BRD(bool _debug, int _tmpID)
 		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	}
 
+	/if (ENGINE2) {
+		/call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+		/return TRUE
+	}
+
 	/call control_routine FALSE
 
  	/if (${is_ready[${_debug}, "Thousand Blades"]}) {

@@ -296,8 +296,18 @@ sub burn_RNG(bool _debug, int _tmpID)
 	CHECKTIE
 
 	CHECKDEFENSE
-	/if (SWARM || PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
-	/if (AUTO && MELEE) /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
+
+	/if (ENGINE2) {
+		/call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+		/return TRUE
+	}
+
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
