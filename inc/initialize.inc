@@ -803,6 +803,7 @@ sub set_initialize_map_character_environment(bool _debug)
 |** control: defense **|
   /call set_data_map ${_debug} maDefense stCountDef                       FALSE                         "${auxna} number of imediate area mobs to activate defensive"
   /call set_data_map ${_debug} maDefense stPctDef	                        FALSE                         "${auxna} pct of health to activate a defensive"
+  /call set_data_list ${_debug} maDefense lsLineDefense                   EMPTY                         "${auxli} alternate defense activation order"
 
 
 |** control: rez **|
@@ -1108,6 +1109,13 @@ sub set_initialize_map_character_environment(bool _debug)
 |** control: TTL  **|
   /call set_data_map ${_debug} maTTL swTTL				                        FALSE                         "${auxsw} use ttl logic"
 
+
+|** control: MiscDPS  **|
+  /call set_data_list ${_debug} maMiscDPS lsLineMiscdps                   EMPTY                         "${auxli} alternate activation order for miscdps routine (engine 2)"
+
+
+|** control: Agro  **|
+  /call set_data_list ${_debug} maAgro lsLineAgro              						EMPTY                         "${auxli} alternate activation order for agro routine (engine 2)"
 
 
 	/if (${maDebug.Find[init].Value}) {
@@ -1519,7 +1527,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 	| row 39
     HUDPATH entropy mode1   19,5,39,100,149,237,mode
-    HUDPATH entropy mode2   ${Parse[0, "19,40,39,255,255,255,${If[${h_mode.Equal[EMPTY]},,${h_mode}]}"]}
+    HUDPATH entropy mode2   ${Parse[0, "19,40,39,255,255,255,${If[${h_mode.NotEqual[EMPTY]},${h_mode},]}"]}
 
 	| buffing
     HUDPATH entropy b1      ${Parse[0, "19,133,39,0,255,0,${If[${h_bmaster},buff,]}"]}

@@ -941,7 +941,7 @@ sub get_hurt(bool _debug, string _type)
 			/if (${lsNoHealToon.Contains[${Me.XTarget[${_count}].DisplayName}]}) /continue
 	  	/if (!${Me.XTarget[${_count}].Type.Equal[PC]} && !${lsProtectNPCList.Contains[${Me.XTarget[${_count}].DisplayName}]}) /continue
 			/if (${Me.XTarget[${_count}].PctHPs} > ${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}*.PCTHO) /continue
-			/varcalc _tmpWeight (${Group.Member[${_count}].PctHPs} / ${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}) + .${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}
+			/varcalc _tmpWeight (${Me.XTarget[${_count}].PctHPs} / ${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}) + .${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}
 
 			/if (${_tmpWeight} > ${_hurtWeight}) {
 				/varset hurtID ${Me.XTarget[${_count}].ID}
@@ -2330,7 +2330,7 @@ sub check_xtarget_build(bool _debug, string _forced)
 			}
 
 			| out of xtarget slots?
-			/if (${_b} > ${Me.XTargetSlots})
+			/if (${_b} > ${Me.XTargetSlots}) {
 				/break
 			}
 
@@ -9044,16 +9044,20 @@ sub cast_glyph(bool _debug)
 	/if (${maCC.Find[stGlyph].Value.Equal[FALSE]}) /return FALSE
 
 	/if (${Raid.Members}) {
-		/if (!${maCC.Find[swGlyphRaid].Value}) /return FALSE
+		/if (!${maCC.Find[swGlyphRaid].Value}) {
+			/return FALSE
+		}
 	} else /if (${Group.Members}) {
-		/if (!${maCC.Find[swGlyphGroup].Value}) /return FALSE
+		/if (!${maCC.Find[swGlyphGroup].Value}) {
+			/return FALSE
+		}
 	}
 
 	ISMEDEAD
 	GETINPUT cast_glyph NA|NA
 
 	| buy the AA
-	/if (!${Me.AltAbility[${maCC.Find[stGlyph].Value}].ID} && ${Me.AAPoints} >= ${AltAbility[${maCC.Find[stGlyph].Value}].Cost}) {
+	/if (!${Me.AltAbility[${maCC.Find[stGlyph].Value}].ID} && ${Me.AAPoints} >= ${AltAbility[${maCC.Find[stGlyph].Value}].Cost} && ${AltAbility[${maCC.Find[stGlyph].Value}].CanTrain}) {
 		DEBUG${sep}Buying${sep}\a-w${maCC.Find[stGlyph].Value}\ax
 		/alt buy ${AltAbility[${maCC.Find[stGlyph].Value}].ID}
 	}
@@ -9063,14 +9067,14 @@ sub cast_glyph(bool _debug)
 	}
 
 	| buy it again if you can
-	/if (!${Me.AltAbility[${maCC.Find[stGlyph].Value}].ID} && ${Me.AAPoints} >= ${AltAbility[${maCC.Find[stGlyph].Value}].Cost}) {
+	/if (!${Me.AltAbility[${maCC.Find[stGlyph].Value}].ID} && ${Me.AAPoints} >= ${AltAbility[${maCC.Find[stGlyph].Value}].Cost} && ${AltAbility[${maCC.Find[stGlyph].Value}].CanTrain}) {
 		DEBUG${sep}Buying${sep}\a-w${maCC.Find[stGlyph].Value}\ax (if we used)
 		/alt buy ${AltAbility[${maCC.Find[stGlyph].Value}].ID}
 	}
 
 /return TRUE
 
-
+${AltAbility[${maCC.Find[stGlyph].Value}].CanTrain}
 
 |***
  * note: uses the aa Spire you have set
@@ -9119,6 +9123,7 @@ sub cast_AA_spire(bool _debug)
  * use: not for your use
  ***|
 sub set_hud_data(string _mode)
+	| SDEBUG \atset_hud_data\ax(\a-w${_mode}\ax)
 
 	/varset h_build ${maEnv.Find[build].Value}
 
@@ -9127,7 +9132,6 @@ sub set_hud_data(string _mode)
 	} else {
 		/varset h_mode
 	}
-
 
 	/varset h_time 					${maData.Find[swHUDTime].Value}
 
@@ -10562,7 +10566,7 @@ sub set_dnet_group(bool _debug)
 
 |***
  * note: checks heal routines by class
- * use: ${set_dnet_group[DEBUG]}
+ * use: /call check_heal_routines
  ***|
 sub check_heal_routines()
 	FLOW check_heal_routines
@@ -10587,12 +10591,12 @@ sub check_heal_routines()
 
 	| heal: extended target lists
 	/if (${lsClassHealXT.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealXTarget].Value}) {
-		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} XTarget
+		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[xt].Value} XTarget
 	}
 
 	| heal: pets
 	/if (${lsClassHealPet.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealPet].Value}) {
-		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[heal].Value} Pet
+		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[pet].Value} Pet
 	}
 
 	| heal: curing
@@ -11172,7 +11176,6 @@ sub cast_cycle_heal(bool _debug, int _tmpID)
 	DEBUG \atcast_cycle_heal\ax(\a-w${_tmpID}\ax)
 	FLOW cast_cycle_heal ${_tmpID} (1)
 
-
 	| if the user has not set the line order, set it to a default for now
 	/if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
 		DEBUG ${sep}resetting the empty heal line
@@ -11459,15 +11462,22 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 
 
 |***
- * note: casts dots from maAgro
+ * note: casts skills from maAgro for engine2
  * use: /call cast_cycle_agro DEBUG [TARGETID]
  ***|
 sub cast_cycle_agro(bool _debug, int _tmpID)
 	DEBUG \atcast_cycle_agro\ax(\a-w${_tmpID}\ax)
 	FLOW cast_cycle_agro ${_tmpID} (1)
 
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineAgro.Contains[EMPTY]} && ${lsLineAgro.Count} == 1) {
+		DEBUG ${sep}resetting the empty agro line
+		/invoke ${lsLineAgro.Clear}
+		/invoke ${lsLineAgro.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+	}
+
 	/declare _liC20 listiterator local
-	/vardata _liC20 lsCount20.First.Clone
+	/vardata _liC20 lsLineAgro.First.Clone
 	/while (!${_liC20.IsEnd}) {
 
 		/if (${target[isdead, ${_tmpID}]}) {
@@ -11534,8 +11544,19 @@ sub cast_cycle_miscdps(bool _debug, int _tmpID)
 	DEBUG \atcast_cycle_miscdps\ax(\a-w${_tmpID}\ax)
 	FLOW cast_cycle_miscdps ${_tmpID} (1)
 
+
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineMiscdps.Contains[EMPTY]} && ${lsLineMiscdps.Count} == 1) {
+		DEBUG ${sep}resetting the empty MiscDPS line
+		/invoke ${lsLineMiscdps.Clear}
+		/invoke ${lsLineMiscdps.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+		/invoke ${lsLineMiscdps.Append[21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40]}
+		/invoke ${lsLineMiscdps.Append[41|42|43|44|45|46|47|48|49|50]}
+	}
+
+
 	/declare _liC50 listiterator local
-	/vardata _liC50 lsCount20.First.Clone
+	/vardata _liC50 lsLineMiscdps.First.Clone
 	/while (!${_liC50.IsEnd}) {
 
 		/if (${target[isdead, ${_tmpID}]}) {

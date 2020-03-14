@@ -325,12 +325,15 @@ sub check_heal_CLR(bool _debug, string _type)
 				  | AA arb
 				  /if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
 				    /call voodoo ${_debug} "${maChr.Find[stAADivineArbitration].Value}" 0 FALSE
+				    /return TRUE
 					| Second epic shield
 				  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
 				    /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
+				    /return TRUE
 				  | First epic shield
 				  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
 				    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
+				    /return TRUE
 				  }
 				}
 			}

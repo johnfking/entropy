@@ -17,13 +17,27 @@ on the to do list
 
 
 
+A200314.01
+- cleric
+  arbitration will now exit heal loop to force recalculations of hurt members.
+- xtarget
+  fixed a missing { for out of group healing population
+	fixed a bad weight calculation in the xtarget healing
+- glyph usage for burns
+  should not try to buy the glyph when you already have it.. "should"
+- /line has been extended to:
+  /line agro #|#|#|#|# (engine 2 only)
+  /line discdps #|#|#|#|# (engine 2 only)
+  /line defense #|#|#|#|#
+
+
 A200313.01
 - HUD
   made some changes in preperation for MQ2Next parsing and paths
 - /cc mode
   heal has been limited to clerics, shaman and druids
   cc has been limited to enchanters and bards. it will be expanded to necros and mages later
-- removed the dannet contrl switch. it is no longer optional
+- removed the dannet control switch. it is no longer optional
 
 
 A200311.02
