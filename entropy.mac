@@ -10,6 +10,7 @@
  *
  * plugins Required: MQ2Collections, MQ2Nav, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
  *
+ * Donations: paypal.me/exspes
  ***|
 
 
@@ -118,7 +119,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A200314.05
+	/call set_data FALSE maEnv build													map outer B200315.01
 
 	| prep macro
 	/call prepare_the_end FALSE

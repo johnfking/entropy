@@ -4,6 +4,7 @@
  *
  * plugins: MQ2Collections, MQ2Nav, MQ2Map, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
  *
+ * Donations: paypal.me/exspes
  ***|
 
 
@@ -15,15 +16,38 @@ on the to do list
 - i'm gonna have to externalize all the AAs
 --------------------
 
+known bugs
+--------------------
+epics with commas in their names are currently not functioning
+--------------------
+
+
+
+B200315.01
+- this is the start of open beta
+  please direct all questions to the general channel in discord
+  if/when you find an issue, the following will be needed
+  make sure you are on the current build
+  class
+  level
+  any screenshots you can provide
+  if they contain character names, you can DM me if you like
+  zone
+  and what you were/are trying to do
+
+- the How To section will continue to grow
+  if you find something you would like there, just say
+
+
 
 A200314.05
 - bard
   added a switch for using AA Boastful Bellow
 - /chr line has been removed from bard, wizard and mage
 - /cc poison has been removed. poisons go under buffs
-  rogﬂues still can maintain a count for leg poisons if they like
+  rougues still can maintain a count for leg poisons if they like
 - fixed backstab spelling in /cc melee
-- melee proc bandoler will no longer swap if the proc will not stack
+- melee proc bandolier will no longer swap if the proc will not stack
 
 
 A200314.04
