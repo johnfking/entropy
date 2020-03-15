@@ -118,7 +118,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer A200314.04
+	/call set_data FALSE maEnv build													map outer A200314.05
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -527,8 +527,6 @@ sub check_housekeeping(bool _debug)
 	/if (${maCC.Find[swCombatControl].Value} && !${Select[${Me.Class.ShortName},ENC,BRD]}) {
 		/invoke ${set_switch_env[${_debug}, swCombatControl, TRUE, FALSE]}
 	}
-
-
 
 	| more shit to come....
 

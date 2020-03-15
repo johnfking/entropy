@@ -2940,7 +2940,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 			/invoke ${set_switch_env[${_debug}, swBash, TRUE, ${_silent}]}
 		} else /if (${_verbage.Equal[disarm]} && ${lsMeleeSkill.Contains[disarm]}) {
 			/invoke ${set_switch_env[${_debug}, swDisarm, TRUE, ${_silent}]}
-		} else /if (${_verbage.Equal[backstabb]} && ${lsMeleeSkill.Contains[backstabb]}) {
+		} else /if (${_verbage.Equal[backstab]} && ${lsMeleeSkill.Contains[backstab]}) {
 			/invoke ${set_switch_env[${_debug}, swBackstab, TRUE, ${_silent}]}
 		} else /if (${_verbage.Equal[dragonpunch]} && ${lsMeleeSkill.Contains[dragonpunch]}) {
 			/invoke ${set_switch_env[${_debug}, swDragonpunch, TRUE, ${_silent}]}
@@ -2966,7 +2966,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		/vardata cli lsMeleeSkill.First.Clone
 		/while (!${cli.IsEnd}) {
 			/varset _out ${_out} ${If[${cli.Value.Equal[${lsMeleeSkill.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[backstabb]}) /varset _out ${_out}:${If[${Skill[backstabb].Auto},\apauto\ax,${If[${maCC.Find[swBackstab].Value},${on},${off}]}]}
+			/if (${cli.Value.Equal[backstab]}) /varset _out ${_out}:${If[${Skill[backstab].Auto},\apauto\ax,${If[${maCC.Find[swBackstab].Value},${on},${off}]}]}
 			/if (${cli.Value.Equal[bash]}) /varset _out ${_out}:${If[${Skill[bash].Auto},\apauto\ax,${If[${maCC.Find[swBash].Value},${on},${off}]}]}
 			/if (${cli.Value.Equal[disarm]}) /varset _out ${_out}:${If[${Skill[disarm].Auto},\apauto\ax,${If[${maCC.Find[swDisarm].Value},${on},${off}]}]}
 			/if (${cli.Value.Equal[dragonpunch]}) /varset _out ${_out}:${If[${Skill[dragon punch].Auto},\apauto\ax,${If[${maCC.Find[swDragonpunch].Value},${on},${off}]}]}
@@ -3074,8 +3074,8 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		/invoke ${set_switch_env[${_debug}, swAgro, TRUE, ${_verbage}]}
 
 	| use poisons
-	} else /if (${_type.Equal[poison]}) {
-		/invoke ${set_switch_env[${_debug}, swPoison, TRUE, ${_verbage}]}
+	| } else /if (${_type.Equal[poison]}) {
+	| 	/invoke ${set_switch_env[${_debug}, swPoison, TRUE, ${_verbage}]}
 
 	| force manual combat routines
 	} else /if (${_type.Equal[force]}) {
@@ -3149,7 +3149,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	/invoke ${maControl.Add[zradius,stZRadius]}
 	/invoke ${maControl.Add[agro,swAgro]}
 	/invoke ${maControl.Add[bandolier,swBandolier]}
-	/invoke ${maControl.Add[poison,swPoison]}
+	| /invoke ${maControl.Add[poison,swPoison]}
 	/invoke ${maControl.Add[alliance,swAlliance]}
 	/invoke ${set_control_output[${_debug}, maCC, cc, maControl]}
 

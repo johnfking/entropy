@@ -309,7 +309,6 @@ sub set_initial_environment(bool _debug)
   /if (${Select[${Me.Class.ShortName},BER]}) {
 
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
-	  /invoke ${maChrControl.Add[line,stCurrent|br]}
 	  /invoke ${maChrControl.Add[rest,swSongRest]}
 	  /invoke ${maChrControl.Add[refresh,stSongRefresh]}
 
@@ -341,7 +340,6 @@ sub set_initial_environment(bool _debug)
 	  /invoke ${maChrControl.Add[crystal,swAACrystals]}
 
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
-	  /invoke ${maChrControl.Add[line,stCurrent|br]}
 	  /invoke ${maChrControl.Add[gather,stPctGather]}
 	  /invoke ${maChrControl.Add[forcetc,swForceTC]}
 	  /invoke ${maChrControl.Add[cauldron,submenu]}
@@ -394,7 +392,6 @@ sub set_initial_environment(bool _debug)
 	  /invoke ${maChrControl.Add[flash,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
-	  /invoke ${maChrControl.Add[line,stCurrent|br]}
 	  /invoke ${maChrControl.Add[mb,swManaBurn]}
 	  /invoke ${maChrControl.Add[gather,stPctGather]}
 	  /invoke ${maChrControl.Add[concussion,stPctConcussion]}

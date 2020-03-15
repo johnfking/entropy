@@ -49,7 +49,6 @@ sub set_ROG(bool _debug)
 	/call set_data_map ${_debug} maChr stTwistedChance									PREGEN|1											"${auxna} Twisted Chance disc family"
 	/call set_data_map ${_debug} maChr stVision 												PREGEN|1											"${auxna} Thief's Eyes disc family"
 	/call set_data_map ${_debug} maChr stTwistedShank										PREGEN|1											"${auxna} Twisted Shank disc family"
-	| /call set_data_map ${_debug} maChr stAbsorbingAgent									PREGEN|1											"${auxna} Absorbing Agent disc family"
 
 	/call set_data_map ${_debug} maChr swBlinding												FALSE													"${auxsw} use blinding disc.. or not."
 	/call set_data_map ${_debug} maChr stBlinding												PREGEN|1											"${auxna} Blinding Flash disc family"

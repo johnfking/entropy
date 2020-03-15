@@ -381,16 +381,6 @@ sub set_control_WIZ(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[ae]}) {
 		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
 
-
-	} else /if (${_type.Equal[line]}) {
-		/if (!${lsNukeLine.Contains[${_verbage.Lower}]}) {
-			OUT usage${sep}/chr line [\a-wbase\ax|\a-wfire\ax|\a-wice\ax|\a-wmagic\ax]
-			/return
-		}
-		/invoke ${do_raw_edit[${_debug}, SILENT, stCurrent, "${_verbage.Lower}"]}
-		/varset stLine ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
-
-
 	| set gather use %
 	} else /if (${_type.Equal[gather]}) {
 		/if (!${set_control_num_range[${_debug}, stPctGather, "${_verbage}", 0, 99]}) /return

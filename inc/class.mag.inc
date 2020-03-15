@@ -502,14 +502,6 @@ sub set_control_MAG(string _type, string _verbage, string _silent, bool _debug)
 		/invoke ${out[12, "/chr cauldron ${_out}"]}
 		/return
 
-	} else /if (${_type.Equal[line]}) {
-		/if (!${lsNukeLine.Contains[${_verbage.Lower}]}) {
-			/invoke ${out[12, "usage${sep}/chr line [\a-wbase\ax|\a-wfire\ax|\a-wmagic\ax]"]}
-			/return
-		}
-		/invoke ${do_raw_edit[${_debug}, SILENT, stCurrent, "${_verbage.Lower}"]}
-		/varset stLine ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
-
 	| set gather use %
 	} else /if (${_type.Equal[gather]}) {
 		/if (!${set_control_num_range[${_debug}, stPctGather, "${_verbage}", 0, 99]}) /return

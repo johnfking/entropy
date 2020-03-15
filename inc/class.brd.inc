@@ -36,6 +36,9 @@ sub set_BRD(bool _debug)
 	| current song line
 	/call set_data_list ${_debug} maSong lsLineSong											EMPTY												"${auxli} list of song numbers to sing"  song
 
+	| aa boastful bellow switch
+	/call set_data_map FALSE maChr swAABellow														FALSE													"${auxsw} enable/disable using AA Boastful Bellow"
+
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
 		/mqp
@@ -145,7 +148,7 @@ sub misc_combat_BRD(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "Cacophony"]}) {
 		/call voodoo ${_debug} "Cacophony" ${_tmpID} FALSE
 	}
-	/if (${Spawn[TARGET].PctHPs} > 30) {
+	/if (${Spawn[TARGET].PctHPs} > 30 && ${maChr.Find[swAABellow].Value}) {
 		/if (${is_ready[${_debug}, "Boastful Bellow"]}) {
 			/call voodoo ${_debug} "Boastful Bellow" ${_tmpID} FALSE
 		}
@@ -472,15 +475,6 @@ sub set_control_BRD(string _type, string _verbage, string _silent, bool _debug)
 	| set ae on/off / count
 	} else /if (${_type.Equal[ae]}) {
 		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
-
-
-	} else /if (${_type.Equal[line]}) {
-		/if (!${lsLineSong.Contains[${_verbage.Lower}]}) {
-			OUT usage${sep}/chr line [\a-wtank\ax|\a-wcaster\ax|\a-wmelee\ax|\a-wmix\ax|\a-wother\ax]
-			/return
-		}
-		/invoke ${do_raw_edit[${_debug}, SILENT, stCurrent, "${_verbage.Lower}"]}
-		/varset stLine ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
 
 	| use AA crystals
 	} else /if (${_type.Equal[rest]}) {

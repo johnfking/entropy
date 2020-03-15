@@ -5769,9 +5769,15 @@ sub check_buff_cycle_leg_poison(bool _debug)
 
 	/declare _count int local 0
 	/for _count 1 to 50
-		/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
-		/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
-		/if (!${lsBuff${_count}Tag.Contains[summonpoison]}) /continue
+		/if (!${maBuff.Find[swBuff${_count}].Value}) {
+			/continue
+		}
+		/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) {
+			/continue
+		}
+		/if (!${lsBuff${_count}Tag.Contains[summonpoison]}) {
+			/continue
+		}
 
 		| do we have enough summoned
 		/if (${FindItemCount[${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Clicky.SpellID}].Base[1]}]} >= ${maChr.Find[stLegPoison].Value}) {
@@ -10881,6 +10887,11 @@ sub check_melee_proc(bool _debug)
 
 	| set the buff we need to look for
 	/declare _buff string local ${FindItem[${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Item[1]}].Spell}
+
+	| if the proc will not stack, do nothing and move on
+	/if (!${Spell[${FindItem[${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Item[1]}].Spell}].Stacks}) {
+		/return FALSE
+	}
 
 	| if the proc exists anywhere!!, make sure we are back to the swap bandolier and bail
 	/if ((${Me.Buff[${_buff}].ID} || ${Me.Song[${_buff}].ID} || ${Target.Buff[${_buff}].ID}) && ${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Active}) {

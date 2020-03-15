@@ -16,6 +16,14 @@ on the to do list
 --------------------
 
 
+A200314.05
+- bard
+  added a switch for using AA Boastful Bellow
+- /chr line has been removed from bard, wizard and mage
+- /cc poison has been removed. poisons go under buffs
+  rogﬂues still can maintain a count for leg poisons if they like
+- fixed backstab spelling in /cc melee
+- melee proc bandoler will no longer swap if the proc will not stack
 
 
 A200314.04
