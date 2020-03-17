@@ -368,9 +368,9 @@ sub Event_16anniStein(string line, string _verbage)
 	}
 	/say ${_verbage}
 /return
+**|
 
-
-
+|**
 #event 16stein1 "Galdorin Visigothe says, 'My stinky stein has rough dirty lips,'"
 #event 16stein2 "Galdorin Visigothe says, 'but she loves a deep carouse.'"
 #event 16stein3 "Galdorin Visigothe says, 'Beer or ale are her great trips.'"

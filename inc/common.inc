@@ -2341,7 +2341,8 @@ sub check_xtarget_build(bool _debug, string _forced)
 				/xtarget set ${_b} ${Spawn[pc ${_name}].Name}
 			}
 
-		/invoke ${_lipcxt.Advance}
+			/invoke ${_lipcxt.Advance}
+		}
 	}
 
 
@@ -8298,6 +8299,8 @@ sub check_deBuffs(bool _debug, int _tmpID)
 			/varset _tmpTLO Maloed
 		}
 
+
+
 		| is the debuf turned on
 		/if (${madeBuff.Find[sw${_lideb.Value}].Value}) {
 
@@ -8306,8 +8309,12 @@ sub check_deBuffs(bool _debug, int _tmpID)
 				/invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, 0]}
 			}
 
+				/if (${_tmpTLO.Equal[Slowed]} && ${Select[${Target.Slowed},Tendon Slice,Helix of the Undying]}) {
+					/goto :ignorecrapslow
+				}
+
 			| add if already there?
-			DEBUG checking:
+			DEBUG ${sep}checking:
 			DEBUG \ar....\ax ${_tmpTLO}${sep}\a-w${Target.${_tmpTLO}}\ax(\a-r${Target.${_tmpTLO}.ID}\ax)
 			| DEBUG \ar....\ax single debuff${sep}\a-w${Target.Buff[${madeBuff.Find[st${_lideb.Value}].Value}].ID}\ax
 			| DEBUG \ar....\ax ae debuff${sep}\a-w${Target.Buff[${madeBuff.Find[stAE${_lideb.Value}].Value}].ID}\ax
@@ -8315,7 +8322,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
 			DEBUG \ar....\ax in list${sep}\a-w${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}\ax
 			| /if ((${Target.${_tmpTLO}.ID} || ${Target.Buff[${madeBuff.Find[st${_lideb.Value}].Value}].ID} || ${Target.Buff[${madeBuff.Find[stAE${_lideb.Value}].Value}].ID}) && (!${timer_${_lideb.Value.Lower}_ID${_tmpID}} || !${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]})) {
 
-			| our target is debuffed for this cycle. make sure it is marked and move on to next check
+      | our target is debuffed for this cycle. make sure it is marked and move on to next check
 			/if (${Target.${_tmpTLO}.ID} || ${Target.Buff[${madeBuff.Find[st${_lideb.Value}].Value}].ID} || ${Target.Buff[${madeBuff.Find[stAE${_lideb.Value}].Value}].ID}) {
 
 				| in the list
@@ -8335,6 +8342,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
 				/continue
 			}
 
+			:ignorecrapslow
 			| if we've made it this far, cause shits not dealt with
 			/if (!${timer_${_lideb.Value.Lower}_ID${_tmpID}} || !${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
 				DEBUG ${sep}\arNO\ax timer or not in list${sep}\a-wlsdeBuff${_lideb.Value}\ax
@@ -8345,35 +8353,36 @@ sub check_deBuffs(bool _debug, int _tmpID)
 				}
 				DEBUG ${sep}_mobCount${sep}\a-w${_mobCount}\ax
 
-				/if (${is_ready[${_debug}, "${madeBuff.Find[st${_lideb.Value}].Value}"]}) {
-					/if (!AE# || (AE# && !${is_ready[${_debug}, "${madeBuff.Find[stAE${_lideb.Value}].Value}"]})) {
-						DEBUG ${sep}sw${_lideb.Value}${sep}\a-wSINGLE\ax
+				| /if (${is_ready[${_debug}, "${madeBuff.Find[st${_lideb.Value}].Value}"]}) {
+				/if (!AE# || (AE# && ${_mobCount} < 2 && ${is_ready[${_debug}, "${madeBuff.Find[st${_lideb.Value}].Value}"]}) || (AE# && !${is_ready[${_debug}, "${madeBuff.Find[stAE${_lideb.Value}].Value}"]})) {
+					DEBUG ${sep}sw${_lideb.Value}${sep}\a-wSINGLE\ax
 
-						| cast the damn thing already
-						/call voodoo ${_debug} "${madeBuff.Find[st${_lideb.Value}].Value}" ${_tmpID} FALSE
+					| cast the damn thing already
+					/call voodoo ${_debug} "${madeBuff.Find[st${_lideb.Value}].Value}" ${_tmpID} FALSE
 
-						| sort our returns and act
-						/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
-							/if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
-								/invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpID}]}
-							}
-							/invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[st${_lideb.Value}].Value}].Duration.TotalSeconds}s]}
-
-						| fizzle, we try again shortly
-						} else /if (${Select[${maData.Find[stCastReturn].Value},RESISTED,NOTREADY,FIZZLE,DISTRACTED]}) {
-							/invoke ${set_timer[FALSE, timer_${_lideb.Value.Lower}_ID${_tmpID}, 6s]}
-
-						| immune, mark the mob as no touch. (long timer)
-						} else /if (${Select[${maData.Find[stCastReturn].Value},IMMUNE,TAKEHOLD]}) {
-							/if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
-								/invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpID}]}
-							}
-							/invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, 10m]}
+					| sort our returns and act
+					/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
+						/if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
+							/invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpID}]}
 						}
+						/invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[st${_lideb.Value}].Value}].Duration.TotalSeconds}s]}
+
+					| fizzle, we try again shortly
+					} else /if (${Select[${maData.Find[stCastReturn].Value},RESISTED,NOTREADY,FIZZLE,DISTRACTED]}) {
+						/invoke ${set_timer[FALSE, timer_${_lideb.Value.Lower}_ID${_tmpID}, 6s]}
+
+					| immune, mark the mob as no touch. (long timer)
+					} else /if (${Select[${maData.Find[stCastReturn].Value},IMMUNE,TAKEHOLD]}) {
+						/if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
+							/invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpID}]}
+						}
+						/invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, 10m]}
 					}
 				}
+				| }
 
 				/if (AE# && ${_mobCount} >= AE#) {
+					/here 2
 					/if (${is_ready[${_debug}, "${madeBuff.Find[stAE${_lideb.Value}].Value}"]}) {
 						DEBUG ${sep}sw${_lideb.Value}${sep}\a-wMULTI\ax
 						/call voodoo ${_debug} "${madeBuff.Find[stAE${_lideb.Value}].Value}" ${_tmpID} FALSE
@@ -9670,7 +9679,7 @@ sub get_target_multipull(bool _debug)
 	}
 
 	| maintain home marker
-	/if (!HOME) /call Bind_home_control set FALSE
+	/if (!HOME) /call Bind_control_home set FALSE
 	| how the hell do we want to kill it.?
 
 	| pull with a normal range if the mob is los and within 100. multi puller keeps local camp under control.
@@ -10888,12 +10897,7 @@ sub check_melee_proc(bool _debug)
 	| set the buff we need to look for
 	/declare _buff string local ${FindItem[${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Item[1]}].Spell}
 
-	| if the proc will not stack, do nothing and move on
-	/if (!${Spell[${FindItem[${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Item[1]}].Spell}].Stacks}) {
-		/return FALSE
-	}
-
-	| if the proc exists anywhere!!, make sure we are back to the swap bandolier and bail
+	|
 	/if ((${Me.Buff[${_buff}].ID} || ${Me.Song[${_buff}].ID} || ${Target.Buff[${_buff}].ID}) && ${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Active}) {
 		DEBUG ${sep}buff found${sep}\a-w${_buff}\ax
 
@@ -10916,21 +10920,41 @@ sub check_melee_proc(bool _debug)
 		/if (${Bool[${maData.Find[stAmmo].Value}]}) {
 			/call Bind_command_swap "${maData.Find[stAmmo].Value}" 22 ${_debug}
 		}
-
 		/return TRUE
 	}
+
+
+	/if (!${Me.Buff[${_buff}].ID} && !${Me.Song[${_buff}].ID} && !${Target.Buff[${_buff}].ID} && !${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Active} && ${Spell[${_buff}].Stacks}) {
+		/invoke ${maData.Add[stMainhand,${Me.Inventory[mainhand].Name}]}
+		/invoke ${maData.Add[stOffhand,${Me.Inventory[offhand].Name}]}
+		/invoke ${maData.Add[stRanged,${Me.Inventory[ranged].Name}]}
+		/invoke ${maData.Add[stAmmo,${Me.Inventory[ammo].Name}]}
+		/delay 1
+		/invoke ${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Activate}
+	}
+
+
+/return TRUE
+
+
+
+
+
+	/if (!${Me.Buff[${_buff}].ID} && !${Me.Song[${_buff}].ID} && !${Target.Buff[${_buff}].ID} && !${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Active}) {
+
 
 	| if the proc doesn't exist anywhere
 	| switch the bandolier and check again on next timer.
 	/if (!${Me.Buff[${_buff}].ID} && !${Me.Song[${_buff}].ID} && !${Target.Buff[${_buff}].ID}) {
+
+		/delay 1
 		/if (!${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Active}) {
-			/invoke ${maData.Add[stMainhand,${Me.Inventory[mainhand].Name}]}
-			/invoke ${maData.Add[stOffhand,${Me.Inventory[offhand].Name}]}
-			/invoke ${maData.Add[stRanged,${Me.Inventory[ranged].Name}]}
-			/invoke ${maData.Add[stAmmo,${Me.Inventory[ammo].Name}]}
-			/invoke ${Me.Bandolier[${maCC.Find[stProcBandolier].Value}].Activate}
+
 		}
 	}
+
+
+
 
 /return TRUE
 
@@ -11006,7 +11030,7 @@ sub control_ttl(bool _debug, string _verbage, string _mob)
 
 |***
  * note: defensive things
- * use: /call check_cycle_defense DEBUG [TARGETID]
+ * use: /call check_cycle_defense DEBUG
  ***|
 sub cast_cycle_defense(bool _debug, int _tmpID)
 	DEBUG \atcast_cycle_defense\ax(\a-w${_tmpID}\ax)
@@ -11060,21 +11084,21 @@ sub cast_cycle_defense(bool _debug, int _tmpID)
 
 		DEBUG ${sep}_liC20.Value${sep}\a-w${_liC20.Value}\ax${sep}passed tags
 
-		/if (${lsDefense${_liC20.Value}Tag.Contains[self]}) {
-			/if (!${Me.Buff[${maDefense.Find[stDefense${_liC20.Value}].Value}].ID}) {
-				/varset _tmpID ${Me.ID}
-			}
-		}
+		| /if (${lsDefense${_liC20.Value}Tag.Contains[self]}) {
+		| 	/if (!${Me.Buff[${maDefense.Find[stDefense${_liC20.Value}].Value}].ID}) {
+		| 		/varset _tmpID ${Me.ID}
+		| 	}
+		| }
 
 		| targetable item with a range?
-		/if (${FindItem[${maDefense.Find[stDefense${_liC20.Value}].Value}].Spell.Duration.TotalSeconds} && ${FindItem[${maDefense.Find[stDefense${_liC20.Value}].Value}].Spell.Range}) {
-			/invoke ${target[set, ${_tmpID}]}
-			FLOW check_cycle_defense ${_tmpID} (item)
-			/if (${Target.BuffDuration[${maDefense.Find[stDefense${_liC20.Value}].Value}].TotalSeconds}) {
-				/invoke ${_liC20.Advance}
-				/continue
-			}
-		}
+		| /if (${FindItem[${maDefense.Find[stDefense${_liC20.Value}].Value}].Spell.Duration.TotalSeconds} && ${FindItem[${maDefense.Find[stDefense${_liC20.Value}].Value}].Spell.Range}) {
+		| 	/invoke ${target[set, ${_tmpID}]}
+		| 	FLOW check_cycle_defense ${_tmpID} (item)
+		| 	/if (${Target.BuffDuration[${maDefense.Find[stDefense${_liC20.Value}].Value}].TotalSeconds}) {
+		| 		/invoke ${_liC20.Advance}
+		| 		/continue
+		| 	}
+		| }
 
 		ISMEDEAD
 

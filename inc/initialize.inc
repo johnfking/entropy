@@ -994,7 +994,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maBurn stPctBurnEngage                     99                            "${auxnum} % of mobs health to start burns"												burn
   /call set_data_map ${_debug} maBurn stBurnCount                         0                             "${auxnum} number of mobs in your area to auto engage burns"			burn
   /call set_data_map ${_debug} maBurn swBurnRaid                          FALSE                         "${auxsw} use burns on raids"																			burn
-  /call set_data_list ${_debug} maBurn lsaLineBurn                        FALSE                         "${auxli} alternate burn line order"															burn
+  /call set_data_list ${_debug} maBurn lsLineBurn                         FALSE                         "${auxli} alternate burn line order (engine 2 only)"							burn
 
 	| /call sql_control FALSE ${chrID} stoponDS                           bool      outer FALSE
 
@@ -1115,6 +1115,13 @@ sub set_initialize_map_character_environment(bool _debug)
 
 |** control: Agro  **|
   /call set_data_list ${_debug} maAgro lsLineAgro              						EMPTY                         "${auxli} alternate activation order for agro routine (engine 2)"
+
+
+|** control: burn  **|
+  /call set_data_list ${_debug} maAgro lsLineBurn              						EMPTY                         "${auxli} alternate activation order for burn routine (engine 2)"
+
+
+
 
 
 	/if (${maDebug.Find[init].Value}) {

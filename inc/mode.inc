@@ -573,7 +573,7 @@ sub mode_lush(bool _debug)
 
 	| maxed skill turn this off
 	/if (${Me.Skill[Alcohol Tolerance]} == ${Skill[Alcohol Tolerance].SkillCap}) {
-		OUT Alcohol Tolerance Maxed ${sep} (${cnum}${Me.Skill[Alcohol Tolerance]}\ax)
+		OUT Alcohol Tolerance Maxed ${sep} (${num}${Me.Skill[Alcohol Tolerance]}\ax)
 		/return TRUE
 	}
 

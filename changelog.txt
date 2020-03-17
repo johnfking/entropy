@@ -23,6 +23,27 @@ epics with commas in their names are currently not functioning
 
 
 
+
+
+
+
+
+
+B200317.01
+- repo update
+- melee proc bandolier
+  redesigned, wasnt behaving as well as i would have liked
+- corrected a missing bracket in the xtarget build for healers
+- variable name error in /mode lush
+- varriable error in the burn cycle for engine 2
+- looking at some reported issues with pet pulling
+- shadowknight
+  testing a change in the ae hate skills
+  someone let me know if they are getting hit now
+- paladin
+  made same adjustments to ae hate skills
+
+
 B200315.01
 - this is the start of open beta
   please direct all questions to the general channel in discord
@@ -37,7 +58,6 @@ B200315.01
 
 - the How To section will continue to grow
   if you find something you would like there, just say
-
 
 
 A200314.05

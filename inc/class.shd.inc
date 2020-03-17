@@ -41,7 +41,7 @@ sub set_SHD(bool _debug)
  	/call set_data_map FALSE maChr swSkin 															FALSE													"${auxsw} use steel self buff"
  	/call set_data_map FALSE maChr stSkin 															PREGEN|1											"${auxna} name of the steel self buff"
 	/call set_data_map FALSE maChr swAttraction													FALSE													"${auxsw} use the attraction aa to help with agro/pulling"
-	/call set_data_map FALSE maChr stPctShieldFlash											0															"${auxnum} % of HP to try to get shield flash running"
+	/call set_data_map FALSE maChr stPctShieldFlash						     					0															"${auxnum} % of HP to try to get shield flash running"
 	/call set_data_map FALSE maChr stCountShieldFlash										0															"${auxnum} # of mobs to hit shield flash"
 
 	/invoke ${set_data_timer[FALSE, Check_VoT, 21m]}
@@ -279,7 +279,7 @@ sub get_agro_SHD(bool _debug, int _tmpID)
 	/declare _ligas listiterator local
 	/vardata _ligas lsHate.First.Clone
 	/while (!${_ligas.IsEnd}) {
-		/if (${Me.PctAggro} > 90 || ${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]}) /break
+		| /if (${Me.PctAggro} > 90 || ${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]}) /break
 		/if (${is_ready[${_debug}, "${_ligas.Value}"]}) {
 			/call voodoo ${_debug} "${_ligas.Value}" ${_tmpID} FALSE
 		}
