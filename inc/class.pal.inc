@@ -25,8 +25,8 @@ sub set_PAL(bool _debug)
 	/call set_data_map FALSE maChr stAAUnity														"Divine Protector's Unity"
 
 	| tank shield flash
-	/call set_data_map FALSE maChr stPctShieldFlash											0															"${auxnum} % of HP to try to get shield flash running"
-	/call set_data_map FALSE maChr stCountShieldFlash										0															"${auxnum} # of mobs to hit shield flash"
+	| /call set_data_map FALSE maChr stPctShieldFlash											0															"${auxnum} % of HP to try to get shield flash running"
+	| /call set_data_map FALSE maChr stCountShieldFlash										0															"${auxnum} # of mobs to hit shield flash"
 
 	| Rampage Tank
 	/call set_data_map FALSE maChr stRampageTank												FALSE													"${auxna} sets a rampage tank name for healing exclusion"
@@ -461,10 +461,6 @@ sub check_heal_PAL(bool _debug, string _type)
 				}
 			}
 		}
-
-		| self only panich heals
-		/call cast_list FALSE lsHealPanic ${Me.ID}
-		/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
 		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 	}

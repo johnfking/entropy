@@ -14,6 +14,7 @@ on the to do list
 - mage pet weapons?
 - tag entry validation (cause people are making up shit now)
 - i'm gonna have to externalize all the AAs
+- ranger silent shot ambush spell
 --------------------
 
 known bugs
@@ -24,10 +25,23 @@ epics with commas in their names are currently not functioning
 
 
 
-
-
-
-
+B200321.04
+REPO updated
+- shaman
+  corrected (read deleted) some latient heeal varaibles
+- temp buffs
+  made an adjustment to the arg parser
+- removed an old dump reference
+- /sash
+  this is replacing all the bandolier "stuff"
+  sash has the same command structure as heal/nuke/dot/etc
+  /sash use - enables swapping the bandoiler around based off conditions
+  /sash proc use - enables using the sash you have set for a procing weapons
+  /sash proc name - the name of the sash with the proc weapon
+  /sash flash use - enable using the bandolier you have built for flash
+  /sash flash name - name of the bandolier you have set for flash
+  you do not need to include the proc or flash names in the normal sash list, they are special cases
+- shield flash has been moved from PAL,SHD,WAR to /sash
 
 B200317.01
 - repo update

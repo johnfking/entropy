@@ -43,7 +43,7 @@ sub set_debug()
 	| mode
   /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill]}
   | combat
-  /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl]}
+  /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash]}
 	| other
   /invoke ${lsDebugother.Append[edit,rest,rez,spire,glyph,fireworks,manarecover,fade,event]}
 	| admin
@@ -156,7 +156,7 @@ sub set_initialize(bool _debug)
   /invoke ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
   /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maRezControl,maWatchspawn]}
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL]}
-  /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong]}
+  /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash]}
 
   | set all output shortcuts
   /call set_data ${_debug} FALSE num                                      string outer "\a-t"
@@ -250,9 +250,6 @@ sub set_initial_environment(bool _debug)
 
   | spell types we let through the checking/validation methods
   /call set_data ${_debug} FALSE lsFreePassSpells                         list outer Beneficial|Pet
-
-  | bandolier setting
-  /call set_data ${_debug} FALSE lsBandolier                             list outer "1h|2h|range|no"
 
 	| increment lists
 	/call set_data ${_debug} FALSE lsCount6			                            list outer "0|1|2|3|4|5"
@@ -359,7 +356,7 @@ sub set_initial_environment(bool _debug)
 	  /invoke ${maChrControl.Add[harmonious,swHarmonious]}
 	  /invoke ${maChrControl.Add[loh,stPctLoH]}
 	  /invoke ${maChrControl.Add[mg,stPctMG]}
-	  /invoke ${maChrControl.Add[flash,submenu]}
+	  | /invoke ${maChrControl.Add[flash,submenu]}
 	  /invoke ${maChrControl.Add[stun,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},RNG]}) {
@@ -374,7 +371,7 @@ sub set_initial_environment(bool _debug)
 	  /invoke ${maChrControl.Add[attraction,swAttraction]}
 	  /invoke ${maChrControl.Add[harmonious,swHarmonious]}
 	  /invoke ${maChrControl.Add[vot,swVoT]}
-	  /invoke ${maChrControl.Add[flash,submenu]}
+	  | /invoke ${maChrControl.Add[flash,submenu]}
 	  /invoke ${maChrControl.Add[skin,swSkin]}
 	  /invoke ${maChrControl.Add[stance,swStance]}
 
@@ -389,7 +386,7 @@ sub set_initial_environment(bool _debug)
 
   } else /if (${Select[${Me.Class.ShortName},WAR]}) {
 	  /invoke ${maChrControl.Add[attraction,swAttraction]}
-	  /invoke ${maChrControl.Add[flash,submenu]}
+	  | 2/invoke ${maChrControl.Add[flash,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
 	  /invoke ${maChrControl.Add[mb,swManaBurn]}
@@ -598,6 +595,7 @@ sub sql_set_character_schema(bool _debug)
   /invoke ${maDBTables.Add[environment_agro,env_var]}
   /invoke ${maDBTables.Add[environment_miscdps,env_var]}
   /invoke ${maDBTables.Add[environment_burn,env_var]}
+  /invoke ${maDBTables.Add[environment_sash,env_var]}
 
   /sqlite ${maData.Find[DBcharacter].Value} SQL_ENV_BUILD SELECT build_number FROM build
   DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[dummy]}\ax
@@ -861,17 +859,10 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maCC swCombatControl                       FALSE                         "${auxsw} enable crowd control modes in or out of combat"
   /call set_data_map ${_debug} maCC swAlliance			                      FALSE                         "${auxsw} enable class alliance"
 
-  /invoke ${set_data_timer[FALSE, Check_Proc_Bandolier, 5s]}
-  /call set_data_map ${_debug} maCC swProc                                FALSE                         "${auxsw} enable enable bandolier for a procing weapon"
-  /call set_data_map ${_debug} maCC stProcBandolier												FALSE                         "${auxna} name of bandolier with procing weapon"
-
   /call set_data_map ${_debug} maCC swPull                                FALSE                         "${auxsw} enable pulling (\a-wselect mobs to kill\ax)"
   /call set_data_map ${_debug} maCC stPullMode                            base                          "${auxna} [\a-wbase-nav-int-pet-multi\ax] the mode of pulling you wish to use while looking for said mobs"
   /call set_data_map ${_debug} maCC stPullRadius                          0                             "${auxnum} radius to pull mobs from"
   /call set_data_map ${_debug} maCC swPullSetHome                         FALSE                         "${auxsw} suto set home marker when pulling is enabled"
-
-  | /call set_data_map ${_debug} maCC swPoison                              FALSE                         "${auxsw} use poisons (\a-wsetup in buffs for summoning/clicking\ax)"
-  /call set_data_map ${_debug} maCC swBandolier                           FALSE                         "${auxsw} (\a-w1/aux bandolier\ax for help)"
 
   | glyph
   /call set_data_map ${_debug} maCC swGlyphGroup                          FALSE                         "${auxsw} use glyph in a group"
@@ -1121,6 +1112,19 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_list ${_debug} maAgro lsLineBurn              						EMPTY                         "${auxli} alternate activation order for burn routine (engine 2)"
 
 
+|** control: sash  **|
+  /invoke ${set_data_timer[FALSE, Check_Proc_Sash, 5s]}
+  /call set_data_map ${_debug} maSash swSashProc                     			FALSE                         "${auxsw} enable sash for a procing weapon"								sash
+  /call set_data_map ${_debug} maSash stSashProc													FALSE                         "${auxna} name of sash with procing weapon"								sash
+
+  /call set_data_map ${_debug} maSash swSash			                    		FALSE                         "${auxsw} enable auto sash swapping based off conditions" 									sash
+
+	| tank shield flash
+	/if (${Select[${Me.Class.ShortName},PAL,WAR,SHD]}) {
+		/call set_data_map ${_debug} maSash stPctShieldFlash									0															"${auxnum} % of HP to try to get shield flash running"		sash
+		/call set_data_map ${_debug} maSash stCountShieldFlash								0															"${auxnum} # of mobs to hit shield flash"									sash
+ 	 	/call set_data_map ${_debug} maSash stSashShieldFlash									FALSE                         "${auxna} name of sash to be used for Slash skills"				sash						sash
+	}
 
 
 
@@ -1189,6 +1193,45 @@ sub set_initialize_map_buffs(bool _debug)
 		/mqp
 	}
 
+
+/return TRUE
+
+
+
+|***
+ * note: set/build the 12 count skill maps
+ * use:
+ ***|
+sub set_initialize_map_12(bool _debug)
+  DEBUG \atset_initialize_map_12\ax()
+
+ 	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
+	/declare _tmpMap map local
+	/declare _tmi mapiterator local
+	/declare _liC12 listiterator local
+	/invoke ${_tmpMap.Add[Sash,sash]}
+
+  /vardata _tmi _tmpMap.First.Clone
+  /while (!${_tmi.IsEnd}) {
+		/vardata _liC12 lsCount12.First.Clone
+		/while (!${_liC12.IsEnd}) {
+	    /call set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC12.Value}				FALSE		"${auxsw} ${_tmi.Value} ${_liC12.Value} switch"	${_tmi.Value}
+	    /call set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC12.Value}				FALSE		"${auxna} ${_tmi.Value} ${_liC12.Value} name"	${_tmi.Value}
+	    /call set_data_list ${_debug} ma${_tmi.Key} ls${_tmi.Key}${_liC12.Value}Tag		EMPTY		"${auxli} ${_tmi.Value} ${_liC12.Value} tag list"	${_tmi.Value}
+	    /call set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC12.Value}Con		0				"${auxnum} ${_tmi.Value} ${_liC12.Value} condition"	${_tmi.Value}
+			/invoke ${_liC12.Advance}
+		}
+
+		/if (${maDebug.Find[init].Value}) {
+			OUT \agset_initialize_map_heal\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+			/mqp
+		}
+
+    /invoke ${_tmi.Advance}
+  }
 
 /return TRUE
 

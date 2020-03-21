@@ -389,7 +389,6 @@ sub check_heal_CLR(bool _debug, string _type)
 			}
 		}
 
-
 		| Panic AA single target heal
 	  /if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.5*.PCTHO) {
 			/if (${is_ready[${_debug}, "${maChr.Find[stAABurstofLife].Value}"]}) {
@@ -401,7 +400,6 @@ sub check_heal_CLR(bool _debug, string _type)
 	  }
 
 		/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
-
 
 		/if (${maChr.Find[stCountIssuance].Value}) {
 			/if (${SpawnCount[npc radius ENV PS4]} >= ${maChr.Find[stCountIssuance].Value}) {
@@ -425,7 +423,6 @@ sub check_heal_CLR(bool _debug, string _type)
 		}
 	}
 
-
  	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
@@ -440,7 +437,6 @@ sub check_heal_CLR(bool _debug, string _type)
 	/call cast_cycle_heal ${_debug} ${hurtID}
 
 /return	TRUE
-
 
 
 

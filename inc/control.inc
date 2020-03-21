@@ -594,7 +594,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 	/invoke ${maControl.Add[buffgem,stBuffGem]}
 	/invoke ${maControl.Add[buffgemhold,swHoldBuffGem]}
 	/invoke ${maControl.Add[nukeloop,swNukeLoop]}
-	/invoke ${maControl.Add[safelistguild,swSafelistGuild]}
+	/invoke ${maControl.Add[safelistguild,swSafeListGuild]}
 	/invoke ${maControl.Add[moblvmax,stMobLvlMax]}
 	/invoke ${maControl.Add[moblvlmin,stMobLvlMin]}
 	/invoke ${maControl.Add[begmage,swBegMAG]}
@@ -1959,7 +1959,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
 		/call Bind_command_aux see
 		/return	FALSE
-	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song,burn]}) {
+	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song,burn,sash]}) {
 		/invoke ${out[0, "Crack says your input sucks${sep}\a-w${_variable}\ax"]}
 		/return FALSE
 	}
@@ -1973,6 +1973,51 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		OUT name:\aw${Target.DisplayName}\ax (\a-r${Target.Name}\ax) ${sep} \ay${Target.ID}\ax
 		OUT dis(\a-r${Target.Distance}\ax) ${dot} Y(\a-r${Target.Y}\ax)X(\a-r${Target.X}\ax)
 		OUT animation(\a-r${Target.Animation}\ax) ${dot} body(\a-r${Target.Body}\ax)
+
+
+
+	| see sash info
+	} else /if (${_variable.Equal[sash]}) {
+
+		/if (${_verbage.Equal[list]}) {
+			/echo
+			/invoke ${out[12, "\awSash List\ax${sep}"]}
+			/declare _licountsash listiterator local
+		  /vardata _licountsash lsCount12.First.Clone
+		  /while (!${_licountsash.IsEnd}) {
+				/if (${Bool[${maSash.Find[stSash${_licountsash.Value}].Value}]}) {
+					/invoke ${out[12, "\awstSash${_licountsash.Value}\ax${sep}${If[${maSash.Find[swSash${_licountsash.Value}].Value},${on},${off}]}${sep}\a-w${maSash.Find[stSash${_licountsash.Value}].Value}\ax"]}
+				}
+		    /invoke ${_licountsash.Advance}
+		  }
+
+			/if (${_silent.NotEqual[silent]}) ${out[18, "${eol}"]}
+			/echo
+			/return
+		}
+
+		/if (!${Range.Between[1,12:${Int[${_verbage}]}]}) {
+			/call Bind_command_aux sash
+			/return
+		}
+		/invoke ${out[12, "\awSash #${_verbage}\ax${sep}${If[${maSash.Find[swSash${_verbage}].Value},${on},${off}]}"]}
+		/invoke ${out[12, "stSash\aw${_verbage}\ax${sep}\a-w${maSash.Find[stSash${_verbage}].Value}\ax"]}
+
+		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maSash.Find[stSash${_verbage}Con].Value}"
+		/if (${sqlite.Rows[dummy]}) {
+			OUT stSash\aw${_verbage}\axCon${sep}\a-w${maSash.Find[stSash${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
+		} else {
+			OUT stSash\aw${_verbage}\axCon${sep}\a-w${maSash.Find[stSash${_verbage}Con].Value}\ax
+		}
+
+		/invoke ${out[12, "lsSash\aw${_verbage}\axTag"]}
+
+		/declare hli listiterator local
+		/vardata hli lsSash${_verbage}Tag.First.Clone
+		/while (!${hli.IsEnd}) {
+			/invoke ${out[12, "${dot}\a-w${hli.Value}\ax"]}
+			/invoke ${hli.Advance}
+		}
 
 
 
@@ -2868,20 +2913,6 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		/invoke ${set_control_output[${_debug}, maCC, "cc glyph", maControl]}
 		/return TRUE
 
-	| procing weapon swaps
-	} else /if (${_type.Equal[proc]}) {
-		/if (${_verbage.Equal[use]}) {
-			/invoke ${set_switch_env[${_debug}, swProc, TRUE, ${_silent}]}
-		} else /if (${_verbage.Equal[bandolier]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stProcBandolier, "${_silent}"]}
-		}
-		/invoke ${maControl.Clear}
-		/invoke ${maControl.Add[use,swProc]}
-		/invoke ${maControl.Add[bandolier,stProcBandolier|br]}
-
-		/invoke ${set_control_output[${_debug}, maCC, "cc proc", maControl]}
-		/return TRUE
-
 	| set combat mode
 	} else /if (${_type.Equal[mode]}) {
 
@@ -3061,9 +3092,9 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[zradius]}) {
 		/if (!${set_control_num_range[${_debug}, stZRadius, "${_verbage}", 0, 300]}) /return
 
-	| use bandolier or not
-	} else /if (${_type.Equal[bandolier]}) {
-		/invoke ${set_switch_env[${_debug}, swBandolier, TRUE, ${_verbage}]}
+	| use sash or not
+	| } else /if (${_type.Equal[bandolier]}) {
+	| 	/invoke ${set_switch_env[${_debug}, swBandolier, TRUE, ${_verbage}]}
 
 	| use alliance
 	} else /if (${_type.Equal[alliance]}) {
@@ -3144,11 +3175,11 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	/invoke ${maControl.Add[pull,submenu]}
 	/invoke ${maControl.Add[melee,submenu]}
 	/invoke ${maControl.Add[glyph,submenu]}
-	/invoke ${maControl.Add[proc,submenu]}
+	| /invoke ${maControl.Add[proc,submenu]}
 	/invoke ${maControl.Add[engage,stPctEngage]}
 	/invoke ${maControl.Add[zradius,stZRadius]}
 	/invoke ${maControl.Add[agro,swAgro]}
-	/invoke ${maControl.Add[bandolier,swBandolier]}
+	| /invoke ${maControl.Add[bandolier,swBandolier]}
 	| /invoke ${maControl.Add[poison,swPoison]}
 	/invoke ${maControl.Add[alliance,swAlliance]}
 	/invoke ${set_control_output[${_debug}, maCC, cc, maControl]}
@@ -3166,9 +3197,9 @@ sub Bind_command_aux(string _type, bool _debug)
 
 	| /varset _debug TRUE
 	/declare _lsout list local
-	/invoke ${_lsout.Append[alto,bandolier,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter]}
+	/invoke ${_lsout.Append[alto,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter]}
 	/invoke ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,mode,minion,navto,off,on,override,repeat,see,splash,take,tag,tc,tie]}
-	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro,miscdps,song,line,area]}
+	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro,miscdps,song,line,area,sash]}
 
 	/if (${_lsout.Contains[${_type}]}) {
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY ROWID
@@ -5068,13 +5099,6 @@ sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _si
 
 
 
-
-
-
-
-
-
-
 |***
  * note:control for /agro
  * use:
@@ -5318,6 +5342,113 @@ sub Bind_command_line(string _type, string _line)
 /return TRUE
 
 
+
+
+
+|***
+ * note:control for /sash
+ * use:
+ ***|
+#Bind control_sash /sash
+sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
+	DEBUG \atcontrol_sash\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+
+	| output control map
+	/if (${_type.Equal[see]}) {
+		/call Bind_command_see maSash ${_verbage}
+		/return TRUE
+	} else /if (${_type.Equal[aux]}) {
+		/call Bind_command_aux sash ${_verbage}
+		/return TRUE
+
+	} else /if (${_type.Equal[list]}) {
+		/call Bind_command_see sash list
+		/return	TRUE
+
+	| heal number entered
+	} else /if (${Range.Between[1,12:${Int[${_type}]}]}) {
+
+		| see the sash #
+		/if (${_verbage.Equal[see]}) {
+			/call Bind_command_see sash ${_type}
+			/return TRUE
+		}
+
+		/if (!${Bool[${_verbage}]} && ${_verbage.NotEqual[FALSE]}) {
+			/invoke ${set_switch_env[${_debug}, swSash${_type}, TRUE, ${_verbage}]}
+			/invoke ${out[12, "\awSash${_type}\ax${sep}${If[${maSash.Find[swSash${_type}].Value},${on},${off}]}${sep}\a-w${maSash.Find[stSash${_type}].Value}\ax"]}
+			/return TRUE
+
+		} else /if (${Select[${_verbage},clear]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swSash${_type}" FALSE
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSash${_type}" FALSE
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSash${_type}Con" "0"
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsSash${_type}Tag" clear
+
+		} else /if (${Select[${_verbage},con]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSash${_type}Con" "${_verbage2}"
+
+		} else /if (${Select[${_verbage},tag]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsSash${_type}Tag" ${_verbage2} ${_silent}
+
+		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSash${_type}" "${_verbage}"
+		}
+
+		/call Bind_command_see sash ${_type}
+
+		/return TRUE
+
+	| procing weapon swaps
+	} else /if (${_type.Equal[proc]}) {
+		/if (${_verbage.Equal[use]}) {
+			/invoke ${set_switch_env[${_debug}, swSashProc, TRUE, ${_verbage2}]}
+		} else /if (${_verbage.Equal[name]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stSashProc, "${_verbage2}"]}
+		}
+		/if (${_silent.Equal[SILENT]}) /return
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[use,swSashProc]}
+		/invoke ${maControl.Add[name,stSashProc|br]}
+		/invoke ${set_control_output[${_debug}, maSash, "sash proc", maControl]}
+		/return TRUE
+
+
+
+	} else /if (${_type.Equal[use]}) {
+		/invoke ${set_switch_env[${_debug}, swSash, TRUE, ${_verbage}]}
+
+	| shield flash
+	} else /if (${_type.Equal[flash]}) {
+		/if (${_verbage.Equal[pct]}) {
+			/if (!${set_control_num_range[${_debug}, stPctShieldFlash, "${_verbage2}", 0, 99]}) /return
+		} else /if (${_verbage.Equal[count]}) {
+			/if (!${set_control_num_range[${_debug}, stCountShieldFlash, "${_verbage2}", 0, 99]}) /return
+		} else /if (${_verbage.Equal[name]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stSashShieldFlash, "${_verbage2}"]}
+		}
+
+		/if (${_silent.Equal[SILENT]}) /return
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[pct,stPctShieldFlash]}
+		/invoke ${maControl.Add[count,stCountShieldFlash]}
+		/invoke ${maControl.Add[name,stSashShieldFlash|br]}
+		/invoke ${set_control_output[${_debug}, maSash, "sash flash", maControl]}
+		/return TRUE
+
+	}
+
+	/if (${_silent.Equal[SILENT]}) /return
+	/invoke ${maControl.Clear}
+	/invoke ${maControl.Add[use,swSash]}
+	/invoke ${maControl.Add[proc,submenu]}
+	/if (${Select[${Me.Class.ShortName},PAL,WAR,SHD]}) {
+		/invoke ${maControl.Add[flash,submenu]}
+	}
+
+	/invoke ${set_control_output[${_debug}, maSash, sash, maControl]}
+
+/return	TRUE
 
 
 

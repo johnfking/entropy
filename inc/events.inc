@@ -121,7 +121,7 @@ sub Event_CAST_FIZZLE(string _line, bool _debug)
 /return
 
 #event CAST_BLOCKED								"Your #*# did not take hold on #*#. (Blocked by #*#.)"
-sub Event_CAST_IMMUNE(string _line, bool _debug)
+sub Event_CAST_BLOCKED(string _line, bool _debug)
 	EDEBUG BLOCKED
 	/invoke ${maData.Add[stCastReturn,BLOCKED]}
 /return

@@ -509,10 +509,6 @@ sub set_control_WAR(string _type, string _verbage, string _silent, bool _debug)
 		/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return
 
 
-	| shield flash
-	} else /if (${_type.Equal[flash]}) {
-		/if (!${set_control_num_range[${_debug}, stPctShieldFlash, "${_verbage}", 0, 99]}) /return
-
 	| attraction
 	} else /if (${_type.Equal[attraction]}) {
 		/invoke ${set_switch_env[${_debug}, swAttraction, TRUE, ${_verbage}]}

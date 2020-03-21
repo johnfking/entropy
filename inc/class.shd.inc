@@ -482,16 +482,6 @@ sub set_control_SHD(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[ae]}) {
 		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
 
-	| shield flash
-	} else /if (${_type.Equal[flash]}) {
-		/if (${_verbage.Equal[pct]}) {
-			/if (!${set_control_num_range[${_debug}, stPctShieldFlash, "${_silent}", 0, 99]}) /return
-		} else /if (${_verbage.Equal[count]}) {
-			/if (!${set_control_num_range[${_debug}, stCountShieldFlash, "${_silent}", 0, 99]}) /return
-		}
-		OUT /chr flash ${dot} ${info}pct\ax:${If[${Bool[${maChr.Find[stPctShieldFlash].Value}]},${num}${maChr.Find[stPctShieldFlash].Value}\ax,${r0}]} ${dot} ${info}count\ax:${If[${Bool[${maChr.Find[stCountShieldFlash].Value}]},${num}${maChr.Find[stCountShieldFlash].Value}\ax,${r0}]}
-		/return TRUE
-
 	| harmonious
 	} else /if (${_type.Equal[harmonious]}) {
 		/invoke ${set_switch_env[${_debug}, swHarmonious, TRUE, ${_verbage}]}

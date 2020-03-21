@@ -36,9 +36,9 @@ sub set_SHM(bool _debug)
  	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
 
  	/call set_data_map ${_debug} maChr stHealSurge											PREGEN|1											"${auxna} area surg spell"
-  /call set_data_list ${_debug} maChr lsHealMending										PREGEN|3											"${auxli} main list of heal spells"
-	/call set_data_list ${_debug} maChr lsHealIntervention							PREGEN|3											"${auxli} intervention nuke/healing spells"
-	/call set_data_list ${_debug} maChr lsHealReckless									PREGEN|3											"${auxli} recless healing spells"
+  | /call set_data_list ${_debug} maChr lsHealMending										PREGEN|3											"${auxli} main list of heal spells"
+	| /call set_data_list ${_debug} maChr lsHealIntervention							PREGEN|3											"${auxli} intervention nuke/healing spells"
+	| /call set_data_list ${_debug} maChr lsHealReckless									PREGEN|3											"${auxli} recless healing spells"
 
   /call set_data_map ${_debug} maChr swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas"
   /call set_data_map ${_debug} maChr stHealGroupOverTime							PREGEN|1											"${auxna} group heal over time spell"
@@ -54,17 +54,17 @@ sub set_SHM(bool _debug)
 	/call set_data_map ${_debug} maChr stGrowth			 										PREGEN|1											"${auxna} temp hp growth spell"
 
 	| set heal orders
-	/declare lsHealOrderbase list outer
-	/invoke ${lsHealOrderbase.Delimiter["|"]}
-	/invoke ${lsHealOrderbase.Append[lsHealBaseLine]}
+	| /declare lsHealOrderbase list outer
+	| /invoke ${lsHealOrderbase.Delimiter["|"]}
+	| /invoke ${lsHealOrderbase.Append[lsHealBaseLine]}
 
-	/declare lsHealOrdermending list outer
-	/invoke ${lsHealOrdermending.Delimiter["|"]}
-	/invoke ${lsHealOrdermending.Append[lsHealMending|lsHealReckless]}
+	| /declare lsHealOrdermending list outer
+	| /invoke ${lsHealOrdermending.Delimiter["|"]}
+	| /invoke ${lsHealOrdermending.Append[lsHealMending|lsHealReckless]}
 
-	/declare lsHealOrderreckless list outer
-	/invoke ${lsHealOrderreckless.Delimiter["|"]}
-	/invoke ${lsHealOrderreckless.Append[lsHealReckless|lsHealMending]}
+	| /declare lsHealOrderreckless list outer
+	| /invoke ${lsHealOrderreckless.Delimiter["|"]}
+	| /invoke ${lsHealOrderreckless.Append[lsHealReckless|lsHealMending]}
 
 /return
 

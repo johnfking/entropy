@@ -119,7 +119,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer B200317.01
+	/call set_data FALSE maEnv build													map outer B200321.04
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -362,7 +362,7 @@ sub prepare_the_end(bool _debug)
 	}
 
 	| set all initial variables
-	/call set_initialize
+	/call set_initialize FALSE
 
 	/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,\at.\ax]} \a-tEntropy\ax${sep}\a-w${maEnv.Find[build].Value}\ax
 
@@ -394,11 +394,14 @@ sub prepare_the_end(bool _debug)
 	| get buffs
 	/call set_initialize_map_buffs ${maDebug.Find[init].Value}
 
+	| build maps with 12 counts
+	/call set_initialize_map_12 ${maDebug.Find[init].Value} add
+
 	| build maps with 20 counts
-	/call set_initialize_map_20
+	/call set_initialize_map_20 ${maDebug.Find[init].Value} add
 
 	| build maps with 50 counts
-	/call set_initialize_map_50
+	/call set_initialize_map_50 ${maDebug.Find[init].Value} add
 
 	| set any aliases needs
 	/call set_alias ${maDebug.Find[init].Value} add
