@@ -23,6 +23,15 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+B200326.01
+REPO update
+- stManualAssist1,stManualAssist2 have been removed from the INI export/import
+- mana recovery targeting adjusted
+- druid
+  redesign of the wolf aas to match the fuckery DBG did to them
+- some adjustments to cleric single HoT. if tests good, will do same to shaman
+- bard
+  corrected a target id variable issue for songs
 
 
 B200321.04
@@ -42,6 +51,7 @@ REPO updated
   /sash flash name - name of the bandolier you have set for flash
   you do not need to include the proc or flash names in the normal sash list, they are special cases
 - shield flash has been moved from PAL,SHD,WAR to /sash
+
 
 B200317.01
 - repo update

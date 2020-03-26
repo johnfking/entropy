@@ -1161,7 +1161,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 
 	| set heal point
 	} else /if (${_type.Equal[point]}) {
-		/call set_control_heal_point FALSE ${_verbage}
+		/call set_control_heal_point TRUE ${_verbage}
 		/return
 
 	| heal self
@@ -4079,7 +4079,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 	/invoke ${_skipKey.Append[stCurrentZoneID,stCastReturn,build,swSetTie,swBurnConditionMet]}
 
 	| obfuscation
-	/invoke ${_skipKey.Append[lsProtectInsideRaid,lsProtectOutsideGroup,stTieToon,lsRetortToon,lsWardToon]}
+	/invoke ${_skipKey.Append[lsProtectInsideRaid,lsProtectOutsideGroup,stTieToon,lsRetortToon,lsWardToon,stManualAssist1,stManualAssist2]}
 
 	| export to INI routine
 	/if (${_build.Equal[save]}) {

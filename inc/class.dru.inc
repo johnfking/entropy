@@ -28,31 +28,14 @@ sub set_DRU(bool _debug)
 
 	/call set_data_map FALSE maChr stCountHealGroup											0															"${auxnum} number in group hurt to use a group heal"
  	/call set_data_list FALSE maChr lsHealGroup													PREGEN|2											"${auxli} group heal spells"
- 	/call set_data_map FALSE maChr stHealPanic													PREGEN|1											"${auxna} purple club spell"
- 	/call set_data_list FALSE maChr lsHealAdrenaline										PREGEN|1											"${auxli} Adrenaline line of heals (medium cast)"
- 	/call set_data_list FALSE maChr lsHealPuravida				 							PREGEN|2											"${auxli} Puravida line of heals (long cast)"
-
- 	/call set_data_map FALSE maChr stWolfSpirit													FALSE													"${auxna} name of group wolf aa [\a-wFALSE - white - black\ax]"
+ 	/call set_data_map FALSE maChr swWolfSpirit													FALSE													"${auxsw} enable spirit of the great wolf aa (self/group)"
 
 	| temp buff: growth family
   /call set_data_list FALSE maChr lsGrowthToon	 											EMPTY													"${auxli} list of toons to use ward temp hp growth on"
 	/call set_data_map FALSE maChr stGrowth			 												PREGEN|1											"${auxna} temp hp growth spell"
-  /call set_data_list FALSE maChr lsHealRejuvilation									PREGEN|1											"${auxli} Rejuvilation line of heals (fast cast)"
 
   /call set_data_map FALSE maChr stTwincast														PREGEN|1											"${auxna} twincast spell"
 
-
-	/declare lsHealOrderbase list outer
-	/invoke ${lsHealOrderbase.Delimiter["|"]}
-	/invoke ${lsHealOrderbase.Append[lsHealBaseLine]}
-
-	/declare lsHealOrderaggressive list outer
-	/invoke ${lsHealOrderaggressive.Delimiter["|"]}
-	/invoke ${lsHealOrderaggressive.Append[lsHealRejuvilation|lsHealAdrenaline|lsHealPuravida]}
-
-	/declare lsHealOrderpassive list outer
-	/invoke ${lsHealOrderpassive.Delimiter["|"]}
-	/invoke ${lsHealOrderpassive.Append[lsHealPuravida|lsHealAdrenaline|lsHealRejuvilation]}
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -156,28 +139,19 @@ sub misc_combat_DRU(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "Storm Strike" ${_tmpID} FALSE
 	}
 
-	| wolf spirit AAs
-	/if (${maChr.Find[stWolfSpirit].Value.Equal[black]}) {
-		/if (!${Me.Buff[Spirit of the Black Wolf].ID} && ${Me.AltAbilityReady[Group Spirit of the Black Wolf]}) {
-			/if (${is_ready[${_debug}, "Group Spirit of the Black Wolf"]}) {
-				/call voodoo ${_debug} "Group Spirit of the Black Wolf" 0 FALSE
+	| great wolf self/group aa
+	/if (${maChr.Find[swWolfSpirit].Value}) {
+		/if (${Me.AltAbilityReady[Spirit of the Great Wolf]} && !${Me.Buff[Spirit of the Great Wolf].ID} && !${Me.Buff[Group Spirit of the Great Wolf]}) {
+			/if (${is_ready[${_debug}, "Spirit of the Great Wolf"]}) {
+				/call voodoo ${_debug} "Spirit of the Great Wolf" 0 FALSE
 			}
-		} else /if (!${Me.Buff[Group Spirit of the Black Wolf].ID} && !${Me.AltAbilityReady[Group Spirit of the Black Wolf]} && ${Me.AltAbilityReady[Spirit of the Black Wolf]}) {
-			/if (${is_ready[${_debug}, "Spirit of the Black Wolf"]}) {
-				/call voodoo ${_debug} "Spirit of the Black Wolf" 0 FALSE
-			}
-		}
-	} else /if (${maChr.Find[stWolfSpirit].Value.Equal[white]}) {
-		/if (!${Me.Buff[Spirit of the White Wolf].ID} && ${Me.AltAbilityReady[Group Spirit of the White Wolf]}) {
-			/if (${is_ready[${_debug}, "Group Spirit of the White Wolf"]}) {
-				/call voodoo ${_debug} "Group Spirit of the White Wolf" 0 FALSE
-			}
-		} else /if (!${Me.Buff[Group Spirit of the White Wolf].ID} && !${Me.AltAbilityReady[Group Spirit of the White Wolf]} && ${Me.AltAbilityReady[Spirit of the White Wolf]}) {
-			/if (${is_ready[${_debug}, "Spirit of the White Wolf"]}) {
-				/call voodoo ${_debug} "Spirit of the White Wolf" 0 FALSE
+		} else /if (${Me.AltAbilityReady[Group Spirit of the Great Wolf]} && !${Me.AltAbilityReady[Spirit of the Great Wolf]} && !${Me.Buff[Spirit of the Great Wolf].ID} && !${Me.Buff[Group Spirit of the Great Wolf]}) {
+			/if (${is_ready[${_debug}, "Group Spirit of the Great Wolf"]}) {
+				/call voodoo ${_debug} "Group Spirit of the Great Wolf" 0 FALSE
 			}
 		}
 	}
+
 
 /return TRUE
 
@@ -408,15 +382,7 @@ sub set_control_DRU(string _type, string _verbage, string _silent, bool _debug)
 
 	| wolf spirit AAs
 	} else /if (${_type.Equal[wolf]}) {
-		/declare lsAAWolf list local
-		/invoke ${lsAAWolf.Append[false,black,white]}
-
-		/if (${lsAAWolf.Contains[${_verbage.Lower}]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stWolfSpirit, "${_verbage.Lower}"]}
-		} else {
-			OUT /chr wolf [\a-wfalse\ax|\a-wwhite\ax|\a-wblack\ax]
-			/return
-		}
+		/invoke ${set_switch_env[${_debug}, swWolfSpirit, TRUE, ${_verbage}]}
 
 	}
 

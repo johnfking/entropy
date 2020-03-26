@@ -1847,7 +1847,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 				/while (!${_ligom.IsEnd}) {
 					/if (${_ligom.Value.Equal[empty]}) /break
 					/if (${is_ready[FALSE, "${_ligom.Value}"]}) {
-						/varset _verbage ${_ligom.Value}
+						/varset _verbage ${Spell[${_ligom.Value}].RankName}
 						/break
 					}
 				/invoke ${_ligom.Advance}
@@ -3714,7 +3714,7 @@ sub pull_mob_find(bool _debug, int _spCount)
 					| /continue
 				}
 
-				/varset _navRange ${Navigation.PathLength[locyxz ${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]}
+				/varset _navRange ${Navigation.PathLength[id ${_tmpID}]}
 
 				| sort by closest nav path length
 				/if (${_navRange} <= ${_closestNAV}) {
@@ -3847,10 +3847,11 @@ sub set_spell_to(bool _debug, bool _echo, string _spellname, string _spellgem, b
 		/declare _breakTimer timer local 5s
 	}
 
+
 	DEBUG _breakTimer${sep}\a-w${_breakTimer}\ax
 
 	| do we even have the spell?
-	/if (!${Me.Book[${_spellname}]}) {
+	/if (!${Me.Book[${Spell[${_spellname}].RankName}]}) {
 		/invoke ${out[0, "${notice}${sep}Bad Spell Name ${dot} ${_spellname}"]}
 		/return FALSE
 	}
@@ -4744,21 +4745,13 @@ sub set_control_chr_spire(bool _debug, string _type, string _verbage)
 	/invoke ${out[12, "${dot} ${info}group\ax:${If[${maChr.Find[swSpireGroup].Value},${on},${off}]}"]}
 	/invoke ${out[12, "${dot} ${info}raid\ax:${If[${maChr.Find[swSpireRaid].Value},${on},${off}]}"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maChr.Find[stSpireCon].Value}"
-		/if (${sqlite.Rows[dummy]}) {
-			OUT ${dot} ${info}con\ax${sep}\a-w${maChr.Find[stSpireCon].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
-		} else {
-			OUT ${dot} ${info}con\ax${sep}\a-w${maChr.Find[stSpireCon].Value}\ax
-		}
+	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maChr.Find[stSpireCon].Value}"
+	/if (${sqlite.Rows[dummy]}) {
+		OUT ${dot} ${info}con\ax${sep}\a-w${maChr.Find[stSpireCon].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
+	} else {
+		OUT ${dot} ${info}con\ax${sep}\a-w${maChr.Find[stSpireCon].Value}\ax
+	}
 
-
-
-
-
-	| /invoke ${out[12, "${dot} con:${sep}"]}
-	| /varset _out ${info}group\ax:${If[${maChr.Find[swSpireGroup].Value},${on},${off}]}
-	| /varset _out ${_out} ${dot} ${info}raid\ax:${If[${maChr.Find[swSpireRaid].Value},${on},${off}]}
-	| /invoke ${out[12, "/chr spire ${_out}"]}
 
 /return TRUE
 
@@ -4793,7 +4786,7 @@ sub set_control_heal_point(bool _debug, int _verbage)
 		/invoke ${_lichp.Advance}
 	}
 
-	/varset _out ${_out} ${dot}${info}HOT\ax:${num}${maHeal.Find[stHealPointHoT].Value}\ax
+	/varset _out ${_out} ${dot} ${info}HOT\ax:${num}${maHeal.Find[stHealPointHoT].Value}\ax
 
 	/invoke ${out[12, "/heal point ${_out}"]}
 
@@ -5622,6 +5615,7 @@ sub do_mana_recovery(bool _debug)
 	GETINPUT do_mana_recovery NA|NA
 
 	| you can take that rod.. and shove it right up you...
+	/declare _tmpID int local 0
 	/declare _midmc mapiterator local
   /vardata _midmc maManaRecovery.First.Clone
   /while (!${_midmc.IsEnd}) {
@@ -5630,7 +5624,13 @@ sub do_mana_recovery(bool _debug)
 			/if (${is_ready[${_debug}, "${_midmc.Key}"]}) {
 		  	DEBUG ${_midmc.Key}${sep}\a-w${_midmc.Value}\ax
 
-				/call voodoo ${_debug} "${_midmc.Key}" 0 FALSE
+		  	/if (${Select[${Spell[${_midmc.Key}].RankName.TargetType},Self,AE PC v2]}) {
+		  		/varset _tmpID 0
+		  	} else /if (${Select[${Spell[${_midmc.Key}].RankName.TargetType},Single]}) {
+		  		/varset _tmpID ${Me.ID}
+		  	}
+
+				/call voodoo ${_debug} "${_midmc.Key}" ${_tmpID} FALSE
 
 				/if (!${Select[${Me.Class.ShortName},MAG]} && !${FindItemCount[=${_midmc.Key}]}) {
 					| /call tell_resident_mage shard

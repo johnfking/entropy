@@ -205,7 +205,6 @@ sub misc_combat_CLR(bool _debug, int _tmpID)
 		/return TRUE
 	}
 
-
 	/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) {
 		/call cast_yaulp FALSE
 	}
@@ -412,12 +411,11 @@ sub check_heal_CLR(bool _debug, string _type)
  	| single heal over time
 	/if (${maChr.Find[swHealOverTime].Value}) {
 		/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
-			/declare _spell string local ${maChr.Find[swHealOverTime].Value.Arg[1,+]}
-			/dquery ${Spawn[${hurtID}].DisplayName} -q "Spell[${_spell}].Stacks" -o DNQReturn
-			/dquery ${Spawn[${hurtID}].DisplayName} -q "Me.Song[${_spell}].Duration" -o DNQReturn2
+			/dquery ${Spawn[${hurtID}].DisplayName} -q "Spell[${maChr.Find[swHealOverTime].Value}].Stacks" -o DNQReturn
+			/dquery ${Spawn[${hurtID}].DisplayName} -q "Me.Song[${maChr.Find[swHealOverTime].Value}].Duration" -o DNQReturn2
 			/if (${DNQReturn} && !${DNQReturn2}) {
-				/if (${is_ready[${_debug}, "${maHeal.Find[stHealOverTime}.Value}"]}) {
-					/call voodoo ${_debug} "${maHeal.Find[stHealOverTime}.Value}" ${hurtID} FALSE
+				/if (${is_ready[${_debug}, "${maHeal.Find[stHealOverTime].Value}"]}) {
+					/call voodoo ${_debug} "${maHeal.Find[stHealOverTime].Value}" ${hurtID} FALSE
 				}
 			}
 		}

@@ -74,7 +74,7 @@ sub main_BRD(bool _debug)
 			/call control_routine FALSE
 			| /if (${swAlliance}) /call trigger_alliance TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
-			/call pulse_line ${maDebug.Find[pulse].Value} target
+			/call pulse_line ${maDebug.Find[pulse].Value} TARGET
 			/call control_routine FALSE
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
@@ -476,9 +476,15 @@ sub set_control_BRD(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[ae]}) {
 		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
 
-	| use AA crystals
+	| use rest song
 	} else /if (${_type.Equal[rest]}) {
 		/invoke ${set_switch_env[${_debug}, swSongRest, TRUE, ${_verbage}]}
+
+	| use aa bellow
+	} else /if (${_type.Equal[bellow]}) {
+		/invoke ${set_switch_env[${_debug}, swAABellow, TRUE, ${_verbage}]}
+
+
 
 
 	}

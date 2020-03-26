@@ -308,6 +308,7 @@ sub set_initial_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
 	  /invoke ${maChrControl.Add[rest,swSongRest]}
 	  /invoke ${maChrControl.Add[refresh,stSongRefresh]}
+	  /invoke ${maChrControl.Add[bellow,swAABellow]}
 
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
 	  /invoke ${maChrControl.Add[consume,stPctConsume]}
@@ -328,7 +329,7 @@ sub set_initial_environment(bool _debug)
 
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
 	  /invoke ${maChrControl.Add[groupheal,stCountHealGroup]}
-	  /invoke ${maChrControl.Add[wolf,stWolfSpirit]}
+	  /invoke ${maChrControl.Add[wolf,swWolfSpirit]}
 
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
 		| /invoke ${maChrControl.Add[charm,]}
@@ -1820,7 +1821,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
 		HUDPATH dev tbC2							19,125,181,255,239,0,${timer_Check_Buff_Crew}
 
 		HUDPATH dev tbR1							19,160,181,100,149,237,bR
-		HUDPATH dev tbR2							19,185,181,255,239,0,${timer_Check_Buff_Raid}
+		| HUDPATH dev tbR2							19,185,181,255,239,0,${timer_Check_Buff_Raid}
 
 		HUDPATH dev tMode1						19,215,181,100,149,237,tM
 		HUDPATH dev tMode2						19,240,181,255,239,0,${timer_Check_Mode}
