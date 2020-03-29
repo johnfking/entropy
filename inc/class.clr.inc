@@ -27,16 +27,20 @@ sub set_CLR(bool _debug)
 	| Veturika's Preserverance
 	/call set_data_map ${_debug} maChr stPctVP													0															"${auxnum} % of manna to use veturikas perseverance"
 
-  /call set_data_map ${_debug} maChr swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas"
+  /call set_data_map ${_debug} maHeal swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas" heal
   /call set_data_map ${_debug} maChr swCelestialRegen									FALSE													"${auxsw} use celestial regen aa"
+
   /call set_data_map ${_debug} maHeal stHealGroupOverTime							PREGEN|1											"${auxna} group heal over time spell"	heal
 
+	| single heal over time
+	/call set_data_map ${_debug} maChr stCountIssuance									0															"${auxnum} number of mobs in area to use issuance"
 
-	/call set_data_map ${_debug} maChr swHealOverTime										FALSE													"${auxsw} % of members health to use heal over time"
+	| count heal over time single
+	/call set_data_map ${_debug} maHeal swHealOverTime									FALSE													"${auxsw} enable to use heal over time" heal
 	/call set_data_map ${_debug} maHeal stHealOverTime									PREGEN|1											"${auxna} heal over time spelll" heal
 
-	/call set_data_map ${_debug} maChr stCountHealGroup									0															"${auxnum} number in group hurt to use a group heal"
- 	/call set_data_map ${_debug} maChr stHealGroup											PREGEN|1											"${auxli} group heal spells" heal
+	/call set_data_map ${_debug} maHeal stCountHealGroup								0															"${auxnum} number in group hurt to use a group heal" heal
+ 	/call set_data_map ${_debug} maHeal stHealGroup											PREGEN|1											"${auxli} group heal spells" heal
 
 	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
 
@@ -48,14 +52,14 @@ sub set_CLR(bool _debug)
 	/call set_data_map ${_debug} maChr stTempPet												PREGEN|1											"${auxna} temp hammer pet spell"
 
 	| splash
-	/call set_data_map ${_debug} maChr stCountSplash										0															"${auxnum} number of hurt to use a splash heal"
+	/call set_data_map ${_debug} maHeal stCountSplash										0															"${auxnum} number of hurt to use a splash heal" heal
 	/call set_data_map ${_debug} maHeal stSplash												PREGEN|1											"${auxna} splash heal"	heal
 
 	| divine rez
 	/call set_data_map ${_debug} maRez swDivineCleric										FALSE													"${auxsw} divine rez other clerics"
 
 	| Rampage Tank
-	/call set_data_map ${_debug} maHeal stRampageTank										FALSE													"${auxna} rampage tank to not heal (\a-wcompletely ignore\ax)"	heal
+	/call set_data_map ${_debug} maHeal stRampageTank										FALSE													"${auxna} rampage tank to not heal (\a-wcompletely ignore\ax)" heal
 
 	| arbitration
 	/call set_data_map ${_debug} maChr stCountArbitrate									0															"${auxnum} num of group hurt to use arbitration aa/epic"
@@ -77,24 +81,27 @@ sub set_CLR(bool _debug)
   /call set_data_map ${_debug} maChr swSummonPrimary									FALSE													"${auxsw} use summoned primary hammer"
   /call set_data_map ${_debug} maChr stSummonPrimary									PREGEN|1											"${auxna} name of primary hammer spell"
 
+	| beacon of life aa
+	/call set_data_map ${_debug} maChr stCountBeaconofLife							0																	"${auxnum} num of group hurt to use beacon of life aa"
+	/call set_data_map ${_debug} maChr stAABeaconofLife									"Beacon of Life"									"${auxna} neacon of life aa"
+
 	| AAs
 	/call set_data_map ${_debug} maChr stAAUnity												"Saint's Unity"										"${auxna} class aa unity buff"
-	/call set_data_map ${_debug} maChr stAADivineArbitration						"Divine Arbitration"
-	/call set_data_map ${_debug} maChr stAACelestialRegeneration				"Celestial Regeneration"
-	/call set_data_map ${_debug} maChr stAAFocusedCelestialRegeneration	"Focused Celestial Regeneration"
-	/call set_data_map ${_debug} maChr stAABurstofLife									"Burst of Life"
-	/call set_data_map ${_debug} maChr stAABeaconofLife									"Beacon of Life"
-	/call set_data_map ${_debug} maChr stAAForcefulRejuvenation					"Forceful Rejuvenation"
-	/call set_data_map ${_debug} maChr stAAChannelingtheDivine					"Channeling the Divine"
-	/call set_data_map ${_debug} maChr stAADivineRetribution						"Divine Retribution"
-	/call set_data_map ${_debug} maChr stAASilentCasting								"Silent Casting"
-	/call set_data_map ${_debug} maChr stAAHealingFrenzy								"Healing Frenzy"
-	/call set_data_map ${_debug} maChr stAAFlurryofLife									"Flurry of Life"
-	/call set_data_map ${_debug} maChr stAAExquisiteBenediction					"Exquisite Benediction"
-	/call set_data_map ${_debug} maChr stAABattleFrenzy									"Battle Frenzy"
-	/call set_data_map ${_debug} maChr stAACelestialRapidity						"Celestial Rapidity"
-	/call set_data_map ${_debug} maChr stAATurnUndead										"Turn Undead"
-	/call set_data_map ${_debug} maChr stAACelestialHammer							"Celestial Hammer"
+	/call set_data_map ${_debug} maChr stAADivineArbitration						"Divine Arbitration"							"${auxna} divine arbitration aa"
+	/call set_data_map ${_debug} maChr stAACelestialRegeneration				"Celestial Regeneration"					"${auxna} celestial regeneration aa"
+	/call set_data_map ${_debug} maChr stAAFocusedCelestialRegeneration	"Focused Celestial Regeneration"	"${auxna} focused celestial regeneration aa"
+	/call set_data_map ${_debug} maChr stAABurstofLife									"Burst of Life"										"${auxna} burst of life aa"
+	/call set_data_map ${_debug} maChr stAAForcefulRejuvenation					"Forceful Rejuvenation"						"${auxna} forceful rejuvenation aa"
+	/call set_data_map ${_debug} maChr stAAChannelingtheDivine					"Channeling the Divine"						"${auxna} channeling the divine aa"
+	/call set_data_map ${_debug} maChr stAADivineRetribution						"Divine Retribution"							"${auxna} divine retribution aa"
+	/call set_data_map ${_debug} maChr stAASilentCasting								"Silent Casting"									"${auxna} cilent casting aa"
+	/call set_data_map ${_debug} maChr stAAHealingFrenzy								"Healing Frenzy"									"${auxna} healing frenzy aa"
+	/call set_data_map ${_debug} maChr stAAFlurryofLife									"Flurry of Life"									"${auxna} flurry of life aa"
+	/call set_data_map ${_debug} maChr stAAExquisiteBenediction					"Exquisite Benediction"						"${auxna} exquisite benediction aa"
+	/call set_data_map ${_debug} maChr stAABattleFrenzy									"Battle Frenzy"										"${auxna} battle frenzy aa"
+	/call set_data_map ${_debug} maChr stAACelestialRapidity						"Celestial Rapidity"							"${auxna} celestial rapidity aa"
+	/call set_data_map ${_debug} maChr stAATurnUndead										"Turn Undead"											"${auxna} turn undead aa"
+	/call set_data_map ${_debug} maChr stAACelestialHammer							"Celestial Hammer"								"${auxna} celestial hammer aa"
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -280,10 +287,10 @@ sub check_heal_CLR(bool _debug, string _type)
 	/declare _count int local 0
 
 	| Group Regen Heal
- 	/if (${maChr.Find[swHealGroupOverTime].Value} && !SAFEZONE && ${Group.Members} && COMBAT && AE#) {
-	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= ${maChr.Find[stCountAE].Value}) {
-	 		/declare _groupHOT string local ${Set_Rank[False, ${maHeal.Find[stHealGroupOverTime].Value.Arg[1,+]}]}
-			/if (!${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID}) {
+ 	/if (${maHeal.Find[swHealGroupOverTime].Value} && !SAFEZONE && ${Group.Members} && COMBAT && AE#) {
+	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= AE#) {
+	 		/declare _groupHOT string local ${maHeal.Find[stHealGroupOverTime].Value}
+			/if (!${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID} && !${Me.Song[Talisman of Enduring].ID}) {
 				/declare _found bool TRUE
 				| check regen SPA
 				/if (${Spell[${_groupHOT}].HasSPA[374]}) {
@@ -298,7 +305,7 @@ sub check_heal_CLR(bool _debug, string _type)
 					/if (${Spell[${_groupHOT}].Stacks}) /varset _found FALSE
 				}
 				/if (!${_found} && ${is_ready[${_debug}, ${_groupHOT}]}) {
-					/call voodoo ${_debug} "${maHeal.Find[stHealGroupOverTime].Value}" 0 FALSE
+					/call voodoo ${_debug} "${_groupHOT}" 0 FALSE
 				}
 			}
 		}
@@ -314,44 +321,42 @@ sub check_heal_CLR(bool _debug, string _type)
  		/return FALSE
  	}
 
-	/if (!SAFEZONE) {
+	/if (!${maEnv.Find[swZoneSafe].Value}) {
 
-		| arbitrate / group heal
+		| group healing
 		/if (${Select[${_type},group]} && ${Group}) {
-			/if (${maChr.Find[stCountArbitrate].Value}) {
-				/if (${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
 
-				  | AA arb
-				  /if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
-				    /call voodoo ${_debug} "${maChr.Find[stAADivineArbitration].Value}" 0 FALSE
-				    /return TRUE
-					| Second epic shield
-				  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
-				    /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
-				    /return TRUE
-				  | First epic shield
-				  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
-				    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
-				    /return TRUE
-				  }
-				}
+			| AA Beacon of life (3 min use)
+		  /if (${maChr.Find[stCountBeaconofLife].Value} && ${hurtCount} >= ${maChr.Find[stCountBeaconofLife].Value}) {
+			  /if (${is_ready[${_debug}, "${maChr.Find[stAABeaconofLife].Value}"]}) {
+			  	/call voodoo ${_debug} "${maChr.Find[stAABeaconofLife].Value}" 0 FALSE
+			  	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+			  }
 			}
 
-			| panic group heal. AA Beacon of life (3 min use)
-			/if (${maChr.Find[stCountHealGroup].Value}) {
-			  /if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) {
-				  /if (${is_ready[${_debug}, "${maChr.Find[stAABeaconofLife].Value}"]}) {
-				  	/call voodoo ${_debug} "${maChr.Find[stAABeaconofLife].Value}" 0 FALSE
-				  }
-				}
+			| arbitration
+			/if (${maChr.Find[stCountArbitrate].Value} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
 
-				/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+			  | AA arb
+			  /if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
+			    /call voodoo ${_debug} "${maChr.Find[stAADivineArbitration].Value}" 0 FALSE
+			    /return TRUE
+				| Second epic shield
+			  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
+			    /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
+			    /return TRUE
+			  | First epic shield
+			  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
+			    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
+			    /return TRUE
+			  }
+			  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+			}
 
-				| group heal
-				/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) {
-				  /if (${is_ready[${_debug}, "${maHeal.Find[stHealGroup].Value}"]}) {
-						/call voodoo ${_debug} "${maHeal.Find[stHealGroup].Value}" 0 FALSE
-					}
+			| group heal
+			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+			  /if (${is_ready[${_debug}, "${maHeal.Find[stHealGroup].Value}"]}) {
+					/call voodoo ${_debug} "${maHeal.Find[stHealGroup].Value}" 0 FALSE
 				}
 			}
 		}
@@ -382,8 +387,8 @@ sub check_heal_CLR(bool _debug, string _type)
 		GETINPUT clr_heal_mid type|${_type}
 
 		| splash heal
-		/if (${maChr.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
-			/if (${SpawnCount[npc radius ENV]} >= ${maChr.Find[stCountSplash].Value}) {
+		/if (${maHeal.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
+			/if (${SpawnCount[npc radius ENV]} >= ${maHeal.Find[stCountSplash].Value}) {
 				/call Bind_command_splash ${maDebug.Find[splash].Value}
 			}
 		}
@@ -635,17 +640,6 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[issuance]}) {
 		/if (!${set_control_num_range[${_debug}, stCountIssuance, "${_verbage}", 0, 99]}) /return
 
-	| use splashes
-	} else /if (${_type.Equal[splash]}) {
-		/if (!${set_control_num_range[${_debug}, stCountSplash, ${_verbage}, 0, 99]}) /return
-
-	| set group Heals
-	} else /if (${_type.Equal[groupheal]}) {
-		/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return
-
-	| use group Heal over Time
-	} else /if (${_type.Equal[grouphot]}) {
-		/invoke ${set_switch_env[${_debug}, swHealGroupOverTime, TRUE, ${_verbage}]}
 
 	| arbitration (sheild AND AA)
 	} else /if (${_type.Equal[arbitrate]}) {
@@ -663,9 +657,9 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[ae]}) {
 		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
 
-	| set ae on/off / count
-	} else /if (${_type.Equal[hot]}) {
-		/invoke ${set_switch_env[${_debug}, swHealOverTime, TRUE, ${_verbage}]}
+	| set beacon of life count
+	} else /if (${_type.Equal[beacon]}) {
+		/if (!${set_control_num_range[${_debug}, stCountBeaconofLife, "${_verbage}", 0, 6]}) /return
 
 	| cleric summoned weapon
 	} else /if (${_type.Equal[primary]}) {
@@ -699,3 +693,5 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
 /return
+
+

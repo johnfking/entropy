@@ -1248,13 +1248,8 @@ sub set_switch_env(bool _debug, string _switch, bool _sql, string _verbage)
 	/declare _map string local ${get_key_map[${_debug}, ${_switch}]}
 	DEBUG _map${sep}${_map}
 
-	| swap the switch status
-	/if (!${_verbage.Length} || (!${Bool[${_verbage}]} && ${_verbage.NotEqual[NULL]})) {
-		DEBUG ${sep}swapping
-		/invoke ${${_map}.Add[${_switch},${If[${${_map}.Find[${_switch}].Value},FALSE,TRUE]}]}
-
 	| set switch TRUE
-	} else /if (${_verbage.Equal[on]} || ${_verbage.Equal[TRUE]}) {
+	/if (${_verbage.Equal[on]} || ${_verbage.Equal[TRUE]}) {
 		DEBUG ${sep}on
 		/invoke ${${_map}.Add[${_switch},TRUE]}
 
@@ -1262,6 +1257,12 @@ sub set_switch_env(bool _debug, string _switch, bool _sql, string _verbage)
 	} else /if (${_verbage.Equal[off]} || ${_verbage.Equal[FALSE]}) {
 		DEBUG ${sep}off
 		/invoke ${${_map}.Add[${_switch},FALSE]}
+
+	| swap the switch status
+	} else /if (!${_verbage.Length} || (!${Bool[${_verbage}]} && ${_verbage.NotEqual[NULL]})) {
+		DEBUG ${sep}swapping
+		/invoke ${${_map}.Add[${_switch},${If[${${_map}.Find[${_switch}].Value},FALSE,TRUE]}]}
+
 	}
 
 	| update database?
@@ -1321,7 +1322,7 @@ sub cast_AA_fireworks(bool _debug)
 
 
 |***
- * note: watches for the rez box if we have bben marked as dead or called.
+ * note: watches for the rez box if we have been marked as dead or called.
  * use: /call check_for_rezbox()
  ***|
 sub check_for_rezbox(bool _debug)
@@ -1446,6 +1447,11 @@ sub check_for_rezbox(bool _debug)
 sub is_me_dead(bool _debug)
 	DEBUG \atis_me_dead\ax()
 	FLOW is_me_dead
+
+	| dont check in manual
+	/if (!AUTO) {
+		/return FALSE
+	}
 
 	GETINPUT is_me_dead swIsMeDead|${swIsMeDead}
 
@@ -2567,12 +2573,6 @@ sub clear_combat(bool _debug)
 		}
 	}
 
-	| legacy design. should not need this anymore
-	| /if (TARGET) {
-	| 	/call clear_timer FALSE TARGET
-	| }
-
-
 	/invoke ${maBurn.Add[swBurnConditionMet,FALSE]}
 
 	/if (${Stick.Active}) {
@@ -2581,16 +2581,6 @@ sub clear_combat(bool _debug)
 	/if (AUTO && ${Target.ID}) {
 		/squelch /target clear
 	}
-
-
-
-	| why is this here???
-
-	| /if (!AUTO && !${Spawn[${Target.ID}].Type.Equal[CORPSE]}) {
-	| 	/squelch /target clear
-	| }
-
-
 
 /return TRUE
 
@@ -4786,7 +4776,7 @@ sub set_control_heal_point(bool _debug, int _verbage)
 		/invoke ${_lichp.Advance}
 	}
 
-	/varset _out ${_out} ${dot} ${info}HOT\ax:${num}${maHeal.Find[stHealPointHoT].Value}\ax
+	| /varset _out ${_out} ${dot} ${info}HOT\ax:${num}${maHeal.Find[stHealPointHoT].Value}\ax
 
 	/invoke ${out[12, "/heal point ${_out}"]}
 
@@ -6570,12 +6560,8 @@ sub check_buff_cycle_temp_list(bool _debug, string _spell, string _toonList)
 	FLOW check_buff_cycle_temp_list ${_spell}|${_toonList} (2)
 	GETINPUT check_buff_cycle_temp_list NA|NA
 
-	| /declare _spellCHK string local
-	| DEBUG {maChr.Find[${_spell}].Value.Arg[1,+]}
-	| /varset _spellCHK ${maChr.Find[${_spell}].Value.Arg[1,+]}
-
 	| ready?
-	/if (!${is_ready[${_debug}, "${_spell}"]}) {
+	/if (!${is_ready[${_debug}, "${maChr.Find[${_spell}].Value}"]}) {
 		/return FALSE
 	}
 
@@ -6586,7 +6572,6 @@ sub check_buff_cycle_temp_list(bool _debug, string _spell, string _toonList)
 			/return TRUE
 		}
 	}
-
 
 	/declare _castSpell bool local FALSE
 
@@ -6601,11 +6586,11 @@ sub check_buff_cycle_temp_list(bool _debug, string _spell, string _toonList)
 			/continue
 		}
 
-		/dquery ${_libt.Value} -q "Spell[${_spell}].Stacks" -o DNQReturn -t 5
+		/dquery ${_libt.Value} -q "Spell[${maChr.Find[${_spell}].Value}].Stacks" -o DNQReturn -t 5
 		DEBUG ${DNQReturn}
 		/if (${Bool[${DNQReturn}]}) /varset _castSpell TRUE
 
-		/dquery ${_libt.Value} -q "Me.Buff[${_spell}].ID" -o DNQReturn -t 5
+		/dquery ${_libt.Value} -q "Me.Buff[${maChr.Find[${_spell}].Value}].ID" -o DNQReturn -t 5
 		DEBUG ${DNQReturn}
 		/if (${Bool[${DNQReturn}]}) /varset _castSpell FALSE
 
@@ -7234,9 +7219,9 @@ sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
 	}
 
 	| one of your crew
-	| /if (${ls${_type}Tag.Contains[crew]}) {
-	| 	/if (!${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_name}]}) /return FALSE
-	| }
+	/if (${ls${_type}Tag.Contains[crew]}) {
+		/if (!${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_name}]}) /return FALSE
+	}
 
 /return TRUE
 

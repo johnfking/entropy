@@ -239,7 +239,7 @@ sub pulse_line(bool _debug, _tmpID)
 	/if (${lsLineSong.Contains[EMPTY]} && ${lsLineSong.Count} == 1) {
 		DEBUG ${sep}resetting the empty line
 		/invoke ${lsLineSong.Clear}
-		/invole ${lsLineSong.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+		/invoke ${lsLineSong.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
 	}
 
 	/declare _lipl listiterator local

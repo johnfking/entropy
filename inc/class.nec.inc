@@ -31,7 +31,6 @@ sub set_NEC(bool _debug)
  	/call set_data_map ${_debug} maChr stAlliance 											PREGEN|1											"${auxna} alliance spell"
   /call set_data_map ${_debug} maChr stDichotomic 										PREGEN|1											"${auxna} dichotomic spell"
 
-
 	/invoke ${set_data_timer[${_debug}, Check_Blood, 8s]}
 	/call set_data_map ${_debug} maChr swblood													FALSE													"${auxsw} use  blood spell"
 	/call set_data_map ${_debug} maChr stBlood													PREGEN|1											"${auxna} name of current call for blood spell"
@@ -51,7 +50,7 @@ sub set_NEC(bool _debug)
  * note: Main Necro Routine
  * use:
  ***|
-sub main_NEC(bool _debug
+sub main_NEC(bool _debug)
 	DEBUG \atmain_NEC\ax()
 
 	/if (AUTO) {
@@ -73,10 +72,11 @@ sub main_NEC(bool _debug
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
-			/if (BURN) /call burn_${Me.Class.ShortName} /call check_cure ${maDebug.Find[burn].Value}
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
+			/call check_cure ${maDebug.Find[burn].Value}
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/if (${maCC.Find[swAlliance].Value}) /call trigger_alliance TARGET
-			/if (${maChr.Find[swblood].Value} && ${timer_Check_Blood}) /call cast_blood ${maDebug.Find[blood].Value} TARGET
+			/if (${maChr.Find[swblood].Value} && !${timer_Check_Blood}) /call cast_blood ${maDebug.Find[blood].Value} TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
@@ -86,8 +86,12 @@ sub main_NEC(bool _debug
 		}
 
 		/if (AUTO) {
-			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-			/if (${Me.PctMana} <= ${maChr.Find[stPctBloom].Value}*.PCTHO) /call cast_bloom ${maDebug.Find[mannarecover].Value}
+			/if (${maChr.Find[stPctManaRecovery].Value}) {
+				/call do_mana_recovery ${maDebug.Find[manarecover].Value}
+			}
+			/if (${Me.PctMana} <= ${maChr.Find[stPctBloom].Value}*.PCTHO) {
+				/call cast_bloom ${maDebug.Find[bloom].Value}
+			}
 			CHECKFADE
 		}
 	}
@@ -101,7 +105,7 @@ sub main_NEC(bool _debug
  * use:
  ***|
 sub check_heal_NEC(bool _debug, string _type)
-	DEBUG \atcheck_heal_NEC\ax()
+	DEBUG \atcheck_heal_NEC\ax(\a-w${_type}\ax)
 
 	CHECKTIE
 	ISMEDEAD
@@ -109,7 +113,7 @@ sub check_heal_NEC(bool _debug, string _type)
 	CHECKREZ
 	CHECKFADE
 
-	SETHUD "heal ${_type}"
+	SETHUD "heal ${_type.Lower}"
 
  	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
@@ -142,9 +146,9 @@ sub check_heal_NEC(bool _debug, string _type)
 	}
 
 	| aa Dying grasp
-	/if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.PCTHO}) {
+	/if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.PCTHO) {
 		/if (${is_ready[${_debug}, "Dying Grasp"]}) {
-			/call voodoo ${_debug} "Dying Grasp" TARGET FALSE
+			/call voodoo ${_debug} "Dying Grasp" ${_type} FALSE
 		}
 	}
 
@@ -301,7 +305,7 @@ sub cast_blood(bool _debug, int _tmpID)
 	/invoke ${set_data_timer[${_debug}, Check_Blood, RESTART]}
 	/if (${Me.Song[Chaotic Power].ID}) /return FALSE
 
-	/if (${target[isdead, TARGET]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -320,6 +324,10 @@ sub cast_blood(bool _debug, int _tmpID)
  ***|
 sub cast_bloom(bool _debug)
 	DEBUG \atcast_bloom\ax()
+
+	/if (${Zone.ID} == ${Me.BoundLocation[0].ID} || SAFEZONE) {
+		/return FALSE
+	}
 
 	ISMEDEAD
 	CHECKEXIT
@@ -373,6 +381,17 @@ sub set_control_NEC(string _type, string _verbage, string _silent, bool _debug)
 	| use blood nuke line
 	} else /if (${_type.Equal[blood]}) {
 		/invoke ${set_switch_env[${_debug}, swblood, TRUE, ${_verbage}]}
+
+		/if (${_verbage.Equal[name]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stBlood, "${_silent}"]}
+		} else /if (${_verbage.Equal[use]}) {
+			/invoke ${set_switch_env[${_debug}, swblood, TRUE, ${_silent}]}
+		}
+		/invoke ${maChrControl.Clear}
+		/invoke ${maChrControl.Add[name,stBlood|br]}
+		/invoke ${maChrControl.Add[use,swblood]}
+		/invoke ${set_control_output[${_debug}, maHeal, "chr blood", maChrControl]}
+		/return TRUE
 
 	| use bloom mana recovery
 	} else /if (${_type.Equal[bloom]}) {

@@ -178,7 +178,6 @@ sub misc_combat_MNK(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stPrecision].Value}" ${_tmpID} FALSE
 	}
 
-
 	/if (${is_ready[${_debug}, "${maChr.Find[stShuriken].Value}"]} && ${Spawn[${_tmpID}].Distance} > 31) {
 		/call voodoo ${_debug} "${maChr.Find[stShuriken].Value}" ${_tmpID} FALSE
 	}

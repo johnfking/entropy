@@ -63,6 +63,7 @@ sub set_debug()
   	/invoke ${lsDebugclass.Append[coh,gather,cauldron]}
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
+  	/invoke ${lsDebugclass.Append[blood,bloom]}
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
   	/invoke ${lsDebugclass.Append[splash]}
   } else /if (${Select[${Me.Class.ShortName},RNG]}) {
@@ -261,6 +262,8 @@ sub set_initial_environment(bool _debug)
 	| /call set_data ${_debug} FALSE lsCount			                            list outer ""
 
 
+	| /call set_data ${_debug} FALSE lsGroupRegens			                      list outer ""
+
   | timers  for everyone
   /invoke ${set_data_timer[FALSE, Try_Door, 4s]}
   /invoke ${set_data_timer[FALSE, Check_Ammo, 5s]}
@@ -317,13 +320,10 @@ sub set_initial_environment(bool _debug)
 
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
 	  /invoke ${maChrControl.Add[arbitrate,stCountArbitrate]}
+	  /invoke ${maChrControl.Add[beacon,stCountBeaconofLife]}
 	  /invoke ${maChrControl.Add[divinerez,swDivineCleric]}
-	  /invoke ${maChrControl.Add[groupheal,stCountHealGroup]}
-	  /invoke ${maChrControl.Add[grouphot,swHealGroupOverTime]}
-	  /invoke ${maChrControl.Add[hot,swHealOverTime]}
 	  /invoke ${maChrControl.Add[issuance,stCountIssuance]}
 	  /invoke ${maChrControl.Add[primary,submenu]}
-	  /invoke ${maChrControl.Add[splash,stCountSplash]}
 	  /invoke ${maChrControl.Add[vp,stPctVP]}
 	  /invoke ${maChrControl.Add[yaulp,swYaulp]}
 
@@ -348,7 +348,7 @@ sub set_initial_environment(bool _debug)
 	  /invoke ${maChrControl.Add[fdaggro,stPctFDAggro]}
 
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
-	  /invoke ${maChrControl.Add[blood,swblood]}
+	  /invoke ${maChrControl.Add[blood,submenu]}
 	  /invoke ${maChrControl.Add[bloom,stPctBloom]}
 
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
@@ -377,9 +377,9 @@ sub set_initial_environment(bool _debug)
 	  /invoke ${maChrControl.Add[stance,swStance]}
 
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
-	  /invoke ${maChrControl.Add[groupheal,stCountHealGroup]}
-	  /invoke ${maChrControl.Add[hot,swHealOverTime]}
-	  /invoke ${maChrControl.Add[grouphot,swHealGroupOverTime]}
+	  | /invoke ${maChrControl.Add[groupheal,stCountHealGroup]}
+	  /invoke ${maChrControl.Add[hot,submenu]}
+	  | /invoke ${maChrControl.Add[grouphot,swHealGroupOverTime]}
 	  /invoke ${maChrControl.Add[cannihps,stPctCanniHP]}
 	  /invoke ${maChrControl.Add[cannimanna,stPctCanniManna]}
 	  /invoke ${maChrControl.Add[surge,swSurge]}
@@ -919,16 +919,17 @@ sub set_initialize_map_character_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
 
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
-    /invoke ${lsMeleeSkill.Append[kick,dragonpunch,eaglestrike,tigerclaw,flyingkick,roundkick]}
+    /invoke ${lsMeleeSkill.Append[kick,dragonpunch,eaglestrike,tigerclaw,flyingkick,roundkick,intimidation]}
     /call set_data_map ${_debug} maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
     /call set_data_map ${_debug} maCC swDragonpunch                       FALSE                         "${auxsw} use dragon punch"
     /call set_data_map ${_debug} maCC swEaglestrike                       FALSE                         "${auxsw} use eagle strike"
     /call set_data_map ${_debug} maCC swTigerclaw                         FALSE                         "${auxsw} use tiger claw"
     /call set_data_map ${_debug} maCC swFlyingkick                        FALSE                         "${auxsw} use flying kick"
     /call set_data_map ${_debug} maCC swRoundkick                         FALSE                         "${auxsw} use round kick"
+    /call set_data_map ${_debug} maCC swIntimidation                      FALSE                         "${auxsw} you think you're all that.. you aint nothing.."
 
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
-    /call set_data ${_debug} FALSE lsHealMode                             list outer "base"
+    | /call set_data ${_debug} FALSE lsHealMode                             list outer "base"
 
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
     /invoke ${lsMeleeSkill.Append[bash,taunt,disarm]}

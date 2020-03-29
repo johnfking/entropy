@@ -108,7 +108,7 @@ sub main_DRU(bool _debug)
  * use: pushmorebuttons!!
  ***|
 sub misc_combat_DRU(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_DRU\ax()
+	DEBUG \atmisc_combat_DRU\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {

@@ -15,12 +15,51 @@ on the to do list
 - tag entry validation (cause people are making up shit now)
 - i'm gonna have to externalize all the AAs
 - ranger silent shot ambush spell
+- rest/pull conflict
+- break out triggers for minion buffs
 --------------------
+
 
 known bugs
 --------------------
 epics with commas in their names are currently not functioning
 --------------------
+
+
+
+B200329.01
+REPO update
+- cleric
+  /chr beacon [0:6] number of hurt in group to hit aa Beacon of Life
+- shaman
+  adjustments to canni mechanics @themanwithnoname
+- bard
+  fixed a typo in the default pulse line
+- necro
+	corrected a } in Dying Grasp AA
+	adjustments to deathbloom aa so necro wont use at bind or safezone @themanwithnoname
+	ruin all my fun
+	adjustments to the burn routine targeting
+	corrected the timer for cast_blood()
+- /heal rampage
+	adjustments to the command so it will fall in line with on/off/true/false options
+- healing variables and controls
+	ok, new rule of thumb
+	if it is a heal or a control for a heal, and it is not an AA, it is now located under /heal, or will be soon
+	so, things like: grouphot / hot / groupheal / splash
+	the associated counts
+	the on/off switches
+	all under /heal
+	this may require you to reset some spells. so you should check the command
+	if i missed any, let me know (still a couple classes to convert)
+- corrected an ENGINE2 control for /line command help
+- monk
+  gave them intimidation. not sure it was a good idea tho
+- temp buffs
+  fixed them, since i broke them and all
+- /debug
+  blood - necromancer blood nukes
+  blood - necro deathbloom
 
 
 B200326.01

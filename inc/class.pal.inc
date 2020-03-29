@@ -24,12 +24,8 @@ sub set_PAL(bool _debug)
 	/call set_data FALSE maData stFade																	map outer "Balefire Burst"
 	/call set_data_map FALSE maChr stAAUnity														"Divine Protector's Unity"
 
-	| tank shield flash
-	| /call set_data_map FALSE maChr stPctShieldFlash											0															"${auxnum} % of HP to try to get shield flash running"
-	| /call set_data_map FALSE maChr stCountShieldFlash										0															"${auxnum} # of mobs to hit shield flash"
-
 	| Rampage Tank
-	/call set_data_map FALSE maChr stRampageTank												FALSE													"${auxna} sets a rampage tank name for healing exclusion"
+	/call set_data_map FALSE maHeal stRampageTank												FALSE													"${auxna} sets a rampage tank name for healing exclusion" heal
 
 	| attraction AA used for pulling / agro
 	/call set_data_map FALSE maChr swAttraction													FALSE													"${auxsw} use the attraction aa to help with agro/pulling"
@@ -42,10 +38,10 @@ sub set_PAL(bool _debug)
 
 	| heals
  	/call set_data_list FALSE maChr lsHealToT		 												PREGEN|3											"${auxli} targets target healing line of spells"
- 	/call set_data_map FALSE maChr stHealLight 													PREGEN|1											"${auxna} light heal spell"
- 	/call set_data_map FALSE maChr stSplashPanic 												PREGEN|1											"${auxna} fast cast panic splash spell"
- 	/call set_data_map FALSE maChr stSplashCure 												PREGEN|1											"${auxna} ground target ae cure/heal spell"
- 	/call set_data_map FALSE maChr stSplash 														PREGEN|1											"${auxna} ground target ae heal spell"
+ 	| /call set_data_map FALSE maHeal stHealLight 												PREGEN|1											"${auxna} light heal spell" heal
+ 	| /call set_data_map FALSE maHeal stSplashPanic 											PREGEN|1											"${auxna} fast cast panic splash spell" heal
+ 	| /call set_data_map FALSE maHeal stSplashCure 												PREGEN|1											"${auxna} ground target ae cure/heal spell" heal
+ 	/call set_data_map FALSE maHeal stSplash 														PREGEN|1											"${auxna} ground target ae heal spell" heal
 
 	| stance
 	/invoke ${set_data_timer[FALSE, Check_Stance, 7.5m]}
@@ -384,12 +380,10 @@ sub check_heal_PAL(bool _debug, string _type)
 		/return	FALSE
 	}
 
-	| Panic Splash
-	/if (${Group.Members}) {
-	  /if (${hurtPctHP} <= 45*.PCTHO) {
-			/if (${is_ready[${_debug}, "${maChr.Find[stSplashPanic].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stSplashPanic].Value}" 0 FALSE
-			}
+	| splash heal
+	/if (${maHeal.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
+		/if (${SpawnCount[npc radius ENV]} >= ${maHeal.Find[stCountSplash].Value}) {
+			/call Bind_command_splash ${maDebug.Find[splash].Value}
 		}
 	}
 
@@ -419,18 +413,10 @@ sub check_heal_PAL(bool _debug, string _type)
 	/if (${Select[${_type},group]} && ${maHeal.Find[swHealGroup].Value}) {
 		| Group Splash
 	  /if (${hurtCount} >= 1) {
-	    /if (${is_ready[${_debug}, "${maChr.Find[stSplash].Value}"]}) {
-	    	/call voodoo ${_debug} "${splashGroup}" 0 FALSE
+	    /if (${is_ready[${_debug}, "${maHeal.Find[stSplash].Value}"]}) {
+	    	/call voodoo ${_debug} "${maHeal.Find[stSplash].Value}" 0 FALSE
 	    	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 	    }
-	  }
-
-		| AA Splash
-	  /if (${hurtCount} >= 1) {
-	  	/if (${is_ready[${_debug}, "Hand of Piety"]}) {
-	  		/call voodoo ${_debug} "Hand of Piety" 0 FALSE
-	  		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
-	  	}
 	  }
 
 		| Hand of Piety AA Group heal

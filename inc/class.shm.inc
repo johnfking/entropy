@@ -35,16 +35,13 @@ sub set_SHM(bool _debug)
  	/call set_data_map ${_debug} maChr stDichotomic											PREGEN|1											"${auxna} dichotomic spell"
  	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
 
- 	/call set_data_map ${_debug} maChr stHealSurge											PREGEN|1											"${auxna} area surg spell"
-  | /call set_data_list ${_debug} maChr lsHealMending										PREGEN|3											"${auxli} main list of heal spells"
-	| /call set_data_list ${_debug} maChr lsHealIntervention							PREGEN|3											"${auxli} intervention nuke/healing spells"
-	| /call set_data_list ${_debug} maChr lsHealReckless									PREGEN|3											"${auxli} recless healing spells"
+ 	/call set_data_map ${_debug} maChr stHealSurge											PREGEN|1											"${auxna} area surge spell"
 
-  /call set_data_map ${_debug} maChr swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas"
-  /call set_data_map ${_debug} maChr stHealGroupOverTime							PREGEN|1											"${auxna} group heal over time spell"
+  /call set_data_map ${_debug} maHeal swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas" heal
+  /call set_data_map ${_debug} maHeal stHealGroupOverTime							PREGEN|1											"${auxna} group heal over time spell" heal
 
-	/call set_data_map ${_debug} maChr swHealOverTime										FALSE													"${auxsw} % of members health to use heal over time"
-	/call set_data_map ${_debug} maChr stHealOverTime										PREGEN|1											"${auxna} heal over time spelll"
+	/call set_data_map ${_debug} maHeal swHealOverTime									FALSE													"${auxsw} % of members health to use heal over time" heal
+	/call set_data_map ${_debug} maHeal stHealOverTime									PREGEN|1											"${auxna} heal over time spelll" heal
 
 	/call set_data_map ${_debug} maChr stCountHealGroup									0															"${auxnum} number in group hurt to use a group heal"
  	/call set_data_list ${_debug} maChr lsHealGroup											PREGEN|2											"${auxli} group heal spells"
@@ -52,19 +49,6 @@ sub set_SHM(bool _debug)
 	| temp buff: growth family
   /call set_data_list ${_debug} maChr lsGrowthToon	 									EMPTY													"${auxli} list of toons to use ward temp hp growth on"
 	/call set_data_map ${_debug} maChr stGrowth			 										PREGEN|1											"${auxna} temp hp growth spell"
-
-	| set heal orders
-	| /declare lsHealOrderbase list outer
-	| /invoke ${lsHealOrderbase.Delimiter["|"]}
-	| /invoke ${lsHealOrderbase.Append[lsHealBaseLine]}
-
-	| /declare lsHealOrdermending list outer
-	| /invoke ${lsHealOrdermending.Delimiter["|"]}
-	| /invoke ${lsHealOrdermending.Append[lsHealMending|lsHealReckless]}
-
-	| /declare lsHealOrderreckless list outer
-	| /invoke ${lsHealOrderreckless.Delimiter["|"]}
-	| /invoke ${lsHealOrderreckless.Append[lsHealReckless|lsHealMending]}
 
 /return
 
@@ -113,7 +97,7 @@ sub main_SHM(bool _debug)
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
@@ -139,11 +123,11 @@ sub main_SHM(bool _debug)
  * noote: Combat skills, Disciplines and Alternate abilities.
  * use: yes, there are a lot here.
  ***|
-sub misc_combat_SHM(bool _debug)
-	DEBUG \atmisc_combat_SHM\ax()
+sub misc_combat_SHM(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat_SHM\ax(\a-w${_tmpID}\ax)
 
 	ISMEDEAD
-	/if (${target[isdead, TARGET]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -153,10 +137,10 @@ sub misc_combat_SHM(bool _debug)
 
 	CHECKDEFENSE
 	/if (SWARM || PET) {
-		/call send_pet ${maDebug.Find[sic].Value} TARGET
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	}
 	/if (AUTO && MELEE) {
-		/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	}
 
 	/call check_cani ${maDebug.Find[canni].Value}
@@ -241,6 +225,13 @@ sub check_heal_SHM(bool _debug, string _type)
  		/return FALSE
  	}
 
+|***	| aa Ancestral Guard
+	/if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.PCTHO) {
+		/if (${is_ready[${_debug}, "Ancestral Guard"]}) {
+			/call voodoo ${_debug} "Ancestral Guard" 0 FALSE
+		}
+	}
+***|
 	ISMEDEAD
 	CHECKEXIT
 	CHECKFADE
@@ -354,12 +345,17 @@ sub burn_SHM(bool _debug, int _tmpID)
 
 	| Twincast next 6 DOTs/HOTs
 	/if (${is_ready[${_debug}, "Fleeting Spirit"]}) {
-		/call voodoo ${_debug} "Fleeting Spirit" ${_tmpID} FALSE
+		/call voodoo ${_debug} "Fleeting Spirit" 0 FALSE
 	}
 
 	| Increase spell cost by 14% for 100% exceptional heals on instant heals for 18 seconds
 	/if (${is_ready[${_debug}, "Spiritual Blessing"]}) {
-		/call voodoo ${_debug} "Spiritual Blessing" ${_tmpID} FALSE
+		/call voodoo ${_debug} "Spiritual Blessing" 0 FALSE
+	}
+
+	|Mega bear crap
+	/if (AUTO && MELEE && ${is_ready[${_debug}, "Rabid Bear"]}) {
+		/call voodoo ${_debug} "Rabid Bear" ${_tmpID} FALSE
 	}
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
@@ -433,8 +429,8 @@ sub check_cani(bool _debug)
 
 	| check HP requirements
 	/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM mana_recovery WHERE env_var="${maChr.Find[stCannibalization].Value}"
-	/if (${Me.PctHPs} < ${sqlite.Result[dummy 1 value]}) {
-		DEBUG ${sep}canni usage would kill us${sep}\a-w${Me.PctHPs} < ${sqlite.Result[dummy 1 value]}\ax
+	/if (${Me.CurrentHPs} < ${sqlite.Result[dummy 1 value]}) {
+		DEBUG ${sep}canni usage would kill us${sep}\a-w${Me.CurrentHPs} < ${sqlite.Result[dummy 1 value]}\ax
 		/return FALSE
 	}
 
@@ -468,7 +464,7 @@ sub cast_alliance_SHM(bool _debug)
 		/call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" ${_tmpID} FALSE
 	}
 
-/return
+/return TRUE
 
 
 
@@ -507,14 +503,6 @@ sub set_control_SHM(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[cannimanna]}) {
 		/if (!${set_control_num_range[${_debug}, stPctCanniManna, "${_verbage}", 0, 99]}) /return
 
-	| set group Heals
-	} else /if (${_type.Equal[groupheal]}) {
-		/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return
-
-	| use group Heal over Time
-	} else /if (${_type.Equal[grouphot]}) {
-		/invoke ${set_switch_env[${_debug}, swHealGroupOverTime, TRUE, ${_verbage}]}
-
 	|
 	} else /if (${_type.Equal[surge]}) {
 		/invoke ${set_switch_env[${_debug}, swSurge, TRUE, ${_verbage}]}
@@ -531,9 +519,6 @@ sub set_control_SHM(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[ae]}) {
 		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
 
-	| set ae on/off / count
-	} else /if (${_type.Equal[hot]}) {
-		/invoke ${set_switch_env[${_debug}, swHealOverTime, TRUE, ${_verbage}]}
 
 	}
 

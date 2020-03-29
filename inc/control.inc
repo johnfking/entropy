@@ -1216,24 +1216,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	} else /if (${_type.Equal[adj]}) {
 		/if (!${set_control_num_range[${_debug}, stHealAdjust, "${_verbage}", 0, 99]}) /return
 
-	|**
-	} else /if (${_type.Equal[mode]}) {
-		/if (${lsHealMode.Contains[${_verbage}]}) {
-			/call do_raw_edit ${_debug} SILENT stHealMode "${_verbage}"
-		}
-		/if (${_silent.Equal[SILENT]}) /return
-		/declare _outm string local
-		/vardata cli lsHealMode.First.Clone
-		/while (!${cli.IsEnd}) {
-			/varset _outm ${_outm} ${If[${cli.Value.Equal[${lsHealMode.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${maHeal.Find[stHealMode].Value.Equal[${cli.Value}]}) /varset _outm ${_outm}:${on}
-			/if (${maHeal.Find[stHealMode].Value.NotEqual[${cli.Value}]}) /varset _outm ${_outm}:${off}
-			/invoke ${cli.Advance}
-		}
-		/invoke ${out[12, "/heal mode ${_outm}"]}
-		/return
 
-	**|
 	| set the XTarget class to heal
 	} else /if (${_type.Equal[xtclass]}) {
 		/call set_control_chr_xtclass FALSE ${_verbage}
@@ -1241,11 +1224,66 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 
 	| set rampage tank toon
 	} else /if (${_type.Equal[rampage]}) {
-		/if (${Bool[${_verbage}]}) {
+		/if (${Bool[${_verbage}]} && ${_verbage.NotEqual[TRUE]} && ${_verbage.NotEqual[ON]} && ${_verbage.NotEqual[OFF]}) {
 			/call do_raw_edit ${_debug} SILENT stRampageTank "${_verbage.Left[1].Upper}${_verbage.Right[-1].Lower}"
-		} else /if (!${Bool[${_verbage}]}) {
+		} else /if (!${Bool[${_verbage}]} || ${_verbage.Equal[OFF]}) {
 			/invoke ${set_switch_env[${_debug}, stRampageTank, TRUE, FALSE]}
 		}
+
+	| use group Heal over Time
+	} else /if (${_type.Equal[grouphot]}) {
+		/if (${_verbage.Equal[name]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stHealGroupOverTime, "${_silent}"]}
+		} else /if (${_verbage.Equal[use]}) {
+			/invoke ${set_switch_env[${_debug}, swHealGroupOverTime, TRUE, ${_silent}]}
+		}
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[name,stHealGroupOverTime|br]}
+		/invoke ${maControl.Add[use,swHealGroupOverTime]}
+		/invoke ${set_control_output[${_debug}, maHeal, "heal grouphot", maControl]}
+		/return TRUE
+
+	| use splashes
+	} else /if (${_type.Equal[splash]}) {
+		/if (${_verbage.Equal[name]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stSplash, "${_silent}"]}
+		} else /if (${_verbage.Equal[count]}) {
+			/if (!${set_control_num_range[${_debug}, stCountSplash, "${_silent}", 0, 6]}) /return
+		}
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[name,stSplash|br]}
+		/invoke ${maControl.Add[count,stCountSplash]}
+		/invoke ${set_control_output[${_debug}, maHeal, "heal splash", maControl]}
+		/return TRUE
+
+	| set group Heals
+	} else /if (${_type.Equal[groupheal]}) {
+		/if (${_verbage.Equal[name]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stHealGroup, "${_silent}"]}
+		} else /if (${_verbage.Equal[count]}) {
+			/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_silent}", 0, 6]}) /return
+		}
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[name,stHealGroup|br]}
+		/invoke ${maControl.Add[count,stCountHealGroup]}
+		/invoke ${set_control_output[${_debug}, maHeal, "heal groupheal", maControl]}
+		/return TRUE
+
+	| set single hot
+	} else /if (${_type.Equal[hot]}) {
+		/if (${_verbage.Equal[use]}) {
+			/invoke ${set_switch_env[${_debug}, swHealOverTime, TRUE, ${_silent}]}
+		} else /if (${_verbage.Equal[name]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stHealOverTime, "${_silent}"]}
+		} else /if (${_verbage.Equal[pct]}) {
+			/if (!${set_control_num_range[${_debug}, stHealPointHoT, "${_silent}", 0, 99]}) /return
+		}
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[use,swHealOverTime]}
+		/invoke ${maControl.Add[name,stHealOverTime|br]}
+		/invoke ${maControl.Add[pct,stHealPointHoT]}
+		/invoke ${set_control_output[${_debug}, maHeal, "heal hot", maControl]}
+		/return TRUE
 
 	}
 
@@ -1257,12 +1295,20 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	/if (${lsClassHealToT.Contains[${Me.Class.ShortName}]}) {
 		/invoke ${maControl.Add[tot,swHealToT]}
 	}
+	/if (${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
+		/invoke ${maControl.Add[hot,submenu]}
+	}
+
+  /invoke ${maControl.Add[groupheal,submenu]}
+  /invoke ${maControl.Add[grouphot,submenu]}
 	/invoke ${maControl.Add[group,swHealGroup]}
 	/invoke ${maControl.Add[xt,swHealXTarget]}
 	/invoke ${maControl.Add[xtclass,submenu]}
 	/invoke ${maControl.Add[pet,swHealPet]}
 	/invoke ${maControl.Add[cure,swHealCure]}
 	/invoke ${maControl.Add[adj,stHealAdjust]}
+  /invoke ${maControl.Add[splash,submenu]}
+
 	/invoke ${maControl.Add[rampage,stRampageTank|br]}
 	/invoke ${set_control_output[${_debug}, maHeal, heal, maControl]}
 
@@ -3465,8 +3511,8 @@ sub Bind_command_splash(bool _debug)
 
 	| paladin
 	/if (${Me.Class.ShortName.Equal[PAL]}) {
-		/if (${is_ready[${_debug}, "${maChr.Find[stSplashCure].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stSplashCure].Value}" 0 FALSE
+		/if (${is_ready[${_debug}, "${maHeal.Find[stSplashCure].Value}"]}) {
+		/call voodoo ${_debug} "${maHeal.Find[stSplashCure].Value}" 0 FALSE
 		}
 	}
 
@@ -5308,7 +5354,7 @@ sub Bind_command_line(string _type, string _line)
 	/if (!${lsControl.Contains[${_type}]}) {
 		/if (ENGINE1) {
 			/invoke ${out[0, "/line \awnuke\ax|\awdot\ax|\awsong\ax|\awheal\ax|\awdefense\ax \aw#|#|#|#|#\ax"]}
-		} elsae /if (ENGINE2) {
+		} else /if (ENGINE2) {
 			/invoke ${out[0, "/line \awnuke\ax|\awdot\ax|\awsong\ax|\awheal\ax|\awdefense\ax|\awagro\ax|\awmiscdps\ax|\awburn\ax \aw#|#|#|#|#\ax"]}
 		}
 		/return FALSE
