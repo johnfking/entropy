@@ -295,7 +295,6 @@ sub get_agro_SHD(bool _debug, int _tmpID)
 
 	| AE Hate
 	/if (AE# && ${SpawnCount[npc radius 50 PS4]} >= AE#) {
-			/echo AEHATE HERE
 			/declare _liaeha listiterator local
 			/vardata _liaeha lsAEHate.First.Clone
 			/while (!${_liaeha.IsEnd}) {
