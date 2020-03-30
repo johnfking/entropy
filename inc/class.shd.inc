@@ -229,6 +229,10 @@ sub misc_combat_SHD(bool _debug, int _tmpID)
 		}
 	}
 
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
+
 	/if (${is_ready[${_debug}, "${maChr.Find[stTempRune].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stTempRune].Value}" 0 FALSE
 	}
@@ -258,7 +262,9 @@ sub get_agro_SHD(bool _debug, int _tmpID)
 		/return FALSE
 	}
 
-	/if (PET) /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	/if (PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
 
 	/if (ENGINE2) {
 		/call cast_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
@@ -269,40 +275,39 @@ sub get_agro_SHD(bool _debug, int _tmpID)
 	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 
 	| AA pet hate
-	/if (${Me.PctAggro} < 80 || ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
+	/if (${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
 		/if (${is_ready[${_debug}, "Projection of Doom"]}) {
 			/call voodoo ${_debug} "Projection of Doom" ${_tmpID} FALSE
 		}
 	}
 
 	| single hate
-	/declare _ligas listiterator local
-	/vardata _ligas lsHate.First.Clone
-	/while (!${_ligas.IsEnd}) {
+	/declare _liha listiterator local
+	/vardata _liha lsHate.First.Clone
+	/while (!${_liha.IsEnd}) {
 		| /if (${Me.PctAggro} > 90 || ${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]}) /break
-		/if (${is_ready[${_debug}, "${_ligas.Value}"]}) {
-			/call voodoo ${_debug} "${_ligas.Value}" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${_liha.Value}"]}) {
+			/call voodoo ${_debug} "${_liha.Value}" ${_tmpID} FALSE
+			/break
 		}
-		/invoke ${_ligas.Advance}
+		/invoke ${_liha.Advance}
 	}
 
 	| AE Hate
-	/if (AE# && ${SpawnCount[npc radius SAFEENV targetable PS4]} >= AE#) {
-		/declare mobAECount int local 0
-		/varset mobAECount ${SpawnCount[npc OVERLOS radius 50]}
-
-		/if (${mobAECount} >= AE#) {
-			/vardata li lsAEHate.First.Clone
-			/while (!${_ligas.IsEnd}) {
-				/if (${is_ready[${_debug}, "${_ligas.Value}"]}) {
-					/call voodoo ${_debug} "${_ligas.Value}" 0 FALSE
+	/if (AE# && ${SpawnCount[npc radius 50 PS4]} >= AE#) {
+			/echo AEHATE HERE
+			/declare _liaeha listiterator local
+			/vardata _liaeha lsAEHate.First.Clone
+			/while (!${_liaeha.IsEnd}) {
+				/if (${is_ready[${_debug}, "${_liaeha.Value}"]}) {
+					/call voodoo ${_debug} "${_liaeha.Value}" 0 FALSE
+					/break
 				}
-				/invoke ${_ligas.Advance}
+				/invoke ${_liaeha.Advance}
 			}
-		}
 
 		| AE lifetap
-		/if (${mobAECount} >= AE# && !${SpawnCount[pc enchanter radius SAFEENV*2]}) {
+		/if (!${SpawnCount[pc enchanter radius SAFEENV*2]}) {
 			/if (${is_ready[${_debug}, "${maChr.Find[stAELifeTap].Value}"]}) {
 				/call voodoo ${_debug} "${maChr.Find[stAELifeTap].Value}" 0 FALSE
 			}

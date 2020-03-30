@@ -1600,7 +1600,6 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 	| correct the range if needed
 	/declare _range int local
-
 	/if (${Range.Between[1,9999999:${_rangeOverride}]}) {
 		/varset _range ${_rangeOverride}
 	} else {
@@ -1799,7 +1798,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		}
 
 		| check for stacking issues
-			| DEBUG ${sep}${Spell[${_verbage}].SpellType.Equal[Beneficial]} && !${Spell[${_verbage}].Category.Equal[Heals]} && !${Select[${Spell[${_verbage}].Category},Heals,Combat Inates]}
+		| DEBUG ${sep}${Spell[${_verbage}].SpellType.Equal[Beneficial]} && !${Spell[${_verbage}].Category.Equal[Heals]} && !${Select[${Spell[${_verbage}].Category},Heals,Combat Inates]}
 		/if (${_tmpID} == ${Me.ID} || ${_tmpID} == 0) {
 			/if (${Spell[${_verbage}].SpellType.Equal[Beneficial]} && !${Select[${Spell[${_verbage}].Category},Heals,Combat Inates]}) {
 				/if (!${Spell[${_verbage}].Stacks}) {
@@ -1896,11 +1895,8 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 				/cast ${Me.Gem[${_verbage}]}
 
-
 				| set delays for casting. GTFO out of this as fast as possible
 				| /delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
-
-
 
 				/varset _castTime ${Math.Calc[${Spell[${_verbage}].MyCastTime}+50]}
 				DEBUG ${sep}_castTime${sep}\a-w${_castTime}\ax
@@ -1922,9 +1918,6 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 					}
 				}
-
-
-
 
 				| delay for longer casts if there is any, cooldowns or open spell cast windows
 				/while (${Me.Casting.ID} || ${Window[CastingWindow].Open} || ${Me.SpellInCooldown}) {
@@ -5302,8 +5295,11 @@ sub check_buff_cycle_aura(bool _debug)
 	FLOW check_buff_cycle_aura (2)
 	GETINPUT check_buff_cycle_aura NA|NA
 
+	| set aura 1
 	/declare _a1 		string local ${set_rank[${_debug}, ${maBuff.Find[stAura1].Value}]}
 	/declare _a1c 	string local ${maBuff.Find[stAura1Check].Value}
+
+	| set aura 2
 	/declare _a2 		string local ${set_rank[${_debug}, ${maBuff.Find[stAura2].Value}]}
 	/declare _a2c 	string local ${maBuff.Find[stAura2Check].Value}
 
@@ -5315,6 +5311,7 @@ sub check_buff_cycle_aura(bool _debug)
 			/if (!${Macro.Return}) /return FALSE
 			/call voodoo FALSE "${_a1}" 0 FALSE
 		}
+		/return TRUE
 	}
 
 	| Aura: Bard
@@ -5327,6 +5324,7 @@ sub check_buff_cycle_aura(bool _debug)
 				/call voodoo ${_debug} "${_a1}" 0 FALSE
 			}
 		}
+		/return TRUE
 	}
 
 	| everyone else...
@@ -5337,7 +5335,9 @@ sub check_buff_cycle_aura(bool _debug)
 		/declare _found1 bool FALSE
 		/declare _found2 bool FALSE
 
+		| check auras entered in database 1/2
 		/for _aura 1 to 2
+			DEBUG ${sep}\a-y------\axLOOP#\aw${_aura}\ax
 			DEBUG ${sep}Aura ${_aura}${sep}\a-w${_a1}\ax
 			DEBUG ${sep}Aura ${_aura} check${sep}\a-w${_a1c}\ax
 
@@ -5347,8 +5347,8 @@ sub check_buff_cycle_aura(bool _debug)
 					/if (${Bool[${_a${_aura}c}]}) {
 						/call check_basic_tags ${_debug} Aura${_count} ${Me.DisplayName} "${_a${_aura}}"
 						/if (!${Macro.Return}) {
-							/continue
 							/varset _found${_aura} TRUE
+							/continue
 						}
 
 						DEBUG ${sep}/if Me.Aura[${_count}].Name.Equal[${_a${_aura}c}]
@@ -5424,7 +5424,7 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
 
 	| aura
 	/if ((${maBuff.Find[swBuffAura].Value} || ${_verbage.Equal[a]}) && ((AUTO && !${timer_Check_Buff_Aura}) || ${_force})) {
-		/call check_buff_cycle_aura ${If[${_force},${_debug},${maDebug.Find[aura].Value}]}
+		/call check_buff_cycle_aura ${If[${_force},${maDebug.Find[aura].Value},${maDebug.Find[aura].Value}]}
 	}
 
 	| shrink
@@ -8310,7 +8310,7 @@ sub check_deBuffs(bool _debug, int _tmpID)
 				/invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, 0]}
 			}
 
-				/if (${_tmpTLO.Equal[Slowed]} && ${Select[${Target.Slowed},Tendon Slice,Helix of the Undying]}) {
+				/if (${_tmpTLO.Equal[Slowed]} && ${Select[${Target.Slowed},Tendon Slice,Helix of the Undying,Crippling Snare]}) {
 					/goto :ignorecrapslow
 				}
 

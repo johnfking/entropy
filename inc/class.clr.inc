@@ -394,7 +394,7 @@ sub check_heal_CLR(bool _debug, string _type)
 		}
 
 		| Panic AA single target heal
-	  /if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.5*.PCTHO) {
+	  /if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.85*.PCTHO) {
 			/if (${is_ready[${_debug}, "${maChr.Find[stAABurstofLife].Value}"]}) {
 				/if (${Me.Casting.ID}) {
 					/stopcast

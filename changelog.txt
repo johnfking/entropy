@@ -17,6 +17,9 @@ on the to do list
 - ranger silent shot ambush spell
 - rest/pull conflict
 - break out triggers for minion buffs
+- check cure exits / recasts
+- build a control /cure
+
 --------------------
 
 
@@ -25,6 +28,16 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
+
+
+B200330.01
+- /crew
+  should set group assist correctly now @themanwithnoname
+- added crippling snare to the list of ignored target debuffs for reslowing
+- pulling
+  small adjustments to close ranged mobs
+- shadowknight
+  correted some bad variables in get_agro (single and AE hate lists)
 
 
 B200329.01

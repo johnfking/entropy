@@ -3150,19 +3150,16 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[agro]}) {
 		/invoke ${set_switch_env[${_debug}, swAgro, TRUE, ${_verbage}]}
 
-	| use poisons
-	| } else /if (${_type.Equal[poison]}) {
-	| 	/invoke ${set_switch_env[${_debug}, swPoison, TRUE, ${_verbage}]}
-
 	| force manual combat routines
 	} else /if (${_type.Equal[force]}) {
 		/if (${Target.ID} && (${Target.ID} != ${Me.ID}) && (${Target.ID} != ${Me.Pet.ID})) {
+
+			/varset stAssTarID ${Target.ID}
 
 			/if (${Me.Invis}) /makemevisible
 			/invoke ${maCC.Add[swValidAssTarID,TRUE]}
 			/invoke ${maCC.Add[swSetCombat,TRUE]}
 			/invoke ${maCC.Add[swSetForced,TRUE]}
-			/varset stAssTarID ${Target.ID}
 			/if (${swModeToken}) {
 				/invoke ${out[12, "Hunting ${dot} ${tar}${Target.DisplayName}\ax"]}
 			} else {
@@ -4567,7 +4564,12 @@ sub Bind_command_crew(string _type, bool _debug)
 				/invoke ${cli.Advance}
 				/continue
 			}
-
+			/if (!${Group.Leader.Name.Equal[${Me.DisplayName}]}) {
+				/disband
+				/delay 1s
+				/raiddisband
+				/delay 1s
+			}
 			| drop what they are doing!
 			/dexecute ${cli.Value} /disband
 			/delay 1s
@@ -4611,25 +4613,27 @@ sub Bind_command_crew(string _type, bool _debug)
 		/goto :notmyresponsibilitybitch
 	}
 
-	| set group assist
 	| set group looter
 	/delay 1s
 	/if (${Bool[${maCrew.Find[stCrew${_type}Looter].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_type}Looter].Value}].Index}) {
 		/grouproles set ${maCrew.Find[stCrew${_type}Looter].Value} 5
 	}
 
+	| set group assist
 	/delay 1s
-	/if (${Bool[${maCrew.Find[stCrew${_type}Assist].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index}) {
+	DEBUG ${sep}${maCrew.Find[stCrew${_type}Assist].Value}
+	DEBUG ${sep}${Bool[${maCrew.Find[stCrew${_type}Assist].Value}]} && (${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} || ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} == 0)
+	/if (${Bool[${maCrew.Find[stCrew${_type}Assist].Value}]} && (${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} || ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} == 0)) {
 		/grouproles set ${maCrew.Find[stCrew${_type}Assist].Value} 2
 	}
 
 	| set group leader
 	/delay 1s
-	/echo 	/if (${Bool[${maCrew.Find[stCrew${_type}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_type}Leader].Value}].Index}) {
+	DEBUG ${sep}${Bool[${maCrew.Find[stCrew${_type}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_type}Leader].Value}].Index}
 	/if (${Bool[${maCrew.Find[stCrew${_type}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_type}Leader].Value}].Index}) {
 		/makeleader ${maCrew.Find[stCrew${_type}Leader].Value}
 	}
-
+	/delay 1s
 	:notmyresponsibilitybitch
 	/invoke ${out[12, "\awLeader\ax${sep}\a-w${Group.Leader}\ax ${dot} \awMA\ax${sep}\a-w${Group.MainAssist}\ax ${dot} \awLooter\ax${sep}\a-w${Group.MasterLooter}\ax"]}
 	/invoke ${out[12, "\agCompleted\ax${sep}Crew\aw${_type}\ax"]}

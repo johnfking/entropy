@@ -267,15 +267,21 @@ sub main(string _debug, string _param1, string _auto)
 			/if (!SAFEZONE) {
 				/if (!${Me.Invis} || (${Select[${Me.Class.ShortName},ROG]} && ${maEnv.Find[swSoS].Value})) {
 
+					/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w1\ax
 
-					/if (!PULL || (PULL && (${Group.MainAssist.ID} != ${Me.ID}) && ${SpawnCount[NPC radius ENV PS4]})) {
+					/if (!PULL && ${SpawnCount[NPC radius ENV PS4]}) {
+						/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w2\ax
 						/call get_assist_target ${maDebug.Find[assist].Value}
 					} else /if (PULL && !TARGET) {
+						/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w3\ax
 						/if (${maCC.Find[stPullMode].Value.Equal[base]}) {
+							/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w4\ax
 							/call get_target_basepull ${maDebug.Find[pull].Value}
 						} else {
+							/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w5\ax
 							/call prep_advanced_pulling ${maDebug.Find[pull].Value}
 							/if (${SubDefined[get_target_${maCC.Find[stPullMode].Value}pull]}) {
+								/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w6\ax
 								/call get_target_${maCC.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
 							}
 						}
