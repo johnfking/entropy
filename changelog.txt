@@ -37,7 +37,7 @@ B200330.01
 - pulling
   small adjustments to close ranged mobs
 - shadowknight
-  correted some bad variables in get_agro (single and AE hate lists)
+  corrected some bad variables in get_agro (single and AE hate lists)
 
 
 B200329.01
