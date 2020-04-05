@@ -106,6 +106,7 @@ sub main_NEC(bool _debug)
  ***|
 sub check_heal_NEC(bool _debug, string _type)
 	DEBUG \atcheck_heal_NEC\ax(\a-w${_type}\ax)
+	FLOW check_heal_NEC ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -164,6 +165,7 @@ sub check_heal_NEC(bool _debug, string _type)
  ***|
 sub misc_combat_NEC(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_NEC\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat_NEC
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -219,6 +221,7 @@ sub misc_combat_NEC(bool _debug, int _tmpID)
  ***|
 sub burn_NEC(bool _debug, int _tmpID)
 	DEBUG \atburn_NEC\ax(\a-w${_tmpID}\ax)
+	FLOW burn_NEC
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -297,6 +300,7 @@ sub burn_NEC(bool _debug, int _tmpID)
  ***|
 sub cast_blood(bool _debug, int _tmpID)
 	DEBUG \atcast_blood\ax(\a-w${_tmpID}\ax)
+	FLOW cast_blood
 
 	ISMEDEAD
 	CHECKEXIT
@@ -324,6 +328,7 @@ sub cast_blood(bool _debug, int _tmpID)
  ***|
 sub cast_bloom(bool _debug)
 	DEBUG \atcast_bloom\ax()
+	FLOW cast_bloom
 
 	/if (${Zone.ID} == ${Me.BoundLocation[0].ID} || SAFEZONE) {
 		/return FALSE

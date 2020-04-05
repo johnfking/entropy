@@ -108,6 +108,7 @@ sub main_MNK(bool _debug)
  ***|
 sub misc_combat_MNK(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_MNK\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat_MNK
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -198,6 +199,7 @@ sub misc_combat_MNK(bool _debug, int _tmpID)
  ***|
 sub check_heal_MNK(bool _debug, string _type)
 	DEBUG \atcheck_heal_MNK\ax(\a-w${_type}\ax)
+	FLOW check_heal_MNK ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -238,6 +240,7 @@ sub check_heal_MNK(bool _debug, string _type)
  ***|
 sub burn_MNK(bool _debug, int _tmpID)
 	DEBUG \atburn_MNK\ax(\a-w${_tmpID}\ax)
+	FLOW burn_MNK
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -349,6 +352,7 @@ sub burn_MNK(bool _debug, int _tmpID)
  ***|
 sub melee_train_MNK(bool _debug)
 	DEBUG \atmelee_train_MNK\ax()
+	FLOW melee_train_MNK
 
 | This code catches the call in the skillup sub and returns out using most efficient skills if not training melee
 	/if (!${maChr.Find[swTrainMelee].Value}) {
@@ -424,6 +428,7 @@ sub Event_MNKfdcheck(string line, string _verbage)
  ***|
 sub check_fd(bool _debug)
 	DEBUG \atcheck_fd\ax()
+	FLOW check_fd
 
 	ISMEDEAD
 

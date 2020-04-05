@@ -278,7 +278,7 @@ sub check_mana_BST(bool _debug)
  ***|
 sub check_heal_BST(bool _debug, string _type)
 	DEBUG \atcheck_heal_BST\ax(\a-w${_type}\ax)
-	FLOW check_heal_BST
+	FLOW check_heal_BST ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -354,6 +354,8 @@ sub Bind_cast_AA_paragon(bool _debug)
 
 sub cast_AA_paragon(bool _debug)
 	DEBUG \atcast_AA_paragon\ax()
+	FLOW cast_AA_paragon
+
 	ISMEDEAD
 	CHECKEXIT Bind_cast_AA_paragon
 	GETINPUT

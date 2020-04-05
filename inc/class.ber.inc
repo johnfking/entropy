@@ -111,6 +111,7 @@ sub main_BER(bool _debug)
  ***|
 sub misc_combat_BER(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_BER\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat_BER
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -169,7 +170,7 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 	}
 
 	/if (${is_ready[${_debug}, "Binding Axe"]}) {
-		/call voodoo ${_debug} "Binding Axe" 0 FALSE
+		/call voodoo ${_debug} "Binding Axe" ${_tmpID} FALSE
 	}
 
 	/if (AE#) {
@@ -267,7 +268,8 @@ sub misc_combat_BER(bool _debug, int _tmpID)
  * use: /heal self
  ***|
 sub check_heal_BER(bool _debug, string _type)
-	DEBUG check_heal_BER(${_debug}, ${_type})
+	DEBUG \atcheck_heal_BER\ax(\a-w${_type}\ax)
+	FLOW check_heal_BER ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -293,6 +295,7 @@ sub check_heal_BER(bool _debug, string _type)
  ***|
 sub burn_BER(bool _debug, int _tmpID)
 	DEBUG \atburn_BER\ax(\aw${_tmpID}\ax)
+	FLOW burn_BER
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {

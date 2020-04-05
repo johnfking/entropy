@@ -162,11 +162,12 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 	| delete aliases
 	} else /if (${_type.Equal[whitewash]}) {
 
-		/vardata cli liAlias.First.Clone
-		/while (!${cli.IsEnd}) {
-			/invoke ${out[12, "Deleting Alias${sep}\a-w${cli.Value}\ax"]}
-			/squelch /alias /${cli.Value} delete
-			/invoke ${cli.Advance}
+		/declare _lidel listiterator local
+		/vardata _lidel liAlias.First.Clone
+		/while (!${_lidel.IsEnd}) {
+			/invoke ${out[12, "Deleting Alias${sep}\a-w${_lidel.Value}\ax"]}
+			/squelch /alias /${_lidel.Value} delete
+			/invoke ${_lidel.Advance}
 		}
 		/invoke ${out[12, "Current Build ${info}${maEnv.Find[build].Value}\ax ${dot} ${bad}Ended\ax"]}
 		/endm
@@ -350,10 +351,11 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 	/declare liout list local
 	/invoke ${liout.Append[checkvar,spa,whitewash,import,keymap,see,sqlcheck]}
   /declare _out string local
-	/vardata cli liout.First.Clone
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${liout.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/invoke ${cli.Advance}
+  /declare _liadout listiterator local
+	/vardata _liadout liout.First.Clone
+	/while (!${_liadout.IsEnd}) {
+		/varset _out ${_out} ${If[${_liadout.Value.Equal[${liout.First}]},,${dot}]} ${info}${_liadout.Value}\ax
+		/invoke ${_liadout.Advance}
 	}
 	/invoke ${out[12, "/admin (PID:\a-w${EverQuest.PID}\ax) ${_out}"]}
 
@@ -905,10 +907,11 @@ sub Bind_control_tc(string _type, string _verbage, string _silent, bool _debug)
 			}
 		}
 
-		/vardata cli _lsout.First.Clone
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${If[${cli.Value.Equal[${maTie.Find[stTieMode].Value}]},${good}${cli.Value}\ax,${info}${cli.Value}\ax]}
-			/invoke ${cli.Advance}
+		/declare _litc listiterator local
+		/vardata _litc _lsout.First.Clone
+		/while (!${_litc.IsEnd}) {
+			/varset _out ${_out} ${If[${_litc.Value.Equal[${_lsout.First}]},,${dot}]} ${If[${_litc.Value.Equal[${maTie.Find[stTieMode].Value}]},${good}${_litc.Value}\ax,${info}${_litc.Value}\ax]}
+			/invoke ${_litc.Advance}
 		}
 		/invoke ${out[12, "/tc mode ${_out}"]}
 		/return
@@ -1058,11 +1061,12 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 
 	/if (${_silent.Equal[SILENT]}) /return
   /declare _out string local
-	/vardata cli lsZoneProperty.First.Clone
+  /declare _lizone listiterator local
+	/vardata _lizone lsZoneProperty.First.Clone
 	/varset _out ${info}safe\ax:${If[${maEnv.Find[swZoneSafe].Value},${on},${off}]}
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${lsZoneProperty.First}]},,${dot}]} ${info}${cli.Value.Right[-6].Lower}\ax
-		/invoke ${cli.Advance}
+	/while (!${_lizone.IsEnd}) {
+		/varset _out ${_out} ${If[${_lizone.Value.Equal[${lsZoneProperty.First}]},,${dot}]} ${info}${_lizone.Value.Right[-6].Lower}\ax
+		/invoke ${_lizone.Advance}
 	}
 	/invoke ${out[12, "/area ${_out}"]}
 
@@ -1161,7 +1165,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 
 	| set heal point
 	} else /if (${_type.Equal[point]}) {
-		/call set_control_heal_point TRUE ${_verbage}
+		/call set_control_heal_point FALSE ${_verbage}
 		/return
 
 	| heal self
@@ -1417,10 +1421,11 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 		}
 
 		/invoke ${_lsout.Append[time,update,delete]}
-		/vardata cli _lsout.First.Clone
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/invoke ${cli.Advance}
+		/declare _lihud listiterator local
+		/vardata _lihud _lsout.First.Clone
+		/while (!${_lihud.IsEnd}) {
+			/varset _out ${_out} ${If[${_lihud.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${_lihud.Value}\ax
+			/invoke ${_lihud.Advance}
 		}
 		/invoke ${out[12, "/entropy hud ${_out}"]}
 		/return
@@ -1496,10 +1501,11 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 			/if (${lsRezPct.Contains[${_verbage}]}) /call do_raw_edit ${_debug} SILENT stPctMinRez "${_verbage}"
 		}
 
-		/vardata cli lsRezPct.First.Clone
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${lsRezPct.First}]},,${dot}]} ${If[${maRez.Find[stPctMinRez].Value} == ${cli.Value},${good}${cli.Value}\ax,${info}${cli.Value}\ax]}
-			/invoke ${cli.Advance}
+		/declare _lirezpct listiterator local
+		/vardata _lirezpct lsRezPct.First.Clone
+		/while (!${_lirezpct.IsEnd}) {
+			/varset _out ${_out} ${If[${_lirezpct.Value.Equal[${lsRezPct.First}]},,${dot}]} ${If[${maRez.Find[stPctMinRez].Value} == ${_lirezpct.Value},${good}${_lirezpct.Value}\ax,${info}${_lirezpct.Value}\ax]}
+			/invoke ${_lirezpct.Advance}
 		}
 		/invoke ${out[12, "/rez pct ${_out}"]}
 		/return TRUE
@@ -1873,10 +1879,11 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 		/invoke ${out[12, "${dot} ${info}aura1\ax:[${If[${Bool[${maBuff.Find[stAura1].Value}]},${num}${maBuff.Find[stAura1].Value}\ax,${off}]}]"]}
 		/invoke ${out[12, "${dot} ${info}aura1check\ax:[${If[${Bool[${maBuff.Find[stAura1Check].Value}]},${num}${maBuff.Find[stAura1Check].Value}\ax,${off}]}]"]}
 		/invoke ${out[12, "${dot} lsAura\aw1\axTag"]}
-		/vardata cli lsAura1Tag.First.Clone
-		/while (!${cli.IsEnd}) {
-			/invoke ${out[12, "${dot}${dot} \a-w${cli.Value}\ax"]}
-			/invoke ${cli.Advance}
+		/delcare _lia1 listiterator local
+		/vardata _lia1 lsAura1Tag.First.Clone
+		/while (!${_lia1.IsEnd}) {
+			/invoke ${out[12, "${dot}${dot} \a-w${_lia1.Value}\ax"]}
+			/invoke ${_lia1.Advance}
 		}
 		/if (!${Select[${Me.Class.ShortName},CLR,ENC]}) /return
 
@@ -1885,10 +1892,11 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 		/invoke ${out[12, "${dot} ${info}aura2\ax:[${If[${Bool[${maBuff.Find[stAura2].Value}]},${num}${maBuff.Find[stAura2].Value}\ax,${off}]}]"]}
 		/invoke ${out[12, "${dot} ${info}aura2check\ax:[${If[${Bool[${maBuff.Find[stAura2Check].Value}]},${num}${maBuff.Find[stAura2Check].Value}\ax,${off}]}]"]}
 		/invoke ${out[12, "${dot} lsAura\aw2\axTag"]}
-		/vardata cli lsAura2Tag.First.Clone
-		/while (!${cli.IsEnd}) {
-			/invoke ${out[12, "${dot}${dot} \a-w${cli.Value}\ax"]}
-			/invoke ${cli.Advance}
+		/declare _lia2 listiterator local
+		/vardata _lia2 lsAura2Tag.First.Clone
+		/while (!${_lia2.IsEnd}) {
+			/invoke ${out[12, "${dot}${dot} \a-w${_lia2.Value}\ax"]}
+			/invoke ${_lia2.Advance}
 		}
 		/return
 
@@ -2428,10 +2436,11 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 
 		/invoke ${out[12, "lsDefense\aw${_verbage}\axTag"]}
 
-		/vardata cli lsDefense${_verbage}Tag.First.Clone
-		/while (!${cli.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${cli.Value}\ax"]}
-			/invoke ${cli.Advance}
+		/declare _lidef listiterator local
+		/vardata _lidef lsDefense${_verbage}Tag.First.Clone
+		/while (!${_lidef.IsEnd}) {
+			/invoke ${out[12, "${dot}\a-w${_lidef.Value}\ax"]}
+			/invoke ${_lidef.Advance}
 		}
 
 
@@ -2477,10 +2486,11 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/invoke ${out[12, "stBuff\aw${_verbage}\axAlias${sep}\a-w${maBuff.Find[stBuff${_verbage}Alias].Value}\ax"]}
 		/invoke ${out[12, "lsBuff\aw${_verbage}\axTag"]}
 
-		/vardata cli lsBuff${_verbage}Tag.First.Clone
-		/while (!${cli.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${cli.Value}\ax"]}
-			/invoke ${cli.Advance}
+		/declare _liseedeb listiterator local
+		/vardata _liseedeb lsBuff${_verbage}Tag.First.Clone
+		/while (!${_liseedeb.IsEnd}) {
+			/invoke ${out[12, "${dot}\a-w${_liseedeb.Value}\ax"]}
+			/invoke ${_liseedeb.Advance}
 		}
 
 	} else /if (${_variable.Equal[condition]}) {
@@ -2541,10 +2551,11 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 
 		/invoke ${out[12, "lsItem\aw${_verbage}\axTag"]}
 
-		/vardata cli lsItem${_verbage}Tag.First.Clone
-		/while (!${cli.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${cli.Value}\ax"]}
-			/invoke ${cli.Advance}
+		/declare _liseeit listiterator local
+		/vardata _liseeit lsItem${_verbage}Tag.First.Clone
+		/while (!${_liseeit.IsEnd}) {
+			/invoke ${out[12, "${dot}\a-w${_liseeit.Value}\ax"]}
+			/invoke ${_liseeit.Advance}
 		}
 
 	| see what we are observing
@@ -2552,20 +2563,22 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
 			/if (!${Defined[lsObserved_${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}]}) /continue
 			/invoke ${out[12, "Observed on${sep}\at${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|].Upper}\ax"]}
-			/vardata cli lsObserved_${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}.First
-			/while (!${cli.IsEnd}) {
-				/invoke ${out[12, "${sep}\aw${cli.Value}\ax"]}
-				/invoke ${cli.Advance}
+			/declare _liob listiterator local
+			/vardata _liob lsObserved_${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}.First
+			/while (!${_liob.IsEnd}) {
+				/invoke ${out[12, "${sep}\aw${_liob.Value}\ax"]}
+				/invoke ${_liob.Advance}
 			}
 		/next _count
 
 	| wtf.. list...
 	} else /if (${_variable.Left[2].Equal[ls]} && ${${_variable}.Count}) {
 		/invoke ${out[12, "\aw${_variable}\ax ${dot} \a-g${${_variable}.Count}\ax ${If[${${_variable}} > 1 || ${${_variable}} == 0,items,item]}"]}
-		/vardata cli ${_variable}.First.Clone
-		/while (!${cli.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${cli.Value}\ax"]}
-			/invoke ${cli.Advance}
+		/declare _liwtf listiterator local
+		/vardata _liwtf ${_variable}.First.Clone
+		/while (!${_liwtf.IsEnd}) {
+			/invoke ${out[12, "${dot}\a-w${_liwtf.Value}\ax"]}
+			/invoke ${_liwtf.Advance}
 		}
 
 	| map
@@ -2573,22 +2586,23 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		| /if (!${lsMaps.Contains[${_variable}]} && ${_verbage.NotEqual[force]}) /return
 		/invoke ${out[12, "\aw${_variable}\ax ${dot} \a-g${${_variable}.Count}\ax ${If[${${_variable}} > 1 || ${${_variable}} == 0,items,item]}"]}
 		/if (!${${_variable}.Count}) /return
-		/vardata mi ${_variable}.First.Clone
-		/while (!${mi.IsEnd}) {
+		/declare _misee mapiterator local
+		/vardata _misee ${_variable}.First.Clone
+		/while (!${_misee.IsEnd}) {
 			/if (${_verbage.Equal[aux]}) {
-				/varset _DBLOC ${get_key_DBLOC[${_debug}, ${mi.Key}]}
-				/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var='${mi.Key}'
+				/varset _DBLOC ${get_key_DBLOC[${_debug}, ${_misee.Key}]}
+				/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var='${_misee.Key}'
 				/if (${sqlite.Status[dummy].Equal[SUCCESS]} && ${sqlite.Result[dummy 1 aux].Length} > 6) {
 					/varset _tmpAux ${dot} ${sqlite.Result[dummy 1 aux]}
 				}	else {
 					/varset _tmpAux
 				}
 			}
-			OUT ${mi.Key}${sep}\aw${Parse[1,${mi.Value}]}\ax
+			OUT ${_misee.Key}${sep}\aw${Parse[1,${_misee.Value}]}\ax
 			/if (${_verbage.Equal[aux]}) {
 				/invoke ${out[12, "\at..\ax\a-g${_tmpAux}\ax"]}
 			}
-			/invoke ${mi.Advance}
+			/invoke ${_misee.Advance}
 		}
 
 	| set
@@ -2724,7 +2738,8 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 	/declare _lsoutS list local
 	/invoke ${_lsoutS.Append[use,single,ae]}
   /declare _out string local
-	/vardata cli _lsoutS.First.Clone
+  /declare _lideb listiterator local
+	/vardata _lideb _lsoutS.First.Clone
 
 	| output control map
 	/if (${_type.Equal[see]}) {
@@ -2744,13 +2759,13 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 		}
 
 		/varset _out
-		/vardata cli _lsoutS.First.Clone
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swMez].Value},${on},${off}]}
-			/if (${cli.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stMez].Value}]},${num}${madeBuff.Find[stMez].Value}\ax,${off}]}]
-			/if (${cli.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAEMez].Value}]},${num}${madeBuff.Find[stAEMez].Value}\ax,${off}]}]
-			/invoke ${cli.Advance}
+		/vardata _lideb _lsoutS.First.Clone
+		/while (!${_lideb.IsEnd}) {
+			/varset _out ${_out} ${If[${_lideb.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${_lideb.Value}\ax
+			/if (${_lideb.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swMez].Value},${on},${off}]}
+			/if (${_lideb.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stMez].Value}]},${num}${madeBuff.Find[stMez].Value}\ax,${off}]}]
+			/if (${_lideb.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAEMez].Value}]},${num}${madeBuff.Find[stAEMez].Value}\ax,${off}]}]
+			/invoke ${_lideb.Advance}
 		}
 		/invoke ${out[12, "/debuff mez ${_out}"]}
 		/return
@@ -2764,13 +2779,13 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 			/invoke ${do_raw_edit[${_debug}, TRUE, stAEMalo, "${_silent}"]}
 		}
 		/varset _out
-		/vardata cli _lsoutS.First.Clone
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swMalo].Value},${on},${off}]}
-			/if (${cli.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stMalo].Value}]},${num}${madeBuff.Find[stMalo].Value}\ax,${off}]}]
-			/if (${cli.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAEMalo].Value}]},${num}${madeBuff.Find[stAEMalo].Value}\ax,${off}]}]
-			/invoke ${cli.Advance}
+		/vardata _lideb _lsoutS.First.Clone
+		/while (!${_lideb.IsEnd}) {
+			/varset _out ${_out} ${If[${_lideb.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${_lideb.Value}\ax
+			/if (${_lideb.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swMalo].Value},${on},${off}]}
+			/if (${_lideb.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stMalo].Value}]},${num}${madeBuff.Find[stMalo].Value}\ax,${off}]}]
+			/if (${_lideb.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAEMalo].Value}]},${num}${madeBuff.Find[stAEMalo].Value}\ax,${off}]}]
+			/invoke ${_lideb.Advance}
 		}
 		/invoke ${out[12, "/debuff malo ${_out}"]}
 		/return TRUE
@@ -2783,12 +2798,12 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 		} else /if (${_verbage.Equal[ae]}) {
 			/invoke ${do_raw_edit[${_debug}, TRUE, stAETash, "${_silent}"]}
 		}
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swTash].Value},${on},${off}]}
-			/if (${cli.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stTash].Value}]},${num}${madeBuff.Find[stTash].Value}\ax,${off}]}]
-			/if (${cli.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAETash].Value}]},${num}${madeBuff.Find[stAETash].Value}\ax,${off}]}]
-			/invoke ${cli.Advance}
+		/while (!${_lideb.IsEnd}) {
+			/varset _out ${_out} ${If[${_lideb.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${_lideb.Value}\ax
+			/if (${_lideb.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swTash].Value},${on},${off}]}
+			/if (${_lideb.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stTash].Value}]},${num}${madeBuff.Find[stTash].Value}\ax,${off}]}]
+			/if (${_lideb.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAETash].Value}]},${num}${madeBuff.Find[stAETash].Value}\ax,${off}]}]
+			/invoke ${_lideb.Advance}
 		}
 		/invoke ${out[12, "/debuff tash ${_out}"]}
 		/return TRUE
@@ -2802,12 +2817,12 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 			/invoke ${do_raw_edit[${_debug}, TRUE, stAESlow, "${_silent}"]}
 		}
 		/varset _out
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swSlow].Value},${on},${off}]}
-			/if (${cli.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stSlow].Value}]},${num}${madeBuff.Find[stSlow].Value}\ax,${off}]}]
-			/if (${cli.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAESlow].Value}]},${num}${madeBuff.Find[stAESlow].Value}\ax,${off}]}]
-			/invoke ${cli.Advance}
+		/while (!${_lideb.IsEnd}) {
+			/varset _out ${_out} ${If[${_lideb.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${_lideb.Value}\ax
+			/if (${_lideb.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swSlow].Value},${on},${off}]}
+			/if (${_lideb.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stSlow].Value}]},${num}${madeBuff.Find[stSlow].Value}\ax,${off}]}]
+			/if (${_lideb.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAESlow].Value}]},${num}${madeBuff.Find[stAESlow].Value}\ax,${off}]}]
+			/invoke ${_lideb.Advance}
 		}
 		/invoke ${out[12, "/debuff slow ${_out}"]}
 		/return TRUE
@@ -2822,12 +2837,12 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 			/invoke ${do_raw_edit[${_debug}, TRUE, stAESnare, "${_silent}"]}
 		}
 
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swSnare].Value},${on},${off}]}
-			/if (${cli.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stSnare].Value}]},${num}${madeBuff.Find[stSnare].Value}\ax,${off}]}]
-			/if (${cli.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAESnare].Value}]},${num}${madeBuff.Find[stAESnare].Value}\ax,${off}]}]
-			/invoke ${cli.Advance}
+		/while (!${_lideb.IsEnd}) {
+			/varset _out ${_out} ${If[${_lideb.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${_lideb.Value}\ax
+			/if (${_lideb.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swSnare].Value},${on},${off}]}
+			/if (${_lideb.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stSnare].Value}]},${num}${madeBuff.Find[stSnare].Value}\ax,${off}]}]
+			/if (${_lideb.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAESnare].Value}]},${num}${madeBuff.Find[stAESnare].Value}\ax,${off}]}]
+			/invoke ${_lideb.Advance}
 		}
 		/invoke ${out[12, "/debuff snare ${_out}"]}
 		/return TRUE
@@ -2840,12 +2855,12 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 		} else /if (${_verbage.Equal[ae]}) {
 			/invoke ${do_raw_edit[${_debug}, TRUE, stAEEradicate, "${_silent}"]}
 		}
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swEradicate].Value},${on},${off}]}
-			/if (${cli.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stEradicate].Value}]},${num}${madeBuff.Find[stEradicate].Value}\ax,${off}]}]
-			/if (${cli.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAEEradicate].Value}]},${num}${madeBuff.Find[stAEEradicate].Value}\ax,${off}]}]
-			/invoke ${cli.Advance}
+		/while (!${_lideb.IsEnd}) {
+			/varset _out ${_out} ${If[${_lideb.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${_lideb.Value}\ax
+			/if (${_lideb.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swEradicate].Value},${on},${off}]}
+			/if (${_lideb.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stEradicate].Value}]},${num}${madeBuff.Find[stEradicate].Value}\ax,${off}]}]
+			/if (${_lideb.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAEEradicate].Value}]},${num}${madeBuff.Find[stAEEradicate].Value}\ax,${off}]}]
+			/invoke ${_lideb.Advance}
 		}
 		/invoke ${out[12, "/debuff eradicate ${_out}"]}
 		/return TRUE
@@ -2858,13 +2873,13 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 		} else /if (${_verbage.Equal[ae]}) {
 			/invoke ${do_raw_edit[${_debug}, TRUE, stAECripple, "${_silent}"]}
 		}
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swCripple].Value},${on},${off}]}
-			/if (${cli.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stCripple].Value}]},${num}${madeBuff.Find[stCripple].Value}\ax,${off}]}]
-			/if (${cli.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAECripple].Value}]},${num}${madeBuff.Find[stAECripple].Value}\ax,${off}]}]
+		/while (!${_lideb.IsEnd}) {
+			/varset _out ${_out} ${If[${_lideb.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${_lideb.Value}\ax
+			/if (${_lideb.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swCripple].Value},${on},${off}]}
+			/if (${_lideb.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stCripple].Value}]},${num}${madeBuff.Find[stCripple].Value}\ax,${off}]}]
+			/if (${_lideb.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAECripple].Value}]},${num}${madeBuff.Find[stAECripple].Value}\ax,${off}]}]
 
-			/invoke ${cli.Advance}
+			/invoke ${_lideb.Advance}
 		}
 		/invoke ${out[12, "/debuff cripple ${_out}"]}
 		/return TRUE
@@ -2929,16 +2944,17 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		/if (${_silent.Equal[SILENT]}) /return
 		/declare _lsAssistTypes list local
 		/invoke ${_lsAssistTypes.Append[g,1,2,3,ma1,ma2]}
-		/vardata cli _lsAssistTypes.First.Clone
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${lsAssistTypes.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[g]}) /varset _out ${_out}:${If[${maCC.Find[stAssistMode].Value.Equal[g]},${on},${off}]}
-			/if (${cli.Value.Equal[1]}) /varset _out ${_out}:${If[${maCC.Find[stAssistMode].Value.Equal[1]},${on},${off}]}
-			/if (${cli.Value.Equal[2]}) /varset _out ${_out}:${If[${maCC.Find[stAssistMode].Value.Equal[2]},${on},${off}]}
-			/if (${cli.Value.Equal[3]}) /varset _out ${_out}:${If[${maCC.Find[stAssistMode].Value.Equal[3]},${on},${off}]}
-			/if (${cli.Value.Equal[ma1]}) /varset _out ${_out}:[${If[${Bool[${maCC.Find[stManualAssist1].Value}]},${num}${maCC.Find[stManualAssist1].Value}\ax,${off}]}]
-			/if (${cli.Value.Equal[ma2]}) /varset _out ${_out}:[${If[${Bool[${maCC.Find[stManualAssist2].Value}]},${num}${maCC.Find[stManualAssist2].Value}\ax,${off}]}]
-			/invoke ${cli.Advance}
+		/declare _liass listiterator local
+		/vardata _liass _lsAssistTypes.First.Clone
+		/while (!${_liass.IsEnd}) {
+			/varset _out ${_out} ${If[${_liass.Value.Equal[${lsAssistTypes.First}]},,${dot}]} ${info}${_liass.Value}\ax
+			/if (${_liass.Value.Equal[g]}) /varset _out ${_out}:${If[${maCC.Find[stAssistMode].Value.Equal[g]},${on},${off}]}
+			/if (${_liass.Value.Equal[1]}) /varset _out ${_out}:${If[${maCC.Find[stAssistMode].Value.Equal[1]},${on},${off}]}
+			/if (${_liass.Value.Equal[2]}) /varset _out ${_out}:${If[${maCC.Find[stAssistMode].Value.Equal[2]},${on},${off}]}
+			/if (${_liass.Value.Equal[3]}) /varset _out ${_out}:${If[${maCC.Find[stAssistMode].Value.Equal[3]},${on},${off}]}
+			/if (${_liass.Value.Equal[ma1]}) /varset _out ${_out}:[${If[${Bool[${maCC.Find[stManualAssist1].Value}]},${num}${maCC.Find[stManualAssist1].Value}\ax,${off}]}]
+			/if (${_liass.Value.Equal[ma2]}) /varset _out ${_out}:[${If[${Bool[${maCC.Find[stManualAssist2].Value}]},${num}${maCC.Find[stManualAssist2].Value}\ax,${off}]}]
+			/invoke ${_liass.Advance}
 		}
 		/invoke ${out[12, "/cc ass ${_out}"]}
 		/return TRUE
@@ -3040,23 +3056,23 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 
 		}
 
-		/vardata cli lsMeleeSkill.First.Clone
-		/while (!${cli.IsEnd}) {
-			/varset _out ${_out} ${If[${cli.Value.Equal[${lsMeleeSkill.First}]},,${dot}]} ${info}${cli.Value}\ax
-			/if (${cli.Value.Equal[backstab]}) /varset _out ${_out}:${If[${Skill[backstab].Auto},\apauto\ax,${If[${maCC.Find[swBackstab].Value},${on},${off}]}]}
-			/if (${cli.Value.Equal[bash]}) /varset _out ${_out}:${If[${Skill[bash].Auto},\apauto\ax,${If[${maCC.Find[swBash].Value},${on},${off}]}]}
-			/if (${cli.Value.Equal[disarm]}) /varset _out ${_out}:${If[${Skill[disarm].Auto},\apauto\ax,${If[${maCC.Find[swDisarm].Value},${on},${off}]}]}
-			/if (${cli.Value.Equal[dragonpunch]}) /varset _out ${_out}:${If[${Skill[dragon punch].Auto},\apauto\ax,${If[${maCC.Find[swDragonpunch].Value},${on},${off}]}]}
-			/if (${cli.Value.Equal[eaglestrike]}) /varset _out ${_out}:${If[${Skill[eagle strike].Auto},\apauto\ax,${If[${maCC.Find[swEaglestrike].Value},${on},${off}]}]}
-			/if (${cli.Value.Equal[flyingkick]}) /varset _out ${_out}:${If[${Skill[flying kick].Auto},\apauto\ax,${If[${maCC.Find[swFlyingkick].Value},${on},${off}]}]}
-			/if (${cli.Value.Equal[frenzy]}) /varset _out ${_out}:${If[${Skill[frenzy].Auto},\apauto\ax,${If[${maCC.Find[swFrenzy].Value},${on},${off}]}]}
-			/if (${cli.Value.Equal[intimidation]}) /varset _out ${_out}:${If[${Skill[intimidation].Auto},\apauto\ax,${If[${maCC.Find[swIntimidation].Value},${on},${off}]}]}
-			/if (${cli.Value.Equal[kick]}) /varset _out ${_out}:${If[${Skill[kick].Auto},\apauto\ax,${If[${maCC.Find[swKick].Value},${on},${off}]}]}
-			/if (${cli.Value.Equal[roundkick]}) /varset _out ${_out}:${If[${Skill[round kick].Auto},\apauto\ax,${If[${maCC.Find[swRoundkick].Value},${on},${off}]}]}
-			/if (${cli.Value.Equal[taunt]}) /varset _out ${_out}:${If[${Skill[taunt].Auto},\apauto\ax,${If[${maCC.Find[swTaunt].Value},${on},${off}]}]}
-			/if (${cli.Value.Equal[tigerclaw]}) /varset _out ${_out}:${If[${Skill[tiger claw].Auto},\apauto\ax,${If[${maCC.Find[swTigerclaw].Value},${on},${off}]}]}
-
-			/invoke ${cli.Advance}
+		/declare _limelee listiterator local
+		/vardata _limelee lsMeleeSkill.First.Clone
+		/while (!${_limelee.IsEnd}) {
+			/varset _out ${_out} ${If[${_limelee.Value.Equal[${lsMeleeSkill.First}]},,${dot}]} ${info}${_limelee.Value}\ax
+			/if (${_limelee.Value.Equal[backstab]}) /varset _out ${_out}:${If[${Skill[backstab].Auto},\apauto\ax,${If[${maCC.Find[swBackstab].Value},${on},${off}]}]}
+			/if (${_limelee.Value.Equal[bash]}) /varset _out ${_out}:${If[${Skill[bash].Auto},\apauto\ax,${If[${maCC.Find[swBash].Value},${on},${off}]}]}
+			/if (${_limelee.Value.Equal[disarm]}) /varset _out ${_out}:${If[${Skill[disarm].Auto},\apauto\ax,${If[${maCC.Find[swDisarm].Value},${on},${off}]}]}
+			/if (${_limelee.Value.Equal[dragonpunch]}) /varset _out ${_out}:${If[${Skill[dragon punch].Auto},\apauto\ax,${If[${maCC.Find[swDragonpunch].Value},${on},${off}]}]}
+			/if (${_limelee.Value.Equal[eaglestrike]}) /varset _out ${_out}:${If[${Skill[eagle strike].Auto},\apauto\ax,${If[${maCC.Find[swEaglestrike].Value},${on},${off}]}]}
+			/if (${_limelee.Value.Equal[flyingkick]}) /varset _out ${_out}:${If[${Skill[flying kick].Auto},\apauto\ax,${If[${maCC.Find[swFlyingkick].Value},${on},${off}]}]}
+			/if (${_limelee.Value.Equal[frenzy]}) /varset _out ${_out}:${If[${Skill[frenzy].Auto},\apauto\ax,${If[${maCC.Find[swFrenzy].Value},${on},${off}]}]}
+			/if (${_limelee.Value.Equal[intimidation]}) /varset _out ${_out}:${If[${Skill[intimidation].Auto},\apauto\ax,${If[${maCC.Find[swIntimidation].Value},${on},${off}]}]}
+			/if (${_limelee.Value.Equal[kick]}) /varset _out ${_out}:${If[${Skill[kick].Auto},\apauto\ax,${If[${maCC.Find[swKick].Value},${on},${off}]}]}
+			/if (${_limelee.Value.Equal[roundkick]}) /varset _out ${_out}:${If[${Skill[round kick].Auto},\apauto\ax,${If[${maCC.Find[swRoundkick].Value},${on},${off}]}]}
+			/if (${_limelee.Value.Equal[taunt]}) /varset _out ${_out}:${If[${Skill[taunt].Auto},\apauto\ax,${If[${maCC.Find[swTaunt].Value},${on},${off}]}]}
+			/if (${_limelee.Value.Equal[tigerclaw]}) /varset _out ${_out}:${If[${Skill[tiger claw].Auto},\apauto\ax,${If[${maCC.Find[swTigerclaw].Value},${on},${off}]}]}
+			/invoke ${_limelee.Advance}
 		}
 		/invoke ${out[12, "/cc melee ${_out}"]}
 		/return TRUE
@@ -3263,10 +3279,11 @@ sub Bind_command_aux(string _type, bool _debug)
 	/invoke ${out[0, "Discord${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 	/invoke ${out[0, "Available Control Information${sep}"]}
 	/declare _out string local
-	/vardata cli _lsout.First.Clone
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/invoke ${cli.Advance}
+	/declare _liaux listiterator local
+	/vardata _liaux _lsout.First.Clone
+	/while (!${_liaux.IsEnd}) {
+		/varset _out ${_out} ${If[${_liaux.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${_liaux.Value}\ax
+		/invoke ${_liaux.Advance}
 	}
 	/invoke ${out[0, "/aux ${_out}"]}
 	/return TRUE
@@ -3951,10 +3968,11 @@ sub Bind_command_here(string _type)
 	/declare lsHereTimers list local
 	/invoke ${lsHereTimers.Append[Check_Buff_Aura,Check_Buff_Beg,Check_Buff_Crew,Check_Buff_Self,Check_Buff_Shrink,Check_Buff_Unity]}
 	/invoke ${lsHereTimers.Append[Check_Minion_Cycle]}
-	/vardata cli lsHereTimers.First.Clone
-	/while (!${cli.IsEnd}) {
-		/invoke ${set_data_timer[FALSE, ${cli.Value}, 1m]}
-		/invoke ${cli.Advance}
+	/declare _lihere listiterator local
+	/vardata _lihere lsHereTimers.First.Clone
+	/while (!${_lihere.IsEnd}) {
+		/invoke ${set_data_timer[FALSE, ${_lihere.Value}, 1m]}
+		/invoke ${_lihere.Advance}
 	}
 
 	| stop moving
@@ -4361,10 +4379,11 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 	/declare _lsout list local
 	/invoke ${_lsout.Append[destroy,ignore,keep,leave,pass,count]}
   /varset _out
-	/vardata cli _lsout.First.Clone
-	/while (!${cli.IsEnd}) {
-		/varset _out ${_out} ${If[${cli.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${cli.Value}\ax
-		/invoke ${cli.Advance}
+  /declare _licur listiterator local
+	/vardata _licur _lsout.First.Clone
+	/while (!${_licur.IsEnd}) {
+		/varset _out ${_out} ${If[${_licur.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${_licur.Value}\ax
+		/invoke ${_licur.Advance}
 	}
 	/invoke ${out[12, "/cursor ${_out}"]}
 
@@ -4543,25 +4562,26 @@ sub Bind_command_crew(string _type, bool _debug)
 	}
 
 	/invoke ${out[12, "\agForming\ax${sep}Crew\aw${_type}\ax"]}
-	/vardata cli lsCrew${_type}.First.Clone
-	/while (!${cli.IsEnd}) {
+	/declare _licrew listiterator local
+	/vardata _licrew lsCrew${_type}.First.Clone
+	/while (!${_licrew.IsEnd}) {
 
 		| skip me
-		/if (${cli.Value.Equal[${Me.DisplayName}]}) {
+		/if (${_licrew.Value.Equal[${Me.DisplayName}]}) {
 			/djoin crew${_type}
 			/varset stCurrentCrew crew${_type}
-			/invoke ${cli.Advance}
+			/invoke ${_licrew.Advance}
 			/continue
 		}
 
 		| are they part of our comm group?
-		/if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${cli.Value}]}) {
+		/if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_licrew.Value}]}) {
 
 			| do they exist?
-			/dquery ${cli.Value} -q "Me.Height" -o DNQReturn -t 5
+			/dquery ${_licrew.Value} -q "Me.Height" -o DNQReturn -t 5
 
 			/if (!${Bool[${DNQReturn}]}) {
-				/invoke ${cli.Advance}
+				/invoke ${_licrew.Advance}
 				/continue
 			}
 			/if (!${Group.Leader.Name.Equal[${Me.DisplayName}]}) {
@@ -4571,38 +4591,38 @@ sub Bind_command_crew(string _type, bool _debug)
 				/delay 1s
 			}
 			| drop what they are doing!
-			/dexecute ${cli.Value} /disband
+			/dexecute ${_licrew.Value} /disband
 			/delay 1s
-			/dexecute ${cli.Value} /raiddisband
+			/dexecute ${_licrew.Value} /raiddisband
 			/delay 1s
 
 			| are they in the group already?
-			/if (${Group.Member[${cli.Value}].Index}) {
-				/dexecute ${cli.Value} /varset stCurrentCrew crew${_type}
-				/invoke ${cli.Advance}
+			/if (${Group.Member[${_licrew.Value}].Index}) {
+				/dexecute ${_licrew.Value} /varset stCurrentCrew crew${_type}
+				/invoke ${_licrew.Advance}
 				/continue
 			}
 
 			| have the  invitee clear their target
-			/dexecute ${cli.Value} /squelch /target clear
+			/dexecute ${_licrew.Value} /squelch /target clear
 
 			| send invite
-			/invoke ${out[12, "Inviting${sep}\a-w${cli.Value}\ax"]}
+			/invoke ${out[12, "Inviting${sep}\a-w${_licrew.Value}\ax"]}
 
 			| invite the member
-			/invite ${cli.Value}
+			/invite ${_licrew.Value}
 
 			| execute invite accept command
-			/dexecute ${cli.Value} /invite
+			/dexecute ${_licrew.Value} /invite
 
 			| join needed crew channel
-			/dexecute ${cli.Value} /djoin crew${_type}
+			/dexecute ${_licrew.Value} /djoin crew${_type}
 
 			| set crew marker
-			/dexecute ${cli.Value} /varset stCurrentCrew crew${_type}
+			/dexecute ${_licrew.Value} /varset stCurrentCrew crew${_type}
 		}
 
-		/invoke ${cli.Advance}
+		/invoke ${_licrew.Advance}
 	}
 
 	| lag control

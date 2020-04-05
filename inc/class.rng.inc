@@ -122,6 +122,7 @@ sub main_RNG(bool _debug)
  ***|
 sub misc_combat_RNG(bool _debug)
 	DEBUG \atmisc_combat_RNG\ax()
+	FLOW misc_combat_RNG
 
 	ISMEDEAD
 	/if (${target[isdead, TARGET]}) {
@@ -184,6 +185,7 @@ sub misc_combat_RNG(bool _debug)
  ***|
 sub cast_AA_auspice(bool _debug)
 	DEBUG \atcast_AA_auspice\ax()
+	FLOW cast_AA_auspice
 
 	ISMEDEAD
 	CHECKEXIT
@@ -208,6 +210,7 @@ sub cast_AA_auspice(bool _debug)
  ***|
 sub check_heal_RNG(bool _debug, string _type)
 	DEBUG \atcheck_heal_RNG\ax(\a-w${_type}\ax)
+	FLOW check_heal_RNG ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -262,6 +265,7 @@ sub check_heal_RNG(bool _debug, string _type)
  ***|
 sub cast_nuke_summer(bool _debug, int _tmpID)
 	DEBUG \atcast_nuke_summer\ax(\a-w${_tmpID}\ax)
+	FLOW cast_nuke_summer
 
 	/if (${target[isdead, TARGET]}) {
 		/return FALSE
@@ -285,6 +289,7 @@ sub cast_nuke_summer(bool _debug, int _tmpID)
  ***|
 sub burn_RNG(bool _debug, int _tmpID)
 	DEBUG \atburn_RNG\ax(\a-w${_tmpID}\ax)
+	FLOW burn_RNG
 
 	ISMEDEAD
 	/if (${target[isdead, TARGET]}) {

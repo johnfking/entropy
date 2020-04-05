@@ -125,6 +125,7 @@ sub main_SHM(bool _debug)
  ***|
 sub misc_combat_SHM(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_SHM\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat_SHM
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -162,6 +163,7 @@ sub misc_combat_SHM(bool _debug, int _tmpID)
  ***|
 sub check_heal_SHM(bool _debug, string _type)
 	DEBUG \atcheck_heal_SHM\ax(\a-w${_type}\ax)
+	FLOW check_heal_SHM ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -251,6 +253,7 @@ sub check_heal_SHM(bool _debug, string _type)
  ***|
 sub cast_surge_heal(bool _debug)
 	DEBUG \atcast_surge_heal\ax()
+	FLOW cast_surge_heal
 
 	/if (${target[isdead, TARGET]}) {
 		/return FALSE
@@ -307,6 +310,7 @@ sub cast_surge_heal(bool _debug)
  ***|
 sub burn_SHM(bool _debug, int _tmpID)
 	DEBUG \atburn_SHM\ax(\a-w${_tmpID}\ax)
+	FLOW burn_SHM
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -372,6 +376,7 @@ sub burn_SHM(bool _debug, int _tmpID)
  ***|
 sub cast_talisman(bool _debug)
 	DEBUG \atcast_talisman\ax()
+	FLOW cast_talisman
 
 	/invoke ${set_data_timer[${_debug}, Check_Talisman, RESTART]}
 
@@ -395,6 +400,7 @@ sub cast_talisman(bool _debug)
  ***|
 sub check_cani(bool _debug)
 	DEBUG \atcheck_cani\ax()
+	FLOW check_cani
 
 	/if (!${maChr.Find[stPctCanniManna].Value}) {
 		DEBUG ${sep}canni disabled
@@ -448,6 +454,7 @@ sub check_cani(bool _debug)
  ***|
 sub cast_alliance_SHM(bool _debug)
  	DEBUG \atcast_alliance_SHM\ax()
+ 	FLOW cast_alliance_SHM
 
 	CHECKEXIT
 	GETINPUT

@@ -189,6 +189,7 @@ sub main_CLR(bool _debug)
  ***|
 sub misc_combat_CLR(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_CLR\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat_CLR
 
 	ISMEDEAD
 	/if (!${target[isdead, ${_tmpID}]}) {
@@ -244,6 +245,7 @@ sub misc_combat_CLR(bool _debug, int _tmpID)
  ***|
 sub cast_nut_smasher(bool _debug)
 	DEBUG \atcast_nut_smasher\ax()
+	FLOW cast_nut_smasher
 
 	CHECKTIE
 	ISMEDEAD
@@ -340,17 +342,23 @@ sub check_heal_CLR(bool _debug, string _type)
 			  | AA arb
 			  /if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
 			    /call voodoo ${_debug} "${maChr.Find[stAADivineArbitration].Value}" 0 FALSE
-			    /return TRUE
-				| Second epic shield
-			  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
-			    /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
-			    /return TRUE
-			  | First epic shield
-			  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
-			    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
-			    /return TRUE
+			    /call get_hurt FALSE reset
+			    /return 0
 			  }
-			  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+
+				| Second epic shield
+			  /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
+			    /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
+			    /call get_hurt FALSE reset
+			    /return 0
+			  }
+
+			  | First epic shield
+			  /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
+			    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
+			    /call get_hurt FALSE reset
+			    /return 0
+			  }
 			}
 
 			| group heal
@@ -450,6 +458,7 @@ sub check_heal_CLR(bool _debug, string _type)
 #bind command_issuance /issuance
 sub Bind_command_issuance(bool _debug)
 	DEBUG \atBind_command_issuance\ax()
+	FLOW command_issuance
 
 	/if (!${check_class[FALSE, |CLR]}) /return FALSE
 	ISMEDEAD
@@ -501,6 +510,7 @@ sub Bind_command_issuance(bool _debug)
  ***|
 sub burn_CLR(bool _debug, int _tmpID)
 	DEBUG \atburn_CLR\ax(\a-w${_tmpID}\ax)
+	FLOW burn_CLR
 
 	ISMEDEAD
 	CHECKEXIT
@@ -525,8 +535,6 @@ sub burn_CLR(bool _debug, int _tmpID)
 		/call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
 		/return TRUE
 	}
-
-
 
 	| Group AA Celestial Regeneration
  	/if (${maChr.Find[swHealGroupOverTime].Value} && ${Group}) {

@@ -19,6 +19,9 @@ on the to do list
 - break out triggers for minion buffs
 - check cure exits / recasts
 - build a control /cure
+- auto boot non entropy toons from channels
+- shared map for rez
+
 
 --------------------
 
@@ -27,6 +30,30 @@ known bugs
 --------------------
 epics with commas in their names are currently not functioning
 --------------------
+
+
+B200405.01
+- control_map() fixed maRemoveals (we all know i cant spell)
+- control_routine()
+  adjusted some remove controls for dead or "no longer here" mobs
+- removed some old outer variables: mi, cli
+- zerker
+  target requirement added to binding axe aa
+- pet pulling should try and make sure you have a pet before it pulls
+- warrior
+  added more target loss breaks
+- voodoo()
+  made some changes to the loopcount breaks on events. may need more adjustment
+  added in a auto fail for aas when targets are not matching
+- turned off the debug echo for /heal point
+- get_hurt
+  added in optional reset option. simply returns all values to default and then bails
+- cleric
+  i think i finally fixed arbitration.. some key words in that sentence to take note of
+- pull: base
+  will swap targets if something shows up closer then the actual pull while waiting on incomming
+- all classes
+  added in a lot of the flow debugs. can /echo ${flow} at any time and see what sub you are in
 
 
 B200330.02

@@ -120,6 +120,7 @@ sub main_MAG(bool _debug)
  ***|
 sub misc_combat_MAG(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_MAG\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat_MAG
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) /return FALSE
@@ -155,6 +156,7 @@ sub misc_combat_MAG(bool _debug, int _tmpID)
  ***|
 sub cast_nuke_salvo(bool _debug)
 	DEBUG \atcast_nuke_salvo\ax()
+	FLOW cast_nuke_salvo
 
 	/if (${SpawnCount[pet radius ENV]} < 3) /return FALSE
 
@@ -176,6 +178,7 @@ sub cast_nuke_salvo(bool _debug)
  ***|
 sub check_heal_MAG(bool _debug, string _type)
 	DEBUG \atcheck_heal_MAG\ax(\a-w${_type}\ax)
+	FLOW check_heal_MAG ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -226,6 +229,7 @@ sub check_heal_MAG(bool _debug, string _type)
  ***|
 sub burn_MAG(bool _debug, int _tmpID)
 	DEBUG \atburn_MAG\ax(\a-w${_tmpID}\ax)
+	FLOW burn_MAG
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) /return FALSE
@@ -308,6 +312,7 @@ sub burn_MAG(bool _debug, int _tmpID)
  ***|
 sub force_twincast_MAG(bool _debug)
 	DEBUG \atforce_twincast_MAG\ax()
+	FLOW force_twincast_MAG
 
 	/if (!${maChr.Find[swForceTC].Value} || ${timer_Force_TC}) /return
 	/if (${target[isdead, TARGET]}) /return FALSE
@@ -339,6 +344,7 @@ sub force_twincast_MAG(bool _debug)
  ***|
 sub check_gather_MAG(bool _debug)
 	DEBUG \atcheck_gather_${Me.Class.ShortName}\ax()
+	FLOW check_gather_MAG
 
 	/if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
 
@@ -388,6 +394,7 @@ sub check_gather_MAG(bool _debug)
 #bind control_mag_coh /call_of_the_hero
 sub Bind_control_mag_coh(string _sender, string _verbage, bool _debug)
 	DEBUG \atBind_control_mag_coh\ax(\a-w${_sender}, ${_verbage}\ax)
+	FLOW Bind_control_mag_coh
 
 	| output control map
 	/if (${_sender.Equal[aux]}) {
@@ -419,6 +426,7 @@ sub Bind_control_mag_coh(string _sender, string _verbage, bool _debug)
  ***|
 sub check_cauldron(bool _debug)
 	DEBUG \atcheck_cauldron\ax()
+	FLOW check_cauldron
 
 	/if (!${Bool[${Cauldron}]}) {
 		OUT You need to set up your cauldron if you want to use it.

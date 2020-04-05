@@ -114,6 +114,7 @@ sub main_WIZ(bool _debug)
  ***|
 sub misc_combat_WIZ(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_WIZ\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat_WIZ
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -165,6 +166,7 @@ sub misc_combat_WIZ(bool _debug, int _tmpID)
  ***|
 sub check_harvest(bool _debug)
 	DEBUG \atcheck_harvest\ax()
+	FLOW check_harvest
 
 	CHECKEXIT
 	GETINPUT
@@ -201,6 +203,7 @@ sub check_harvest(bool _debug)
  ***|
 sub check_heal_WIZ(bool _debug, string _type)
 	DEBUG \atcheck_heal_WIZ\ax(\a-w${_type}\ax)
+	FLOW check_heal_WIZ ${_type}
 
 
 	/if (${Me.PctHPs} > ${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO) /return FALSE
@@ -221,6 +224,7 @@ sub check_heal_WIZ(bool _debug, string _type)
  ***|
 sub burn_WIZ(bool _debug, int _tmpID)
 	DEBUG \atburn_WIZ\ax(\a-w${_tmpID}\ax)
+	FLOW burn_WIZ
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -314,6 +318,7 @@ sub burn_WIZ(bool _debug, int _tmpID)
  ***|
 sub force_twincast_WIZ(bool _debug, int _tmpID)
 	DEBUG \atforce_twincast_WIZ\ax(\a-w${_tmpID}\ax)
+	FLOW force_twincast_WIZ
 
 	ISMEDEAD
 	CHECKEXIT

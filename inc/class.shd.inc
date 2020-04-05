@@ -126,6 +126,7 @@ sub main_SHD(bool _debug)
  ***|
 sub check_heal_SHD(bool _debug, string _type)
 	DEBUG \atcheck_heal_${Me.Class.ShortName}\ax(\a-w${_type}\ax)
+	FLOW check_heal_SHD ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -181,6 +182,7 @@ sub check_heal_SHD(bool _debug, string _type)
  ***|
 sub misc_combat_SHD(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_SHD\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat_SHD
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -253,6 +255,7 @@ sub misc_combat_SHD(bool _debug, int _tmpID)
  ***|
 sub get_agro_SHD(bool _debug, int _tmpID)
 	DEBUG \atget_agro_SHD\ax()
+	FLOW get_agro_SHD
 
 	ISMEDEAD
 	CHECKEXIT
@@ -347,6 +350,7 @@ sub get_agro_SHD(bool _debug, int _tmpID)
  ***|
 sub check_skin(bool _debug)
 	DEBUG \atcheck_skin\ax()
+	FLOW check_skin
 
 	ISMEDEAD
 	SIMPLEEXIT
@@ -371,6 +375,7 @@ sub check_skin(bool _debug)
  ***|
 sub burn_SHD(bool _debug, int _tmpID)
 	DEBUG \atburn_SHD\ax()
+	FLOW burn_SHD
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {

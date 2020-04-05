@@ -96,6 +96,7 @@ sub main_ENC(bool _debug)
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
 			/call control_routine ${maDebug.Find[mez].Value}
+			/call check_heal_routines
 
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
@@ -209,6 +210,7 @@ sub misc_combat_ENC(bool _debug, int _tmpID)
  ***|
 sub check_crystals(bool _debug)
 	DEBUG \atcheck_crystals\ax()
+	FLOW check_crystals
 
 	/invoke ${set_data_timer[FALSE, Check_Crystals, RESTART]}
 
@@ -223,6 +225,7 @@ sub check_crystals(bool _debug)
 			/call voodoo ${_debug} "Azure Mind Crystal" 0 FALSE
 		}
 		/autoinventory
+		CHECKCURSOR FALSE clear
 	}
 
 	| hp crystal
@@ -231,7 +234,10 @@ sub check_crystals(bool _debug)
 			/call voodoo ${_debug} "Sanguine Mind Crystal" 0 FALSE
 		}
 		/autoinventory
+		CHECKCURSOR FALSE clear
 	}
+
+
 
 	/invoke ${target[assist]}
 
@@ -279,9 +285,9 @@ sub check_gather_ENC(bool _debug)
  * note: chanter self healing? like this is really gonna work. wtf
  * use: /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
  ***|
-sub check_heal_ENC(bool _debug)
-	DEBUG \atcheck_heal_${Me.Class.ShortName}\ax()
-	FLOW check_heal_ENC (1)
+sub check_heal_ENC(bool _debug, string _type)
+	DEBUG \atcheck_heal_${Me.Class.ShortName}\ax(\a-w${_type}\ax)
+	FLOW check_heal_ENC ${_type} (1)
 
 
 	ISMEDEAD

@@ -51,7 +51,8 @@ sub set_DRU(bool _debug)
  * use:
  ***|
 sub main_DRU(bool _debug)
-	DEBUG main_DRU()
+	DEBUG \atmain_DRU\ax()
+
 	GETINPUT
 	ISMEDEAD
 	CHECKTIE
@@ -109,6 +110,7 @@ sub main_DRU(bool _debug)
  ***|
 sub misc_combat_DRU(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_DRU\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat_DRU
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -162,7 +164,8 @@ sub misc_combat_DRU(bool _debug, int _tmpID)
  * use: fuckers...
  ***|
 sub check_heal_DRU(bool _debug, string _type)
-	DEBUG check_heal_DRU(${_debug}, ${_type})
+	DEBUG \atcheck_heal_DRU\ax(\a-w${_type}\ax)
+	FLOW check_heal_DRU ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -268,6 +271,7 @@ sub check_heal_DRU(bool _debug, string _type)
  ***|
 sub burn_DRU(bool _debug, int _tmpID)
 	DEBUG \atburn_DRU\ax()
+	FLOW burn_DRU
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {

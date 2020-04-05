@@ -121,6 +121,7 @@ sub main_WAR(bool _debug)
  ***|
 sub misc_combat_WAR(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_WAR\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat_WAR
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -170,6 +171,10 @@ sub misc_combat_WAR(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stCommanding].Value}" ${_tmpID} FALSE
 	}
 
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
+
 	/if (${is_ready[${_debug}, "Brace for Impact"]} && !${Me.Buff[${maChr.Find[stShocking].Value}].ID}) {
 		/call voodoo ${_debug} "Brace for Impact" 0 FALSE
 	}
@@ -188,6 +193,10 @@ sub misc_combat_WAR(bool _debug, int _tmpID)
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stShield].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stShield].Value}" ${_tmpID} FALSE
+	}
+
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
 	}
 
 	/if (${is_ready[${_debug}, "Imperator's Command"]}) {
@@ -249,6 +258,7 @@ sub misc_combat_WAR(bool _debug, int _tmpID)
  ***|
 sub get_agro_WAR(bool _debug, int _tmpID)
 	DEBUG \atget_agro_WAR\ax(\a-w${_tmpID}\ax)
+	FLOW get_agro_WAR
 
 	ISMEDEAD
 	GETINPUT
@@ -325,6 +335,8 @@ sub get_agro_WAR(bool _debug, int _tmpID)
  * use: *see note*
  ***|
 sub check_heal_WAR(bool _debug, string _type)
+	DEBUG \atcheck_heal_WAR\ax(\a-w${_type}\ax)
+	FLOW check_heal_WAR ${_type}
 
 	ISMEDEAD
 	CHECKTIE
@@ -351,6 +363,7 @@ sub check_heal_WAR(bool _debug, string _type)
  ***|
 sub burn_WAR(bool _debug, int _tmpID)
 	DEBUG \atburn_WAR\x(\a-w${_tmpID}\ax)
+	FLOW burn_WAR
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {

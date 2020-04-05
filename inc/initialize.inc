@@ -113,13 +113,13 @@ sub set_initialize(bool _debug)
 
 
 	| map iterator dump variable
-  /declare mi mapiterator outer
+  | /declare mi mapiterator outer
 
   | list iterator dump variable
   /declare li listiterator outer
 
   | control list dump variable
-  /declare cli listiterator outer
+  | /declare cli listiterator outer
 
   | control map dumps
  	/declare maControl map outer
@@ -139,7 +139,7 @@ sub set_initialize(bool _debug)
   /declare maWatchspawn map outer
 
   | rez control map
- 	/declare maRezControl map outer
+ 	/declare maControlRez map outer
 
 	| self blocked buffs
   /declare lsBlockedBuffsMe string outer
@@ -155,9 +155,9 @@ sub set_initialize(bool _debug)
   /declare lsMaps list outer
   /invoke ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maBuff,maBurn]}
   /invoke ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
-  /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maRezControl,maWatchspawn]}
+  /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maWatchspawn]}
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL]}
-  /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash]}
+  /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
 
   | set all output shortcuts
   /call set_data ${_debug} FALSE num                                      string outer "\a-t"

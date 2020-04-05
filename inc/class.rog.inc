@@ -115,6 +115,7 @@ sub main_ROG(bool _debug)
  ***|
 sub do_sneak_attack(bool _debug, int _tmpID)
 	DEBUG \atdo_sneak_attack\ax(\a-w${_tmpID}\ax)
+	FLOW do_sneak_attack
 
 	/if (!${is_ready[${_debug}, "${maChr.Find[stSneakAttack].Value}"]}) {
 		/return FALSE
@@ -137,6 +138,7 @@ sub do_sneak_attack(bool _debug, int _tmpID)
  ***|
 sub misc_combat_ROG(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat_ROG
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -251,6 +253,7 @@ sub misc_combat_ROG(bool _debug, int _tmpID)
  ***|
 sub check_heal_ROG(bool _debug, string _type)
 	DEBUG \atcheck_heal_ROG\ax(\a-w${_type}\ax)
+	FLOW check_heal_ROG ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -280,6 +283,7 @@ sub check_heal_ROG(bool _debug, string _type)
  ***|
 sub set_sos(bool _debug)
 	DEBUG \atset_sos\ax()
+	FLOW set_sos
 
 	/if (!${maEnv.Find[swSoS].Value}) /return FALSE
 	/if (${Me.Combat} || ${Me.Stunned} || ${Me.State.Equal[FEIGN]}) /return FALSE
@@ -318,6 +322,7 @@ sub set_sos(bool _debug)
  ***|
 sub burn_ROG(bool _debug, int _tmpID)
 	DEBUG \atburn_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
+	FLOW burn_ROG
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {

@@ -189,6 +189,7 @@ sub main_PAL(bool _debug)
  ***|
 sub misc_combat_PAL(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
+		FLOW misc_combat_PAL
 
 	ISMEDEAD
 
@@ -263,6 +264,7 @@ sub misc_combat_PAL(bool _debug, int _tmpID)
  ***|
 sub get_agro_PAL(bool _debug, int _tmpID)
 	DEBUG \atget_agro_PAL\ax()
+	FLOW get_agro_PAL
 
 	ISMEDEAD
 	CHECKEXIT
@@ -364,6 +366,7 @@ sub get_agro_PAL(bool _debug, int _tmpID)
  ***|
 sub check_heal_PAL(bool _debug, string _type)
 	DEBUG \atcheck_heal_group_PAL\ax(\a-w${_type}\ax)
+	FLOW check_heal_PAL ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -476,6 +479,8 @@ sub check_heal_PAL(bool _debug, string _type)
  ***|
 sub cast_AA_marrs_gift(bool _debug)
 	DEBUG \atcast_AA_marrs_gift\ax()
+	FLOW cast_AA_marrs_gift
+
 	ISMEDEAD
 	CHECKEXIT
   GETINPUT
@@ -503,6 +508,7 @@ sub cast_AA_marrs_gift(bool _debug)
  ***|
 sub burn_PAL(bool _debug, int _tmpID)
 	DEBUG \atburn_PAL\ax(\a-w${_tmpID}\ax)
+	FLOW burn_PAL
 
 	ISMEDEAD
 
@@ -620,12 +626,13 @@ sub set_control_PAL(string _type, string _verbage, string _silent, bool _debug)
 			/invoke ${do_raw_edit[${_debug}, SILENT, stStun, "${_maStun.Find[${_verbage}].Value}"]}
 		}
 
-		/vardata mi _maStun.First.Clone
+		/declare _mistun mapiterator local
+		/vardata _mistun _maStun.First.Clone
 		OUT /chr stun [\a-wuse\ax|\a-wdivine\ax|\a-wforce\ax|\a-wdisruptive\ax]
 		/varset _out ${_out} \awuse\ax:${If[${maChr.Find[swStun].Value},${on},${off}]} ${dot}
-		/while (!${mi.IsEnd}) {
-			/varset _out ${_out} ${If[${_maStun.First.Value.Equal[${mi.Value}]},,${dot}]} ${If[${maChr.Find[stStun].Value.Equal[${mi.Value}]},${good}${mi.Value}\ax,${info}${mi.Value}\ax]}
-			/invoke ${mi.Advance}
+		/while (!${_mistun.IsEnd}) {
+			/varset _out ${_out} ${If[${_maStun.First.Value.Equal[${_mistun.Value}]},,${dot}]} ${If[${maChr.Find[stStun].Value.Equal[${_mistun.Value}]},${good}${_mistun.Value}\ax,${info}${_mistun.Value}\ax]}
+			/invoke ${_mistun.Advance}
 		}
 		OUT /chr stun ${_out}
 		/return

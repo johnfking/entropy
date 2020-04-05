@@ -58,27 +58,27 @@ sub main_BRD(bool _debug)
 		/if (${check_class_loop[FALSE]}) /return FALSE
 
 		/if (VALID) {
-			/call control_routine FALSE
+			| /call control_routine FALSE
 			/call set_combat FALSE
 			CHECKDEFENSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
-			/call control_routine FALSE
+			| /call control_routine FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} TARGET
-			/call control_routine FALSE
+			| /call control_routine FALSE
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (SWARM) /call cast_servant_swarm FALSE TARGET
-			/call control_routine FALSE
+			| /call control_routine FALSE
 			| /if (${swAlliance}) /call trigger_alliance TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/call pulse_line ${maDebug.Find[pulse].Value} TARGET
-			/call control_routine FALSE
+			| /call control_routine FALSE
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
-			/call control_routine FALSE
+			| /call control_routine FALSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 
 		}
@@ -99,6 +99,9 @@ sub main_BRD(bool _debug)
  *	USE: Disc/aas and stuffs
  ***|
 sub misc_combat_BRD(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat_BRD\ax()
+	FLOW misc_combat_BRD
+
 	ISMEDEAD
 
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -167,8 +170,9 @@ sub misc_combat_BRD(bool _debug, int _tmpID)
  * note: self healing
  * use: /call check_heal__${Me.Class.ShortName}
  ***|
-sub check_heal_BRD(bool _debug)
-	DEBUG \atcheck_heal_BRD\ax()
+sub check_heal_BRD(bool _debug, string _type)
+	DEBUG \atcheck_heal_BRD\ax(\a-w${_type}\ax)
+	FLOW check_heal_BRD ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -194,6 +198,9 @@ sub check_heal_BRD(bool _debug)
  * use: /call cast_servant_swarm DEBUG [TARGETID]
  ***|
 sub cast_servant_swarm(bool _debug, int _tmpID)
+	DEBUG \atcast_servant_swarm\ax(\a-w${_tmpID}\ax)
+	FLOW cast_servant_swarm
+
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
@@ -232,6 +239,7 @@ sub cast_servant_swarm(bool _debug, int _tmpID)
  ***|
 sub pulse_line(bool _debug, _tmpID)
 	DEBUG \atpulse_line\ax(\a-w${_tmpID}\ax)
+	FLOW pulse_line
 
 	SETHUD "pulse"
 
@@ -252,7 +260,7 @@ sub pulse_line(bool _debug, _tmpID)
 			/return FALSE
 		}
 
-		/call control_routine FALSE
+		| /call control_routine FALSE
 
 		| is the song on?
 		| check the switch
@@ -318,6 +326,7 @@ sub pulse_line(bool _debug, _tmpID)
  ***|
 sub pulse_stop(string _marker, bool _debug)
 	DEBUG \atpulse_stop\ax(marker:\aw${_marker}\aw)
+	FLOW pulse_stop
 
 	/while (${Me.Casting.ID} || ${Me.BardSongPlaying}) {
 		/invoke ${maData.Add[stCastReturn,NOTREADY]}
@@ -339,6 +348,7 @@ sub pulse_stop(string _marker, bool _debug)
  ***|
 sub cast_AA_rallying(bool _debug)
 	DEBUG \atcast_AA_rallying\ax()
+	FLOW cast_AA_rallying
 
  	/if (SAFEZONE || !${Me.AltAbilityReady[Rallying Solo]}) /return
 	ISMEDEAD
@@ -362,6 +372,7 @@ sub cast_AA_rallying(bool _debug)
  ***|
 sub burn_BRD(bool _debug, int _tmpID)
 	DEBUG \atburn_BRD\ax(\a-w${_tmpID}\ax)
+	FLOW burn_BRD
 
 	ISMEDEAD
 		/if (${target[isdead, ${_tmpID}]}) {
@@ -387,7 +398,7 @@ sub burn_BRD(bool _debug, int _tmpID)
 		/return TRUE
 	}
 
-	/call control_routine FALSE
+	| /call control_routine FALSE
 
  	/if (${is_ready[${_debug}, "Thousand Blades"]}) {
  		/call voodoo ${_debug} "Thousand Blades" 0 FALSE
@@ -422,6 +433,8 @@ sub burn_BRD(bool _debug, int _tmpID)
  ***|
 #bind command_brd_travel /travel
 sub Bind_command_brd_travel(bool _debug)
+	DEBUG \atBind_command_brd_travel\ax
+	FLOW Bind_command_brd_travel
 
 	/if (!${check_class[TRUE, |BRD]}) /return
 
