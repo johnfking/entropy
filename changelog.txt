@@ -21,8 +21,7 @@ on the to do list
 - build a control /cure
 - auto boot non entropy toons from channels
 - shared map for rez
-
-
+- try and recreate DB corruption for instance excludes
 --------------------
 
 
@@ -30,6 +29,23 @@ known bugs
 --------------------
 epics with commas in their names are currently not functioning
 --------------------
+
+
+B200406.01
+- cleric
+  more work on arbitration (this shit never ends)
+  /chr arb count # - [0-6] number of group hurt to arbitrate
+  /chr arb aa - on/off enable using cleric aa arbitrate
+  /chr arb epic - on/off enable using cleric eipc(s) to arbitrate
+- /cc pull navstop ## - [31-250] set the min distance you will try get to a mob for the
+  various nav pulls before you try to tag and bring back to camp
+- /grab NAME [silent] - silent option added to shut it up
+- TTL
+  corrected a horse/cart issue. it wont add finish times to mobs it hasnt started tracking
+- increased the delay for the drop tag for illusions and mounts.
+- INI obfuscation: lsGrowthToon
+- corrected an errant space in the ini export for conditions
+- /debug combat [status] - combat check status debug
 
 
 B200405.01

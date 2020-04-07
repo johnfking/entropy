@@ -623,6 +623,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
  ***|
 #bind to_chr /chr
 sub Bind_to_chr(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG /call set_control_${Me.Class.ShortName} _type:${_type} _verbage:${_verbage} _silent:${_silent} _debug:${_debug}
 	/call set_control_${Me.Class.ShortName} ${_type} "${_verbage}" ${_silent} ${_debug}
 
 /return TRUE
@@ -1842,10 +1843,8 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 	} else /if (${_type.Equal[raid]}) {
 		/invoke ${set_switch_env[${_debug}, swBuffRaid, TRUE, ${_verbage}]}
 
-
 	} else /if (${_type.Equal[ammo]}) {
 		/invoke ${set_switch_env[${_debug}, swBuffAmmo, TRUE, ${_verbage}]}
-
 
 	} else /if (${_type.Equal[beg]}) {
 
@@ -1879,7 +1878,7 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 		/invoke ${out[12, "${dot} ${info}aura1\ax:[${If[${Bool[${maBuff.Find[stAura1].Value}]},${num}${maBuff.Find[stAura1].Value}\ax,${off}]}]"]}
 		/invoke ${out[12, "${dot} ${info}aura1check\ax:[${If[${Bool[${maBuff.Find[stAura1Check].Value}]},${num}${maBuff.Find[stAura1Check].Value}\ax,${off}]}]"]}
 		/invoke ${out[12, "${dot} lsAura\aw1\axTag"]}
-		/delcare _lia1 listiterator local
+		/declare _lia1 listiterator local
 		/vardata _lia1 lsAura1Tag.First.Clone
 		/while (!${_lia1.IsEnd}) {
 			/invoke ${out[12, "${dot}${dot} \a-w${_lia1.Value}\ax"]}
@@ -3102,6 +3101,10 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		} else /if (${_verbage.Equal[rad]}) {
 			/invoke ${do_raw_edit[FALSE, SILENT, stPullRadius, "${_silent}"]}
 
+		| nav stop distance
+		} else /if (${_verbage.Equal[navstop]}) {
+			/if (!${set_control_num_range[${_debug}, stPullNavStopDistance, "${_silent}", 31, 250]}) /return
+
 		| enable/disable setting home marker when pulling
 		} else /if (${_verbage.Equal[sethome]}) {
 			/invoke ${set_switch_env[FALSE, swPullSetHome, TRUE, ${_silent}]}
@@ -3109,6 +3112,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		| base pulling
 		} else /if (${_verbage.Equal[base]}) {
 			/call do_raw_edit ${_debug} SILENT stPullMode "base"
+
 		| intervention pulling
 		} else /if (${_verbage.Equal[int]}) {
 			/if (${Select[${Me.Class.ShortName},CLR,SHM]}) {
@@ -3116,6 +3120,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 				/return FALSE
 			}
 			/call do_raw_edit ${_debug} SILENT stPullMode "int"
+
 		| pet pulling
 		} else /if (${_verbage.Equal[pet]}) {
 			/if (!${Select[${Me.Class.ShortName},MAG,ENC,DRU,SHM,SHD,NEC,BST]}) {
@@ -3137,7 +3142,9 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		/declare _outP string local
 		/varset _outP \awactive\ax:${If[${maCC.Find[swPull].Value},${on},${off}]} ${dot}
 		/varset _outP ${_outP} \awrad\ax:${If[${maCC.Find[stPullRadius].Value},${num}${maCC.Find[stPullRadius].Value}\ax,${r0}]}
-		/varset _outP  ${_outP} \awsethome\ax:${If[${maCC.Find[swPullSetHome].Value},${on},${off}]} ${dot}
+		/varset _outP ${_outP} \awsethome\ax:${If[${maCC.Find[swPullSetHome].Value},${on},${off}]} ${dot}
+		/varset _outP ${_outP} \awnavstop\ax:${num}${maCC.Find[stPullNavStopDistance].Value}\ax ${dot}
+
 		/vardata _liP lsPullTypes.First.Clone
 		/while (!${_liP.IsEnd}) {
 			/varset _outP ${_outP} ${If[${_liP.Value.Equal[${lsPullTypes.First}]},,${dot}]} ${If[${_liP.Value.Equal[${maCC.Find[stPullMode].Value}]},${num}${_liP.Value}\ax,${info}${_liP.Value}\ax]}
@@ -4043,10 +4050,10 @@ sub Bind_command_take(string _type, string _debug)
 
 |***
  * note: grabs a ground spawn. max range of 20. parital names accepted
- * use: /grab NAME
+ * use: /grab NAME [SILENT]
  ***|
 #bind command_grab /grab
-sub Bind_command_grab(string _name, bool _debug)
+sub Bind_command_grab(string _name, string _silent, bool _debug)
 	DEBUG Bind_command_grab(\a-w${_name}\ax)
 
 	/if (${_name.Equal[aux]}) {
@@ -4061,7 +4068,9 @@ sub Bind_command_grab(string _name, bool _debug)
 
 	| trash pick up.
 	/if (${Ground[${_name}].Distance3D} > 20) {
-		OUT ${info}${_name}\ax is ${Ground[${_name}].Distance3D}. Needs to be within 20.
+		/if (${_silent.NotEqual[silent]}) {
+			OUT ${info}${_name}\ax is ${Ground[${_name}].Distance3D}. Needs to be within 20.
+		}
 		/return
 	} else /if (${Ground[${_name}].Distance3D} <= 20) {
 		/invoke ${Ground[${_name}].Grab}
@@ -4141,6 +4150,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 
 	| obfuscation
 	/invoke ${_skipKey.Append[lsProtectInsideRaid,lsProtectOutsideGroup,stTieToon,lsRetortToon,lsWardToon,stManualAssist1,stManualAssist2]}
+	/invoke ${_skipKey.Append[lsGrowthToon]}
 
 	| export to INI routine
 	/if (${_build.Equal[save]}) {
@@ -4188,7 +4198,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 					/if (${_limaps.Value.Equal[maCondition]}) {
 						/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition ORDER BY ROWID
 						/for _count 1 to ${sqlite.Rows[dummy]}
-							/ini "${_fqn}" ${_limaps.Value} "${sqlite.Result[dummy ${_count} env_var]}" "${Parse[2, ${sqlite.Result[dummy ${_count} value]}]}"
+							/ini "${_fqn}" ${_limaps.Value} "${sqlite.Result[dummy ${_count} env_var]}" "${Parse[2,${sqlite.Result[dummy ${_count} value]}]}"
 						/next _count
 					} else {
 						/ini "${_fqn}" ${_limaps.Value} "${_mi.Key}" "${Parse[1,${_mi.Value}]}"

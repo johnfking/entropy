@@ -62,7 +62,9 @@ sub set_CLR(bool _debug)
 	/call set_data_map ${_debug} maHeal stRampageTank										FALSE													"${auxna} rampage tank to not heal (\a-wcompletely ignore\ax)" heal
 
 	| arbitration
-	/call set_data_map ${_debug} maChr stCountArbitrate									0															"${auxnum} num of group hurt to use arbitration aa/epic"
+	/call set_data_map ${_debug} maChr stCountArbitrate									0															"${auxnum} num of group hurt to use arbitration "
+	/call set_data_map ${_debug} maChr swArbitrateAA 										FALSE													"${auxsw} use aa for arbitration"
+	/call set_data_map ${_debug} maChr swArbitrateEpic									FALSE													"${auxsw} use epic for arbitration"
 
 	| yaulp
 	/invoke ${set_data_timer[${_debug}, Check_Yaulp, 6s]}
@@ -143,7 +145,7 @@ sub main_CLR(bool _debug)
 
 	}
 
-	/while (${check_combat_status[FALSE]}) {
+	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
 		GETINPUT clr_main_loop NA|NA
 		/call check_heal_routines
 
@@ -157,7 +159,7 @@ sub main_CLR(bool _debug)
 		}
 		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-		/if (${check_class_loop[FALSE]}) /return
+		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
 		/if (VALID) {
 			CHECKREZ
@@ -336,30 +338,42 @@ sub check_heal_CLR(bool _debug, string _type)
 			  }
 			}
 
+
 			| arbitration
+			/if (${maChr.Find[stCountArbitrate].Value} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
+				/call arbitration ${maDebug.Find[arb].Value}
+			}
+
+			|** arbitration
 			/if (${maChr.Find[stCountArbitrate].Value} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
 
 			  | AA arb
-			  /if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
-			    /call voodoo ${_debug} "${maChr.Find[stAADivineArbitration].Value}" 0 FALSE
-			    /call get_hurt FALSE reset
-			    /return 0
+			  /if (${maChr.Find[swArbitrateAA].Value}) {
+			  	/if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
+				    /call voodoo ${_debug} "${maChr.Find[stAADivineArbitration].Value}" 0 FALSE
+				    /call get_hurt FALSE reset
+				    /return 0
+				  }
 			  }
 
 				| Second epic shield
-			  /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
-			    /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
-			    /call get_hurt FALSE reset
-			    /return 0
-			  }
+			  /if (${maChr.Find[swArbitrateEpic].Value}) {
 
-			  | First epic shield
-			  /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
-			    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
-			    /call get_hurt FALSE reset
-			    /return 0
-			  }
+				  /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
+				    /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
+				    /call get_hurt FALSE reset
+				    /return 0
+				  }
+
+				  | First epic shield
+				  /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
+				    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
+				    /call get_hurt FALSE reset
+				    /return 0
+				  }
+				}
 			}
+			**|
 
 			| group heal
 			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
@@ -446,6 +460,15 @@ sub check_heal_CLR(bool _debug, string _type)
 	GETINPUT clr_heal_end type|${_type}
 
 	/call cast_cycle_heal ${_debug} ${hurtID}
+
+
+	| arbitration
+	/if (${Select[${_type},group]} && ${Group}) {
+		/if (${maChr.Find[stCountArbitrate].Value} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
+			/call arbitration ${maDebug.Find[arb].Value}
+		}
+	}
+
 
 /return	TRUE
 
@@ -610,11 +633,49 @@ sub burn_CLR(bool _debug, int _tmpID)
 
 
 |***
+ * note: HP arbitration
+ * use: /call arbitration ${maDebug.Find[arb].Value}
+ ***|
+sub arbitration(bool _debug)
+	DEBUG \atarbitration\ax()
+	FLOW arbitration
+
+  | AA arb
+  /if (${maChr.Find[swArbitrateAA].Value}) {
+  	/if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
+	    /call voodoo ${_debug} "${maChr.Find[stAADivineArbitration].Value}" 0 FALSE
+	    /call get_hurt FALSE reset
+	    /return TRUE
+	  }
+  }
+
+  /if (${maChr.Find[swArbitrateEpic].Value}) {
+
+		| Second epic shield
+	  /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
+	    /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
+	    /call get_hurt FALSE reset
+	    /return TRUE
+	  }
+
+	  | First epic shield
+	  /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
+	    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
+	    /call get_hurt FALSE reset
+	    /return TRUE
+	  }
+	}
+
+/return TRUE
+
+
+
+|***
  * note: cleric specific control
  * use: /chr
  ***|
-sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_CLR\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control_CLR(string _type, string _verbage, sring _verbage2, string _silent, bool _debug)
+	DEBUG \atset_control_CLR\ax(\a-w${_type}, "${_verbage}", "${_verbage2}", ${_silent}\ax)
 
   /declare _out string local
 
@@ -629,7 +690,7 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
-		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
+		/call set_control_chr_spire ${_debug} ${_verbage} ${_verbage2}
 		/return
 
 	| set AA fade use %
@@ -650,8 +711,21 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 
 
 	| arbitration (sheild AND AA)
-	} else /if (${_type.Equal[arbitrate]}) {
-		/if (!${set_control_num_range[${_debug}, stCountArbitrate, ${_verbage}, 0, 6]}) /return
+	} else /if (${_type.Equal[arb]}) {
+		/if (${_verbage.Equal[count]}) {
+			/if (!${set_control_num_range[${_debug}, stCountArbitrate, ${_verbage2}, 0, 6]}) /return
+		} else /if (${_verbage.Equal[aa]}) {
+			/invoke ${set_switch_env[${_debug}, swArbitrateAA, TRUE, ${_verbage2}]}
+		} else /if (${_verbage.Equal[epic]}) {
+			/invoke ${set_switch_env[${_debug}, swArbitrateEpic, TRUE, ${_verbage2}]}
+		}
+
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[count,stCountArbitrate]}
+		/invoke ${maControl.Add[aa,swArbitrateAA]}
+		/invoke ${maControl.Add[epic,swArbitrateEpic]}
+		/invoke ${set_control_output[${_debug}, maChr, "chr arb", maControl]}
+		/return TRUE
 
 	| use divine rez
 	} else /if (${_type.Equal[divinerez]}) {
@@ -678,7 +752,7 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 
 		| spell to summon
 		} else /if (${_verbage.Equal[spell]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stSummonPrimary, "${_silent}"]}
+			/invoke ${do_raw_edit[${_debug}, SILENT, stSummonPrimary, "${_verbage2}"]}
 
 		}
 

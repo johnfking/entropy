@@ -79,11 +79,11 @@ sub main_ROG(bool _debug)
 		/if (${maEnv.Find[swSoS].Value}) /call set_sos FALSE
 	}
 
-	/while (${check_combat_status[FALSE]}) {
+	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
 		GETINPUT
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		CHECKDEFENSE
-		/if (${check_class_loop[FALSE]}) /return
+		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
 		/if (VALID) {
 			/call do_sneak_attack ${maDebug.Find[class].Value} TARGET

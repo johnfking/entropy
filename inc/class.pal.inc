@@ -141,10 +141,10 @@ sub main_PAL(bool _debug)
 		}
 	}
 
-	/while (${check_combat_status[false]}) {
+	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
-		/if (${check_class_loop[FALSE]}) /return
+		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
 		/if (VALID) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET

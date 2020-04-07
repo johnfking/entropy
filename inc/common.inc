@@ -641,7 +641,7 @@ sub set_control_num_range(bool _debug, string _variable, int _value, int _low, i
  ***|
 sub get_input(string _sub, string _variable)
 	| set a non-use variable to force bind checks
-	/varset bindswap ${If[${bindswap},FALSE,TRUE]}
+	| /varset bindswap ${If[${bindswap},FALSE,TRUE]}
 
 	| check the event queue
 	/doevents
@@ -727,11 +727,14 @@ sub set_buffs_blocked(bool _debug, string _silent)
  * use: ${get_shade[DEBUG, [mqwindow|say]}
  ***|
 sub get_shade(bool _debug, string _out)
+	DEBUG \atget_shade\ax(\a-w${_out}\ax)
+	FLOW get_shade ${_out}
 
 	/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM shade ORDER BY RANDOM() LIMIT 1
 
 	/if (${_out.Equal[MQWindow]}) {
-		/invoke ${out[1, "\a-g${sqlite.Result[dummy 1 value]}\ax"]}
+		/echo \a-g${sqlite.Result[dummy 1 value]}\ax
+		| /invoke ${out[1, "\a-g${sqlite.Result[dummy 1 value]}\ax"]}
 	} else /if (${_out.Equal[say]}) {
 		/say ${sqlite.Result[dummy 1 value]}
 	}
@@ -746,6 +749,7 @@ sub get_shade(bool _debug, string _out)
  ***|
 sub check_free_ingame_cash(bool _debug)
 	DEBUG \atcheck_free_ingame_cash\ax()
+	FLOW check_free_ingame_cash
 
 	GETINPUT check_free_ingame_cash FALSE|FALSE
 
@@ -1245,11 +1249,11 @@ sub set_observers(bool _debug, string _map, string _action)
  * use: /call set_switch_env DEBUG [switchname] [SQL] [value] || ${set_switch_env[DEBUG, switchname, SQL T/F, value]}
  ***|
 sub set_switch_env(bool _debug, string _switch, bool _sql, string _verbage)
-	DEBUG \atset_switch\ax(\a-w${_switch}, ${_sql}, ${_verbage}\ax)
+	DEBUG\atset_switch_env\ax(\a-w${_switch}, ${_sql}, ${_verbage}\ax)
 	FLOW set_switch_env
 
 	/declare _map string local ${get_key_map[${_debug}, ${_switch}]}
-	DEBUG _map${sep}${_map}
+	DEBUG ${sep}_map${sep}${_map}
 
 	| set switch TRUE
 	/if (${_verbage.Equal[on]} || ${_verbage.Equal[TRUE]}) {
@@ -2723,7 +2727,7 @@ sub is_burn_valid(bool _debug)
 
 |***
  * note: do we want to exit the class while loop. assume no exit (FALSE)
- * use: ${exit_class_loopDEBUG}
+ * use: ${exit_class_loop[DEBUG]}
  ***|
 sub check_class_loop(bool _debug)
 	DEBUG \atcheck_class_loop\ax()
@@ -2731,7 +2735,11 @@ sub check_class_loop(bool _debug)
 
 	/if (AUTO) {
 		| no target.. were done
-		/if (!${Spawn[TARGET].ID}) /return TRUE
+		/if (!${Spawn[TARGET].ID}) {
+			DEBUG ${sep}no target
+			/return TRUE
+		}
+
 		| targets dead. why bother
 		| /if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return TRUE
 
@@ -5902,13 +5910,13 @@ sub check_buff_cycle_self(bool _debug)
 					/if (${Me.Buff[${FindItem[${_spell}].Spell}].ID}) {
 						/invoke ${out[0, "Removing${sep}\a-w${FindItem[${_spell}].Spell}\ax"]}
 						/removebuff ${FindItem[${_spell}].Spell}
-						/delay 2
+						/delay 5
 					}
 					| illusions
 					/if (${Me.Buff[${FindItem[${_spell}].Spell.Trigger[${_countD}]}].ID}) {
 						/invoke ${out[0, "Removing${sep}\a-w${FindItem[${_spell}].Spell}\ax"]}
 						/removebuff ${FindItem[${_spell}].Spell.Trigger[${_countD}]}
-						/delay 2
+						/delay 5
 					}
 				}
 			/next _countD
@@ -6554,7 +6562,6 @@ sub check_buff_cycle_temp_list(bool _debug, string _spell, string _toonList)
 		/dquery ${_libt.Value} -q "Me.Buff[${maChr.Find[${_spell}].Value}].ID" -o DNQReturn -t 5
 		DEBUG ${DNQReturn}
 		/if (${Bool[${DNQReturn}]}) /varset _castSpell FALSE
-
 
 		/if (${_castSpell}) {
 			/call voodoo ${_debug} "${maChr.Find[${_spell}].Value}" ${Spawn[=${_libt.Value} pc].ID} FALSE
@@ -9115,7 +9122,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 
 	| get closer if we need too
 	/if (${Spawn[${_tmpID}].Distance} >= PULLENV && PULLENV > 250) {
-		/call pull_mob_move_to FALSE ${_tmpID} 60 off
+		/call pull_mob_move_to FALSE ${_tmpID} ${macc.Find[stPullNavStopDistance].Value} off
 		/if (!${timer_giveUpPull}) /goto :timerfail
 	}
 
@@ -9256,7 +9263,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	| get closer if we need too
 	} else /if (!${Spawn[${_tmpID}].LineOfSight} || ${Spawn[${_tmpID}].Distance} > 100) {
 		DEBUG ${sep}Sight:${Spawn[${_tmpID}].LineOfSight} || Distance:${Spawn[${_tmpID}].Distance}
-		/call pull_mob_move_to FALSE ${_tmpID} 60 on
+		/call pull_mob_move_to FALSE ${_tmpID} ${maCC.Find[stPullNavStopDistance].Value} on
 		/while (${Me.Moving}) {
 			/if (${Spawn[${_tmpID}].LineOfSight}) /break
 			/delay 2
@@ -9487,8 +9494,7 @@ sub find_priest(bool _debug, int _distance)
  ***|
 sub where_the_fuck_is_my_pet(bool _debug, bool _force)
 	DEBUG \atwhere_the_fuck_is_my_pet\ax(\a-w${_force}\ax)
-	FLOW where_the_fuck_is_my_pet
-
+	FLOW where_the_fuck_is_my_pet ${_force}
 
 	/if (!${Me.Pet.ID}) /return
 
@@ -9501,7 +9507,8 @@ sub where_the_fuck_is_my_pet(bool _debug, bool _force)
 	/if (!${Me.Pet.ReGroup}) /pet regroup
 	/if (!${Me.Pet.Hold}) /pet hold on
 	/pet back off
-/return
+
+/return TRUE
 
 
 
@@ -10594,7 +10601,6 @@ sub control_ttl(bool _debug, string _verbage, string _mob)
 		| set the initial timer
 		/invoke ${maTTL.Add[stTTLTimeStart,${Time.SecondsSinceMidnight}]}
 
-
 		| sort out the mob count
 		/if (${maTTL.Contains[${_mob}]}) {
 			/declare _mobcount int local ${Math.Calc[${maTTL.Find[${_mob}].Value.Arg[1,|]} + 1]}
@@ -10614,7 +10620,7 @@ sub control_ttl(bool _debug, string _verbage, string _mob)
 		/return TRUE
 
 	| set the things to the things for all of the things that the things need
-	} else /if (${_verbage.Equal[end]}) {
+	} else /if (${_verbage.Equal[end]} && ${maTTL.Contains[${_mob}]}) {
 		| time from the last kill
 		/declare _lasttime int local ${maTTL.Find[${_mob}].Value.Arg[2,|]}
 		DEBUG ${sep}_lasttime${sep}\a-w${_lasttime}\ax :: ${maTTL.Find[${_mob}].Value.Arg[2,|]}

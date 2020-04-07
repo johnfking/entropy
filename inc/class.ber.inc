@@ -73,12 +73,12 @@ sub main_BER(bool _debug)
 	CHECKTIE
 	CHECKREZ
 
-	/while (${check_combat_status[FALSE]}) {
+	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
 		GETINPUT
 		CHECKREZ
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		CHECKDEFENSE
-		/if (${check_class_loop[FALSE]}) /return
+		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
 		/if (VALID) {
 			/call set_combat FALSE

@@ -58,11 +58,11 @@ sub main_NEC(bool _debug)
 		/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	}
 
-	/while (${check_combat_status[FALSE]}) {
+	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
 		GETINPUT
 		CHECKREZ
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
-		/if (${check_class_loop[FALSE]}) /return
+		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
 		/if (VALID) {
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET

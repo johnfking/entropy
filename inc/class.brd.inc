@@ -50,12 +50,12 @@ sub set_BRD(bool _debug)
 sub main_BRD(bool _debug)
 	DEBUG \atmain_BRD\ax()
 
-	/while (${check_combat_status[FALSE]}) {
+	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
 		GETINPUT
 		CHECKREZ
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/call control_routine FALSE
-		/if (${check_class_loop[FALSE]}) /return FALSE
+		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
 		/if (VALID) {
 			| /call control_routine FALSE
