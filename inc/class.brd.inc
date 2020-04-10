@@ -39,6 +39,10 @@ sub set_BRD(bool _debug)
 	| aa boastful bellow switch
 	/call set_data_map FALSE maChr swAABellow														FALSE													"${auxsw} enable/disable using AA Boastful Bellow"
 
+	| sing OOC
+	/call set_data_map FALSE maChr swPulseOOC														FALSE													"${auxna} sing while out of combat"
+
+
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
 		/mqp
@@ -55,6 +59,10 @@ sub main_BRD(bool _debug)
 		CHECKREZ
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/call control_routine FALSE
+
+		/if (${maChr.Find[swPulseOOC].Value}) {
+			/call pulse_line ${maDebug.Find[pulse].Value} 0
+		}
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
 		/if (VALID) {
@@ -254,10 +262,12 @@ sub pulse_line(bool _debug, _tmpID)
 	/vardata _lipl lsLineSong.First.Clone
 	/while (!${_lipl.IsEnd}) {
 
-		/if (${target[isdead, ${_tmpID}]}) {
-			/call pulse_stop
-			/call clear_combat
-			/return FALSE
+		/if (${_tmpID}) {
+			/if (${target[isdead, ${_tmpID}]}) {
+				/call pulse_stop
+				/call clear_combat
+				/return FALSE
+			}
 		}
 
 		| /call control_routine FALSE
@@ -303,7 +313,7 @@ sub pulse_line(bool _debug, _tmpID)
 			/continue
 		}
 
-		/if (AUTO) {
+		/if (AUTO && ${_tmpID}) {
 			/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 			/call stick_to_target FALSE ${_tmpID}
 		}
@@ -497,7 +507,9 @@ sub set_control_BRD(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[bellow]}) {
 		/invoke ${set_switch_env[${_debug}, swAABellow, TRUE, ${_verbage}]}
 
-
+	| sing ooc
+	} else /if (${_type.Equal[ooc]}) {
+		/invoke ${set_switch_env[${_debug}, swPulseOOC, TRUE, ${_verbage}]}
 
 
 	}

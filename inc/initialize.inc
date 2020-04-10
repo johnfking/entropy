@@ -316,6 +316,7 @@ sub set_initial_environment(bool _debug)
 	  /invoke ${maChrControl.Add[rest,swSongRest]}
 	  /invoke ${maChrControl.Add[refresh,stSongRefresh]}
 	  /invoke ${maChrControl.Add[bellow,swAABellow]}
+	  /invoke ${maChrControl.Add[ooc,swPulseOOC]}
 
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
 	  /invoke ${maChrControl.Add[consume,stPctConsume]}

@@ -50,6 +50,11 @@ sub set_SHM(bool _debug)
   /call set_data_list ${_debug} maChr lsGrowthToon	 									EMPTY													"${auxli} list of toons to use ward temp hp growth on"
 	/call set_data_map ${_debug} maChr stGrowth			 										PREGEN|1											"${auxna} temp hp growth spell"
 
+	| temp buff
+  /call set_data_list ${_debug} maChr lsTempBuffToon									EMPTY													"${auxli} list of toons to use your temp buff on"
+	/call set_data_map ${_debug} maChr stTempBuff		 										FALSE													"${auxna} temp buff spell"
+
+
 /return
 
 
@@ -84,6 +89,7 @@ sub main_SHM(bool _debug)
 
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stGrowth lsGrowthToon
+			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
 		}
 
 		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
@@ -177,30 +183,7 @@ sub check_heal_SHM(bool _debug, string _type)
 	/declare _count int local 0
 
 	| Group Regen Heal
- 	/if (${maChr.Find[swHealGroupOverTime].Value} && !SAFEZONE && ${Group.Members} && COMBAT && ${maChr.Find[stCountAE].Value}) {
-	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= ${maChr.Find[stCountAE].Value}) {
-	 		/declare _groupHOT string local ${Set_Rank[False, ${maChr.Find[stHealGroupOverTime].Value.Arg[1,+]}]}
-			/if (!${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID}) {
-
-				/declare _found bool TRUE
-				| check regen SPA
-				/if (${Spell[${_groupHOT}].HasSPA[374]}) {
-					/for _count 1 to ${Spell[${_groupHOT}].NumEffects}
-						/if (!${Spell[${Spell[${_groupHOT}].Base2[${_count}]}].Duration}) /continue
-						/if (!${Me.Song[${Spell[${_groupHOT}].Base2[${_count}]}].ID}) /varset _found FALSE
-						/if (!${Spell[${Spell[${_groupHOT}].Base2[${_count}]}].Stacks}) /varset _found TRUE
-						/if (${_found}) /break
-					/next _count
-				} else {
-					/if (!${Me.Song[${_groupHOT}].ID}) /varset _found FALSE
-					/if (${Spell[${_groupHOT}].Stacks}) /varset _found FALSE
-				}
-				/if (!${_found} && ${is_ready[${_debug}, ${_groupHOT}]}) {
-					/call voodoo ${_debug} "${maChr.Find[stHealGroupOverTime].Value}" 0 FALSE
-				}
-			}
-		}
-	}
+	/call cast_regen ${maDebug.Find[regen].Value} group
 
 	| no one is hurt. we're out of here
 	/if (!${hurtCount}) {
@@ -234,6 +217,11 @@ sub check_heal_SHM(bool _debug, string _type)
 		}
 	}
 ***|
+
+ 	| single heal over time
+	/call cast_regen ${maDebug.Find[regen].Value} single
+
+
 	ISMEDEAD
 	CHECKEXIT
 	CHECKFADE

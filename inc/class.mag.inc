@@ -48,6 +48,9 @@ sub set_MAG(bool _debug)
 	/call set_data_map FALSE maChr stNukeTCMagic												PREGEN|1											"${auxna} magic line twincast spell"
 	/call set_data_map FALSE maChr stNukeTCBase													FALSE													"${auxna} base line twincast spell"
 
+	| temp buff
+  /call set_data_list ${_debug} maChr lsTempBuffToon									EMPTY													"${auxli} list of toons to use your temp buff on"
+	/call set_data_map ${_debug} maChr stTempBuff		 										FALSE													"${auxna} temp buff spell"
 
 	/call set_data_map FALSE maChr swCauldron														FALSE													"${auxsw} click cauldron to get prizes or not?"
 	/call set_data_map FALSE maChr stCauldron														FALSE													"${auxna} name of the cauldron item you wish to use"
@@ -80,6 +83,9 @@ sub main_MAG(bool _debug)
 		GETINPUT
 		CHECKREZ
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
+		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
+			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
+		}
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
 		/if (${check_class_loop[FALSE]}) /return FALSE

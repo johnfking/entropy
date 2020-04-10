@@ -79,6 +79,10 @@ sub set_CLR(bool _debug)
 	/call set_data_list ${_debug} maChr lsRetortToon 										EMPTY													"${auxli} list of toons to use retort temp line on"
 	/call set_data_map ${_debug} maChr stRetort													PREGEN|1											"${auxna} use retort temp buff"
 
+	| temp buff
+  /call set_data_list ${_debug} maChr lsTempBuffToon									EMPTY													"${auxli} list of toons to use your temp buff on"
+	/call set_data_map ${_debug} maChr stTempBuff		 										FALSE													"${auxna} temp buff spell"
+
 	| primary weapon
   /call set_data_map ${_debug} maChr swSummonPrimary									FALSE													"${auxsw} use summoned primary hammer"
   /call set_data_map ${_debug} maChr stSummonPrimary									PREGEN|1											"${auxna} name of primary hammer spell"
@@ -156,6 +160,7 @@ sub main_CLR(bool _debug)
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stWard lsWardToon
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stRetort lsRetortToon
+			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
 		}
 		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
@@ -638,65 +643,6 @@ sub arbitration(bool _debug)
 /return TRUE
 
 
-
-|***
- * note: regeneration spells (not the AAs)
- * use: /call cast__regen ${maDebug.Find[regen].Value} [single|group]
- ***|
-sub cast_regen(bool _debug, string _type)
-	DEBUG \atcast_regen\ax(\a-w${_type}\ax)
-	FLOW cast_regen ${_type}
-
- 	| group heal over time
-	/if (${_type.Equal[group]}) {
-		/if (!${maHeal.Find[swHealGroupOverTime].Value} || SAFEZONE || !AE# || !${Group.Members} || !COMBAT) {
-			/return FALSE
-		}
-
-	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= AE#) {
-	 		/declare _groupHOT string local ${maHeal.Find[stHealGroupOverTime].Value}
-			| /if (!${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID} && !${Me.Song[Talisman of The Enduring].ID}) {
-			/if (!${Me.SPA[100]} || ${Me.SPA[100]} && ${Me.Song[Abundant Healing].ID}) {
-				/declare _found bool TRUE
-				| check regen SPA
-				/if (${Spell[${_groupHOT}].HasSPA[374]}) {
-					/for _count 1 to ${Spell[${_groupHOT}].NumEffects}
-						/if (!${Spell[${Spell[${_groupHOT}].Base2[${_count}]}].Duration}) /continue
-						/if (!${Me.Song[${Spell[${_groupHOT}].Base2[${_count}]}].ID}) /varset _found FALSE
-						/if (!${Spell[${Spell[${_groupHOT}].Base2[${_count}]}].Stacks}) /varset _found TRUE
-						/if (${_found}) /break
-					/next _count
-				} else {
-					/if (!${Me.Song[${_groupHOT}].ID}) /varset _found FALSE
-					/if (${Spell[${_groupHOT}].Stacks}) /varset _found FALSE
-				}
-				/if (!${_found} && ${is_ready[${_debug}, ${_groupHOT}]}) {
-					/call voodoo ${_debug} "${_groupHOT}" 0 FALSE
-				}
-			}
-		}
-		/return TRUE
-	}
-
- 	| single heal over time
-	/if (${_type.Equal[single]}) {
-		/if (${maChr.Find[swHealOverTime].Value}) {
-			/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
-				/dquery ${Spawn[${hurtID}].DisplayName} -q "Spell[${maHeal.Find[stHealOverTime].Value}].Stacks" -o DNQReturn
-				/dquery ${Spawn[${hurtID}].DisplayName} -q "Me.Song[${maHeal.Find[stHealOverTime].Value}].Duration" -o DNQReturn2
-				/if (${DNQReturn} && !${DNQReturn2}) {
-					/if (${is_ready[${_debug}, "${maHeal.Find[stHealOverTime].Value}"]}) {
-						/call voodoo ${_debug} "${maHeal.Find[stHealOverTime].Value}" ${hurtID} FALSE
-					}
-				}
-			}
-		}
-		/return TRUE
-	}
-
-/return FALSE
-
-100
 
 |***
  * note: predictive combat preperation

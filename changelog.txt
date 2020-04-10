@@ -31,6 +31,17 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+B2004010.02
+- added stTempBuff and lsTempBuffToon to all casting classes
+- check_buff_cycle_temp_list
+  corrected an error with empty values in lists passing fail checks
+- do_raw_edit
+  small adjustment to the final reload to account for timers having a different db structure
+- bard
+  added ooc switch so they can sing their song line out side of combat
+- cleric/shaman
+  pulled out the individual group and single heal over time into one routine
+
 
 B2004010.01
 - /debuff mez resistcount # - [1:10] set the number of retrys on a mez resist (default 3)
@@ -41,7 +52,6 @@ B2004010.01
 - adjusted several timers in rez and CC to the new methods
   this "should" stop the rez stuck routine
 - removed the old dump variable
-
 
 B200406.01
 - cleric
