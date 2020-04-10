@@ -143,11 +143,11 @@ sub misc_combat_DRU(bool _debug, int _tmpID)
 
 	| great wolf self/group aa
 	/if (${maChr.Find[swWolfSpirit].Value}) {
-		/if (${Me.AltAbilityReady[Spirit of the Great Wolf]} && !${Me.Buff[Spirit of the Great Wolf].ID} && !${Me.Buff[Group Spirit of the Great Wolf]}) {
+		/if (${Me.AltAbilityReady[Spirit of the Great Wolf]} && !${Me.Buff[Spirit of the Great Wolf].ID} && !${Me.Buff[Group Spirit of the Great Wolf].ID}) {
 			/if (${is_ready[${_debug}, "Spirit of the Great Wolf"]}) {
 				/call voodoo ${_debug} "Spirit of the Great Wolf" 0 FALSE
 			}
-		} else /if (${Me.AltAbilityReady[Group Spirit of the Great Wolf]} && !${Me.AltAbilityReady[Spirit of the Great Wolf]} && !${Me.Buff[Spirit of the Great Wolf].ID} && !${Me.Buff[Group Spirit of the Great Wolf]}) {
+		} else /if (${Me.AltAbilityReady[Group Spirit of the Great Wolf]} && !${Me.AltAbilityReady[Spirit of the Great Wolf]} && !${Me.Buff[Spirit of the Great Wolf].ID} && !${Me.Buff[Group Spirit of the Great Wolf].ID}) {
 			/if (${is_ready[${_debug}, "Group Spirit of the Great Wolf"]}) {
 				/call voodoo ${_debug} "Group Spirit of the Great Wolf" 0 FALSE
 			}

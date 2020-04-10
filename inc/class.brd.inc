@@ -67,7 +67,7 @@ sub main_BRD(bool _debug)
 			}
 			| /call control_routine FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
-			/if (BURN) /call burn_${Me.Class.ShortName} TARGET
+			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			| /call control_routine FALSE
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (SWARM) /call cast_servant_swarm FALSE TARGET

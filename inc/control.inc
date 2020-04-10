@@ -623,7 +623,8 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
  ***|
 #bind to_chr /chr
 sub Bind_to_chr(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG /call set_control_${Me.Class.ShortName} _type:${_type} _verbage:${_verbage} _silent:${_silent} _debug:${_debug}
+	| DEBUG /call set_control_${Me.Class.ShortName} _type:${_type} _verbage:${_verbage} _silent:${_silent} _debug:${_debug}
+
 	/call set_control_${Me.Class.ShortName} ${_type} "${_verbage}" ${_silent} ${_debug}
 
 /return TRUE
@@ -651,7 +652,7 @@ sub Bind_command_cb(string _verbage)
 sub Bind_command_cm(string _verbage)
 
 	/if (!${Bool[${_verbage}]}) {
-		/call check_Minion_cycle ${maDebug.Find[buff].Value} TRUE
+		/call check_Minion_cycle ${maDebug.Find[minion].Value} TRUE
 	}
 
 /return TRUE
@@ -660,29 +661,55 @@ sub Bind_command_cm(string _verbage)
 
 |***
  * note: watches for a spawn in the zone
- * use: /watchspawn [name]
+ * use: /watch [add|delete|reset] [NAME]
  ***|
-#bind command_watchspawn /watchspawn
-sub Bind_command_watchspawn(string _variable, bool _debug)
-	DEBUG \atBind_command_watchspawn\ax(\a-w${_spawn}\ax)
-	/return
+#bind control_watch /watch
+sub Bind_control_watch(string _verbage, string _verbage2, bool _debug)
+	DEBUG \atBind_control_watch\ax(\a-w${_verbage}, ${_verbage2}\ax)
 
-	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
-		/call Bind_command_aux watchspawn
+	/if (${_verbage.Equal[aux]}) {
+		/call Bind_command_aux watch
 		/mapshow reset
-		/return
-	} else /if (${_variable.Equal[see]}) {
-		/call Bind_command_see maWatchspawn
-		/return
-	} else /if (${Bool[${_variable}]}) {
+		/return TRUE
 
-	} else /if (!${Bool[${_variable}]} && ${Target.ID}) {
+	} else /if (${_verbage.Equal[see]}) {
+		/call Bind_command_see maWatch
+		| /call Bind_command_see lsWatch
+		/return TRUE
+
+	} else /if (${_verbage.Equal[use]}) {
+		/invoke ${set_switch_env[${_debug}, swWatch, FALSE, ${_verbage2}]}
+
+	| } else /if (${_verbage.Equal[beep]}) {
+	| 	/invoke ${set_switch_env[${_debug}, swWatchBeep, TRUE, ${_verbage2}]}
+
+	} else /if (${_verbage.Equal[add]}) {
+		/if (${Target.ID}) {
+			/call do_raw_edit ${_debug} FALSE lsWatch "${Target.DisplayName}" add
+		} else /if (${Bool[${_verbage2}]}) {
+			/call do_raw_edit ${_debug} FALSE lsWatch "${_verbage2}" add
+		}
+
+	} else /if (${_verbage.Equal[delete]}) {
+		/if (${Target.ID}) {
+			/call do_raw_edit ${_debug} FALSE lsWatch "${Target.DisplayName}" delete
+		} else /if (${Bool[${_verbage2}]}) {
+			/call do_raw_edit ${_debug} FALSE lsWatch "${_verbage2}" delete
+		}
+
+	} else /if (${_verbage.Equal[reset]}) {
+		/invoke ${set_switch_env[${_debug}, swWatch, FALSE, FALSE]}
+		| /invoke ${set_switch_env[${_debug}, swWatchBeep, TRUE, FALSE]}
+		/call do_raw_edit ${_debug} TRUE lsWatch clear
 
 	}
 
-	/if (${_variable.Equal[FALSE]}) /mapshow reset
+	/invoke ${maControl.Clear}
+	/invoke ${maControl.Add[use,swWatch|pr]}
+	| /invoke ${maControl.Add[beep,swWatchBeep]}
+	/invoke ${set_control_output[${_debug}, maWatch, watch, maControl]}
 
-/return
+/return TRUE
 
 
 
@@ -2755,15 +2782,19 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 			/invoke ${do_raw_edit[${_debug}, TRUE, stMez, "${_silent}"]}
 		} else /if (${_verbage.Equal[ae]}) {
 			/invoke ${do_raw_edit[${_debug}, TRUE, stAEMez, "${_silent}"]}
+		} else /if (${_verbage.Equal[resistcount]}) {
+			/if (!${set_control_num_range[${_debug}, stCountMezResist, "${_silent}", 0, 10]}) /return
 		}
 
 		/varset _out
+		/invoke ${_lsoutS.Append[resistcount]}
 		/vardata _lideb _lsoutS.First.Clone
 		/while (!${_lideb.IsEnd}) {
 			/varset _out ${_out} ${If[${_lideb.Value.Equal[${_lsoutS.First}]},,${dot}]} ${info}${_lideb.Value}\ax
 			/if (${_lideb.Value.Equal[use]}) /varset _out ${_out}:${If[${madeBuff.Find[swMez].Value},${on},${off}]}
 			/if (${_lideb.Value.Equal[single]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stMez].Value}]},${num}${madeBuff.Find[stMez].Value}\ax,${off}]}]
 			/if (${_lideb.Value.Equal[ae]}) /varset _out ${_out}:[${If[${Bool[${madeBuff.Find[stAEMez].Value}]},${num}${madeBuff.Find[stAEMez].Value}\ax,${off}]}]
+			/if (${_lideb.Value.Equal[resistcount]}) /varset _out ${_out}:${num}${madeBuff.Find[stCountMezResist].Value}\ax
 			/invoke ${_lideb.Advance}
 		}
 		/invoke ${out[12, "/debuff mez ${_out}"]}
@@ -3265,7 +3296,7 @@ sub Bind_command_aux(string _type, bool _debug)
 	/declare _lsout list local
 	/invoke ${_lsout.Append[alto,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter]}
 	/invoke ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,mode,minion,navto,off,on,override,repeat,see,splash,take,tag,tc,tie]}
-	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro,miscdps,song,line,area,sash]}
+	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro,miscdps,song,line,area,sash,pred]}
 
 	/if (${_lsout.Contains[${_type}]}) {
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY ROWID
@@ -4994,7 +5025,6 @@ sub Bind_control_defense(string _type, string _verbage, string _verbage2, string
 sub Bind_control_TTL(string _type, string _verbage, string _silent, bool _debug)
 	DEBUG \atBind_control_TTL\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
-
 	| output control map
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maTTL
@@ -5003,8 +5033,6 @@ sub Bind_control_TTL(string _type, string _verbage, string _silent, bool _debug)
 		/call Bind_command_aux ttl
 		/return TRUE
 
-
-
 	| set the switch to use
 	} else /if (${_type.Equal[logic]}) {
 		/invoke ${set_switch_env[${_debug}, swTTL, TRUE, ${_verbage}]}
@@ -5012,13 +5040,9 @@ sub Bind_control_TTL(string _type, string _verbage, string _silent, bool _debug)
 	| clear the TTL statiestics
 	} else /if (${_type.Equal[clear]}) {
 		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT swTTL FROM environment_character
-
 		/invoke ${maTTL.Clear}
-
-
 		/invoke ${maTTL.Add[swTTL,${sqlite.Result[dummy 1 swTTL]}]}
 		/invoke ${maTTL.Add[stTTLTimeStart,0]}
-
 	}
 
 
@@ -5027,7 +5051,7 @@ sub Bind_control_TTL(string _type, string _verbage, string _silent, bool _debug)
 	/invoke ${maControl.Add[logic,swTTL]}
 	/invoke ${set_control_output[${_debug}, maTTL, ttl, maControl]}
 
-/return
+/return TRUE
 
 
 
@@ -5533,3 +5557,230 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _s
 
 
 
+
+|***
+ * note: control for /pred
+ * use: predictive combat
+ ***|
+#bind control_pred /pred
+sub Bind_control_pred(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atBind_control_TTL\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
+
+	| output control map
+	/if (${_type.Equal[see]}) {
+		/call Bind_command_see maPred
+		/return TRUE
+	} else /if (${_type.Equal[aux]}) {
+		/call Bind_command_aux pred
+		/return TRUE
+
+	| set the switch to use
+	} else /if (${_type.Equal[logic]}) {
+		/invoke ${set_switch_env[${_debug}, swPred, TRUE, ${_verbage}]}
+
+	} else /if (${_type.Equal[prepclass]}) {
+		/invoke ${set_switch_env[${_debug}, swPredPrepClass, TRUE, ${_verbage}]}
+
+	} else /if (${_type.Equal[prepburn]}) {
+		/invoke ${set_switch_env[${_debug}, swPredPrepBurn, TRUE, ${_verbage}]}
+
+
+	| clear the TTL statiestics
+	} else /if (${_type.Equal[clear]}) {
+		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT swTTL FROM environment_character
+		/invoke ${maPred.Add[swPredInc,FALSE]}
+		/invoke ${maPred.Add[stPredCountMob,0]}
+		/invoke ${maPred.Add[swPredNamed,FALSE]}
+
+	| predictive radius
+	} else /if (${_type.Equal[rad]}) {
+		/if (!${set_control_num_range[${_debug}, stPredRad, "${_verbage}", 1, 80]}) /return
+
+	}
+
+	/if (${_silent.Equal[SILENT]}) /return
+	/invoke ${maControl.Clear}
+	/invoke ${maControl.Add[logic,swPred]}
+	/invoke ${maControl.Add[rad,stPredRad]}
+	/invoke ${maControl.Add[prepclass,swPredPrepClass]}
+	/invoke ${maControl.Add[prepburn,swPredPrepBurn]}
+	/invoke ${set_control_output[${_debug}, maPred, pred, maControl]}
+
+/return TRUE
+
+
+
+
+
+
+
+
+sub control_pred(bool _debug)
+	DEBUG \atcontrol_pred\ax()
+	FLOW control_pred (1)
+
+
+	| nothing to check
+	/if (!${Bool[${maPred.Find[stPredID].Value}]}) {
+		/return FALSE
+	}
+
+	| set spawn area ount
+	/declare _spawncount ${SpawnCount[loc ${Spawn[${Target.ID}].X} ${Spawn[${Target.ID}].Y} ${Spawn[${Target.ID}].Z} NPC radius ${maPred.Find[stPredRad].Value}]}
+
+	| set burn if area count is met and on
+	/if (${maPred.Find[swPredPrepBurn].Value}) {
+		/if (${maBurn.Find[stBurnCount].Value}) {
+			/if (${_spawncount} >= ${maBurn.Find[stBurnCount].Value}) {
+				/invoke ${maBurn.Add[swBurnConditionMet,TRUE]}
+			}
+
+		| set burn based off name in area of pulled target
+		} else /if (${maBurn.Find[swBurnAuto].Value}) {
+			/declare _count int local 0
+			/declare _mobID int local 0
+			/for _count 1 to ${_spawncount}
+				/varset _mobID ${NearestSpawn[${_count}, loc ${Spawn[${Target.ID}].X} ${Spawn[${Target.ID}].Y} ${Spawn[${Target.ID}].Z} NPC radius ${maPred.Find[stPredRad].Value}].ID}
+				/if (${lsZoneNamed.Contains[${Spawn[ID ${_mobID}].DisplayName}]} && !${maOver.Find[swOverName].Value}) {
+					/invoke ${maBurn.Add[swBurnConditionMet,TRUE]}
+					/return TRUE
+				}
+			/next _count
+		}
+	}
+
+
+	| start class predictions
+	/if (${maPred.Find[swPredPrepClass].Value} && ${Defined[prediction_${Me.Class.ShortName}]}) {
+		/call prediction_${Me.Class.ShortName} ${maDebug.Find[pred].Value}
+	}
+
+/return TRUE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+${Spawn[${maPred.Find[stPredID].Value}].SpawnCount[3,npc radius ${maPred.Find[stPredRad].Value}].ID}
+
+${Spawn[${maPred.Find[stPredID].Value}].SpawnCount[3,npc radius ${maPred.Find[stPredRad].Value}].ID}
+
+
+${Spawn[10089].NearestSpawn[radius 50]}
+
+
+
+
+
+
+		DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
+		/if (${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}) {
+			/for _count 1 to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}
+				ISMEDEAD
+
+				/varset _tmpID ${NearestSpawn[${If[${_spCount},${Math.Calc[${_count}+${_spCount}]},${_count}]}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value}].ID}
+				DEBUG ${sep}_tmpID${sep}\a-w${_tmpID}\ax
+
+				/if (!${Navigation.PathExists[id ${_tmpID}]}) {
+					| SDEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-yid ${_tmpID}\ax]\ax
+					| /continue
+				}
+
+				/varset _navRange ${Navigation.PathLength[id ${_tmpID}]}
+
+				| sort by closest nav path length
+				/if (${_navRange} <= ${_closestNAV}) {
+					/varset _closestNAV ${_navRange}
+				} else /if (${_navRange} > ${_closestNAV}) {
+					/continue
+				}
+
+				| animation checks
+				/if (${lsNoTargetAnimation.Contains[${Spawn[id ${_tmpID}].Animation}]}) {
+					DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetAnimation\ax
+					/varset _spCount 1
+					/continue
+				}
+
+
+				| fish are friends, not food
+				/if (${lsNoAttackBodyType.Contains[${Spawn[id ${_tmpID}].Body}]}) {
+					DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoAttackBodyType\ax
+					/varset _spCount 1
+					/continue
+				}
+
+				| can i come into the out now?
+				/if (${Spawn[id ${_tmpID}].Type.Equal[NPC]}) {
+					/if (${lsNoTargetNPC.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
+						DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetNPC\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
+						/varset _spCount 1
+						/continue
+					}
+				}
+
+				| PCs to not consider
+				/if (${Spawn[id ${_tmpID}].Type.Equal[PC]}) {
+					/if (${lsNoTargetPC.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
+						DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetPC\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
+						/varset _spCount 1
+						/continue
+					}
+				}
+
+				| magic creatures to not consider
+				/if (${Spawn[id ${_tmpID}].Type.Equal[Magic]}) {
+					/if (${lsNoTargetMagic.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
+						DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetMagic\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
+						/varset _spCount 1
+						/continue
+					}
+				}
+
+				/if (${_tmpID} == ${Me.Pet.ID}) /continue
+
+				| CYA for shit MQ will pick up in the environment that does not have a name
+				/if (${Spawn[ID ${_tmpID}].DisplayName.Length} < 1) {
+					DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wDisplayName.Length < 1\ax
+					/varset _spCount 1
+					/continue
+				}
+
+				| added because MQ sucks ass for getting accurate HP values returned over a mouse dick in length.
+				/if (${Spawn[ID ${_tmpID}].PctHPs} > 100 && ${_tmpAgroRange} > 200) {
+					/varset _tmpHPAdj 100
+				} else {
+					/varset _tmpHPAdj ${Spawn[id ${_tmpID}].PctHPs}
+				}
+
+				| get the lowest HP mob if we can
+				/if (${_tmpHPAdj} <= ${_mobHP}) {
+					/varset _mobHP ${Spawn[id ${_tmpID}].PctHPs}
+					/varset stAssTarID ${_tmpID}
+					/invoke ${maCC.Add[swSetCombat,TRUE]}
+					DEBUG ${sep}T2K${sep}\awTARGET\aw${sep}\ay${Spawn[TARGET].DisplayName}\ay ${sep} ${If[${Spawn[TARGET].LineOfSight},\ag${Spawn[TARGET].Distance}\ax,\ar${Spawn[TARGET].Distance}\ax]}
+				}
+
+				| is this a priority mob?
+				/if (${lsZoneNoMez.Contains[${Spawn[ID ${_tmpID}].DisplayName}]} || ${lsZoneNamed.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
+					DEBUG ${sep}Priority Mob${sep}\a-w${Spawn[id ${_tmpID}].DisplayName}\ax
+					| off tanks have to sort by a different position
+					/if (TARGET && ${Me.XTarget[1].ID} == ${_tmpID}) {
+						DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wMe.XTarget[1].ID != _tmpID\ax
+						/continue
+					}
+					/return TARGET
+				}
+
+			/next _count
+
+		}

@@ -99,9 +99,6 @@ sub main(string _debug, string _param1, string _auto)
 	/declare _boottimestart int local ${MacroQuest.Running}
 	/mqclear
 
-	| trash variable
-	/declare dump string outer
-
 	| Make sure plugins are loaded. kill macro if not
 	/if (!${check_plugin[FALSE, TRUE, |MQ2SQLite|MQ2DanNet|Mq2Nav|MQ2MoveUtils|MQ2Collections]}) {
 		/echo Make sure the following plugins are loaded
@@ -119,7 +116,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer B200406.01
+	/call set_data FALSE maEnv build													map outer B2004010.01
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -191,6 +188,11 @@ sub main(string _debug, string _param1, string _auto)
 		| check food / drink
 		/if (!${timer_Check_FoodDrink}) {
 			/call check_last_supper FALSE
+		}
+
+		| watchspawn
+		/if (${maWatch.Find[swWatch].Value} && !${timer_Check_Watch}) {
+			/if (${lsWatch.Count}) /call check_watch_spawn ${maDebug.Find[watch].Value}
 		}
 
 		| check do now things

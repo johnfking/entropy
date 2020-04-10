@@ -31,6 +31,18 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+
+B2004010.01
+- /debuff mez resistcount # - [1:10] set the number of retrys on a mez resist (default 3)
+- druid
+  fixed a couple missing .ID's on the changes to wolf
+- cleric
+  corrected a bad map for single heal over time
+- adjusted several timers in rez and CC to the new methods
+  this "should" stop the rez stuck routine
+- removed the old dump variable
+
+
 B200406.01
 - cleric
   more work on arbitration (this shit never ends)

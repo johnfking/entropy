@@ -45,9 +45,9 @@ sub set_debug()
   | combat
   /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status]}
 	| other
-  /invoke ${lsDebugother.Append[edit,rest,rez,spire,glyph,fireworks,manarecover,fade,event]}
+  /invoke ${lsDebugother.Append[edit,rest,rez,spire,glyph,fireworks,manarecover,fade,event,watch]}
 	| admin
-  /invoke ${lsDebugadmin.Append[build,init,observe,house,flow,exit,condition]}
+  /invoke ${lsDebugadmin.Append[build,init,observe,house,flow,exit,condition,sql]}
   | class specific debugs
   /if (${Select[${Me.Class.ShortName},BER]}) {
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
@@ -55,7 +55,7 @@ sub set_debug()
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
   	/invoke ${lsDebugclass.Append[para]}
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
-  	/invoke ${lsDebugclass.Append[arb,splash]}
+  	/invoke ${lsDebugclass.Append[arb,splash,regen]}
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
   	/invoke ${lsDebugclass.Append[crystal,gather]}
@@ -136,7 +136,7 @@ sub set_initialize(bool _debug)
   /declare maBuffRequest map outer
 
   | watchspawn map
-  /declare maWatchspawn map outer
+  | /declare maWatchspawn map outer
 
   | rez control map
  	/declare maControlRez map outer
@@ -151,12 +151,15 @@ sub set_initialize(bool _debug)
   /declare maTTL map outer
   /call set_data ${_debug} maTTL stTTLTimeStart														map outer 0
 
+  | predictive combat
+  /declare maPred map outer
+
   | list of all maps used with usable data
   /declare lsMaps list outer
-  /invoke ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maBuff,maBurn]}
+  /invoke ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maBuff,maBurn,maPred]}
   /invoke ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
-  /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maWatchspawn]}
-  /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL]}
+  /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode]}
+  /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch]}
   /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
 
   | set all output shortcuts
@@ -281,6 +284,7 @@ sub set_initial_environment(bool _debug)
   /invoke ${set_data_timer[FALSE, Check_Housekeeping, 1m]}
   /invoke ${set_data_timer[FALSE, Check_Home, 1]}
   /invoke ${set_data_timer[FALSE, Check_Target, 5s]}
+  /invoke ${set_data_timer[FALSE, Check_Watch, 5s]}
 
   | get the stick timer started
   /invoke ${set_timer[${_debug}, timer_check_stick, 1s]}
@@ -662,6 +666,14 @@ sub set_initialize_map_character_environment(bool _debug)
 |** control: grain **|
   /call set_data_list ${_debug} maEnv lsGrain                           	1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30        "${auxnum} visual outputs you wish to see. \aw/verb aux\ax for full list"
 
+|** control: predictive **|
+  /call set_data_map ${_debug} maPred swPred															FALSE													 "${auxsw} use predictive combat logic"
+  /call set_data_map ${_debug} maPred stPredRad														40														 "${auxnum} radius around predicted pull target"
+  /call set_data_map ${_debug} maPred swPredPrepBurn											FALSE													 "${auxsw} prep burn routines"
+  /call set_data_map ${_debug} maPred swPredPrepClass											FALSE													 "${auxsw} prep class specific routine"
+  /call set_data ${_debug} maPred stPredID																map outer FALSE
+
+
 |** control: env **|
   /call set_data ${_debug} maEnv swAuto                                   map outer FALSE
   /call set_data_map ${_debug} maEnv swSafeListGuild                      FALSE                         "${auxsw} let guild in your safe list"
@@ -847,6 +859,12 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data ${_debug} FALSE stModeData                            		string outer FALSE
 
 
+|** control: watch **|
+  /call set_data ${_debug} maWatch swWatch                                map outer FALSE
+  /call set_data ${_debug} maWatch stWatchCount                           map outer 0
+  /call set_data_list ${_debug} maWatch lsWatch		                        EMPTY                         "${auxli} list of mobs to watch for"
+
+
 |** control: cc **|
   /call set_data ${_debug} maCC swSetForced                               map outer FALSE
   /call set_data ${_debug} maCC swSetCombat                               map outer FALSE
@@ -1002,6 +1020,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
   /call set_data_map ${_debug} madeBuff swMez                             FALSE                         "${auxsw} use mez"
   /call set_data_map ${_debug} madeBuff stMez                             FALSE                         "${auxna} single target mez"
+  /call set_data_map ${_debug} madeBuff stCountMezResist                  3			                        "${auxnum} number of times to retry single mez with resists"
   /call set_data_map ${_debug} madeBuff stAEMez                           FALSE                         "${auxna} ae mez for when shit gets deep"
 
   /call set_data_map ${_debug} madeBuff swMalo                            FALSE                         "${auxsw} use malo"
@@ -1709,47 +1728,42 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 
 	| row 123
-    HUDPATH dev devCombat1	 		  19,5,123,100,149,237,combat
+    HUDPATH dev devCombat1	 		  3,5,123,100,149,237,combat
     HUDPATH dev devCombat2	 		  ${Parse[0, "19,45,123,0,255,0,${If[${maCC.Find[swSetCombat].Value},T,]}"]}
     HUDPATH dev devCombat3	 		  ${Parse[0, "19,45,123,255,0,0,${If[${maCC.Find[swSetCombat].Value},,F]}"]}
 
 
-    HUDPATH dev devBurn1	 		 		19,80,123,100,149,237,burn
+    HUDPATH dev devBurn1	 		 		3,80,123,100,149,237,burn
     HUDPATH dev devBurn2	 			  ${Parse[0, "19,110,123,0,255,0,${If[${maBurn.Find[swBurnConditionMet].Value},T,]}"]}
     HUDPATH dev devBurn3	 		  	${Parse[0, "19,110,123,255,0,0,${If[${maBurn.Find[swBurnConditionMet].Value},,F]}"]}
 
-    HUDPATH dev hurtID1						19,130,123,100,149,237,hID
+    HUDPATH dev hurtID1						3,130,123,100,149,237,hID
     HUDPATH dev hurtID2		 			  ${Parse[0, "19,150,123,255,255,255,${hurtID}"]}
 
 
     HUDPATH dev BG123    					3,3,123,0,0,0,██████████████████████████████████████████
 
 	| row 136
-    HUDPATH dev devTargetID1 	  	19,5,136,100,149,237,targetID
+    HUDPATH dev devTargetID1 	  	3,5,136,100,149,237,targetID
     HUDPATH dev devTargetID2 		 	${Parse[0, "19,45,136,255,255,255,${Target.ID}"]}
 
-    HUDPATH dev stEnvRadius1			19,80,136,100,149,237,env
+    HUDPATH dev stEnvRadius1			3,80,136,100,149,237,env
     HUDPATH dev stEnvRadius2			${Parse[0, "19,110,136,255,255,255,${SpawnCount[NPC radius ${maEnv.Find[stEnvRadius].Value}]}"]}
 
-    HUDPATH dev hurtPctHP1				19,130,136,100,149,237,h%
+    HUDPATH dev hurtPctHP1				3,130,136,100,149,237,h%
     HUDPATH dev hurtPctHP2		 		${Parse[0, "19,150,136,255,255,255,${hurtPctHP}"]}
 
 
     HUDPATH dev BG136    					3,3,136,0,0,0,██████████████████████████████████████████
 
 	| row 149
-    HUDPATH dev devASSTargetID1   19,5,149,100,149,237,AssID
+    HUDPATH dev devASSTargetID1   3,5,149,100,149,237,AssID
+    HUDPATH dev devASSTargetID2  	${Parse[0, "19,45,149,255,255,255,${stAssTarID}"]}
 
-
-
-
-
-    HUDPATH dev devASSTargetID2  	19,45,149,255,255,255,${stAssTarID}
-
-    HUDPATH dev stEnvSafeRadius1	19,80,149,100,149,237,safe
+    HUDPATH dev stEnvSafeRadius1	,80,149,100,149,237,safe
     HUDPATH dev stEnvSafeRadius2	${Parse[0, "19,110,149,255,255,255,${SpawnCount[NPC radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}"]}
 
-    HUDPATH dev hurtCLS1				19,130,149,100,149,237,hCL
+    HUDPATH dev hurtCLS1				3,130,149,100,149,237,hCL
     HUDPATH dev hurtCLS2		 		${Parse[0, "19,150,149,255,255,255,${hurtCLS}"]}
 
 
@@ -1757,17 +1771,17 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 
 	| row 162
-    HUDPATH dev devIsDead1  			19,5,162,100,149,237,IsDead
+    HUDPATH dev devIsDead1  			3,5,162,100,149,237,IsDead
     HUDPATH dev devIsDead2	 		  ${Parse[0, "19,45,162,0,255,0,${If[${swIsMeDead},T,]}"]}
     HUDPATH dev devIsDead3	 		  ${Parse[0, "19,45,162,255,0,0,${If[${swIsMeDead},,F]}"]}
 
-    HUDPATH dev stPullRadius1			19,80,162,100,149,237,pull
+    HUDPATH dev stPullRadius1			3,80,162,100,149,237,pull
     HUDPATH dev stPullRadius2			${Parse[0, "19,110,162,255,255,255,${SpawnCount[NPC radius ${maCC.Find[stPullRadius].Value}]}"]}
 
-    HUDPATH dev hurtCount1				19,130,162,100,149,237,h#
+    HUDPATH dev hurtCount1				3,130,162,100,149,237,h#
     HUDPATH dev hurtCount2		 		${Parse[0, "19,150,162,255,255,255,${hurtCount}"]}
 
-    HUDPATH dev castStatus1				19,250,162,100,149,237,cR
+    HUDPATH dev castStatus1				3,250,162,100,149,237,cR
     HUDPATH dev castStatus2		 		${Parse[0, "19,265,162,255,255,255,${maData.Find[stCastReturn].Value}"]}
 
 
@@ -1778,18 +1792,18 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 
 	| row 181
-		HUDPATH dev tTIE1							19,5,181,100,149,237,tie
+		HUDPATH dev tTIE1							3,5,181,100,149,237,tie
 		HUDPATH dev tTIE2							${Parse[0, "19,30,181,255,239,0,${timer_Check_Tie}"]}
-		HUDPATH dev tb1								19,50,181,100,149,237,b
+		HUDPATH dev tb1								3,50,181,100,149,237,b
 		HUDPATH dev tb2								${Parse[0, "19,70,181,255,239,0,${timer_Check_Buff_Cycle}"]}
 
-		HUDPATH dev tbC1							19,105,181,100,149,237,bC
+		HUDPATH dev tbC1							3,105,181,100,149,237,bC
 		HUDPATH dev tbC2							${Parse[0, "19,125,181,255,239,0,${timer_Check_Buff_Crew}"]}
 
-		HUDPATH dev tbR1							19,160,181,100,149,237,bR
+		HUDPATH dev tbR1							3,160,181,100,149,237,bR
 		| HUDPATH dev tbR2							19,185,181,255,239,0,${timer_Check_Buff_Raid}
 
-		HUDPATH dev tMode1						19,215,181,100,149,237,tM
+		HUDPATH dev tMode1						3,215,181,100,149,237,tM
 		HUDPATH dev tMode2						${Parse[0, "19,240,181,255,239,0,${timer_Check_Mode}"]}
 
 
@@ -1798,30 +1812,30 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 	| row 194
 
-		HUDPATH dev tCure1						19,5,194,100,149,237,cure
+		HUDPATH dev tCure1						3,5,194,100,149,237,cure
 		HUDPATH dev tCure2						${Parse[0, "19,30,194,255,239,0,${timer_Check_Cure}"]}
 
-		HUDPATH dev tbN1							19,50,194,100,149,237,bN
+		HUDPATH dev tbN1							3,50,194,100,149,237,bN
 		HUDPATH dev tbN2							${Parse[0, "19,70,194,255,239,0,${timer_Check_Buff_Now}"]}
-		HUDPATH dev tbA1							19,105,194,100,149,237,bA
+		HUDPATH dev tbA1							3,105,194,100,149,237,bA
 		HUDPATH dev tbA2							${Parse[0, "19,125,194,255,239,0,${timer_Check_Buff_Aura}"]}
 
     HUDPATH dev BG194    					3,3,194,0,0,0,██████████████████████████████████████████
 
 	| row207
 
-		HUDPATH dev tbS1							19,50,207,100,149,237,bS
+		HUDPATH dev tbS1							3,50,207,100,149,237,bS
 		HUDPATH dev tbS2							${Parse[0, "19,70,207,255,239,0,${timer_Check_Buff_Self}"]}
-		HUDPATH dev tbB1							19,105,207,100,149,237,bB
+		HUDPATH dev tbB1							3,105,207,100,149,237,bB
 		HUDPATH dev tbB2							${Parse[0, "19,125,207,255,239,0,${timer_Check_Buff_Beg}"]}
 
     HUDPATH dev BG207    					3,3,207,0,0,0,██████████████████████████████████████████
 
 	| row 220
 
-		HUDPATH dev tbU1							19,50,220,100,149,237,bU
+		HUDPATH dev tbU1							3,50,220,100,149,237,bU
 		HUDPATH dev tbU2							${Parse[0, "19,70,220,255,239,0,${timer_Check_Buff_Unity}"]}
-		HUDPATH dev tbT1							19,105,220,100,149,237,bT
+		HUDPATH dev tbT1							3,105,220,100,149,237,bT
 		HUDPATH dev tbT2							${Parse[0, "19,125,220,255,239,0,${timer_Check_Buff_Temp}"]}
 
     HUDPATH dev BG220    					3,3,220,0,0,0,██████████████████████████████████████████

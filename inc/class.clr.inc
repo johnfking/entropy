@@ -291,29 +291,7 @@ sub check_heal_CLR(bool _debug, string _type)
 	/declare _count int local 0
 
 	| Group Regen Heal
- 	/if (${maHeal.Find[swHealGroupOverTime].Value} && !SAFEZONE && ${Group.Members} && COMBAT && AE#) {
-	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= AE#) {
-	 		/declare _groupHOT string local ${maHeal.Find[stHealGroupOverTime].Value}
-			/if (!${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID} && !${Me.Song[Talisman of Enduring].ID}) {
-				/declare _found bool TRUE
-				| check regen SPA
-				/if (${Spell[${_groupHOT}].HasSPA[374]}) {
-					/for _count 1 to ${Spell[${_groupHOT}].NumEffects}
-						/if (!${Spell[${Spell[${_groupHOT}].Base2[${_count}]}].Duration}) /continue
-						/if (!${Me.Song[${Spell[${_groupHOT}].Base2[${_count}]}].ID}) /varset _found FALSE
-						/if (!${Spell[${Spell[${_groupHOT}].Base2[${_count}]}].Stacks}) /varset _found TRUE
-						/if (${_found}) /break
-					/next _count
-				} else {
-					/if (!${Me.Song[${_groupHOT}].ID}) /varset _found FALSE
-					/if (${Spell[${_groupHOT}].Stacks}) /varset _found FALSE
-				}
-				/if (!${_found} && ${is_ready[${_debug}, ${_groupHOT}]}) {
-					/call voodoo ${_debug} "${_groupHOT}" 0 FALSE
-				}
-			}
-		}
-	}
+	/call cast_regen ${maDebug.Find[regen].Value} group
 
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
@@ -436,17 +414,8 @@ sub check_heal_CLR(bool _debug, string _type)
 	}
 
  	| single heal over time
-	/if (${maChr.Find[swHealOverTime].Value}) {
-		/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
-			/dquery ${Spawn[${hurtID}].DisplayName} -q "Spell[${maChr.Find[swHealOverTime].Value}].Stacks" -o DNQReturn
-			/dquery ${Spawn[${hurtID}].DisplayName} -q "Me.Song[${maChr.Find[swHealOverTime].Value}].Duration" -o DNQReturn2
-			/if (${DNQReturn} && !${DNQReturn2}) {
-				/if (${is_ready[${_debug}, "${maHeal.Find[stHealOverTime].Value}"]}) {
-					/call voodoo ${_debug} "${maHeal.Find[stHealOverTime].Value}" ${hurtID} FALSE
-				}
-			}
-		}
-	}
+	/call cast_regen ${maDebug.Find[regen].Value} single
+
 
  	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
@@ -671,11 +640,86 @@ sub arbitration(bool _debug)
 
 
 |***
+ * note: regeneration spells (not the AAs)
+ * use: /call cast__regen ${maDebug.Find[regen].Value} [single|group]
+ ***|
+sub cast_regen(bool _debug, string _type)
+	DEBUG \atcast_regen\ax(\a-w${_type}\ax)
+	FLOW cast_regen ${_type}
+
+ 	| group heal over time
+	/if (${_type.Equal[group]}) {
+		/if (!${maHeal.Find[swHealGroupOverTime].Value} || SAFEZONE || !AE# || !${Group.Members} || !COMBAT) {
+			/return FALSE
+		}
+
+	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= AE#) {
+	 		/declare _groupHOT string local ${maHeal.Find[stHealGroupOverTime].Value}
+			| /if (!${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID} && !${Me.Song[Talisman of The Enduring].ID}) {
+			/if (!${Me.SPA[100]} || ${Me.SPA[100]} && ${Me.Song[Abundant Healing].ID}) {
+				/declare _found bool TRUE
+				| check regen SPA
+				/if (${Spell[${_groupHOT}].HasSPA[374]}) {
+					/for _count 1 to ${Spell[${_groupHOT}].NumEffects}
+						/if (!${Spell[${Spell[${_groupHOT}].Base2[${_count}]}].Duration}) /continue
+						/if (!${Me.Song[${Spell[${_groupHOT}].Base2[${_count}]}].ID}) /varset _found FALSE
+						/if (!${Spell[${Spell[${_groupHOT}].Base2[${_count}]}].Stacks}) /varset _found TRUE
+						/if (${_found}) /break
+					/next _count
+				} else {
+					/if (!${Me.Song[${_groupHOT}].ID}) /varset _found FALSE
+					/if (${Spell[${_groupHOT}].Stacks}) /varset _found FALSE
+				}
+				/if (!${_found} && ${is_ready[${_debug}, ${_groupHOT}]}) {
+					/call voodoo ${_debug} "${_groupHOT}" 0 FALSE
+				}
+			}
+		}
+		/return TRUE
+	}
+
+ 	| single heal over time
+	/if (${_type.Equal[single]}) {
+		/if (${maChr.Find[swHealOverTime].Value}) {
+			/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
+				/dquery ${Spawn[${hurtID}].DisplayName} -q "Spell[${maHeal.Find[stHealOverTime].Value}].Stacks" -o DNQReturn
+				/dquery ${Spawn[${hurtID}].DisplayName} -q "Me.Song[${maHeal.Find[stHealOverTime].Value}].Duration" -o DNQReturn2
+				/if (${DNQReturn} && !${DNQReturn2}) {
+					/if (${is_ready[${_debug}, "${maHeal.Find[stHealOverTime].Value}"]}) {
+						/call voodoo ${_debug} "${maHeal.Find[stHealOverTime].Value}" ${hurtID} FALSE
+					}
+				}
+			}
+		}
+		/return TRUE
+	}
+
+/return FALSE
+
+100
+
+|***
+ * note: predictive combat preperation
+ * use: /call prediction_${Me.Class.ShortName} ${maDebug.Find[pred].Value}
+ ***|
+sub prediction_CLR(bool _debug)
+
+	/call cast_group_regen
+
+
+
+
+/return tRUE
+
+
+
+
+|***
  * note: cleric specific control
  * use: /chr
  ***|
-sub set_control_CLR(string _type, string _verbage, sring _verbage2, string _silent, bool _debug)
-	DEBUG \atset_control_CLR\ax(\a-w${_type}, "${_verbage}", "${_verbage2}", ${_silent}\ax)
+sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control_CLR\ax(\a-wt:${_type}, v:"${_verbage}", s:${_silent}\ax)
 
   /declare _out string local
 
@@ -713,11 +757,11 @@ sub set_control_CLR(string _type, string _verbage, sring _verbage2, string _sile
 	| arbitration (sheild AND AA)
 	} else /if (${_type.Equal[arb]}) {
 		/if (${_verbage.Equal[count]}) {
-			/if (!${set_control_num_range[${_debug}, stCountArbitrate, ${_verbage2}, 0, 6]}) /return
+			/if (!${set_control_num_range[${_debug}, stCountArbitrate, ${_silent}, 0, 6]}) /return
 		} else /if (${_verbage.Equal[aa]}) {
-			/invoke ${set_switch_env[${_debug}, swArbitrateAA, TRUE, ${_verbage2}]}
+			/invoke ${set_switch_env[${_debug}, swArbitrateAA, TRUE, ${_silent}]}
 		} else /if (${_verbage.Equal[epic]}) {
-			/invoke ${set_switch_env[${_debug}, swArbitrateEpic, TRUE, ${_verbage2}]}
+			/invoke ${set_switch_env[${_debug}, swArbitrateEpic, TRUE, ${_silent}]}
 		}
 
 		/invoke ${maControl.Clear}
@@ -752,7 +796,7 @@ sub set_control_CLR(string _type, string _verbage, sring _verbage2, string _sile
 
 		| spell to summon
 		} else /if (${_verbage.Equal[spell]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stSummonPrimary, "${_verbage2}"]}
+			/invoke ${do_raw_edit[${_debug}, SILENT, stSummonPrimary, "${_silent}"]}
 
 		}
 
