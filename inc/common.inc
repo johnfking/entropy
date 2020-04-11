@@ -3267,7 +3267,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 	DEBUG ${sep}loop\a-wwaitformob\ax
 
 	/declare _waittime int local ${Math.Calc[(PULLENV + ${Spawn[${_tmpID}].Distance})*.08]}
-	/call get_target_wait ${maDebug.Find[wait].Value} TARGET ${_waittime}
+	/call get_target_wait ${maDebug.Find[wait].Value} TARGET ${_waittime}s
 
 	DEBUG ${sep}\arCLOSING\ax${sep}\atget_target_basepull\ax (\a-rTARGET\ax)
 	SETHUD EMPTY

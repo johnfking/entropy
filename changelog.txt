@@ -30,6 +30,9 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
+B2004011.03
+- forgot an "s" in base pull timer
+- its always something...
 
 
 B2004011.02
