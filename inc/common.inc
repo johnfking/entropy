@@ -2403,7 +2403,7 @@ sub stick_to_target(bool _debug, int _tmpID)
 	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FALSE
 
 	| if the stick behind switch is on. we do that over ranged decision combat
-	/if (${maHome.Find[swMoveBehind].Value} && !${Stick.Behind} && ${Target.Distance} <= ENV && !${timer_Check_Behind}) {
+	/if (${maHome.Find[swMoveBehind].Value} && !${Stick.Behind} && ${Target.Distance} <= ENV && !${timer_Check_Behind} && ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
 		DEBUG ${sep}stick${sep}\a-wbehind\ax
 
 		/squelch /stick id ${_tmpID} ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.9]} snaproll
@@ -3264,19 +3264,41 @@ sub get_target_basepull(bool _debug, int _tmpID)
 	/if (MELEE) /attack on
 
 	| wait for mob to get to camp
-	DEBUG ${sep}loop\a-w:waitformob\ax
+	DEBUG ${sep}loop\a-wwaitformob\ax
+
+	/declare _waittime int local ${Math.Calc[(PULLENV + ${Spawn[${_tmpID}].Distance})*.08]}
+	/call get_target_wait ${maDebug.Find[wait].Value} TARGET ${_waittime}
+
+	DEBUG ${sep}\arCLOSING\ax${sep}\atget_target_basepull\ax (\a-rTARGET\ax)
+	SETHUD EMPTY
+
+/return
+
+
+
+|***
+ * note: wait for mobs to get to you from a pull
+ * use: /call get_target_wait DEBUG [TARGETID] [WAITTIME]
+ ***|
+sub get_target_wait(bool _debug, int _tmpID, string _waittime)
+	DEBUG \atget_target_wait\ax(\a-w${_tmpID}, ${_waittime}\ax)
+	FLOW get_target_wait ${_tmpID} (1)
+
+	| wait for mob to get to camp
+	DEBUG ${sep}loop\a-w:waitformob\ax${sep}\a-w${_tmpID}\ax
 	:waitformob
 	/if (!${SpawnCount[npc radius ENV PS4 targetable]}) {
-		/declare _wait int local ${Math.Calc[(PULLENV + ${Spawn[TARGET].Distance})*.08]}
-		DEBUG ${sep}_wait${sep}\ay${_wait}\ax
-		/invoke ${set_timer[${_debug}, wait_for_mob, ${_wait}s]}
+		| /declare _wait int local ${Math.Calc[(PULLENV + ${Spawn[${_tmpID}].Distance})*.08]}
+		| DEBUG ${sep}_wait${sep}\ay${_waittime}\ax
+		/invoke ${set_timer[${_debug}, wait_for_mob, ${_waittime}]}
 
-		/if (!${Spawn[TARGET].Dead}) {
-			/invoke ${out[9, "Waiting on${sep}${tar}${Spawn[TARGET].DisplayName}\ax${sep}\a-w${_wait}s\ax"]}
+		/if (!${Spawn[${_tmpID}].Dead}) {
+			/invoke ${out[9, "Waiting on${sep}${tar}${Spawn[${_tmpID}].DisplayName}\ax${sep}\a-w${_waittime}\ax"]}
 		}
 
 		/while (${wait_for_mob}) {
-			DEBUG ${sep}\awTARGET\ax.distance${sep}\a-w${Spawn[TARGET].Distance}\ax${sep}\a-w${wait_for_mob}\ax
+			FLOW get_target_wait ${_tmpID} (2)
+			DEBUG ${sep}\awTARGET\ax.distance${sep}\a-w${Spawn[${_tmpID}].Distance}\ax${sep}\a-w${wait_for_mob}\ax
 			GETINPUT get_target_basepull_wait NA|NA
 			/delay 5
 
@@ -3284,7 +3306,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 				/call check_buff_cycle_ammo ${maDebug.Find[ammo].Value} TRUE
 			}
 
-			/if (!TARGET || ${Spawn[TARGET].Dead}) {
+			/if (!${_tmpID} || ${Spawn[${_tmpID}].Dead}) {
 				DEBUG ${sep}/while \a-gbreak_NO_target\ax
 				/invoke ${target[clear]}
 				FLOW get_target_basepull ${_tmpID}
@@ -3292,7 +3314,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 			}
 
 			| mobs in our personal space. fuck those things. no respect
-			/if (${SpawnCount[npc radius SAFEENV PS4 targetable]} && ${NearestSpawn[1, npc radius ENV].ID} != TARGET) {
+			/if (${SpawnCount[npc radius SAFEENV PS4 targetable]} && ${NearestSpawn[1, npc radius ENV].ID} != ${_tmpID}) {
 				DEBUG ${sep}/while \a-gbreak_MOB IN SAFE SPACE\ax
 				/invoke ${out[9, "Resetting target to${sep}\a-w${NearestSpawn[1, npc radius ENV].DisplayName}\ax"]}
 				/invoke ${target[clear]}
@@ -3300,48 +3322,45 @@ sub get_target_basepull(bool _debug, int _tmpID)
 			}
 
 			| target LOS & within tag range
-			| /if (${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} < ENV && ${Spawn[TARGET].Distance} < 100 && RANGE) {
-			/if (${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} < ENV && ${Spawn[TARGET].Distance} < 100) {
+			| /if (${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < ENV && ${Spawn[${_tmpID}].Distance} < 100 && RANGE) {
+			/if (${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < ENV && ${Spawn[${_tmpID}].Distance} < 100) {
 				DEBUG ${sep}/while \a-gbreak_tag\ax
 				/break
 			}
 
 			| target within melee
-			/if (${Spawn[TARGET].Distance} <= ${Spawn[TARGET].MaxRangeTo}*.9) {
+			/if (${Spawn[${_tmpID}].Distance} <= ${Spawn[${_tmpID}].MaxRangeTo}*.9) {
 				DEBUG ${sep}/while \a-gbreak_MaxRangeTo\ax
 				/break
 			}
 
 			| target in stupid range out of meele less then range.. hate this spot
-			/if (${Spawn[TARGET].Distance} > ${Spawn[TARGET].MaxRangeTo}*.9 && ${Spawn[TARGET].Distance} < 31) {
+			/if (${Spawn[${_tmpID}].Distance} > ${Spawn[${_tmpID}].MaxRangeTo}*.9 && ${Spawn[${_tmpID}].Distance} < 31) {
 				DEBUG ${sep}/while \a-gbreak_MaxRangeTo <> 31\ax
 				/break
 			}
 
 			| LoS time reduction
-			/if (!${Spawn[TARGET].LineOfSight} && ${Spawn[TARGET].Distance} < ENV) {
+			/if (!${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < ENV) {
 				/delay 5
 			}
 
-			/if (${maChr.Find[swAttraction].Value} && (${Me.TargetOfTarget.ID} != ${Me.ID}) && ${Spawn[TARGET].LineOfSight}) {
-				/call pull_mob_attraction ${_debug} TARGET FALSE
+			/if (${maChr.Find[swAttraction].Value} && (${Me.TargetOfTarget.ID} != ${Me.ID}) && ${Spawn[${_tmpID}].LineOfSight}) {
+				/call pull_mob_attraction ${_debug} ${_tmpID} FALSE
 			}
 
 			| timer ran out
 			/if (!${wait_for_mob}) {
-				/invoke ${out[9, "Sick of waiting on${sep}\a-w${Spawn[TARGET].DisplayName}\ax"]}
+				/invoke ${out[9, "Sick of waiting on${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax"]}
 				/invoke ${target[clear]}
-				FLOW get_target_basepull ${_tmpID}
+				FLOW get_target_wait ${_tmpID} (3)
 				/break
 			}
 		}
 
 	}
 
-	DEBUG ${sep}\arCLOSING\ax${sep}\atget_target_basepull\ax (\a-rTARGET\ax)
-	SETHUD EMPTY
-
-/return
+/return TRUE
 
 
 
@@ -3434,8 +3453,8 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 		}
 
 		| get out if mob is even remotely close
-		/if (${Spawn[ID ${_tmpID}].Distance} <= 100 && ${Spawn[ID ${_tmpID}].LineOfSight}) {
-			DEBUG ${sep}insight <100
+		/if (${Spawn[ID ${_tmpID}].Distance} <= ENV && ${Spawn[ID ${_tmpID}].LineOfSight}) {
+			DEBUG ${sep}prep${sep}in sight < ENV
 			/return TRUE
 		}
 	}
@@ -4579,7 +4598,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 
 		/if (!${_tmpList.Contains["${Parse[2,${_value}]}"]}) {
 			DEBUG ${sep}String add does not exists${sep}\a-w"${Parse[1,${_value}]}"\ax
-			/if (${_tmpList.Contains[EMPTY]} && ${_tmpList.Count} == 1 || !${_tmpList.Value.Length}) {
+			/if (${_tmpList.Contains[EMPTY]} && ${_tmpList.Count} == 1) {
 				DEBUG clearing \arEMPTY\ax list
 				/invoke ${_tmpList.Clear}
 			}
@@ -7204,6 +7223,7 @@ sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
 				/break
 			}
 		}
+		/varset _contains FALSE
 		/invoke ${_li.Advance}
 	}
 	/if (${_contains} && !${_marker}) {
@@ -9279,13 +9299,13 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	FLOW get_target_navpull ${_tmpID}
 
 	| if the mob is kinda close??
-	/if (${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < 100) {
-		DEBUG ${sep}In Sight < 100
+	/if (${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < ENV) {
+		DEBUG ${sep}navpull${sep}in sight < ENV
 		/call pull_mob_prep ${_debug} ${_tmpID}
 		/return
 
 	| get closer if we need too
-	} else /if (!${Spawn[${_tmpID}].LineOfSight} || ${Spawn[${_tmpID}].Distance} > 100) {
+	} else /if (!${Spawn[${_tmpID}].LineOfSight} || ${Spawn[${_tmpID}].Distance} > ${maCC.Find[stPullNavStopDistance].Value}) {
 		DEBUG ${sep}Sight:${Spawn[${_tmpID}].LineOfSight} || Distance:${Spawn[${_tmpID}].Distance}
 		/call pull_mob_move_to FALSE ${_tmpID} ${maCC.Find[stPullNavStopDistance].Value} on
 		/while (${Me.Moving}) {
@@ -9311,8 +9331,14 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FALSE
 
 	| wait for mob to get to camp
-	/invoke ${set_timer[${_debug}, wait_for_mob, 30s]}
+	| /invoke ${set_timer[${_debug}, wait_for_mob, 30s]}
 
+	/declare _waittime int local ${Math.Calc[(PULLENV + ${Spawn[${_tmpID}].Distance})*.08]}
+	/call get_target_wait ${maDebug.Find[wait].Value} TARGET 30s
+
+
+
+	|**
 	/invoke ${out[9, "Waiting on ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax${sep}\a-w30s\ax"]}
 	/while (${_tmpID} && ${Spawn[${_tmpID}].Distance} > SAFEENV*2 && ${wait_for_mob}) {
 		GETINPUT get_target_navpull_while _tmpID|${_tmpID}
@@ -9324,6 +9350,9 @@ sub get_target_navpull(bool _debug, int _tmpID)
 		/if (${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < 100) /break
 		/if (${Spawn[${_tmpID}].Distance} < ENV) /break
 	}
+	**|
+
+
 
 	SETHUD EMPTY
 
@@ -11628,7 +11657,7 @@ sub check_for_corpse(bool _debug)
 		/for _count 1 to ${SpawnCount[pccorpse cleric radius ${maRez.Find[stMaxRezRange].Value}]}
 			/varset _tmpID ${NearestSpawn[${_count},pccorpse cleric radius ${maRez.Find[stMaxRezRange].Value}].ID}
 			| /if (!${Defined[timer_corpse_${_tmpID}]}) /declare timer_corpse_${_tmpID} timer outer 0
-			/if (!${timer_corpse_${_tmpID}]}) {
+			/if (!${timer_corpse_${_tmpID}}) {
 				/if (${Select[${Me.Class.ShortName},CLR]}) {
 					/if (${maRez.Find[swDivineCleric].Value} && (${Me.AltAbilityReady[${_divinerezCLR}]} || ${Me.ItemReady[${_divinerezCLR}]})) {
 						/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} ${_divinerezCLR}
@@ -11682,7 +11711,7 @@ sub check_for_corpse(bool _debug)
 			/for _count 1 to ${SpawnCount[pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}]}
 			| /if (!${Defined[timer_corpse_${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}].ID}]}) /continue
 			/varset _tmpID ${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}].ID}
-			/if (!${timer_corpse_${_tmpID}) {
+			/if (!${timer_corpse_${_tmpID}}) {
 				/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
 					/call cast_rez ${_debug} ${_tmpID} ${_rezEmergency}
 				} else /if (${Defined[_rez${Me.Class.ShortName}]}) {

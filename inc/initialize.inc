@@ -43,7 +43,7 @@ sub set_debug()
 	| mode
   /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill]}
   | combat
-  /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status]}
+  /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait]}
 	| other
   /invoke ${lsDebugother.Append[edit,rest,rez,spire,glyph,fireworks,manarecover,fade,event,watch]}
 	| admin

@@ -116,7 +116,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer B2004010.02
+	/call set_data FALSE maEnv build													map outer B2004011.01
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -271,7 +271,7 @@ sub main(string _debug, string _param1, string _auto)
 
 					/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w1\ax
 
-					/if (!PULL && ${SpawnCount[NPC radius ENV PS4]}) {
+					/if ((!PULL && ${SpawnCount[NPC radius ENV PS4]}) || (PULL && ${Group.MainAssist.Name.NotEqual[${Me.DisplayName}]} && TARGET)) {
 						/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w2\ax
 						/call get_assist_target ${maDebug.Find[assist].Value}
 					} else /if (PULL && !TARGET) {

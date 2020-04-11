@@ -31,6 +31,12 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+B2004011.01
+- corrected a ] in several rez timer adjustmetns
+- range adjustments to nav pulling
+- pulled out the wait for mob routine from base to apply it to the other pull methods
+
+
 B2004010.02
 - added stTempBuff and lsTempBuffToon to all casting classes
 - check_buff_cycle_temp_list
