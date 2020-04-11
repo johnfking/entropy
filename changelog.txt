@@ -31,6 +31,12 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+
+B2004011.02
+- more adjustments to nav pulling
+  cause infinite loops rule!
+
+
 B2004011.01
 - corrected a ] in several rez timer adjustmetns
 - range adjustments to nav pulling

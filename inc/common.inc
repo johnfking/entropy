@@ -3507,6 +3507,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 				/while (${Me.Moving}) {
 					/delay 2
 					/if (${Spawn[ID ${_tmpID}].Distance} < 100) {
+						DEBUG ${sep}pull tag${sep} < 100 breaking
 						/call set_stop ${_debug} SILENT
 						/delay 2s !${Me.Moving}
 						/break
@@ -3537,7 +3538,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 
 				| we have no idea what this is!
 				} else {
-					/varset out ${out[0, "No idea wtf you put for stRangeOther, but you 'dun fucked up."]}
+					/varset out ${out[0, "No idea wtf you put for stRangeOther but you 'dun fucked up."]}
 					/varset _range 0
 				}
 
@@ -3550,24 +3551,28 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		| range tag
 		| there are some base limitations to combat range tagging. we are going to limit to 274 for range/thrown items
 		| yes i know some classes can go a lot farther..
-		/if (${Spawn[ID ${_tmpID}].Distance} > 31 && ${Spawn[ID ${_tmpID}].Distance} > ENV && ${Spawn[ID ${_tmpID}].Distance} < 274 && RANGE) {
-			DEBUG ${sep}Tag${sep}Range${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
+		/if (${Spawn[ID ${_tmpID}].Distance} > 31 && ${Spawn[ID ${_tmpID}].Distance} > ENV && ${Spawn[ID ${_tmpID}].Distance} < 250 && RANGE) {
+			DEBUG ${sep}Tag${sep}Range${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax${sep}\a-w${Spawn[ID ${_tmpID}].Distance}\ax
 			GETINPUT pull_mob_tag_range NA|NA
 			/nav stop |log=off
 			/delay 1s !${Me.Moving}
-			/if (${Target.ID}) /range
-			/while (${Target.AggroHolder.Name.NotEqual[${Me.DisplayName}]} || ${_count} < 4) {
-				/if (${Target.ID} && ${Spawn[ID ${_tmpID}].Distance} > 31) {
-					/range
-					/delay 5
-					/varcalc _count ${_count}+1
-				} else {
-					/return FALSE
-				}
+			/if (${Target.ID}) {
+				/range
+				/range
 			}
+			| /while (${Target.AggroHolder.Name.NotEqual[${Me.DisplayName}]} || ${_count} < 4) {
+			| /while (${Target.AggroHolder.Name.NotEqual[${Me.DisplayName}]}) {
+			| 	/if (${Target.ID} && ${Spawn[ID ${_tmpID}].Distance} > 31) {
+			| 		/range
+			| 		/delay 5
+					| /varcalc _count ${_count}+1
+			| 	} else {
+			| 		/return FALSE
+			| 	}
+			| }
 
-			/if (${Target.ID}) /range
-			/delay 1
+			| /if (${Target.ID}) /range
+			/delay 5
 			/return TRUE
 		}
 
