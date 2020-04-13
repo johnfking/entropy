@@ -344,7 +344,7 @@ sub set_initial_environment(bool _debug)
 
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
 	  /invoke ${maChrControl.Add[gather,stPctGather]}
-	  /invoke ${maChrControl.Add[forcetc,swForceTC]}
+	  | /invoke ${maChrControl.Add[forcetc,swForceTC]}
 	  /invoke ${maChrControl.Add[cauldron,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
@@ -1080,6 +1080,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maOver swOverTrainSpell                    FALSE                         "${auxsw} ignore spell training caps. cast forever"
   /call set_data_map ${_debug} maOver swOverEnvAuto		                    FALSE                         "${auxsw} ignore non-persistent auto and start with \a-w/env auto on\ax"
   /call set_data_map ${_debug} maOver swOverDSCheck		                    FALSE                         "${auxsw} ignore damage shield checks while melee"
+  /call set_data_map ${_debug} maOver swOverNavCheck		                  FALSE                         "${auxsw} bypass Nav PathExists checks"
 
 
 |** control: entropy  **|

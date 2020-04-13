@@ -30,6 +30,28 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
+
+B2004013.01
+- corrected buff distance checking for AE buffs -@crack
+- tag
+  groupmember - intended target of spell must be one of your group members
+- fixed a typo in the hud time display to ingame
+- reoved an errant _divinerezCLR variable for non clerics
+- magicians.... here we go.
+  removed cast_nuke_salvo. just add the spell as a nuke and use a condition like:
+  "${SpawnCount[pet radius ${maEnv.Find[stEnvRadius].Value}]} >= 3"
+  adjusted the healing routine a litte
+	added a slowdown timer to gather. 3s check by default
+  cauldrons will work again
+  removed all the old line crap
+  removed the forceTC. set it as the first spell in your nuke rotation
+  tldr: fat assed mage lost some weight..
+- rest
+  added manna recovery checks for mage
+- /override
+  navcheck - overide valid nav path requirements for all but multipull
+
+
 B2004011.03
 - forgot an "s" in base pull timer
 - its always something...

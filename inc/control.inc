@@ -1425,7 +1425,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 		| adjust hud clock
 		/if (${_verbage.Equal[time]}) {
 			/if (${maData.Find[swHUDTime].Value}) {
-				/invoke ${maData.ADd[swHUDTime,FALSE]}
+				/invoke ${maData.Add[swHUDTime,FALSE]}
 				/invoke ${out[12, "HUD Time${sep}\a-wGame\ax"]}
 
 			} else /if (!${maData.Find[swHUDTime].Value}) {
@@ -1994,6 +1994,10 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 		/invoke ${set_switch_env[FALSE, swOverEnvAuto, TRUE, ${_verbage}]}
 	} else /if (${_type.Equal[dscheck]}) {
 		/invoke ${set_switch_env[FALSE, swOverDSCheck, TRUE, ${_verbage}]}
+	} else /if (${_type.Equal[navcheck]}) {
+		/invoke ${set_switch_env[FALSE, swOverNavCheck, TRUE, ${_verbage}]}
+
+
 
 	}
 
@@ -2006,6 +2010,7 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 	/invoke ${maControl.Add[trainspell,swOverTrainSpell]}
 	/invoke ${maControl.Add[dscheck,swOverDSCheck]}
 	/invoke ${maControl.Add[envauto,swOverEnvAuto]}
+	/invoke ${maControl.Add[navcheck,swOverNavCheck]}
 	/invoke ${set_control_output[${_debug}, maOver, override, maControl]}
 
 /return	TRUE

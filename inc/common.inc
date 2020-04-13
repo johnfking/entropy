@@ -1478,7 +1478,7 @@ sub check_buff_cycle_shrink(bool _debug)
 
 	| me shrinks
 	/while (${Me.Height} > 2.04 && ${_count} < 2) {
-		/call voodoo ${_debug} "${maBuff.Find[stShrinkItem].Value.Arg[1,+]}" ${Me.ID} FALSE
+		/call voodoo ${_debug} "${maBuff.Find[stShrinkItem].Value}" ${Me.ID} FALSE
 		/varcalc _count ${_count}+1
 	}
 
@@ -3549,7 +3549,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		}
 
 		| range tag
-		| there are some base limitations to combat range tagging. we are going to limit to 274 for range/thrown items
+		| there are some base limitations to combat range tagging. we are going to limit to 250 for range/thrown items
 		| yes i know some classes can go a lot farther..
 		/if (${Spawn[ID ${_tmpID}].Distance} > 31 && ${Spawn[ID ${_tmpID}].Distance} > ENV && ${Spawn[ID ${_tmpID}].Distance} < 250 && RANGE) {
 			DEBUG ${sep}Tag${sep}Range${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax${sep}\a-w${Spawn[ID ${_tmpID}].Distance}\ax
@@ -3560,16 +3560,17 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 				/range
 				/range
 			}
-			| /while (${Target.AggroHolder.Name.NotEqual[${Me.DisplayName}]} || ${_count} < 4) {
-			| /while (${Target.AggroHolder.Name.NotEqual[${Me.DisplayName}]}) {
-			| 	/if (${Target.ID} && ${Spawn[ID ${_tmpID}].Distance} > 31) {
-			| 		/range
-			| 		/delay 5
-					| /varcalc _count ${_count}+1
-			| 	} else {
-			| 		/return FALSE
-			| 	}
-			| }
+
+			/while (${Target.AggroHolder.Name.NotEqual[${Me.DisplayName}]} || ${_count} < 4) {
+				/if (${Target.AggroHolder.Name.Equal[${Me.DisplayName}]}) /break
+				/if (${Target.ID} && ${Spawn[ID ${_tmpID}].Distance} > 31) {
+			 		/range
+			 		/delay 5
+					/varcalc _count ${_count}+1
+				} else {
+					/return FALSE
+			 	}
+			}
 
 			| /if (${Target.ID}) /range
 			/delay 5
@@ -3601,16 +3602,16 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		}
 
 	} else /if (!${Spawn[${_tmpID}].LineOfSight} && !${maOver.Find[swOverLOS].Value}) {
-		DEBUG ${sep}Target${sep}\arLOS\ax
+		DEBUG ${sep}Target${sep}\arLOS\ax\a-w${_tmpID}\ax
 		/invoke ${set_data_timer[FALSE, Check_LoS_Timeout, RESTART]}
-		/invoke ${out[9, "Waiting for pull (\a-wLOS\ax)"]}
+		/invoke ${out[9, "Waiting for pull (\a-wLOS\ax)${sep}\a-w${Spawn[ID ${_tmpID}].DisplayName}\ax"]}
 		/while (${timer_Check_LoS_Timeout}) {
 			/delay 2
 			/if (${Spawn[ID ${_tmpID}].LineOfSight}) /break
 			/if (${Spawn[ID ${_tmpID}].Distance} > PULLENV) /break
 			/if (!${Spawn[ID ${_tmpID}].ID}) /break
 		}
-		/invoke ${target[clear]}
+		| /invoke ${target[clear]}
 		FLOW pull_mob_tag ${_tmpID}
 		/return FALSE
 	}
@@ -3687,9 +3688,9 @@ sub pull_mob_find(bool _debug, int _spCount)
 				/varset _tmpID ${NearestSpawn[${If[${_spCount},${Math.Calc[${_count}+${_spCount}]},${_count}]}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value}].ID}
 				DEBUG ${sep}_tmpID${sep}\a-w${_tmpID}\ax
 
-				/if (!${Navigation.PathExists[id ${_tmpID}]}) {
-					| SDEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-yid ${_tmpID}\ax]\ax
-					| /continue
+				/if (!${Navigation.PathExists[id ${_tmpID}]} && !${maOver.Find[swOverNavCheck].Value}) {
+					SDEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-yid ${_tmpID}\ax]\ax
+					/continue
 				}
 
 				/varset _navRange ${Navigation.PathLength[id ${_tmpID}]}
@@ -4148,6 +4149,8 @@ sub do_rest(bool _debug)
 			} else /if (${Select[${Me.Class.ShortName},NEC]}) {
 				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
 			} else /if (${Select[${Me.Class.ShortName},MAG]}) {
+				/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
+				/if (${maChr.Find[stPctGather].Value} && !${timer_Check_Gather}) /call check_gather_${Me.Class.ShortName} ${maDebug.Find[gather].Value}
 				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
 			}
 
@@ -5974,154 +5977,6 @@ sub check_buff_cycle_self(bool _debug)
 
 
 |***
- * note: buffs all your toons
- * use: automatic any peers
- ***|
-sub check_buff_cycle_crew2(bool _debug)
-	DEBUG \atcheck_buff_cycle_crew\ax()\
-	FLOW check_buff_cycle_crew
-
-	/if (AUTO) /invoke ${set_data_timer[FALSE, Check_Buff_Crew, RESTART]}
-	/if (!${maBuff.Find[swBuffMaster].Value}) /return FALSE
-
-	SETHUD "buff crew"
-
-	/declare _spell string local FALSE
-	/declare _spellTrigger string local FALSE
-	/declare _count int local 0
-	/declare _countToon int local 1
-	/declare _target bool local FALSE
-	/declare _toonName string local FALSE
-	/declare _found bool TRUE
-	/declare _i int local 0
-
-	| each toon
-	/while (${_countToon} <= ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) {
-
-		| get the name to something usable
-		/varset _toonName ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}
-		DEBUG ${sep}Current Character${sep}\ay${_toonName}\ax
-
-		| skip this person?
-		/if (${_toonName.Equal[${Me.DisplayName}]} || !${Spawn[pc ${_toonName}].ID} || ${Spawn[pc ${_toonName}].Dead}) {
-			/varcalc _countToon ${_countToon}+1
-			/continue
-		}
-
-		| any buff slots available?
-		/dquery ${_toonName} -q "Me.FreeBuffSlots" -o DNQReturn -t 5
-		/if (${DNQReturn.Equal[0]}) {
-			/varcalc _countToon ${_countToon}+1
-			/continue
-		}
-
-		| each buff
-		/for _count 1 to 50
-			| set the spell
-			/varset _spell ${set_rank[FALSE, "${maBuff.Find[stBuff${_count}].Value.Arg[1,+]}"]}
-			DEBUG ${sep}\aw${_count}\ax${sep}\a-w${_spell}\ax${sep}\at${Spell[${_spell}].NumEffects}\ax
-
-			| buff turned off
-			/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
-
-			| skip self only
-			/if (${lsBuff${_count}Tag.Count} == 1 && (${lsBuff${_count}Tag.Contains[self]} || ${Spell[${_spell}].TargetType.Equal[Self]} || ${lsBuff${_count}Tag.Contains[minion]})) /continue
-
-			| distance check
-			/if (${Spawn[${_toonName}].Distance} > ${Spell[${_spell}].MyRange}) /continue
-
-			/varset _target FALSE
-
-			| class
-			/if (${lsBuff${_count}Tag.Contains[${Spawn[${_toonName}].Class.ShortName}]}) /varset _target TRUE
-
-			| one of your crew
-			| /if (${lsBuff${_count}Tag.Contains[crew]} && ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_toonName}]} && ${Spawn[${_toonName}].ID}) /varset _target TRUE
-
-			| main assist
-			/if (${lsBuff${_count}Tag.Contains[ma]} && (${Group.MainAssist.Name.Equal[${_toonName}]} || ${maCC.Find[stManualAssist1].Value.Equal[${_toonName}]} || ${${maCC.Find[stManualAssist2].Value}.Find[${_toonName}]})) /varset _target TRUE
-
-			| group only
-			/if (${lsBuff${_count}Tag.Contains[group]} && ${Group.Member[[${_toonName}].ID} && ${Group.Member[[${_toonName}].Present}) /varset _target TRUE
-
-			/if (${Spell[${_spell}].HasSPA[470]} || ${Spell[${_spell}].HasSPA[374]} || ${Spell[${_spell}].HasSPA[340]}) {
-
-				/for _i 1 to ${Spell[${_spell}].NumEffects}
-					/varset _found TRUE
-
-					/varset _spellTrigger ${Spell[${_spell}].Trigger[${_i}]}
-					DEBUG ${sep}Trigger${sep}\a-w${_spellTrigger}\ax
-
-					| does it stack
-					/dquery ${_toonName} -q "Spell[${_spellTrigger}].Stacks" -o DNQReturn -t 5
-					DEBUG ${sep}${sep}STACKS: .Trigger.Stacks \at${DNQReturn}\ax ${dot} ${_spellTrigger}
-					/if (!${Bool[${DNQReturn}]}) /continue
-
-					| is it buff blocked
-					/dquery ${_toonName} -q "lsBlockedBuffsMe.Find[${Spell[${_spellTrigger}].ID}]" -o DNQReturn -t 5
-					DEBUG ${sep}${sep}BLOCKED .Trigger.Blocked Buff \at${DNQReturn}\ax ${dot} ${_spellTrigger}
-					/if (${Bool[${DNQReturn}]}) /continue
-
-					| do we have the triggered buff?
-					/dquery ${_toonName} -q "Me.Buff[${_spellTrigger}].ID" -o DNQReturn -t 5
-					DEBUG ${sep}${sep}HAVE: .Trigger.ID \at${DNQReturn}\ax ${dot} ${_spellTrigger}
-					/if (!${Bool[${DNQReturn}]}) {
-						/varset _found FALSE
-						/break
-					} else /if (${Bool[${DNQReturn}]}) {
-						/continue
-					}
-
-				/next _i
-
-				/if (!${_found} && ${_target}) {
-					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Spawn[${_toonName}].ID} FALSE
-					/continue
-				}
-
-			}	else {
-
-				/varset _spellTrigger ${Spell[${_spell}].Trigger}
-				DEBUG ${sep}Trigger${sep}\a-w${_spellTrigger}\ax
-
-				| does it stack
-				/dquery ${_toonName} -q "Spell[${_spellTrigger}].Stacks" -o DNQReturn -t 5
-				DEBUG ${sep}${sep}STACKS: .Trigger.Stacks \at${DNQReturn}\ax ${dot} ${_spellTrigger}
-				/if (!${Bool[${DNQReturn}]}) /continue
-
-
-				| is it buff blocked
-				/dquery ${_toonName} -q "lsBlockedBuffsMe.Find[${Spell[${_spellTrigger}].ID}]" -o DNQReturn -t 5
-				DEBUG ${sep}${sep}BLOCKED .Trigger.Blocked Buff \at${DNQReturn}\ax ${dot} ${_spellTrigger}
-				/if (${Bool[${DNQReturn}]}) /continue
-
-
-				| do we have the triggered buff?
-				/dquery ${_toonName} -q "Me.Buff[${_spellTrigger}].ID" -o DNQReturn -t 5
-				DEBUG ${sep}${sep}HAVE: .Trigger.ID \at${DNQReturn}\ax ${dot} ${_spellTrigger}
-				/if (${Bool[${DNQReturn}]}) {
-					/continue
-				}
-
-				/if (${_target}) {
-					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Spawn[${_toonName}].ID} FALSE
-					/continue
-				}
-
-			}
-
-		/next _count
-		/varcalc _countToon ${_countToon}+1
-
-	}
-
-	SETHUD EMPTY
-
-/return TRUE
-
-
-
-|***
  * note: watches buff beg map for aliases it can cast
  * use: /call check_buff_cycle_beg DEBUG
  ***|
@@ -6278,14 +6133,18 @@ sub check_buff_cycle_crew(bool _debug)
 				/if (${Group.MainAssist.Name.Equal[${_toonName}]} || ${maCC.Find[stManualAssist1].Value.Equal[${_toonName}]} || ${maCC.Find[stManualAssist2].Value.Equal[${_toonName}]}) /varset _target TRUE
 			}
 
-			/varset _spell ${set_rank[FALSE, "${maBuff.Find[stBuff${_count}].Value.Arg[1,+]}"]}
+			/varset _spell ${set_rank[FALSE, "${maBuff.Find[stBuff${_count}].Value}"]}
 			DEBUG ${sep}\aw${_count}\ax${sep}\a-w${_spell}\ax${sep}\at${Spell[${_spell}].NumEffects}\ax
 
 			| skip self only
 			/if (${lsBuff${_count}Tag.Count} == 1 && (${lsBuff${_count}Tag.Contains[self]} || ${Spell[${_spell}].TargetType.Equal[Self]} || ${lsBuff${_count}Tag.Contains[minion]})) /continue
 
 			| distance check
-			/if (${Spawn[${_toonName}].Distance} > ${Spell[${_spell}].MyRange}) /continue
+			/if (${Select[${Spell[${_spell}].TargetType},Group v2]}) {
+				/if (${Spawn[${_toonName}].Distance} > ${Spell[${_spell}].AERange}) /continue
+			} else {
+				/if (${Spawn[${_toonName}].Distance} > ${Spell[${_spell}].MyRange} && !${Select[${Spell[${_spell}].TargetType},self]}) /continue
+			}
 
 			DEBUG ${sep}\aw470\ax${sep}\a-w${Spell[${_spell}].HasSPA[470]}\ax
 			DEBUG ${sep}\aw374\ax${sep}\a-w${Spell[${_spell}].HasSPA[374]}\ax
@@ -6408,7 +6267,7 @@ sub check_buff_cycle_crew(bool _debug)
 			| skip self only
 			/if (${lsBuff${_count}Tag.Count} == 1 && (${lsBuff${_count}Tag.Contains[self]} || ${Spell[${_spell}].TargetType.Equal[Self]} || ${lsBuff${_count}Tag.Contains[minion]})) /continue
 
-			/varset _spell ${set_rank[FALSE, "${maBuff.Find[stBuff${_count}].Value.Arg[1,+]}"]}
+			/varset _spell ${set_rank[FALSE, "${maBuff.Find[stBuff${_count}].Value}"]}
 			DEBUG ${sep}\aw${_count}\ax${sep}\a-w${_spell}\ax${sep}\at${Spell[${_spell}].NumEffects}\ax
 
 			| distance check
@@ -7098,6 +6957,17 @@ sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
 		/return FALSE
 	}
 
+	| my group members only
+	/if (${ls${_type}Tag.Contains[groupmember]} && !${Group.Member[${_name}].ID}) {
+		/if (!${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) /return FALSE
+	}
+
+	| force drop current running disc
+	/if (${ls${_type}Tag.Contains[dropdisc]} && ${Me.ActiveDisc.ID} && ${Me.CombatAbilityReady[${Spell[_spell].RankName}]}) {
+		/stopdisk
+		/delay 5
+	}
+
 	| must be in a raid
 	/if (${ls${_type}Tag.Contains[raid]} && !${Raid.Members}) {
 		/return FALSE
@@ -7108,7 +6978,7 @@ sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
 		/return FALSE
 	}
 
-	| must be in a raid
+	| must not be in a raid
 	/if (${ls${_type}Tag.Contains[noraid]} && ${Raid.Members}) {
 		/return FALSE
 	}
@@ -8257,7 +8127,7 @@ sub check_minion_cycle_buff(bool _debug)
 
 		DEBUG _count${sep}\a-w${_count}
 
-		/varset _spell ${set_rank[FALSE, "${maBuff.Find[stBuff${_count}].Value.Arg[1,+]}"]}
+		/varset _spell ${set_rank[FALSE, "${maBuff.Find[stBuff${_count}].Value}"]}
 		DEBUG ${sep}\aw${_count}\ax${sep}\a-w${_spell}\ax${sep}\at${Spell[${_spell}].NumEffects}\ax
 
 		| distance check
@@ -9278,8 +9148,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	}
 
 	| we have a target, get us within range to pull
-
-	/if	(!${Navigation.PathExists[locyxz ${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]}) {
+	/if	(!${Navigation.PathExists[id ${_tmpID}]} && !${maOver.Find[swOverNavCheck].Value}) {
 		GETINPUT get_target_navpull_wait _tmpID|${_tmpID}
 		/invoke ${out[9, "${notice}${sep}No Nav Path ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
 		/varcalc _count ${_count}+1
@@ -9339,7 +9208,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	| /invoke ${set_timer[${_debug}, wait_for_mob, 30s]}
 
 	/declare _waittime int local ${Math.Calc[(PULLENV + ${Spawn[${_tmpID}].Distance})*.08]}
-	/call get_target_wait ${maDebug.Find[wait].Value} TARGET 30s
+	/call get_target_wait ${maDebug.Find[wait].Value} ${_tmpID} 30s
 
 
 
@@ -9428,7 +9297,7 @@ sub get_target_multipull(bool _debug)
 		DEBUG Spawn is > 100  & < \ayPULLENV\ax
 
 		| is there a usable nav path to this pos?
-		/if	(${Navigation.PathExists[locyxz ${Spawn[TARGET].Y} ${Spawn[TARGET].X} ${Spawn[TARGET].Z}]}) {
+		/if	(${Navigation.PathExists[id TARGET]}) {
 			DEBUG ${sep}NAV Path \aggood\ax
 
 			| we try melee first for nav to target then we try pet pulling
@@ -9448,7 +9317,7 @@ sub get_target_multipull(bool _debug)
 			}
 
 		| no path exists to get to target, "God Save the Queen!"
-		} else /if (!${Navigation.PathExists[locyxz ${Spawn[TARGET].Y} ${Spawn[TARGET].X} ${Spawn[TARGET].Z}]}) {
+		} else /if (!${Navigation.PathExists[id TARGET]}) {
 			DEBUG ${sep}NAV Path \arbad\ax
 			:intpull
 			/call get_target_intpull ${_debug} TARGET
@@ -11667,7 +11536,7 @@ sub check_for_corpse(bool _debug)
 					/if (${maRez.Find[swDivineCleric].Value} && (${Me.AltAbilityReady[${_divinerezCLR}]} || ${Me.ItemReady[${_divinerezCLR}]})) {
 						/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} ${_divinerezCLR}
 					}
-				} else /if (${Select[${Me.Class.ShortName},CLR,DRU,PAL,SHM,NEC]} && (${Me.AltAbilityReady[${_rez${Me.Class.ShortName}}]} || ${Me.ItemReady[${_divinerezCLR}]})) {
+				} else /if (${Select[${Me.Class.ShortName},CLR,DRU,PAL,SHM,NEC]} && ${Me.AltAbilityReady[${_rez${Me.Class.ShortName}}]}) {
 					/call cast_rez ${_debug} ${_tmpID} ${_rez${Me.Class.ShortName}}
 				} else /if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
 					/call cast_rez ${_debug} ${_tmpID} ${_rezEmergency}
@@ -11982,3 +11851,10 @@ sub cast_regen(bool _debug, string _type)
 	}
 
 /return FALSE
+
+
+
+
+
+
+
