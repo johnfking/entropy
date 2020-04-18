@@ -31,7 +31,7 @@ sub set_debug()
   | heal
   /invoke ${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot]}
   | move
-  /invoke ${lsDebugmove.Append[face,tie,zone,stick]}
+  /invoke ${lsDebugmove.Append[face,tie,zone,stick,stop]}
   | debuff
   /invoke ${lsDebugdebuff.Append[debuff,mez]}
   | minion
@@ -45,7 +45,7 @@ sub set_debug()
   | combat
   /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait]}
 	| other
-  /invoke ${lsDebugother.Append[edit,rest,rez,spire,glyph,fireworks,manarecover,fade,event,watch]}
+  /invoke ${lsDebugother.Append[edit,rest,rez,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe]}
 	| admin
   /invoke ${lsDebugadmin.Append[build,init,observe,house,flow,exit,condition,sql]}
   | class specific debugs
@@ -62,14 +62,16 @@ sub set_debug()
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
   	/invoke ${lsDebugclass.Append[coh,gather,cauldron]}
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
+  	/invoke ${lsDebugclass.Append[fury]}
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
   	/invoke ${lsDebugclass.Append[blood,bloom]}
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
-  	/invoke ${lsDebugclass.Append[splash]}
+  	/invoke ${lsDebugclass.Append[splash,harmonious]}
   } else /if (${Select[${Me.Class.ShortName},RNG]}) {
   	/invoke ${lsDebugclass.Append[summer]}
   } else /if (${Select[${Me.Class.ShortName},ROG]}) {
   } else /if (${Select[${Me.Class.ShortName},SHD]}) {
+  	/invoke ${lsDebugclass.Append[harmonious]}
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
   	/invoke ${lsDebugclass.Append[talisman,surge,canni]}
   } else /if (${Select[${Me.Class.ShortName},WAR]}) {
@@ -351,6 +353,7 @@ sub set_initial_environment(bool _debug)
 	  /invoke ${maChrControl.Add[train,swTrainMelee]}
 	  /invoke ${maChrControl.Add[fdhp,stPctFDHP]}
 	  /invoke ${maChrControl.Add[fdaggro,stPctFDAggro]}
+	  /invoke ${maChrControl.Add[fist,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
 	  /invoke ${maChrControl.Add[blood,submenu]}
@@ -1150,7 +1153,6 @@ sub set_initialize_map_character_environment(bool _debug)
 		/call set_data_map ${_debug} maSash stCountShieldFlash								0															"${auxnum} # of mobs to hit shield flash"									sash
  	 	/call set_data_map ${_debug} maSash stSashShieldFlash									FALSE                         "${auxna} name of sash to be used for Slash skills"				sash						sash
 	}
-
 
 
 	/if (${maDebug.Find[init].Value}) {

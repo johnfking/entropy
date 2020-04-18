@@ -168,7 +168,7 @@ sub main_PAL(bool _debug)
 			}
 			| /if (${swAlliance}) /call cast_alliance_${Me.Class.ShortName} TARGET
 			/if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) {
-				/call check_harmonious
+				/call check_harmonious ${maDebug.Find[harmonious].Value}
 			}
 
 			/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {

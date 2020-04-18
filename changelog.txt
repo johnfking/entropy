@@ -31,12 +31,46 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+
+B2004018.01
+- tag
+  lots of changes to tag mechanics.. should be a little faster
+  dropdisc - will drop the current running disk if any for the one checking
+  dropinvis - will drop invisibilities
+- beastlord
+  corrected missing target on a couple AAs for normal DPS routiones
+  commented out Group Bestial Alignment till i can find out why its hanging the routine
+- debug
+  stop - debugs all set_stop() calls
+  tag - debug markers for all tags
+  harmonious - sk and pally
+  safe - safelist debug
+- warrior
+  corrected a couple targets mission on aa calls. (this was last build)
+- monks (cant believe i'm doing this)
+  /chr fist
+  use - on/off switch
+  bandiloer - name of bandolier used to force aa proc
+  allows a monk to set a bandolier to swap for AA Fist of Steel activation
+  once the AA is proced it will return weapons to what it had before the bandolier swap
+  (this needs testing. i dont play a monk they smell funny)
+- mezing routines
+  redesign of the loop that cycles the map holding mobs and their status
+  changed how area mobs are calculated
+  AE mez and AE stuns will be more aggressively used, to the point of cooldown
+  LOTS of debugging added
+- spell casting
+  more debug to the vooodo cast loop to catch spells breaking early
+  adjusted the delay timers for spells< 1 s vs > 1s. they now share the same mechanics
+- corrected a bad sub call in range tagging (pulling)
+
+
 B2004013.01
 - corrected buff distance checking for AE buffs -@crack
 - tag
   groupmember - intended target of spell must be one of your group members
 - fixed a typo in the hud time display to ingame
-- reoved an errant _divinerezCLR variable for non clerics
+- removed an errant _divinerezCLR variable for non clerics
 - magicians.... here we go.
   removed cast_nuke_salvo. just add the spell as a nuke and use a condition like:
   "${SpawnCount[pet radius ${maEnv.Find[stEnvRadius].Value}]} >= 3"

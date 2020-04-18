@@ -48,6 +48,12 @@ sub set_MNK(bool _debug)
 	/call set_data_map ${_debug} maChr stDeath													PREGEN|1											"${auxna} Delay Death disc family"
 	/call set_data_map ${_debug} maChr stWu															PREGEN|1											"${auxna} Fists of Wu disc family"
 
+
+	| Fists of Steel
+	/invoke ${set_data_timer[${_debug}, Check_Proc_Fist, 5s]}
+ 	/call set_data_map ${_debug} maChr swFistofSteel										FALSE													"${auxsw} use Fist of Steel AA"
+ 	/call set_data_map ${_debug} maChr stFistofSteelBandolier						FALSE													"${auxna} name of bandolier to trigger Fist of steel aa"
+
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
 		/mqp
@@ -131,6 +137,11 @@ sub misc_combat_MNK(bool _debug, int _tmpID)
 	/if (ENGINE2) {
 		/call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
 		/return TRUE
+	}
+
+	| bandolier swap for AA Fist of Steel
+	/if (${maChr.Find[swFistofSteel].Value} && !${timer_Check_Proc_Fist}) {
+		/call check_fists_of_steel ${maDebug.Find[fist].Value}
 	}
 
 	/if (!AGRO) {
@@ -441,7 +452,7 @@ sub check_fd(bool _debug)
 			}
 			/doevents MNKfdcheck
 			/if (!AUTO) {
-				/call set_stop FALSE SILENT
+				/call set_stop ${maDebug.Find[stop].Value} SILENT
 				/call clear_combat FALSE
 				/return
 			}
@@ -457,7 +468,7 @@ sub check_fd(bool _debug)
 			/doevents MNKfdcheck
 
 			/if (!AUTO) {
-				/call set_stop FALSE SILENT
+				/call set_stop ${maDebug.Find[stop].Value} SILENT
 				/call clear_combat FALSE
 				/return
 			}
@@ -466,6 +477,61 @@ sub check_fd(bool _debug)
 
 	/if (${Me.State.Equal[FEIGN]}) {
 		/if (${Me.PctHPs} > ${maChr.Find[stPctFDHP].Value} && AUTO && ${Me.PctAggro} <= ${maChr.Find[stPctFDAggro].Value}) /stand
+	}
+
+/return TRUE
+
+
+
+|***
+ * note: bandolier swap to proc AA Fist of Steel
+ * use: /call check_fists_of_steel
+ ***|
+sub check_fists_of_steel(bool _debug)
+	DEBUG \atcheck_fists_of_steel\ax()
+	FLOW fists_of_steel
+
+	| make sure the settings we need are there
+	/if (!${maChr.Find[swFistofSteel].Value}) {
+	  /invoke ${set_data_timer[${_debug}, Check_Proc_Fist, 30s]}
+		/return FALSE
+	}
+
+  /invoke ${set_data_timer[${_debug}, Check_Proc_Sash, RESTART]}
+
+	| set stuff back the way it was
+	/if (${Me.Song[Fists of Fury].ID} && ${Me.Bandolier[${maChr.Find[stFistofSteelBandolier].Value}].Active}) {
+		DEBUG ${sep}buff found${sep}\a-w${_buff}\ax
+
+		| primary
+		/if (${Bool[${maData.Find[stMainhand].Value}]}) {
+			/call Bind_command_swap "${maData.Find[stMainhand].Value}" 13 ${_debug}
+		}
+
+		| secondary
+		/if (${Bool[${maData.Find[stOffhand].Value}]}) {
+			/call Bind_command_swap "${maData.Find[stOffhand].Value}" 14 ${_debug}
+		}
+
+		| ranged
+		/if (${Bool[${maData.Find[stRanged].Value}]}) {
+			/call Bind_command_swap "${maData.Find[stRanged].Value}" 11 ${_debug}
+		}
+
+		| ammo
+		/if (${Bool[${maData.Find[stAmmo].Value}]}) {
+			/call Bind_command_swap "${maData.Find[stAmmo].Value}" 22 ${_debug}
+		}
+		/return TRUE
+	}
+
+	/if (!!${Me.Song[Fists of Fury].ID} && !${Me.Bandolier[${maChr.Find[stFistofSteelBandolier].Value}].Active}) {
+		/invoke ${maData.Add[stMainhand,${Me.Inventory[mainhand].Name}]}
+		/invoke ${maData.Add[stOffhand,${Me.Inventory[offhand].Name}]}
+		/invoke ${maData.Add[stRanged,${Me.Inventory[ranged].Name}]}
+		/invoke ${maData.Add[stAmmo,${Me.Inventory[ammo].Name}]}
+		/delay 1
+		/invoke ${Me.Bandolier[${maChr.Find[stFistofSteelBandolier].Value}].Activate}
 	}
 
 /return TRUE
@@ -515,6 +581,20 @@ sub set_control_MNK(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[fdhp]}) {
 		/if (!${set_control_num_range[${_debug}, stPctFDHP, "${_verbage}", 0, 99]}) /return
 
+	| fist of steel
+	} else /if (${_type.Equal[fist]}) {
+		/if (${_verbage.Equal[use]}) {
+			/invoke ${set_switch_env[${_debug}, swFistofSteel, TRUE, ${_silent}]}
+		} else /if (${_verbage.Equal[bandolier]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stFistofSteelBandolier, "${_silent}"]}
+		}
+
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[use,swFistofSteel]}
+		/invoke ${maControl.Add[bandolier,stFistofSteelBandolier|br]}
+		/invoke ${set_control_output[${_debug}, maChr, "chr fist", maControl]}
+		/return TRUE
+
 	| set AA fade use %
 	} else /if (${_type.Equal[fdaggro]}) {
 		/if (!${set_control_num_range[${_debug}, stPctFDAggro, "${_verbage}", 0, 99]}) /return
@@ -525,6 +605,4 @@ sub set_control_MNK(string _type, string _verbage, string _silent, bool _debug)
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
 /return
-
-
 

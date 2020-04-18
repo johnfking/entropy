@@ -2684,11 +2684,20 @@ sub Bind_control_burn(string _type, string _verbage, string _silent, string _ver
 		/return
 
 	} else /if (${_type.Equal[list]}) {
+		/if (!ENGINE2) {
+			/invoke ${out[0, "Engine 2 is currently disabled."]}
+			/return FALSE
+		}
+
 		/call Bind_command_see burn list
 		/return	TRUE
 
 	| burn number entered
 	} else /if (${Range.Between[1,20:${Int[${_type}]}]}) {
+		/if (!ENGINE2) {
+			/invoke ${out[0, "Engine 2 is currently disabled."]}
+			/return FALSE
+		}
 
 		| see the defensive #
 		/if (${_verbage.Equal[see]}) {
@@ -3430,7 +3439,7 @@ sub Bind_command_alto(string _debug)
 		/return TRUE
 	}
 
-	/call set_stop FALSE
+	/call set_stop ${maDebug.Find[stop].Value}
 	/invoke ${target[clear]}
 
 /return TRUE
@@ -5619,7 +5628,7 @@ sub Bind_control_pred(string _type, string _verbage, string _silent, bool _debug
 
 
 
-
+| predictive combat
 sub control_pred(bool _debug)
 	DEBUG \atcontrol_pred\ax()
 	FLOW control_pred (1)

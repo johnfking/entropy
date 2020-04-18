@@ -106,7 +106,7 @@ sub main_SHD(bool _debug)
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 			| /if (${swAlliance}) /call cast_alliance_${Me.Class.ShortName} TARGET
 			/if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) {
-				/call check_harmonious
+				/call check_harmonious ${maDebug.Find[harmonious].Value}
 			}
 
 			/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {

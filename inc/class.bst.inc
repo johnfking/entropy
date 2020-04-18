@@ -474,9 +474,9 @@ sub burn_BST(bool _debug, int _tmpID)
 		/if (${is_ready[${_debug}, "${maChr.Find[stSavage].Value}"]} && !${Me.Song[Bestial Alignment].ID}) {
 			/call voodoo ${_debug} "${maChr.Find[stSavage].Value}" 0 FALSE
 		}
-		/if (${is_ready[${_debug}, "Group Bestial Alignment"]} && !${Me.Buff[Ferociousness].ID}) {
-			/call voodoo ${_debug} "Group Bestial Alignment" ${Me.ID} FALSE
-		}
+		| /if (${is_ready[${_debug}, "Group Bestial Alignment"]} && !${Me.Buff[Ferociousness].ID}) {
+		| 	/call voodoo ${_debug} "Group Bestial Alignment" ${Me.ID} FALSE
+		| }
 	}
 
 /return TRUE
