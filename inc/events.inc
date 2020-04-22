@@ -67,6 +67,7 @@ sub Event_AP_IN_PROGRESS(string _line)
 #event CAST_BEGIN                  "You begin casting#*#"
 #event CAST_BEGIN                  "You begin singing#*#"
 #event CAST_BEGIN                  "Your #1# begins to glow.#*#"
+#event CAST_BEGIN                  "Your summon#*#"
 sub Event_CAST_BEGIN(string _line, bool _debug)
 	EDEBUG SUCCESS
 	/invoke ${maData.Add[stCastReturn,SUCCESS]}

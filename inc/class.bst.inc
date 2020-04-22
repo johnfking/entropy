@@ -216,7 +216,7 @@ sub check_mana_BST(bool _debug)
 	CHECKEXIT check_mana_BST
 
 	| consumption of Spirits AA
-	/if (${maChr.Find[stPctConsume].Value}) {
+	/if (${maChr.Find[stPctConsume].Value} && ${Pet.ID}) {
 		/if (${Me.PctMana} < ${maChr.Find[stPctConsume].Value}*.PCTHO) {
 		 	/if (${is_ready[${_debug}, "Consumption of Spirit"]}) {
 		 		/call voodoo ${_debug} "Consumption of Spirit" 0 FALSE
@@ -268,6 +268,13 @@ sub check_mana_BST(bool _debug)
 			/invoke ${_liC6.Advance}
 			/continue
 		}
+
+		/if (${Group.Member[${_liC6.Value}].ID} == ${Pet.ID}) {
+			/invoke ${_liC6.Advance}
+			/continue
+		}
+
+
 
 		/varcalc _below ${_below}+1
 		/invoke ${_liC6.Advance}
@@ -358,7 +365,7 @@ sub Bind_cast_AA_paragon(bool _debug)
 	/if (${Select[${Me.Class.ShortName},BST]}) {
 		/call cast_AA_paragon
 	}
-/return
+/return true
 
 
 sub cast_AA_paragon(bool _debug)

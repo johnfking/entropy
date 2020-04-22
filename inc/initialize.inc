@@ -35,7 +35,7 @@ sub set_debug()
   | debuff
   /invoke ${lsDebugdebuff.Append[debuff,mez]}
   | minion
-  /invoke ${lsDebugdebuff.Append[petbuid,lost,sic,temp,heal]}
+  /invoke ${lsDebugminion.Append[petbuild,lost,sic,temp,heal]}
   | cast
   /invoke ${lsDebugcast.Append[item,nuke,dot]}
 	| loot
@@ -246,7 +246,7 @@ sub set_initial_environment(bool _debug)
 
 	| things we ont want pullers attacking
   /call set_data ${_debug} FALSE lsNoAttackBodyType                       list outer AURA|BANNER|CAMPFIRE|CORPSE|CHEST|ITEM|TRIGGER|TRAP|TIMER|MOUNT|MERCENARY|OBJECT
-  /call set_data ${_debug} FALSE lsNoTargetNPC                            list outer "a campfire"|"a corpse"|"controller"
+  /call set_data ${_debug} FALSE lsNoTargetNPC                            list outer "a campfire"|"a corpse"|"controller"|"Steel Mass"
   /call set_data ${_debug} FALSE lsNoTargetPC                             list outer "eye of"
   /call set_data ${_debug} FALSE lsNoTargetMagic                          list outer "eye of"
   /call set_data ${_debug} FALSE lsNoTargetAnimation	                    list outer 16|43|44|146
@@ -287,6 +287,7 @@ sub set_initial_environment(bool _debug)
   /invoke ${set_data_timer[FALSE, Check_Home, 1]}
   /invoke ${set_data_timer[FALSE, Check_Target, 5s]}
   /invoke ${set_data_timer[FALSE, Check_Watch, 5s]}
+  /invoke ${set_data_timer[FALSE, Check_Alliance, 6s]}
 
   | get the stick timer started
   /invoke ${set_timer[${_debug}, timer_check_stick, 1s]}
@@ -814,9 +815,9 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** control: defense **|
-  /call set_data_map ${_debug} maDefense stCountDef                       FALSE                         "${auxna} number of imediate area mobs to activate defensive"
-  /call set_data_map ${_debug} maDefense stPctDef	                        FALSE                         "${auxna} pct of health to activate a defensive"
-  /call set_data_list ${_debug} maDefense lsLineDefense                   EMPTY                         "${auxli} alternate defense activation order"
+  /call set_data_map ${_debug} maDefense stCountDef                       0                        		 	"${auxna} number of imediate area mobs to activate defensive" defense
+  /call set_data_map ${_debug} maDefense stPctDef	                        0                         		"${auxna} pct of health to activate a defensive" defense
+  /call set_data_list ${_debug} maDefense lsLineDefense                   EMPTY                         "${auxli} alternate defense activation order" defense
 
 
 |** control: rez **|

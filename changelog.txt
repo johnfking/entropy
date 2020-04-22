@@ -22,6 +22,7 @@ on the to do list
 - auto boot non entropy toons from channels
 - shared map for rez
 - try and recreate DB corruption for instance excludes
+- look at a way to split coorination for assists across more then one mob in a raid
 --------------------
 
 
@@ -30,6 +31,29 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
+
+
+B2004022.02
+- pulling
+  removed nav path checking for base pulling
+  alterd the selection order to fail on mobs faster if they are in any of the zone lists
+- /heal splash now limited to cleric and pally
+- corrected MANY (read a fuck tonne) misspellings of petbuild debug (blame covid-19)
+- pulling (pet)
+  pet local environment range is now hard capped at 200. meaning,
+  any mob over 200 in range, the pet owner will move closer to engage if petpulling
+  you can still set pull ranges well in excess of 200
+  you will get as close as you have set /cc pull navstop
+  LoS is not a requirement
+- beastlord
+  consumption of spirit will now check for a pet
+- variables: stCountDef, stPctDef, lsLineDefense have been moved to the defense db table.
+  make sure to reset them
+- /line
+  defense - now works like the other lines
+- mana recovery
+  added Chandrok's Robe of Darkness from RoF T2 vendor
+  this is the same system that mana rods work off of
 
 
 B2004018.01

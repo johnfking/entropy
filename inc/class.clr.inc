@@ -43,6 +43,7 @@ sub set_CLR(bool _debug)
  	/call set_data_map ${_debug} maHeal stHealGroup											PREGEN|1											"${auxli} group heal spells" heal
 
 	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
+	/call set_data ${_debug} maData stAllianceSPA												map outer "481"
 
 	| issuance
 	/call set_data_map ${_debug} maChr stCountIssuance									0															"${auxnum} number of mobs in area to use issuance"
@@ -154,8 +155,7 @@ sub main_CLR(bool _debug)
 		/call check_heal_routines
 
 		CHECKFADE
-		| /if (${swAlliance}) /call trigger_alliance
-
+		/if (${maCC.Find[swAlliance].Value} && !${timer_Check_Alliance}) /call check_${Me.Class.ShortName}_alliance ${maDebug.Find[alliance].Value}
 		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stWard lsWardToon
@@ -652,10 +652,67 @@ sub prediction_CLR(bool _debug)
 
 	/call cast_group_regen
 
-
-
-
 /return tRUE
+
+
+
+
+
+
+
+
+
+|***
+ * note: check alliance and reapply if needed
+ * use: /call cast_alliance_${Me.Class.ShortName} [DEBUG]
+ ***|
+sub check_CLR_alliance(bool _debug)
+	DEBUG \atcheck_${Me.Class.ShortName}_alliance\ax()
+ 	FLOW cast_alliance_${Me.Class.ShortName} (1)
+
+	CHECKEXIT
+	GETINPUT
+
+	| restart abuse timer
+  /invoke ${set_data_timer[${_debug}, Check_Alliance, RESTART]}
+
+	| this will probably rarely fail. alliance for healers is an instant recast
+	/if (!${is_ready[${_debug}, "${maChr.Find[stAlliance].Value}"]}) {
+		/return FALSE
+	}
+
+	| find out who the hell we should be assisting
+	/declare _tmpID int local ${get_assist_info[${_debug}, id]}
+
+	|
+	/if (!${_tmpID}) {
+		/return FALSE
+	}
+
+	| set our target. we need to check buffs
+	/invoke ${target[set, ${_tmpID}]}
+
+	/delay 5 ${Target.BuffsPopulated}
+
+
+	/if (${Target.BuffsPopulated} && !${Target.Buff[${maChr.Find[stAlliance].Value}].ID}) {
+		/call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" ${_tmpID} FALSE
+	}
+
+
+
+/return TRUE
+
+
+
+
+
+
+
+
+
+
+
 
 
 

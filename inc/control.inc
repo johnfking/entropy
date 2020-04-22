@@ -1276,7 +1276,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 		/return TRUE
 
 	| use splashes
-	} else /if (${_type.Equal[splash]}) {
+	} else /if (${_type.Equal[splash]} && ${Select[${Me.Class.ShortName},CLR,PAL]}) {
 		/if (${_verbage.Equal[name]}) {
 			/invoke ${do_raw_edit[${_debug}, SILENT, stSplash, "${_silent}"]}
 		} else /if (${_verbage.Equal[count]}) {
@@ -1339,7 +1339,10 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	/invoke ${maControl.Add[pet,swHealPet]}
 	/invoke ${maControl.Add[cure,swHealCure]}
 	/invoke ${maControl.Add[adj,stHealAdjust]}
-  /invoke ${maControl.Add[splash,submenu]}
+
+	/if (${Select[${Me.Class.ShortName},CLR,PAL]}) {
+		/invoke ${maControl.Add[splash,submenu]}
+	}
 
 	/invoke ${maControl.Add[rampage,stRampageTank|br]}
 	/invoke ${set_control_output[${_debug}, maHeal, heal, maControl]}
@@ -2436,6 +2439,8 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/if (${_verbage.Equal[list]}) {
 			/echo
 			/invoke ${out[12, "\awDefense List\ax${sep}"]}
+			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_defense WHERE env_var="lsLineDefense"
+			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 
 			/declare _licountdef listiterator local
 		  /vardata _licountdef lsCount20.First.Clone
@@ -4467,7 +4472,7 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 
 	| force a minion build/check
 	} else /if (${_type.Equal[build]}) {
-		/call check_minion_cycle FALSE TRUE ${maDebug.Find[petbuild].Value}
+		/call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
 		/return
 
 	} else /if (${_type.Equal[engage]}) {
@@ -5435,7 +5440,7 @@ sub Bind_command_line(string _type, string _line)
 	/declare _type_env string local ${_type}
 
 	| adjust to proper case
-	/if (${Select[${_type},nuke,song,heal,item,miscdps]}) {
+	/if (${Select[${_type},nuke,song,heal,item,miscdps,defense]}) {
 		/varset _type ${_type.Left[1].Upper}${_type.Right[-1].Lower}
 	} else /if (${Select[${_type},dot]}) {
 		/varset _type DoT
