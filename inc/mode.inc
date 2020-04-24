@@ -467,8 +467,8 @@ sub get_ground_item(bool _debug, string _tmpItem)
 
 		}
 		/if (${_count} == ${GroundItemCount}) /break
-		/varcalc _count ${_count} + 1
 		/if (${_count} >= ${GroundItemCount}) /break
+		/varcalc _count ${_count} + 1
 		/vardata _item _item.Next
 	}
 
@@ -811,7 +811,7 @@ sub mode_hunt(bool _debug)
 	 }
 
 	| get to the mob
-	/call pull_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.9]} on
+	/call pull_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Valule}]} on
 
 	/if (${Spawn[id TARGET].Dead}) /return TRUE
 
@@ -879,11 +879,6 @@ sub mode_combat_routine(bool _debug)
 quest giver: Missionary Ada
 quest Name: The Way Back Home
 quest phrases: go look
-
-
-
-
-
 
 |*********************
 farms

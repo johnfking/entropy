@@ -1514,6 +1514,10 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[combat]}) {
 		/invoke ${set_switch_env[FALSE, swRezCombat, TRUE, ${_verbage}]}
 
+	| other thing to rez with
+	} else /if (${_type.Equal[other]}) {
+		/call do_raw_edit ${_debug} SILENT stResurrection "${_verbage}"
+
 	| rez everyone
 	} else /if (${_type.Equal[everyone]}) {
 		/invoke ${set_switch_env[FALSE, swRezEveryone, TRUE, ${_verbage}]}
@@ -1552,6 +1556,7 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 	/invoke ${maControl.Add[everyone,swRezEveryone]}
 	/invoke ${maControl.Add[take,swRezTake]}
 	/invoke ${maControl.Add[combat,swRezCombat]}
+	/invoke ${maControl.Add[other,stResurrection|br]}
 	/invoke ${set_control_output[${_debug}, maRez, rez, maControl, maControl]}
 
 /return TRUE
@@ -2974,14 +2979,14 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 			/call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[g]},g,FALSE]}
 		} else /if (${_verbage.Equal[ma1]}) {
 			/call do_raw_edit ${_debug} SILENT stAssistMode "ma1"
-			/if (${Bool[${_silent}]} && ${_silent.NotEqual[SILENT]}) {
+			| /if (${Bool[${_silent}]} && ${_silent.NotEqual[SILENT]}) {
 				/call do_raw_edit ${_debug} SILENT stManualAssist1 "${_silent}"
-			}
+			| }
 		} else /if (${_verbage.Equal[ma2]}) {
 			/call do_raw_edit ${_debug} SILENT stAssistMode "ma2"
-			/if (${Bool[${_silent}]} && ${_silent.NotEqual[SILENT]}) {
+			| /if (${Bool[${_silent}]} && ${_silent.NotEqual[SILENT]}) {
 				/call do_raw_edit ${_debug} SILENT stManualAssist2 "${_silent}"
-			}
+			| }
 		} else /if (${_verbage.Equal[1]}) {
 			/call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[1]},1,FALSE]}
 		} else /if (${_verbage.Equal[2]}) {
@@ -3191,7 +3196,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		/declare _liP listiterator local
 		/declare _outP string local
 		/varset _outP \awactive\ax:${If[${maCC.Find[swPull].Value},${on},${off}]} ${dot}
-		/varset _outP ${_outP} \awrad\ax:${If[${maCC.Find[stPullRadius].Value},${num}${maCC.Find[stPullRadius].Value}\ax,${r0}]}
+		/varset _outP ${_outP} \awrad\ax:${If[${maCC.Find[stPullRadius].Value},${num}${maCC.Find[stPullRadius].Value}\ax,${r0}]} ${dot}
 		/varset _outP ${_outP} \awsethome\ax:${If[${maCC.Find[swPullSetHome].Value},${on},${off}]} ${dot}
 		/varset _outP ${_outP} \awnavstop\ax:${num}${maCC.Find[stPullNavStopDistance].Value}\ax ${dot}
 
@@ -3583,7 +3588,7 @@ sub Bind_command_splash(bool _debug)
 	| paladin
 	/if (${Me.Class.ShortName.Equal[PAL]}) {
 		/if (${is_ready[${_debug}, "${maHeal.Find[stSplashCure].Value}"]}) {
-		/call voodoo ${_debug} "${maHeal.Find[stSplashCure].Value}" 0 FALSE
+			/call voodoo ${_debug} "${maHeal.Find[stSplashCure].Value}" 0 FALSE
 		}
 	}
 
@@ -4099,7 +4104,7 @@ sub Bind_command_take(string _type, string _debug)
 
 
 |***
- * note: grabs a ground spawn. max range of 20. parital names accepted
+ * note: grabs a ground spawn. parital names accepted
  * use: /grab NAME [SILENT]
  ***|
 #bind command_grab /grab
@@ -4117,12 +4122,12 @@ sub Bind_command_grab(string _name, string _silent, bool _debug)
 	}
 
 	| trash pick up.
-	/if (${Ground[${_name}].Distance3D} > 20) {
+	/if (${Ground[${_name}].Distance3D} > ${maHard.Find[stRadGrab].Value}) {
 		/if (${_silent.NotEqual[silent]}) {
-			OUT ${info}${_name}\ax is ${Ground[${_name}].Distance3D}. Needs to be within 20.
+			OUT ${info}${_name}\ax is ${Ground[${_name}].Distance3D}. Needs to be within${sep}\a-w${maHard.Find[stRadGrab].Value}\ax
 		}
 		/return
-	} else /if (${Ground[${_name}].Distance3D} <= 20) {
+	} else /if (${Ground[${_name}].Distance3D} <= ${maHard.Find[stRadGrab].Value}) {
 		/invoke ${Ground[${_name}].Grab}
 	}
 

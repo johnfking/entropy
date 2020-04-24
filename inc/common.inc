@@ -1049,8 +1049,8 @@ sub check_facing(bool _debug, int _tmpID, string _adjust)
 	/if (${_adjust.Equal[FORCE]}) {
 		/declare _mobdist float local ${Spawn[id ${_tmpID}].Distance}
 
-		/if ((${_mobdist} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.9 && ${_mobdist} < ${Spawn[id ${_tmpID}].MaxRangeTo}+1) || ${_mobdist} < ${Spawn[id ${_tmpID}].MaxRangeTo}*.2) {
-			/squelch /stick moveback ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.9]}
+		/if ((${_mobdist} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value} && ${_mobdist} < ${Spawn[id ${_tmpID}].MaxRangeTo}+1) || ${_mobdist} < ${Spawn[id ${_tmpID}].MaxRangeTo}*.2) {
+			/squelch /stick moveback ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
 		}
 	}
 
@@ -1427,6 +1427,7 @@ sub check_for_rezbox(bool _debug)
 
 		}
 
+
 		DEBUG _swValidRezFound ${_swValidRezFound}
 		| more waiting
 		/if (${_swValidRezFound}) {
@@ -1453,9 +1454,11 @@ sub check_for_rezbox(bool _debug)
 			/invoke ${maCC.Add[swSetForced,FALSE]}
 			/invoke ${set_data_timer[FALSE, Check_Behind, 0]}
 
-			/call set_stop ${maDebug.Find[stop].Value} SILENT
 			/varset swIsMeDead FALSE
 			/varset _swValidRezFound FALSE
+
+			/call set_stop ${maDebug.Find[stop].Value} SILENT
+
 
 			/if (${maHome.Find[swHomeMarker].Value}) {
 				/call Bind_control_home clear
@@ -2456,7 +2459,7 @@ sub stick_to_target(bool _debug, int _tmpID)
 	/if (${maHome.Find[swMoveBehind].Value} && !${Stick.Behind} && ${Target.Distance} <= ENV && !${timer_Check_Behind} && ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
 		DEBUG ${sep}stick${sep}\a-wbehind\ax
 
-		/squelch /stick id ${_tmpID} ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.9]} snaproll
+		/squelch /stick id ${_tmpID} ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} snaproll
 		/invoke ${set_data_timer[FALSE, Check_Behind, RESTART]}
 		/delay 1s ${Me.Moving}
 		/delay 5s !${Me.Moving}
@@ -2470,17 +2473,17 @@ sub stick_to_target(bool _debug, int _tmpID)
 	}
 
 
-	/if (${Target.Distance} <= ENV && ${Spawn[id ${_tmpID}].Distance} >= ${Spawn[id ${_tmpID}].MaxRangeTo}*.9) {
+	/if (${Target.Distance} <= ENV && ${Spawn[id ${_tmpID}].Distance} >= ${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
 		DEBUG ${sep}stick
 
-		/if (!${Stick.Active} && ${Target.ID} && VALID && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.9) {
-			/squelch /stick id ${_tmpID} ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.9]}
+		/if (!${Stick.Active} && ${Target.ID} && VALID && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
+			/squelch /stick id ${_tmpID} ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
 			/delay 1s ${Me.Moving}
 			/delay 5s !${Me.Moving}
 		}
 
 		/delay 1
-		/if (${Spawn[id ${_tmpID}].Distance} <= ${Spawn[id ${_tmpID}].MaxRangeTo}*.9) /squelch /stick off
+		/if (${Spawn[id ${_tmpID}].Distance} <= ${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) /squelch /stick off
 	}
 
 	/squelch /stick off
@@ -2948,7 +2951,7 @@ sub set_combat(bool _debug)
 	/if (!AUTO && ${Me.Invis}) /makemevisible
 
 	| not within ${combatradius} and far enought to range?
-	/if (${Target.Distance} > 30 && ${Target.Distance} > ${Spawn[id TARGET].MaxRangeTo}*.9) {
+	/if (${Target.Distance} > 30 && ${Target.Distance} > ${Spawn[id TARGET].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
 
 		| range mobs if enabled
 		/if (RANGE) {
@@ -2985,12 +2988,12 @@ sub set_combat(bool _debug)
 	}
 
 	| mob too close for range
-	/if (${Target.Distance} <= 31) {
+	/if (${Target.Distance} <= ${maHard.Find[stMinBowDist].Value}) {
 
 		| adjust range if melee is diabled to keep close to target. give them some range to.. range again
-		/if (${Target.Distance} < 31 && RANGE && !MELEE) {
+		/if (${Target.Distance} < ${maHard.Find[stMinBowDist].Value} && RANGE && !MELEE) {
 			/if (AUTO && !${Stick.Active} && ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
-				/call moveto_range TARGET 35
+				/call moveto_range TARGET ${maHard.Find[stMinMovetoBow].Value}
 			}
 
 		| can we get to the melee already?
@@ -3062,7 +3065,7 @@ sub set_combat_control(bool _debug, int _tmpID)
 	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
 	| set the max range so we dont have to keep calculating it over and over
-	| /declare _maxrange int local ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.9]}
+	| /declare _maxrange int local ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
 
 	| range or melee, priority is range!
 	/if (MELEE && RANGE) {
@@ -3073,10 +3076,10 @@ sub set_combat_control(bool _debug, int _tmpID)
 			/return TRUE
 		}
 
-		/if (${Target.Distance} >= 31) {
+		/if (${Target.Distance} >= ${maHard.Find[stMinBowDist].Value}) {
 			DEBUG ${sep}...range${sep}\a-w${Target.Distance}\ax
 			/call set_combat_range ${_debug} ${_tmpID}
-		} else /if (${Target.Distance} < 31) {
+		} else /if (${Target.Distance} < ${maHard.Find[stMinBowDist].Value}) {
 			DEBUG ${sep}...melee${sep}\a-w${Target.Distance}\ax
 			/call set_combat_melee ${_debug} ${_tmpID}
 		}
@@ -3121,7 +3124,7 @@ sub set_combat_range(bool _debug, int _tmpID)
 	}
 
 	/if (AUTO && !${Stick.Active} && ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
-		/if (${Spawn[${_tmpID}].Distance} < 31 || !${Spawn[${_tmpID}].LineOfSight}) {
+		/if (${Spawn[${_tmpID}].Distance} < ${maHard.Find[stMinBowDist].Value} || !${Spawn[${_tmpID}].LineOfSight}) {
 			/call moveto_range ${_debug} ${_tmpID} 35
 		}
 	}
@@ -3180,7 +3183,7 @@ sub set_combat_melee(bool _debug, int _tmpID)
 	/if (${maHome.Find[swMoveBehind].Value} && !${Stick.Behind} && ${Target.Distance} <= ENV && !${timer_Check_Behind}) {
 		DEBUG ${sep}stick${sep}\a-wbehind\ax
 
-		/squelch /stick id ${_tmpID} ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.9]} snaproll
+		/squelch /stick id ${_tmpID} ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} snaproll
 		/invoke ${set_data_timer[FALSE, Check_Behind, RESTART]}
 		/delay 1s ${Me.Moving}
 		/delay 5s !${Me.Moving}
@@ -3193,17 +3196,17 @@ sub set_combat_melee(bool _debug, int _tmpID)
 		}
 	}
 
-	/if (${Target.Distance} <= ENV && ${Spawn[id ${_tmpID}].Distance} >= ${Spawn[id ${_tmpID}].MaxRangeTo}*.9) {
+	/if (${Target.Distance} <= ENV && ${Spawn[id ${_tmpID}].Distance} >= ${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
 		DEBUG ${sep}stick
 
-		/if (!${Stick.Active} && ${Target.ID} && VALID && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.9) {
-			/squelch /stick id ${_tmpID} ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.9]}
+		/if (!${Stick.Active} && ${Target.ID} && VALID && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
+			/squelch /stick id ${_tmpID} ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
 			/delay 1s ${Me.Moving}
 			/delay 5s !${Me.Moving}
 		}
 
 		/delay 1
-		/if (${Spawn[id ${_tmpID}].Distance} <= ${Spawn[id ${_tmpID}].MaxRangeTo}*.9) {
+		/if (${Spawn[id ${_tmpID}].Distance} <= ${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
 			/squelch /stick off
 		}
 	}
@@ -3352,10 +3355,20 @@ sub get_target_wait(bool _debug, int _tmpID, string _waittime)
 			GETINPUT get_target_basepull_wait NA|NA
 			/delay 5
 
+			| check for ammo if needed
 			/if (!${Select[${Me.Class.ShortName},RNG]} && !${Me.Inventory[ammo].ID}) {
 				/call check_buff_cycle_ammo ${maDebug.Find[ammo].Value} TRUE
 			}
 
+			| am I dead on the wait?
+			/if (${is_me_dead[${maDebug.Find[rez].Value}]}) {
+				DEBUG ${sep}/while \a-gis_me_dead\ax
+				/invoke ${set_timer[${_debug}, wait_for_mob, 0]}
+				/invoke ${target[clear]}
+				/break
+			}
+
+			| is the target still alive?
 			/if (!${_tmpID} || ${Spawn[${_tmpID}].Dead}) {
 				DEBUG ${sep}/while \a-gbreak_NO_target\ax
 				/invoke ${target[clear]}
@@ -3364,7 +3377,8 @@ sub get_target_wait(bool _debug, int _tmpID, string _waittime)
 			}
 
 			| mobs in our personal space. fuck those things. no respect
-			/if (${SpawnCount[npc radius SAFEENV PS4 targetable]} && ${NearestSpawn[1, npc radius ENV].ID} != ${_tmpID}) {
+			| /if (${SpawnCount[npc radius SAFEENV PS4 targetable]} || ${NearestSpawn[1, npc radius ENV].ID} != ${_tmpID}) {
+			/if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
 				DEBUG ${sep}/while \a-gbreak_MOB IN SAFE SPACE\ax
 				/invoke ${out[9, "Resetting target to${sep}\a-w${NearestSpawn[1, npc radius ENV].DisplayName}\ax"]}
 				/invoke ${target[clear]}
@@ -3373,28 +3387,29 @@ sub get_target_wait(bool _debug, int _tmpID, string _waittime)
 
 			| target LOS & within tag range
 			| /if (${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < ENV && ${Spawn[${_tmpID}].Distance} < 100 && RANGE) {
-			/if (${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < ENV && ${Spawn[${_tmpID}].Distance} < 100) {
+			/if (${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < ENV) {
 				DEBUG ${sep}/while \a-gbreak_tag\ax
 				/break
 			}
 
 			| target within melee
-			/if (${Spawn[${_tmpID}].Distance} <= ${Spawn[${_tmpID}].MaxRangeTo}*.9) {
+			/if (${Spawn[${_tmpID}].Distance} <= ${Spawn[${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value} && MELEE) {
 				DEBUG ${sep}/while \a-gbreak_MaxRangeTo\ax
 				/break
 			}
 
 			| target in stupid range out of meele less then range.. hate this spot
-			/if (${Spawn[${_tmpID}].Distance} > ${Spawn[${_tmpID}].MaxRangeTo}*.9 && ${Spawn[${_tmpID}].Distance} < 31) {
-				DEBUG ${sep}/while \a-gbreak_MaxRangeTo <> 31\ax
+			/if (${Spawn[${_tmpID}].Distance} > ${Spawn[${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value} && ${Spawn[${_tmpID}].Distance} < ${maHard.Find[stMinBowDist].Value}) {
+				DEBUG ${sep}/while \a-gbreak_MaxRangeTo <> ${maHard.Find[stMinBowDist].Value}\ax
 				/break
 			}
 
 			| LoS time reduction
 			/if (!${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < ENV) {
-				/delay 5
+				/delay 1
 			}
 
+			| tank attraction skills
 			/if (${maChr.Find[swAttraction].Value} && (${Me.TargetOfTarget.ID} != ${Me.ID}) && ${Spawn[${_tmpID}].LineOfSight}) {
 				/call pull_mob_attraction ${_debug} ${_tmpID} FALSE
 			}
@@ -3469,38 +3484,6 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 			/call check_facing ${_debug} ${_tmpID} FORCE
 		}
 
-		| check target is LoS. if stays out of sight too long. reset.
-		| again only the puller cares about this, not fetchers
-		|**
-		/if (!${Spawn[${_tmpID}].LineOfSight} && !${maOver.Find[swOverLOS].Value} && PULL) {
-			/declare _losfail bool FALSE
-			/invoke ${set_timer[FALSE, Check_LoS_Timeout, RESTART]}
-			/invoke ${out[9, "Waiting for pull (\a-wLOS\ax)"]}
-			/delay 1
-			/while (${timer_Check_LoS_Timeout}) {
-				/delay 2
-				/if (${Spawn[ID ${_tmpID}].LineOfSight}) /varset _losfail TRUE
-				/if (${Spawn[ID ${_tmpID}].Distance} > PULLENV*2) /varset _losfail TRUE
-				/if (${Spawn[ID ${_tmpID}].ID} || ${Spawn[ID ${_tmpID}].Dead}) /varset _losfail TRUE
-				/if (${_losfail}) /break
-			}
-			/if (${_losfail}) {
-				/call clear_combat ${_debug}
-				/return FALSE
-			}
-		}
-		**|
-
-
-
-		| time to tag the T2K. onced tagged release
-		| DEBUG ${sep}pull_mob_prep${sep}\awLoop.Tag\ax${sep}${_tmpID}
-		| /call pull_mob_tag ${_debug} ${_tmpID}
-		| /if (${Macro.Return}) {
-		| 	/nav stop |log=off
-		| 	/break
-		| }
-
 		| /delay 2
 		/if (${target[isdead, ${_tmpID}]}) {
 			FLOW pull_mob_prep ${_tmpID}
@@ -3559,6 +3542,8 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			/if (${is_ready[${_debug}, "${maCC.Find[stRangeOther].Value}"]}) {
 				DEBUG ${sep}Tag${sep}Other${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax${sep}\a-w${maCC.Find[stRangeOther].Value}\ax
 
+
+				|**
 				/while (${Me.Moving}) {
 					/delay 2
 					/if (${Spawn[ID ${_tmpID}].Distance} < 100) {
@@ -3568,6 +3553,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 						/break
 					}
 				}
+				**|
 
 				| get the range for whatever it is we are using
 				/declare _range int local
@@ -3594,6 +3580,8 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 				| we have no idea what this is!
 				} else {
 					/invoke ${out[0, "No idea wtf you put for stRangeOther but you 'dun fucked up."]}
+					/invoke ${out[0, "Turning pulling off. Go check your settings."]}
+
 					/varset _range 0
 				}
 
@@ -3606,7 +3594,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		| range tag
 		| there are some base limitations to combat range tagging. we are going to limit to 250 for range/thrown items
 		| yes i know some classes can go a lot farther..
-		/if (${Spawn[ID ${_tmpID}].Distance} > 31 && ${Spawn[ID ${_tmpID}].Distance} > ENV && ${Spawn[ID ${_tmpID}].Distance} < 250 && RANGE) {
+		/if (${Spawn[ID ${_tmpID}].Distance} > ${maHard.Find[stMinBowDist].Value} && ${Spawn[ID ${_tmpID}].Distance} > ENV && ${Spawn[ID ${_tmpID}].Distance} < ${maHard.Find[stMaxBowDist].Value} && RANGE) {
 			DEBUG ${sep}Tag${sep}Range${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax${sep}\a-w${Spawn[ID ${_tmpID}].Distance}\ax
 			GETINPUT pull_mob_tag_range NA|NA
 			/nav stop |log=off
@@ -3618,7 +3606,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 
 			/while (${Target.AggroHolder.Name.NotEqual[${Me.DisplayName}]} || ${_count} < 4) {
 				/if (${Target.AggroHolder.Name.Equal[${Me.DisplayName}]}) /break
-				/if (${Target.ID} && ${Spawn[ID ${_tmpID}].Distance} > 31) {
+				/if (${Target.ID} && ${Spawn[ID ${_tmpID}].Distance} > ${maHard.Find[stMinBowDist].Value}) {
 			 		/range
 			 		/delay 5
 					/varcalc _count ${_count}+1
@@ -3636,7 +3624,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		| we are using 90% of the targets max range to melee just to make sure we get close enough.
 		| dont argue with me on this. i'm not changing my mind
 		| if we are not in this range, we try and get closer.
-		/if (MELEE && ${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
+		/if (MELEE && ${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
 			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
 			GETINPUT pull_mob_tag_melee NA|NA
 			/attack on
@@ -3644,14 +3632,14 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		}
 
 		| inbetween melee and range distance.. you know that fucked up mo mans land spot...
-		/if (MELEE && ${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} && ${Spawn[ID ${_tmpID}].Distance} <= ENV) {
+		/if (MELEE && ${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} && ${Spawn[ID ${_tmpID}].Distance} <= ENV) {
 			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
 			GETINPUT pull_mob_tag_both NA|NA
 			/attack on
 
-			DEBUG ${sep}${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}
+			DEBUG ${sep}${Spawn[ID ${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
 			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax \agNAVTO\ax
-			/nav ID ${_tmpID} |dist=${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} log=off
+			/nav ID ${_tmpID} |dist=${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} log=off
 			/delay 5 ${Me.Moving}
 			/return TRUE
 		}
@@ -3673,7 +3661,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		/return FALSE
 	}
 
-	/if (${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} && MELEE && !RANGE) {
+	/if (${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} && MELEE && !RANGE) {
 		DEBUG ${sep}Tag${sep}Melee NO RANGE${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
 		GETINPUT pull_mob_tag_fail NA|NA
 		/attack on
@@ -3722,7 +3710,7 @@ sub pull_mob_find(bool _debug, int _spCount)
 	/declare _closestID int local 0
 	/declare _navRange int local 0
 
-	| /declare _tmpCombatRange int local 31
+	| /declare _tmpCombatRange int local ${maHard.Find[stMinBowDist].Value}
 
 	| adjust LOS?
 	/if (${maOver.Find[swOverLOS].Value} || ${Select[${maCC.Find[stPullMode].Value},nav,int,pet,calm,multi]}) {
@@ -4920,7 +4908,10 @@ sub check_zone_id(bool _debug, bool _force)
 
 	| zone does not match. wtf..
 	/if (${maEnv.Find[stCurrentZoneID].Value} != ${Zone.ID} || ${_force}) {
-		/invoke ${out[1, "${num}${Zone.Name}\ax${sep}\a-w${Zone.ShortName}\ax"]}
+		/if (${lsGrain.Contains[1]}) {
+			OUT ${num}${Zone.Name}\ax${sep}\a-w${Zone.ShortName}\ax
+		}
+
 		/call set_zone_lists FALSE
 		/varset swIsMeDead FALSE
 		/varset _zoned TRUE
@@ -5325,21 +5316,7 @@ sub check_buff_cycle_unity(bool _debug)
 	DEBUG ${sep}_spell${sep}\a-w${_spell}\ax
 	DEBUG ${sep}effects${sep}\a-w${Spell[${_spell}].NumEffects}\ax
 
-	/for _count 1 to ${Spell[${_spell}].NumEffects}
-		DEBUG ${sep}_count${sep}\aw${_count}\ax${sep}\a-w${Spell[${_spell}].Trigger[${_count}]}\ax
 
-		| trigger
-		/if (${Me.Buff[${Spell[${_spell}].Trigger[${_count}].BaseName}].ID}) /continue
-
-		| stacks
-		/if (!${Spell[${_spell}].Trigger[${_count}].Stacks}) /continue
-
-		| do not have
-		/if (!${Me.Buff[${Spell[${_spell}].Trigger[${_count}]}].ID}) /varset _found FALSE
-		DEBUG ${sep}_found${sep}\a-w${_found}\ax
-
-		/if (!${_found}) /break
-	/next _count
 
 	/if (!${_found}) {
 		/call voodoo ${_debug} "${_spell}" 0 FALSE
@@ -5537,7 +5514,8 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
 	}
 
 	| ranged ammo
-	/if ((${maBuff.Find[swBuffAmmo].Value} || ${_verbage.Equal[s]}) && ((AUTO && !${timer_Check_Ammo}) && (!${Me.Inventory[ammo].ID} || ${_force}))) {
+	/if ((${maBuff.Find[swBuffAmmo].Value} && AUTO && !${timer_Check_Ammo}) || (${_verbage.Equal[s]} && ${_force})) {
+	| 55/if ((${maBuff.Find[swBuffAmmo].Value} || ${_verbage.Equal[s]}) && ((AUTO && !${timer_Check_Ammo}) && (!${Me.Inventory[ammo].ID} || ${_force}))) {
 		/call check_buff_cycle_ammo ${If[${_force},${_debug},${maDebug.Find[ammo].Value}]}
 	}
 
@@ -5672,6 +5650,11 @@ sub do_mana_recovery(bool _debug)
 		/return FALSE
 	}
 
+	/if (SAFEZONE) {
+		/return FALSE
+	}
+
+
 	/if (${Me.PctMana} > ${maChr.Find[stPctManaRecovery].Value}*.PCTHO) {
 		/return FALSE
 	}
@@ -5802,35 +5785,129 @@ sub check_buff_cycle_ammo(bool _debug)
 	/for _count 1 to 50
 		/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
 		/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
-		/if (!${lsBuff${_count}Tag.Contains[summonrange]}) /continue
+		/if (!${lsBuff${_count}Tag.Contains[summonrange]} && !${lsBuff${_count}Tag.Contains[summonaxe]}) /continue
 
 		DEBUG ${sep}_count${sep}\a-wBuff${_count}${sep}${maBuff.Find[stBuff${_count}].Value}
 
-		/if (${Select[${Me.Class.ShortName},BER]}) {
-			/if (${FindItemCount[=${Spell[${maBuff.Find[stBuff${_count}].Value}].Base[1]}]} && !${Me.Inventory[ammo].ID}) {
-				/call Bind_command_swap "${FindItem[=${Spell[${maBuff.Find[stBuff${_count}].Value}].Base[1]}].Name}" 22 ${_debug}
-				/delay 5
-				/return TRUE
+		| summon zerker axes
+		/if (${lsBuff${_count}Tag.Contains[summonaxe]}) {
+			DEBUG ${sep}Tag${sep}summonaxe
+			/if (!${FindItemCount[=${Spell[${maBuff.Find[stBuff${_count}].Value}]}]}) {
+				/if (${is_ready[${_debug}, "${maBuff.Find[stBuff${_count}].Value}"]}) {
+					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" 0 FALSE
+				}
 			}
-		} else {
-			/if (${FindItemCount[${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].Base[1]}]} && !${Me.Inventory[ammo].ID}) {
+
+		| all other ranged item summoning
+		} else /if (${lsBuff${_count}Tag.Contains[summonrange]}) {
+			DEBUG ${sep}Tag${sep}summonitem -- ${FindItemCount[${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].Base[1]}]}
+			/if (!${FindItemCount[${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].Base[1]}]}) {
+				/if (${is_ready[${_debug}, "${maBuff.Find[stBuff${_count}].Value}"]}) {
+					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" 0 FALSE
+				}
+				/delay 1s
 				/call Bind_command_swap "${FindItem[=${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}" 22 ${_debug}
-				/delay 5
-				/return TRUE
 			}
 		}
 
-		/if (${is_ready[${_debug}, "${maBuff.Find[stBuff${_count}].Value}"]}) {
-			/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" 0 FALSE
-		}
-		/delay 1s ${Me.Casting.ID}
-		/delay 15s !${Me.Casting.ID}
 
-		/call check_cursor ${_debug} CLEAR
+		| /if (${is_ready[${_debug}, "${maBuff.Find[stBuff${_count}].Value}"]}) {
+		| 	/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" 0 FALSE
+		| }
+		| /delay 1s ${Me.Casting.ID}
+		| /delay 15s !${Me.Casting.ID}
+
+		| autoinventory?
+		/if (${lsBuff${_count}Tag.Contains[autoinventory]}) {
+			/call check_cursor ${_debug} CLEAR
+		}
 
 	/next _count
 
 /return TRUE
+
+
+
+${Spell[${maBuff.Find[stBuff3].Value}].Base[1]}
+
+
+${Spell[${maBuff.Find[stBuff3].Value}].Trigger}
+
+
+
+
+
+${FindItemCount[=${Spell[${maBuff.Find[stBuff3].Value}].Base[1]}]}
+
+
+
+
+
+
+${Spell[${maBuff.Find[stBuff2].Value}].Trigger[1]}
+
+
+
+/while (${Select[${Me.Animation},42,43,27]}) {
+	/echo current animation is ${Me.Animation}
+	/keypress left hold
+	/keypress left
+	/echo pressed left
+	/delay 5
+}
+
+
+
+
+
+	/for _count 1 to ${Spell[${maBuff.Find[stBuff3].Value}].NumEffects}
+		DEBUG ${sep}_count${sep}\aw${_count}\ax${sep}\a-w${Spell[${_spell}].Trigger[${_count}]}\ax
+
+		| trigger
+		/if (${Me.Buff[${Spell[${_spell}].Trigger[${_count}].BaseName}].ID}) /continue
+
+		| stacks
+		/if (!${Spell[${_spell}].Trigger[${_count}].Stacks}) /continue
+
+		| do not have
+		/if (!${Me.Buff[${Spell[${_spell}].Trigger[${_count}]}].ID}) /varset _found FALSE
+		DEBUG ${sep}_found${sep}\a-w${_found}\ax
+
+		/if (!${_found}) /break
+	/next _count
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -6796,7 +6873,7 @@ sub do_melee(bool _debug, int _tmpID)
 
 	| taunt /onoff agro
 	/if (${maCC.Find[swTaunt].Value} && AGRO) {
-		/if (${Me.AbilityReady[Taunt]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
+		/if (${Me.AbilityReady[Taunt]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
 			/invoke ${out[8, "Melee${sep}${sp}Taunt\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
 			/doability Taunt
 		}
@@ -6804,7 +6881,7 @@ sub do_melee(bool _debug, int _tmpID)
 
 	| disarm
 	/if (${maCC.Find[swDisarm].Value} && !${Skill[Disarm].Auto} && AGRO) {
-		/if (${Me.AbilityReady[Disarm]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
+		/if (${Me.AbilityReady[Disarm]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
 			/invoke ${out[8, "Melee${sep}${sp}Disarm\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
 			/doability Disarm
 		}
@@ -6812,7 +6889,7 @@ sub do_melee(bool _debug, int _tmpID)
 
 	| kick
 	/if (${maCC.Find[swKick].Value} && !${Skill[Kick].Auto} && !${Select[${Me.Class.ShortName},MNK]}) {
-	 	/if (${Me.AbilityReady[Kick]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
+	 	/if (${Me.AbilityReady[Kick]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
 			/invoke ${out[8, "Melee${sep}${sp}Kick\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
 			/doability Kick
 		}
@@ -6820,7 +6897,7 @@ sub do_melee(bool _debug, int _tmpID)
 
 	| bash
 	/if (${maCC.Find[swBash].Value} && !${Skill[Bash].Auto}) {
-		/if (${Me.AbilityReady[Bash]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
+		/if (${Me.AbilityReady[Bash]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
 			/invoke ${out[8, "Melee${sep}${sp}Bash\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
 			/doability Bash
 			|**
@@ -6842,7 +6919,7 @@ sub do_melee(bool _debug, int _tmpID)
 	| Intimidation
 	/if (${check_class[FALSE, |BRD|ROG|BER]}) {
 		/if (${maCC.Find[swIntimidation].Value}) {
-			/if (${Me.AbilityReady[Intimidation]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
+			/if (${Me.AbilityReady[Intimidation]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
 				/invoke ${out[8, "Melee${sep}${sp}Intimidation\ax ${dot} ${tar}${Spawn[TARGET].DisplayName}\ax"]}
 				/doability Intimidation
 			}
@@ -6852,7 +6929,7 @@ sub do_melee(bool _debug, int _tmpID)
 	| Zerker only skill
 	/if (${check_class[FALSE, |BER]}) {
 		/if (${maCC.Find[swFrenzy].Value} && && !${Skill[Frenzy].Auto}) {
-			/if (${Me.AbilityReady[Frenzy]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
+			/if (${Me.AbilityReady[Frenzy]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
 			/invoke ${out[8, "Melee${sep}${sp}Frenzy\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
 				/doability Frenzy
 			}
@@ -6862,7 +6939,7 @@ sub do_melee(bool _debug, int _tmpID)
 	| rogue only skill
 	/if (${check_class[FALSE, |ROG]}) {
 		/if (${maCC.Find[swBackstab].Value} && && !${Skill[Backstab].Auto}) {
-			/if (${Me.AbilityReady[Backstab]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
+			/if (${Me.AbilityReady[Backstab]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
 			/invoke ${out[8, "Melee${sep}${sp}Backstab\ax ${dot} ${tar}${Spawn[TARGET].DisplayName}\ax"]}
 				/doability Backstab
 			}
@@ -6871,7 +6948,7 @@ sub do_melee(bool _debug, int _tmpID)
 
 	| monk/bst only skill
 	/if (${check_class[FALSE, |MNK|BST]}) {
-			/if (${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) {
+			/if (${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
 			| fist
 			/if (${maCC.Find[swDragonpunch].Value} && !${Skill[Dragon Punch].Auto} && ${Me.AbilityReady[Dragon Punch]}) {
 				/invoke ${out[8, "Melee${sep}${sp}Dragon Punch\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
@@ -7630,7 +7707,7 @@ sub check_cure(bool _debug)
 			DEBUG ${sep}\aw${_name}\ax is just fine
 			/continue
 		} else /if (${Bool[${${_name}_TotalCounters}]}) {
-			OUT ${sep}\aw${_name}\ax needs a medic! (\a-r${${_name}_TotalCounters}\ax)
+			OUT Medic${sep}\a-w${_name}\ax (\a-r${${_name}_TotalCounters}\ax)
 		}
 
 		ISMEDEAD
@@ -9129,6 +9206,13 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 	/while (${Navigation.Active}) {
 		DEBUG ${sep}moving to${sep}\a-w${_tmpID}\ax
 
+		| am I dead on the move
+		/if (${is_me_dead[${maDebug.Find[rez].Value}]}) {
+			DEBUG ${sep}/while \a-gis_me_dead\ax
+			/invoke ${target[clear]}
+			/return FALSE
+		}
+
 		| are we there yet???
 		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${Spawn[TARGET].Y} ${Spawn[TARGET].X} ${Spawn[TARGET].Z}]} > ${_dist} && !${Spawn[ID TARGET].LineOfSight}) {
 			DEBUG ${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${Spawn[TARGET].Y} ${Spawn[TARGET].X} ${Spawn[TARGET].Z}]} > ${_dist} && !${Spawn[ID TARGET].LineOfSight}
@@ -9216,10 +9300,10 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	}
 
 
-	/declare _melee float local ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}
+	/declare _melee float local ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
 
 	| get closer if we need too
-	/if (${Spawn[${_tmpID}].Distance} > 200) {
+	/if (${Spawn[${_tmpID}].Distance} > ${maHard.Find[stMaxRadPet].Value}) {
 		/call pull_mob_move_to ${_debug} ${_tmpID} ${maCC.Find[stPullNavStopDistance].Value} off
 		/if (!${timer_giveUpPull}) /goto :timerfail
 	}
@@ -9251,49 +9335,11 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	}
 	/if (!${timer_giveUpPull}) /goto :timerfail
 
-	|**
-	/while (${Me.Pet.Distance} > ENV) {
-		DEBUG ${sep}pet.distance ${sep} ${Me.Pet.Distance} > ENV
-		/delay 3
-		/call where_the_fuck_is_my_pet ${maDebug.Find[lost].Value} FALSE
-		/if (!${Me.Pet.ID} || !${_tmpID}) /return
-		/if (${Me.Pet.Distance} < 20) /break
-		/if (${Spawn[pc group raid ${Target.AggroHolder.Name}].ID}) /return
-		GETINPUT get_target_petpull_range_20 NA|NA
-		/if (!${timer_giveUpPull}) /goto :timerfail
-	}
-	**|
-
 	| wait for mob to get to camp
 	:waitformob
 
 	/declare _waittime int local ${Math.Calc[(PULLENV + ${Spawn[${_tmpID}].Distance})*.08]}
 	/call get_target_wait ${maDebug.Find[wait].Value} ${_tmpID} ${_waittime}s
-
-	|**
-	/invoke ${set_timer[${_debug}, wait_for_mob, 30s]}
-	/invoke ${out[9, "Waiting on ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
-	/while (${_tmpID} && ${Spawn[${_tmpID}].Distance} > SAFEENV*2) {
-		GETINPUT get_target_petpull_wait NA|NA
-		/delay 2
-
-		/if (${Spawn[${_tmpID}].Dead}) /break
-		/if (!${Pet.ID} || !${_tmpID}) /break
-		/if (${Spawn[pc group raid ${Target.AggroHolder.Name}].ID}) /break
-
-		| target within melee
-		/if (${Spawn[${_tmpID}].Distance} <= ${Spawn[${_tmpID}].MaxRangeTo}*.9) {
-			DEBUG ${sep}/while \a-gbreak_MaxRangeTo\ax
-			/break
-		}
-
-		| timer ran out
-		/if (!${wait_for_mob}) {
-			DEBUG ${sep}/while \a-gbreak_Timer\ax
-			/goto :timerfail
-		}
-	}
-	**|
 
 	:timerfail
 	/if (!${timer_giveUpPull}) {
@@ -9303,7 +9349,6 @@ sub get_target_petpull(bool _debug, int _tmpID)
 			/call Bind_control_home return FALSE silent FALSE
 		}
 	}
-
 
 	SETHUD EMPTY
 
@@ -9350,7 +9395,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	}
 
 
-	| /declare _movetorange float local ${Math.Calc[${Spawn[${_tmpID}].MaxRangeTo}*.9]}
+	| /declare _movetorange float local ${Math.Calc[${Spawn[${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
 
 	DEBUG ${sep}Target ${sep} ${_tmpID} ${sep} \aw${Spawn[${_tmpID}].DisplayName}\ax
 
@@ -9521,11 +9566,11 @@ sub get_target_multipull(bool _debug)
 
 	| wait for mob to get to camp
 	:waitformob
-	/if (!${SpawnCount[npc radius 31 PS4 targetable]}) {
+	/if (!${SpawnCount[npc radius ${maHard.Find[stMinBowDist].Value} PS4 targetable]}) {
 
 		/invoke ${set_timer[${_debug}, wait_for_mob, 30s]}
 		/invoke ${out[9, "Waiting on ${dot} ${tar}${Spawn[TARGET].DisplayName}\ax${sep}\a-w30s\ax"]}
-		/while (TARGET && ${Spawn[TARGET].Distance} > 31) {
+		/while (TARGET && ${Spawn[TARGET].Distance} > ${maHard.Find[stMinBowDist].Value}) {
 			GETINPUT get_target_multipull_wait NA|NA
 			/delay 2
 
@@ -9536,7 +9581,7 @@ sub get_target_multipull(bool _debug)
 			}
 
 			| mobs in range not our target
-			/if (${SpawnCount[npc radius SAFEENV PS4 targetable]} && ${Spawn[TARGET].Distance} > 31) {
+			/if (${SpawnCount[npc radius SAFEENV PS4 targetable]} && ${Spawn[TARGET].Distance} > ${maHard.Find[stMinBowDist].Value}) {
 				DEBUG ${sep}/while \a-gbreak_TARGET/RANGE\ax
 				/break
 			}
@@ -9546,7 +9591,7 @@ sub get_target_multipull(bool _debug)
 				/break
 			}
 			| target within melee
-			/if (${Spawn[TARGET].Distance} <= ${Spawn[TARGET].MaxRangeTo}*.9) {
+			/if (${Spawn[TARGET].Distance} <= ${Spawn[TARGET].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
 				DEBUG ${sep}/while \a-gbreak_MaxRangeTo\ax
 				/break
 			}
@@ -10438,7 +10483,7 @@ sub check_heal_routines()
 |***
  * note: checks/corrects a/the a target
  * note: returns FALSE if a target is dead or does not exist, returns TRUE otherwise
- * use: /call target [|assist|isdead|clear|set] [TARGETID]
+ * use: /call target [assist|isdead|clear|set] [TARGETID]
  * use: ${target[assist|isdead|clear|set, [TARGETID]]}
  ***|
 sub target(string _type, int _tmpID)
@@ -10596,8 +10641,8 @@ sub pull_mob_attraction(bool _debug, int _tmpID, bool _force)
 
 	| /if (!${maChr.Find[swAttraction].Value} && !${_force}) /return FALSE
 	/if (${Spawn[ID ${_tmpID}].Distance} > PULLENV) /return FALSE
-	| /if (${Spawn[ID ${_tmpID}].Distance} < ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.9]}) /return FALSE
-	/if (${Spawn[ID ${_tmpID}].Distance} < 31) /return FALSE
+	| /if (${Spawn[ID ${_tmpID}].Distance} < ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) /return FALSE
+	/if (${Spawn[ID ${_tmpID}].Distance} < ${maHard.Find[stMinBowDist].Value}) /return FALSE
 	/if (${Me.TargetOfTarget.ID} == ${Me.ID}) /return FALSE
 
 	/declare _attraction string local FALSE
@@ -11653,6 +11698,11 @@ sub is_me_dead(bool _debug)
 		| /dgzexecute /invoke ${maControlRez.Add[${Me.ID},dead]}
 
 		/varset stAssTarID 0
+		/invoke ${maCC.Add[swValidAssTarID,FALSE]}
+		/invoke ${maCC.Add[swSetCombat,FALSE]}
+		/invoke ${maCC.Add[swSetForced,FALSE]}
+		/invoke ${set_data_timer[FALSE, Check_Behind, 0]}
+
 		/doevents flush
 
 		| stop all the things(s)
@@ -11660,7 +11710,7 @@ sub is_me_dead(bool _debug)
 			/call Bind_control_home clear FALSE silent FALSE
 		}
 
-		/call set_stop ${maDebug.Find[stop].Value} SILENT
+		| /call set_stop ${maDebug.Find[stop].Value} SILENT
 		/invoke ${target[clear]}
 		FLOW is_me_dead
 		/if (${Me.Casting.ID}) {
@@ -11728,25 +11778,35 @@ sub check_for_corpse(bool _debug)
 		/declare _rezNEC												string	local "Convergence"
 
 	| cleric stuff
-	} else /if (${Select[${Me.Class.ShortName},CLR]}) {
+	} else /if (${Select[${Me.Class.ShortName},CLR]} && !${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
 		/declare _divinerezCLR									string	local "Divine Resurrection"
 		/declare _rezCLR												string	local "Blessing of Resurrection"
 
-		/if (!${Me.AltAbility[Blessing of Resurrection]} && ${FindItemCount[=Water Sprinkler of Nem Ankh]}) {
+		/if (!${Me.AltAbility[Blessing of Resurrection]} && ${FindItemCount[=Water Sprinkler of Nem Ankh]} && !${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
 			/varset _divinerezCLR					"Water Sprinkler of Nem Ankh"
 			/varset _rezCLR 							"Water Sprinkler of Nem Ankh"
 		}
 
+		/if (${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
+			/varset _divinerezCLR					"${maRez.Find[stResurrection].Value}"
+			/varset _rezCLR 							"${maRez.Find[stResurrection].Value}"
+		}
+
+
 	| pally, shaman, druid stuff
 	} else /if (${Select[${Me.Class.ShortName},PAL,SHM,DRU]}) {
-		/if (${Select[${Me.CombatState},combat]}) {
+		/if (${Select[${Me.CombatState},combat]} && !${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
 			/declare _rezDRU											string	local "Call of the Wild"
 			/declare _rezSHM											string	local "Call of the Wild"
 			/declare _rezPAL											string	local "Gift of Resurrection"
-		} else {
+		} else /if (!${Select[${Me.CombatState},combat]} && !${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
 			/declare _rezDRU											string	local "Rejuvenation of Spirit"
 			/declare _rezSHM											string	local "Rejuvenation of Spirit"
 			/declare _rezPAL											string	local "Gift of Resurrection"
+		} else /if (${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
+			/declare _rezDRU											string	local "${maRez.Find[stResurrection].Value}"
+			/declare _rezSHM											string	local "${maRez.Find[stResurrection].Value}"
+			/declare _rezPAL											string	local "${maRez.Find[stResurrection].Value}"
 		}
 	}
 
@@ -11768,7 +11828,7 @@ sub check_for_corpse(bool _debug)
 
 		| for the people that suck ass (not in a good way)
 		/if (${lsNoRezToon.Contains[${Spawn[${_tmpID}].DisplayName}]}) {
-			/varset timer_corpse_${_tmpID} 7200
+			/varset timer_corpse_${_tmpID} ${maHard.Find[stRezIgnoreFucktards].Value}
 		}
 
 	/next _count
@@ -11779,7 +11839,7 @@ sub check_for_corpse(bool _debug)
 	/if (${SpawnCount[pccorpse cleric raid radius ${maRez.Find[stMaxRezRange].Value}]} && ${Raid.Members} || ${SpawnCount[pccorpse cleric group radius ${maRez.Find[stMaxRezRange].Value}]}) {
 		/for _count 1 to ${SpawnCount[pccorpse cleric radius ${maRez.Find[stMaxRezRange].Value}]}
 			/varset _tmpID ${NearestSpawn[${_count},pccorpse cleric radius ${maRez.Find[stMaxRezRange].Value}].ID}
-			| /if (!${Defined[timer_corpse_${_tmpID}]}) /declare timer_corpse_${_tmpID} timer outer 0
+			/if (!${Defined[timer_corpse_${_tmpID}]}) /declare timer_corpse_${_tmpID} timer outer 0
 			/if (!${timer_corpse_${_tmpID}}) {
 				/if (${Select[${Me.Class.ShortName},CLR]}) {
 					/if (${maRez.Find[swDivineCleric].Value} && (${Me.AltAbilityReady[${_divinerezCLR}]} || ${Me.ItemReady[${_divinerezCLR}]})) {
@@ -11798,7 +11858,7 @@ sub check_for_corpse(bool _debug)
 	| group members
 	/if (${SpawnCount[pccorpse group radius ${maRez.Find[stMaxRezRange].Value}]}) {
 		/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value} group]}
-		| /if (!${Defined[timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} group].ID}]}) /continue
+		/if (!${Defined[timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} group].ID}]}) /continue
 		/varset _tmpID ${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} group].ID}
 		/if (!${timer_corpse_${_tmpID}}) {
 
@@ -11816,7 +11876,7 @@ sub check_for_corpse(bool _debug)
 	/if (${Raid.Members}) {
 		/if (${SpawnCount[pccorpse raid tank radius ${maRez.Find[stMaxRezRange].Value}]}) {
 			/for _count 1 to ${SpawnCount[pccorpse raid radius ${maRez.Find[stMaxRezRange].Value} tank]}
-			| /if (!${Defined[timer_corpse_${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value} tank].ID}]}) /continue
+			/if (!${Defined[timer_corpse_${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value} tank].ID}]}) /continue
 			/varset _tmpID ${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value} tank].ID}
 			/if (!${timer_corpse_${_tmpID}}) {
 				/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]} && (!${lsRezTokenToon.CountOf[EMPTY]} && ${lsRezTokenToon.Count} != 1)) {
@@ -11832,7 +11892,7 @@ sub check_for_corpse(bool _debug)
 		| remaining raid members
 		/if (${SpawnCount[pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}]}) {
 			/for _count 1 to ${SpawnCount[pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}]}
-			| /if (!${Defined[timer_corpse_${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}].ID}]}) /continue
+			/if (!${Defined[timer_corpse_${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}].ID}]}) /continue
 			/varset _tmpID ${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}].ID}
 			/if (!${timer_corpse_${_tmpID}}) {
 				/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
@@ -11849,7 +11909,7 @@ sub check_for_corpse(bool _debug)
 	| guildies - all the time
 	/if (${SpawnCount[pccorpse guild radius ${maRez.Find[stMaxRezRange].Value}]}) {
 		/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value} GUILD]}
-		| /if (!${Defined[timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} guild].ID}]}) /continue
+		/if (!${Defined[timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} guild].ID}]}) /continue
 		/varset _tmpID ${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} guild].ID}
 		/if (!${timer_corpse_${_tmpID}}) {
 			/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
@@ -11867,7 +11927,7 @@ sub check_for_corpse(bool _debug)
 	/if (${maRez.Find[swRezEveryone].Value}) {
 		/if (${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}) {
 			/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}
-			| /if (!${Defined[timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}]}) /continue
+			/if (!${Defined[timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}]}) /continue
 			/varset _tmpID ${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}
 			/if (!${timer_corpse_${_tmpID}}) {
 				/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
@@ -11914,12 +11974,12 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 
 	| ignore the people we dont like
 	/if (${lsNoRezToon.Contains[${Spawn[pccorpse ${_tmpID}].DisplayName}]}) {
-		/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, 30m]}
+		/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, ${maHard.Find[stRezIgnoreFucktards].Value}]}
 		/return FALSE
 	}
 
 	| get the corpse close to us
-	/if (${Spawn[pccorpse ${_tmpID}].Distance} > 10 && ${Spawn[pccorpse ${_tmpID}].Distance} <= 100) {
+	/if (${Spawn[pccorpse ${_tmpID}].Distance} <= ${maHard.Find[stRezSummonRange].Value}) {
 		/squelch /corpse
 	}
 
@@ -11930,7 +11990,6 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 		/if (!${maRez.Find[swRezToken].Value}) {
 			DEBUG casting no token
 			/delay 5s !${Me.Casting.ID}
-			| /invoke ${target[set, ${_tmpID}]}
 
 			/squelch /target id ${_tmpID}
 			/delay 1s ${Target.ID} == ${_tmpID}
@@ -11959,15 +12018,13 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 
 		| if cast was good, set the timers.
 		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
-			/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, 5m]}
+			/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, ${maHard.Find[stRezSuccess].Value}]}
 			/invoke ${out[0, "Rez${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax"]}
 		} else {
-			/if (${Select[${Me.Class.ShortName},CLR]}) {
-				/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, 30s]}
-			} else /if (${Select[${Me.Class.ShortName},DRU,SHM,PAL,NEC]}) {
-				/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, 45s]}
+			/if (${Select[${Me.Class.ShortName},CLR,DRU,SHM,PAL,NEC]}) {
+				/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, ${maHard.Find[stRezFail].Value}]}
 			} else {
-				/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, 1m]}
+				/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, ${maHard.Find[stRezFailTolken].Value}]}
 			}
 		}
 
@@ -12058,30 +12115,72 @@ sub cast_regen(bool _debug, string _type)
 			/return FALSE
 		}
 
+		/declare _HoTFound bool local FALSE
+		/declare _HoTBase int local 0
+ 		/declare _myHOT string local ${maHeal.Find[stHealGroupOverTime].Value}
+		/declare _liHot listiterator local
+		/vardata _liHot lsGroupRegens.First.Clone
+		/while (!${_liHot.IsEnd}) {
+			/if (${Me.Song[${_liHot.Value}].ID}) {
+				/varset _HoTFound TRUE
+				/varset _HoTBase ${Spell[${_liHot.Value}].Base[1]}
+				/break
+			}
+			/invoke ${_liHot.Advance}
+		}
+
+		| my regen better then theirs?
+		/if (${_HoTBase} >= ${Spell[${maHeal.Find[stHealGroupOverTime].Value}].Base[1]}) {
+			/return FALSE
+		}
+
 	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= AE#) {
-	 		/declare _groupHOT string local ${maHeal.Find[stHealGroupOverTime].Value}
-			| /if (!${Me.Song[${_groupHOT}].ID} && !${Me.Song[Shear of Renewal].ID} && !${Me.Song[Ghost of Renewal].ID} && !${Me.Song[Cloud of Renewal].ID} && !${Me.Song[Talisman of The Enduring].ID}) {
-			/if (!${Me.SPA[100]} || ${Me.SPA[100]} && ${Me.Song[Abundant Healing].ID}) {
-				/declare _found bool TRUE
-				| check regen SPA
-				/if (${Spell[${_groupHOT}].HasSPA[374]}) {
-					/for _count 1 to ${Spell[${_groupHOT}].NumEffects}
-						/if (!${Spell[${Spell[${_groupHOT}].Base2[${_count}]}].Duration}) /continue
-						/if (!${Me.Song[${Spell[${_groupHOT}].Base2[${_count}]}].ID}) /varset _found FALSE
-						/if (!${Spell[${Spell[${_groupHOT}].Base2[${_count}]}].Stacks}) /varset _found TRUE
-						/if (${_found}) /break
-					/next _count
-				} else {
-					/if (!${Me.Song[${_groupHOT}].ID}) /varset _found FALSE
-					/if (${Spell[${_groupHOT}].Stacks}) /varset _found FALSE
-				}
-				/if (!${_found} && ${is_ready[${_debug}, ${_groupHOT}]}) {
-					/call voodoo ${_debug} "${_groupHOT}" 0 FALSE
-				}
+			/declare _found bool TRUE
+			| check regen SPA
+			/if (${Spell[${_myHOT}].HasSPA[374]}) {
+				/for _count 1 to ${Spell[${_myHOT}].NumEffects}
+					/if (!${Spell[${Spell[${_myHOT}].Base2[${_count}]}].Duration}) /continue
+					/if (!${Me.Song[${Spell[${_myHOT}].Base2[${_count}]}].ID}) /varset _found FALSE
+					/if (!${Spell[${Spell[${_myHOT}].Base2[${_count}]}].Stacks}) /varset _found TRUE
+					/if (${_found}) {
+						/break
+					}
+				/next _count
+			} else {
+				/if (!${Me.Song[${_myHOT}].ID}) /varset _found FALSE
+				/if (${Spell[${_myHOT}].Stacks}) /varset _found FALSE
+			}
+			/if (!${_found} && ${is_ready[${_debug}, ${_myHOT}]}) {
+				/call voodoo ${_debug} "${_myHOT}" 0 FALSE
 			}
 		}
 		/return TRUE
 	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
  	| single heal over time
 	/if (${_type.Equal[single]}) {

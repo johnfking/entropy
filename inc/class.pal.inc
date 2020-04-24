@@ -16,91 +16,90 @@ sub set_PAL(bool _debug)
 		/declare _boottimestart int local ${MacroQuest.Running}
 	}
 
-	/call set_data FALSE maData stSpire																	map outer "Spire of Chivalry"
-	/call set_data FALSE maData stSynergy																map outer "Knight's Synergy"
-	/call set_data FALSE maData stEpic1																	map outer "Fiery Defender"
-	/call set_data FALSE maData stEpic15																map outer "Heartwood Blade"
-	/call set_data FALSE maData stEpic2																	map outer "Nightbane, Sword of the Valiant"
-	/call set_data FALSE maData stFade																	map outer "Balefire Burst"
-	/call set_data_map FALSE maChr stAAUnity														"Divine Protector's Unity"
+	/call set_data ${_debug} maData stSpire															map outer "Spire of Chivalry"
+	/call set_data ${_debug} maData stSynergy														map outer "Knight's Synergy"
+	/call set_data ${_debug} maData stEpic1															map outer "Fiery Defender"
+	/call set_data ${_debug} maData stEpic15														map outer "Heartwood Blade"
+	/call set_data ${_debug} maData stEpic2															map outer "Nightbane, Sword of the Valiant"
+	/call set_data ${_debug} maData stFade															map outer "Balefire Burst"
+	/call set_data_map ${_debug} maChr stAAUnity												"Divine Protector's Unity"
 
 	| Rampage Tank
-	/call set_data_map FALSE maHeal stRampageTank												FALSE													"${auxna} sets a rampage tank name for healing exclusion" heal
+	/call set_data_map ${_debug} maHeal stRampageTank										FALSE													"${auxna} sets a rampage tank name for healing exclusion" heal
 
 	| attraction AA used for pulling / agro
-	/call set_data_map FALSE maChr swAttraction													FALSE													"${auxsw} use the attraction aa to help with agro/pulling"
+	/call set_data_map ${_debug} maChr swAttraction											FALSE													"${auxsw} use the attraction aa to help with agro/pulling"
 
- 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
- 	/call set_data_map FALSE maChr stHiatus															PREGEN|1											"${auxna} name of hiatus stamina recovery disc"
- 	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
+ 	/call set_data_map ${_debug} maChr stRest 													PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map ${_debug} maChr stHiatus													PREGEN|1											"${auxna} name of hiatus stamina recovery disc"
+ 	/call set_data_map ${_debug} maChr swHiatus													FALSE													"${auxsw} use hiatus rest disc"
 
- 	/call set_data_map FALSE maChr stAlliance 													PREGEN|1											"${auxna} alliance spell .. damn useless thing"
+ 	/call set_data_map ${_debug} maChr stAlliance 											PREGEN|1											"${auxna} alliance spell .. damn useless thing"
 
 	| heals
- 	/call set_data_list FALSE maChr lsHealToT		 												PREGEN|3											"${auxli} targets target healing line of spells"
- 	| /call set_data_map FALSE maHeal stHealLight 												PREGEN|1											"${auxna} light heal spell" heal
- 	| /call set_data_map FALSE maHeal stSplashPanic 											PREGEN|1											"${auxna} fast cast panic splash spell" heal
- 	| /call set_data_map FALSE maHeal stSplashCure 												PREGEN|1											"${auxna} ground target ae cure/heal spell" heal
- 	/call set_data_map FALSE maHeal stSplash 														PREGEN|1											"${auxna} ground target ae heal spell" heal
+ 	/call set_data_list ${_debug} maChr lsHealToT		 										PREGEN|3											"${auxli} targets target healing line of spells"
+ 	/call set_data_map ${_debug} maHeal stSplash 												PREGEN|1											"${auxna} ground target ae heal spell" heal
+	/call set_data_map ${_debug} maHeal stCountSplash										0															"${auxnum} number mobs in range to use a splash heal" heal
+
 
 	| stance
-	/invoke ${set_data_timer[FALSE, Check_Stance, 7.5m]}
-	/call set_data_map FALSE maChr swStance 														FALSE													"${auxsw} use stance self buff"
- 	/call set_data_map FALSE maChr stStance 														PREGEN|1											"${auxna} name of the self stance buff"
+	/invoke ${set_data_timer[${_debug}, Check_Stance, 7.5m]}
+	/call set_data_map ${_debug} maChr swStance 												FALSE													"${auxsw} use stance self buff"
+ 	/call set_data_map ${_debug} maChr stStance 												PREGEN|1											"${auxna} name of the self stance buff"
 
 	| harmonions
-	/invoke ${set_data_timer[FALSE, Check_Harmonious, 1m]}
-	/call set_data_map FALSE maChr swHarmonious 												FALSE													"${auxsw} use harmonious"
- 	/call set_data_map FALSE maChr stHarmonious 												PREGEN|1											"${auxna} name of the harmonions spell"
+	/invoke ${set_data_timer[${_debug}, Check_Harmonious, 1m]}
+	/call set_data_map ${_debug} maChr swHarmonious 										FALSE													"${auxsw} use harmonious"
+ 	/call set_data_map ${_debug} maChr stHarmonious 										PREGEN|1											"${auxna} name of the harmonions spell"
 
 	| steel
-	/invoke ${set_data_timer[FALSE, Check_Steel, 2m]}
- 	/call set_data_map FALSE maChr swSteel 															FALSE													"${auxsw} use steel self buff"
- 	/call set_data_map FALSE maChr stSteel 															PREGEN|1											"${auxna} name of the steel self buff"
+	/invoke ${set_data_timer[${_debug}, Check_Steel, 2m]}
+ 	/call set_data_map ${_debug} maChr swSteel 													FALSE													"${auxsw} use steel self buff"
+ 	/call set_data_map ${_debug} maChr stSteel 													PREGEN|1											"${auxna} name of the steel self buff"
 
 	| Marrs Gift
-	/invoke ${set_data_timer[FALSE, Check_Marrs_Gift, 10s]}
-	/call set_data_map FALSE maChr stPctMG															0															"${auxnum} % of mana to use mars gift aa"
+	/invoke ${set_data_timer[${_debug}, Check_Marrs_Gift, 10s]}
+	/call set_data_map ${_debug} maChr stPctMG													0															"${auxnum} % of mana to use mars gift aa"
 
 	| temp buff
   /call set_data_list ${_debug} maChr lsTempBuffToon									EMPTY													"${auxli} list of toons to use your temp buff on"
 	/call set_data_map ${_debug} maChr stTempBuff		 										FALSE													"${auxna} temp buff spell"
 
- 	/call set_data_map FALSE maChr stTempRune 													PREGEN|1											"${auxna} fast reuse disc rune"
- 	/call set_data_map FALSE maChr stChallenge 													PREGEN|1											"${auxna} challenge spell for agro"
- 	/call set_data_map FALSE maChr stValiant 														PREGEN|1											"${auxna} vlaiant spell for defensive"
- 	/call set_data_map FALSE maChr stUnflinching 												PREGEN|1											"${auxna} name of unflinching disc to use for agro help"
- 	/call set_data_map FALSE maChr stReflexive 													PREGEN|1											"${auxna} name of reflexive disc"
-  /call set_data_map FALSE maChr stDichotomic 												PREGEN|1											"${auxna} dichotomic name"
+ 	/call set_data_map ${_debug} maChr stTempRune 											PREGEN|1											"${auxna} fast reuse disc rune"
+ 	/call set_data_map ${_debug} maChr stChallenge 											PREGEN|1											"${auxna} challenge spell for agro"
+ 	/call set_data_map ${_debug} maChr stValiant 												PREGEN|1											"${auxna} vlaiant spell for defensive"
+ 	/call set_data_map ${_debug} maChr stUnflinching 										PREGEN|1											"${auxna} name of unflinching disc to use for agro help"
+ 	/call set_data_map ${_debug} maChr stReflexive 											PREGEN|1											"${auxna} name of reflexive disc"
+  /call set_data_map ${_debug} maChr stDichotomic 										PREGEN|1											"${auxna} dichotomic name"
 
  	| lay on hands
 	/call set_data_map FALSE maChr stPctLoH															0															"${auxnum} % of mana to use aa lay on hands. requires self healing to be enabled"
 
 	| yaulp
-	/invoke ${set_data_timer[FALSE, Check_Yaulp, 6s]}
-	/call set_data_map FALSE maChr swYaulp 															FALSE													"${auxsw} use yaulp"
-  /call set_data_map FALSE maChr stYaulp															PREGEN|1											"${auxna} name of yaulp to use"
+	/invoke ${set_data_timer[${_debug}, Check_Yaulp, 6s]}
+	/call set_data_map ${_debug} maChr swYaulp 													FALSE													"${auxsw} use yaulp"
+  /call set_data_map ${_debug} maChr stYaulp													PREGEN|1											"${auxna} name of yaulp to use"
 
 	| aa stun
-	/call set_data_map FALSE maChr swStun 															FALSE													"${auxsw} use AA stun"
-  /call set_data_map FALSE maChr stStun																FALSE													"${auxna} name of AA stun to use"
+	/call set_data_map ${_debug} maChr swStun 													FALSE													"${auxsw} use AA stun"
+  /call set_data_map ${_debug} maChr stStun														FALSE													"${auxna} name of AA stun to use"
 
 	| set heal orders
-	/declare lsHealOrderbase list outer
-	/invoke ${lsHealOrderbase.Delimiter["|"]}
-	/invoke ${lsHealOrderbase.Append[lsHealBaseLine]}
+	| /declare lsHealOrderbase list outer
+	| /invoke ${lsHealOrderbase.Delimiter["|"]}
+	| /invoke ${lsHealOrderbase.Append[lsHealBaseLine]}
 
-	/declare lsHealOrderaggressive list outer
-	/invoke ${lsHealOrderaggressive.Delimiter["|"]}
-	/invoke ${lsHealOrderaggressive.Append[lsHealTouch|lsHealBurst]}
+	| /declare lsHealOrderaggressive list outer
+	| /invoke ${lsHealOrderaggressive.Delimiter["|"]}
+	| /invoke ${lsHealOrderaggressive.Append[lsHealTouch|lsHealBurst]}
 
-	/declare lsHealOrderpassive list outer
-	/invoke ${lsHealOrderpassive.Delimiter["|"]}
-	/invoke ${lsHealOrderpassive.Append[lsHealTouch|lsHealBurst]}
+	| /declare lsHealOrderpassive list outer
+	| /invoke ${lsHealOrderpassive.Delimiter["|"]}
+	| /invoke ${lsHealOrderpassive.Append[lsHealTouch|lsHealBurst]}
 
-	/declare lsHealOrdertot list outer
-	/invoke ${lsHealOrderpassive.Delimiter["|"]}
-	/invoke ${lsHealOrderpassive.Append[lsHealToT]}
+	| /declare lsHealOrdertot list outer
+	| /invoke ${lsHealOrderpassive.Delimiter["|"]}
+	| /invoke ${lsHealOrderpassive.Append[lsHealToT]}
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax

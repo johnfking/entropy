@@ -53,7 +53,7 @@ sub set_CLR(bool _debug)
 	/call set_data_map ${_debug} maChr stTempPet												PREGEN|1											"${auxna} temp hammer pet spell"
 
 	| splash
-	/call set_data_map ${_debug} maHeal stCountSplash										0															"${auxnum} number of hurt to use a splash heal" heal
+	/call set_data_map ${_debug} maHeal stCountSplash										0															"${auxnum} number mobs in range to use a splash heal" heal
 	/call set_data_map ${_debug} maHeal stSplash												PREGEN|1											"${auxna} splash heal"	heal
 
 	| divine rez

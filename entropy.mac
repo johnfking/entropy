@@ -25,6 +25,8 @@
 #define OUT "/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,\at.\ax]}"
 #define GETINPUT "/call get_input"
 #define ISMEDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}"
+#define CHECKDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /return FALSE"
+
 #define CHECKEXIT "/if (${check_exit[${maDebug.Find[exit].Value}]}) /return"
 #define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maCC.Find[swPull].Value} && !${Me.Invis} && ${maRez.Find[swRezGive].Value}) /call check_for_corpse ${maDebug.Find[rez].Value}"
 #define CHECKFADE "/if (${maChr.Find[stPctFade].Value}) /call cast_AA_fade ${maDebug.Find[fade].Value}"
@@ -116,7 +118,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer B2004022.02
+	/call set_data FALSE maEnv build													map outer B2004024.01
 
 	| prep macro
 	/call prepare_the_end FALSE

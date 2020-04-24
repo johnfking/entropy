@@ -160,7 +160,7 @@ sub set_initialize(bool _debug)
   /declare lsMaps list outer
   /invoke ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maBuff,maBurn,maPred]}
   /invoke ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
-  /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode]}
+  /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard]}
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch]}
   /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
 
@@ -266,8 +266,10 @@ sub set_initial_environment(bool _debug)
 	| /call set_data ${_debug} FALSE lsCount			                            list outer ""
 	| /call set_data ${_debug} FALSE lsCount			                            list outer ""
 
-
-	| /call set_data ${_debug} FALSE lsGroupRegens			                      list outer ""
+	| cleric
+	/call set_data ${_debug} FALSE lsGroupRegens			                      list outer "Elixir of Transcendence|Elixir of Wulthan|Elixir of the Seas|Elixir of Expiation|Elixir of Atonement|Elixir of Redemption|Elixir of Divinity|Ethereal Elixir"
+	| shaman
+	/call set_data ${_debug} FALSE lsGroupRegens			                      list outer "Talisman of The Enduring|Cloud of Renewal|Shear of Renewal|Wisp of Renewal|Phantom of Renewal|Penumbra of Renewal|Shadow of Renewal|Shade of Renewal|Specter of Renewal|Ghost of Renewal"
 
   | timers  for everyone
   /invoke ${set_data_timer[FALSE, Try_Door, 4s]}
@@ -606,6 +608,7 @@ sub sql_set_character_schema(bool _debug)
   /invoke ${maDBTables.Add[environment_miscdps,env_var]}
   /invoke ${maDBTables.Add[environment_burn,env_var]}
   /invoke ${maDBTables.Add[environment_sash,env_var]}
+  /invoke ${maDBTables.Add[environment_hard,env_var]}
 
   /sqlite ${maData.Find[DBcharacter].Value} SQL_ENV_BUILD SELECT build_number FROM build
   DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[dummy]}\ax
@@ -672,11 +675,31 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_list ${_debug} maEnv lsGrain                           	1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30        "${auxnum} visual outputs you wish to see. \aw/verb aux\ax for full list"
 
 |** control: predictive **|
-  /call set_data_map ${_debug} maPred swPred															FALSE													 "${auxsw} use predictive combat logic"
-  /call set_data_map ${_debug} maPred stPredRad														40														 "${auxnum} radius around predicted pull target"
-  /call set_data_map ${_debug} maPred swPredPrepBurn											FALSE													 "${auxsw} prep burn routines"
-  /call set_data_map ${_debug} maPred swPredPrepClass											FALSE													 "${auxsw} prep class specific routine"
+  /call set_data_map ${_debug} maPred swPred															FALSE													"${auxsw} use predictive combat logic"
+  /call set_data_map ${_debug} maPred stPredRad														40														"${auxnum} radius around predicted pull target"
+  /call set_data_map ${_debug} maPred swPredPrepBurn											FALSE													"${auxsw} prep burn routines"
+  /call set_data_map ${_debug} maPred swPredPrepClass											FALSE													"${auxsw} prep class specific routine"
   /call set_data ${_debug} maPred stPredID																map outer FALSE
+
+
+|** control: hard **|
+| these variables are not for users to change
+| they are here in case adjustments need to be made so i dont have to go through k's of lines of code to find them all
+  /call set_data_map ${_debug} maHard stMaxMeleeAdj												9                         		"${auxna} % variance for max meele range adjustment" hard
+  /call set_data_map ${_debug} maHard stRadGrab														20                         		"${auxna} pick up allowable 3d radius for EQ" hard
+  /call set_data_map ${_debug} maHard stMaxRadPet													200                        		"${auxna} max usable range for pets" hard
+  /call set_data_map ${_debug} maHard stMinBowDist												31                        		"${auxna} minimum distance to be able to bow or throw" hard
+  /call set_data_map ${_debug} maHard stMaxBowDist												250                        		"${auxna} maximum distance to bow or throw" hard
+  /call set_data_map ${_debug} maHard stMinMovetoBow											35                        		"${auxna} minimum distance to move to get bow/throw range" hard
+  | /call set_data_map ${_debug} maHard stRadEngage													30                        		"${auxna} radius to look for mobs to see if you are engaged" hard
+
+  /call set_data_map ${_debug} maHard stRezSuccess												30s														"${auxna} timer reset to rez the same person on a success" hard
+  /call set_data_map ${_debug} maHard stRezFail														15s														"${auxna} timer reset to rez the same person on a fail" hard
+  /call set_data_map ${_debug} maHard stRezFailToken											1m														"${auxna} timer reset to rez the same person on a fail with a token rez" hard
+  /call set_data_map ${_debug} maHard stRezSummonRange										100														"${auxna} /corpse summon range when rezing" hard
+  /call set_data_map ${_debug} maHard stRezIgnoreFucktards								30m														"${auxna} suration to mark corpses on the no rez list" hard
+
+
 
 
 |** control: env **|
@@ -832,7 +855,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maRez swRezToken                           FALSE                         "${auxsw} use rez tokens (\a-wseparate from stResurrection\ax)"
   /call set_data_map ${_debug} maRez stPctMinRez                          90                            "${auxnum} minimum % rez you are willing to accept"
   /call set_data_map ${_debug} maRez stMaxRezRange                        60                            "${auxnum} how far away to look for corpses to rez"
-  /call set_data_map ${_debug} maRez stResurrection                       FALSE                         "${auxna} spell/item/aa to rez with"
+  /call set_data_map ${_debug} maRez stResurrection                       FALSE                         "${auxna} spell/item/aa to rez with (/awoptional for rezing classes/ax)"
 
 
 |** control: home **|

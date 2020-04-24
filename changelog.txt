@@ -32,6 +32,32 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+B2004024.01
+- tag
+  summonaxe - identify zerker axes in the buff lists. should use autoinventory too
+- corrected a zone output display error when the zone name had a comma in it
+- paladin
+  put stCountSplash back in so they can splash again
+- do_mana_recovery() routine will no longer function in designated safe zones.
+- externalixed several distance ranges used throughout the macro
+- rezing
+  adjusted several checks to be a little more aggressive and reset faster when dead
+  shortened all the rez recast times
+  stResurrection is now in play. if you set this variable it will override all other rezing choices
+  so, say you put the clicky 90% rez stick in there. it will use that over your normal rez aa.
+  it will default to normal class AAs if stResurrection is not ready to be used
+  /rez other - sets the thing you want to rez with (not required for rezing classes)
+- pulling
+  dying while in the waiting for mob to get to camp portion of a pull will reset you and the pull
+  dying while moving to get a mob in nav/pet pull will reset you
+- fixed a display error in /cc pull command
+- cleric/shaman group regens redesigned
+  will now check the heal potential of your current song regen vice what you can cast and will use the better
+  if heal potential is == then current will be left alone
+- MA 1/2 can be turned off again, or on.. i dont care.. whatever..
+- beastlord
+  will no longer paragon or consume in a designated safe zone
+
 
 B2004022.02
 - pulling

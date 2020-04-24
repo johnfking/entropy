@@ -216,7 +216,7 @@ sub check_mana_BST(bool _debug)
 	CHECKEXIT check_mana_BST
 
 	| consumption of Spirits AA
-	/if (${maChr.Find[stPctConsume].Value} && ${Pet.ID}) {
+	/if (${maChr.Find[stPctConsume].Value} && ${Pet.ID} && !SAFEZONE) {
 		/if (${Me.PctMana} < ${maChr.Find[stPctConsume].Value}*.PCTHO) {
 		 	/if (${is_ready[${_debug}, "Consumption of Spirit"]}) {
 		 		/call voodoo ${_debug} "Consumption of Spirit" 0 FALSE
@@ -229,7 +229,7 @@ sub check_mana_BST(bool _debug)
 
 	| self paragon
 	DEBUG ${sep}checking${sep}\a-wfocused paragon\ax
-	/if (${maChr.Find[stPctParagonF].Value}) {
+	/if (${maChr.Find[stPctParagonF].Value} && !SAFEZONE) {
 		/if (${Me.PctMana} <= ${maChr.Find[stPctParagonF].Value}*.PCTHO || ${Me.PctEndurance} <= ${maChr.Find[stPctParagonF].Value}*.PCTHO) {
 			/if (${is_ready[${_debug}, "Focused Paragon of Spirits"]}) {
 				/call voodoo ${_debug} "Focused Paragon of Spirits" ${Me.ID} FALSE
@@ -280,7 +280,7 @@ sub check_mana_BST(bool _debug)
 		/invoke ${_liC6.Advance}
 	}
 
-	/if (${_below} >= 1) {
+	/if (${_below} >= 1 && !SAFEZONE) {
 		/call voodoo ${_debug} "Paragon of Spirit" 0 FALSE
 	}
 
