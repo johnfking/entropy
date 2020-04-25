@@ -693,11 +693,12 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHard stMinMovetoBow											35                        		"${auxna} minimum distance to move to get bow/throw range" hard
   | /call set_data_map ${_debug} maHard stRadEngage													30                        		"${auxna} radius to look for mobs to see if you are engaged" hard
 
-  /call set_data_map ${_debug} maHard stRezSuccess												30s														"${auxna} timer reset to rez the same person on a success" hard
-  /call set_data_map ${_debug} maHard stRezFail														15s														"${auxna} timer reset to rez the same person on a fail" hard
-  /call set_data_map ${_debug} maHard stRezFailToken											1m														"${auxna} timer reset to rez the same person on a fail with a token rez" hard
-  /call set_data_map ${_debug} maHard stRezSummonRange										100														"${auxna} /corpse summon range when rezing" hard
-  /call set_data_map ${_debug} maHard stRezIgnoreFucktards								30m														"${auxna} suration to mark corpses on the no rez list" hard
+  /call set_data_map ${_debug} maHard stRezSuccess												30s														"${auxnum} timer reset to rez the same person on a success" hard
+  /call set_data_map ${_debug} maHard stRezFail														15s														"${auxnum} timer reset to rez the same person on a fail" hard
+  /call set_data_map ${_debug} maHard stRezFailToken											1m														"${auxnum} timer reset to rez the same person on a fail with a token rez" hard
+  /call set_data_map ${_debug} maHard stRezSummonRange										100														"${auxnum} /corpse summon range when rezing" hard
+  /call set_data_map ${_debug} maHard stRezIgnoreFucktards								30m														"${auxnum} suration to mark corpses on the no rez list" hard
+  /call set_data_map ${_debug} maHard stMaxCureRad												200														"${auxnum} max radius to check for curing" hard
 
 
 

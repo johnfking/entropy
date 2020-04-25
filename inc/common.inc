@@ -1689,10 +1689,11 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			}
 
 			/alt act ${Me.AltAbility[${_verbage}].ID}
-			/delay 3
+
 
 			/if (${Spell[${_verbage}].MyCastTime}) {
-				/delay 1
+				DEBUG ${sep}alt cast delay loop start
+				/delay 1s ${Me.Casting.ID}
 				/delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
 				/while (${Me.Casting.ID}) {
 					/delay 3
@@ -1893,10 +1894,10 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 				}
 
 				/cast ${Me.Gem[${_verbage}]}
+				/delay 1s ${Me.Casting.ID}
 
 				| set delays for casting. GTFO out of this as fast as possible
 				| /delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
-
 
 				/varset _castTime ${Math.Calc[${Spell[${_verbage}].MyCastTime}+50]}
 				DEBUG ${sep}_castTime${sep}\a-w${_castTime}\ax
@@ -7697,7 +7698,7 @@ sub check_cure(bool _debug)
 		}
 
 		| are they close?. if not. fuck'em
-		/if (${Spawn[pc ${_name}].Distance} > 200) /continue
+	/if (${Spawn[pc ${_name}].Distance} > ${maHard.Find[stMaxCureRad].Value}) /continue
 
 		| toon dead?
 		/if (${Spawn[pc ${_name}].Dead}) /continue
@@ -9438,7 +9439,6 @@ sub get_target_navpull(bool _debug, int _tmpID)
 		/delay 5
 	}
 
-
 	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FALSE
 
 	| wait for mob to get to camp
@@ -9446,24 +9446,6 @@ sub get_target_navpull(bool _debug, int _tmpID)
 
 	/declare _waittime int local ${Math.Calc[(PULLENV + ${Spawn[${_tmpID}].Distance})*.08]}
 	/call get_target_wait ${maDebug.Find[wait].Value} ${_tmpID} 30s
-
-
-
-	|**
-	/invoke ${out[9, "Waiting on ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax${sep}\a-w30s\ax"]}
-	/while (${_tmpID} && ${Spawn[${_tmpID}].Distance} > SAFEENV*2 && ${wait_for_mob}) {
-		GETINPUT get_target_navpull_while _tmpID|${_tmpID}
-		/delay 2
-		/if (${SpawnCount[npc radius SAFEENV*2 PS4 targetable]}) {
-			/invoke ${set_timer[${_debug}, wait_for_mob, 1]}
-			/break
-		}
-		/if (${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < 100) /break
-		/if (${Spawn[${_tmpID}].Distance} < ENV) /break
-	}
-	**|
-
-
 
 	SETHUD EMPTY
 
@@ -9488,6 +9470,7 @@ sub get_target_calmpull(bool _debug, int _tmpID)
 | bring it back to camp
 
 /return
+
 
 
 |***
@@ -11663,7 +11646,7 @@ sub cycle_sash(bool _debug)
  * use: ${is_me_dead[DEBUG]}
  ***|
 sub is_me_dead(bool _debug)
-	DEBUG \atis_me_dead\ax()
+	| DEBUG \atis_me_dead\ax()
 	FLOW is_me_dead
 
 	| dont check in manual
@@ -11778,16 +11761,20 @@ sub check_for_corpse(bool _debug)
 		/declare _rezNEC												string	local "Convergence"
 
 	| cleric stuff
-	} else /if (${Select[${Me.Class.ShortName},CLR]} && !${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
-		/declare _divinerezCLR									string	local "Divine Resurrection"
-		/declare _rezCLR												string	local "Blessing of Resurrection"
+	} else /if (${Select[${Me.Class.ShortName},CLR]}) {
+		/if (!${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
+			DEBUG ${sep}in combat rez${sep}\a-wcleric aas\ax
+			/declare _divinerezCLR									string	local "Divine Resurrection"
+			/declare _rezCLR												string	local "Blessing of Resurrection"
 
-		/if (!${Me.AltAbility[Blessing of Resurrection]} && ${FindItemCount[=Water Sprinkler of Nem Ankh]} && !${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
-			/varset _divinerezCLR					"Water Sprinkler of Nem Ankh"
-			/varset _rezCLR 							"Water Sprinkler of Nem Ankh"
-		}
+			/if (!${Me.AltAbility[Blessing of Resurrection]} && ${FindItemCount[=Water Sprinkler of Nem Ankh]}) {
+				DEBUG ${sep}in combat rez${sep}\a-wcleric epic\ax
+				/varset _divinerezCLR					"Water Sprinkler of Nem Ankh"
+				/varset _rezCLR 							"Water Sprinkler of Nem Ankh"
+			}
 
-		/if (${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
+		} else /if (${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
+			DEBUG ${sep}in combat rez${sep}\a-w${maRez.Find[stResurrection].Value}\ax
 			/varset _divinerezCLR					"${maRez.Find[stResurrection].Value}"
 			/varset _rezCLR 							"${maRez.Find[stResurrection].Value}"
 		}
@@ -11795,22 +11782,39 @@ sub check_for_corpse(bool _debug)
 
 	| pally, shaman, druid stuff
 	} else /if (${Select[${Me.Class.ShortName},PAL,SHM,DRU]}) {
-		/if (${Select[${Me.CombatState},combat]} && !${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
-			/declare _rezDRU											string	local "Call of the Wild"
-			/declare _rezSHM											string	local "Call of the Wild"
-			/declare _rezPAL											string	local "Gift of Resurrection"
-		} else /if (!${Select[${Me.CombatState},combat]} && !${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
-			/declare _rezDRU											string	local "Rejuvenation of Spirit"
-			/declare _rezSHM											string	local "Rejuvenation of Spirit"
-			/declare _rezPAL											string	local "Gift of Resurrection"
-		} else /if (${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
-			/declare _rezDRU											string	local "${maRez.Find[stResurrection].Value}"
-			/declare _rezSHM											string	local "${maRez.Find[stResurrection].Value}"
-			/declare _rezPAL											string	local "${maRez.Find[stResurrection].Value}"
+
+		|  in combat
+		/if (${Select[${Me.CombatState},combat]}) {
+			/if (!${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
+				DEBUG ${sep}in combat rez${sep}\a-w${Me.Class.ShortName} aas\ax
+				/declare _rezDRU											string	local "Call of the Wild"
+				/declare _rezSHM											string	local "Call of the Wild"
+				/declare _rezPAL											string	local "Gift of Resurrection"
+			} else /if (${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
+				DEBUG ${sep}in combat rez${sep}\a-w${Me.Class.ShortName} aas\ax
+				/declare _rezDRU											string	local "${maRez.Find[stResurrection].Value}"
+				/declare _rezSHM											string	local "${maRez.Find[stResurrection].Value}"
+				/declare _rezPAL											string	local "${maRez.Find[stResurrection].Value}"
+			}
+
+		| out of combat
+		} else /if (!${Select[${Me.CombatState},combat]}) {
+			/if (!${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
+				DEBUG ${sep}out combat rez${sep}\a-w${Me.Class.ShortName} aas\ax
+				/declare _rezDRU											string	local "Rejuvenation of Spirit"
+				/declare _rezSHM											string	local "Rejuvenation of Spirit"
+				/declare _rezPAL											string	local "Gift of Resurrection"
+			} else /if (${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
+				DEBUG ${sep}out combat rez${sep}\a-w${Me.Class.ShortName} ${maRez.Find[stResurrection].Value}\ax
+				/declare _rezDRU											string	local "${maRez.Find[stResurrection].Value}"
+				/declare _rezSHM											string	local "${maRez.Find[stResurrection].Value}"
+				/declare _rezPAL											string	local "${maRez.Find[stResurrection].Value}"
+			}
 		}
 	}
 
 	/if (${maRez.Find[swRezToken].Value}) {
+		DEBUG ${sep}Token rez
 		/declare _rezEmergency									string	local "Token of Resurrection"
 	}
 
@@ -11988,7 +11992,7 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 
 		| not token rez rez
 		/if (!${maRez.Find[swRezToken].Value}) {
-			DEBUG casting no token
+			DEBUG ${sep}casting${sep}\a-w${_rez}\ax
 			/delay 5s !${Me.Casting.ID}
 
 			/squelch /target id ${_tmpID}
@@ -11996,30 +12000,27 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 
 			FLOW check_for_corpse ${_tmpID}|${_rez}
 
-			/if (${is_ready[${_debug}, "${_rez}"]}) {
-				/call voodoo ${_debug} "${_rez}" ${_tmpID} skiptargetcheck
-			}
+			/call voodoo ${_debug} "${_rez}" ${_tmpID} skiptargetcheck
 
 		| token rez
 		} else /if (${maRez.Find[swRezToken].Value}) {
-			DEBUG clicking token
+			DEBUG ${sep}casting${sep}\a-wclicking token\ax
 			/delay 5s !${Me.Casting.ID}
 
 			/squelch /target id ${_tmpID}
 			/delay 1s ${Target.ID} == ${_tmpID}
 
-
-			| /invoke ${target[set, ${_tmpID}]}
 			FLOW check_for_corpse ${_tmpID}|${_rez}
-			/if (${is_ready[${_debug}, "Token of Resurrection"]}) {
-				/call voodoo ${_debug} "Token of Resurrection" ${_tmpID} skiptargetcheck
-			}
+			/call voodoo ${_debug} "Token of Resurrection" ${_tmpID} skiptargetcheck
+			/varset _rez "Token of Resurrection"
 		}
+
+		/doevents
 
 		| if cast was good, set the timers.
 		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
 			/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, ${maHard.Find[stRezSuccess].Value}]}
-			/invoke ${out[0, "Rez${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax"]}
+			/invoke ${out[0, "Rez Success${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax (\a-r${_rez}\ax)"]}
 		} else {
 			/if (${Select[${Me.Class.ShortName},CLR,DRU,SHM,PAL,NEC]}) {
 				/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, ${maHard.Find[stRezFail].Value}]}
@@ -12156,31 +12157,6 @@ sub cast_regen(bool _debug, string _type)
 		}
 		/return TRUE
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
  	| single heal over time
 	/if (${_type.Equal[single]}) {

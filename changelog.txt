@@ -32,6 +32,16 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+
+
+
+
+
+B2004025.01
+- more hardcoded ranges moved to maHard
+- rez should no longer crash you
+
+
 B2004024.01
 - tag
   summonaxe - identify zerker axes in the buff lists. should use autoinventory too
