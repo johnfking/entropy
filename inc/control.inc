@@ -1162,9 +1162,9 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 		/return	TRUE
 
 	| heal number entered
-	} else /if (${Range.Between[1,20:${Int[${_type}]}]}) {
+	} else /if (${Range.Between[1,50:${Int[${_type}]}]}) {
 
-		| see the defensive #
+		| see the heal #
 		/if (${_verbage.Equal[see]}) {
 			/call Bind_command_see heal ${_type}
 			/return
@@ -1234,11 +1234,11 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 
 	| heal pets
 	} else /if (${_type.Equal[pet]}) {
-		/invoke ${set_switch_env[FALSE, swHealPet, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swHealPet, TRUE, ${_verbage}]}
 
 	| heal cures
 	} else /if (${_type.Equal[cure]}) {
-		/invoke ${set_switch_env[FALSE, swHealCure, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swHealCure, TRUE, ${_verbage}]}
 		/if (${maHeal.Find[swHealCure].Value}) {
 			/call set_observers FALSE maCure add FALSE
 		} else /if (!${maHeal.Find[swHealCure].Value}) {
@@ -1264,42 +1264,15 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 
 	| use group Heal over Time
 	} else /if (${_type.Equal[grouphot]}) {
-		/if (${_verbage.Equal[name]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stHealGroupOverTime, "${_silent}"]}
-		} else /if (${_verbage.Equal[use]}) {
-			/invoke ${set_switch_env[${_debug}, swHealGroupOverTime, TRUE, ${_silent}]}
-		}
-		/invoke ${maControl.Clear}
-		/invoke ${maControl.Add[name,stHealGroupOverTime|br]}
-		/invoke ${maControl.Add[use,swHealGroupOverTime]}
-		/invoke ${set_control_output[${_debug}, maHeal, "heal grouphot", maControl]}
-		/return TRUE
+		/invoke ${set_switch_env[${_debug}, swHealGroupOverTime, TRUE, ${_verbage}]}
 
 	| use splashes
 	} else /if (${_type.Equal[splash]} && ${Select[${Me.Class.ShortName},CLR,PAL]}) {
-		/if (${_verbage.Equal[name]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stSplash, "${_silent}"]}
-		} else /if (${_verbage.Equal[count]}) {
-			/if (!${set_control_num_range[${_debug}, stCountSplash, "${_silent}", 0, 6]}) /return
-		}
-		/invoke ${maControl.Clear}
-		/invoke ${maControl.Add[name,stSplash|br]}
-		/invoke ${maControl.Add[count,stCountSplash]}
-		/invoke ${set_control_output[${_debug}, maHeal, "heal splash", maControl]}
-		/return TRUE
+		/if (!${set_control_num_range[${_debug}, stCountSplash, "${_verbage}", 0, 6]}) /return
 
 	| set group Heals
 	} else /if (${_type.Equal[groupheal]}) {
-		/if (${_verbage.Equal[name]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stHealGroup, "${_silent}"]}
-		} else /if (${_verbage.Equal[count]}) {
-			/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_silent}", 0, 6]}) /return
-		}
-		/invoke ${maControl.Clear}
-		/invoke ${maControl.Add[name,stHealGroup|br]}
-		/invoke ${maControl.Add[count,stCountHealGroup]}
-		/invoke ${set_control_output[${_debug}, maHeal, "heal groupheal", maControl]}
-		/return TRUE
+		/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return
 
 	| set single hot
 	} else /if (${_type.Equal[hot]}) {
@@ -1332,8 +1305,8 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	}
 
   /invoke ${maControl.Add[groupheal,submenu]}
-  /invoke ${maControl.Add[grouphot,submenu]}
-	/invoke ${maControl.Add[group,swHealGroup]}
+  /invoke ${maControl.Add[grouphot,swHealGroupOverTime]}
+	/invoke ${maControl.Add[groupheal,stCountHealGroup]}
 	/invoke ${maControl.Add[xt,swHealXTarget]}
 	/invoke ${maControl.Add[xtclass,submenu]}
 	/invoke ${maControl.Add[pet,swHealPet]}
@@ -1341,7 +1314,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	/invoke ${maControl.Add[adj,stHealAdjust]}
 
 	/if (${Select[${Me.Class.ShortName},CLR,PAL]}) {
-		/invoke ${maControl.Add[splash,submenu]}
+		/invoke ${maControl.Add[splash,stCountSplash]}
 	}
 
 	/invoke ${maControl.Add[rampage,stRampageTank|br]}
@@ -1387,6 +1360,10 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	| autoinvnetory while in manual
 	} else /if (${_type.Equal[manautoinv]}) {
 		/invoke ${set_switch_env[FALSE, swAutoInvManual, TRUE, ${_verbage}]}
+
+	| enable buff cooldown waits
+	} else /if (${_type.Equal[buffcooldownwait]}) {
+		/invoke ${set_switch_env[FALSE, swBuffCooldownWait, TRUE, ${_verbage}]}
 
 	| enable sub hook checking
 	} else /if (${_type.Equal[hook]}) {
@@ -1477,6 +1454,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	/invoke ${maControl.Add[maintenance,swMaintenance]}
 	/invoke ${maControl.Add[nettimeout,stNetworkTimeout]}
 	/invoke ${maControl.Add[rememberset,swBuildSetRemember]}
+	/invoke ${maControl.Add[buffcooldownwait,swBuffCooldownWait]}
 	/invoke ${set_control_output[${_debug}, maEntropy, entropy, maControl]}
 
 /return TRUE
@@ -2354,7 +2332,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 
 			/declare _licountheal listiterator local
-		  /vardata _licountheal lsCount20.First.Clone
+		  /vardata _licountheal lsCount50.First.Clone
 		  /while (!${_licountheal.IsEnd}) {
 				/if (${Bool[${maHeal.Find[stHeal${_licountheal.Value}].Value}]}) {
 					/invoke ${out[12, "\awstHeal${_licountheal.Value}\ax${sep}${If[${maHeal.Find[swHeal${_licountheal.Value}].Value},${on},${off}]}${sep}\a-w${maHeal.Find[stHeal${_licountheal.Value}].Value}\ax"]}
@@ -2367,7 +2345,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 			/return
 		}
 
-		/if (!${Range.Between[1,20:${Int[${_verbage}]}]}) {
+		/if (!${Range.Between[1,50:${Int[${_verbage}]}]}) {
 			/call Bind_command_aux heal
 			/return
 		}
@@ -3587,16 +3565,14 @@ sub Bind_command_splash(bool _debug)
 
 	| paladin
 	/if (${Me.Class.ShortName.Equal[PAL]}) {
-		/if (${is_ready[${_debug}, "${maHeal.Find[stSplashCure].Value}"]}) {
-			/call voodoo ${_debug} "${maHeal.Find[stSplashCure].Value}" 0 FALSE
-		}
+		DEBUG ${sep}paladin splash
+		/call cast_cycle_heal ${_debug} 0 healsplash
 	}
 
 	| cleric
 	/if (${Me.Class.ShortName.Equal[CLR]}) {
-		/if (${is_ready[${_debug}, "${maHeal.Find[stSplash].Value}"]}) {
-			/call voodoo ${_debug} "${maHeal.Find[stSplash].Value}" ${Me.ID} FALSE
-		}
+		DEBUG ${sep}cleric splash
+		/call cast_cycle_heal ${_debug} ${Me.ID} healsplash
 	}
 
 /return TRUE

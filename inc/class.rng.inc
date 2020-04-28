@@ -38,9 +38,9 @@ sub set_RNG(bool _debug)
  	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
 
 	| heals
- 	/call set_data_list FALSE maChr lsHealToT		 												PREGEN|3											"${auxli} targets target healing line of spells"
-  /call set_data_map FALSE maChr stHealDesperate											PREGEN|1											"${auxna} fast cast heal"
-  /call set_data_map FALSE maChr stHealFont														PREGEN|1											"${auxna} normal heal"
+ 	| /call set_data_list FALSE maChr lsHealToT		 												PREGEN|3											"${auxli} targets target healing line of spells"
+  | /call set_data_map FALSE maChr stHealDesperate											PREGEN|1											"${auxna} fast cast heal"
+  | /call set_data_map FALSE maChr stHealFont														PREGEN|1											"${auxna} normal heal"
 	/call set_data_map FALSE maChr stDiscHeal		 												PREGEN|1											"${auxna} group heal disc"
 
 	| bow disc
@@ -237,8 +237,8 @@ sub check_heal_RNG(bool _debug, string _type)
 
 	| ToT heals
 	/if (${Select[${_type},tot]} && ${maHeal.Find[swHealToT].Value}) {
-		/if (${hurtCount} >= 1)  {
-			/call cast_list ${_debug} lsHealToT ${hurtID}
+		/if (${hurtCount})  {
+			/call cast_cycle_heal ${_debug} ${hurtID} healtot
 			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		}
 	}
@@ -258,7 +258,7 @@ sub check_heal_RNG(bool _debug, string _type)
 	CHECKREZ
 	CHECKFADE
 
-	/call cast_cycle_heal ${_debug} ${hurtID}
+	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
 
 	SETHUD EMPTY
 

@@ -190,8 +190,11 @@ sub check_heal_BRD(bool _debug, string _type)
 
 	SETHUD "heal ${_type}"
 
-	/if (!${check_hurt[${_debug}, ${_type}]}) /return FALSE
-	/call cast_cycle_heal ${_debug} ${hurtID}
+	/if (!${check_hurt[${_debug}, ${_type}]}) {
+		/return FALSE
+	}
+
+	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
 
 	SETHUD EMPTY
 

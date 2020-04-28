@@ -246,9 +246,9 @@ sub check_heal_DRU(bool _debug, string _type)
 		 	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 
 		  | group heal?
-			/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) {
-			  /call cast_list ${_debug} lsHealGroup ${Me.ID}
-			}
+			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+				/call cast_cycle_heal ${_debug} 0 healgroup
+ 			}
 
 	  }
 	}
@@ -262,7 +262,7 @@ sub check_heal_DRU(bool _debug, string _type)
 	CHECKFADE
 	CHECKREZ
 
-	/call cast_cycle_heal ${_debug} ${hurtID}
+	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
 
 	SETHUD EMPTY
 

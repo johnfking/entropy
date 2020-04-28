@@ -37,8 +37,8 @@ sub set_PAL(bool _debug)
  	/call set_data_map ${_debug} maChr stAlliance 											PREGEN|1											"${auxna} alliance spell .. damn useless thing"
 
 	| heals
- 	/call set_data_list ${_debug} maChr lsHealToT		 										PREGEN|3											"${auxli} targets target healing line of spells"
- 	/call set_data_map ${_debug} maHeal stSplash 												PREGEN|1											"${auxna} ground target ae heal spell" heal
+ 	| /call set_data_list ${_debug} maChr lsHealToT		 										PREGEN|3											"${auxli} targets target healing line of spells"
+ 	| /call set_data_map ${_debug} maHeal stSplash 												PREGEN|1											"${auxna} ground target ae heal spell" heal
 	/call set_data_map ${_debug} maHeal stCountSplash										0															"${auxnum} number mobs in range to use a splash heal" heal
 
 
@@ -83,23 +83,6 @@ sub set_PAL(bool _debug)
 	| aa stun
 	/call set_data_map ${_debug} maChr swStun 													FALSE													"${auxsw} use AA stun"
   /call set_data_map ${_debug} maChr stStun														FALSE													"${auxna} name of AA stun to use"
-
-	| set heal orders
-	| /declare lsHealOrderbase list outer
-	| /invoke ${lsHealOrderbase.Delimiter["|"]}
-	| /invoke ${lsHealOrderbase.Append[lsHealBaseLine]}
-
-	| /declare lsHealOrderaggressive list outer
-	| /invoke ${lsHealOrderaggressive.Delimiter["|"]}
-	| /invoke ${lsHealOrderaggressive.Append[lsHealTouch|lsHealBurst]}
-
-	| /declare lsHealOrderpassive list outer
-	| /invoke ${lsHealOrderpassive.Delimiter["|"]}
-	| /invoke ${lsHealOrderpassive.Append[lsHealTouch|lsHealBurst]}
-
-	| /declare lsHealOrdertot list outer
-	| /invoke ${lsHealOrderpassive.Delimiter["|"]}
-	| /invoke ${lsHealOrderpassive.Append[lsHealToT]}
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -412,7 +395,8 @@ sub check_heal_PAL(bool _debug, string _type)
 				}
 			}
 
-			/call cast_list ${maDebug.Find[tot].Value} lsHealToT ${hurtID}
+			/call cast_cycle_heal ${_debug} ${Target.ID} healtot
+
 			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		}
 	}
@@ -420,12 +404,13 @@ sub check_heal_PAL(bool _debug, string _type)
 	| group only heals
 	/if (${Select[${_type},group]} && ${maHeal.Find[swHealGroup].Value}) {
 		| Group Splash
-	  /if (${hurtCount} >= 1) {
-	    /if (${is_ready[${_debug}, "${maHeal.Find[stSplash].Value}"]}) {
-	    	/call voodoo ${_debug} "${maHeal.Find[stSplash].Value}" 0 FALSE
-	    	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
-	    }
-	  }
+
+		| splash heal
+		/if (${maHeal.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
+			/if (${SpawnCount[npc radius ENV]} >= ${maHeal.Find[stCountSplash].Value}) {
+				/call Bind_command_splash ${maDebug.Find[splash].Value}
+			}
+		}
 
 		| Hand of Piety AA Group heal
 		/if (${hurtCount} >= 1) {

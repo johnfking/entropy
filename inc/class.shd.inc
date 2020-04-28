@@ -175,7 +175,7 @@ sub check_heal_SHD(bool _debug, string _type)
 
 	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 
-	/call cast_cycle_heal ${_debug} ${hurtID}
+	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
 
 	SETHUD EMPTY
 

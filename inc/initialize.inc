@@ -246,7 +246,7 @@ sub set_initial_environment(bool _debug)
 
 	| things we ont want pullers attacking
   /call set_data ${_debug} FALSE lsNoAttackBodyType                       list outer AURA|BANNER|CAMPFIRE|CORPSE|CHEST|ITEM|TRIGGER|TRAP|TIMER|MOUNT|MERCENARY|OBJECT
-  /call set_data ${_debug} FALSE lsNoTargetNPC                            list outer "a campfire"|"a corpse"|"controller"|"Steel Mass"
+  /call set_data ${_debug} FALSE lsNoTargetNPC                            list outer "a campfire"|"a corpse"|"controller"|"Steel Mass"|"Sphere of Fire"
   /call set_data ${_debug} FALSE lsNoTargetPC                             list outer "eye of"
   /call set_data ${_debug} FALSE lsNoTargetMagic                          list outer "eye of"
   /call set_data ${_debug} FALSE lsNoTargetAnimation	                    list outer 16|43|44|146
@@ -258,13 +258,17 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} FALSE lsFreePassSpells                         list outer Beneficial|Pet
 
 	| increment lists
-	/call set_data ${_debug} FALSE lsCount6			                            list outer "0|1|2|3|4|5"
-	/call set_data ${_debug} FALSE lsCount10		                            list outer "1|2|3|4|5|6|7|8|9|10"
-	/call set_data ${_debug} FALSE lsCount12		                            list outer "1|2|3|4|5|6|7|8|9|10|11|12"
-	/call set_data ${_debug} FALSE lsCount20		                            list outer "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20"
-	/call set_data ${_debug} FALSE lsCount50		                            list outer "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50"
-	| /call set_data ${_debug} FALSE lsCount			                            list outer ""
-	| /call set_data ${_debug} FALSE lsCount			                            list outer ""
+	/call set_data ${_debug} FALSE stCount6			                            string outer "0|1|2|3|4|5"
+	/call set_data ${_debug} FALSE stCount10		                            string outer "1|2|3|4|5|6|7|8|9|10"
+	/call set_data ${_debug} FALSE stCount12		                            string outer "1|2|3|4|5|6|7|8|9|10|11|12"
+	/call set_data ${_debug} FALSE stCount20		                            string outer "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20"
+	/call set_data ${_debug} FALSE stCount50		             		            string outer "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50"
+
+	/call set_data ${_debug} FALSE lsCount6			                            list outer "${stCount6}"
+	/call set_data ${_debug} FALSE lsCount10		                            list outer "${stCount10}"
+	/call set_data ${_debug} FALSE lsCount12		                            list outer "${stCount12}"
+	/call set_data ${_debug} FALSE lsCount20		                            list outer "${stCount20}"
+	/call set_data ${_debug} FALSE lsCount50		                            list outer "${stCount50}"
 
 	| cleric
 	/call set_data ${_debug} FALSE lsGroupRegens			                      list outer "Elixir of Transcendence|Elixir of Wulthan|Elixir of the Seas|Elixir of Expiation|Elixir of Atonement|Elixir of Redemption|Elixir of Divinity|Ethereal Elixir"
@@ -296,7 +300,6 @@ sub set_initial_environment(bool _debug)
 
   | controls for all classes
   /invoke ${maChrControl.Add[ae,stCountAE]}
-  | /invoke ${maChrControl.Add[def,stCountDefensive]}
   /invoke ${maChrControl.Add[fade,stPctFade]}
   /invoke ${maChrControl.Add[spire,submenu]}
 
@@ -342,14 +345,12 @@ sub set_initial_environment(bool _debug)
 	  /invoke ${maChrControl.Add[wolf,swWolfSpirit]}
 
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
-		| /invoke ${maChrControl.Add[charm,]}
 	  /invoke ${maChrControl.Add[gather,stPctGather]}
 	  /invoke ${maChrControl.Add[bos,swAABoS]}
 	  /invoke ${maChrControl.Add[crystal,swAACrystals]}
 
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
 	  /invoke ${maChrControl.Add[gather,stPctGather]}
-	  | /invoke ${maChrControl.Add[forcetc,swForceTC]}
 	  /invoke ${maChrControl.Add[cauldron,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
@@ -368,14 +369,12 @@ sub set_initial_environment(bool _debug)
 	  /invoke ${maChrControl.Add[harmonious,swHarmonious]}
 	  /invoke ${maChrControl.Add[loh,stPctLoH]}
 	  /invoke ${maChrControl.Add[mg,stPctMG]}
-	  | /invoke ${maChrControl.Add[flash,submenu]}
 	  /invoke ${maChrControl.Add[stun,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},RNG]}) {
 	  /invoke ${maChrControl.Add[summer,swSummer]}
 
   } else /if (${Select[${Me.Class.ShortName},ROG]}) {
-	  | /invoke ${maChrControl.Add[sos,swSoS]}
 	  /invoke ${maChrControl.Add[blind,swBlinding]}
 	  /invoke ${maChrControl.Add[poison,stLegPoison]}
 
@@ -388,9 +387,6 @@ sub set_initial_environment(bool _debug)
 	  /invoke ${maChrControl.Add[stance,swStance]}
 
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
-	  | /invoke ${maChrControl.Add[groupheal,stCountHealGroup]}
-	  | /invoke ${maChrControl.Add[hot,submenu]}
-	  | /invoke ${maChrControl.Add[grouphot,swHealGroupOverTime]}
 	  /invoke ${maChrControl.Add[cannihps,stPctCanniHP]}
 	  /invoke ${maChrControl.Add[cannimanna,stPctCanniManna]}
 	  /invoke ${maChrControl.Add[surge,swSurge]}
@@ -398,7 +394,6 @@ sub set_initial_environment(bool _debug)
 
   } else /if (${Select[${Me.Class.ShortName},WAR]}) {
 	  /invoke ${maChrControl.Add[attraction,swAttraction]}
-	  | /invoke ${maChrControl.Add[flash,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
 	  /invoke ${maChrControl.Add[mb,swManaBurn]}
@@ -665,9 +660,6 @@ sub set_initialize_map_character_environment(bool _debug)
 
   /declare _count int local 0
 
-	| hude mode cycle variable
-  | /call set_data ${_debug} FALSE stCycleMode	                            string outer EMPTY
-
 |** data **|
   /call set_data ${_debug} maData stCastReturn                            map outer FALSE
 
@@ -691,8 +683,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHard stMinBowDist												31                        		"${auxna} minimum distance to be able to bow or throw" hard
   /call set_data_map ${_debug} maHard stMaxBowDist												250                        		"${auxna} maximum distance to bow or throw" hard
   /call set_data_map ${_debug} maHard stMinMovetoBow											35                        		"${auxna} minimum distance to move to get bow/throw range" hard
-  | /call set_data_map ${_debug} maHard stRadEngage													30                        		"${auxna} radius to look for mobs to see if you are engaged" hard
-
   /call set_data_map ${_debug} maHard stRezSuccess												30s														"${auxnum} timer reset to rez the same person on a success" hard
   /call set_data_map ${_debug} maHard stRezFail														15s														"${auxnum} timer reset to rez the same person on a fail" hard
   /call set_data_map ${_debug} maHard stRezFailToken											1m														"${auxnum} timer reset to rez the same person on a fail with a token rez" hard
@@ -1124,6 +1114,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy swBuildSetRemember								FALSE                         "${auxsw} remember and refresh a set on macro boot"
   /call set_data_map ${_debug} maEntropy stCastLoop												1			                   			"${auxna} number of castloop attempts, event based"
   /call set_data_map ${_debug} maEntropy stEngine													1			                   			"${auxna} code engine"
+  /call set_data_map ${_debug} maEntropy swBuffCooldownWait								FALSE	                   			"${auxna} force a wait between buffs for cooldown to do complete cycle"
 
   | GoM list
   /call set_data_list ${_debug} maChr lsGoM                               EMPTY                         "${auxli} things to use on a gift of mana aa proc"
@@ -1305,7 +1296,6 @@ sub set_initialize_map_20(bool _debug)
 	/declare _liC20 listiterator local
 	/invoke ${_tmpMap.Add[DoT,dot]}
 	/invoke ${_tmpMap.Add[Nuke,nuke]}
-	/invoke ${_tmpMap.Add[Heal,heal]}
 	/invoke ${_tmpMap.Add[Defense,defense]}
 	/invoke ${_tmpMap.Add[Item,item]}
 	/invoke ${_tmpMap.Add[Agro,agro]}
@@ -1350,6 +1340,7 @@ sub set_initialize_map_50(bool _debug)
 	/declare _tmi mapiterator local
 	/declare _liC50 listiterator local
 	/invoke ${_tmpMap.Add[MiscDPS,miscdps]}
+	/invoke ${_tmpMap.Add[Heal,heal]}
 
   /vardata _tmi _tmpMap.First.Clone
   /while (!${_tmi.IsEnd}) {
@@ -1477,7 +1468,6 @@ sub set_alias(bool _debug, string _action)
 
 
 
-
 |***
  * note: build all the hud variables
  * use:
@@ -1516,8 +1506,6 @@ sub set_initialize_hud_variables()
 
 
 
-
-
 |***
  * note: HUD pregeneration
  * use:
@@ -1531,25 +1519,13 @@ sub set_initialize_hud(bool _debug, string _verbage)
   /if (${_verbage.Equal[entropy]}) {
 
 
-
-
-
-
-
-
-
-
 |**
-
-
     home
     behind
     fast
-
     assist
     ma1
     ma2
-
 **|
 
 	| row 0
@@ -1653,7 +1629,6 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH entropy bP1     ${Parse[0, "19,229,39,255,255,255,${If[${h_bpet},P,]}"]}
     HUDPATH entropy bP2     ${Parse[0, "19,229,34,25,25,25,${If[${h_bpet},,_]}"]}
 
-
     | burn
     HUDPATH entropy burn1   ${Parse[0, "19,255,39,0,255,0,${If[${h_buauto},burn,]}"]}
     HUDPATH entropy burn2   ${Parse[0, "19,255,39,255,0,0,${If[${h_buauto},,burn]}"]}
@@ -1667,14 +1642,11 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH entropy BG39    3,3,39,0,0,0,██████████████████████████████████████████
 
 
-
-
 	| row 52
 
     | toons loc
     HUDPATH entropy yxz1    3,5,52,100,149,237,yxz
     HUDPATH entropy yxz2    ${Parse[0, "3,40,52,140,140,140,${Int[${Me.Y}]}, ${Int[${Me.X}]}, ${Int[${Me.Z}]}"]}
-
 
     | rest
     HUDPATH entropy rest1   ${Parse[0, "19,255,52,0,255,0,${If[${Me.CombatState.Equal[resting]},rest,]}"]}
@@ -1689,7 +1661,6 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH entropy rest10  ${Parse[0, "19,313,47,25,25,25,${If[${h_rbuff},,_]}"]}
     HUDPATH entropy rest11  ${Parse[0, "19,322,52,255,255,255,${If[${h_rcombat},C,]}"]}
     HUDPATH entropy rest12  ${Parse[0, "19,322,47,25,25,25,${If[${h_rcombat},,_]}"]}
-
 
     HUDPATH entropy BG52    3,3,52,0,0,0,██████████████████████████████████████████
 
@@ -1726,14 +1697,10 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH entropy BG78    3,3,78,0,0,0,██████████████████████████████████████████
 
 
-
 	| row 91
     HUDPATH entropy target		${Parse[0, "3,5,91,100,149,237,${If[${Target.ID},[${Target.Class.ShortName} ${Target.Level}] ${Target.Name} ${If[${Bool[${Target.Guild}]},<${Target.Guild}>, ]}, ]}"]}
     HUDPATH entropy time1			${Parse[0, "19,290,91,146,149,180,${If[${h_time},${Time.Time24},${GameTime}]}"]}
     HUDPATH entropy BG91    	3,3,91,0,0,0,██████████████████████████████████████████
-
-
-
 
 
 
@@ -1742,7 +1709,6 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
     HUDPATH cursor over				21,4,50,0,255,0,${If[${EverQuest.LastMouseOver},${EverQuest.LastMouseOver.Name},]}
     HUDPATH cursor overbg			21,2,50,0,0,0,${If[${EverQuest.LastMouseOver},█████████████████████████,]}
-
 
 
   | additional development hud
@@ -1817,7 +1783,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH dev BG162    					3,3,162,0,0,0,██████████████████████████████████████████
 
     HUDPATH dev HL3    						3,3,166,247,152,10,________________________________________________________
-    HUDPATH dev HL4    						3,3,167,247,152,10,________________________________________________________
+healsingle    HUDPATH dev HL4    						3,3,167,247,152,10,________________________________________________________
 
 
 	| row 181

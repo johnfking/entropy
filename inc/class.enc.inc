@@ -330,7 +330,7 @@ sub check_heal_ENC(bool _debug, string _type)
  		/return FALSE
  	}
 
-	/call cast_cycle_heal ${_debug} ${hurtID}
+	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
 
 /return TRUE
 

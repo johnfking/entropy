@@ -350,7 +350,7 @@ sub check_heal_WAR(bool _debug, string _type)
  		/return FALSE
  	}
 
-	/call cast_cycle_heal ${_debug} ${hurtID}
+	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
 
 /return
 

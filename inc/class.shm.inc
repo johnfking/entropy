@@ -180,10 +180,11 @@ sub check_heal_SHM(bool _debug, string _type)
 	SETHUD "heal ${_type}"
 
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
-	/declare _count int local 0
 
 	| Group Regen Heal
-	/call cast_regen ${maDebug.Find[regen].Value} group
+	/if (${maChr.Find[swHealGroupOverTime].Value}) {
+		/call cast_cycle_heal_regen ${_debug} 0 healgrouphot
+	}
 
 	| no one is hurt. we're out of here
 	/if (!${hurtCount}) {
@@ -199,8 +200,15 @@ sub check_heal_SHM(bool _debug, string _type)
 
 	}
 
+	| PET HEALING
+	/if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value}) {
+		/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+			/call cast_cycle_heal ${_debug} ${Pet.ID} healminion
+		}
+	}
+
   | stationary ward heal
-  /if (${hurtCount} >= ${maHeal.Find[swHealGroup].Value}) {
+  /if (${maHeal.Find[swHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[swHealGroup].Value}) {
     /if (${is_ready[${_debug}, "Call of the Ancients"]}) {
     	/call voodoo ${_debug} "Call of the Ancients" ${Me.ID} FALSE
     }
@@ -210,16 +218,12 @@ sub check_heal_SHM(bool _debug, string _type)
  		/return FALSE
  	}
 
-|***	| aa Ancestral Guard
-	/if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.PCTHO) {
-		/if (${is_ready[${_debug}, "Ancestral Guard"]}) {
-			/call voodoo ${_debug} "Ancestral Guard" 0 FALSE
+	| single heal over time
+	/if (${maChr.Find[swHealOverTime].Value}) {
+		/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
+			/call cast_cycle_heal_regen ${_debug} ${hurtID} healhot
 		}
 	}
-***|
-
- 	| single heal over time
-	/call cast_regen ${maDebug.Find[regen].Value} single
 
 
 	ISMEDEAD
@@ -227,7 +231,7 @@ sub check_heal_SHM(bool _debug, string _type)
 	CHECKFADE
 	CHECKREZ
 
-	/call cast_cycle_heal ${_debug} ${hurtID}
+	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
 
 	SETHUD EMPTY
 

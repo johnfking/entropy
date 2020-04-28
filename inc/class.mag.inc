@@ -193,14 +193,14 @@ sub check_heal_MAG(bool _debug, string _type)
 			}
 		}
 
-		| /call cast_list FALSE lsHealPetLine ${Pet.ID}
+		/call cast_cycle_heal ${_debug} ${Pet.ID} healminion
 	}
 
  	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
 	| heal anything spell
-	/call cast_cycle_heal ${_debug} ${hurtID}
+	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
 
 	SETHUD EMPTY
 

@@ -149,9 +149,7 @@ sub check_heal_NEC(bool _debug, string _type)
  	}
 
 	| heal anything spell
-	/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-		/call cast_cycle_heal ${_debug} ${hurtID}
-	}
+	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
 
 	| aa Dying grasp
 	/if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.PCTHO) {

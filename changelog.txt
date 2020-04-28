@@ -33,8 +33,39 @@ epics with commas in their names are currently not functioning
 
 
 
-
-
+B2004027.01
+- Sphere of Fire (PoWar Raid) and Steel Mass (quest mob in argath) added to the noTargetNPC list
+- undeleted the code i deleted for unity buffs.. dont ask..
+- pulling
+  USE AT YOUR OWN RISK
+  navpull has been adjusted so if you turn off the following
+  /cc pull sethome
+  /cc home incombat
+  and clear your home marker /home clear
+  nav pull will just wander to every mob and kill it.
+	if you set the same settings for everyone your group and tie to the nav puller its kind of fun to watch
+- nav pull wait time is now based off pull range and mob distance like all the pull modes
+- /entropy buffcooldownwait
+  USE AT YOUR OWN RISK
+  this switch forces a gem cooldown delay in order to force complete buff cycles w/o skiping to the next available buff
+  THIS WILL slow down your toons response time as they will not break buff cycles (by default) on spell cooldowns
+  it is applied to auras, minion, self, crew buffing
+- healing (brace yourself)
+	increased the heal map from 20 to 50
+	the /heal map now covers target of target heals, splash heals (not surge thats later), regen heals (group and single), group heals, pet heals,
+	add the heals just like you would nukes, dots whatever and tag them with the type of heal they are
+	for the existing heals in your /heal list, you need to tag them as well. probably healsingle will cover them
+- tags
+	healsingle - single target heal (self or other)
+	healgroup - group heal
+	healhot - single target heal over time
+	healgrouphot - group heal over time
+	healtot - target of target heal
+	healminion - minion (pet) heal
+	healself - single target heal (self only)
+  healsplash - splash heal (pally/cleric)
+- buffs self/crew
+  corrected an error in the blocked buffs check
 
 
 B2004025.01

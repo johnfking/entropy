@@ -349,6 +349,48 @@ sub Event_TTLend(string _line, string _mob)
 
 
 
+|***
+ * note: Tells for specific things.. i guess?
+ * use: /t uselesstoon IwantThisBuff
+ ***|
+#event Talk "#1# tells you,#*# '#2#'"
+
+sub Event_Talk(string line, string _sender, string _chatText)
+
+/return
+
+	CHECKSAFELIST
+
+
+	| Tells for buffs.
+	| /if (${swBuffTell} && ${Spawn[${_sender}].ID} && ${_sender.NotEqual[${Me.DisplayName}]}) {
+   |  /call cast_buffs_queue "${_sender}" "${_chatText}"
+  |   /return
+  | }
+
+	| Remote kill execution.
+  /if (${Bool[${remoteKillKey}]} && ${_chatText.Equal[${remoteKillKey}]}) {
+  	/call set_stop FALSE
+  	/call clear_combat
+  	OUT ${owarning} ${sep} Recieved tell from ${cpc}${_sender}\ax to end current macro.
+  	/endm
+  }
+
+  | take a tell to reform your group.
+  /if (${_chatText.Equal[makemeleader]}) /makeleader ${_sender}
+  /if (${_chatText.Equal[makememasterlooter]}) /delegategmasterlooter ${_sender}
+
+  | raid chat
+  /if (${_chatText.Equal[raidinviteme]} && ${Me.DisplayName.Equal[${Raid.Leader}]} && !${Raid.Locked}) /raidinvite ${_sender}
+  /if (${_chatText.Equal[makemeraidleader]} && ${Me.DisplayName.Equal[${Raid.Leader}]} && !${Raid.Locked}) /makeraidleader ${_sender}
+  /if (${_chatText.Equal[makemedzleader]}) /dzmakeleader ${_sender}
+  /if (${_chatText.Equal[makemetaskleader]}) /taskmakeleader ${_sender}
+
+  | misc stuff
+  /if (${_chatText.Equal[taketask]})
+
+
+/return
 
 
 

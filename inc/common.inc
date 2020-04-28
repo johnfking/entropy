@@ -5317,7 +5317,21 @@ sub check_buff_cycle_unity(bool _debug)
 	DEBUG ${sep}_spell${sep}\a-w${_spell}\ax
 	DEBUG ${sep}effects${sep}\a-w${Spell[${_spell}].NumEffects}\ax
 
+	/for _count 1 to ${Spell[${_spell}].NumEffects}
+		DEBUG ${sep}_count${sep}\aw${_count}\ax${sep}\a-w${Spell[${_spell}].Trigger[${_count}]}\ax
 
+		| trigger
+		/if (${Me.Buff[${Spell[${_spell}].Trigger[${_count}].BaseName}].ID}) /continue
+
+		| stacks
+		/if (!${Spell[${_spell}].Trigger[${_count}].Stacks}) /continue
+
+		| do not have
+		/if (!${Me.Buff[${Spell[${_spell}].Trigger[${_count}]}].ID}) /varset _found FALSE
+		DEBUG ${sep}_found${sep}\a-w${_found}\ax
+
+		/if (!${_found}) /break
+	/next _count
 
 	/if (!${_found}) {
 		/call voodoo ${_debug} "${_spell}" 0 FALSE
@@ -5425,6 +5439,17 @@ sub check_buff_cycle_aura(bool _debug)
 				DEBUG ${sep}_found${_aura}${sep}\a-w${_found${_aura}}\ax
 				/if (!${_found${_aura}}) {
 					/call voodoo ${_debug} "${_a${_aura}}" 0 FALSE
+					DEBUG ${sep}cR${sep}\a-w${maData.Find[stCastReturn].Value}\ax
+					/if (${maEntropy.Find[swBuffCooldownWait].Value}) {
+						DEBUG ${sep}buff cooldown recycle
+						/while (${Me.SpellInCooldown}) {
+							CHECKEXIT
+							ISMEDEAD
+							/if (!${Me.SpellInCooldown}) /break
+							/delay 5
+						}
+					}
+
 				} else /if (${_found${_aura}}) {
 					/varset _found${_aura} FALSE
 				}
@@ -5474,37 +5499,31 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
 	}
 
 	| unity
-	| /if ((${maBuff.Find[swBuffUnity].Value} || ${_verbage.Equal[u]}) && ((AUTO && !${timer_Check_Buff_Unity}) || ${_force})) {
 	/if ((${maBuff.Find[swBuffUnity].Value} && AUTO && !${timer_Check_Buff_Unity}) || (${_verbage.Equal[u]} && ${_force})) {
 		/call check_buff_cycle_unity ${If[${_force},${_debug},${maDebug.Find[unity].Value}]}
 	}
 
 	| aura
-	| /if ((${maBuff.Find[swBuffAura].Value} || ${_verbage.Equal[a]}) && ((AUTO && !${timer_Check_Buff_Aura}) || ${_force})) {
 	/if ((${maBuff.Find[swBuffAura].Value} && AUTO && !${timer_Check_Buff_Aura}) || (${_verbage.Equal[a]} && ${_force})) {
 		/call check_buff_cycle_aura ${If[${_force},${maDebug.Find[aura].Value},${maDebug.Find[aura].Value}]}
 	}
 
 	| shrink
-	| /if ((${maBuff.Find[swBuffShrink].Value} || ${_verbage.Equal[s]}) && ((AUTO && !${timer_Check_Buff_Shrink}) || ${_force})) {
 	/if ((${maBuff.Find[swBuffShrink].Value} && AUTO && !${timer_Check_Buff_Shrink}) || (${_verbage.Equal[s]} && ${_force})) {
 		/call check_buff_cycle_shrink ${If[${_force},${_debug},${maDebug.Find[shrink].Value}]}
 	}
 
 	| self
-	| /if ((${maBuff.Find[swBuffSelf].Value} || ${_verbage.Equal[s]}) && ((AUTO && !${timer_Check_Buff_Self}) || ${_force})) {
 	/if ((${maBuff.Find[swBuffSelf].Value} && AUTO && !${timer_Check_Buff_Self}) || (${_verbage.Equal[s]} && ${_force})) {
 		/call check_buff_cycle_self ${If[${_force},${_debug},${maDebug.Find[buffself].Value}]}
 	}
 
 	| crew
-	| /if ((${maBuff.Find[swBuffCrew].Value} || ${_verbage.Equal[c]}) && ((AUTO && !${timer_Check_Buff_Crew}) || ${_force})) {
 	/if ((${maBuff.Find[swBuffCrew].Value} && AUTO && !${timer_Check_Buff_Crew}) || (${_verbage.Equal[c]} && ${_force})) {
 		/call check_buff_cycle_crew ${If[${_force},${_debug},${maDebug.Find[crew].Value}]}
 	}
 
 	| beg
-	| /if ((${maBuff.Find[swBuffBeg].Value} || ${_verbage.Equal[b]}) && ((AUTO && !${timer_Check_Buff_Beg}) || ${_force})) {
 	/if ((${maBuff.Find[swBuffBeg].Value} && AUTO && !${timer_Check_Buff_Beg}) || (${_verbage.Equal[b]} && ${_force})) {
 		/call check_buff_cycle_beg ${If[${_force},${_debug},${maDebug.Find[beg].Value}]}
 	}
@@ -5516,12 +5535,10 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
 
 	| ranged ammo
 	/if ((${maBuff.Find[swBuffAmmo].Value} && AUTO && !${timer_Check_Ammo}) || (${_verbage.Equal[s]} && ${_force})) {
-	| 55/if ((${maBuff.Find[swBuffAmmo].Value} || ${_verbage.Equal[s]}) && ((AUTO && !${timer_Check_Ammo}) && (!${Me.Inventory[ammo].ID} || ${_force}))) {
 		/call check_buff_cycle_ammo ${If[${_force},${_debug},${maDebug.Find[ammo].Value}]}
 	}
 
 	| class specific buffs. buff self required
-	| /if ((${maBuff.Find[swBuffSelf].Value} || ${_verbage.Equal[s]}) && (!${timer_Check_Buff_Self} || ${_force})) {
 	/if ((${maBuff.Find[swBuffSelf].Value} && !${timer_Check_Buff_Self}) || (${_verbage.Equal[s]} && ${_force})) {
 		/if (${Select[${Me.Class.ShortName},BER]}) {
 		} else /if (${Select[${Me.Class.ShortName},BRD]}) {
@@ -6020,6 +6037,11 @@ sub check_buff_cycle_self(bool _debug)
 			/continue
 		}
 
+		| blocked?
+		| /if (${${lsBlockedBuffsMe}.Find[${Spell[${maBuff.Find[stBuff${_count}].Value}].RankName.ID}]}) {
+		| 	/continue
+		| }
+
 		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maBuff.Find[stBuff${_count}Con].Value}]}) {
 			/continue
 		}
@@ -6057,6 +6079,12 @@ sub check_buff_cycle_self(bool _debug)
 					/continue
 				}
 
+				| blocked?
+				/if (${lsBlockedBuffsMe.Find[${Spell[${Spell[${_spell}].Base2[${_i}]}].ID}]}) {
+					DEBUG ${sep}\aw.Blocked\ax break (${Spell[${Spell[${_spell}].Base2[${_i}]}].Name})
+					/continue
+				}
+
 				| do we have the SPA
 				/if (!${Me.Buff[${Spell[${Spell[${_spell}].Base2[${_i}]}].Name}].ID}) {
 					DEBUG ${sep}have name${sep}\a-w${Me.Buff[${Spell[${Spell[${_spell}].Base2[${_i}]}].Name}].ID}\ax
@@ -6085,6 +6113,15 @@ sub check_buff_cycle_self(bool _debug)
 		}
 
 		/call voodoo FALSE "${maBuff.Find[stBuff${_count}].Value}" ${Me.ID} FALSE
+		/if (${maEntropy.Find[swBuffCooldownWait].Value}) {
+			DEBUG ${sep}buff cooldown recycle
+			/while (${Me.SpellInCooldown}) {
+				CHECKEXIT
+				ISMEDEAD
+				/if (!${Me.SpellInCooldown}) /break
+				/delay 5
+			}
+		}
 
 		/if (${lsBuff${_count}Tag.Contains[autoinventory]}) {
 			/autoinventory
@@ -6303,7 +6340,9 @@ sub check_buff_cycle_crew(bool _debug)
 					| is it buff blocked
 					/dquery ${_toonName} -q "lsBlockedBuffsMe.Find[${Spell[${_spellTrigger}].ID}]" -o DNQReturn -t 5
 					DEBUG ${sep}${sep}BLOCKED .Trigger.Blocked Buff \at${Bool[${DNQReturn}]}\ax ${dot} ${_spellTrigger}
-					/if (${DNQReturn.Equal[TRUE]}) /continue
+					/if (${Bool[${DNQReturn}]}) {
+						/continue
+					}
 
 					| does it stack
 					/dquery ${_toonName} -q "Spell[${_spellTrigger}].Stacks" -o DNQReturn -t 5
@@ -6326,7 +6365,15 @@ sub check_buff_cycle_crew(bool _debug)
 				DEBUG ${sep}${sep}\ay****\ax Found:${_found} .. Target:${_target}
 				/if (!${_found} && ${_target}) {
 					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Spawn[${_toonName}].ID} FALSE
-					/return
+					/if (${maEntropy.Find[swBuffCooldownWait].Value}) {
+						DEBUG ${sep}buff cooldown recycle
+						/while (${Me.SpellInCooldown}) {
+							CHECKEXIT
+							ISMEDEAD
+							/if (!${Me.SpellInCooldown}) /break
+							/delay 5
+						}
+					}
 					/continue
 				}
 
@@ -6354,6 +6401,15 @@ sub check_buff_cycle_crew(bool _debug)
 
 				/if (${_target}) {
 					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Spawn[${_toonName}].ID} FALSE
+					/if (${maEntropy.Find[swBuffCooldownWait].Value}) {
+						DEBUG ${sep}buff cooldown recycle
+						/while (${Me.SpellInCooldown}) {
+							CHECKEXIT
+							ISMEDEAD
+							/if (!${Me.SpellInCooldown}) /break
+							/delay 5
+						}
+					}
 					/continue
 				}
 
@@ -8393,6 +8449,16 @@ sub check_minion_cycle_buff(bool _debug)
 		/if (!${Spell[${_spell}].StacksTarget}) /continue
 
 		/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Pet.ID} FALSE
+		/if (${maEntropy.Find[swBuffCooldownWait].Value}) {
+			DEBUG ${sep}buff cooldown recycle
+			/while (${Me.SpellInCooldown}) {
+				CHECKEXIT
+				ISMEDEAD
+				/if (!${Me.SpellInCooldown}) /break
+				/delay 5
+			}
+		}
+
 
 	/next _count
 
@@ -9401,7 +9467,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	DEBUG ${sep}Target ${sep} ${_tmpID} ${sep} \aw${Spawn[${_tmpID}].DisplayName}\ax
 
 	| force home even if not using it
-	/if (!HOME) {
+	/if (${maHome.Find[swinCombat].Value} && ${maCC.Find[swPullSetHome].Value} && !HOME) {
 		/call Bind_control_home set FALSE silent FALSE
 	}
 
@@ -9430,9 +9496,9 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	/call pull_mob_tag ${_debug} ${_tmpID}
 
 	| move home
-	| /if (${Spawn[${_tmpID}].Distance} > SAFEENV) {
+	/if (${maCC.Find[swPullSetHom].Value} && ${maCC.Find[swPullSetHome].Value} && HOME) {
 		/call Bind_control_home return FALSE silent FALSE
-	| }
+	}
 
 	/while (${Me.Moving}) {
 		GETINPUT get_target_navpull_moving _tmpID|${_tmpID}
@@ -9441,11 +9507,8 @@ sub get_target_navpull(bool _debug, int _tmpID)
 
 	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FALSE
 
-	| wait for mob to get to camp
-	| /invoke ${set_timer[${_debug}, wait_for_mob, 30s]}
-
 	/declare _waittime int local ${Math.Calc[(PULLENV + ${Spawn[${_tmpID}].Distance})*.08]}
-	/call get_target_wait ${maDebug.Find[wait].Value} ${_tmpID} 30s
+	/call get_target_wait ${maDebug.Find[wait].Value} ${_tmpID} ${_waittime}s
 
 	SETHUD EMPTY
 
@@ -11027,72 +11090,6 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 
 
 |***
- * note: casts heals from maHeal
- * use: /call cast_cycle_heal DEBUG [TARGETID]
- ***|
-sub cast_cycle_heal(bool _debug, int _tmpID)
-	DEBUG \atcast_cycle_heal\ax(\a-w${_tmpID}\ax)
-	FLOW cast_cycle_heal ${_tmpID} (1)
-
-	| if the user has not set the line order, set it to a default for now
-	/if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
-		DEBUG ${sep}resetting the empty heal line
-		/invoke ${lsLineHeal.Clear}
-		/invoke ${lsLineHeal.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
-	}
-
-	/declare _liC20 listiterator local
-	/vardata _liC20 lsLineHeal.First.Clone
-	/while (!${_liC20.IsEnd}) {
-
-		GETINPUT cast_cycle_heal NA|NA
-		ISMEDEAD
-		CHECKEXIT cast_cycle_heal
-		FLOW cast_cycle_heal ${_tmpID} (2)
-
-		| check the switch
-		/if (!${Bool[${maHeal.Find[swHeal${_liC20.Value}].Value}]}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		| check the item name
-		/if (!${Bool[${maHeal.Find[stHeal${_liC20.Value}].Value}]}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		/if (!${is_ready[${_debug}, "${maHeal.Find[stHeal${_liC20.Value}].Value}"]}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		| apply any conditions
-		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maHeal.Find[stHeal${_liC20.Value}Con].Value}]}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		/call check_basic_tags ${maDebug.Find[tag].Value} Heal${_liC20.Value} FALSE "${maHeal.Find[stHeal${_liC20.Value}Con].Value}"
-		/if (!${Macro.Return}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		/call voodoo ${_debug} "${maHeal.Find[stHeal${_liC20.Value}].Value}" ${_tmpID} FALSE
-
-		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]}) {
-			/break
-		}
-
-		/invoke ${_liC20.Advance}
-	}
-
-/return TRUE
-
-
-
-|***
  * note: casts nukes from maNuke
  * use: /call cast_cycle_nuke DEBUG [TARGETID]
  ***|
@@ -12104,23 +12101,88 @@ sub check_watch_spawn(bool _debug)
 
 |***
  * note: regeneration spells (not the AAs)
- * use: /call cast_regen ${maDebug.Find[regen].Value} [single|group]
+ * use: /call cast_cycle_heal_regen DEBUG [healgrouphot|healhot]
  ***|
-sub cast_regen(bool _debug, string _type)
-	DEBUG \atcast_regen\ax(\a-w${_type}\ax)
-	FLOW cast_regen ${_type}
+sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
+	DEBUG \atcast_cycle_heal_regen\ax(\a-w${_tmpID}, ${_tag}\ax)
+	FLOW cast_cycle_heal_regen ${_tmpID}|${_tag}
+
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
+		DEBUG ${sep}resetting the empty heal line
+		/invoke ${lsLineHeal.Clear}
+		/invoke ${lsLineHeal.Append[${stlist50}]}
+	}
+
+	/declare _myHoT string local FALSE
+	/declare _liHoT listiterator local
+	/vardata _liHoT lsLineHeal.First.Clone
 
  	| group heal over time
-	/if (${_type.Equal[group]}) {
-		/if (!${maHeal.Find[swHealGroupOverTime].Value} || SAFEZONE || !AE# || !${Group.Members} || !COMBAT) {
+	/if (${_tag.Equal[healgrouphot]}) {
+
+		| break on no mobs in area
+		/if (${SpawnCount[npc radius ENV PS4 targetable]} <= AE#) {
+			/return FALSE
+		}
+
+		| find my hot
+		/while (!${_liHoT.IsEnd}) {
+			| check the switch
+			/if (!${Bool[${maHeal.Find[swHeal${_liHoT.Value}].Value}]}) {
+				/invoke ${_liHoT.Advance}
+				/continue
+			}
+			| check the item name
+			/if (!${Bool[${maHeal.Find[stHeal${_liHoT.Value}].Value}]}) {
+				/invoke ${_liHoT.Advance}
+				/continue
+			}
+			| check matching tag
+			/if (!${lsHeal${_liHoT.Value}Tag.Contains[healgrouphot]}) {
+				/invoke ${_liHoT.Advance}
+				/continue
+			}
+			| cehck matching tag
+			/if (${lsHeal${_liHoT.Value}Tag.Contains[healgrouphot]}) {
+				/varset _myHoT ${maHeal.Find[stHeal${_liHoT.Value}].Value}
+			}
+
+			| ready?.. or continue
+			/if (!${is_ready[${_debug}, "${_myHoT}"]}) {
+				/varset _myHoT FALSE
+				/invoke ${_liHoT.Advance}
+				/continue
+			}
+
+			| apply any conditions
+			/if (!${check_condition[${maDebug.Find[condition].Value}, ${maHeal.Find[stHeal${_liHoT.Value}Con].Value}]}) {
+				/varset _myHoT FALSE
+				/invoke ${_liHoT.Advance}
+				/continue
+			}
+
+			/call check_basic_tags ${maDebug.Find[tag].Value} Heal${_liHoT.Value} FALSE "${maHeal.Find[stHeal${_liHoT.Value}Con].Value}"
+			/if (!${Macro.Return}) {
+				/varset _myHoT FALSE
+				/invoke ${_liHoT.Advance}
+				/continue
+			}
+
+			/invoke ${_liHoT.Advance}
+		}
+
+		| bail if user doesnt have a healgrouphot tag set.. no one reads the damn changeloggs...
+		/if (!${Bool[${_myHoT}]}) {
+			DEBUG ${sep}fail, no groupregen set
 			/return FALSE
 		}
 
 		/declare _HoTFound bool local FALSE
 		/declare _HoTBase int local 0
- 		/declare _myHOT string local ${maHeal.Find[stHealGroupOverTime].Value}
 		/declare _liHot listiterator local
 		/vardata _liHot lsGroupRegens.First.Clone
+		| look for a current HoT
 		/while (!${_liHot.IsEnd}) {
 			/if (${Me.Song[${_liHot.Value}].ID}) {
 				/varset _HoTFound TRUE
@@ -12131,54 +12193,283 @@ sub cast_regen(bool _debug, string _type)
 		}
 
 		| my regen better then theirs?
-		/if (${_HoTBase} >= ${Spell[${maHeal.Find[stHealGroupOverTime].Value}].Base[1]}) {
+		/if (${_HoTBase} >= ${Spell[${_myHoT}].Base[1]}) {
 			/return FALSE
 		}
 
-	 	/if (${SpawnCount[npc radius ENV PS4 targetable]} >= AE#) {
-			/declare _found bool TRUE
-			| check regen SPA
-			/if (${Spell[${_myHOT}].HasSPA[374]}) {
-				/for _count 1 to ${Spell[${_myHOT}].NumEffects}
-					/if (!${Spell[${Spell[${_myHOT}].Base2[${_count}]}].Duration}) /continue
-					/if (!${Me.Song[${Spell[${_myHOT}].Base2[${_count}]}].ID}) /varset _found FALSE
-					/if (!${Spell[${Spell[${_myHOT}].Base2[${_count}]}].Stacks}) /varset _found TRUE
-					/if (${_found}) {
-						/break
-					}
-				/next _count
-			} else {
-				/if (!${Me.Song[${_myHOT}].ID}) /varset _found FALSE
-				/if (${Spell[${_myHOT}].Stacks}) /varset _found FALSE
-			}
-			/if (!${_found} && ${is_ready[${_debug}, ${_myHOT}]}) {
-				/call voodoo ${_debug} "${_myHOT}" 0 FALSE
-			}
+		/declare _found bool TRUE
+		| check regen SPA
+		/if (${Spell[${_myHoT}].HasSPA[374]}) {
+			/for _count 1 to ${Spell[${_myHoT}].NumEffects}
+				/if (!${Spell[${Spell[${_myHoT}].Base2[${_count}]}].Duration}) /continue
+				/if (!${Me.Song[${Spell[${_myHoT}].Base2[${_count}]}].ID}) /varset _found FALSE
+				/if (!${Spell[${Spell[${_myHoT}].Base2[${_count}]}].Stacks}) /varset _found TRUE
+				/if (${_found}) {
+					/break
+				}
+			/next _count
+		} else {
+			/if (!${Me.Song[${_myHoT}].ID}) /varset _found FALSE
+			/if (${Spell[${_myHoT}].Stacks}) /varset _found FALSE
 		}
+		/call voodoo ${_debug} "${_myHoT}" 0 FALSE
+
+
+
+
 		/return TRUE
-	}
+
+
 
  	| single heal over time
-	/if (${_type.Equal[single]}) {
+	} else /if (${_tag.Equal[healhot]}) {
+
+		| find my hot
+		/while (!${_liHoT.IsEnd}) {
+			| check the switch
+			/if (!${Bool[${maHeal.Find[swHeal${_liHoT.Value}].Value}]}) {
+				/invoke ${_liHoT.Advance}
+				/continue
+			}
+			| check the item name
+			/if (!${Bool[${maHeal.Find[stHeal${_liHoT.Value}].Value}]}) {
+				/invoke ${_liHoT.Advance}
+				/continue
+			}
+			| check matching tag
+			/if (!${lsHeal${_liHoT.Value}Tag.Contains[healhot]}) {
+				/invoke ${_liHoT.Advance}
+				/continue
+			}
+			| cehck matching tag
+			/if (${lsHeal${_liHoT.Value}Tag.Contains[healhot]}) {
+				/varset _myHoT ${maHeal.Find[stHeal${_liHoT.Value}].Value}
+				/break
+			}
+			/invoke ${_liHoT.Advance}
+		}
+
+		| could not find an available spell/item/whatever
+		/if (!${Bool[${_myHoT}]}) {
+			DEBUG ${sep}fail, no regen set
+			/return FALSE
+		}
+
 		/if (${maChr.Find[swHealOverTime].Value}) {
 			/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
-				/dquery ${Spawn[${hurtID}].DisplayName} -q "Spell[${maHeal.Find[stHealOverTime].Value}].Stacks" -o DNQReturn
-				/dquery ${Spawn[${hurtID}].DisplayName} -q "Me.Song[${maHeal.Find[stHealOverTime].Value}].Duration" -o DNQReturn2
+				/dquery ${Spawn[${hurtID}].DisplayName} -q "Spell[${_myHoT}].Stacks" -o DNQReturn
+				/dquery ${Spawn[${hurtID}].DisplayName} -q "Me.Song[${_myHoT}].Duration" -o DNQReturn2
 				/if (${DNQReturn} && !${DNQReturn2}) {
-					/if (${is_ready[${_debug}, "${maHeal.Find[stHealOverTime].Value}"]}) {
-						/call voodoo ${_debug} "${maHeal.Find[stHealOverTime].Value}" ${hurtID} FALSE
-					}
+					/call voodoo ${_debug} "${_myHoT}" ${hurtID} FALSE
 				}
 			}
 		}
 		/return TRUE
+
+
+
 	}
 
 /return FALSE
 
 
 
+|***
+ * note: Group Heals (not the AAs)
+ * use: /call cast_cycle_heal_group ${maDebug.Find[regen].Value}
+
+sub cast_cycle_heal_group(bool _debug)
+	DEBUG \atcast_cycle_heal_regen\ax(\a-w\ax)
+	FLOW cast_cycle_heal_group
+
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
+		DEBUG ${sep}resetting the empty heal line
+		/invoke ${lsLineHeal.Clear}
+		/invoke ${lsLineHeal.Append[${stlist50}]}
+	}
+
+ 	| group heal over time
+	/declare _myGHeal string local FALSE
+	/declare _liGHeal listiterator local
+	/vardata _liGHeal lsLineHeal.First.Clone
+	/while (!${_liGHeal.IsEnd}) {
+		| check the switch
+		/if (!${Bool[${maHeal.Find[swHeal${_liGHeal.Value}].Value}]}) {
+			/invoke ${_liGHeal.Advance}
+			/continue
+		}
+		| check the item name
+		/if (!${Bool[${maHeal.Find[stHeal${_liGHeal.Value}].Value}]}) {
+			/invoke ${_liGHeal.Advance}
+			/continue
+		}
+		| check matching tag
+		/if (!${lsHeal${_liGHeal.Value}Tag.Contains[healgroup]}) {
+			/invoke ${_liGHeal.Advance}
+			/continue
+		}
+		| cehck matching tag
+		/if (${lsHeal${_liGHeal.Value}Tag.Contains[healgroup]}) {
+			/varset _myGHeal ${maHeal.Find[stHeal${_liGHeal.Value}].Value}
+			/break
+		}
+		| ready?.. or continue
+		/if (!${is_ready[${_debug}, "${_myGHeal}"]}) {
+			/varset _myGHeal FALSE
+		}
+
+		/invoke ${_liGHeal.Advance}
+	}
+
+	| bail if user doesnt have a tag set
+	/if (!${Bool[${_myGHeal}]}) {
+		/return FALSE
+	}
+
+	/call voodoo ${_debug} "${_myGHeal}" 0 FALSE
+
+/return FALSE
+ ***|
+
+
+|***
+ * note: Target of Target Heals (not the AAs)
+ * use: /call cast_cycle_heal_tot ${maDebug.Find[tot].Value}
+
+sub cast_cycle_heal_tot(bool _debug, int _tmpID)
+	DEBUG \atcast_cycle_heal_tot\ax(\a-w\ax)
+	FLOW cast_cycle_heal_tot
+
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
+		DEBUG ${sep}resetting the empty heal line
+		/invoke ${lsLineHeal.Clear}
+		/invoke ${lsLineHeal.Append[${stlist50}]}
+	}
+
+ 	| group heal over time
+	/declare _myHeal string local FALSE
+	/declare _liHeal listiterator local
+	/vardata _liHeal lsLineHeal.First.Clone
+	/while (!${_liHeal.IsEnd}) {
+		| check the switch
+		/if (!${Bool[${maHeal.Find[swHeal${_liHeal.Value}].Value}]}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+		| check the item name
+		/if (!${Bool[${maHeal.Find[stHeal${_liHeal.Value}].Value}]}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+		| check matching tag fail
+		/if (!${lsHeal${_liHeal.Value}Tag.Contains[healtot]}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+		| check matching tag pass
+		/if (${lsHeal${_liHeal.Value}Tag.Contains[healtot]}) {
+			/varset _myHeal ${maHeal.Find[stHeal${_liHeal.Value}].Value}
+			/break
+		}
+		| ready?.. or continue
+		/if (!${is_ready[${_debug}, "${_myHeal}"]}) {
+			/varset _myHeal FALSE
+		}
+
+		/invoke ${_liHeal.Advance}
+	}
+
+	| bail if user doesnt have a tag set
+	/if (!${Bool[${_myHeal}]}) {
+		/return FALSE
+	}
+
+	/call voodoo ${_debug} "${_myHeal}" ${_tmpID} FALSE
+
+/return FALSE
+ ***|
 
 
 
+
+
+|***
+ * note: casts heals from maHeal
+ * use: /call cast_cycle_heal DEBUG [TARGETID]
+ ***|
+sub cast_cycle_heal(bool _debug, int _tmpID, string _tag)
+	DEBUG \atcast_cycle_heal\ax(\a-w${_tmpID}, ${_tag}\ax)
+	FLOW cast_cycle_heal ${_tmpID}|${_tag} (1)
+
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
+		DEBUG ${sep}resetting the empty heal line
+		/invoke ${lsLineHeal.Clear}
+		/invoke ${lsLineHeal.Append[${stlist50}]}
+	}
+
+	/declare _myHeal string local FALSE
+	/declare _liHeal listiterator local
+	/vardata _liHeal lsLineHeal.First.Clone
+	/while (!${_liHeal.IsEnd}) {
+		DEBUG ${sep}heal${sep}\a-w${maHeal.Find[stHeal${_liHeal.Value}].Value}${sep}${maHeal.Find[stHeal${_liHeal.Value}]}\ax
+		GETINPUT cast_cycle_heal NA|NA
+		ISMEDEAD
+		CHECKEXIT cast_cycle_heal
+		FLOW cast_cycle_heal ${_tmpID}|${_tag} (2)
+
+		| check the switch
+		/if (!${Bool[${maHeal.Find[swHeal${_liHeal.Value}].Value}]}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		| check the item name
+		/if (!${Bool[${maHeal.Find[stHeal${_liHeal.Value}].Value}]}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		| check matching tag for failure
+		/if (!${lsHeal${_liHeal.Value}Tag.Contains[${_tag}]}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		| check matching tag pass
+		/if (${lsHeal${_liHeal.Value}Tag.Contains[${_tag}]}) {
+			/varset _myHeal ${maHeal.Find[stHeal${_liHeal.Value}].Value}
+		}
+
+		| ready?.. or continue
+		/if (!${is_ready[${_debug}, "${_myHeal}"]}) {
+			/varset _myHeal FALSE
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		| apply any conditions
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maHeal.Find[stHeal${_liHeal.Value}Con].Value}]}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		/call check_basic_tags ${maDebug.Find[tag].Value} Heal${_liHeal.Value} FALSE "${maHeal.Find[stHeal${_liHeal.Value}Con].Value}"
+		/if (!${Macro.Return}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		/call voodoo ${_debug} "${maHeal.Find[stHeal${_liHeal.Value}].Value}" ${_tmpID} FALSE
+
+		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]}) {
+			/break
+		}
+
+		/invoke ${_liHeal.Advance}
+	}
+
+/return TRUE
 

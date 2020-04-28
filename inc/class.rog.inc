@@ -269,7 +269,7 @@ sub check_heal_ROG(bool _debug, string _type)
 		/call voodoo ${_debug} "Tumble" 0 FALSE
 	}
 
-	/call cast_cycle_heal ${_debug} ${hurtID}
+	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
 
 	SETHUD EMPTY
 

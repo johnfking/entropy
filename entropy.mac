@@ -118,7 +118,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer B2004025.01
+	/call set_data FALSE maEnv build													map outer B2004027.01
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -538,7 +538,7 @@ sub check_housekeeping(bool _debug)
 	/if (${maCC.Find[swCombatHeal].Value} && !${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
 		/invoke ${set_switch_env[${_debug}, swCombatHeal, TRUE, FALSE]}
 	}
-	/if (${maCC.Find[swCombatControl].Value} && !${Select[${Me.Class.ShortName},ENC,BRD]}) {
+	/if (${maCC.Find[swCombatControl].Value} && !${Select[${Me.Class.ShortName},ENC,BRD,NEC,MAG]}) {
 		/invoke ${set_switch_env[${_debug}, swCombatControl, TRUE, FALSE]}
 	}
 

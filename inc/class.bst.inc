@@ -317,7 +317,7 @@ sub check_heal_BST(bool _debug, string _type)
 	| ToT heals
 	/if (${Select[${_type},tot]} && ${maHeal.Find[swHealToT].Value}) {
 		/if (${hurtCount} >= 1)  {
-			/call cast_list ${maDebug.Find[tot].Value} lsHealToT ${hurtID}
+			/call cast_cycle_heal ${_debug} ${Target.ID} healtot
 			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		}
 	}
@@ -330,7 +330,7 @@ sub check_heal_BST(bool _debug, string _type)
 			}
 		}
 
-		/call cast_list ${_debug} lsHealPetLine ${Pet.ID}
+		/call cast_cycle_heal ${_debug} ${Pet.ID} healminion
 	}
 
 	| self healing
@@ -347,7 +347,7 @@ sub check_heal_BST(bool _debug, string _type)
  	}
 	| heal anything spell
 	/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-		/call cast_cycle_heal ${_debug} ${hurtID}
+		/call cast_cycle_heal ${_debug} ${hurtID} healsingle
 	}
 
 	SETHUD EMPTY
