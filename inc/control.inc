@@ -1266,6 +1266,11 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	} else /if (${_type.Equal[grouphot]}) {
 		/invoke ${set_switch_env[${_debug}, swHealGroupOverTime, TRUE, ${_verbage}]}
 
+	| use weighted HP healing
+	} else /if (${_type.Equal[weight]}) {
+		/invoke ${set_switch_env[${_debug}, swHealWeighted, TRUE, ${_verbage}]}
+
+
 	| use splashes
 	} else /if (${_type.Equal[splash]} && ${Select[${Me.Class.ShortName},CLR,PAL]}) {
 		/if (!${set_control_num_range[${_debug}, stCountSplash, "${_verbage}", 0, 6]}) /return
@@ -1312,6 +1317,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	/invoke ${maControl.Add[pet,swHealPet]}
 	/invoke ${maControl.Add[cure,swHealCure]}
 	/invoke ${maControl.Add[adj,stHealAdjust]}
+	/invoke ${maControl.Add[weight,swHealWeighted]}
 
 	/if (${Select[${Me.Class.ShortName},CLR,PAL]}) {
 		/invoke ${maControl.Add[splash,stCountSplash]}
@@ -1778,7 +1784,7 @@ sub Bind_deez(string _type, string _verbage)
 		/call get_hurt TRUE ${_verbage}
 		/mqclear
 		OUT Hirt variables${sep}\a-w${_verbage}\ax
-		OUT hurtID${sep}\a-w${hurtID}\ax
+		OUT hurtID${sep}\a-w${hurtID}\ax (\a-r${Spawn[ID ${hurtID}].DisplayName}\ax)
 		OUT hurtPctHP${sep}\a-w${hurtPctHP}\ax
 		OUT hurtCLS${sep}\a-w${hurtCLS}\ax
 		OUT hurtCount${sep}\a-w${hurtCount}\ax

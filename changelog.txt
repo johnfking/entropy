@@ -32,6 +32,14 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+B2004029.02
+- /heal weight
+  on/off switch for using weighted HP healing checks
+  OFF by default
+- get_hurt()
+  removed an annoying DEBUG
+
+
 B2004029.01
 - corrected a list line generation for people not using the /line options
 - send_pet()

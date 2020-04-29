@@ -753,6 +753,8 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_list ${_debug} maHeal lsNoCureDeBuff                     EMPTY                         "${auxli} list of debuffs you DO NOT want to cure" 														heal
   /call set_data_list ${_debug} maHeal lsHealXTClass                      EMPTY                         "${auxli} classes to populate xtarget for healing use: \a-t/heal xtarget\ax" 	heal
   /call set_data_list ${_debug} maHeal lsNoHealToon                       EMPTY                         "${auxli} fuck these people.. no heals for them.." 														heal
+  /call set_data_map ${_debug} maHeal swHealWeighted                      FALSE                         "${auxsw} enable weighted HP check healing"																		heal
+
 
   /call set_data ${_debug} FALSE tmpHealAdjust                            float outer 99.99
   /call set_data ${_debug} FALSE hurtID                                   int outer 0

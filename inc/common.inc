@@ -890,6 +890,7 @@ sub sql_schema(bool _debug)
  ***|
 sub get_hurt(bool _debug, string _type)
 	DEBUG \atget_hurt\ax(\a-w${_type}\ax)
+	DEBUG ${sep}using weighted HP check${sep}\a-w${maHeal.Find[swHealWeighted].Value}\ax
 
 	/declare _count int local 0
 	/varset hurtID ${Me.ID}
@@ -908,29 +909,35 @@ sub get_hurt(bool _debug, string _type)
 		DEBUG \a-w{_type.Equal[group]}\ax
 
 		/for _count 0 to ${Group.Members}
-		SDEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}${Group.Member[${_count}].Name}${sep}${Group.Member[${_count}].ID}\ax
+			DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}${Group.Member[${_count}].Name}${sep}${Group.Member[${_count}].ID}\ax
 			/if (${Group.Member[${_count}].PctHPs} > ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}) /continue
 			/if (${Group.Member[${_count}].Distance} > ENV) /continue
 			/if (!${Group.Member[${_count}].Present} || ${Group.Member[${_count}].Dead}) /continue
 			/if (${Group.Member[${_count}].DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}) /continue
 			/if (${lsNoHealToon.Contains[${Group.Member[${_count}].DisplayName}]}) /continue
 
-			/varset _tmpWeight ${Math.Calc[(${Group.Member[${_count}].PctHPs} / ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}) - .${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}]}
-			DEBUG ${sep}_tmpWeight${sep}\a-w${_tmpWeight}\ax
-
+			| group hurt running count
 			/if (${Group.Member[${_count}].PctHPs} <= ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}) {
 				/varcalc hurtCount ${hurtCount} + 1
-			}
-
-			/if (${_tmpWeight} < ${_hurtWeight}) {
-				/varset _hurtWeight ${_tmpWeight}
-				/varset hurtPctHP ${Group.Member[${_count}].PctHPs}
-				/varset hurtID ${Group.Member[${_count}].ID}
-				/varset hurtCLS ${Group.Member[${_count}].Class.ShortName}
 				/if (${maHeal.Find[stCountHealGroup].Value}) {
 					DEBUG ${sep}break on${sep}\a-w${hurtCount}\ax \aw>=\ax \a-w${maHeal.Find[stCountHealGroup].Value}\ax
 					/if (${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) /break
 				}
+			}
+
+			/if (${maHeal.Find[swHealWeighted].Value}) {
+				/varset _tmpWeight ${Math.Calc[(${Group.Member[${_count}].PctHPs} / ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}) - .${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}]}
+				DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}_tmpWeight${sep}\a-w${_tmpWeight}\ax
+				/if (${_tmpWeight} < ${_hurtWeight}) {
+					/varset _hurtWeight ${_tmpWeight}
+					/varset hurtPctHP ${Group.Member[${_count}].PctHPs}
+					/varset hurtID ${Group.Member[${_count}].ID}
+					/varset hurtCLS ${Group.Member[${_count}].Class.ShortName}
+				}
+			} else /if (!${maHeal.Find[swHealWeighted].Value}) {
+				/varset hurtPctHP ${Group.Member[${_count}].PctHPs}
+				/varset hurtID ${Group.Member[${_count}].ID}
+				/varset hurtCLS ${Group.Member[${_count}].Class.ShortName}
 			}
 
 		/next _count
