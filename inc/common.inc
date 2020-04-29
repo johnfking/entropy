@@ -896,8 +896,8 @@ sub get_hurt(bool _debug, string _type)
 	/varset hurtPctHP 100
 	/varset hurtCLS ${Me.Class.ShortName}
 	/varset hurtCount 0
-	/declare _hurtWeight int local 0
-	/declare _tmpWeight int local 0
+	/declare _hurtWeight float local 98
+	/declare _tmpWeight float local 99
 
 	| we just take defaults of no one hurt and exit.
 	/if (${_type.Equal[reset]}) {
@@ -908,26 +908,28 @@ sub get_hurt(bool _debug, string _type)
 		DEBUG \a-w{_type.Equal[group]}\ax
 
 		/for _count 0 to ${Group.Members}
-			DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}${Group.Member[${_count}].Name}${sep}${Group.Member[${_count}].ID}\ax
+		SDEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}${Group.Member[${_count}].Name}${sep}${Group.Member[${_count}].ID}\ax
 			/if (${Group.Member[${_count}].PctHPs} > ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}) /continue
 			/if (${Group.Member[${_count}].Distance} > ENV) /continue
 			/if (!${Group.Member[${_count}].Present} || ${Group.Member[${_count}].Dead}) /continue
 			/if (${Group.Member[${_count}].DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}) /continue
 			/if (${lsNoHealToon.Contains[${Group.Member[${_count}].DisplayName}]}) /continue
 
-			DEBUG ${sep}_tmpWeight${sep}\a-w${_tmpWeight}\ax
-			/varcalc _tmpWeight (${Group.Member[${_count}].PctHPs} / ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}) + .${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}
+			/varset _tmpWeight ${Math.Calc[(${Group.Member[${_count}].PctHPs} / ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}) - .${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}]}
 			DEBUG ${sep}_tmpWeight${sep}\a-w${_tmpWeight}\ax
 
-			/if (${_tmpWeight} > ${_hurtWeight}) {
+			/if (${Group.Member[${_count}].PctHPs} <= ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}) {
+				/varcalc hurtCount ${hurtCount} + 1
+			}
+
+			/if (${_tmpWeight} < ${_hurtWeight}) {
 				/varset _hurtWeight ${_tmpWeight}
 				/varset hurtPctHP ${Group.Member[${_count}].PctHPs}
 				/varset hurtID ${Group.Member[${_count}].ID}
 				/varset hurtCLS ${Group.Member[${_count}].Class.ShortName}
-				/varcalc hurtCount ${hurtCount} + 1
-				/if (${maChr.Find[stCountHealGroup].Value}) {
-					DEBUG ${sep}break on${sep}\a-w${hurtCount}\ax \aw>=\ax \a-w${maChr.Find[stCountHealGroup].Value}\ax
-					/if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) /break
+				/if (${maHeal.Find[stCountHealGroup].Value}) {
+					DEBUG ${sep}break on${sep}\a-w${hurtCount}\ax \aw>=\ax \a-w${maHeal.Find[stCountHealGroup].Value}\ax
+					/if (${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) /break
 				}
 			}
 
@@ -947,9 +949,10 @@ sub get_hurt(bool _debug, string _type)
 			/if (${lsNoHealToon.Contains[${Me.XTarget[${_count}].DisplayName}]}) /continue
 	  	/if (!${Me.XTarget[${_count}].Type.Equal[PC]} && !${lsProtectNPCList.Contains[${Me.XTarget[${_count}].DisplayName}]}) /continue
 			/if (${Me.XTarget[${_count}].PctHPs} > ${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}*.PCTHO) /continue
-			/varcalc _tmpWeight (${Me.XTarget[${_count}].PctHPs} / ${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}) + .${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}
+			/varset _tmpWeight ${Math.Calc[(${Me.XTarget[${_count}].PctHPs} / ${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}) - .${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}]}
 
-			/if (${_tmpWeight} > ${_hurtWeight}) {
+			/if (${_tmpWeight} < ${_hurtWeight}) {
+				/varset _hurtWeight ${_tmpWeight}
 				/varset hurtID ${Me.XTarget[${_count}].ID}
 				/varset hurtPctHP ${Me.XTarget[${_count}].PctHPs}
 				/varset hurtCLS ${Me.XTarget[${_count}].Class.ShortName}
@@ -6037,11 +6040,6 @@ sub check_buff_cycle_self(bool _debug)
 			/continue
 		}
 
-		| blocked?
-		| /if (${${lsBlockedBuffsMe}.Find[${Spell[${maBuff.Find[stBuff${_count}].Value}].RankName.ID}]}) {
-		| 	/continue
-		| }
-
 		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maBuff.Find[stBuff${_count}Con].Value}]}) {
 			/continue
 		}
@@ -7186,7 +7184,7 @@ sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
 
 	| no active eq combat
 	/if (${ls${_type}Tag.Contains[noactivecombat]}) {
-		/if (${Select[${Me.CombatState},combat]} && ${SpawnCount[npc radius SAFEENV PS4]}) {
+		/if (${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius SAFEENV PS4]}) {
 			DEBUG ${sep}tag${sep}\a-wnoactivecombat\ax
 			/return FALSE
 		}
@@ -7976,6 +7974,10 @@ sub send_pet(bool _debug, int _tmpID)
 	/if (!AUTO && !${maMinion.Find[swonForce].Value}) /return FALSE
 	/if (${Spawn[id ${_tmpID}].Distance} > ENV) /return FALSE
 	/if (${Me.Pet.Target.ID} == ${_tmpID}) /return TRUE
+	/if (${Me.Pet.Target.ID} != ${_tmpID}) {
+		/pet back off
+		/return FALSE
+	}
 
 	ISMEDEAD
 	CHECKEXIT send_pet
@@ -12111,7 +12113,7 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 	/if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
 		DEBUG ${sep}resetting the empty heal line
 		/invoke ${lsLineHeal.Clear}
-		/invoke ${lsLineHeal.Append[${stlist50}]}
+		/invoke ${lsLineHeal.Append[${stCount50}]}
 	}
 
 	/declare _myHoT string local FALSE
@@ -12213,10 +12215,6 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 			/if (${Spell[${_myHoT}].Stacks}) /varset _found FALSE
 		}
 		/call voodoo ${_debug} "${_myHoT}" 0 FALSE
-
-
-
-
 		/return TRUE
 
 
@@ -12266,132 +12264,9 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 		}
 		/return TRUE
 
-
-
 	}
 
 /return FALSE
-
-
-
-|***
- * note: Group Heals (not the AAs)
- * use: /call cast_cycle_heal_group ${maDebug.Find[regen].Value}
-
-sub cast_cycle_heal_group(bool _debug)
-	DEBUG \atcast_cycle_heal_regen\ax(\a-w\ax)
-	FLOW cast_cycle_heal_group
-
-	| if the user has not set the line order, set it to a default for now
-	/if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
-		DEBUG ${sep}resetting the empty heal line
-		/invoke ${lsLineHeal.Clear}
-		/invoke ${lsLineHeal.Append[${stlist50}]}
-	}
-
- 	| group heal over time
-	/declare _myGHeal string local FALSE
-	/declare _liGHeal listiterator local
-	/vardata _liGHeal lsLineHeal.First.Clone
-	/while (!${_liGHeal.IsEnd}) {
-		| check the switch
-		/if (!${Bool[${maHeal.Find[swHeal${_liGHeal.Value}].Value}]}) {
-			/invoke ${_liGHeal.Advance}
-			/continue
-		}
-		| check the item name
-		/if (!${Bool[${maHeal.Find[stHeal${_liGHeal.Value}].Value}]}) {
-			/invoke ${_liGHeal.Advance}
-			/continue
-		}
-		| check matching tag
-		/if (!${lsHeal${_liGHeal.Value}Tag.Contains[healgroup]}) {
-			/invoke ${_liGHeal.Advance}
-			/continue
-		}
-		| cehck matching tag
-		/if (${lsHeal${_liGHeal.Value}Tag.Contains[healgroup]}) {
-			/varset _myGHeal ${maHeal.Find[stHeal${_liGHeal.Value}].Value}
-			/break
-		}
-		| ready?.. or continue
-		/if (!${is_ready[${_debug}, "${_myGHeal}"]}) {
-			/varset _myGHeal FALSE
-		}
-
-		/invoke ${_liGHeal.Advance}
-	}
-
-	| bail if user doesnt have a tag set
-	/if (!${Bool[${_myGHeal}]}) {
-		/return FALSE
-	}
-
-	/call voodoo ${_debug} "${_myGHeal}" 0 FALSE
-
-/return FALSE
- ***|
-
-
-|***
- * note: Target of Target Heals (not the AAs)
- * use: /call cast_cycle_heal_tot ${maDebug.Find[tot].Value}
-
-sub cast_cycle_heal_tot(bool _debug, int _tmpID)
-	DEBUG \atcast_cycle_heal_tot\ax(\a-w\ax)
-	FLOW cast_cycle_heal_tot
-
-	| if the user has not set the line order, set it to a default for now
-	/if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
-		DEBUG ${sep}resetting the empty heal line
-		/invoke ${lsLineHeal.Clear}
-		/invoke ${lsLineHeal.Append[${stlist50}]}
-	}
-
- 	| group heal over time
-	/declare _myHeal string local FALSE
-	/declare _liHeal listiterator local
-	/vardata _liHeal lsLineHeal.First.Clone
-	/while (!${_liHeal.IsEnd}) {
-		| check the switch
-		/if (!${Bool[${maHeal.Find[swHeal${_liHeal.Value}].Value}]}) {
-			/invoke ${_liHeal.Advance}
-			/continue
-		}
-		| check the item name
-		/if (!${Bool[${maHeal.Find[stHeal${_liHeal.Value}].Value}]}) {
-			/invoke ${_liHeal.Advance}
-			/continue
-		}
-		| check matching tag fail
-		/if (!${lsHeal${_liHeal.Value}Tag.Contains[healtot]}) {
-			/invoke ${_liHeal.Advance}
-			/continue
-		}
-		| check matching tag pass
-		/if (${lsHeal${_liHeal.Value}Tag.Contains[healtot]}) {
-			/varset _myHeal ${maHeal.Find[stHeal${_liHeal.Value}].Value}
-			/break
-		}
-		| ready?.. or continue
-		/if (!${is_ready[${_debug}, "${_myHeal}"]}) {
-			/varset _myHeal FALSE
-		}
-
-		/invoke ${_liHeal.Advance}
-	}
-
-	| bail if user doesnt have a tag set
-	/if (!${Bool[${_myHeal}]}) {
-		/return FALSE
-	}
-
-	/call voodoo ${_debug} "${_myHeal}" ${_tmpID} FALSE
-
-/return FALSE
- ***|
-
-
 
 
 
@@ -12407,7 +12282,7 @@ sub cast_cycle_heal(bool _debug, int _tmpID, string _tag)
 	/if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
 		DEBUG ${sep}resetting the empty heal line
 		/invoke ${lsLineHeal.Clear}
-		/invoke ${lsLineHeal.Append[${stlist50}]}
+		/invoke ${lsLineHeal.Append[${stCount50}]}
 	}
 
 	/declare _myHeal string local FALSE

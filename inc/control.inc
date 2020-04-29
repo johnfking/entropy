@@ -1773,6 +1773,18 @@ sub Bind_deez(string _type, string _verbage)
 	}
 
 
+	| get the hurt variables
+	/if (${_type.Equal[gethurt]}) {
+		/call get_hurt TRUE ${_verbage}
+		/mqclear
+		OUT Hirt variables${sep}\a-w${_verbage}\ax
+		OUT hurtID${sep}\a-w${hurtID}\ax
+		OUT hurtPctHP${sep}\a-w${hurtPctHP}\ax
+		OUT hurtCLS${sep}\a-w${hurtCLS}\ax
+		OUT hurtCount${sep}\a-w${hurtCount}\ax
+	}
+
+
 /return TRUE
 
 

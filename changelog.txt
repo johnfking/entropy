@@ -32,6 +32,16 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+B2004029.01
+- corrected a list line generation for people not using the /line options
+- send_pet()
+  pets will now reset if the pets target does not match the owners target
+- get_hurt() (the health checks for all healing)
+  considerable changes to the weighted healing for group and xtarget
+  hopefully this will evaluate the worst hurt toon better (NEEDS A LOT OF TESTING)
+  corrected a maths error in group hurt calculation
+  corrected a bad variable (one i had moved from chr to heal) for the break to use group heals
+
 
 B2004027.01
 - Sphere of Fire (PoWar Raid) and Steel Mass (quest mob in argath) added to the noTargetNPC list
