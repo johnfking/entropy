@@ -1307,7 +1307,8 @@ sub set_switch_env(bool _debug, string _switch, bool _sql, string _verbage)
 
 	| swap the switch status
 	} else /if (!${_verbage.Length} || (!${Bool[${_verbage}]} && ${_verbage.NotEqual[NULL]})) {
-		DEBUG ${sep}swapping
+		DEBUG ${sep}swapping${sep}\a-w{${_map}.Add[${_switch},${If[${${_map}.Find[${_switch}].Value},FALSE,TRUE]}]}\ax
+
 		/invoke ${${_map}.Add[${_switch},${If[${${_map}.Find[${_switch}].Value},FALSE,TRUE]}]}
 
 	}
@@ -6296,30 +6297,37 @@ sub check_buff_cycle_crew(bool _debug)
 
 			/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
 			/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
+
+			| skip self only
+			/if (${lsBuff${_count}Tag.Count} == 1 && (${lsBuff${_count}Tag.Contains[self]} || ${Spell[${_spell}].TargetType.Equal[Self]} || ${lsBuff${_count}Tag.Contains[minion]})) /continue
+
+			/if (!${check_condition[${maDebug.Find[condition].Value}, ${maBuff.Find[stBuff${_count}Con].Value}]}) {
+				/continue
+			}
+
+			| check basic tags
 			/call check_basic_tags ${maDebug.Find[tag].Value} Buff${_count} ${_toonName} "${maBuff.Find[stBuff${_count}].Value}"
 			/if (!${Macro.Return}) /continue
 
 			DEBUG ${sep}\agBUFF\ax#${sep}\a-w${_count}\ax \a-p---------------------\ax
 
 			| class
-			/if (${lsBuff${_count}Tag.Contains[${Spawn[${_toonName}].Class.ShortName}]}) /varset _target TRUE
+			| /if (${lsBuff${_count}Tag.Contains[${Spawn[${_toonName}].Class.ShortName}]}) /varset _target TRUE
 
 			| one of your crew, pretend they are not a target until they qualify
 			/varset _target FALSE
-			/if (${lsBuff${_count}Tag.Contains[crew]} && ${Spawn[${_toonName}].ID}) {
-				/if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) /varset _target TRUE
-			}
+
+			| /if (${lsBuff${_count}Tag.Contains[crew]} && ${Spawn[${_toonName}].ID}) {
+			| 	/if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) /varset _target TRUE
+			| }
 
 			| main assist
-			/if (${lsBuff${_count}Tag.Contains[ma]}) {
-				/if (${Group.MainAssist.Name.Equal[${_toonName}]} || ${maCC.Find[stManualAssist1].Value.Equal[${_toonName}]} || ${maCC.Find[stManualAssist2].Value.Equal[${_toonName}]}) /varset _target TRUE
-			}
+			| /if (${lsBuff${_count}Tag.Contains[ma]}) {
+			| 	/if (${Group.MainAssist.Name.Equal[${_toonName}]} || ${maCC.Find[stManualAssist1].Value.Equal[${_toonName}]} || ${maCC.Find[stManualAssist2].Value.Equal[${_toonName}]}) /varset _target TRUE
+			| }
 
 			/varset _spell ${set_rank[FALSE, "${maBuff.Find[stBuff${_count}].Value}"]}
 			DEBUG ${sep}\aw${_count}\ax${sep}\a-w${_spell}\ax${sep}\at${Spell[${_spell}].NumEffects}\ax
-
-			| skip self only
-			/if (${lsBuff${_count}Tag.Count} == 1 && (${lsBuff${_count}Tag.Contains[self]} || ${Spell[${_spell}].TargetType.Equal[Self]} || ${lsBuff${_count}Tag.Contains[minion]})) /continue
 
 			| distance check
 			/if (${Select[${Spell[${_spell}].TargetType},Group v2]}) {
@@ -6462,7 +6470,7 @@ sub check_buff_cycle_crew(bool _debug)
 			| pretend the target does not have the spell
 			/varset _target FALSE
 			| class
-			/if (!${lsBuff${_count}Tag.Contains[${Spawn[${_toonName}].Class.ShortName}]}) /continue
+			| /if (!${lsBuff${_count}Tag.Contains[${Spawn[${_toonName}].Class.ShortName}]}) /continue
 			| main assist
 			/if (${lsBuff${_count}Tag.Contains[ma]} && !${Group.MainAssist.Name.Equal[${_toonName}]} && !${maCC.Find[stManualAssist1].Value.Equal[${_toonName}]} && !${maCC.Find[stManualAssist2].Value.Equal[${_toonName}]}) /continue
 			| skip self only
@@ -7374,14 +7382,18 @@ sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
 	| /if (!${Bool[${_name}]} || ${_name.Equal[FALSE]}) /return TRUE
 	| /if (!${Spawn[${_name} ].ID}) /return FALSE
 
+
 	| checks to match a class shortname
 	/declare _marker bool FALSE
 	/declare _contains FALSE
 	/declare _li listiterator local
 	/vardata _li lsClassAll.First.Clone
+	| cycle all 16 classes
 	/while (!${_li.IsEnd}) {
+		| if the tag has a class in it st containts true
 		/if (${ls${_type}Tag.Contains[${_li.Value}]}) {
 			/varset _contains TRUE
+			| if we get a match for the class and the tag, set marker true and break the check
 			/if (${Spawn[${_name}].Class.ShortName.Equal[${_li.Value}]}) {
 				DEBUG ${sep}\aytag\ax${sep}\a-w${_li.Value}\ax
 				/varset _marker TRUE
@@ -7391,9 +7403,11 @@ sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
 		/varset _contains FALSE
 		/invoke ${_li.Advance}
 	}
+	| if contains==TRUE and _marker != TRUE we return a fail for that class that is the target
 	/if (${_contains} && !${_marker}) {
 		/return FALSE
 	}
+
 
 	| one of your crew
 	/if (${ls${_type}Tag.Contains[crew]}) {
@@ -7970,19 +7984,40 @@ sub cast_temp_pet(bool _debug, int _tmpID, string _tmpSpell)
 
 
 |***
- * note: chopper.. sick balls!
- * use: /call send_pet DEBUG [TARGETID]
+ * note: chopper.. sic balls!
+ * use: /call send_pet ${maDebug.Find[sic].Value} [TARGETID]
  ***|
 sub send_pet(bool _debug, int _tmpID)
 	DEBUG \atsend_pet\ax(\a-w${_tmpID}\ax)
 	FLOW send_pet ${_tmpID} (1)
 
-	/if (!${_tmpID}) /return FALSE
-	/if (!AUTO && !${maMinion.Find[swonForce].Value}) /return FALSE
-	/if (${Spawn[id ${_tmpID}].Distance} > ENV) /return FALSE
-	/if (${Me.Pet.Target.ID} == ${_tmpID}) /return TRUE
+	| no target == bail
+	/if (!${_tmpID}) {
+		DEBUG ${sep}break._tmpID
+		/return FALSE
+	}
+
+	| out of env range
+	/if (${Spawn[id ${_tmpID}].Distance} > ENV) {
+		DEBUG ${sep}break.>env
+		/return FALSE
+	}
+
+	| pet has the passed target
+	/if (${Me.Pet.Target.ID} == ${_tmpID}) {
+		DEBUG ${sep}break.ID${sep}\a-w${Me.Pet.Target.ID} == ${_tmpID}\ax
+		/return TRUE
+	}
+
+	| pets target does not match the passed id
 	/if (${Me.Pet.Target.ID} != ${_tmpID}) {
+		DEBUG ${sep}break.ID${sep}\a-w${Me.Pet.Target.ID} != ${_tmpID}\ax
 		/pet back off
+	}
+
+	| manual peoples...
+	/if (!AUTO && !${maMinion.Find[swonForce].Value}) {
+		DEBUG ${sep}break.manual NO swonForce
 		/return FALSE
 	}
 
@@ -9160,14 +9195,14 @@ sub set_AA_agro(bool _debug)
 		| adjust bold attacks AA
 		/if (${Me.AltAbilityReady[Bold Attacks: Disabled]}) {
 			/alt act ${Me.AltAbility[Bold Attacks: Disabled].ID}
-			/invoke ${out[2, "AA${sep}${info}Bold Attacks\ax ${dot} ${enabled}"]}
+			/invoke ${out[2, "AA${sep}${enabled}${sep}\a-wBold Attacks\ax"]}
 		}
 
 		| SHD Soul Flay
 		/if (${Select[${Me.Class.ShortName},SHD]}) {
 			/if (${Me.AltAbilityReady[Soul Flay: Disabled]}) {
 				/alt act ${Me.AltAbility[Soul Flay: Disabled].ID}
-				/invoke ${out[2, "AA${sep}${info}Soul Flay\ax ${dot} ${enabled}"]}
+				/invoke ${out[2, "AA${sep}${enabled}${sep}\a-wSoul Flay\ax"]}
 			}
 		}
 
@@ -9175,7 +9210,7 @@ sub set_AA_agro(bool _debug)
 		/if (${Select[${Me.Class.ShortName},BST]}) {
 			/if (${Me.AltAbilityReady[Combat Subtlety: Enabled]}) {
 				/alt act ${Me.AltAbility[Combat Subtlety: Enabled].ID}
-				/invoke ${out[2, "AA${sep}${info}Combat Subtlety\ax ${dot} ${disabled}"]}
+				/invoke ${out[2, "AA${sep}${disabled}${sep}\a-wCombat Subtlety\ax"]}
 			}
 		}
 
@@ -9183,7 +9218,7 @@ sub set_AA_agro(bool _debug)
 		/if (${Select[${Me.Class.ShortName},RNG]}) {
 			/if (${Me.AltAbilityReady[Ferocious Kick Subtlety: Enabled]}) {
 				/alt act ${Me.AltAbility[Ferocious Kick Subtlety: Enabled].ID}
-				/invoke ${out[2, "AA${sep}${info}Ferocious Kick Subtlety\ax ${dot} ${disabled}"]}
+				/invoke ${out[2, "AA${sep}${disabled}${sep}\a-wFerocious Kick Subtlety\ax"]}
 			}
 		}
 
@@ -9193,14 +9228,14 @@ sub set_AA_agro(bool _debug)
 		| adjust bold attacks AA
 		/if (${Me.AltAbilityReady[Bold Attacks: Enabled]}) {
 			/alt act ${Me.AltAbility[Bold Attacks: Enabled].ID}
-				/invoke ${out[2, "AA${sep}${info}Bold Attacks\ax ${dot} ${disabled}"]}
+				/invoke ${out[2, "AA${sep}${disabled}${sep}\a-wBold Attacks\ax"]}
 		}
 
 		| SHD Soul Flay
 		/if (${Select[${Me.Class.ShortName},SHD]}) {
 			/if (${Me.AltAbilityReady[Soul Flay: Enabled]}) {
 				/alt act ${Me.AltAbility[Soul Flay: Enabled].ID}
-				/invoke ${out[2, "AA${sep}${info}Soul Flay\ax ${dot} ${disabled}"]}
+				/invoke ${out[2, "AA${sep}${disabled}${sep}\a-wSoul Flay\ax"]}
 			}
 		}
 
@@ -9208,7 +9243,7 @@ sub set_AA_agro(bool _debug)
 		/if (${Select[${Me.Class.ShortName},BST]}) {
 			/if (${Me.AltAbilityReady[Combat Subtlety: Disabled]}) {
 				/alt act ${Me.AltAbility[Combat Subtlety: Disabled].ID}
-				/invoke ${out[2, "AA${sep}${info}Combat Subtlety\ax ${dot} ${enabled}"]}
+				/invoke ${out[2, "AA${sep}${enabled}${sep}\a-wCombat Subtlety\ax"]}
 			}
 		}
 
@@ -9216,7 +9251,7 @@ sub set_AA_agro(bool _debug)
 		/if (${Select[${Me.Class.ShortName},RNG]}) {
 			/if (${Me.AltAbilityReady[Ferocious Kick Subtlety: Disabled]}) {
 				/alt act ${Me.AltAbility[Ferocious Kick Subtlety: Disabled].ID}
-				/invoke ${out[2, "AA${sep}${info}Ferocious Kick Subtlety\ax ${dot} ${enabled}"]}
+				/invoke ${out[2, "AA${sep}${enabled}${sep}\a-wFerocious Kick Subtlety\ax"]}
 			}
 		}
 
@@ -10968,7 +11003,7 @@ sub cast_cycle_defense(bool _debug, int _tmpID)
 		}
 
 		| check any tags
-		/call check_basic_tags ${maDebug.Find[tag].Value} Defense${_liC20.Value} FALSE "${maDefense.Find[stDefense${_liC20.Value}].Value}"
+		/call check_basic_tags ${maDebug.Find[tag].Value} Defense${_liC20.Value} ${Me.DisplayName} "${maDefense.Find[stDefense${_liC20.Value}].Value}"
 		/if (!${Macro.Return}) {
 			/invoke ${_liC20.Advance}
 			/continue
@@ -11059,7 +11094,7 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 			/continue
 		}
 
-		/call check_basic_tags ${maDebug.Find[tag].Value} Item${_liC20.Value} FALSE "${maItem.Find[stItem${_liC20.Value}].Value}"
+		/call check_basic_tags ${maDebug.Find[tag].Value} Item${_liC20.Value} ${Me.DisplayName} "${maItem.Find[stItem${_liC20.Value}].Value}"
 		/if (!${Macro.Return}) {
 			/invoke ${_liC20.Advance}
 			/continue
@@ -11100,22 +11135,22 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 
 |***
  * note: casts nukes from maNuke
- * use: /call cast_cycle_nuke DEBUG [TARGETID]
+ * use: /call cast_cycle_nuke DEBUG [TARGETID] [TAG]
  ***|
-sub cast_cycle_nuke(bool _debug, int _tmpID)
-	DEBUG \atcast_cycle_nuke\ax(\a-w${_tmpID}\ax)
-	FLOW cast_cycle_nuke ${_tmpID} (1)
+sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
+	DEBUG \atcast_cycle_nuke\ax(\a-w${_tmpID}, ${_tag}\ax)
+	FLOW cast_cycle_nuke ${_tmpID}|${_tag} (1)
 
 	| if the user has not set the line order, set it to a default for now
 	/if (${lsLineNuke.Contains[EMPTY]} && ${lsLineNuke.Count} == 1) {
 		DEBUG ${sep}resetting the empty nuke line
 		/invoke ${lsLineNuke.Clear}
-		/invoke ${lsLineNuke.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+		/invoke ${lsLineNuke.Append[${stCount20}]}
 	}
 
-	/declare _liC20 listiterator local
-	/vardata _liC20 lsLineNuke.First.Clone
-	/while (!${_liC20.IsEnd}) {
+	/declare _liNuke listiterator local
+	/vardata _liNuke lsLineNuke.First.Clone
+	/while (!${_liNuke.IsEnd}) {
 
 		/if (${Me.PctMana} < 2) {
 			/return FALSE
@@ -11124,7 +11159,7 @@ sub cast_cycle_nuke(bool _debug, int _tmpID)
 		GETINPUT cast_cycle_nuke NA|NA
 		ISMEDEAD
 		CHECKEXIT cast_cycle_nuke
-		FLOW cast_cycle_nuke ${_tmpID} (2)
+		FLOW cast_cycle_nuke ${_tmpID}|${_tag}  (2)
 
 		/if (${target[isdead, ${_tmpID}]}) {
 			FLOW cast_cycle_nuke ${_tmpID}
@@ -11142,35 +11177,43 @@ sub cast_cycle_nuke(bool _debug, int _tmpID)
 		FLOW cast_cycle_nuke ${_tmpID}
 
 		| check the switch
-		/if (!${Bool[${maNuke.Find[swNuke${_liC20.Value}].Value}]}) {
-			/invoke ${_liC20.Advance}
+		/if (!${Bool[${maNuke.Find[swNuke${_liNuke.Value}].Value}]}) {
+			/invoke ${_liNuke.Advance}
 			/continue
 		}
 
 		| check the name
-		/if (!${Bool[${maNuke.Find[stNuke${_liC20.Value}].Value}]}) {
-			/invoke ${_liC20.Advance}
+		/if (!${Bool[${maNuke.Find[stNuke${_liNuke.Value}].Value}]}) {
+			/invoke ${_liNuke.Advance}
 			/continue
 		}
 
-		/if (!${is_ready[${_debug}, "${maNuke.Find[stNuke${_liC20.Value}].Value}"]}) {
-			/invoke ${_liC20.Advance}
+		| check matching tag for failure
+		/if (${Bool[${_tag}]}) {
+			/if (!${lsNuke${_liNuke.Value}Tag.Contains[${_tag}]}) {
+				/invoke ${_liNuke.Advance}
+				/continue
+			}
+		}
+
+		/if (!${is_ready[${_debug}, "${maNuke.Find[stNuke${_liNuke.Value}].Value}"]}) {
+			/invoke ${_liNuke.Advance}
 			/continue
 		}
 
 		| apply any conditions
-		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maNuke.Find[stNuke${_liC20.Value}Con].Value}]}) {
-			/invoke ${_liC20.Advance}
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maNuke.Find[stNuke${_liNuke.Value}Con].Value}]}) {
+			/invoke ${_liNuke.Advance}
 			/continue
 		}
 
-		/call check_basic_tags ${maDebug.Find[tag].Value} Nuke${_liC20.Value} FALSE "${maNuke.Find[stNuke${_liC20.Value}].Value}"
+		/call check_basic_tags ${maDebug.Find[tag].Value} Nuke${_liNuke.Value} ${Me.DisplayName} "${maNuke.Find[stNuke${_liNuke.Value}].Value}"
 		/if (!${Macro.Return}) {
-			/invoke ${_liC20.Advance}
+			/invoke ${_liNuke.Advance}
 			/continue
 		}
 
-		/call voodoo ${_debug} "${maNuke.Find[stNuke${_liC20.Value}].Value}" ${_tmpID} FALSE
+		/call voodoo ${_debug} "${maNuke.Find[stNuke${_liNuke.Value}].Value}" ${_tmpID} FALSE
 
 
 		/if (${Select[${maData.Find[stCastReturn].Value},OUTOFMANA,STUNNED]} && !${maNuke.Find[stNukeDelay].Value}) {
@@ -11193,7 +11236,7 @@ sub cast_cycle_nuke(bool _debug, int _tmpID)
 			/delay ${timer_Nuke_Delay}
 		}
 
-		/invoke ${_liC20.Advance}
+		/invoke ${_liNuke.Advance}
 	}
 
 /return TRUE
@@ -11305,7 +11348,7 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 			/continue
 		}
 
-		/call check_basic_tags ${maDebug.Find[tag].Value} DoT${_liC20.Value} FALSE "${maDoT.Find[stDoT${_liC20.Value}].Value}"
+		/call check_basic_tags ${maDebug.Find[tag].Value} DoT${_liC20.Value} ${Me.DisplayName} "${maDoT.Find[stDoT${_liC20.Value}].Value}"
 		/if (!${Macro.Return}) {
 			DEBUG ${sep}tag fail${sep}\a-w${maDoT.Find[stDoT${_liC20.Value}].Value}\ax
 			/invoke ${_liC20.Advance}
@@ -11384,7 +11427,7 @@ sub cast_cycle_agro(bool _debug, int _tmpID)
 			/continue
 		}
 
-		/call check_basic_tags ${maDebug.Find[tag].Value} Agro${_liC20.Value} FALSE "${maAgro.Find[stAgro${_liC20.Value}].Value}"
+		/call check_basic_tags ${maDebug.Find[tag].Value} Agro${_liC20.Value} ${Me.DisplayName} "${maAgro.Find[stAgro${_liC20.Value}].Value}"
 		/if (!${Macro.Return}) {
 			DEBUG ${sep}tag fail${sep}\a-w${maAgro.Find[stAgro${_liC20.Value}].Value}\ax
 			/invoke ${_liC20.Advance}
@@ -11463,7 +11506,7 @@ sub cast_cycle_miscdps(bool _debug, int _tmpID)
 			/continue
 		}
 
-		/call check_basic_tags ${maDebug.Find[tag].Value} MiscDPS${_liC50.Value} FALSE "${maMiscDPS.Find[stMiscDPS${_liC50.Value}].Value}"
+		/call check_basic_tags ${maDebug.Find[tag].Value} MiscDPS${_liC50.Value} ${Me.DisplayName} "${maMiscDPS.Find[stMiscDPS${_liC50.Value}].Value}"
 		/if (!${Macro.Return}) {
 			DEBUG ${sep}tag fail${sep}\a-w${maMiscDPS.Find[stMiscDPS${_liC50.Value}].Value}\ax
 			/invoke ${_liC50.Advance}
@@ -11535,7 +11578,7 @@ sub cast_cycle_burn(bool _debug, int _tmpID)
 			/continue
 		}
 
-		/call check_basic_tags ${maDebug.Find[tag].Value} Burn${_liC20.Value} FALSE "${maBurn.Find[stBurn${_liC20.Value}].Value}"
+		/call check_basic_tags ${maDebug.Find[tag].Value} Burn${_liC20.Value} ${Me.DisplayName} "${maBurn.Find[stBurn${_liC20.Value}].Value}"
 		/if (!${Macro.Return}) {
 			/invoke ${_liC20.Advance}
 			/continue
@@ -11621,7 +11664,7 @@ sub cycle_sash(bool _debug)
 			/varset _condition TRUE
 		}
 
-		/call check_basic_tags ${maDebug.Find[tag].Value} Sash${_liC12.Value} FALSE "${maSash.Find[stSash${_liC12.Value}].Value}"
+		/call check_basic_tags ${maDebug.Find[tag].Value} Sash${_liC12.Value} ${Me.DisplayName} "${maSash.Find[stSash${_liC12.Value}].Value}"
 		/if (${Macro.Return}) {
 			/varset _tag TRUE
 		}
@@ -12171,7 +12214,7 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 				/continue
 			}
 
-			/call check_basic_tags ${maDebug.Find[tag].Value} Heal${_liHoT.Value} FALSE "${maHeal.Find[stHeal${_liHoT.Value}Con].Value}"
+			/call check_basic_tags ${maDebug.Find[tag].Value} Heal${_liHoT.Value} ${Spawn[${hurtID}].DisplayName} "${maHeal.Find[stHeal${_liHoT.Value}Con].Value}"
 			/if (!${Macro.Return}) {
 				/varset _myHoT FALSE
 				/invoke ${_liHoT.Advance}
@@ -12338,7 +12381,7 @@ sub cast_cycle_heal(bool _debug, int _tmpID, string _tag)
 			/continue
 		}
 
-		/call check_basic_tags ${maDebug.Find[tag].Value} Heal${_liHeal.Value} FALSE "${maHeal.Find[stHeal${_liHeal.Value}Con].Value}"
+		/call check_basic_tags ${maDebug.Find[tag].Value} Heal${_liHeal.Value} ${Spawn[${hurtID}].DisplayName} "${maHeal.Find[stHeal${_liHeal.Value}Con].Value}"
 		/if (!${Macro.Return}) {
 			/invoke ${_liHeal.Advance}
 			/continue
@@ -12354,4 +12397,117 @@ sub cast_cycle_heal(bool _debug, int _tmpID, string _tag)
 	}
 
 /return TRUE
+
+
+
+
+|***
+ * note: cast promise heals from maHeal
+ * use: /call cast_cycle_heal_promise DEBUG
+ ***|
+sub cast_cycle_heal_promise(bool _debug)
+/return
+	DEBUG \atcast_cycle_heal_promise\ax(\a-w\ax)
+	FLOW cast_cycle_heal_promise ${_tmpID} (1)
+
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
+		DEBUG ${sep}resetting the empty heal line
+		/invoke ${lsLineHeal.Clear}
+		/invoke ${lsLineHeal.Append[${stCount50}]}
+	}
+
+	/declare _myHeal string local FALSE
+	/declare _liHeal listiterator local
+	/vardata _liHeal lsLineHeal.First.Clone
+	/while (!${_liHeal.IsEnd}) {
+		DEBUG ${sep}heal${sep}\a-w${maHeal.Find[stHeal${_liHeal.Value}].Value}${sep}${maHeal.Find[stHeal${_liHeal.Value}]}\ax
+		GETINPUT cast_cycle_heal_promise NA|NA
+		ISMEDEAD
+		CHECKEXIT cast_cycle_heal_promise
+		FLOW cast_cycle_heal_promise ${_tmpID} (2)
+
+		| check the switch
+		/if (!${Bool[${maHeal.Find[swHeal${_liHeal.Value}].Value}]}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		| check the item name
+		/if (!${Bool[${maHeal.Find[stHeal${_liHeal.Value}].Value}]}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		| check matching tag for failure
+		/if (!${lsHeal${_liHeal.Value}Tag.Contains[healpromise]}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		| check matching tag pass
+		/if (${lsHeal${_liHeal.Value}Tag.Contains[healpromise]}) {
+			/varset _myHeal ${maHeal.Find[stHeal${_liHeal.Value}].Value}
+		}
+
+		| ready?.. or continue
+		/if (!${is_ready[${_debug}, "${_myHeal}"]}) {
+			/varset _myHeal FALSE
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		| apply any conditions
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maHeal.Find[stHeal${_liHeal.Value}Con].Value}]}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		/call check_basic_tags ${maDebug.Find[tag].Value} Heal${_liHeal.Value} FALSE "${maHeal.Find[stHeal${_liHeal.Value}Con].Value}"
+		/if (!${Macro.Return}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		/declare _tmpName string local ${get_assist_info[${_debug}, ID]}
+
+		| set the spell
+		/varset _spell ${Spell[${maHeal.Find[stHeal${_liHeal.Value}Con].Value}].RankName}
+		DEBUG ${sep}\awSpell\ax${sep}\a-w${_spell}\ax ID:${Spell[${_spell}].ID}
+
+		| does it stack
+		/dquery ${_tmpName} -q "Spell[${_spell}].Stacks" -o DNQReturn -t 5
+		DEBUG ${sep}${sep}STACKS: .Stacks \at${DNQReturn}\ax ${dot} ${_spell}
+		/if (${DNQReturn.Equal[FALSE]}) /continue
+
+		| is it buff blocked
+		/dquery ${_tmpName} -q "lsBlockedBuffsMe.Find[${Spell[${_spell}].ID}]" -o DNQReturn -t 1s
+		DEBUG ${sep}${sep}BLOCKED .Buff.Blocked \at${DNQReturn}\ax ${dot} ${_spell}
+		/if (${Bool[${DNQReturn}]}) {
+			/continue
+		}
+
+		| do we have the triggered buff?
+		/dquery ${_tmpName} -q "Me.Buff[${_spell}].ID" -o DNQReturn -t 5
+		DEBUG ${sep}${sep}HAVE: .Buff.ID \at${DNQReturn}\ax ${dot} ${_spell}
+		/if (${Bool[${DNQReturn}]}) {
+			/continue
+		}
+
+
+		/declare _tmpID string local ${get_assist_info[${_debug}, ID]}
+		/delay 1
+
+		/call voodoo ${_debug} "${maHeal.Find[stHeal${_liHeal.Value}].Value}" ${_tmpID} FALSE
+
+		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]}) {
+			/break
+		}
+
+		/invoke ${_liHeal.Advance}
+	}
+
+/return TRUE
+
+
 

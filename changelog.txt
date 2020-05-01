@@ -32,6 +32,25 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+
+B200501.01
+- /heal promise (work in progress)
+- bard
+  should stop singing on a mob death. unless you are in a predective cycle OR have OOC singing on
+- tags
+  all calls to the tag routine should be passing toon names now. hopefully will respond to the class tags better
+  healpromise - promise heal spells
+  healsurge - tag for shaman surge healing spells
+  twincast - nuke tag for twincast trigger spells (only on shaman far, will get it on rest soon)
+- cleric
+  fixed an eerror with the /heal splash command not responding
+- send_pet (main pet attack routine)
+  update the debugs in it
+  fixed a logic issue with target mismatches
+- /cc agro
+  will now adjust the class aa agro skills, like Bold Attacks, to match
+
+
 B2004029.02
 - /heal weight
   on/off switch for using weighted HP healing checks

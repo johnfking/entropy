@@ -26,8 +26,7 @@ sub set_DRU(bool _debug)
 
  	/call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} alliance spell"
 
-	/call set_data_map FALSE maChr stCountHealGroup											0															"${auxnum} number in group hurt to use a group heal"
- 	/call set_data_list FALSE maChr lsHealGroup													PREGEN|2											"${auxli} group heal spells"
+	/call set_data_map FALSE maHeal stCountHealGroup										0															"${auxnum} number in group hurt to use a group heal" heal
  	/call set_data_map FALSE maChr swWolfSpirit													FALSE													"${auxsw} enable spirit of the great wolf aa (self/group)"
 
 	| temp buff: growth family
@@ -219,8 +218,8 @@ sub check_heal_DRU(bool _debug, string _type)
 	GETINPUT
 
   | Group Heal
-  /if (${Select[${_type},group]} && ${maChr.Find[stCountHealGroup].Value}) {
-	  /if (${hurtCount} >= ${maChr.Find[stCountHealGroup].Value}) {
+  /if (${Select[${_type},group]} && ${maHeal.Find[stCountHealGroup].Value}) {
+	  /if (${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
 
 			/if (!SAFEZONE) {
 

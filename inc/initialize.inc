@@ -45,9 +45,9 @@ sub set_debug()
   | combat
   /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait]}
 	| other
-  /invoke ${lsDebugother.Append[edit,rest,rez,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe]}
+  /invoke ${lsDebugother.Append[rest,rez,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe]}
 	| admin
-  /invoke ${lsDebugadmin.Append[build,init,observe,house,flow,exit,condition,sql]}
+  /invoke ${lsDebugadmin.Append[build,init,observe,house,flow,exit,condition,sql,edit]}
   | class specific debugs
   /if (${Select[${Me.Class.ShortName},BER]}) {
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
@@ -198,6 +198,10 @@ sub set_initialize(bool _debug)
   /call set_data ${_debug} FALSE auxna                                    string outer "[\a-wname\ax]"
   /call set_data ${_debug} FALSE auxli                                    string outer "[\a-wlist\ax]"
   /call set_data ${_debug} FALSE eol                                      string outer "\at........\ax \a#4183D7END OF LINE\ax"
+
+
+  /call set_data ${_debug} FALSE enabled																	string outer "\agenabled\ax"
+  /call set_data ${_debug} FALSE disabled																	string outer "\ardisabled\ax"
 
 /return TRUE
 
@@ -754,7 +758,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_list ${_debug} maHeal lsHealXTClass                      EMPTY                         "${auxli} classes to populate xtarget for healing use: \a-t/heal xtarget\ax" 	heal
   /call set_data_list ${_debug} maHeal lsNoHealToon                       EMPTY                         "${auxli} fuck these people.. no heals for them.." 														heal
   /call set_data_map ${_debug} maHeal swHealWeighted                      FALSE                         "${auxsw} enable weighted HP check healing"																		heal
-
+  /call set_data_map ${_debug} maHeal swHealPromise                     	FALSE                         "${auxsw} enable use of promised heal spells healing"													heal
 
   /call set_data ${_debug} FALSE tmpHealAdjust                            float outer 99.99
   /call set_data ${_debug} FALSE hurtID                                   int outer 0
@@ -792,7 +796,7 @@ sub set_initialize_map_character_environment(bool _debug)
   | xtarget sets heal classes
   /if (${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
     /declare lsXTargetClass list outer
-    /invoke ${set_data_timer[FALSE, Check_Xtarget_Build, 10m]}
+    /invoke ${set_data_timer[${_debug}, Check_Xtarget_Build, 10m]}
   }
 
 

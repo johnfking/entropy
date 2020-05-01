@@ -1147,6 +1147,7 @@ sub Bind_control_requestbuff(string _toon, string _operate, string _buff)
  ***|
 #Bind control_heal /heal
 sub Bind_control_heal(string _type, string _verbage, string _silent, string _verbage2, bool _debug)
+	/if (${maDebug.Find[edit].Value}) /varset _debug TRUE
 	DEBUG \atcontrol_heal\ax(\a-w${_type}, ${_verbage}, ${_silent}, ${_verbage2}\ax)
 
 	| output control map
@@ -1270,6 +1271,9 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	} else /if (${_type.Equal[weight]}) {
 		/invoke ${set_switch_env[${_debug}, swHealWeighted, TRUE, ${_verbage}]}
 
+	| use promise spells
+	} else /if (${_type.Equal[promise]} && ${Select[${Me.Class.ShortName},CLR]}) {
+		/invoke ${set_switch_env[${_debug}, swHealPromise, TRUE, ${_verbage}]}
 
 	| use splashes
 	} else /if (${_type.Equal[splash]} && ${Select[${Me.Class.ShortName},CLR,PAL]}) {
@@ -1318,7 +1322,9 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	/invoke ${maControl.Add[cure,swHealCure]}
 	/invoke ${maControl.Add[adj,stHealAdjust]}
 	/invoke ${maControl.Add[weight,swHealWeighted]}
-
+	/if (${Select[${Me.Class.ShortName},CLR]}) {
+		/invoke ${maControl.Add[promise,swHealPromise]}
+	}
 	/if (${Select[${Me.Class.ShortName},CLR,PAL]}) {
 		/invoke ${maControl.Add[splash,stCountSplash]}
 	}
@@ -1789,6 +1795,12 @@ sub Bind_deez(string _type, string _verbage)
 		OUT hurtCLS${sep}\a-w${hurtCLS}\ax
 		OUT hurtCount${sep}\a-w${hurtCount}\ax
 	}
+
+
+	/if (${_type.Equal[getass]}) {
+		OUT ${get_assist_info[FALSE, name]}
+	}
+
 
 
 /return TRUE
@@ -3223,6 +3235,7 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	| agro
 	} else /if (${_type.Equal[agro]}) {
 		/invoke ${set_switch_env[${_debug}, swAgro, TRUE, ${_verbage}]}
+		/call set_AA_agro ${_debug}
 
 	| force manual combat routines
 	} else /if (${_type.Equal[force]}) {

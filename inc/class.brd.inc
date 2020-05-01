@@ -61,32 +61,32 @@ sub main_BRD(bool _debug)
 		/call control_routine FALSE
 
 		/if (${maChr.Find[swPulseOOC].Value}) {
-			/call pulse_line ${maDebug.Find[pulse].Value} 0
+			/call pulse_cycle ${maDebug.Find[pulse].Value} 0
 		}
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
 		/if (VALID) {
-			| /call control_routine FALSE
+			/call control_routine FALSE
 			/call set_combat FALSE
 			CHECKDEFENSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
-			| /call control_routine FALSE
+			/call control_routine FALSE
 			/if (MELEE) /call do_melee FALSE TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			| /call control_routine FALSE
+			/call control_routine FALSE
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (SWARM) /call cast_servant_swarm FALSE TARGET
-			| /call control_routine FALSE
+			/call control_routine FALSE
 			| /if (${swAlliance}) /call trigger_alliance TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
-			/call pulse_line ${maDebug.Find[pulse].Value} TARGET
-			| /call control_routine FALSE
+			/call pulse_cycle ${maDebug.Find[pulse].Value} TARGET
+			/call control_routine FALSE
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
-			| /call control_routine FALSE
+			/call control_routine FALSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 
 		}
@@ -202,8 +202,6 @@ sub check_heal_BRD(bool _debug, string _type)
 
 
 
-
-
 |***
  * note: rotates bard swarm pets as DPS fillers
  * use: /call cast_servant_swarm DEBUG [TARGETID]
@@ -246,11 +244,11 @@ sub cast_servant_swarm(bool _debug, int _tmpID)
 
 |***
  * note: sings the line of songs for group support
- * use: /call pulse_line debug [TARGET]
+ * use: /call pulse_cycle DEBUG [TARGET]
  ***|
-sub pulse_line(bool _debug, _tmpID)
-	DEBUG \atpulse_line\ax(\a-w${_tmpID}\ax)
-	FLOW pulse_line
+sub pulse_cycle(bool _debug, _tmpID)
+	DEBUG \atpulse_cycle\ax(\a-w${_tmpID}\ax)
+	FLOW pulse_cycle
 
 	SETHUD "pulse"
 
@@ -258,24 +256,21 @@ sub pulse_line(bool _debug, _tmpID)
 	/if (${lsLineSong.Contains[EMPTY]} && ${lsLineSong.Count} == 1) {
 		DEBUG ${sep}resetting the empty line
 		/invoke ${lsLineSong.Clear}
-		/invoke ${lsLineSong.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+		/invoke ${lsLineSong.Append[${stCount20}]}
 	}
 
 	/declare _lipl listiterator local
 	/vardata _lipl lsLineSong.First.Clone
 	/while (!${_lipl.IsEnd}) {
 
-		/if (${_tmpID}) {
-			/if (${target[isdead, ${_tmpID}]}) {
-				/call pulse_stop
-				/call clear_combat
-				/return FALSE
-			}
+		/if (${target[isdead, ${_tmpID}]} && !${maPred.Find[swPred].Value} && !${maChr.Find[swPulseOOC].Value}) {
+			/call pulse_stop
+			/call clear_combat
+			/return FALSE
 		}
 
-		| /call control_routine FALSE
+		/call control_routine FALSE
 
-		| is the song on?
 		| check the switch
 		/if (!${Bool[${maSong.Find[swSong${_lipl.Value}].Value}]}) {
 			DEBUG ${sep}switch off${sep}\a-w${maSong.Find[stSong${_lipl.Value}].Value}\ax
@@ -303,7 +298,7 @@ sub pulse_line(bool _debug, _tmpID)
 			/continue
 		}
 
-		/call check_basic_tags ${_debug} Song${_lipl.Value} FALSE "${maSong.Find[stSong${_lipl.Value}].Value}"
+		/call check_basic_tags ${_debug} Song${_lipl.Value} ${Me.DisplayName} "${maSong.Find[stSong${_lipl.Value}].Value}"
 		/if (!${Macro.Return}) {
 			DEBUG ${sep}tag fail${sep}\a-w${maSong.Find[stSong${_lipl.Value}].Value}\ax
 			/invoke ${_lipl.Advance}

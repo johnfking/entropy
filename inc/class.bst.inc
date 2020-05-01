@@ -409,7 +409,7 @@ sub burn_BST(bool _debug, int _tmpID)
 
 	CHECKDEFENSE
 	/if (SWARM || PET) {
-		/call send_pet ${maDebug.Find[minion].Value} ${_tmpID}
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	}
 	/if (AUTO && MELEE) {
 		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE

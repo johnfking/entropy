@@ -30,17 +30,13 @@ sub set_CLR(bool _debug)
   /call set_data_map ${_debug} maHeal swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas" heal
   /call set_data_map ${_debug} maChr swCelestialRegen									FALSE													"${auxsw} use celestial regen aa"
 
-  | /call set_data_map ${_debug} maHeal stHealGroupOverTime							PREGEN|1											"${auxna} group heal over time spell"	heal
-
 	| single heal over time
 	/call set_data_map ${_debug} maChr stCountIssuance									0															"${auxnum} number of mobs in area to use issuance"
 
 	| count heal over time single
 	/call set_data_map ${_debug} maHeal swHealOverTime									FALSE													"${auxsw} enable to use heal over time" heal
-	| /call set_data_map ${_debug} maHeal stHealOverTime									PREGEN|1											"${auxna} heal over time spell" heal
 
 	/call set_data_map ${_debug} maHeal stCountHealGroup								0															"${auxnum} number in group hurt to use a group heal" heal
- 	| /call set_data_map ${_debug} maHeal stHealGroup											PREGEN|1											"${auxli} group heal spells" heal
 
 	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
 	/call set_data ${_debug} maData stAllianceSPA												map outer "481"
@@ -54,7 +50,6 @@ sub set_CLR(bool _debug)
 
 	| splash
 	/call set_data_map ${_debug} maHeal stCountSplash										0															"${auxnum} number mobs in range to use a splash heal" heal
-	| /call set_data_map ${_debug} maHeal stSplash												PREGEN|1											"${auxna} splash heal"	heal
 
 	| divine rez
 	/call set_data_map ${_debug} maRez swDivineCleric										FALSE													"${auxsw} divine rez other clerics"
@@ -300,6 +295,10 @@ sub check_heal_CLR(bool _debug, string _type)
 
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
+	/if (!${hurtCount} && ${maHeal.Find[swHealPromise].Value}) {
+		/call cast_cycle_heal_promise ${_debug}
+	}
+
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
 		SETHUD EMPTY
@@ -323,10 +322,14 @@ sub check_heal_CLR(bool _debug, string _type)
 			  }
 			}
 
-
 			| arbitration
 			/if (${maChr.Find[stCountArbitrate].Value} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
-				/call arbitration ${maDebug.Find[arb].Value}
+				/call cast_arbitration ${maDebug.Find[arb].Value}
+			 	/if (${Macro.Return}) {
+			 		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+			 			/return FALSE
+			 		}
+			 	}
 			}
 
 			| group heal
@@ -409,14 +412,6 @@ sub check_heal_CLR(bool _debug, string _type)
 	GETINPUT clr_heal_end type|${_type}
 
 	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
-
-	| arbitration
-	/if (${Select[${_type},group]} && ${Group}) {
-		/if (${maChr.Find[stCountArbitrate].Value} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
-			/call arbitration ${maDebug.Find[arb].Value}
-		}
-	}
-
 
 /return	TRUE
 
@@ -582,17 +577,17 @@ sub burn_CLR(bool _debug, int _tmpID)
 
 |***
  * note: HP arbitration
- * use: /call arbitration ${maDebug.Find[arb].Value}
+ * use: /call cast_arbitration ${maDebug.Find[arb].Value}
  ***|
-sub arbitration(bool _debug)
-	DEBUG \atarbitration\ax()
-	FLOW arbitration
+sub cast_arbitration(bool _debug)
+	DEBUG \atcast_arbitration\ax()
+	FLOW cast_arbitration
 
   | AA arb
   /if (${maChr.Find[swArbitrateAA].Value}) {
   	/if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
 	    /call voodoo ${_debug} "${maChr.Find[stAADivineArbitration].Value}" 0 FALSE
-	    /call get_hurt FALSE reset
+	    /call get_hurt ${maDebug.Find[hurt].Value} reset
 	    /return TRUE
 	  }
   }
@@ -602,19 +597,17 @@ sub arbitration(bool _debug)
 		| Second epic shield
 	  /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
 	    /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
-	    /call get_hurt FALSE reset
+	    /call get_hurt ${maDebug.Find[hurt].Value} reset
 	    /return TRUE
-	  }
-
 	  | First epic shield
-	  /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
+	  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
 	    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
-	    /call get_hurt FALSE reset
+	    /call get_hurt ${maDebug.Find[hurt].Value} reset
 	    /return TRUE
 	  }
 	}
 
-/return TRUE
+/return FALSE
 
 
 

@@ -37,14 +37,13 @@ sub set_SHM(bool _debug)
 
  	/call set_data_map ${_debug} maChr stHealSurge											PREGEN|1											"${auxna} area surge spell"
 
-  /call set_data_map ${_debug} maHeal swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas" heal
-  /call set_data_map ${_debug} maHeal stHealGroupOverTime							PREGEN|1											"${auxna} group heal over time spell" heal
+  /call set_data_map ${_debug} maHeal swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas" 						heal
 
-	/call set_data_map ${_debug} maHeal swHealOverTime									FALSE													"${auxsw} % of members health to use heal over time" heal
-	/call set_data_map ${_debug} maHeal stHealOverTime									PREGEN|1											"${auxna} heal over time spelll" heal
+	| count heal over time single
+	/call set_data_map ${_debug} maHeal swHealOverTime									FALSE													"${auxsw} enable to use heal over time" 									heal
 
-	/call set_data_map ${_debug} maChr stCountHealGroup									0															"${auxnum} number in group hurt to use a group heal"
- 	/call set_data_list ${_debug} maChr lsHealGroup											PREGEN|2											"${auxli} group heal spells"
+
+	/call set_data_map ${_debug} maHeal stCountHealGroup									0														"${auxnum} number in group hurt to use a group heal" 			heal
 
 	| temp buff: growth family
   /call set_data_list ${_debug} maChr lsGrowthToon	 									EMPTY													"${auxli} list of toons to use ward temp hp growth on"
@@ -191,7 +190,7 @@ sub check_heal_SHM(bool _debug, string _type)
 	  | check for surge
 	  /if (${maChr.Find[swSurge].Value}) {
 			/if (${SpawnCount[npc radius ENV PS4 targetable]}) {
-				/call cast_surge_heal ${maDebug.Find[surge].Value}
+				/call cast_cycle_heal_surge ${maDebug.Find[surge].Value}
 			}
 		}
 
@@ -201,7 +200,7 @@ sub check_heal_SHM(bool _debug, string _type)
 	}
 
 	| PET HEALING
-	/if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value}) {
+	/if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value} && ${Pet.ID}) {
 		/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
 			/call cast_cycle_heal ${_debug} ${Pet.ID} healminion
 		}
@@ -243,9 +242,9 @@ sub check_heal_SHM(bool _debug, string _type)
  * note: surge heal
  * use: part of heal routine
  ***|
-sub cast_surge_heal(bool _debug)
-	DEBUG \atcast_surge_heal\ax()
-	FLOW cast_surge_heal
+sub cast_cycle_heal_surge(bool _debug)
+	DEBUG \atcast_cycle_heal_surge\ax()
+	FLOW cast_cycle_heal_surge
 
 	/if (${target[isdead, TARGET]}) {
 		/return FALSE
@@ -257,40 +256,97 @@ sub cast_surge_heal(bool _debug)
 	GETINPUT
 
 	| get the main assisst ID
-	/declare _tmpID int local ${get_assist_info[FALSE, ID]}
+	/declare _tmpID int local ${get_assist_info[${_debug}, ID]}
 	DEBUG assist_name: ${_tmpID}
 
-	/if (!${Spawn[${_tmpID}].LineOfSight}) /return FALSE
+	/if (!${Spawn[${_tmpID}].LineOfSight}) {
+		DEBUG ${sep}break.LineOfSight
+		/return FALSE
+	}
 
+
+	| get our twincast proc
   /if (!${Me.Song[Healing Twincast].ID}) {
-	 	/declare _li listiterator local
-		/vardata _li lsNukeTC.First.Clone
-		/while (!${_li.IsEnd}) {
+		/call cast_cycle_nuke ${_debug} ${_tmpID} twincast
+	}
 
-			/if (${target[isdead, ${_tmpID}]}) {
-				/return FALSE
-			}
+	/if (!${Me.Song[Healing Twincast].ID}) {
+		DEBUG ${sep}break.no twincast song
+		/return FALSE
+	}
 
-			/if (${Me.PctMana} < 2) /continue
 
-			/if (${is_ready[${_debug}, "${_li.Value}"]}) {
-				/call voodoo ${_debug} "${_li.Value}" ${_tmpID} FALSE
-			}
-			/delay 15 !${Me.Casting.ID}
-			/if (${Me.Song[Healing Twincast].ID}) /break
+	| get our surge spell
 
-			/invoke ${_li.Advance}
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
+		DEBUG ${sep}resetting the empty heal line
+		/invoke ${lsLineHeal.Clear}
+		/invoke ${lsLineHeal.Append[${stCount50}]}
+	}
+
+	/declare _myHeal string local FALSE
+	/declare _liHeal listiterator local
+	/vardata _liHeal lsLineHeal.First.Clone
+	/while (!${_liHeal.IsEnd}) {
+		DEBUG ${sep}heal${sep}\a-w${maHeal.Find[stHeal${_liHeal.Value}].Value}${sep}${maHeal.Find[stHeal${_liHeal.Value}]}\ax
+		GETINPUT cast_cycle_heal_surge NA|NA
+		ISMEDEAD
+		CHECKEXIT cast_cycle_heal_surge
+		FLOW cast_cycle_heal_surge ${_tmpID} (1)
+
+		| check the switch
+		/if (!${Bool[${maHeal.Find[swHeal${_liHeal.Value}].Value}]}) {
+			/invoke ${_liHeal.Advance}
+			/continue
 		}
 
+		| check the item name
+		/if (!${Bool[${maHeal.Find[stHeal${_liHeal.Value}].Value}]}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		| check matching tag for failure
+		/if (!${lsHeal${_liHeal.Value}Tag.Contains[healsurge]}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		| check matching tag pass
+		/if (${lsHeal${_liHeal.Value}Tag.Contains[healsurge]}) {
+			/varset _myHeal ${maHeal.Find[stHeal${_liHeal.Value}].Value}
+		}
+
+		| ready?.. or continue
+		/if (!${is_ready[${_debug}, "${_myHeal}"]}) {
+			/varset _myHeal FALSE
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		| apply any conditions
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maHeal.Find[stHeal${_liHeal.Value}Con].Value}]}) {
+			/varset _myHeal FALSE
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		/call check_basic_tags ${maDebug.Find[tag].Value} Heal${_liHeal.Value} FALSE "${maHeal.Find[stHeal${_liHeal.Value}Con].Value}"
+		/if (!${Macro.Return}) {
+			/invoke ${_liHeal.Advance}
+			/continue
+		}
+
+		/call voodoo ${_debug} "${maHeal.Find[stHeal${_liHeal.Value}].Value}" ${_tmpID} FALSE
+
+		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]}) {
+			/return TRUE
+		}
+
+		/invoke ${_liHeal.Advance}
 	}
 
-	/if (!${Me.Song[Healing Twincast].ID}) /return FALSE
-
-	| spalsh surge heal
-	/delay 2.25s ${Me.SpellReady[${Spell[${maChr.Find[stHealSurge].Value}].RankName}]}
-	/if (${is_ready[${_debug}, "${maChr.Find[stHealSurge].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stHealSurge].Value}" ${_tmpID} FALSE
-	}
 
 /return TRUE
 
@@ -308,7 +364,6 @@ sub burn_SHM(bool _debug, int _tmpID)
 	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
-
 
 	CHECKEXIT
 	GETINPUT
@@ -349,7 +404,7 @@ sub burn_SHM(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "Spiritual Blessing" 0 FALSE
 	}
 
-	|Mega bear crap
+	| Mega bear crap
 	/if (AUTO && MELEE && ${is_ready[${_debug}, "Rabid Bear"]}) {
 		/call voodoo ${_debug} "Rabid Bear" ${_tmpID} FALSE
 	}
@@ -358,7 +413,7 @@ sub burn_SHM(bool _debug, int _tmpID)
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
 
-/return
+/return TRUE
 
 
 
