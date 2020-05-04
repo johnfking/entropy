@@ -172,7 +172,7 @@ sub set_data_map (bool _debug, string _map, string _env_var, string _value, _aux
 
 		| data exists but versions are different
 		} else /if (${maEnv.Find[build].Value.NotEqual[${maData.Find[stPreviousBuild].Value}]}) {
-			DEBUG ${sep}DATA \agdoes exists VERSIONS \arNO NOT\ax MATCH\ax
+			DEBUG ${sep}DATA \agdoes exists VERSIONS \arDO NOT\ax MATCH\ax
 			/invoke ${${_map}.Add[${sqlite.Result[dummy 1 env_var]},${sqlite.Result[dummy 1 value]}]}
 			DEBUG ${sep}${_map}${${_map}.Find[${sqlite.Result[dummy 1 env_var]}]}
 			/declare _DBLOC string local ${get_key_DBLOC[${_debug}, ${_env_var}]}
@@ -1537,13 +1537,12 @@ sub check_condition(bool _debug, str _condition)
 	DEBUG \atcheck_condition\ax(\a-w${_condition}\ax)
 	FLOW check_condition|${_condition}
 
-	/sqlite ${maData.Find[DBcharacter].Value} condition SELECT value FROM environment_condition WHERE env_var="c${_condition}"
+	/sqlite ${maData.Find[DBcharacter].Value} condition SELECT condition FROM environment_condition WHERE env_var="c${_condition}"
 
 	DEBUG ${sep}rows${sep}\a-w${sqlite.Rows[condition]}\ax
 	/if (${sqlite.Rows[condition]}) {
-		DEBUG ${sep}${_condition}${sep}\a-w${Parse[1,${sqlite.Result[condition 1 value]}]}\ax
-
-		DEBUG ${Parse[9999,${sqlite.Result[condition 1 value]}]}
+		DEBUG ${sep}${_condition}${sep}\a-w${Parse[1,${sqlite.Result[condition 1 value]}]}\ax\ag==\ax\a-w${Parse[9999,${sqlite.Result[condition 1 value]}]}\ax
+		DEBUG ${sep}(!${Parse[9999,${sqlite.Result[condition 1 value]}]})
 
 		/if (!${Parse[9999,${sqlite.Result[condition 1 value]}]}) {
 			DEBUG ${sep}Returning${sep}\a-wFALSE\ax
@@ -2214,7 +2213,6 @@ sub set_stop(bool _debug, string _silent)
 	SETHUD EMPTY
 
 /return TRUE
-
 
 
 
@@ -3390,8 +3388,8 @@ sub get_target_wait(bool _debug, int _tmpID, string _waittime)
 
 			| mobs in our personal space. fuck those things. no respect
 			| /if (${SpawnCount[npc radius SAFEENV PS4 targetable]} || ${NearestSpawn[1, npc radius ENV].ID} != ${_tmpID}) {
-			/if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
-				DEBUG ${sep}/while \a-gbreak_MOB IN SAFE SPACE\ax
+			/if (${SpawnCount[npc radius ENV PS4 targetable]}) {
+				DEBUG ${sep}break.mob in environment space
 				/invoke ${out[9, "Resetting target to${sep}\a-w${NearestSpawn[1, npc radius ENV].DisplayName}\ax"]}
 				/invoke ${target[clear]}
 				/break
@@ -5175,37 +5173,57 @@ sub check_buff_cycle_now(bool _debug)
   /vardata _licountself lsCount50.First.Clone
   /while (!${_licountself.IsEnd}) {
 
+		| no name set?
+		/if (!${Bool[${maBuff.Find[stBuff${_licountself.Value}].Value}]}) {
+			| DEBUG ${sep}break.no name set:${_licountself.Value}
+			/invoke ${_licountself.Advance}
+			/continue
+		}
+
+		| buff on/off switch
 		/if (!${maBuff.Find[swBuff${_licountself.Value}].Value}) {
+			| DEBUG ${sep}break.switched off:${_licountself.Value}
 			/invoke ${_licountself.Advance}
 			/continue
 		}
-		/if (!${is_ready[${_debug}, "${maBuff.Find[stBuff${_licountself.Value}].Value}"]}) {
-			/invoke ${_licountself.Advance}
-			/continue
-		}
+
+		| alwaysup tag needed
 		/if (!${lsBuff${_licountself.Value}Tag.Contains[alwaysup]}) {
+			| DEBUG ${sep}break. no alwaysup tag
 			/invoke ${_licountself.Advance}
 			/continue
 		}
 
+		| is it ready
+		/if (!${is_ready[${_debug}, "${maBuff.Find[stBuff${_licountself.Value}].Value}"]}) {
+			DEBUG ${sep}break. not ready
+			/invoke ${_licountself.Advance}
+			/continue
+		}
+
+		| condition check
 		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maBuff.Find[stBuff${_licountself.Value}Con].Value}]}) {
+			DEBUG ${sep}break.condition
 			/invoke ${_licountself.Advance}
 			/continue
 		}
 
+		| tag check
 		/call check_basic_tags ${maDebug.Find[tag].Value} Buff${_licountself.Value} ${Me.DisplayName} "${maBuff.Find[stBuff${_licountself.Value}].Value}"
 		/if (!${Macro.Return}) {
+			DEBUG ${sep}break.tag
 			/invoke ${_licountself.Advance}
 			/continue
 		}
 
-
+		DEBUG ${sep}Buff#: ${_licountself.Value}${sep}\a-w${maBuff.Find[stBuff${_licountself.Value}].Value}\ax
 		/varset _spell ${maBuff.Find[stBuff${_licountself.Value}].Value}
 
 		/if (${Me.AltAbilityReady[${_spell}]} || ${Me.Book[${Spell[${_spell}].RankName}]} || ${Me.CombatAbilityReady[${Me.CombatAbility[${Spell[${_spell}].RankName}]}]}) {
 
 			/if (${Spell[${_spell}].NumEffects} == 1)  {
 				/varset _spell ${Spell[${Spell[${_spell}].Trigger[1]}].RankName}
+				DEBUG ${sep}_spell${sep}\a-w${Spell[${Spell[${_spell}].Trigger[1]}].RankName}\ax
 			}
 
 		} else /if (${Me.ItemReady[=${_spell}]}) {
@@ -5213,17 +5231,19 @@ sub check_buff_cycle_now(bool _debug)
 
 		}
 
-		DEBUG ${_spell} :: ${Me.Buff[${_spell}].ID} || ${Me.Song[${_spell}].ID}
+		| DEBUG ${sep}${_spell} :: ${Me.Buff[${_spell}].ID} || ${Me.Song[${_spell}].ID}
 
 		| do we have it, now that we know what it is?
 		/if (${Me.Buff[${_spell}].ID} || ${Me.Song[${_spell}].ID}) {
-			/return TRUE
+			DEBUG ${sep}break.have buff/song
+			/invoke ${_licountself.Advance}
+			/continue
 		}
 
 		| remember target
-		/if (!${Select[${Target.ID},NULL]}) {
-			/varset _targetIDorg ${Target.ID}
-		}
+		| /if (!${Select[${Target.ID},NULL]}) {
+		| 	/varset _targetIDorg ${Target.ID}
+		| }
 
 		/if (${Spell[${_spell}].TargetType.Equal[single]}) {
 			/varset _targetID ${Me.ID}
@@ -5238,12 +5258,13 @@ sub check_buff_cycle_now(bool _debug)
 		}
 
 		| return target
-		/if (${Select[${_targetIDorg},NULL]}) {
-			/squelch /target clear
-		} else /if (!${Select[${_targetIDorg},NULL]}) {
+		| /if (${Select[${_targetIDorg},NULL]}) {
+		| 	/squelch /target clear
+		| } else /if (!${Select[${_targetIDorg},NULL]}) {
+		|
+		| }
 
-		}
-
+		DEBUG ${sep}next iteration
 		/invoke ${_licountself.Advance}
 	}
 
@@ -7253,6 +7274,15 @@ sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
 		}
 	}
 
+	| no active eq combat
+	/if (${ls${_type}Tag.Contains[activecombat]}) {
+		/if (!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius SAFEENV PS4]}) {
+			DEBUG ${sep}tag${sep}\a-wactivecombat\ax
+			/return FALSE
+		}
+	}
+
+
 	| must be outdoors
 	/if (${ls${_type}Tag.Contains[outdoor]}) {
 		/if (${Me.FeetWet} || ${Zone.Indoor}) {
@@ -7688,7 +7718,7 @@ sub check_cure(bool _debug)
 	DEBUG \atcheck_cure\ax()
 	FLOW check_cure
 
-	/invoke ${set_data_timer[FALSE, Check_Cure, RESTART]}
+	/invoke ${set_data_timer[${_debug}, Check_Cure, RESTART]}
 
 	/if (!AUTO) /return FALSE
 
@@ -7703,55 +7733,59 @@ sub check_cure(bool _debug)
 	GETINPUT check_cure NA|NA
 
 	| My daughter said you have issues.. She's usually right.
-	/if (${Me.TotalCounters}) {
+	/if (${Me.TotalCounters} && ${maHeal.Find[swHealCureSelf].Value}) {
 		DEBUG ${sep}\aw${Me.DisplayName.Lower}\ax needs a medic!
 
 		| Monk
 		/if (${Select[${Me.Class.ShortName},MNK]} && ${Me.AltAbilityReady[Purify Body]}) {
-			/call voodooo FALSE "Purify Body" 0 FALSE
+			/call voodooo ${_debug} "Purify Body" 0 FALSE
 			/delay 5
-			/invoke ${set_data_timer[FALSE, Check_Cure, 1]}
+			/invoke ${set_data_timer[${_debug}, Check_Cure, 1]}
 			/return
 
 		| Paladin, Cleric, Shaman, Druid
 		} else /if (${Select[${Me.Class.ShortName},PAL,CLR,SHM,DRU]} && ${Me.AltAbilityReady[Radiant Cure]} && (${Me.CountersCurse} || ${Me.CountersPoison} || ${Me.CountersDisease})) {
-			/call voodoo FALSE "Radiant Cure" 0 FALSE
+			/call voodoo ${_debug} "Radiant Cure" 0 FALSE
 			/delay 5
-			/invoke ${set_data_timer[FALSE, Check_Cure, 1]}
+			/invoke ${set_data_timer[${_debug}, Check_Cure, 1]}
 			/return
 
 		| Necromancer
 		} else /if (${Select[${Me.Class.ShortName},NEC]} && ${Me.AltAbilityReady[Embrace the Decay]} && (${Me.CountersCurse} || ${Me.CountersPoison} || ${Me.CountersDisease} || ${Me.CountersCorruption})) {
-			/call voodoo FALSE "Embrace the Decay" 0 FALSE
+			/call voodoo ${_debug} "Embrace the Decay" 0 FALSE
 			/delay 5
-			/invoke ${set_data_timer[FALSE, Check_Cure, 1]}
+			/invoke ${set_data_timer[${_debug}, Check_Cure, 1]}
 			/return
 		}
 
 		| cure with items self only
 		/if (${Me.CountersCurse} && ${Me.ItemReady[${maHeal.Find[stCureCurseItem].Value}]}) {
-			/call voodoo FALSE "${maHeal.Find[stCureCurseItem].Value}" ${Me.ID} FALSE
+			/call voodoo ${_debug} "${maHeal.Find[stCureCurseItem].Value}" ${Me.ID} FALSE
 			/delay 5
 		}
 
 		/if (${Me.CountersCorruption} && ${Me.ItemReady[${maHeal.Find[stCureCorruptionItem].Value}]}) {
-			/call voodoo FALSE "${maHeal.Find[stCureCorruptionItem].Value}" ${Me.ID} FALSE
+			/call voodoo ${_debug} "${maHeal.Find[stCureCorruptionItem].Value}" ${Me.ID} FALSE
 			/delay 5
 		}
 
 		/if (${Me.CountersPoison} && ${Me.ItemReady[${maHeal.Find[stCurePoisonItem].Value}]}) {
-			/call voodoo FALSE "${maHeal.Find[stCurePoisonItem].Value}" ${Me.ID} FALSE
+			/call voodoo ${_debug} "${maHeal.Find[stCurePoisonItem].Value}" ${Me.ID} FALSE
 			/delay 5
 		}
 
 		/if (${Me.CountersDisease} && ${Me.ItemReady[${maHeal.Find[stCureDiseaseItem].Value}]}) {
-			/call voodoo FALSE "${maHeal.Find[stCureDiseaseItem].Value}" ${Me.ID} FALSE
+			/call voodoo ${_debug} "${maHeal.Find[stCureDiseaseItem].Value}" ${Me.ID} FALSE
 			/delay 5
 		}
-	} else /if (!${Me.TotalCounters}) {
+	} else /if (!${Me.TotalCounters} && ${maHeal.Find[swHealCureSelf].Value}) {
 		DEBUG ${sep}\aw${Me.DisplayName.Lower}\ax is just fine
 	}
 
+	| bail now if only self curing
+	/if (!${maHeal.Find[swHealCureGroup].Value} && !${maHeal.Find[swHealCureCrew].Value}) {
+		/return TRUE
+	}
 
 	/declare _count int local 0
 	/declare _name string local
@@ -7766,6 +7800,14 @@ sub check_cure(bool _debug)
 		| are they here?
 		/if (!${Spawn[pc ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}) /continue
 
+
+		| group only
+		/if (${maHeal.Find[swHealCureGroup].Value} && !${maHeal.Find[swHealCureCrew].Value}) {
+			/if (!${Group.Member[${_name}].ID}) {
+				/continue
+			}
+		}
+
 		| if the observer hasnt "observerd" the toon yet. go no further!
 		/if (!${Defined[${_name}_TotalCounters]}) {
 			DEBUG ${sep}\aw${_name}\ax is not being observerd.. \a-wshit coding inc\ax...
@@ -7773,7 +7815,7 @@ sub check_cure(bool _debug)
 		}
 
 		| are they close?. if not. fuck'em
-	/if (${Spawn[pc ${_name}].Distance} > ${maHard.Find[stMaxCureRad].Value}) /continue
+		/if (${Spawn[pc ${_name}].Distance} > ${maHard.Find[stMaxCureRad].Value}) /continue
 
 		| toon dead?
 		/if (${Spawn[pc ${_name}].Dead}) /continue
@@ -9644,7 +9686,7 @@ sub get_target_multipull(bool _debug)
 			}
 
 		| no path exists to get to target, "God Save the Queen!"
-		} else /if (!${Navigation.PathExists[id TARGET]}) {
+		} else C
 			DEBUG ${sep}NAV Path \arbad\ax
 			:intpull
 			/call get_target_intpull ${_debug} TARGET
@@ -10559,7 +10601,7 @@ sub check_heal_routines()
 	}
 
 	| heal: curing
-	/if (!${timer_Check_Cure} && ${maHeal.Find[swHealCure].Value}) {
+	/if (!${timer_Check_Cure} && (${maHeal.Find[swHealCureSelf].Value} || ${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value})) {
 		/call check_cure ${maDebug.Find[cure].Value}
 	}
 
@@ -10721,7 +10763,8 @@ sub target(string _type, int _tmpID)
 
 
 
-|***
+
+|***
  * note: attraction pulls for tanks
  * use: /call pull_mob_attraction DEBUG [TARGETID] [FORCE T/F]
  ***|
@@ -12172,36 +12215,45 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 
  	| group heal over time
 	/if (${_tag.Equal[healgrouphot]}) {
+		DEBUG ${sep}tag.Found
 
 		| break on no mobs in area
-		/if (${SpawnCount[npc radius ENV PS4 targetable]} <= AE#) {
+		/if (AE# && ${SpawnCount[npc radius ENV PS4 targetable]} < AE#) {
+			DEBUG ${sep}break.not enough mobs in ae rad
 			/return FALSE
 		}
 
 		| find my hot
 		/while (!${_liHoT.IsEnd}) {
+
 			| check the switch
-			/if (!${Bool[${maHeal.Find[swHeal${_liHoT.Value}].Value}]}) {
+			/if (!${maHeal.Find[swHeal${_liHoT.Value}].Value}) {
 				/invoke ${_liHoT.Advance}
 				/continue
 			}
+
 			| check the item name
 			/if (!${Bool[${maHeal.Find[stHeal${_liHoT.Value}].Value}]}) {
 				/invoke ${_liHoT.Advance}
 				/continue
 			}
+
 			| check matching tag
 			/if (!${lsHeal${_liHoT.Value}Tag.Contains[healgrouphot]}) {
+				DEBUG ${sep}break.wrongtag
 				/invoke ${_liHoT.Advance}
 				/continue
 			}
-			| cehck matching tag
+
+			| check matching tag
 			/if (${lsHeal${_liHoT.Value}Tag.Contains[healgrouphot]}) {
+				DEBUG ${sep}setting _myHoT${sep}\a-w${maHeal.Find[stHeal${_liHoT.Value}].Value}\ax
 				/varset _myHoT ${maHeal.Find[stHeal${_liHoT.Value}].Value}
 			}
 
 			| ready?.. or continue
 			/if (!${is_ready[${_debug}, "${_myHoT}"]}) {
+				DEBUG ${sep}break.notready
 				/varset _myHoT FALSE
 				/invoke ${_liHoT.Advance}
 				/continue
@@ -12209,6 +12261,7 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 
 			| apply any conditions
 			/if (!${check_condition[${maDebug.Find[condition].Value}, ${maHeal.Find[stHeal${_liHoT.Value}Con].Value}]}) {
+				DEBUG ${sep}break.condition
 				/varset _myHoT FALSE
 				/invoke ${_liHoT.Advance}
 				/continue
@@ -12220,6 +12273,7 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 				/invoke ${_liHoT.Advance}
 				/continue
 			}
+
 
 			/invoke ${_liHoT.Advance}
 		}
@@ -12400,7 +12454,6 @@ sub cast_cycle_heal(bool _debug, int _tmpID, string _tag)
 
 
 
-
 |***
  * note: cast promise heals from maHeal
  * use: /call cast_cycle_heal_promise DEBUG
@@ -12494,7 +12547,6 @@ sub cast_cycle_heal_promise(bool _debug)
 			/continue
 		}
 
-
 		/declare _tmpID string local ${get_assist_info[${_debug}, ID]}
 		/delay 1
 
@@ -12509,5 +12561,29 @@ sub cast_cycle_heal_promise(bool _debug)
 
 /return TRUE
 
+
+
+|***
+ * note: moves you behind a target
+ * use: /call moveto_behind DEBUG TARGETID
+ ***|
+sub moveto_behind(bool _debug, int _tmpID)
+	DEBUG \atmoveto_behind\ax()
+	/declare _dist float local ${Math.Calc[${Target.MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
+	/declare _tmpY float local ${Math.Calc[${Target.Y}-${Math.Calc[(${_dist}*${Math.Cos[${Target.Heading.DegreesCCW}]}]}]}
+	/declare _tmpX float local ${Math.Calc[${Target.X}-${Math.Calc[(${_dist}*${Math.Sin[${Target.Heading.DegreesCCW}]}]}]}
+	/declare _tmpZ float local ${Target.Z}
+
+	DEBUG ${sep}locyxz${sep}\a-w${_tmpY} ${_tmpX} ${_tmpZ} dist=${_dist}\ax
+
+	/if (${Navigation.PathExists[locyxz ${_tmpY} ${_tmpX} ${_tmpZ}]}) {
+		/nav locyxz ${_tmpY} ${_tmpX} ${_tmpZ} |log=off dist=${_dist}
+		/delay 6 ${Me.Moving}
+		/delay 30s !${Me.Moving}
+	}
+
+	/delay 2
+
+/return TRUE
 
 

@@ -274,10 +274,10 @@ sub set_initial_environment(bool _debug)
 	/call set_data ${_debug} FALSE lsCount20		                            list outer "${stCount20}"
 	/call set_data ${_debug} FALSE lsCount50		                            list outer "${stCount50}"
 
-	| cleric
+	| cleric group regens
 	/call set_data ${_debug} FALSE lsGroupRegens			                      list outer "Elixir of Transcendence|Elixir of Wulthan|Elixir of the Seas|Elixir of Expiation|Elixir of Atonement|Elixir of Redemption|Elixir of Divinity|Ethereal Elixir"
-	| shaman
-	/call set_data ${_debug} FALSE lsGroupRegens			                      list outer "Talisman of The Enduring|Cloud of Renewal|Shear of Renewal|Wisp of Renewal|Phantom of Renewal|Penumbra of Renewal|Shadow of Renewal|Shade of Renewal|Specter of Renewal|Ghost of Renewal"
+	| shaman group regens
+	/call set_data ${_debug} FALSE lsGroupRegens			                      list outer "Spectre of Renewal|Talisman of the Enduring|Cloud of Renewal|Shear of Renewal|Wisp of Renewal|Phantom of Renewal|Penumbra of Renewal|Shadow of Renewal|Shade of Renewal|Specter of Renewal|Ghost of Renewal"
 
   | timers  for everyone
   /invoke ${set_data_timer[FALSE, Try_Door, 4s]}
@@ -749,7 +749,14 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHeal swHealGroup                         FALSE                         "${auxsw} enable group healing" 																							heal
   /call set_data_map ${_debug} maHeal swHealXTarget                       FALSE                         "${auxsw} enable xtarget healing" 																						heal
   /call set_data_map ${_debug} maHeal swHealPet                           FALSE                         "${auxsw} enable pet healing" 																								heal
-  /call set_data_map ${_debug} maHeal swHealCure                          FALSE                         "${auxsw} enable curing" 																											heal
+  | /call set_data_map ${_debug} maHeal swHealCure                          FALSE                         "${auxsw} enable curing" 																											heal
+
+  /call set_data_map ${_debug} maHeal swHealCureSelf                      FALSE                         "${auxsw} enable self curing" 																								heal
+  /call set_data_map ${_debug} maHeal swHealCureGroup                     FALSE                         "${auxsw} enable group curing"																								heal
+  /call set_data_map ${_debug} maHeal swHealCureCrew                      FALSE                         "${auxsw} enable crew curing (everyone)"																			heal
+
+
+
   /call set_data_map ${_debug} maHeal stCureCurseItem                     FALSE                         "${auxna} name of item to cure self curses" 																	heal
   /call set_data_map ${_debug} maHeal stCurePoisonItem                    FALSE                         "${auxna} name of item to cure self poisons" 																	heal
   /call set_data_map ${_debug} maHeal stCureDiseaseItem                   FALSE                         "${auxna} name of item to cure self diseases" 																heal

@@ -32,6 +32,30 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+B200504.01
+- group regen cycle
+  corrected an AE count condition
+- check_buff_cycle_now aka /buff now
+  redesigned the cycle to exit faster if its not tagged as an alwaysup buff
+- tag
+  activecombat - must be in active eq combat or have KOS mobs within your safeenv radius
+- cleric
+  fixed the celestial regeration aa in group content
+- bard
+  re commented the majority of the mez call routines till i can see why they are screwing up the targeting
+- new command /cure
+  /cure self - cures yourself only
+  /cure group - cures your group members you have control over (including you)
+  /cure crew - cures everyone you have control over
+	/cure item disease NAME
+	/cure item poison NAME
+	/cure item curse NAME
+	/cure item corruption NAME
+	/cure spell disease NAME
+	/cure spell poison NAME
+	/cure spell curse NAME
+	/cure spell corruption NAME
+
 
 B200501.01
 - /heal promise (work in progress)
@@ -43,7 +67,7 @@ B200501.01
   healsurge - tag for shaman surge healing spells
   twincast - nuke tag for twincast trigger spells (only on shaman far, will get it on rest soon)
 - cleric
-  fixed an eerror with the /heal splash command not responding
+  fixed an error with the /heal splash command not responding
 - send_pet (main pet attack routine)
   update the debugs in it
   fixed a logic issue with target mismatches

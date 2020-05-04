@@ -503,9 +503,9 @@ sub burn_CLR(bool _debug, int _tmpID)
 	}
 
 	| Group AA Celestial Regeneration
- 	/if (${maChr.Find[swHealGroupOverTime].Value} && ${Group}) {
- 	 	/if (${is_ready[${_debug}, "${maChr.Find[stAACelestialRegeneration].Value}"]}) {
- 	 		/if (!${Bool[${Me.Song[${maChr.Find[stAACelestialRegeneration].Value}]}]} && !${Me.Song[${maChr.Find[stAAFocusedCelestialRegeneration].Value}].ID}) {
+ 	/if (${maHeal.Find[swHealGroupOverTime].Value} && ${Group.Members} && !${Raid.Members}) {
+ 		/if (!${Bool[${Me.Song[${maChr.Find[stAACelestialRegeneration].Value}]}]} && !${Me.Song[${maChr.Find[stAAFocusedCelestialRegeneration].Value}].ID}) {
+	 	 	/if (${is_ready[${_debug}, "${maChr.Find[stAACelestialRegeneration].Value}"]}) {
  				/call voodoo ${_debug} "${maChr.Find[stAACelestialRegeneration].Value}" 0 FALSE
  			}
 	  }
@@ -599,8 +599,10 @@ sub cast_arbitration(bool _debug)
 	    /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
 	    /call get_hurt ${maDebug.Find[hurt].Value} reset
 	    /return TRUE
+	  }
+
 	  | First epic shield
-	  } else /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
+	  /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
 	    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
 	    /call get_hurt ${maDebug.Find[hurt].Value} reset
 	    /return TRUE
@@ -617,7 +619,14 @@ sub cast_arbitration(bool _debug)
  ***|
 sub prediction_CLR(bool _debug)
 
-	/call cast_group_regen
+
+	| Group Regen Heal
+	/if (${maHeal.Find[swHealGroupOverTime].Value}) {
+		/call cast_cycle_heal_regen ${_debug} 0 healgrouphot
+	}
+
+
+
 
 /return tRUE
 

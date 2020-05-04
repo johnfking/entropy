@@ -403,7 +403,6 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 	| enable wasiting fireworks for those bastards with too much AA on their hands
 	} else /if (${_type.Equal[fireworks]}) {
 		/invoke ${set_switch_env[FALSE, swAAFireworks, TRUE, ${_verbage}]}
-		| /if (!${swAAFireworks}) /call set_timer timer_Waste_Fireworks 1
 
 	| enable bagging from mages for rods and pet gear
 	} else /if (${_type.Equal[begmage]}) {
@@ -1237,7 +1236,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	} else /if (${_type.Equal[pet]}) {
 		/invoke ${set_switch_env[${_debug}, swHealPet, TRUE, ${_verbage}]}
 
-	| heal cures
+	|** heal cures
 	} else /if (${_type.Equal[cure]}) {
 		/invoke ${set_switch_env[${_debug}, swHealCure, TRUE, ${_verbage}]}
 		/if (${maHeal.Find[swHealCure].Value}) {
@@ -1245,6 +1244,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 		} else /if (!${maHeal.Find[swHealCure].Value}) {
 			/call set_observers FALSE maCure drop FALSE
 		}
+		**|
 
 	} else /if (${_type.Equal[adj]}) {
 		/if (!${set_control_num_range[${_debug}, stHealAdjust, "${_verbage}", 0, 99]}) /return
@@ -1319,7 +1319,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	/invoke ${maControl.Add[xt,swHealXTarget]}
 	/invoke ${maControl.Add[xtclass,submenu]}
 	/invoke ${maControl.Add[pet,swHealPet]}
-	/invoke ${maControl.Add[cure,swHealCure]}
+	| /invoke ${maControl.Add[cure,swHealCure]}
 	/invoke ${maControl.Add[adj,stHealAdjust]}
 	/invoke ${maControl.Add[weight,swHealWeighted]}
 	/if (${Select[${Me.Class.ShortName},CLR]}) {
@@ -1801,6 +1801,11 @@ sub Bind_deez(string _type, string _verbage)
 		OUT ${get_assist_info[FALSE, name]}
 	}
 
+	/if (${_type.Equal[behind]}) {
+		/call moveto_behind TRUE
+		/delay 30s !${Me.Moving}
+		/call check_facing ${maDebug.Find[face].Value} ${Target.ID} FORCE
+	}
 
 
 /return TRUE
@@ -3327,7 +3332,7 @@ sub Bind_command_aux(string _type, bool _debug)
 
 	| /varset _debug TRUE
 	/declare _lsout list local
-	/invoke ${_lsout.Append[alto,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter]}
+	/invoke ${_lsout.Append[alto,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter,cure]}
 	/invoke ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,mode,minion,navto,off,on,override,repeat,see,splash,take,tag,tc,tie]}
 	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro,miscdps,song,line,area,sash,pred]}
 
@@ -4149,7 +4154,9 @@ sub Bind_command_grab(string _name, string _silent, bool _debug)
 #bind command_lesson /lesson
 sub Bind_command_lesson(bool _debug)
 
-  /if (${is_ready[${_debug}, "Lesson of the Devoted"]}) /return FALSE
+  /if (!${is_ready[${_debug}, "Lesson of the Devoted"]}) {
+  	/return FALSE
+  }
 
   /call voodoo FALSE "Lesson of the Devoted" 0 FALSE
 
@@ -5478,8 +5485,6 @@ sub Bind_command_line(string _type, string _line)
 
 
 
-
-
 |***
  * note:control for /sash
  * use:
@@ -5584,6 +5589,100 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _s
 	/invoke ${set_control_output[${_debug}, maSash, sash, maControl]}
 
 /return	TRUE
+
+
+
+
+
+
+|***
+ * note:control for /cure
+ * use: /cure control
+ ***|
+#Bind control_cure /cure
+sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
+	DEBUG \atcontrol_cure\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+
+	| output control map
+	/if (${_type.Equal[see]}) {
+		OUT nothing to see here
+		/return
+	} else /if (${_type.Equal[aux]}) {
+		/call Bind_command_aux cure ${_verbage}
+		/return
+
+	} else /if (${_type.Equal[self]}) {
+		/invoke ${set_switch_env[${_debug}, swHealCureSelf, TRUE, ${_verbage}]}
+	} else /if (${_type.Equal[group]}) {
+		/invoke ${set_switch_env[${_debug}, swHealCureGroup, TRUE, ${_verbage}]}
+	} else /if (${_type.Equal[crew]}) {
+		/invoke ${set_switch_env[${_debug}, swHealCureCrew, TRUE, ${_verbage}]}
+
+	} else /if (${_type.Equal[item]}) {
+		/if (${_verbage.Equal[curse]}) {
+			/invoke ${do_raw_edit[FALSE, SILENT, stCureCurseItem, "${_verbage2}"]}
+		} else /if (${_verbage.Equal[poison]}) {
+			/invoke ${do_raw_edit[FALSE, SILENT, stCurePoisonItem, "${_verbage2}"]}
+		} else /if (${_verbage.Equal[disease]}) {
+			/invoke ${do_raw_edit[FALSE, SILENT, stCureDiseaseItem, "${_verbage2}"]}
+		} else /if (${_verbage.Equal[corruption]}) {
+			/invoke ${do_raw_edit[FALSE, SILENT, stCureCorruptionItem, "${_verbage2}"]}
+		}
+
+		/if (${_silent.Equal[SILENT]}) /return
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[curse,stCureCurseItem|br]}
+		/invoke ${maControl.Add[poison,stCurePoisonItem|br]}
+		/invoke ${maControl.Add[disease,stCureDiseaseItem|br]}
+		/invoke ${maControl.Add[corruption,stCureCorruptionItem|br]}
+		/invoke ${set_control_output[${_debug}, maHeal, "cure item", maControl]}
+		/return TRUE
+
+	} else /if (${_type.Equal[spell]}) {
+		/if (${_verbage.Equal[curse]}) {
+			/invoke ${do_raw_edit[FALSE, SILENT, stCureCurse, "${_verbage2}"]}
+		} else /if (${_verbage.Equal[poison]}) {
+			/invoke ${do_raw_edit[FALSE, SILENT, stCurePoison, "${_verbage2}"]}
+		} else /if (${_verbage.Equal[disease]}) {
+			/invoke ${do_raw_edit[FALSE, SILENT, stCureDisease, "${_verbage2}"]}
+		} else /if (${_verbage.Equal[corruption]}) {
+			/invoke ${do_raw_edit[FALSE, SILENT, stCureCorruption, "${_verbage2}"]}
+		}
+		/if (${_silent.Equal[SILENT]}) /return
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[curse,stCureCurse|br]}
+		/invoke ${maControl.Add[poison,stCurePoison|br]}
+		/invoke ${maControl.Add[disease,stCureDisease|br]}
+		/invoke ${maControl.Add[corruption,stCureCorruption|br]}
+		/invoke ${set_control_output[${_debug}, maHeal, "cure spell", maControl]}
+		/return TRUE
+	}
+
+	| set observers
+	/if (${maHeal.Find[swHealCureSelf].Value} || ${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value}) {
+		/call set_observers FALSE maCure add FALSE
+	} else /if (!${maHeal.Find[swHealCureSelf].Value} && !${maHeal.Find[swHealCureGroup].Value} |&& !${maHeal.Find[swHealCureCrew].Value}) {
+		/call set_observers FALSE maCure drop FALSE
+	}
+
+	/if (${_silent.Equal[SILENT]}) /return
+	/invoke ${maControl.Clear}
+	/invoke ${maControl.Add[self,swHealCureSelf]}
+	/invoke ${maControl.Add[group,swHealCureGroup]}
+	/invoke ${maControl.Add[crew,swHealCureCrew]}
+	/invoke ${maControl.Add[item,submenu]}
+	/invoke ${maControl.Add[spell,submenu]}
+	/invoke ${set_control_output[${_debug}, maHeal, cure, maControl]}
+
+/return TRUE
+
+
+
+
+
+
+
+
 
 
 
