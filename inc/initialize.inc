@@ -31,7 +31,7 @@ sub set_debug()
   | heal
   /invoke ${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot]}
   | move
-  /invoke ${lsDebugmove.Append[face,tie,zone,stick,stop]}
+  /invoke ${lsDebugmove.Append[face,tie,zone,stick,stop,home]}
   | debuff
   /invoke ${lsDebugdebuff.Append[debuff,mez]}
   | minion
@@ -161,7 +161,7 @@ sub set_initialize(bool _debug)
   /invoke ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maBuff,maBurn,maPred]}
   /invoke ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
   /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard]}
-  /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch]}
+  /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro]}
   /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
 
   | set all output shortcuts
@@ -620,6 +620,7 @@ sub sql_set_character_schema(bool _debug)
   } else /if (${sqlite.Status[SQL_ENV_BUILD].Find[no such table:]} || ${sqlite.Result[SQL_ENV_BUILD 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
 
 		| fix any existing database variable issues.
+ 		OUT \a-tDatabase Check\ax
 	  /call sql_check ${maDebug.Find[sql].Value}
 
     /if (${sqlite.Status[SQL_ENV_BUILD].Find[no such table:]}) {
@@ -834,11 +835,11 @@ sub set_initialize_map_character_environment(bool _debug)
   | auras
   /invoke ${set_data_timer[${_debug}, Check_Buff_Aura, 3m]}
   /call set_data_map ${_debug} maBuff swBuffAura                          FALSE                         "${auxsw} use auras or not. i dont care"
-  /for _count 1 to 2
-    /call set_data_map ${_debug} maBuff stAura${_count}                   FALSE                         "${auxna} name of aura"
-    /call set_data_map ${_debug} maBuff stAura${_count}Check              FALSE                         "${auxna} name of aura that appears in aura buff window"
-    /call set_data_list ${_debug} maBuff lsAura${_count}Tag               EMPTY                         "${auxna} tags for your aura"
-  /next _count
+  | /for _count 1 to 2
+   | /call set_data_map ${_debug} maBuff stAura${_count}                   FALSE                         "${auxna} name of aura"
+  |   /call set_data_map ${_debug} maBuff stAura${_count}Check              FALSE                         "${auxna} name of aura that appears in aura buff window"
+  |   /call set_data_list ${_debug} maBuff lsAura${_count}Tag               EMPTY                         "${auxna} tags for your aura"
+  | /next _count
 
 
 |** control: defense **|
@@ -1165,22 +1166,17 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_list ${_debug} maAgro lsLineAgro              						EMPTY                         "${auxli} alternate activation order for agro routine (engine 2)"
 
 
-|** control: burn  **|
-  /call set_data_list ${_debug} maAgro lsLineBurn              						EMPTY                         "${auxli} alternate activation order for burn routine (engine 2)"
-
-
 |** control: sash  **|
   /invoke ${set_data_timer[FALSE, Check_Proc_Sash, 5s]}
   /call set_data_map ${_debug} maSash swSashProc                     			FALSE                         "${auxsw} enable sash for a procing weapon"								sash
   /call set_data_map ${_debug} maSash stSashProc													FALSE                         "${auxna} name of sash with procing weapon"								sash
-
-  /call set_data_map ${_debug} maSash swSash			                    		FALSE                         "${auxsw} enable auto sash swapping based off conditions" 									sash
+  /call set_data_map ${_debug} maSash swSash			                    		FALSE                         "${auxsw} enable auto sash swapping based off conditions" sash
 
 	| tank shield flash
 	/if (${Select[${Me.Class.ShortName},PAL,WAR,SHD]}) {
 		/call set_data_map ${_debug} maSash stPctShieldFlash									0															"${auxnum} % of HP to try to get shield flash running"		sash
 		/call set_data_map ${_debug} maSash stCountShieldFlash								0															"${auxnum} # of mobs to hit shield flash"									sash
- 	 	/call set_data_map ${_debug} maSash stSashShieldFlash									FALSE                         "${auxna} name of sash to be used for Slash skills"				sash						sash
+ 	 	/call set_data_map ${_debug} maSash stSashShieldFlash									FALSE                         "${auxna} name of sash to be used for Slash skills"				sash
 	}
 
 
@@ -1543,10 +1539,15 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 	| row 0
 
-    HUDPATH entropy IVU1   	${Parse[0, "3,134,0,0,255,0,${If[${Me.SPA[28]}||${Me.SPA[315]},IVU,]}"]}
-    HUDPATH entropy IVU2   	${Parse[0, "3,134,0,255,0,0,${If[${Me.SPA[28]}||${Me.SPA[315]},,IVU]}"]}
-    HUDPATH entropy INV1   	${Parse[0, "3,153,0,0,255,0,${If[${Me.SPA[12]}||${Me.SPA[314]},IV,]}"]}
-    HUDPATH entropy INV2   	${Parse[0, "3,153,0,255,0,0,${If[${Me.SPA[12]}||${Me.SPA[314]},,IV]}"]}
+		| uinvisibilities
+    HUDPATH entropy IVU1   	${Parse[0, "3,134,0,0,255,0,${If[${Me.SPA[28]}||${Me.SPA[315]},U,]}"]}
+    HUDPATH entropy IVU2   	${Parse[0, "3,134,0,255,0,0,${If[${Me.SPA[28]}||${Me.SPA[315]},,U]}"]}
+    HUDPATH entropy INV1   	${Parse[0, "3,143,0,0,255,0,${If[${Me.SPA[12]}||${Me.SPA[314]},I,]}"]}
+    HUDPATH entropy INV2   	${Parse[0, "3,143,0,255,0,0,${If[${Me.SPA[12]}||${Me.SPA[314]},,I]}"]}
+    HUDPATH entropy SOS1   	${Parse[0, "3,147,0,0,255,0,${If[${Me.SPA[256]},S,]}"]}
+    HUDPATH entropy SOS2   	${Parse[0, "3,147,0,255,0,0,${If[${Me.SPA[256]},,S]}"]}
+    HUDPATH entropy ANI1   	${Parse[0, "3,155,0,0,255,0,${If[${Me.SPA[316]},A,]}"]}
+    HUDPATH entropy ANI2   	${Parse[0, "3,155,0,255,0,0,${If[${Me.SPA[316]},,A]}"]}
 
     HUDPATH entropy BG0     3,131,0,0,0,0,██████████████████████████
 
@@ -1600,10 +1601,10 @@ sub set_initialize_hud(bool _debug, string _verbage)
     HUDPATH entropy hX2     ${Parse[0, "19,151,21,25,25,25,${If[${h_xt},,_]}"]}
     HUDPATH entropy hP1     ${Parse[0, "19,160,26,255,255,255,${If[${h_pet},P,]}"]}
     HUDPATH entropy hP2     ${Parse[0, "19,160,21,25,25,25,${If[${h_pet},,_]}"]}
-    HUDPATH entropy hC1     ${Parse[0, "19,169,26,255,255,255,${If[${h_cure},C,]}"]}
-    HUDPATH entropy hC2     ${Parse[0, "19,169,21,25,25,25,${If[${h_cure},,_]}"]}
-   	HUDPATH entropy hT1     ${Parse[0, "19,178,26,255,255,255,${If[${h_tot},T,]}"]}
-    HUDPATH entropy hT2     ${Parse[0, "19,178,21,25,25,25,${If[${h_tot},,_]}"]}
+    | HUDPATH entropy hC1     ${Parse[0, "19,169,26,255,255,255,${If[${h_cure},C,]}"]}
+    | HUDPATH entropy hC2     ${Parse[0, "19,169,21,25,25,25,${If[${h_cure},,_]}"]}
+   	HUDPATH entropy hT1     ${Parse[0, "19,169,26,255,255,255,${If[${h_tot},T,]}"]}
+    HUDPATH entropy hT2     ${Parse[0, "19,169,21,25,25,25,${If[${h_tot},,_]}"]}
     HUDPATH entropy ho1     ${Parse[0, "19,187,26,255,255,255,${If[${h_override},${h_override},]}"]}
     HUDPATH entropy ho2     ${Parse[0, "19,187,21,25,25,25,${If[${h_override},,__]}"]}
 
@@ -1868,11 +1869,12 @@ sub sql_check(bool _debug)
 	/sqlite ${maData.Find[DBstatic].Value} dummycount SELECT Count(*) as data FROM stale_data
 
 	/for _count 1 to ${sqlite.Result[dummycount 1 data]}
+		DEBUG ${sep}_count
 
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM stale_data WHERE ROWID=${_count}
 		/varset _table ${sqlite.Result[dummy 1 value]}
 		/varset _field ${sqlite.Result[dummy 1 env_var]}
-		DEBUG ${sep}${_field}${sep}\a-w${_table}\ax
+		DEBUG ${sep}${_table}${sep}\a-w${_field}\ax
 
 		| table to remove
 		/if (${_table.Equal[tabletodrop]}) {
@@ -1880,22 +1882,27 @@ sub sql_check(bool _debug)
 
 		| field to remove
 		} else {
-			| is the data there?
+
+			|** is the data there?
 			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_field}"
 			DEBUG ${sep}dummy SELECT * FROM environment_${_table} WHERE env_var="${_field}" ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
 
 			/if (${sqlite.Rows[dummy]}) {
-				/sqlite ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_table} WHERE env_var="${sqlite.Result[dummy 1 env_var]}"
+				/sqlite ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_table} WHERE env_var="${_field}"
 			}
+			**|
+
+			/call sql_drop ${_table} ${_field} ${maDebug.Find[sql].Value}
+
 		}
 
 	/next _count
 
 	| rename environment_buffs to singular
-	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_buffs WHERE env_var="stBuff1"
-	/if (${sqlite.Rows[dummy]}) {
-		/sqlite ${maData.Find[DBcharacter].Value} dummy ALTER TABLE "environment_buffs" RENAME TO "environment_buff"
-	}
+	| /sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_buffs WHERE env_var="stBuff1"
+	| /if (${sqlite.Rows[dummy]}) {
+	| 	/sqlite ${maData.Find[DBcharacter].Value} dummy ALTER TABLE "environment_buffs" RENAME TO "environment_buff"
+	| }
 
 /return TRUE
 

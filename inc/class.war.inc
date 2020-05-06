@@ -49,8 +49,8 @@ sub set_WAR(bool _debug)
 	/call set_data_map FALSE maChr stField				 											PREGEN|1											"${auxna} Field Armorer family disc"
 
 	| shield flash
-	/call set_data_map FALSE maChr stPctShieldFlash											0															"${auxnum} % of HP to try to get shield flash running"
-	/call set_data_map FALSE maChr stCountShieldFlash										0															"${auxnum} # of mobs to hit shield flash"
+	| /call set_data_map FALSE maChr stPctShieldFlash											0															"${auxnum} % of HP to try to get shield flash running"
+	| /call set_data_map FALSE maChr stCountShieldFlash										0															"${auxnum} # of mobs to hit shield flash"
 	/call set_data_map FALSE maChr stFlash				 											PREGEN|1											"${auxna} Flash of Anger family disc"
 
 	/call set_data_map FALSE maChr stNoTime				 											PREGEN|1											"${auxna} No Time to Bleed family disc"
@@ -87,7 +87,7 @@ sub main_WAR(bool _debug)
 	CHECKTIE
 
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-		GETINPUT
+		GETINPUT ooc_main_${Me.Class.ShortName}
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 

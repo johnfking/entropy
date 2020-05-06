@@ -154,10 +154,18 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		/return
 
 	} else /if (${_type.Equal[sqlcheck]}) {
-		/echo
 		/invoke ${out[0, "Checking database for stale data${sep}"]}
 		/call sql_check ${maDebug.Find[sql].Value}
+		/invoke ${out[0, "Done"]}
 		/return TRUE
+
+	} else /if (${_type.Equal[sqldrop]}) {
+		/if (${Bool[${_verbage}]} && ${Bool[${_verbage2}]}) {
+			/call sql_drop ${_verbage} ${_verbage2} TRUE
+		} else {
+			OUT /admin sqldrop TABLE FIELD
+		}
+
 
 	| delete aliases
 	} else /if (${_type.Equal[whitewash]}) {
@@ -349,7 +357,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 	/if (${_silent.Equal[SILENT]}) /return
 	/declare liout list local
-	/invoke ${liout.Append[checkvar,spa,whitewash,import,keymap,see,sqlcheck]}
+	/invoke ${liout.Append[checkvar,spa,whitewash,import,keymap,see,sqlcheck,sqldrop]}
   /declare _out string local
   /declare _liadout listiterator local
 	/vardata _liadout liout.First.Clone
@@ -387,14 +395,14 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 
 		/if (!${maEnv.Find[swAuto].Value}) {
 			/if (HOME) {
-				/call Bind_control_home clear
+				/call Bind_control_home clear NULL NULL ${maDebug.Find[home].Value}
 			}
 			/invoke ${target[clear]}
 			| /call clear_combat FALSE
 		} else /if (${_type.Equal[auto]}) {
 			/if ((${maCC.Find[swPullSetHome].Value} && PULL) || ${maHome.Find[swonAuto].Value}) {
 				/if (!${swModeToken}) {
-					/call Bind_control_home set
+					/call Bind_control_home set NULL NULL ${maDebug.Find[home].Value}
 				}
 			}
 		}
@@ -831,8 +839,11 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 			/return FALSE
 		}
 
+		/declare _curVarDis float local ${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]}
+
 		| check variance for home position
-		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} < ${maHome.Find[stHomeVariance].Value}) {
+		/if (${_curVarDis} < ${maHome.Find[stHomeVariance].Value}) {
+			DEBUG ${sep}within home${sep}\a-w${_curVarDis} < ${maHome.Find[stHomeVariance].Value}\ax
 			/return TRUE
 		}
 
@@ -841,10 +852,11 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 		/doevents flush
 		/delay 2
 
-		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} < SAFEENV && PULL) {
-			DEBUG move backwords
+		/if (${_curVarDis} > ${maHome.Find[stHomeVariance].Value} && ${_curVarDis} < SAFEENV && PULL) {
+			DEBUG ${sep}move backwords${sep}\a-w${_curVarDis} > ${maHome.Find[stHomeVariance].Value}*2 && ${_curVarDis} < SAFEENV && PULL\ax
 			/nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=off facing=backward
 		} else {
+			DEBUG ${sep}move normal
 			/nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=off
 		}
 
@@ -1907,6 +1919,12 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 	} else /if (${_type.Equal[unity]}) {
 		/invoke ${set_switch_env[${_debug}, swBuffUnity, TRUE, ${_verbage}]}
 
+
+	} else /if (${_type.Equal[aura]}) {
+		/invoke ${set_switch_env[${_debug}, swBuffAura, TRUE, ${_verbage}]}
+
+|**
+
 	} else /if (${_type.Equal[aura]}) {
 		/if (${_verbage.Equal[use]}) {
 			/invoke ${set_switch_env[${_debug}, swBuffAura, TRUE, ${_silent}]}
@@ -1947,6 +1965,8 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 		}
 		/return
 
+		**|
+
 	} else /if (${_type.Equal[temp]}) {
 		/invoke ${set_switch_env[${_debug}, swBuffTemp, TRUE, ${_verbage}]}
 
@@ -1968,7 +1988,7 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[ammo,swBuffAmmo]}
-	/invoke ${maControl.Add[aura,submenu]}
+	/invoke ${maControl.Add[aura,swBuffAura]}
 	/invoke ${maControl.Add[beg,swBuffBeg]}
 	/invoke ${maControl.Add[crew,swBuffCrew]}
 	/invoke ${maControl.Add[master,swBuffMaster|pr]}
@@ -3488,7 +3508,7 @@ sub Bind_command_navto(string _verbage, string _loc, bool _debug)
 
 	/if (${maHome.Find[swHomeMarker].Value}) {
 		/varset _tmpHomeMarker TRUE
-		/call Bind_control_home clear FALSE silent
+		/call Bind_control_home clear FALSE silent ${maDebug.Find[home].Value}
 	}
 
 	/if (${maCC.Find[swPull].Value}) {
@@ -3532,7 +3552,7 @@ sub Bind_command_navto(string _verbage, string _loc, bool _debug)
 
 	| reset home and pull if they were being used
 	/if (${_tmpHomeMarker}) {
-		/call Bind_control_home set
+		/call Bind_control_home set NULL NULL ${maDebug.Find[home].Value}
 	}
 	/if (${_tmpPullMarker}) {
 		/invoke ${maCC.Add[swPull,TRUE]}
@@ -4035,7 +4055,7 @@ sub Bind_command_here(string _type)
 
 	| set home?
 	/if (${maHome.Find[swonAuto].Value}) {
-		/call Bind_control_home set
+		/call Bind_control_home set NULL NULL ${maDebug.Find[home].Value}
 	}
 
 	| reset timers
@@ -5505,7 +5525,7 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _s
 		/call Bind_command_see sash list
 		/return	TRUE
 
-	| heal number entered
+	| bandolier # entered
 	} else /if (${Range.Between[1,12:${Int[${_type}]}]}) {
 
 		| see the sash #
@@ -5515,7 +5535,7 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _s
 		}
 
 		/if (!${Bool[${_verbage}]} && ${_verbage.NotEqual[FALSE]}) {
-			/invoke ${set_switch_env[${_debug}, swSash${_type}, TRUE, ${_verbage}]}
+			/invoke ${set_switch_env[${maDebug.Find[edit].Value}, swSash${_type}, TRUE, ${_verbage}]}
 			/invoke ${out[12, "\awSash${_type}\ax${sep}${If[${maSash.Find[swSash${_type}].Value},${on},${off}]}${sep}\a-w${maSash.Find[stSash${_type}].Value}\ax"]}
 			/return TRUE
 
@@ -5526,10 +5546,10 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _s
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsSash${_type}Tag" clear
 
 		} else /if (${Select[${_verbage},con]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSash${_type}Con" "${_verbage2}"
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSash${_type}Con" "${_verbage}"
 
 		} else /if (${Select[${_verbage},tag]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsSash${_type}Tag" ${_verbage2} ${_silent}
+			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsSash${_type}Tag" ${_verbage} ${_silent}
 
 		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSash${_type}" "${_verbage}"
@@ -5542,9 +5562,9 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _s
 	| procing weapon swaps
 	} else /if (${_type.Equal[proc]}) {
 		/if (${_verbage.Equal[use]}) {
-			/invoke ${set_switch_env[${_debug}, swSashProc, TRUE, ${_verbage2}]}
+			/invoke ${set_switch_env[${maDebug.Find[edit].Value}, swSashProc, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[name]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stSashProc, "${_verbage2}"]}
+			/invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stSashProc, "${_verbage2}"]}
 		}
 		/if (${_silent.Equal[SILENT]}) /return
 		/invoke ${maControl.Clear}
@@ -5563,7 +5583,7 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _s
 		/if (${_verbage.Equal[pct]}) {
 			/if (!${set_control_num_range[${_debug}, stPctShieldFlash, "${_verbage2}", 0, 99]}) /return
 		} else /if (${_verbage.Equal[count]}) {
-			/if (!${set_control_num_range[${_debug}, stCountShieldFlash, "${_verbage2}", 0, 99]}) /return
+			/if (!${set_control_num_range[TRUE, stCountShieldFlash, "${_verbage2}", 0, 99]}) /return
 		} else /if (${_verbage.Equal[name]}) {
 			/invoke ${do_raw_edit[${_debug}, SILENT, stSashShieldFlash, "${_verbage2}"]}
 		}
@@ -5589,9 +5609,6 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _s
 	/invoke ${set_control_output[${_debug}, maSash, sash, maControl]}
 
 /return	TRUE
-
-
-
 
 
 
@@ -5661,7 +5678,7 @@ sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _s
 	| set observers
 	/if (${maHeal.Find[swHealCureSelf].Value} || ${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value}) {
 		/call set_observers FALSE maCure add FALSE
-	} else /if (!${maHeal.Find[swHealCureSelf].Value} && !${maHeal.Find[swHealCureGroup].Value} |&& !${maHeal.Find[swHealCureCrew].Value}) {
+	} else /if (!${maHeal.Find[swHealCureSelf].Value} && !${maHeal.Find[swHealCureGroup].Value} && !${maHeal.Find[swHealCureCrew].Value}) {
 		/call set_observers FALSE maCure drop FALSE
 	}
 
@@ -5675,16 +5692,6 @@ sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _s
 	/invoke ${set_control_output[${_debug}, maHeal, cure, maControl]}
 
 /return TRUE
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -5740,11 +5747,10 @@ sub Bind_control_pred(string _type, string _verbage, string _silent, bool _debug
 
 
 
-
-
-
-
-| predictive combat
+|***
+ * note: predictive combat
+ * use: predictive combat
+ ***|
 sub control_pred(bool _debug)
 	DEBUG \atcontrol_pred\ax()
 	FLOW control_pred (1)
@@ -5794,123 +5800,3 @@ sub control_pred(bool _debug)
 
 
 
-
-
-
-
-
-
-${Spawn[${maPred.Find[stPredID].Value}].SpawnCount[3,npc radius ${maPred.Find[stPredRad].Value}].ID}
-
-${Spawn[${maPred.Find[stPredID].Value}].SpawnCount[3,npc radius ${maPred.Find[stPredRad].Value}].ID}
-
-
-${Spawn[10089].NearestSpawn[radius 50]}
-
-
-
-
-
-
-		DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
-		/if (${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}) {
-			/for _count 1 to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}
-				ISMEDEAD
-
-				/varset _tmpID ${NearestSpawn[${If[${_spCount},${Math.Calc[${_count}+${_spCount}]},${_count}]}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value}].ID}
-				DEBUG ${sep}_tmpID${sep}\a-w${_tmpID}\ax
-
-				/if (!${Navigation.PathExists[id ${_tmpID}]}) {
-					| SDEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-yid ${_tmpID}\ax]\ax
-					| /continue
-				}
-
-				/varset _navRange ${Navigation.PathLength[id ${_tmpID}]}
-
-				| sort by closest nav path length
-				/if (${_navRange} <= ${_closestNAV}) {
-					/varset _closestNAV ${_navRange}
-				} else /if (${_navRange} > ${_closestNAV}) {
-					/continue
-				}
-
-				| animation checks
-				/if (${lsNoTargetAnimation.Contains[${Spawn[id ${_tmpID}].Animation}]}) {
-					DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetAnimation\ax
-					/varset _spCount 1
-					/continue
-				}
-
-
-				| fish are friends, not food
-				/if (${lsNoAttackBodyType.Contains[${Spawn[id ${_tmpID}].Body}]}) {
-					DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoAttackBodyType\ax
-					/varset _spCount 1
-					/continue
-				}
-
-				| can i come into the out now?
-				/if (${Spawn[id ${_tmpID}].Type.Equal[NPC]}) {
-					/if (${lsNoTargetNPC.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
-						DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetNPC\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
-						/varset _spCount 1
-						/continue
-					}
-				}
-
-				| PCs to not consider
-				/if (${Spawn[id ${_tmpID}].Type.Equal[PC]}) {
-					/if (${lsNoTargetPC.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
-						DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetPC\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
-						/varset _spCount 1
-						/continue
-					}
-				}
-
-				| magic creatures to not consider
-				/if (${Spawn[id ${_tmpID}].Type.Equal[Magic]}) {
-					/if (${lsNoTargetMagic.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
-						DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetMagic\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
-						/varset _spCount 1
-						/continue
-					}
-				}
-
-				/if (${_tmpID} == ${Me.Pet.ID}) /continue
-
-				| CYA for shit MQ will pick up in the environment that does not have a name
-				/if (${Spawn[ID ${_tmpID}].DisplayName.Length} < 1) {
-					DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wDisplayName.Length < 1\ax
-					/varset _spCount 1
-					/continue
-				}
-
-				| added because MQ sucks ass for getting accurate HP values returned over a mouse dick in length.
-				/if (${Spawn[ID ${_tmpID}].PctHPs} > 100 && ${_tmpAgroRange} > 200) {
-					/varset _tmpHPAdj 100
-				} else {
-					/varset _tmpHPAdj ${Spawn[id ${_tmpID}].PctHPs}
-				}
-
-				| get the lowest HP mob if we can
-				/if (${_tmpHPAdj} <= ${_mobHP}) {
-					/varset _mobHP ${Spawn[id ${_tmpID}].PctHPs}
-					/varset stAssTarID ${_tmpID}
-					/invoke ${maCC.Add[swSetCombat,TRUE]}
-					DEBUG ${sep}T2K${sep}\awTARGET\aw${sep}\ay${Spawn[TARGET].DisplayName}\ay ${sep} ${If[${Spawn[TARGET].LineOfSight},\ag${Spawn[TARGET].Distance}\ax,\ar${Spawn[TARGET].Distance}\ax]}
-				}
-
-				| is this a priority mob?
-				/if (${lsZoneNoMez.Contains[${Spawn[ID ${_tmpID}].DisplayName}]} || ${lsZoneNamed.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
-					DEBUG ${sep}Priority Mob${sep}\a-w${Spawn[id ${_tmpID}].DisplayName}\ax
-					| off tanks have to sort by a different position
-					/if (TARGET && ${Me.XTarget[1].ID} == ${_tmpID}) {
-						DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wMe.XTarget[1].ID != _tmpID\ax
-						/continue
-					}
-					/return TARGET
-				}
-
-			/next _count
-
-		}

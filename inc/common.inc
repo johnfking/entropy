@@ -1472,7 +1472,7 @@ sub check_for_rezbox(bool _debug)
 
 
 			/if (${maHome.Find[swHomeMarker].Value}) {
-				/call Bind_control_home clear
+				/call Bind_control_home clear NULL NULL ${maDebug.Find[home].Value}
 			}
 
 			/return TRUE
@@ -1537,14 +1537,19 @@ sub check_condition(bool _debug, str _condition)
 	DEBUG \atcheck_condition\ax(\a-w${_condition}\ax)
 	FLOW check_condition|${_condition}
 
-	/sqlite ${maData.Find[DBcharacter].Value} condition SELECT condition FROM environment_condition WHERE env_var="c${_condition}"
+	| bail on no condition checks
+	/if (${_condition} == 0) {
+		/return TRUE
+	}
 
-	DEBUG ${sep}rows${sep}\a-w${sqlite.Rows[condition]}\ax
-	/if (${sqlite.Rows[condition]}) {
-		DEBUG ${sep}${_condition}${sep}\a-w${Parse[1,${sqlite.Result[condition 1 value]}]}\ax\ag==\ax\a-w${Parse[9999,${sqlite.Result[condition 1 value]}]}\ax
-		DEBUG ${sep}(!${Parse[9999,${sqlite.Result[condition 1 value]}]})
+	/sqlite ${maData.Find[DBcharacter].Value} data SELECT * FROM environment_condition WHERE env_var="c${_condition}"
 
-		/if (!${Parse[9999,${sqlite.Result[condition 1 value]}]}) {
+	DEBUG ${sep}rows${sep}\a-w${sqlite.Rows[data]}\ax
+	/if (${sqlite.Rows[data]}) {
+		DEBUG ${sep}${_condition}${sep}\a-w${Parse[1,${sqlite.Result[data 1 value]}]}\ax\ag==\ax\a-w${Parse[9999,${sqlite.Result[data 1 value]}]}\ax
+		DEBUG ${sep}(!${Math.Calc[${Parse[9999,${sqlite.Result[data 1 value]}]}]})
+
+		/if (!${Math.Calc[${Parse[9999,${sqlite.Result[data 1 value]}]}]}) {
 			DEBUG ${sep}Returning${sep}\a-wFALSE\ax
 			/return FALSE
 		}
@@ -2946,7 +2951,10 @@ sub set_combat(bool _debug)
 
 	| home check
 	/if (HOME && ${maHome.Find[swinCombat].Value}) {
-		/call Bind_control_home return
+		/declare _curVarDis float local ${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]}
+		/if (${_curVarDis} > SAFEENV && PULL) {
+			/call Bind_control_home return NULL NULL ${maDebug.Find[home].Value}
+		}
 	}
 
 	CHECKCURSOR
@@ -3042,6 +3050,7 @@ sub set_combat(bool _debug)
  * note: decision tree for what kind of combat to do
  * use: /call set_combat_control DEBUG [TARGETID]
  ***|
+
 sub set_combat_control(bool _debug, int _tmpID)
 	DEBUG \atset_combat_control\ax(\a-w${_tmpID}\ax)
 	FLOW set_combat_control ${_tmpID}
@@ -3075,7 +3084,7 @@ sub set_combat_control(bool _debug, int _tmpID)
 	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
 	| set the max range so we dont have to keep calculating it over and over
-	| /declare _maxrange int local ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
+	| /declare _maxrange float local ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
 
 	| range or melee, priority is range!
 	/if (MELEE && RANGE) {
@@ -3297,7 +3306,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
 	/if (!TARGET) {
 		SETHUD EMPTY
 		/if (HOME && !${SpawnCount[npc radius 15 PS4 targetable]}) {
-			/call Bind_control_home return
+			/call Bind_control_home return NULL NULL ${maDebug.Find[home].Value}
 		}
 		/return FALSE
 	}
@@ -3348,10 +3357,9 @@ sub get_target_wait(bool _debug, int _tmpID, string _waittime)
 	FLOW get_target_wait ${_tmpID} (1)
 
 	| wait for mob to get to camp
-	DEBUG ${sep}loop\a-w:waitformob\ax${sep}\a-w${_tmpID}\ax
-	:waitformob
+	DEBUG ${sep}loop\a-wwait for mob\ax${sep}\a-w${_tmpID}\ax
+	| :waitformob
 	/if (!${SpawnCount[npc radius ENV PS4 targetable]}) {
-		| /declare _wait int local ${Math.Calc[(PULLENV + ${Spawn[${_tmpID}].Distance})*.08]}
 		| DEBUG ${sep}_wait${sep}\ay${_waittime}\ax
 		/invoke ${set_timer[${_debug}, wait_for_mob, ${_waittime}]}
 
@@ -3697,7 +3705,7 @@ sub pull_mob_find(bool _debug, int _spCount)
 
 	/if (!${swModeToken}) {
 		/if (HOME && !${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
-			/call Bind_control_home return
+			/call Bind_control_home return NULL NULL ${maDebug.Find[home].Value}
 		}
 	}
 
@@ -4949,7 +4957,7 @@ sub check_zone_id(bool _debug, bool _force)
 		/if (${maBurn.Find[swBurnForce].Value}) {
 			/invoke ${maBurn.Add[swBurnForce,FALSE]}
 		}
-		/if (HOME) /call Bind_control_home clear FALSE silent FALSE
+		/if (HOME) /call Bind_control_home clear FALSE silent ${maDebug.Find[home].Value}
 		| /if (!${swModePersistent}) /call switch_clear_mode
 		/if (AUTO && ${maChr.Find[stShrink].Value}) /call check_shrink
 	}
@@ -5036,7 +5044,7 @@ sub set_tie(bool _debug)
 	DEBUG _ID${sep}\a-w${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}\ax
 
 	/if (HOME) {
-		/call Bind_control_home clear FALSE silent FALSE
+		/call Bind_control_home clear FALSE silent ${maDebug.Find[home].Value}
 	}
 
 	ISMEDEAD
@@ -5378,8 +5386,8 @@ sub check_buff_cycle_unity(bool _debug)
 |***
  * note: Check for running auras, If they are duped, remove the second one
  * use: /call check_aura
- ***|
-sub check_buff_cycle_aura(bool _debug)
+
+sub check_buff_cycle_aura2(bool _debug)
 	FLOW check_buff_cycle_aura (1)
 
 	SETHUD "buff aura"
@@ -5493,6 +5501,8 @@ sub check_buff_cycle_aura(bool _debug)
 	SETHUD EMPTY
 
 /return TRUE
+ ***|
+
 
 
 
@@ -6338,9 +6348,9 @@ sub check_buff_cycle_crew(bool _debug)
 			| one of your crew, pretend they are not a target until they qualify
 			/varset _target FALSE
 
-			| /if (${lsBuff${_count}Tag.Contains[crew]} && ${Spawn[${_toonName}].ID}) {
-			| 	/if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) /varset _target TRUE
-			| }
+			/if (${lsBuff${_count}Tag.Contains[crew]} && ${Spawn[${_toonName}].ID}) {
+				/if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) /varset _target TRUE
+			}
 
 			| main assist
 			| /if (${lsBuff${_count}Tag.Contains[ma]}) {
@@ -9444,7 +9454,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 
 	/if (${Me.Pet.Taunt}) /pet taunt
 	/if (${Me.Pet.Stance.NotEqual[follow]}) /pet follow
-	/if (!HOME) /call Bind_control_home set FALSE silent FALSE
+	/if (!HOME) /call Bind_control_home set FALSE silent ${maDebug.Find[home].Value}
 
 	/invoke ${out[9, "Fetching${sep}${tar}${Spawn[id ${_tmpID}].DisplayName}\ax (\a-r${Spawn[${_tmpID}].Distance}\ax)"]}
 
@@ -9484,7 +9494,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	/call where_the_fuck_is_my_pet ${maDebug.Find[lost].Value} FALSE
 
 	/if (HOME) {
-		/call Bind_control_home return FALSE silent FALSE
+		/call Bind_control_home return FALSE silent ${maDebug.Find[home].Value}
 	}
 	/if (!${timer_giveUpPull}) /goto :timerfail
 
@@ -9499,7 +9509,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 		| /invoke ${out[9, "${notice} ${dot} Timer to get mob failed!"]}
 		/call where_the_fuck_is_my_pet ${maDebug.Find[lost].Value} TRUE
 		/if (HOME) {
-			/call Bind_control_home return FALSE silent FALSE
+			/call Bind_control_home return FALSE silent ${maDebug.Find[home].Value}
 		}
 	}
 
@@ -9554,7 +9564,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
 
 	| force home even if not using it
 	/if (${maHome.Find[swinCombat].Value} && ${maCC.Find[swPullSetHome].Value} && !HOME) {
-		/call Bind_control_home set FALSE silent FALSE
+		/call Bind_control_home set FALSE silent ${maDebug.Find[home].Value}
 	}
 
 	| set the target
@@ -9583,11 +9593,16 @@ sub get_target_navpull(bool _debug, int _tmpID)
 
 	| move home
 	/if (${maCC.Find[swPullSetHom].Value} && ${maCC.Find[swPullSetHome].Value} && HOME) {
-		/call Bind_control_home return FALSE silent FALSE
+		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} > SAFEENV && PULL) {
+			/call Bind_control_home return FALSE silent ${maDebug.Find[home].Value}
+		}
+
+
 	}
 
 	/while (${Me.Moving}) {
 		GETINPUT get_target_navpull_moving _tmpID|${_tmpID}
+		ISMEDEAD
 		/delay 5
 	}
 
@@ -9644,7 +9659,7 @@ sub get_target_multipull(bool _debug)
 	}
 
 	| maintain home marker
-	/if (!HOME) /call Bind_control_home set FALSE
+	/if (!HOME) /call Bind_control_home set NULL NULL ${maDebug.Find[home].Value}
 	| how the hell do we want to kill it.?
 
 	| pull with a normal range if the mob is los and within 100. multi puller keeps local camp under control.
@@ -11245,7 +11260,7 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
 		}
 
 		| apply any conditions
-		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maNuke.Find[stNuke${_liNuke.Value}Con].Value}]}) {
+		/if (!${check_condition[TRUE, ${maNuke.Find[stNuke${_liNuke.Value}Con].Value}]}) {
 			/invoke ${_liNuke.Advance}
 			/continue
 		}
@@ -11782,7 +11797,7 @@ sub is_me_dead(bool _debug)
 
 		| stop all the things(s)
 		/if (${maHome.Find[swMoveDeathClear].Value}) {
-			/call Bind_control_home clear FALSE silent FALSE
+			/call Bind_control_home clear FALSE silent ${maDebug.Find[home].Value}
 		}
 
 		| /call set_stop ${maDebug.Find[stop].Value} SILENT
@@ -12583,6 +12598,136 @@ sub moveto_behind(bool _debug, int _tmpID)
 	}
 
 	/delay 2
+
+/return TRUE
+
+
+
+
+
+
+
+
+
+
+|***
+ * note: casts heals from maBuff
+ * use: /call check_buff_cycle_aura DEBUG [TARGETID]
+ ***|
+sub check_buff_cycle_aura(bool _debug, int _tmpID, string _tag)
+	DEBUG \atcheck_buff_cycle_aura\ax(\a-w${_tmpID}, ${_tag}\ax)
+	FLOW check_buff_cycle_aura ${_tmpID}|${_tag} (1)
+
+	/declare _myAura string local FALSE
+	/declare _myAuraRK string local FALSE
+	/declare _liBuff listiterator local
+	/vardata _liBuff lsCount50.First.Clone
+	/while (!${_liBuff.IsEnd}) {
+		DEBUG ${sep}Buff${_liBuff.Value}${sep}\a-w${maBuff.Find[stBuff${_liBuff.Value}].Value}${sep}${maBuff.Find[stBuff${_liBuff}].Value}\ax
+		GETINPUT check_buff_cycle_aura NA|NA
+		ISMEDEAD
+		CHECKEXIT check_buff_cycle_aura
+		FLOW check_buff_cycle_aura ${_tmpID}|${_tag} (2)
+
+		| check the switch
+		/if (!${maBuff.Find[swBuff${_liBuff.Value}].Value}) {
+			DEBUG ${sep}break.OFF
+			/invoke ${_liBuff.Advance}
+			/continue
+		}
+
+		| check the item name
+		/if (!${Bool[${maBuff.Find[stBuff${_liBuff.Value}].Value}]}) {
+			DEBUG ${sep}break.NO NAME
+			/invoke ${_liBuff.Advance}
+			/continue
+		}
+
+		| check matching tag for failure
+		/if (!${lsBuff${_liBuff.Value}Tag.Contains[buffaura]}) {
+			DEBUG ${sep}break.no buffaura tag
+			/invoke ${_liBuff.Advance}
+			/continue
+		}
+
+		| check matching tag pass
+		/if (${lsBuff${_liBuff.Value}Tag.Contains[buffaura]}) {
+			/varset _myAura ${maBuff.Find[stBuff${_liBuff.Value}].Value}
+			/varset _myAuraRK ${Spell[${maBuff.Find[stBuff${_liBuff.Value}].Value}].RankName}
+		}
+
+		| have the auras?
+		/if (${Me.Aura[1].Name.Equal[${Spell[${maBuff.Find[stBuff${_liBuff}].Value}].RankName}]} || ${Me.Aura[1].Name.Find[${maBuff.Find[stBuff${_liBuff}].Value}]}) {
+			DEBUG ${sep}break.have aura1
+			/varset _myAura FALSE
+			/invoke ${_liBuff.Advance}
+			/continue
+		}
+
+		| have the aura continued....
+		/if (${Me.Aura[2].Name.Equal[${Spell[${maBuff.Find[stBuff${_liBuff}].Value}].RankName}]} || ${Me.Aura[2].Name.Find[${maBuff.Find[stBuff${_liBuff}].Value}]}) {
+			DEBUG ${sep}break.have aura2
+			/varset _myAura FALSE
+			/invoke ${_liBuff.Advance}
+			/continue
+		}
+
+		| apply any conditions
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maBuff.Find[stBuff${_liBuff.Value}Con].Value}]}) {
+			DEBUG ${sep}break.condition
+			/varset _myAura FALSE
+			/invoke ${_liBuff.Advance}
+			/continue
+		}
+
+		/call check_basic_tags ${maDebug.Find[tag].Value} Heal${_liBuff.Value} ${Spawn[${hurtID}].DisplayName} "${maBuff.Find[stBuff${_liBuff.Value}Con].Value}"
+		/if (!${Macro.Return}) {
+			/invoke ${_liBuff.Advance}
+			/continue
+		}
+
+		/call voodoo ${_debug} "${maBuff.Find[stBuff${_liBuff.Value}].Value}" 0 FALSE
+
+		/if (${maEntropy.Find[swBuffCooldownWait].Value}) {
+			DEBUG ${sep}buff cooldown recycle
+			/while (${Me.SpellInCooldown}) {
+				CHECKEXIT
+				ISMEDEAD
+				/if (!${Me.SpellInCooldown}) /break
+				/delay 5
+			}
+		}
+
+		/invoke ${_liBuff.Advance}
+	}
+
+/return TRUE
+
+
+${Me.Aura[2].Name.Find[${maBuff.Find[stBuff50].Value}]}
+
+
+
+
+
+
+
+|***
+ * note: drop a sql field
+ * use: /call sql_drop TABLE FIELD
+ ***|
+sub sql_drop(string _table, string _field, bool _echo)
+
+	| is the data there?
+	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_field}"
+
+	/if (${sqlite.Rows[dummy]}) {
+		/sqlite ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_table} WHERE env_var="${_field}"
+		/if (${_echo}) OUT SQL DROP${sep}\a-w${_table}${submenu}${_field}\ax ${dot} \a-w${sqlite.Status[dummy]}\ax
+
+	} else /if (!${sqlite.Rows[dummy]}) {
+		/if (${_echo}) OUT Not Found${sep}\a-w\a-w${_table}${submenu}${_field}\ax\ax
+	}
 
 /return TRUE
 

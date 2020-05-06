@@ -15,7 +15,6 @@ on the to do list
 - tag entry validation (cause people are making up shit now)
 - i'm gonna have to externalize all the AAs
 - ranger silent shot ambush spell
-- rest/pull conflict
 - break out triggers for minion buffs
 - check cure exits / recasts
 - build a control /cure
@@ -30,6 +29,33 @@ known bugs
 --------------------
 epics with commas in their names are currently not functioning
 --------------------
+
+
+
+HUDUPDATE
+- hud
+  added invis markers for SoS and IV vs. animal
+  removed the cure marker
+- debug
+  home - all of the home movements
+  sql - for the SQL satabase check/drops
+- auras (this breaks your auras)
+  are now part of buffs like every other buff
+  tag them with buffaura and any other tags you like
+  /buff aura has been altered to on/off switch
+  cleric using Aura of the Reverent can use condition:
+  !${Me.Aura[1].Name.Equal[Reverent Aura]} && !${Me.Aura[2].Name.Equal[Reverent Aura]}
+  due to the DBG fucked up naming convention
+- conditions
+  i've built in the math.calc calculation into the condition check routine
+  you should be able to go back to writing normal conditions an having them function as designed
+  i'll leave it like this till the MQ issue is sorted (if ever...)
+- /pull nav
+  added a death check in the move back portion cause some SKs suck
+- toons will buff you crew members again. the strike is over. agreements have been made
+- /shash flash will work for SKs and warriors now
+- tags
+  buffaura - marker for auras used in the /buffs map
 
 
 B200504.01

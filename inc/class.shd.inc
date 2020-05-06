@@ -41,8 +41,8 @@ sub set_SHD(bool _debug)
  	/call set_data_map FALSE maChr swSkin 															FALSE													"${auxsw} use steel self buff"
  	/call set_data_map FALSE maChr stSkin 															PREGEN|1											"${auxna} name of the steel self buff"
 	/call set_data_map FALSE maChr swAttraction													FALSE													"${auxsw} use the attraction aa to help with agro/pulling"
-	/call set_data_map FALSE maChr stPctShieldFlash						     					0															"${auxnum} % of HP to try to get shield flash running"
-	/call set_data_map FALSE maChr stCountShieldFlash										0															"${auxnum} # of mobs to hit shield flash"
+	| /call set_data_map FALSE maChr stPctShieldFlash						     					0															"${auxnum} % of HP to try to get shield flash running"
+	| /call set_data_map FALSE maChr stCountShieldFlash										0															"${auxnum} # of mobs to hit shield flash"
 
 	/invoke ${set_data_timer[FALSE, Check_VoT, 21m]}
 	/call set_data_map FALSE maChr swVoT				 												FALSE													"${auxsw} use voice of thule aa"
