@@ -26,7 +26,6 @@
 #define GETINPUT "/call get_input"
 #define ISMEDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}"
 #define CHECKDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /return FALSE"
-
 #define CHECKEXIT "/if (${check_exit[${maDebug.Find[exit].Value}]}) /return"
 #define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maCC.Find[swPull].Value} && !${Me.Invis} && ${maRez.Find[swRezGive].Value}) /call check_for_corpse ${maDebug.Find[rez].Value}"
 #define CHECKFADE "/if (${maChr.Find[stPctFade].Value}) /call cast_AA_fade ${maDebug.Find[fade].Value}"
@@ -65,6 +64,8 @@
 #define FLOW "/if (${maDebug.Find[flow].Value}) /varset flow ${stAssTarID} ::"
 #define ENGINE1 "${maEntropy.Find[stEngine].Value.Equal[1]}"
 #define ENGINE2 "${maEntropy.Find[stEngine].Value.Equal[2]}"
+#define MERCENARY "${maMercenary.Find[swMercenary].Value}"
+
 
 
 #include exspes\inc\initialize.inc
@@ -118,7 +119,7 @@ sub main(string _debug, string _param1, string _auto)
 
 
 	| current entropy build #
-	/call set_data FALSE maEnv build													map outer B200506.2
+	/call set_data FALSE maEnv build													map outer B200510.02
 
 	| prep macro
 	/call prepare_the_end FALSE

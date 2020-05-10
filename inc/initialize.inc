@@ -161,7 +161,7 @@ sub set_initialize(bool _debug)
   /invoke ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maBuff,maBurn,maPred]}
   /invoke ${lsMaps.Append[maEntropy,maTimer,maCondition,madeBuff,maTie,maMinion,maCrew]}
   /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard]}
-  /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro]}
+  /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro,maMercenary]}
   /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
 
   | set all output shortcuts
@@ -226,6 +226,7 @@ sub set_initial_environment(bool _debug)
 
   | yo' dawg, i heard you like lists. so heres a list of lists for your lists
   /call set_data ${_debug} FALSE lsClassAll                               list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
+  /call set_data ${_debug} FALSE lsClassMercenary                         list outer WAR|CLR|WIZ|ROG
   /call set_data ${_debug} FALSE lsClassMelee                             list outer WAR|ROG|BST|MNK|SHD|PAL|BER|BRD|RNG
   /call set_data ${_debug} FALSE lsClassCast                              list outer PAL|SHD|BRD|RNG|BST|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
   /call set_data ${_debug} FALSE lsClassPet                               list outer ENC|DRU|SHM|SHD|WIZ|BRD|BST|MAG|NEC
@@ -249,7 +250,7 @@ sub set_initial_environment(bool _debug)
 	/call set_data ${_debug} FALSE lsClassHealCure													list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
 
 	| things we ont want pullers attacking
-  /call set_data ${_debug} FALSE lsNoAttackBodyType                       list outer AURA|BANNER|CAMPFIRE|CORPSE|CHEST|ITEM|TRIGGER|TRAP|TIMER|MOUNT|MERCENARY|OBJECT
+  /call set_data ${_debug} FALSE lsNoAttackBodyType                       list outer AURA|BANNER|CAMPFIRE|CORPSE|CHEST|ITEM|TRIGGER|TRAP|TIMER|MOUNT|mercenary|OBJECT
   /call set_data ${_debug} FALSE lsNoTargetNPC                            list outer "a campfire"|"a corpse"|"controller"|"Steel Mass"|"Sphere of Fire"
   /call set_data ${_debug} FALSE lsNoTargetPC                             list outer "eye of"
   /call set_data ${_debug} FALSE lsNoTargetMagic                          list outer "eye of"
@@ -608,6 +609,7 @@ sub sql_set_character_schema(bool _debug)
   /invoke ${maDBTables.Add[environment_burn,env_var]}
   /invoke ${maDBTables.Add[environment_sash,env_var]}
   /invoke ${maDBTables.Add[environment_hard,env_var]}
+  /invoke ${maDBTables.Add[environment_mercenary,env_var]}
 
   /sqlite ${maData.Find[DBcharacter].Value} SQL_ENV_BUILD SELECT build_number FROM build
   DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[dummy]}\ax
@@ -677,6 +679,12 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maPred swPredPrepBurn											FALSE													"${auxsw} prep burn routines"
   /call set_data_map ${_debug} maPred swPredPrepClass											FALSE													"${auxsw} prep class specific routine"
   /call set_data ${_debug} maPred stPredID																map outer FALSE
+
+
+|** control: mercenary **|
+  /call set_data_map ${_debug} maMercenary swMercenary										FALSE													"${auxsw} use your mercenary" mercenary
+  /call set_data_map ${_debug} maMercenary stMercenaryClass								FALSE													"${auxna} class type of the mercenary you want to use" mercenary
+
 
 
 |** control: hard **|
@@ -885,6 +893,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maTie stTieToon                            FALSE                         "${auxna} name of toon you want to tie too when commanded"
   /call set_data_map ${_debug} maTie stTieMode                            nav                           "${auxna} [\a-wstick-nav\ax] the mode you want to use for tie movements"
   /call set_data_map ${_debug} maTie stTieVariance                        5                             "${auxnum} acceptabe distances to be away from the tiem toon before moving to it"
+  /call set_data_map ${_debug} maTie swTieCombat	                        FALSE                         "${auxsw} enable tie while in active combat"
 
 
 |** control: mode **|
@@ -1113,6 +1122,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maOver swOverEnvAuto		                    FALSE                         "${auxsw} ignore non-persistent auto and start with \a-w/env auto on\ax"
   /call set_data_map ${_debug} maOver swOverDSCheck		                    FALSE                         "${auxsw} ignore damage shield checks while melee"
   /call set_data_map ${_debug} maOver swOverNavCheck		                  FALSE                         "${auxsw} bypass Nav PathExists checks"
+  /call set_data_map ${_debug} maOver swOverGroupAss		                  FALSE                         "${auxsw} override group assist rules and force manual"
 
 
 |** control: entropy  **|

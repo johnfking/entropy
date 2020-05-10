@@ -357,6 +357,35 @@ sub Event_TTLend(string _line, string _mob)
 
 
 
+
+
+|***
+ *	DES: preps the queue with target toon
+ *	USE: /call cast_buffs_queue [toon name] [buff word]
+ *	NOTE:
+ ***|
+sub cast_buffs_queue(string _sender, string _verbage, bool _debug)
+	DEBUG cast_buffs_queue(${_sender}, ${_verbage})
+
+	CHECKINPUTS
+
+	/declare _a int local 0
+	/declare _i int local 0
+
+	/for _i 1 to ${setMaxBuffCount}
+		/for _a 1 to ${Buff${_i}Alias.Count[|]}
+			/if (${_verbage.Find["${Buff${_i}Alias.Arg[${_a},|]}"]}) {
+				/call queue_buff_add ${Spawn[pc ${_sender}].ID} ${_i}
+			}
+		/next _a
+	/next _i
+
+/return
+
+
+
+
+
 |***
  * note: Tells for specific things.. i guess?
  * use: /t uselesstoon IwantThisBuff
@@ -371,18 +400,11 @@ sub Event_Talk(string line, string _sender, string _chatText)
 
 
 	| Tells for buffs.
-	| /if (${swBuffTell} && ${Spawn[${_sender}].ID} && ${_sender.NotEqual[${Me.DisplayName}]}) {
-   |  /call cast_buffs_queue "${_sender}" "${_chatText}"
-  |   /return
-  | }
-
-	| Remote kill execution.
-  /if (${Bool[${remoteKillKey}]} && ${_chatText.Equal[${remoteKillKey}]}) {
-  	/call set_stop FALSE
-  	/call clear_combat
-  	OUT ${owarning} ${sep} Recieved tell from ${cpc}${_sender}\ax to end current macro.
-  	/endm
+	/if (${swBuffTell} && ${Spawn[${_sender}].ID} && ${_sender.NotEqual[${Me.DisplayName}]}) {
+    /call cast_buffs_queue "${_sender}" "${_chatText}"
+    /return
   }
+
 
   | take a tell to reform your group.
   /if (${_chatText.Equal[makemeleader]}) /makeleader ${_sender}

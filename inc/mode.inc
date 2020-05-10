@@ -811,7 +811,7 @@ sub mode_hunt(bool _debug)
 	 }
 
 	| get to the mob
-	/call pull_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Valule}]} on
+	/call pull_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} on
 
 	/if (${Spawn[id TARGET].Dead}) /return TRUE
 
@@ -832,10 +832,6 @@ sub mode_hunt(bool _debug)
 	SETHUD EMPTY
 
 /return TRUE
-
-
-
-
 
 
 

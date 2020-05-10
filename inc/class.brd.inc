@@ -61,7 +61,7 @@ sub main_BRD(bool _debug)
 		/call control_routine FALSE
 
 		/if (${maChr.Find[swPulseOOC].Value}) {
-			/call pulse_cycle ${maDebug.Find[pulse].Value} 0
+			/call pulse_cycle ${maDebug.Find[pulse].Value} 0 OOC
 		}
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
@@ -82,7 +82,7 @@ sub main_BRD(bool _debug)
 			| /call control_routine FALSE
 			| /if (${swAlliance}) /call trigger_alliance TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
-			/call pulse_cycle ${maDebug.Find[pulse].Value} TARGET
+			/call pulse_cycle ${maDebug.Find[pulse].Value} TARGET FALSE
 			| /call control_routine FALSE
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
@@ -246,11 +246,11 @@ sub cast_servant_swarm(bool _debug, int _tmpID)
  * note: sings the line of songs for group support
  * use: /call pulse_cycle DEBUG [TARGET]
  ***|
-sub pulse_cycle(bool _debug, _tmpID)
-	DEBUG \atpulse_cycle\ax(\a-w${_tmpID}\ax)
+sub pulse_cycle(bool _debug, _tmpID, string _oocSing)
+	DEBUG \atpulse_cycle\ax(\a-w${_tmpID}, ${_oocSing}\ax)
 	FLOW pulse_cycle
 
-	SETHUD "pulse"
+	SETHUD "pulse ${If[${maChr.Find[swPulseOOC].Value} && !COMBAT,ooc,]}"
 
 	| if the user has not set the line order, set it to a default for now
 	/if (${lsLineSong.Contains[EMPTY]} && ${lsLineSong.Count} == 1) {
@@ -263,13 +263,21 @@ sub pulse_cycle(bool _debug, _tmpID)
 	/vardata _lipl lsLineSong.First.Clone
 	/while (!${_lipl.IsEnd}) {
 
-		/if (${target[isdead, ${_tmpID}]} && !${maPred.Find[swPred].Value} && !${maChr.Find[swPulseOOC].Value}) {
-			/call pulse_stop
-			/call clear_combat
+		| break on mobs around
+		/if (${_oocSing.Equal[ooc]} && COMBAT) {
+			DEBUG ${sep}break.ooc singing stop for combat
 			/return FALSE
 		}
 
-		| /call control_routine FALSE
+		| /if (${target[isdead, ${_tmpID}]} && !${maPred.Find[swPred].Value} && !${maChr.Find[swPulseOOC].Value}) {
+		/if (${_oocSing.NotEqual[ooc]}) {
+		DEBUG ${sep}alter.not ooc dead check
+			/if (${target[isdead, ${_tmpID}]}) {
+				/call pulse_stop
+				/call clear_combat
+				/return FALSE
+			}
+		}
 
 		| check the switch
 		/if (!${Bool[${maSong.Find[swSong${_lipl.Value}].Value}]}) {
@@ -314,6 +322,10 @@ sub pulse_cycle(bool _debug, _tmpID)
 		/if (AUTO && ${_tmpID}) {
 			/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 			/call stick_to_target FALSE ${_tmpID}
+		}
+
+		/if (MELEE && ${_tmpID}) {
+			/call do_melee FALSE TARGET
 		}
 
 		/call voodoo ${_debug} "${maSong.Find[stSong${_lipl.Value}].Value}" 0 FALSE

@@ -31,7 +31,28 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+B200510.02
+- removed a debug echo i left in nuking /sigh
+- /entropy
+  hud time swtich works again
+- /override
+  groupassist - allow overriding yourself as a group assist to still use a manual assist
+  scenario: 2 groups. 1 is a mob control group other is dps. dps group all assist the group ma
+  the group ma sets ma1 to the tank in the control group and enables override groupassist
+  this alows them to be both a group assist and still pull their assist from outside the group
+  keeping all group exp to the dps group and avoiding a raid configuration
+- bard
+  adjustments to pulse line to allow for faster facing and melee
+  added breaks in OOC singing in case combat happens
+- /heal hot corrected so the spell name is no longer there.
+  should be in the /heal list and tagged like other heals
+- corrected a bad variable in /mode hunt
+- corrected an output for /heal xtclass
+- beastlord
+  swapped out Playing Possum AA for Falsified Death
 
+
+B200506.2
 HUDUPDATE
 - hud
   added invis markers for SoS and IV vs. animal

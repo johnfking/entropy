@@ -2879,7 +2879,7 @@ sub check_combat_status(bool _debug)
 			/return FALSE
 		}
 
-	| combat healing/crowd control
+	| combat healing/crowd control/bard ooc song
 	} else /if (AUTO && (HEAL || (${madeBuff.Find[swMez].Value} && ${maCC.Find[swCombatControl].Value}))) {
 		DEBUG ${sep}auto-heal/CC combat check
 
@@ -4266,7 +4266,7 @@ sub get_assist_target(bool _debug)
 	}
 
 	| cannnot assist yourself
-	/if (${Group.MainAssist.Name.Equal[${Me.DisplayName}]}) {
+	/if (${Group.MainAssist.Name.Equal[${Me.DisplayName}]} && !${maOver.Find[swOverGroupAss].Value}) {
 		DEBUG ${sep}cannot assist self
 		/return FALSE
 	}
@@ -4876,7 +4876,7 @@ sub set_control_chr_xtclass(bool _debug, string _verbage)
 	} else /if (${Bool[${_verbage}]} && ${lsClassAll.Contains[${_verbage.Upper}]}) {
 		/varset _verbage ${_verbage.Upper}
 	} else {
-		/invoke ${out[0, "usage /heal xtclass [\a-wTarget\ax|\a-wClass ShortName\ax]"]}
+		/invoke ${out[0, "\awusage\ax /heal xtclass [\a-wTarget\ax|\a-wClass ShortName\ax]"]}
 	}
 
 	/if (${lsClassAll.Contains[${_verbage}]}) {
@@ -4898,7 +4898,7 @@ sub set_control_chr_xtclass(bool _debug, string _verbage)
 		/if (!${lsHealXTClass.Contains[${_lisccx.Value}]}) /varset _out ${_out}:${off}
 		/invoke ${_lisccx.Advance}
 	}
-	/invoke ${out[12, "/chr xtclass ${_out}"]}
+	/invoke ${out[12, "/heal xtclass ${_out}"]}
 
 /return
 
@@ -5093,7 +5093,6 @@ sub set_tie(bool _debug)
 				/squelch /target clear
 			}
 
-			/echo here
 			/squelch /face ID ${_ID} ${If[${maHome.Find[swFaceFast].Value},fast,]}
 			/squelch /stick ID ${_ID} ${maTie.Find[stTieVariance].Value} UW
 		}
@@ -11026,7 +11025,7 @@ sub cast_cycle_defense(bool _debug, int _tmpID)
 	/if (${lsLineDefense.Contains[EMPTY]} && ${lsLineDefense.Count} == 1) {
 		DEBUG ${sep}resetting the empty defense line
 		/invoke ${lsLineDefense.Clear}
-		/invoke ${lsLineDefense.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+		/invoke ${lsLineDefense.Append[${stCount20}]}
 	}
 
 	/declare _liC20 listiterator local
@@ -11111,7 +11110,7 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 	/if (${lsLineItem.Contains[EMPTY]} && ${lsLineItem.Count} == 1) {
 		DEBUG ${sep}resetting the empty clickitem line
 		/invoke ${lsLineItem.Clear}
-		/invoke ${lsLineItem.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+		/invoke ${lsLineItem.Append[${stCount20}]}
 	}
 
 	/declare _liC20 listiterator local
@@ -11260,7 +11259,7 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
 		}
 
 		| apply any conditions
-		/if (!${check_condition[TRUE, ${maNuke.Find[stNuke${_liNuke.Value}Con].Value}]}) {
+		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maNuke.Find[stNuke${_liNuke.Value}Con].Value}]}) {
 			/invoke ${_liNuke.Advance}
 			/continue
 		}
@@ -11313,7 +11312,7 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 	/if (${lsLineDoT.Contains[EMPTY]} && ${lsLineDoT.Count} == 1) {
 		DEBUG ${sep}resetting the empty dot line
 		/invoke ${lsLineDoT.Clear}
-		/invoke ${lsLineDoT.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+		/invoke ${lsLineDoT.Append[${stCount20}]}
 	}
 
 	/declare _liC20 listiterator local
@@ -11438,7 +11437,7 @@ sub cast_cycle_agro(bool _debug, int _tmpID)
 	/if (${lsLineAgro.Contains[EMPTY]} && ${lsLineAgro.Count} == 1) {
 		DEBUG ${sep}resetting the empty agro line
 		/invoke ${lsLineAgro.Clear}
-		/invoke ${lsLineAgro.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+		/invoke ${lsLineAgro.Append[${stCount20}]}
 	}
 
 	/declare _liC20 listiterator local
@@ -11514,9 +11513,7 @@ sub cast_cycle_miscdps(bool _debug, int _tmpID)
 	/if (${lsLineMiscdps.Contains[EMPTY]} && ${lsLineMiscdps.Count} == 1) {
 		DEBUG ${sep}resetting the empty MiscDPS line
 		/invoke ${lsLineMiscdps.Clear}
-		/invoke ${lsLineMiscdps.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
-		/invoke ${lsLineMiscdps.Append[21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40]}
-		/invoke ${lsLineMiscdps.Append[41|42|43|44|45|46|47|48|49|50]}
+		/invoke ${lsLineMiscdps.Append[${stCount50}]}
 	}
 
 
@@ -11592,7 +11589,7 @@ sub cast_cycle_burn(bool _debug, int _tmpID)
 	/if (${lsLineBurn.Contains[EMPTY]} && ${lsLineBurn.Count} == 1) {
 		DEBUG ${sep}resetting the empty burn line
 		/invoke ${lsLineBurn.Clear}
-		/invoke ${lsLineBurn.Append[1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20]}
+		/invoke ${lsLineBurn.Append[${stCount20}]}
 	}
 
 	/declare _liC20 listiterator local
@@ -11653,16 +11650,10 @@ sub cast_cycle_burn(bool _debug, int _tmpID)
 			/break
 		}
 
-
-
 		/invoke ${_liC20.Advance}
 	}
 
 /return TRUE
-
-
-
-
 
 
 
@@ -11791,7 +11782,7 @@ sub is_me_dead(bool _debug)
 		/invoke ${maCC.Add[swValidAssTarID,FALSE]}
 		/invoke ${maCC.Add[swSetCombat,FALSE]}
 		/invoke ${maCC.Add[swSetForced,FALSE]}
-		/invoke ${set_data_timer[FALSE, Check_Behind, 0]}
+		/invoke ${set_data_timer[${_debug}, Check_Behind, 0]}
 
 		/doevents flush
 
@@ -12163,11 +12154,7 @@ sub control_rez(bool _debug, string _action, int _ID, string _flag)
 
 	}
 
-
-
 /return
-
-
 
 
 
@@ -12603,13 +12590,6 @@ sub moveto_behind(bool _debug, int _tmpID)
 
 
 
-
-
-
-
-
-
-
 |***
  * note: casts heals from maBuff
  * use: /call check_buff_cycle_aura DEBUG [TARGETID]
@@ -12704,17 +12684,10 @@ sub check_buff_cycle_aura(bool _debug, int _tmpID, string _tag)
 /return TRUE
 
 
-${Me.Aura[2].Name.Find[${maBuff.Find[stBuff50].Value}]}
-
-
-
-
-
-
 
 |***
  * note: drop a sql field
- * use: /call sql_drop TABLE FIELD
+ * use: /call sql_drop TABLE FIELD [echo T/F]
  ***|
 sub sql_drop(string _table, string _field, bool _echo)
 

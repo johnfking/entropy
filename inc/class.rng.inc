@@ -38,9 +38,6 @@ sub set_RNG(bool _debug)
  	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
 
 	| heals
- 	| /call set_data_list FALSE maChr lsHealToT		 												PREGEN|3											"${auxli} targets target healing line of spells"
-  | /call set_data_map FALSE maChr stHealDesperate											PREGEN|1											"${auxna} fast cast heal"
-  | /call set_data_map FALSE maChr stHealFont														PREGEN|1											"${auxna} normal heal"
 	/call set_data_map FALSE maChr stDiscHeal		 												PREGEN|1											"${auxna} group heal disc"
 
 	| bow disc

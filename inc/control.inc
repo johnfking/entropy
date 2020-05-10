@@ -1299,14 +1299,14 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	} else /if (${_type.Equal[hot]}) {
 		/if (${_verbage.Equal[use]}) {
 			/invoke ${set_switch_env[${_debug}, swHealOverTime, TRUE, ${_silent}]}
-		} else /if (${_verbage.Equal[name]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stHealOverTime, "${_silent}"]}
+		| } else /if (${_verbage.Equal[name]}) {
+		| 	/invoke ${do_raw_edit[${_debug}, SILENT, stHealOverTime, "${_silent}"]}
 		} else /if (${_verbage.Equal[pct]}) {
 			/if (!${set_control_num_range[${_debug}, stHealPointHoT, "${_silent}", 0, 99]}) /return
 		}
 		/invoke ${maControl.Clear}
 		/invoke ${maControl.Add[use,swHealOverTime]}
-		/invoke ${maControl.Add[name,stHealOverTime|br]}
+		| /invoke ${maControl.Add[name,stHealOverTime|br]}
 		/invoke ${maControl.Add[pct,stHealPointHoT]}
 		/invoke ${set_control_output[${_debug}, maHeal, "heal hot", maControl]}
 		/return TRUE
@@ -1321,9 +1321,9 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	/if (${lsClassHealToT.Contains[${Me.Class.ShortName}]}) {
 		/invoke ${maControl.Add[tot,swHealToT]}
 	}
-	/if (${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
-		/invoke ${maControl.Add[hot,submenu]}
-	}
+	| /if (${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
+	| 	/invoke ${maControl.Add[hot,submenu]}
+	| }
 
   /invoke ${maControl.Add[groupheal,submenu]}
   /invoke ${maControl.Add[grouphot,swHealGroupOverTime]}
@@ -1433,7 +1433,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 				/invoke ${out[12, "HUD Time${sep}\a-wGame\ax"]}
 
 			} else /if (!${maData.Find[swHUDTime].Value}) {
-				/invoke ${maData.ADd[swHUDTime,TRUE]}
+				/invoke ${maData.Add[swHUDTime,TRUE]}
 				/invoke ${out[12, "HUD Time${sep}\a-wIRL\ax"]}
 			}
 
@@ -2037,6 +2037,8 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 		/invoke ${set_switch_env[FALSE, swOverDSCheck, TRUE, ${_verbage}]}
 	} else /if (${_type.Equal[navcheck]}) {
 		/invoke ${set_switch_env[FALSE, swOverNavCheck, TRUE, ${_verbage}]}
+	} else /if (${_type.Equal[groupass]}) {
+		/invoke ${set_switch_env[FALSE, swOverGroupAss, TRUE, ${_verbage}]}
 
 
 
@@ -2052,6 +2054,7 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 	/invoke ${maControl.Add[dscheck,swOverDSCheck]}
 	/invoke ${maControl.Add[envauto,swOverEnvAuto]}
 	/invoke ${maControl.Add[navcheck,swOverNavCheck]}
+	/invoke ${maControl.Add[groupass,swOverGroupAss]}
 	/invoke ${set_control_output[${_debug}, maOver, override, maControl]}
 
 /return	TRUE
@@ -5793,6 +5796,56 @@ sub control_pred(bool _debug)
 
 /return TRUE
 
+
+
+
+
+
+
+
+
+|***
+ * note: control for /mercenary
+ * use: mercenary controls
+ ***|
+#bind control_mercenary /mercenary
+sub Bind_control_mercenary(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atBind_control_mercenary\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
+
+	| output control map
+	/if (${_type.Equal[see]}) {
+		/call Bind_command_see maMercenary
+		/return TRUE
+	} else /if (${_type.Equal[aux]}) {
+		/call Bind_command_aux mercenary
+		/return TRUE
+
+	| set the switch to use
+	} else /if (${_type.Equal[use]}) {
+		/invoke ${set_switch_env[${_debug}, swMercenary, TRUE, ${_verbage}]}
+
+	} else /if (${_type.Equal[class]}) {
+
+		| fix user entry
+		/if (!${Bool[${_verbage}]} && ${lsClassMercenary.Contains[${Target.Class.ShortName}]}) {
+			/call do_raw_edit ${_debug} SILENT stMercenaryClass ${Target.Class.ShortName}
+		} else /if (${Bool[${_verbage}]} && ${lsClassMercenary.Contains[${_verbage.Upper}]}) {
+			/call do_raw_edit ${_debug} SILENT stMercenaryClass ${_verbage.Upper}
+		} else {
+			/invoke ${out[0, "\ayusage\ax /mercenary class [\a-wTarget\ax|\a-wWAR\ax|\a-wWIZ\ax|\a-wCLR\ax|\a-wROG\ax]"]}
+			/return FALSE
+		}
+
+
+	}
+
+	/if (${_silent.Equal[SILENT]}) /return
+	/invoke ${maControl.Clear}
+	/invoke ${maControl.Add[use,swMercenary]}
+	/invoke ${maControl.Add[class,stMercenaryClass|br]}
+	/invoke ${set_control_output[${_debug}, maMercenary, mercenary, maControl]}
+
+/return TRUE
 
 
 

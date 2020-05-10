@@ -21,7 +21,7 @@ sub set_BST(bool _debug)
 	/call set_data FALSE maData stEpic1																	map outer "Claw of the Savage Spirit"
 	/call set_data FALSE maData stEpic15																map outer "Savage Lord's Totem"
 	/call set_data FALSE maData stEpic2																	map outer "Spiritcaller Totem of the Feral"
-	/call set_data FALSE maData stFade																	map outer "Playing Possum"
+	/call set_data FALSE maData stFade																	map outer "Falsified Death"
 	/call set_data_map FALSE maChr stAAUnity														"Feralist's Unity"						"${auxna} class aa unity buff"
 
  	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
