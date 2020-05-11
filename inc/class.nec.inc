@@ -212,7 +212,7 @@ sub misc_combat_NEC(bool _debug, int _tmpID)
 		}
 	}
 
-	/if (${is_ready[${_debug}, "Hand of Death"]}) {
+	/if (${is_ready[${_debug}, "Hand of Death"]} && !${Me.Song[Funeral Pyre].ID}) {
 		/call voodoo ${_debug} "Hand of Death" ${_tmpID} FALSE
 	}
 
@@ -258,6 +258,8 @@ sub burn_NEC(bool _debug, int _tmpID)
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 
+
+
 	| Pet Burnage
 	/if (PET && ${Me.Pet.ID}) {
 		/if (${is_ready[${_debug}, "Companion's Fury"]}) {
@@ -277,7 +279,7 @@ sub burn_NEC(bool _debug, int _tmpID)
 		}
 	}
 
-	/if (${is_ready[${_debug}, "Funeral Pyre"]}) {
+	/if (${is_ready[${_debug}, "Funeral Pyre"]} && !${Me.Song[Hand of Death].ID}) {
 		/call voodoo ${_debug} "Funeral Pyre" ${_tmpID} FALSE
 	}
 
@@ -292,6 +294,11 @@ sub burn_NEC(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "Focus of Arcanum"]}) {
 		/call voodoo ${_debug} "Focus of Arcanum" 0 FALSE
 	}
+
+	/if (${is_ready[${_debug}, "Heretic's Twincast"]}) {
+		/call voodoo ${_debug} "Heretic's Twincast" 0 FALSE
+	}
+
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
 

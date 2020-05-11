@@ -226,7 +226,7 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 		/if (${is_ready[${_debug}, "Bloodfury"]}) /call voodoo ${_debug} "Bloodfury" 0 FALSE
 	}
 
-	/if (${is_ready[${_debug}, "${maChr.Find[stCryHavoc].Value}"]}) {
+	/if (${is_ready[${_debug}, "${maChr.Find[stCryHavoc].Value}"]} && !${Me.Buff[${maChr.Find[stCryHavoc].Value}].ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stCryHavoc].Value}" 0 FALSE
 	}
 	/if (${is_ready[${_debug}, "${maChr.Find[stFesteringRage].Value}"]}) {

@@ -613,6 +613,7 @@ sub sql_set_character_schema(bool _debug)
   /invoke ${maDBTables.Add[environment_sash,env_var]}
   /invoke ${maDBTables.Add[environment_hard,env_var]}
   /invoke ${maDBTables.Add[environment_mercenary,env_var]}
+  /invoke ${maDBTables.Add[environment_minion,env_var]}
 
   /sqlite ${maData.Find[DBcharacter].Value} SQL_ENV_BUILD SELECT build_number FROM build
   DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[dummy]}\ax
@@ -1097,23 +1098,23 @@ sub set_initialize_map_character_environment(bool _debug)
 
 |** control: minion **|
   /invoke ${set_data_timer[FALSE, Check_Minion_Cycle, 1m]}
-  /call set_data_map ${_debug} maMinion swPet                             FALSE                         "${auxsw} use pets"
-  /call set_data_map ${_debug} maMinion stPetType                         FALSE                         "${auxna} name of pet spell to summon pet with"
-  /call set_data_map ${_debug} maMinion stPetIllusion                     FALSE                         "${auxna} name of pet illusion whatever spell, clickie, left over dinner"
-  /call set_data_map ${_debug} maMinion stPctPetEngage                    95                            "${auxnum} % of mob health to engage pet at"
-  /call set_data_map ${_debug} maMinion swSwarm                           FALSE                         "${auxsw} use swarm pets/items/aas/left shoe"
-  /call set_data_map ${_debug} maMinion stPctSwarmEngage                  95                            "${auxnum} % of mob health to engage swarm pets at"
-  /call set_data_map ${_debug} maMinion swNoSwarmonDS                     FALSE                         "${auxsw} use swarms on mobs woth a damage shield"
-  /call set_data_map ${_debug} maMinion swonForce                         FALSE                         "${auxsw} send pets on \a-w/cc force\ax command"
-  /call set_data_map ${_debug} maMinion swUsePetGear                      FALSE                         "${auxsw} use pet weapons"
-  /call set_data_map ${_debug} maMinion stPetWeapon                       FALSE                         "${auxna} weapon to give your pet"
+  /call set_data_map ${_debug} maMinion swPet                             FALSE                         "${auxsw} use pets"																													minion
+  /call set_data_map ${_debug} maMinion stPetType                         FALSE                         "${auxna} name of pet spell to summon pet with"															minion
+  /call set_data_map ${_debug} maMinion stPetIllusion                     FALSE                         "${auxna} name of pet illusion whatever spell, clickie, left over dinner"		minion
+  /call set_data_map ${_debug} maMinion stPctPetEngage                    95                            "${auxnum} % of mob health to engage pet at"																minion
+  /call set_data_map ${_debug} maMinion swSwarm                           FALSE                         "${auxsw} use swarm pets/items/aas/left shoe"																minion
+  /call set_data_map ${_debug} maMinion stPctSwarmEngage                  95                            "${auxnum} % of mob health to engage swarm pets at"													minion
+  /call set_data_map ${_debug} maMinion swNoSwarmonDS                     FALSE                         "${auxsw} use swarms on mobs woth a damage shield"													minion
+  /call set_data_map ${_debug} maMinion swonForce                         FALSE                         "${auxsw} send pets on \a-w/cc force\ax command"														minion
+  /call set_data_map ${_debug} maMinion swUsePetGear                      FALSE                         "${auxsw} use pet weapons"																									minion
+  /call set_data_map ${_debug} maMinion stPetWeapon                       FALSE                         "${auxna} weapon to give your pet"																					minion
 
   /invoke ${set_data_timer[FALSE, Check_Minion_Shrink, 10m]}
-  /call set_data_map ${_debug} maMinion swPetShrink                       FALSE                         "${auxsw} use pet shrink item/spell/drugs?"
-  /call set_data_map ${_debug} maMinion stPetShrink                       FALSE                         "${auxna} name of pet shrink thingie"
+  /call set_data_map ${_debug} maMinion swPetShrink                       FALSE                         "${auxsw} use pet shrink item/spell/drugs?"																	minion
+  /call set_data_map ${_debug} maMinion stPetShrink                       FALSE                         "${auxna} name of pet shrink thingie"																				minion
 
   /invoke ${set_data_timer[FALSE, Check_Minion_Buff, 1m]}
-  /call set_data_map ${_debug} maMinion swPetBuff                         FALSE                         "${auxsw} buff minion (\ayyours\ax)"
+  /call set_data_map ${_debug} maMinion swPetBuff                         FALSE                         "${auxsw} buff minion (\ayyours\ax)"																				minion
 
 
 |** control: over **|

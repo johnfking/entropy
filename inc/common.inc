@@ -1590,8 +1590,8 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 	}
 
 	| are we moving? and not a bard?
-	/if (!${Select[${Me.Class.ShortName},BRD]}) {
-		DEBUG ${sep}break voodo.moving
+	/if (!${Select[${Me.Class.ShortName},BRD]} && (${Me.Moving} || ${Stick.Active} || ${Navigation.Active})) {
+		DEBUG ${sep}break voodoo.moving
 		/if (${Me.Moving}) /return FALSE
 		/if (${Stick.Active}) /return FALSE
 		/if (${Navigation.Active}) /return FALSE
@@ -2203,15 +2203,15 @@ sub set_stop(bool _debug, string _silent)
 
 	| stop movement
 	/declare _breakmove int local 1
-	/while (${Me.Moving}) {
+	/while (${Me.Moving} || ${Navigation.Active}) {
 
 		/if (${Stick.Active}) {
-			DEBUG ${sep}stop${sep}\a-wstick\ax
+			DEBUG ${sep}stop${sep}\a-wstick\ax (\a-r${_breakmove}\ax)
 			/squelch /stick off
 		}
 
 		/if (${Navigation.Active}) {
-			DEBUG ${sep}stop${sep}\a-wnavigation\ax
+			DEBUG ${sep}stop${sep}\a-wnavigation\ax (\a-r${_breakmove}\ax)
 			/nav stop |log=off
 		}
 
@@ -3595,10 +3595,21 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 					/varset _range 0
 				}
 
+				| make sure we are stopped
+				/if (!${Select[${Me.Class.ShortName},BRD]}) {
+					/declare _breakmove int local 1
+					/while (${Me.Moving} || ${Navigation.Active}) {
+						DEBUG ${sep}stop tag${sep}\a-wnavigation\ax (\a-r${_breakmove}\ax)
+						/nav stop |log=off
+						/varcalc _breakmove ${_breakmove}+1
+						/if ((!${Me.Moving} && !${Navigation.Active}) || ${_breakmove} > 4) /break
+						/delay 5 !${Me.Moving} && !${Navigation.Active}
+					}
+				}
 
 				/call voodoo ${_debug} "${maCC.Find[stRangeOther].Value}" ${_tmpID} FALSE ${_range}
 				/delay 1s ${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]} || ${Me.PctHPs} <= ${Math.Calc[${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO]}
-				| /mqp
+
 				/if (${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
 					DEBUG ${sep}TargetOfTarget.Item
 					/declare _loopbreak int local 0
@@ -3628,7 +3639,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		| range tag
 		| there are some base limitations to combat range tagging. we are going to limit to 250 for range/thrown items
 		| yes i know some classes can go a lot farther..
-		/if (${Spawn[ID ${_tmpID}].Distance} > ${maHard.Find[stMinBowDist].Value} && ${Spawn[ID ${_tmpID}].Distance} > ENV && ${Spawn[ID ${_tmpID}].Distance} < ${maHard.Find[stMaxBowDist].Value} && RANGE) {
+		/if (${Spawn[ID ${_tmpID}].Distance} > ${maHard.Find[stMinBowDist].Value} && ${Spawn[ID ${_tmpID}].Distance} > ENV && ${Spawn[ID ${_tmpID}].Distance} < ${maHard.Find[stMaxBowDist].Value}) {
 			DEBUG ${sep}Tag${sep}Range${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax${sep}\a-w${Spawn[ID ${_tmpID}].Distance}\ax
 			GETINPUT pull_mob_tag_range NA|NA
 			/nav stop |log=off
@@ -9409,10 +9420,9 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 		}
 
 		| are we there yet???
-		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${Spawn[TARGET].Y} ${Spawn[TARGET].X} ${Spawn[TARGET].Z}]} > ${_dist} && !${Spawn[ID TARGET].LineOfSight}) {
-			DEBUG ${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${Spawn[TARGET].Y} ${Spawn[TARGET].X} ${Spawn[TARGET].Z}]} > ${_dist} && !${Spawn[ID TARGET].LineOfSight}
+		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]} > ${_dist} && !${Spawn[${_tmpID}].LineOfSight}) {
+			DEBUG ${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]} > ${_dist} && !${Spawn[${_tmpID}].LineOfSight}
 			/delay 5
-			| /continue
 		}
 
 		| range from camp check
@@ -9433,7 +9443,7 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 		}
 	}
 
-	/call pull_mob_tag ${_debug} ${_tmpID}
+	| /call pull_mob_tag ${_debug} ${_tmpID}
 
 /return TRUE
 
@@ -11748,7 +11758,7 @@ sub cycle_sash(bool _debug)
 		/varset _tag FALSE
 
 		| apply any conditions
-		/if (${check_condition[${_debug}, ${maSash.Find[stSash${_liC12.Value}Con].Value}]}) {
+		/if (${check_condition[${maDebug.Find[condition].Value}, ${maSash.Find[stSash${_liC12.Value}Con].Value}]}) {
 			/varset _condition TRUE
 		}
 
@@ -11769,7 +11779,6 @@ sub cycle_sash(bool _debug)
 			DEBUG ${sep}${maSash.Find[stSash${_liC12.Value}].Value}${sep}\a-walready active\ax
 			/return TRUE
 		}
-
 
 		/invoke ${_liC12.Advance}
 	}

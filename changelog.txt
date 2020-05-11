@@ -32,6 +32,22 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+B200511.02
+- /minion
+  all variables have been removed from the character table and set in the minion table
+  you will need to go through /minion and set it back up
+- zerker
+  stCryHavoc will check for its own buff before casting now
+- necromancer
+  stacking checks for Hand of Death and Funeral Pyre
+- voodoo
+  adjustment to the movement check for non bards
+- pull nav
+  several adjustments to the stop mechanics for non bards (i hate bards)
+- pull tagging
+  Range is no longer required for bow/thrown tagging
+  stRangeOther, if this is set, it will still take priority over bow tagging
+
 
 B200510.03
 - /entropy
@@ -44,7 +60,6 @@ B200510.03
   fixed spire control
 - /grain
   25 - relays
-
 
 
 B200510.02
