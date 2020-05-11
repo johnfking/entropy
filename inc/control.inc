@@ -1423,6 +1423,10 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	} else /if (${_type.Equal[engine]}) {
 		/if (!${set_control_num_range[${_debug}, stEngine, "${_verbage}", 1, 2]}) /return
 
+	| relay tells
+	} else /if (${_type.Equal[relaytell]}) {
+		/invoke ${set_switch_env[FALSE, swRelayTell, TRUE, ${_verbage}]}
+
 	| hud adjustments
 	} else /if (${_type.Equal[hud]}) {
 
@@ -1479,6 +1483,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	/invoke ${maControl.Add[nettimeout,stNetworkTimeout]}
 	/invoke ${maControl.Add[rememberset,swBuildSetRemember]}
 	/invoke ${maControl.Add[buffcooldownwait,swBuffCooldownWait]}
+	/invoke ${maControl.Add[relaytell,swRelayTell]}
 	/invoke ${set_control_output[${_debug}, maEntropy, entropy, maControl]}
 
 /return TRUE
@@ -3357,7 +3362,7 @@ sub Bind_command_aux(string _type, bool _debug)
 	/declare _lsout list local
 	/invoke ${_lsout.Append[alto,beg,buff,build,burn,cc,crew,condition,cursor,debuff,debug,edit,enter,cure]}
 	/invoke ${_lsout.Append[entropy,env,grab,grain,heal,home,invis,mode,minion,navto,off,on,override,repeat,see,splash,take,tag,tc,tie]}
-	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro,miscdps,song,line,area,sash,pred]}
+	/invoke ${_lsout.Append[coh,farm,ttl,defense,dot,nuke,clickitem,agro,miscdps,song,line,area,sash,pred,mercenary]}
 
 	/if (${_lsout.Contains[${_type}]}) {
 		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY ROWID

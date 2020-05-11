@@ -1591,6 +1591,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 	| are we moving? and not a bard?
 	/if (!${Select[${Me.Class.ShortName},BRD]}) {
+		DEBUG ${sep}break voodo.moving
 		/if (${Me.Moving}) /return FALSE
 		/if (${Stick.Active}) /return FALSE
 		/if (${Navigation.Active}) /return FALSE
@@ -1599,6 +1600,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 	| correct the range if needed
 	/declare _range int local
 	/if (${Range.Between[1,9999999:${_rangeOverride}]}) {
+		DEBUG ${sep}setting max range to${sep}\a-w${_rangeOverride}\ax
 		/varset _range ${_rangeOverride}
 	} else {
 		/varset _range ENV
@@ -2170,6 +2172,9 @@ sub set_stop(bool _debug, string _silent)
 
 	| resets
 	/invoke ${maPred.Add[stPredID,0]}
+
+	| pull wait timer
+	/invoke ${set_timer[${_debug}, wait_for_mob, 0]}
 
 	/if (${_silent.NotEqual[SILENT]}) {
 		/invoke ${out[0, "\a-rResetting\ax"]}
@@ -3560,19 +3565,6 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			/if (${is_ready[${_debug}, "${maCC.Find[stRangeOther].Value}"]}) {
 				DEBUG ${sep}Tag${sep}Other${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax${sep}\a-w${maCC.Find[stRangeOther].Value}\ax
 
-
-				|**
-				/while (${Me.Moving}) {
-					/delay 2
-					/if (${Spawn[ID ${_tmpID}].Distance} < 100) {
-						DEBUG ${sep}pull tag${sep} < 100 breaking
-						/call set_stop ${maDebug.Find[stop].Value} SILENT
-						/delay 2s !${Me.Moving}
-						/break
-					}
-				}
-				**|
-
 				| get the range for whatever it is we are using
 				/declare _range int local
 
@@ -3592,7 +3584,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 
 				| item
 				} else /if (${Me.ItemReady[=${maCC.Find[stRangeOther].Value}]}) {
-					DEBUG ${sep}ITEM
+					DEBUG ${sep}ITEM${sep}\a-w${Spell[${FindItem[=${maCC.Find[stRangeOther].Value}].Spell}].MyRange}\ax
 					/varset _range ${Spell[${FindItem[=${maCC.Find[stRangeOther].Value}].Spell}].MyRange}
 
 				| we have no idea what this is!
@@ -3603,10 +3595,34 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 					/varset _range 0
 				}
 
+
 				/call voodoo ${_debug} "${maCC.Find[stRangeOther].Value}" ${_tmpID} FALSE ${_range}
-				/delay 5
-				/return TRUE
+				/delay 1s ${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]} || ${Me.PctHPs} <= ${Math.Calc[${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO]}
+				| /mqp
+				/if (${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
+					DEBUG ${sep}TargetOfTarget.Item
+					/declare _loopbreak int local 0
+					/while (${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
+						DEBUG ${sep}TargetOfTarget _loopbreak${sep}\a-w${_loopbreak}\ax
+
+						/call voodoo ${_debug} "${maCC.Find[stRangeOther].Value}" ${_tmpID} FALSE ${_range}
+						/delay 5
+						/delay 1s ${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]} || ${Me.PctHPs} <= ${Math.Calc[${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO]}
+						/varcalc _loopbreak ${_loopbreak}+1
+						/if (${_loopbreak} > 5 || ${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]}) {
+							/break
+						}
+					}
+				}
+
+				/if (${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]}) {
+					DEBUG ${sep}\agACQUIRED\ax${sep}\a-w${Spawn[ID ${_tmpID}].DisplayName}\ax
+					/delay 5
+					/return TRUE
+				}
+
 			}
+			/return TRUE
 		}
 
 		| range tag
@@ -3645,7 +3661,26 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		/if (MELEE && ${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
 			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
 			GETINPUT pull_mob_tag_melee NA|NA
+
+
 			/attack on
+
+			/if (${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
+				DEBUG ${sep}TargetOfTarget.Melee
+				/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FALSE
+				/declare _loopbreak int local 0
+				/while (${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
+					DEBUG ${sep}TargetOfTarget _loopbreak${sep}\a-w${_loopbreak}\ax
+					/delay 5
+					/varcalc _loopbreak ${_loopbreak}+1
+					/if (${_loopbreak} > 2 || ${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]}) {
+						/break
+					}
+				}
+			}
+
+
+			/attack off
 			/return TRUE
 		}
 
@@ -3807,11 +3842,9 @@ sub pull_mob_find(bool _debug, int _spCount)
 					/continue
 				}
 
-
-
 				| check navigation path validity for all but base pulling
 				/if (!${Navigation.PathExists[id ${_tmpID}]} && !${maOver.Find[swOverNavCheck].Value} && !${Select[${maCC.Find[stPullMode].Value},base]}) {
-					SDEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-yid ${_tmpID}\ax]\ax (\a-r${Spawn[id ${_tmpID}].DisplayName}\ax)
+					DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-yid ${_tmpID}\ax]\ax (\a-r${Spawn[id ${_tmpID}].DisplayName}\ax)
 					/varset _spCount 1
 					/continue
 				}
@@ -9578,25 +9611,31 @@ sub get_target_navpull(bool _debug, int _tmpID)
 		/return
 
 	| get closer if we need too
-	} else /if (!${Spawn[${_tmpID}].LineOfSight} || ${Spawn[${_tmpID}].Distance} > ${maCC.Find[stPullNavStopDistance].Value}) {
-		DEBUG ${sep}Sight:${Spawn[${_tmpID}].LineOfSight} || Distance:${Spawn[${_tmpID}].Distance}
+	| } else /if (${Spawn[${_tmpID}].Distance} > ${maCC.Find[stPullNavStopDistance].Value} || (${Spawn[${_tmpID}].Distance} <= ${maCC.Find[stPullNavStopDistance].Value} && !${Spawn[${_tmpID}].LineOfSight})) {
+	} else {
+		DEBUG ${sep}Sight:${Spawn[${_tmpID}].LineOfSight} ${dot} Distance:${Spawn[${_tmpID}].Distance} ?? ${maCC.Find[stPullNavStopDistance].Value}
 		/call pull_mob_move_to ${_debug} ${_tmpID} ${maCC.Find[stPullNavStopDistance].Value} on
 		/while (${Me.Moving}) {
-			/if (${Spawn[${_tmpID}].LineOfSight}) /break
-			/delay 2
+			CHECKDEAD
+			/if (${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < ${maCC.Find[stPullNavStopDistance].Value}) {
+				/break
+			}
+			/if (${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]}) {
+				/break
+			}
+			/delay 5
 		}
 		/call pull_mob_prep ${_debug} ${_tmpID}
 	}
 
 	/call pull_mob_tag ${_debug} ${_tmpID}
+	| /delay 2
 
 	| move home
-	/if (${maCC.Find[swPullSetHom].Value} && ${maCC.Find[swPullSetHome].Value} && HOME) {
+	/if (${maCC.Find[swPullSetHome].Value} && ${maCC.Find[swPullSetHome].Value} && HOME) {
 		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} > SAFEENV && PULL) {
 			/call Bind_control_home return FALSE silent ${maDebug.Find[home].Value}
 		}
-
-
 	}
 
 	/while (${Me.Moving}) {

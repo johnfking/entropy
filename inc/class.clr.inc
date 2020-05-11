@@ -713,7 +713,7 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
-		/call set_control_chr_spire ${_debug} ${_verbage} ${_verbage2}
+		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
 		/return
 
 	| set AA fade use %

@@ -22,6 +22,7 @@ on the to do list
 - shared map for rez
 - try and recreate DB corruption for instance excludes
 - look at a way to split coorination for assists across more then one mob in a raid
+- relay tells to tie toon..
 --------------------
 
 
@@ -29,6 +30,21 @@ known bugs
 --------------------
 epics with commas in their names are currently not functioning
 --------------------
+
+
+
+B200510.03
+- /entropy
+  relaytell - relays a tell to your tie toon and does a broadcast in dannet to all your connected toons
+  *this will not realy tells from pets, the tie toon, yoursellf, or bankers (fuck bankers)
+  *this will not relay a tell to the tie toon if it is not in your dannet
+- pulling
+  nav - considerable changes to the logic. handles instant click items much more gooder
+- cleric
+  fixed spire control
+- /grain
+  25 - relays
+
 
 
 B200510.02

@@ -300,6 +300,9 @@ sub set_initial_environment(bool _debug)
   /invoke ${set_data_timer[FALSE, Check_Watch, 5s]}
   /invoke ${set_data_timer[FALSE, Check_Alliance, 6s]}
 
+  | wait time for pulling
+  /invoke ${set_timer[FALSE, wait_for_mob, 0]}
+
   | get the stick timer started
   /invoke ${set_timer[${_debug}, timer_check_stick, 1s]}
 
@@ -1138,7 +1141,8 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy swBuildSetRemember								FALSE                         "${auxsw} remember and refresh a set on macro boot"
   /call set_data_map ${_debug} maEntropy stCastLoop												1			                   			"${auxna} number of castloop attempts, event based"
   /call set_data_map ${_debug} maEntropy stEngine													1			                   			"${auxna} code engine"
-  /call set_data_map ${_debug} maEntropy swBuffCooldownWait								FALSE	                   			"${auxna} force a wait between buffs for cooldown to do complete cycle"
+  /call set_data_map ${_debug} maEntropy swBuffCooldownWait								FALSE	                   			"${auxsw} force a wait between buffs for cooldown to do complete cycle"
+  /call set_data_map ${_debug} maEntropy swRelayTell											FALSE	                   			"${auxsw} relay tells to the tie toon"
 
   | GoM list
   /call set_data_list ${_debug} maChr lsGoM                               EMPTY                         "${auxli} things to use on a gift of mana aa proc"

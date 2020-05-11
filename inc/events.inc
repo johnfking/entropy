@@ -394,7 +394,17 @@ sub cast_buffs_queue(string _sender, string _verbage, bool _debug)
 
 sub Event_Talk(string line, string _sender, string _chatText)
 
-/return
+	| tell realys
+	/if (${maEntropy.Find[swRelayTell].Value} && !${_sender.Find[Banker]} && !${_sender.Find[${Me}]} && !${_sender.Find[${maTie.Find[stTieToon].Value}]} && !${_sender.Find[${Me.Pet.DisplayName}]} && ${lsGrain.Contains[25]}) {
+		| relay to tie toon if its opne of your toons
+		/if (${DanNet.Peers[all].Find[${_sender}]}) {
+			/tell ${maTie.Find[stTieToon].Value} ->[${_sender}] told me::${_chatText}
+		}
+		| relay to dannet
+		/dgtell all RELAY to ${maTie.Find[stTieToon].Value} :: ${_chatText}
+	}
+
+	/return
 
 	CHECKSAFELIST
 
