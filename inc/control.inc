@@ -3001,7 +3001,7 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
  * use:
  ***|
 #Bind control_cc /cc
-sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
+sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
 	DEBUG \atBind_control_cc\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
   /declare _out string local
@@ -3020,13 +3020,13 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 			/call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[g]},g,FALSE]}
 		} else /if (${_verbage.Equal[ma1]}) {
 			/call do_raw_edit ${_debug} SILENT stAssistMode "ma1"
-			| /if (${Bool[${_silent}]} && ${_silent.NotEqual[SILENT]}) {
-				/call do_raw_edit ${_debug} SILENT stManualAssist1 "${_silent}"
+			| /if (${Bool[${_verbage2}]} && ${_silent.NotEqual[SILENT]}) {
+				/call do_raw_edit ${_debug} SILENT stManualAssist1 "${_verbage2}"
 			| }
 		} else /if (${_verbage.Equal[ma2]}) {
 			/call do_raw_edit ${_debug} SILENT stAssistMode "ma2"
 			| /if (${Bool[${_silent}]} && ${_silent.NotEqual[SILENT]}) {
-				/call do_raw_edit ${_debug} SILENT stManualAssist2 "${_silent}"
+				/call do_raw_edit ${_debug} SILENT stManualAssist2 "${_verbage2}"
 			| }
 		} else /if (${_verbage.Equal[1]}) {
 			/call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[1]},1,FALSE]}
@@ -3057,11 +3057,11 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	| glyphs
 	} else /if (${_type.Equal[glyph]}) {
 		/if (${_verbage.Equal[group]}) {
-			/invoke ${set_switch_env[${_debug}, swGlyphGroup, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swGlyphGroup, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[raid]}) {
-			/invoke ${set_switch_env[${_debug}, swGlyphRaid, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swGlyphRaid, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[name]}) {
-			/invoke ${do_raw_edit[FALSE, SILENT, stGlyph, "${_silent}"]}
+			/invoke ${do_raw_edit[FALSE, SILENT, stGlyph, "${_verbage2}"]}
 		}
 		/invoke ${maControl.Clear}
 		/invoke ${maControl.Add[group,swGlyphGroup]}
@@ -3075,33 +3075,33 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 
 		| enable combat: melee
 		/if (${_verbage.Equal[melee]}) {
-			/invoke ${set_switch_env[${_debug}, swCombatMelee, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swCombatMelee, TRUE, ${_verbage2}]}
 
 		| enable combat: range
 		} else /if (${_verbage.Equal[range]}) {
-			/invoke ${set_switch_env[${_debug}, swCombatRange, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swCombatRange, TRUE, ${_verbage2}]}
 
 		| enable combat: nuke
 		} else /if (${_verbage.Equal[nuke]}) {
-			/invoke ${set_switch_env[${_debug}, swCombatNuke, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swCombatNuke, TRUE, ${_verbage2}]}
 
 		| enable combat: dot
 		} else /if (${_verbage.Equal[dot]}) {
-			/invoke ${set_switch_env[${_debug}, swCombatDoT, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swCombatDoT, TRUE, ${_verbage2}]}
 
 		| enable combat: Heal
 		} else /if (${_verbage.Equal[heal]}) {
 			/if (!${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
 				/return FALSE
 			}
-			/invoke ${set_switch_env[${_debug}, swCombatHeal, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swCombatHeal, TRUE, ${_verbage2}]}
 
 		| enable combat: Heal
 		} else /if (${_verbage.Equal[cc]}) {
 			/if (!${Select[${Me.Class.ShortName},ENC,BRD]}) {
 				/return FALSE
 			}
-			/invoke ${set_switch_env[${_debug}, swCombatControl, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swCombatControl, TRUE, ${_verbage2}]}
 
 		}
 
@@ -3125,29 +3125,29 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[melee]}) {
 
 		/if (${_verbage.Equal[bash]} && ${lsMeleeSkill.Contains[bash]}) {
-			/invoke ${set_switch_env[${_debug}, swBash, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swBash, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[disarm]} && ${lsMeleeSkill.Contains[disarm]}) {
-			/invoke ${set_switch_env[${_debug}, swDisarm, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swDisarm, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[backstab]} && ${lsMeleeSkill.Contains[backstab]}) {
-			/invoke ${set_switch_env[${_debug}, swBackstab, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swBackstab, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[dragonpunch]} && ${lsMeleeSkill.Contains[dragonpunch]}) {
-			/invoke ${set_switch_env[${_debug}, swDragonpunch, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swDragonpunch, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[eaglestrike]} && ${lsMeleeSkill.Contains[eaglestrike]}) {
-			/invoke ${set_switch_env[${_debug}, swEaglestrike, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swEaglestrike, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[tigerclaw]} && ${lsMeleeSkill.Contains[tigerclaw]}) {
-			/invoke ${set_switch_env[${_debug}, swTigerclaw, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swTigerclaw, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[kick]} && ${lsMeleeSkill.Contains[kick]}) {
-			/invoke ${set_switch_env[${_debug}, swKick, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swKick, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[flyingkick]} && ${lsMeleeSkill.Contains[flyingkick]}) {
-			/invoke ${set_switch_env[${_debug}, swFlyingkick, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swFlyingkick, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[roundkick]} && ${lsMeleeSkill.Contains[roundkick]}) {
-			/invoke ${set_switch_env[${_debug}, swRoundkick, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swRoundkick, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[taunt]} && ${lsMeleeSkill.Contains[taunt]}) {
-			/invoke ${set_switch_env[${_debug}, swTaunt, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swTaunt, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[frenzy]} && ${lsMeleeSkill.Contains[frenzy]}) {
-			/invoke ${set_switch_env[${_debug}, swFrenzy, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swFrenzy, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[intimidation]} && ${lsMeleeSkill.Contains[intimidation]}) {
-			/invoke ${set_switch_env[${_debug}, swIntimidation, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swIntimidation, TRUE, ${_verbage2}]}
 
 		}
 
@@ -3179,7 +3179,6 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 			/invoke ${do_raw_edit[FALSE, SILENT, stManualAssist1, FALSE]}
 		}
 
-
 	} else /if (${_type.Equal[ma2]}) {
 		/if (${Bool[${_verbage}]} || ${_verbage.Equal[FALSE]}) {
 			/invoke ${do_raw_edit[FALSE, SILENT, stManualAssist2, "${_verbage}"]}
@@ -3191,19 +3190,19 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[pull]}) {
 		| turn pull on or off
 		/if (${_verbage.Equal[active]}) {
-			/invoke ${set_switch_env[FALSE, swPull, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[FALSE, swPull, TRUE, ${_verbage2}]}
 
 		| pull radius
 		} else /if (${_verbage.Equal[rad]}) {
-			/invoke ${do_raw_edit[FALSE, SILENT, stPullRadius, "${_silent}"]}
+			/invoke ${do_raw_edit[FALSE, SILENT, stPullRadius, "${_verbage2}"]}
 
 		| nav stop distance
 		} else /if (${_verbage.Equal[navstop]}) {
-			/if (!${set_control_num_range[${_debug}, stPullNavStopDistance, "${_silent}", 31, 250]}) /return
+			/if (!${set_control_num_range[${_debug}, stPullNavStopDistance, "${_verbage2}", 31, 250]}) /return
 
 		| enable/disable setting home marker when pulling
 		} else /if (${_verbage.Equal[sethome]}) {
-			/invoke ${set_switch_env[FALSE, swPullSetHome, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[FALSE, swPullSetHome, TRUE, ${_verbage2}]}
 
 		| base pulling
 		} else /if (${_verbage.Equal[base]}) {
@@ -3217,23 +3216,83 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 			}
 			/call do_raw_edit ${_debug} SILENT stPullMode "int"
 
-		| pet pulling
-		} else /if (${_verbage.Equal[pet]}) {
-			/if (!${Select[${Me.Class.ShortName},MAG,ENC,DRU,SHM,SHD,NEC,BST]}) {
-				/invoke ${get_shade[FALSE, MQWindow]}
-				/return TRUE
+		| pull modes
+		} else /if (${_verbage.Equal[mode]}) {
+			| pet pulling
+			/if (${_verbage2.Equal[pet]}) {
+				/if (!${Select[${Me.Class.ShortName},MAG,ENC,DRU,SHM,SHD,NEC,BST]}) {
+					/invoke ${get_shade[FALSE, MQWindow]}
+					/return TRUE
+				}
+				/call do_raw_edit ${_debug} SILENT stPullMode "pet"
+			| nav pulling
+			} else /if (${_verbage2.Equal[nav]}) {
+				/call do_raw_edit ${_debug} SILENT stPullMode "nav"
+			| decision pulling
+			} else /if (${_verbage2.Equal[multi]}) {
+				/call do_raw_edit ${_debug} SILENT stPullMode "multi"
+			| calm pulling
+			} else /if (${_verbage2.Equal[calm]}) {
+				/call do_raw_edit ${_debug} SILENT stPullMode "calm"
 			}
-			/call do_raw_edit ${_debug} SILENT stPullMode "pet"
-		| nav pulling
-		} else /if (${_verbage.Equal[nav]}) {
-			/call do_raw_edit ${_debug} SILENT stPullMode "nav"
-		| decision pulling
-		} else /if (${_verbage.Equal[multi]}) {
-			/call do_raw_edit ${_debug} SILENT stPullMode "multi"
-		| calm pulling
-		} else /if (${_verbage.Equal[calm]}) {
-			/call do_raw_edit ${_debug} SILENT stPullMode "calm"
+
+			/declare _liP listiterator local
+			/declare _outP string local
+			/vardata _liP lsPullMode.First.Clone
+			/while (!${_liP.IsEnd}) {
+				/varset _outP ${_outP} ${If[${_liP.Value.Equal[${lsPullMode.First}]},,${dot}]} ${If[${_liP.Value.Equal[${maCC.Find[stPullMode].Value}]},${num}${_liP.Value}\ax,${info}${_liP.Value}\ax]}
+				/invoke ${_liP.Advance}
+			}
+			/invoke ${out[12, "/cc pull mode ${_outP}"]}
+			/return TRUE
+
+		| pull modes
+		} else /if (${_verbage.Equal[with]}) {
+
+			| range
+			/if (${_verbage2.Equal[range]}) {
+				/echo here
+				/call do_raw_edit ${_debug} SILENT stPullWith "range"
+			| melee
+			} else /if (${_verbage2.Equal[melee]}) {
+				/call do_raw_edit ${_debug} SILENT stPullWith "melee"
+			| other
+			} else /if (${_verbage2.Equal[other]}) {
+				/call do_raw_edit ${_debug} SILENT stPullWith "other"
+			} else /if (${_verbage2.Equal[nameother]}) {
+				/call do_raw_edit ${_debug} SILENT stRangeOther "${_silent}"
+			} else /if (${_verbage2.Equal[bandolier]}) {
+				/call do_raw_edit ${_debug} SILENT stRangeBandolier "${_silent}"
+
+			}
+
+			/declare _liP listiterator local
+			/declare _outP string local
+			/vardata _liP lsPullWith.First.Clone
+			/while (!${_liP.IsEnd}) {
+				/varset _outP ${_outP} ${If[${_liP.Value.Equal[${lsPullWith.First}]},,${dot}]} ${If[${_liP.Value.Equal[${maCC.Find[stPullWith].Value}]},${num}${_liP.Value}\ax,${info}${_liP.Value}\ax]}
+				/invoke ${_liP.Advance}
+			}
+			/varset _outP ${_outP} ${dot} ${info}nameother\ax:[${If[${Bool[${maCC.Find[stRangeOther].Value}]},${num}${maCC.Find[stRangeOther].Value}\ax,${off}]}]
+			/varset _outP ${_outP} ${dot} ${info}bandolier\ax:[${If[${Bool[${maCC.Find[stRangeBandolier].Value}]},${num}${maCC.Find[stRangeBandolier].Value}\ax,${off}]}]
+			/invoke ${out[12, "/cc pull with ${_outP}"]}
+			/return TRUE
+
 		}
+
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[active,swPull]}
+		/invoke ${maControl.Add[rad,stPullRadius]}
+		/invoke ${maControl.Add[mode,submenu]}
+		/invoke ${maControl.Add[with,submenu]}
+		/invoke ${maControl.Add[sethome,swPullSetHome]}
+		/invoke ${maControl.Add[navstop,stPullNavStopDistance]}
+		/invoke ${set_control_output[${_debug}, maCC, "cc pull", maControl]}
+		/return
+
+
+
+		|**
 		/declare _liP listiterator local
 		/declare _outP string local
 		/varset _outP \awactive\ax:${If[${maCC.Find[swPull].Value},${on},${off}]} ${dot}
@@ -3248,6 +3307,15 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 		}
 		/invoke ${out[12, "/cc pull ${_outP}"]}
 		/return TRUE
+		**|
+
+
+
+
+
+
+
+
 
 	| mob engage %
 	} else /if (${_type.Equal[engage]}) {
@@ -3338,12 +3406,9 @@ sub Bind_control_cc(string _type, string _verbage, string _silent, bool _debug)
 	/invoke ${maControl.Add[pull,submenu]}
 	/invoke ${maControl.Add[melee,submenu]}
 	/invoke ${maControl.Add[glyph,submenu]}
-	| /invoke ${maControl.Add[proc,submenu]}
 	/invoke ${maControl.Add[engage,stPctEngage]}
 	/invoke ${maControl.Add[zradius,stZRadius]}
 	/invoke ${maControl.Add[agro,swAgro]}
-	| /invoke ${maControl.Add[bandolier,swBandolier]}
-	| /invoke ${maControl.Add[poison,swPoison]}
 	/invoke ${maControl.Add[alliance,swAlliance]}
 	/invoke ${set_control_output[${_debug}, maCC, cc, maControl]}
 

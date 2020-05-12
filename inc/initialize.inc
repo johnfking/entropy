@@ -239,7 +239,6 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} FALSE lsIVU                                    list outer "Group Perfected Invisibility to Undead"|"Perfected Invisibility to Undead"|"Invisibility to Undead"|"Invisibility versus Undead"|"Shauri's Sonorous Clouding"
   /call set_data ${_debug} FALSE lsIV                                     list outer "Shared Perfected Camouflage"|"Shared Camouflage"|"Camouflage"|"Group Perfected Invisibility"|"Invisibility"|"Perfected Invisibility"|"Phase March"|"Nethervoid March"|"Perfected Silent Presence"|"Cloak of Shadows"|"Gather Umbra"|"Invisibility Cloak"|"Perfected Natural Invisibility"|"Perfected Spirit Walk Invisibility"|"Perfected Group Spirit Walk Invisibility"|"Shauri's Sonorous Clouding"|"Selo's Song of Travel"
   /call set_data ${_debug} FALSE lsAssistTypes                            list outer g|ma1|ma2|1|2|3
-  /call set_data ${_debug} FALSE lsPullTypes                              list outer base|pet|int|nav|multi
   /call set_data ${_debug} FALSE lsRezBuffTriggers                        list outer "Revival Sickness"|"Resurrection Sickness"
 
 	/call set_data ${_debug} FALSE lsClassHealToT														list outer PAL|RNG|BST
@@ -926,10 +925,16 @@ sub set_initialize_map_character_environment(bool _debug)
 
 	| pulling
   /call set_data_map ${_debug} maCC swPull                                FALSE                         "${auxsw} enable pulling (\a-wselect mobs to kill\ax)"
-  /call set_data_map ${_debug} maCC stPullMode                            base                          "${auxna} [\a-wbase-nav-int-pet-multi\ax] the mode of pulling you wish to use while looking for said mobs"
   /call set_data_map ${_debug} maCC stPullRadius                          0                             "${auxnum} radius to pull mobs from"
   /call set_data_map ${_debug} maCC swPullSetHome                         FALSE                         "${auxsw} suto set home marker when pulling is enabled"
   /call set_data_map ${_debug} maCC stPullNavStopDistance                 60                            "${auxnum} how close you will nav pull to a mob before trying too tag it"
+  /call set_data ${_debug} FALSE lsPullMode                             	list outer base|pet|int|nav|multi
+  /call set_data_map ${_debug} maCC stPullMode                            base                          "${auxna} [\a-wbase-nav-int-pet-multi\ax] the mode of pulling you wish to use while looking for said mobs"
+  /call set_data ${_debug} FALSE lsPullWith                             	list outer melee|range|other
+  /call set_data_map ${_debug} maCC stPullWith                            FALSE                         "${auxna} [\a-wmelee-range-other\ax] what you want to pull with???"
+  /call set_data_map ${_debug} maCC stRangeOther                          FALSE                         "${auxna} something else you would like to use for ranged pulling?"
+  /call set_data_map ${_debug} maCC stRangeBandolier											FALSE                         "${auxna} name of bandolier for ranged pulling?"
+
 
   | glyph
   /call set_data_map ${_debug} maCC swGlyphGroup                          FALSE                         "${auxsw} use glyph in a group"
@@ -947,7 +952,6 @@ sub set_initialize_map_character_environment(bool _debug)
 
   /call set_data_list ${_debug} maCC lsNoCastWith                         EMPTY                         "${auxli} list of target buffs you dont want to cast with"
   /call set_data_list ${_debug} maCC lsNoMeleeWith                        EMPTY                         "${auxli} list of target buffs you dont want to melee with"
-  /call set_data_map ${_debug} maCC stRangeOther                          FALSE                         "${auxna} something else you would like to use for ranged pulling?"
 
   | combat melee skills by class
   /declare lsMeleeSkill list outer
@@ -1144,6 +1148,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy stEngine													1			                   			"${auxna} code engine"
   /call set_data_map ${_debug} maEntropy swBuffCooldownWait								FALSE	                   			"${auxsw} force a wait between buffs for cooldown to do complete cycle"
   /call set_data_map ${_debug} maEntropy swRelayTell											FALSE	                   			"${auxsw} relay tells to the tie toon"
+  /call set_data_map ${_debug} maEntropy swRelayTellBeep									FALSE	                   			"${auxsw} beep on a tell relay"
 
   | GoM list
   /call set_data_list ${_debug} maChr lsGoM                               EMPTY                         "${auxli} things to use on a gift of mana aa proc"

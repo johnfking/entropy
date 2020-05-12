@@ -3357,7 +3357,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
  * note: wait for mobs to get to you from a pull
  * use: /call get_target_wait DEBUG [TARGETID] [WAITTIME]
  ***|
-sub get_target_wait(bool _debug, int _tmpID, string _waittime)
+ sub get_target_wait(bool _debug, int _tmpID, string _waittime)
 	DEBUG \atget_target_wait\ax(\a-w${_tmpID}, ${_waittime}\ax)
 	FLOW get_target_wait ${_tmpID} (1)
 
@@ -3561,7 +3561,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		}
 
 		| aa/spell/disc/item tag
-		/if (${Bool[${maCC.Find[stRangeOther].Value}]}) {
+		/if (${maCC.Find[stPullWith].Value.Equal[other]} && ${Bool[${maCC.Find[stRangeOther].Value}]}) {
 			/if (${is_ready[${_debug}, "${maCC.Find[stRangeOther].Value}"]}) {
 				DEBUG ${sep}Tag${sep}Other${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax${sep}\a-w${maCC.Find[stRangeOther].Value}\ax
 
@@ -3639,13 +3639,34 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		| range tag
 		| there are some base limitations to combat range tagging. we are going to limit to 250 for range/thrown items
 		| yes i know some classes can go a lot farther..
-		/if (${Spawn[ID ${_tmpID}].Distance} > ${maHard.Find[stMinBowDist].Value} && ${Spawn[ID ${_tmpID}].Distance} > ENV && ${Spawn[ID ${_tmpID}].Distance} < ${maHard.Find[stMaxBowDist].Value}) {
+		| /if (${Spawn[ID ${_tmpID}].Distance} > ${maHard.Find[stMinBowDist].Value} && ${Spawn[ID ${_tmpID}].Distance} > ENV && ${Spawn[ID ${_tmpID}].Distance} < ${maHard.Find[stMaxBowDist].Value} && RANGE) {
+		/if (${maCC.Find[stPullWith].Value.Equal[range]} && ${Spawn[ID ${_tmpID}].Distance} > ${maHard.Find[stMinBowDist].Value} && ${Spawn[ID ${_tmpID}].Distance} < ${maHard.Find[stMaxBowDist].Value}) {
 			DEBUG ${sep}Tag${sep}Range${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax${sep}\a-w${Spawn[ID ${_tmpID}].Distance}\ax
 			GETINPUT pull_mob_tag_range NA|NA
-			/nav stop |log=off
-			/delay 1s !${Me.Moving}
+
+			| swap bandoliers? and mark what we have
+			/if (${Bool[${maCC.Find[stRangeBandolier].Value}]} && !${Me.Bandolier[${maCC.Find[stRangeBandolier].Value}].Active}) {
+				/invoke ${maData.Add[stMainhand,${Me.Inventory[mainhand].Name}]}
+				/invoke ${maData.Add[stOffhand,${Me.Inventory[offhand].Name}]}
+				/invoke ${maData.Add[stRanged,${Me.Inventory[ranged].Name}]}
+				/invoke ${maData.Add[stAmmo,${Me.Inventory[ammo].Name}]}
+				/delay 1
+				/invoke ${Me.Bandolier[${maCC.Find[stRangeBandolier].Value}].Activate}
+			}
+
+			| make sure we are stopped
+			/if (!${Select[${Me.Class.ShortName},BRD]}) {
+				/declare _breakmove int local 1
+				/while (${Me.Moving} || ${Navigation.Active}) {
+					DEBUG ${sep}stop tag${sep}\a-wnavigation\ax (\a-r${_breakmove}\ax)
+					/nav stop |log=off
+					/varcalc _breakmove ${_breakmove}+1
+					/if ((!${Me.Moving} && !${Navigation.Active}) || ${_breakmove} > 4) /break
+					/delay 5 !${Me.Moving} && !${Navigation.Active}
+				}
+			}
+
 			/if (${Target.ID}) {
-				/range
 				/range
 			}
 
@@ -3660,8 +3681,22 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			 	}
 			}
 
-			| /if (${Target.ID}) /range
-			/delay 5
+			| return the brevious gear for the swap
+			/if (${Bool[${maCC.Find[stRangeBandolier].Value}]} && ${Me.Bandolier[${maCC.Find[stRangeBandolier].Value}].Active}) {
+				/if (${Bool[${maData.Find[stMainhand].Value}]}) {
+					/call Bind_command_swap "${maData.Find[stMainhand].Value}" 13 ${_debug}
+				}
+				/if (${Bool[${maData.Find[stOffhand].Value}]}) {
+					/call Bind_command_swap "${maData.Find[stOffhand].Value}" 14 ${_debug}
+				}
+				/if (${Bool[${maData.Find[stRanged].Value}]}) {
+					/call Bind_command_swap "${maData.Find[stRanged].Value}" 11 ${_debug}
+				}
+				/if (${Bool[${maData.Find[stAmmo].Value}]}) {
+					/call Bind_command_swap "${maData.Find[stAmmo].Value}" 22 ${_debug}
+				}
+			}
+
 			/return TRUE
 		}
 
@@ -3669,12 +3704,23 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 		| we are using 90% of the targets max range to melee just to make sure we get close enough.
 		| dont argue with me on this. i'm not changing my mind
 		| if we are not in this range, we try and get closer.
-		/if (MELEE && ${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
+		/if (${maCC.Find[stPullWith].Value.Equal[melee]} && ${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
 			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
 			GETINPUT pull_mob_tag_melee NA|NA
 
 
 			/attack on
+			| make sure we are stopped
+			/if (!${Select[${Me.Class.ShortName},BRD]}) {
+				/declare _breakmove int local 1
+				/while (${Me.Moving} || ${Navigation.Active}) {
+					DEBUG ${sep}stop tag${sep}\a-wnavigation\ax (\a-r${_breakmove}\ax)
+					/nav stop |log=off
+					/varcalc _breakmove ${_breakmove}+1
+					/if ((!${Me.Moving} && !${Navigation.Active}) || ${_breakmove} > 4) /break
+					/delay 5 !${Me.Moving} && !${Navigation.Active}
+				}
+			}
 
 			/if (${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
 				DEBUG ${sep}TargetOfTarget.Melee
@@ -9404,7 +9450,7 @@ sub get_target_intpull(bool _debug, int _tmpID)
  ***|
 sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 	DEBUG \atpull_mob_move_to\ax(\a-w${_tmpID}, ${_dist}, ${_LoS}\ax)
-	FLOW pull_mob_move_to
+	FLOW pull_mob_move_to ${_tmpID}|${_dist}|${_LoS} (1)
 
 	/nav ID ${_tmpID} |distance=${_dist} lineofsight=${_LoS} log=off
 	/delay 1s ${Me.Moving}
@@ -9419,6 +9465,13 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 			/return FALSE
 		}
 
+		| is the target still alive?
+		/if (!${_tmpID} || ${Spawn[${_tmpID}].Dead}) {
+			DEBUG ${sep}/while \a-gbreak_NO_target\ax
+			/invoke ${target[clear]}
+			/break
+		}
+
 		| are we there yet???
 		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]} > ${_dist} && !${Spawn[${_tmpID}].LineOfSight}) {
 			DEBUG ${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]} > ${_dist} && !${Spawn[${_tmpID}].LineOfSight}
@@ -9431,7 +9484,15 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 			/varset _tmpID 0
 			/return
 		}
-		/delay 1
+
+		| mobs in our personal space. fuck those things. no respect
+		/if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
+			DEBUG ${sep}break.mob in environment space
+			/invoke ${out[9, "Resetting target to${sep}\a-w${NearestSpawn[1, npc radius ENV].DisplayName}\ax"]}
+			/invoke ${target[clear]}
+			/varset _tmpID ${NearestSpawn[1, npc radius SAFEENV PS4 targetable].ID}
+			/return TRUE
+		}
 
 		GETINPUT pull_mob_move_to _tmpID|${_tmpID}
 		/if (!${_tmpID}) {
@@ -9442,8 +9503,6 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 			/break
 		}
 	}
-
-	| /call pull_mob_tag ${_debug} ${_tmpID}
 
 /return TRUE
 

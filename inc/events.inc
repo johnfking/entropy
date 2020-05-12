@@ -402,6 +402,11 @@ sub Event_Talk(string line, string _sender, string _chatText)
 		}
 		| relay to dannet
 		/dgtell all RELAY to ${maTie.Find[stTieToon].Value} :: ${_chatText}
+
+		| is beep set?
+		/if (${maEntropy.Find[swRelayTellBeep].Value}) {
+			/beep
+		}
 	}
 
 	/return

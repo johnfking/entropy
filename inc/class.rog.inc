@@ -117,13 +117,17 @@ sub do_sneak_attack(bool _debug, int _tmpID)
 	DEBUG \atdo_sneak_attack\ax(\a-w${_tmpID}\ax)
 	FLOW do_sneak_attack
 
+  /if (!${Select[${Me.CombatState},active,resting,debuffed]} || ${Me.ActiveDisc.ID}) {
+		/return FALSE
+  }
+
 	/if (!${is_ready[${_debug}, "${maChr.Find[stSneakAttack].Value}"]}) {
 		/return FALSE
 	}
 
 	CHECKEXIT
 
-	/if (${Target.ID} && ${Me.Invis} && ${Me.Sneaking}) {
+	/if (${Target.ID} && ${Me.Sneaking}) {
 		/call voodoo ${_debug} "${maChr.Find[stSneakAttack].Value}" ${_tmpID} FALSE
 		/doability backstab
 	}

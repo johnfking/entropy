@@ -32,6 +32,19 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+B200512.01
+- Pulling round 4... will get this some day...
+- pull fetching
+  added breaks for mob death
+  added mob target change if agro while in route
+- /cc pull (considerable changes to the control)
+  /cc pull mode [base|pet|int|nav|multi]
+  /cc pull with [melee|range|other]
+  this will set the mode you tag mobs with while pulling for nav
+  /cc pull with bandolier NAME - bandolier name for ranged mode tagging. (not required)
+  /cc pull with nameother NAME - the name of whatever to pull with for other tagging
+
+
 B200511.02
 - /minion
   all variables have been removed from the character table and set in the minion table
