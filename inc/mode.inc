@@ -69,7 +69,7 @@ sub mode_get_mob(bool _debug)
 
 |***
  * note: Train non spell skills. Best to use during a duel with a pet.
- * use: /mode train
+ * use: /mode trainskill
  ***|
 sub mode_trainskill(bool _debug)
 	DEBUG \atmode_train\ax()
@@ -114,6 +114,7 @@ sub mode_trainskill(bool _debug)
 			DEBUG ${sep}bind
 			/invoke ${set_target[${Me.ID}]}
 			/doability "Bind Wound"
+			/delay 14s
 		}
 	}
 

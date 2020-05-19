@@ -24,6 +24,10 @@ sub set_CLR(bool _debug)
 	/call set_data ${_debug} maData stFade															map outer "Divine Peace"
 	/call set_data ${_debug} maData stCompleteHeal											map outer "Complete Heal"
 
+
+	| group regen timer
+	/invoke ${set_data_timer[${_debug}, Check_Regen, 3s]}
+
 	| Veturika's Preserverance
 	/call set_data_map ${_debug} maChr stPctVP													0															"${auxnum} % of manna to use veturikas perseverance"
 
@@ -194,7 +198,7 @@ sub misc_combat_CLR(bool _debug, int _tmpID)
 	FLOW misc_combat_CLR
 
 	ISMEDEAD
-	/if (!${target[isdead, ${_tmpID}]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 	CHECKEXIT
@@ -289,7 +293,7 @@ sub check_heal_CLR(bool _debug, string _type)
 	| /declare _count int local 0
 
 	| Group Regen Heal
-	/if (${maHeal.Find[swHealGroupOverTime].Value}) {
+	/if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
 		/call cast_cycle_heal_regen ${_debug} 0 healgrouphot
 	}
 
@@ -340,7 +344,7 @@ sub check_heal_CLR(bool _debug, string _type)
 
 
 		| single heal over time
-		/if (${maChr.Find[swHealOverTime].Value}) {
+		/if (${maChr.Find[swHealOverTime].Value} && !${timer_Check_Regen}) {
 			/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
 				/call cast_cycle_heal_regen ${_debug} ${hurtID} healhot
 			}

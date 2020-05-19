@@ -166,6 +166,22 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 			OUT /admin sqldrop TABLE FIELD
 		}
 
+	| look for a column in a table
+	} else /if (${_type.Equal[sqlcol]}) {
+
+		| testing afor a known column first
+		/sqlite ${maData.Find[DBzone].Value} dummy SELECT 1 FROM PRAGMA_TABLE_INFO('zone_control') WHERE name='element'
+		SDEBUG SELECT 1 FROM PRAGMA_TABLE_INFO 'zone_control' \ay${sqlite.Status[dummy]}\ax
+		SDEBUG Rows${sep}\ap${sqlite.Rows[dummy]}\ax
+
+
+		| testing unknown
+		/sqlite ${maData.Find[DBzone].Value} dummy SELECT 1 FROM PRAGMA_TABLE_INFO('zone_control') WHERE name='wp_name'
+		SDEBUG SELECT 1 FROM PRAGMA_TABLE_INFO 'zone_control' \ay${sqlite.Status[dummy]}\ax
+		SDEBUG Rows${sep}\ap${sqlite.Rows[dummy]}\ax
+
+
+		/return TRUE
 
 	| delete aliases
 	} else /if (${_type.Equal[whitewash]}) {
@@ -1052,20 +1068,24 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 		/varset _element lsZoneNoCold
 	} else /if (${_type.Equal[nocorruption]}) {
 		/varset _element lsZoneNoCorruption
+	} else /if (${_type.Equal[rwp]}) {
+		/varset _element lsZoneWP
 	}
 
 
 	| check whats in the lists
-	/if (!${Target.ID} && ${_verbage.Equal[list]}) {
-		/call Bind_command_see ${_element}
-		/return TRUE
-	} else /if (${Target.ID} && ${_verbage.Equal[list]}) {
-		/if (${${_element}.CountOf[${Target.DisplayName}]}) {
-			/invoke ${out[0, "${_type} list contains${sep}\a-w${Target.DisplayName}\ax"]}
+	/if (${_type.NotEqual[rwp]}) {
+		/if (!${Target.ID} && ${_verbage.Equal[list]}) {
+			/call Bind_command_see ${_element}
 			/return TRUE
-		}	else {
-			/invoke ${out[0, "${_type} list does not contain${sep}\a-w${Target.DisplayName}\ax"]}
-			/return TRUE
+		} else /if (${Target.ID} && ${_verbage.Equal[list]}) {
+			/if (${${_element}.CountOf[${Target.DisplayName}]}) {
+				/invoke ${out[0, "${_type} list contains${sep}\a-w${Target.DisplayName}\ax"]}
+				/return TRUE
+			}	else {
+				/invoke ${out[0, "${_type} list does not contain${sep}\a-w${Target.DisplayName}\ax"]}
+				/return TRUE
+			}
 		}
 	}
 
@@ -1210,19 +1230,19 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 
 	| heal self
 	} else /if (${_type.Equal[self]}) {
-		/invoke ${set_switch_env[FALSE, swHealSelf, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swHealSelf, TRUE, ${_verbage}]}
 
 	| heal targets target
 	} else /if (${_type.Equal[tot]}) {
 		/if (${lsClassHealToT.Contains[${Me.Class.ShortName}]}) {
-			/invoke ${set_switch_env[FALSE, swHealToT, TRUE, ${_verbage}]}
+			/invoke ${set_switch_env[${_debug}, swHealToT, TRUE, ${_verbage}]}
 		} else {
 			/invoke ${get_shade[FALSE, MQWindow]}
 		}
 
 	| heal group
 	} else /if (${_type.Equal[group]}) {
-		/invoke ${set_switch_env[FALSE, swHealGroup, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swHealGroup, TRUE, ${_verbage}]}
 
 	| heal xtarget
 	} else /if (${_type.Equal[xt]}) {
@@ -1238,7 +1258,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 			/return
 		}
 
-		/invoke ${set_switch_env[FALSE, swHealXTarget, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swHealXTarget, TRUE, ${_verbage}]}
 
 		/if (!${maHeal.Find[swHealXTarget].Value}) {
 			/call set_xtarget_clear
@@ -1829,16 +1849,6 @@ sub Bind_deez(string _type, string _verbage)
 
 
 
-|*** TEST ***|
-#Bind control_item /item
-sub Bind_control_item(string _type, string _verbage, string _silent, bool _debug)
-	SDEBUG \atBind_control_item\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
-/return
-
-
-
-
-
 |***
  * note: your mama so fat, each ass cheek has a different zip code
  * use: /buff
@@ -1888,7 +1898,6 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 		/call Bind_command_see buff ${_type}
 		/return TRUE
 
-
 	| master buff switch
 	} else /if (${_type.Equal[master]}) {
 		/invoke ${set_switch_env[${_debug}, swBuffMaster, FALSE, ${_verbage}]}
@@ -1908,6 +1917,9 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 	} else /if (${_type.Equal[raid]}) {
 		/invoke ${set_switch_env[${_debug}, swBuffRaid, TRUE, ${_verbage}]}
 
+	} else /if (${_type.Equal[group]}) {
+		/invoke ${set_switch_env[${_debug}, swBuffGroup, TRUE, ${_verbage}]}
+
 	} else /if (${_type.Equal[ammo]}) {
 		/invoke ${set_switch_env[${_debug}, swBuffAmmo, TRUE, ${_verbage}]}
 
@@ -1924,53 +1936,8 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 	} else /if (${_type.Equal[unity]}) {
 		/invoke ${set_switch_env[${_debug}, swBuffUnity, TRUE, ${_verbage}]}
 
-
 	} else /if (${_type.Equal[aura]}) {
 		/invoke ${set_switch_env[${_debug}, swBuffAura, TRUE, ${_verbage}]}
-
-|**
-
-	} else /if (${_type.Equal[aura]}) {
-		/if (${_verbage.Equal[use]}) {
-			/invoke ${set_switch_env[${_debug}, swBuffAura, TRUE, ${_silent}]}
-		} else /if (${_verbage.Equal[aura1]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stAura1, "${_silent}"]}
-		} else /if (${_verbage.Equal[aura1check]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stAura1Check, "${_silent}"]}
-		} else /if (${_verbage.Equal[aura2]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stAura2, "${_silent}"]}
-		} else /if (${_verbage.Equal[aura2check]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stAura2Check, "${_silent}"]}
-		}
-
-		| aura 1
-		/invoke ${out[12, "/buff aura${sep}"]}
-		/invoke ${out[12, "${dot} ${info}use\ax:${If[${maBuff.Find[swBuffAura].Value},${on},${off}]}"]}
-		/invoke ${out[12, "${dot} ${info}aura1\ax:[${If[${Bool[${maBuff.Find[stAura1].Value}]},${num}${maBuff.Find[stAura1].Value}\ax,${off}]}]"]}
-		/invoke ${out[12, "${dot} ${info}aura1check\ax:[${If[${Bool[${maBuff.Find[stAura1Check].Value}]},${num}${maBuff.Find[stAura1Check].Value}\ax,${off}]}]"]}
-		/invoke ${out[12, "${dot} lsAura\aw1\axTag"]}
-		/declare _lia1 listiterator local
-		/vardata _lia1 lsAura1Tag.First.Clone
-		/while (!${_lia1.IsEnd}) {
-			/invoke ${out[12, "${dot}${dot} \a-w${_lia1.Value}\ax"]}
-			/invoke ${_lia1.Advance}
-		}
-		/if (!${Select[${Me.Class.ShortName},CLR,ENC]}) /return
-
-		| aura 2
-		/echo
-		/invoke ${out[12, "${dot} ${info}aura2\ax:[${If[${Bool[${maBuff.Find[stAura2].Value}]},${num}${maBuff.Find[stAura2].Value}\ax,${off}]}]"]}
-		/invoke ${out[12, "${dot} ${info}aura2check\ax:[${If[${Bool[${maBuff.Find[stAura2Check].Value}]},${num}${maBuff.Find[stAura2Check].Value}\ax,${off}]}]"]}
-		/invoke ${out[12, "${dot} lsAura\aw2\axTag"]}
-		/declare _lia2 listiterator local
-		/vardata _lia2 lsAura2Tag.First.Clone
-		/while (!${_lia2.IsEnd}) {
-			/invoke ${out[12, "${dot}${dot} \a-w${_lia2.Value}\ax"]}
-			/invoke ${_lia2.Advance}
-		}
-		/return
-
-		**|
 
 	} else /if (${_type.Equal[temp]}) {
 		/invoke ${set_switch_env[${_debug}, swBuffTemp, TRUE, ${_verbage}]}
@@ -2000,6 +1967,7 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 	/invoke ${maControl.Add[now,swBuffNow]}
 	/invoke ${maControl.Add[ps,swBuffPowersource]}
 	/invoke ${maControl.Add[raid,swBuffRaid]}
+	/invoke ${maControl.Add[group,swBuffGroup]}
 	/invoke ${maControl.Add[self,swBuffSelf]}
 	/invoke ${maControl.Add[shrink,submenu]}
 	/invoke ${maControl.Add[temp,swBuffTemp]}
@@ -2044,8 +2012,6 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 		/invoke ${set_switch_env[FALSE, swOverNavCheck, TRUE, ${_verbage}]}
 	} else /if (${_type.Equal[groupass]}) {
 		/invoke ${set_switch_env[FALSE, swOverGroupAss, TRUE, ${_verbage}]}
-
-
 
 	}
 
@@ -3564,15 +3530,61 @@ sub Bind_command_alto(string _debug)
 
 
 |***
- * note: navigates to the name/target/locyxz
- * use: /navto [NAME|TARGET|locyxz]
+ * note: navigates to name/target/locyxz/wp
+ * use: /navto [NAME|TARGET|locyxz|wp] [nickname|yxzloc]
  ***|
 #bind command_navto /navto
 sub Bind_command_navto(string _verbage, string _loc, bool _debug)
 	DEBUG \atBind_command_navto\ax(\a-w${_verbage}, "${_loc}"\ax)
 
+	| add/update a waypoint
+	/if (${_verbage.Equal[wpadd]}) {
+		/sqlite ${maData.Find[DBnav].Value} dummy SELECT * FROM waypoint WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
+		/if (!${sqlite.Rows[dummy]}) {
+			/invoke ${out[19, "Waypoint add${sep}\a-w${_loc}\ax ${dot} Y:${num}${Me.Y}\ax X:${num}${Me.X}\ax Z:${num}${Me.Z}\ax"]}
+			/sqlite ${maData.Find[DBnav].Value} dummy INSERT INTO waypoint VALUES ("${Zone.ShortName}", "${_loc}", "${Me.Y}", "${Me.X}", "${Me.Z}")
+		} else /if (${sqlite.Rows[dummy]}) {
+			/invoke ${out[19, "Waypoint update${sep}\a-w${_loc}\ax ${dot} Y:${num}${Me.Y}\ax X:${num}${Me.X}\ax Z:${num}${Me.Z}\ax"]}
+      /sqlite ${maData.Find[DBnav].Value} dummy UPDATE waypoint SET locY="${Me.Y}", locX="${Me.X}", locZ="${Me.Z}" WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
+		}
+
+		/return
+
+	| delete a waypoint
+	} else /if (${_verbage.Equal[wpdelete]}) {
+
+	| list the waypoints
+	} else /if (${_verbage.Equal[wplist]}) {
+
+		/sqlite ${maData.Find[DBnav].Value} wpdummy SELECT COUNT(*) as data FROM waypoint WHERE zone_shortname='${Zone.ShortName}'
+		SDEBUG ${sep}wpdummy SELECT count(*) as data from zone_control where zone_shortname  \ay${sqlite.Status[dummy]}\ax resutl:${sqlite.Result[wpdummy 1 data]}
+		/if (${sqlite.Status[wpdummy].Find[no such table:]}) {
+			/echo fail
+		}
+		/declare _count int local 0
+
+		/for _count 1 to ${sqlite.Result[wpdummy 1 data]}
+			/echo ${sqlite.Result[wpdummy 1{_count} nickname]}
+
+		/next count
+
+	| moveto a waypoint
+	} else /if (${_verbage.Equal[wp]}) {
+		/sqlite ${maData.Find[DBnav].Value} dummy SELECT * FROM waypoint WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
+		/if (!${sqlite.Rows[dummy]}) {
+			/invoke ${get_shade[FALSE, MQWindow]}
+			/return FALSE
+		}
+		/invoke ${out[19, "Waypoint move${sep}\a-w${_loc}\ax ${dot} Y:${num}${Me.Y}\ax X:${num}${Me.X}\ax Z:${num}${Me.Z}\ax"]}
+		/nav locyxz ${sqlite.Result[dummy 1 locY]} ${sqlite.Result[dummy 1 locX]} ${sqlite.Result[dummy 1 locZ]} |dist=${maHome.Find[stHomeVariance].Value} log=off
+		/return TRUE
+
+	}
+
+	| input notice
 	/if (!${Target.ID} && !${Bool[${_verbage}]}) {
-		OUT ${notice}${sep}need a name, target or locxyz.
+		OUT ${notice}
+		OUT ${sep}need a name, target, locxyz, or waypoint options
 		/return FALSE
 	}
 

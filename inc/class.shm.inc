@@ -181,7 +181,7 @@ sub check_heal_SHM(bool _debug, string _type)
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
 	| Group Regen Heal
-	/if (${maChr.Find[swHealGroupOverTime].Value}) {
+	/if (${maChr.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
 		/call cast_cycle_heal_regen ${_debug} 0 healgrouphot
 	}
 
@@ -218,7 +218,7 @@ sub check_heal_SHM(bool _debug, string _type)
  	}
 
 	| single heal over time
-	/if (${maChr.Find[swHealOverTime].Value}) {
+	/if (${maChr.Find[swHealOverTime].Value} && !${timer_Check_Regen}) {
 		/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
 			/call cast_cycle_heal_regen ${_debug} ${hurtID} healhot
 		}

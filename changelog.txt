@@ -32,6 +32,34 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+
+
+
+B200519.01
+REPO - many help updates
+- database things
+  i've split the versioning for the schema from the build for the macro
+  this will give more control over the database and a faster start time on macro build changes
+  remember, i dont back your shit up. thats on you
+- buffing
+  shouldnt buff cleric heal wards anymore
+- /buff
+  group - enable/disable group bufffing (not people in your crew aka your bots)
+  raid - enable/disable raid buffing (again, not people in your crew)
+- tags
+  NOCLS - like NOBRD or NODRU will skip casting on that class (i hope)
+  buffraid - use this buff for raid buffing
+  buffgroup - use this buff on groups
+- cleric and shaman
+  added a timer for regen (single and group) checks. default is every 3 seconds
+  the routine check was simply consuming too much of the healers time
+- pulling
+  melee tagging is now a default value for range pulling if a pull brings you to
+  within melee combat range due to a LoS check
+- curing
+  i broke it..again.. will unbreak soon..
+
+
 B200512.01
 - Pulling round 4... will get this some day...
 - pull fetching

@@ -16,7 +16,7 @@ sub set_debug()
   | generate DEBUGS
   /declare flow string outer FALSE
   /declare lsDebuglist list outer
-  /invoke ${lsDebuglist.Append[buff,heal,move,debuff,cast,loot,mode,combat,other,minion,class,admin]}
+  /invoke ${lsDebuglist.Append[buff,heal,move,debuff,cast,loot,mode,combat,other,minion,class,admin,schema]}
 
   | build the variables for the debug lists
   /declare _licdeb listiterator local
@@ -27,7 +27,7 @@ sub set_debug()
   }
 
   | buff
-  /invoke ${lsDebugbuff.Append[cb,ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp,bocked]}
+  /invoke ${lsDebugbuff.Append[cb,ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp,bocked,buffgroup,buffraid]}
   | heal
   /invoke ${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot]}
   | move
@@ -47,7 +47,10 @@ sub set_debug()
 	| other
   /invoke ${lsDebugother.Append[rest,rez,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe]}
 	| admin
-  /invoke ${lsDebugadmin.Append[build,init,observe,house,flow,exit,condition,sql,edit]}
+  /invoke ${lsDebugadmin.Append[build,observe,house,flow,exit,condition,sql,edit]}
+	| schema (database creation/modification)
+  /invoke ${lsDebugschema.Append[init,s_zone,s_character,s_loot,s_nav]}
+
   | class specific debugs
   /if (${Select[${Me.Class.ShortName},BER]}) {
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
@@ -198,10 +201,35 @@ sub set_initialize(bool _debug)
   /call set_data ${_debug} FALSE auxna                                    string outer "[\a-wname\ax]"
   /call set_data ${_debug} FALSE auxli                                    string outer "[\a-wlist\ax]"
   /call set_data ${_debug} FALSE eol                                      string outer "\at........\ax \a#4183D7END OF LINE\ax"
+  /call set_data ${_debug} FALSE break																		string outer "${sep}\a#FF06BBbreak\ax${sep}"
+
 
 
   /call set_data ${_debug} FALSE enabled																	string outer "\agenabled\ax"
   /call set_data ${_debug} FALSE disabled																	string outer "\ardisabled\ax"
+
+	| all character db tables
+  /declare maDBTables map outer
+  /invoke ${maDBTables.Add[environment_buff,env_var]}
+  /invoke ${maDBTables.Add[environment_character,env_var]}
+  /invoke ${maDBTables.Add[environment_condition,env_var]}
+  /invoke ${maDBTables.Add[environment_timer,env_timer]}
+  /invoke ${maDBTables.Add[environment_item,env_var]}
+  /invoke ${maDBTables.Add[environment_crew,env_var]}
+  /invoke ${maDBTables.Add[environment_defense,env_var]}
+  /invoke ${maDBTables.Add[environment_heal,env_var]}
+  /invoke ${maDBTables.Add[environment_song,env_var]}
+  /invoke ${maDBTables.Add[environment_nuke,env_var]}
+  /invoke ${maDBTables.Add[environment_dot,env_var]}
+  /invoke ${maDBTables.Add[environment_agro,env_var]}
+  /invoke ${maDBTables.Add[environment_miscdps,env_var]}
+  /invoke ${maDBTables.Add[environment_burn,env_var]}
+  /invoke ${maDBTables.Add[environment_sash,env_var]}
+  /invoke ${maDBTables.Add[environment_hard,env_var]}
+  /invoke ${maDBTables.Add[environment_mercenary,env_var]}
+  /invoke ${maDBTables.Add[environment_minion,env_var]}
+
+
 
 /return TRUE
 
@@ -456,8 +484,8 @@ sub set_initial_environment(bool _debug)
  * note: generate the zone file DB
  * use:
  ***|
-sub sql_set_zone_schema(bool _debug)
-  DEBUG \atsql_set_zone_schema\ax()
+sub sql_schema_zone(bool _debug)
+  DEBUG \atsql_schema_zone\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -469,7 +497,7 @@ sub sql_set_zone_schema(bool _debug)
   /declare lsZoneProperty list outer
   /invoke ${lsZoneProperty.Delimiter["|"]}
   /invoke ${lsZoneProperty.Append[lsZoneNamed|lsZoneExclude|lsZoneCharm|lsZoneRange|lsZoneNoMez|lsZoneNoCast|lsZoneNoMelee]}
-  /invoke ${lsZoneProperty.Append[lsZoneNoFire|lsZoneNoPoison|lsZoneNoMagic|lsZoneNoCorruption|lsZoneNoCold|lsZoneNoDisease]}
+  /invoke ${lsZoneProperty.Append[lsZoneNoFire|lsZoneNoPoison|lsZoneNoMagic|lsZoneNoCorruption|lsZoneNoCold|lsZoneNoDisease|lsZoneWP]}
 
 	/declare _lisszs listiterator local
   /vardata _lisszs lsZoneProperty.First
@@ -478,14 +506,22 @@ sub sql_set_zone_schema(bool _debug)
     /invoke ${_lisszs.Advance}
   }
 
-  /sqlite ${maData.Find[DBzone].Value} dummy SELECT build_number FROM build
-  DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[dummy]}\ax
+  /sqlite ${maData.Find[DBzone].Value} bdummy SELECT build_number FROM build
+  DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[bdummy]}\ax
+  /sqlite ${maData.Find[DBzone].Value} sdummy SELECT schema_number FROM build
+  DEBUG ${sep}SELECT schema_number FROM build \ay${sqlite.Status[sdummy]}\ax
 
-  /if (${sqlite.Result[dummy 1 build_number].Equal[${maEnv.Find[build].Value}]}) {
-    DEBUG Builds match Bailing
+  /if (${sqlite.Result[bdummy 1 build_number].Equal[${maEnv.Find[build].Value}]} && ${sqlite.Result[sdummy 1 schema_number].Equal[${maEnv.Find[schema].Value}]}) {
+    DEBUG ${sep}Macro and Schema builds match for zone database, bailing on this routine
+	  /invoke ${sql_clear[${_debug}, bdummy]}
+	  /invoke ${sql_clear[${_debug}, sdummy]}
     /return TRUE
 
-  } else /if (${sqlite.Status[dummy].Find[no such table:]}) {
+  }
+
+  /if (!${sqlite.Rows[sdummy]}) {
+ 		OUT \a-tSchema Build\ax${sep}\a-wzone\ax
+
     /while (${swDBlocked}) {
 
       /sqlite ${maData.Find[DBzone].Value} dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY)
@@ -494,7 +530,11 @@ sub sql_set_zone_schema(bool _debug)
       /sqlite ${maData.Find[DBzone].Value} dummy INSERT INTO 'build' ('build_number') VALUES ("${maEnv.Find[build].Value}")
       DEBUG ${sep}INSERT INTO 'build' \ay${sqlite.Status[dummy]}\ax
 
-      /sqlite ${maData.Find[DBzone].Value} dummy CREATE TABLE 'zone_control' ('zone_shortname' TEXT NOT NULL,'element' TEXT NOT NULL,'value' TEXT NOT NULL,PRIMARY KEY (zone_shortname,element,value))
+   		| add schema version to build table
+			/sqlite ${maData.Find[DBzone].Value} dummy ALTER TABLE build ADD COLUMN schema_number NOT NULL DEFAULT '${maEnv.Find[schema].Value}'
+			DEBUG dummy ALTER TABLE build ADD COLUMN schema_number \ay${sqlite.Status[dummy]}\ax
+
+      /sqlite ${maData.Find[DBzone].Value} dummy CREATE TABLE IF NOT EXISTS 'zone_control' ('zone_shortname' TEXT NOT NULL,'element' TEXT NOT NULL,'value' TEXT NOT NULL, PRIMARY KEY (zone_shortname,element,value))
       DEBUG ${sep}CREATE TABLE 'zone_control' \ay${sqlite.Status[dummy]}\ax
 
       /delay 1
@@ -503,17 +543,47 @@ sub sql_set_zone_schema(bool _debug)
         /varset swDBlocked FALSE
       }
     }
+		/varset swDBlocked TRUE
+  }
 
-  } else  /if (${sqlite.Result[dummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+  | correct build mismatch
+	/if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
     /while (${swDBlocked}) {
       /sqlite ${maData.Find[DBzone].Value} dummy UPDATE build SET build_number='${maEnv.Find[build].Value}'
-      /delay 1
+      DEBUG ${sep}dummy UPDATE build SET build_number='${maEnv.Find[build].Value}' \ay${sqlite.Status[sdummy]}\ax
+
+	   	| call macro update by version here. doubt there will be any
+      /if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+      }
+
+      /if (!${sqlite.Status[dummy].Find[locked]}) {
+        /delay 1
+        /varset swDBlocked FALSE
+      }
+    }
+    /varset swDBlocked TRUE
+  }
+
+	| corect schema mismatch
+  /if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+ 		OUT \a-tSchema Check\ax${sep}\a-wzone\ax
+    /while (${swDBlocked}) {
+      /sqlite ${maData.Find[DBzone].Value} dummy UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
+			DEBUG ${sep}dummy UPDATE build SET schema_number='${maEnv.Find[schema].Value}' \ay${sqlite.Status[sdummy]}\ax
+
+     	| call schema update by version here!
+      /if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+			}
+
       /if (!${sqlite.Status[dummy].Find[locked]}) {
         /delay 1
         /varset swDBlocked FALSE
       }
     }
   }
+
+  /invoke ${sql_clear[${_debug}, bdummy]}
+  /invoke ${sql_clear[${_debug}, sdummy]}
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agsql_set_zone_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -524,12 +594,13 @@ sub sql_set_zone_schema(bool _debug)
 
 
 
+
 |***
  * note: generate the zone file DB
  * use:
  ***|
-sub sql_set_loot_schema(bool _debug)
-	DEBUG \atsql_set_loot_schema\ax()
+sub sql_schema_loot(bool _debug)
+	DEBUG \atsql_schema_loot\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -537,24 +608,41 @@ sub sql_set_loot_schema(bool _debug)
 
   /varset swDBlocked TRUE
 
-  /sqlite ${maData.Find[DBloot].Value} dummy SELECT build_number FROM build
-  DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[dummy]}\ax
+	| check the current schema/build versions
+  /sqlite ${maData.Find[DBloot].Value} bdummy SELECT build_number FROM build
+  DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[bdummy]}\ax
+  /sqlite ${maData.Find[DBloot].Value} sdummy SELECT schema_number FROM build
+  DEBUG ${sep}SELECT schema_number FROM build \ay${sqlite.Status[sdummy]}\ax
 
-  /if (${sqlite.Result[dummy 1 build_number].Equal[${maEnv.Find[build].Value}]}) {
-    DEBUG Builds match Bailing
+  /if (${sqlite.Result[sdummy 1 schema_number].Equal[${maEnv.Find[schema].Value}]} && ${sqlite.Result[bdummy 1 build_number].Equal[${maEnv.Find[build].Value}]}) {
+    DEBUG ${sep}Macro and Schema builds match for loot database, bailing on this routine
+	  /invoke ${sql_clear[${_debug}, bdummy]}
+	  /invoke ${sql_clear[${_debug}, sdummy]}
     /return TRUE
+  }
 
-  } else /if (${sqlite.Status[dummy].Find[no such table:]}) {
+	|
+  /if (!${sqlite.Rows[sdummy]}) {
+  	DEBUG ${sep}FOUND${sep}\ar${sqlite.Rows[sdummy]}\ax
+ 		OUT \a-tSchema Build\ax${sep}\a-wloot\ax
+
     /while (${swDBlocked}) {
 
+			| create loot build table
       /sqlite ${maData.Find[DBloot].Value} dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY)
-      DEBUG ${sep}CREATE TABLE IF NOT EXISTS 'build' \ay${sqlite.Status[dummy]}\ax
+      DEBUG ${sep}dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY) \ay${sqlite.Status[dummy]}\ax
 
+      | add macro version to build table
       /sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO 'build' ('build_number') VALUES ("${maEnv.Find[build].Value}")
-      DEBUG ${sep}INSERT INTO 'build' \ay${sqlite.Status[dummy]}\ax
+      DEBUG ${sep} dummy INSERT INTO 'build' ('build_number') VALUES ("${maEnv.Find[build].Value}") \ay${sqlite.Status[dummy]}\ax
 
-      /sqlite ${maData.Find[DBloot].Value} dummy CREATE TABLE 'loot_control' ('item' TEXT NOT NULL PRIMARY KEY, 'action' TEXT, 'pass' TEXT, 'count' TEXT)
-      DEBUG ${sep}CREATE TABLE 'loot_control' \ay${sqlite.Status[dummy]}\ax
+   		| add schema version to build table
+			/sqlite ${maData.Find[DBloot].Value} dummy ALTER TABLE build ADD COLUMN schema_number NOT NULL DEFAULT '${maEnv.Find[schema].Value}'
+			DEBUG dummy ALTER TABLE build ADD COLUMN schema_number NOT NULL DEFAULT '${maEnv.Find[schema].Value}' \ay${sqlite.Status[dummy]}\ax
+
+			| create loot table
+      /sqlite ${maData.Find[DBloot].Value} dummy CREATE TABLE IF NOT EXISTS 'loot_control' ('item' TEXT NOT NULL PRIMARY KEY, 'action' TEXT, 'pass' TEXT, 'count' TEXT)
+      DEBUG ${sep}dummy CREATE TABLE IF NOT EXISTS 'loot_control' ('item' TEXT NOT NULL PRIMARY KEY, 'action' TEXT, 'pass' TEXT, 'count' TEXT) \ay${sqlite.Status[dummy]}\ax
 
       /delay 1
       /if (!${sqlite.Status[dummy].Find[locked]}) {
@@ -562,10 +650,44 @@ sub sql_set_loot_schema(bool _debug)
         /varset swDBlocked FALSE
       }
     }
+		/varset swDBlocked TRUE
+  }
 
-  } else  /if (${sqlite.Result[dummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+  | correct build mismatch
+	/if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+		DEBUG ${sep}build mismatch
     /while (${swDBlocked}) {
+
       /sqlite ${maData.Find[DBloot].Value} dummy UPDATE build SET build_number='${maEnv.Find[build].Value}'
+ 			DEBUG ${sep}dummy UPDATE build SET build_number='${maEnv.Find[build].Value}' \ay${sqlite.Status[sdummy]}\ax
+
+	   	| call macro update by version here. doubt there will be any
+      /if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+      }
+
+      /delay 1
+      /if (!${sqlite.Status[dummy].Find[locked]}) {
+        /delay 1
+        /varset swDBlocked FALSE
+      }
+    }
+    /varset swDBlocked TRUE
+  }
+
+
+	| if one of them doesnt match make sure both values are updated and make any corrections to the schema
+  /if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+		DEBUG ${sep}schema mismatch
+ 		OUT \a-tSchema Check\ax${sep}\a-wloot\ax
+
+    /while (${swDBlocked}) {
+
+      /sqlite ${maData.Find[DBloot].Value} dummy UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
+ 			DEBUG ${sep}dummy UPDATE build SET schema_number='${maEnv.Find[schema].Value}' \ay${sqlite.Status[sdummy]}\ax
+
+     	| call schema update by version here!
+      /if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+			}
       /delay 1
       /if (!${sqlite.Status[dummy].Find[locked]}) {
         /delay 1
@@ -573,6 +695,9 @@ sub sql_set_loot_schema(bool _debug)
       }
     }
   }
+
+  /invoke ${sql_clear[${_debug}, bdummy]}
+  /invoke ${sql_clear[${_debug}, sdummy]}
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agsql_set_loot_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -587,67 +712,97 @@ sub sql_set_loot_schema(bool _debug)
  * note: generate character file DB
  * use:
  ***|
-sub sql_set_character_schema(bool _debug)
-  DEBUG \atsql_set_character_schema\ax()
+sub sql_schema_character(bool _debug)
+  DEBUG \atsql_schema_character\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
 	}
 
-  /declare maDBTables map outer
-  /invoke ${maDBTables.Add[environment_buff,env_var]}
-  /invoke ${maDBTables.Add[environment_character,env_var]}
-  /invoke ${maDBTables.Add[environment_condition,env_var]}
-  /invoke ${maDBTables.Add[environment_timer,env_timer]}
-  /invoke ${maDBTables.Add[environment_item,env_var]}
-  /invoke ${maDBTables.Add[environment_crew,env_var]}
-  /invoke ${maDBTables.Add[environment_defense,env_var]}
-  /invoke ${maDBTables.Add[environment_heal,env_var]}
-  /invoke ${maDBTables.Add[environment_song,env_var]}
-  /invoke ${maDBTables.Add[environment_nuke,env_var]}
-  /invoke ${maDBTables.Add[environment_dot,env_var]}
-  /invoke ${maDBTables.Add[environment_agro,env_var]}
-  /invoke ${maDBTables.Add[environment_miscdps,env_var]}
-  /invoke ${maDBTables.Add[environment_burn,env_var]}
-  /invoke ${maDBTables.Add[environment_sash,env_var]}
-  /invoke ${maDBTables.Add[environment_hard,env_var]}
-  /invoke ${maDBTables.Add[environment_mercenary,env_var]}
-  /invoke ${maDBTables.Add[environment_minion,env_var]}
+	| get character build version and maintain previous number
+  /sqlite ${maData.Find[DBcharacter].Value} bdummy SELECT build_number FROM build
+  DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[dummy]}\ax${sep}${sqlite.Rows[bdummy]} (${maEnv.Find[build].Value})
+  /if (${sqlite.Rows[bdummy]}) {
+	  /invoke ${maData.Add[stPreviousBuild,${sqlite.Result[bdummy 1 build_number]}]}
+  } else {
+  	/invoke ${maData.Add[stPreviousBuild,0]}
+  }
 
-  /sqlite ${maData.Find[DBcharacter].Value} SQL_ENV_BUILD SELECT build_number FROM build
-  DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[dummy]}\ax
-  | keep a running copy of the previous build number
-  /invoke ${maData.Add[stPreviousBuild,${sqlite.Result[SQL_ENV_BUILD 1 build_number]}]}
-  DEBUG ${sep}BUID${sep}\a-w${sqlite.Result[SQL_ENV_BUILD 1 build_number]}\ax
+  | get character schema version and maintain previous number
+  /sqlite ${maData.Find[DBcharacter].Value} sdummy SELECT schema_number FROM build
+  DEBUG ${sep}SELECT schema_number FROM build \ay${sqlite.Status[sdummy]}\ax${sep}${sqlite.Rows[sdummy]} (${maEnv.Find[schema].Value})
+  /if (${sqlite.Rows[sdummy]}) {
+  	/invoke ${maData.Add[stPreviousSchema,${sqlite.Result[sdummy 1 schema_number]}]}
+  } else {
+  	/invoke ${maData.Add[stPreviousSchema,0]}
+  }
 
-  /if (${sqlite.Result[SQL_ENV_BUILD 1 build_number].Equal[${maEnv.Find[build].Value}]}) {
-    | /return TRUE
-  } else /if (${sqlite.Status[SQL_ENV_BUILD].Find[no such table:]} || ${sqlite.Result[SQL_ENV_BUILD 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+
+	| both schema and build versions match
+  /if (${sqlite.Result[bdummy 1 build_number].Equal[${maEnv.Find[build].Value}]} && ${sqlite.Result[sdummy 1 schema_number].Equal[${maEnv.Find[schema].Value}]}) {
+		/invoke ${sql_clear[${_debug}, bdummy]}
+		/invoke ${sql_clear[${_debug}, sdummy]}
+    DEBUG Macro and Schema builds match, bailing on this routine
+    /return TRUE
+  }
+
+	| schema and macro builds missing? (fresh database)
+  /if (!${sqlite.Rows[sdummy]} && !${sqlite.Rows[bdummy]}) {
+  	DEBUG ${sep}\arcorrect build mismatch\ax
 
 		| fix any existing database variable issues.
- 		OUT \a-tDatabase Check\ax
-	  /call sql_check ${maDebug.Find[sql].Value}
+ 		OUT \a-tSchema Build\ax${sep}\a-wcharacter\ax
 
-    /if (${sqlite.Status[SQL_ENV_BUILD].Find[no such table:]}) {
-      | character build match
-      /sqlite ${maData.Find[DBcharacter].Value} dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY)
-      DEBUG ${sep}CREATE TABLE IF NOT EXISTS 'build' \ay${sqlite.Status[dummy]}\ax
-      /sqlite ${maData.Find[DBcharacter].Value} dummy INSERT INTO 'build' ('build_number') VALUES ("${maEnv.Find[build].Value}")
-      DEBUG ${sep}INSERT INTO 'build' \ay${sqlite.Status[dummy]}\ax
+    | character build match
+    /sqlite ${maData.Find[DBcharacter].Value} dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY, 'schema_number' TEXT NOT NULL)
+    DEBUG ${sep}CREATE TABLE IF NOT EXISTS 'build' \ay${sqlite.Status[dummy]}\ax
+    /sqlite ${maData.Find[DBcharacter].Value} dummy INSERT INTO 'build' (build_number, schema_number) VALUES ("${maEnv.Find[build].Value}", "${maEnv.Find[schema].Value}")
+    DEBUG ${sep}dummy INSERT INTO 'build' (build_number,schema_number) VALUES ("${maEnv.Find[build].Value}", "${maEnv.Find[schema].Value}") \ay${sqlite.Status[dummy]}\ax
+	}
 
-    } else  /if (${sqlite.Result[SQL_ENV_BUILD 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
-      /sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE build SET build_number='${maEnv.Find[build].Value}'
-      DEBUG ${sep}CREATE TABLE IF NOT EXISTS 'build' \ay${sqlite.Status[dummy]}\ax
+
+  | updates to macro on a version mismatch
+	/if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+		DEBUG ${sep}correct build mismatch
+    /sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE build SET build_number='${maEnv.Find[build].Value}'
+		DEBUG ${sep}dummy UPDATE build SET build_number='${maEnv.Find[build].Value}' \ay${sqlite.Status[dummy]}\ax
+
+   	| call macro update by version here. doubt there will be any
+    /if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
     }
 
-    /declare _mi mapiterator local
+  }
+
+	| updates to schema on a version mismatch
+	/if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+  	DEBUG ${sep}\arcorrect schema mismatch\ax
+		OUT \a-tSchema Check\ax${sep}\a-wcharacter\ax
+	  /call sql_check ${maDebug.Find[sql].Value}
+
+
+		/sqlite ${maData.Find[DBcharacter].Value} pdummy SELECT 1 FROM PRAGMA_TABLE_INFO('build') WHERE name='schema_number'
+		DEBUG ${sep}pdummy..${sqlite.Rows[pdummy]}
+		/if (!${sqlite.Rows[pdummy]}) {
+			/sqlite ${maData.Find[DBcharacter].Value} dummy ALTER TABLE build ADD COLUMN schema_number NOT NULL DEFAULT '${maEnv.Find[schema].Value}'
+			DEBUG ${sep}dummy ALTER TABLE build ADD COLUMN schema_number \ay${sqlite.Status[dummy]}\ax
+		} else /if (${sqlite.Rows[pdummy]}) {
+	    /sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
+	    DEBUG ${sep}UPDATE schema_number SET schema_number${sep}\ay${sqlite.Status[dummy]}\ax${sep}${sqlite.Rows[dummy]} .. ${maEnv.Find[schema].Value}
+		}
+		/invoke ${sql_clear[${_debug}, pdummy]}
+
+		/declare _mi mapiterator local
     /vardata _mi maDBTables.First.Clone
     /while (!${_mi.IsEnd}) {
       /sqlite ${maData.Find[DBcharacter].Value} dummy CREATE TABLE IF NOT EXISTS '${_mi.Key}' ('${_mi.Value}' TEXT NOT NULL PRIMARY KEY,'value' TEXT NOT NULL, 'aux' TEXT)
       DEBUG ${sep}CREATE TABLE IF NOT EXISTS '${_mi.Key}' \ay${sqlite.Status[dummy]}\ax
       /invoke ${_mi.Advance}
     }
+
   }
+
+  /invoke ${sql_clear[${_debug}, bdummy]}
+  /invoke ${sql_clear[${_debug}, sdummy]}
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agsql_set_character_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -825,6 +980,8 @@ sub set_initialize_map_character_environment(bool _debug)
   /invoke ${set_data_timer[${_debug}, Check_Buff_Shrink, 10m]}
   /invoke ${set_data_timer[${_debug}, Check_Buff_Self, 1m]}
   /invoke ${set_data_timer[${_debug}, Check_Buff_Crew, 1m]}
+  /invoke ${set_data_timer[${_debug}, Check_Buff_Raid, 2m]}
+  /invoke ${set_data_timer[${_debug}, Check_Buff_Group, 1m]}
   /invoke ${set_data_timer[${_debug}, Check_Buff_Beg, 1m]}
   /invoke ${set_data_timer[${_debug}, Check_Buff_Temp, 30s]}
   /invoke ${set_data_timer[${_debug}, Check_Buff_Now, 5s]}
@@ -833,7 +990,8 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_list ${_debug} maBuff lsBuffRemove                       EMPTY                         "${auxli} buffs you want auto removed from you"
   /call set_data_map ${_debug} maBuff swBuffSelf                          FALSE                         "${auxsw} buff yourself"
   /call set_data_map ${_debug} maBuff swBuffCrew                          FALSE                         "${auxsw} buff your crew (\aynot you\ax)"
-  /call set_data_map ${_debug} maBuff swBuffRaid                          FALSE                         "${auxsw} buff raid members"
+  /call set_data_map ${_debug} maBuff swBuffRaid                          FALSE                         "${auxsw} buff raid members (not crew)"
+  /call set_data_map ${_debug} maBuff swBuffGroup                         FALSE	                        "${auxsw} buff group members (not crew)"
   /call set_data_map ${_debug} maBuff swBuffBeg                           FALSE                         "${auxsw} answer buff beg requests"
   /call set_data_map ${_debug} maBuff swBuffUnity                         FALSE                         "${auxsw} buff aa unity"
   /call set_data_map ${_debug} maBuff swBuffPowersource                   FALSE                         "${auxsw} use powersources (\a-wmust have buff set with tag\ax)"
@@ -1933,7 +2091,112 @@ sub sql_check(bool _debug)
 
 
 
+|***
+ * note: generate the nav file DB
+ * use:
+ ***|
+sub sql_schema_nav(bool _debug)
+	DEBUG \atsql_schema_nav\ax()
 
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
+  /varset swDBlocked TRUE
+
+	| check the current schema/build versions
+  /sqlite ${maData.Find[DBnav].Value} bdummy SELECT build_number FROM build
+  DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[bdummy]}\ax
+  /sqlite ${maData.Find[DBnav].Value} sdummy SELECT schema_number FROM build
+  DEBUG ${sep}SELECT schema_number FROM build \ay${sqlite.Status[sdummy]}\ax
+
+  /if (${sqlite.Result[sdummy 1 schema_number].Equal[${maEnv.Find[schema].Value}]} && ${sqlite.Result[bdummy 1 build_number].Equal[${maEnv.Find[build].Value}]}) {
+    DEBUG ${sep}Macro and Schema builds match for nav database, bailing on this routine
+	  /invoke ${sql_clear[${_debug}, bdummy]}
+	  /invoke ${sql_clear[${_debug}, sdummy]}
+    /return TRUE
+  }
+
+	|
+  /if (!${sqlite.Rows[sdummy]}) {
+  	DEBUG ${sep}FOUND${sep}\ar${sqlite.Rows[sdummy]}\ax
+ 		OUT \a-tSchema Build\ax${sep}\a-wnav\ax
+
+    /while (${swDBlocked}) {
+
+			| create loot build table
+      /sqlite ${maData.Find[DBnav].Value} dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY, 'schema_number' TEXT NOT NULL)
+      DEBUG ${sep}dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY, 'schema_number' TEXT NOT NULL) \ay${sqlite.Status[dummy]}\ax
+
+      | add macro version to build table
+      /sqlite ${maData.Find[DBnav].Value} dummy INSERT INTO 'build' ('build_number','schema_number') VALUES ("${maEnv.Find[build].Value}","${maEnv.Find[schema].Value}")
+      DEBUG ${sep} dummy INSERT INTO 'build' ('build_number','schema_number') VALUES ("${maEnv.Find[build].Value}","${maEnv.Find[schema].Value}") \ay${sqlite.Status[dummy]}\ax
+
+			| create loot table
+      /sqlite ${maData.Find[DBnav].Value} dummy CREATE TABLE IF NOT EXISTS 'waypoint' ('zone_shortname', 'nickname', 'locY', 'locX', 'locZ')
+      DEBUG ${sep}dummy CREATE TABLE IF NOT EXISTS 'waypoint' ('zone_shorname' TEXT NOT NULL PRIMARY KEY, 'nickname' TEXT, 'locYXZ' TEXT) \ay${sqlite.Status[dummy]}\ax
+
+      /delay 1
+      /if (!${sqlite.Status[dummy].Find[locked]}) {
+        /delay 1
+        /varset swDBlocked FALSE
+      }
+    }
+		/varset swDBlocked TRUE
+  }
+
+  | correct build mismatch
+	/if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+		DEBUG ${sep}build mismatch
+    /while (${swDBlocked}) {
+
+      /sqlite ${maData.Find[DBloot].Value} dummy UPDATE build SET build_number='${maEnv.Find[build].Value}'
+ 			DEBUG ${sep}dummy UPDATE build SET build_number='${maEnv.Find[build].Value}' \ay${sqlite.Status[sdummy]}\ax
+
+	   	| call macro update by version here. doubt there will be any
+      /if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+      }
+
+      /delay 1
+      /if (!${sqlite.Status[dummy].Find[locked]}) {
+        /delay 1
+        /varset swDBlocked FALSE
+      }
+    }
+    /varset swDBlocked TRUE
+  }
+
+
+	| if one of them doesnt match make sure both values are updated and make any corrections to the schema
+  /if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+		DEBUG ${sep}schema mismatch
+ 		OUT \a-tSchema Check\ax${sep}\a-wnav\ax
+
+    /while (${swDBlocked}) {
+
+      /sqlite ${maData.Find[DBloot].Value} dummy UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
+ 			DEBUG ${sep}dummy UPDATE build SET schema_number='${maEnv.Find[schema].Value}' \ay${sqlite.Status[sdummy]}\ax
+
+     	| call schema update by version here!
+      /if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+			}
+      /delay 1
+      /if (!${sqlite.Status[dummy].Find[locked]}) {
+        /delay 1
+        /varset swDBlocked FALSE
+      }
+    }
+  }
+
+  /invoke ${sql_clear[${_debug}, bdummy]}
+  /invoke ${sql_clear[${_debug}, sdummy]}
+
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agsql_set_loot_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
+
+/return TRUE
 
 
 

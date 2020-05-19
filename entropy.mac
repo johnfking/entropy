@@ -94,6 +94,9 @@
 
 
 
+
+
+
 |***
  * note: entropy main sub and master loop
  * use: none. auto
@@ -117,9 +120,9 @@ sub main(string _debug, string _param1, string _auto)
 		/invoke ${maDebug.Add[${_debug.Lower},TRUE]}
 	}
 
-
-	| current entropy build #
-	/call set_data FALSE maEnv build													map outer B200512.01
+	| current entropy version #'s
+	/call set_data FALSE maEnv build													map outer B200517.01
+	/call set_data FALSE maEnv schema													map outer 1.00
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -351,6 +354,9 @@ sub prepare_the_end(bool _debug)
 	| set loot database
 	/call set_data FALSE maData DBloot										  						map outer macros\\exspes\\data\\loot.sqlite
 
+	| set loot database
+	/call set_data FALSE maData DBnav										  							map outer macros\\exspes\\data\\nav.sqlite
+
 	| set zone database
 	/call set_data FALSE maData DBzone										  						map outer macros\\exspes\\data\\zone.sqlite
 
@@ -391,13 +397,16 @@ sub prepare_the_end(bool _debug)
 	/dnet timeout ${maComm.Find[stNetworkTimeout].Value}
 
 	| check zone schema
-	/call sql_set_zone_schema ${maDebug.Find[zone].Value}
+	/call sql_schema_zone ${maDebug.Find[s_zone].Value}
 
 	| check loot schema
-	/call sql_set_loot_schema ${maDebug.Find[loot].Value}
+	/call sql_schema_loot ${maDebug.Find[s_loot].Value}
+
+	| check nav schema
+	/call sql_schema_nav ${maDebug.Find[s_nav].Value}
 
 	| check character shema
-	/call sql_set_character_schema ${maDebug.Find[init].Value}
+	/call sql_schema_character ${maDebug.Find[s_character].Value}
 
 	| set all character maps
 	/call set_initialize_map_character_environment ${maDebug.Find[init].Value}
