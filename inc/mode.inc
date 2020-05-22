@@ -591,13 +591,82 @@ sub mode_lush(bool _debug)
  ***|
 sub mode_trainspell(string _type, bool _debug)
 	ISMEDEAD
-	SETHUD "Train Spell"
+	SETHUD "mode trainspell"
 
-	/if (${_type.Equal[specialize]} && !${swModeTrainspellSPC}) {
-		/varset swModeTrainspellSPC TRUE
-	}
+	| /if (${_type.Equal[specialize]} && !${swModeTrainspellSPC}) {
+	| 	/varset swModeTrainspellSPC TRUE
+	| }
 
-	/declare _skill string local |alteration|abjuration|conjuration|divination|evocation
+	/declare _skill string local |Alteration|Abjuration|Conjuration|Divination|Evocation
+	/declare _count int local 0
+	/declare _gem[5] bool local FALSE
+
+	| figure out what we want to cast
+	/for _count 1 to ${Me.NumGems}
+
+		| validate skill caps and spell. if cap is maxed, move on
+		/if (!${maOver.Find[swOverTrainSpell].Value}) {
+		| 	/if (${Me.Skill[${If[${swModeTrainspellSPC},specialize ,]}${_skill.Arg[${_count},|]}]} == ${Me.SkillCap[${If[${swModeTrainspellSPC},specialize ,]}${_skill.Arg[${_count},|]}]}) /continue
+		}
+
+		| if the skill spell is set to FALSE, move on
+		| /if (!${Bool[${_skill.Arg[${_count},|]}]}) /continue
+
+		| if the spell is FALSE, move on
+		| /if (!${Bool[${Spell[${${_skill.Arg[${_count},|]}}].Skill}]}) /continue
+
+		| if I already have the spell memed, move on
+		| /if (!${Me.Gem[${_count}].Name.Equal[${${_skill.Arg[${_count},|]}}]}) {
+		| 	/call mem_spell TRUE "${${_skill.Arg[${_count},|]}}" ${_count} FALSE
+		| }
+
+		| /varset _gem[${_count}] TRUE
+
+
+		/if (!${Me.Gem[${_count}].ID}) {
+			/delay 1
+			/continue
+		}
+
+		| empty hands
+		/if (${Cursor.ID}) {
+			/call check_cursor ${_debug} CLEAR
+		}
+
+		| cast the spell
+		/if (${is_ready[${_debug}, "${Me.Gem[${_count}].Name}"]}) {
+			/call voodoo ${_debug} "${Me.Gem[${_count}].Name}" 0 FALSE
+		}
+		/delay 5s !${Me.Casting.ID}
+
+		| seriously theres an apocalypse going on, shoud wash your hands
+		/if (${Cursor.ID}) {
+			/call check_cursor ${_debug} CLEAR
+		}
+
+
+	/next _count
+
+
+	SETHUD EMPTY
+
+/return
+
+
+${Me.Gem[${_count}].Name}
+
+
+
+	ISMEDEAD
+	SETHUD "mode trainspell"
+
+	/declare swTrainAlteration bool local TRUE
+
+	| /if (${_type.Equal[specialize]} && !${swModeTrainspellSPC}) {
+	| 	/varset swModeTrainspellSPC TRUE
+	| }
+
+	/declare _skill string local |Alteration|Abjuration|Conjuration|Divination|Evocation
 	/declare _count int local 0
 	/declare _gem[5] bool local FALSE
 
@@ -616,7 +685,9 @@ sub mode_trainspell(string _type, bool _debug)
 		/if (!${Bool[${Spell[${${_skill.Arg[${_count},|]}}].Skill}]}) /continue
 
 		| if I already have the spell memed, move on
-		/if (!${Me.Gem[${_count}].Name.Equal[${${_skill.Arg[${_count},|]}}]}) /call mem_spell TRUE "${${_skill.Arg[${_count},|]}}" ${_count} FALSE
+		/if (!${Me.Gem[${_count}].Name.Equal[${${_skill.Arg[${_count},|]}}]}) {
+			/call mem_spell TRUE "${${_skill.Arg[${_count},|]}}" ${_count} FALSE
+		}
 
 		/varset _gem[${_count}] TRUE
 	/next _count
@@ -624,10 +695,53 @@ sub mode_trainspell(string _type, bool _debug)
 	| start getting things done
 	/for _count 1 to ${_skill.Count[|]}
 		/if (!${_gem[${_count}]}) /continue
-		/if (${validate_cast[FALSE, spell, "${${_skill.Arg[${_count},|]}}", ${Me.ID}]}) /call core_cast2 "${${_skill.Arg[${_count},|]}}" 0 0 FALSE
+		/if (${is_ready[${_debug}, "${${_skill.Arg[${_count},|]}}"]}) /call voodoo ${_debug} "${${_skill.Arg[${_count},|]}}" 0 0 FALSE
 		/call sort_cursor TRUE
 	/next _count
-/return
+
+
+	SETHUD EMPTY
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+${Me.Gem[1].Skill}
+
+
+
+
+${Spell[${Me.Gem[1].Name}].Skill}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1050,192 +1164,11 @@ sub tov_ew_ada(bool _debug)
 		}
 		/delay 5
 
-
-
-
-
 	| step 8
-
-
-
 
 
 	/return TRUE
 
-
-
-/squelch /stick id moveback ${Math.Calc[${Spawn[id ${Target.ID}].MaxRangeTo}*.6]}
-
-/stick ID ${Math.Calc[${Spawn[id ${Target.ID}].MaxRangeTo}*.6]}
-
-${Task[${_quest}].Objective[5].Equal[${sqlite.Result[farmquery5 1 step]}]}
-
-
-
-
-
-:Start
-/if (${Zone.ShortName.Equal[eastwastestwo]}) {
-        /goto :Mission
-    }
-    /goto :Start
-
-
-:Mission
-	/call command_navto ${Spawn[npc Missionary Ada].ID}
-	/invoke ${set_target[${Spawn[npc Missionary Ada].ID}]}
-	/say go look
-	/delay 5s
-
-	/if (${Me.AltAbilityReady[Group Perfected Invisibility to Undead]}) {
-		/call voodoo FALSE "Group Perfected Invisibility to Undead" 0 FALSE
-	}
-
-
-
-/if (${Bool[${Task[The Way Back Home].Title}]}) {
-
-
-
-
-
-/goto :Mission
-
-
-:Nav1
-/nav locyxz 1605.96 -1847.82 -24.6491
-/goto :Nav1
-
-
-
-${Task[The Way Back Home].Step.Index}
-
-| good
-:Nav1
-/if (${Task[The Way Back Home].Step.Index}==2) {
-/goto :Nav2
-}
-/goto :Nav1
-
-
-| good
-:Nav2
-/nav locyxz 1819 -1212 -2
-/goto :Nav3
-
-
-| good ????
-:Nav3
-/if (${Task[The Way Back Home].Step.Index}==3) {
-/goto :Nav4
-}
-/goto :Nav3
-
-
-
-:Nav4
-/nav locyxz 978.891 -1247.02 -36.0067
-/goto :Nav5
-
-:Nav5
-/if (${Task[The Way Back Home].Step.Index}==4) {
-/goto :Nav6
-}
-/goto :Nav5
-
-| good
-:Nav6
-/nav locyxz -330.943 -1718.13 -43.9086
-/goto :Nav7
-
-:Nav7
-/if (${Task[The Way Back Home].Step.Index}==5) {
-    /nav stop
-    /doevents
-}
-/goto :Nav7
-
-Sub Event_Kodiak(string Line)
-    /nav stop
-    /nav loc -979.802 -1768.92 -25.7416
-    /delay 15s !${Navigation.Active}
-
-
-
-:kodiak
-/delay 15s
-/target ${Spawn[a rabid tundra kodiak].CleanName}
-/if (${Navigation.PathExists[target]}) {
-        /nav target | dist=11
-    }
-/delay 15s !${Navigation.Active}
-/attack
-/delay 5s
-/nav target | dist=11
-/if (${Me.XTarget}==0) /goto :kickkodiak
-/goto :kodiak
-
-
-
-:kickkodiak
-/advloot personal Simple Velium Pendant loot
-/alt act 1212
-/nav loc -2477 -2391 -4
-/delay 60s ${Navigation.Active}==FALSE
-/kickp t
-
-Sub Event_Coldain(string Line)
-    /nav stop
-    /nav locxyz -267.9 -1347.5 -12
-    /delay 15s !${Navigation.Active}
-:coldain
-
-/delay 15s
-
-/target ${Spawn[a restless aged Coldain].CleanName}
-/if (${Navigation.PathExists[target]}) {
-        /nav target | dist=11
-    }
-:loop
-/if (${Spawn[a restless aged Coldain].CleanName}==TRUE) {
-    /attack
-    /goto :loop
-}
-/if (${Me.Combat}) {
-    /nav target | dist=11
-} else /if (${Me.XTarget}==0 && ${Bool[${Spawn[a restless aged Coldain].CleanName}]}) {
-    /goto :coldain
-} else /if (${Me.XTarget}==0 && ${Bool[!${Spawn[a restless aged Coldain].CleanName}]}) {
-    /goto :kickcoldain
-}
-
-:kickcoldain
-
-/advloot shared "Simple Velium Pendant" giveto ${Me.Name}
-/advloot personal "Simple Velium Pendant" loot
-
-/if (${Window[ConfirmationDialogBox].Open}) {
-	/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
-}
-
-
-
-
-	/if (${Me.AltAbilityReady[Group Perfected Invisibility to Undead]}) {
-		/call voodoo FALSE "Group Perfected Invisibility to Undead" 0 FALSE
-	}
-
-
-/nav loc -2477 -2391 -4
-/delay 60s ${Navigation.Active}==FALSE
-/kickp t
-
-/shift /itemnotify ${FindItem[=Simple Velium Pendant].InvSlot} leftmouseup
-/target Missionary
-/click left target
-/notify TradeWnd TRDW_Trade_Button leftmouseup
-
-/kickplayer task
 
 
 

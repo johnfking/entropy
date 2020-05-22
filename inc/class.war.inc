@@ -175,7 +175,7 @@ sub misc_combat_WAR(bool _debug, int _tmpID)
 		/return FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Brace for Impact"]} && !${Me.Buff[${maChr.Find[stShocking].Value}].ID}) {
+	/if (${is_ready[${_debug}, "Brace for Impact"]} && !${Me.ActiveDisc.Name.Equal[${Spell[${maChr.Find[stShocking].Value}].RankName}]}) {
 		/call voodoo ${_debug} "Brace for Impact" 0 FALSE
 	}
 

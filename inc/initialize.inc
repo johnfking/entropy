@@ -41,7 +41,7 @@ sub set_debug()
 	| loot
   /invoke ${lsDebugloot.Append[loot]}
 	| mode
-  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill]}
+  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell]}
   | combat
   /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait]}
 	| other
@@ -467,7 +467,7 @@ sub set_initial_environment(bool _debug)
   | generate modes
   /declare maMode map outer
   /declare lsMode list outer
-  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill]}
+  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell]}
 
 	/declare _lisie listiterator local
   /vardata _lisie lsMode.First.Clone
@@ -1060,6 +1060,15 @@ sub set_initialize_map_character_environment(bool _debug)
 |** control: mode **|
   /call set_data ${_debug} FALSE swModeToken                              bool outer FALSE
   /call set_data ${_debug} FALSE stModeData                            		string outer FALSE
+  /call set_data_map ${_debug} maMode swTrainAlteration										FALSE                         "${auxsw} train alteration type spells"
+  /call set_data_map ${_debug} maMode swTrainAbjuration										FALSE                         "${auxsw} train abjuration type spells"
+  /call set_data_map ${_debug} maMode swTrainConjuration									FALSE                         "${auxsw} train conjuration type spells"
+  /call set_data_map ${_debug} maMode swTrainDivination										FALSE                         "${auxsw} train divination type spells"
+  /call set_data_map ${_debug} maMode swTrainEvocation										FALSE                         "${auxsw} train evocation type spells"
+  | /call set_data ${_debug} FALSE swTrainSpecialize												FALSE                         "${auxsw} train specialize field type spells"
+
+
+
 
 
 |** control: watch **|

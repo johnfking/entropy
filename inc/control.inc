@@ -4288,7 +4288,7 @@ sub Bind_command_coh(string _verbage, bool _debug)
 /return TRUE
 
 
-
+${MacroQuest.Path}
 |***
  * note: allows for custom builds
  * use: /build [save|load] [nickname] [DEBUG]
@@ -4312,7 +4312,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 	/declare _fn string local build_${Me.Class.ShortName.Lower}_${_nickname}.ini
 
 	| set fully qualified MQ name
-	/declare _fqn string local exspes\\data\\${_fn}
+	/declare _fqn string local ${MacroQuest.Path}\\macros\\exspes\\data\\${_fn}
 
 	| set stuff to not export/import
 	/declare _skipMap list local

@@ -5199,129 +5199,6 @@ sub check_buff_cycle_unity(bool _debug)
 
 
 |***
- * note: Check for running auras, If they are duped, remove the second one
- * use: /call check_aura
-
-sub check_buff_cycle_aura2(bool _debug)
-	FLOW check_buff_cycle_aura (1)
-
-	SETHUD "buff aura"
-
-	/if (AUTO) {
-		/invoke ${set_data_timer[${_debug}, Check_Buff_Aura, RESTART]}
-		/if (!${maBuff.Find[swBuffMaster].Value}) {
-			/return FALSE
-		}
-	}
-
-	CHECKTIE
-	ISMEDEAD
-	CHECKEXIT check_buff_cycle_aura
-	FLOW check_buff_cycle_aura (2)
-	GETINPUT check_buff_cycle_aura NA|NA
-
-	| set aura 1
-	/declare _a1 		string local ${set_rank[${_debug}, ${maBuff.Find[stAura1].Value}]}
-	/declare _a1c 	string local ${maBuff.Find[stAura1Check].Value}
-
-	| set aura 2
-	/declare _a2 		string local ${set_rank[${_debug}, ${maBuff.Find[stAura2].Value}]}
-	/declare _a2c 	string local ${maBuff.Find[stAura2Check].Value}
-
-	| Aura: berzerker, monk, warrior
-	/if (${check_class[FALSE, |BER|MNK|WAR]}) {
-		DEBUG ${sep}(\a-rBER|MNK|WAR\ax)
-		/if (${Bool[${_a1c}]} && !${Bool[${Me.Aura[1].Name.Equal[${_a1c}]}]}) {
-			/call check_basic_tags ${maDebug.Find[tag].Value} Aura1 ${Me.DisplayName} "${_a1c}"
-			/if (!${Macro.Return}) /return FALSE
-			/call voodoo FALSE "${_a1}" 0 FALSE
-		}
-		/return TRUE
-	}
-
-	| Aura: Bard
-	/if (${check_class[FALSE, |BRD]}) {
-		DEBUG ${sep}(\a-rBRD\ax)
-		/if (${Bool[${_a1c}]} && !${Bool[${Me.Aura[1].Name.Equal[${_a1c}]}]}) {
-			/call check_basic_tags ${maDebug.Find[tag].Value} Aura1 ${Me.DisplayName} "${_a1c}"
-			/if (!${Macro.Return}) /return FALSE
-			/if (${is_ready[${_debug}, "${_a1}"]}) {
-				/call voodoo ${_debug} "${_a1}" 0 FALSE
-			}
-		}
-		/return TRUE
-	}
-
-	| everyone else...
-	/if (!${check_class[FALSE, |BRD|BER|MNK|WAR]}) {
-		DEBUG ${sep}(\a-rEVERYONE ELSE\ax)
-		/declare _count int local 0
-		/declare _aura int local 0
-		/declare _found1 bool FALSE
-		/declare _found2 bool FALSE
-
-		| check auras entered in database 1/2
-		/for _aura 1 to 2
-			DEBUG ${sep}\a-y------\axLOOP#\aw${_aura}\ax
-			DEBUG ${sep}Aura ${_aura}${sep}\a-w${_a1}\ax
-			DEBUG ${sep}Aura ${_aura} check${sep}\a-w${_a1c}\ax
-
-			| check each arua for each slot
-			/if (${Bool[${_a${_aura}}]}) {
-				/for _count 1 to 2
-					/if (${Bool[${_a${_aura}c}]}) {
-						/call check_basic_tags ${maDebug.Find[tag].Value} Aura${_count} ${Me.DisplayName} "${_a${_aura}}"
-						/if (!${Macro.Return}) {
-							/varset _found${_aura} TRUE
-							/continue
-						}
-
-						DEBUG ${sep}/if Me.Aura[${_count}].Name.Equal[${_a${_aura}c}]
-						/if (${Me.Aura[${_count}].Name.Equal[${_a${_aura}c}]}) {
-							DEBUG ${sep} _found${_aura} TRUE
-							/varset _found${_aura} TRUE
-
-							DEBUG ${sep}/if Me.Aura[${_count}].Name.Equal[${_a${_aura}}]
-						} else /if (${Me.Aura[${_count}].Name.Equal[${_a${_aura}}]}) {
-							DEBUG ${sep} _found${_aura} TRUE
-							/varset _found${_aura} TRUE
-						}
-
-					}
-					/if (${_found${_aura}}) /break
-				/next _count
-
-				DEBUG ${sep}_found${_aura}${sep}\a-w${_found${_aura}}\ax
-				/if (!${_found${_aura}}) {
-					/call voodoo ${_debug} "${_a${_aura}}" 0 FALSE
-					DEBUG ${sep}cR${sep}\a-w${maData.Find[stCastReturn].Value}\ax
-					/if (${maEntropy.Find[swBuffCooldownWait].Value}) {
-						DEBUG ${sep}buff cooldown recycle
-						/while (${Me.SpellInCooldown}) {
-							CHECKEXIT
-							ISMEDEAD
-							/if (!${Me.SpellInCooldown}) /break
-							/delay 5
-						}
-					}
-
-				} else /if (${_found${_aura}}) {
-					/varset _found${_aura} FALSE
-				}
-
-			}
-		/next _aura
-	}
-
-	SETHUD EMPTY
-
-/return TRUE
- ***|
-
-
-
-
-|***
  * note: do all the damn buffs
  * use: /call check_buff_cycle DEBUG <FORCE>
  ***|
@@ -5490,7 +5367,6 @@ sub check_buff_cycle_powersource(bool _debug)
     /delay 1s ${Cursor.Equal[Null]}
 	}
 
-
 	| powersources that are not sealed
 	/if (!${Spell[${FindItem[${_psName}].Clicky.SpellID}].ID}) {
 
@@ -5504,7 +5380,6 @@ sub check_buff_cycle_powersource(bool _debug)
 
 	| powersources that are sealed
 	} else /if (${Spell[${FindItem[${_psName}].Clicky.SpellID}].ID}) {
-
 
 		| unwrap a new on
 		/if (${FindItem[${_psName}].ID} && !${Me.Inventory[powersource].ID}) {
@@ -5538,7 +5413,6 @@ sub do_mana_recovery(bool _debug)
 	/if (SAFEZONE) {
 		/return FALSE
 	}
-
 
 	/if (${Me.PctMana} > ${maChr.Find[stPctManaRecovery].Value}*.PCTHO) {
 		/return FALSE
@@ -9955,11 +9829,17 @@ sub check_mode(bool _debug, string _verbage)
   	/return TRUE
   }
 
-
   | normal check routine
   /while (!${_mimode.IsEnd}) {
   	/if (${_mimode.Value}) {
   		DEBUG mode_${_mimode.Key}
+
+			| skip switches for training flags
+  		/if (${_mimode.Key.Left[7].Equal[swTrain]}) {
+  			/invoke ${_mimode.Advance}
+  			/continue
+  		}
+
   		/call mode_${_mimode.Key} ${maDebug.Find[${_mimode.Key}].Value}
   	}
 		/invoke ${_mimode.Advance}
@@ -9968,7 +9848,9 @@ sub check_mode(bool _debug, string _verbage)
 /return TRUE
 
 
+${cmi.Value.Left[2].Equal[sw]}
 
+${maDebug.Find[${_mimode.Key}].Value.Left[7].Equal[swTrain]}
 
 |***
  * note: checks the passed item name against the DB
@@ -12658,5 +12540,8 @@ sub sql_drop(string _table, string _field, bool _echo)
 	}
 
 /return TRUE
+
+
+
 
 

@@ -31,8 +31,11 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
-
-
+B200522.01
+- warrior
+  adjustment to Brace for Impact for stacking issues
+- /build [save|load]
+  adjustment to relative path locastions in preperation for MQ2Next
 
 
 B200519.01
