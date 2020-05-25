@@ -20,6 +20,9 @@ sub set_SHM(bool _debug)
 	/call set_data ${_debug} maData stFade															map outer FALSE
 	/call set_data_map ${_debug} maChr stAAUnity												"Visionary's Unity"						"${auxna} class aa unity buff"
 
+	| group regen timer
+	/invoke ${set_data_timer[${_debug}, Check_Regen, 3s]}
+
 	/invoke ${set_data_timer[${_debug}, Check_Talisman, 30s]}
 	/call set_data_map ${_debug} maChr stTalisman	 											PREGEN|1											"${auxna} talisman spell"
 	/call set_data_map ${_debug} maChr swTalisman			 									FALSE													"${auxsw} use talisman spell"

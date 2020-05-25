@@ -58,7 +58,7 @@ sub set_debug()
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
   	/invoke ${lsDebugclass.Append[para]}
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
-  	/invoke ${lsDebugclass.Append[arb,splash,regen]}
+  	/invoke ${lsDebugclass.Append[arb,splash,regen,yaulp]}
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
   	/invoke ${lsDebugclass.Append[crystal,gather]}
@@ -506,39 +506,38 @@ sub sql_schema_zone(bool _debug)
     /invoke ${_lisszs.Advance}
   }
 
-  /sqlite ${maData.Find[DBzone].Value} bdummy SELECT build_number FROM build
-  DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[bdummy]}\ax
-  /sqlite ${maData.Find[DBzone].Value} sdummy SELECT schema_number FROM build
-  DEBUG ${sep}SELECT schema_number FROM build \ay${sqlite.Status[sdummy]}\ax
+  /sqlite ${maData.Find[DBzone].Value} macnumber SELECT build_number FROM build
+  /if (!${sql_check[${_debug}, macnumber, sql_schema_zone, SELECT]}) /endm
+  /sqlite ${maData.Find[DBzone].Value} schemanumber SELECT schema_number FROM build
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_zone, SELECT]}) /endm
 
-  /if (${sqlite.Result[bdummy 1 build_number].Equal[${maEnv.Find[build].Value}]} && ${sqlite.Result[sdummy 1 schema_number].Equal[${maEnv.Find[schema].Value}]}) {
+	| everything good. gtfo?
+  /if (${sqlite.Result[macnumber 1 build_number].Equal[${maEnv.Find[build].Value}]} && ${sqlite.Result[schemanumber 1 schema_number].Equal[${maEnv.Find[schema].Value}]}) {
     DEBUG ${sep}Macro and Schema builds match for zone database, bailing on this routine
-	  /invoke ${sql_clear[${_debug}, bdummy]}
-	  /invoke ${sql_clear[${_debug}, sdummy]}
     /return TRUE
-
   }
 
-  /if (!${sqlite.Rows[sdummy]}) {
+	| no rows foreund for schema build
+  /if (!${sqlite.Rows[schemanumber]}) {
  		OUT \a-tSchema Build\ax${sep}\a-wzone\ax
 
     /while (${swDBlocked}) {
 
-      /sqlite ${maData.Find[DBzone].Value} dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY)
-      DEBUG ${sep}CREATE TABLE IF NOT EXISTS 'build' \ay${sqlite.Status[dummy]}\ax
+      /sqlite ${maData.Find[DBzone].Value} build CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY)
+  		/if (!${sql_check[${_debug}, build, sql_schema_zone, "CREATE TABLE"]}) /endm
 
-      /sqlite ${maData.Find[DBzone].Value} dummy INSERT INTO 'build' ('build_number') VALUES ("${maEnv.Find[build].Value}")
-      DEBUG ${sep}INSERT INTO 'build' \ay${sqlite.Status[dummy]}\ax
+      /sqlite ${maData.Find[DBzone].Value} build INSERT INTO 'build' ('build_number') VALUES ("${maEnv.Find[build].Value}")
+  		/if (!${sql_check[${_debug}, build, sql_schema_zone, "INSERT INTO"]}) /endm
 
    		| add schema version to build table
-			/sqlite ${maData.Find[DBzone].Value} dummy ALTER TABLE build ADD COLUMN schema_number NOT NULL DEFAULT '${maEnv.Find[schema].Value}'
-			DEBUG dummy ALTER TABLE build ADD COLUMN schema_number \ay${sqlite.Status[dummy]}\ax
+			/sqlite ${maData.Find[DBzone].Value} build ALTER TABLE build ADD COLUMN schema_number NOT NULL DEFAULT '${maEnv.Find[schema].Value}'
+  		/if (!${sql_check[${_debug}, build, sql_schema_zone, "ALTER TABLE"]}) /endm
 
-      /sqlite ${maData.Find[DBzone].Value} dummy CREATE TABLE IF NOT EXISTS 'zone_control' ('zone_shortname' TEXT NOT NULL,'element' TEXT NOT NULL,'value' TEXT NOT NULL, PRIMARY KEY (zone_shortname,element,value))
-      DEBUG ${sep}CREATE TABLE 'zone_control' \ay${sqlite.Status[dummy]}\ax
+      /sqlite ${maData.Find[DBzone].Value} build CREATE TABLE IF NOT EXISTS 'zone_control' ('zone_shortname' TEXT NOT NULL,'element' TEXT NOT NULL,'value' TEXT NOT NULL, PRIMARY KEY (zone_shortname,element,value))
+  		/if (!${sql_check[${_debug}, build, sql_schema_zone, "CREATE TABLE"]}) /endm
 
       /delay 1
-      /if (!${sqlite.Status[dummy].Find[locked]}) {
+      /if (!${Select[${sqlite.Resultcode[build]},6]}) {
         /delay 1
         /varset swDBlocked FALSE
       }
@@ -546,17 +545,21 @@ sub sql_schema_zone(bool _debug)
 		/varset swDBlocked TRUE
   }
 
+  /sqlite ${maData.Find[DBzone].Value} macnumber SELECT build_number FROM build
+  /if (!${sql_check[${_debug}, macnumber, sql_schema_zone, SELECT]}) /endm
+
   | correct build mismatch
-	/if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+	/if (${sqlite.Result[macnumber 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
     /while (${swDBlocked}) {
-      /sqlite ${maData.Find[DBzone].Value} dummy UPDATE build SET build_number='${maEnv.Find[build].Value}'
-      DEBUG ${sep}dummy UPDATE build SET build_number='${maEnv.Find[build].Value}' \ay${sqlite.Status[sdummy]}\ax
+      /sqlite ${maData.Find[DBzone].Value} updatebuildnum UPDATE build SET build_number='${maEnv.Find[build].Value}'
+  		/if (!${sql_check[${_debug}, updatebuildnum, sql_schema_zone, UPDATE]}) /endm
 
 	   	| call macro update by version here. doubt there will be any
-      /if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+      /if (${sqlite.Result[macnumber 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
       }
 
-      /if (!${sqlite.Status[dummy].Find[locked]}) {
+			| db locked?
+      /if (!${Select[${sqlite.Resultcode[updatebuildnum]},6]}) {
         /delay 1
         /varset swDBlocked FALSE
       }
@@ -564,31 +567,32 @@ sub sql_schema_zone(bool _debug)
     /varset swDBlocked TRUE
   }
 
+  /sqlite ${maData.Find[DBzone].Value} schemanumber SELECT schema_number FROM build
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_zone, SELECT]}) /endm
+
 	| corect schema mismatch
-  /if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+  /if (${sqlite.Result[schemanumber 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
  		OUT \a-tSchema Check\ax${sep}\a-wzone\ax
     /while (${swDBlocked}) {
-      /sqlite ${maData.Find[DBzone].Value} dummy UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
-			DEBUG ${sep}dummy UPDATE build SET schema_number='${maEnv.Find[schema].Value}' \ay${sqlite.Status[sdummy]}\ax
+      /sqlite ${maData.Find[DBzone].Value} updateschemanum UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
+  		/if (!${sql_check[${_debug}, updateschemanum, sql_schema_zone, UPDATE]}) /endm
 
      	| call schema update by version here!
-      /if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+      /if (${sqlite.Result[schemanumber 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
 			}
 
-      /if (!${sqlite.Status[dummy].Find[locked]}) {
+      /if (!${Select[${sqlite.Resultcode[updateschemanum]},6]}) {
         /delay 1
         /varset swDBlocked FALSE
       }
     }
   }
 
-  /invoke ${sql_clear[${_debug}, bdummy]}
-  /invoke ${sql_clear[${_debug}, sdummy]}
-
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agsql_set_zone_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
 		/mqp
 	}
+
 
 /return TRUE
 
@@ -596,8 +600,8 @@ sub sql_schema_zone(bool _debug)
 
 
 |***
- * note: generate the zone file DB
- * use:
+ * note:
+ * use: generate loot.sqlite
  ***|
 sub sql_schema_loot(bool _debug)
 	DEBUG \atsql_schema_loot\ax()
@@ -616,8 +620,6 @@ sub sql_schema_loot(bool _debug)
 
   /if (${sqlite.Result[sdummy 1 schema_number].Equal[${maEnv.Find[schema].Value}]} && ${sqlite.Result[bdummy 1 build_number].Equal[${maEnv.Find[build].Value}]}) {
     DEBUG ${sep}Macro and Schema builds match for loot database, bailing on this routine
-	  /invoke ${sql_clear[${_debug}, bdummy]}
-	  /invoke ${sql_clear[${_debug}, sdummy]}
     /return TRUE
   }
 
@@ -630,19 +632,19 @@ sub sql_schema_loot(bool _debug)
 
 			| create loot build table
       /sqlite ${maData.Find[DBloot].Value} dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY)
-      DEBUG ${sep}dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY) \ay${sqlite.Status[dummy]}\ax
+      DEBUG ${sep}CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY) \ay${sqlite.Status[dummy]}\ax
 
       | add macro version to build table
       /sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO 'build' ('build_number') VALUES ("${maEnv.Find[build].Value}")
-      DEBUG ${sep} dummy INSERT INTO 'build' ('build_number') VALUES ("${maEnv.Find[build].Value}") \ay${sqlite.Status[dummy]}\ax
+      DEBUG ${sep}INSERT INTO 'build' ('build_number') VALUES ("${maEnv.Find[build].Value}") \ay${sqlite.Status[dummy]}\ax
 
    		| add schema version to build table
 			/sqlite ${maData.Find[DBloot].Value} dummy ALTER TABLE build ADD COLUMN schema_number NOT NULL DEFAULT '${maEnv.Find[schema].Value}'
-			DEBUG dummy ALTER TABLE build ADD COLUMN schema_number NOT NULL DEFAULT '${maEnv.Find[schema].Value}' \ay${sqlite.Status[dummy]}\ax
+			DEBUG ${sep}ALTER TABLE build ADD COLUMN schema_number NOT NULL DEFAULT '${maEnv.Find[schema].Value}' \ay${sqlite.Status[dummy]}\ax
 
 			| create loot table
       /sqlite ${maData.Find[DBloot].Value} dummy CREATE TABLE IF NOT EXISTS 'loot_control' ('item' TEXT NOT NULL PRIMARY KEY, 'action' TEXT, 'pass' TEXT, 'count' TEXT)
-      DEBUG ${sep}dummy CREATE TABLE IF NOT EXISTS 'loot_control' ('item' TEXT NOT NULL PRIMARY KEY, 'action' TEXT, 'pass' TEXT, 'count' TEXT) \ay${sqlite.Status[dummy]}\ax
+      DEBUG ${sep}CREATE TABLE IF NOT EXISTS 'loot_control'' ('item' TEXT NOT NULL PRIMARY KEY, 'action' TEXT, 'pass' TEXT, 'count' TEXT) \ay${sqlite.Status[dummy]}\ax
 
       /delay 1
       /if (!${sqlite.Status[dummy].Find[locked]}) {
@@ -653,13 +655,16 @@ sub sql_schema_loot(bool _debug)
 		/varset swDBlocked TRUE
   }
 
+  /sqlite ${maData.Find[DBloot].Value} bdummy SELECT build_number FROM build
+  DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[bdummy]}\ax
+
   | correct build mismatch
 	/if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
 		DEBUG ${sep}build mismatch
     /while (${swDBlocked}) {
 
       /sqlite ${maData.Find[DBloot].Value} dummy UPDATE build SET build_number='${maEnv.Find[build].Value}'
- 			DEBUG ${sep}dummy UPDATE build SET build_number='${maEnv.Find[build].Value}' \ay${sqlite.Status[sdummy]}\ax
+ 			DEBUG ${sep}UPDATE build SET build_number='${maEnv.Find[build].Value}' \ay${sqlite.Status[sdummy]}\ax
 
 	   	| call macro update by version here. doubt there will be any
       /if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
@@ -674,6 +679,8 @@ sub sql_schema_loot(bool _debug)
     /varset swDBlocked TRUE
   }
 
+  /sqlite ${maData.Find[DBloot].Value} sdummy SELECT schema_number FROM build
+  DEBUG ${sep}SELECT schema_number FROM build \ay${sqlite.Status[sdummy]}\ax
 
 	| if one of them doesnt match make sure both values are updated and make any corrections to the schema
   /if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
@@ -695,9 +702,6 @@ sub sql_schema_loot(bool _debug)
       }
     }
   }
-
-  /invoke ${sql_clear[${_debug}, bdummy]}
-  /invoke ${sql_clear[${_debug}, sdummy]}
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agsql_set_loot_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -740,8 +744,6 @@ sub sql_schema_character(bool _debug)
 
 	| both schema and build versions match
   /if (${sqlite.Result[bdummy 1 build_number].Equal[${maEnv.Find[build].Value}]} && ${sqlite.Result[sdummy 1 schema_number].Equal[${maEnv.Find[schema].Value}]}) {
-		/invoke ${sql_clear[${_debug}, bdummy]}
-		/invoke ${sql_clear[${_debug}, sdummy]}
     DEBUG Macro and Schema builds match, bailing on this routine
     /return TRUE
   }
@@ -757,7 +759,7 @@ sub sql_schema_character(bool _debug)
     /sqlite ${maData.Find[DBcharacter].Value} dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY, 'schema_number' TEXT NOT NULL)
     DEBUG ${sep}CREATE TABLE IF NOT EXISTS 'build' \ay${sqlite.Status[dummy]}\ax
     /sqlite ${maData.Find[DBcharacter].Value} dummy INSERT INTO 'build' (build_number, schema_number) VALUES ("${maEnv.Find[build].Value}", "${maEnv.Find[schema].Value}")
-    DEBUG ${sep}dummy INSERT INTO 'build' (build_number,schema_number) VALUES ("${maEnv.Find[build].Value}", "${maEnv.Find[schema].Value}") \ay${sqlite.Status[dummy]}\ax
+    DEBUG ${sep}INSERT INTO 'build' (build_number,schema_number) VALUES ("${maEnv.Find[build].Value}", "${maEnv.Find[schema].Value}") \ay${sqlite.Status[dummy]}\ax
 	}
 
 
@@ -765,7 +767,7 @@ sub sql_schema_character(bool _debug)
 	/if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
 		DEBUG ${sep}correct build mismatch
     /sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE build SET build_number='${maEnv.Find[build].Value}'
-		DEBUG ${sep}dummy UPDATE build SET build_number='${maEnv.Find[build].Value}' \ay${sqlite.Status[dummy]}\ax
+		DEBUG ${sep}UPDATE build SET build_number='${maEnv.Find[build].Value}' \ay${sqlite.Status[dummy]}\ax
 
    	| call macro update by version here. doubt there will be any
     /if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
@@ -777,19 +779,18 @@ sub sql_schema_character(bool _debug)
 	/if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
   	DEBUG ${sep}\arcorrect schema mismatch\ax
 		OUT \a-tSchema Check\ax${sep}\a-wcharacter\ax
-	  /call sql_check ${maDebug.Find[sql].Value}
+	  /call sql_clean ${maDebug.Find[clean].Value}
 
 
 		/sqlite ${maData.Find[DBcharacter].Value} pdummy SELECT 1 FROM PRAGMA_TABLE_INFO('build') WHERE name='schema_number'
 		DEBUG ${sep}pdummy..${sqlite.Rows[pdummy]}
 		/if (!${sqlite.Rows[pdummy]}) {
 			/sqlite ${maData.Find[DBcharacter].Value} dummy ALTER TABLE build ADD COLUMN schema_number NOT NULL DEFAULT '${maEnv.Find[schema].Value}'
-			DEBUG ${sep}dummy ALTER TABLE build ADD COLUMN schema_number \ay${sqlite.Status[dummy]}\ax
+			DEBUG ${sep}ALTER TABLE build ADD COLUMN schema_number \ay${sqlite.Status[dummy]}\ax
 		} else /if (${sqlite.Rows[pdummy]}) {
 	    /sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
 	    DEBUG ${sep}UPDATE schema_number SET schema_number${sep}\ay${sqlite.Status[dummy]}\ax${sep}${sqlite.Rows[dummy]} .. ${maEnv.Find[schema].Value}
 		}
-		/invoke ${sql_clear[${_debug}, pdummy]}
 
 		/declare _mi mapiterator local
     /vardata _mi maDBTables.First.Clone
@@ -800,9 +801,6 @@ sub sql_schema_character(bool _debug)
     }
 
   }
-
-  /invoke ${sql_clear[${_debug}, bdummy]}
-  /invoke ${sql_clear[${_debug}, sdummy]}
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agsql_set_character_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -1680,7 +1678,7 @@ sub set_initialize_hud_variables()
   /invoke ${lsHUD.Append[engage,swpet,engagepet,swswarm,engageswarm,env]}
   /invoke ${lsHUD.Append[auto,melee,range,nuke,dot,heal,control]}
   /invoke ${lsHUD.Append[override,self,group,xt,pet,cure,tot]}
-  /invoke ${lsHUD.Append[bmaster,bself,bcrew,braid,bbeg,btemp,bunity,baura,bnow,bpet,bammo]}
+  /invoke ${lsHUD.Append[bmaster,bself,bcrew,braid,bbeg,btemp,bunity,baura,bnow,bpet,bammo,bgroup]}
   /invoke ${lsHUD.Append[agro,pull,pullarea,pullmode]}
   /invoke ${lsHUD.Append[tie,tietoon,tiemode]}
   /invoke ${lsHUD.Append[buauto,bupct,bucount,buraid]}
@@ -1708,12 +1706,19 @@ sub set_initialize_hud_variables()
  ***|
 sub set_initialize_hud(bool _debug, string _verbage)
 
-  OUT Updating MQ2HUD.INI${sep}\a-w${_verbage}\ax
+
   /delay 5
+
+	/declare _path string local
+	/if (!BUILD) {
+		/varset _path ".\..\MQ2HUD.ini"
+	} else /if (BUILD) {
+		/varset _path "MQ2HUD.ini"
+	}
 
   | main HUD for Entropy
   /if (${_verbage.Equal[entropy]}) {
-
+  	OUT Updating MQ2HUD.INI${sep}\a-w${_verbage}\ax
 
 |**
     home
@@ -1726,317 +1731,433 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 	| row 0
 
-		| uinvisibilities
-    HUDPATH entropy IVU1   	${Parse[0, "3,134,0,0,255,0,${If[${Me.SPA[28]}||${Me.SPA[315]},U,]}"]}
-    HUDPATH entropy IVU2   	${Parse[0, "3,134,0,255,0,0,${If[${Me.SPA[28]}||${Me.SPA[315]},,U]}"]}
-    HUDPATH entropy INV1   	${Parse[0, "3,143,0,0,255,0,${If[${Me.SPA[12]}||${Me.SPA[314]},I,]}"]}
-    HUDPATH entropy INV2   	${Parse[0, "3,143,0,255,0,0,${If[${Me.SPA[12]}||${Me.SPA[314]},,I]}"]}
-    HUDPATH entropy SOS1   	${Parse[0, "3,147,0,0,255,0,${If[${Me.SPA[256]},S,]}"]}
-    HUDPATH entropy SOS2   	${Parse[0, "3,147,0,255,0,0,${If[${Me.SPA[256]},,S]}"]}
-    HUDPATH entropy ANI1   	${Parse[0, "3,155,0,0,255,0,${If[${Me.SPA[316]},A,]}"]}
-    HUDPATH entropy ANI2   	${Parse[0, "3,155,0,255,0,0,${If[${Me.SPA[316]},,A]}"]}
+		| invisibilities
+    /ini ${_path} entropy INV1   	${Parse[0, "3,134,0,0,255,0,${If[${Me.SPA[12]}||${Me.SPA[314]},I,]}"]}
+    /ini ${_path} entropy INV2   	${Parse[0, "3,134,0,255,0,0,${If[${Me.SPA[12]}||${Me.SPA[314]},,I]}"]}
+    /ini ${_path} entropy IVU1   	${Parse[0, "3,138,0,0,255,0,${If[${Me.SPA[28]}||${Me.SPA[315]},U,]}"]}
+    /ini ${_path} entropy IVU2   	${Parse[0, "3,138,0,255,0,0,${If[${Me.SPA[28]}||${Me.SPA[315]},,U]}"]}
+    /ini ${_path} entropy SOS1   	${Parse[0, "3,146,0,0,255,0,${If[${Me.SPA[256]},S,]}"]}
+    /ini ${_path} entropy SOS2   	${Parse[0, "3,146,0,255,0,0,${If[${Me.SPA[256]},,S]}"]}
+    /ini ${_path} entropy ANI1   	${Parse[0, "3,154,0,0,255,0,${If[${Me.SPA[316]},A,]}"]}
+    /ini ${_path} entropy ANI2   	${Parse[0, "3,154,0,255,0,0,${If[${Me.SPA[316]},,A]}"]}
 
-    HUDPATH entropy BG0     3,131,0,0,0,0,██████████████████████████
+    /ini ${_path} entropy BG0     3,131,0,0,0,0,██████████████████████████
 
     | conbat controls
-    HUDPATH entropy ccA1    ${Parse[0, "19,134,14,255,255,0,${If[${h_auto},A,]}"]}
-    HUDPATH entropy ccA2    ${Parse[0, "19,134,9,25,25,25,${If[${h_auto},,_]}"]}
-    HUDPATH entropy ccEnv1  ${Parse[0, "19,146,14,140,140,140,${h_env}"]}
+    /ini ${_path} entropy ccA1    ${Parse[0, "19,134,14,255,255,0,${If[${h_auto},A,]}"]}
+    /ini ${_path} entropy ccA2    ${Parse[0, "19,134,9,25,25,25,${If[${h_auto},,_]}"]}
+    /ini ${_path} entropy ccEnv1  ${Parse[0, "19,146,14,140,140,140,${h_env}"]}
 
     | pulling
-    HUDPATH entropy ccPM1   ${Parse[0, "19,170,14,0,255,0,${If[${h_pull},${h_pullmode},]}"]}
-    HUDPATH entropy ccPM2   ${Parse[0, "19,170,14,255,0,0,${If[${h_pull},,${h_pullmode}]}"]}
-    HUDPATH entropy ccPR1   ${Parse[0, "19,200,14,255,255,255,${If[${h_pullarea},${h_pullarea},]}"]}
-    HUDPATH entropy ccPR2   ${Parse[0, "19,200,9,25,25,25,${If[${h_pullarea},,___]}"]}
+    /ini ${_path} entropy ccPM1   ${Parse[0, "19,170,14,0,255,0,${If[${h_pull},${h_pullmode},]}"]}
+    /ini ${_path} entropy ccPM2   ${Parse[0, "19,170,14,255,0,0,${If[${h_pull},,${h_pullmode}]}"]}
+    /ini ${_path} entropy ccPR1   ${Parse[0, "19,200,14,255,255,255,${If[${h_pullarea},${h_pullarea},]}"]}
+    /ini ${_path} entropy ccPR2   ${Parse[0, "19,200,9,25,25,25,${If[${h_pullarea},,___]}"]}
 
     | agro
-    HUDPATH entropy ccAg1   ${Parse[0, "19,225,14,255,255,255,${If[${h_agro},A,]}"]}
-    HUDPATH entropy ccAg2   ${Parse[0, "19,225,9,25,25,25,${If[${h_agro},,_]}"]}
+    /ini ${_path} entropy ccAg1   ${Parse[0, "19,225,14,255,255,255,${If[${h_agro},A,]}"]}
+    /ini ${_path} entropy ccAg2   ${Parse[0, "19,225,9,25,25,25,${If[${h_agro},,_]}"]}
 
     | conbat modes
-    HUDPATH entropy ccM1    ${Parse[0, "19,255,14,255,255,255,${If[${h_melee},M,]}"]}
-    HUDPATH entropy ccM2    ${Parse[0, "19,255,9,25,25,25,${If[${h_melee},,_]}"]}
-    HUDPATH entropy ccR1    ${Parse[0, "19,264,14,255,255,255,${If[${h_range},R,]}"]}
-    HUDPATH entropy ccR2    ${Parse[0, "19,264,9,25,25,25,${If[${h_range},,_]}"]}
-    HUDPATH entropy ccN1    ${Parse[0, "19,273,14,255,255,255,${If[${h_nuke},N,]}"]}
-    HUDPATH entropy ccN2    ${Parse[0, "19,273,9,25,25,25,${If[${h_nuke},,_]}"]}
-    HUDPATH entropy ccD1    ${Parse[0, "19,282,14,255,255,255,${If[${h_dot},D,]}"]}
-    HUDPATH entropy ccD2    ${Parse[0, "19,282,9,25,25,25,${If[${h_dot},,_]}"]}
-    HUDPATH entropy ccH1    ${Parse[0, "19,291,14,255,255,255,${If[${h_heal},H,]}"]}
-    HUDPATH entropy ccH2    ${Parse[0, "19,291,9,25,25,25,${If[${h_heal},,_]}"]}
-    HUDPATH entropy ccC1    ${Parse[0, "19,300,14,255,255,255,${If[${h_control},C,]}"]}
-    HUDPATH entropy ccC2    ${Parse[0, "19,300,9,25,25,25,${If[${h_control},,_]}"]}
+    /ini ${_path} entropy ccM1    ${Parse[0, "19,255,14,255,255,255,${If[${h_melee},M,]}"]}
+    /ini ${_path} entropy ccM2    ${Parse[0, "19,255,9,25,25,25,${If[${h_melee},,_]}"]}
+    /ini ${_path} entropy ccR1    ${Parse[0, "19,264,14,255,255,255,${If[${h_range},R,]}"]}
+    /ini ${_path} entropy ccR2    ${Parse[0, "19,264,9,25,25,25,${If[${h_range},,_]}"]}
+    /ini ${_path} entropy ccN1    ${Parse[0, "19,273,14,255,255,255,${If[${h_nuke},N,]}"]}
+    /ini ${_path} entropy ccN2    ${Parse[0, "19,273,9,25,25,25,${If[${h_nuke},,_]}"]}
+    /ini ${_path} entropy ccD1    ${Parse[0, "19,282,14,255,255,255,${If[${h_dot},D,]}"]}
+    /ini ${_path} entropy ccD2    ${Parse[0, "19,282,9,25,25,25,${If[${h_dot},,_]}"]}
+    /ini ${_path} entropy ccH1    ${Parse[0, "19,291,14,255,255,255,${If[${h_heal},H,]}"]}
+    /ini ${_path} entropy ccH2    ${Parse[0, "19,291,9,25,25,25,${If[${h_heal},,_]}"]}
+    /ini ${_path} entropy ccC1    ${Parse[0, "19,300,14,255,255,255,${If[${h_control},C,]}"]}
+    /ini ${_path} entropy ccC2    ${Parse[0, "19,300,9,25,25,25,${If[${h_control},,_]}"]}
 
 
 	| row 13
-    HUDPATH entropy BG13    3,131,13,0,0,0,██████████████████████████
+    /ini ${_path} entropy BG13    3,131,13,0,0,0,██████████████████████████
 
 
 	| row 26
 
     | build mode
-    HUDPATH entropy build1  3,5,26,100,149,237,build
-    HUDPATH entropy build2  ${Parse[0, "19,40,26,140,140,140,${h_build}"]}
+    /ini ${_path} entropy build1  3,5,26,100,149,237,build
+    /ini ${_path} entropy build2  ${Parse[0, "19,40,26,140,140,140,${h_build}"]}
 
     | healing
-    | HUDPATH entropy h2      19,133,26,255,255,255,${h_healmode}
-    HUDPATH entropy hS1     ${Parse[0, "19,133,26,255,255,255,${If[${h_self},S,]}"]}
-    HUDPATH entropy hS2     ${Parse[0, "19,133,21,25,25,25,${If[${h_self},,_]}"]}
-    HUDPATH entropy hG1     ${Parse[0, "19,142,26,255,255,255,${If[${h_group},G,]}"]}
-    HUDPATH entropy hG2     ${Parse[0, "19,142,21,25,25,25,${If[${h_group},,_]}"]}
-    HUDPATH entropy hX1     ${Parse[0, "19,151,26,255,255,255,${If[${h_xt},X,]}"]}
-    HUDPATH entropy hX2     ${Parse[0, "19,151,21,25,25,25,${If[${h_xt},,_]}"]}
-    HUDPATH entropy hP1     ${Parse[0, "19,160,26,255,255,255,${If[${h_pet},P,]}"]}
-    HUDPATH entropy hP2     ${Parse[0, "19,160,21,25,25,25,${If[${h_pet},,_]}"]}
-    | HUDPATH entropy hC1     ${Parse[0, "19,169,26,255,255,255,${If[${h_cure},C,]}"]}
-    | HUDPATH entropy hC2     ${Parse[0, "19,169,21,25,25,25,${If[${h_cure},,_]}"]}
-   	HUDPATH entropy hT1     ${Parse[0, "19,169,26,255,255,255,${If[${h_tot},T,]}"]}
-    HUDPATH entropy hT2     ${Parse[0, "19,169,21,25,25,25,${If[${h_tot},,_]}"]}
-    HUDPATH entropy ho1     ${Parse[0, "19,187,26,255,255,255,${If[${h_override},${h_override},]}"]}
-    HUDPATH entropy ho2     ${Parse[0, "19,187,21,25,25,25,${If[${h_override},,__]}"]}
+    | /ini ${_path} entropy h2      19,133,26,255,255,255,${h_healmode}
+    /ini ${_path} entropy hS1     ${Parse[0, "19,133,26,255,255,255,${If[${h_self},S,]}"]}
+    /ini ${_path} entropy hS2     ${Parse[0, "19,133,21,25,25,25,${If[${h_self},,_]}"]}
+    /ini ${_path} entropy hG1     ${Parse[0, "19,142,26,255,255,255,${If[${h_group},G,]}"]}
+    /ini ${_path} entropy hG2     ${Parse[0, "19,142,21,25,25,25,${If[${h_group},,_]}"]}
+    /ini ${_path} entropy hX1     ${Parse[0, "19,151,26,255,255,255,${If[${h_xt},X,]}"]}
+    /ini ${_path} entropy hX2     ${Parse[0, "19,151,21,25,25,25,${If[${h_xt},,_]}"]}
+    /ini ${_path} entropy hP1     ${Parse[0, "19,160,26,255,255,255,${If[${h_pet},P,]}"]}
+    /ini ${_path} entropy hP2     ${Parse[0, "19,160,21,25,25,25,${If[${h_pet},,_]}"]}
+    | /ini ${_path} entropy hC1     ${Parse[0, "19,169,26,255,255,255,${If[${h_cure},C,]}"]}
+    | /ini ${_path} entropy hC2     ${Parse[0, "19,169,21,25,25,25,${If[${h_cure},,_]}"]}
+   	/ini ${_path} entropy hT1     ${Parse[0, "19,169,26,255,255,255,${If[${h_tot},T,]}"]}
+    /ini ${_path} entropy hT2     ${Parse[0, "19,169,21,25,25,25,${If[${h_tot},,_]}"]}
+    /ini ${_path} entropy ho1     ${Parse[0, "19,187,26,255,255,255,${If[${h_override},${h_override},]}"]}
+    /ini ${_path} entropy ho2     ${Parse[0, "19,187,21,25,25,25,${If[${h_override},,__]}"]}
 
     | tie
-    HUDPATH entropy tie1    ${Parse[0, "19,255,26,100,149,237,${h_tiemode}"]}
-    HUDPATH entropy tie2    ${Parse[0, "19,280,26,0,255,0,${If[${Bool[${h_tietoon}]},${If[${Bool[${Spawn[${h_tietoon}]}]},${h_tietoon},]},]}"]}
-    HUDPATH entropy tie3    ${Parse[0, "19,280,26,255,0,0,${If[${Bool[${h_tietoon}]},${If[!${Bool[${Spawn[${h_tietoon}]}]},${If[${Bool[${h_tietoon}]},${h_tietoon},]},]},]}"]}
-    HUDPATH entropy tie4    ${Parse[0, "19,280,22,25,25,25,${If[${Bool[${h_tietoon}]},,____]}"]}
+    /ini ${_path} entropy tie1    ${Parse[0, "19,255,26,100,149,237,${h_tiemode}"]}
+    /ini ${_path} entropy tie2    ${Parse[0, "19,280,26,0,255,0,${If[${Bool[${h_tietoon}]},${If[${Bool[${Spawn[${h_tietoon}]}]},${h_tietoon},]},]}"]}
+    /ini ${_path} entropy tie3    ${Parse[0, "19,280,26,255,0,0,${If[${Bool[${h_tietoon}]},${If[!${Bool[${Spawn[${h_tietoon}]}]},${If[${Bool[${h_tietoon}]},${h_tietoon},]},]},]}"]}
+    /ini ${_path} entropy tie4    ${Parse[0, "19,280,22,25,25,25,${If[${Bool[${h_tietoon}]},,____]}"]}
 
-    HUDPATH entropy BG26    3,3,26,0,0,0,██████████████████████████████████████████
+    /ini ${_path} entropy BG26    3,3,26,0,0,0,██████████████████████████████████████████
 
 
 	| row 39
-    HUDPATH entropy mode1   19,5,39,100,149,237,mode
-    HUDPATH entropy mode2   ${Parse[0, "19,40,39,255,255,255,${If[${h_mode.NotEqual[EMPTY]},${h_mode},]}"]}
+    /ini ${_path} entropy mode1   19,5,39,100,149,237,mode
+    /ini ${_path} entropy mode2   ${Parse[0, "19,40,39,255,255,255,${If[${h_mode.NotEqual[EMPTY]},${h_mode},]}"]}
 
 	| buffing
-    HUDPATH entropy b1      ${Parse[0, "19,133,39,0,255,0,${If[${h_bmaster},buff,]}"]}
-    HUDPATH entropy b2      ${Parse[0, "19,133,39,255,0,0,${If[${h_bmaster},,buff]}"]}
-    HUDPATH entropy bS1     ${Parse[0, "19,157,39,255,255,255,${If[${h_bself},S,]}"]}
-    HUDPATH entropy bS2     ${Parse[0, "19,157,34,25,25,25,${If[${h_bself},,_]}"]}
-    HUDPATH entropy bC1     ${Parse[0, "19,166,39,255,255,255,${If[${h_bcrew},C,]}"]}
-    HUDPATH entropy bC2     ${Parse[0, "19,166,34,25,25,25,${If[${h_bcrew},,_]}"]}
-    HUDPATH entropy bR1     ${Parse[0, "19,175,39,255,255,255,${If[${h_braid},R,]}"]}
-    HUDPATH entropy bR2     ${Parse[0, "19,175,34,25,25,25,${If[${h_braid},,_]}"]}
-    HUDPATH entropy bB1     ${Parse[0, "19,184,39,255,255,255,${If[${h_bbeg},B,]}"]}
-    HUDPATH entropy bB2     ${Parse[0, "19,184,34,25,25,25,${If[${h_bbeg},,_]}"]}
-    HUDPATH entropy bT1     ${Parse[0, "19,193,39,255,255,255,${If[${h_btemp},T,]}"]}
-    HUDPATH entropy bT2     ${Parse[0, "19,193,34,25,25,25,${If[${h_btemp},,_]}"]}
-    HUDPATH entropy bU1     ${Parse[0, "19,202,39,255,255,255,${If[${h_bunity},U,]}"]}
-    HUDPATH entropy bU2     ${Parse[0, "19,202,34,25,25,25,${If[${h_bunity},,_]}"]}
-    HUDPATH entropy bA1     ${Parse[0, "19,211,39,255,255,255,${If[${h_baura},A,]}"]}
-    HUDPATH entropy bA2     ${Parse[0, "19,211,34,25,25,25,${If[${h_baura},,_]}"]}
-    HUDPATH entropy bN1     ${Parse[0, "19,220,39,255,255,255,${If[${h_bnow},N,]}"]}
-    HUDPATH entropy bN2     ${Parse[0, "19,220,34,25,25,25,${If[${h_bnow},,_]}"]}
-    HUDPATH entropy bP1     ${Parse[0, "19,229,39,255,255,255,${If[${h_bpet},P,]}"]}
-    HUDPATH entropy bP2     ${Parse[0, "19,229,34,25,25,25,${If[${h_bpet},,_]}"]}
+    /ini ${_path} entropy b1      ${Parse[0, "19,133,39,0,255,0,${If[${h_bmaster},buff,]}"]}
+    /ini ${_path} entropy b2      ${Parse[0, "19,133,39,255,0,0,${If[${h_bmaster},,buff]}"]}
+    /ini ${_path} entropy bS1     ${Parse[0, "19,157,39,255,255,255,${If[${h_bself},S,]}"]}
+    /ini ${_path} entropy bS2     ${Parse[0, "19,157,34,25,25,25,${If[${h_bself},,_]}"]}
+    /ini ${_path} entropy bC1     ${Parse[0, "19,166,39,255,255,255,${If[${h_bcrew},C,]}"]}
+    /ini ${_path} entropy bC2     ${Parse[0, "19,166,34,25,25,25,${If[${h_bcrew},,_]}"]}
+    /ini ${_path} entropy bR1     ${Parse[0, "19,175,39,255,255,255,${If[${h_braid},R,]}"]}
+    /ini ${_path} entropy bR2     ${Parse[0, "19,175,34,25,25,25,${If[${h_braid},,_]}"]}
+    /ini ${_path} entropy bB1     ${Parse[0, "19,184,39,255,255,255,${If[${h_bbeg},B,]}"]}
+    /ini ${_path} entropy bB2     ${Parse[0, "19,184,34,25,25,25,${If[${h_bbeg},,_]}"]}
+    /ini ${_path} entropy bT1     ${Parse[0, "19,193,39,255,255,255,${If[${h_btemp},T,]}"]}
+    /ini ${_path} entropy bT2     ${Parse[0, "19,193,34,25,25,25,${If[${h_btemp},,_]}"]}
+    /ini ${_path} entropy bU1     ${Parse[0, "19,202,39,255,255,255,${If[${h_bunity},U,]}"]}
+    /ini ${_path} entropy bU2     ${Parse[0, "19,202,34,25,25,25,${If[${h_bunity},,_]}"]}
+    /ini ${_path} entropy bA1     ${Parse[0, "19,211,39,255,255,255,${If[${h_baura},A,]}"]}
+    /ini ${_path} entropy bA2     ${Parse[0, "19,211,34,25,25,25,${If[${h_baura},,_]}"]}
+    /ini ${_path} entropy bN1     ${Parse[0, "19,220,39,255,255,255,${If[${h_bnow},N,]}"]}
+    /ini ${_path} entropy bN2     ${Parse[0, "19,220,34,25,25,25,${If[${h_bnow},,_]}"]}
+    /ini ${_path} entropy bP1     ${Parse[0, "19,229,39,255,255,255,${If[${h_bpet},P,]}"]}
+    /ini ${_path} entropy bP2     ${Parse[0, "19,229,34,25,25,25,${If[${h_bpet},,_]}"]}
+    /ini ${_path} entropy bG1     ${Parse[0, "19,238,39,255,255,255,${If[${h_bgroup},G,]}"]}
+    /ini ${_path} entropy bG2     ${Parse[0, "19,238,34,25,25,25,${If[${h_bgroup},,_]}"]}
+
 
     | burn
-    HUDPATH entropy burn1   ${Parse[0, "19,255,39,0,255,0,${If[${h_buauto},burn,]}"]}
-    HUDPATH entropy burn2   ${Parse[0, "19,255,39,255,0,0,${If[${h_buauto},,burn]}"]}
-    HUDPATH entropy burn4   ${Parse[0, "19,280,39,255,255,255,${If[${h_bupct},${h_bupct},]}"]}
-    HUDPATH entropy burn5   ${Parse[0, "19,280,34,25,25,25,${If[${h_bupct},,__]}"]}
-    HUDPATH entropy burn6   ${Parse[0, "19,295,39,255,255,255,${If[${h_bucount},${h_bucount},]}"]}
-    HUDPATH entropy burn7   ${Parse[0, "19,295,34,25,25,25,${If[${h_bucount},,__]}"]}
-    HUDPATH entropy burn8   ${Parse[0, "19,310,39,255,255,255,${If[${h_buraid},R,]}"]}
-    HUDPATH entropy burn9   ${Parse[0, "19,310,34,25,25,25,${If[${h_buraid},,_]}"]}
+    /ini ${_path} entropy burn1   ${Parse[0, "19,255,39,0,255,0,${If[${h_buauto},burn,]}"]}
+    /ini ${_path} entropy burn2   ${Parse[0, "19,255,39,255,0,0,${If[${h_buauto},,burn]}"]}
+    /ini ${_path} entropy burn4   ${Parse[0, "19,280,39,255,255,255,${If[${h_bupct},${h_bupct},]}"]}
+    /ini ${_path} entropy burn5   ${Parse[0, "19,280,34,25,25,25,${If[${h_bupct},,__]}"]}
+    /ini ${_path} entropy burn6   ${Parse[0, "19,295,39,255,255,255,${If[${h_bucount},${h_bucount},]}"]}
+    /ini ${_path} entropy burn7   ${Parse[0, "19,295,34,25,25,25,${If[${h_bucount},,__]}"]}
+    /ini ${_path} entropy burn8   ${Parse[0, "19,310,39,255,255,255,${If[${h_buraid},R,]}"]}
+    /ini ${_path} entropy burn9   ${Parse[0, "19,310,34,25,25,25,${If[${h_buraid},,_]}"]}
 
-    HUDPATH entropy BG39    3,3,39,0,0,0,██████████████████████████████████████████
+    /ini ${_path} entropy BG39    3,3,39,0,0,0,██████████████████████████████████████████
 
 
 	| row 52
 
     | toons loc
-    HUDPATH entropy yxz1    3,5,52,100,149,237,yxz
-    HUDPATH entropy yxz2    ${Parse[0, "3,40,52,140,140,140,${Int[${Me.Y}]}, ${Int[${Me.X}]}, ${Int[${Me.Z}]}"]}
+    /ini ${_path} entropy yxz1    3,5,52,100,149,237,yxz
+    /ini ${_path} entropy yxz2    ${Parse[0, "3,40,52,140,140,140,${Int[${Me.Y}]}, ${Int[${Me.X}]}, ${Int[${Me.Z}]}"]}
 
     | rest
-    HUDPATH entropy rest1   ${Parse[0, "19,255,52,0,255,0,${If[${Me.CombatState.Equal[resting]},rest,]}"]}
-    HUDPATH entropy rest2   ${Parse[0, "19,255,52,255,0,0,${If[${Me.CombatState.Equal[resting]},,rest]}"]}
-    HUDPATH entropy rest3   ${Parse[0, "19,280,52,255,255,255,${If[${h_rpct},${h_rpct},]}"]}
-    HUDPATH entropy rest4   ${Parse[0, "19,280,47,25,25,25,${If[${h_rpct},,__]}"]}
-    HUDPATH entropy rest5   ${Parse[0, "19,295,52,255,255,255,${If[${h_rfull},F,]}"]}
-    HUDPATH entropy rest6   ${Parse[0, "19,295,47,25,25,25,${If[${h_rfull},,_]}"]}
-    HUDPATH entropy rest7   ${Parse[0, "19,304,52,255,255,255,${If[${h_rrod},R,]}"]}
-    HUDPATH entropy rest8   ${Parse[0, "19,304,47,25,25,25,${If[${h_rrod},,_]}"]}
-    HUDPATH entropy rest9   ${Parse[0, "19,313,52,255,255,255,${If[${h_rbuff},B,]}"]}
-    HUDPATH entropy rest10  ${Parse[0, "19,313,47,25,25,25,${If[${h_rbuff},,_]}"]}
-    HUDPATH entropy rest11  ${Parse[0, "19,322,52,255,255,255,${If[${h_rcombat},C,]}"]}
-    HUDPATH entropy rest12  ${Parse[0, "19,322,47,25,25,25,${If[${h_rcombat},,_]}"]}
+    /ini ${_path} entropy rest1   ${Parse[0, "19,255,52,0,255,0,${If[${Me.CombatState.Equal[resting]},rest,]}"]}
+    /ini ${_path} entropy rest2   ${Parse[0, "19,255,52,255,0,0,${If[${Me.CombatState.Equal[resting]},,rest]}"]}
+    /ini ${_path} entropy rest3   ${Parse[0, "19,280,52,255,255,255,${If[${h_rpct},${h_rpct},]}"]}
+    /ini ${_path} entropy rest4   ${Parse[0, "19,280,47,25,25,25,${If[${h_rpct},,__]}"]}
+    /ini ${_path} entropy rest5   ${Parse[0, "19,295,52,255,255,255,${If[${h_rfull},F,]}"]}
+    /ini ${_path} entropy rest6   ${Parse[0, "19,295,47,25,25,25,${If[${h_rfull},,_]}"]}
+    /ini ${_path} entropy rest7   ${Parse[0, "19,304,52,255,255,255,${If[${h_rrod},R,]}"]}
+    /ini ${_path} entropy rest8   ${Parse[0, "19,304,47,25,25,25,${If[${h_rrod},,_]}"]}
+    /ini ${_path} entropy rest9   ${Parse[0, "19,313,52,255,255,255,${If[${h_rbuff},B,]}"]}
+    /ini ${_path} entropy rest10  ${Parse[0, "19,313,47,25,25,25,${If[${h_rbuff},,_]}"]}
+    /ini ${_path} entropy rest11  ${Parse[0, "19,322,52,255,255,255,${If[${h_rcombat},C,]}"]}
+    /ini ${_path} entropy rest12  ${Parse[0, "19,322,47,25,25,25,${If[${h_rcombat},,_]}"]}
 
-    HUDPATH entropy BG52    3,3,52,0,0,0,██████████████████████████████████████████
+    /ini ${_path} entropy BG52    3,3,52,0,0,0,██████████████████████████████████████████
 
 	| row 65
 
-    HUDPATH entropy envset1    3,5,65,100,149,237,set
-    HUDPATH entropy envset2    ${Parse[0, "19,40,65,140,140,140,${h_eset}"]}
+    /ini ${_path} entropy envset1    3,5,65,100,149,237,set
+    /ini ${_path} entropy envset2    ${Parse[0, "19,40,65,140,140,140,${h_eset}"]}
 
     | rez
-    HUDPATH entropy rez1    ${Parse[0, "19,255,65,0,255,0,${If[${h_ztake},rez,]}"]}
-    HUDPATH entropy rez2    ${Parse[0, "19,255,65,255,0,0,${If[${h_ztake},,rez]}"]}
-    HUDPATH entropy rez3    ${Parse[0, "19,275,65,255,255,255,${If[${h_zgive},G,]}"]}
-    HUDPATH entropy rez4    ${Parse[0, "19,275,60,25,25,25,${If[${h_zgive},,_]}"]}
-    HUDPATH entropy rez5    ${Parse[0, "19,284,65,255,255,255,${If[${h_zcombat},C,]}"]}
-    HUDPATH entropy rez6    ${Parse[0, "19,284,60,25,25,25,${If[${h_zcombat},,_]}"]}
-    HUDPATH entropy rez7    ${Parse[0, "19,293,65,255,255,255,${If[${h_zeveryone},E,]}"]}
-    HUDPATH entropy rez8    ${Parse[0, "19,293,60,25,25,25,${If[${h_zeveryone},,_]}"]}
-    HUDPATH entropy rez9    ${Parse[0, "19,302,65,255,255,255,${If[${h_ztoken},T,]}"]}
-    HUDPATH entropy rez10   ${Parse[0, "19,302,60,25,25,25,${If[${h_ztoken},,_]}"]}
+    /ini ${_path} entropy rez1    ${Parse[0, "19,255,65,0,255,0,${If[${h_ztake},rez,]}"]}
+    /ini ${_path} entropy rez2    ${Parse[0, "19,255,65,255,0,0,${If[${h_ztake},,rez]}"]}
+    /ini ${_path} entropy rez3    ${Parse[0, "19,275,65,255,255,255,${If[${h_zgive},G,]}"]}
+    /ini ${_path} entropy rez4    ${Parse[0, "19,275,60,25,25,25,${If[${h_zgive},,_]}"]}
+    /ini ${_path} entropy rez5    ${Parse[0, "19,284,65,255,255,255,${If[${h_zcombat},C,]}"]}
+    /ini ${_path} entropy rez6    ${Parse[0, "19,284,60,25,25,25,${If[${h_zcombat},,_]}"]}
+    /ini ${_path} entropy rez7    ${Parse[0, "19,293,65,255,255,255,${If[${h_zeveryone},E,]}"]}
+    /ini ${_path} entropy rez8    ${Parse[0, "19,293,60,25,25,25,${If[${h_zeveryone},,_]}"]}
+    /ini ${_path} entropy rez9    ${Parse[0, "19,302,65,255,255,255,${If[${h_ztoken},T,]}"]}
+    /ini ${_path} entropy rez10   ${Parse[0, "19,302,60,25,25,25,${If[${h_ztoken},,_]}"]}
 
-    HUDPATH entropy BG65    3,3,65,0,0,0,██████████████████████████████████████████
+    /ini ${_path} entropy BG65    3,3,65,0,0,0,██████████████████████████████████████████
 
     | row 78
-    HUDPATH entropy body1   ${Parse[0, "3,73,78,0,255,0,${If[${Target.LineOfSight},${Target.Body},]}"]}
-    HUDPATH entropy body2   ${Parse[0, "3,73,78,255,0,0,${If[${Target.LineOfSight},,${Target.Body}]}"]}
-    HUDPATH entropy body3   ${Parse[0, "3,145,78,140,140,140,${Target.Distance} (${Math.Calc[${Spawn[${Target.ID}].MaxRangeTo}*.9]})"]}
-    HUDPATH entropy eng0    "3,5,77,100,149,237,[     ][     ][     ][                       ]"
-    HUDPATH entropy eng1    ${Parse[0, "19,10,78,255,255,255,${If[${h_engage},${h_engage},]}"]}
-    HUDPATH entropy eng2    ${Parse[0, "19,12,73,25,25,25,${If[(!${h_engage},__,]}"]}
-    HUDPATH entropy eng5    ${Parse[0, "19,31,78,255,255,255,${If[${h_swpet},${h_engagepet},]}"]}
-    HUDPATH entropy eng6    ${Parse[0, "19,31,73,25,25,25,${If[!${h_swpet},__,]}"]}
-    HUDPATH entropy eng8    ${Parse[0, "19,52,78,255,255,255,${If[${h_swswarm},${h_engageswarm},]}"]}
-    HUDPATH entropy eng9    ${Parse[0, "19,52,73,25,25,25,${If[!${h_swswarm},__,]}"]}
-    HUDPATH entropy BG78    3,3,78,0,0,0,██████████████████████████████████████████
+    /ini ${_path} entropy body1   ${Parse[0, "3,73,78,0,255,0,${If[${Target.LineOfSight},${Target.Body},]}"]}
+    /ini ${_path} entropy body2   ${Parse[0, "3,73,78,255,0,0,${If[${Target.LineOfSight},,${Target.Body}]}"]}
+    /ini ${_path} entropy body3   ${Parse[0, "3,145,78,140,140,140,${Target.Distance} (${Math.Calc[${Spawn[${Target.ID}].MaxRangeTo}*.9]})"]}
+    /ini ${_path} entropy eng0    "3,5,77,100,149,237,[     ][     ][     ][                       ]"
+    /ini ${_path} entropy eng1    ${Parse[0, "19,10,78,255,255,255,${If[${h_engage},${h_engage},]}"]}
+    /ini ${_path} entropy eng2    ${Parse[0, "19,12,73,25,25,25,${If[(!${h_engage},__,]}"]}
+    /ini ${_path} entropy eng5    ${Parse[0, "19,31,78,255,255,255,${If[${h_swpet},${h_engagepet},]}"]}
+    /ini ${_path} entropy eng6    ${Parse[0, "19,31,73,25,25,25,${If[!${h_swpet},__,]}"]}
+    /ini ${_path} entropy eng8    ${Parse[0, "19,52,78,255,255,255,${If[${h_swswarm},${h_engageswarm},]}"]}
+    /ini ${_path} entropy eng9    ${Parse[0, "19,52,73,25,25,25,${If[!${h_swswarm},__,]}"]}
+    /ini ${_path} entropy BG78    3,3,78,0,0,0,██████████████████████████████████████████
 
 
 	| row 91
-    HUDPATH entropy target		${Parse[0, "3,5,91,100,149,237,${If[${Target.ID},[${Target.Class.ShortName} ${Target.Level}] ${Target.Name} ${If[${Bool[${Target.Guild}]},<${Target.Guild}>, ]}, ]}"]}
-    HUDPATH entropy time1			${Parse[0, "19,290,91,146,149,180,${If[${h_time},${Time.Time24},${GameTime}]}"]}
-    HUDPATH entropy BG91    	3,3,91,0,0,0,██████████████████████████████████████████
+    /ini ${_path} entropy target		${Parse[0, "3,5,91,100,149,237,${If[${Target.ID},[${Target.Class.ShortName} ${Target.Level}] ${Target.Name} ${If[${Bool[${Target.Guild}]},<${Target.Guild}>, ]}, ]}"]}
+    /ini ${_path} entropy time1			${Parse[0, "19,290,91,146,149,180,${If[${h_time},${Time.Time24},${GameTime}]}"]}
+    /ini ${_path} entropy BG91    	3,3,91,0,0,0,██████████████████████████████████████████
 
 
 
   | cursor over hud
   } else /if (${_verbage.Equal[cursor]}) {
+  	OUT Updating MQ2HUD.INI${sep}\a-w${_verbage}\ax
 
-    HUDPATH cursor over				21,4,50,0,255,0,${If[${EverQuest.LastMouseOver},${EverQuest.LastMouseOver.Name},]}
-    HUDPATH cursor overbg			21,2,50,0,0,0,${If[${EverQuest.LastMouseOver},█████████████████████████,]}
+    /ini ${_path} cursor over				21,4,50,0,255,0,${If[${EverQuest.LastMouseOver},${EverQuest.LastMouseOver.Name},]}
+    /ini ${_path} cursor overbg			21,2,50,0,0,0,${If[${EverQuest.LastMouseOver},█████████████████████████,]}
 
 
   | additional development hud
   } else /if (${_verbage.Equal[dev]}) {
+  	OUT Updating MQ2HUD.INI${sep}\a-w${_verbage}\ax
 
-    HUDPATH dev HL1    						"3,3,95,247,152,10,________________________________________________________"
-    HUDPATH dev HL2    						"3,3,96,247,152,10,________________________________________________________"
+    /ini ${_path} dev HL1    						"3,3,95,247,152,10,________________________________________________________"
+    /ini ${_path} dev HL2    						"3,3,96,247,152,10,________________________________________________________"
 
 	| row 110
-  	HUDPATH dev devflow 					${Parse[0, "19,5,110,100,149,237,${flow}"]}
-    HUDPATH dev BG110    					3,3,110,0,0,0,██████████████████████████████████████████
+  	/ini ${_path} dev devflow 					${Parse[0, "19,5,110,100,149,237,${flow}"]}
+    /ini ${_path} dev BG110    					3,3,110,0,0,0,██████████████████████████████████████████
 
 
 	| row 123
-    HUDPATH dev devCombat1	 		  3,5,123,100,149,237,combat
-    HUDPATH dev devCombat2	 		  ${Parse[0, "19,45,123,0,255,0,${If[${maCC.Find[swSetCombat].Value},T,]}"]}
-    HUDPATH dev devCombat3	 		  ${Parse[0, "19,45,123,255,0,0,${If[${maCC.Find[swSetCombat].Value},,F]}"]}
+    /ini ${_path} dev devCombat1	 		  3,5,123,100,149,237,combat
+    /ini ${_path} dev devCombat2	 		  ${Parse[0, "19,45,123,0,255,0,${If[${h_dcombat},T,]}"]}
+    /ini ${_path} dev devCombat3	 		  ${Parse[0, "19,45,123,255,0,0,${If[${h_dcombat},,F]}"]}
 
 
-    HUDPATH dev devBurn1	 		 		3,80,123,100,149,237,burn
-    HUDPATH dev devBurn2	 			  ${Parse[0, "19,110,123,0,255,0,${If[${maBurn.Find[swBurnConditionMet].Value},T,]}"]}
-    HUDPATH dev devBurn3	 		  	${Parse[0, "19,110,123,255,0,0,${If[${maBurn.Find[swBurnConditionMet].Value},,F]}"]}
+    /ini ${_path} dev devBurn1	 		 		3,80,123,100,149,237,burn
+    /ini ${_path} dev devBurn2	 			  ${Parse[0, "19,110,123,0,255,0,${If[${h_dburn},T,]}"]}
+    /ini ${_path} dev devBurn3	 		  	${Parse[0, "19,110,123,255,0,0,${If[${h_dburn},,F]}"]}
 
-    HUDPATH dev hurtID1						3,130,123,100,149,237,hID
-    HUDPATH dev hurtID2		 			  ${Parse[0, "19,150,123,255,255,255,${hurtID}"]}
+    /ini ${_path} dev hurtID1						3,130,123,100,149,237,hID
+    /ini ${_path} dev hurtID2		 			  ${Parse[0, "19,150,123,255,255,255,${hurtID}"]}
 
 
-    HUDPATH dev BG123    					3,3,123,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG123    					3,3,123,0,0,0,██████████████████████████████████████████
 
 	| row 136
-    HUDPATH dev devTargetID1 	  	3,5,136,100,149,237,targetID
-    HUDPATH dev devTargetID2 		 	${Parse[0, "19,45,136,255,255,255,${Target.ID}"]}
+    /ini ${_path} dev devTargetID1 	  	3,5,136,100,149,237,targetID
+    /ini ${_path} dev devTargetID2 		 	${Parse[0, "19,45,136,255,255,255,${Target.ID}"]}
 
-    HUDPATH dev stEnvRadius1			3,80,136,100,149,237,env
-    HUDPATH dev stEnvRadius2			${Parse[0, "19,110,136,255,255,255,${SpawnCount[NPC radius ${maEnv.Find[stEnvRadius].Value}]}"]}
+    /ini ${_path} dev stEnvRadius1			3,80,136,100,149,237,env
+    /ini ${_path} dev stEnvRadius2			${Parse[0, "19,110,136,255,255,255,${SpawnCount[NPC radius ${h_denv}]}"]}
 
-    HUDPATH dev hurtPctHP1				3,130,136,100,149,237,h%
-    HUDPATH dev hurtPctHP2		 		${Parse[0, "19,150,136,255,255,255,${hurtPctHP}"]}
+    /ini ${_path} dev hurtPctHP1				3,130,136,100,149,237,h%
+    /ini ${_path} dev hurtPctHP2		 		${Parse[0, "19,150,136,255,255,255,${hurtPctHP}"]}
 
 
-    HUDPATH dev BG136    					3,3,136,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG136    					3,3,136,0,0,0,██████████████████████████████████████████
 
 	| row 149
-    HUDPATH dev devASSTargetID1   3,5,149,100,149,237,AssID
-    HUDPATH dev devASSTargetID2  	${Parse[0, "19,45,149,255,255,255,${stAssTarID}"]}
+    /ini ${_path} dev devASSTargetID1   3,5,149,100,149,237,AssID
+    /ini ${_path} dev devASSTargetID2  	${Parse[0, "19,45,149,255,255,255,${stAssTarID}"]}
 
-    HUDPATH dev stEnvSafeRadius1	,80,149,100,149,237,safe
-    HUDPATH dev stEnvSafeRadius2	${Parse[0, "19,110,149,255,255,255,${SpawnCount[NPC radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}"]}
+    /ini ${_path} dev stEnvSafeRadius1	,80,149,100,149,237,safe
+    /ini ${_path} dev stEnvSafeRadius2	${Parse[0, "19,110,149,255,255,255,${SpawnCount[NPC radius ${h_dsafe} playerstate 4]}"]}
 
-    HUDPATH dev hurtCLS1				3,130,149,100,149,237,hCL
-    HUDPATH dev hurtCLS2		 		${Parse[0, "19,150,149,255,255,255,${hurtCLS}"]}
+    /ini ${_path} dev hurtCLS1				3,130,149,100,149,237,hCL
+    /ini ${_path} dev hurtCLS2		 		${Parse[0, "19,150,149,255,255,255,${hurtCLS}"]}
 
 
-    HUDPATH dev BG149  			 		 	3,3,149,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG149  			 		 	3,3,149,0,0,0,██████████████████████████████████████████
 
 
 	| row 162
-    HUDPATH dev devIsDead1  			3,5,162,100,149,237,IsDead
-    HUDPATH dev devIsDead2	 		  ${Parse[0, "19,45,162,0,255,0,${If[${swIsMeDead},T,]}"]}
-    HUDPATH dev devIsDead3	 		  ${Parse[0, "19,45,162,255,0,0,${If[${swIsMeDead},,F]}"]}
+    /ini ${_path} dev devIsDead1  			3,5,162,100,149,237,IsDead
+    /ini ${_path} dev devIsDead2	 		  ${Parse[0, "19,45,162,0,255,0,${If[${swIsMeDead},T,]}"]}
+    /ini ${_path} dev devIsDead3	 		  ${Parse[0, "19,45,162,255,0,0,${If[${swIsMeDead},,F]}"]}
 
-    HUDPATH dev stPullRadius1			3,80,162,100,149,237,pull
-    HUDPATH dev stPullRadius2			${Parse[0, "19,110,162,255,255,255,${SpawnCount[NPC radius ${maCC.Find[stPullRadius].Value}]}"]}
+    /ini ${_path} dev stPullRadius1			3,80,162,100,149,237,pull
+    /ini ${_path} dev stPullRadius2			${Parse[0, "19,110,162,255,255,255,${SpawnCount[NPC radius ${h_dpull}]}"]}
 
-    HUDPATH dev hurtCount1				3,130,162,100,149,237,h#
-    HUDPATH dev hurtCount2		 		${Parse[0, "19,150,162,255,255,255,${hurtCount}"]}
+    /ini ${_path} dev hurtCount1				3,130,162,100,149,237,h#
+    /ini ${_path} dev hurtCount2		 		${Parse[0, "19,150,162,255,255,255,${hurtCount}"]}
 
-    HUDPATH dev castStatus1				3,250,162,100,149,237,cR
-    HUDPATH dev castStatus2		 		${Parse[0, "19,265,162,255,255,255,${maData.Find[stCastReturn].Value}"]}
+    /ini ${_path} dev castStatus1				3,250,162,100,149,237,cR
+    /ini ${_path} dev castStatus2		 		${Parse[0, "19,265,162,255,255,255,${h_dcaststatus}"]}
 
 
-    HUDPATH dev BG162    					3,3,162,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG162    					3,3,162,0,0,0,██████████████████████████████████████████
 
-    HUDPATH dev HL3    						3,3,166,247,152,10,________________________________________________________
-healsingle    HUDPATH dev HL4    						3,3,167,247,152,10,________________________________________________________
+    /ini ${_path} dev HL3    						3,3,166,247,152,10,________________________________________________________
+    /ini ${_path} dev HL4    						3,3,167,247,152,10,________________________________________________________
 
 
 	| row 181
-		HUDPATH dev tTIE1							3,5,181,100,149,237,tie
-		HUDPATH dev tTIE2							${Parse[0, "19,30,181,255,239,0,${timer_Check_Tie}"]}
-		HUDPATH dev tb1								3,50,181,100,149,237,b
-		HUDPATH dev tb2								${Parse[0, "19,70,181,255,239,0,${timer_Check_Buff_Cycle}"]}
+		/ini ${_path} dev tTIE1							3,5,181,100,149,237,tie
+		/ini ${_path} dev tTIE2							${Parse[0, "19,30,181,255,239,0,${timer_Check_Tie}"]}
+		/ini ${_path} dev tb1								3,50,181,100,149,237,b
+		/ini ${_path} dev tb2								${Parse[0, "19,70,181,255,239,0,${timer_Check_Buff_Cycle}"]}
 
-		HUDPATH dev tbC1							3,105,181,100,149,237,bC
-		HUDPATH dev tbC2							${Parse[0, "19,125,181,255,239,0,${timer_Check_Buff_Crew}"]}
+		/ini ${_path} dev tbC1							3,105,181,100,149,237,bC
+		/ini ${_path} dev tbC2							${Parse[0, "19,125,181,255,239,0,${timer_Check_Buff_Crew}"]}
 
-		HUDPATH dev tbR1							3,160,181,100,149,237,bR
-		| HUDPATH dev tbR2							19,185,181,255,239,0,${timer_Check_Buff_Raid}
+		/ini ${_path} dev tbR1							3,160,181,100,149,237,bR
+		/ini ${_path} dev tbR2							${Parse[0, "19,180,181,255,239,0,${timer_Check_Buff_Raid}"]}
 
-		HUDPATH dev tMode1						3,215,181,100,149,237,tM
-		HUDPATH dev tMode2						${Parse[0, "19,240,181,255,239,0,${timer_Check_Mode}"]}
+		/ini ${_path} dev tMode1						3,215,181,100,149,237,tM
+		/ini ${_path} dev tMode2						${Parse[0, "19,240,181,255,239,0,${timer_Check_Mode}"]}
 
 
 
-    HUDPATH dev BG181    					3,3,181,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG181    					3,3,181,0,0,0,██████████████████████████████████████████
 
 	| row 194
 
-		HUDPATH dev tCure1						3,5,194,100,149,237,cure
-		HUDPATH dev tCure2						${Parse[0, "19,30,194,255,239,0,${timer_Check_Cure}"]}
+		| /ini ${_path} dev tCure1						3,5,194,100,149,237,cure
+		| /ini ${_path} dev tCure2						${Parse[0, "19,30,194,255,239,0,${timer_Check_Cure}"]}
 
-		HUDPATH dev tbN1							3,50,194,100,149,237,bN
-		HUDPATH dev tbN2							${Parse[0, "19,70,194,255,239,0,${timer_Check_Buff_Now}"]}
-		HUDPATH dev tbA1							3,105,194,100,149,237,bA
-		HUDPATH dev tbA2							${Parse[0, "19,125,194,255,239,0,${timer_Check_Buff_Aura}"]}
+		/ini ${_path} dev tbN1							3,50,194,100,149,237,bN
+		/ini ${_path} dev tbN2							${Parse[0, "19,70,194,255,239,0,${timer_Check_Buff_Now}"]}
 
-    HUDPATH dev BG194    					3,3,194,0,0,0,██████████████████████████████████████████
+		/ini ${_path} dev tbA1							3,105,194,100,149,237,bA
+		/ini ${_path} dev tbA2							${Parse[0, "19,125,194,255,239,0,${timer_Check_Buff_Aura}"]}
+
+		/ini ${_path} dev tbG1							3,160,194,100,149,237,bG
+		/ini ${_path} dev tbG2							${Parse[0, "19,180,194,255,239,0,${timer_Check_Buff_Group}"]}
+
+
+
+    /ini ${_path} dev BG194    					3,3,194,0,0,0,██████████████████████████████████████████
 
 	| row207
 
-		HUDPATH dev tbS1							3,50,207,100,149,237,bS
-		HUDPATH dev tbS2							${Parse[0, "19,70,207,255,239,0,${timer_Check_Buff_Self}"]}
-		HUDPATH dev tbB1							3,105,207,100,149,237,bB
-		HUDPATH dev tbB2							${Parse[0, "19,125,207,255,239,0,${timer_Check_Buff_Beg}"]}
+		/ini ${_path} dev tbS1							3,50,207,100,149,237,bS
+		/ini ${_path} dev tbS2							${Parse[0, "19,70,207,255,239,0,${timer_Check_Buff_Self}"]}
+		/ini ${_path} dev tbB1							3,105,207,100,149,237,bB
+		/ini ${_path} dev tbB2							${Parse[0, "19,125,207,255,239,0,${timer_Check_Buff_Beg}"]}
 
-    HUDPATH dev BG207    					3,3,207,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG207    					3,3,207,0,0,0,██████████████████████████████████████████
 
 	| row 220
 
-		HUDPATH dev tbU1							3,50,220,100,149,237,bU
-		HUDPATH dev tbU2							${Parse[0, "19,70,220,255,239,0,${timer_Check_Buff_Unity}"]}
-		HUDPATH dev tbT1							3,105,220,100,149,237,bT
-		HUDPATH dev tbT2							${Parse[0, "19,125,220,255,239,0,${timer_Check_Buff_Temp}"]}
+		/ini ${_path} dev tbU1							3,50,220,100,149,237,bU
+		/ini ${_path} dev tbU2							${Parse[0, "19,70,220,255,239,0,${timer_Check_Buff_Unity}"]}
+		/ini ${_path} dev tbT1							3,105,220,100,149,237,bT
+		/ini ${_path} dev tbT2							${Parse[0, "19,125,220,255,239,0,${timer_Check_Buff_Temp}"]}
 
-    HUDPATH dev BG220    					3,3,220,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG220    					3,3,220,0,0,0,██████████████████████████████████████████
 
-  }
+
+   | additional development hud
+  } else /if (${_verbage.Equal[buttons]}) {
+
+		/if (!BUILD) {
+			/invoke ${out[0, "Only available for MQ2Next"]}
+			/return FALSE
+		} else /if (BUILD) {
+			/varset _path "MQ2MyButtons.ini"
+		}
+
+		OUT Updating MQ2MyButtons.INI${sep}\a-w${_verbage}\ax
+
+		| window label
+		/ini ${_path} "UISettings" "WindowTitle" "Entropy"
+
+		| here command
+		/ini ${_path} "Button1" "Label" "Combat Now"
+		/ini ${_path} "Button1" "Command" "/here"
+		/ini ${_path} "Button1" "Red" "255"
+		/ini ${_path} "Button1" "Green" "255"
+		/ini ${_path} "Button1" "Blue" "153"
+
+		| auto/manual
+		/ini ${_path} "Button2" "Label" "/env auto ${If[${maEnv.Find[swAuto].Value},On,OFF]}"
+		/ini ${_path} "Button2" "Command" "/env auto"
+		/ini ${_path} "Button2" "Red" "255"
+		/ini ${_path} "Button2" "Green" "255"
+		/ini ${_path} "Button2" "Blue" "153"
+
+		| pull switch
+		/ini ${_path} "Button3" "Label" "Puller On/Off"
+		/ini ${_path} "Button3" "Command" "/cc pull"
+		/ini ${_path} "Button3" "Red" "255"
+		/ini ${_path} "Button3" "Green" "255"
+		/ini ${_path} "Button3" "Blue" "153"
+
+		| agro switch
+		/ini ${_path} "Button4" "Label" "Agro On/Off"
+		/ini ${_path} "Button4" "Command" "/cc agro"
+		/ini ${_path} "Button4" "Red" "255"
+		/ini ${_path} "Button4" "Green" "255"
+		/ini ${_path} "Button4" "Blue" "153"
+
+		| tie all switch
+		/ini ${_path} "Button5" "Label" " Tie (All)"
+		/ini ${_path} "Button5" "Command" "/dga /tie"
+		/ini ${_path} "Button5" "Red" "255"
+		/ini ${_path} "Button5" "Green" "255"
+		/ini ${_path} "Button5" "Blue" "153"
+
+		| in charege command
+		/ini ${_path} "Button6" "Label" "In Charge"
+		/ini ${_path} "Button6" "Command" "/env incharge"
+		/ini ${_path} "Button6" "Red" "100"
+		/ini ${_path} "Button6" "Green" "100"
+		/ini ${_path} "Button6" "Blue" "255"
+
+		|
+		/ini ${_path} "Button7" "Label" ""
+		/ini ${_path} "Button7" "Command" ""
+		/ini ${_path} "Button7" "Red" "255"
+		/ini ${_path} "Button7" "Green" "255"
+		/ini ${_path} "Button7" "Blue" "153"
+
+		| set toons home camp
+		/ini ${_path} "Button8" "Label" "Home Camp"
+		/ini ${_path} "Button8" "Command" "/movement home"
+		/ini ${_path} "Button8" "Red" "255"
+		/ini ${_path} "Button8" "Green" "255"
+		/ini ${_path} "Button8" "Blue" "153"
+
+		| builds crew 1
+		/ini ${_path} "Button9" "Label" "Build Crew"
+		/ini ${_path} "Button9" "Command" "/crew 1"
+		/ini ${_path} "Button9" "Red" "255"
+		/ini ${_path} "Button9" "Green" "255"
+		/ini ${_path} "Button9" "Blue" "153"
+
+		| gather your group
+		/ini ${_path} "Button10" "Label" "Gather"
+		/ini ${_path} "Button10" "Command" "/home gather"
+		/ini ${_path} "Button10" "Red" "255"
+		/ini ${_path} "Button10" "Green" "255"
+		/ini ${_path} "Button10" "Blue" "153"
+
+		| start self
+		/ini ${_path} "Button11" "Label" "Start (Me)"
+		/ini ${_path} "Button11" "Command" "/mac exspes/entropy.mac"
+		/ini ${_path} "Button11" "Red" "255"
+		/ini ${_path} "Button11" "Green" "255"
+		/ini ${_path} "Button11" "Blue" "153"
+
+		| start everyone
+		/ini ${_path} "Button12" "Label" "Start (All)"
+		/ini ${_path} "Button12" "Command" "/dga all /mac exspes/entropy.mac"
+		/ini ${_path} "Button12" "Red" "255"
+		/ini ${_path} "Button12" "Green" "255"
+		/ini ${_path} "Button12" "Blue" "153"
+
+
+		/squelch /mybutton reload
+
+
+}
+
 
 /return
 
@@ -2046,8 +2167,8 @@ healsingle    HUDPATH dev HL4    						3,3,167,247,152,10,______________________
  * note: find and remove stale entries from the character database
  * use:
  ***|
-sub sql_check(bool _debug)
-	DEBUG \atsql_check\ax()
+sub sql_clean(bool _debug)
+	DEBUG \atsql_clean\ax()
 
 	/declare _field string local FALSE
 	/declare _table string local FALSE
@@ -2095,14 +2216,9 @@ sub sql_check(bool _debug)
 
 
 
-
-
-
-
-
 |***
- * note: generate the nav file DB
- * use:
+ * note:
+ * use: generate nav.sqlite
  ***|
 sub sql_schema_nav(bool _debug)
 	DEBUG \atsql_schema_nav\ax()
@@ -2111,94 +2227,69 @@ sub sql_schema_nav(bool _debug)
 		/declare _boottimestart int local ${MacroQuest.Running}
 	}
 
-  /varset swDBlocked TRUE
-
 	| check the current schema/build versions
-  /sqlite ${maData.Find[DBnav].Value} bdummy SELECT build_number FROM build
-  DEBUG ${sep}SELECT build_number FROM build \ay${sqlite.Status[bdummy]}\ax
-  /sqlite ${maData.Find[DBnav].Value} sdummy SELECT schema_number FROM build
-  DEBUG ${sep}SELECT schema_number FROM build \ay${sqlite.Status[sdummy]}\ax
+  /sqlite ${maData.Find[DBnav].Value} macnumber SELECT build_number FROM build
+  /if (!${sql_check[${_debug}, macnumber, sql_schema_nav, SELECT]}) /endm
+  /sqlite ${maData.Find[DBnav].Value} schemanumber SELECT schema_number FROM build
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_nav, SELECT]}) /endm
 
-  /if (${sqlite.Result[sdummy 1 schema_number].Equal[${maEnv.Find[schema].Value}]} && ${sqlite.Result[bdummy 1 build_number].Equal[${maEnv.Find[build].Value}]}) {
+  /if (${sqlite.Result[schemanumber 1 schema_number].Equal[${maEnv.Find[schema].Value}]} && ${sqlite.Result[macnumber 1 build_number].Equal[${maEnv.Find[build].Value}]}) {
     DEBUG ${sep}Macro and Schema builds match for nav database, bailing on this routine
-	  /invoke ${sql_clear[${_debug}, bdummy]}
-	  /invoke ${sql_clear[${_debug}, sdummy]}
     /return TRUE
   }
 
-	|
-  /if (!${sqlite.Rows[sdummy]}) {
-  	DEBUG ${sep}FOUND${sep}\ar${sqlite.Rows[sdummy]}\ax
+  /if (!${sqlite.Rows[schemanumber]}) {
  		OUT \a-tSchema Build\ax${sep}\a-wnav\ax
-
-    /while (${swDBlocked}) {
-
+    /while (TRUE) {
 			| create loot build table
-      /sqlite ${maData.Find[DBnav].Value} dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY, 'schema_number' TEXT NOT NULL)
-      DEBUG ${sep}dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY, 'schema_number' TEXT NOT NULL) \ay${sqlite.Status[dummy]}\ax
+      /sqlite ${maData.Find[DBnav].Value} build CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY, 'schema_number' TEXT NOT NULL)
+      /if (!${sql_check[${_debug}, build, sql_schema_nav, "CREATE TABLE"]}) /endm
 
       | add macro version to build table
-      /sqlite ${maData.Find[DBnav].Value} dummy INSERT INTO 'build' ('build_number','schema_number') VALUES ("${maEnv.Find[build].Value}","${maEnv.Find[schema].Value}")
-      DEBUG ${sep} dummy INSERT INTO 'build' ('build_number','schema_number') VALUES ("${maEnv.Find[build].Value}","${maEnv.Find[schema].Value}") \ay${sqlite.Status[dummy]}\ax
+      /sqlite ${maData.Find[DBnav].Value} build INSERT INTO 'build' ('build_number','schema_number') VALUES ("${maEnv.Find[build].Value}","${maEnv.Find[schema].Value}")
+      /if (!${sql_check[${_debug}, build, sql_schema_nav, "INSERT INTO"]}) /endm
 
 			| create loot table
-      /sqlite ${maData.Find[DBnav].Value} dummy CREATE TABLE IF NOT EXISTS 'waypoint' ('zone_shortname', 'nickname', 'locY', 'locX', 'locZ')
-      DEBUG ${sep}dummy CREATE TABLE IF NOT EXISTS 'waypoint' ('zone_shorname' TEXT NOT NULL PRIMARY KEY, 'nickname' TEXT, 'locYXZ' TEXT) \ay${sqlite.Status[dummy]}\ax
+      /sqlite ${maData.Find[DBnav].Value} build CREATE TABLE IF NOT EXISTS 'waypoint' ('zone_shortname', 'nickname', 'locY', 'locX', 'locZ')
+      /if (!${sql_check[${_debug}, build, sql_schema_nav, "CREATE TABLE"]}) /endm
 
       /delay 1
-      /if (!${sqlite.Status[dummy].Find[locked]}) {
-        /delay 1
-        /varset swDBlocked FALSE
-      }
+      /if (!${Select[${sqlite.Resultcode[build]},6]}) /break
     }
-		/varset swDBlocked TRUE
   }
 
-  | correct build mismatch
-	/if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+  /sqlite ${maData.Find[DBnav].Value} macnumber SELECT build_number FROM build
+  /if (!${sql_check[${_debug}, macnumber, sql_schema_nav, SELECT]}) /endm
+	/if (${sqlite.Result[macnumber 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
 		DEBUG ${sep}build mismatch
-    /while (${swDBlocked}) {
-
-      /sqlite ${maData.Find[DBloot].Value} dummy UPDATE build SET build_number='${maEnv.Find[build].Value}'
- 			DEBUG ${sep}dummy UPDATE build SET build_number='${maEnv.Find[build].Value}' \ay${sqlite.Status[sdummy]}\ax
+    /while (TRUE) {
+      /sqlite ${maData.Find[DBnav].Value} updatebuildnum UPDATE build SET build_number='${maEnv.Find[build].Value}'
+      /if (!${sql_check[${_debug}, updatebuildnum, sql_schema_nav, UPDATE]}) /endm
 
 	   	| call macro update by version here. doubt there will be any
-      /if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+      /if (${sqlite.Result[macnumber 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
       }
 
       /delay 1
-      /if (!${sqlite.Status[dummy].Find[locked]}) {
-        /delay 1
-        /varset swDBlocked FALSE
-      }
+      /if (!${Select[${sqlite.Resultcode[updatebuildnum]},6]}) /break
     }
-    /varset swDBlocked TRUE
   }
 
-
-	| if one of them doesnt match make sure both values are updated and make any corrections to the schema
-  /if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
-		DEBUG ${sep}schema mismatch
+  /sqlite ${maData.Find[DBnav].Value} schemanumber SELECT schema_number FROM build
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_nav, SELECT]}) /endm
+  /if (${sqlite.Result[schemanumber 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
  		OUT \a-tSchema Check\ax${sep}\a-wnav\ax
-
-    /while (${swDBlocked}) {
-
-      /sqlite ${maData.Find[DBloot].Value} dummy UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
- 			DEBUG ${sep}dummy UPDATE build SET schema_number='${maEnv.Find[schema].Value}' \ay${sqlite.Status[sdummy]}\ax
+    /while (TRUE) {
+      /sqlite ${maData.Find[DBnav].Value} updateschemanum UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
+  		/if (!${sql_check[${_debug}, updateschemanum, sql_schema_nav, UPDATE]}) /endm
 
      	| call schema update by version here!
-      /if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+      /if (${sqlite.Result[schemanumber 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
 			}
       /delay 1
-      /if (!${sqlite.Status[dummy].Find[locked]}) {
-        /delay 1
-        /varset swDBlocked FALSE
-      }
+      /if (!${Select[${sqlite.Resultcode[updateschemanum]},6]}) /break
     }
   }
-
-  /invoke ${sql_clear[${_debug}, bdummy]}
-  /invoke ${sql_clear[${_debug}, sdummy]}
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agsql_set_loot_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -2209,7 +2300,69 @@ sub sql_schema_nav(bool _debug)
 
 
 
+|***
+ * note: drop a sql field
+ * use: /call sql_drop TABLE FIELD [echo T/F]
+ ***|
+sub sql_drop(string _table, string _field, bool _echo)
+
+	| is the data there?
+	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_field}"
+
+	/if (${sqlite.Rows[dummy]}) {
+		/sqlite ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_table} WHERE env_var="${_field}"
+		/if (${_echo}) OUT SQL DROP${sep}\a-w${_table}${submenu}${_field}\ax ${dot} \a-w${sqlite.Status[dummy]}\ax
+
+	} else /if (!${sqlite.Rows[dummy]}) {
+		/if (${_echo}) OUT Not Found${sep}\a-w\a-w${_table}${submenu}${_field}\ax\ax
+	}
+
+/return TRUE
 
 
 
+|***
+ * note: clear a sql query from memory
+ * use: /call sql_clear DEBUG [QUERYNAME]
+ *** WARNING depreciated in MQ2NEXT ***
+ ***|
+sub sql_clear(bool _debug, string _verbage)
+	DEBUG \atsql_clear\ax(\a-w${_verbage}\ax)
+	OUT ${warning} sql_clear is going buhby.. fic this call
+	SDEBUG \atsql_clear\ax(\a-w${_verbage}\ax)
+	OUT ending macro
+	/endm
+
+	/if (!${sqlite.Clear[${_verbage}]}) {
+		/varset debug ${out[16, "${warning} ${dot} Couldn't clear memory for${sep}\a-w${_verbage}\ax"]}
+	}
+
+/return TRUE
+
+
+
+|***
+ * note: sqlite query result validation
+ * use: ${DEBUG, QUERYNAME, DATABASECHECKINGNAME]}
+ ***|
+sub sql_check(bool _debug, string _query, string _dbname, string _action)
+
+	| results we accept at face value and move on
+	/if (!${Select[${sqlite.Resultcode[${_query}]},0,1,6]} || ${_debug}) {
+		/sqlite ${maData.Find[DBstatic].Value} queryresult SELECT * FROM sql_error WHERE env_var='${sqlite.Resultcode[${_query}]}'
+		/if (!${_debug}) {
+			OUT \ap${_action}\ax${sep}${_dbname} (\a-r${_query}\ax)${sep}\ay${sqlite.Resultcode[${_query}]}\ax${sep}\aw${sqlite.Result[queryresult 1 value]}\ax${sep}\a-w${sqlite.Result[queryresult 1 aux]}\ax
+		} else {
+			DEBUG ${sep}\ap${_action}\ax${sep}${_dbname} (\a-r${_query}\ax)${sep}${sqlite.Rows[${_query}]}${sep}\ay${sqlite.Resultcode[${_query}]}\ax${sep}\aw${sqlite.Result[queryresult 1 value]}\ax${sep}\a-w${sqlite.Result[queryresult 1 aux]}\ax
+			/if (${Select[${sqlite.Resultcode[${_query}]},0,1,6]}) {
+				/return TRUE
+			}
+		}
+	} else /if (${Select[${sqlite.Resultcode[${_query}]},0,1,6]}) {
+		/return TRUE
+	}
+
+	OUT ${warning} Ending Entrpoy on SQLite error${sep}${sqlite.Resultcode[${_query}]}
+
+/return FALSE
 

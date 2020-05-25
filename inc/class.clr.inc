@@ -155,7 +155,7 @@ sub main_CLR(bool _debug)
 
 		CHECKFADE
 		/if (${maCC.Find[swAlliance].Value} && !${timer_Check_Alliance}) /call check_${Me.Class.ShortName}_alliance ${maDebug.Find[alliance].Value}
-		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
+		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp ${maDebug.Find[yaulp].Value}
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stWard lsWardToon
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stRetort lsRetortToon
@@ -220,7 +220,7 @@ sub misc_combat_CLR(bool _debug, int _tmpID)
 	}
 
 	/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) {
-		/call cast_yaulp FALSE
+		/call cast_yaulp ${maDebug.Find[yaulp].Value}
 	}
 
 	/if (SWARM) {
@@ -294,7 +294,7 @@ sub check_heal_CLR(bool _debug, string _type)
 
 	| Group Regen Heal
 	/if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
-		/call cast_cycle_heal_regen ${_debug} 0 healgrouphot
+		/call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 healgrouphot
 	}
 
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
@@ -346,7 +346,7 @@ sub check_heal_CLR(bool _debug, string _type)
 		| single heal over time
 		/if (${maChr.Find[swHealOverTime].Value} && !${timer_Check_Regen}) {
 			/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
-				/call cast_cycle_heal_regen ${_debug} ${hurtID} healhot
+				/call cast_cycle_heal_regen ${maDebug.Find[regen].Value} ${hurtID} healhot
 			}
 		}
 

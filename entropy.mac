@@ -19,10 +19,16 @@
 #turbo 240
 #engine parser 2
 
+| MQ2Live or Next flag
+| 0 = Live
+| 1 = Next
+#define BUILD 1
+
+
 #define DEBUG "/if (${_debug}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
 #define SDEBUG "/echo \ay+[\ax\aw${Time.Second}\ax\at::\ax\aw${Macro.CurLine}\ax\ay]\ax(\a-t${Macro.RunTime}\ax) \ay--\ax "
 #define EDEBUG "/if (${maDebug.Find[event].Value}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax${sep}\a-t----\ax${submenu}"
-#define OUT "/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,\at.\ax]}"
+#define OUT /echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}
 #define GETINPUT "/call get_input"
 #define ISMEDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}"
 #define CHECKDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /return FALSE"
@@ -53,12 +59,11 @@
 #define SWARM "${maMinion.Find[swSwarm].Value}"
 #define RANGE "${maCC.Find[swCombatRange].Value}"
 #define MELEE "${maCC.Find[swCombatMelee].Value}"
-#define NUKE "${maCC.Find[swCombatNuke].Value}"
+#define NUKE "${maCC.Find[-swCombatNuke].Value}"
 #define DOT "${maCC.Find[swCombatDoT].Value}"
 #define HEAL "${maCC.Find[swCombatHeal].Value}"
 #define CHECKTIE "/if (${maTie.Find[swSetTie].Value} && !${timer_Check_Tie}) /call set_tie ${maDebug.Find[tie].Value}"
 #define CHECKCURSOR "/if (${Cursor.ID} && !${timer_Check_Cursor} && ((AUTO && ${maEnv.Find[swAutoInv].Value}) || ${maEntropy.Find[swAutoInvManual].Value})) /call check_cursor ${maDebug.Find[loot].Value}"
-#define HUDPATH "/ini .\..\MQ2HUD.ini"
 #define SETHUD "/call set_hud_data"
 #define CHECKDEFENSE	"/call cast_cycle_defense ${maDebug.Find[def].Value}"
 #define FLOW "/if (${maDebug.Find[flow].Value}) /varset flow ${stAssTarID} ::"
@@ -72,7 +77,6 @@
 #include exspes\inc\common.inc
 #include exspes\inc\control.inc
 #include exspes\inc\events.inc
-| #include exspes\inc\dpsmeter.inc
 #include exspes\inc\mode.inc
 #include exspes\data\custom.inc
 #include exspes\inc\class.ber.inc
@@ -121,7 +125,7 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer B200522.01
+	/call set_data FALSE maEnv build													map outer B200525.01
 	/call set_data FALSE maEnv schema													map outer 1.00
 
 	| prep macro
@@ -129,13 +133,13 @@ sub main(string _debug, string _param1, string _auto)
 
 	| environment notices
  	/if (${maEntropy.Find[swMaintenance].Value}) {
- 		/invoke ${out[0, "${notice} ${dot} Enabled${sep}\a-wmaintenance mode\ax"]}
+ 		/invoke ${out[0, "${notice}${sep}Enabled${sep}\a-wmaintenance mode\ax"]}
  	}
  	/if (${maEntropy.Find[swEventsInc].Value}) {
- 		/invoke ${out[0, "${notice} ${dot} Enabled${sep}\a-wevents\ax"]}
+ 		/invoke ${out[0, "${notice}${sep}Enabled${sep}\a-wevents\ax"]}
  	}
  	/if (${maOver.Find[swOverLOS].Value}) {
- 		/invoke ${out[0, "${notice} ${dot} Disabled${sep}\a-wline of sight validation\ax"]}
+ 		/invoke ${out[0, "${notice}${sep}Disabled${sep}\a-wline of sight validation\ax"]}
  	}
  	/if (${maOver.Find[swOverEnvAuto].Value}) {
  		/invoke ${out[0, "${notice} ${dot} Enabled${sep}\a-wenvrironment auto on\ax"]}
@@ -381,7 +385,7 @@ sub prepare_the_end(bool _debug)
 	| set all initial variables
 	/call set_initialize FALSE
 
-	/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,\at.\ax]} \a-tEntropy\ax${sep}\a-w${maEnv.Find[build].Value}\ax
+	/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}\a-tEntropy\ax${sep}\a-w${maEnv.Find[build].Value}\ax
 
 	| pull static data
 	/call set_initialize_static_map FALSE
@@ -431,11 +435,6 @@ sub prepare_the_end(bool _debug)
 
 	| build crew data
 	/call set_initialize_crew ${maDebug.Find[init].Value}
-
-	| start up the DPS meter
-	| /if (${SubDefined[DPSMeter_Init]}) {
-	| 	/call DPSMeter_Init
-	| }
 
 	| set class databits'n-bytes
 	/call set_${Me.Class.ShortName} ${maDebug.Find[init].Value}

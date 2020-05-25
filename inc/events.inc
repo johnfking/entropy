@@ -231,12 +231,19 @@ sub Event_CAST_TAKEHOLD(string _line, bool _debug)
 	/invoke ${maData.Add[stCastReturn,TAKEHOLD]}
 /return
 
-
 #event CAST_REZFAIL               "You were unable to restore the corpse to life, but you may have success with a later attempt#*#"
 sub Event_CAST_REZFAIL(string _line, bool _debug)
 	EDEBUG REZFAIL
 	/invoke ${maData.Add[stCastReturn,REZFAIL]}
 /return
+
+#event CAST_RESET               "Your ability failed. Timer has been reset#*#"
+sub Event_CAST_RESET(string _line, bool _debug)
+	EDEBUG RESET
+	/invoke ${maData.Add[stCastReturn,RESET]}
+/return
+
+
 
 
 

@@ -21,7 +21,7 @@ on the to do list
 - auto boot non entropy toons from channels
 - shared map for rez
 - try and recreate DB corruption for instance excludes
-- look at a way to split coorination for assists across more then one mob in a raid
+- look at a way to split coordination for assists across more then one mob in a raid
 - relay tells to tie toon..
 --------------------
 
@@ -31,11 +31,38 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
+
+
+
+
+B200525.01
+- HUD
+  lots of changes
+  /hud [entropy|dev] working again for next and live
+  added markers for group raid
+  fixed markers for invis and ivu
+  the debug hud shoud not throw undefined variable errors
+- #events
+  CAST_RESET - "Your ability failed. Timer has been reset#*#"
+- shaman
+  added in the check_regen timer creation
+- cleric
+  added debugs to yaulp
+- melee skills
+  fixed a double (&& &&) in a backstabb and frenzy
+- buff group
+  fixed many, many... many issues... it works again
+- database thingies
+  redesign of database updates and error control
+  all errors on database creation or schema updates will
+  now force ending the macro and and spew out lots-o-errors
+
+
 B200522.01
 - warrior
   adjustment to Brace for Impact for stacking issues
 - /build [save|load]
-  adjustment to relative path locastions in preperation for MQ2Next
+  adjustment to relative path locations in preparation for MQ2Next
 
 
 B200519.01

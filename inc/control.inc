@@ -1450,6 +1450,13 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	| hud adjustments
 	} else /if (${_type.Equal[hud]}) {
 
+		/declare _path string local
+		/if (!BUILD) {
+			/varset _path ".\..\MQ2HUD.ini"
+		} else /if (BUILD) {
+			/varset _path "MQ2HUD.ini"
+		}
+
 		| adjust hud clock
 		/if (${_verbage.Equal[time]}) {
 			/if (${maData.Find[swHUDTime].Value}) {
@@ -1469,11 +1476,10 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 
 		| delete the hud
 		} else /if (${_verbage.Equal[delete]}) {
-			/ini ".\..\MQ2HUD.ini" "${_silent}" NULL NULL
+			/ini ${_path} "${_silent}" NULL NULL
 			/invoke ${out[12, "Deleting MQ2HUD.INI${sep}\a-w${_silent}\ax"]}
 			/squelch /unloadhud ${_silent}
 			/return TRUE
-
 		}
 
 		/invoke ${_lsout.Append[time,update,delete]}
@@ -4448,17 +4454,13 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 
 	} else /if (${_build.Equal[set]}) {
 		DEBUG ${sep}set${sep}\a-w${_nickname}\ax
-
 		/declare _loadtimestart int local ${MacroQuest.Running}
-
 		/declare _lsset list local
 		/invoke ${_lsset.Delimiter["|"]}
 		/invoke ${_lsset.Append[${Ini[${maData.Find[INIset].Value},${_nickname}]}]}
 		/declare _liset listiterator local
 		/vardata _liset _lsset.First.Clone
-		| OUT setting${sep}\a-w${_nickname}\ax
-		| /call do_raw_edit ${_debug} SILENT stBuildSetCurrent ${_nickname}
-		/invoke ${do_raw_edit[ ${_debug}, SILENT, stBuildSetCurrent, "${_nickname}"]}
+		/invoke ${do_raw_edit[${_debug}, SILENT, stBuildSetCurrent, "${_nickname}"]}
 		/while (!${_liset.IsEnd}) {
 			/if (${Bool[${_liset.Value}]}) {
 				/if (${lsBuildSet.Contains[${_liset.Value}]}) {
@@ -4480,7 +4482,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 			}
 			/invoke ${_liset.Advance}
 		}
-		OUT setting${sep}\a-w${_nickname}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_loadtimestart}) / 10) / 60]}s\ax
+		OUT Set${sep}\a-w${_nickname}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_loadtimestart}) / 10) / 60]}s\ax
 		/return TRUE
 
 	}
