@@ -32,7 +32,21 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
-
+B200527.01
+- loot
+  changed the entire do_loot routine, cross your fingers.
+- pet pulling
+  corrected some logic errors with tgging and distance/los
+  wait time for pet tagging is no based off distance from camp
+  so, the longer the pulls the longer you wait for shitty pet pathing to get to the target
+- mercenary controls are getting closer
+- more database corrections/validations added
+- string outputs
+  are now being externalized into the main database repository (entropy.sqlite)
+	so if you see some funky outputs, lemme know.
+NOTICE!!!
+if you are running next. change the flag at the top of entropy.mac
+#define BUILD 0 to 1
 
 
 B200525.01

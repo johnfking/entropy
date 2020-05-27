@@ -19,10 +19,10 @@
 #turbo 240
 #engine parser 2
 
-| MQ2Live or Next flag
+| MQ2Live/Next flag
 | 0 = Live
 | 1 = Next
-#define BUILD 1
+#define BUILD 0
 
 
 #define DEBUG "/if (${_debug}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
@@ -59,7 +59,7 @@
 #define SWARM "${maMinion.Find[swSwarm].Value}"
 #define RANGE "${maCC.Find[swCombatRange].Value}"
 #define MELEE "${maCC.Find[swCombatMelee].Value}"
-#define NUKE "${maCC.Find[-swCombatNuke].Value}"
+#define NUKE "${maCC.Find[swCombatNuke].Value}"
 #define DOT "${maCC.Find[swCombatDoT].Value}"
 #define HEAL "${maCC.Find[swCombatHeal].Value}"
 #define CHECKTIE "/if (${maTie.Find[swSetTie].Value} && !${timer_Check_Tie}) /call set_tie ${maDebug.Find[tie].Value}"
@@ -125,7 +125,7 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer B200525.01
+	/call set_data FALSE maEnv build													map outer B200527.01
 	/call set_data FALSE maEnv schema													map outer 1.00
 
 	| prep macro
@@ -133,16 +133,16 @@ sub main(string _debug, string _param1, string _auto)
 
 	| environment notices
  	/if (${maEntropy.Find[swMaintenance].Value}) {
- 		/invoke ${out[0, "${notice}${sep}Enabled${sep}\a-wmaintenance mode\ax"]}
+ 		/invoke ${out[0, 0, 1]}
  	}
  	/if (${maEntropy.Find[swEventsInc].Value}) {
- 		/invoke ${out[0, "${notice}${sep}Enabled${sep}\a-wevents\ax"]}
+ 		/invoke ${out[0, 0, 2]}
  	}
  	/if (${maOver.Find[swOverLOS].Value}) {
- 		/invoke ${out[0, "${notice}${sep}Disabled${sep}\a-wline of sight validation\ax"]}
+ 		/invoke ${out[0, 0, 3]}
  	}
  	/if (${maOver.Find[swOverEnvAuto].Value}) {
- 		/invoke ${out[0, "${notice} ${dot} Enabled${sep}\a-wenvrironment auto on\ax"]}
+ 		/invoke ${out[0, 0, 4]}
  		/invoke ${maEnv.Add[swAuto,TRUE]}
  	}
 
@@ -153,17 +153,17 @@ sub main(string _debug, string _param1, string _auto)
 	| echo help on a new build or updates
 	/if (${Bool[${maData.Find[stPreviousBuild].Value}]}) {
 		/if (${maData.Find[stPreviousBuild].Value.NotEqual[${maEnv.Find[build].Value}]}) {
-			/invoke ${out[0, "Help${sep}\a-w/aux\ax or \a-w/command aux\ax"]}
+			/invoke ${out[0, 0, 5]}
 		}
 	} else /if (!${Bool[${maData.Find[stPreviousBuild].Value}]}) {
-		/invoke ${out[0, "Help${sep}\a-w/aux\ax or \a-w/command aux\ax"]}
+		/invoke ${out[0, 0, 5]}
 	}
 
 	/if (${maEntropy.Find[swBuildSetRemember].Value}) {
 		/call Bind_control_env set ${maEnv.Find[stBuildSetCurrent].Value}
 	}
 
-	/invoke ${out[0, "\agReady\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax"]}
+	/invoke ${out[0, "\agReady\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax", 0]}
 
 	| force on start switch
 	/if (${_debug.Equal[forceauto]}) {
@@ -328,7 +328,7 @@ sub main(string _debug, string _param1, string _auto)
 		 /mqlog .. SyntaxError: ${MacroQuest.SyntaxError}
 		 /mqlog .. RunningTime: ${MacroQuest.Running}
 	} else {
-		/invoke ${out[0, "Current Build ${info}${maEnv.Find[build].Value}\ax ${dot} ${bad}Ended\ax"]}
+		/invoke ${out[0, 0, 6]}
 		/mqlog ${maEnv.Find[build].Value} .. Clean Exit
 	}
 	/if (${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) {
@@ -385,7 +385,7 @@ sub prepare_the_end(bool _debug)
 	| set all initial variables
 	/call set_initialize FALSE
 
-	/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}\a-tEntropy\ax${sep}\a-w${maEnv.Find[build].Value}\ax
+	/invoke ${out[0, forced, 20]}
 
 	| pull static data
 	/call set_initialize_static_map FALSE

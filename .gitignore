@@ -6,3 +6,4 @@ data/
 hold/
 data/**/*.sqlite
 *.bat
+*.hold

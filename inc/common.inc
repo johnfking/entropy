@@ -346,7 +346,7 @@ sub set_control_num_range(bool _debug, string _variable, int _value, int _low, i
 		/call do_raw_edit ${_debug} SILENT "${_variable}" "${_value}"
 		/return TRUE
 	} else {
-		/invoke ${get_shade[FALSE, MQWindow]}
+		/invoke ${out[1, shade, 0]}
 		/if (${_low} == 0) {
 			/invoke ${out[0, "${notice}${sep}Control Range ${dot} ${info}${_low}\ax(\aroff\ax)${info} - ${_high}\ax"]}
 			/return FALSE
@@ -444,27 +444,6 @@ sub set_buffs_blocked(bool _debug, string _silent)
 	/invoke ${out[0, "Marking Blocked Buffs"]}
 
 /return
-
-
-
-|***
- * note: sarcasim. because, in general, people suck..
- * use: ${get_shade[DEBUG, [mqwindow|say]}
- ***|
-sub get_shade(bool _debug, string _out)
-	DEBUG \atget_shade\ax(\a-w${_out}\ax)
-	FLOW get_shade ${_out}
-
-	/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM shade ORDER BY RANDOM() LIMIT 1
-
-	/if (${_out.Equal[MQWindow]}) {
-		/echo \a-g${sqlite.Result[dummy 1 value]}\ax
-		| /invoke ${out[1, "\a-g${sqlite.Result[dummy 1 value]}\ax"]}
-	} else /if (${_out.Equal[say]}) {
-		/say ${sqlite.Result[dummy 1 value]}
-	}
-
-/return TRUE
 
 
 
@@ -1793,7 +1772,7 @@ sub set_stop(bool _debug, string _silent)
 	/invoke ${set_timer[${_debug}, wait_for_mob, 0]}
 
 	/if (${_silent.NotEqual[SILENT]}) {
-		/invoke ${out[0, "\a-rResetting\ax"]}
+		/invoke ${out[0, 0, 7]}
 	}
 
 	/if (${maHome.Find[swSnapStuck].Value}) {
@@ -1921,7 +1900,7 @@ sub check_xtarget_build(bool _debug, string _forced)
 
 	/if (!${Me.XTargetSlots}) /return
 	/if (!${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
-		/invoke ${get_shade[FALSE, MQWindow]}
+		/invoke ${out[1, shade, 0]}
 		/return
 	}
 
@@ -2969,7 +2948,7 @@ sub get_target_basepull(bool _debug, int _tmpID)
  * note: wait for mobs to get to you from a pull
  * use: /call get_target_wait DEBUG [TARGETID] [WAITTIME]
  ***|
- sub get_target_wait(bool _debug, int _tmpID, string _waittime)
+sub get_target_wait(bool _debug, int _tmpID, string _waittime)
 	DEBUG \atget_target_wait\ax(\a-w${_tmpID}, ${_waittime}\ax)
 	FLOW get_target_wait ${_tmpID} (1)
 
@@ -3201,8 +3180,8 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 
 				| we have no idea what this is!
 				} else {
-					/invoke ${out[0, "No idea wtf you put for stRangeOther but you 'dun fucked up."]}
-					/invoke ${out[0, "Turning pulling off. Go check your settings."]}
+					/invoke ${out[0, 0, 8]}
+					/invoke ${out[0, 0, 9]}
 
 					/varset _range 0
 				}
@@ -3595,7 +3574,6 @@ sub set_spell_to(bool _debug, bool _echo, string _spellname, string _spellgem, b
 		/declare _breakTimer timer local 5s
 	}
 
-
 	DEBUG _breakTimer${sep}\a-w${_breakTimer}\ax
 
 	| do we even have the spell?
@@ -3608,12 +3586,14 @@ sub set_spell_to(bool _debug, bool _echo, string _spellname, string _spellgem, b
 	/call get_gem_id FALSE "${_spellgem}"
 	/declare _gem int local ${Macro.Return}
 
-	/while (${Me.State.NotEqual[SIT]} && !${Me.Mount.ID}) {
+	/while (${Me.State.NotEqual[sit]} && !${Me.Mount.ID}) {
 		/sit
-		/delay 1s ${Me.State.Equal[SIT]}
+		/delay 1s ${Me.State.Equal[sit]}
 	}
 
-	/if (${_echo}) ${out[11, "Gem${_gem}${sep}\a-w${_spellname}\ax"]}
+	/if (${lsGrain.Contains[11]} && ${_echo}) {
+		OUT Gem${_gem}${sep}\a-w${_spellname}\ax
+	}
 
 	/while (!${_ready}) {
 		/memspell ${_gem} "${_spellname}"
@@ -4162,7 +4142,6 @@ sub set_zone_lists(bool _debug)
 		/invoke ${${_li.Value}.Clear}
 
 		/sqlite ${maData.Find[DBzone].Value} dummy SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}' and element='${_li.Value}'
-		| /echo ${sqlite.ResultCode[dummy]}
 
 		| /if (${sqlite.ResultCode[dummy]} != 0) {
 		| 	/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM sql_error WHERE env_var="${sqlite.ResultCode[dummy]}"
@@ -4252,13 +4231,13 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 
 	| error for add/delete
 	/if (${_variable.Left[2].Equal[ls]} && (!${Select[${_add_delete},add,delete,override]} && ${_value.NotEqual[clear]})) {
-		/invoke ${out[16, "${notice}${sep}\ar/edit\ax${sep}invalid list option${sep}\a-w[add|delete|clear]\ax"]}
+		/invoke ${out[16, 0, 10]}
 		/return FALSE
 	}
 
 	| errors for values
 	/if (!${_value.Length}) {
-		/invoke ${out[16, "${notice}${sep}\ar/edit\ax${sep}invalid value${sep}[\a-wname of thing|gem#|cursor|PREGEN\ax]"]}
+		/invoke ${out[16, 0, 11]}
 		/return FALSE
 	}
 
@@ -4295,7 +4274,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 	| set value as cursor
 	} else /if (${_value.Equal[cursor]}) {
 		/if (!${Cursor.ID}) {
-			/invoke ${out[16, "\a-wcursor\ax requires an object on your cursor"]}
+			/invoke ${out[16, ENTROPY, 12]}
 			/return FALSE
 		}
 		/varset _value ${Cursor.Name}
@@ -4478,7 +4457,6 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 		}
 
 	} else /if (${sqlite.Status[dummy].NotEqual[Success]}) {
-		| /invoke ${out[16, "${warning} \arERROR\ax${sep}\atdo_raw_edit\ax(\aw${_silent}, "${_variable}"", ${Parse[1,${_value}]}, ${_add_delete}, ${_verbage}\ax)"]}
 		/echo ${warning} \arERROR\ax${sep}\atdo_raw_edit\ax(\aw${_silent}, ${_variable}, ${Parse[1,${_value}]}, ${_add_delete}, ${_verbage}\ax)
 	}
 
@@ -4576,7 +4554,7 @@ sub set_control_chr_xtclass(bool _debug, string _verbage)
 	} else /if (${Bool[${_verbage}]} && ${lsClassAll.Contains[${_verbage.Upper}]}) {
 		/varset _verbage ${_verbage.Upper}
 	} else {
-		/invoke ${out[0, "\awusage\ax /heal xtclass [\a-wTarget\ax|\a-wClass ShortName\ax]"]}
+		/invoke ${out[0, 0, 13]}
 	}
 
 	/if (${lsClassAll.Contains[${_verbage}]}) {
@@ -4637,7 +4615,7 @@ sub check_zone_id(bool _debug, bool _force)
 
 		| check for mesh
 		/if (!${Navigation.MeshLoaded}) {
-			/invoke ${out[1, "${warning} NO Mesh for \a-w${Zone.ShortName}\ax"]}
+			/invoke ${out[1, 0, 14]}
 		}
 
 		| make it right with the world
@@ -4678,7 +4656,7 @@ sub check_expaa_adjust(bool _debug)
 
 	| set EXP cause we deaded too much
 	/if (${Me.Level} <= ${maEnv.Find[stLvlMax].Value} && ${Me.PctExp} <= ${maEnv.Find[stLvlPct].Value}) {
-		/invoke ${out[13, "EXP below maintain level${sep}\a-w${maEnv.Find[stLvlMax].Value}\ax${sep}\a-w${maEnv.Find[stLvlPct].Value}%\ax"]}
+		/invoke ${out[13, 0, 15]}
 		/alternateadv off
 
 	| set to AA cause the group healer is awesom
@@ -4710,11 +4688,11 @@ sub check_last_supper(bool _debug)
 
 	| eat, drink and be merry
 	/if (${FindItemCount[=${maEnv.Find[stFood].Value}]} && ${Me.Hunger} < 3000) {
-		/invoke ${out[0, "Hungry${sep}\a-w${maEnv.Find[stFood].Value}\ax"]}
+		/invoke ${out[0, 0, 16]}
 		/useitem "${maEnv.Find[stFood].Value}"
 	}
 	/if (${FindItemCount[=${maEnv.Find[stDrink].Value}]} && ${Me.Thirst} < 3000) {
-		/invoke ${out[0, "Thirsty${sep}\a-w${maEnv.Find[stDrink].Value}\ax"]}
+		/invoke ${out[0, 0, 17]}
 		/useitem "${maEnv.Find[stDrink].Value}"
 	}
 
@@ -4780,7 +4758,7 @@ sub set_tie(bool _debug)
 			}
 
 		} else /if (!${Navigation.MeshLoaded}) {
-			/invoke ${out[0, "NO Nav Mesh for this zone. Returning to Stick."]}
+			/invoke ${out[0, 0, 18]}
 			/call Bind_control_tc mode stick
 		}
 
@@ -4960,6 +4938,7 @@ sub check_buff_cycle_now(bool _debug)
 		/call voodoo ${_debug} "${maBuff.Find[stBuff${_licountself.Value}].Value}" ${_targetID} FALSE
 
 		/if (${lsBuff${_licountself.Value}Tag.Contains[autoinventory]}) {
+			/delay 2s ${Cursor.ID}
 			/call check_cursor ${_debug} CLEAR
 		}
 
@@ -5092,8 +5071,8 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
 	/if (${_force}) {
 		DEBUG ${sep}forced /cb${sep}\ao${_verbage}\ax
 		/declare _buffcycletimestart int local ${MacroQuest.Running}
-		/if (AUTO && !${maBuff.Find[swBuffMaster].Value}) {
-			/invoke ${out[0, "Master Buff Switch${sep}${off}"]}
+		/if (!${maBuff.Find[swBuffMaster].Value}) {
+			/invoke ${out[0, 0, 19]}
 		}
 	}
 
@@ -5371,7 +5350,7 @@ sub cast_yaulp(bool _debug)
 		/return FALSE
 	}
 
-	/if (!${Select[${Me.CombatState},combat,cooldown]}) {
+	/if (!${Select[${Me.CombatState},combat]}) {
 		DEBUG ${break}not in combat
 		/return FALSE
 	}
@@ -5467,14 +5446,10 @@ sub check_buff_cycle_ammo(bool _debug)
 			}
 		}
 
-| ${FindItemCount[${Spell[${FindItem[=${maBuff.Find[stBuff43].Value}].Spell}].Base[1]}]}
-| ${Spell[${FindItem[=${maBuff.Find[stBuff43].Value}].Spell}].Base[1]}
+		| ${FindItemCount[${Spell[${FindItem[=${maBuff.Find[stBuff43].Value}].Spell}].Base[1]}]}
+		| ${Spell[${FindItem[=${maBuff.Find[stBuff43].Value}].Spell}].Base[1]}
 
-| ${FindItemCount[${Spell[${FindItem[=${maBuff.Find[stBuff43].Value}].Spell}].Base[1]}]}
-
-
-
-
+		| ${FindItemCount[${Spell[${FindItem[=${maBuff.Find[stBuff43].Value}].Spell}].Base[1]}]}
 
 		| /if (${is_ready[${_debug}, "${maBuff.Find[stBuff${_count}].Value}"]}) {
 		| 	/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" 0 FALSE
@@ -5484,96 +5459,13 @@ sub check_buff_cycle_ammo(bool _debug)
 
 		| autoinventory?
 		/if (${lsBuff${_count}Tag.Contains[autoinventory]}) {
+			/delay 2s ${Cursor.ID}
 			/call check_cursor ${_debug} CLEAR
 		}
 
 	/next _count
 
 /return TRUE
-
-
-
-${Spell[${maBuff.Find[stBuff3].Value}].Base[1]}
-
-
-${Spell[${maBuff.Find[stBuff3].Value}].Trigger}
-
-
-${Spell[${FindItem[=Fresh Cookie Dispenser].Spell}].Base[1]}
-
-
-${FindItemCount[=${Spell[${maBuff.Find[stBuff3].Value}].Base[1]}]}
-
-
-${FindItem[=Icebound ShadowScale Leggings].Spell.Base[1]}
-
-${FindItem[=Huntsman's Ethereal Quiver].Spell.Base[1]}
-
-
-${Spell[${maBuff.Find[stBuff2].Value}].Trigger[1]}
-
-
-
-/while (${Select[${Me.Animation},42,43,27]}) {
-	/echo current animation is ${Me.Animation}
-	/keypress left hold
-	/keypress left
-	/echo pressed left
-	/delay 5
-}
-
-
-
-
-
-	/for _count 1 to ${Spell[${maBuff.Find[stBuff3].Value}].NumEffects}
-		DEBUG ${sep}_count${sep}\aw${_count}\ax${sep}\a-w${Spell[${_spell}].Trigger[${_count}]}\ax
-
-		| trigger
-		/if (${Me.Buff[${Spell[${_spell}].Trigger[${_count}].BaseName}].ID}) /continue
-
-		| stacks
-		/if (!${Spell[${_spell}].Trigger[${_count}].Stacks}) /continue
-
-		| do not have
-		/if (!${Me.Buff[${Spell[${_spell}].Trigger[${_count}]}].ID}) /varset _found FALSE
-		DEBUG ${sep}_found${sep}\a-w${_found}\ax
-
-		/if (!${_found}) /break
-	/next _count
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -5626,6 +5518,7 @@ sub check_buff_cycle_leg_poison(bool _debug)
 		}
 
 		/if (${lsBuff${_count}Tag.Contains[autoinventory]}) {
+			/delay 2s ${Cursor.ID}
 			/autoinventory
 		}
 
@@ -5767,6 +5660,7 @@ sub check_buff_cycle_self(bool _debug)
 		}
 
 		/if (${lsBuff${_count}Tag.Contains[autoinventory]}) {
+			/delay 2s ${Cursor.ID}
 			/autoinventory
 		}
 
@@ -6876,7 +6770,6 @@ sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
 
 	| mem to a specific gem?
 	/declare _count int local 0
-	| /echo here${sep}\a-w${_spell}\ax
 	/for _count 1 to 13
 
 		/if (${ls${_type}Tag.Contains[g${_count}]}) {
@@ -7226,15 +7119,19 @@ sub do_loot(bool _debug)
 
 	/invoke ${set_data_timer[FALSE, Check_Loot, RESTART]}
 
-	/if (${Stick.Active} || !${Me.FreeInventory} || !${Me.UseAdvancedLooting}) /return FALSE
+	/if (${Stick.Active} || !${Me.FreeInventory} || !${Me.UseAdvancedLooting} || ${AdvLoot.LootInProgress}) {
+		/return FALSE
+	}
 
 	| I am not the raid loot master /sigh
-	/if (${Raid.Members} && ${Raid.MasterLooter.ID} != ${Me.ID} && !${maOver.Find[swOverLoot].Value}) /return FALSE
-	/if (!${Raid.Members} && ${Group.Members} && ${Group.MasterLooter.ID} != ${Me.ID} && !${maOver.Find[swOverLoot].Value}) /return FALSE
+	/if (${Raid.Members} && ${Raid.MasterLooter.ID} != ${Me.ID} && !${maOver.Find[swOverLoot].Value}) {
+		/return FALSE
+	}
+	/if (!${Raid.Members} && ${Group.Members} && ${Group.MasterLooter.ID} != ${Me.ID} && !${maOver.Find[swOverLoot].Value}) {
+		/return FALSE
+	}
 
 	SETHUD "loot whoring"
-
-	/delay 2s !${AdvLoot.LootInProgress}
 
 	/declare _scount int local 0
 	/declare _pcount int local 0
@@ -7249,146 +7146,173 @@ sub do_loot(bool _debug)
 	| if we want to give it to someone else
 	/declare _advlPerson string local
 
-	/if (${Raid.Members} || ${Group.Members}) {
-		DEBUG ${sep}SHARED LOOT ${submenu} RAID${sep}\a-w${Raid.Members}\ax || GROUP${sep}\a-w${Group.Members}\ax
-		| Shared List Sorting
-		/for _scount ${AdvLoot.SCount} downto 1
-			/varset _advlItem ${AdvLoot.SList[${_scount}].Name}
+	| Shared List Sorting
+	/if ((${Raid.Members} || ${Group.Members}) && ${AdvLoot.SCount}) {
 
-			/if (${_advlItem.Equal[NULL]}) /break
+		/while (${AdvLoot.SCount}) {
+		| /for _scount ${AdvLoot.SCount} downto 1
+			| /varset _advlItem ${AdvLoot.SList[${_scount}].Name}
+			/varset _advlItem ${AdvLoot.SList[1].Name}
 
-			/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
-			DEBUG ${sep}lootquery SELECT * FROM loot_control WHERE item="${_advlItem}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
+			/if (${_advlItem.Equal[NULL]}) {
+				/continue
+			}
 
-			/if (${sqlite.Status[lootquery].NotEqual[Success]} || !${sqlite.Rows[lootquery]}) {
-				/varset _notfound TRUE
+			| get all the data for that item from loot file
+			/sqlite ${maData.Find[DBloot].Value} slootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
+			/if (!${sql_check[${_debug}, slootquery, loot_control, SELECT]}) /endm
 
-				DEBUG ${sep}${_advlItem}${sep}\a-w not in database\ax
-				/if (${AdvLoot.SList[${_scount}].NoDrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
-					/invoke ${out[14, "${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]"]}
-					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
-					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave") \ay${sqlite.Status[lootquery]}\ax
+			| if we did not find the item?
+			/if (!${sqlite.Rows[slootquery]}) {
+
+				/invoke ${out[14 "${sep}${_advlItem}${sep}\a-w not in database\ax" 0]}
+				/if (${AdvLoot.SList[1].NoDrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
+					/invoke ${out[14 "${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]" 0]}
+					/sqlite ${maData.Find[DBloot].Value} slootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
+					/if (!${sql_check[${_debug}, slootquery, loot_control, "INSERT INTO"]}) /endm
+
 				} else {
-					/if (${lsGrain.Contains[14]}) {
-					 	OUT ${add} ${dot} ${_advlItem} = ${keep} [default]
-					}
-					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep")
-					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep") \ay${sqlite.Status[lootquery]}\ax
+					/invoke ${out[14 "${add} ${dot} ${_advlItem} = ${keep} [default]" 0]}
+
+					/sqlite ${maData.Find[DBloot].Value} slootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep")
+					/if (!${sql_check[${_debug}, slootquery, loot_control, "INSERT INTO"]}) /endm
 				}
+
+				| reload lootquery
+				/sqlite ${maData.Find[DBloot].Value} slootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
+				/if (!${sql_check[${_debug}, slootquery, loot_control, SELECT]}) /endm
+
 			}
 
-			| reload data if item was not found and we changed its status
-			/if (${_notfound}) {
-				/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
-				DEBUG ${sep}RELOADING${sep}]lootquery SELECT * FROM loot_control WHERE item="${_advlItem}" \ay${sqlite.Status[lootquery]}\ax
-				/varset _notfound FALSE
-			}
-
-			/varset _advlChoice ${sqlite.Result[lootquery 1 action]}
-			DEBUG ${sep}_advlChoice${sep}\a-w${sqlite.Result[lootquery 1 action]}\ax
-			/varset _advlPerson ${sqlite.Result[lootquery 1 pass]}
-			DEBUG ${sep}_advlPerson${sep}\a-w${sqlite.Result[lootquery 1 pass]}\ax
+			| set our actions
+			/varset _advlChoice ${sqlite.Result[slootquery 1 action]}
+			/varset _advlPerson ${sqlite.Result[slootquery 1 pass]}
 
 			| now we do something with the item.
-
 			| if we are going to leave the item or if it is lore AND we have one already. Conversly, we loot if we intend to keep or destroy the item
 			| pass the item off if there is a person listed and in group
 			/if (${Bool[${_advlPerson}]} && ${Group.Member[${_advlPerson}].ID}) {
 				/delay 1s !${AdvLoot.LootInProgress}
-				/if (!${AdvLoot.LootInProgress}) /advloot shared ${_scount} giveto ${_advlPerson}
-				DEBUG ${sep}Passing to${sep}\a-w${_advlPerson}\ax
-				/delay 1
+				/if (${AdvLoot.SList[1].ID}) {
+					DEBUG ${sep}Passing to${sep}\a-w${_advlPerson}\ax
+					/delay 1
+					/advloot shared 1 giveto ${_advlPerson}
+				}
 
 			| ditch the item if we need too
 			} else /if (${Select[${_advlChoice},leave]} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
-				/if (${Select[${_advlChoice},Announce]}) ${out[14, "Loot Leaving${sep}\a-w${_advlItem}\ax"]}
+				/if (${Select[${_advlChoice},Announce]}) ${out[14 "Loot Leaving${sep}\a-w${_advlItem}\ax" 0]}
 				/delay 1s !${AdvLoot.LootInProgress}
-				/if (!${AdvLoot.LootInProgress}) /advloot shared ${_scount} leave
-				DEBUG ${sep}Leaving${sep}\a-w${_advlItem}\ax
-				/delay 1
-				/continue
+				/if (${AdvLoot.SList[1].ID}) {
+					DEBUG ${sep}Leaving${sep}\a-w${_advlItem}\ax
+					/advloot shared 1 leave
+					/delay 1
+					/return TRUE
+				}
 
 			| or we keep it.
-			} else /if (${AdvLoot.SList[${_scount}].ID}) {
+			} else /if (${AdvLoot.SList[1].ID}) {
 				/if (${Select[${_advlChoice},keep,destroy,sell]}) {
 					/delay 1s !${AdvLoot.LootInProgress}
-					| /if (!${AdvLoot.LootInProgress})
-					/advloot shared ${_scount} giveto ${Me.Name}
-					DEBUG ${sep}Keeping for next step${sep}\a-w${_advlItem}\ax
-					/delay 1
+					/if (${AdvLoot.SList[1].ID}) {
+						DEBUG ${sep}Moving to PList${sep}\a-w${_advlItem}\ax
+						/delay 1
+						/advloot shared 1 giveto ${Me.Name}
+						/delay 1s !${AdvLoot.LootInProgress}
+					}
 				}
 			}
-		/next _scount
+		}
+		| /next _scount
+		/return TRUE
 	}
 
 	| Personal List sorting. ALSO for solo killing
 	/if (${AdvLoot.PCount}) {
 		DEBUG ${sep}PERSONAL LOOT ${submenu}
-		/for _pcount ${AdvLoot.PCount} downto 1
-			/varset _advlItem ${AdvLoot.PList[${_pcount}].Name}
 
-			/if (${_advlItem.Equal[NULL]}) /break
-			DEBUG ${sep}personal${sep}${_pcount}${sep}${AdvLoot.PList[${_pcount}].Name}
+		/while (${AdvLoot.PCount}) {
 
-			/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
-			DEBUG ${sep}lootquery SELECT * FROM loot_control WHERE item="${_advlItem}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
+			/varset _advlItem ${AdvLoot.PList[1].Name}
 
-			/if (${sqlite.Status[lootquery].NotEqual[Success]} || !${sqlite.Rows[lootquery]}) {
-				/varset _notfound TRUE
-				DEBUG ${sep}${_advlItem}${sep}\a-wnot in database\ax
-				/if (${AdvLoot.SList[${_scount}].Nodrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
-					/invoke ${out[0, "${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]"]}
-					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
-					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave") \ay${sqlite.Status[lootquery]}\ax
+			/if (${_advlItem.Equal[NULL]}) {
+				/return TRUE
+			}
+
+			DEBUG ${sep}personal${sep}1${sep}${AdvLoot.PList[1].Name}
+			/mqp
+
+			/sqlite ${maData.Find[DBloot].Value} plootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
+			/if (!${sql_check[${_debug}, plootquery, loot_control, SELECT]}) /endm
+
+			/if (!${sqlite.Rows[plootquery]}) {
+				/invoke ${out[14 "${sep}${_advlItem}${sep}\a-w not in database\ax" 0]}
+
+				/if (${AdvLoot.SList[1].Nodrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
+					/invoke ${out[14 "${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]" 0]}
+					/sqlite ${maData.Find[DBloot].Value} plootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
+					/if (!${sql_check[${_debug}, plootquery, loot_control, "INSERT INTO"]}) /endm
+
 				} else {
-					/if (${lsGrain.Contains[14]}) {
-						OUT ${add} ${dot} ${_advlItem} = ${keep} [default]
-					}
-					/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep")
-					DEBUG ${sep}lootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep") \ay${sqlite.Status[lootquery]}\ax
+					/invoke ${out[14 "${add} ${dot} ${_advlItem} = ${keep} [default]" 0]}
+					/sqlite ${maData.Find[DBloot].Value} plootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep")
+					/if (!${sql_check[${_debug}, plootquery, loot_control, "INSERT INTO"]}) /endm
+
 				}
+				/delay 5
+				| reload lootquery
+				/sqlite ${maData.Find[DBloot].Value} plootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
+				/if (!${sql_check[${_debug}, plootquery, loot_control, SELECT]}) /endm
+
 			}
 
-			| reload data if item was not found and we changed its status
-			/if (${_notfound}) {
-				/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
-				DEBUG ${sep}RELOADING${sep}]lootquery SELECT * FROM loot_control WHERE item="${_advlItem}" \ay${sqlite.Status[lootquery]}\ax
-				/varset _notfound FALSE
-			}
+			/varset _advlChoice ${sqlite.Result[plootquery 1 action]}
+			DEBUG ${sep}_advlChoice${sep}\a-w${sqlite.Result[plootquery 1 action]}\ax
 
-			/varset _advlChoice ${sqlite.Result[lootquery 1 action]}
-			DEBUG ${sep}_advlChoice${sep}\a-w${sqlite.Result[lootquery 1 action]}\ax
-
-
-			/if (${AdvLoot.PList[${_pcount}].ID}) {
+			/if (${AdvLoot.PList[1].ID}) {
 				/if (${Select[${_advlChoice},ignore,leave]} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
-					DEBUG ${sep}${_advlChoice}
-					/invoke ${out[14, "Leaving${sep}\a-w${_advlItem}\ax"]}
-					/delay 1s !${AdvLoot.LootInProgress}
-					/if (!${AdvLoot.LootInProgress}) /advloot personal ${_pcount} leave
-				} else /if (${Select[${_advlChoice},keep,sell]}) {
-					DEBUG ${sep}${_advlChoice}
+					/invoke ${out[14  "Leaving${sep}\a-w${_advlItem}\ax" 0]}
 					/delay 2s !${AdvLoot.LootInProgress}
-					/advloot personal ${_pcount} loot
-					/delay 1
+					/if (${AdvLoot.SList[1].ID}) {
+						DEBUG ${sep}Leaving${sep}\a-w${_advlItem}\ax
+						/delay 1
+						/advloot personal 1 leave
+						/delay 1s !${AdvLoot.LootInProgress}
+					}
+
+				} else /if (${Select[${_advlChoice},keep,sell]}) {
+					/delay 1s !${AdvLoot.LootInProgress}
+					/if (${AdvLoot.SList[1].ID}) {
+						DEBUG ${sep}Moving to Inventory${sep}\a-w${_advlItem}\ax
+						/delay 1
+						/advloot personal 1 loot
+						/delay 1s !${AdvLoot.LootInProgress}
+					}
+					/delay 5
 					/if (${Window[ConfirmationDialogBox].Open}) {
 						/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
 						/delay 1
 					}
+
 				} else /if (${Select[${_advlChoice},destroy]}) {
-					DEBUG ${sep}${_advlChoice}
 					/delay 1s !${AdvLoot.LootInProgress}
-					/advloot personal ${_pcount} loot
-					/delay 1s !${AdvLoot.LootInProgress}
+					/if (${AdvLoot.SList[1].ID}) {
+						DEBUG ${sep}Moving to Inventory to destroy${sep}\a-w${_advlItem}\ax
+						/delay 1
+						/advloot personal 1 loot
+						/delay 1s !${AdvLoot.LootInProgress}
+					}
+
 					/delay 5
 					/if (${FindItem[=${_advlItem}].ID}) {
+
 
 | I'M SERIOUSLY SICK OF FIXING THIS delete code.
 						/while (${FindItem[=${_advlItem}].ID}) {
 							/delay 5
 							/nomodkey /shift /itemnotify in Pack${Math.Calc[${FindItem[=${_advlItem}].ItemSlot}-22]} ${Math.Calc[${FindItem[=${_advlItem}].ItemSlot2}+1]} leftmouseup
 
-							/invoke ${out[14, "Destroying${sep}\a-w${_advlItem}\ax"]}
+							/invoke ${out[14  "Destroying${sep}\a-w${_advlItem}\ax" 0]}
 							/nomodkey /destroy
 
 							/call check_cursor ${_debug} CLEAR
@@ -7399,9 +7323,10 @@ sub do_loot(bool _debug)
 							/delay 3 !${Cursor.ID}
 						}
 | evil delete code end...
+
 					}
 				}
-			/next _pcount
+			}
 		}
 	}
 
@@ -9056,10 +8981,10 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 	FLOW pull_mob_move_to ${_tmpID}|${_dist}|${_LoS} (1)
 
 	/nav ID ${_tmpID} |distance=${_dist} lineofsight=${_LoS} log=off
-	/delay 1s ${Me.Moving}
+	/delay 1s ${Navigation.Active}
 
+	DEBUG ${sep}moving to${sep}\a-w${_tmpID}\ax
 	/while (${Navigation.Active}) {
-		DEBUG ${sep}moving to${sep}\a-w${_tmpID}\ax
 
 		| am I dead on the move
 		/if (${is_me_dead[${maDebug.Find[rez].Value}]}) {
@@ -9077,26 +9002,35 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 
 		| are we there yet???
 		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]} > ${_dist} && !${Spawn[${_tmpID}].LineOfSight}) {
-			DEBUG ${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]} > ${_dist} && !${Spawn[${_tmpID}].LineOfSight}
+			DEBUG ${sep}dis check${sep}\a-w${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]} > ${_dist} && !\arLOS\ax
 			/delay 5
 		}
+
+		| hell yah.. were here
+		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]} < ${_dist} && ${Spawn[${_tmpID}].LineOfSight}) {
+			DEBUG ${sep}dis \arHALT\ax${sep}\a-w${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]} < \ag${_dist}\ax && \agLOS\a-w
+			/nav stop |log=off
+			/return TRUE
+		}
+
 
 		| range from camp check
 		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} > PULLENV && !${swModeToken}) {
 			DEBUG Mob exceeded setMobAGro range
 			/varset _tmpID 0
-			/return
+			/return TRUE
 		}
 
 		| mobs in our personal space. fuck those things. no respect
 		/if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
 			DEBUG ${break}mob in environment space
-			/invoke ${out[9, "Resetting target to${sep}\a-w${NearestSpawn[1, npc radius ENV].DisplayName}\ax"]}
+			/invoke ${out[9, 0, 26]}
 			/invoke ${target[clear]}
 			/varset _tmpID ${NearestSpawn[1, npc radius SAFEENV PS4 targetable].ID}
 			/return TRUE
 		}
 
+		|**
 		GETINPUT pull_mob_move_to _tmpID|${_tmpID}
 		/if (!${_tmpID}) {
 			/call set_stop ${maDebug.Find[stop].Value} SILENT
@@ -9105,6 +9039,9 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 		/if (${Macro.Return}) {
 			/break
 		}
+
+		**|
+		/delay 5
 	}
 
 /return TRUE
@@ -9131,8 +9068,6 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	}
 
 
-	/declare _count int local 0
-
 	/if (!PULL) {
 		/call set_pull_observer ${_debug}
 	}	else {
@@ -9152,7 +9087,9 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	/invoke ${target[set, ${_tmpID}]}
 	FLOW get_target_petpull ${_tmpID}
 
-	/invoke ${set_timer[${_debug}, timer_giveUpPull, 30s]}
+
+
+	| /invoke ${set_timer[${_debug}, timer_giveUpPull, 30s]}
 
 	DEBUG ${sep}target${sep}\ay${_tmpID}\ax${sep}\aw${Spawn[${_tmpID}].DisplayName}\ax ${sep} dist:\a-w${Spawn[${_tmpID}].Distance}\ax
 
@@ -9171,32 +9108,74 @@ sub get_target_petpull(bool _debug, int _tmpID)
 		/call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
 	}
 
-	/declare _melee float local ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
+	/declare _targetmelee float local ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
 
 	| get closer if we need too
 	/if (${Spawn[${_tmpID}].Distance} > ${maHard.Find[stMaxRadPet].Value}) {
 		/call pull_mob_move_to ${_debug} ${_tmpID} ${maCC.Find[stPullNavStopDistance].Value} off
-		/if (!${timer_giveUpPull}) /goto :timerfail
 	}
 
-	/while (${Me.Moving}) {
-		/delay 2
-	}
+	| we set the pet to mob timer based off total distance you have to run to the mob + a buffer good good measure.
+	| pet pathing is shit and for longer pulls need the longer wait time
+	/declare _waitforstupidpet int local ${Math.Calc[(${Math.Distance[${Spawn[${_tmpID}].Y}, ${Spawn[${_tmpID}].X}, ${Spawn[${_tmpID}].Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} /10) + 10]}
+	/invoke ${set_timer[${_debug}, timer_waitforstupidpet, ${_waitforstupidpet}s]}
 
-	/delay 10s ${Me.Pet.Distance} < ENV
-	/pet attack
 
-	/while (${Math.Distance[${Me.Pet.Y},${Me.Pet.X}:${Spawn[${_tmpID}].Y},${Spawn[${_tmpID}].X}]} > ${_melee}) {
-		/if (!${Spawn[id ${_tmpID}].ID} || ${Spawn[id ${_tmpID}].Dead}) /break
+	| /while (${Math.Distance[${Me.Pet.Y},${Me.Pet.X}:${Spawn[${_tmpID}].Y},${Spawn[${_tmpID}].X}]} > ${_targetmelee}) {
+	/while (TRUE) {
+
+		CHECKDEAD
+		GETINPUT get_target_petpull_range _targetmelee|${_targetmelee}
+
 		/pet attack
-		| /delay 5
-		DEBUG ${sep}waiting on pet to get to target${sep}\a-w${Math.Distance[${Me.Pet.Y},${Me.Pet.X}:${Spawn[${_tmpID}].Y},${Spawn[${_tmpID}].X}]}\ax
-		/delay 1s ${Math.Distance[${Me.Pet.Y}, ${Me.Pet.X}, ${Me.Pet.Z} : ${Spawn[${_tmpID}].Y}, ${Spawn[${_tmpID}].X}, ${Spawn[${_tmpID}].Z}]} > ${_melee}
-		| /delay 5
-		/if (${Target.AggroHolder.Name.Equal[${Me.Pet.Name}]}) /break
-		/if (!${Me.Pet.ID} || !${_tmpID}) /break
-		GETINPUT get_target_petpull_range _melee|${_melee}
-		/if (!${timer_giveUpPull}) /goto :timerfail
+
+		/if (!${Spawn[id ${_tmpID}].ID} || ${Spawn[id ${_tmpID}].Dead}) {
+			/invoke ${out[9, 0, 27]}
+			/break
+		}
+
+		| once pet has agro get out
+		/if (${Target.AggroHolder.Name.Equal[${Me.Pet.Name}]}) {
+			/invoke ${out[9, 0, 28]}
+			/break
+		}
+
+		| /if (${SpawnCount[npc radius SAFEENV PS4 targetable]} || ${NearestSpawn[1, npc radius ENV].ID} != ${_tmpID}) {
+		/if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
+			/invoke ${out[9, 0, 29]}
+			/break
+		}
+
+		| wait for pet to get to meele range of the mob
+		/delay 5 ${Math.Distance[${Me.Pet.Y}, ${Me.Pet.X}, ${Me.Pet.Z} : ${Spawn[${_tmpID}].Y}, ${Spawn[${_tmpID}].X}, ${Spawn[${_tmpID}].Z}]} < ${_targetmelee}
+		DEBUG ${sep}waiting on pet to get to target${sep}\a-w${Math.Distance[${Me.Pet.Y},${Me.Pet.X}:${Spawn[${_tmpID}].Y},${Spawn[${_tmpID}].X}]} range\ax
+		/delay 5
+
+
+		/if (!${Me.Pet.ID}) {
+			/invoke ${out[9, 0, 30]}
+			/break
+		}
+
+		/if (${Me.XTHaterCount} && ${Target.AggroHolder.Name.NotEqual[${Me.Pet.Name}]}) {
+			/invoke ${out[9, 0, 31]}
+			/break
+		}
+
+		/if (!${timer_waitforstupidpet}) {
+			/invoke ${out[9, 0, 32]}
+			/break
+		}
+
+	}
+
+	/if (!${timer_waitforstupidpet}) {
+		/call where_the_fuck_is_my_pet ${maDebug.Find[lost].Value} TRUE
+		SETHUD EMPTY
+		/if (HOME) {
+			/call Bind_control_home return FALSE silent ${maDebug.Find[home].Value}
+		}
+		/return FALSE
 	}
 
 	/call where_the_fuck_is_my_pet ${maDebug.Find[lost].Value} FALSE
@@ -9204,27 +9183,16 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	/if (HOME) {
 		/call Bind_control_home return FALSE silent ${maDebug.Find[home].Value}
 	}
-	/if (!${timer_giveUpPull}) /goto :timerfail
 
 	| wait for mob to get to camp
-	:waitformob
-
-	/declare _waittime int local ${Math.Calc[(PULLENV + ${Spawn[${_tmpID}].Distance})*.08]}
-	/call get_target_wait ${maDebug.Find[wait].Value} ${_tmpID} ${_waittime}s
-
-	:timerfail
-	/if (!${timer_giveUpPull}) {
-		| /invoke ${out[9, "${notice} ${dot} Timer to get mob failed!"]}
-		/call where_the_fuck_is_my_pet ${maDebug.Find[lost].Value} TRUE
-		/if (HOME) {
-			/call Bind_control_home return FALSE silent ${maDebug.Find[home].Value}
-		}
-	}
-
+	/call get_target_wait ${maDebug.Find[wait].Value} ${_tmpID} ${_waitforstupidpet}s
 	SETHUD EMPTY
 
 /return
 
+${Me.XTCount}
+${Me.XTHaterCount}
+${Me.XTAggroCount[100]}
 
 
 |***
@@ -9287,7 +9255,6 @@ sub get_target_navpull(bool _debug, int _tmpID)
 		/return
 
 	| get closer if we need too
-	| } else /if (${Spawn[${_tmpID}].Distance} > ${maCC.Find[stPullNavStopDistance].Value} || (${Spawn[${_tmpID}].Distance} <= ${maCC.Find[stPullNavStopDistance].Value} && !${Spawn[${_tmpID}].LineOfSight})) {
 	} else {
 		DEBUG ${sep}Sight:${Spawn[${_tmpID}].LineOfSight} ${dot} Distance:${Spawn[${_tmpID}].Distance} ?? ${maCC.Find[stPullNavStopDistance].Value}
 		/call pull_mob_move_to ${_debug} ${_tmpID} ${maCC.Find[stPullNavStopDistance].Value} on
@@ -9635,15 +9602,39 @@ sub get_name_multipull(bool _debug, string _groupList)
 
 |***
  * note: outputs based by a verbosity lvl
- * use: ${out[reqlvl#, "string to output to MQ window"]}
- ***|
-sub out(int _lvl, string _verbage)
+ * use: ${out[reqlvl#, [string to output|EMPTY/0|SHADE|FORCED], ##]}
+ * _verbage options
+ * forced = forces the output no matter what
+ * shade = snarky replys. grain is aplied
+ * empty/0 = only use the DB ## for the output
+  ***|
+sub out(int _lvl, string _verbage, int _strNum)
 
-	/if (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0) {
+	| forced output, no validation for grain
+	/if (${_verbage.Equal[forced]}) {
+		/sqlite ${maData.Find[DBstatic].Value} getstring SELECT value FROM string WHERE env_var='${_strNum}'
+		/if (!${sql_check[FALSE, getstring, out, SELECT]}) /endm
+		/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${sqlite.Result[getstring 1 value]}
+
+	| shade output. grain validation
+	} else /if (${_verbage.Equal[shade]} && (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0)) {
+		/sqlite ${maData.Find[DBstatic].Value} getshade SELECT * FROM shade ORDER BY RANDOM() LIMIT 1
+		/if (!${sql_check[FALSE, getshade, out, SELECT]}) /endm
+		/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${sqlite.Result[getshade 1 value]}
+
+	| output grain validation
+	} else /if (${Range.Between[1,99999:${Int[${_strNum}]}]} && (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0)) {
+		/sqlite ${maData.Find[DBstatic].Value} getstring SELECT value FROM string WHERE env_var='${_strNum}'
+		/if (!${sql_check[FALSE, getstring, out, SELECT]}) /endm
+		/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${sqlite.Result[getstring 1 value]}
+
+	| output grain validation with passed verbage
+	} else /if (!${Range.Between[1,99999:${Int[${_strNum}]}]} && (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0)) {
 		/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${_verbage}
+
 	}
 
-/return
+/return FALSE
 
 
 
@@ -10694,7 +10685,6 @@ sub control_ttl(bool _debug, string _verbage, string _mob)
 			/declare _mobcount int local 1
 			/invoke ${maTTL.Add[${_mob},${_mobcount}|1]}
 		}
-		| /echo ${_mob},${_mobcount}
 		/return TRUE
 
 	| set the things to the things for all of the things that the things need
@@ -12409,3 +12399,164 @@ sub check_buff_cycle_aura(bool _debug, int _tmpID, string _tag)
 
 
 
+
+
+
+|***
+ *  DES: Engages a merc based off curent control scructure
+ *  USE: /call merc_control
+ *	NOTE:
+
+ ${Mercenary.StateID}'s
+ SUSPENDED (ID:1)
+ ACTIVE (ID:5)
+ DEAD (ID: )
+ COMBAT (ID: )
+
+/invoke ${set_data_timer[FALSE, Check_Alliance, 6s]}
+and
+to restart the timer weould be
+/invoke ${set_data_timer[FALSE, Check_Alliance, RESTART]}
+
+ ${Mercenary.Stance}'s
+ Rogue   : Passive, Balanced, Burn
+ Warrior : Passive, Assist, Aggressive
+ Cleric  : Passive, Balanced, Reactive, Effecient
+ Wizard  : Passive, Balanced, Burn, Burn AE
+${maMercenary.Find[stMercenaryClass].Value}
+ ***|
+sub merc_summon(bool _debug)
+	DEBUG merc_summon()
+
+	/declare _tempnum int local 0
+
+	/if (!MERCENARY || ${Raid.Members}) /return FALSE
+
+	/if (${Group.GroupSize} > 5) {
+		/nomodkey /notify MMGW_ManageWnd MMGW_SuspendButton leftmouseup
+	}
+
+	/if (${maMercenary.Find[swMercenary].Value} && ${Select[${Mercenary.State},nomerc]}) {
+		/invoke ${out[1, shade, 0]}
+		/return
+	}
+
+	/if (${Select[${maMercenary.Find[stMercenaryClass].Value},CLR,ROG,WIZ,WAR]} && ${Mercenary.State.Equal[suspended]} && (${Window[MMGW_ManageWnd].Child[MMGW_SuspendButton].Text.Equal[Revive]} || ${Window[MMGW_ManageWnd].Child[MMGW_SuspendButton].Text.Equal[Unsuspend]})) {
+		/if (${maMercenary.Find[stMercenaryClass].Value.Equal[CLR]}) {
+			/varset _tempnum ${Me.MercListInfo[healer]}
+			/invoke ${out[26, 0, 25]}
+			/notify MMGW_ManageWnd MMGW_OwnedListBox listselect ${_tempnum}
+			/nomodkey /notify MMGW_ManageWnd MMGW_SuspendButton leftmouseup
+		} else /if (${maMercenary.Find[stMercenaryClass].Value.Equal[ROG]}) {
+			/varset _tempnum ${Me.MercListInfo[damage melee]}
+			/invoke ${out[26, 0, 22]}
+			/notify MMGW_ManageWnd MMGW_OwnedListBox listselect ${_tempnum}
+			/nomodkey /notify MMGW_ManageWnd MMGW_SuspendButton leftmouseup
+		} else /if (${maMercenary.Find[stMercenaryClass].Value.Equal[WIZ]}) {
+			/varset _tempnum ${Me.MercListInfo[damage caster]}
+			/invoke ${out[26, 0, 23]}
+			/notify MMGW_ManageWnd MMGW_OwnedListBox listselect ${_tempnum}
+			/nomodkey /notify MMGW_ManageWnd MMGW_SuspendButton leftmouseup
+		} else /if (${maMercenary.Find[stMercenaryClass].Value.Equal[WAR]}) {
+			/varset _tempnum ${Me.MercListInfo[tank]}
+			/invoke ${out[26, 0, 24]}
+			/notify MMGW_ManageWnd MMGW_OwnedListBox listselect ${_tempnum}
+			/nomodkey /notify MMGW_ManageWnd MMGW_SuspendButton leftmouseup
+		}
+	}
+
+	/if (MERCENARY && ${Select[${Mercenary.State},dead,suspended]}) {
+		/if (${Mercenary.State.Equal[SUSPENDED]}) {
+			/if (!${Window[MMGW_ManageWnd].Child[MMGW_SuspendButton].Text.Equal[Revive]} && ${Window[MMGW_ManageWnd].Child[MMGW_SuspendButton].Text.Equal[Unsuspend]}) {
+				/return FALSE
+			}
+			/nomodkey /notify MMGW_ManageWnd MMGW_SuspendButton leftmouseup
+		} else /if (${Mercenary.State.Equal[DEAD]}) {
+			/if (${Window[MMGW_ManageWnd].Child[MMGW_SuspendButton].Text.Equal[Revive]} && !${Window[MMGW_ManageWnd].Child[MMGW_SuspendButton].Text.Equal[Unsuspend]}) {
+				/return FALSE
+			}
+			/nomodkey /notify MMGW_ManageWnd MMGW_SuspendButton leftmouseup
+		} else /if (!${Window[MMGW_ManageWnd].Child[MMGW_SuspendButton].Text.Equal[Revive]} && !${Window[MMGW_ManageWnd].Child[MMGW_SuspendButton].Text.Equal[Unsuspend]}) {
+			/echo Merc timer need to wait
+			/invoke ${set_timer[FALSE, Check_Merc, ${Window[MMGW_ManageWnd].Child[MMGW_SuspendButton].Text}]}
+		}
+	}
+
+	/if (!COMBAT && !${Target.ID} && ${Me.MercenaryStance.NotEqual[Passive]}) {
+		/stance Passive
+		/return FALSE
+	}
+
+/return TRUE
+
+
+
+
+
+
+sub merc_control(bool _debug)
+	DEBUG merc_control()
+	| manual mode
+	/if (!AUTO) {
+		/if (!COMBAT && !${Target.ID} && ${Me.MercenaryStance.NotEqual[Passive]}) {
+			/stance Passive
+			/return FALSE
+		}
+		/if (${Target.ID}) {
+			/if (${Target.ID} == ${_tmpID} && ${Me.MercenaryStance.NotEqual[Passive]}) {
+				/stance Passive
+				/return FALSE
+			}
+			/if (COMBAT) {
+				/if (BURN) {
+					/if (${Select[${Mercenary.Class.ShortName},ROG,WIZ]}) {
+						/if (${Me.MercenaryStance.NotEqual[Burn]}) /stance Burn
+					} else /if (${Select[${Mercenary.Class.ShortName},WAR]}) {
+						/if (${Me.MercenaryStance.NotEqual[Aggressive]}) /stance Aggressive
+					} else /if (${Select[${Mercenary.Class.ShortName},CLR]}) {
+						/if (${Me.MercenaryStance.NotEqual[Reactive]}) /stance Reactive
+					}
+				} else {
+					/if (${Select[${Mercenary.Class.ShortName},ROG,WIZ,CLR]}) {
+						/if (${Me.MercenaryStance.NotEqual[Balanced]}) /stance Balanced
+					} else /if (${Select[${Mercenary.Class.ShortName},WAR]}) {
+						/if (${Me.MercenaryStance.NotEqual[Assist]}) /stance Assist
+					}
+				}
+			}
+			/return TRUE
+		} else /if (!${Target.ID}) {
+			/if ((COMBAT || VALID) && ${Me.MercenaryStance.NotEqual[Passive]}) /stance Passive
+			/return FALSE
+		}
+
+	| automatic mode
+	} else /if (AUTO) {
+		/if (!VALID) {
+			/if (${Me.MercenaryStance.NotEqual[Passive]}) /stance Passive
+			/return FALSE
+		} else /if (VALID) {
+			/if (BURN) {
+				/if (${Select[${Mercenary.Class.ShortName},ROG,WIZ]}) {
+					/if (${Me.MercenaryStance.NotEqual[Burn]}) /stance Burn
+				} else /if (${Select[${Mercenary.Class.ShortName},WAR]}) {
+					/if (${Me.MercenaryStance.NotEqual[Aggressive]}) /stance Aggressive
+				} else /if (${Select[${Mercenary.Class.ShortName},CLR]}) {
+					/if (${Me.MercenaryStance.NotEqual[Reactive]}) /stance Reactive
+				}
+			} else {
+				/if (${Select[${Mercenary.Class.ShortName},ROG,WIZ,CLR]}) {
+					/if (${Me.MercenaryStance.NotEqual[Balanced]}) /stance Balanced
+				} else /if (${Select[${Mercenary.Class.ShortName},WAR]}) {
+					/if (${Me.MercenaryStance.NotEqual[Assist]}) /stance Assist
+				}
+			}
+		}
+	}
+
+	/if (SAFEZONE) {
+		/if (${Me.MercenaryStance.NotEqual[Passive]}) /stance Passive
+		/return FALSE
+	}
+
+/return TRUE

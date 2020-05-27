@@ -141,7 +141,7 @@ sub main_PAL(bool _debug)
 			/call check_heal_routines
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/if (MELEE) /call do_melee FALSE TARGET
+			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET

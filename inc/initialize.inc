@@ -326,6 +326,7 @@ sub set_initial_environment(bool _debug)
   /invoke ${set_data_timer[FALSE, Check_Target, 5s]}
   /invoke ${set_data_timer[FALSE, Check_Watch, 5s]}
   /invoke ${set_data_timer[FALSE, Check_Alliance, 6s]}
+  /invoke ${set_data_timer[FALSE, Check_Mercenary, 1s]}
 
   | wait time for pulling
   /invoke ${set_timer[FALSE, wait_for_mob, 0]}
