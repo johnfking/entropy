@@ -419,6 +419,8 @@ sub mode_harvest(bool _debug)
 
 
 
+
+
 |***
  *	DES: moves to the ground item and picks it up
  *	USE: /call get_ground_harvest DEBUG [ITEM NAME]
@@ -456,6 +458,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
 	/while (${_count} <= ${GroundItemCount}) {
 		/if (${_item.DisplayName.Find[${_tmpItem}]}) {
 			DEBUG ${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}${sep}\a-wlocyxz ${_item.Y} ${_item.X} ${_item.Z}\ax
+
 			/if (${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}) {
 				/if (${_item.Distance} < ${_distfinal}) {
 					DEBUG ${_count}/${GroundItemCount} -- ${_item.DisplayName}\ax${sep}Path-\a-w${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}\ax${sep}dis-\a-w${_item.Distance}\ax

@@ -166,6 +166,21 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 			OUT /admin sqldrop TABLE FIELD
 		}
 
+
+
+ 	| see output resonses from database (strings)
+	} else /if (${_type.Equal[out]}) {
+
+		/if (!${Bool[${_verbage}]}) {
+			OUT usage: /admin out ## (## is the DB key for the string output)
+				/return FALSE
+		}
+
+		/echo
+		/invoke ${out[0, 0, ${_verbage}]}
+		/echo
+		/return
+
 	| look for a column in a table
 	} else /if (${_type.Equal[sqlcol]}) {
 
@@ -373,7 +388,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 	/if (${_silent.Equal[SILENT]}) /return
 	/declare liout list local
-	/invoke ${liout.Append[checkvar,spa,whitewash,import,keymap,see,sqlcheck,sqldrop]}
+	/invoke ${liout.Append[checkvar,spa,whitewash,import,keymap,see,sqlcheck,sqldrop,out]}
   /declare _out string local
   /declare _liadout listiterator local
 	/vardata _liadout liout.First.Clone
@@ -1155,7 +1170,6 @@ sub Bind_command_beg(string _buff, string _operate)
 
 	/if (!${Bool[${_operate}]}) /varset _operate Add
 
-	| /invoke ${maBuffRequest.${_operate}[${Me.Name},"${_buff}"]}
 	/dgzexecute /requestbuff ${Me.Name} Add "${_buff}"
 
 /return TRUE
@@ -1164,13 +1178,19 @@ sub Bind_command_beg(string _buff, string _operate)
 
 |***
  * note:sends the buff beg to all toons
- * use:
+ * use: this is not for player usage!
  ***|
-#Bind control_requestbuff /requestbuff
-sub Bind_control_requestbuff(string _toon, string _operate, string _buff)
+#Bind command_requestbuff /requestbuff
+sub Bind_command_requestbuff(string _toon, string _operate, string _buff)
 
-	/if (!${Bool[${_toon}]}) /varset _toon ${Me.Name}
-	/if (!${Bool[${_operate}]}) /varset _operate Add
+	/if (!${Bool[${_toon}]}) {
+		/varset _toon ${Me.Name}
+	}
+
+	/if (!${Bool[${_operate}]} || ${_operate.REqual[add]}) {
+		/varset _operate Add
+	}
+
 	/invoke ${maBuffRequest.${_operate}[${_toon},"${_buff}"]}
 
 /return TRUE
@@ -2069,7 +2089,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
 		/call Bind_command_aux see
 		/return	FALSE
-	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song,burn,sash]}) {
+	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song,burn,sash,out]}) {
 		/invoke ${out[0, "Crack says your input sucks${sep}\a-w${_variable}\ax"]}
 		/return FALSE
 	}
@@ -2078,11 +2098,34 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 	/declare _DBLOC string local
 	/declare _tmpAux string local
 
-	| shows us detailed target info
+	| shows detailed target info
 	/if (${_variable.Equal[target]}) {
-		OUT name:\aw${Target.DisplayName}\ax (\a-r${Target.Name}\ax) ${sep} \ay${Target.ID}\ax
-		OUT dis(\a-r${Target.Distance}\ax) ${dot} Y(\a-r${Target.Y}\ax)X(\a-r${Target.X}\ax)
-		OUT animation(\a-r${Target.Animation}\ax) ${dot} body(\a-r${Target.Body}\ax)
+		/if (!${Target.ID}) {
+			/invoke ${out[0, shade, 0]}
+			/return
+		}
+
+		/echo
+		OUT Target Info${sep}
+		OUT name:\aw${Target.DisplayName}\ax${sep}\a-w${Target.Name}\ax${sep}\ay${Target.ID}\ax
+		OUT lvl${sep}\a-w${Target.Level}\ax
+		OUT named${sep}\a-w\ax
+
+		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT value FROM animation WHERE env_var='${Target.Animation}'
+		/declare _animationresult string local UNKNOWN ANIMATION
+		/if (${sqlite.Rows[dummy]}) {
+			/varset _animationresult ${sqlite.Result[dummy 1 value]}
+		}
+		OUT animation${sep}\a-w${Target.Animation}\ax${sep}${_animationresult}
+		OUT body${sep}\a-w${Target.Body}\ax
+
+		OUT dis${sep}\a-w${Target.Distance}\ax
+		OUT LOC yxz Y${sep}\a-w${Target.Y}\ax X${sep}\a-w${Target.X}\ax Z${sep}\a-w${Target.Z}\ax
+		OUT NAV Path${sep}\a-w${Navigation.PathExists[id ${Target.ID}]}\ax
+		OUT NAV Length${sep}\a-w${Navigation.PathLength[id ${Target.ID}]}\ax
+
+		/invoke ${out[18, 0, 33]}
+		/return
 
  	| see sash info
 	} else /if (${_variable.Equal[sash]}) {
@@ -2717,8 +2760,9 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 			/return FALSE
 		}
 	}
+
 	/if (${_silent.NotEqual[silent]}) {
-		/invoke ${out[18 "${eol}" 0]}
+		/invoke ${out[18, 0, 33]}
 	}
 
 /return	TRUE
@@ -3480,7 +3524,7 @@ sub Bind_command_aux(string _type, bool _debug)
 
 /return TRUE
 
-
+/swap "Folded Pack of Wirn's Armaments" 30 TRUE
 
 |***
  * note: swap items. cause fuck MQ2Exchange
@@ -3526,10 +3570,12 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
 	/if (${_swapslot.Arg[1,|].Equal[INBAG]}) {
 		DEBUG ${sep}\aoFROM BAG\ax /itemnotify in pack${_pack} ${_slot} leftmouseup
 		/squelch /nomodkey /shiftkey /itemnotify in pack${_pack} ${_slot} leftmouseup
+
 	} else /if (${_swapslot.Arg[1,|].Equal[TOPSLOT]}) {
 		DEBUG ${sep}\aoFROM TOPSLOT\ax /itemnotify ${_slot} leftmouseup
 		/squelch /nomodkey /shiftkey /itemnotify ${_slot} leftmouseup
-	} else /if (${_swapslot.Arg[1,|].Equal[CURSOR]}) {
+
+} else /if (${_swapslot.Arg[1,|].Equal[CURSOR]}) {
 
 	}
 
@@ -3538,7 +3584,8 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
 	| put item in slot
 	/if (${Range.Between[1,32:${_toslot}]}) {
 		DEBUG ${sep}\awNEWITEM Home\ax /itemnotify ${Int[${Math.Calc[${_toslot}]}]} leftmouseup
-		/nomodkey /shiftkey /itemnotify ${Int[${Math.Calc[${_toslot}]}]} leftmouseup
+		/nomodkey /shiftkey /itemnotify ${Int[${Math.Calc[${_toslot} +1]}]} leftmouseup
+		| /nomodkey /shiftkey /itemnotify ${_toslot} leftmouseup
 	}
 
 	/delay 1s ${Cursor.ID}
@@ -4684,11 +4731,14 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 			/call do_raw_edit ${_debug} SILENT stPetWeapon "${_silent}"
 		} else /if (${_verbage.Equal[use]}) {
 			/invoke ${set_switch_env[${_debug}, swUsePetGear, TRUE, ${_silent}]}
+		} else /if (${_verbage.Equal[begalias]}) {
+			/call do_raw_edit ${_debug} SILENT stBegAlias "${_silent}"
 		}
 
 		OUT /minion gear${sep}
 		OUT ${dot} ${info}use\ax:${If[${maMinion.Find[swUsePetGear].Value},${on},${off}]}
 		OUT ${dot} ${info}weapon\ax:[${If[${Bool[${maMinion.Find[stPetWeapon].Value}]},${num}${maMinion.Find[stPetWeapon].Value}\ax,${off}]}]
+		OUT ${dot} ${info}begalias\ax:[${If[${Bool[${maMinion.Find[stBegAlias].Value}]},${num}${maMinion.Find[stBegAlias].Value}\ax,${off}]}]
 		/return TRUE
 
 

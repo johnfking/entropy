@@ -65,7 +65,6 @@ sub main_NEC(bool _debug)
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
 		GETINPUT
 		CHECKREZ
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
 		}
@@ -80,15 +79,15 @@ sub main_NEC(bool _debug)
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/call check_cure ${maDebug.Find[burn].Value}
+			/call check_heal_routines
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
-			/if (${maCC.Find[swAlliance].Value}) /call trigger_alliance TARGET
+			| /if (${maCC.Find[swAlliance].Value}) /call trigger_alliance TARGET
 			/if (${maChr.Find[swblood].Value} && !${timer_Check_Blood}) /call cast_blood ${maDebug.Find[blood].Value} TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
-			/if (MELEE) /call do_melee FALSE TARGET
+			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
-			/call check_item_cycle /call check_cure ${maDebug.Find[castitem].Value} TARGET
+			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
 
 		}
 

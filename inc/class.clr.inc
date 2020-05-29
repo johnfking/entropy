@@ -284,7 +284,6 @@ sub check_heal_CLR(bool _debug, string _type)
 	CHECKTIE
 	ISMEDEAD
 	CHECKEXIT
-	CHECKREZ
 	CHECKFADE
 	GETINPUT clr_heal_start type|${_type}
 
@@ -305,6 +304,7 @@ sub check_heal_CLR(bool _debug, string _type)
 
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
+		CHECKREZ
 		SETHUD EMPTY
 		/return
 	}

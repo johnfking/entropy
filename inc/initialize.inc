@@ -264,11 +264,6 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} FALSE lsClassAAEradicate                       list outer RNG|DRU|NEC|WIZ|ENC|MAG
   /call set_data ${_debug} FALSE lsClassCastCure                          list outer CLR|DRU|SHM|BST|PAL|RNG
   /call set_data ${_debug} FALSE lsClassHealToT	                          list outer BST|PAL|RNG
-  /call set_data ${_debug} FALSE lsIVU                                    list outer "Group Perfected Invisibility to Undead"|"Perfected Invisibility to Undead"|"Invisibility to Undead"|"Invisibility versus Undead"|"Shauri's Sonorous Clouding"
-  /call set_data ${_debug} FALSE lsIV                                     list outer "Shared Perfected Camouflage"|"Shared Camouflage"|"Camouflage"|"Group Perfected Invisibility"|"Invisibility"|"Perfected Invisibility"|"Phase March"|"Nethervoid March"|"Perfected Silent Presence"|"Cloak of Shadows"|"Gather Umbra"|"Invisibility Cloak"|"Perfected Natural Invisibility"|"Perfected Spirit Walk Invisibility"|"Perfected Group Spirit Walk Invisibility"|"Shauri's Sonorous Clouding"|"Selo's Song of Travel"
-  /call set_data ${_debug} FALSE lsAssistTypes                            list outer g|ma1|ma2|1|2|3
-  /call set_data ${_debug} FALSE lsRezBuffTriggers                        list outer "Revival Sickness"|"Resurrection Sickness"
-
 	/call set_data ${_debug} FALSE lsClassHealToT														list outer PAL|RNG|BST
 	/call set_data ${_debug} FALSE lsClassHealSelf													list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
 	/call set_data ${_debug} FALSE lsClassHealGroup													list outer CLR|SHM|PAL|DRU
@@ -276,12 +271,14 @@ sub set_initial_environment(bool _debug)
 	/call set_data ${_debug} FALSE lsClassHealPet														list outer CLR|SHM|PAL|DRU|NEC|MAG|BST|SHM|RNG
 	/call set_data ${_debug} FALSE lsClassHealCure													list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
 
+
 	| things we ont want pullers attacking
-  /call set_data ${_debug} FALSE lsNoAttackBodyType                       list outer AURA|BANNER|CAMPFIRE|CORPSE|CHEST|ITEM|TRIGGER|TRAP|TIMER|MOUNT|mercenary|OBJECT
+  /call set_data ${_debug} FALSE lsNoAttackBodyType                       list outer aura|banner|campfire|corpse|chest|item|trigger|trap|timer|mount|mercenary|object
   /call set_data ${_debug} FALSE lsNoTargetNPC                            list outer "a campfire"|"a corpse"|"controller"|"Steel Mass"|"Sphere of Fire"
   /call set_data ${_debug} FALSE lsNoTargetPC                             list outer "eye of"
   /call set_data ${_debug} FALSE lsNoTargetMagic                          list outer "eye of"
-  /call set_data ${_debug} FALSE lsNoTargetAnimation	                    list outer 16|43|44|146
+  /call set_data ${_debug} FALSE lsAnimationNoTarget	                    list outer 16|43|44|146
+  /call set_data ${_debug} FALSE lsAnimationMezed			                    list outer 13|49|58
 
   | custom /build set variables
   /call set_data ${_debug} FALSE lsBuildSet							                  list outer primary|secondary|range|spellset
@@ -327,6 +324,7 @@ sub set_initial_environment(bool _debug)
   /invoke ${set_data_timer[FALSE, Check_Watch, 5s]}
   /invoke ${set_data_timer[FALSE, Check_Alliance, 6s]}
   /invoke ${set_data_timer[FALSE, Check_Mercenary, 1s]}
+	/invoke ${set_data_timer[FALSE, Check_Pull_Hardstop, 1]}
 
   | wait time for pulling
   /invoke ${set_timer[FALSE, wait_for_mob, 0]}
@@ -1100,6 +1098,8 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maCC stPullWith                            FALSE                         "${auxna} [\a-wmelee-range-other\ax] what you want to pull with???"
   /call set_data_map ${_debug} maCC stRangeOther                          FALSE                         "${auxna} something else you would like to use for ranged pulling?"
   /call set_data_map ${_debug} maCC stRangeBandolier											FALSE                         "${auxna} name of bandolier for ranged pulling?"
+  /call set_data_map ${_debug} maCC stPctHardStop													0   		                      "${auxnum} % of crew sta/manna to stop pulling at to give them rest time?"
+  /call set_data_map ${_debug} maCC stHardStopDuration										0		                       	  "${auxnum} duration to stop pulling for crew to recover"
 
 
   | glyph
@@ -1278,6 +1278,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maMinion swonForce                         FALSE                         "${auxsw} send pets on \a-w/cc force\ax command"														minion
   /call set_data_map ${_debug} maMinion swUsePetGear                      FALSE                         "${auxsw} use pet weapons"																									minion
   /call set_data_map ${_debug} maMinion stPetWeapon                       FALSE                         "${auxna} weapon to give your pet"																					minion
+  /call set_data_map ${_debug} maMinion stBegAlias												FALSE                         "${auxna} the alias your mage uses for /beg"																minion
 
   /invoke ${set_data_timer[FALSE, Check_Minion_Shrink, 10m]}
   /call set_data_map ${_debug} maMinion swPetShrink                       FALSE                         "${auxsw} use pet shrink item/spell/drugs?"																	minion
@@ -1918,7 +1919,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
   } else /if (${_verbage.Equal[cursor]}) {
   	OUT Updating MQ2HUD.INI${sep}\a-w${_verbage}\ax
 
-    /ini ${_path} cursor over				21,4,50,0,255,0,${If[${EverQuest.LastMouseOver},${EverQuest.LastMouseOver.Name},]}
+    /ini ${_path} cursor over				${Parse[0, "21,4,50,0,255,0,${If[${Bool[${EverQuest.LastMouseOver}]},${EverQuest.LastMouseOver.Name},]}"]}
     /ini ${_path} cursor overbg			21,2,50,0,0,0,${If[${EverQuest.LastMouseOver},█████████████████████████,]}
 
 
@@ -2347,6 +2348,12 @@ sub sql_clear(bool _debug, string _verbage)
  * use: ${DEBUG, QUERYNAME, DATABASECHECKINGNAME]}
  ***|
 sub sql_check(bool _debug, string _query, string _dbname, string _action)
+
+	| i have to do shit like this because fucking builder and mules inability to adapt
+	| fuck this...
+	/if (!BUILD) {
+		/return TRUE
+	}
 
 	| results we accept at face value and move on
 	/if (!${Select[${sqlite.Resultcode[${_query}]},0,1,6]} || ${_debug}) {

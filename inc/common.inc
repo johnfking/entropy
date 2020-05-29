@@ -160,7 +160,7 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 
 	| is the data there already?
 	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_env_var}"
-	| DEBUG ${sep}dummy SELECT * FROM environment_${_table} WHERE env_var='${_env_var}' ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
+	/if (!${sql_check[${_debug}, dummy, environment_${_table}, SELECT]}) /endm
 
 	| data exists. get from DB and call it good
 	/if (${sqlite.Rows[dummy]}) {
@@ -177,7 +177,7 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 			DEBUG ${sep}${_map}${${_map}.Find[${sqlite.Result[dummy 1 env_var]}]}
 			/declare _DBLOC string local ${get_key_DBLOC[${_debug}, ${_env_var}]}
 			/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET 'aux'="${Parse[1,${_aux}]}"  WHERE env_var="${_env_var}"
-			DEBUG ${sep}dummy UPDATE ${_DBLOC.Arg[1,|]} SET 'aux'='${Parse[1,${_aux}]}' WHERE env_var='${_env_var}' ${dot} \ay${sqlite.Status[dummy]}\ax
+			/if (!${sql_check[${_debug}, dummy, ${_DBLOC.Arg[1,|]}, SELECT]}) /endm
 			/return TRUE
 
 		}
@@ -192,8 +192,7 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 			/declare _tmpValue string local
 
 			/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM env_${Me.Class.ShortName.Lower} WHERE env_var="${_env_var}"
-			DEBUG ${sep}dummy SELECT * From env_${Me.Class.ShortName.Lower} WHERE env_var='${_env_var}' ${dot} \ay${sqlite.Status[dummy]}\ax
-			DEBUG ${sep}${sep}${sqlite.Result[dummy 1 env_var]}${sep}\a-w${sqlite.Result[dummy 1 value]}\ax
+			/if (!${sql_check[${_debug}, dummy, env_${Me.Class.ShortName.Lower}, SELECT]}) /endm
 
 			| how many do we want to find?
 			/while (${_count} <= ${sqlite.Result[dummy 1 value].Count[|]}) {
@@ -211,7 +210,8 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 		}
 
 		/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${_aux}")
-		DEBUG ${sep}dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES('${_env_var}', '${_value}', '${_aux}') ${dot} \ay${sqlite.Status[dummy]}\ax
+		/if (!${sql_check[${_debug}, dummy, env_${Me.Class.ShortName.Lower}, "INSERT OR IGNORE INTO"]}) /endm
+
 		/invoke ${${_map}.Add[${_env_var},"${_value}"]}
 	}
 
@@ -2295,7 +2295,7 @@ sub is_target_valid(bool _debug, int _tmpID)
 	/if (${lsNoTargetNPC.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) /return FALSE
 	/if (${lsNoTargetPC.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) /return FALSE
 	/if (${lsNoTargetMagic.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) /return FALSE
-	/if (${lsNoTargetAnimation.Contains[${Spawn[id ${_tmpID}].DisplayName}]}	) /return FALSE
+	/if (${lsAnimationNoTarget.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) /return FALSE
 	/if (${lsZoneExclude.Contains[${Spawn[${_tmpID}].DisplayName}]}) /return FALSE
 
 
@@ -3127,6 +3127,71 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 /return TRUE
 
 
+|***
+ * note: hard stop for pulling based on crew hp/stamina
+ * use: /call pull_hardstop DEBUG
+ ***|
+sub pull_hardstop(bool _debug)
+
+
+	/if ($${maCC.Find[stPctHardStop].Value}) {
+		/invoke ${set_data_timer[FALSE, Check_Pull_Hardstop, 6s]}
+		/return FALSE
+	}
+
+	/declare _countToon int local 1
+	/declare _toonName string local FALSE
+	/declare _found bool FALSE
+
+	| each toon
+	/while (${_countToon} <= ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) {
+
+		| get the name to something usable
+		/varset _toonName ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}
+		DEBUG ${sep}_toonName${sep}\ay${_toonName}\ax
+
+		| skip this person?
+		/if (!${Spawn[pc ${_toonName}].ID} || ${Spawn[pc ${_toonName}].Dead} || ${Spawn[].Distance} > ENV) {
+			DEBUG ${sep}skipping${sep}\a-w${_toonName}\ax
+			/varcalc _countToon ${_countToon}+1
+			/continue
+		}
+
+		| manna
+		/dquery ${_toonName} -q "Me.PctMana"  -o DNQReturn -t 5
+		DEBUG ${sep}${sep}manna: .PctMana \at${DNQReturn}\ax
+		/if (${Math.Calc[${DNQReturn} < ${maCC.Find[stPctHardStop].Value}]}) {
+			/varset _found TRUE
+		}
+
+		| stamina
+		/dquery ${_toonName} -q "Me.PctEndurance"  -o DNQReturn -t 5
+		DEBUG ${sep}${sep}stamina: .PctEndurance \at${DNQReturn}\ax
+		/if (${Math.Calc[${DNQReturn} < ${maCC.Find[stPctHardStop].Value}]}) {
+			/varset _found TRUE
+		}
+
+
+		/if (${_found}) {
+
+			/return TRUE
+		}
+
+		/varcalc _countToon ${_countToon}+1
+	}
+
+
+
+
+/return
+
+/invoke ${set_data_timer[FALSE, Check_Pull_Hardstop, ${maCC.Find[stHardStopDuration].Value}]}
+
+/invoke ${set_data_timer[FALSE, Check_Pull_Hardstop, 0]}
+
+${maCC.Find[stHardStopDuration].Value}
+
+
 
 |***
  * note: tea anyone?
@@ -3439,8 +3504,8 @@ sub pull_mob_find(bool _debug, int _spCount)
 				}
 
 				| animation checks
-				/if (${lsNoTargetAnimation.Contains[${Spawn[id ${_tmpID}].Animation}]}) {
-					DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetAnimation\ax (\a-r${Spawn[id ${_tmpID}].Animation}\ax)
+				/if (${lsAnimationNoTarget.Contains[${Spawn[id ${_tmpID}].Animation}]}) {
+					DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsAnimationNoTarget\ax (\a-r${Spawn[id ${_tmpID}].Animation}\ax)
 					/varset _spCount 1
 					/continue
 				}
@@ -3495,16 +3560,27 @@ sub pull_mob_find(bool _debug, int _spCount)
 					/continue
 				}
 
-				/varset _navRange ${Navigation.PathLength[id ${_tmpID}]}
-
-				| sort by closest nav path length
-				/if (${_navRange} <= ${_closestNAV}) {
-					/varset _closestNAV ${_navRange}
-				} else /if (${_navRange} > ${_closestNAV}) {
-					/continue
+				| pet tagging mezed mobs only (should be skipped. pets cannot break mez)
+				| skip this if we are the group main assist
+				/if (${Group.MainAssist.Name.NotEqual[${Me.DisplayName}]}) {
+					/if (${maCC.Find[stPullMode].Value.Equal[pet]} && ${lsAnimationMezed.Contains[${Spawn[id ${_tmpID}].Animation}]}) {
+						/continue
+					}
 				}
 
+				| check nav length
+				/if (${Navigation.PathLength[id ${_tmpID}]} > -1) {
+					/varset _navRange ${Navigation.PathLength[id ${_tmpID}]}
 
+					| sort by closest nav path length
+					/if (${_navRange} <= ${_closestNAV}) {
+						/varset _closestNAV ${_navRange}
+					} else /if (${_navRange} > ${_closestNAV}) {
+						/continue
+					}
+				} else /if (${Navigation.PathLength[id ${_tmpID}]} <= 0) {
+					/continue
+				}
 
 				| added because MQ sucks ass for getting accurate HP values returned over a mouse dick in length.
 				/if (${Spawn[ID ${_tmpID}].PctHPs} > 100 && ${_tmpAgroRange} > 200) {
@@ -5711,6 +5787,11 @@ sub check_buff_cycle_beg(bool _debug)
 		}
 	}
 
+	/if (!${maBuffRequest}) {
+		DEBUG ${break}no buff requests
+		/return TRUE
+	}
+
 	/declare _remove bool local FALSE
 
   /declare _mibb mapiterator local
@@ -5748,6 +5829,10 @@ sub check_buff_cycle_beg(bool _debug)
 			/if (${maBuff.Find[stBuff${_licountbeg.Value}Alias].Value.Find[${_mibb.Value}]}) {
 				DEBUG ${sep}BEG \ap${_mibb.Value}\ax found${sep}\aw${_licountbeg.Value}\ax${sep}\a-w${maBuff.Find[stBuff${_licountbeg.Value}].Value}\ax for \a-y${_mibb.Key}\ax
 				/call voodoo ${_debug} "${maBuff.Find[stBuff${_licountbeg.Value}].Value}" ${Spawn[pc ${_mibb.Key}].ID} FALSE
+				/delay 1s ${Me.Casting.ID}
+				/delay 5s !${Me.Casting.ID}
+				/varset _remove TRUE
+				/break
 			}
 
 			/invoke ${_licountbeg.Advance}
@@ -5756,9 +5841,12 @@ sub check_buff_cycle_beg(bool _debug)
 
 		/if (${_remove}) {
 			/invoke ${maBuffRequest.Remove[${_mibb.Key}]}
+			/break
 		}
+
 		/invoke ${_mibb.Advance}
   }
+
 
 	SETHUD EMPTY
 
@@ -6337,24 +6425,23 @@ sub cast_item_summon(bool _debug, string _var)
 sub cast_challenge(bool _debug, int _tmpID)
 	DEBUG \atcast_challenge\ax(\a-w${_tmpID}\ax)
 	FLOW cast_challenge ${_tmpID} (1)
-
-	/if (${Target.Buff[${maChr.Find[stChallenge].Value}].ID}) {
-		/return TRUE
-	}
-
 	ISMEDEAD
-	CHECKEXIT cast_challenge
-	FLOW cast_challenge ${_tmpID} (2)
-	GETINPUT cast_challenge NA|NA
 
 	/if (${Target.BuffDuration[${maChr.Find[stChallenge].Value}].TotalSeconds}) {
 		DEBUG ${sep}Target.BuffDuration${sep}\a-w${Target.BuffDuration[${maChr.Find[stChallenge].Value}].TotalSeconds}\ax
 		/return TRUE
 	}
 
-	/if (${is_Ready[${_debug}, "${maChr.Find[stChallenge].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stChallenge].Value}" ${_tmpID} FALSE
+	CHECKEXIT cast_challenge
+	FLOW cast_challenge ${_tmpID} (2)
+	GETINPUT cast_challenge NA|NA
+
+
+	/if (!${is_Ready[${_debug}, "${maChr.Find[stChallenge].Value}"]}) {
+		/return FALSE
 	}
+
+	/call voodoo ${_debug} "${maChr.Find[stChallenge].Value}" ${_tmpID} FALSE
 
 /return TRUE
 
@@ -7000,10 +7087,12 @@ sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
 		/varset _containsclass FALSE
 		/invoke ${_li.Advance}
 	}
+
 	| if contains==TRUE and _marker != TRUE we return a fail for that class that is the target
-	/if (${_containsclass} && !${_classmatch}) {
-		/return FALSE
-	} else /if (${_containsclass} && ${_classmatch}) {
+| 	/if (${_containsclass} && !${_classmatch}) {
+| 		/return FALSE
+| 	} else
+	/if (${_containsclass} && ${_classmatch}) {
 		/if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_name}]}) {
 			/return TRUE
 		}
@@ -7229,7 +7318,8 @@ sub do_loot(bool _debug)
 
 	| Personal List sorting. ALSO for solo killing
 	/if (${AdvLoot.PCount}) {
-		DEBUG ${sep}PERSONAL LOOT ${submenu}
+		DEBUG ${sep}PList loot ${submenu}
+		/declare _advlChoiceP string local
 
 		/while (${AdvLoot.PCount}) {
 
@@ -7239,8 +7329,7 @@ sub do_loot(bool _debug)
 				/return TRUE
 			}
 
-			DEBUG ${sep}personal${sep}1${sep}${AdvLoot.PList[1].Name}
-			/mqp
+			DEBUG ${sep}personal${sep}1${sep}\a-e${AdvLoot.PList[1].Name}\ax
 
 			/sqlite ${maData.Find[DBloot].Value} plootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
 			/if (!${sql_check[${_debug}, plootquery, loot_control, SELECT]}) /endm
@@ -7266,24 +7355,24 @@ sub do_loot(bool _debug)
 
 			}
 
-			/varset _advlChoice ${sqlite.Result[plootquery 1 action]}
-			DEBUG ${sep}_advlChoice${sep}\a-w${sqlite.Result[plootquery 1 action]}\ax
+			/varset _advlChoiceP ${sqlite.Result[plootquery 1 action]}
+			DEBUG ${sep}_advlChoiceP${sep}\a-w${sqlite.Result[plootquery 1 action]}\ax
 
 			/if (${AdvLoot.PList[1].ID}) {
-				/if (${Select[${_advlChoice},ignore,leave]} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
-					/invoke ${out[14  "Leaving${sep}\a-w${_advlItem}\ax" 0]}
-					/delay 2s !${AdvLoot.LootInProgress}
-					/if (${AdvLoot.SList[1].ID}) {
+				DEBUG ${sep}${AdvLoot.PList[1].ID}
+				/delay 2s !${AdvLoot.LootInProgress}
+				/if (${Select[${_advlChoiceP},ignore,leave]} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
+					/invoke ${out[14 "Leaving${sep}\a-w${_advlItem}\ax" 0]}
+					/if (${AdvLoot.PList[1].ID}) {
 						DEBUG ${sep}Leaving${sep}\a-w${_advlItem}\ax
 						/delay 1
 						/advloot personal 1 leave
 						/delay 1s !${AdvLoot.LootInProgress}
 					}
 
-				} else /if (${Select[${_advlChoice},keep,sell]}) {
-					/delay 1s !${AdvLoot.LootInProgress}
-					/if (${AdvLoot.SList[1].ID}) {
-						DEBUG ${sep}Moving to Inventory${sep}\a-w${_advlItem}\ax
+				} else /if (${Select[${_advlChoiceP},keep,sell]}) {
+					DEBUG ${sep}Moving to Inventory${sep}\a-w${_advlItem}\ax
+					/if (${AdvLoot.PList[1].ID}) {
 						/delay 1
 						/advloot personal 1 loot
 						/delay 1s !${AdvLoot.LootInProgress}
@@ -7294,9 +7383,8 @@ sub do_loot(bool _debug)
 						/delay 1
 					}
 
-				} else /if (${Select[${_advlChoice},destroy]}) {
-					/delay 1s !${AdvLoot.LootInProgress}
-					/if (${AdvLoot.SList[1].ID}) {
+				} else /if (${Select[${_advlChoiceP},destroy]}) {
+					/if (${AdvLoot.PList[1].ID}) {
 						DEBUG ${sep}Moving to Inventory to destroy${sep}\a-w${_advlItem}\ax
 						/delay 1
 						/advloot personal 1 loot
@@ -7549,7 +7637,21 @@ sub check_cursor(bool _debug, string _verbage)
 
 	SETHUD "cursor"
 
-	/if (!${Me.FreeInventory}) /return FALSE
+	/if (!${Me.FreeInventory}) {
+		DEBUG ${break}no free inventorpy
+		/return FALSE
+	}
+
+	| absolute end all of clearing the cursor
+	/if (${_verbage.Equal[getoffthedamncursor]} && ${Cursor.ID}) {
+		/declare _cursorbail int local 1
+		/while (${Cursor.ID} && ${_cursorbail} < 31 && ${Me.FreeInventory}) {
+			/autoinventory
+			/delay 2
+			/varcalc _cursorbail ${_cursorbail} +1
+		}
+
+	}
 
 	| force clearing the cursor and GTFO
 	/if (${_verbage.Equal[CLEAR]}) {
@@ -8045,16 +8147,16 @@ sub check_minion_cycle(bool _debug, bool _force)
 		/call check_minion_cycle_buff ${_debug}
 	}
 
-	| get weapons?
-	DEBUG ${sep}minion cycle${sep}\a-wget weapons?\ax
-	/if (${maMinion.Find[swUsePetGear].Value}) {
-		/call check_minion_cycle_weapons ${_debug}
-	}
-
 	| illusions
 	DEBUG ${sep}minion cycle${sep}\a-willusions\ax
 	/if (${Pet.ID} && ${Bool[${maMinion.Find[stPetIllusion].Value}]}) {
 		/call check_minion_cycle_Illusion ${_debug}
+	}
+
+	| get weapons?
+	DEBUG ${sep}minion cycle${sep}\a-wget weapons?\ax
+	/if (${maMinion.Find[swUsePetGear].Value}) {
+		/call check_minion_cycle_weapons ${_debug}
 	}
 
 	| shrink
@@ -8210,6 +8312,7 @@ sub check_minion_cycle_summon(bool _debug)
 		/if (${Select[${Me.Class.ShortName},NEC,SHD]} && !${FindItemCount[=Bone Chips]}) /varset _error TRUE
 
 		/if (${_error}) {
+			DEBUG ${sep}error summon comonent not found${sep}
 			/invoke ${out[0, "Missing pet component."]}
 			/invoke ${out[0, "Shutting pets off 'till you go buy some."]}
 			/invoke ${out[0, "Don't forget to turn back on."]}
@@ -8240,51 +8343,62 @@ sub check_minion_cycle_weapons(bool _debug)
 	DEBUG \atcheck_minion_cycle_weapons\ax()
 	FLOW check_minion_cycle_weapons (1)
 
+	| no pets!!
+	/if (!PET || !${Pet.ID} || !${maMinion.Find[swUsePetGear].Value}) {
+		DEBUG ${break}weapons are off
+		/return FALSE
+	}
+
 	ISMEDEAD
 	CHECKEXIT check_minion_cycle_weapons
 	FLOW check_minion_cycle_weapons (2)
 	GETINPUT check_minion_cycle_weapons NA|NA
 
-	| no pets!!
-	/if (!PET || !${Pet.ID} || !${maMinion.Find[swUsePetGear].Value}) {
-		/return FALSE
-	}
-
-
 	| pet has weapons
 	/if ((${Pet.Equipment[primary]} && ${Me.Pet.Equipment[primary]} != 10855) && ${Pet.Equipment[offhand]}) {
+		DEBUG ${break}pet has weapons
 		/return TRUE
 	}
 
 	| if you are not a mage, you should not be here
-	/if (${Select[${Me.Class.ShortName},MAG]} && !${FindItemCount[=${get_MAG_folded_pack[]}]}) {
+	/if (${Select[${Me.Class.ShortName},MAG]}) {
 
-		/delay 4s !${Me.SpellInCooldown}
+		/if (!${FindItemCount[=${get_MAG_folded_pack[${_debug}]}]}) {
 
-		/declare _count int local 0
-		/for _count 1 to 50
-			/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
-			/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
-			/if (!${lsBuff${_count}Tag.Contains[summonweapons]}) /continue
-			DEBUG _count${sep}${_count}
+			/declare _count int local 0
+			/for _count 1 to 50
+				/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
+				/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
+				/if (!${lsBuff${_count}Tag.Contains[summonweapons]}) /continue
+				DEBUG _count${sep}${_count}
 
-			/if (${FindItem[=${Spell[${maBuff.Find[stBuff${_count}].Value}].Base[1]}].ID}) /return TRUE
+				| /if (${FindItem[=${Spell[${maBuff.Find[stBuff${_count}].Value}].Base[1]}].ID}) /return TRUE
 
-			| /if (${is_ready[FALSE, "${maBuff.Find[stBuff${_count}].Value}"]}) {
+				/delay 4s !${Me.SpellInCooldown}
+
 				/call voodoo FALSE "${maBuff.Find[stBuff${_count}].Value}" ${Me.ID} FALSE
-			| }
-			/delay 10s !${Me.Casting.ID}
+				/delay 10s !${Me.Casting.ID}
 
-			/if (${Cursor.Name.Equal[${FindItem[${Spell[${maBuff.Find[stBuff${_count}].Value}].Base[1]}].Name}]}) {
-				/autoinventory
-				/break
+				/if (${Cursor.Name.Equal[${FindItem[${Spell[${maBuff.Find[stBuff${_count}].Value}].Base[1]}].Name}]}) {
+					/autoinventory
+					/break
+				}
+
+			/next _count
+		}
+
+	} else /if (!${Select[${Me.Class.ShortName},MAG]}) {
+
+		 /if (!${FindItemCount[=${get_MAG_folded_pack[${_debug}]}]}) {
+				/call Bind_command_beg ${maMinion.Find[stBegAlias].Value}
+				/return TRUE
 			}
 
-		/next _count
+		|
 	}
 
 	/if (${Pet.ID}) {
-		/call get_minion_summon_weapons FALSE
+		/call get_minion_summon_weapons ${_debug}
 	}
 
 /return TRUE
@@ -8327,10 +8441,34 @@ sub get_openPackSlot(bool _debug, string _orFind)
 	DEBUG \atget_openPackSlot\ax(\a-w${_orFind}\ax)
 	FLOW get_openPackSlot
 
+	| we are going to look for any passed item first. if we find it, return that bag slot ID
+	| if we do not find it, we are going to look for an open slot
+	| if we cant find that. then look for a slot with just a single item in it.
+
 	/declare _count int local 0
 
-	/for _count 23 to 32
-		/if (${InvSlot[${_count}].Item.Container} == 0 || ${InvSlot[${_count}].Item.Name.Equal[${_orFind}]}) {
+	/declare _start int local 24
+	/declare _stop int local 33
+
+	| do we see the item
+	/if (${Bool[${_orFind}]}) {
+		/for _count ${_start} to ${_stop}
+			/if (${InvSlot[${_count}].Item.Name.Equal[${_orFind}]}) {
+				/return ${_count}
+			}
+		/next _count
+	}
+
+
+	/for _count ${_start} to ${_stop}
+		/if (${InvSlot[${_count}].Item.Name.Equal[NULL]}) {
+			/return ${_count}
+		}
+	/next _count
+
+
+	/for _count ${_start} to ${_stop}
+		/if (${InvSlot[${_count}].Item.Container} == 0) {
 			/return ${_count}
 		}
 	/next _count
@@ -8370,13 +8508,14 @@ sub give_to_pet(string _item, bool _debug)
  * use: /call get_minion_summon_weapons DEBUG
  ***|
 sub get_minion_summon_weapons(bool _debug)
+| /varset _debug TRUE
 	DEBUG \atget_minion_summon_weapons\ax()
 	FLOW get_minion_summon_weapons
 
 	/if (!PET || !${Pet.ID} || !${maMinion.Find[swUsePetGear].Value}) /return FALSE
 
 	/if (!${Me.FreeInventory}) {
-		/invoke ${out[0, "${notice} ${sep} You have no free inventory. Damn hoarders...."]}
+		/invoke ${out[0, 0, 34]}
 		/return FALSE
 	}
 
@@ -8391,13 +8530,15 @@ sub get_minion_summon_weapons(bool _debug)
 	/call check_cursor ${_debug} CLEAR
 
 	| need a non bag inventory slot or ur fuckled!
-	/varset _openPackSlot ${get_openPackSlot[FALSE, "Pouch of Quellious"]}
+	/varset _openPackSlot ${get_openPackSlot[${_debug}, "Pouch of Quellious"]}
 	DEBUG _openPackSlot ${_openPackSlot}
 	/if (!${_openPackSlot} && !${FindItemCount[=${maMinion.Find[stPetWeapon].Value}]}) {
-		/invoke ${out[0, "${notice} ${sep} You have no TOP inventory slots that are not bags."]}
-		/invoke ${out[0, "Clean up your damn inventory then you can give your pet some weapons."]}
+		/invoke ${out[0, 0, 35]}
+		/invoke ${out[0, 0, 36]}
 		/return FALSE
 	}
+
+
 
 	| we have the weapons we can rebuild her better then before
 	/if (${FindItemCount[=${maMinion.Find[stPetWeapon].Value}]} > 1) /goto :havepetweapons
@@ -8409,6 +8550,7 @@ sub get_minion_summon_weapons(bool _debug)
 
 	| how much for a dime?
 	/if (!${FindItemCount[=${get_MAG_folded_pack[]}]} && !${FindItemCount[=${maMinion.Find[stPetWeapon].Value}]}) {
+		DEBUG ${break}no bag or weapons found. noting to get for pet
 		/return FALSE
 	}
 
@@ -8416,32 +8558,31 @@ sub get_minion_summon_weapons(bool _debug)
 	/call check_cursor ${_debug} CLEAR
 
 	/if (${FindItemCount[=${get_MAG_folded_pack[]}]}) {
-		DEBUG :havemageclosedbag
+		DEBUG ${sep} :havemageclosedbag
 		/if (${Select[${FindItem[=${get_MAG_folded_pack[]}].InvSlot},23,24,25,26,27,28,29,30,31,32]} != 0) {
-			DEBUG \agSWAP\ax ${get_MAG_folded_pack[]} to slot \aw${_openPackSlot}\ax
-			/call Bind_command_swap "${get_MAG_folded_pack[]}" ${_openPackSlot} FALSE
+			DEBUG ${sep}\agSWAP\ax ${get_MAG_folded_pack[]} to slot \aw${_openPackSlot}\ax
+			/call Bind_command_swap "${get_MAG_folded_pack[]}" ${_openPackSlot} ${_debug}
 		}
 
 		/call check_cursor ${_debug} CLEAR
 
 		| convert the folded pack
-		/if (${is_ready[FALSE, "${get_MAG_folded_pack[]}"]}) {
-			/call voodoo FALSE "${get_MAG_folded_pack[]}" 0 FALSE
+		/if (${is_ready[${_debug}, "${get_MAG_folded_pack[]}"]}) {
+			/call voodoo ${_debug} "${get_MAG_folded_pack[]}" 0 FALSE
 		}
 
 		/call check_cursor ${_debug} CLEAR
 
 	}
 
-	/call check_cursor ${_debug} CLEAR
+	/call check_cursor ${_debug} getoffthedamncursor
 
 	| have 2 blades
 	:havepetweapons
-	DEBUG :havepetweapons
-	/if (${Cursor.Name.Equal[Pouch of Quellious]}) /autoinventory
+	DEBUG ${sep} :havepetweapons
 	/for _count 1 to 2
-		/call check_cursor ${_debug} CLEAR
-		/delay 2
+		/call check_cursor ${_debug} getoffthedamncursor
+		/delay 5
 		DEBUG \agWEAPON\ax\aw${_count}\ax Pack${Int[${Math.Calc[${FindItem[Pouch of Quellious].ItemSlot}-22]}]} slot-${Int[${Math.Calc[${FindItem[=${maMinion.Find[stPetWeapon].Value}].ItemSlot2}+1]}]}
 		/nomodkey /itemnotify in Pack${Int[${Math.Calc[${FindItem[Pouch of Quellious].ItemSlot}-22]}]} ${Int[${Math.Calc[${FindItem[=${maMinion.Find[stPetWeapon].Value}].ItemSlot2}+1]}]} leftmouseup
 
@@ -8464,7 +8605,7 @@ sub get_minion_summon_weapons(bool _debug)
 	/call check_cursor ${_debug} CLEAR
 
 	:havepouchandnoweapons
-	DEBUG :havepouchandnoweapons
+	DEBUG ${sep} :havepouchandnoweapons
 	/if (${FindItemCount[=Pouch of Quellious]} && ${FindItemCount[=${maMinion.Find[stPetWeapon].Value}]} < 2) {
 		/nomodkey /itemnotify ${FindItem[Pouch of Quellious].InvSlot} leftmouseup
 		/delay 1
@@ -8547,28 +8688,27 @@ sub item_find(bool _debug, string _item)
 
 |***
  * note: finds a folded mage weapon pack in your inventory. returns its name
- * use: ${get_MAG_folded_packDEBUG}
+ * use: ${get_MAG_folded_pack[DEBUG]}
  ***|
 sub get_MAG_folded_pack(bool _debug)
 	DEBUG \atget_MAG_folded_pack\ax()
 	FLOW get_MAG_folded_pack
 
-	/if (!${Defined[stMAGFoldedPack]}) {
-		/declare stMAGFoldedPack string outer
-	}
-
 	/declare _lsout list local
 	/invoke ${_lsout.Append[Wirn's,Thassis',Frightforged,Manaforged,Spectral]}
-	/devlare _ligmfp listiterator local
+	/declare _ligmfp listiterator local
 	/vardata _ligmfp _lsout.First.Clone
 	/while (!${_ligmfp.IsEnd}) {
 		/if (${FindItemCount[Folded Pack of ${_ligmfp.Value} Armaments]}) {
-			/varset stMAGFoldedPack Folded Pack of ${_ligmfp.Value} Armaments
+			DEBUG ${sep}found mage pack${sep}\a-wFolded Pack of ${_ligmfp.Value} Armaments\ax
+			/return Folded Pack of ${_ligmfp.Value} Armaments
 		}
 		/invoke ${_ligmfp.Advance}
 	}
 
-/return ${stMAGFoldedPack}
+	DEBUG ${sep}no mage packs found
+
+/return 0
 
 
 
@@ -9087,6 +9227,11 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	/invoke ${target[set, ${_tmpID}]}
 	FLOW get_target_petpull ${_tmpID}
 
+	| if the target is mezed, we need to look again
+	/if (${Target.Mezzed.ID}) {
+		/invoke ${target[clear]}
+		/call pull_mob_find ${_debug} 1
+	}
 
 
 	| /invoke ${set_timer[${_debug}, timer_giveUpPull, 30s]}
@@ -9151,12 +9296,13 @@ sub get_target_petpull(bool _debug, int _tmpID)
 		DEBUG ${sep}waiting on pet to get to target${sep}\a-w${Math.Distance[${Me.Pet.Y},${Me.Pet.X}:${Spawn[${_tmpID}].Y},${Spawn[${_tmpID}].X}]} range\ax
 		/delay 5
 
-
+		| NO PET?
 		/if (!${Me.Pet.ID}) {
 			/invoke ${out[9, 0, 30]}
 			/break
 		}
 
+		|
 		/if (${Me.XTHaterCount} && ${Target.AggroHolder.Name.NotEqual[${Me.Pet.Name}]}) {
 			/invoke ${out[9, 0, 31]}
 			/break
@@ -9170,6 +9316,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	}
 
 	/if (!${timer_waitforstupidpet}) {
+		/invoke ${target[clear]}
 		/call where_the_fuck_is_my_pet ${maDebug.Find[lost].Value} TRUE
 		SETHUD EMPTY
 		/if (HOME) {
@@ -9190,9 +9337,6 @@ sub get_target_petpull(bool _debug, int _tmpID)
 
 /return
 
-${Me.XTCount}
-${Me.XTHaterCount}
-${Me.XTAggroCount[100]}
 
 
 |***
@@ -9230,7 +9374,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
 		/varcalc _count ${_count}+1
 		/if (${_count} > 10) /return FALSE
 		/delay 1s
-		/call pull_mob_find FALSE ${_count}
+		/call pull_mob_find ${_debug} ${_count}
 	}
 
 
@@ -9252,6 +9396,8 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	/if (${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < ENV) {
 		DEBUG ${sep}navpull${sep}in sight < ENV
 		/call pull_mob_prep ${_debug} ${_tmpID}
+		/call pull_mob_tag ${_debug} ${_tmpID}
+		/delay 2
 		/return
 
 	| get closer if we need too
@@ -9439,9 +9585,9 @@ sub get_target_multipull(bool _debug)
 |***
  * note: preps all advanced pulling
  * note: entry point
- * use: /call prep_advanced_pulling DEBUG
+ * use: /call pull_prep_advanced DEBUG
  ***|
-sub prep_advanced_pulling(bool _debug)
+sub pull_prep_advanced(bool _debug)
 	DEBUG \atprep_advanced_pulling\ax()
 
 	SETHUD "pull ${maCC.Find[stPullMode].Value}"
@@ -9602,7 +9748,7 @@ sub get_name_multipull(bool _debug, string _groupList)
 
 |***
  * note: outputs based by a verbosity lvl
- * use: ${out[reqlvl#, [string to output|EMPTY/0|SHADE|FORCED], ##]}
+ * use: ${out[reqlvl#, [string to output|EMPTY/0|SHADE|FORCED], DB ref##]}
  * _verbage options
  * forced = forces the output no matter what
  * shade = snarky replys. grain is aplied
@@ -9610,22 +9756,24 @@ sub get_name_multipull(bool _debug, string _groupList)
   ***|
 sub out(int _lvl, string _verbage, int _strNum)
 
+	/declare _debug bool local FALSE
+
 	| forced output, no validation for grain
 	/if (${_verbage.Equal[forced]}) {
 		/sqlite ${maData.Find[DBstatic].Value} getstring SELECT value FROM string WHERE env_var='${_strNum}'
-		/if (!${sql_check[FALSE, getstring, out, SELECT]}) /endm
+		/if (!${sql_check[${_debug}, getstring, out, SELECT]}) /endm
 		/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${sqlite.Result[getstring 1 value]}
 
 	| shade output. grain validation
 	} else /if (${_verbage.Equal[shade]} && (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0)) {
 		/sqlite ${maData.Find[DBstatic].Value} getshade SELECT * FROM shade ORDER BY RANDOM() LIMIT 1
-		/if (!${sql_check[FALSE, getshade, out, SELECT]}) /endm
+		/if (!${sql_check[${_debug}, getshade, out, SELECT]}) /endm
 		/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${sqlite.Result[getshade 1 value]}
 
 	| output grain validation
 	} else /if (${Range.Between[1,99999:${Int[${_strNum}]}]} && (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0)) {
 		/sqlite ${maData.Find[DBstatic].Value} getstring SELECT value FROM string WHERE env_var='${_strNum}'
-		/if (!${sql_check[FALSE, getstring, out, SELECT]}) /endm
+		/if (!${sql_check[${_debug}, getstring, out, SELECT]}) /endm
 		/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${sqlite.Result[getstring 1 value]}
 
 	| output grain validation with passed verbage

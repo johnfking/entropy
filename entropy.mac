@@ -125,8 +125,9 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer B200527.01
+	/call set_data FALSE maEnv build													map outer B200529.01
 	/call set_data FALSE maEnv schema													map outer 1.00
+	/call set_data FALSE maEnv repo														map outer 1.00
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -286,16 +287,22 @@ sub main(string _debug, string _param1, string _auto)
 						/call get_assist_target ${maDebug.Find[assist].Value}
 					} else /if (PULL && !TARGET) {
 						/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w3\ax (\a-rpull-base\ax)
+
+						| hardstop check
+						/if (!${timer_Check_Pull_Hardstop}) {
+							/call pull_hardstop ${_debug}
+						} else /if (${timer_Check_Pull_Hardstop}) {
+							/return FALSE
+						}
+
 						/if (${maCC.Find[stPullMode].Value.Equal[base]}) {
 							/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w4\ax
 							/call get_target_basepull ${maDebug.Find[pull].Value}
 						} else {
 							/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w5\ax (\a-rpull-advanced\ax)
-							/call prep_advanced_pulling ${maDebug.Find[pull].Value}
-							/if (${SubDefined[get_target_${maCC.Find[stPullMode].Value}pull]}) {
-								/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w6\ax (\a-rpull-advanced-${maCC.Find[stPullMode].Value}\ax)
-								/call get_target_${maCC.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
-							}
+							/call pull_prep_advanced ${maDebug.Find[pull].Value}
+							/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w6\ax (\a-rpull-advanced-${maCC.Find[stPullMode].Value}\ax)
+							/call get_target_${maCC.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
 						}
 					}
 

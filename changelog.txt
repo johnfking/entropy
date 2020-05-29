@@ -32,6 +32,26 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+
+B200529.01
+- loot
+  fixed a PLoot vs SLoot conflict
+- necromancer
+  corrected some serious typos...
+- pet pulling
+  target reset on timer fail for pull
+  should skip mezed mobs now
+- hud
+  fixed the mouseover hud response for errors
+- diverted all SQLite checks on live because .. fucking builder.....
+- /beg
+  buff begging has been slowed down a bit. it will respond to one request and
+  break for a timer reset then go again, if you want it to go faster, shorten the timer
+- pet gear and getting it from your mage
+  should not freez you anymore
+  /minion gear begalias NAME - name is the word to beg for weapons your mage uses as their alias
+
+
 B200527.01
 - loot
   changed the entire do_loot routine, cross your fingers.
