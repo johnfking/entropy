@@ -264,12 +264,17 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} FALSE lsClassAAEradicate                       list outer RNG|DRU|NEC|WIZ|ENC|MAG
   /call set_data ${_debug} FALSE lsClassCastCure                          list outer CLR|DRU|SHM|BST|PAL|RNG
   /call set_data ${_debug} FALSE lsClassHealToT	                          list outer BST|PAL|RNG
-	/call set_data ${_debug} FALSE lsClassHealToT														list outer PAL|RNG|BST
 	/call set_data ${_debug} FALSE lsClassHealSelf													list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
 	/call set_data ${_debug} FALSE lsClassHealGroup													list outer CLR|SHM|PAL|DRU
 	/call set_data ${_debug} FALSE lsClassHealXT														list outer CLR|SHM|PAL|DRU
 	/call set_data ${_debug} FALSE lsClassHealPet														list outer CLR|SHM|PAL|DRU|NEC|MAG|BST|SHM|RNG
 	/call set_data ${_debug} FALSE lsClassHealCure													list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
+
+  /call set_data ${_debug} FALSE lsIVU                                    list outer "Group Perfected Invisibility to Undead"|"Perfected Invisibility to Undead"|"Invisibility to Undead"|"Invisibility versus Undead"|"Shauri's Sonorous Clouding"
+  /call set_data ${_debug} FALSE lsIV                                     list outer "Shared Perfected Camouflage"|"Shared Camouflage"|"Camouflage"|"Group Perfected Invisibility"|"Invisibility"|"Perfected Invisibility"|"Phase March"|"Nethervoid March"|"Perfected Silent Presence"|"Cloak of Shadows"|"Gather Umbra"|"Invisibility Cloak"|"Perfected Natural Invisibility"|"Perfected Spirit Walk Invisibility"|"Perfected Group Spirit Walk Invisibility"|"Shauri's Sonorous Clouding"|"Selo's Song of Travel"
+  /call set_data ${_debug} FALSE lsAssistTypes                            list outer g|ma1|ma2|1|2|3
+  /call set_data ${_debug} FALSE lsPullTypes                              list outer base|pet|int|nav|multi
+  /call set_data ${_debug} FALSE lsRezBuffTriggers                        list outer "Revival Sickness"|"Resurrection Sickness"
 
 
 	| things we ont want pullers attacking

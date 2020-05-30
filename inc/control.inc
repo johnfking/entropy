@@ -3267,6 +3267,14 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 			}
 			/call do_raw_edit ${_debug} SILENT stPullMode "int"
 
+		| hard stop duration
+		} else /if (${_verbage.Equal[hardtime]}) {
+			/if (!${set_control_num_range[${_debug}, stHardStopDuration, "${_verbage2}", 0, 99]}) /return
+
+		| hard stop pct
+		} else /if (${_verbage.Equal[hardpct]}) {
+			/if (!${set_control_num_range[${_debug}, stPctHardStop, "${_verbage2}", 0, 99]}) /return
+
 		| pull modes
 		} else /if (${_verbage.Equal[mode]}) {
 			| pet pulling
@@ -3282,6 +3290,9 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 			| decision pulling
 			} else /if (${_verbage2.Equal[multi]}) {
 				/call do_raw_edit ${_debug} SILENT stPullMode "multi"
+			| base pulling
+			} else /if (${_verbage2.Equal[base]}) {
+				/call do_raw_edit ${_debug} SILENT stPullMode "base"
 			| calm pulling
 			} else /if (${_verbage2.Equal[calm]}) {
 				/call do_raw_edit ${_debug} SILENT stPullMode "calm"
@@ -3338,6 +3349,8 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 		/invoke ${maControl.Add[with,submenu]}
 		/invoke ${maControl.Add[sethome,swPullSetHome]}
 		/invoke ${maControl.Add[navstop,stPullNavStopDistance]}
+		/invoke ${maControl.Add[hardtime,stHardStopDuration]}
+		/invoke ${maControl.Add[hardpct,stPctHardStop]}
 		/invoke ${set_control_output[${_debug}, maCC, "cc pull", maControl]}
 		/return
 

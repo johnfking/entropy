@@ -33,6 +33,15 @@ epics with commas in their names are currently not functioning
 
 
 
+
+
+B200530.01
+- pulling hard stops
+  /cc pull hardtime - time you want to wait once a hard stop is started by the puller
+  /cc pull hardpct - pct of manna/endurance og your crew you want to stop pulling at (if they get to that %)
+- corrected issue with assists not setting
+
+
 B200529.01
 - loot
   fixed a PLoot vs SLoot conflict
