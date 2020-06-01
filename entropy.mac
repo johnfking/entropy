@@ -69,6 +69,7 @@
 #define FLOW "/if (${maDebug.Find[flow].Value}) /varset flow ${stAssTarID} ::"
 #define ENGINE1 "${maEntropy.Find[stEngine].Value.Equal[1]}"
 #define ENGINE2 "${maEntropy.Find[stEngine].Value.Equal[2]}"
+#define ENGINE3 "${maEntropy.Find[stEngine].Value.Equal[3]}"
 #define MERCENARY "${maMercenary.Find[swMercenary].Value}"
 
 
@@ -125,7 +126,7 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer B200530.01
+	/call set_data FALSE maEnv build													map outer B200601.01
 	/call set_data FALSE maEnv schema													map outer 1.00
 	/call set_data FALSE maEnv repo														map outer 1.00
 
@@ -438,7 +439,7 @@ sub prepare_the_end(bool _debug)
 	/call set_alias ${maDebug.Find[init].Value} add
 
 	| build the zone lists
-	/call set_zone_lists ${maDebug.Find[zone].Value}
+	| /call set_zone_lists ${maDebug.Find[zone].Value}
 
 	| build crew data
 	/call set_initialize_crew ${maDebug.Find[init].Value}

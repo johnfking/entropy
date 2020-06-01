@@ -83,12 +83,8 @@ sub main_SHM(bool _debug)
 	}
 
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-		GETINPUT
-		CHECKREZ
 		/call check_heal_routines
-		CHECKDEFENSE
 		CHECKFADE
-
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stGrowth lsGrowthToon
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
@@ -99,7 +95,6 @@ sub main_SHM(bool _debug)
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
 		/if (VALID) {
-
 			CHECKREZ
 			/call set_combat FALSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
@@ -154,12 +149,10 @@ sub misc_combat_SHM(bool _debug, int _tmpID)
 
 	/call check_cani ${maDebug.Find[canni].Value}
 
-
 	/if (ENGINE2) {
 		/call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
 		/return TRUE
 	}
-
 
 /return
 
@@ -184,7 +177,7 @@ sub check_heal_SHM(bool _debug, string _type)
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
 	| Group Regen Heal
-	/if (${maChr.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
+	/if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
 		/call cast_cycle_heal_regen ${_debug} 0 healgrouphot
 	}
 
@@ -202,31 +195,56 @@ sub check_heal_SHM(bool _debug, string _type)
 
 	}
 
-	| PET HEALING
-	/if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value} && ${Pet.ID}) {
-		/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-			/call cast_cycle_heal ${_debug} ${Pet.ID} healminion
-		}
-	}
-
-  | stationary ward heal
-  /if (${maHeal.Find[swHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[swHealGroup].Value}) {
-    /if (${is_ready[${_debug}, "Call of the Ancients"]}) {
-    	/call voodoo ${_debug} "Call of the Ancients" ${Me.ID} FALSE
-    }
-  }
-
  	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
 
-	| single heal over time
-	/if (${maChr.Find[swHealOverTime].Value} && !${timer_Check_Regen}) {
-		/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
-			/call cast_cycle_heal_regen ${_debug} ${hurtID} healhot
+	/if (!SAFEZONE) {
+
+		| group healing
+		/if (${Select[${_type},group]} && ${Group}) {
+
+			| group heal
+			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+				/call cast_cycle_heal ${_debug} 0 healgroup
+			}
+
+		 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+		 		/return FALSE
+		 	}
+
+			| stationary ward heal
+			/if (${maHeal.Find[swHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[swHealGroup].Value}) {
+			  /if (${is_ready[${_debug}, "Call of the Ancients"]}) {
+			  	/call voodoo ${_debug} "Call of the Ancients" ${Me.ID} FALSE
+			  }
+			}
+
 		}
+
+		| PET HEALING
+		/if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value} && ${Pet.ID}) {
+			/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+				/call cast_cycle_heal ${_debug} ${Pet.ID} healminion
+			}
+		}
+
+	 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+	 		/return FALSE
+	 	}
+
+		| single heal over time
+		/if (${maHeal.Find[swHealOverTime].Value} && !${timer_Check_Regen}) {
+			/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
+				/call cast_cycle_heal_regen ${_debug} ${hurtID} healhot
+			}
+		}
+
 	}
 
+  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+ 		/return FALSE
+ 	}
 
 	ISMEDEAD
 	CHECKEXIT
@@ -253,7 +271,6 @@ sub cast_cycle_heal_surge(bool _debug)
 		/return FALSE
 	}
 
-
 	CHECKEXIT
 	ISMEDEAD
 	GETINPUT
@@ -263,10 +280,9 @@ sub cast_cycle_heal_surge(bool _debug)
 	DEBUG assist_name: ${_tmpID}
 
 	/if (!${Spawn[${_tmpID}].LineOfSight}) {
-		DEBUG ${sep}break.LineOfSight
+		DEBUG ${break}.LineOfSight
 		/return FALSE
 	}
-
 
 	| get our twincast proc
   /if (!${Me.Song[Healing Twincast].ID}) {
@@ -274,10 +290,9 @@ sub cast_cycle_heal_surge(bool _debug)
 	}
 
 	/if (!${Me.Song[Healing Twincast].ID}) {
-		DEBUG ${sep}break.no twincast song
+		DEBUG ${break}no twincast song
 		/return FALSE
 	}
-
 
 	| get our surge spell
 

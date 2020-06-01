@@ -501,7 +501,7 @@ sub sql_schema_zone(bool _debug)
   /declare lsZoneProperty list outer
   /invoke ${lsZoneProperty.Delimiter["|"]}
   /invoke ${lsZoneProperty.Append[lsZoneNamed|lsZoneExclude|lsZoneCharm|lsZoneRange|lsZoneNoMez|lsZoneNoCast|lsZoneNoMelee]}
-  /invoke ${lsZoneProperty.Append[lsZoneNoFire|lsZoneNoPoison|lsZoneNoMagic|lsZoneNoCorruption|lsZoneNoCold|lsZoneNoDisease|lsZoneWP]}
+  /invoke ${lsZoneProperty.Append[lsZoneNoFire|lsZoneNoPoison|lsZoneNoMagic|lsZoneNoCorruption|lsZoneNoCold|lsZoneNoDisease]}
 
 	/declare _lisszs listiterator local
   /vardata _lisszs lsZoneProperty.First

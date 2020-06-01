@@ -270,7 +270,7 @@ sub Event_COMBAT_DISTANCE(string _line)
 sub Event_Zone(string _line)
 	EDEBUG zoning
 	/call check_mode FALSE RESET
-	/call check_zone_id FALSE FALSE
+	/call check_zone_id ${maDebug.Find[zone].Value}
 	/if (${maHome.Find[swHomeMarker].Value}) {
 		/call Bind_control_home clear
 	}

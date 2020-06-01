@@ -2328,33 +2328,41 @@ sub is_burn_valid(bool _debug)
 
 	| dont do shit in safe zone..
 	/if (${maEnv.Find[swZoneSafe].Value}) {
+		DEBUG ${break}safezone${sep}\a-wreturning FALSE\ax
 		/invoke ${maBurn.Add[swBurnConditionMet,FALSE]}
 		/return FALSE
 	}
 
 	| no raid burning if turned off
 	/if (!${maBurn.Find[swBurnRaid].Value} && ${Raid.Members}) {
+		DEBUG ${break}burn in raids OFF${sep}\a-wreturning FALSE\ax
 		/invoke ${maBurn.Add[swBurnConditionMet,FALSE]}
 		/return FALSE
 	}
 
 	| if always set to burn, always burn while in combat
-	/if (${maBurn.Find[swBurnForce].Value} &&  ${Me.CombatState.Equal[combat]}) {
+	/if (${maBurn.Find[swBurnForce].Value} && (${Me.CombatState.Equal[combat]} || ${Target.DisplayName.Find[combat dummy]})) {
+		DEBUG ${break}FORCED burn mode${sep}\a-wreturning TRUE\ax
 		/invoke ${maBurn.Add[swBurnConditionMet,TRUE]}
 		/return TRUE
 	}
 
 	| remainder requires automated modes
-	/if (!AUTO) /return FALSE
+	/if (!AUTO) {
+		DEBUG ${break}in manual${sep}\a-wreturning FALSE\ax
+		/return FALSE
+	}
 
 	| no mobs around
 	/if (!${SpawnCount[npc radius ENV PS4]}) {
+		DEBUG ${break}not enough mobs in radius${sep}\a-wreturning FALSE\ax
 		/invoke ${maBurn.Add[swBurnConditionMet,FALSE]}
 		/return FALSE
 	}
 
 	| if the current target is a namer
 	/if (${maBurn.Find[swBurnAuto].Value} && TARGET && ${Spawn[TARGET].PctHPs} <= ${maBurn.Find[stPctBurnEngage].Value} && (${lsZoneNamed.Contains[${Target.DisplayName}]} && !${maOver.Find[swOverName].Value})) {
+		DEBUG ${break}target is named${sep}\a-wreturning TRUE\ax
 		/invoke ${maBurn.Add[swBurnConditionMet,TRUE]}
 		/return TRUE
 	}
@@ -2363,6 +2371,7 @@ sub is_burn_valid(bool _debug)
 	| if number of mobs in the local area reaches the /burn count ## threashold
 	/if (${maBurn.Find[stBurnCount].Value}) {
 		/if (${SpawnCount[npc radius ENV targetable PS4]} >= ${maBurn.Find[stBurnCount].Value}) {
+			DEBUG ${break}spawncount in radius${sep}\a-wreturning TRUE\ax
 			/invoke ${maBurn.Add[swBurnConditionMet,TRUE]}
 			/return TRUE
 		}
@@ -2370,17 +2379,20 @@ sub is_burn_valid(bool _debug)
 
 	| healers and off combat routines simply check for a named in the local area to start a burn. no direct target of a named is required. just be in the area.
 	/if (!${maCC.Find[swCombatHeal].Value}) {
+		DEBUG ${break}not a healer. stopping here${sep}\a-wreturning FALSE\ax
 		/invoke ${maBurn.Add[swBurnConditionMet,FALSE]}
 		/return FALSE
 	}
 
 	/if (COMBAT) {
+		DEBUG ${sep}checking named radius
 		/declare _count int local 0
 		/declare _mobID int local 0
 
 		/for _count 1 to ${SpawnCount[npc radius ENV PS4]}
 			/varset _mobID ${NearestSpawn[${_count}, npc radius ENV].ID}
 			/if (${maBurn.Find[swBurnAuto].Value} && ${lsZoneNamed.Contains[${Spawn[ID ${_mobID} radius ENV].DisplayName}]} && !${maOver.Find[swOverName].Value}) {
+				DEBUG ${break}named found in radius${sep}\a-wreturning TRUE\ax
 				/invoke ${maBurn.Add[swBurnConditionMet,TRUE]}
 				/return TRUE
 			}
@@ -4186,23 +4198,27 @@ sub set_zone_lists(bool _debug)
 	FLOW set_zone_lists
 
 	| check zone exists
-	/sqlite ${maData.Find[DBzone].Value} dummy SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}'
-	DEBUG ${sep}dummy SELECT count(*) as data from zone_control where zone_shortname  \ay${sqlite.Status[dummy]}\ax resutl:${sqlite.Result[dummy 1 data]}
-	/if (${sqlite.Status[dummy].Find[no such table:]}) {
-		/sqlite ${maData.Find[DBzone].Value} dummy INSERT INTO zone_control values ('${Zone.ShortName}', 'swZoneSafe', 'FALSE')
+	/sqlite ${maData.Find[DBzone].Value} QZone SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}'
+	/if (!${sql_check[${_debug}, QZone, set_zone_lists, SELECT]}) /endm
+	/if (!${sqlite.Rows[QZone]}) {
+		/sqlite ${maData.Find[DBzone].Value} QZone INSERT INTO zone_control values ('${Zone.ShortName}', 'swZoneSafe', 'FALSE')
+		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "INSERT INTO zone_control"]}) /endm
 	}
 
 	| get safe zone
-	/sqlite ${maData.Find[DBzone].Value} dummy SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}'
-	|  and element='swZoneSafe'
-	DEBUG ${sep}SELECT count(*) as data from zone_control where zone_shortname \ay${sqlite.Status[dummy]}\ax resutl:${sqlite.Result[dummy 1 data]}
-	/if (!${sqlite.Result[dummy 1 data]}) {
-		/sqlite ${maData.Find[DBzone].Value} dummy INSERT INTO zone_control values ('${Zone.ShortName}', 'swZoneSafe', 'FALSE')
+	/sqlite ${maData.Find[DBzone].Value} QZone SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}'
+	/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT zone_control"]}) /endm
+
+	/if (!${sqlite.Result[QZone 1 data]}) {
+		/sqlite ${maData.Find[DBzone].Value} QZone INSERT INTO zone_control values ('${Zone.ShortName}', 'swZoneSafe', 'FALSE')
+		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "INSERT INTO swZoneSafe"]}) /endm
 		/invoke ${maEnv.Add[swZoneSafe,FALSE]}
 	} else {
-		/sqlite ${maData.Find[DBzone].Value} dummy SELECT value from zone_control where zone_shortname='${Zone.ShortName}' and element='swZoneSafe'
-		/invoke ${maEnv.Add[swZoneSafe,${sqlite.Result[dummy 1 value]}]}
+		/sqlite ${maData.Find[DBzone].Value} QZone SELECT value from zone_control where zone_shortname='${Zone.ShortName}' and element='swZoneSafe'
+		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT zone_shortname"]}) /endm
+		/invoke ${maEnv.Add[swZoneSafe,${sqlite.Result[QZone 1 value]}]}
 	}
+
 
 	| load zone properties
   /declare _li listiterator local
@@ -4210,20 +4226,17 @@ sub set_zone_lists(bool _debug)
 	/while (!${_li.IsEnd}) {
 		/invoke ${${_li.Value}.Clear}
 
-		/sqlite ${maData.Find[DBzone].Value} dummy SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}' and element='${_li.Value}'
+		/sqlite ${maData.Find[DBzone].Value} QZone SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}' and element='${_li.Value}'
+		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT ${_li.Value}"]}) /endm
 
-		| /if (${sqlite.ResultCode[dummy]} != 0) {
-		| 	/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM sql_error WHERE env_var="${sqlite.ResultCode[dummy]}"
 
-		| 	/invoke ${_li.Advance}
-		| 	/continue
-		| }
-
-		/if (${sqlite.Result[dummy 1 data]} > 0) {
-			/sqlite ${maData.Find[DBzone].Value} dummy SELECT group_concat(value) as data FROM zone_control WHERE zone_shortname = '${Zone.ShortName}' and element = '${_li.Value}' group by element
-			/invoke ${${_li.Value}.Append[${sqlite.Result[dummy 1 data]}]}
+		/if (${sqlite.Result[QZone 1 data]} > 0) {
+			/sqlite ${maData.Find[DBzone].Value} QZone SELECT group_concat(value) as data FROM zone_control WHERE zone_shortname = '${Zone.ShortName}' and element = '${_li.Value}' group by element
+			/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT group"]}) /endm
+			/invoke ${${_li.Value}.Append[${sqlite.Result[QZone 1 data]}]}
 		}
-	/invoke ${_li.Advance}
+
+		/invoke ${_li.Advance}
 	}
 
 /return TRUE
@@ -4678,7 +4691,7 @@ sub check_zone_id(bool _debug, bool _force)
 			OUT ${num}${Zone.Name}\ax${sep}\a-w${Zone.ShortName}\ax
 		}
 
-		/call set_zone_lists FALSE
+		/call set_zone_lists ${maDebug.Find[zone].Value}
 		/varset swIsMeDead FALSE
 		/varset _zoned TRUE
 		/doevents flush
@@ -5772,8 +5785,6 @@ sub check_buff_cycle_beg(bool _debug)
 	DEBUG \atcheck_buff_cycle_beg\ax()
 	FLOW check_buff_cycle_beg (1)
 
-	SETHUD "buff beg"
-
 	/if (AUTO) {
 		/invoke ${set_data_timer[FALSE, Check_Buff_Beg, RESTART]}
 		/if (!${maBuff.Find[swBuffMaster].Value}) {
@@ -5785,6 +5796,8 @@ sub check_buff_cycle_beg(bool _debug)
 		DEBUG ${break}no buff requests
 		/return TRUE
 	}
+
+	SETHUD "buff beg"
 
 	/declare _remove bool local FALSE
 
@@ -5856,14 +5869,14 @@ sub check_buff_cycle_crew(bool _debug)
 	DEBUG \atcheck_buff_cycle_crew\ax()
 	FLOW check_buff_cycle_crew (1)
 
-	SETHUD "buff crew"
-
 	/if (AUTO) {
 		/invoke ${set_data_timer[FALSE, Check_Buff_Crew, RESTART]}
 		/if (!${maBuff.Find[swBuffMaster].Value}) {
 			/return FALSE
 		}
 	}
+
+	SETHUD "buff crew"
 
 	CHECKTIE
 	ISMEDEAD
@@ -6050,6 +6063,7 @@ sub check_buff_cycle_crew(bool _debug)
 		/varcalc _countToon ${_countToon}+1
 
 	}
+
 	SETHUD EMPTY
 
 /return TRUE
@@ -6065,7 +6079,9 @@ sub check_buff_cycle_others(bool _debug, string _type)
 	FLOW check_buff_cycle_others (1)
 
 	| if we are in a raid, we are done here
-	/if (!${Raid.Members} && !${Group.Members}) /return
+	/if (!${Raid.Members} && !${Group.Members}) {
+		/return FALSE
+	}
 
 	/if (${_type.Equal[group]}) {
 		/if (AUTO) {
@@ -6222,7 +6238,6 @@ sub check_buff_cycle_others(bool _debug, string _type)
 		}
 	/next _countToon
 
-
 	SETHUD EMPTY
 
 /return TRUE
@@ -6306,8 +6321,6 @@ sub check_buff_cycle_temp_list(bool _debug, string _spell, string _toonList)
 	DEBUG \atcheck_buff_cycle_temp\ax(\a-w${_spell}, ${_toonList}\ax)
 	FLOW check_buff_cycle_temp_list ${_spell}|${_toonList} (1)
 
-	SETHUD "buff temp"
-
 	/if (AUTO) {
 		/invoke ${set_data_timer[FALSE, Check_Buff_Temp, RESTART]}
 		/if (!${maBuff.Find[swBuffMaster].Value}) {
@@ -6337,6 +6350,8 @@ sub check_buff_cycle_temp_list(bool _debug, string _spell, string _toonList)
 			/return TRUE
 		}
 	}
+
+	SETHUD "buff temp"
 
 	/declare _castSpell bool local FALSE
 
@@ -6504,83 +6519,6 @@ sub cast_challenge(bool _debug, int _tmpID)
 /return TRUE
 
 
-|***
- * note: cast dot lists
- * use: /call cast_dot DEBUG [listname] [targetid]
-
-sub cast_dot(bool _debug, string _line, int _tmpID)
-	DEBUG \atcast_dot\ax(\a-w${_line}, ${_tmpID}\ax)
-	FLOW cast_dot ${_line}|${_tmpID}
-
-
-	/declare _lidot listiterator local
-	/vardata _lidot ${_line}.First.Clone
-	/while (!${_lidot.IsEnd}) {
-		DEBUG ${sep}_lidot.Value${sep}\a-w${_lidot.Value}\ax
-		/delay 1
-
-		ISMEDEAD
-		CHECKEXIT cast_dot
-		GETINPUT cast_dot NA|NA
-
-		/if (${Me.PctMana} < 2) {
-			/return FALSE
-		}
-
-		| TTL evaluations
-		/if (${maTTL.Find[swTTL].Value}) {
-			/if (${maTTL.Contains[${Spawn[${_tmpID}].DisplayName}]}) {
-				| check overall durations of the average kill +2 tics over the spell duration time
-				/if (${Spell[${Spell[${_lidot.Value}].RankName}].Duration} > ${Math.Calc[${maTTL.Find[${Spawn[${_tmpID}].DisplayName}].Value.Arg[2,|]} + (${maTTL.Find[${Spawn[${_tmpID}].DisplayName}].Value.Arg[2,|]}*.5)]}) {
-					/invoke ${_lidot.Advance}
-					/continue
-				}
-				| if mob is less then 50% hp and spell duration is > 1/2 your average kill time
-				/if (${Spawn[${_tmpID}].PctHPs} < 50 && ${Spell[${Spell[${_lidot.Value}].RankName}].Duration} > ${Math.Calc[${maTTL.Find[${Spawn[${_tmpID}].DisplayName}].Value.Arg[2,|]} / 2]}) {
-					/invoke ${_lidot.Advance}
-					/continue
-				}
-			}
-		}
-
-		/if (!${is_ready[${_debug}, "${_lidot.Value}"]}) {
-			/invoke ${_lidot.Advance}
-			/continue
-		}
-
-		/if (${target[isdead, ${_tmpID}]}) {
-			FLOW cast_dot ${_line}|${_tmpID}
-			/return FALSE
-		}
-
-
-		| /if (${get_target_buff_time_left[${_debug}, "${_lidot.Value}"]} >= ${maCC.Find[stDotRefresh].Value}) {
-		/if (${Target.BuffDuration[${_lidot.Value}].TotalSeconds} >= ${maCC.Find[stDotRefresh].Value}) {
-			/invoke ${_lidot.Advance}
-			/continue
-		}
-
-		/call voodoo ${_debug} "${_lidot.Value}" ${_tmpID} FALSE
-
-		| forced delay
-		/if (${maCC.Find[stNukeDelay].Value}) {
-			/invoke ${set_data_timer[${_debug}, Nuke_Delay, RESTART]}
-		}
-
-		| maintain the loop of nukes till all are cycled.
-		/if (${maEnv.Find[swNukeLoop].Value}) {
-			DEBUG ${sep}swNukeLoop delay${sep}\a-w${timer_Nuke_Delay}\ax\ay+\ax
-			/delay 10s !${Me.Casting.ID}
-			/delay 2.5s
-			/delay ${timer_Nuke_Delay}
-		}
-
-		/invoke ${_lidot.Advance}
-	}
-
-/return TRUE
- ***|
-
 
 |***
  * nore: use base melee discs
@@ -6723,7 +6661,7 @@ sub do_melee(bool _debug, int _tmpID)
 		}
 	}
 
-/return
+/return TRUE
 
 
 
@@ -7082,15 +7020,14 @@ sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
 		/invoke ${_li.Advance}
 	}
 
-	| if contains==TRUE and _marker != TRUE we return a fail for that class that is the target
-| 	/if (${_containsclass} && !${_classmatch}) {
-| 		/return FALSE
-| 	} else
 	/if (${_containsclass} && ${_classmatch}) {
 		/if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_name}]}) {
 			/return TRUE
 		}
 	}
+
+
+
 
 	| cycle all 16 classes for negative good matches
 	/vardata _li lsClassAll.First.Clone
@@ -7665,7 +7602,11 @@ sub check_cursor(bool _debug, string _verbage)
 
 	/invoke ${set_data_timer[${_debug}, Check_Cursor, 5s]}
 
-	/if (!${Cursor.ID}) /return
+	/delay 2
+
+	/if (!${Cursor.ID}) {
+		/return FALSE
+	}
 
 	| check DB for the item
 	/call set_loot_item ${_debug} "${Cursor.Name}"
@@ -8251,7 +8192,7 @@ sub check_minion_cycle_buff(bool _debug)
 		/delay 1s ${Target.BuffsPopulated}
 
 		| stacks
-		| /if (!${Spell[${_spell}].StacksTarget}) /continue
+		/if (!${Spell[${_spell}].StacksTarget}) /continue
 
 		/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Pet.ID} FALSE
 		/if (${maEntropy.Find[swBuffCooldownWait].Value}) {
@@ -9708,26 +9649,31 @@ sub get_name_multipull(bool _debug, string _groupList)
 
 			| never use the MA
 			/if (${Group.MainAssist.Name.Equal[${_name}]}) {
+				DEBUG ${break}i dont pull. send someone else
 				/continue
 			}
 
 			| no name.. wtf?
 			/if (!${Bool[pc ${_name}]}) {
+				DEBUG ${break}bad name?
 				/continue
 			}
 
 			| pc not here?
 			/if (!${Spawn[pc ${_name}].ID}) {
+				DEBUG ${break}pc NOT here
 				/continue
 			}
 
 			| bitches are dead
 			/if (${Spawn[pc ${_name}].Dead}) {
+				DEBUG ${break}dead
 				/continue
 			}
 
 			| too far away to be of any damn use
-			/if (${Spawn[pc ${_name}].Distance} > 40) {
+			/if (${Spawn[pc ${_name}].Distance} > ENV) {
+				DEBUG ${break}pc.distance > ENV
 				/continue
 			}
 
@@ -9879,6 +9825,10 @@ sub check_mode(bool _debug, string _verbage)
 sub set_loot_item(bool _debug, string _item)
 	DEBUG \atset_loot_item\ax(\a-w${_item}\ax)
 	FLOW set_loot_item
+
+	/if (!${Bool[${_item}]}) {
+		/return FALSE
+	}
 
 	| check for the item in the DB
 	/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${_item}"
@@ -10338,7 +10288,7 @@ sub control_mez(bool _debug, int _tmpID)
 					/sqlite ${maData.Find[DBzone].Value} dummy INSERT INTO zone_control VALUES ("${Zone.ShortName}", "lsZoneNoMez", "${Target.DisplayName}")
 					/if (!${sql_check[${_debug}, dummy, control_mez, "INSERT INTO"]}) /endm
 					/invoke ${out[15, 0, 58]}
-					/call set_zone_lists FALSE
+					/call set_zone_lists
 				}
 
 				| were not going to try this target again, clear its current control settings

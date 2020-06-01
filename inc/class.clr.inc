@@ -289,8 +289,6 @@ sub check_heal_CLR(bool _debug, string _type)
 
 	SETHUD "heal ${_type.Lower}"
 
-	| /declare _count int local 0
-
 	| Group Regen Heal
 	/if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
 		/call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 healgrouphot
@@ -313,7 +311,7 @@ sub check_heal_CLR(bool _debug, string _type)
  		/return FALSE
  	}
 
-	/if (!${maEnv.Find[swZoneSafe].Value}) {
+	/if (!SAFEZONE) {
 
 		| group healing
 		/if (${Select[${_type},group]} && ${Group}) {
@@ -342,15 +340,12 @@ sub check_heal_CLR(bool _debug, string _type)
  			}
 		}
 
-
 		| single heal over time
 		/if (${maChr.Find[swHealOverTime].Value} && !${timer_Check_Regen}) {
 			/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
 				/call cast_cycle_heal_regen ${maDebug.Find[regen].Value} ${hurtID} healhot
 			}
 		}
-
-
 
 		| Focused Celestial Regeneration - out of raid only
 		/if (!${Raid.Members}) {
@@ -679,20 +674,7 @@ sub check_CLR_alliance(bool _debug)
 		/call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" ${_tmpID} FALSE
 	}
 
-
-
 /return TRUE
-
-
-
-
-
-
-
-
-
-
-
 
 
 
