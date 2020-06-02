@@ -380,7 +380,6 @@ sub set_initial_environment(bool _debug)
 	  /invoke ${maChrControl.Add[yaulp,swYaulp]}
 
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
-	  /invoke ${maChrControl.Add[groupheal,stCountHealGroup]}
 	  /invoke ${maChrControl.Add[wolf,swWolfSpirit]}
 
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
@@ -915,16 +914,12 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHeal stHealAdjust                        0                             "${auxnum} % to overide max health to" 																				heal
   /call set_data_map ${_debug} maHeal swHealSelf                          FALSE                         "${auxsw} enable self healing" 																								heal
   /call set_data_map ${_debug} maHeal swHealToT                          	FALSE                         "${auxsw} enable healing your targets target" 																heal
-  /call set_data_map ${_debug} maHeal swHealGroup                         FALSE                         "${auxsw} enable group healing" 																							heal
   /call set_data_map ${_debug} maHeal swHealXTarget                       FALSE                         "${auxsw} enable xtarget healing" 																						heal
   /call set_data_map ${_debug} maHeal swHealPet                           FALSE                         "${auxsw} enable pet healing" 																								heal
-  | /call set_data_map ${_debug} maHeal swHealCure                          FALSE                         "${auxsw} enable curing" 																											heal
 
   /call set_data_map ${_debug} maHeal swHealCureSelf                      FALSE                         "${auxsw} enable self curing" 																								heal
   /call set_data_map ${_debug} maHeal swHealCureGroup                     FALSE                         "${auxsw} enable group curing"																								heal
   /call set_data_map ${_debug} maHeal swHealCureCrew                      FALSE                         "${auxsw} enable crew curing (everyone)"																			heal
-
-
 
   /call set_data_map ${_debug} maHeal stCureCurseItem                     FALSE                         "${auxna} name of item to cure self curses" 																	heal
   /call set_data_map ${_debug} maHeal stCurePoisonItem                    FALSE                         "${auxna} name of item to cure self poisons" 																	heal

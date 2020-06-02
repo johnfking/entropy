@@ -3962,16 +3962,27 @@ sub do_rest(bool _debug)
 
 			/if (${Select[${Me.Class.ShortName},CLR]}) {
 				/if (${maCC.Find[swCombatHeal].Value} && ${SpawnCount[npc radius ENV PS4]}) {
-					/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} FALSE Group
+					/if (${maHeal.Find[stCountHealGroup].Value} && ${Group.Members}) {
+						/call check_heal_${Me.Class.ShortName} FALSE Group
+					}
 					/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
 				}
 			} else /if (${Select[${Me.Class.ShortName},DRU]}) {
-				| /if (${maCC.Find[swCombatHeal].Value} && ${SpawnCount[npc radius ENV PS4]}) {
-				| 	/if (${swHealGroup}) /call check_heal_${Me.Class.ShortName} FALSE Group
-				| 	/if (${swHealXTarget}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
-				| }
+				/if (${maCC.Find[swCombatHeal].Value} && ${SpawnCount[npc radius ENV PS4]}) {
+					/if (${maHeal.Find[stCountHealGroup].Value} && ${Group.Members}) {
+						/call check_heal_${Me.Class.ShortName} FALSE Group
+					}
+					/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
+				}
+
 			} else /if (${Select[${Me.Class.ShortName},SHM]}) {
 				/call check_cani ${maDebug.Find[canni].Value}
+				/if (${maCC.Find[swCombatHeal].Value} && ${SpawnCount[npc radius ENV PS4]}) {
+					/if (${maHeal.Find[stCountHealGroup].Value} && ${Group.Members}) {
+						/call check_heal_${Me.Class.ShortName} FALSE Group
+					}
+					/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
+				}
 				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
 			} else /if (${Select[${Me.Class.ShortName},ENC]}) {
 				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
@@ -8657,7 +8668,7 @@ sub cast_shield_flash(bool _debug, string _type)
 	}
 
 	| health low enough || enough mobs in range
-	/if (${Me.PctHPs} > ${maChr.Find[stPctShieldFlash].Value} && ${SpawnCount[npc radius SAFEENV PS4 targetable]} < ${maChr.Find[stCountShieldFlash].Value}) {
+	/if (${Me.PctHPs} > ${maSash.Find[stPctShieldFlash].Value} && ${SpawnCount[npc radius SAFEENV PS4 targetable]} < ${maSash.Find[stCountShieldFlash].Value}) {
 		/return FALSE
 	}
 
@@ -8667,7 +8678,7 @@ sub cast_shield_flash(bool _debug, string _type)
 			/return FALSE
 		}
 	} else /if (${_type.Equal[disc]}) {
-		/if (!${is_ready[FALSE, "${maChr.Find[stFlash].Value}"]}) {
+		/if (!${is_ready[FALSE, "${maSash.Find[stFlash].Value}"]}) {
 			/return FALSE
 		}
 	}
@@ -8852,7 +8863,7 @@ sub set_hud_data(string _mode)
 	| /varset h_healmode			${maHeal.Find[stHealMode].Value}
 	/varset h_override			${maHeal.Find[stHealAdjust].Value}
 	/varset h_self					${maHeal.Find[swHealSelf].Value}
-	/varset h_group					${maHeal.Find[swHealGroup].Value}
+	/varset h_group					${maHeal.Find[stCountHealGroup].Value}
 	/varset h_xt						${maHeal.Find[swHealXTarget].Value}
 	/varset h_pet						${maHeal.Find[swHealPet].Value}
 	/varset h_cure					${maHeal.Find[swHealCure].Value}
@@ -10406,7 +10417,7 @@ sub check_heal_routines()
 	}
 
 	| heal: group
-	/if (${lsClassHealGroup.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
+	/if (${lsClassHealGroup.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[stCountHealGroup].Value} && ${Group.Members}) {
 		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[group].Value} Group
 	}
 

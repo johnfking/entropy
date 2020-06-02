@@ -31,8 +31,22 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
+
+
+
+
+
+B200602.01
+- shield flash
+  adjusted for pally and shadowsnowflake, more checks added for warrior
+- group healing
+  the switch swHealGroup is legacy. knowing when to heal the group is based off of the number
+  of people in your group hurt. unfortunately, i still had the damn switch in the code.
+  so, it is gone. (props to oamuk)
+
+
 B200601.01
-- corercted the output where /heal # see would not show the tag title
+- corrected the output where /heal # see would not show the tag title
 - zone control/DB
   made some changed to the sql controls
 - pet buffing. uncommented the target stacking check
@@ -44,7 +58,7 @@ B200601.01
   added in debugging
   force will work on combat dummys for testing
 - cursro
-  corected a horse/cart issue with trying to mark something not in hand for loot DB
+  corrected a horse/cart issue with trying to mark something not in hand for loot DB
 
 
 B200530.01

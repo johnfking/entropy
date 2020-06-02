@@ -48,9 +48,6 @@ sub set_WAR(bool _debug)
 	/call set_data_map FALSE maChr stDefense 														PREGEN|1											"${auxna} Bracing Defense family disc"
 	/call set_data_map FALSE maChr stField				 											PREGEN|1											"${auxna} Field Armorer family disc"
 
-	| shield flash
-	| /call set_data_map FALSE maChr stPctShieldFlash											0															"${auxnum} % of HP to try to get shield flash running"
-	| /call set_data_map FALSE maChr stCountShieldFlash										0															"${auxnum} # of mobs to hit shield flash"
 	/call set_data_map FALSE maChr stFlash				 											PREGEN|1											"${auxna} Flash of Anger family disc"
 
 	/call set_data_map FALSE maChr stNoTime				 											PREGEN|1											"${auxna} No Time to Bleed family disc"
@@ -93,6 +90,9 @@ sub main_WAR(bool _debug)
 
 		/if (VALID) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+				/call cast_shield_flash FALSE disc
+			}
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
@@ -144,6 +144,10 @@ sub misc_combat_WAR(bool _debug, int _tmpID)
 	/if (ENGINE2) {
 		/call cast_cycle_miscdps ${maDebug.Find[misc].Value} ${_tmpID}
 		/return TRUE
+	}
+
+	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+		/call cast_shield_flash FALSE disc
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stNoTime].Value}"]} && !${Me.Buff[${maChr.Find[stDichotomic].Value}].ID}) {
@@ -272,6 +276,9 @@ sub get_agro_WAR(bool _debug, int _tmpID)
 		/return TRUE
 	}
 
+	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+		/call cast_shield_flash FALSE disc
+	}
 
 	| (60 seconds) and ae taunt
 	/if (${SpawnCount[npc OVERLOS radius 30 targetable PS4]} >= AE#) {
@@ -350,6 +357,10 @@ sub check_heal_WAR(bool _debug, string _type)
  		/return FALSE
  	}
 
+	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+		/call cast_shield_flash FALSE disc
+	}
+
 	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
 
 /return
@@ -387,7 +398,9 @@ sub burn_WAR(bool _debug, int _tmpID)
 		/return TRUE
 	}
 
-	/if (${maChr.Find[stPctShieldFlash].Value} && ${Me.PctHPs} <= ${maChr.Find[stPctShieldFlash].Value}) /call cast_shield_flash FALSE disc
+	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+		/call cast_shield_flash FALSE disc
+	}
 
 	CHECKDEFENSE
 

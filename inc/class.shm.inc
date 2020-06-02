@@ -202,10 +202,10 @@ sub check_heal_SHM(bool _debug, string _type)
 	/if (!SAFEZONE) {
 
 		| group healing
-		/if (${Select[${_type},group]} && ${Group}) {
+		/if (${Select[${_type},group]} && ${Group} && ${maHeal.Find[stCountHealGroup].Value}) {
 
 			| group heal
-			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+			/if (${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
 				/call cast_cycle_heal ${_debug} 0 healgroup
 			}
 
@@ -214,7 +214,7 @@ sub check_heal_SHM(bool _debug, string _type)
 		 	}
 
 			| stationary ward heal
-			/if (${maHeal.Find[swHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[swHealGroup].Value}) {
+			/if (${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
 			  /if (${is_ready[${_debug}, "Call of the Ancients"]}) {
 			  	/call voodoo ${_debug} "Call of the Ancients" ${Me.ID} FALSE
 			  }
@@ -391,6 +391,7 @@ sub burn_SHM(bool _debug, int _tmpID)
 	/if (SWARM || PET) {
 		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	}
+
 	/if (AUTO && MELEE) {
 		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	}
@@ -445,7 +446,9 @@ sub cast_talisman(bool _debug)
 
 	/invoke ${set_data_timer[${_debug}, Check_Talisman, RESTART]}
 
-	/if (${Me.Buff[${maChr.Find[stTalisman].Value}].ID}) /return FALSE
+	/if (${Me.Buff[${maChr.Find[stTalisman].Value}].ID}) {
+		/return FALSE
+	}
 
 	ISMEDEAD
 	CHECKEXIT

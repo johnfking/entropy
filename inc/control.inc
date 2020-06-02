@@ -347,6 +347,12 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		} else /if (${_type.Equal[keymap]}) {
 			/call get_key_map TRUE ${_verbage} TRUE
 
+
+
+		| refresh zone data
+		} else /if (${_type.Equal[zonerefresh]}) {
+			/call set_zone_lists ${maDebug.Find[zone].Value}
+
 		}
 
 		/if (${_verbage.Equal[zone]}) {
@@ -388,7 +394,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 	/if (${_silent.Equal[SILENT]}) /return
 	/declare liout list local
-	/invoke ${liout.Append[checkvar,spa,whitewash,import,keymap,see,sqlcheck,sqldrop,out]}
+	/invoke ${liout.Append[checkvar,spa,whitewash,import,keymap,see,sqlcheck,sqldrop,out,zonerefresh]}
   /declare _out string local
   /declare _liadout listiterator local
 	/vardata _liadout liout.First.Clone
@@ -1135,19 +1141,22 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 		/sqlite ${maData.Find[DBzone].Value} QZone DELETE FROM zone_control WHERE zone_shortname='${Zone.ShortName}' and value='${Target.DisplayName}'
 		/if (!${sql_check[${_debug}, QZone, Bind_control_area, "DELETE FROM"]}) /endm
 		/invoke ${out[12, "/area delete ${dot} ${num}${Zone.ShortName}\ax${sep}\a-w${Target.DisplayName}"]}
-		/call set_zone_lists ${maDebug.Find[zone].Value}
-		/return
 
 	| remaining list adjustments
 	} else /if (${Select[${_type},exclude,named,ranged,hunt,nomez,nocast,nomelee,nomagic,nodisease,nofire,nopoision,nocold,nocorruption]} && ${Target.ID}) {
-
 		| Add a property to a mob
 		/sqlite ${maData.Find[DBzone].Value} QZone INSERT INTO zone_control VALUES ("${Zone.ShortName}", "${_element}", "${Target.DisplayName}")
 		/if (!${sql_check[${_debug}, QZone, Bind_control_area, "INSERT INTO"]}) /endm
 		/invoke ${out[12, "/area ${_type} ${dot} ${num}${_element}\ax${sep}\a-w${Target.DisplayName}\ax"]}
-		/call set_zone_lists ${maDebug.Find[zone].Value}
-		/return TRUE
 
+	}
+
+	| update others?
+	/if (${Bool[${_type}]}) {
+		DEBUG ${sep} sending zone updates to rew in zone
+		/call set_zone_lists ${maDebug.Find[zone].Value}
+		/dgzexecute /admin zonerefresh
+		/return TRUE
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return
@@ -1162,6 +1171,11 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 	/invoke ${out[12, "/area ${_out}"]}
 
 /return TRUE
+
+
+
+
+
 
 
 
@@ -1277,10 +1291,6 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 			/invoke ${out[1, shade, 0]}
 		}
 
-	| heal group
-	} else /if (${_type.Equal[group]}) {
-		/invoke ${set_switch_env[${_debug}, swHealGroup, TRUE, ${_verbage}]}
-
 	| heal xtarget
 	} else /if (${_type.Equal[xt]}) {
 		| will force xtarget list clear
@@ -1304,16 +1314,6 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	| heal pets
 	} else /if (${_type.Equal[pet]}) {
 		/invoke ${set_switch_env[${_debug}, swHealPet, TRUE, ${_verbage}]}
-
-	|** heal cures
-	} else /if (${_type.Equal[cure]}) {
-		/invoke ${set_switch_env[${_debug}, swHealCure, TRUE, ${_verbage}]}
-		/if (${maHeal.Find[swHealCure].Value}) {
-			/call set_observers FALSE maCure add FALSE
-		} else /if (!${maHeal.Find[swHealCure].Value}) {
-			/call set_observers FALSE maCure drop FALSE
-		}
-		**|
 
 	} else /if (${_type.Equal[adj]}) {
 		/if (!${set_control_num_range[${_debug}, stHealAdjust, "${_verbage}", 0, 99]}) /return
@@ -1356,14 +1356,11 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	} else /if (${_type.Equal[hot]}) {
 		/if (${_verbage.Equal[use]}) {
 			/invoke ${set_switch_env[${_debug}, swHealOverTime, TRUE, ${_silent}]}
-		| } else /if (${_verbage.Equal[name]}) {
-		| 	/invoke ${do_raw_edit[${_debug}, SILENT, stHealOverTime, "${_silent}"]}
 		} else /if (${_verbage.Equal[pct]}) {
 			/if (!${set_control_num_range[${_debug}, stHealPointHoT, "${_silent}", 0, 99]}) /return
 		}
 		/invoke ${maControl.Clear}
 		/invoke ${maControl.Add[use,swHealOverTime]}
-		| /invoke ${maControl.Add[name,stHealOverTime|br]}
 		/invoke ${maControl.Add[pct,stHealPointHoT]}
 		/invoke ${set_control_output[${_debug}, maHeal, "heal hot", maControl]}
 		/return TRUE
@@ -1378,17 +1375,12 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	/if (${lsClassHealToT.Contains[${Me.Class.ShortName}]}) {
 		/invoke ${maControl.Add[tot,swHealToT]}
 	}
-	| /if (${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
-	| 	/invoke ${maControl.Add[hot,submenu]}
-	| }
 
-  /invoke ${maControl.Add[groupheal,submenu]}
   /invoke ${maControl.Add[grouphot,swHealGroupOverTime]}
 	/invoke ${maControl.Add[groupheal,stCountHealGroup]}
 	/invoke ${maControl.Add[xt,swHealXTarget]}
 	/invoke ${maControl.Add[xtclass,submenu]}
 	/invoke ${maControl.Add[pet,swHealPet]}
-	| /invoke ${maControl.Add[cure,swHealCure]}
 	/invoke ${maControl.Add[adj,stHealAdjust]}
 	/invoke ${maControl.Add[weight,swHealWeighted]}
 	/if (${Select[${Me.Class.ShortName},CLR]}) {
@@ -4334,7 +4326,6 @@ sub Bind_command_take(string _type, string _debug)
 
 	| accept highlighted task
 	/if (${Window[TaskSelectWnd]}) /nomodkey /notify TaskSelectWnd TSEL_AcceptButton leftmouseup
-
 
 	| rez
 	/if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["Blessing of Resurrection"]}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup

@@ -41,8 +41,6 @@ sub set_SHD(bool _debug)
  	/call set_data_map FALSE maChr swSkin 															FALSE													"${auxsw} use steel self buff"
  	/call set_data_map FALSE maChr stSkin 															PREGEN|1											"${auxna} name of the steel self buff"
 	/call set_data_map FALSE maChr swAttraction													FALSE													"${auxsw} use the attraction aa to help with agro/pulling"
-	| /call set_data_map FALSE maChr stPctShieldFlash						     					0															"${auxnum} % of HP to try to get shield flash running"
-	| /call set_data_map FALSE maChr stCountShieldFlash										0															"${auxnum} # of mobs to hit shield flash"
 
 	/invoke ${set_data_timer[FALSE, Check_VoT, 21m]}
 	/call set_data_map FALSE maChr swVoT				 												FALSE													"${auxsw} use voice of thule aa"
@@ -81,7 +79,9 @@ sub main_SHD(bool _debug)
 		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle FALSE
 	}
 
-	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
+	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+		/call cast_shield_flash FALSE aa
+	}
 
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
@@ -91,10 +91,12 @@ sub main_SHD(bool _debug)
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
 		/if (VALID) {
-			/call set_combat FALSE
-			CHECKDEFENSE
-			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
+			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+				/call cast_shield_flash FALSE disc
+			}
 			/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} TARGET
+			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
@@ -213,8 +215,9 @@ sub misc_combat_SHD(bool _debug, int _tmpID)
 		/return TRUE
 	}
 
-
-	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
+	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+		/call cast_shield_flash FALSE aa
+	}
 
 	| AA Voice of Thule AA
 	/if (AGRO && !${timer_Check_VoT} && ${maChr.Find[swVoT].Value}) {
@@ -282,7 +285,10 @@ sub get_agro_SHD(bool _debug, int _tmpID)
 	}
 
 	/call cast_challenge FALSE ${_tmpID}
-	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
+
+	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+		/call cast_shield_flash FALSE aa
+	}
 
 	| AA pet hate
 	/if (${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
@@ -361,7 +367,7 @@ sub check_skin(bool _debug)
 
 	ISMEDEAD
 	SIMPLEEXIT
-	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) {
+	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 		/call cast_shield_flash FALSE aa
 	}
 
@@ -414,7 +420,9 @@ sub burn_SHD(bool _debug, int _tmpID)
 		/return TRUE
 	}
 
-	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
+	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+		/call cast_shield_flash FALSE aa
+	}
 
 	/if (${is_ready[${_debug}, "T`Vyl's Resolve"]}) {
 		/call voodoo ${_debug} "T`Vyl's Resolve" ${_tmpID} FALSE

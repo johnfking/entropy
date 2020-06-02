@@ -41,6 +41,7 @@ sub set_PAL(bool _debug)
  	| /call set_data_map ${_debug} maHeal stSplash 												PREGEN|1											"${auxna} ground target ae heal spell" heal
 	/call set_data_map ${_debug} maHeal stCountSplash										0															"${auxnum} number mobs in range to use a splash heal" heal
 
+	/call set_data_map ${_debug} maHeal stCountHealGroup									0														"${auxnum} number in group hurt to use a group heal" 			heal
 
 	| stance
 	/invoke ${set_data_timer[${_debug}, Check_Stance, 7.5m]}
@@ -110,7 +111,9 @@ sub main_PAL(bool _debug)
 	    /call check_xtarget_build FALSE
 		}
 
-		/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
+		/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+			/call cast_shield_flash FALSE aa
+		}
 
 		| aa LoH
 		/if (${maHeal.Find[swHealSelf].Value} && ${maChr.Find[stPctLoH].Value}) {
@@ -136,6 +139,9 @@ sub main_PAL(bool _debug)
 
 		/if (VALID) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+				/call cast_shield_flash FALSE disc
+			}
 			/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/call check_heal_routines
@@ -214,7 +220,9 @@ sub misc_combat_PAL(bool _debug, int _tmpID)
 
 	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
-	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
+	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+		/call cast_shield_flash FALSE aa
+	}
 
 	| AA inquisitors armor stacking control
 	/if (${SpawnCount[npc OVERLOS radius 30 targetable]} >= ${maDefense.Find[stCountDef].Value} && ${maDefense.Find[stCountDef].Value}) {
@@ -271,7 +279,10 @@ sub get_agro_PAL(bool _debug, int _tmpID)
 
 	/call set_combat ${_debug}
 	/call check_heal_routines
-	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
+
+	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+		/call cast_shield_flash FALSE aa
+	}
 
 	| aa LoH
 	/if (${maHeal.Find[swHealSelf].Value} && ${maChr.Find[stPctLoH].Value}) {
@@ -402,7 +413,7 @@ sub check_heal_PAL(bool _debug, string _type)
 	}
 
 	| group only heals
-	/if (${Select[${_type},group]} && ${maHeal.Find[swHealGroup].Value}) {
+	/if (${Select[${_type},group]} && ${maHeal.Find[stCountHealGroup].Value}) {
 		| Group Splash
 
 		| splash heal
@@ -481,7 +492,7 @@ sub cast_AA_marrs_gift(bool _debug)
 		/return FALSE
 	}
 
-	/if (SAFEZONE || !${maHeal.Find[swHealGroup].Value}) {
+	/if (SAFEZONE || !${maHeal.Find[stCountHealGroup].Value}) {
 		/return FALSE
 	}
 
@@ -533,7 +544,9 @@ sub burn_PAL(bool _debug, int _tmpID)
 		}
 	}
 
-	/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
+	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
+		/call cast_shield_flash FALSE aa
+	}
 
 	| aa LoH
 	/if (${maHeal.Find[swHealSelf].Value} && ${maChr.Find[stPctLoH].Value}) {
