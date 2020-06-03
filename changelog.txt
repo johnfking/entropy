@@ -31,9 +31,13 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
-
-
-
+B200602.02
+- corrected a mistake i made with the previous heal changes.
+  fuckery happens.
+- /heal group [on|off] - to enable healing your group members
+- /heal groupcount # - number of group hurt 1-6, to use group heals
+- paladin
+  added in the group heal check. no idea where it went
 
 
 B200602.01

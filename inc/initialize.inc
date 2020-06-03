@@ -916,6 +916,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHeal swHealToT                          	FALSE                         "${auxsw} enable healing your targets target" 																heal
   /call set_data_map ${_debug} maHeal swHealXTarget                       FALSE                         "${auxsw} enable xtarget healing" 																						heal
   /call set_data_map ${_debug} maHeal swHealPet                           FALSE                         "${auxsw} enable pet healing" 																								heal
+  /call set_data_map ${_debug} maHeal swHealGroup                         FALSE                         "${auxsw} enable group healing" 																							heal
 
   /call set_data_map ${_debug} maHeal swHealCureSelf                      FALSE                         "${auxsw} enable self curing" 																								heal
   /call set_data_map ${_debug} maHeal swHealCureGroup                     FALSE                         "${auxsw} enable group curing"																								heal
@@ -930,6 +931,9 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_list ${_debug} maHeal lsNoHealToon                       EMPTY                         "${auxli} fuck these people.. no heals for them.." 														heal
   /call set_data_map ${_debug} maHeal swHealWeighted                      FALSE                         "${auxsw} enable weighted HP check healing"																		heal
   /call set_data_map ${_debug} maHeal swHealPromise                     	FALSE                         "${auxsw} enable use of promised heal spells healing"													heal
+
+
+
 
   /call set_data ${_debug} FALSE tmpHealAdjust                            float outer 99.99
   /call set_data ${_debug} FALSE hurtID                                   int outer 0

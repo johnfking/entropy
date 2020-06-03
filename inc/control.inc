@@ -1348,8 +1348,12 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	} else /if (${_type.Equal[splash]} && ${Select[${Me.Class.ShortName},CLR,PAL]}) {
 		/if (!${set_control_num_range[${_debug}, stCountSplash, "${_verbage}", 0, 6]}) /return
 
-	| set group Heals
-	} else /if (${_type.Equal[groupheal]}) {
+	| heal group
+	} else /if (${_type.Equal[group]} && ${Select[${Me.Class.ShortName},CLR,PAL]}) {
+		/invoke ${set_switch_env[${_debug}, swHealGroup, TRUE, ${_verbage}]}
+
+	| set group heals count
+	} else /if (${_type.Equal[groupcount]}) {
 		/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return
 
 	| set single hot
@@ -1377,7 +1381,8 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	}
 
   /invoke ${maControl.Add[grouphot,swHealGroupOverTime]}
-	/invoke ${maControl.Add[groupheal,stCountHealGroup]}
+	/invoke ${maControl.Add[group,swHealGroup]}
+	/invoke ${maControl.Add[groupcount,stCountHealGroup]}
 	/invoke ${maControl.Add[xt,swHealXTarget]}
 	/invoke ${maControl.Add[xtclass,submenu]}
 	/invoke ${maControl.Add[pet,swHealPet]}

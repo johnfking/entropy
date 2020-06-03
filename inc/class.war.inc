@@ -531,8 +531,8 @@ sub set_control_WAR(string _type, string _verbage, string _silent, bool _debug)
 		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
 
 	| set group Heals
-	} else /if (${_type.Equal[groupheal]}) {
-		/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return
+	| } else /if (${_type.Equal[groupheal]}) {
+	| 	/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return
 
 
 	| attraction

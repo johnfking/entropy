@@ -202,10 +202,10 @@ sub check_heal_SHM(bool _debug, string _type)
 	/if (!SAFEZONE) {
 
 		| group healing
-		/if (${Select[${_type},group]} && ${Group} && ${maHeal.Find[stCountHealGroup].Value}) {
+		/if (${Select[${_type},group]} && ${Group}) {
 
 			| group heal
-			/if (${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
 				/call cast_cycle_heal ${_debug} 0 healgroup
 			}
 

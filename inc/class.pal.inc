@@ -413,7 +413,7 @@ sub check_heal_PAL(bool _debug, string _type)
 	}
 
 	| group only heals
-	/if (${Select[${_type},group]} && ${maHeal.Find[stCountHealGroup].Value}) {
+	/if (${Select[${_type},group]} && ${Group}) {
 		| Group Splash
 
 		| splash heal
@@ -423,12 +423,25 @@ sub check_heal_PAL(bool _debug, string _type)
 			}
 		}
 
+		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+			/return FALSE
+		}
+
+		| group heal
+		/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+			/call cast_cycle_heal ${_debug} 0 healgroup
+		}
+
 		| Hand of Piety AA Group heal
 		/if (${hurtCount} >= 1) {
 			/if (${is_ready[${_debug}, "Hand of Piety"]}) {
 				/call voodoo ${_debug} "Hand of Piety" 0 FALSE
 				/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 			}
+		}
+
+		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+			/return FALSE
 		}
 
 		| heal disc
@@ -452,7 +465,9 @@ sub check_heal_PAL(bool _debug, string _type)
 			}
 		}
 
-		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
+		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+			/return FALSE
+		}
 	}
 
 	| AA Gift of Life -- not in raids
@@ -462,7 +477,10 @@ sub check_heal_PAL(bool _debug, string _type)
 		}
 	}
 
- 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
+ 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+ 		/return FALSE
+ 	}
+
 	CHECKREZ
 	CHECKFADE
 
@@ -492,7 +510,7 @@ sub cast_AA_marrs_gift(bool _debug)
 		/return FALSE
 	}
 
-	/if (SAFEZONE || !${maHeal.Find[stCountHealGroup].Value}) {
+	/if (SAFEZONE || !${maHeal.Find[swHealGroup].Value}) {
 		/return FALSE
 	}
 
@@ -610,10 +628,6 @@ sub set_control_PAL(string _type, string _verbage, string _silent, bool _debug)
 	| set ae on/off / count
 	} else /if (${_type.Equal[ae]}) {
 		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
-
-	| set group Heals
-	} else /if (${_type.Equal[groupheal]}) {
-		/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return
 
 	| Stun Control
 	} else /if (${_type.Equal[stun]}) {

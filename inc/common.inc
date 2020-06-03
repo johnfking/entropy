@@ -514,7 +514,9 @@ sub get_hurt(bool _debug, string _type)
 				/varcalc hurtCount ${hurtCount} + 1
 				/if (${maHeal.Find[stCountHealGroup].Value}) {
 					DEBUG ${sep}break on${sep}\a-w${hurtCount}\ax \aw>=\ax \a-w${maHeal.Find[stCountHealGroup].Value}\ax
-					/if (${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) /break
+					/if (${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+						/break
+					}
 				}
 			}
 
@@ -3962,14 +3964,14 @@ sub do_rest(bool _debug)
 
 			/if (${Select[${Me.Class.ShortName},CLR]}) {
 				/if (${maCC.Find[swCombatHeal].Value} && ${SpawnCount[npc radius ENV PS4]}) {
-					/if (${maHeal.Find[stCountHealGroup].Value} && ${Group.Members}) {
+					/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
 						/call check_heal_${Me.Class.ShortName} FALSE Group
 					}
 					/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
 				}
 			} else /if (${Select[${Me.Class.ShortName},DRU]}) {
 				/if (${maCC.Find[swCombatHeal].Value} && ${SpawnCount[npc radius ENV PS4]}) {
-					/if (${maHeal.Find[stCountHealGroup].Value} && ${Group.Members}) {
+					/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
 						/call check_heal_${Me.Class.ShortName} FALSE Group
 					}
 					/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
@@ -3978,7 +3980,7 @@ sub do_rest(bool _debug)
 			} else /if (${Select[${Me.Class.ShortName},SHM]}) {
 				/call check_cani ${maDebug.Find[canni].Value}
 				/if (${maCC.Find[swCombatHeal].Value} && ${SpawnCount[npc radius ENV PS4]}) {
-					/if (${maHeal.Find[stCountHealGroup].Value} && ${Group.Members}) {
+					/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
 						/call check_heal_${Me.Class.ShortName} FALSE Group
 					}
 					/if (${maHeal.Find[swHealXTarget].Value}) /call check_heal_${Me.Class.ShortName} FALSE XTarget
@@ -8863,7 +8865,7 @@ sub set_hud_data(string _mode)
 	| /varset h_healmode			${maHeal.Find[stHealMode].Value}
 	/varset h_override			${maHeal.Find[stHealAdjust].Value}
 	/varset h_self					${maHeal.Find[swHealSelf].Value}
-	/varset h_group					${maHeal.Find[stCountHealGroup].Value}
+	/varset h_group					${maHeal.Find[swHealGroup].Value}
 	/varset h_xt						${maHeal.Find[swHealXTarget].Value}
 	/varset h_pet						${maHeal.Find[swHealPet].Value}
 	/varset h_cure					${maHeal.Find[swHealCure].Value}
@@ -10417,7 +10419,7 @@ sub check_heal_routines()
 	}
 
 	| heal: group
-	/if (${lsClassHealGroup.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[stCountHealGroup].Value} && ${Group.Members}) {
+	/if (${lsClassHealGroup.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
 		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[group].Value} Group
 	}
 
