@@ -995,7 +995,7 @@ sub check_for_rezbox(bool _debug)
 		/declare _stRezWindowPct string local FALSE
 
 		| get rez window % to something we can use
-		/if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["percent)"]}]}) {
+		/if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["percent"]}]}) {
 
 			/if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["(10 percent)"]}]}) {
 				/varset _stRezWindowPct 10
@@ -1152,7 +1152,7 @@ sub check_condition(bool _debug, str _condition)
 		}
 	}
 
-	DEBUG returning default TRUE
+	DEBUG ${sep}returning default TRUE
 
 /return TRUE
 
@@ -5816,6 +5816,7 @@ sub check_buff_cycle_beg(bool _debug)
 
   /declare _mibb mapiterator local
   /vardata _mibb maBuffRequest.First.Clone
+	/declare _licountbeg listiterator local
   /while (!${_mibb.IsEnd}) {
 
 		CHECKTIE
@@ -5829,7 +5830,6 @@ sub check_buff_cycle_beg(bool _debug)
 			/return FALSE
 		}
 
-		/declare _licountbeg listiterator local
 	  /vardata _licountbeg lsCount50.First.Clone
 	  /while (!${_licountbeg.IsEnd}) {
 
@@ -5866,7 +5866,6 @@ sub check_buff_cycle_beg(bool _debug)
 
 		/invoke ${_mibb.Advance}
   }
-
 
 	SETHUD EMPTY
 
@@ -11821,6 +11820,21 @@ sub check_for_corpse(bool _debug)
 		}
 	}
 
+	| dannet members
+	/for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
+		/if (!${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}) /continue
+		/if (!${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].Dead}) /continue
+		/varset _tmpID ${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}
+		/if (!${timer_corpse_${_tmpID}}) {
+			/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
+				/call cast_rez ${_debug} ${_tmpID} ${_rezEmergency}
+			} else /if (${Defined[_rez${Me.Class.ShortName}]}) {
+				/call cast_rez ${_debug} ${_tmpID} ${_rez${Me.Class.ShortName}}
+			}
+			/return
+		}
+	/next _count
+
 	| guildies - all the time
 	/if (${SpawnCount[pccorpse guild radius ${maRez.Find[stMaxRezRange].Value}]}) {
 		/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value} GUILD]}
@@ -11836,6 +11850,7 @@ sub check_for_corpse(bool _debug)
 		}
 		/next _count
 	}
+
 
 	| outside guild and raid
 	| needs /rez everyone switch to be true

@@ -1213,7 +1213,7 @@ sub Bind_command_requestbuff(string _toon, string _operate, string _buff)
 		/varset _toon ${Me.Name}
 	}
 
-	/if (!${Bool[${_operate}]} || ${_operate.REqual[add]}) {
+	/if (!${Bool[${_operate}]} || ${_operate.Equal[add]}) {
 		/varset _operate Add
 	}
 

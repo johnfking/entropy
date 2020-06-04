@@ -31,6 +31,16 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
+
+
+B200604.01
+- buff begging
+  had a declare in a bad spot.
+  and i guess i cant spell equal /shrug
+- dannet members added to rez checking
+
+
+
 B200602.02
 - corrected a mistake i made with the previous heal changes.
   fuckery happens.
