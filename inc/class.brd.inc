@@ -430,9 +430,10 @@ sub burn_BRD(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "Funeral Dirge" 0 FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Quick Time"]} && !${Me.Song[Ruaabri's Fury].ID}) {
-		/call voodoo ${_debug} "Quick Time" 0 FALSE
-	}
+	| this is disabled until the stuck gem bug is fixed
+	| /if (${is_ready[${_debug}, "Quick Time"]} && !${Me.Song[Ruaabri's Fury].ID}) {
+	| 	/call voodoo ${_debug} "Quick Time" 0 FALSE
+	| }
 
 	| trigger Frenzied kicks AA for bards if target is debuffed from intimidate
 	/if (${Target.Buff[Harbinger's Intimidation].ID} && ${is_ready[${_debug}, "Frenzied Kicks"]}) {

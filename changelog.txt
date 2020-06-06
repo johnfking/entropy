@@ -32,13 +32,34 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+B200606.01
+- /area changes will now update across all toons in the same zone
+- corrected the NULL responses from spawncounts while pulling/waiting
+- bards
+  disabled quicktime for now, till the grey key bug is sorted
+- voodoo
+  CANNOTSEE event added to cast failures
+  IMMUNE event aded to successful casts
+- pulling (Nav and tagging)
+  redesign of the tagging system should allow for more error correction
+- /cc stoponds [t|f]
+  melee members with this switch on will not melee a target that has a DS on them
+  this does not apply to toons with Agro enabled
+- /sash
+  corrected the controls for the correct name of the flash bandolier the user has set
+- corrected the e dropdisc tag. it might drop the disc now
+- shaman
+  some reworking to the surge routines. shoudl keep its targets correct now
+- rezing
+  removed the nested if/else functions until the bug is sorted for next
+
+
 
 B200604.01
 - buff begging
   had a declare in a bad spot.
   and i guess i cant spell equal /shrug
 - dannet members added to rez checking
-
 
 
 B200602.02

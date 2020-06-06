@@ -93,7 +93,7 @@ sub main_SHD(bool _debug)
 		/if (VALID) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
-				/call cast_shield_flash FALSE disc
+				/call cast_shield_flash FALSE aa
 			}
 			/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic

@@ -861,6 +861,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHard stRezSummonRange										100														"${auxnum} /corpse summon range when rezing" hard
   /call set_data_map ${_debug} maHard stRezIgnoreFucktards								30m														"${auxnum} suration to mark corpses on the no rez list" hard
   /call set_data_map ${_debug} maHard stMaxCureRad												200														"${auxnum} max radius to check for curing" hard
+  /call set_data_map ${_debug} maHard stPullMobTagTry											5															"${auxnum} max trys to tag a mob while pulling" hard
 
 
 
@@ -1105,6 +1106,12 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maCC stPctHardStop													0   		                      "${auxnum} % of crew sta/manna to stop pulling at to give them rest time?"
   /call set_data_map ${_debug} maCC stHardStopDuration										0		                       	  "${auxnum} duration to stop pulling for crew to recover"
 
+  /call set_data_map ${_debug} maCC swStoponDS                            FALSE                         "${auxsw} Stop combat when the target has a DS. Does not apply agro enabled."
+
+
+	| /call sql_control FALSE ${chrID} stoponDS                           bool      outer FALSE
+
+
 
   | glyph
   /call set_data_map ${_debug} maCC swGlyphGroup                          FALSE                         "${auxsw} use glyph in a group"
@@ -1228,8 +1235,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maBurn stBurnCount                         0                             "${auxnum} number of mobs in your area to auto engage burns"			burn
   /call set_data_map ${_debug} maBurn swBurnRaid                          FALSE                         "${auxsw} use burns on raids"																			burn
   /call set_data_list ${_debug} maBurn lsLineBurn                         FALSE                         "${auxli} alternate burn line order (engine 2 only)"							burn
-
-	| /call sql_control FALSE ${chrID} stoponDS                           bool      outer FALSE
 
 
 |** control: debuff **|

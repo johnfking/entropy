@@ -352,7 +352,10 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		| refresh zone data
 		} else /if (${_type.Equal[zonerefresh]}) {
 			/call set_zone_lists ${maDebug.Find[zone].Value}
-
+			/if (${lsGrain.Contains[1]}) {
+				OUT ${num}${Zone.Name}\ax${sep}\a-w${Zone.ShortName}\ax
+			}
+		 /return TRUE
 		}
 
 		/if (${_verbage.Equal[zone]}) {
@@ -1122,7 +1125,6 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 		}
 	}
 
-
 	| safezone toggle
 	/if (${_type.Equal[safe]}) {
 		/if (${maEnv.Find[swZoneSafe].Value} || ${_verbage.Equal[FALSE]}) {
@@ -1144,10 +1146,16 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 
 	| remaining list adjustments
 	} else /if (${Select[${_type},exclude,named,ranged,hunt,nomez,nocast,nomelee,nomagic,nodisease,nofire,nopoision,nocold,nocorruption]} && ${Target.ID}) {
-		| Add a property to a mob
-		/sqlite ${maData.Find[DBzone].Value} QZone INSERT INTO zone_control VALUES ("${Zone.ShortName}", "${_element}", "${Target.DisplayName}")
-		/if (!${sql_check[${_debug}, QZone, Bind_control_area, "INSERT INTO"]}) /endm
-		/invoke ${out[12, "/area ${_type} ${dot} ${num}${_element}\ax${sep}\a-w${Target.DisplayName}\ax"]}
+		/if (!${${_element}.Contains[${Target.DisplayName}]}) {
+			| Add a property to a mob
+			/sqlite ${maData.Find[DBzone].Value} QZone INSERT INTO zone_control VALUES ("${Zone.ShortName}", "${_element}", "${Target.DisplayName}")
+			/if (!${sql_check[${_debug}, QZone, Bind_control_area, "INSERT INTO"]}) /endm
+			/invoke ${out[12, "/area ${_type} ${dot} ${num}${_element}\ax${sep}\a-w${Target.DisplayName}\ax"]}
+		} else /if (${${_element}.Contains[${Target.DisplayName}]}) {
+			/invoke ${out[0, "${Target.DisplayName} already exists in${sep}\a-w${_element}\ax"]}
+			/return TRUE
+		}
+
 
 	}
 
@@ -1155,6 +1163,9 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 	/if (${Bool[${_type}]}) {
 		DEBUG ${sep} sending zone updates to rew in zone
 		/call set_zone_lists ${maDebug.Find[zone].Value}
+		/if (${lsGrain.Contains[1]}) {
+			OUT ${num}${Zone.Name}\ax${sep}\a-w${Zone.ShortName}\ax
+		}
 		/dgzexecute /admin zonerefresh
 		/return TRUE
 	}
@@ -1171,11 +1182,6 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 	/invoke ${out[12, "/area ${_out}"]}
 
 /return TRUE
-
-
-
-
-
 
 
 
@@ -1349,7 +1355,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 		/if (!${set_control_num_range[${_debug}, stCountSplash, "${_verbage}", 0, 6]}) /return
 
 	| heal group
-	} else /if (${_type.Equal[group]} && ${Select[${Me.Class.ShortName},CLR,PAL]}) {
+	} else /if (${_type.Equal[group]}) {
 		/invoke ${set_switch_env[${_debug}, swHealGroup, TRUE, ${_verbage}]}
 
 	| set group heals count
@@ -1882,7 +1888,6 @@ sub Bind_deez(string _type, string _verbage)
 		/delay 30s !${Me.Moving}
 		/call check_facing ${maDebug.Find[face].Value} ${Target.ID} FORCE
 	}
-
 
 /return TRUE
 
@@ -3323,7 +3328,6 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 
 			| range
 			/if (${_verbage2.Equal[range]}) {
-				/echo here
 				/call do_raw_edit ${_debug} SILENT stPullWith "range"
 			| melee
 			} else /if (${_verbage2.Equal[melee]}) {
@@ -3366,31 +3370,6 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 
 
 
-		|**
-		/declare _liP listiterator local
-		/declare _outP string local
-		/varset _outP \awactive\ax:${If[${maCC.Find[swPull].Value},${on},${off}]} ${dot}
-		/varset _outP ${_outP} \awrad\ax:${If[${maCC.Find[stPullRadius].Value},${num}${maCC.Find[stPullRadius].Value}\ax,${r0}]} ${dot}
-		/varset _outP ${_outP} \awsethome\ax:${If[${maCC.Find[swPullSetHome].Value},${on},${off}]} ${dot}
-		/varset _outP ${_outP} \awnavstop\ax:${num}${maCC.Find[stPullNavStopDistance].Value}\ax ${dot}
-
-		/vardata _liP lsPullTypes.First.Clone
-		/while (!${_liP.IsEnd}) {
-			/varset _outP ${_outP} ${If[${_liP.Value.Equal[${lsPullTypes.First}]},,${dot}]} ${If[${_liP.Value.Equal[${maCC.Find[stPullMode].Value}]},${num}${_liP.Value}\ax,${info}${_liP.Value}\ax]}
-			/invoke ${_liP.Advance}
-		}
-		/invoke ${out[12, "/cc pull ${_outP}"]}
-		/return TRUE
-		**|
-
-
-
-
-
-
-
-
-
 	| mob engage %
 	} else /if (${_type.Equal[engage]}) {
 		/if (!${set_control_num_range[${_debug}, stPctEngage, "${_verbage}", 0, 100]}) /return
@@ -3398,10 +3377,6 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 	| set Z radius
 	} else /if (${_type.Equal[zradius]}) {
 		/if (!${set_control_num_range[${_debug}, stZRadius, "${_verbage}", 0, 300]}) /return
-
-	| use sash or not
-	| } else /if (${_type.Equal[bandolier]}) {
-	| 	/invoke ${set_switch_env[${_debug}, swBandolier, TRUE, ${_verbage}]}
 
 	| use alliance
 	} else /if (${_type.Equal[alliance]}) {
@@ -3411,6 +3386,10 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 	} else /if (${_type.Equal[agro]}) {
 		/invoke ${set_switch_env[${_debug}, swAgro, TRUE, ${_verbage}]}
 		/call set_AA_agro ${_debug}
+
+	| stop on target DS switch
+	} else /if (${_type.Equal[stoponds]}) {
+		/invoke ${set_switch_env[${_debug}, swStoponDS, TRUE, ${_verbage}]}
 
 	| force manual combat routines
 	} else /if (${_type.Equal[force]}) {
@@ -3445,19 +3424,6 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 			/declare _group string local ${set_dnet_group[FALSE]}
 		}
 
-	| /if (!${Bool[${_verbage}]} && ${DanNet.PeerCount[${_group}]} > 1) {
-
-
-
-
-	| /if (!${Bool[${_verbage}]} && ${DanNet.PeerCount[${_group}]} > 1) {
-	| 	/invoke ${out[21, "${broadcast}${sep}\a-w/cc kill\ax"]}
-	| 	/dgexecute ${_group} /here TRUE
-	| 	/return
-	| }
-
-
-
 		/for _count 1 to ${DanNet.PeerCount[${_group}]}
 			/varset _toon ${DanNet.Peers[${_group}].Arg[${_count},|]}
 			/if (${_toon.Equal[${Me.DisplayName}]}) /continue
@@ -3483,6 +3449,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 	/invoke ${maControl.Add[engage,stPctEngage]}
 	/invoke ${maControl.Add[zradius,stZRadius]}
 	/invoke ${maControl.Add[agro,swAgro]}
+	/invoke ${maControl.Add[stoponds,swStoponDS]}
 	/invoke ${maControl.Add[alliance,swAlliance]}
 	/invoke ${set_control_output[${_debug}, maCC, cc, maControl]}
 

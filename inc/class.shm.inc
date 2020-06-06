@@ -267,17 +267,13 @@ sub cast_cycle_heal_surge(bool _debug)
 	DEBUG \atcast_cycle_heal_surge\ax()
 	FLOW cast_cycle_heal_surge
 
-	/if (${target[isdead, TARGET]}) {
-		/return FALSE
-	}
-
 	CHECKEXIT
 	ISMEDEAD
 	GETINPUT
 
 	| get the main assisst ID
 	/declare _tmpID int local ${get_assist_info[${_debug}, ID]}
-	DEBUG assist_name: ${_tmpID}
+	DEBUG ${sep}assist ID${sep}\a-w${_tmpID}\ax
 
 	/if (!${Spawn[${_tmpID}].LineOfSight}) {
 		DEBUG ${break}.LineOfSight
@@ -364,7 +360,6 @@ sub cast_cycle_heal_surge(bool _debug)
 
 		/invoke ${_liHeal.Advance}
 	}
-
 
 /return TRUE
 
