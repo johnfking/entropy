@@ -48,12 +48,21 @@ sub set_ROG(bool _debug)
 	/call set_data_map ${_debug} maChr stFrenzy 												PREGEN|1											"${auxna} Frenzied Stabbing disc family"
 	/call set_data_map ${_debug} maChr stTwistedChance									PREGEN|1											"${auxna} Twisted Chance disc family"
 	/call set_data_map ${_debug} maChr stVision 												PREGEN|1											"${auxna} Thief's Eyes disc family"
-	/call set_data_map ${_debug} maChr stTwistedShank										PREGEN|1											"${auxna} Twisted Shank disc family"
+
 
 	/call set_data_map ${_debug} maChr swBlinding												FALSE													"${auxsw} use blinding disc.. or not."
 	/call set_data_map ${_debug} maChr stBlinding												PREGEN|1											"${auxna} Blinding Flash disc family"
 
 	/call set_data_map ${_debug} maChr stLegPoison											0															"${auxna} number of summon leg poisons to keep. dont forget the buff tag (\a-wsummonpoison\ax) for legs"
+
+	| AAs
+	/call set_data_map ${_debug} maChr stAATwistedShank										PREGEN|1											"${auxna} Twisted Shank aa"
+	/call set_data_map ${_debug} maChr stAAShadowsFlanking								PREGEN|1											"${auxna} Shadow's Flanking AA"
+	/call set_data_map ${_debug} maChr stAAFocusedRakesRampage						PREGEN|1											"${auxna} Focused Rake's Rampage AA"
+	/call set_data_map ${_debug} maChr stAARakesRampage										PREGEN|1											"${auxna} Rake's Rampage AA"
+	/call set_data_map ${_debug} maChr stAARoguesFury											PREGEN|1											"${auxna} Rogue's Fury AA"
+	/call set_data_map ${_debug} maChr stAATumble													PREGEN|1											"${auxna} Tumble AA"
+
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -61,6 +70,21 @@ sub set_ROG(bool _debug)
 	}
 
 /return TRUE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 |***
@@ -88,10 +112,10 @@ sub main_ROG(bool _debug)
 		/if (VALID) {
 			/call do_sneak_attack ${maDebug.Find[class].Value} TARGET
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			CHECKDEFENSE
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/if (MELEE) /call do_melee FALSE TARGET
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
@@ -171,15 +195,15 @@ sub misc_combat_ROG(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stAssault].Value}" ${_tmpID} FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Shadow's Flanking"]}) {
-		/call voodoo ${_debug} "Shadow's Flanking" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAShadowsFlanking].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAShadowsFlanking].Value}" 0 FALSE
 
 	}
 	/if (${is_ready[${_debug}, "${maChr.Find[stVision].Value}"]} && !${Me.Song[${maChr.Find[stVision].Value}].ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stVision].Value}" 0 FALSE
 	}
-	/if (${is_ready[${_debug}, "${maChr.Find[stTwistedShank].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stTwistedShank].Value}" ${_tmpID} FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAATwistedShank].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAATwistedShank].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -269,8 +293,8 @@ sub check_heal_ROG(bool _debug, string _type)
 
 	/if (!${check_hurt[${_debug}, ${_type}]}) /return FALSE
 
-	/if (${is_ready[${_debug}, "Tumble"]}) {
-		/call voodoo ${_debug} "Tumble" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAATumble].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAATumble].Value}" 0 FALSE
 	}
 
 	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
@@ -351,11 +375,11 @@ sub burn_ROG(bool _debug, int _tmpID)
 	}
 
 	/if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stPlay].Value}]} && ${Me.CombatAbilityReady[${Spell[${maChr.Find[stFrenzy].Value}].RankName}]}) {
-		:loopmakestop
+		:loopmakestopburn_ROG
 		/delay 5
 		/if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stPlay].Value}]} && ${Me.CombatAbilityReady[${Spell[${maChr.Find[stFrenzy].Value}].RankName}]}) /stopdisc
 		/delay 5
-		/if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stPlay].Value}]} && ${Me.CombatAbilityReady[${Spell[${maChr.Find[stFrenzy].Value}].RankName}]}) /goto :loopmakestop
+		/if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stPlay].Value}]} && ${Me.CombatAbilityReady[${Spell[${maChr.Find[stFrenzy].Value}].RankName}]}) /goto :loopmakestopburn_ROG
 	}
 
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -367,20 +391,20 @@ sub burn_ROG(bool _debug, int _tmpID)
 	}
 
 	/if (!AE#) {
-		/if (${is_ready[${_debug}, "Focused Rake's Rampage"]}) {
-			/call voodoo ${_debug} "Focused Rake's Rampage" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAFocusedRakesRampage].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAFocusedRakesRampage].Value}" 0 FALSE
 		}
 	} else /if (AE#) {
-		/if (${is_ready[${_debug}, "Rake's Rampage"]}) {
-			/call voodoo ${_debug} "Rake's Rampage" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAARakesRampage].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAARakesRampage].Value}" 0 FALSE
 		}
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stPinPoint].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stPinPoint].Value}" ${_tmpID} FALSE
 	}
-	/if (${is_ready[${_debug}, "Rogue's Fury"]}) {
-		/call voodoo ${_debug} "Rogue's Fury" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAARoguesFury].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAARoguesFury].Value}" 0 FALSE
 	}
 	/if (${is_ready[${_debug}, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15) {
 		/call voodoo ${_debug} "${maChr.Find[stMark].Value}" ${_tmpID} FALSE
@@ -392,9 +416,7 @@ sub burn_ROG(bool _debug, int _tmpID)
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
-	/if (${is_ready[${_debug}, "Intensity of the Resolute"]} && ${Raid.Members}) {
-		/call voodoo ${_debug} "Intensity of the Resolute" 0 FALSE
-	}
+
   /if (!${Me.ActiveDisc.ID}) {
   	/if (${is_ready[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) {
   		/call voodoo ${_debug} "${maChr.Find[stFrenzy].Value}" 0 FALSE

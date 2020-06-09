@@ -13,16 +13,13 @@ on the to do list
 - find a way to grade debuffs and overwrite if needed
 - mage pet weapons?
 - tag entry validation (cause people are making up shit now)
-- i'm gonna have to externalize all the AAs
 - ranger silent shot ambush spell
 - break out triggers for minion buffs
 - check cure exits / recasts
-- build a control /cure
-- auto boot non entropy toons from channels
 - shared map for rez
-- try and recreate DB corruption for instance excludes
 - look at a way to split coordination for assists across more then one mob in a raid
 - relay tells to tie toon..
+- externalize class AAs: WAR|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|NEC|DRU|SHM
 --------------------
 
 
@@ -30,6 +27,52 @@ known bugs
 --------------------
 epics with commas in their names are currently not functioning
 --------------------
+
+
+B200608.01
+- corrected a few more NULL outputs
+- corrected a /heal point output error
+- paladin
+  removed the old variables for stance and steel
+  externalized all the AAs in the class code
+- shadowknight
+  removed the old variables for stance and skin
+  removed the old sub for skin
+  externalized all the AAs in the class code
+  added Gift of the Quickspear AA to normal DPS rotation
+- enchanter
+  should use the heal crystals better when /heal self is enabled
+  externalized all the AAs in the class code
+- cleric
+  moved the few remaining AAs to the DB
+- ALL CLASSES
+  moved to set_combat_control for melee combat decisions
+  moved burns before the class misc combat routines
+- summonrange tag shouldnt try to feed your group members arrrows anymore
+- /env buffgem - corrected a sqlite issue. should hold the number now
+
+- tags
+	complete redesign of the class tag check.... cause the current way wasnt cutting it
+	redoing some tags to better fit their purpose
+	ma -> assist - if the current cycle target is not your assist, willcontinue oonb
+  alwaysup -> buffnow - for /buff now, to keep buffs up 24/7
+  crew -> buffcrew - for /buff crew, members of your dannet posse
+  self -> buffself - for /buff self, buffs only for you
+  group -> buffgroup - for /buff group, buffs for people/mercs not part of your dannet gang
+  minion -> buffminion - for /minion buff, buffs meant for your pet
+	powersource -> buffps - for /buff ps (NOT WORKING leave it alone)
+	noactivecombat -> deleted this one, too confusing, fixed other one
+	nocombat - cannot be in an active EQ combat state
+	combat - must be in an active EQ combat state
+
+- ENGINE3
+  this is being tested on the beastlord
+  the three custom subs will be:
+  e3_pre_BST(bool _debug) - precombat loop
+  e3_combat_BST(bool _debug) - active class combat main loop
+  e3_post_BST(bool _debug) - combat mana/stamina regen
+
+
 
 
 B200606.01
@@ -49,10 +92,9 @@ B200606.01
   corrected the controls for the correct name of the flash bandolier the user has set
 - corrected the e dropdisc tag. it might drop the disc now
 - shaman
-  some reworking to the surge routines. shoudl keep its targets correct now
+  some reworking to the surge routines. should keep its targets correct now
 - rezing
   removed the nested if/else functions until the bug is sorted for next
-
 
 
 B200604.01

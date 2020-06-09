@@ -16,43 +16,59 @@ sub set_ENC(bool _debug)
 		/declare _boottimestart int local ${MacroQuest.Running}
 	}
 
-	/call set_data FALSE maData stSpire																	map outer "Spire of Enchantment"
-	/call set_data FALSE maData stSynergy																map outer "Begulier's Synergy"
-	/call set_data FALSE maData stEpic1																	map outer "Staff of the Serpent"
-	/call set_data FALSE maData stEpic15																map outer "Oculus of Persuasion"
-	/call set_data FALSE maData stEpic2																	map outer "Staff of Eternal Eloquence"
-	/call set_data FALSE maData stFade																	map outer "Self Stasis"
-	/call set_data_map FALSE maChr stAAUnity														"Orator's Unity"								"${auxna} class aa unity buff"
+	/call set_data ${_debug} maData stSpire															map outer "Spire of Enchantment"
+	/call set_data ${_debug} maData stSynergy														map outer "Begulier's Synergy"
+	/call set_data ${_debug} maData stEpic1															map outer "Staff of the Serpent"
+	/call set_data ${_debug} maData stEpic15														map outer "Oculus of Persuasion"
+	/call set_data ${_debug} maData stEpic2															map outer "Staff of Eternal Eloquence"
+	/call set_data ${_debug} maData stFade															map outer "Self Stasis"
 
 	| map for mob control
 	/declare maMobControl map outer
 
-	/call set_data_map FALSE maChr stPctGather													0															"${auxnum} % of your mana to usin gather mana AA and crystal if enabled"
+	/call set_data_map ${_debug} maChr stPctGather											0															"${auxnum} % of your mana to usin gather mana AA and crystal if enabled"
 
-	/call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} alliance spell"
+	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
 
-	/call set_data_map FALSE maChr swAABoS															FALSE													"${auxsw} use aa Beam of Slumber in your mez routines"
+	/call set_data_map ${_debug} maChr swAABoS													FALSE													"${auxsw} use aa Beam of Slumber in your mez routines"
 
 	| single target charm
-	/call set_data_map FALSE maChr stCharm															PREGEN|1											"${auxna} name of your charm spell"
-	/call set_data_map FALSE maChr swCharm															FALSE													"${auxsw} enable using charm"
+	/call set_data_map ${_debug} maChr stCharm													PREGEN|1											"${auxna} name of your charm spell"
+	/call set_data_map ${_debug} maChr swCharm													FALSE													"${auxsw} enable using charm"
 
   | nights endless terror
-  /call set_data_map FALSE maChr stTerror															PREGEN|1											"${auxna} name of terror spell"
-  /call set_data_list FALSE maChr lsTerrorToon												EMPTY													"${auxli} lsit of toons you want to keep terror buff on"
+  /call set_data_map ${_debug} maChr stTerror													PREGEN|1											"${auxna} name of terror spell"
+  /call set_data_list ${_debug} maChr lsTerrorToon										EMPTY													"${auxli} lsit of toons you want to keep terror buff on"
 
-	/call set_data_map FALSE maChr stPctGather				 									0															"${auxnum} % of manna you want to use gather at"
+	/call set_data_map ${_debug} maChr stPctGather				 							0															"${auxnum} % of manna you want to use gather at"
 
 	| aa crystals
-  /invoke ${set_data_timer[FALSE, Check_Crystals, 10s]}
-	/call set_data_map FALSE maChr swAACrystals													FALSE													"${auxsw} use aa crystals:\a-wAzure Mind Crystal, Sanguine Mind Crystal/ax"
+  /invoke ${set_data_timer[${_debug}, Check_Crystals, 10s]}
+	/call set_data_map ${_debug} maChr swAACrystals											FALSE													"${auxsw} use aa crystals:\a-wAzure Mind Crystal, Sanguine Mind Crystal/ax"
 
 	| PBAE stun
-	/call set_data_map FALSE maChr stAEStun															PREGEN|1											"${auxna} name of your point blank ae stun"
+	/call set_data_map ${_debug} maChr stAEStun													PREGEN|1											"${auxna} name of your point blank ae stun"
 
 	| temp buff
   /call set_data_list ${_debug} maChr lsTempBuffToon									EMPTY													"${auxli} list of toons to use your temp buff on"
 	/call set_data_map ${_debug} maChr stTempBuff		 										FALSE													"${auxna} temp buff spell"
+
+	| AAs
+	/call set_data_map ${_debug} maChr stAABeamofSlumber								PREGEN|1											"${auxna} Beam of Slumber AA"
+	/call set_data_map ${_debug} maChr stAAPhantasmalOpponent           PREGEN|1											"${auxna} Phantasmal Opponent AA"
+	/call set_data_map ${_debug} maChr stAAChromaticHaze                PREGEN|1											"${auxna} Chromatic Haze AA"
+	/call set_data_map ${_debug} maChr stAAAzureMindCrystal             PREGEN|1											"${auxna} Azure Mind Crystal AA"
+	/call set_data_map ${_debug} maChr stAASanguineMindCrystal          PREGEN|1											"${auxna} Sanguine Mind Crystal AA"
+	/call set_data_map ${_debug} maChr stAAGatherMana                   PREGEN|1											"${auxna} Gather Mana AA"
+	/call set_data_map ${_debug} maChr stAAIllusionsofGrandeur          PREGEN|1											"${auxna} Illusions of Grandeur AA"
+	/call set_data_map ${_debug} maChr stAAFocusofArcanum               PREGEN|1											"${auxna} Focus of Arcanum AA"
+	/call set_data_map ${_debug} maChr stAADimensionalShield            PREGEN|1											"${auxna} Dimensional Shield AA"
+	/call set_data_map ${_debug} maChr stAASilentCasting                PREGEN|1											"${auxna} Silent Casting AA"
+	/call set_data_map ${_debug} maChr stAAImprovedTwincast             PREGEN|1											"${auxna} Improved Twincast AA"
+	/call set_data_map ${_debug} maChr stAAMentalContortion             PREGEN|1											"${auxna} Mental Contortion AA"
+	/call set_data_map ${_debug} maChr stAADoppelganger									PREGEN|1											"${auxna} Doppelganger AA"
+	/call set_data_map ${_debug} maChr stAACalculatedInsanity						PREGEN|1											"${auxna} Calculated Insanity AA"
+	/call set_data_map ${_debug} maChr stAAUnity												PREGEN|1											"${auxna} class aa unity buff"
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -60,6 +76,7 @@ sub set_ENC(bool _debug)
 	}
 
 /return TRUE
+
 
 
 
@@ -96,20 +113,17 @@ sub main_ENC(bool _debug)
 
 		/if (VALID) {
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
-			/call set_combat FALSE
-			/if (MELEE) /call do_melee FALSE TARGET
+			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			CHECKDEFENSE
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
 			/call control_routine ${maDebug.Find[mez].Value}
 			/call check_heal_routines
-
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
-
 			/call control_routine ${maDebug.Find[mez].Value}
-
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/call control_routine ${maDebug.Find[mez].Value}
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
@@ -179,11 +193,11 @@ sub misc_combat_ENC(bool _debug, int _tmpID)
 	| use AA beam of slumber?
 	/if (${maChr.Find[swAABoS].Value} && ${madeBuff.Find[swMez].Value}) {
 		/if (${Spawn[${_tmpID}].NearestSpawn[3,npc radius 30].ID} && ${Spawn[${_tmpID}].Distance3D} <= 200 && ${Spawn[TARGET].Distance3D} >= ENV*.5) {
-			/if (${Me.AltAbilityReady[Beam of Slumber]}) {
+			/if (${Me.AltAbilityReady[${maChr.Find[stAABeamofSlumber].Value}]}) {
 				/if (${Me.Casting.ID}) /stopcast
 				/face ID ${_tmpID} ${If[${maHome.Find[swFaceFast].Value},fast,]}
-				/if (${is_ready[${_debug}, "Beam of Slumber"]}) {
-					/call voodoo ${_debug} "Beam of Slumber" 0 FALSE
+				/if (${is_ready[${_debug}, "${maChr.Find[stAABeamofSlumber].Value}"]}) {
+					/call voodoo ${_debug} "${maChr.Find[stAABeamofSlumber].Value}" 0 FALSE
 				}
 			}
 		}
@@ -196,15 +210,15 @@ sub misc_combat_ENC(bool _debug, int _tmpID)
 	| swarm pet
 	/if (SWARM && AGRO) {
 		/if (${Target.PctHPs} <= ${maMinion.Find[stPctSwarmEngage].Value}) {
-			/if (${is_ready[${_debug}, "Phantasmal Opponent"]}) {
-				/call voodoo ${_debug} "Phantasmal Opponent" 0 FALSE
+			/if (${is_ready[${_debug}, "${maChr.Find[stAAPhantasmalOpponent].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAAPhantasmalOpponent].Value}" 0 FALSE
 			}
 		}
 	}
 
 	| group DPS bonus
-	/if (${is_ready[${_debug}, "Chromatic Haze"]}) {
-		/call voodoo ${_debug} "Chromatic Haze" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAChromaticHaze].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAChromaticHaze].Value}" 0 FALSE
 	}
 
 /return TRUE
@@ -227,18 +241,18 @@ sub check_crystals(bool _debug)
 	CHECKTIE
 
 	| mana crystal
-	/if (!${FindItemCount[${Spell[Azure Mind Crystal].Base[1]}]}) {
-		/if (${is_ready[${_debug}, "Azure Mind Crystal"]}) {
-			/call voodoo ${_debug} "Azure Mind Crystal" 0 FALSE
+	/if (!${FindItemCount[${Spell[${maChr.Find[stAAAzureMindCrystal].Value}].Base[1]}]}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAAzureMindCrystal].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAAzureMindCrystal].Value}" 0 FALSE
 		}
 		/autoinventory
 		CHECKCURSOR FALSE clear
 	}
 
 	| hp crystal
-	/if (!${FindItemCount[${Spell[Sanguine Mind Crystal].Base[1]}]}) {
-		/if (${is_ready[${_debug}, "Sanguine Mind Crystal"]}) {
-			/call voodoo ${_debug} "Sanguine Mind Crystal" 0 FALSE
+	/if (!${FindItemCount[${Spell[${maChr.Find[stAASanguineMindCrystal].Value}].Base[1]}]}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stAASanguineMindCrystal].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAASanguineMindCrystal].Value}" 0 FALSE
 		}
 		/autoinventory
 		CHECKCURSOR FALSE clear
@@ -278,8 +292,8 @@ sub check_gather_ENC(bool _debug)
 	/if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
 
 	| aa Gather Mana
-	/if (${is_ready[${_debug}, "Gather Mana"]}) {
-		/call voodoo ${_debug} "Gather Mana" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAGatherMana].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAGatherMana].Value}" 0 FALSE
 	}
 
 	/invoke ${target[assist]}
@@ -307,20 +321,20 @@ sub check_heal_ENC(bool _debug, string _type)
 
 			| AA Sanguine mind crystal summoned item 5 min
 			/if (${maChr.Find[swAACrystals].Value}) {
-				/if (${is_ready[${_debug}, "${healCrystal}"]}) {
-					/call voodoo ${_debug} "${healCrystal}" 0 FALSE
+				/if (${is_ready[${_debug}, "${maChr.Find[stAASanguineMindCrystal].Value}"]}) {
+					/call voodoo ${_debug} "${maChr.Find[stAASanguineMindCrystal].Value}" 0 FALSE
 				}
 			}
 
 			| rune and anti hate 20 min
-			/if (${is_ready[${_debug}, "Dimensional Shield"]}) {
-				/call voodoo ${_debug} "Dimensional Shield" 0 FALSE
+			/if (${is_ready[${_debug}, "${maChr.Find[stAADimensionalShield].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAADimensionalShield].Value}" 0 FALSE
 				/return
 			}
 
 			| 3 decoys 10 min
-			/if (${is_ready[${_debug}, "Doppelganger"]}) {
-				/call voodoo ${_debug} "Doppelganger" ${Me.ID} FALSE
+			/if (${is_ready[${_debug}, "${maChr.Find[stAADoppelganger].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAADoppelganger].Value}" ${Me.ID} FALSE
 			}
 
 		}
@@ -367,45 +381,45 @@ sub burn_ENC(bool _debug, int _tmpID)
 		/return TRUE
 	}
 
-	/if (${is_ready[${_debug}, "Illusions of Grandeur"]}) {
-		/call voodoo ${_debug} "Illusions of Grandeur" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAIllusionsofGrandeur].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAIllusionsofGrandeur].Value}" 0 FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Mental Contortion"]}) {
-		/call voodoo ${_debug} "Mental Contortion" ${_tmpID} FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAMentalContortion].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAMentalContortion].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${target[isdead, ${_tmpID}]}) /return FALSE
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
-	/if (${is_ready[${_debug}, "Improved Twincast"]}) {
-		/call voodoo ${_debug} "Improved Twincast" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAImprovedTwincast].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAImprovedTwincast].Value}" 0 FALSE
 	}
 
 	| # DD spell damage bonus
-	/if (${is_ready[${_debug}, "Calculated Insanity"]}) {
+	/if (${is_ready[${_debug}, "${maChr.Find[].Value}"]}) {
 		/call voodoo ${_debug} "Calculated Insanity" 0 FALSE
 	}
 
 	/if (${target[isdead, ${_tmpID}]}) /return FALSE
 
-	/if (${is_ready[${_debug}, "Silent Casting"]}) {
-		/call voodoo ${_debug} "Silent Casting" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAASilentCasting].Value}" 0 FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Dimensional Shield"]}) {
-		/call voodoo ${_debug} "Dimensional Shield" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAADimensionalShield].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAADimensionalShield].Value}" 0 FALSE
 	}
 
 	| resist mod
-	/if (${is_ready[${_debug}, "Focus of Arcanum"]}) {
-		/call voodoo ${_debug} "Focus of Arcanum" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAFocusofArcanum].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAFocusofArcanum].Value}" 0 FALSE
 	}
 
 	| Group DD Bonus
-	/if (${is_ready[${_debug}, "Chromatic Haze"]}) {
-		/call voodoo ${_debug} "Chromatic Haze" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAChromaticHaze].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAChromaticHaze].Value}" 0 FALSE
 	}
 
 	/if (${target[isdead, ${_tmpID}]}) /return FALSE
@@ -413,6 +427,9 @@ sub burn_ENC(bool _debug, int _tmpID)
 	/call cast_glyph ${maDebug.Find[glyph].Value}
 
 /return
+
+
+
 
 
 

@@ -68,9 +68,13 @@ sub main_BST(bool _debug)
 	DEBUG \atmain_BST\ax()
 	FLOW main_BST
 
-	/if (AUTO) {
+	/if (AUTO && !ENGINE3) {
 		/call check_mana_${Me.Class.ShortName}
 		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
+	} else /if (VALID && ENGINE3) {
+		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
+			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+		}
 	}
 
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
@@ -84,9 +88,9 @@ sub main_BST(bool _debug)
 
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
-		/if (VALID) {
-			FLOW main_BST VALID
+		/if (VALID && !ENGINE3) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/call check_heal_routines
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
@@ -96,20 +100,30 @@ sub main_BST(bool _debug)
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stNukeServant].Value}"
-			/if (MELEE) /call do_melee FALSE TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 			/if (${maCC.Find[swAlliance].Value}) /call cast_alliance_${Me.Class.ShortName} TARGET
 
+		} else /if (VALID && ENGINE3) {
+			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
+				/call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 
-		/if (AUTO) {
+		/if (AUTO && !ENGINE3) {
 			CHECKFADE
 			/if (!${timer_Check_Para}) /call check_mana_BST ${maDebug.Find[para].Value}
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[rest].Value}
+		} else /if (AUTO && !ENGINE3) {
+			/if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
+				/call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
+
+
 		}
+
 	}
 
 /return TRUE

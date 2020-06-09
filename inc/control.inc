@@ -565,16 +565,15 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 	| set buffgem
 	} else /if (${_type.Equal[buffgem]}) {
 		/if (!${lsClassCast.CountOf[${Me.Class.ShortName}]}) {
-			/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE environment_character SET stBuffGem='0' WHERE env_var='stBuffGem'
+			/invoke ${do_raw_edit[${_debug}, SILENT, stBuffGem, 0]}
 			/invoke ${out[1, shade, 0]}
-			/return
+			/return FALSE
 		}
 		/if (${Range.Between[1,${Me.NumGems}:${Int[${_verbage}]}]}) {
-			/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE environment_character SET stBuffGem='${_verbage}' WHERE env_var='stBuffGem'
-			/invoke ${maEnv.Add[stBuffGem,${_verbage}]}
+			/invoke ${do_raw_edit[${_debug}, SILENT, stBuffGem, "${_verbage}"]}
 		} else {
 			/invoke ${out[12, "/env buffgem(${num}${maEnv.Find[stBuffGem].Value}\ax) range ${info}1 - ${Me.NumGems}\ax"]}
-			/return
+			/return FALSE
 		}
 
 	| set fake safe radius

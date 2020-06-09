@@ -47,7 +47,7 @@ sub set_debug()
 	| other
   /invoke ${lsDebugother.Append[rest,rez,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe]}
 	| admin
-  /invoke ${lsDebugadmin.Append[build,observe,house,flow,exit,condition,sql,edit]}
+  /invoke ${lsDebugadmin.Append[build,observe,house,flow,exit,condition,sql,edit,e3]}
 	| schema (database creation/modification)
   /invoke ${lsDebugschema.Append[init,s_zone,s_character,s_loot,s_nav]}
 
@@ -110,7 +110,7 @@ sub set_initialize(bool _debug)
   | set inital trash variables
   | /call set_data ${_debug} FALSE dump string outer FALSE
   /call set_data ${_debug} FALSE bindswap bool outer FALSE
-  /call set_data ${_debug} FALSE swap string outer FALSE
+  | /call set_data ${_debug} FALSE swap string outer FALSE
   /call set_data ${_debug} FALSE DNReturn string outer FALSE
   /call set_data ${_debug} FALSE swDBlocked bool outer FALSE
   /call set_data ${_debug} FALSE DNQReturn string outer FALSE
@@ -420,9 +420,6 @@ sub set_initial_environment(bool _debug)
 	  /invoke ${maChrControl.Add[attraction,swAttraction]}
 	  /invoke ${maChrControl.Add[harmonious,swHarmonious]}
 	  /invoke ${maChrControl.Add[vot,swVoT]}
-	  | /invoke ${maChrControl.Add[flash,submenu]}
-	  /invoke ${maChrControl.Add[skin,swSkin]}
-	  /invoke ${maChrControl.Add[stance,swStance]}
 
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
 	  /invoke ${maChrControl.Add[cannihps,stPctCanniHP]}
@@ -1335,10 +1332,17 @@ sub set_initialize_map_character_environment(bool _debug)
   | fade
   /call set_data_map ${_debug} maChr stPctFade                            0                             "${auxnum} % of your healt to use class aa fade skill"
 
-  | spire
+  | spire AA
   /call set_data_map ${_debug} maChr swSpireRaid                          FALSE                         "${auxsw} use while in group for burns"
   /call set_data_map ${_debug} maChr swSpireGroup                         FALSE													"${auxsw} use while in a raid for burns"
   /call set_data_map ${_debug} maChr stSpireCon         	                0															"${auxnum} number of the condition to use for spires"
+
+	| intensity of the resolute AA
+  /call set_data_map ${_debug} maChr swIntensityRaid                      FALSE                         "${auxsw} use while in group for burns"
+  /call set_data_map ${_debug} maChr swIntensityGroup                     FALSE													"${auxsw} use while in a raid for burns"
+  /call set_data_map ${_debug} maChr stIntensityCon         	            0															"${auxnum} number of the condition to use for spires"
+	/call set_data_map ${_debug} maChr stAAIntensity												"Intensity of the Resolute"		"${auxna} Intensity of the Resolute AA"
+
 
   | can cast?
   /if (${lsClassCast.Contains[${Me.Class.ShortName}]}) {

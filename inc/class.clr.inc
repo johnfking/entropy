@@ -88,26 +88,28 @@ sub set_CLR(bool _debug)
   /call set_data_map ${_debug} maChr stSummonPrimary									PREGEN|1											"${auxna} name of primary hammer spell"
 
 	| beacon of life aa
-	/call set_data_map ${_debug} maChr stCountBeaconofLife							0																	"${auxnum} num of group hurt to use beacon of life aa"
-	/call set_data_map ${_debug} maChr stAABeaconofLife									"Beacon of Life"									"${auxna} neacon of life aa"
+	/call set_data_map ${_debug} maChr stCountBeaconofLife							0															"${auxnum} num of group hurt to use beacon of life aa"
 
 	| AAs
-	/call set_data_map ${_debug} maChr stAAUnity												"Saint's Unity"										"${auxna} class aa unity buff"
-	/call set_data_map ${_debug} maChr stAADivineArbitration						"Divine Arbitration"							"${auxna} divine arbitration aa"
-	/call set_data_map ${_debug} maChr stAACelestialRegeneration				"Celestial Regeneration"					"${auxna} celestial regeneration aa"
-	/call set_data_map ${_debug} maChr stAAFocusedCelestialRegeneration	"Focused Celestial Regeneration"	"${auxna} focused celestial regeneration aa"
-	/call set_data_map ${_debug} maChr stAABurstofLife									"Burst of Life"										"${auxna} burst of life aa"
-	/call set_data_map ${_debug} maChr stAAForcefulRejuvenation					"Forceful Rejuvenation"						"${auxna} forceful rejuvenation aa"
-	/call set_data_map ${_debug} maChr stAAChannelingtheDivine					"Channeling the Divine"						"${auxna} channeling the divine aa"
-	/call set_data_map ${_debug} maChr stAADivineRetribution						"Divine Retribution"							"${auxna} divine retribution aa"
-	/call set_data_map ${_debug} maChr stAASilentCasting								"Silent Casting"									"${auxna} cilent casting aa"
-	/call set_data_map ${_debug} maChr stAAHealingFrenzy								"Healing Frenzy"									"${auxna} healing frenzy aa"
-	/call set_data_map ${_debug} maChr stAAFlurryofLife									"Flurry of Life"									"${auxna} flurry of life aa"
-	/call set_data_map ${_debug} maChr stAAExquisiteBenediction					"Exquisite Benediction"						"${auxna} exquisite benediction aa"
-	/call set_data_map ${_debug} maChr stAABattleFrenzy									"Battle Frenzy"										"${auxna} battle frenzy aa"
-	/call set_data_map ${_debug} maChr stAACelestialRapidity						"Celestial Rapidity"							"${auxna} celestial rapidity aa"
-	/call set_data_map ${_debug} maChr stAATurnUndead										"Turn Undead"											"${auxna} turn undead aa"
-	/call set_data_map ${_debug} maChr stAACelestialHammer							"Celestial Hammer"								"${auxna} celestial hammer aa"
+	/call set_data_map ${_debug} maChr stAABeaconofLife									PREGEN|1											"${auxna} Beacon of Life aa"
+	/call set_data_map ${_debug} maChr stAAUnity												PREGEN|1											"${auxna} class aa unity buff"
+	/call set_data_map ${_debug} maChr stAADivineArbitration						PREGEN|1											"${auxna} divine arbitration aa"
+	/call set_data_map ${_debug} maChr stAACelestialRegeneration				PREGEN|1											"${auxna} celestial regeneration aa"
+	/call set_data_map ${_debug} maChr stAAFocusedCelestialRegeneration	PREGEN|1											"${auxna} focused celestial regeneration aa"
+	/call set_data_map ${_debug} maChr stAABurstofLife									PREGEN|1											"${auxna} burst of life aa"
+	/call set_data_map ${_debug} maChr stAAForcefulRejuvenation					PREGEN|1											"${auxna} forceful rejuvenation aa"
+	/call set_data_map ${_debug} maChr stAAChannelingtheDivine					PREGEN|1											"${auxna} channeling the divine aa"
+	/call set_data_map ${_debug} maChr stAADivineRetribution						PREGEN|1											"${auxna} divine retribution aa"
+	/call set_data_map ${_debug} maChr stAASilentCasting								PREGEN|1											"${auxna} cilent casting aa"
+	/call set_data_map ${_debug} maChr stAAHealingFrenzy								PREGEN|1											"${auxna} healing frenzy aa"
+	/call set_data_map ${_debug} maChr stAAFlurryofLife									PREGEN|1											"${auxna} flurry of life aa"
+	/call set_data_map ${_debug} maChr stAAExquisiteBenediction					PREGEN|1											"${auxna} exquisite benediction aa"
+	/call set_data_map ${_debug} maChr stAABattleFrenzy									PREGEN|1											"${auxna} battle frenzy aa"
+	/call set_data_map ${_debug} maChr stAACelestialRapidity						PREGEN|1											"${auxna} celestial rapidity aa"
+	/call set_data_map ${_debug} maChr stAATurnUndead										PREGEN|1											"${auxna} turn undead aa"
+	/call set_data_map ${_debug} maChr stAACelestialHammer							PREGEN|1											"${auxna} celestial hammer aa"
+	/call set_data_map ${_debug} maChr stAAVeturikasPerseverance				PREGEN|1											"${auxna} Veturika's Perseverance AA"
+
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -126,7 +128,7 @@ sub set_CLR(bool _debug)
 sub main_CLR(bool _debug)
 	DEBUG \atmain_CLR\ax()
 
-	| correct any and all XTarget healing spots
+	| correct all XTarget healing spots
 	/if (AUTO) {
 	  /if (${maHeal.Find[swHealXTarget].Value} && !${timer_Check_Xtarget_Build}) {
 	    /call check_xtarget_build FALSE
@@ -140,8 +142,8 @@ sub main_CLR(bool _debug)
 			}
 			/if (!${check_exit[FALSE]} && !SAFEZONE && !${Me.Buff[Revival Sickness].ID} && ${maChr.Find[stPctVP].Value}) {
 			 	/if (${Me.PctMana} < ${maChr.Find[stPctVP].Value}*.PCTHO) {
-			 		/if (${is_ready[${_debug}, "Veturika's Perseverance"]}) {
-			 			/call voodoo ${_debug} "Veturika's Perseverance" 0 FALSE
+			 		/if (${is_ready[${_debug}, "${maChr.Find[stAAVeturikasPerseverance].Value}"]}) {
+			 			/call voodoo ${_debug} "${maChr.Find[stAAVeturikasPerseverance].Value}" 0 FALSE
 			 		}
 			 	}
 			}
@@ -167,7 +169,7 @@ sub main_CLR(bool _debug)
 
 		/if (VALID) {
 			CHECKREZ
-			/call set_combat FALSE
+			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {

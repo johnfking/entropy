@@ -67,15 +67,16 @@ sub main_BRD(bool _debug)
 
 		/if (VALID) {
 			/call control_routine FALSE
-			/call set_combat FALSE
+			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			CHECKDEFENSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
 			| /call control_routine FALSE
-			/if (MELEE) /call do_melee FALSE TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/call control_routine FALSE
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (SWARM) /call cast_servant_swarm FALSE TARGET
@@ -85,7 +86,6 @@ sub main_BRD(bool _debug)
 			/call pulse_cycle ${maDebug.Find[pulse].Value} TARGET FALSE
 			| /call control_routine FALSE
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			| /call control_routine FALSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 

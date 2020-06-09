@@ -81,14 +81,13 @@ sub main_MNK(bool _debug)
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
 		/if (VALID) {
-			/call set_combat FALSE
-			/if (MELEE && !${timer_Check_Behind}) /call stick_to_target FALSE TARGET
+			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			CHECKDEFENSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/call check_fd ${_debug}
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/if (MELEE) /call do_melee FALSE TARGET
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}

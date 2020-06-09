@@ -92,8 +92,8 @@ sub main_MAG(bool _debug)
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
 		/if (${check_class_loop[FALSE]}) /return FALSE
-			/call set_combat FALSE
-			/if (MELEE) /call do_melee FALSE TARGET
+			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			CHECKDEFENSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (!${timer_Check_deBuffs}) {

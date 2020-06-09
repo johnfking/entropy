@@ -73,7 +73,6 @@
 #define MERCENARY "${maMercenary.Find[swMercenary].Value}"
 
 
-
 #include exspes\inc\initialize.inc
 #include exspes\inc\common.inc
 #include exspes\inc\control.inc
@@ -96,10 +95,6 @@
 #include exspes\inc\class.shm.inc
 #include exspes\inc\class.war.inc
 #include exspes\inc\class.wiz.inc
-
-
-
-
 
 
 |***
@@ -126,7 +121,7 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer B200606.01
+	/call set_data FALSE maEnv build													map outer B200608.01
 	/call set_data FALSE maEnv schema													map outer 1.00
 	/call set_data FALSE maEnv repo														map outer 1.00
 
@@ -171,7 +166,6 @@ sub main(string _debug, string _param1, string _auto)
 	/if (${_debug.Equal[forceauto]}) {
 		/call Bind_control_env auto on
 	}
-
 
 	| maintenance loop
 	/while (${maEntropy.Find[swMaintenance].Value}) {

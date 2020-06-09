@@ -72,7 +72,8 @@ sub main_NEC(bool _debug)
 
 		/if (VALID) {
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
-			/call set_combat FALSE
+			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			CHECKDEFENSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (!${timer_Check_deBuffs}) {
@@ -85,7 +86,6 @@ sub main_NEC(bool _debug)
 			/if (${maChr.Find[swblood].Value} && !${timer_Check_Blood}) /call cast_blood ${maDebug.Find[blood].Value} TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
-			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
 

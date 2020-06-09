@@ -82,9 +82,9 @@ sub main_WIZ(bool _debug)
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
 		/if (VALID) {
-			/call set_combat FALSE
+			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-			/if (MELEE) /call do_melee FALSE TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}

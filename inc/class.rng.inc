@@ -92,11 +92,11 @@ sub main_RNG(bool _debug)
 
 		/if (VALID) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/call check_heal_routines
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/if (MELEE) /call do_melee FALSE TARGET
+			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/if (${maChr.Find[swSummer].Value} && !${timer_Summer_Nuke}) /call cast_nuke_summer ${maDebug.Find[summer].Value} TARGET
