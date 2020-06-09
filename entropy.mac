@@ -22,7 +22,7 @@
 | MQ2Live/Next flag
 | 0 = Live
 | 1 = Next
-#define BUILD 0
+#define BUILD 1
 
 
 #define DEBUG "/if (${_debug}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
@@ -121,7 +121,7 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer B200608.01
+	/call set_data FALSE maEnv build													map outer B200609.01
 	/call set_data FALSE maEnv schema													map outer 1.00
 	/call set_data FALSE maEnv repo														map outer 1.00
 

@@ -3243,6 +3243,66 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			FLOW pull_mob_tag ${_tmpID}
 		}
 
+
+		| melee tag
+		| we are using 90% (default) of the targets max range to melee just to make sure we get close enough.
+		| dont argue with me on this. i'm not changing my mind
+		| if we are not in this range, we try and get closer.
+		/if (${maCC.Find[stPullWith].Value.Equal[melee]} && ${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} || ${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
+			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
+			GETINPUT pull_mob_tag_melee NA|NA
+
+			/attack on
+			| make sure we are stopped
+			/if (!${Select[${Me.Class.ShortName},BRD]}) {
+				/declare _breakmove int local 1
+				/while (${Me.Moving} || ${Navigation.Active}) {
+					DEBUG ${sep}stop tag${sep}\a-wnavigation\ax (\a-r${_breakmove}\ax)
+					/nav stop |log=off
+					/varcalc _breakmove ${_breakmove}+1
+					/if ((!${Me.Moving} && !${Navigation.Active}) || ${_breakmove} > 4) /break
+					/delay 5 !${Me.Moving} && !${Navigation.Active}
+				}
+			}
+
+			DEBUG ${sep}TargetOfTarget.Melee
+			/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FALSE
+			/varset _loopbreak 1
+
+			DEBUG ${sep}Entering _loopbreak Melee
+			/while (${_loopbreak} <= ${maHard.Find[stPullMobTagTry].Value}) {
+
+				/delay 5
+				GETINPUT
+
+				| have the targets attention. can go back
+				/if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
+					DEBUG ${break}pull_mob_tag${sep}tot\ag==\axme (\a-r${_loopbreak}\ax)
+					/break
+				}
+
+				| i'm hurt more then i should be
+				/if (${Me.PctHPs} <= ${Math.Calc[${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO]}) {
+					DEBUG ${break}pull_mob_tag${sep}I'm hurt wtf?
+					/break
+				}
+
+				/varcalc _loopbreak ${_loopbreak}+1
+				/if (${_loopbreak} > ${maHard.Find[stPullMobTagTry].Value}) {
+					DEBUG ${break}mob_tag${sep}\a-wloop:${_loopbreak}\ax
+					/attack off
+					/return tagfailure
+				}
+
+			}
+
+			| /attack off
+			/return TRUE
+		}
+
+
+
+
 		| aa/spell/disc/item tag
 		/if (${maCC.Find[stPullWith].Value.Equal[other]} && ${Bool[${maCC.Find[stRangeOther].Value}]}) {
 			/if (${is_ready[${_debug}, "${maCC.Find[stRangeOther].Value}"]}) {
@@ -3386,10 +3446,6 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 			 	}
 			}
 
-
-
-
-
 			| return the brevious gear for the swap
 			/if (${Bool[${maCC.Find[stRangeBandolier].Value}]} && ${Me.Bandolier[${maCC.Find[stRangeBandolier].Value}].Active}) {
 				/if (${Bool[${maData.Find[stMainhand].Value}]}) {
@@ -3406,62 +3462,6 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 				}
 			}
 
-			/return TRUE
-		}
-
-		| melee tag
-		| we are using 90% (default) of the targets max range to melee just to make sure we get close enough.
-		| dont argue with me on this. i'm not changing my mind
-		| if we are not in this range, we try and get closer.
-		/if (${maCC.Find[stPullWith].Value.Equal[melee]} && ${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} || ${Spawn[ID ${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
-			DEBUG ${sep}Tag${sep}Melee${sep}${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax
-			GETINPUT pull_mob_tag_melee NA|NA
-
-			/attack on
-			| make sure we are stopped
-			/if (!${Select[${Me.Class.ShortName},BRD]}) {
-				/declare _breakmove int local 1
-				/while (${Me.Moving} || ${Navigation.Active}) {
-					DEBUG ${sep}stop tag${sep}\a-wnavigation\ax (\a-r${_breakmove}\ax)
-					/nav stop |log=off
-					/varcalc _breakmove ${_breakmove}+1
-					/if ((!${Me.Moving} && !${Navigation.Active}) || ${_breakmove} > 4) /break
-					/delay 5 !${Me.Moving} && !${Navigation.Active}
-				}
-			}
-
-			DEBUG ${sep}TargetOfTarget.Melee
-			/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FALSE
-			/varset _loopbreak 1
-
-			DEBUG ${sep}Entering _loopbreak Melee
-			/while (${_loopbreak} <= ${maHard.Find[stPullMobTagTry].Value}) {
-
-				/delay 5
-				GETINPUT
-
-				| have the targets attention. can go back
-				/if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
-					DEBUG ${break}pull_mob_tag${sep}tot\ag==\axme (\a-r${_loopbreak}\ax)
-					/break
-				}
-
-				| i'm hurt more then i should be
-				/if (${Me.PctHPs} <= ${Math.Calc[${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO]}) {
-					DEBUG ${break}pull_mob_tag${sep}I'm hurt wtf?
-					/break
-				}
-
-				/varcalc _loopbreak ${_loopbreak}+1
-				/if (${_loopbreak} > ${maHard.Find[stPullMobTagTry].Value}) {
-					DEBUG ${break}mob_tag${sep}\a-wloop:${_loopbreak}\ax
-					/attack off
-					/return tagfailure
-				}
-
-			}
-
-			| /attack off
 			/return TRUE
 		}
 
@@ -6006,8 +6006,11 @@ sub check_buff_cycle_crew(bool _debug)
 			/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
 			/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
 
+			/if (${Spell[${_spell}].TargetType.Equal[Self]}) /continue
+
 			| skip self only
-			/if (!${lsBuff${_count}Tag.Contains[crew]} && (${lsBuff${_count}Tag.Contains[self]} || ${Spell[${_spell}].TargetType.Equal[Self]} || ${lsBuff${_count}Tag.Contains[minion]})) /continue
+			/if (!${lsBuff${_count}Tag.Contains[buffcrew]} && (${lsBuff${_count}Tag.Contains[buffself]} || ${lsBuff${_count}Tag.Contains[buffminion]})) /continue
+
 			/if (${Select[${Spell[${maBuff.Find[stBuff${_count}].Value}].RankName.TargetType},self]}) /continue
 
 			| skip auras
@@ -7117,7 +7120,7 @@ sub check_basic_tags(bool _debug, string _type, string _name, string _spell)
 
 
 	| one of your crew (and not a group buff)
-	/if (${ls${_type}Tag.Contains[crew]} && !${ls${_type}Tag.Contains[buffgroup]} && !${ls${_type}Tag.Contains[buffraid]}) {
+	/if (${ls${_type}Tag.Contains[buffcrew]} && !${ls${_type}Tag.Contains[buffgroup]} && !${ls${_type}Tag.Contains[buffraid]}) {
 		/if (!${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_name}]}) {
 			DEBUG ${sep}tag${sep}\a-wcrew\ax
 			/return FALSE
@@ -8247,7 +8250,7 @@ sub check_minion_cycle_buff(bool _debug)
 		/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
 
 		| minion buffs?
-		/if (!${lsBuff${_count}Tag.Contains[minion]}) /continue
+		/if (!${lsBuff${_count}Tag.Contains[buffminion]}) /continue
 
 		/call check_basic_tags ${maDebug.Find[tag].Value} Buff${_count} FALSE "${maBuff.Find[stBuff${_count}].Value}"
 		/if (!${Macro.Return}) /continue
@@ -10570,7 +10573,7 @@ sub check_heal_routines()
 
 	| heal: target of target
 	/if (${lsClassHealToT.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealToT].Value}) {
-		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} ToT
+		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[tot].Value} ToT
 	}
 
 	| heal: self
@@ -11046,7 +11049,7 @@ sub cast_cycle_defense(bool _debug, int _tmpID)
 
 
 		| seff targetable defnsive "things"
-		/if (${lsDefense${_liC20.Value}Tag.Contains[self]}) {
+		/if (${lsDefense${_liC20.Value}Tag.Contains[buffself]}) {
 			/varset _tmpID ${Me.ID}
 		} else {
 			/varset _tmpID 0
@@ -11135,7 +11138,7 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 
 		DEBUG ${sep}_liC20.Value${sep}\a-w${_liC20.Value}\ax${sep}passed tags
 		/delay 1
-		/if (${lsItem${_liC20.Value}Tag.Contains[self]}) {
+		/if (${lsItem${_liC20.Value}Tag.Contains[buffself]}) {
 			/if (!${Me.Buff[${maItem.Find[stItem${_liC20.Value}].ID}]}) {
 				/varset _tmpID ${Me.ID}
 			}
