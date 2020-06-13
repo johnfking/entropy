@@ -472,6 +472,8 @@ sub burn_BST(bool _debug, int _tmpID)
 	}
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
+  | Intensity of the Resolute AA 4 hour reuse
+  /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 
 	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stFury].Value}].RankName}]} && !${Me.Song[Frenzy of Spirit].ID} && !${Me.Buff[${maChr.Find[stDichotomic].Value}].ID}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stFury].Value}"]}) {

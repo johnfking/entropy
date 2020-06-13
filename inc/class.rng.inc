@@ -69,6 +69,20 @@ sub set_RNG(bool _debug)
 
 
 
+Imbued Ferocity
+Empowered Blades
+Outrider's Accuracy
+Outrider's Attack
+Group Guardian of the Forest
+Guardian of the Forest
+Pack Hunt
+Elemental Arrow
+Auspice of the Hunter
+Scarlet Cheetah's Fang
+
+
+
+
 
 
 |***
@@ -271,7 +285,7 @@ sub cast_nuke_summer(bool _debug, int _tmpID)
 	DEBUG \atcast_nuke_summer\ax(\a-w${_tmpID}\ax)
 	FLOW cast_nuke_summer
 
-	/if (${target[isdead, TARGET]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -296,7 +310,7 @@ sub burn_RNG(bool _debug, int _tmpID)
 	FLOW burn_RNG
 
 	ISMEDEAD
-	/if (${target[isdead, TARGET]}) {
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
@@ -331,46 +345,47 @@ sub burn_RNG(bool _debug, int _tmpID)
 	}
 
 	| MELEE
-	|**
-	/if (MELEE) {
-		/if (${Target.Distance} <= ${Spawn[${_tmpID}].MaxRangeTo}*.9) {
+	/if (MELEE && !RANGE || MELEE && ${Spawn[${_tmpID}].Distance} <= ${Spawn[${_tmpID}].MaxRangeTo}*.9) {
 
-			| weapon proc
-			/if (${is_ready[${_debug}, "Imbued Ferocity"]}) {
-				/call voodoo ${_debug} "Imbued Ferocity" 0 FALSE
+		| weapon proc
+		/if (${is_ready[${_debug}, "Imbued Ferocity"]}) {
+			/call voodoo ${_debug} "Imbued Ferocity" 0 FALSE
+		}
+
+		/if (!${Me.ActiveDisc.ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
+			/if (${is_ready[${_debug}, "Empowered Blades"]}) {
+				/call voodoo ${_debug} "Empowered Blades" 0 FALSE
 			}
 
-			/if (!${Me.ActiveDisc.ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
-				/if (${is_ready[${_debug}, "Empowered Blades"]}) {
-					/call voodoo ${_debug} "Empowered Blades" 0 FALSE
-				}
-
-			} else /if (!${Me.ActiveDisc.ID} && !${Me.Song[Empowered Blades].ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
-				/if (${is_ready[${_debug}, "${maChr.Find[stDiscMele].Value}"]}) {
-					/call voodoo ${_debug} "${maChr.Find[stDiscMele].Value}" 0 FALSE
-				}
-
-			} else /if (!${Me.ActiveDisc.ID} && !${is_ready[${_debug}, "${maChr.Find[stDiscMele].Value}"]} && !${Me.AltAbilityReady[Empowered Blades]} && !${Me.Song[Empowered Blades].ID}) {
-				/call cast_glyph ${maDebug.Find[glyph].Value}
+		} else /if (!${Me.ActiveDisc.ID} && !${Me.Song[Empowered Blades].ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stDiscMele].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stDiscMele].Value}" 0 FALSE
 			}
 		}
 
+		/if (!${Me.ActiveDisc.ID} && !${is_ready[${_debug}, "${maChr.Find[stDiscMele].Value}"]} && !${Me.AltAbilityReady[Empowered Blades]} && !${Me.Song[Empowered Blades].ID}) {
+			/call cast_glyph ${maDebug.Find[glyph].Value}
+		  | Intensity of the Resolute AA 4 hour reuse
+		  /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 
+		}
 	}
-	**|
 
-	|**
+
 	| RANGE
 	/if (RANGE && ${Target.Distance} >= 31) {
-			/if (${Me.ActiveDisc.ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
-				/if (${is_ready[${_debug}, "${maChr.Find[stDiscRange].Value}"]}) {
-					/call voodoo ${_debug} "${maChr.Find[stDiscRange].Value}" 0 FALSE
-				}
-			} else /if (!${Me.ActiveDisc.ID} && !${is_ready[${_debug}, "${maChr.Find[stDiscRange].Value}"]}) {
-				/call cast_glyph ${maDebug.Find[glyph].Value}
+		/if (${Me.ActiveDisc.ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stDiscRange].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stDiscRange].Value}" 0 FALSE
 			}
 		}
-	**|
+
+		/if (!${Me.ActiveDisc.ID} && !${is_ready[${_debug}, "${maChr.Find[stDiscRange].Value}"]}) {
+			/call cast_glyph ${maDebug.Find[glyph].Value}
+		  | Intensity of the Resolute AA 4 hour reuse
+		  /call cast_AA_intensity ${maDebug.Find[intensity].Value}
+		}
+	}
 
 
 	| attack / dmg AA

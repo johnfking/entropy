@@ -378,6 +378,8 @@ sub burn_BER(bool _debug, int _tmpID)
 	}
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
+  | Intensity of the Resolute AA 4 hour reuse
+  /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 
 	/if (!${Me.Song[Reckless Abandon].ID} && ${Raid.Members}) {
 		/if (${is_ready[${_debug}, "Intensity of the Resolute"]}) {

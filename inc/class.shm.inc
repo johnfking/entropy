@@ -33,12 +33,13 @@ sub set_SHM(bool _debug)
 	/call set_data_map ${_debug} maChr stPctCanniHP				 							60														"${auxnum} HP level to stop using canni"
 	/call set_data_map ${_debug} maChr stPctCanniManna				 					60														"${auxnum} mana level to start using canni"
 
-	/call set_data_map ${_debug} maChr swSurge													FALSE													"${auxsw} use surge healing"
+	| /call set_data_map ${_debug} maChr swSurge													FALSE													"${auxsw} use surge healing"
+	/call set_data_map ${_debug} maHeal stCountSurge										0															"${auxnum} number of people hurt to use surge healing"
+ 	| /call set_data_map ${_debug} maHeal stHealSurge											PREGEN|1											"${auxna} area surge spell" heal
 
  	/call set_data_map ${_debug} maChr stDichotomic											PREGEN|1											"${auxna} dichotomic spell"
  	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
 
- 	/call set_data_map ${_debug} maChr stHealSurge											PREGEN|1											"${auxna} area surge spell"
 
   /call set_data_map ${_debug} maHeal swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas" 						heal
 
@@ -174,32 +175,22 @@ sub check_heal_SHM(bool _debug, string _type)
 
 	SETHUD "heal ${_type}"
 
-	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
-
 	| Group Regen Heal
 	/if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
 		/call cast_cycle_heal_regen ${_debug} 0 healgrouphot
 	}
 
-	| no one is hurt. we're out of here
-	/if (!${hurtCount}) {
-	  | check for surge
-	  /if (${maChr.Find[swSurge].Value}) {
-			/if (${SpawnCount[npc radius ENV PS4 targetable]}) {
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+
+	/if (!SAFEZONE) {
+
+			| check for surge
+		/if (${Select[${_type},group,xtarget]} && ${maHeal.Find[stCountSurge].Value}) {
+			/if (${hurtCount} >= ${maHeal.Find[stCountSurge].Value}) {
 				/call cast_cycle_heal_surge ${maDebug.Find[surge].Value}
 			}
 		}
 
-		SETHUD EMPTY
-		/return FALSE
-
-	}
-
- 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
- 		/return FALSE
- 	}
-
-	/if (!SAFEZONE) {
 
 		| group healing
 		/if (${Select[${_type},group]} && ${Group}) {
@@ -426,6 +417,8 @@ sub burn_SHM(bool _debug, int _tmpID)
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
+  | Intensity of the Resolute AA 4 hour reuse
+  /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 
 /return TRUE
 
@@ -574,8 +567,8 @@ sub set_control_SHM(string _type, string _verbage, string _silent, bool _debug)
 		/if (!${set_control_num_range[${_debug}, stPctCanniManna, "${_verbage}", 0, 99]}) /return
 
 	|
-	} else /if (${_type.Equal[surge]}) {
-		/invoke ${set_switch_env[${_debug}, swSurge, TRUE, ${_verbage}]}
+	| } else /if (${_type.Equal[surge]}) {
+	| 	/invoke ${set_switch_env[${_debug}, swSurge, TRUE, ${_verbage}]}
 
 	|
 	} else /if (${_type.Equal[talisman]}) {

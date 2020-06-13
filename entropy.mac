@@ -19,10 +19,9 @@
 #turbo 240
 #engine parser 2
 
+
 | MQ2Live/Next flag
-| 0 = Live
-| 1 = Next
-#define BUILD 1
+#define NEXT "${MacroQuest.InternalName.Equal[Next]}"
 
 
 #define DEBUG "/if (${_debug}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
@@ -121,9 +120,12 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer B200609.01
+	/call set_data FALSE maEnv build													map outer B200613.01
 	/call set_data FALSE maEnv schema													map outer 1.00
 	/call set_data FALSE maEnv repo														map outer 1.00
+
+	| using this as a merker for live vs Next
+	/declare _next 																						bool outer ${MacroQuest.InternalName.Equal[Next]}
 
 	| prep macro
 	/call prepare_the_end FALSE
@@ -348,26 +350,36 @@ sub main(string _debug, string _param1, string _auto)
  ***|
 sub prepare_the_end(bool _debug)
 
-	| character database
-	/call set_data FALSE maData chrID																		map outer ${MacroQuest.Server}_${Me.Class.ShortName}_${Me.DisplayName}
 
-	| character database
-	/call set_data FALSE maData DBcharacter 														map outer macros\\exspes\\data\\${maData.Find[chrID].Value}.sqlite
+	| /if (!NEXT) {
+		| character database
+		/call set_data FALSE maData chrID																		map outer ${MacroQuest.Server}_${Me.Class.ShortName}_${Me.DisplayName}
+		| character database
+		/call set_data FALSE maData DBcharacter 														map outer macros\\exspes\\data\\${maData.Find[chrID].Value}.sqlite
+		| set raw data database
+		/call set_data FALSE maData DBstatic										  					map outer macros\\exspes\\entropy.sqlite
+		| set loot database
+		/call set_data FALSE maData DBloot										  						map outer macros\\exspes\\data\\loot.sqlite
+		| set loot database
+		/call set_data FALSE maData DBnav										  							map outer macros\\exspes\\data\\nav.sqlite
+		| set zone database
+		/call set_data FALSE maData DBzone										  						map outer macros\\exspes\\data\\zone.sqlite
+		| set ini set location
+		/call set_data FALSE maData INIset										  						map outer exspes\\data\\sets.ini
 
-	| set raw data database
-	/call set_data FALSE maData DBstatic										  					map outer macros\\exspes\\entropy.sqlite
 
-	| set loot database
-	/call set_data FALSE maData DBloot										  						map outer macros\\exspes\\data\\loot.sqlite
+	|**
+	} else /if (NEXT) {
+		/call set_data FALSE maData chrID																		map outer ${MacroQuest.Server}_${Me.Class.ShortName}_${Me.DisplayName}
+		/call set_data FALSE maData DBcharacter 														map outer macros\\exspes\\data\\${maData.Find[chrID].Value}.sqlite
+		/call set_data FALSE maData DBstatic										  					map outer macros\\exspes\\entropy.sqlite
+		/call set_data FALSE maData DBloot										  						map outer macros\\exspes\\data\loot.sqlite
+		/call set_data FALSE maData DBnav										  							map outer macros\\exspes\\data\nav.sqlite
+		/call set_data FALSE maData DBzone										  						map outer macros\\exspes\\data\zone.sqlite
+		/call set_data FALSE maData INIset										  						map outer exspes\\data\sets.ini
+	}
+	**|
 
-	| set loot database
-	/call set_data FALSE maData DBnav										  							map outer macros\\exspes\\data\\nav.sqlite
-
-	| set zone database
-	/call set_data FALSE maData DBzone										  						map outer macros\\exspes\\data\\zone.sqlite
-
-	| set ini set location
-	/call set_data FALSE maData INIset										  						map outer exspes\\data\\sets.ini
 
 	| fuck MQ2Melee
 	/if (${check_plugin[FALSE, FALSE, |mq2melee]}) {

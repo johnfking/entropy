@@ -22,7 +22,6 @@ sub set_CLR(bool _debug)
 	/call set_data ${_debug} maData stEpic15														map outer "Harmony of the Soul"
 	/call set_data ${_debug} maData stEpic2															map outer "Aegis of Superior Divinity"
 	/call set_data ${_debug} maData stFade															map outer "Divine Peace"
-	/call set_data ${_debug} maData stCompleteHeal											map outer "Complete Heal"
 
 
 	| group regen timer
@@ -87,8 +86,16 @@ sub set_CLR(bool _debug)
   /call set_data_map ${_debug} maChr swSummonPrimary									FALSE													"${auxsw} use summoned primary hammer"
   /call set_data_map ${_debug} maChr stSummonPrimary									PREGEN|1											"${auxna} name of primary hammer spell"
 
-	| beacon of life aa
+	| beacon of life aa count trigger
 	/call set_data_map ${_debug} maChr stCountBeaconofLife							0															"${auxnum} num of group hurt to use beacon of life aa"
+
+	| complete heal
+	/call set_data_map ${_debug} maHeal stPctCH													0															"${auxnum} complete heal %" heal
+
+	| /call set_data_map ${_debug} maHeal swCHChainListen									FALSE													"${auxnum} " heal
+	| /call set_data_map5 ${_debug} maHeal stCHPause												0															"${auxna} Name of the Complete Heal" heal
+	| /call set_data_map ${_debug} maHeal stCHTank												FALSE													"${auxna} Name of the Complete Heal" heal
+
 
 	| AAs
 	/call set_data_map ${_debug} maChr stAABeaconofLife									PREGEN|1											"${auxna} Beacon of Life aa"
@@ -117,7 +124,6 @@ sub set_CLR(bool _debug)
 	}
 
 /return TRUE
-
 
 
 
@@ -315,6 +321,7 @@ sub check_heal_CLR(bool _debug, string _type)
 
 	/if (!SAFEZONE) {
 
+
 		| group healing
 		/if (${Select[${_type},group]} && ${Group}) {
 
@@ -330,6 +337,18 @@ sub check_heal_CLR(bool _debug, string _type)
 			/if (${maChr.Find[stCountArbitrate].Value} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
 				/call cast_arbitration ${maDebug.Find[arb].Value}
 			 	/if (${Macro.Return}) {
+			 		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+			 			/return FALSE
+			 		}
+			 	}
+			}
+
+
+			| Complete Heal
+			| requires group roll Main Tank set to function
+			/if (${maHeal.Find[stPctCH].Value}) {
+				/if (${hurtID} == ${Group.MainTank.ID} &&  ${Group.MainTank.PctHPs} <= ${maHeal.Find[stPctCH].Value}*.PCTHO) {
+					/call cast_cycle_heal ${_debug} 0 healcomplete
 			 		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
 			 			/return FALSE
 			 		}
@@ -562,7 +581,7 @@ sub burn_CLR(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stAAExquisiteBenediction].Value}" 0 FALSE
 	}
 
-	| direct damage boost if using aggressive healing
+	| direct damage boost
 	/if (!${Me.Song[${maChr.Find[stAASilentCasting].Value}].ID}) {
     /if (${is_ready[${_debug}, "${maChr.Find[stAABattleFrenzy].Value}"]}) {
     	/call voodoo ${_debug} "${maChr.Find[stAABattleFrenzy].Value}" 0 FALSE
@@ -570,6 +589,10 @@ sub burn_CLR(bool _debug, int _tmpID)
   }
 
   /call cast_glyph ${maDebug.Find[glyph].Value}
+  | Intensity of the Resolute AA 4 hour reuse
+  /call cast_AA_intensity ${maDebug.Find[intensity].Value}
+
+
   CHECKREZ
 
 /return TRUE
@@ -630,12 +653,6 @@ sub prediction_CLR(bool _debug)
 
 
 /return tRUE
-
-
-
-
-
-
 
 
 
@@ -702,6 +719,11 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
 		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
+		/return
+
+	| set intensity AA
+	} else /if (${_type.Equal[intensity]}) {
+		/call set_control_chr_intensity ${_debug} ${_verbage} ${_silent}
 		/return
 
 	| set AA fade use %
@@ -786,5 +808,108 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
 /return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#bind setCHeal /cheal
+sub Bind_setCHeal(string _type, string _verbage, bool _silent, bool _debug)
+	DEBUG \a-p[Bind_setCHeal\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
+
+	/declare _sep bool local
+	/declare _listout string local
+	/declare _count int local 0
+	/declare _bind string local cheal
+  /declare _lstClass string local |chpct|heal|listen|pause|tank
+
+	| listen for CH Chain rotation calls
+	/if (${_type.Equal[listen]}) {
+		/call set_switch ${chrID} swCHChainListen ${_verbage}
+
+	| sets the CH rotation data
+	} else /if (${_type.Equal[chchain]}) {
+		OUT /clr chchain \aw|timeout|tank1|tank2|tank3|tank4\ax
+		/if (${Bool[${_verbage}]}) {
+			/varset setCHPassedReqs |${Me.DisplayName}${_verbage}
+		}
+		/return
+
+	| Complete Heal
+	} else /if (${_type.Equal[chpct]}) {
+		/if (${Range.Between[0,99:${Int[${_verbage}]}]}) {
+			/call sql_update FALSE ${chrID} CompleteHealpct ${_verbage}
+		} else /if (!${Range.Between[0,99:${Int[${_verbage}]}]}) {
+			VOUT /${_bind} ch(${cnum}${CompleteHealpct}\ax) allowable range ${sep} ${cinfo}0 - 99\ax
+			/return
+		}
+
+	| set the Heal to be used
+	} else /if (${_type.Equal[heal]}) {
+		/call sql_update FALSE ${chrID} setCompleteHeal ${_verbage}
+
+
+	| set the pause time to be used
+	} else /if (${_type.Equal[pause]}) {
+		/if (${_silent}) {
+			/varset setCHPause ${_verbage}
+		} else {
+			/dgaexecute CLR /varset setCHPause ${_verbage}
+		}
+		/delay 5
+
+	| set the tank to be healed
+	} else /if (${_type.Equal[tank]}) {
+		/if (${_silent}) {
+			/varset setCHTank ${_verbage}
+		} else {
+			/dgaexecute CLR /varset setCHTank ${_verbage}
+		}
+		/delay 5
+
+	}
+
+	/for _count 1 to ${_lstClass.Count[|]}
+		/varset _listout ${_listout} ${If[${_sep},${sep},]} ${info}${_lstClass.Arg[${_count},|]}\ax
+		/if (${_lstClass.Arg[${_count},|].Equal[chpct]}) /varset _listout ${_listout}:${If[${CompleteHealpct},${cnum}${CompleteHealpct}\ax,${off}]}
+		/if (${_lstClass.Arg[${_count},|].Equal[listen]}) /varset _listout ${_listout}:${If[${swCHChainListen},${oon},${ooff}]}
+		/if (${_lstClass.Arg[${_count},|].Equal[heal]}) /varset _listout ${_listout}:${num}${setCompleteHeal}\ax
+		/if (${_lstClass.Arg[${_count},|].Equal[pause]}) /varset _listout ${_listout}:${If[${Bool[${setCHPause}]},${cnum}${setCHPause}\ax,${off}]}
+		/if (${_lstClass.Arg[${_count},|].Equal[tank]}) /varset _listout ${_listout}:${If[${Bool[${setCHTank}]},${cnum}${setCHTank}\ax,${off}]}
+	/varset _sep TRUE
+	/next _count
+	VOUT /${_bind} ${_listout}
+/return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

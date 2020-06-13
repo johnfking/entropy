@@ -259,6 +259,9 @@ sub burn_MAG(bool _debug, int _tmpID)
 			}
 		} else /if (!${Me.AltAbilityReady[Heart of Flames]} && !${Me.Buff[Heart of Flames].ID} && !${Me.AltAbilityReady[Elemental Union]} && !${Me.Buff[Elemental Union].ID}) {
 			/call cast_glyph ${maDebug.Find[glyph].Value}
+		  | Intensity of the Resolute AA 4 hour reuse
+		  /call cast_AA_intensity ${maDebug.Find[intensity].Value}
+
 		}
 	}
 

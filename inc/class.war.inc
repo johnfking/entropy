@@ -493,6 +493,8 @@ sub burn_WAR(bool _debug, int _tmpID)
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
+  | Intensity of the Resolute AA 4 hour reuse
+  /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 
 	/if (${is_ready[${_debug}, "Rage of Rallos Zek"]}) {
 		/call voodoo ${_debug} "Rage of Rallos Zek" 0 FALSE

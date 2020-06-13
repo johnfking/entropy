@@ -442,6 +442,8 @@ sub burn_ROG(bool _debug, int _tmpID)
   }
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
+  | Intensity of the Resolute AA 4 hour reuse
+  /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 
 /return TRUE
 

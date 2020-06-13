@@ -394,6 +394,12 @@ sub mode_petfarm(bool _debug)
 sub mode_harvest(bool _debug)
 	DEBUG \atmode_harvest\ax()
 
+	/if (!NEXT) {
+ 		/invoke ${out[0, "${notice} ${dot} this has been depreciated in MQ2Live."]}
+ 		/invoke ${maMode.Add[harvest,FALSE]}
+		/return FALSE
+	}
+
 	ISMEDEAD
 	GETINPUT
 
@@ -416,8 +422,6 @@ sub mode_harvest(bool _debug)
 	SETHUD EMPTY
 
 /return
-
-
 
 
 
@@ -447,47 +451,45 @@ sub get_ground_item(bool _debug, string _tmpItem)
 
 	ISMEDEAD
 
+	/invoke ${Ground.Search[${_tmpItem}]}
 	/declare _item ground local
 	/vardata _item Ground.First
-	/declare _count int local 1
 	/declare _distfinal int local 999999
-	/declare _locY int local
-	/declare _locX int local
-	/declare _locZ int local
+	/declare _validdis int local 0
+	/declare _validpath bool local FALSE
+	/declare _finalGround ground local
 
-	/while (${_count} <= ${GroundItemCount}) {
-		/if (${_item.DisplayName.Find[${_tmpItem}]}) {
-			DEBUG ${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}${sep}\a-wlocyxz ${_item.Y} ${_item.X} ${_item.Z}\ax
+	/while (${_item.ID}) {
+		/varset _validdis ${Navigation.PathLength[item ${_item.ID}]}
+		/varset _validpath ${Navigation.PathExists[item ${_item.ID}]}
+		DEBUG ID:\a-w${_item.ID}\ax .. Dis:${If[${_validdis} > 0,\a-w${_validdis}\ax,\arinvalid\ax]}
 
-			/if (${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}) {
-				/if (${_item.Distance} < ${_distfinal}) {
-					DEBUG ${_count}/${GroundItemCount} -- ${_item.DisplayName}\ax${sep}Path-\a-w${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}\ax${sep}dis-\a-w${_item.Distance}\ax
-					/varset _distfinal ${_item.Distance}
-					/varset _locY ${_item.Y}
-					/varset _locX ${_item.X}
-					/varset _locZ ${_item.Z}
-				}
-			}
-
+		/if (${_validdis} <= 0 || !${_validpath}) {
+			/vardata _item Ground.Next
+			/continue
 		}
-		/if (${_count} == ${GroundItemCount}) /break
-		/if (${_count} >= ${GroundItemCount}) /break
-		/varcalc _count ${_count} + 1
-		/vardata _item _item.Next
+
+		/if (${_validdis} < ${_distfinal}) {
+			/varset _distfinal ${_validdis}
+			/vardata _finalGround Ground
+		}
+		/vardata _item Ground.Next
 	}
 
-	/nav locyxz ${_locY} ${_locX} ${_locZ} |dist=10 log=off
+	DEBUG FINAL ID:${_finalGround.ID}
+	/invoke ${Ground.Search[${_finalGround.ID}]}
+	/nav item |dist=10 log=off
 	/delay 1s
 
-	/while (${Me.Moving} || ${Ground[${_tmpItem}].Distance3D} <= 11) {
+	/while (${Me.Moving} || ${_finalGround.Distance3D} <= 19) {
 		DEBUG ${sep}whileloop${sep}\a-wMe.Moving\ax
 
 		/if (${Cursor.ID}) {
 			/call check_cursor ${_debug} CLEAR
 		}
 
-		/if (${Ground[${_tmpItem}].Distance3D} <= 11) {
-			DEBUG ${sep}distance${sep}\a-w${Ground[${_tmpItem}].Distance3D}\ax
+		/if (${_finalGround.Distance3D} <= 19) {
+			DEBUG ${sep}distance${sep}\a-w${_finalGround.Distance3D}\ax
 			/nav stop |log=off
 			/call Bind_command_grab "${_tmpItem}" ${_debug}
 			/if (${Cursor.ID}) {
@@ -496,11 +498,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
 			/break
 		}
 
-		/if (!${Navigation.Active}) {
-			/break
-		}
-
-		/if (!${Me.Moving}) {
+		/if (!${Navigation.Active} || !${Me.Moving}) {
 			/break
 		}
 

@@ -425,6 +425,8 @@ sub burn_ENC(bool _debug, int _tmpID)
 	/if (${target[isdead, ${_tmpID}]}) /return FALSE
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
+  | Intensity of the Resolute AA 4 hour reuse
+  /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 
 /return
 

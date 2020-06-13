@@ -28,6 +28,31 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
+B200613.01
+- rezing
+	corrected an undefined variable for clerics rezing
+- removed the manual BUILD swap flag. code will detect Next vs Live autmagicaly now (thank @knightly)
+- diversion added for looting/cursor handeling when MQ2Autoloot is being used
+- tags
+  healcomplete - complete heals for clerics. yes only clerics.
+- cleric
+  /heal ch pct [##] - Pct health of group main tank to start using complete heal (0=off)
+- shaman
+  /chr surge has been removed
+  /heal surge # - designates the # of hurt people to use a surge. (0=off)
+  stHealSurge - has been moved to the heal map to match other healing
+- pulling
+  rearranged the order of mob tagging: melee, other, range
+- intensity of the resolute AA
+	/chr intensity [raid|group|con]
+	added to all class burns
+- ranger
+  burns shouldnt crash the mac anymore
+- mode harvest
+	due to the redesign of Ground, this will no longer be availble for MQ2Live users
+	for those testing MQ2Next, it will work.
+- /heal /dot /nuke /defense /song /clickitem /burn /miscdps /buff /agro, will now accept on/off as an option.
+
 
 B200609.01
 - buffing
