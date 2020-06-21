@@ -185,13 +185,13 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 	} else /if (${_type.Equal[sqlcol]}) {
 
 		| testing afor a known column first
-		/sqlite ${maData.Find[DBzone].Value} dummy SELECT 1 FROM PRAGMA_TABLE_INFO('zone_control') WHERE name='element'
+		/sqlite query ${maData.Find[DBzone].Value} dummy SELECT 1 FROM PRAGMA_TABLE_INFO('zone_control') WHERE name='element'
 		SDEBUG SELECT 1 FROM PRAGMA_TABLE_INFO 'zone_control' \ay${sqlite.Status[dummy]}\ax
 		SDEBUG Rows${sep}\ap${sqlite.Rows[dummy]}\ax
 
 
 		| testing unknown
-		/sqlite ${maData.Find[DBzone].Value} dummy SELECT 1 FROM PRAGMA_TABLE_INFO('zone_control') WHERE name='wp_name'
+		/sqlite query ${maData.Find[DBzone].Value} dummy SELECT 1 FROM PRAGMA_TABLE_INFO('zone_control') WHERE name='wp_name'
 		SDEBUG SELECT 1 FROM PRAGMA_TABLE_INFO 'zone_control' \ay${sqlite.Status[dummy]}\ax
 		SDEBUG Rows${sep}\ap${sqlite.Rows[dummy]}\ax
 
@@ -235,7 +235,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		/for _count 1 to ${Spell[${_spell}].NumEffects}
 			OUT #\ay${_count}\ax
 			/if (${Select[${Spell[${_spell}].Attrib[${_count}]},10]}) /continue
-			/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM eq_spa WHERE env_var='${Spell[${_spell}].Attrib[${_count}]}'
+			/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM eq_spa WHERE env_var='${Spell[${_spell}].Attrib[${_count}]}'
 			OUT ${dot} .Attrib \a-w${Spell[${_spell}].Attrib[${_count}]}\ax ${dot} \a-g${sqlite.Result[dummy 1 value]}\ax
 			OUT ${dot} .Trigger \a-w${Spell[${_spell}].Trigger[${_count}].Name}\ax ${dot} ID:\a-w${Spell[${_spell}].Base2[${_count}]}\ax\ax ()
 			OUT ${dot} .Base \a-w${Spell[${_spell}].Base[${_count}]}\ax
@@ -304,7 +304,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 						}
 
 						| add key->value to DB and delete
-						/sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO loot_control VALUES ("${_key}", "${_value}", 0, 0)
+						/sqlite query ${maData.Find[DBloot].Value} dummy INSERT INTO loot_control VALUES ("${_key}", "${_value}", 0, 0)
 						/ini "${_lootini}" "${_section}" "${_key}" NULL
 
 					}
@@ -384,7 +384,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 					/for _countV 1 to ${Ini[${_ini},${_section},${_key}].Count[|]}
 						/varset _value ${Ini[${_ini},${_section},${_key}].Arg[${_countV},|]}
 						/invoke ${out[12, "\at...\ax\a-w${_value}\ax"]}
-						/sqlite ${maData.Find[DBzone].Value} dummy INSERT OR IGNORE INTO zone_control VALUES ("${_section}", "${_key}", "${_value}")
+						/sqlite query ${maData.Find[DBzone].Value} dummy INSERT OR IGNORE INTO zone_control VALUES ("${_section}", "${_key}", "${_value}")
 					/next _countV
 				/next _countK
 			/next _countS
@@ -1071,7 +1071,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 	}
 
 	| get the zone data
-	| /sqlite ${maData.Find[DBzone].Value} curZoneData SELECT * FROM zone WHERE ShortName="${Zone.ShortName.Lower}"
+	| /sqlite query ${maData.Find[DBzone].Value} curZoneData SELECT * FROM zone WHERE ShortName="${Zone.ShortName.Lower}"
 	| /if (!${sql_check[${_debug}, curZoneData, Bind_control_area, SELECT]}) /endmacro
 
 	/declare _element string local FALSE
@@ -1127,19 +1127,19 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 	| safezone toggle
 	/if (${_type.Equal[safe]}) {
 		/if (${maEnv.Find[swZoneSafe].Value} || ${_verbage.Equal[FALSE]}) {
-			/sqlite ${maData.Find[DBzone].Value} QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' and element='swZoneSafe'
+			/sqlite query ${maData.Find[DBzone].Value} QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' and element='swZoneSafe'
 			/if (!${sql_check[${_debug}, QZone, Bind_control_area, UPDATE]}) /endmacro
 			/invoke ${maEnv.Add[swZoneSafe,FALSE]}
 
 		} else /if (!${maEnv.Find[swZoneSafe].Value} || ${_verbage.Equal[TRUE]}) {
-			/sqlite ${maData.Find[DBzone].Value} QZone UPDATE zone_control SET value='TRUE' WHERE zone_shortname='${Zone.ShortName}' and element='swZoneSafe'
+			/sqlite query ${maData.Find[DBzone].Value} QZone UPDATE zone_control SET value='TRUE' WHERE zone_shortname='${Zone.ShortName}' and element='swZoneSafe'
 			/if (!${sql_check[${_debug}, QZone, Bind_control_area, UPDATE]}) /endmacro
 			/invoke ${maEnv.Add[swZoneSafe,TRUE]}
 		}
 
 	| remove a mob from the current zone
 	} else /if (${_type.Equal[delete]}) {
-		/sqlite ${maData.Find[DBzone].Value} QZone DELETE FROM zone_control WHERE zone_shortname='${Zone.ShortName}' and value='${Target.DisplayName}'
+		/sqlite query ${maData.Find[DBzone].Value} QZone DELETE FROM zone_control WHERE zone_shortname='${Zone.ShortName}' and value='${Target.DisplayName}'
 		/if (!${sql_check[${_debug}, QZone, Bind_control_area, "DELETE FROM"]}) /endmacro
 		/invoke ${out[12, "/area delete ${dot} ${num}${Zone.ShortName}\ax${sep}\a-w${Target.DisplayName}"]}
 
@@ -1147,7 +1147,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 	} else /if (${Select[${_type},exclude,named,ranged,hunt,nomez,nocast,nomelee,nomagic,nodisease,nofire,nopoision,nocold,nocorruption]} && ${Target.ID}) {
 		/if (!${${_element}.Contains[${Target.DisplayName}]}) {
 			| Add a property to a mob
-			/sqlite ${maData.Find[DBzone].Value} QZone INSERT INTO zone_control VALUES ("${Zone.ShortName}", "${_element}", "${Target.DisplayName}")
+			/sqlite query ${maData.Find[DBzone].Value} QZone INSERT INTO zone_control VALUES ("${Zone.ShortName}", "${_element}", "${Target.DisplayName}")
 			/if (!${sql_check[${_debug}, QZone, Bind_control_area, "INSERT INTO"]}) /endmacro
 			/invoke ${out[12, "/area ${_type} ${dot} ${num}${_element}\ax${sep}\a-w${Target.DisplayName}\ax"]}
 		} else /if (${${_element}.Contains[${Target.DisplayName}]}) {
@@ -1272,6 +1272,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 		} else /if (${Select[${_verbage},tag]}) {
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsHeal${_type}Tag" ${_silent} ${_verbage2}
 		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
+			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stHeal${_type}" "${_verbage}"
 		}
 
@@ -1358,7 +1359,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	} else /if (${_type.Equal[ch]} && ${Select[${Me.Class.ShortName},CLR]}) {
 
 		/if (${_verbage.Equal[pct]}) {
-			/invoke ${set_switch_env[${_debug}, stPctCH, TRUE, ${_silent}]}
+			/call do_raw_edit ${_debug} SILENT stPctCH "${_silent}"
 		}
 
 		/invoke ${maControl.Clear}
@@ -1419,7 +1420,7 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 	/if (${Select[${Me.Class.ShortName},CLR]}) {
 		/invoke ${maControl.Add[ch,submenu]}
 		/invoke ${maControl.Add[promise,swHealPromise]}
-		/invoke ${maControl.Add[chpct,stPctCH]}
+		| /invoke ${maControl.Add[chpct,stPctCH]}
 	}
 
 	/if (${Select[${Me.Class.ShortName},CLR,PAL]}) {
@@ -1765,7 +1766,7 @@ sub Bind_deez(string _type, string _verbage)
 
 	| database pull test for a mana click item
 	/if (${_type.Equal[dbtest]}) {
-		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM mana_recovery WHERE env_var="Wand of Arcronite Modulation"
+		/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM mana_recovery WHERE env_var="Wand of Arcronite Modulation"
 		OUT ${sqlite.Result[dummy 1 value]}
 	}
 
@@ -1962,6 +1963,7 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 		} else /if (${Select[${_verbage},tag]}) {
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsBuff${_type}Tag" "${_silent}" ${_add_delete} ${_verbage}
 		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,alias,clear,see]}) {
+			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBuff${_type}" "${_verbage}"
 		}
 
@@ -2151,7 +2153,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		OUT lvl${sep}\a-w${Target.Level}\ax
 		OUT named${sep}\a-w\ax
 
-		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT value FROM animation WHERE env_var='${Target.Animation}'
+		/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT value FROM animation WHERE env_var='${Target.Animation}'
 		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 		/declare _animationresult string local UNKNOWN ANIMATION
 		/if (${sqlite.Rows[dummy]}) {
@@ -2196,7 +2198,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/invoke ${out[12, "\awSash #${_verbage}\ax${sep}${If[${maSash.Find[swSash${_verbage}].Value},${on},${off}]}"]}
 		/invoke ${out[12, "stSash\aw${_verbage}\ax${sep}\a-w${maSash.Find[stSash${_verbage}].Value}\ax"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maSash.Find[stSash${_verbage}Con].Value}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maSash.Find[stSash${_verbage}Con].Value}"
 		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 		/if (${sqlite.Rows[dummy]}) {
 			OUT stSash\aw${_verbage}\axCon${sep}\a-w${maSash.Find[stSash${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
@@ -2221,7 +2223,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/if (${_verbage.Equal[list]}) {
 			/echo
 			/invoke ${out[12, "\awSong List\ax${sep}"]}
-			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_song WHERE env_var="lsLineSong"
+			/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_song WHERE env_var="lsLineSong"
 			/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 
@@ -2247,7 +2249,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/invoke ${out[12, "\awSong #${_verbage}\ax${sep}${If[${maSong.Find[swSong${_verbage}].Value},${on},${off}]}"]}
 		/invoke ${out[12, "stSong\aw${_verbage}\ax${sep}\a-w${maSong.Find[stSong${_verbage}].Value}\ax"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maSong.Find[stSong${_verbage}Con].Value}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maSong.Find[stSong${_verbage}Con].Value}"
 		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 		/if (${sqlite.Rows[dummy]}) {
 			OUT stSong\aw${_verbage}\axCon${sep}\a-w${maSong.Find[stSong${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
@@ -2294,7 +2296,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/invoke ${out[12, "\awMiscDPS #${_verbage}\ax${sep}${If[${maMiscDPS.Find[swMiscDPS${_verbage}].Value},${on},${off}]}"]}
 		/invoke ${out[12, "stMiscDPS\aw${_verbage}\ax${sep}\a-w${maMiscDPS.Find[stMiscDPS${_verbage}].Value}\ax"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maMiscDPS.Find[stMiscDPS${_verbage}Con].Value}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maMiscDPS.Find[stMiscDPS${_verbage}Con].Value}"
 		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 		/if (${sqlite.Rows[dummy]}) {
 			OUT stMiscDPS\aw${_verbage}\axCon${sep}\a-w${maMiscDPS.Find[stMiscDPS${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
@@ -2340,7 +2342,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/invoke ${out[12, "\awAgro #${_verbage}\ax${sep}${If[${maAgro.Find[swAgro${_verbage}].Value},${on},${off}]}"]}
 		/invoke ${out[12, "stAgro\aw${_verbage}\ax${sep}\a-w${maAgro.Find[stAgro${_verbage}].Value}\ax"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maAgro.Find[stAgro${_verbage}Con].Value}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maAgro.Find[stAgro${_verbage}Con].Value}"
 		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 		/if (${sqlite.Rows[dummy]}) {
 			OUT stAgro\aw${_verbage}\axCon${sep}\a-w${maAgro.Find[stAgro${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
@@ -2365,7 +2367,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/if (${_verbage.Equal[list]}) {
 			/echo
 			/invoke ${out[12, "\awDoT List\ax${sep}"]}
-			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_dot WHERE env_var="lsLineDoT"
+			/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_dot WHERE env_var="lsLineDoT"
 			/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 
@@ -2391,7 +2393,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/invoke ${out[12, "\awDoT #${_verbage}\ax${sep}${If[${maDoT.Find[swDoT${_verbage}].Value},${on},${off}]}"]}
 		/invoke ${out[12, "stDoT\aw${_verbage}\ax${sep}\a-w${maDoT.Find[stDoT${_verbage}].Value}\ax"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maDoT.Find[stDoT${_verbage}Con].Value}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maDoT.Find[stDoT${_verbage}Con].Value}"
 		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 		/if (${sqlite.Rows[dummy]}) {
 			OUT stDoT\aw${_verbage}\axCon${sep}\a-w${maDoT.Find[stDoT${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
@@ -2414,7 +2416,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/if (${_verbage.Equal[list]}) {
 			/echo
 			/invoke ${out[12, "\awNuke List\ax${sep}"]}
-			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_nuke WHERE env_var="lsLineNuke"
+			/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_nuke WHERE env_var="lsLineNuke"
 			/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 
@@ -2440,7 +2442,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/invoke ${out[12, "\awNuke #${_verbage}\ax${sep}${If[${maNuke.Find[swNuke${_verbage}].Value},${on},${off}]}"]}
 		/invoke ${out[12, "stNuke\aw${_verbage}\ax${sep}\a-w${maNuke.Find[stNuke${_verbage}].Value}\ax"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maNuke.Find[stNuke${_verbage}Con].Value}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maNuke.Find[stNuke${_verbage}Con].Value}"
 		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 		/if (${sqlite.Rows[dummy]}) {
 			OUT stNuke\aw${_verbage}\axCon${sep}\a-w${maNuke.Find[stNuke${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
@@ -2464,7 +2466,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/if (${_verbage.Equal[list]}) {
 			/echo
 			/invoke ${out[12, "\awHeal List\ax${sep}"]}
-			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_heal WHERE env_var="lsLineHeal"
+			/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_heal WHERE env_var="lsLineHeal"
 			/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 
@@ -2490,7 +2492,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/invoke ${out[12, "\awHeal #${_verbage}\ax${sep}${If[${maHeal.Find[swHeal${_verbage}].Value},${on},${off}]}"]}
 		/invoke ${out[12, "stHeal\aw${_verbage}\ax${sep}\a-w${maHeal.Find[stHeal${_verbage}].Value}\ax"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maHeal.Find[stHeal${_verbage}Con].Value}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maHeal.Find[stHeal${_verbage}Con].Value}"
 		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 		/if (${sqlite.Rows[dummy]}) {
 			OUT stHeal\aw${_verbage}\axCon${sep}\a-w${maHeal.Find[stHeal${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
@@ -2514,7 +2516,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/if (${_verbage.Equal[list]}) {
 			/echo
 			/invoke ${out[12, "\awBurn List\ax${sep}"]}
-			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_burn WHERE env_var="lsLineBurn"
+			/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_burn WHERE env_var="lsLineBurn"
 			/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 
@@ -2541,7 +2543,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/invoke ${out[12, "\awBurn #${_verbage}\ax${sep}${If[${maBurn.Find[swBurn${_verbage}].Value},${on},${off}]}"]}
 		/invoke ${out[12, "stBurn\aw${_verbage}\ax${sep}\a-w${maBurn.Find[stBurn${_verbage}].Value}\ax"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maBurn.Find[stBurn${_verbage}Con].Value}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maBurn.Find[stBurn${_verbage}Con].Value}"
 		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 		/if (${sqlite.Rows[dummy]}) {
 			OUT stBurn\aw${_verbage}\axCon${sep}\a-w${maBurn.Find[stBurn${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
@@ -2565,7 +2567,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/if (${_verbage.Equal[list]}) {
 			/echo
 			/invoke ${out[12, "\awDefense List\ax${sep}"]}
-			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_defense WHERE env_var="lsLineDefense"
+			/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_defense WHERE env_var="lsLineDefense"
 			/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 
@@ -2591,7 +2593,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/invoke ${out[12, "\awDefense #${_verbage}\ax${sep}${If[${maDefense.Find[swDefense${_verbage}].Value},${on},${off}]}"]}
 		/invoke ${out[12, "stDefense\aw${_verbage}\ax${sep}\a-w${maDefense.Find[stDefense${_verbage}].Value}\ax"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maDefense.Find[stDefense${_verbage}Con].Value}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maDefense.Find[stDefense${_verbage}Con].Value}"
 		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 		/if (${sqlite.Rows[dummy]}) {
 			OUT stDefense\aw${_verbage}\axCon${sep}\a-w${maDefense.Find[stDefense${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
@@ -2642,7 +2644,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/invoke ${out[12, "\awBuff #${_verbage}\ax${sep}${If[${maBuff.Find[swBuff${_verbage}].Value},${on},${off}]}"]}
 		/invoke ${out[12, "stBuff\aw${_verbage}\ax${sep}\a-w${maBuff.Find[stBuff${_verbage}].Value}\ax"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maBuff.Find[stBuff${_verbage}Con].Value}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maBuff.Find[stBuff${_verbage}Con].Value}"
 		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 		/if (${sqlite.Rows[dummy]}) {
 			OUT stBuff\aw${_verbage}\axCon${sep}\a-w${maBuff.Find[stBuff${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
@@ -2666,7 +2668,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 			/invoke ${out[12, "\awCondition List\ax${sep}"]}
 			/for _count 1 to 50
 
-				/sqlite ${maData.Find[DBcharacter].Value} condition SELECT value FROM environment_condition WHERE env_var="c${_count}"
+				/sqlite query ${maData.Find[DBcharacter].Value} condition SELECT value FROM environment_condition WHERE env_var="c${_count}"
 				/if (!${sql_check[${_debug}, condition, Bind_command_see, SELECT]}) /endmacro
 				/if (${Parse[1,${sqlite.Result[condition 1 value].Equal[FALSE]}]}) /continue
 
@@ -2678,7 +2680,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 			/return
 		}
 
-		/sqlite ${maData.Find[DBcharacter].Value} condition SELECT value FROM environment_condition WHERE env_var="c${_verbage}"
+		/sqlite query ${maData.Find[DBcharacter].Value} condition SELECT value FROM environment_condition WHERE env_var="c${_verbage}"
 		/if (!${sql_check[${_debug}, condition, environment_condition, SELECT]}) /endmacro
 		OUT c${_verbage}${sep}\a-w${Parse[1,${sqlite.Result[condition 1 value]}]}\ax
 		/return TRUE
@@ -2712,7 +2714,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/invoke ${out[12, "\awItem #${_verbage}\ax${sep}${If[${maItem.Find[swItem${_verbage}].Value},${on},${off}]}"]}
 		/invoke ${out[12, "stItem\aw${_verbage}\ax${sep}\a-w${maItem.Find[stItem${_verbage}].Value}\ax"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maItem.Find[stItem${_verbage}Con].Value}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maItem.Find[stItem${_verbage}Con].Value}"
 		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
 		/if (${sqlite.Rows[dummy]}) {
 			OUT stItem\aw${_verbage}\axCon${sep}\a-w${maItem.Find[stItem${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
@@ -2762,7 +2764,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/while (!${_misee.IsEnd}) {
 			/if (${_verbage.Equal[aux]}) {
 				/varset _DBLOC ${get_key_DBLOC[${_debug}, ${_misee.Key}]}
-				/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var='${_misee.Key}'
+				/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var='${_misee.Key}'
 				| /if (!${sql_check[${_debug}, dummy, environment_condition, SELECT]}) /endmacro
 				/if (${sqlite.Status[dummy].Equal[SUCCESS]} && ${sqlite.Result[dummy 1 aux].Length} > 6) {
 					/varset _tmpAux ${dot} ${sqlite.Result[dummy 1 aux]}
@@ -2862,6 +2864,7 @@ sub Bind_control_burn(string _type, string _verbage, string _silent, string _ver
 		} else /if (${Select[${_verbage},tag]}) {
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsBurn${_type}Tag" ${_silent} ${_verbage2}
 		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
+			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBurn${_type}" "${_verbage}"
 		}
 
@@ -3502,7 +3505,7 @@ sub Bind_command_aux(string _type, bool _debug)
 	/invoke ${_lsout2.Append[coh,farm,ttl,defense,dot,nuke,clickitem,env,grab,grain]}
 
 	/if (${_lsout1.Contains[${_type}]} || ${_lsout2.Contains[${_type}]}) {
-		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY ROWID
+		/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY ROWID
 		/if (!${sql_check[${_debug}, dummy, Bind_command_aux, SELECT]}) /endmacro
 		DEBUG dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY help_var
 		/declare _count int local 0
@@ -3519,7 +3522,7 @@ sub Bind_command_aux(string _type, bool _debug)
 	/declare _count int local 0
 
 	/echo
-	/sqlite ${maData.Find[DBstatic].Value} dummy SELECT value FROM online WHERE env_var='discord'
+	/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT value FROM online WHERE env_var='discord'
 	/if (!${sql_check[${_debug}, dummy, Bind_command_aux, SELECT]}) /endmacro
 	/invoke ${out[0, "Discord${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 	/invoke ${out[0, "Available Control Information${sep}"]}
@@ -3657,13 +3660,13 @@ sub Bind_command_navto(string _verbage, string _loc, bool _debug)
 
 	| add/update a waypoint
 	/if (${_verbage.Equal[wpadd]}) {
-		/sqlite ${maData.Find[DBnav].Value} dummy SELECT * FROM waypoint WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
+		/sqlite query ${maData.Find[DBnav].Value} dummy SELECT * FROM waypoint WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
 		/if (!${sqlite.Rows[dummy]}) {
 			/invoke ${out[19, "Waypoint add${sep}\a-w${_loc}\ax ${dot} Y:${num}${Me.Y}\ax X:${num}${Me.X}\ax Z:${num}${Me.Z}\ax"]}
-			/sqlite ${maData.Find[DBnav].Value} dummy INSERT INTO waypoint VALUES ("${Zone.ShortName}", "${_loc}", "${Me.Y}", "${Me.X}", "${Me.Z}")
+			/sqlite query ${maData.Find[DBnav].Value} dummy INSERT INTO waypoint VALUES ("${Zone.ShortName}", "${_loc}", "${Me.Y}", "${Me.X}", "${Me.Z}")
 		} else /if (${sqlite.Rows[dummy]}) {
 			/invoke ${out[19, "Waypoint update${sep}\a-w${_loc}\ax ${dot} Y:${num}${Me.Y}\ax X:${num}${Me.X}\ax Z:${num}${Me.Z}\ax"]}
-      /sqlite ${maData.Find[DBnav].Value} dummy UPDATE waypoint SET locY="${Me.Y}", locX="${Me.X}", locZ="${Me.Z}" WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
+      /sqlite query ${maData.Find[DBnav].Value} dummy UPDATE waypoint SET locY="${Me.Y}", locX="${Me.X}", locZ="${Me.Z}" WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
 		}
 
 		/return
@@ -3674,7 +3677,7 @@ sub Bind_command_navto(string _verbage, string _loc, bool _debug)
 	| list the waypoints
 	} else /if (${_verbage.Equal[wplist]}) {
 
-		/sqlite ${maData.Find[DBnav].Value} wpdummy SELECT COUNT(*) as data FROM waypoint WHERE zone_shortname='${Zone.ShortName}'
+		/sqlite query ${maData.Find[DBnav].Value} wpdummy SELECT COUNT(*) as data FROM waypoint WHERE zone_shortname='${Zone.ShortName}'
 		SDEBUG ${sep}wpdummy SELECT count(*) as data from zone_control where zone_shortname  \ay${sqlite.Status[dummy]}\ax resutl:${sqlite.Result[wpdummy 1 data]}
 		/if (${sqlite.Status[wpdummy].Find[no such table:]}) {
 			/echo fail
@@ -3688,7 +3691,7 @@ sub Bind_command_navto(string _verbage, string _loc, bool _debug)
 
 	| moveto a waypoint
 	} else /if (${_verbage.Equal[wp]}) {
-		/sqlite ${maData.Find[DBnav].Value} dummy SELECT * FROM waypoint WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
+		/sqlite query ${maData.Find[DBnav].Value} dummy SELECT * FROM waypoint WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
 		/if (!${sqlite.Rows[dummy]}) {
 			/invoke ${out[1, shade, 0]}
 			/return FALSE
@@ -3957,7 +3960,7 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 	/if (${_type.Equal[see]}) {
 
 		/if (${Select[${_nick1},wiz,dru,guild,item,vendor,aa]}) {
-			/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='${_nick1}' ${If[${Bool[${_nick1}]},AND nick1='${_nick2}',]}
+			/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='${_nick1}' ${If[${Bool[${_nick1}]},AND nick1='${_nick2}',]}
 
 			/echo \awList\ax${sep}\a-w${sqlite.Rows[dummy]}\ax
 			/for _count 1 to ${sqlite.Rows[dummy]}
@@ -3980,7 +3983,7 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 
 	| /if (${Select[${_type},wiz,dru,guild,item,vendor,aa]}) {
 	| 	SDEBUG SELECT * FROM port WHERE type='${_type}' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',AND nick2='FALSE']} LIMIT 1
-	| 	/sqlite ${maData.Find[DBstatic].Value} portreturn SELECT * FROM port WHERE type='${_type}' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',AND nick2='FALSE']} LIMIT 1
+	| 	/sqlite query ${maData.Find[DBstatic].Value} portreturn SELECT * FROM port WHERE type='${_type}' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',AND nick2='FALSE']} LIMIT 1
 	| 	/varset _portName ${sqlite.Result[portreturn 1 name1]}
 	| }
 
@@ -3992,7 +3995,7 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 
 	| guild placable ports
 	} else /if (${Select[${_type},guild]}) {
-		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='guild'
+		/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='guild'
 		/for _count 1 to ${sqlite.Rows[dummy]}
 			/invoke ${_list.Append[${sqlite.Result[dummy ${_count} nick1]}]}
 		/next _count
@@ -4001,7 +4004,7 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 
 	| item ports
 	} else /if (${Select[${_type},item]}) {
-		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='item'
+		/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='item'
 		/for _count 1 to ${sqlite.Rows[dummy]}
 			/invoke ${_list.Append[${sqlite.Result[dummy ${_count} nick1]}]}
 		/next _count
@@ -4052,7 +4055,7 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 
 		} else /if (${_list.Contains[${_nick1}]}) {
 			DEBUG list
-			/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='item' AND nick1="${_nick1}"
+			/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='item' AND nick1="${_nick1}"
 			/varset _portName ${sqlite.Result[dummy 1 name1]}
 
 		} else {
@@ -4075,14 +4078,14 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 
 	| aa ports
 	} else /if (${Select[${_type},aa]}) {
-		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='aa'
+		/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='aa'
 		/for _count 1 to ${sqlite.Rows[dummy]}
 			/invoke ${_list.Append[${sqlite.Result[dummy ${_count} nick1]}]}
 		/next _count
 
 		/if (${_list.Contains[${_nick1}]}) {
 			DEBUG ${sep}AA
-			/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='aa' AND nick1="${_nick1}"
+			/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='aa' AND nick1="${_nick1}"
 			/varset _portName ${sqlite.Result[dummy 1 name1]}
 
 		} else {
@@ -4488,7 +4491,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 
 					| OUTPUT TO THE INI
 					/if (${_limaps.Value.Equal[maCondition]}) {
-						/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition ORDER BY ROWID
+						/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition ORDER BY ROWID
 						/for _count 1 to ${sqlite.Rows[dummy]}
 							/ini "${_fqn}" ${_limaps.Value} "${sqlite.Result[dummy ${_count} env_var]}" "${Parse[2,${sqlite.Result[dummy ${_count} value]}]}"
 						/next _count
@@ -4536,7 +4539,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 					/if (${Select[${_key},NULL]}) /continue
 						/varset _value ${Ini[${_fqn},${_section},${Parse[1,${_key}]},noparse]}
 						DEBUG ${sep}dummy UPDATE environment_condition SET value="${Parse[1,${_value}]}" WHERE env_var="${_key}"
-						/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE environment_condition SET value="${Parse[1,${_value}]}" WHERE env_var="${_key}"
+						/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE environment_condition SET value="${Parse[1,${_value}]}" WHERE env_var="${_key}"
 					/next _countK
 			} else {
 				/for _countK 1 to ${Ini[${_fqn},${_section}].Count[|]}
@@ -4616,7 +4619,7 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 		/if (!${Cursor.ID} && !${Bool[${_verbage}]}) {
 			/invoke ${out[1, shade, 0]}
 		} else {
-			/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
+			/sqlite query ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
 			/if (!${sqlite.Rows[lootquery]}) {
 				/invoke ${out[0, "DB settings for item${sep}\a-w${Cursor.Name}\ax"]}
 				/invoke ${out[0, "${notice}${sep}\a-wnot in loot database\ax"]}
@@ -4638,12 +4641,12 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 
 
 	| see if item is in the DB first?
-	/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
+	/sqlite query ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
 	/if (${sqlite.Status[lootquery].NotEqual[Success]} || !${sqlite.Rows[lootquery]}) {
 		/if (${FindItem[=${Cursor.Name}].NoDrop} || ${FindItem[=${Cursor.Name}].Lore} || ${FindItemBank[${Cursor.Name}].Lore}) {
-			/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action)  VALUES("${Cursor.Name}", "leave")
+			/sqlite query ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action)  VALUES("${Cursor.Name}", "leave")
 		} else {
-			/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${Cursor.Name}", "keep")
+			/sqlite query ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${Cursor.Name}", "keep")
 		}
 	}
 
@@ -4658,13 +4661,13 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 			/invoke ${out[1, shade, 0]}
 		}
 
-		/sqlite ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${_item}"
+		/sqlite query ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${_item}"
 		DEBUG ${sep}lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${_item}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
 		OUT /cursor ${_item}${sep}\a-w${_type.Lower}\ax
 		/return TRUE
 
 	} else /if (${_type.Equal[pass]}) {
-		/sqlite ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}"
+		/sqlite query ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}"
 		DEBUG ${sep}lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
 		OUT /cursor pass${sep}\a-w${_verbage}\ax
 		/return TRUE
@@ -5197,6 +5200,7 @@ sub Bind_control_clickitem(string _type, string _verbage, string _verbage2, stri
 		} else /if (${Select[${_verbage},tag]}) {
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsItem${_type}Tag" "${_verbage2}" ${_add_delete}
 		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
+			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stItem${_type}" "${_verbage}"
 		}
 
@@ -5250,6 +5254,7 @@ sub Bind_control_defense(string _type, string _verbage, string _verbage2, string
 		} else /if (${Select[${_verbage},tag]}) {
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsDefense${_type}Tag" "${_verbage2}" ${_add_delete}
 		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
+			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stDefense${_type}" "${_verbage}"
 		}
 
@@ -5299,7 +5304,7 @@ sub Bind_control_TTL(string _type, string _verbage, string _silent, bool _debug)
 
 	| clear the TTL statiestics
 	} else /if (${_type.Equal[clear]}) {
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT swTTL FROM environment_character
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT swTTL FROM environment_character
 		/invoke ${maTTL.Clear}
 		/invoke ${maTTL.Add[swTTL,${sqlite.Result[dummy 1 swTTL]}]}
 		/invoke ${maTTL.Add[stTTLTimeStart,0]}
@@ -5363,6 +5368,7 @@ sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _s
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsNuke${_type}Tag" ${_verbage2} ${_silent}
 
 		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
+			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stNuke${_type}" "${_verbage}"
 		}
 
@@ -5515,6 +5521,7 @@ sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _s
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsAgro${_type}Tag" ${_verbage2} ${_silent}
 
 		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
+			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stAgro${_type}" "${_verbage}"
 		}
 
@@ -5580,6 +5587,7 @@ sub Bind_control_miscdps(string _type, string _verbage, string _verbage2, string
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsMiscDPS${_type}Tag" ${_verbage2} ${_silent}
 
 		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
+			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stMiscDPS${_type}" "${_verbage}"
 		}
 
@@ -5645,6 +5653,7 @@ sub Bind_control_song(string _type, string _verbage, string _verbage2, string _s
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsSong${_type}Tag" ${_verbage2} ${_silent}
 
 		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
+			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
 			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSong${_type}" "${_verbage}"
 		}
 
@@ -5698,7 +5707,7 @@ sub Bind_command_line(string _type, string _line)
 
 	| clear the current line data
 	/invoke ${lsLine${_type}.Clear}
-	/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE environment_${_type_env} SET value="EMPTY" WHERE env_var="lsLine${_type}"
+	/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE environment_${_type_env} SET value="EMPTY" WHERE env_var="lsLine${_type}"
 
 	| add the new data
 	/call do_raw_edit FALSE TRUE lsLine${_type} ${_line} add
@@ -5926,7 +5935,7 @@ sub Bind_control_pred(string _type, string _verbage, string _silent, bool _debug
 
 	| clear the TTL statiestics
 	} else /if (${_type.Equal[clear]}) {
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT swTTL FROM environment_character
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT swTTL FROM environment_character
 		/invoke ${maPred.Add[swPredInc,FALSE]}
 		/invoke ${maPred.Add[stPredCountMob,0]}
 		/invoke ${maPred.Add[swPredNamed,FALSE]}

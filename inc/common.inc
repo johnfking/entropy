@@ -108,7 +108,7 @@ sub set_data_timer(string _debug, string _env_timer, string _value, string _verb
 	}
 
 	| is the data there already?
-	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_timer WHERE env_timer='ti${_env_timer}'
+	/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_timer WHERE env_timer='ti${_env_timer}'
 	DEBUG ${sep}dummy SELECT * FROM environment_timer WHERE env_timer='${_env_timer}' count:\ap${sqlite.Rows[dummy]}\ax
 
 	| data exists. get from DB and call good
@@ -118,8 +118,8 @@ sub set_data_timer(string _debug, string _env_timer, string _value, string _verb
 
 	} else /if (!${sqlite.Rows[dummy]}) {
 		DEBUG ${sep}Timer does \arNOT\ax exists. add to DB and map it
-		/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT INTO environment_timer(env_timer, value) VALUES('ti${_env_timer}', '${_value}')
-		DEBUG ${sep} /sqlite ${maData.Find[DBcharacter].Value} dummy INSERT INTO environment_timer(env_timer, value) VALUES('ti${_env_timer}', '${_value}') \ay${sqlite.Status[dummy]}\ax
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy INSERT INTO environment_timer(env_timer, value) VALUES('ti${_env_timer}', '${_value}')
+		DEBUG ${sep} /sqlite query ${maData.Find[DBcharacter].Value} dummy INSERT INTO environment_timer(env_timer, value) VALUES('ti${_env_timer}', '${_value}') \ay${sqlite.Status[dummy]}\ax
 		/invoke ${maTimer.Add[ti${_env_timer},${_value}]}
 	}
 
@@ -159,7 +159,7 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 	| }
 
 	| is the data there already?
-	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_env_var}"
+	/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_env_var}"
 	/if (!${sql_check[${_debug}, dummy, set_data_map, SELECT]}) /endmacro
 
 	| data exists. get from DB and call it good
@@ -176,7 +176,7 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 			/invoke ${${_map}.Add[${sqlite.Result[dummy 1 env_var]},${sqlite.Result[dummy 1 value]}]}
 			DEBUG ${sep}${_map}${${_map}.Find[${sqlite.Result[dummy 1 env_var]}]}
 			/declare _DBLOC string local ${get_key_DBLOC[${_debug}, ${_env_var}]}
-			/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET 'aux'="${Parse[1,${_aux}]}"  WHERE env_var="${_env_var}"
+			/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET 'aux'="${Parse[1,${_aux}]}"  WHERE env_var="${_env_var}"
 			/if (!${sql_check[${_debug}, dummy, set_data_map, SELECT]}) /endmacro
 			/return TRUE
 
@@ -191,7 +191,7 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 			/declare _count int local 1
 			/declare _tmpValue string local
 
-			/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM env_${Me.Class.ShortName.Lower} WHERE env_var="${_env_var}"
+			/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM env_${Me.Class.ShortName.Lower} WHERE env_var="${_env_var}"
 			/if (!${sql_check[${_debug}, dummy, set_data_map, SELECT]}) /endmacro
 
 			DEBUG .... ${sqlite.Result[dummy 1 value].Count[|]} ..${sqlite.Result[dummy 1 value]}
@@ -212,7 +212,7 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 			DEBUG ${sep}_value${sep}\a-w${_tmpValue}\ax
 		}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${_aux}")
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${_aux}")
 		DEBUG INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${_aux}")
 		/if (!${sql_check[${_debug}, dummy, set_data_map, "INSERT OR IGNORE INTO"]}) /endmacro
 
@@ -252,7 +252,7 @@ sub set_data_list (bool _debug, string _map, string _env_var, string _value, str
 	| }
 
 	| is the data there already?
-	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_env_var}"
+	/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_env_var}"
 	| DEBUG ${sep}dummy SELECT * FROM environment_${_table} WHERE env_var='${_env_var}' ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
 
 	| data exists. get from DB and call it good
@@ -283,7 +283,7 @@ sub set_data_list (bool _debug, string _map, string _env_var, string _value, str
 				/invoke ${${_map}.Add[${_env_var},"${_tmpValue}"]}
 			}
 			/declare _DBLOC string local ${get_key_DBLOC[${_debug}, ${_env_var}]}
-			/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET 'aux'='${Parse[1,${_aux}]}' WHERE env_var="${_env_var}"
+			/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET 'aux'='${Parse[1,${_aux}]}' WHERE env_var="${_env_var}"
 			DEBUG ${sep}dummy UPDATE ${_DBLOC.Arg[1,|]} SET 'aux'='${Parse[1,${_aux}]}' WHERE env_var='${_env_var}' ${dot} \ay${sqlite.Status[dummy]}\ax
 			/return TRUE
 
@@ -297,7 +297,7 @@ sub set_data_list (bool _debug, string _map, string _env_var, string _value, str
 
 		/if (${_value.Find[PREGEN]}) {
 			DEBUG PREGEN DATA
-			/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM env_${Me.Class.ShortName.Lower} WHERE env_var="${_env_var}"
+			/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM env_${Me.Class.ShortName.Lower} WHERE env_var="${_env_var}"
 			DEBUG ${sep}dummy SELECT * From env_${Me.Class.ShortName.Lower} WHERE env_var='${_env_var}' ${dot} \ay${sqlite.Status[dummy]}\ax
 			DEBUG ${sep}${sep}${sqlite.Result[dummy 1 env_var]}${sep}\a-w${sqlite.Result[dummy 1 value]}\ax
 
@@ -323,7 +323,7 @@ sub set_data_list (bool _debug, string _map, string _env_var, string _value, str
 		}
 
 		| put shit into the database.. took us this long to get here. may as well do something
-		/sqlite ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${Parse[1,${_aux}]}")
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${Parse[1,${_aux}]}")
 		DEBUG ${sep}  dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES('${_env_var}', "${_value}", '${Parse[1,${_aux}]}') ${dot} \ay${sqlite.Status[dummy]}\ax
 
 	}
@@ -680,10 +680,6 @@ sub is_ready(bool _debug, string _verbage)
 		/return FALSE
 	}
 
-	| /if (${swIsMeDead}) {
-	| 	/return FALSE
-	| }
-
 	| alt ability
 	/if (${Me.AltAbilityReady[${_verbage}]}) {
 		DEBUG ${sep}\a-yAA READY\ax${sep}\a-w${_verbage}\ax
@@ -761,12 +757,12 @@ sub get_assist_info(bool _debug, string _type)
 			DEBUG ${sep}assist found${sep}\a-w\ax
 		} else /if (${maCC.Find[stAssistMode].Value.Equal[3]}) {
 			DEBUG ${sep}assist found${sep}\a-w\ax
-		} else /if (${Bool[${maCC.Find[stManualAssist1].Value}]} && ${Spawn[pc ${maCC.Find[stManualAssist1].Value}].ID} && !${Spawn[pc ${maCC.Find[stManualAssist1].Value}].Dead}) {
-			DEBUG ${sep}assist found${sep}\a-w${Spawn[pc ${maCC.Find[stManualAssist1].Value}].DisplayName}\ax
+		} else /if (${Bool[${maCC.Find[stManualAssist1].Value}]} && ${Spawn[pc ${maCC.Find[stManualAssist1].Value}].ID} && !${Spawn[${maCC.Find[stManualAssist1].Value}].Dead}) {
+			DEBUG ${sep}assist found${sep}\a-w${Spawn[${maCC.Find[stManualAssist1].Value}].DisplayName}\ax
 			/varset _assist ${Spawn[pc ${maCC.Find[stManualAssist1].Value}].DisplayName}
-		} else /if (${Bool[${maCC.Find[stManualAssist2].Value}]} && ${Spawn[pc ${maCC.Find[stManualAssist2].Value}].ID} && !${Spawn[pc ${maCC.Find[stManualAssist2].Value}].Dead}) {
-			DEBUG ${sep}assist found${sep}\a-w${Spawn[pc ${stManualAssist2}].DisplayName}\ax
-			/varset _assist ${Spawn[pc ${stManualAssist2}].DisplayName}
+		} else /if (${Bool[${maCC.Find[stManualAssist2].Value}]} && ${Spawn[${maCC.Find[stManualAssist2].Value}].ID} && !${Spawn[${maCC.Find[stManualAssist2].Value}].Dead}) {
+			DEBUG ${sep}assist found${sep}\a-w${Spawn[${maCC.Find[stManualAssist2].Value}].DisplayName}\ax
+			/varset _assist ${Spawn[${maCC.Find[stManualAssist2].Value}]}
 		}
 	}
 
@@ -918,7 +914,7 @@ sub set_switch_env(bool _debug, string _switch, bool _sql, string _verbage)
 		/declare _DBLOC string local FALSE
 		/varset _DBLOC ${get_key_DBLOC[${_debug}, ${_switch}]}
 		DEBUG ${sep}dummy UPDATE ${_DBLOC.Arg[1,|]} SET value='${${_map}.Find[${_switch}].Value}' WHERE ${_DBLOC.Arg[2,|]}='${_switch}'
-		/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET value='${${_map}.Find[${_switch}].Value}' WHERE ${_DBLOC.Arg[2,|]}='${_switch}'
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET value='${${_map}.Find[${_switch}].Value}' WHERE ${_DBLOC.Arg[2,|]}='${_switch}'
 	}
 
 /return ${${_map}.Find[${_switch}].Value}
@@ -1143,7 +1139,7 @@ sub check_condition(bool _debug, str _condition)
 		/return TRUE
 	}
 
-	/sqlite ${maData.Find[DBcharacter].Value} data SELECT * FROM environment_condition WHERE env_var="c${_condition}"
+	/sqlite query ${maData.Find[DBcharacter].Value} data SELECT * FROM environment_condition WHERE env_var="c${_condition}"
 
 	DEBUG ${sep}rows${sep}\a-w${sqlite.Rows[data]}\ax
 	/if (${sqlite.Rows[data]}) {
@@ -4282,23 +4278,23 @@ sub set_zone_lists(bool _debug)
 	FLOW set_zone_lists
 
 	| check zone exists
-	/sqlite ${maData.Find[DBzone].Value} QZone SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}'
+	/sqlite query ${maData.Find[DBzone].Value} QZone SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}'
 	/if (!${sql_check[${_debug}, QZone, set_zone_lists, SELECT]}) /endmacro
 	/if (!${sqlite.Rows[QZone]}) {
-		/sqlite ${maData.Find[DBzone].Value} QZone INSERT INTO zone_control values ('${Zone.ShortName}', 'swZoneSafe', 'FALSE')
+		/sqlite query ${maData.Find[DBzone].Value} QZone INSERT INTO zone_control VALUES ('${Zone.ShortName}', 'swZoneSafe', 'FALSE')
 		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "INSERT INTO zone_control"]}) /endmacro
 	}
 
 	| get safe zone
-	/sqlite ${maData.Find[DBzone].Value} QZone SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}'
+	/sqlite query ${maData.Find[DBzone].Value} QZone SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}'
 	/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT zone_control"]}) /endmacro
 
 	/if (!${sqlite.Result[QZone 1 data]}) {
-		/sqlite ${maData.Find[DBzone].Value} QZone INSERT INTO zone_control values ('${Zone.ShortName}', 'swZoneSafe', 'FALSE')
+		/sqlite query ${maData.Find[DBzone].Value} QZone INSERT INTO zone_control VALUES ('${Zone.ShortName}', 'swZoneSafe', 'FALSE')
 		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "INSERT INTO swZoneSafe"]}) /endmacro
 		/invoke ${maEnv.Add[swZoneSafe,FALSE]}
 	} else {
-		/sqlite ${maData.Find[DBzone].Value} QZone SELECT value from zone_control where zone_shortname='${Zone.ShortName}' and element='swZoneSafe'
+		/sqlite query ${maData.Find[DBzone].Value} QZone SELECT value from zone_control where zone_shortname='${Zone.ShortName}' and element='swZoneSafe'
 		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT zone_shortname"]}) /endmacro
 		/invoke ${maEnv.Add[swZoneSafe,${sqlite.Result[QZone 1 value]}]}
 	}
@@ -4310,12 +4306,12 @@ sub set_zone_lists(bool _debug)
 	/while (!${_li.IsEnd}) {
 		/invoke ${${_li.Value}.Clear}
 
-		/sqlite ${maData.Find[DBzone].Value} QZone SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}' and element='${_li.Value}'
+		/sqlite query ${maData.Find[DBzone].Value} QZone SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}' and element='${_li.Value}'
 		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT ${_li.Value}"]}) /endmacro
 
 
 		/if (${sqlite.Result[QZone 1 data]} > 0) {
-			/sqlite ${maData.Find[DBzone].Value} QZone SELECT group_concat(value) as data FROM zone_control WHERE zone_shortname = '${Zone.ShortName}' and element = '${_li.Value}' group by element
+			/sqlite query ${maData.Find[DBzone].Value} QZone SELECT group_concat(value) as data FROM zone_control WHERE zone_shortname = '${Zone.ShortName}' and element = '${_li.Value}' group by element
 			/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT group"]}) /endmacro
 			/invoke ${${_li.Value}.Append[${sqlite.Result[QZone 1 data]}]}
 		}
@@ -4361,7 +4357,7 @@ sub get_key_DBLOC(bool _debug, string _key)
 	/declare _mikey mapiterator local
 	/vardata _mikey maDBTables.First.Clone
 	/while (!${_mikey.IsEnd}) {
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM '${_mikey.Key}' WHERE ${_mikey.Value}='${_key}'
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM '${_mikey.Key}' WHERE ${_mikey.Value}='${_key}'
 		/if (${sqlite.Rows[dummy]}) {
 			DEBUG ${sep}DBLOC Returning${sep}\a-w|${_mikey.Key}|${_mikey.Value}\ax
 			/return |${_mikey.Key}|${_mikey.Value}
@@ -4418,7 +4414,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 	| environment_var edits. not for users...
 	/if (${_DBLOC.Arg[1,|].Equal[environment_var]}) {
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET value=${Parse[1,"${_value}"]} WHERE ${_DBLOC.Arg[2,|]}="${_variable}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET value=${Parse[1,"${_value}"]} WHERE ${_DBLOC.Arg[2,|]}="${_variable}"
 		/if (!${sql_check[${_debug}, dummy, do_raw_edit, UPDATE]}) /endmacro
 		/varset ${_variable} ${_value}
 		/return TRUE
@@ -4453,7 +4449,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 		/declare _tmpList string local
 
 		DEBUG GET PREGEN DATA
-		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM env_${Me.Class.ShortName.Lower} WHERE env_var="${_env_var}"
+		/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM env_${Me.Class.ShortName.Lower} WHERE env_var="${_env_var}"
 		/if (!${sql_check[${_debug}, dummy, do_raw_edit, SELECT]}) /endmacro
 
 		| how many do we want to find?
@@ -4488,7 +4484,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 		/declare _tmpList list local
 		/invoke ${_tmpList.Delimiter["|"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var='${_variable}'
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var='${_variable}'
 		/if (!${sql_check[${_debug}, dummy, do_raw_edit, SELECT]}) /endmacro
 		/invoke ${_tmpList.Append[${sqlite.Result[dummy 1 value]}]}
 		DEBUG ${sep}DB current count${sep}\aw${_tmpList.Count}\ax
@@ -4514,7 +4510,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 		/declare _tmpList list local
 		/invoke ${_tmpList.Delimiter["|"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var="${_variable}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var="${_variable}"
 		/if (!${sql_check[${_debug}, dummy, do_raw_edit, SELECT]}) /endmacro
 		/invoke ${_tmpList.Append[${sqlite.Result[dummy 1 value]}]}
 		DEBUG ${sep}DB current count${sep}\aw${_tmpList.Count}\ax
@@ -4547,7 +4543,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 		/declare _tmpList list local
 		/invoke ${_tmpList.Delimiter["|"]}
 
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var='${_variable}'
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var='${_variable}'
 		/if (!${sql_check[${_debug}, dummy, do_raw_edit, SELECT]}) /endmacro
 		/invoke ${_tmpList.Append[${sqlite.Result[dummy 1 value]}]}
 		DEBUG ${sep}DB current count${sep}\aw${_tmpList.Count}\ax
@@ -4579,11 +4575,11 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 
 	| update the _value into the DB
 	/if (${Bool[${_map}]} || ${_list} || ${_found}) {
-		/sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET value=${Parse[1,"${_value}"]} WHERE ${_DBLOC.Arg[2,|]}="${_variable}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET value=${Parse[1,"${_value}"]} WHERE ${_DBLOC.Arg[2,|]}="${_variable}"
 		/if (!${sql_check[${_debug}, dummy, do_raw_edit, UPDATE]}) /endmacro
 
 		| reload data
-		/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE ${_DBLOC.Arg[2,|]}="${_variable}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE ${_DBLOC.Arg[2,|]}="${_variable}"
 		/if (!${sql_check[${_debug}, dummy, do_raw_edit, SELECT]}) /endmacro
 		DEBUG valuerow:${sqlite.Result[dummy 1 value]}
 	}
@@ -4656,7 +4652,7 @@ sub set_control_chr_spire(bool _debug, string _type, string _verbage)
 	/invoke ${maControl.Add[raid,swSpireRaid]}
 	/invoke ${set_control_output[${_debug}, maChr, "chr spire", maControl]}
 
-	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maChr.Find[stSpireCon].Value}"
+	/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maChr.Find[stSpireCon].Value}"
 	/if (${sqlite.Rows[dummy]}) {
 		OUT /chr spire ${dot} ${info}con\ax${sep}\a-w${maChr.Find[stSpireCon].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
 	} else {
@@ -4693,7 +4689,7 @@ sub set_control_chr_intensity(bool _debug, string _type, string _verbage)
 	/invoke ${maControl.Add[raid,swIntensityRaid]}
 	/invoke ${set_control_output[${_debug}, maChr, "chr intensity", maControl]}
 
-	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maChr.Find[stIntensityCon].Value}"
+	/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maChr.Find[stIntensityCon].Value}"
 	/if (${sqlite.Rows[dummy]}) {
 		OUT /chr intensity ${dot} ${info}con\ax${sep}\a-w${maChr.Find[stIntensityCon].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
 	} else {
@@ -7274,7 +7270,7 @@ sub do_loot(bool _debug)
 			}
 
 			| get all the data for that item from loot file
-			/sqlite ${maData.Find[DBloot].Value} slootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
+			/sqlite query ${maData.Find[DBloot].Value} slootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
 			/if (!${sql_check[${_debug}, slootquery, loot_control, SELECT]}) /endmacro
 
 			| if we did not find the item?
@@ -7287,7 +7283,7 @@ sub do_loot(bool _debug)
 					/if (${lsGrain.Contains[14]}) {
 						OUT ${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]
 					}
-					/sqlite ${maData.Find[DBloot].Value} slootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
+					/sqlite query ${maData.Find[DBloot].Value} slootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
 					/if (!${sql_check[${_debug}, slootquery, loot_control, "INSERT INTO"]}) /endmacro
 
 				} else {
@@ -7295,12 +7291,12 @@ sub do_loot(bool _debug)
 						OUT ${add} ${dot} ${_advlItem} = ${keep} [default]
 					}
 
-					/sqlite ${maData.Find[DBloot].Value} slootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep")
+					/sqlite query ${maData.Find[DBloot].Value} slootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep")
 					/if (!${sql_check[${_debug}, slootquery, loot_control, "INSERT INTO"]}) /endmacro
 				}
 
 				| reload lootquery
-				/sqlite ${maData.Find[DBloot].Value} slootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
+				/sqlite query ${maData.Find[DBloot].Value} slootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
 				/if (!${sql_check[${_debug}, slootquery, loot_control, SELECT]}) /endmacro
 
 			}
@@ -7363,7 +7359,7 @@ sub do_loot(bool _debug)
 
 			DEBUG ${sep}personal${sep}1${sep}\a-e${AdvLoot.PList[1].Name}\ax
 
-			/sqlite ${maData.Find[DBloot].Value} plootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
+			/sqlite query ${maData.Find[DBloot].Value} plootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
 			/if (!${sql_check[${_debug}, plootquery, loot_control, SELECT]}) /endmacro
 
 			/if (!${sqlite.Rows[plootquery]}) {
@@ -7373,20 +7369,20 @@ sub do_loot(bool _debug)
 					/if (${lsGrain.Contains[14]}) {
 						OUT ${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]
 					}
-					/sqlite ${maData.Find[DBloot].Value} plootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
+					/sqlite query ${maData.Find[DBloot].Value} plootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
 					/if (!${sql_check[${_debug}, plootquery, loot_control, "INSERT INTO"]}) /endmacro
 
 				} else {
 					/if (${lsGrain.Contains[14]}) {
 						OUT ${add} ${dot} ${_advlItem} = ${keep} [default]
 					}
-					/sqlite ${maData.Find[DBloot].Value} plootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep")
+					/sqlite query ${maData.Find[DBloot].Value} plootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep")
 					/if (!${sql_check[${_debug}, plootquery, loot_control, "INSERT INTO"]}) /endmacro
 
 				}
 				/delay 5
 				| reload lootquery
-				/sqlite ${maData.Find[DBloot].Value} plootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
+				/sqlite query ${maData.Find[DBloot].Value} plootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
 				/if (!${sql_check[${_debug}, plootquery, loot_control, SELECT]}) /endmacro
 
 			}
@@ -7724,12 +7720,12 @@ sub check_cursor(bool _debug, string _verbage)
 	/call set_loot_item ${_debug} "${Cursor.Name}"
 
 	| reload data
-	/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}" LIMIT 1
+	/sqlite query ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}" LIMIT 1
 	/if (!${sql_check[${_debug}, lootquery, check_cursor, SELECT]}) /endmacro
 
 	| correct the ignore vs. leave spam issue for lore items in the db, then reset
 	/if (${Cursor.Lore} && ${Select[${sqlite.Result[lootquery 1 action]},leave]}) {
-		/sqlite ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET 'action'="ignore"  WHERE item="${Cursor.Name}"
+		/sqlite query ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET 'action'="ignore"  WHERE item="${Cursor.Name}"
 		/if (!${sql_check[${_debug}, lootquery, check_cursor, UPDATE]}) /endmacro
 		/invoke ${set_data_timer[${_debug}, Check_Cursor, 5]}
 		/return TRUE
@@ -9900,19 +9896,19 @@ sub out(int _lvl, string _verbage, int _strNum)
 
 	| forced output, no validation for grain
 	/if (${_verbage.Equal[forced]}) {
-		/sqlite ${maData.Find[DBstatic].Value} getstring SELECT value FROM string WHERE env_var='${_strNum}'
+		/sqlite query ${maData.Find[DBstatic].Value} getstring SELECT value FROM string WHERE env_var='${_strNum}'
 		/if (!${sql_check[${_debug}, getstring, out, SELECT]}) /endmacro
 		/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${sqlite.Result[getstring 1 value]}
 
 	| shade output. grain validation
 	} else /if (${_verbage.Equal[shade]} && (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0)) {
-		/sqlite ${maData.Find[DBstatic].Value} getshade SELECT * FROM shade ORDER BY RANDOM() LIMIT 1
+		/sqlite query ${maData.Find[DBstatic].Value} getshade SELECT * FROM shade ORDER BY RANDOM() LIMIT 1
 		/if (!${sql_check[${_debug}, getshade, out, SELECT]}) /endmacro
 		/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${sqlite.Result[getshade 1 value]}
 
 	| output grain validation
 	} else /if (${Range.Between[1,99999:${Int[${_strNum}]}]} && (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0)) {
-		/sqlite ${maData.Find[DBstatic].Value} getstring SELECT value FROM string WHERE env_var='${_strNum}'
+		/sqlite query ${maData.Find[DBstatic].Value} getstring SELECT value FROM string WHERE env_var='${_strNum}'
 		/if (!${sql_check[${_debug}, getstring, out, SELECT]}) /endmacro
 		/echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${sqlite.Result[getstring 1 value]}
 
@@ -10029,7 +10025,7 @@ sub set_loot_item(bool _debug, string _item)
 	}
 
 	| check for the item in the DB
-	/sqlite ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${_item}"
+	/sqlite query ${maData.Find[DBloot].Value} lootquery SELECT * FROM loot_control WHERE item="${_item}"
 	/if (!${sql_check[${_debug}, lootquery, set_loot_item, SELKECT]}) /endmacro
 
 	| we did not find it?
@@ -10039,13 +10035,13 @@ sub set_loot_item(bool _debug, string _item)
 		| item not in database or lore and have
 		/if (${AdvLoot.SList[${_item}].NoDrop} || ${AdvLoot.SList[${_item}].NoDrop} || ${FindItem[=${_item}].Lore} || ${FindItemBank[=${_item}].Lore}) {
 			/invoke ${out[0, "${add} ${dot} ${_item} = ${leave} [no drop/lore]"]}
-			/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_item}", "leave")
+			/sqlite query ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_item}", "leave")
 			/if (!${sql_check[${_debug}, lootquery, set_loot_item, "INSERT INTO"]}) /endmacro
 
 		| by default add everything as keep.
 		} else {
 			/invoke ${out[0, "${add} ${dot} ${_item} = ${keep} [default]"]}
-			/sqlite ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_item}", "keep")
+			/sqlite query ${maData.Find[DBloot].Value} lootquery INSERT INTO loot_control(item,action) VALUES("${_item}", "keep")
 			/if (!${sql_check[${_debug}, lootquery, set_loot_item, "INSERT INTO"]}) /endmacro
 		}
 	}
@@ -10483,7 +10479,7 @@ sub control_mez(bool _debug, int _tmpID)
 			/if (${Select[${maData.Find[stCastReturn].Value},IMMUNE,TAKEHOLD]}) {
 				| auto add to no mez list for zone
 				/if (${maEntropy.Find[swAutoList].Value} && ${maData.Find[stCastReturn].Value.Equal[IMMUNE]}) {
-					/sqlite ${maData.Find[DBzone].Value} dummy INSERT INTO zone_control VALUES ("${Zone.ShortName}", "lsZoneNoMez", "${Target.DisplayName}")
+					/sqlite query ${maData.Find[DBzone].Value} dummy INSERT INTO zone_control VALUES ("${Zone.ShortName}", "lsZoneNoMez", "${Target.DisplayName}")
 					/if (!${sql_check[${_debug}, dummy, control_mez, "INSERT INTO"]}) /endmacro
 					/invoke ${out[15, 0, 58]}
 					/call set_zone_lists
@@ -11530,9 +11526,8 @@ sub cast_cycle_miscdps(bool _debug, int _tmpID)
 
 		| divert target to your assist
 		/if (${ls${_type}Tag.Contains[targetassist]}) {
-			/declare _assID string local ${get_assist_info[${_debug}, ID]}
 			/varset _flagtmpID TRUE
-			/varset _tmpID ${_assID}
+			/varset _tmpID ${get_assist_info[${_debug}, ID]}
 		}
 
 		| divert target to yourself
@@ -11922,7 +11917,9 @@ sub check_for_corpse(bool _debug)
 
 	| pally, shaman, druid stuff
 	} else /if (${Select[${Me.Class.ShortName},PAL,SHM,DRU]}) {
-		/declare _rez${Me.Class.ShortName}		string	local FALSE
+		/declare _rezPAL									string	local FALSE
+		/declare _rezSHM									string	local FALSE
+		/declare _rezDRU									string	local FALSE
 
 		|  in combat
 		/if (${Select[${Me.CombatState},combat]}) {
@@ -12442,7 +12439,7 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 
 |***
  * note: casts heals from maHeal
- * use: /call cast_cycle_heal DEBUG [TARGETID]
+ * use: /call cast_cycle_heal DEBUG [TARGETID] [tag]
  ***|
 sub cast_cycle_heal(bool _debug, int _tmpID, string _tag)
 	DEBUG \atcast_cycle_heal\ax(\a-w${_tmpID}, ${_tag}\ax)
@@ -12912,3 +12909,78 @@ sub merc_control(bool _debug)
 	}
 
 /return TRUE
+
+
+
+|***
+ * note: check user input for valid stuff
+ * use: /call validate_input DEBUG [TYPE] [check]
+ ***|
+sub validate_input(bool _debug, string _type, string _verbage)
+	DEBUG \a-t\ax(\a-w${_type}, ${_verbage}\ax)
+
+	| default passes
+	/if (${_verbage.Find[gem]}) {
+		/return TRUE
+	}
+
+	| default passes
+	/if (${Select[${_verbage},cursor]}) {
+		/return TRUE
+	}
+
+	| checks ?
+	/if (${_type.Equal[control]}) {
+
+		| alt ability?
+		/if (${Me.AltAbilityReady[${_verbage}]}) {
+			/return TRUE
+
+		| spell
+		} else /if (${Me.Book[${Spell[${_verbage}].RankName}]}) {
+			/return TRUE
+
+		| melee disc
+		} else /if (${Me.CombatAbilityReady[${Me.CombatAbility[${Spell[${_verbage}].RankName}]}]}) {
+			/return TRUE
+
+		| click item
+		} else /if (${Me.ItemReady[=${_verbage}]}) {
+			/return TRUE
+		}
+
+		OUT ${notice} this is not a thing${sep}\a-w${_verbage}\ax
+
+	}
+
+	| blanket fail
+/return FALSE
+
+
+
+|***
+ * note: removes any unwanted buffs or songs
+ * use: /call check_drop_buffs DEBUG
+ ***|
+sub check_drop_buffs(bool _debug)
+	DEBUG \atcheck_drop_buffs\ax(\a-w\ax)
+
+ /invoke ${set_data_timer[${_debug}, Check_Drop_Buffs, RESTART]}
+
+ /if (${lsDropBuffs.Contains[EMPTY]} && ${lsDropBuffs.Count} == 1) /return FALSE
+
+	/declare _lidb listiterator local
+	/vardata _lidb lsDropBuffs.First.Clone
+	/while (!${_lidb.IsEnd}) {
+
+		/if (${Me.Buff[${_lidb.Value}].ID} || ${Me.Song[${_lidb.Value}].ID})  {
+			OUT Drop${sep}${info}${_lidb.Value}\ax
+			/invoke ${Me.Buff[${_lidb.Value}].Remove}
+		}
+		/invoke ${_liCL.Advance}
+	}
+
+/return TRUE
+
+
+

@@ -20,6 +20,7 @@ on the to do list
 - look at a way to split coordination for assists across more then one mob in a raid
 - relay tells to tie toon..
 - externalize class AAs: WAR|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|NEC|DRU|SHM
+- buffing system by name
 --------------------
 
 
@@ -27,6 +28,21 @@ known bugs
 --------------------
 epics with commas in their names are currently not functioning
 --------------------
+
+
+B200621.01
+NOTICE: Make sure you are running the latest MQ2SQLite for this update
+- /heal ch pct control works now
+  it might even heal too!?!?
+- many of the various / commands will validate the name of whatever you are entering
+  if you spell it wrong, or do not have, it will let you know
+- rezing
+  corrected some missed defines
+- enchanter
+  fixed calculated insanity
+- added in code for creating custom defines
+- added lsDropBuffs. any buffs added to this list will be removed from you. includes songs
+
 
 B200613.01
 - rezing

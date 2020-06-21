@@ -49,7 +49,7 @@ sub set_debug()
 	| admin
   /invoke ${lsDebugadmin.Append[build,observe,house,flow,exit,condition,sql,edit,e3]}
 	| schema (database creation/modification)
-  /invoke ${lsDebugschema.Append[init,s_zone,s_character,s_loot,s_nav]}
+  /invoke ${lsDebugschema.Append[init,s_zone,s_character,s_loot,s_nav,s_shared]}
 
   | class specific debugs
   /if (${Select[${Me.Class.ShortName},BER]}) {
@@ -504,56 +504,51 @@ sub sql_schema_zone(bool _debug)
     /invoke ${_lisszs.Advance}
   }
 
-  /sqlite ${maData.Find[DBzone].Value} macnumber SELECT build_number FROM build
-  /if (!${sql_check[${_debug}, macnumber, sql_schema_zone, SELECT]}) /endmacro
-  /sqlite ${maData.Find[DBzone].Value} schemanumber SELECT schema_number FROM build
-  /if (!${sql_check[${_debug}, schemanumber, sql_schema_zone, SELECT]}) /endmacro
+  /sqlite query ${maData.Find[DBzone].Value} macnumber SELECT version FROM metadata WHERE name='build_number'
+  /if (!${sql_check[${_debug}, macnumber, sql_schema_character, "SELECT"]}) /endmacro
+  /sqlite query ${maData.Find[DBzone].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number'
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_character, "SELECT"]}) /endmacro
 
-	| everything good. gtfo?
-  /if (${sqlite.Result[macnumber 1 build_number].Equal[${maEnv.Find[build].Value}]} && ${sqlite.Result[schemanumber 1 schema_number].Equal[${maEnv.Find[schema].Value}]}) {
-    DEBUG ${sep}Macro and Schema builds match for zone database, bailing on this routine
+	| if the numbers match, we consider it valid and go away to dosoemthing else.
+  /if (${sqlite.Result[schemanumber 1 version].Equal[${maEnv.Find[schema].Value}]} && ${sqlite.Result[macnumber 1 version].Equal[${maEnv.Find[build].Value}]}) {
+    DEBUG ${sep}Macro and Schema builds match for shared database, bailing on this routine
     /return TRUE
   }
 
-	| no rows foreund for schema build
+
+
+
   /if (!${sqlite.Rows[schemanumber]}) {
- 		OUT \a-tSchema Build\ax${sep}\a-wzone\ax
+ 		OUT \a-tSchema Build\ax${sep}\a-wshared\ax
+    /while (TRUE) {
+			| create shared build table
+      /sqlite query ${maData.Find[DBzone].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version)
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBzone].Value} build INSERT OR IGNORE INTO metadata VALUES('build_number', '${maEnv.Find[build].Value}')
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBzone].Value} build INSERT OR IGNORE INTO metadata VALUES('schema_number', '${maEnv.Find[schema].Value}')
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
 
-    /while (${swDBlocked}) {
-
-      /sqlite ${maData.Find[DBzone].Value} build CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY)
+      /sqlite query ${maData.Find[DBzone].Value} build CREATE TABLE IF NOT EXISTS zone_control('zone_shortname' TEXT NOT NULL,'element' TEXT NOT NULL,'value' TEXT NOT NULL, PRIMARY KEY (zone_shortname,element,value))
   		/if (!${sql_check[${_debug}, build, sql_schema_zone, "CREATE TABLE"]}) /endmacro
 
-      /sqlite ${maData.Find[DBzone].Value} build INSERT INTO 'build' ('build_number') VALUES ("${maEnv.Find[build].Value}")
-  		/if (!${sql_check[${_debug}, build, sql_schema_zone, "INSERT INTO"]}) /endmacro
-
-   		| add schema version to build table
-			/sqlite ${maData.Find[DBzone].Value} build ALTER TABLE build ADD COLUMN schema_number NOT NULL DEFAULT '${maEnv.Find[schema].Value}'
-  		/if (!${sql_check[${_debug}, build, sql_schema_zone, "ALTER TABLE"]}) /endmacro
-
-      /sqlite ${maData.Find[DBzone].Value} build CREATE TABLE IF NOT EXISTS 'zone_control' ('zone_shortname' TEXT NOT NULL,'element' TEXT NOT NULL,'value' TEXT NOT NULL, PRIMARY KEY (zone_shortname,element,value))
-  		/if (!${sql_check[${_debug}, build, sql_schema_zone, "CREATE TABLE"]}) /endmacro
-
-      /delay 1
-      /if (!${Select[${sqlite.Resultcode[build]},6]}) {
-        /delay 1
-        /varset swDBlocked FALSE
-      }
+			/delay 1
+      | if not locked, were good
+      /if (!${Select[${sqlite.Resultcode[build]},6]}) /break
     }
-		/varset swDBlocked TRUE
   }
 
-  /sqlite ${maData.Find[DBzone].Value} macnumber SELECT build_number FROM build
-  /if (!${sql_check[${_debug}, macnumber, sql_schema_zone, SELECT]}) /endmacro
+  /sqlite query ${maData.Find[DBzone].Value} macnumber SELECT version FROM metadata WHERE name='build_number'
+  /if (!${sql_check[${_debug}, macnumber, sql_schema_character, "SELECT"]}) /endmacro
 
   | correct build mismatch
-	/if (${sqlite.Result[macnumber 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+	/if (${sqlite.Result[macnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
     /while (${swDBlocked}) {
-      /sqlite ${maData.Find[DBzone].Value} updatebuildnum UPDATE build SET build_number='${maEnv.Find[build].Value}'
+      /sqlite query ${maData.Find[DBzone].Value} updatebuildnum UPDATE build SET build_number='${maEnv.Find[build].Value}'
   		/if (!${sql_check[${_debug}, updatebuildnum, sql_schema_zone, UPDATE]}) /endmacro
 
 	   	| call macro update by version here. doubt there will be any
-      /if (${sqlite.Result[macnumber 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+      /if (${sqlite.Result[macnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
       }
 
 			| db locked?
@@ -565,18 +560,18 @@ sub sql_schema_zone(bool _debug)
     /varset swDBlocked TRUE
   }
 
-  /sqlite ${maData.Find[DBzone].Value} schemanumber SELECT schema_number FROM build
-  /if (!${sql_check[${_debug}, schemanumber, sql_schema_zone, SELECT]}) /endmacro
+  /sqlite query ${maData.Find[DBzone].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number'
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_character, "SELECT"]}) /endmacro
 
 	| corect schema mismatch
-  /if (${sqlite.Result[schemanumber 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+  /if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
  		OUT \a-tSchema Check\ax${sep}\a-wzone\ax
     /while (${swDBlocked}) {
-      /sqlite ${maData.Find[DBzone].Value} updateschemanum UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
+      /sqlite query ${maData.Find[DBzone].Value} updateschemanum UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
   		/if (!${sql_check[${_debug}, updateschemanum, sql_schema_zone, UPDATE]}) /endmacro
 
      	| call schema update by version here!
-      /if (${sqlite.Result[schemanumber 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+      /if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
 			}
 
       /if (!${Select[${sqlite.Resultcode[updateschemanum]},6]}) {
@@ -608,97 +603,69 @@ sub sql_schema_loot(bool _debug)
 		/declare _boottimestart int local ${MacroQuest.Running}
 	}
 
-  /varset swDBlocked TRUE
-
 	| check the current schema/build versions
-  /sqlite ${maData.Find[DBloot].Value} bdummy SELECT build_number FROM build
-	/if (!${sql_check[${_debug}, bdummy, sql_schema_loot, SELECT]}) /endmacro
+  /sqlite query ${maData.Find[DBloot].Value} macnumber SELECT version FROM metadata WHERE name='build_number'
+  /if (!${sql_check[${_debug}, macnumber, sql_schema_shared, "SELECT (version)"]}) /endmacro
+  /sqlite query ${maData.Find[DBloot].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number'
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_shared, "SELECT (version)"]}) /endmacro
 
-  /sqlite ${maData.Find[DBloot].Value} sdummy SELECT schema_number FROM build
-	/if (!${sql_check[${_debug}, sdummy, sql_schema_loot, SELECT]}) /endmacro
-
-  /if (${sqlite.Result[sdummy 1 schema_number].Equal[${maEnv.Find[schema].Value}]} && ${sqlite.Result[bdummy 1 build_number].Equal[${maEnv.Find[build].Value}]}) {
+	| if the numbers match, we consider it valid and go away to dosoemthing else.
+  /if (${sqlite.Result[schemanumber 1 version].Equal[${maEnv.Find[schema].Value}]} && ${sqlite.Result[macnumber 1 version].Equal[${maEnv.Find[build].Value}]}) {
     DEBUG ${sep}Macro and Schema builds match for loot database, bailing on this routine
     /return TRUE
   }
 
-	|
-  /if (!${sqlite.Rows[sdummy]}) {
-  	DEBUG ${sep}FOUND${sep}\ar${sqlite.Rows[sdummy]}\ax
+  /if (!${sqlite.Rows[schemanumber]}) {
+  	DEBUG ${sep}FOUND${sep}\ar${sqlite.Rows[schemanumber]}\ax
  		OUT \a-tSchema Build\ax${sep}\a-wloot\ax
 
-    /while (${swDBlocked}) {
+    /while (TRUE) {
+			| create shared build table
+      /sqlite query ${maData.Find[DBloot].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version)
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBloot].Value} build INSERT OR IGNORE INTO metadata VALUES('build_number', '${maEnv.Find[build].Value}')
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBloot].Value} build INSERT OR IGNORE INTO metadata VALUES('schema_number', '${maEnv.Find[schema].Value}')
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
 
-			| create loot build table
-      /sqlite ${maData.Find[DBloot].Value} dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY)
-			/if (!${sql_check[${_debug}, dummy, sql_schema_loot, "CREATE TABLE IF NOT EXISTS"]}) /endmacro
-
-      | add macro version to build table
-      /sqlite ${maData.Find[DBloot].Value} dummy INSERT INTO 'build' ('build_number') VALUES ("${maEnv.Find[build].Value}")
-			/if (!${sql_check[${_debug}, dummy, sql_schema_loot, "INSERT INTO"]}) /endmacro
-
-   		| add schema version to build table
-			/sqlite ${maData.Find[DBloot].Value} dummy ALTER TABLE build ADD COLUMN schema_number NOT NULL DEFAULT '${maEnv.Find[schema].Value}'
-			/if (!${sql_check[${_debug}, dummy, sql_schema_loot, "ALTER TABLE"]}) /endmacro
-
-			| create loot table
-      /sqlite ${maData.Find[DBloot].Value} dummy CREATE TABLE IF NOT EXISTS 'loot_control' ('item' TEXT NOT NULL PRIMARY KEY, 'action' TEXT, 'pass' TEXT, 'count' TEXT)
-			/if (!${sql_check[${_debug}, dummy, sql_schema_loot, "CREATE TABLE IF NOT EXISTS"]}) /endmacro
-
-      /delay 1
-      /if (!${sqlite.Status[dummy].Find[locked]}) {
-        /delay 1
-        /varset swDBlocked FALSE
-      }
+			/delay 1
+      | if not locked, were good
+      /if (!${Select[${sqlite.Resultcode[build]},6]}) /break
     }
-		/varset swDBlocked TRUE
   }
 
-  /sqlite ${maData.Find[DBloot].Value} bdummy SELECT build_number FROM build
-	/if (!${sql_check[${_debug}, bdummy, sql_schema_loot, "SELECT"]}) /endmacro
+  /sqlite query ${maData.Find[DBloot].Value} macnumber SELECT version FROM metadata WHERE name='build_number'
+  /if (!${sql_check[${_debug}, macnumber, sql_schema_shared, "SELECT (version)"]}) /endmacro
 
-  | correct build mismatch
-	/if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+	/if (${sqlite.Result[macnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
 		DEBUG ${sep}build mismatch
-    /while (${swDBlocked}) {
-
-      /sqlite ${maData.Find[DBloot].Value} dummy UPDATE build SET build_number='${maEnv.Find[build].Value}'
-			/if (!${sql_check[${_debug}, dummy, sql_schema_loot, "UPDATE"]}) /endmacro
+    /while (TRUE) {
+      /sqlite query ${maData.Find[DBloot].Value} updatebuildnum UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number'
+      /if (!${sql_check[${_debug}, updatebuildnum, sql_schema_shared, "UPDATE (value)"]}) /endmacro
 
 	   	| call macro update by version here. doubt there will be any
-      /if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+      /if (${sqlite.Result[macnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
       }
 
       /delay 1
-      /if (!${sqlite.Status[dummy].Find[locked]}) {
-        /delay 1
-        /varset swDBlocked FALSE
-      }
+      /if (!${Select[${sqlite.Resultcode[updatebuildnum]},6]}) /break
     }
-    /varset swDBlocked TRUE
   }
 
-  /sqlite ${maData.Find[DBloot].Value} sdummy SELECT schema_number FROM build
-	/if (!${sql_check[${_debug}, sdummy, sql_schema_loot, "SELECT"]}) /endmacro
+  /sqlite query ${maData.Find[DBloot].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number'
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_shared, "SELECT (version)"]}) /endmacro
 
-	| if one of them doesnt match make sure both values are updated and make any corrections to the schema
-  /if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
-		DEBUG ${sep}schema mismatch
- 		OUT \a-tSchema Check\ax${sep}\a-wloot\ax
-
-    /while (${swDBlocked}) {
-
-      /sqlite ${maData.Find[DBloot].Value} dummy UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
-			/if (!${sql_check[${_debug}, dummy, sql_schema_loot, "UPDATE"]}) /endmacro
+  /if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
+ 		OUT \a-tSchema Check\ax${sep}\a-wshared\ax
+    /while (TRUE) {
+      /sqlite query ${maData.Find[DBloot].Value} updateschemanum UPDATE metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number'
+  		/if (!${sql_check[${_debug}, updateschemanum, sql_schema_shared, "UPDATE (value)"]}) /endmacro
 
      	| call schema update by version here!
-      /if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+      /if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
 			}
       /delay 1
-      /if (!${sqlite.Status[dummy].Find[locked]}) {
-        /delay 1
-        /varset swDBlocked FALSE
-      }
+      /if (!${Select[${sqlite.Resultcode[updateschemanum]},6]}) /break
     }
   }
 
@@ -723,87 +690,76 @@ sub sql_schema_character(bool _debug)
 	}
 
 	| get character build version and maintain previous number
-  /sqlite ${maData.Find[DBcharacter].Value} bdummy SELECT build_number FROM build
-  /if (!${sql_check[${_debug}, bdummy, sql_schema_character, "SELECT"]}) /endmacro
-
-  /if (${sqlite.Rows[bdummy]}) {
-	  /invoke ${maData.Add[stPreviousBuild,${sqlite.Result[bdummy 1 build_number]}]}
+  /sqlite query ${maData.Find[DBcharacter].Value} macnumber SELECT version FROM metadata WHERE name='build_number'
+  /if (!${sql_check[${_debug}, macnumber, sql_schema_character, "SELECT"]}) /endmacro
+  /if (${sqlite.Rows[macnumber]}) {
+	  /invoke ${maData.Add[stPreviousBuild,${sqlite.Result[macnumber 1 version]}]}
   } else {
   	/invoke ${maData.Add[stPreviousBuild,0]}
   }
 
   | get character schema version and maintain previous number
-  /sqlite ${maData.Find[DBcharacter].Value} sdummy SELECT schema_number FROM build
-  /if (!${sql_check[${_debug}, sdummy, sql_schema_character, "SELECT"]}) /endmacro
-  /if (${sqlite.Rows[sdummy]}) {
-  	/invoke ${maData.Add[stPreviousSchema,${sqlite.Result[sdummy 1 schema_number]}]}
+  /sqlite query ${maData.Find[DBcharacter].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number'
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_character, "SELECT"]}) /endmacro
+  /if (${sqlite.Rows[schemanumber]}) {
+  	/invoke ${maData.Add[stPreviousSchema,${sqlite.Result[schemanumber 1 version]}]}
   } else {
   	/invoke ${maData.Add[stPreviousSchema,0]}
   }
 
-
 	| both schema and build versions match
-  /if (${sqlite.Result[bdummy 1 build_number].Equal[${maEnv.Find[build].Value}]} && ${sqlite.Result[sdummy 1 schema_number].Equal[${maEnv.Find[schema].Value}]}) {
+  /if (${sqlite.Result[macnumber 1 version].Equal[${maEnv.Find[build].Value}]} && ${sqlite.Result[schemanumber 1 version].Equal[${maEnv.Find[schema].Value}]}) {
     DEBUG Macro and Schema builds match, bailing on this routine
     /return TRUE
   }
 
 	| schema and macro builds missing? (fresh database)
-  /if (!${sqlite.Rows[sdummy]} && !${sqlite.Rows[bdummy]}) {
-  	DEBUG ${sep}\arcorrect build mismatch\ax
+  /if (!${sqlite.Rows[schemanumber]} && !${sqlite.Rows[macnumber]}) {
+  	DEBUG ${sep}\arcorrect the metadata mismatch\ax
 
 		| fix any existing database variable issues.
  		OUT \a-tSchema Build\ax${sep}\a-wcharacter\ax
 
     | character build match
-    /sqlite ${maData.Find[DBcharacter].Value} dummy CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY, 'schema_number' TEXT NOT NULL)
-    /if (!${sql_check[${_debug}, dummy, sql_schema_character, "CREATE TABLE IF NOT EXISTS"]}) /endmacro
-
-    /sqlite ${maData.Find[DBcharacter].Value} dummy INSERT INTO 'build' (build_number, schema_number) VALUES ("${maEnv.Find[build].Value}", "${maEnv.Find[schema].Value}")
-    /if (!${sql_check[${_debug}, dummy, sql_schema_character, "INSERT INTO"]}) /endmacro
-
+    /sqlite query ${maData.Find[DBcharacter].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version)
+    /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (metadata)"]}) /endmacro
+    /sqlite query ${maData.Find[DBcharacter].Value} build INSERT OR IGNORE INTO metadata VALUES('build_number', '${maEnv.Find[build].Value}')
+    /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
+    /sqlite query ${maData.Find[DBcharacter].Value} build INSERT OR IGNORE INTO metadata VALUES('schema_number', '${maEnv.Find[schema].Value}')
+    /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
+    /sqlite query ${maData.Find[DBcharacter].Value} build INSERT INTO metadata VALUES('repo_number', '${maEnv.Find[repo].Value}')
+    /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
 	}
 
-
   | updates to macro on a version mismatch
-	/if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+	/if (${sqlite.Result[macnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
 		DEBUG ${sep}correct build mismatch
-    /sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE build SET build_number='${maEnv.Find[build].Value}'
+
+		| update it to the correct version
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number'
     /if (!${sql_check[${_debug}, dummy, sql_schema_character, "UPDATE"]}) /endmacro
 
    	| call macro update by version here. doubt there will be any
-    /if (${sqlite.Result[bdummy 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+    /if (${sqlite.Result[macnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
     }
 
   }
 
 	| updates to schema on a version mismatch
-	/if (${sqlite.Result[sdummy 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+	/if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
   	DEBUG ${sep}\arcorrect schema mismatch\ax
 		OUT \a-tSchema Check\ax${sep}\a-wcharacter\ax
 	  /call sql_clean ${maDebug.Find[clean].Value}
 
-
-		/sqlite ${maData.Find[DBcharacter].Value} pdummy SELECT 1 FROM PRAGMA_TABLE_INFO('build') WHERE name='schema_number'
-    /if (!${sql_check[${_debug}, pdummy, sql_schema_character, "SELECT 1 FROM"]}) /endmacro
-
-		/if (!${sqlite.Rows[pdummy]}) {
-			/sqlite ${maData.Find[DBcharacter].Value} dummy ALTER TABLE build ADD COLUMN schema_number NOT NULL DEFAULT '${maEnv.Find[schema].Value}'
-    	/if (!${sql_check[${_debug}, dummy, sql_schema_character, "ALTER TABLE"]}) /endmacro
-
-		} else /if (${sqlite.Rows[pdummy]}) {
-	    /sqlite ${maData.Find[DBcharacter].Value} dummy UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
-    	/if (!${sql_check[${_debug}, dummy, sql_schema_character, "UPDATE"]}) /endmacro
-
-		}
+    /sqlite query ${maData.Find[DBcharacter].Value} updateschemanum UPDATE metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number'
+ 		/if (!${sql_check[${_debug}, updateschemanum, sql_schema_shared, "UPDATE (value)"]}) /endmacro
 
 		/declare _mi mapiterator local
     /vardata _mi maDBTables.First.Clone
     /while (!${_mi.IsEnd}) {
-      /sqlite ${maData.Find[DBcharacter].Value} dummy CREATE TABLE IF NOT EXISTS '${_mi.Key}' ('${_mi.Value}' TEXT NOT NULL PRIMARY KEY,'value' TEXT NOT NULL, 'aux' TEXT)
-    	/if (!${sql_check[${_debug}, dummy, sql_schema_character, "CREATE TABLE IF NOT EXISTS"]}) /endmacro
+      /sqlite query ${maData.Find[DBcharacter].Value} dummy CREATE TABLE IF NOT EXISTS '${_mi.Key}' ('${_mi.Value}' TEXT NOT NULL PRIMARY KEY,'value' TEXT NOT NULL, 'aux' TEXT)
+    	/if (!${sql_check[${_debug}, dummy, sql_schema_character, "CREATE TABLE IF NOT EXISTS (${_mi.Key})"]}) /endmacro
       /invoke ${_mi.Advance}
-
     }
 
   }
@@ -867,8 +823,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHard stPullMobTagTry											5															"${auxnum} max trys to tag a mob while pulling" hard
 
 
-
-
 |** control: env **|
   /call set_data ${_debug} maEnv swAuto                                   map outer FALSE
   /call set_data_map ${_debug} maEnv swSafeListGuild                      FALSE                         "${auxsw} let guild in your safe list"
@@ -911,6 +865,10 @@ sub set_initialize_map_character_environment(bool _debug)
 
   | tribute switch
   /call set_data_map ${_debug} maEnv swCheckTribute                       FALSE                         "${auxsw} check and corect tribute for raids"
+
+	| drop buffs list
+  /invoke ${set_data_timer[${_debug}, Check_Drop_Buffs, 6s]}
+  /call set_data_list ${_debug} maEnv lsDropBuffs		                     	EMPTY                         "${auxli} list of buffs to auto drop"
 
 
 |** control: heal **|
@@ -1009,11 +967,6 @@ sub set_initialize_map_character_environment(bool _debug)
   | auras
   /invoke ${set_data_timer[${_debug}, Check_Buff_Aura, 3m]}
   /call set_data_map ${_debug} maBuff swBuffAura                          FALSE                         "${auxsw} use auras or not. i dont care"
-  | /for _count 1 to 2
-   | /call set_data_map ${_debug} maBuff stAura${_count}                   FALSE                         "${auxna} name of aura"
-  |   /call set_data_map ${_debug} maBuff stAura${_count}Check              FALSE                         "${auxna} name of aura that appears in aura buff window"
-  |   /call set_data_list ${_debug} maBuff lsAura${_count}Tag               EMPTY                         "${auxna} tags for your aura"
-  | /next _count
 
 
 |** control: defense **|
@@ -1073,9 +1026,6 @@ sub set_initialize_map_character_environment(bool _debug)
   | /call set_data ${_debug} FALSE swTrainSpecialize												FALSE                         "${auxsw} train specialize field type spells"
 
 
-
-
-
 |** control: watch **|
   /call set_data ${_debug} maWatch swWatch                                map outer FALSE
   /call set_data ${_debug} maWatch stWatchCount                           map outer 0
@@ -1108,13 +1058,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maCC stRangeBandolier											FALSE                         "${auxna} name of bandolier for ranged pulling?"
   /call set_data_map ${_debug} maCC stPctHardStop													0   		                      "${auxnum} % of crew sta/manna to stop pulling at to give them rest time?"
   /call set_data_map ${_debug} maCC stHardStopDuration										0		                       	  "${auxnum} duration to stop pulling for crew to recover"
-
   /call set_data_map ${_debug} maCC swStoponDS                            FALSE                         "${auxsw} Stop combat when the target has a DS. Does not apply agro enabled."
-
-
-	| /call sql_control FALSE ${chrID} stoponDS                           bool      outer FALSE
-
-
 
   | glyph
   /call set_data_map ${_debug} maCC swGlyphGroup                          FALSE                         "${auxsw} use glyph in a group"
@@ -1348,7 +1292,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maChr swIntensityGroup                     FALSE													"${auxsw} use while in a raid for burns"
   /call set_data_map ${_debug} maChr stIntensityCon         	            0															"${auxnum} number of the condition to use for spires"
 	/call set_data_map ${_debug} maChr stAAIntensity												"Intensity of the Resolute"		"${auxna} Intensity of the Resolute AA"
-
 
   | can cast?
   /if (${lsClassCast.Contains[${Me.Class.ShortName}]}) {
@@ -1626,10 +1569,10 @@ sub set_initialize_static_map(bool _debug)
   /declare _mi mapiterator local
   /vardata _mi maStaticMaps.First.Clone
   /while (!${_mi.IsEnd}) {
-    /sqlite ${maData.Find[DBstatic].Value} dummycount SELECT Count(*) as data FROM ${_mi.Value}
+    /sqlite query ${maData.Find[DBstatic].Value} dummycount SELECT Count(*) as data FROM ${_mi.Value}
     /for _count 1 to ${sqlite.Result[dummycount 1 data]}
-      /sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM ${_mi.Value} WHERE ROWID=${_count}
-      DEBUG ${sep}${_mi.Key}${sep}${sqlite.Result[dummy 1 env_var]}${sep}\a-w${sqlite.Result[dummy 1 value]}\ax
+      /sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM ${_mi.Value} WHERE ROWID=${_count}
+      /if (!${sql_check[${_debug}, dummy, set_initialize_static_map, "SELECT (${_mi.Value})"]}) /endmacro
       /call set_data ${_debug} "${_mi.Key}" "${sqlite.Result[dummy 1 env_var]}" map outer "${sqlite.Result[dummy 1 value]}"
     /next _count
     /invoke ${_mi.Advance}
@@ -2195,29 +2138,29 @@ sub sql_clean(bool _debug)
 	/declare _table string local FALSE
 
 	/declare _count int local 0
-	/sqlite ${maData.Find[DBstatic].Value} dummycount SELECT Count(*) as data FROM stale_data
+	/sqlite query ${maData.Find[DBstatic].Value} dummycount SELECT Count(*) as data FROM stale_data
 
 	/for _count 1 to ${sqlite.Result[dummycount 1 data]}
 		DEBUG ${sep}_count
 
-		/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM stale_data WHERE ROWID=${_count}
+		/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM stale_data WHERE ROWID=${_count}
 		/varset _table ${sqlite.Result[dummy 1 value]}
 		/varset _field ${sqlite.Result[dummy 1 env_var]}
 		DEBUG ${sep}${_table}${sep}\a-w${_field}\ax
 
 		| table to remove
 		/if (${_table.Equal[tabletodrop]}) {
-			/sqlite ${maData.Find[DBcharacter].Value} dummy DROP TABLE IF EXISTS ${_field}
+			/sqlite query ${maData.Find[DBcharacter].Value} dummy DROP TABLE IF EXISTS ${_field}
 
 		| field to remove
 		} else {
 
 			|** is the data there?
-			/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_field}"
+			/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_field}"
 			DEBUG ${sep}dummy SELECT * FROM environment_${_table} WHERE env_var="${_field}" ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
 
 			/if (${sqlite.Rows[dummy]}) {
-				/sqlite ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_table} WHERE env_var="${_field}"
+				/sqlite query ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_table} WHERE env_var="${_field}"
 			}
 			**|
 
@@ -2228,9 +2171,9 @@ sub sql_clean(bool _debug)
 	/next _count
 
 	| rename environment_buffs to singular
-	| /sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_buffs WHERE env_var="stBuff1"
+	| /sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_buffs WHERE env_var="stBuff1"
 	| /if (${sqlite.Rows[dummy]}) {
-	| 	/sqlite ${maData.Find[DBcharacter].Value} dummy ALTER TABLE "environment_buffs" RENAME TO "environment_buff"
+	| 	/sqlite query ${maData.Find[DBcharacter].Value} dummy ALTER TABLE "environment_buffs" RENAME TO "environment_buff"
 	| }
 
 /return TRUE
@@ -2248,69 +2191,75 @@ sub sql_schema_nav(bool _debug)
 		/declare _boottimestart int local ${MacroQuest.Running}
 	}
 
-	| check the current schema/build versions
-  /sqlite ${maData.Find[DBnav].Value} macnumber SELECT build_number FROM build
-  /if (!${sql_check[${_debug}, macnumber, sql_schema_nav, SELECT]}) /endmacro
-  /sqlite ${maData.Find[DBnav].Value} schemanumber SELECT schema_number FROM build
-  /if (!${sql_check[${_debug}, schemanumber, sql_schema_nav, SELECT]}) /endmacro
-
-  /if (${sqlite.Result[schemanumber 1 schema_number].Equal[${maEnv.Find[schema].Value}]} && ${sqlite.Result[macnumber 1 build_number].Equal[${maEnv.Find[build].Value}]}) {
-    DEBUG ${sep}Macro and Schema builds match for nav database, bailing on this routine
-    /return TRUE
-  }
+  /sqlite query ${maData.Find[DBnav].Value} macnumber SELECT version FROM metadata WHERE name='build_number'
+  /if (!${sql_check[${_debug}, macnumber, sql_schema_character, "SELECT"]}) /endmacro
+  /sqlite query ${maData.Find[DBnav].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number'
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_character, "SELECT"]}) /endmacro
 
   /if (!${sqlite.Rows[schemanumber]}) {
- 		OUT \a-tSchema Build\ax${sep}\a-wnav\ax
+ 		OUT \a-tSchema Build\ax${sep}\a-wshared\ax
     /while (TRUE) {
-			| create loot build table
-      /sqlite ${maData.Find[DBnav].Value} build CREATE TABLE IF NOT EXISTS 'build' ('build_number' TEXT NOT NULL PRIMARY KEY, 'schema_number' TEXT NOT NULL)
-      /if (!${sql_check[${_debug}, build, sql_schema_nav, "CREATE TABLE"]}) /endmacro
+			| create shared build table
+      /sqlite query ${maData.Find[DBnav].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version)
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBnav].Value} build INSERT OR IGNORE INTO metadata VALUES('build_number', '${maEnv.Find[build].Value}')
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBnav].Value} build INSERT OR IGNORE INTO metadata VALUES('schema_number', '${maEnv.Find[schema].Value}')
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
 
-      | add macro version to build table
-      /sqlite ${maData.Find[DBnav].Value} build INSERT INTO 'build' ('build_number','schema_number') VALUES ("${maEnv.Find[build].Value}","${maEnv.Find[schema].Value}")
-      /if (!${sql_check[${_debug}, build, sql_schema_nav, "INSERT INTO"]}) /endmacro
-
-			| create loot table
-      /sqlite ${maData.Find[DBnav].Value} build CREATE TABLE IF NOT EXISTS 'waypoint' ('zone_shortname', 'nickname', 'locY', 'locX', 'locZ')
-      /if (!${sql_check[${_debug}, build, sql_schema_nav, "CREATE TABLE"]}) /endmacro
-
-      /delay 1
+			/delay 1
+      | if not locked, were good
       /if (!${Select[${sqlite.Resultcode[build]},6]}) /break
     }
   }
 
-  /sqlite ${maData.Find[DBnav].Value} macnumber SELECT build_number FROM build
-  /if (!${sql_check[${_debug}, macnumber, sql_schema_nav, SELECT]}) /endmacro
-	/if (${sqlite.Result[macnumber 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
-		DEBUG ${sep}build mismatch
-    /while (TRUE) {
-      /sqlite ${maData.Find[DBnav].Value} updatebuildnum UPDATE build SET build_number='${maEnv.Find[build].Value}'
-      /if (!${sql_check[${_debug}, updatebuildnum, sql_schema_nav, UPDATE]}) /endmacro
+
+  /sqlite query ${maData.Find[DBnav].Value} macnumber SELECT version FROM metadata WHERE name='build_number'
+  /if (!${sql_check[${_debug}, macnumber, sql_schema_character, "SELECT"]}) /endmacro
+
+  | correct build mismatch
+	/if (${sqlite.Result[macnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
+    /while (${swDBlocked}) {
+      /sqlite query ${maData.Find[DBnav].Value} updatebuildnum UPDATE build SET build_number='${maEnv.Find[build].Value}'
+  		/if (!${sql_check[${_debug}, updatebuildnum, sql_schema_zone, UPDATE]}) /endmacro
 
 	   	| call macro update by version here. doubt there will be any
-      /if (${sqlite.Result[macnumber 1 build_number].NotEqual[${maEnv.Find[build].Value}]}) {
+      /if (${sqlite.Result[macnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
       }
 
-      /delay 1
-      /if (!${Select[${sqlite.Resultcode[updatebuildnum]},6]}) /break
+			| db locked?
+      /if (!${Select[${sqlite.Resultcode[updatebuildnum]},6]}) {
+        /delay 1
+        /varset swDBlocked FALSE
+      }
     }
+    /varset swDBlocked TRUE
   }
 
-  /sqlite ${maData.Find[DBnav].Value} schemanumber SELECT schema_number FROM build
-  /if (!${sql_check[${_debug}, schemanumber, sql_schema_nav, SELECT]}) /endmacro
-  /if (${sqlite.Result[schemanumber 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
- 		OUT \a-tSchema Check\ax${sep}\a-wnav\ax
-    /while (TRUE) {
-      /sqlite ${maData.Find[DBnav].Value} updateschemanum UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
-  		/if (!${sql_check[${_debug}, updateschemanum, sql_schema_nav, UPDATE]}) /endmacro
+  /sqlite query ${maData.Find[DBnav].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number'
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_character, "SELECT"]}) /endmacro
+
+	| corect schema mismatch
+  /if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
+ 		OUT \a-tSchema Check\ax${sep}\a-wzone\ax
+    /while (${swDBlocked}) {
+      /sqlite query ${maData.Find[DBnav].Value} updateschemanum UPDATE build SET schema_number='${maEnv.Find[schema].Value}'
+  		/if (!${sql_check[${_debug}, updateschemanum, sql_schema_zone, UPDATE]}) /endmacro
 
      	| call schema update by version here!
-      /if (${sqlite.Result[schemanumber 1 schema_number].NotEqual[${maEnv.Find[schema].Value}]}) {
+      /if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
 			}
-      /delay 1
-      /if (!${Select[${sqlite.Resultcode[updateschemanum]},6]}) /break
+
+      /if (!${Select[${sqlite.Resultcode[updateschemanum]},6]}) {
+        /delay 1
+        /varset swDBlocked FALSE
+      }
     }
   }
+
+
+
+
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agsql_set_loot_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -2328,10 +2277,10 @@ sub sql_schema_nav(bool _debug)
 sub sql_drop(string _table, string _field, bool _echo)
 
 	| is the data there?
-	/sqlite ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_field}"
+	/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_field}"
 
 	/if (${sqlite.Rows[dummy]}) {
-		/sqlite ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_table} WHERE env_var="${_field}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_table} WHERE env_var="${_field}"
 		/if (${_echo}) OUT SQL DROP${sep}\a-w${_table}${submenu}${_field}\ax ${dot} \a-w${sqlite.Status[dummy]}\ax
 
 	} else /if (!${sqlite.Rows[dummy]}) {
@@ -2375,7 +2324,7 @@ sub sql_check(bool _debug, string _query, string _dbname, string _action)
 
 	| results we accept at face value and move on
 	/if (!${Select[${sqlite.Resultcode[${_query}]},0,1,6]} || ${_debug}) {
-		/sqlite ${maData.Find[DBstatic].Value} queryresult SELECT * FROM sql_error WHERE env_var='${sqlite.Resultcode[${_query}]}'
+		/sqlite query ${maData.Find[DBstatic].Value} queryresult SELECT * FROM sql_error WHERE env_var='${sqlite.Resultcode[${_query}]}'
 		/if (!${_debug}) {
 			OUT \ap${_action}\ax${sep}${_dbname} (\a-r${_query}\ax)${sep}\ay${sqlite.Resultcode[${_query}]}\ax${sep}\aw${sqlite.Result[queryresult 1 value]}\ax${sep}\a-w${sqlite.Result[queryresult 1 aux]}\ax
 		} else {
@@ -2392,3 +2341,493 @@ sub sql_check(bool _debug, string _query, string _dbname, string _action)
 
 /return FALSE
 
+
+
+|***
+ * note:
+ * use: generate shared.sqlite
+ ***|
+sub sql_schema_shared(bool _debug)
+	DEBUG \atsql_schema_shared\ax()
+
+	/if (${maDebug.Find[init].Value}) {
+		/declare _boottimestart int local ${MacroQuest.Running}
+	}
+
+	| check the current schema/build versions
+  /sqlite query ${maData.Find[DBshared].Value} macnumber SELECT version FROM metadata WHERE name='build_number'
+  /if (!${sql_check[${_debug}, macnumber, sql_schema_shared, "SELECT (version)"]}) /endmacro
+  /sqlite query ${maData.Find[DBshared].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number'
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_shared, "SELECT (version)"]}) /endmacro
+
+
+	| if the numbers match, we consider it valid and go away to dosoemthing else.
+  /if (${sqlite.Result[schemanumber 1 version].Equal[${maEnv.Find[schema].Value}]} && ${sqlite.Result[macnumber 1 version].Equal[${maEnv.Find[build].Value}]}) {
+    DEBUG ${sep}Macro and Schema builds match for shared database, bailing on this routine
+    /return TRUE
+  }
+
+  /if (!${sqlite.Rows[schemanumber]}) {
+ 		OUT \a-tSchema Build\ax${sep}\a-wshared\ax
+    /while (TRUE) {
+
+    	| -------------------- metadata build
+			| create shared build table
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version)
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBshared].Value} build INSERT OR IGNORE INTO metadata VALUES('build_number', '${maEnv.Find[build].Value}')
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBshared].Value} build INSERT OR IGNORE INTO metadata VALUES('schema_number', '${maEnv.Find[schema].Value}')
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
+
+			| -------------------- rolls for crews
+			| create the characters
+			/sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS characters(id INTEGER PRIMARY KEY autoincrement, charactername TEXT NOT NULL, server TEXT NOT NULL)
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (characters)"]}) /endmacro
+
+			| create the rolls.. move to entropy.sqlite???
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS roles(name)
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (roles)"]}) /endmacro
+			/call data_schema_roles
+
+			| create the crews table
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS crews(id INTEGER PRIMARY KEY, crewname TEXT NOT NULL);
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (crews)"]}) /endmacro
+			| create the crewmembers table
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS crewmembers(id INTEGER PRIMARY KEY autoincrement, crewid INTEGER, characterid INTEGER, FOREIGN KEY (crewid) REFERENCES crews(id), FOREIGN KEY (characterid) REFERENCES characters(id), UNIQUE (crewid,characterid));
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (crewmembers)"]}) /endmacro
+			| create crewmemberroles
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS crewmemberroles(id INTEGER PRIMARY KEY autoincrement, crewmemberid INTEGER, role TEXT NOT NULL, FOREIGN KEY (crewmemberid) REFERENCES character(id), FOREIGN KEY (role) REFERENCES roles(name), UNIQUE (crewmemberid, role));
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (crewmemberroles)"]}) /endmacro
+
+
+
+			| -------------------- tags n'stuff
+			| create the tag table
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS tag(id INTEGER PRIMARY KEY, name TEXT, created_by INTEGER, UNIQUE (name));
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (tag)"]}) /endmacro
+      /call data_schema_tag
+
+			| create tag groups
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS tag_group(id INTEGER PRIMARY KEY, grouping TEXT, UNIQUE (grouping));
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (tag_group)"]}) /endmacro
+      /call data_schema_tag_group
+
+			| create tag_validation
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS tag_validate(grouping INTEGER, tag INTEGER, created_by INTEGER, eval TEXT, aux TEXT, UNIQUE(tag, grouping), FOREIGN KEY (tag) REFERENCES tag(id), FOREIGN KEY (grouping) REFERENCES tag_group(id));
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (tag_validate)"]}) /endmacro
+      /call data_schema_tag_validation
+
+
+			/delay 1
+      | if not locked, were good
+      /if (!${Select[${sqlite.Resultcode[build]},6]}) /break
+    }
+  }
+
+  /sqlite query ${maData.Find[DBshared].Value} macnumber SELECT version FROM metadata WHERE name='build_number';
+  /if (!${sql_check[${_debug}, macnumber, sql_schema_shared, "SELECT (version)"]}) /endmacro
+
+	/if (${sqlite.Result[macnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
+		DEBUG ${sep}build mismatch
+    /while (TRUE) {
+      /sqlite query ${maData.Find[DBshared].Value} updatebuildnum UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number';
+      /if (!${sql_check[${_debug}, updatebuildnum, sql_schema_shared, "UPDATE (value)"]}) /endmacro
+
+	   	| call macro update by version here. doubt there will be any
+      /if (${sqlite.Result[macnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
+      }
+
+      /delay 1
+      /if (!${Select[${sqlite.Resultcode[updatebuildnum]},6]}) /break
+    }
+  }
+
+  /sqlite query ${maData.Find[DBshared].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number';
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_shared, "SELECT (version)"]}) /endmacro
+
+  /if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
+ 		OUT \a-tSchema Check\ax${sep}\a-wshared\ax
+    /while (TRUE) {
+      /sqlite query ${maData.Find[DBshared].Value} updateschemanum UPDATE metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number';
+  		/if (!${sql_check[${_debug}, updateschemanum, sql_schema_shared, "UPDATE (value)"]}) /endmacro
+
+     	| call schema update by version here!
+      /if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
+			}
+      /delay 1
+      /if (!${Select[${sqlite.Resultcode[updateschemanum]},6]}) /break
+    }
+  }
+
+	/if (${maDebug.Find[init].Value}) {
+		OUT \agsql_set_loot_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		/mqp
+	}
+
+/return TRUE
+
+
+
+|***
+ * note:
+ * use: generate data for schema_roles
+ ***|
+sub data_schema_roles()
+	/sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('Leader');
+	/sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('MainTank');
+	/sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('MainAssist');
+	/sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('MasterLooter');
+	/sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('MarkNPC');
+	/sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('Puller');
+/return TRUE
+
+
+
+
+
+|***
+ * note:
+ * use: generate data for schema_tag
+ ***|
+sub data_schema_tag()
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('X', '', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1', 'WAR', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('2', 'PAL', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('3', 'SHD', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('4', 'BRD', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('5', 'RNG', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('6', 'BST', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('7', 'BER', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('8', 'MNK', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('9', 'ROG', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('10', 'WIZ', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('11', 'MAG', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('12', 'ENC', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('13', 'NEC', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('14', 'CLR', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('15', 'DRU', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('16', 'SHM', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('17', 'assist', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('18', 'nocombat', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('19', 'incombat', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('20', 'noactivedisc', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('21', 'outdoor', '1');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('22', 'drop', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('23', 'puller', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('24', 'agro', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('25', 'noagro', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('26', 'inraid', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('27', 'noraid', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('28', 'burn', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('29', 'swarm', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('30', 'ingroup', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('31', 'nosafezone', '1');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('32', 'autoinventory', '1');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('33', 'epic', '1');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('34', 'aliasonly', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('35', 'target', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('36', 'targetundead', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('37', 'targethumanoid', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('38', 'targetplant', '1');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('39', 'delay1s', '1');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('40', 'groupmember', '1');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('41', 'dropdisc', '1');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('42', 'dropinvis', '1');
+
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('43', 'single', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('44', 'group', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('45', 'hot', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('46', 'grouphot', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('47', 'tot', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('48', 'minion', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('49', 'self', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('50', 'splash', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('51', 'complete', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('52', 'promise', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('53', 'surge', '1');
+
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('54', 'self', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('55', 'minion', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('56', 'crew', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('57', 'group', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('58', 'now', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('59', 'ps', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('60', 'aura', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('61', 'raid', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('62', 'summonrange', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('63', 'summonpoison', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('64', 'summonweapons', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('65', 'summonitem', '1');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('66', 'summonaxe', '1');
+
+
+/return TRUE
+
+
+
+
+|***
+ * note:
+ * use: generate data for schema_tag_group
+ ***|
+sub data_schema_tag_group()
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('1', 'heal');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('2', 'nuke');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('3', 'dot');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('4', 'burn');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('5', 'song');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('6', 'defense');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('7', 'buff');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('8', 'miscdps');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('9', 'clickitem');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'engine2');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('11', 'engine3');
+
+/return TRUE
+
+
+
+
+
+
+
+sub data_schema_tag_validation
+
+
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('', '', '1', 'parse', '');
+
+
+	| buffs
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '54', '1', 'CONTROL_MARKER', 'self buff only');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '55', '1', 'CONTROL_MARKER', 'minion buff');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '56', '1', 'CONTROL_MARKER', 'crew buff (dannet peoples)');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '57', '1', 'CONTROL_MARKER', 'group buff (not dannet, outsiders and mercs)');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '58', '1', 'CONTROL_MARKER', '24/7 buffs, always have them');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '59', '1', 'CONTROL_MARKER', 'power source');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '60', '1', 'CONTROL_MARKER', 'aura');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '61', '1', 'CONTROL_MARKER', 'raid members (not dannet)');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '62', '1', 'CONTROL_MARKER', 'ranged summoning, like arrows, or daggers');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '63', '1', 'CONTROL_MARKER', 'pants poison summoning for rogues');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '64', '1', 'CONTROL_MARKER', 'weapon summoning for mages');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '65', '1', 'CONTROL_MARKER', 'item sommoning from spells');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '66', '1', 'CONTROL_MARKER', 'axe summoning for zerkers');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '1', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WAR]}]}', 'buff is for a warrior');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '2', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[PAL]}]}', 'buff is for a paladin');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '3', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHD]}]}', 'buff is for a snowflake');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '4', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BRD]}]}', 'buff is for a bard');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '5', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[RNG]}]}', 'buff is for a ranger');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '6', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BST]}]}', 'buff is for a beastlord');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '7', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BER]}]}', 'buff is for a berserker');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '8', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MNK]}]}', 'buff is for a monk');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '9', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ROG]}]}', 'buff is for a rogue');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '10', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WIZ]}]}', 'buff is for a wizard');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '11', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MAG]}]}', 'buff is for a magician');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '12', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ENC]}]}', 'buff is for a enchanter');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '13', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[NEC]}]}', 'buff is for a necromancer');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '14', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[CLR]}]}', 'buff is for a cleric');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '15', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[DRU]}]}', 'buff is for a druid');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '16', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHM]}]}', 'buff is for a shaman');
+
+
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '18', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '19', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '21', '1', '${Parse[0,!${Me.FeetWet} && !${Zone.Indoor}]}', 'must be outdoor');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '23', '1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be the puller');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '24', '1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'must have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '25', '1', '${Parse[0,${maEnv.Find[swAgro].Value}]}', 'cannot have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '28', '1', '${Parse[0,!${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '31', '1', '${Parse[0,${maEnv.Find[swZoneSafe].Value}]}', 'cannot be used in a safe zone');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '35', '1', '${Parse[0,!${Target.ID}]}', 'you must have a target');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '36', '1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}', 'target must be undead');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '37', '1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}', 'target must be humanoid');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '38', '1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must be a plant');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '22', '1', 'drop', '');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '32', '1', 'autoinventory', '');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '33', '1', 'epic', '');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '34', '1', 'aliasonly', '');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '39', '1', 'delay1s', '');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '40', '1', '!${Group.Members}', '');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '41', '1', 'dropdisc', '');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '42', '1', 'dropinvis', '');
+
+
+
+
+
+
+
+
+
+
+
+
+
+	| heals
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '43', '1', 'CONTROL_MARKER', 'single target heals');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '44', '1', 'CONTROL_MARKER', 'no target group heals');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '45', '1', 'CONTROL_MARKER', 'single target heal over time');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '46', '1', 'CONTROL_MARKER', 'no target group heal over time');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '47', '1', 'CONTROL_MARKER', 'single target of target heal');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '48', '1', 'CONTROL_MARKER', 'single target minion heal');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '49', '1', 'CONTROL_MARKER', 'self only single heal');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '50', '1', 'CONTROL_MARKER', 'splash heal [PAL|CLR]');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '51', '1', 'CONTROL_MARKER', 'complete heal [CLR]');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '52', '1', 'CONTROL_MARKER', 'promised heal (stupid things)');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '53', '1', 'CONTROL_MARKER', 'surge heals [SHM]');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '1', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WAR]}]}', 'heal is for a warrior');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '2', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[PAL]}]}', 'heal is for a paladin');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '3', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHD]}]}', 'heal is for a snowflake');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '4', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BRD]}]}', 'heal is for a bard');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '5', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[RNG]}]}', 'heal is for a ranger');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '6', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BST]}]}', 'heal is for a beastlord');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '7', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BER]}]}', 'heal is for a berserker');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '8', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MNK]}]}', 'heal is for a monk');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '9', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ROG]}]}', 'heal is for a rogue');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '10', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WIZ]}]}', 'heal is for a wizard');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '11', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MAG]}]}', 'heal is for a magician');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '12', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ENC]}]}', 'heal is for a enchanter');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '13', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[NEC]}]}', 'heal is for a necromancer');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '14', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[CLR]}]}', 'heal is for a cleric');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '15', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[DRU]}]}', 'heal is for a druid');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '16', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHM]}]}', 'heal is for a shaman');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '18', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '19', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '21', '1', '${Parse[0,!${Me.FeetWet} && !${Zone.Indoor}]}', 'must be outdoor');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '23', '1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be the puller');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '24', '1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'must have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '25', '1', '${Parse[0,${maEnv.Find[swAgro].Value}]}', 'cannot have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '28', '1', '${Parse[0,!${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '31', '1', '${Parse[0,${maEnv.Find[swZoneSafe].Value}]}', 'cannot be used in a safe zone');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '35', '1', '${Parse[0,!${Target.ID}]}', 'you must have a target');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '36', '1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}', 'target must be undead');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '37', '1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}', 'target must be humanoid');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '38', '1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must be a plant');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '22', '1', 'drop', '');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '32', '1', 'autoinventory', '');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '33', '1', 'epic', '');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '34', '1', 'aliasonly', '');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '39', '1', 'delay1s', '');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '40', '1', '!${Group.Members}', '');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '41', '1', 'dropdisc', '');
+	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '42', '1', 'dropinvis', '');
+
+
+
+
+
+/return TRUE
+
+
+
+
+
+
+#bind_noparse tag /tag
+sub Bind_noparse_tag(string _grouping, string _tagname, string _eval)
+	| SDEBUG \atBind_noparse_tag\ax(\a-w${_grouping}, ${_tagname}, ${Parse[1,${_eval}]}\ax)
+
+
+
+	| usage notice
+	/if (!${Bool[${_grouping}]} || !${Bool[${_tagname}]} || !${Bool[${Parse[1,${_eval}]}]}) {
+		OUT \aw/tag\ax \a-groupname tagname "evaluation"\ax
+		/return FALSE
+	}
+
+
+
+	| listing of tags by groups/all?
+	/if (${_grouping.Equal[list]}) {
+		/echo list goes here here
+		/return TRUE
+	}
+
+	| check group. if its not there. error out and notify
+	/sqlite query ${maData.Find[DBshared].Value} dummy SELECT grouping FROM tag_group WHERE grouping="${_grouping}"
+	/if (!${sqlite.Rows[dummy]}) {
+		OUT invalid group. Valid groupings are... (list groups here)
+	}
+
+	| check it is not one of the default tags
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT INTO tag (name, created_by) VALUES ("${_tagname}", 2)
+
+	| check if what they want to do is already there?
+	/sqlite query ${maData.Find[DBshared].Value} dummy SELECT created_by, eval FROM tag_validate WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}') AND created_by = '1'
+	/if (!${sql_check[FALSE, dummy, Bind_noparse_tag, "SELECT (created_by)"]}) /endmacro
+	/if (${sqlite.Rows[dummy]}) {
+		OUT Tag Exists${sep}\aw${_grouping}\ax${sep}${If[${sqlite.Result[dummy 1 created_by].Equal[1]},\aw${_tagname}\ax,\at${_tagname}\ax]} (\a-rDo not edit default tags\ax)
+		/return FALSE
+	}
+
+	| see if what we are trying to make is there?
+	/sqlite query ${maData.Find[DBshared].Value} dummy SELECT created_by, eval FROM tag_validate WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}') AND created_by = '2'
+
+	| if it is there, we update the current one
+	/if (${sqlite.Rows[dummy]}) {
+		| tag exists, update
+		/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate SET eval="${Parse[1,${_eval}]}" WHERE grouping=(SELECT id FROM tag_group WHERE grouping="${_grouping}") AND tag=(SELECT id FROM tag WHERE name="${_tagname}")
+		/if (!${sql_check[TRUE, dummy, Bind_noparse_tag, "UPDATE (tag_validate)"]}) /endmacro
+		OUT Tag Updated${sep}\aw${_grouping}\ax${sep}${If[${sqlite.Result[dummy 1 created_by].Equal[1]},\aw${_tagname}\ax,\at${_tagname}\ax]}${sep}\a-w${Parse[1,${_eval}]}\ax
+		/return TRUE
+
+	| if its not there, we create/insert a new on
+	} else (!${sqlite.Rows[dummy]}) {
+		| insert
+		/sqlite query ${maData.Find[DBshared].Value} dummy INSERT INTO tag_validate (tag, grouping, eval, created_by) SELECT tag.id, tag_group.id, "${Parse[1,${_eval}]}", 2 FROM tag CROSS JOIN tag_group WHERE tag.name="${_tagname}" AND tag_group.grouping="${_grouping}" LIMIT 1
+		/if (!${sql_check[FALSE, dummy, Bind_noparse_tag, "INSERT INTO (tag_validate)"]}) /endmacro
+		| check it
+		/sqlite query ${maData.Find[DBshared].Value} dummy SELECT created_by, eval FROM tag_validate WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}') AND created_by = '2'
+		/if (${sqlite.Rows[dummy]}) {
+			OUT Tag Created${sep}\aw${_grouping}\ax${sep}\aw${If[${sqlite.Result[dummy 1 created_by].Equal[2]},\at${_tagname}\ax,\aw${_tagname}\ax]}\ax${sep}\a-w${Parse[1,${_eval}]}\ax
+		}
+
+	}
+
+/return TRUE
+
+
+
+
+| insert possible fail
+INSERT INTO tag_validate (tag, grouping, eval, created_by) SELECT tag.id AS tagid, tag_group.id AS groupid, "${Parse[1,${_eval}]}", 2 FROM tag CROSS JOIN tag_group WHERE tag.name="${_tagname}" AND tag_group.grouping="${_grouping}" LIMIT 1
+
+| overwrite/update existing
+/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate SET eval="${Parse[1,${_eval}]}" WHERE grouping=(SELECT id FROM grouping WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}')
+
+echo:
+
+SELECT tag_group.grouping, tag.name, tag_validate.created_by, tag_validate.eval, tag_validate.aux
+FROM tag_validate
+    LEFT JOIN tag ON tag.id = tag_validate.tag
+    LEFT JOIN tag_group ON tag_group.id = tag_validate.grouping
+--WHERE eval <> 'CONTROL_MARKER'
+ORDER BY tag_group.grouping, tag.name
+
+
+
+UPDATE tag_validate SET eval="${Parse[1,${_eval}]}" WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}')
+
+
+
+
+
+| validation
+
+SELECT created_by, eval
+FROM tag_validate
+WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${GroupName}')
+AND tag=(SELECT id FROM tag WHERE name='${TagName}')
+
+
+/echo You added ${Parse[1,${sqlite[dummy 1 eval]}]} which currently evaluates to ${If[${sqlite[dummy 1 eval]}],TRUE,FALSE})

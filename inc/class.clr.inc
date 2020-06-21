@@ -27,6 +27,13 @@ sub set_CLR(bool _debug)
 	| group regen timer
 	/invoke ${set_data_timer[${_debug}, Check_Regen, 3s]}
 
+	| beacon/burst timer slowdown
+	/invoke ${set_timer[${_debug}, timer_ofLife_pause, 3s]}
+
+	| arbitration pause
+	/invoke ${set_timer[${_debug}, timer_arbitration_pause, 12s]}
+
+
 	| Veturika's Preserverance
 	/call set_data_map ${_debug} maChr stPctVP													0															"${auxnum} % of manna to use veturikas perseverance"
 
@@ -326,9 +333,10 @@ sub check_heal_CLR(bool _debug, string _type)
 		/if (${Select[${_type},group]} && ${Group}) {
 
 			| AA Beacon of life (3 min use)
-		  /if (${maChr.Find[stCountBeaconofLife].Value} && ${hurtCount} >= ${maChr.Find[stCountBeaconofLife].Value}) {
+		  /if (!${timer_ofLife_pause} && ${maChr.Find[stCountBeaconofLife].Value} && ${hurtCount} >= ${maChr.Find[stCountBeaconofLife].Value}) {
 			  /if (${is_ready[${_debug}, "${maChr.Find[stAABeaconofLife].Value}"]}) {
 			  	/call voodoo ${_debug} "${maChr.Find[stAABeaconofLife].Value}" 0 FALSE
+			  	/invoke ${set_timer[${_debug}, timer_ofLife_pause, 3s]}
 			  	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 			  }
 			}
@@ -348,7 +356,7 @@ sub check_heal_CLR(bool _debug, string _type)
 			| requires group roll Main Tank set to function
 			/if (${maHeal.Find[stPctCH].Value}) {
 				/if (${hurtID} == ${Group.MainTank.ID} &&  ${Group.MainTank.PctHPs} <= ${maHeal.Find[stPctCH].Value}*.PCTHO) {
-					/call cast_cycle_heal ${_debug} 0 healcomplete
+					/call cast_cycle_heal ${_debug} ${Group.MainTank.ID} healcomplete
 			 		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
 			 			/return FALSE
 			 		}
@@ -401,12 +409,13 @@ sub check_heal_CLR(bool _debug, string _type)
 		}
 
 		| Panic AA single target heal
-	  /if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.85*.PCTHO) {
+	  /if (!${timer_ofLife_pause} && ${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.85*.PCTHO) {
 			/if (${is_ready[${_debug}, "${maChr.Find[stAABurstofLife].Value}"]}) {
 				/if (${Me.Casting.ID}) {
 					/stopcast
 				}
 				/call voodoo ${_debug} "${maChr.Find[stAABurstofLife].Value}" ${hurtID} FALSE
+				/invoke ${set_timer[${_debug}, timer_ofLife_pause, 3s]}
 			}
 	  }
 
@@ -608,10 +617,11 @@ sub cast_arbitration(bool _debug)
 	FLOW cast_arbitration
 
   | AA arb
-  /if (${maChr.Find[swArbitrateAA].Value}) {
+  /if (!${timer_arbitration_pause} && ${maChr.Find[swArbitrateAA].Value}) {
   	/if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
 	    /call voodoo ${_debug} "${maChr.Find[stAADivineArbitration].Value}" 0 FALSE
 	    /call get_hurt ${maDebug.Find[hurt].Value} reset
+	    /invoke ${set_timer[${_debug}, timer_arbitration_pause, 12s]}
 	    /return TRUE
 	  }
   }
@@ -619,16 +629,18 @@ sub cast_arbitration(bool _debug)
   /if (${maChr.Find[swArbitrateEpic].Value}) {
 
 		| Second epic shield
-	  /if (${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
+	  /if (!${timer_arbitration_pause} && ${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
 	    /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
 	    /call get_hurt ${maDebug.Find[hurt].Value} reset
+	    /invoke ${set_timer[${_debug}, timer_arbitration_pause, 12s]}
 	    /return TRUE
 	  }
 
 	  | First epic shield
-	  /if (${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
+	  /if (!${timer_arbitration_pause} && ${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
 	    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
 	    /call get_hurt ${maDebug.Find[hurt].Value} reset
+	    /invoke ${set_timer[${_debug}, timer_arbitration_pause, 12s]}
 	    /return TRUE
 	  }
 	}
@@ -821,7 +833,7 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 
 
 
-
+|**
 #bind setCHeal /cheal
 sub Bind_setCHeal(string _type, string _verbage, bool _silent, bool _debug)
 	DEBUG \a-p[Bind_setCHeal\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
@@ -891,20 +903,7 @@ sub Bind_setCHeal(string _type, string _verbage, bool _silent, bool _debug)
 /return
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+**|
 
 
 

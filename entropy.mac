@@ -120,9 +120,9 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer B200613.01
+	/call set_data FALSE maEnv build													map outer B200621.01
 	/call set_data FALSE maEnv schema													map outer 1.00
-	/call set_data FALSE maEnv repo														map outer 1.00
+	/call set_data FALSE maEnv repo														map outer 20200615.01
 
 	| using this as a merker for live vs Next
 	/declare _next 																						bool outer ${MacroQuest.InternalName.Equal[Next]}
@@ -192,7 +192,6 @@ sub main(string _debug, string _param1, string _auto)
 		CHECKCURSOR
 		SETHUD EMPTY
 
-
 		| check food / drink
 		/if (!${timer_Check_FoodDrink}) {
 			/call check_last_supper FALSE
@@ -207,6 +206,12 @@ sub main(string _debug, string _param1, string _auto)
 		/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) {
 			/call check_buff_cycle_now ${maDebug.Find[now].Value}
 		}
+
+		| look for buffs to drop
+		/if (!${timer_Check_Drop_Buffs}) {
+			/call check_drop_buffs FALSE
+		}
+
 
 		| mode check
 		/if (!${timer_Check_Mode}) {
@@ -351,34 +356,22 @@ sub main(string _debug, string _param1, string _auto)
 sub prepare_the_end(bool _debug)
 
 
-	| /if (!NEXT) {
-		| character database
-		/call set_data FALSE maData chrID																		map outer ${MacroQuest.Server}_${Me.Class.ShortName}_${Me.DisplayName}
-		| character database
-		/call set_data FALSE maData DBcharacter 														map outer macros\\exspes\\data\\${maData.Find[chrID].Value}.sqlite
-		| set raw data database
-		/call set_data FALSE maData DBstatic										  					map outer macros\\exspes\\entropy.sqlite
-		| set loot database
-		/call set_data FALSE maData DBloot										  						map outer macros\\exspes\\data\\loot.sqlite
-		| set loot database
-		/call set_data FALSE maData DBnav										  							map outer macros\\exspes\\data\\nav.sqlite
-		| set zone database
-		/call set_data FALSE maData DBzone										  						map outer macros\\exspes\\data\\zone.sqlite
-		| set ini set location
-		/call set_data FALSE maData INIset										  						map outer exspes\\data\\sets.ini
-
-
-	|**
-	} else /if (NEXT) {
-		/call set_data FALSE maData chrID																		map outer ${MacroQuest.Server}_${Me.Class.ShortName}_${Me.DisplayName}
-		/call set_data FALSE maData DBcharacter 														map outer macros\\exspes\\data\\${maData.Find[chrID].Value}.sqlite
-		/call set_data FALSE maData DBstatic										  					map outer macros\\exspes\\entropy.sqlite
-		/call set_data FALSE maData DBloot										  						map outer macros\\exspes\\data\loot.sqlite
-		/call set_data FALSE maData DBnav										  							map outer macros\\exspes\\data\nav.sqlite
-		/call set_data FALSE maData DBzone										  						map outer macros\\exspes\\data\zone.sqlite
-		/call set_data FALSE maData INIset										  						map outer exspes\\data\sets.ini
-	}
-	**|
+	| character database
+	/call set_data FALSE maData chrID																		map outer ${MacroQuest.Server}_${Me.Class.ShortName}_${Me.DisplayName}
+	| character database
+	/call set_data FALSE maData DBcharacter 														map outer macros\\exspes\\data\\${maData.Find[chrID].Value}.sqlite
+	| set raw data database
+	/call set_data FALSE maData DBstatic										  					map outer macros\\exspes\\entropy.sqlite
+	| set loot database
+	/call set_data FALSE maData DBloot										  						map outer macros\\exspes\\data\\loot.sqlite
+	| set loot database
+	/call set_data FALSE maData DBnav										  							map outer macros\\exspes\\data\\nav.sqlite
+	| set zone database
+	/call set_data FALSE maData DBzone										  						map outer macros\\exspes\\data\\zone.sqlite
+	| set ini set location
+	/call set_data FALSE maData INIset										  						map outer exspes\\data\\sets.ini
+	| shared crew database
+	/call set_data FALSE maData DBshared									  						map outer macros\\exspes\\data\\shared.sqlite
 
 
 	| fuck MQ2Melee
@@ -426,6 +419,12 @@ sub prepare_the_end(bool _debug)
 	| check character shema
 	/call sql_schema_character ${maDebug.Find[s_character].Value}
 
+
+	| set any custom defines
+	/if (${SubDefined[custom_define]}) {
+		/call custom_define ${maDebug.Find[define].Value}
+	}
+
 	| set all character maps
 	/call set_initialize_map_character_environment ${maDebug.Find[init].Value}
 
@@ -450,6 +449,9 @@ sub prepare_the_end(bool _debug)
 	| build crew data
 	/call set_initialize_crew ${maDebug.Find[init].Value}
 
+	| create the shared schema
+	| /call sql_schema_shared ${maDebug.Find[s_shared].Value}
+
 	| set class databits'n-bytes
 	/call set_${Me.Class.ShortName} ${maDebug.Find[init].Value}
 
@@ -461,6 +463,9 @@ sub prepare_the_end(bool _debug)
 
 	| set hud variables
 	/call set_initialize_hud_variables
+
+	| correct the map click spam.
+	/squelch /mapclick left alt /nav locyx %y %x |log=off
 
 /return TRUE
 

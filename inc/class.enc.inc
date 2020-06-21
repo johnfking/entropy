@@ -333,9 +333,9 @@ sub check_heal_ENC(bool _debug, string _type)
 			}
 
 			| 3 decoys 10 min
-			/if (${is_ready[${_debug}, "${maChr.Find[stAADoppelganger].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stAADoppelganger].Value}" ${Me.ID} FALSE
-			}
+			| /if (${is_ready[${_debug}, "${maChr.Find[stAADoppelganger].Value}"]}) {
+			| 	/call voodoo ${_debug} "${maChr.Find[stAADoppelganger].Value}" ${Me.ID} FALSE
+			| }
 
 		}
 	}
@@ -398,8 +398,8 @@ sub burn_ENC(bool _debug, int _tmpID)
 	}
 
 	| # DD spell damage bonus
-	/if (${is_ready[${_debug}, "${maChr.Find[].Value}"]}) {
-		/call voodoo ${_debug} "Calculated Insanity" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAACalculatedInsanity].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAACalculatedInsanity].Value}" 0 FALSE
 	}
 
 	/if (${target[isdead, ${_tmpID}]}) /return FALSE
