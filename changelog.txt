@@ -11,14 +11,11 @@
 on the to do list
 --------------------
 - find a way to grade debuffs and overwrite if needed
-- mage pet weapons?
-- tag entry validation (cause people are making up shit now)
 - ranger silent shot ambush spell
 - break out triggers for minion buffs
 - check cure exits / recasts
 - shared map for rez
 - look at a way to split coordination for assists across more then one mob in a raid
-- relay tells to tie toon..
 - externalize class AAs: WAR|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|NEC|DRU|SHM
 - buffing system by name
 --------------------
@@ -28,6 +25,85 @@ known bugs
 --------------------
 epics with commas in their names are currently not functioning
 --------------------
+
+
+
+200706.01
+- lsProtectOutsideGroup - is now the only list for adding Players/NPCs to your XTarget list for healing
+- /line command has been removed
+  it is now part of the / commands that can use lines. for example.
+  /heal line #|#|#|#|#
+- popups (can't believe i'm doing this)
+  there is now a popup for the /env auto command, showing its state
+  when you start using the console in MQ2Next, it will make more sense
+
+** tags and conditions.. you should probably read this. i mean, you dont have to, but it might help
+** I broke all of your tags again.. sorry not sorry?
+- conditions have been removed from Entropy. well, they are still there for reference. but the code no longer uses them
+  so you can still do a /condition and see a list of the conditions you had created, but thats all it will do
+
+- tags have now replaced conditions
+  a tag contains 3 parts: its grouping, its name, and its evaluation
+  example:
+  buff::nocombat::!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}
+  groupings are limited and cannot be changed. and example of a grouping is buff or heal or nuke
+  the tag name, there are some defaults, and others you can make. you cannot edit the defaults, you can make as many as you like
+  the evalutaion is what you are checking, like "${Me.PctHPs} < 15"
+
+  to create a tag you would do something like:
+  /tag nuke novermin "${Me.House.RacoonBreakingIn} > 11pm"
+  this would creat a tag for nukes that will kill the damn trashpanda that keeps getting in my cat door at nights.
+
+- /tag
+  /tag list - shows all tags/evals for all groupings
+  /tag list heal - shows all tags/evals for the heal group
+	/tag list 2 - shows only the tags/evals you have created
+
+  /tag heal panic delete - will delete the panic evaluation from heals
+  /tag panic delete - will delete the panic tag name.
+
+  tags names have some basic colors to them
+  green - default ones for use
+  brown - markers for things like heal:self or buff:crew
+  cyan - tags i did not include as markers or defualts (basically, yours or errors)
+
+  NOTES:
+  you cannot delete tag name without deleting the evaluation from all the groupings it is in first. if you try, it will yell at you
+  you can have the same tag name in different groups doing different things
+  there is no limit to the number of tags you can make
+  to correct a tag evaluation, simply remake it
+  any invalid tags will show some very irritating red warning notices, often
+  as normal, it is up to you to create the evaluations correctly. ${Tuesday.Tacos} is not a valid eval, even though it should be
+  tags are still applied the same way to things like /buff or /heal example
+  /buff 1 tag tacos add
+
+- curing is back on the plate and a lot more aggressive
+  setting self only cures will no longer trigger crew observers
+- berserker
+  corrected the checks for Drawn to Blood so it can fire again
+- bard
+  added endurance check for AA boastful bellow
+- Engine 3 has been added to all classes
+- /heal point ## will now take a class shortname or a target
+  /heal point 87 PAL - will change paladin heal point to 87
+- pulling
+  added in additional check for hidecorpse on the pull wait loop
+- /invis
+  redesigned it. shouldn't get caught in that stupid loop anymore
+
+
+B200626.01
+- /env moblvlmin and moblvlmax will adjust the ranges now
+- corrected a missed BUID vs NEXT variable in the hud creation
+- sub target() will default to the assists target if none is passed
+- debuffs
+  added in forced gem cooldown waits so it will not skip out of the sub checks too fast
+- cleric
+  some adjustments to complete heal. it is now its own hurt routine
+- rogues
+  several adjustments to summoning poisons
+  set one buff as legs with the following tags: summonpoison, autoinventory, dropinvis, buffself
+  set another buff as the actual poison with tags: buffnow
 
 
 B200621.01

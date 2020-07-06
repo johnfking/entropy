@@ -75,12 +75,19 @@ sub main_MNK(bool _debug)
 	CHECKTIE
 	CHECKREZ
 
+	/if (AUTO && !ENGINE3) {
+	} else /if (AUTO && ENGINE3) {
+		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
+			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+		}
+	}
+
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
 		GETINPUT
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
-		/if (VALID) {
+		/if (VALID && !ENGINE3) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			CHECKDEFENSE
@@ -94,12 +101,20 @@ sub main_MNK(bool _debug)
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
+		} else /if (VALID && ENGINE3) {
+			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
+				/call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 
 		}
 
-		/if (AUTO) {
+		/if (AUTO && !ENGINE3) {
 			CHECKFADE
 			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[staminarecover].Value}
+		} else /if (AUTO && !ENGINE3) {
+			/if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
+				/call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 	}
 

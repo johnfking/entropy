@@ -705,47 +705,6 @@ ${Me.Gem[${_count}].Name}
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-${Me.Gem[1].Skill}
-
-
-
-
-${Spell[${Me.Gem[1].Name}].Skill}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 |***
  *	DES: open something
  *	USE: /call mode_open | /mode open

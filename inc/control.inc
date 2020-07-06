@@ -15,6 +15,8 @@
 sub Bind_control_debug(string _type, string _verbage, bool _debug)
 	DEBUG \atBind_control_debug\ax(\a-w${_type}\ax)
 
+	/declare _count int local 0
+
   | output control map
 	/if (${_type.Equal[see]}) {
 			/call Bind_command_see maDebug
@@ -22,6 +24,21 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
 	} else /if (${_type.Equal[aux]}) {
 		/call Bind_command_aux debug
 		/return
+
+	} else /if (${_type.Equal[spawns]}) {
+		OUT Nearest \aw5\ax spawns
+		/declare _tmpID int local
+
+		/for _count 1 to 3
+			/varset _tmpID ${NearestSpawn[${_count}].ID}
+			OUT #\ag${_count}\ax${sep}name:\a-w${Spawn[id ${_tmpID}].Name}\ax${sep}${Spawn[id ${_tmpID}].DisplayName}
+			OUT ${sep}Dis(\a-r${Spawn[${_tmpID}].Distance}\ax) ${dot} Y(\a-r${Spawn[id ${_tmpID}].Y}\ax)X(\a-r${Spawn[id ${_tmpID}].X}\ax)
+			OUT ${sep}Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax)
+			/echo
+
+		/next _count
+		/invoke ${out[18, 0, 33]}
+		/return FALSE
 
 	} else /if (${_type.Equal[stop]}) {
 	  /declare _ligdeb listiterator local
@@ -166,8 +183,6 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 			OUT /admin sqldrop TABLE FIELD
 		}
 
-
-
  	| see output resonses from database (strings)
 	} else /if (${_type.Equal[out]}) {
 
@@ -186,14 +201,15 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 		| testing afor a known column first
 		/sqlite query ${maData.Find[DBzone].Value} dummy SELECT 1 FROM PRAGMA_TABLE_INFO('zone_control') WHERE name='element'
-		SDEBUG SELECT 1 FROM PRAGMA_TABLE_INFO 'zone_control' \ay${sqlite.Status[dummy]}\ax
-		SDEBUG Rows${sep}\ap${sqlite.Rows[dummy]}\ax
+		DEBUG SELECT 1 FROM PRAGMA_TABLE_INFO 'zone_control' \ay${sqlite.Status[dummy]}\ax
+		DEBUG Rows${sep}\ap${sqlite.Rows[dummy]}\ax
 
 
 		| testing unknown
 		/sqlite query ${maData.Find[DBzone].Value} dummy SELECT 1 FROM PRAGMA_TABLE_INFO('zone_control') WHERE name='wp_name'
-		SDEBUG SELECT 1 FROM PRAGMA_TABLE_INFO 'zone_control' \ay${sqlite.Status[dummy]}\ax
-		SDEBUG Rows${sep}\ap${sqlite.Rows[dummy]}\ax
+		DEBUG SELECT 1 FROM PRAGMA_TABLE_INFO 'zone_control' \ay${sqlite.Status[dummy]}\ax
+
+		DEBUG Rows${sep}\ap${sqlite.Rows[dummy]}\ax
 
 
 		/return TRUE
@@ -227,7 +243,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		/varset _spell ${Spell[${_spell}].RankName}
 		/declare _spellID ${Spell[${_spell}].ID}
 
-		/mqclear
+		MQCLEAR
 		OUT \aw${_spell}\ax ${sep} ID\a-w ${_spellID}\ax ${sep} Group \a-w${Spell[${_spellID}].SpellGroup}\ax
 		OUT \a-w${Spell[${Int[${Math.Calc[${_spellID} + ${If[${Spell[${_spellID}].SpellGroup},3,1]}]}]}].Name}\ax ${sep} ID \a-w${Spell[${Int[${Math.Calc[${_spellID} + ${If[${Spell[${_spellID}].SpellGroup},3,1]}]}]}].ID}\ax
 		OUT \awSPA Count\ax ${sep} \a-w${Spell[${_spell}].NumEffects}\ax
@@ -257,7 +273,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 	} else /if (${_type.Equal[import]}) {
 
 		/if (${_verbage.Equal[loot]}) {
-			/mqclear
+			MQCLEAR
 			| current core loot file
 			/declare _lootini string local tc\\data\\core.loot.ini
 			/declare _section string local
@@ -359,7 +375,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		}
 
 		/if (${_verbage.Equal[zone]}) {
-			/mqclear
+			MQCLEAR
 			| current core loot file
 			/declare _ini string local exspes\\zonedata.ini
 			/declare _section string local
@@ -393,8 +409,6 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 			/return
 		}
 
-	| }
-
 	/if (${_silent.Equal[SILENT]}) /return
 	/declare liout list local
 	/invoke ${liout.Append[checkvar,spa,whitewash,import,keymap,see,sqlcheck,sqldrop,out,zonerefresh]}
@@ -405,7 +419,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		/varset _out ${_out} ${If[${_liadout.Value.Equal[${liout.First}]},,${dot}]} ${info}${_liadout.Value}\ax
 		/invoke ${_liadout.Advance}
 	}
-	/invoke ${out[12, "/admin (PID:\a-w${EverQuest.PID}\ax) ${_out}"]}
+	/invoke ${out[12, "/admin (PID${sep}\a-w${EverQuest.PID}\ax) ${_out}"]}
 
 /return TRUE
 
@@ -438,7 +452,6 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 				/call Bind_control_home clear NULL NULL ${maDebug.Find[home].Value}
 			}
 			/invoke ${target[clear]}
-			| /call clear_combat FALSE
 		} else /if (${_type.Equal[auto]}) {
 			/if ((${maCC.Find[swPullSetHome].Value} && PULL) || ${maHome.Find[swonAuto].Value}) {
 				/if (!${swModeToken}) {
@@ -446,6 +459,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 				}
 			}
 		}
+		/invoke ${popup["/env auto ${maEnv.Find[swAuto].Value}"]}
 		/return TRUE
 
 	| enable wasiting fireworks for those bastards with too much AA on their hands
@@ -535,11 +549,11 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 		/return
 
 	} else /if (${_type.Equal[moblvlmin]}) {
-		/invoke ${set_switch_env[FALSE, stMobLvlMin, TRUE, ${_verbage}]}
+		/if (!${set_control_num_range[${_debug}, stMobLvlMin, "${_verbage}", 1, 500]}) /return
 
 	| set mob maximum level for attacking
-	} else /if (${_type.Equal[moblvmax]}) {
-		/invoke ${set_switch_env[FALSE, stMobLvlMax, TRUE, ${_verbage}]}
+	} else /if (${_type.Equal[moblvlmax]}) {
+		/if (!${set_control_num_range[${_debug}, stMobLvlMax, "${_verbage}", 1, 500]}) /return
 
 	| force a nuke loop till all are casted before exiting
 	} else /if (${_type.Equal[nukeloop]}) {
@@ -643,7 +657,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 	/invoke ${maControl.Add[buffgemhold,swHoldBuffGem]}
 	/invoke ${maControl.Add[nukeloop,swNukeLoop]}
 	/invoke ${maControl.Add[safelistguild,swSafeListGuild]}
-	/invoke ${maControl.Add[moblvmax,stMobLvlMax]}
+	/invoke ${maControl.Add[moblvlmax,stMobLvlMax]}
 	/invoke ${maControl.Add[moblvlmin,stMobLvlMin]}
 	/invoke ${maControl.Add[begmage,swBegMAG]}
 	/invoke ${maControl.Add[fireworks,swAAFireworks]}
@@ -1233,56 +1247,18 @@ sub Bind_command_requestbuff(string _toon, string _operate, string _buff)
  * use:
  ***|
 #Bind control_heal /heal
-sub Bind_control_heal(string _type, string _verbage, string _silent, string _verbage2, bool _debug)
-	/if (${maDebug.Find[edit].Value}) /varset _debug TRUE
-	DEBUG \atcontrol_heal\ax(\a-w${_type}, ${_verbage}, ${_silent}, ${_verbage2}\ax)
+sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+	DEBUG \atcontrol_heal\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maHeal ${_verbage}
-		/return
-	} else /if (${_type.Equal[aux]}) {
-		/call Bind_command_aux heal ${_verbage}
-		/return
-
-	} else /if (${_type.Equal[list]}) {
-		/call Bind_command_see heal list
-		/return	TRUE
-
-	| heal number entered
-	} else /if (${Range.Between[1,50:${Int[${_type}]}]}) {
-
-		| see the heal #
-		/if (${_verbage.Equal[see]}) {
-			/call Bind_command_see heal ${_type}
-			/return
-		}
-
-		/if ((!${Bool[${_verbage}]} || ${Select[${_verbage},on,off]}) && ${_verbage.NotEqual[FALSE]}) {
-			/invoke ${set_switch_env[${_debug}, swHeal${_type}, TRUE, ${_verbage}]}
-			/invoke ${out[12, "\awHeal${_type}\ax${sep}${If[${maHeal.Find[swHeal${_type}].Value},${on},${off}]}${sep}\a-w${maHeal.Find[stHeal${_type}].Value}\ax"]}
-			/return TRUE
-		} else /if (${Select[${_verbage},clear]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swHeal${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stHeal${_type}Con" "0"
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stHeal${_type}Alias" clear
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stHeal${_type}" FALSE
-		} else /if (${Select[${_verbage},con]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stHeal${_type}Con" "${_silent}"
-		} else /if (${Select[${_verbage},tag]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsHeal${_type}Tag" ${_silent} ${_verbage2}
-		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
-			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stHeal${_type}" "${_verbage}"
-		}
-
-		/call Bind_command_see heal ${_type}
-
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} Heal 50 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
+	}
+
 
 	| set heal point
-	} else /if (${_type.Equal[point]}) {
-		/call set_control_heal_point FALSE ${_verbage}
+	/if (${_type.Equal[point]}) {
+		/call set_control_heal_point ${_debug} ${_verbage} ${_verbage2}
 		/return
 
 	| heal self
@@ -1394,7 +1370,6 @@ sub Bind_control_heal(string _type, string _verbage, string _silent, string _ver
 
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[point,submenu]}
 	| /invoke ${maControl.Add[mode,submenu]}
@@ -1517,9 +1492,9 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	} else /if (${_type.Equal[hud]}) {
 
 		/declare _path string local
-		/if (!BUILD) {
+		/if (!NEXT) {
 			/varset _path ".\..\MQ2HUD.ini"
-		} else /if (BUILD) {
+		} else /if (NEXT) {
 			/varset _path "MQ2HUD.ini"
 		}
 
@@ -1598,7 +1573,6 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 		/return TRUE
 
 	} else /if (${_type.Equal[aux]}) {
-		/echo here
 		/call Bind_command_aux rez ${_verbage}
 		/return TRUE
 
@@ -1818,86 +1792,10 @@ sub Bind_deez(string _type, string _verbage)
 
 
 
-	| get spawn info.  in a radius
-	/if (${_type.Equal[spawn]}) {
-		OUT SpawnCount${sep}\a-w${SpawnCount[radius ${_verbage}]}
-		/declare _tmpID int local
-
-		/for _count 1 to ${SpawnCount[radius ${_verbage}]}
-			/varset _tmpID ${NearestSpawn[${_count}, radius ${_verbage}].ID}
-
-			/if (${_tmpID} == ${Me.ID}) {
-				OUT #\ag${_count}\ax${sep}name:\a-wMe\ax
-				/echo
-				/continue
-			}
-
-			OUT #\ag${_count}\ax${sep}name:\a-w${Spawn[id ${_tmpID}].Name}\ax
-			OUT ${sep}Dis(\a-r${Spawn[${_tmpID}].Distance}\ax) ${dot} Y(\a-r${Spawn[id ${_tmpID}].Y}\ax)X(\a-r${Spawn[id ${_tmpID}].X}\ax)
-			OUT ${sep}Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax)
-			/echo
-		/next _count
-
-	}
-	| get spawn info.  in a radius
-	/if (${_type.Equal[spawn2]}) {
-		OUT SpawnCount${sep}\a-w${SpawnCount[radius ${_verbage}]}
-		/declare _tmpID int local
-
-		/for _count 1 to ${_verbage}
-			/varset _tmpID ${NearestSpawn[${_count}].ID}
-
-			/if (${_tmpID} == ${Me.ID}) {
-				OUT #\ag${_count}\ax${sep}name:\a-wMe\ax
-				/echo
-				/continue
-			}
-
-			OUT #\ag${_count}\ax${sep}name:\a-w${Spawn[id ${_tmpID}].Name}\ax ${dot} Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax)
-		/next _count
-
-	}
-
-
-	/if (${_type.Equal[dataset]}) {
-
-    /declare i int local 0
-    /if (!${Defined[spawnList]}) {
-    	/declare spawnList list outer
-    }
-    /invoke ${spawnList.Clear}
-    /declare testme spawn local 0
-
-    /for i 1 to 4
-        /vardata testme NearestSpawn[${i}, npc targetable radius 100]
-        /invoke ${spawnList.Append[${NearestSpawn[${i}, npc targetable radius 100}]}
-    /next i
-
-    /declare lis listiterator local
-    /vardata lis spawnList.First.Clone
-    /while (!${lis.IsEnd}) {
-    	/echo LOS on: ${lis.Value} = ${Spawn[${lis.Value}].LineOfSight}
-    	/invoke ${lis.Advance}
-    }
-	}
-
-
-
-	/if (${_type.Equal[nametest]}) {
-
-		/invoke ${maTTL.Add["bob was here",5]}
-		/invoke ${maTTL.Add[bob,5]}
-
-		/echo ${maTTL.Find["bob was here"].Value}
-		/echo ${maTTL.Find[bob].Value}
-
-	}
-
-
 	| get the hurt variables
 	/if (${_type.Equal[gethurt]}) {
 		/call get_hurt TRUE ${_verbage}
-		/mqclear
+		MQCLEAR
 		OUT Hirt variables${sep}\a-w${_verbage}\ax
 		OUT hurtID${sep}\a-w${hurtID}\ax (\a-r${Spawn[ID ${hurtID}].DisplayName}\ax)
 		OUT hurtPctHP${sep}\a-w${hurtPctHP}\ax
@@ -1925,53 +1823,17 @@ sub Bind_deez(string _type, string _verbage)
  * use: /buff
  ***|
 #Bind control_buff /buff
-sub Bind_control_buff(string _type, string _verbage, string _silent, string _add_delete, bool _debug)
-	DEBUG \atBind_control_buff\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
+sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+	DEBUG \atBind_control_buff\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maBuff ${_verbage}
-		/return
-	} else /if (${_type.Equal[aux]}) {
-		/call Bind_command_aux buff ${_verbage}
-		/return
 
-	} else /if (${_type.Equal[list]}) {
-		/call Bind_command_see buff list
-		/return
-
-	} else /if (${Range.Between[1,50:${Int[${_type}]}]}) {
-
-		| see the buff
-		/if ((!${Bool[${_verbage}]} || ${Select[${_verbage},on,off]}) && ${_verbage.NotEqual[FALSE]}) {
-			/invoke ${set_switch_env[${_debug}, swBuff${_type}, TRUE, ${_verbage}]}
-			/invoke ${out[12, "\awBuff${_type}\ax${sep}${If[${maBuff.Find[swBuff${_type}].Value},${on},${off}]}${sep}\a-w${maBuff.Find[stBuff${_type}].Value}\ax"]}
-			/return TRUE
-		} else /if (${_verbage.Equal[see]}) {
-			/call Bind_command_see buff ${_type}
-			/return TRUE
-		} else /if (${Select[${_verbage},clear]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swBuff${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBuff${_type}Con" "0"
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBuff${_type}Alias" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBuff${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsBuff${_type}Tag" clear
-		} else /if (${Select[${_verbage},con]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBuff${_type}Con" "${_silent}"
-		} else /if (${Select[${_verbage},alias]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBuff${_type}Alias" "${_silent}"
-		} else /if (${Select[${_verbage},tag]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsBuff${_type}Tag" "${_silent}" ${_add_delete} ${_verbage}
-		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,alias,clear,see]}) {
-			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBuff${_type}" "${_verbage}"
-		}
-
-		/call Bind_command_see buff ${_type}
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} Buff 50 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
+	}
 
 	| master buff switch
-	} else /if (${_type.Equal[master]}) {
+	/if (${_type.Equal[master]}) {
 		/invoke ${set_switch_env[${_debug}, swBuffMaster, FALSE, ${_verbage}]}
 
 	} else /if (${_type.Equal[ps]}) {
@@ -2029,7 +1891,6 @@ sub Bind_control_buff(string _type, string _verbage, string _silent, string _add
 
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[ammo,swBuffAmmo]}
 	/invoke ${maControl.Add[aura,swBuffAura]}
@@ -2170,566 +2031,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/invoke ${out[18, 0, 33]}
 		/return
 
- 	| see sash info
-	} else /if (${_variable.Equal[sash]}) {
 
-		/if (${_verbage.Equal[list]}) {
-			/echo
-			/invoke ${out[12, 0, 21]}
-			/declare _licountsash listiterator local
-		  /vardata _licountsash lsCount12.First.Clone
-		  /while (!${_licountsash.IsEnd}) {
-				/if (${Bool[${maSash.Find[stSash${_licountsash.Value}].Value}]}) {
-					/invoke ${out[12, "\awstSash${_licountsash.Value}\ax${sep}${If[${maSash.Find[swSash${_licountsash.Value}].Value},${on},${off}]}${sep}\a-w${maSash.Find[stSash${_licountsash.Value}].Value}\ax"]}
-				}
-		    /invoke ${_licountsash.Advance}
-		  }
-
-			/if (${_silent.NotEqual[silent]}) {
-				/invoke ${out[18, 0, 33]}
-			}
-			/return
-		}
-
-		/if (!${Range.Between[1,12:${Int[${_verbage}]}]}) {
-			/call Bind_command_aux sash
-			/return
-		}
-		/invoke ${out[12, "\awSash #${_verbage}\ax${sep}${If[${maSash.Find[swSash${_verbage}].Value},${on},${off}]}"]}
-		/invoke ${out[12, "stSash\aw${_verbage}\ax${sep}\a-w${maSash.Find[stSash${_verbage}].Value}\ax"]}
-
-		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maSash.Find[stSash${_verbage}Con].Value}"
-		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-		/if (${sqlite.Rows[dummy]}) {
-			OUT stSash\aw${_verbage}\axCon${sep}\a-w${maSash.Find[stSash${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
-		} else {
-			OUT stSash\aw${_verbage}\axCon${sep}\a-w${maSash.Find[stSash${_verbage}Con].Value}\ax
-		}
-
-		/invoke ${out[12, "lsSash\aw${_verbage}\axTag"]}
-
-		/declare hli listiterator local
-		/vardata hli lsSash${_verbage}Tag.First.Clone
-		/while (!${hli.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${hli.Value}\ax"]}
-			/invoke ${hli.Advance}
-		}
-
-
-
-	| see song info
-	} else /if (${_variable.Equal[song]}) {
-
-		/if (${_verbage.Equal[list]}) {
-			/echo
-			/invoke ${out[12, "\awSong List\ax${sep}"]}
-			/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_song WHERE env_var="lsLineSong"
-			/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
-
-			/declare _licountsong listiterator local
-		  /vardata _licountsong lsCount20.First.Clone
-		  /while (!${_licountsong.IsEnd}) {
-				/if (${Bool[${maSong.Find[stSong${_licountsong.Value}].Value}]}) {
-					/invoke ${out[12, "\awstSong${_licountsong.Value}\ax${sep}${If[${maSong.Find[swSong${_licountsong.Value}].Value},${on},${off}]}${sep}\a-w${maSong.Find[stSong${_licountsong.Value}].Value}\ax"]}
-				}
-		    /invoke ${_licountsong.Advance}
-		  }
-
-			/if (${_silent.NotEqual[silent]}) {
-				/invoke ${out[18, 0, 33]}
-			}
-			/return
-		}
-
-		/if (!${Range.Between[1,20:${Int[${_verbage}]}]}) {
-			/call Bind_command_aux song
-			/return
-		}
-		/invoke ${out[12, "\awSong #${_verbage}\ax${sep}${If[${maSong.Find[swSong${_verbage}].Value},${on},${off}]}"]}
-		/invoke ${out[12, "stSong\aw${_verbage}\ax${sep}\a-w${maSong.Find[stSong${_verbage}].Value}\ax"]}
-
-		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maSong.Find[stSong${_verbage}Con].Value}"
-		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-		/if (${sqlite.Rows[dummy]}) {
-			OUT stSong\aw${_verbage}\axCon${sep}\a-w${maSong.Find[stSong${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
-		} else {
-			OUT stSong\aw${_verbage}\axCon${sep}\a-w${maSong.Find[stSong${_verbage}Con].Value}\ax
-		}
-
-		/invoke ${out[12, "lsSong\aw${_verbage}\axTag"]}
-
-		/declare hli listiterator local
-		/vardata hli lsSong${_verbage}Tag.First.Clone
-		/while (!${hli.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${hli.Value}\ax"]}
-			/invoke ${hli.Advance}
-		}
-
-
-	| see miscDPS info
-	} else /if (${_variable.Equal[miscdps]}) {
-
-		/if (${_verbage.Equal[list]}) {
-			/echo
-			/invoke ${out[12, "\awMiscDPS List\ax${sep}"]}
-
-			/declare _licountmiscdps listiterator local
-		  /vardata _licountmiscdps lsCount50.First.Clone
-		  /while (!${_licountmiscdps.IsEnd}) {
-				/if (${Bool[${maMiscDPS.Find[stMiscDPS${_licountmiscdps.Value}].Value}]}) {
-					/invoke ${out[12, "\awstMiscDPS${_licountmiscdps.Value}\ax${sep}${If[${maMiscDPS.Find[swMiscDPS${_licountmiscdps.Value}].Value},${on},${off}]}${sep}\a-w${maMiscDPS.Find[stMiscDPS${_licountmiscdps.Value}].Value}\ax"]}
-				}
-		    /invoke ${_licountmiscdps.Advance}
-		  }
-
-			/if (${_silent.NotEqual[silent]}) {
-				/invoke ${out[18, 0, 33]}
-			}
-			/return
-		}
-
-		/if (!${Range.Between[1,50:${Int[${_verbage}]}]}) {
-			/call Bind_command_aux miscdps
-			/return
-		}
-		/invoke ${out[12, "\awMiscDPS #${_verbage}\ax${sep}${If[${maMiscDPS.Find[swMiscDPS${_verbage}].Value},${on},${off}]}"]}
-		/invoke ${out[12, "stMiscDPS\aw${_verbage}\ax${sep}\a-w${maMiscDPS.Find[stMiscDPS${_verbage}].Value}\ax"]}
-
-		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maMiscDPS.Find[stMiscDPS${_verbage}Con].Value}"
-		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-		/if (${sqlite.Rows[dummy]}) {
-			OUT stMiscDPS\aw${_verbage}\axCon${sep}\a-w${maMiscDPS.Find[stMiscDPS${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
-		} else {
-			OUT stMiscDPS\aw${_verbage}\axCon${sep}\a-w${maMiscDPS.Find[stMiscDPS${_verbage}Con].Value}\ax
-		}
-
-		/invoke ${out[12, "lsMiscDPS\aw${_verbage}\axTag"]}
-
-		/declare hli listiterator local
-		/vardata hli lsMiscDPS${_verbage}Tag.First.Clone
-		/while (!${hli.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${hli.Value}\ax"]}
-			/invoke ${hli.Advance}
-		}
-
-	| see agro info
-	} else /if (${_variable.Equal[agro]}) {
-
-		/if (${_verbage.Equal[list]}) {
-			/echo
-			/invoke ${out[12, "\awAgro List\ax${sep}"]}
-
-			/declare _licountdot listiterator local
-		  /vardata _licountdot lsCount20.First.Clone
-		  /while (!${_licountdot.IsEnd}) {
-				/if (${Bool[${maAgro.Find[stAgro${_licountdot.Value}].Value}]}) {
-					/invoke ${out[12, "\awstAgro${_licountdot.Value}\ax${sep}${If[${maAgro.Find[swAgro${_licountdot.Value}].Value},${on},${off}]}${sep}\a-w${maAgro.Find[stAgro${_licountdot.Value}].Value}\ax"]}
-				}
-		    /invoke ${_licountdot.Advance}
-		  }
-
-			/if (${_silent.NotEqual[silent]}) {
-				/invoke ${out[18, 0, 33]}
-			}
-			/return
-		}
-
-		/if (!${Range.Between[1,20:${Int[${_verbage}]}]}) {
-			/call Bind_command_aux agro
-			/return
-		}
-		/invoke ${out[12, "\awAgro #${_verbage}\ax${sep}${If[${maAgro.Find[swAgro${_verbage}].Value},${on},${off}]}"]}
-		/invoke ${out[12, "stAgro\aw${_verbage}\ax${sep}\a-w${maAgro.Find[stAgro${_verbage}].Value}\ax"]}
-
-		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maAgro.Find[stAgro${_verbage}Con].Value}"
-		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-		/if (${sqlite.Rows[dummy]}) {
-			OUT stAgro\aw${_verbage}\axCon${sep}\a-w${maAgro.Find[stAgro${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
-		} else {
-			OUT stAgro\aw${_verbage}\axCon${sep}\a-w${maAgro.Find[stAgro${_verbage}Con].Value}\ax
-		}
-
-		/invoke ${out[12, "lsAgro\aw${_verbage}\axTag"]}
-
-		/declare hli listiterator local
-		/vardata hli lsAgro${_verbage}Tag.First.Clone
-		/while (!${hli.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${hli.Value}\ax"]}
-			/invoke ${hli.Advance}
-		}
-
-
-
-	| see dot info
-	} else /if (${_variable.Equal[dot]}) {
-
-		/if (${_verbage.Equal[list]}) {
-			/echo
-			/invoke ${out[12, "\awDoT List\ax${sep}"]}
-			/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_dot WHERE env_var="lsLineDoT"
-			/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
-
-			/declare _licountdot listiterator local
-		  /vardata _licountdot lsCount20.First.Clone
-		  /while (!${_licountdot.IsEnd}) {
-				/if (${Bool[${maDoT.Find[stDoT${_licountdot.Value}].Value}]}) {
-					/invoke ${out[12, "\awstDoT${_licountdot.Value}\ax${sep}${If[${maDoT.Find[swDoT${_licountdot.Value}].Value},${on},${off}]}${sep}\a-w${maDoT.Find[stDoT${_licountdot.Value}].Value}\ax"]}
-				}
-		    /invoke ${_licountdot.Advance}
-		  }
-
-			/if (${_silent.NotEqual[silent]}) {
-				/invoke ${out[18, 0, 33]}
-			}
-			/return
-		}
-
-		/if (!${Range.Between[1,20:${Int[${_verbage}]}]}) {
-			/call Bind_command_aux dot
-			/return
-		}
-		/invoke ${out[12, "\awDoT #${_verbage}\ax${sep}${If[${maDoT.Find[swDoT${_verbage}].Value},${on},${off}]}"]}
-		/invoke ${out[12, "stDoT\aw${_verbage}\ax${sep}\a-w${maDoT.Find[stDoT${_verbage}].Value}\ax"]}
-
-		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maDoT.Find[stDoT${_verbage}Con].Value}"
-		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-		/if (${sqlite.Rows[dummy]}) {
-			OUT stDoT\aw${_verbage}\axCon${sep}\a-w${maDoT.Find[stDoT${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
-		} else {
-			OUT stDoT\aw${_verbage}\axCon${sep}\a-w${maDoT.Find[stDoT${_verbage}Con].Value}\ax
-		}
-
-		/invoke ${out[12, "lsDoT\aw${_verbage}\axTag"]}
-
-		/declare hli listiterator local
-		/vardata hli lsDoT${_verbage}Tag.First.Clone
-		/while (!${hli.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${hli.Value}\ax"]}
-			/invoke ${hli.Advance}
-		}
-
-	| see nuke info
-	} else /if (${_variable.Equal[nuke]}) {
-
-		/if (${_verbage.Equal[list]}) {
-			/echo
-			/invoke ${out[12, "\awNuke List\ax${sep}"]}
-			/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_nuke WHERE env_var="lsLineNuke"
-			/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
-
-			/declare _licountnuke listiterator local
-		  /vardata _licountnuke lsCount20.First.Clone
-		  /while (!${_licountnuke.IsEnd}) {
-				/if (${Bool[${maNuke.Find[stNuke${_licountnuke.Value}].Value}]}) {
-					/invoke ${out[12, "\awstNuke${_licountnuke.Value}\ax${sep}${If[${maNuke.Find[swNuke${_licountnuke.Value}].Value},${on},${off}]}${sep}\a-w${maNuke.Find[stNuke${_licountnuke.Value}].Value}\ax"]}
-				}
-		    /invoke ${_licountnuke.Advance}
-		  }
-
-			/if (${_silent.NotEqual[silent]}) {
-				/invoke ${out[18, 0, 33]}
-			}
-			/return
-		}
-
-		/if (!${Range.Between[1,20:${Int[${_verbage}]}]}) {
-			/call Bind_command_aux nuke
-			/return
-		}
-		/invoke ${out[12, "\awNuke #${_verbage}\ax${sep}${If[${maNuke.Find[swNuke${_verbage}].Value},${on},${off}]}"]}
-		/invoke ${out[12, "stNuke\aw${_verbage}\ax${sep}\a-w${maNuke.Find[stNuke${_verbage}].Value}\ax"]}
-
-		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maNuke.Find[stNuke${_verbage}Con].Value}"
-		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-		/if (${sqlite.Rows[dummy]}) {
-			OUT stNuke\aw${_verbage}\axCon${sep}\a-w${maNuke.Find[stNuke${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
-		} else {
-			OUT stNuke\aw${_verbage}\axCon${sep}\a-w${maNuke.Find[stNuke${_verbage}Con].Value}\ax
-		}
-
-		/invoke ${out[12, "lsNuke\aw${_verbage}\axTag"]}
-
-		/declare hli listiterator local
-		/vardata hli lsNuke${_verbage}Tag.First.Clone
-		/while (!${hli.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${hli.Value}\ax"]}
-			/invoke ${hli.Advance}
-		}
-
-
-	| see heal info
-	} else /if (${_variable.Equal[heal]}) {
-
-		/if (${_verbage.Equal[list]}) {
-			/echo
-			/invoke ${out[12, "\awHeal List\ax${sep}"]}
-			/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_heal WHERE env_var="lsLineHeal"
-			/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
-
-			/declare _licountheal listiterator local
-		  /vardata _licountheal lsCount50.First.Clone
-		  /while (!${_licountheal.IsEnd}) {
-				/if (${Bool[${maHeal.Find[stHeal${_licountheal.Value}].Value}]}) {
-					/invoke ${out[12, "\awstHeal${_licountheal.Value}\ax${sep}${If[${maHeal.Find[swHeal${_licountheal.Value}].Value},${on},${off}]}${sep}\a-w${maHeal.Find[stHeal${_licountheal.Value}].Value}\ax"]}
-				}
-		    /invoke ${_licountheal.Advance}
-		  }
-
-			/if (${_silent.NotEqual[silent]}) {
-				/invoke ${out[18 "${eol}" 0]}
-			}
-			/return
-		}
-
-		/if (!${Range.Between[1,50:${Int[${_verbage}]}]}) {
-			/call Bind_command_aux heal
-			/return
-		}
-		/invoke ${out[12, "\awHeal #${_verbage}\ax${sep}${If[${maHeal.Find[swHeal${_verbage}].Value},${on},${off}]}"]}
-		/invoke ${out[12, "stHeal\aw${_verbage}\ax${sep}\a-w${maHeal.Find[stHeal${_verbage}].Value}\ax"]}
-
-		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maHeal.Find[stHeal${_verbage}Con].Value}"
-		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-		/if (${sqlite.Rows[dummy]}) {
-			OUT stHeal\aw${_verbage}\axCon${sep}\a-w${maHeal.Find[stHeal${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
-		} else {
-			OUT stHeal\aw${_verbage}\axCon${sep}\a-w${maHeal.Find[stHeal${_verbage}Con].Value}\ax
-		}
-
-		/invoke ${out[12, "lsHeal\aw${_verbage}\axTag"]}
-
-		/declare hli listiterator local
-		/vardata hli lsHeal${_verbage}Tag.First.Clone
-		/while (!${hli.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${hli.Value}\ax"]}
-			/invoke ${hli.Advance}
-		}
-
-
-	| see burn info
-	} else /if (${_variable.Equal[burn]}) {
-
-		/if (${_verbage.Equal[list]}) {
-			/echo
-			/invoke ${out[12, "\awBurn List\ax${sep}"]}
-			/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_burn WHERE env_var="lsLineBurn"
-			/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
-
-			/declare _licountburn listiterator local
-		  /vardata _licountburn lsCount20.First.Clone
-		  /while (!${_licountburn.IsEnd}) {
-				/if (${Bool[${maBurn.Find[stBurn${_licountburn.Value}].Value}]}) {
-					/invoke ${out[12, "\awstBurn${_licountburn.Value}\ax${sep}${If[${maBurn.Find[swBurn${_licountburn.Value}].Value},${on},${off}]}${sep}\a-w${maBurn.Find[stBurn${_licountburn.Value}].Value}\ax"]}
-				}
-		    /invoke ${_licountburn.Advance}
-		  }
-
-			/if (${_silent.NotEqual[silent]}) {
-				/invoke ${out[18, 0, 33]}
-			}
-
-			/return
-		}
-
-		/if (!${Range.Between[1,20:${Int[${_verbage}]}]}) {
-			/call Bind_command_aux burn
-			/return
-		}
-		/invoke ${out[12, "\awBurn #${_verbage}\ax${sep}${If[${maBurn.Find[swBurn${_verbage}].Value},${on},${off}]}"]}
-		/invoke ${out[12, "stBurn\aw${_verbage}\ax${sep}\a-w${maBurn.Find[stBurn${_verbage}].Value}\ax"]}
-
-		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maBurn.Find[stBurn${_verbage}Con].Value}"
-		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-		/if (${sqlite.Rows[dummy]}) {
-			OUT stBurn\aw${_verbage}\axCon${sep}\a-w${maBurn.Find[stBurn${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
-		} else {
-			OUT stBurn\aw${_verbage}\axCon${sep}\a-w${maBurn.Find[stBurn${_verbage}Con].Value}\ax
-		}
-
-		/invoke ${out[12, "lsBurn\aw${_verbage}\axTag"]}
-
-		/declare hli listiterator local
-		/vardata hli lsBurn${_verbage}Tag.First.Clone
-		/while (!${hli.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${hli.Value}\ax"]}
-			/invoke ${hli.Advance}
-		}
-
-
-	| see defense info
-	} else /if (${_variable.Equal[defense]}) {
-
-		/if (${_verbage.Equal[list]}) {
-			/echo
-			/invoke ${out[12, "\awDefense List\ax${sep}"]}
-			/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT value FROM environment_defense WHERE env_var="lsLineDefense"
-			/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-			/invoke ${out[12, "Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
-
-			/declare _licountdef listiterator local
-		  /vardata _licountdef lsCount20.First.Clone
-		  /while (!${_licountdef.IsEnd}) {
-				/if (${Bool[${maDefense.Find[stDefense${_licountdef.Value}].Value}]}) {
-					/invoke ${out[12, "\awstDefense${_licountdef.Value}\ax${sep}${If[${maDefense.Find[swDefense${_licountdef.Value}].Value},${on},${off}]}${sep}\a-w${maDefense.Find[stDefense${_licountdef.Value}].Value}\ax"]}
-				}
-		    /invoke ${_licountdef.Advance}
-		  }
-
-			/if (${_silent.NotEqual[silent]}) {
-				/invoke ${out[18, 0, 33]}
-			}
-			/return
-		}
-
-		/if (!${Range.Between[1,20:${Int[${_verbage}]}]}) {
-			/call Bind_command_aux defense
-			/return
-		}
-		/invoke ${out[12, "\awDefense #${_verbage}\ax${sep}${If[${maDefense.Find[swDefense${_verbage}].Value},${on},${off}]}"]}
-		/invoke ${out[12, "stDefense\aw${_verbage}\ax${sep}\a-w${maDefense.Find[stDefense${_verbage}].Value}\ax"]}
-
-		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maDefense.Find[stDefense${_verbage}Con].Value}"
-		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-		/if (${sqlite.Rows[dummy]}) {
-			OUT stDefense\aw${_verbage}\axCon${sep}\a-w${maDefense.Find[stDefense${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
-		} else {
-			OUT stDefense\aw${_verbage}\axCon${sep}\a-w${maDefense.Find[stDefense${_verbage}Con].Value}\ax
-		}
-
-		/invoke ${out[12, "lsDefense\aw${_verbage}\axTag"]}
-
-		/declare _lidef listiterator local
-		/vardata _lidef lsDefense${_verbage}Tag.First.Clone
-		/while (!${_lidef.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${_lidef.Value}\ax"]}
-			/invoke ${_lidef.Advance}
-		}
-
-
-	| see the buff info
-	} else /if (${_variable.Equal[buff]}) {
-
-		| list buffs
-		/if (${_verbage.Equal[list]}) {
-			/echo
-			/invoke ${out[12, "\awBuff List\ax${sep}"]}
-			/for _count 1 to 50
-				/if (${maBuff.Find[stBuff${_count}].Value.NotEqual[FALSE]}) {
-					/invoke ${out[12, "\awstBuff${_count}\ax${sep}${If[${maBuff.Find[swBuff${_count}].Value},${on},${off}]}${sep}\a-w${maBuff.Find[stBuff${_count}].Value}\ax"]}
-				}
-			/next _count
-			/if (${_silent.NotEqual[silent]}) {
-				/invoke ${out[18, 0, 33]}
-			}
-			/return TRUE
-
-		| buff spa
-		} else /if (${_verbage.Equal[spa]}) {
-			DEBUG /call Bind_control_admin spa "${maBuff.Find[stBuff${_silent}].Value}"
-			/call Bind_control_admin spa "${maBuff.Find[stBuff${_silent}].Value}"
-			/return TRUE
-		}
-
-		/if (!${Range.Between[1,50:${Int[${_verbage}]}]}) {
-			/call Bind_command_aux buff
-			/return
-		}
-
-		/declare _tmpC string local ${maBuff.Find[stBuff${_verbage}].Value.Arg[2,+c]}
-		/invoke ${out[12, "\awBuff #${_verbage}\ax${sep}${If[${maBuff.Find[swBuff${_verbage}].Value},${on},${off}]}"]}
-		/invoke ${out[12, "stBuff\aw${_verbage}\ax${sep}\a-w${maBuff.Find[stBuff${_verbage}].Value}\ax"]}
-
-		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maBuff.Find[stBuff${_verbage}Con].Value}"
-		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-		/if (${sqlite.Rows[dummy]}) {
-			OUT stBuff\aw${_verbage}\axCon${sep}\a-w${maBuff.Find[stBuff${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
-		} else {
-			OUT stBuff\aw${_verbage}\axCon${sep}\a-w${maBuff.Find[stBuff${_verbage}Con].Value}\ax
-		}
-
-		/invoke ${out[12, "stBuff\aw${_verbage}\axAlias${sep}\a-w${maBuff.Find[stBuff${_verbage}Alias].Value}\ax"]}
-		/invoke ${out[12, "lsBuff\aw${_verbage}\axTag"]}
-
-		/declare _liseedeb listiterator local
-		/vardata _liseedeb lsBuff${_verbage}Tag.First.Clone
-		/while (!${_liseedeb.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${_liseedeb.Value}\ax"]}
-			/invoke ${_liseedeb.Advance}
-		}
-
-	} else /if (${_variable.Equal[condition]}) {
-		/if (${_verbage.Equal[list]}) {
-			/echo
-			/invoke ${out[12, "\awCondition List\ax${sep}"]}
-			/for _count 1 to 50
-
-				/sqlite query ${maData.Find[DBcharacter].Value} condition SELECT value FROM environment_condition WHERE env_var="c${_count}"
-				/if (!${sql_check[${_debug}, condition, Bind_command_see, SELECT]}) /endmacro
-				/if (${Parse[1,${sqlite.Result[condition 1 value].Equal[FALSE]}]}) /continue
-
-				OUT \awc${_count}\ax${sep}\a-w${Parse[1,${sqlite.Result[condition 1 value]}]}\ax
-			/next _count
-			/if (${_silent.NotEqual[silent]}) {
-				/invoke ${out[18, 0, 33]}
-			}
-			/return
-		}
-
-		/sqlite query ${maData.Find[DBcharacter].Value} condition SELECT value FROM environment_condition WHERE env_var="c${_verbage}"
-		/if (!${sql_check[${_debug}, condition, environment_condition, SELECT]}) /endmacro
-		OUT c${_verbage}${sep}\a-w${Parse[1,${sqlite.Result[condition 1 value]}]}\ax
-		/return TRUE
-
-
-	} else /if (${_variable.Equal[item]}) {
-		/if (${_verbage.Equal[list]}) {
-			/echo
-			/invoke ${out[12, "\awItem List\ax${sep}"]}
-
-
-			/declare _licountitem listiterator local
-		  /vardata _licountitem lsCount20.First.Clone
-		  /while (!${_licountitem.IsEnd}) {
-				/if (${Bool[${maItem.Find[stItem${_licountitem.Value}].Value}]}) {
-					/invoke ${out[12, "\awstItem${_licountitem.Value}\ax${sep}${If[${maItem.Find[swItem${_licountitem.Value}].Value},${on},${off}]}${sep}\a-w${maItem.Find[stItem${_licountitem.Value}].Value}\ax"]}
-				}
-		    /invoke ${_licountitem.Advance}
-		  }
-
-			/if (${_silent.NotEqual[silent]}) {
-				/invoke ${out[18, 0, 33]}
-			}
-			/return
-		}
-
-		/if (!${Range.Between[1,20:${Int[${_verbage}]}]}) {
-			/call Bind_command_aux item
-			/return
-		}
-		/invoke ${out[12, "\awItem #${_verbage}\ax${sep}${If[${maItem.Find[swItem${_verbage}].Value},${on},${off}]}"]}
-		/invoke ${out[12, "stItem\aw${_verbage}\ax${sep}\a-w${maItem.Find[stItem${_verbage}].Value}\ax"]}
-
-		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition WHERE env_var="c${maItem.Find[stItem${_verbage}Con].Value}"
-		/if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
-		/if (${sqlite.Rows[dummy]}) {
-			OUT stItem\aw${_verbage}\axCon${sep}\a-w${maItem.Find[stItem${_verbage}Con].Value}\ax${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
-		} else {
-			OUT stItem\aw${_verbage}\axCon${sep}\a-w${maItem.Find[stItem${_verbage}Con].Value}\ax
-		}
-
-		/invoke ${out[12, "lsItem\aw${_verbage}\axTag"]}
-
-		/declare _liseeit listiterator local
-		/vardata _liseeit lsItem${_verbage}Tag.First.Clone
-		/while (!${_liseeit.IsEnd}) {
-			/invoke ${out[12, "${dot}\a-w${_liseeit.Value}\ax"]}
-			/invoke ${_liseeit.Advance}
-		}
 
 	| see what we are observing
 	} else /if (${_variable.Equal[observed]}) {
@@ -2817,64 +2119,21 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
  * use: /burn []
  ***|
 #bind control_burn /burn
-sub Bind_control_burn(string _type, string _verbage, string _silent, string _verbage2, bool _debug)
-	DEBUG \atBind_control_burn\ax(\a-w${_type}, ${_verbage}, ${_silent}, ${_verbage2}\ax)
+sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+	DEBUG \atBind_control_burn\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\\ax)
 
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maBurn ${_verbage}
-		/return
-	} else /if (${_type.Equal[aux]}) {
-		/call Bind_command_aux burn ${_verbage}
-		/return
+	/if (ENGINE1) {
+		/invoke ${out[0, "/burn is only available with engine 2/3 enabled."]}
+		/return FALSE
+	}
 
-	} else /if (${_type.Equal[list]}) {
-		/if (!ENGINE2) {
-			/invoke ${out[0, "Engine 2 is currently disabled."]}
-			/return FALSE
-		}
-
-		/call Bind_command_see burn list
-		/return	TRUE
-
-	| burn number entered
-	} else /if (${Range.Between[1,20:${Int[${_type}]}]}) {
-		/if (!ENGINE2) {
-			/invoke ${out[0, "Engine 2 is currently disabled."]}
-			/return FALSE
-		}
-
-		| see the defensive #
-		/if (${_verbage.Equal[see]}) {
-			/call Bind_command_see burn ${_type}
-			/return
-		}
-
-		/if ((!${Bool[${_verbage}]} || ${Select[${_verbage},on,off]}) && ${_verbage.NotEqual[FALSE]}) {
-			/invoke ${set_switch_env[${_debug}, swBurn${_type}, TRUE, ${_verbage}]}
-			/invoke ${out[12, "\awBurn${_type}\ax${sep}${If[${maBurn.Find[swBurn${_type}].Value},${on},${off}]}${sep}\a-w${maBurn.Find[stBurn${_type}].Value}\ax"]}
-			/return TRUE
-		} else /if (${Select[${_verbage},clear]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swBurn${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBurn${_type}Con" "0"
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBurn${_type}Alias" clear
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBurn${_type}" FALSE
-		} else /if (${Select[${_verbage},con]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBurn${_type}Con" "${_silent}"
-		} else /if (${Select[${_verbage},tag]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsBurn${_type}Tag" ${_silent} ${_verbage2}
-		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
-			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stBurn${_type}" "${_verbage}"
-		}
-
-		/call Bind_command_see burn ${_type}
-
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} Burn 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
-
+	}
 
 	| Burn Automatic on/off
-	} else /if (${_type.Equal[auto]}) {
+	/if (${_type.Equal[auto]}) {
 		/invoke ${set_switch_env[${_debug}, swBurnAuto, TRUE, ${_verbage}]}
 
 	| Burn in Raids
@@ -3422,23 +2681,27 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 
 	| force manual combat routines
 	} else /if (${_type.Equal[force]}) {
-		/if (${Target.ID} && (${Target.ID} != ${Me.ID}) && (${Target.ID} != ${Me.Pet.ID})) {
-
-			/varset stAssTarID ${Target.ID}
-
-			/if (${Me.Invis}) /makemevisible
-			/invoke ${maCC.Add[swValidAssTarID,TRUE]}
-			/invoke ${maCC.Add[swSetCombat,TRUE]}
-			/invoke ${maCC.Add[swSetForced,TRUE]}
-			/if (${swModeToken}) {
-				/invoke ${out[12, "Hunting ${dot} ${tar}${Target.DisplayName}\ax"]}
-			} else {
-				/invoke ${out[12, "/cc force ${dot} ${tar}${Target.DisplayName}\ax"]}
-			}
-			/if (${maMinion.Find[swonForce].Value}) {
-				/pet attack
-			}
+		/if (!${Target.ID} || (${Target.ID} == ${Me.ID}) || (${Target.ID} == ${Me.Pet.ID})) {
+			/return FALSE
 		}
+
+		/varset stAssTarID ${Target.ID}
+		/if (${Me.Invis}) {
+			/makemevisible
+		}
+
+		/invoke ${maCC.Add[swValidAssTarID,TRUE]}
+		/invoke ${maCC.Add[swSetCombat,TRUE]}
+		/invoke ${maCC.Add[swSetForced,TRUE]}
+		/if (${swModeToken}) {
+			/invoke ${out[12, "Hunting ${dot} ${tar}${Target.DisplayName}\ax"]}
+		} else {
+			/invoke ${out[12, "/cc force ${dot} ${tar}${Target.DisplayName}\ax"]}
+		}
+		/if (${maMinion.Find[swonForce].Value}) {
+			/pet attack
+		}
+
 		/return TRUE
 
 	| shortcut to broadcast opverride engage pct to force instant engage
@@ -3497,7 +2760,7 @@ sub Bind_command_aux(string _type, bool _debug)
 	/declare _lsout1 list local
 	/invoke ${_lsout1.Append[alto,beg,buff,build,burn,cc,crew,condition,cursor]}
 	/invoke ${_lsout1.Append[debuff,debug,edit,enter,cure,heal,home,invis,mode,minion]}
-	/invoke ${_lsout1.Append[navto,off,on,override,repeat,see,splash,take,tag,rez]}
+	/invoke ${_lsout1.Append[navto,off,on,override,repeat,see,splash,take,tag,rez,tag]}
 
 	/declare _lsout2 list local
 	/invoke ${_lsout2.Append[entropy]}
@@ -3509,11 +2772,11 @@ sub Bind_command_aux(string _type, bool _debug)
 		/if (!${sql_check[${_debug}, dummy, Bind_command_aux, SELECT]}) /endmacro
 		DEBUG dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY help_var
 		/declare _count int local 0
-		/mqclear
+		MQCLEAR
 		/echo
 		/invoke ${out[0, "\aw/aux \ax\a-w${_type.Lower}\ax"]}
 		/for _count 1 to ${sqlite.Rows[dummy]}
-			/invoke ${out[0, "${If[${sqlite.Result[dummy ${_count} help_var].Find[${_type}]},,${sqlite.Result[dummy ${_count} help_var]}${sep}]}\a-g${Parse[2,${sqlite.Result[dummy ${_count} value]}]}\ax"]}
+			/invoke ${out[0,${If[${sqlite.Result[dummy ${_count} help_var].Find[${_type}]},,${sqlite.Result[dummy ${_count} help_var]}${sep}]}\a-g${Parse[1,${sqlite.Result[dummy ${_count} value]}]}\ax]}
 		/next _count
 		/invoke ${out[18, 0, 33]}
 		/return TRUE
@@ -3543,7 +2806,7 @@ sub Bind_command_aux(string _type, bool _debug)
 
 /return TRUE
 
-/swap "Folded Pack of Wirn's Armaments" 30 TRUE
+
 
 |***
  * note: swap items. cause fuck MQ2Exchange
@@ -3594,7 +2857,7 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
 		DEBUG ${sep}\aoFROM TOPSLOT\ax /itemnotify ${_slot} leftmouseup
 		/squelch /nomodkey /shiftkey /itemnotify ${_slot} leftmouseup
 
-} else /if (${_swapslot.Arg[1,|].Equal[CURSOR]}) {
+	} else /if (${_swapslot.Arg[1,|].Equal[CURSOR]}) {
 
 	}
 
@@ -3828,13 +3091,13 @@ sub Bind_command_splash(bool _debug)
 	| paladin
 	/if (${Me.Class.ShortName.Equal[PAL]}) {
 		DEBUG ${sep}paladin splash
-		/call cast_cycle_heal ${_debug} 0 healsplash
+		/call cast_cycle_heal ${_debug} 0 splash
 	}
 
 	| cleric
 	/if (${Me.Class.ShortName.Equal[CLR]}) {
 		DEBUG ${sep}cleric splash
-		/call cast_cycle_heal ${_debug} ${Me.ID} healsplash
+		/call cast_cycle_heal ${_debug} ${Me.ID} splash
 	}
 
 /return TRUE
@@ -3886,58 +3149,50 @@ sub Bind_command_enter(string _type, bool _debug)
 
 
 |***
- * note: stack invis
+ * note: control to trigger invis AAs
  * use: /invis
  ***|
 #bind command_invis /invis
-sub Bind_command_invis(string _type, bool _debug)
+sub Bind_command_invis(bool _debug)
+	/dgexecute /AA_invis
+	/call Bind_command_invis_cast
+/return TRUE
 
-	/if (${_type.Equal[aux]}) {
-		/call Bind_command_aux invis
-		/return TRUE
-	}
+|***
+ * note: control to cast invis AAs
+ * use: /invis
+ ***|
+#bind command_invis_cast /AA_invis
+sub Bind_command_invis_cast(bool _debug)
 
-	/if (${Me.Invis}) {
-		/return TRUE
-	}
-
-	/if (${_type.Equal[all]}) {
-		/declare _group string local ${maComm.Find[stEntropyGroup_all].Value}
-	} else {
-		/declare _group string local ${set_dnet_group[FALSE]}
-	}
-
-	/if (!${Bool[${_type}]} || ${_type.Equal[all]}) {
-		DEBUG echo here
-		/if (${DanNet.PeerCount[${_group}]} > 1) {
-			/dgexecute ${_group} /invis TRUE
-			/invoke ${out[21, "${broadcast}${sep}\a-w/invis\ax (\a-r${_group}\ax)"]}
-		}
-	}
-
-	| bards can blow me
+	| fucking bards
 	/if (${Me.AltAbilityReady[Shauri's Sonorous Clouding]} && ${Select[${Me.Class.ShortName},BRD]}) {
 		/call pulse_stop
 		/call voodoo FALSE "Shauri's Sonorous Clouding" 0 FALSE
+		/return TRUE
 
 	| Invis vs Normies  casters
 	} else /if (${Me.AltAbilityReady[Group Perfected Invisibility]} && ${Select[${Me.Class.ShortName},WIZ,MAG,ENC]}) {
 		/call voodoo FALSE "Group Perfected Invisibility" 0 FALSE
+		/return TRUE
 
 	| Invis Vs undead casters
 	} else /if (${Me.AltAbilityReady[Group Perfected Invisibility to Undead]} && ${Select[${Me.Class.ShortName},CLR,SHD,NEC,PAL]}) {
 		/delay 3
 		/call voodoo FALSE "Group Perfected Invisibility to Undead" 0 FALSE
+		/return TRUE
 
 	| shaman
 	} else /if (${Me.AltAbilityReady[Group Silent Presence]} && ${Select[${Me.Class.ShortName},SHM]}) {
 		/delay 5
 		/call voodoo FALSE "Group Silent Presence" ${Me.ID} FALSE
+		/return TRUE
 
 	| rangers and druids
 	}	else /if (${Me.AltAbilityReady[Shared Camouflage]} && ${Select[${Me.Class.ShortName},RNG,DRU]}) {
 		/delay 15
 		/call voodoo FALSE "Shared Camouflage" 0 FALSE
+		/return
 	}
 
 /return TRUE
@@ -4491,10 +3746,10 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 
 					| OUTPUT TO THE INI
 					/if (${_limaps.Value.Equal[maCondition]}) {
-						/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition ORDER BY ROWID
-						/for _count 1 to ${sqlite.Rows[dummy]}
-							/ini "${_fqn}" ${_limaps.Value} "${sqlite.Result[dummy ${_count} env_var]}" "${Parse[2,${sqlite.Result[dummy ${_count} value]}]}"
-						/next _count
+						| /sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition ORDER BY ROWID
+						| /for _count 1 to ${sqlite.Rows[dummy]}
+						| 	/ini "${_fqn}" ${_limaps.Value} "${sqlite.Result[dummy ${_count} env_var]}" "${Parse[2,${sqlite.Result[dummy ${_count} value]}]}"
+						| /next _count
 					} else {
 						/ini "${_fqn}" ${_limaps.Value} "${_mi.Key}" "${Parse[1,${_mi.Value}]}"
 					}
@@ -4534,13 +3789,13 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 			/echo \at...\ax\a-w${_section}\ax
 
 			/if (${_section.Equal[maCondition]}) {
-				/for _countK 1 to ${Ini[${_fqn},${_section}].Count[|]}
-					/varset _key ${Ini[${_fqn},${_section} ].Arg[${_countK},|]}
-					/if (${Select[${_key},NULL]}) /continue
-						/varset _value ${Ini[${_fqn},${_section},${Parse[1,${_key}]},noparse]}
-						DEBUG ${sep}dummy UPDATE environment_condition SET value="${Parse[1,${_value}]}" WHERE env_var="${_key}"
-						/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE environment_condition SET value="${Parse[1,${_value}]}" WHERE env_var="${_key}"
-					/next _countK
+				| /for _countK 1 to ${Ini[${_fqn},${_section}].Count[|]}
+				| 	/varset _key ${Ini[${_fqn},${_section} ].Arg[${_countK},|]}
+				| 	/if (${Select[${_key},NULL]}) /continue
+				| 		/varset _value ${Ini[${_fqn},${_section},${Parse[1,${_key}]},noparse]}
+				| 		DEBUG ${sep}dummy UPDATE environment_condition SET value="${Parse[1,${_value}]}" WHERE env_var="${_key}"
+				| 		/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE environment_condition SET value="${Parse[1,${_value}]}" WHERE env_var="${_key}"
+				| 	/next _countK
 			} else {
 				/for _countK 1 to ${Ini[${_fqn},${_section}].Count[|]}
 					/varset _key ${Ini[${_fqn},${_section} ].Arg[${_countK},|]}
@@ -4588,9 +3843,6 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 					} else /if (${_liset.Value.Equal[spellset]}) {
 						/squelch /memspellset ${Ini[${maData.Find[INIset].Value},${_nickname},${_liset.Value}]}
 					}
-
-
-
 				} else {
 					/call do_raw_edit ${_debug} SILENT ${_liset.Value} ${Ini[${maData.Find[INIset].Value},${_nickname},${_liset.Value}]}
 				}
@@ -4731,6 +3983,24 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 	} else /if (${_type.Equal[pet]}) {
 		/invoke ${set_switch_env[${_debug}, swPet, TRUE, ${_verbage}]}
 
+		| turn off pet charming
+	  /if (${maMinion.Find[swPet].Value} && ${Select[${Me.Class.ShortName},ENC,DRU,MAG,NEC]}) {
+	  	/if (${maMinion.Find[swPetCharm].Value}) {
+	  		/invoke ${set_switch_env[${_debug}, swPetCharm, TRUE, FALSE]}
+	  	}
+	  }
+
+	| enable charm pet use
+	} else /if (${_type.Equal[charm]} && ${Select[${Me.Class.ShortName},ENC,DRU,MAG,NEC]}) {
+		/invoke ${set_switch_env[${_debug}, swPetCharm, TRUE, ${_verbage}]}
+
+		| turn off pet charming
+	  /if (${maMinion.Find[swPetCharm].Value}) {
+	  	/if (${maMinion.Find[swPet].Value}) {
+	  		/invoke ${set_switch_env[${_debug}, swPet, TRUE, FALSE]}
+	  	}
+	  }
+
 	| enable swarm pets
 	} else /if (${_type.Equal[swarm]}) {
 		/invoke ${set_switch_env[${_debug}, swSwarm, TRUE, ${_verbage}]}
@@ -4790,6 +4060,9 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 	/invoke ${maControl.Add[type,stPetType|br]}
 	/invoke ${maControl.Add[illusion,stPetIllusion|br]}
 	/invoke ${maControl.Add[pet,swPet]}
+  /if (${Select[${Me.Class.ShortName},ENC,DRU,MAG,NEC]}) {
+		/invoke ${maControl.Add[charm,swPetCharm]}
+	}
 	/invoke ${maControl.Add[buff,swPetBuff]}
 	/invoke ${maControl.Add[shrink,submenu]}
 	/invoke ${maControl.Add[engage,stPctPetEngage]}
@@ -5118,41 +4391,24 @@ sub Bind_control_grain(string _num, bool _debug)
 
 
 |***
- * note: condition editing shortcut
+ * note: condition LISTING (REMOVE THIS IN A MONTH OR TWO) 6/30/2020
  * use: /condition # "code"
  ***|
-#bind_noparse command_condition /condition
-sub Bind_noparse_command_condition(string _type, string _verbage, bool _debug)
-	DEBUG \atBind_noparse_command_condition\ax(\a-w${_type}, ${Parse[1,${_verbage}]}\ax)
+#bind command_condition /condition
+sub Bind_command_condition()
 
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maCondition
-		/return
-	} else /if (${_type.Equal[aux]}) {
-		/call Bind_command_aux condition
-		/return
+	/declare _count int local 0
 
-	} else /if (${_type.Equal[list]}) {
-		/call Bind_command_see condition list
-		/return	TRUE
-	}
-
-	/if (${Range.Between[1,50:${Int[${_type}]}]}) {
-
-		/if (${_verbage.Equal[clear]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "c${_type}" "FALSE"
-
-		} else /if (${Bool[${_verbage}]}) {
-
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "c${_type}" "${Parse[1, ${_verbage}]}"
-			DEBUG ${sep}do_raw_edit ${maDebug.Find[edit].Value} SILENT c${_type} "${Parse[1,${_verbage}]}"
-		}
-
-		/echo
-		/call Bind_command_see condition ${_type}
-
-	}
+	/echo
+	/invoke ${out[12, "\awCondition List\ax${sep}"]}
+	/for _count 1 to 50
+		/sqlite query ${maData.Find[DBcharacter].Value} condition SELECT value FROM environment_condition WHERE env_var="c${_count}"
+		/if (!${sql_check[FALSE, condition, Bind_command_see, SELECT]}) /endmacro
+		/if (${Parse[1,${sqlite.Result[condition 1 value].Equal[FALSE]}]}) /continue
+		OUT \awc${_count}\ax${sep}\a-w${Parse[1,${sqlite.Result[condition 1 value]}]}\ax
+	/next _count
+	/invoke ${out[18, 0, 33]}
+	/return
 
 /return TRUE
 
@@ -5164,48 +4420,11 @@ sub Bind_noparse_command_condition(string _type, string _verbage, bool _debug)
  ***|
 #bind control_clickitem /clickitem
 sub Bind_control_clickitem(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+	DEBUG \atBind_control_clickitem\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maItem ${_verbage}
-		/return
-	} else /if (${_type.Equal[aux]}) {
-		/call Bind_command_aux item ${_verbage}
-		/return
-
-	} else /if (${_type.Equal[list]}) {
-		/call Bind_command_see item list
-		/return	TRUE
-
-	| item number entered
-	} else /if (${Range.Between[1,20:${Int[${_type}]}]}) {
-
-		| see the item
-		/if (${_verbage.Equal[see]}) {
-			/call Bind_command_see item ${_type}
-			/return
-		}
-
-		/if ((!${Bool[${_verbage}]} || ${Select[${_verbage},on,off]}) && ${_verbage.NotEqual[FALSE]}) {
-			/invoke ${set_switch_env[${_debug}, swItem${_type}, TRUE, ${_verbage}]}
-			/invoke ${out[12, "\awItem${_type}\ax${sep}${If[${maItem.Find[swItem${_type}].Value},${on},${off}]}${sep}\a-w${maItem.Find[stItem${_type}].Value}\ax"]}
-			/return TRUE
-		} else /if (${Select[${_verbage},clear]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swItem${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stItem${_type}Con" "0"
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stItem${_type}Alias" clear
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stItem${_type}" FALSE
-		} else /if (${Select[${_verbage},con]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stItem${_type}Con" "${_verbage2}"
-		} else /if (${Select[${_verbage},tag]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsItem${_type}Tag" "${_verbage2}" ${_add_delete}
-		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
-			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stItem${_type}" "${_verbage}"
-		}
-
-		/call Bind_command_see item ${_type}
-
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} Item 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+		/return TRUE
 	}
 
 /return TRUE
@@ -5218,52 +4437,14 @@ sub Bind_control_clickitem(string _type, string _verbage, string _verbage2, stri
  ***|
 #bind control_defense /defense
 sub Bind_control_defense(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+	DEBUG \atcontrol_defense\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maDefense
-		/return
-	} else /if (${_type.Equal[aux]}) {
-		/call Bind_command_aux defense
-		/return
-
-	} else /if (${_type.Equal[list]}) {
-		/call Bind_command_see defense list
-		/return	TRUE
-
-	| defense number entered
-	} else /if (${Range.Between[1,20:${Int[${_type}]}]}) {
-
-		| see the defensive #
-		/if (${_verbage.Equal[see]}) {
-			/call Bind_command_see defense ${_type}
-			/return
-		}
-
-		/if ((!${Bool[${_verbage}]} || ${Select[${_verbage},on,off]}) && ${_verbage.NotEqual[FALSE]}) {
-			/invoke ${set_switch_env[${_debug}, swDefense${_type}, TRUE, ${_verbage}]}
-			/invoke ${out[12, "\awDefense${_type}\ax${sep}${If[${maDefense.Find[swDefense${_type}].Value},${on},${off}]}${sep}\a-w${maDefense.Find[stDefense${_type}].Value}\ax"]}
-			/return TRUE
-		} else /if (${Select[${_verbage},clear]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swDefense${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stDefense${_type}Con" "0"
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stDefense${_type}Alias" clear
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stDefense${_type}" FALSE
-		} else /if (${Select[${_verbage},con]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stDefense${_type}Con" "${_verbage2}"
-		} else /if (${Select[${_verbage},tag]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsDefense${_type}Tag" "${_verbage2}" ${_add_delete}
-		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
-			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stDefense${_type}" "${_verbage}"
-		}
-
-		/call Bind_command_see defense ${_type}
-
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} Defense 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
+	}
 
-	| count of mobs to activate defensive
-	} else /if (${_type.Equal[count]}) {
+	/if (${_type.Equal[count]}) {
 		/if (!${set_control_num_range[${_debug}, stCountDef, "${_verbage}", 0, 99]}) /return
 
 	| pct of health to activate defensive
@@ -5326,58 +4507,16 @@ sub Bind_control_TTL(string _type, string _verbage, string _silent, bool _debug)
  * use:
  ***|
 #Bind control_nuke /nuke
-sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
-	DEBUG \atcontrol_nuke\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+	DEBUG \atcontrol_nuke\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maNuke ${_verbage}
-		/return
-	} else /if (${_type.Equal[aux]}) {
-		/call Bind_command_aux nuke ${_verbage}
-		/return
-
-	} else /if (${_type.Equal[list]}) {
-		/call Bind_command_see nuke list
-		/return	TRUE
-
-	| heal number entered
-	} else /if (${Range.Between[1,20:${Int[${_type}]}]}) {
-
-		| see the nuke #
-		/if (${_verbage.Equal[see]}) {
-			/call Bind_command_see nuke ${_type}
-			/return
-		}
-
-		/if ((!${Bool[${_verbage}]} || ${Select[${_verbage},on,off]}) && ${_verbage.NotEqual[FALSE]}) {
-			/invoke ${set_switch_env[${_debug}, swNuke${_type}, TRUE, ${_verbage}]}
-			/invoke ${out[12, "\awNuke${_type}\ax${sep}${If[${maNuke.Find[swNuke${_type}].Value},${on},${off}]}${sep}\a-w${maNuke.Find[stNuke${_type}].Value}\ax"]}
-			/return TRUE
-
-		} else /if (${Select[${_verbage},clear]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swNuke${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stNuke${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stNuke${_type}Con" "0"
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsNuke${_type}Tag" clear
-
-		} else /if (${Select[${_verbage},con]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stNuke${_type}Con" "${_verbage2}"
-
-		} else /if (${Select[${_verbage},tag]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsNuke${_type}Tag" ${_verbage2} ${_silent}
-
-		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
-			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stNuke${_type}" "${_verbage}"
-		}
-
-		/call Bind_command_see nuke ${_type}
-
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} Nuke 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
+	}
 
 	| set stop nuke %
-	} else /if (${_type.Equal[pctstop]}) {
+	/if (${_type.Equal[pctstop]}) {
 		/if (!${set_control_num_range[${_debug}, stPctStopNuke, "${_verbage}", 0, 99]}) /return
 
 	| delay in nuking
@@ -5385,7 +4524,6 @@ sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _s
 		/if (!${set_control_num_range[${_debug}, stNukeDelay, "${_verbage}", 0, 100]}) /return
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[pctstop,stPctStopNuke]}
 	/invoke ${maControl.Add[delay,stNukeDelay]}
@@ -5400,57 +4538,16 @@ sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _s
  * use:
  ***|
 #Bind control_dot /dot
-sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
-	DEBUG \atcontrol_dor\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+	DEBUG \atcontrol_dor\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\\ax)
 
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maDoT ${_verbage}
-		/return
-	} else /if (${_type.Equal[aux]}) {
-		/call Bind_command_aux dot ${_verbage}
-		/return
-
-	} else /if (${_type.Equal[list]}) {
-		/call Bind_command_see dot list
-		/return	TRUE
-
-	| heal number entered
-	} else /if (${Range.Between[1,20:${Int[${_type}]}]}) {
-
-		| see the nuke #
-		/if (${_verbage.Equal[see]}) {
-			/call Bind_command_see dot ${_type}
-			/return
-		}
-
-		/if ((!${Bool[${_verbage}]} || ${Select[${_verbage},on,off]}) && ${_verbage.NotEqual[FALSE]}) {
-			/invoke ${set_switch_env[${_debug}, swDoT${_type}, TRUE, ${_verbage}]}
-			/invoke ${out[12, "\awDoT${_type}\ax${sep}${If[${maDoT.Find[swDoT${_type}].Value},${on},${off}]}${sep}\a-w${maDoT.Find[stDoT${_type}].Value}\ax"]}
-			/return TRUE
-
-		} else /if (${Select[${_verbage},clear]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swDoT${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stDoT${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stDoT${_type}Con" "0"
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsDoT${_type}Tag" clear
-
-		} else /if (${Select[${_verbage},con]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stDoT${_type}Con" "${_verbage2}"
-
-		} else /if (${Select[${_verbage},tag]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsDoT${_type}Tag" ${_verbage2} ${_silent}
-
-		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stDoT${_type}" "${_verbage}"
-		}
-
-		/call Bind_command_see dot ${_type}
-
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} DoT 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
+	}
 
 	| set stop nuke %
-	} else /if (${_type.Equal[pctstop]}) {
+	/if (${_type.Equal[pctstop]}) {
 		/if (!${set_control_num_range[${_debug}, stPctStopDoT, "${_verbage}", 0, 99]}) /return
 
 	| set dot refresh time in seconds
@@ -5459,7 +4556,6 @@ sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _si
 
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[pctstop,stPctStopDoT]}
 	/invoke ${maControl.Add[refresh,stDotRefresh]}
@@ -5474,61 +4570,17 @@ sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _si
  * use:
  ***|
 #Bind control_agro /agro
-sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
-	DEBUG \atcontrol_agro\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+	DEBUG \atcontrol_agro\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
 	/if (ENGINE1) {
-		/invoke ${out[0, "/agro is only available with engine 2 enabled."]}
+		/invoke ${out[0, "/agro is only available with engine 2/3 enabled."]}
 		/return FALSE
 	}
 
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maAgro ${_verbage}
-		/return
-	} else /if (${_type.Equal[aux]}) {
-		/call Bind_command_aux agro ${_verbage}
-		/return
-
-	} else /if (${_type.Equal[list]}) {
-		/call Bind_command_see agro list
-		/return	TRUE
-
-	| heal number entered
-	} else /if (${Range.Between[1,20:${Int[${_type}]}]}) {
-
-		| see the agro #
-		/if (${_verbage.Equal[see]}) {
-			/call Bind_command_see agro ${_type}
-			/return
-		}
-
-		/if ((!${Bool[${_verbage}]} || ${Select[${_verbage},on,off]}) && ${_verbage.NotEqual[FALSE]}) {
-			/invoke ${set_switch_env[${_debug}, swAgro${_type}, TRUE, ${_verbage}]}
-			/invoke ${out[12, "\awAgro${_type}\ax${sep}${If[${maAgro.Find[swAgro${_type}].Value},${on},${off}]}${sep}\a-w${maAgro.Find[stAgro${_type}].Value}\ax"]}
-			/return TRUE
-
-		} else /if (${Select[${_verbage},clear]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swAgro${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stAgro${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stAgro${_type}Con" "0"
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsAgro${_type}Tag" clear
-
-		} else /if (${Select[${_verbage},con]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stAgro${_type}Con" "${_verbage2}"
-
-		} else /if (${Select[${_verbage},tag]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsAgro${_type}Tag" ${_verbage2} ${_silent}
-
-		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
-			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stAgro${_type}" "${_verbage}"
-		}
-
-		/call Bind_command_see agro ${_type}
-
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} Agro 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
-
 	}
 
 /return	TRUE
@@ -5540,62 +4592,19 @@ sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _s
  * use:
  ***|
 #Bind control_miscdps /miscdps
-sub Bind_control_miscdps(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
-	DEBUG \atcontrol_miscdps\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+sub Bind_control_miscdps(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+	DEBUG \atcontrol_miscdps\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
 	/if (ENGINE1) {
-		/invoke ${out[0, "/miscdps is only available with engine 2 enabled."]}
+		/invoke ${out[0, "/miscdps is only available with engine 2/3 enabled."]}
 		/return FALSE
 	}
 
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maMiscDPS ${_verbage}
-		/return
-	} else /if (${_type.Equal[aux]}) {
-		/call Bind_command_aux miscdps ${_verbage}
-		/return
-
-	} else /if (${_type.Equal[list]}) {
-		/call Bind_command_see miscdps list
-		/return	TRUE
-
-	| heal number entered
-	} else /if (${Range.Between[1,50:${Int[${_type}]}]}) {
-
-		| see the miscdps #
-		/if (${_verbage.Equal[see]}) {
-			/call Bind_command_see miscdps ${_type}
-			/return
-		}
-
-		/if ((!${Bool[${_verbage}]} || ${Select[${_verbage},on,off]}) && ${_verbage.NotEqual[FALSE]}) {
-			/invoke ${set_switch_env[${_debug}, swMiscDPS${_type}, TRUE, ${_verbage}]}
-			/invoke ${out[12, "\awMiscDPS${_type}\ax${sep}${If[${maMiscDPS.Find[swMiscDPS${_type}].Value},${on},${off}]}${sep}\a-w${maMiscDPS.Find[stMiscDPS${_type}].Value}\ax"]}
-			/return TRUE
-
-		} else /if (${Select[${_verbage},clear]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swMiscDPS${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stMiscDPS${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stMiscDPS${_type}Con" "0"
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsMiscDPS${_type}Tag" clear
-
-		} else /if (${Select[${_verbage},con]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stMiscDPS${_type}Con" "${_verbage2}"
-
-		} else /if (${Select[${_verbage},tag]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsMiscDPS${_type}Tag" ${_verbage2} ${_silent}
-
-		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
-			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stMiscDPS${_type}" "${_verbage}"
-		}
-
-		/call Bind_command_see miscdps ${_type}
-
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} MiscDPS 50 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
-
 	}
+
 
 /return	TRUE
 
@@ -5606,113 +4615,20 @@ sub Bind_control_miscdps(string _type, string _verbage, string _verbage2, string
  * use:
  ***|
 #Bind control_song /song
-sub Bind_control_song(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
-	DEBUG \atcontrol_song\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+sub Bind_control_song(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+	DEBUG \atcontrol_song\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
 	/if (!${Select[${Me.Class.ShortName},BRD]}) {
 		/invoke ${out[0, "You are not a bard.. Might think you are.. but.."]}
 		/return FALSE
 	}
 
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maSong ${_verbage}
-		/return
-	} else /if (${_type.Equal[aux]}) {
-		/call Bind_command_aux song ${_verbage}
-		/return
-
-	} else /if (${_type.Equal[list]}) {
-		/call Bind_command_see song list
-		/return	TRUE
-
-	| heal number entered
-	} else /if (${Range.Between[1,50:${Int[${_type}]}]}) {
-
-		| see the #
-		/if (${_verbage.Equal[see]}) {
-			/call Bind_command_see song ${_type}
-			/return
-		}
-
-		/if ((!${Bool[${_verbage}]} || ${Select[${_verbage},on,off]}) && ${_verbage.NotEqual[FALSE]}) {
-			/invoke ${set_switch_env[${_debug}, swSong${_type}, TRUE, ${_verbage}]}
-			/invoke ${out[12, "\awSong${_type}\ax${sep}${If[${maSong.Find[swSong${_type}].Value},${on},${off}]}${sep}\a-w${maSong.Find[stSong${_type}].Value}\ax"]}
-			/return TRUE
-
-		} else /if (${Select[${_verbage},clear]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swSong${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSong${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSong${_type}Con" "0"
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsSong${_type}Tag" clear
-
-		} else /if (${Select[${_verbage},con]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSong${_type}Con" "${_verbage2}"
-
-		} else /if (${Select[${_verbage},tag]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsSong${_type}Tag" ${_verbage2} ${_silent}
-
-		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
-			/if (!${validate_input[${maDebug.Find[edit].Value}, control, "${_verbage}"]}) /return FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSong${_type}" "${_verbage}"
-		}
-
-		/call Bind_command_see song ${_type}
-
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} Song 50 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
-
 	}
 
 /return	TRUE
-
-
-
-|***
- * note: simple line adjustment command
- * use: /line [type] #|#|#|#|#|#|# and so on
- ***|
-#bind command_line /line
-sub Bind_command_line(string _type, string _line)
-
-	/declare lsControl list local
-	/invoke ${lsControl.Append[nuke,song,dot,heal,item,miscdps,agro,defense,burn]}
-
-	| error control
-	/if (!${lsControl.Contains[${_type}]}) {
-		/if (ENGINE1) {
-			/invoke ${out[0, "/line \awnuke\ax|\awdot\ax|\awsong\ax|\awheal\ax|\awdefense\ax \aw#|#|#|#|#\ax"]}
-		} else /if (ENGINE2) {
-			/invoke ${out[0, "/line \awnuke\ax|\awdot\ax|\awsong\ax|\awheal\ax|\awdefense\ax|\awagro\ax|\awmiscdps\ax|\awburn\ax \aw#|#|#|#|#\ax"]}
-		}
-		/return FALSE
-	}
-
-	/declare _type_env string local ${_type}
-
-	| adjust to proper case
-	/if (${Select[${_type},nuke,song,heal,item,miscdps,defense]}) {
-		/varset _type ${_type.Left[1].Upper}${_type.Right[-1].Lower}
-	} else /if (${Select[${_type},dot]}) {
-		/varset _type DoT
-	}
-
-	| output control map
-	/if (${_line.Equal[see]}) {
-		/call Bind_command_see lsLine${_type}
-		/return
-	} else /if (${_line.Equal[aux]}) {
-		/call Bind_command_aux line
-		/return
-	}
-
-	| clear the current line data
-	/invoke ${lsLine${_type}.Clear}
-	/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE environment_${_type_env} SET value="EMPTY" WHERE env_var="lsLine${_type}"
-
-	| add the new data
-	/call do_raw_edit FALSE TRUE lsLine${_type} ${_line} add
-
-/return TRUE
 
 
 
@@ -5721,70 +4637,26 @@ sub Bind_command_line(string _type, string _line)
  * use:
  ***|
 #Bind control_sash /sash
-sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
-	DEBUG \atcontrol_sash\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+	DEBUG \atcontrol_sash\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maSash ${_verbage}
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} Sash 12 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
-	} else /if (${_type.Equal[aux]}) {
-		/call Bind_command_aux sash ${_verbage}
-		/return TRUE
-
-	} else /if (${_type.Equal[list]}) {
-		/call Bind_command_see sash list
-		/return	TRUE
-
-	| bandolier # entered
-	} else /if (${Range.Between[1,12:${Int[${_type}]}]}) {
-
-		| see the sash #
-		/if (${_verbage.Equal[see]}) {
-			/call Bind_command_see sash ${_type}
-			/return TRUE
-		}
-
-		/if ((!${Bool[${_verbage}]} || ${Select[${_verbage},on,off]}) && ${_verbage.NotEqual[FALSE]}) {
-			/invoke ${set_switch_env[${maDebug.Find[edit].Value}, swSash${_type}, TRUE, ${_verbage}]}
-			/invoke ${out[12, "\awSash${_type}\ax${sep}${If[${maSash.Find[swSash${_type}].Value},${on},${off}]}${sep}\a-w${maSash.Find[stSash${_type}].Value}\ax"]}
-			/return TRUE
-
-		} else /if (${Select[${_verbage},clear]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "swSash${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSash${_type}" FALSE
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSash${_type}Con" "0"
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsSash${_type}Tag" clear
-
-		} else /if (${Select[${_verbage},con]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSash${_type}Con" "${_verbage}"
-
-		} else /if (${Select[${_verbage},tag]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "lsSash${_type}Tag" ${_verbage} ${_silent}
-
-		} else /if (${Bool[${_verbage}]} && !${Select[${_verbage},con,tag,clear]}) {
-			/call do_raw_edit ${maDebug.Find[edit].Value} SILENT "stSash${_type}" "${_verbage}"
-		}
-
-		/call Bind_command_see sash ${_type}
-
-		/return TRUE
+	}
 
 	| procing weapon swaps
-	} else /if (${_type.Equal[proc]}) {
+	/if (${_type.Equal[proc]}) {
 		/if (${_verbage.Equal[use]}) {
 			/invoke ${set_switch_env[${maDebug.Find[edit].Value}, swSashProc, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[name]}) {
 			/invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stSashProc, "${_verbage2}"]}
 		}
-		/if (${_silent.Equal[SILENT]}) /return
 		/invoke ${maControl.Clear}
 		/invoke ${maControl.Add[use,swSashProc]}
 		/invoke ${maControl.Add[name,stSashProc|br]}
 		/invoke ${set_control_output[${_debug}, maSash, "sash proc", maControl]}
 		/return TRUE
-
-
 
 	} else /if (${_type.Equal[use]}) {
 		/invoke ${set_switch_env[${_debug}, swSash, TRUE, ${_verbage}]}
@@ -5799,7 +4671,6 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _s
 			/invoke ${do_raw_edit[${_debug}, SILENT, stSashShieldFlash, "${_verbage2}"]}
 		}
 
-		/if (${_silent.Equal[SILENT]}) /return
 		/invoke ${maControl.Clear}
 		/invoke ${maControl.Add[pct,stPctShieldFlash]}
 		/invoke ${maControl.Add[count,stCountShieldFlash]}
@@ -5809,7 +4680,6 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _s
 
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[use,swSash]}
 	/invoke ${maControl.Add[proc,submenu]}
@@ -5876,6 +4746,7 @@ sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _s
 		} else /if (${_verbage.Equal[corruption]}) {
 			/invoke ${do_raw_edit[FALSE, SILENT, stCureCorruption, "${_verbage2}"]}
 		}
+
 		/if (${_silent.Equal[SILENT]}) /return
 		/invoke ${maControl.Clear}
 		/invoke ${maControl.Add[curse,stCureCurse|br]}
@@ -5887,7 +4758,7 @@ sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _s
 	}
 
 	| set observers
-	/if (${maHeal.Find[swHealCureSelf].Value} || ${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value}) {
+	/if (${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value}) {
 		/call set_observers FALSE maCure add FALSE
 	} else /if (!${maHeal.Find[swHealCureSelf].Value} && !${maHeal.Find[swHealCureGroup].Value} && !${maHeal.Find[swHealCureCrew].Value}) {
 		/call set_observers FALSE maCure drop FALSE
@@ -5966,7 +4837,6 @@ sub control_pred(bool _debug)
 	DEBUG \atcontrol_pred\ax()
 	FLOW control_pred (1)
 
-
 	| nothing to check
 	/if (!${Bool[${maPred.Find[stPredID].Value}]}) {
 		/return FALSE
@@ -5996,15 +4866,12 @@ sub control_pred(bool _debug)
 		}
 	}
 
-
 	| start class predictions
 	/if (${maPred.Find[swPredPrepClass].Value} && ${Defined[prediction_${Me.Class.ShortName}]}) {
 		/call prediction_${Me.Class.ShortName} ${maDebug.Find[pred].Value}
 	}
 
 /return TRUE
-
-
 
 
 
@@ -6053,7 +4920,170 @@ sub Bind_control_mercenary(string _type, string _verbage, string _silent, bool _
 
 
 
+|***
+ * note: tag editor
+ * use:
+ ***|
+#bind_noparse	tag	/tag
+sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval)
+	/declare _debug	bool local FALSE
+	DEBUG	\atBind_noparse_tag\ax(\a-w${_grouping}, ${_tagname},	${Parse[1,${_eval}]}\ax)
 
 
+	/if (${_grouping.Equal[aux]}) {
+		/call Bind_command_aux tag
+	}
+
+	/declare _count	int	local	0
+
+
+	| delete a tag or a validate
+	/if	(${_eval.Equal[delete]}	|| ${_tagname.Equal[delete]})	{
+
+		| delete the tag_validate
+		/if	(${_eval.Equal[delete]}) {
+			DEBUG	${sep}delete tag_validate${sep}\a-w${_grouping}, ${_tagname}\ax
+
+			| see	if it	is even	there?
+			/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	*	FROM tag_validate	LEFT JOIN	tag	ON tag_validate.tag	=	tag.id LEFT	JOIN tag_group ON	tag_validate.grouping	=	tag_group.id WHERE tag_group.grouping	=	"${_grouping}" AND tag.name	=	"${_tagname}"	AND	tag_validate.created_by	<> 1
+
+			/if	(!${sqlite.Rows[dummy]}) {
+				OUT	Something	is invalid${sep}\a-w${_grouping},	${_tagname}\ax
+				/return	FALSE
+			}
+
+			| delete the bastard
+			/sqlite	query	${maData.Find[DBshared].Value} dummy DELETE	FROM tag_validate	WHERE	tag	IN (SELECT tag.id	FROM tag WHERE tag.name	=	"${_tagname}") AND grouping	=	(SELECT	tag_group.id FROM	tag_group	WHERE	tag_group.grouping = "${_grouping}") AND created_by	<> 1
+			OUT	Evaluation Deleted${sep}\a-w${_grouping},	${_tagname}\ax
+
+		}
+
+		| delete the tag
+		/if	(${_tagname.Equal[delete]})	{
+			SDEBUG ${sep}delete	tag${sep}\a-w${_grouping}\ax
+
+			| see	if the tag is	there
+			/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	*	FROM tag WHERE tag.name	=	"${_grouping}" AND created_by	<> 1
+			/if	(!${sqlite.Rows[dummy]}) {
+				OUT	Something	is invalid${sep}\a-w${_grouping}\ax
+				/return	FALSE
+			}
+
+			| make sure	the	tag	isn't	being	used somewhere?!
+			/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by FROM	tag_validate WHERE tag=(SELECT id	FROM tag WHERE name="${_grouping}")	AND	created_by <>	1
+
+			/if	(${sqlite.Rows[dummy]})	{
+				OUT	Tag	is currently attached	to an	evaluation${sep}\a-w${_grouping}\ax
+				OUT	Delete all associated	evaluations	before deleting	a	tag	name.
+				/return	FALSE
+			}
+
+			| delete it, now that	we are passed	the	checks
+			/sqlite	query	${maData.Find[DBshared].Value} dummy DELETE	FROM tag WHERE tag.name	=	"${_grouping}" AND created_by	<> 1
+			OUT	Tag	Deleted${sep}\a-w${_grouping}\ax
+
+			/return	TRUE
+		}
+	}
+
+	| help / lists
+	/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	grouping FROM	tag_group	WHERE	grouping="${_grouping}"
+
+	/if	(!${sqlite.Rows[dummy]}	&& !${Select[${_grouping},list,see]})	{
+		/echo
+		OUT	To create	a	tag	with an	evaluation${sep}\a-w/tag groupname tagname "evaluation"\ax
+		OUT	\arDO	NOT\ax use all uppercase in	tagname	or groupname
+		OUT	To delete	an evaluation${sep}\a-w/tag	groupname	tagname	delete\ax
+		OUT	To delete	a	tag${sep}\a-w/tag	tagname	delete\ax
+		/declare _out	string local
+		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	grouping FROM	tag_group
+		/for _count	1	to ${sqlite.Rows[dummy]}
+			/varset	_out ${_out} ${dot}	\a-w${sqlite.Result[dummy	${_count}	grouping]}\ax
+		/next	_count
+		OUT	Available	Groups ${_out}
+		/return	FALSE
+	}
+
+
+	/if	(!${sqlite.Rows[dummy]}	|| ${Select[${_grouping},list,see]}) {
+		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	tag_group.grouping,	tag.name,	tag_validate.created_by, tag_validate.eval,	tag_validate.aux FROM	tag_validate LEFT	JOIN tag ON	tag_validate.tag = tag.id	LEFT JOIN	tag_group	ON tag_validate.grouping = tag_group.id	ORDER	BY tag_group.grouping, tag.name
+		/if	(${Select[${_grouping},list,see]}	&& !${Bool[${_tagname}]})	{
+			/for _count	1	to ${sqlite.Rows[dummy]}
+				/if	(${Parse[99,${sqlite.Result[dummy	${_count}	eval].Find[::]}]}) {
+					OUT	\aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}\a-o${sqlite.Result[dummy	${_count}	name]}\ax${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} aux]}]}\ax
+				}	else {
+					OUT	\aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}${If[${sqlite.Result[dummy ${_count} created_by].Equal[1]},\a-g${sqlite.Result[dummy ${_count} name]}\ax,\at${sqlite.Result[dummy	${_count}	name]}\ax]}${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} eval]}]}\ax
+				}
+			/next	_count
+			/invoke	${out[18,	0, 33]}
+			/return	FALSE
+
+		}	else /if (${Select[${_grouping},list,see]} &&	${Range.Between[1,2:${Int[${_tagname}]}]})	{
+			/for _count	1	to ${sqlite.Rows[dummy]}
+				/if	(${sqlite.Result[dummy ${_count} created_by].Equal[${_tagname}]}) {
+					OUT	\aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}${If[${sqlite.Result[dummy ${_count} created_by].Equal[1]},\a-g${sqlite.Result[dummy ${_count} name]}\ax,\at${sqlite.Result[dummy	${_count}	name]}\ax]}${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} eval]}]}\ax
+				}
+			/next	_count
+			/invoke	${out[18,	0, 33]}
+			/return	FALSE
+
+
+		}	else /if (${Select[${_grouping},list,see]} &&	${Bool[${_tagname}]})	{
+			/for _count	1	to ${sqlite.Rows[dummy]}
+				/if	(${sqlite.Result[dummy ${_count} grouping].NotEqual[${_tagname}]}) /continue
+
+				/if	(${Parse[99,${sqlite.Result[dummy	${_count}	eval].Find[::]}]}) {
+					OUT	\aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}\a-o${sqlite.Result[dummy	${_count}	name]}\ax${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} aux]}]}\ax
+				}	else {
+					OUT	\aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}${If[${sqlite.Result[dummy ${_count} created_by].Equal[1]},\a-g${sqlite.Result[dummy ${_count} name]}\ax,\at${sqlite.Result[dummy	${_count}	name]}\ax]}${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} eval]}]}\ax
+				}
+				/next	_count
+			/invoke	${out[18,	0, 33]}
+			/return	FALSE
+		}
+		/return	FALSE
+	}
+
+	| create the tag first
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	INTO tag (name,	created_by)	VALUES ("${_tagname}", 2)
+
+	| check	if what	they want	to do	is trying	to overwrite the defaults?
+	/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'1'
+	/if	(!${sql_check[FALSE, dummy,	Bind_noparse_tag,	"SELECT	(created_by)"]}) /endmacro
+
+	/if	(${sqlite.Rows[dummy]})	{
+		/if	(${Select[${sqlite.Result[dummy	1	created_by]},1]})	{
+			OUT	Tag	Exists${sep}\aw${_grouping}\ax${sep}\ag${_tagname}\ax	(\arDo not edit	default	tags\ax)
+			/return	FALSE
+		}
+	}
+
+	| see	if what	we are trying	to make	is there?
+	/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'2'
+
+	| if it	is there,	we update	the	current	one
+	/if	(${sqlite.Rows[dummy]})	{
+		| tag	exists,	update
+		/sqlite	query	${maData.Find[DBshared].Value} dummy UPDATE	tag_validate SET eval="${Parse[1,${_eval}]}" WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping="${_grouping}") AND tag=(SELECT id	FROM tag WHERE name="${_tagname}")
+		/if	(!${sql_check[${_debug}, dummy,	Bind_noparse_tag,	"UPDATE	(tag_validate)"]}) /endmacro
+
+		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'2'
+		OUT	Evaluation Updated${sep}\aw${_grouping}\ax${sep}${If[${sqlite.Result[dummy 1 created_by].Equal[1]},\aw${_tagname}\ax,\at${_tagname}\ax]}${sep}\a-w${Parse[1,${_eval}]}\ax
+		/return	TRUE
+
+	| if its not there,	we create/insert a new on
+	}	else /if (!${sqlite.Rows[dummy]})	{
+		| insert
+		/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	INTO tag_validate	(tag,	grouping,	eval,	created_by)	SELECT tag.id, tag_group.id, "${Parse[1,${_eval}]}", 2 FROM	tag	CROSS	JOIN tag_group WHERE tag.name="${_tagname}"	AND	tag_group.grouping="${_grouping}"	LIMIT	1
+		/if	(!${sql_check[${_debug}, dummy,	Bind_noparse_tag,	"INSERT	INTO (tag_validate)"]})	/endmacro
+		| check	it
+		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'2'
+		/if	(${sqlite.Rows[dummy]})	{
+			OUT	Tag	and	Evaluation Created${sep}\aw${_grouping}\ax${sep}\aw${If[${sqlite.Result[dummy	1	created_by].Equal[2]},\at${_tagname}\ax,\aw${_tagname}\ax]}\ax${sep}\a-w${Parse[1,${_eval}]}\ax
+		}
+
+	}
+
+/return	TRUE
 
 

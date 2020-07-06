@@ -114,7 +114,7 @@ sub main_PAL(bool _debug)
 	CHECKTIE
 	CHECKREZ
 
-	/if (AUTO) {
+	/if (AUTO && !ENGINE3) {
 	  /if (${maHeal.Find[swHealXTarget].Value} && !${timer_Check_Xtarget_Build}) {
 	    /call check_xtarget_build FALSE
 		}
@@ -135,6 +135,10 @@ sub main_PAL(bool _debug)
 		/if (!${timer_Check_Marrs_Gift} && ${maChr.Find[stPctMG].Value} && (${Me.PctMana} <= ${maChr.Find[stPctMG].Value} || ${Me.PctHPs} <= ${maChr.Find[stPctMG].Value})) {
 			/call cast_AA_marrs_gift
 		}
+	} else /if (AUTO && ENGINE3) {
+		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
+			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+		}
 	}
 
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
@@ -145,7 +149,7 @@ sub main_PAL(bool _debug)
 		}
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
-		/if (VALID) {
+		/if (VALID && !ENGINE3) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
@@ -172,12 +176,20 @@ sub main_PAL(bool _debug)
 				/call check_buff_cycle_temp_self ${maDebug.Find[temp].Value} stStance
 			}
 
+		} else /if (VALID && ENGINE3) {
+			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
+				/call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 
-		/if (AUTO) {
+		/if (AUTO && !ENGINE3) {
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			CHECKFADE
 			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[rest].Value}
+		} else /if (AUTO && !ENGINE3) {
+			/if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
+				/call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 	}
 

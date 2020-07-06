@@ -69,7 +69,11 @@ sub set_WIZ(bool _debug)
 sub main_WIZ(bool _debug)
 	DEBUG \atmain_WIZ\ax()
 
-	/if (AUTO) {
+	/if (AUTO && !ENGINE3) {
+	} else /if (AUTO && ENGINE3) {
+		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
+			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+		}
 	}
 
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
@@ -81,7 +85,7 @@ sub main_WIZ(bool _debug)
 		}
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
-		/if (VALID) {
+		/if (VALID && !ENGINE3) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
@@ -101,13 +105,21 @@ sub main_WIZ(bool _debug)
 			}
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
+		} else /if (VALID && ENGINE3) {
+			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
+				/call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 
 		}
 
-		/if (AUTO) {
+		/if (AUTO && !ENGINE3) {
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			/if (${Me.PctMana} <= ${maChr.Find[stPctGather].Value}*.PCTHO) /call check_harvest ${maDebug.Find[mannarecover].Value}
 			CHECKFADE
+		} else /if (AUTO && !ENGINE3) {
+			/if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
+				/call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 	}
 
@@ -276,8 +288,10 @@ sub burn_WIZ(bool _debug, int _tmpID)
 		/if (${is_ready[${_debug}, "Improved Twincast"]}) {
 			/call voodoo ${_debug} "Improved Twincast" 0 FALSE
 		}
-	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.AltAbilityReady[Improved Twincast]} && ${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stTC].Value}" 0 FALSE
+	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.AltAbilityReady[Improved Twincast]}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stTC].Value}" 0 FALSE
+		}
 	}
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}

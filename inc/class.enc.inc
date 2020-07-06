@@ -88,7 +88,7 @@ sub main_ENC(bool _debug)
 	DEBUG \atmain_ENC\ax()
 
 
-	/if (AUTO) {
+	/if (AUTO && !ENGINE3) {
 		/if (${maChr.Find[swAACrystals].Value} && !${timer_Check_Crystals}) {
 			/call check_crystals ${maDebug.Find[crystal].Value}
 		}
@@ -97,6 +97,10 @@ sub main_ENC(bool _debug)
 		}
 		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) {
 			/call check_minion_cycle ${maDebug.Find[petbuild].Value}
+		}
+	} else /if (AUTO && ENGINE3) {
+		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
+			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
 		}
 	}
 
@@ -111,8 +115,8 @@ sub main_ENC(bool _debug)
 		}
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
-		/if (VALID) {
-			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
+		/if (VALID && !ENGINE3) {
+			/if (PET || SWARM || ${maMinion.Find[swPetCharm].Value}) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			CHECKDEFENSE
@@ -120,6 +124,7 @@ sub main_ENC(bool _debug)
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
 			/call control_routine ${maDebug.Find[mez].Value}
+			| /if (${maMinion.Find[swPetCharm].Value}) /call find_mob_to_charm ${maDebug.Find[charm].Value}
 			/call check_heal_routines
 			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
@@ -135,12 +140,16 @@ sub main_ENC(bool _debug)
 			| /if (${swAlliance}) /call trigger_alliance TARGET
 
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
+		} else /if (VALID && ENGINE3) {
+			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
+				/call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 
 		}
 
 	}
 
-	/if (AUTO) {
+	/if (AUTO && !ENGINE3) {
 		/if (${maChr.Find[swAACrystals].Value} && !${timer_Check_Crystals}) {
 			/call check_crystals ${maDebug.Find[crystal].Value}
 		}
@@ -153,6 +162,10 @@ sub main_ENC(bool _debug)
 		| /if (${switchCharmPet} && ${swPet} && !${Me.Pet.ID}) {
 		| 	/call find_mob_to_charm
 		| }
+	} else /if (AUTO && ENGINE3) {
+		/if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
+			/call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+		}
 	}
 
 /return TRUE
@@ -169,7 +182,7 @@ sub misc_combat_ENC(bool _debug, int _tmpID)
 	FLOW misc_combat_ENC ${_tmpID} (1)
 
 	ISMEDEAD
-	/invoke ${target[assist]}
+	/invoke ${target[assist, ${_tmpID}]}
 
 	CHECKEXIT misc_combat_ENC
 	FLOW misc_combat_ENC ${_tmpID} (2)
@@ -178,7 +191,7 @@ sub misc_combat_ENC(bool _debug, int _tmpID)
 
 	CHECKDEFENSE
 
-	/if (SWARM || PET) {
+	/if (SWARM || PET || ${maMinion.Find[swPetCharm].Value}) {
 		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	}
 	/if (AUTO && MELEE) {
@@ -258,10 +271,6 @@ sub check_crystals(bool _debug)
 		CHECKCURSOR FALSE clear
 	}
 
-
-
-	/invoke ${target[assist]}
-
 /return TRUE
 
 
@@ -295,8 +304,6 @@ sub check_gather_ENC(bool _debug)
 	/if (${is_ready[${_debug}, "${maChr.Find[stAAGatherMana].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stAAGatherMana].Value}" 0 FALSE
 	}
-
-	/invoke ${target[assist]}
 
 /return TRUE
 
@@ -369,7 +376,7 @@ sub burn_ENC(bool _debug, int _tmpID)
 	CHECKTIE
 
 	CHECKDEFENSE
-	/if (SWARM || PET) {
+	/if (SWARM || PET || ${maMinion.Find[swPetCharm].Value}) {
 		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	}
 	/if (AUTO && MELEE) {
@@ -436,17 +443,21 @@ sub burn_ENC(bool _debug, int _tmpID)
 
 
 |***
- *	DES: Charm Mobs. cause fucking charmed mobs and shits
- *	USE: /call find_mob_to_charm()
- *	NOTE:
-
+ * note: do people still really do this shit?
+ * use: /call find_mob_to_charm()
+ ***|
 sub find_mob_to_charm(bool _debug)
 	DEBUG \a-pfind_mob_to_charm\ax()
+
+	/if (${Me.Pet.ID}) {
+		/return TRUE
+	}
+
 
 	/declare _count int local 0
 	/declare _spawns int local 0
 	/declare _tmpID int local 0
-	/declare _maxlvl int local ${Int[${Math.Calc[${Me.Level}-1]}]}
+	/declare _maxlvl int local ${Spell[${maChr.Find[stCharm].Value}].Max[1]}
 
 	/delay 1
 
@@ -454,30 +465,47 @@ sub find_mob_to_charm(bool _debug)
 		/varset _spawns ${SpawnCount[npc los Range 1 ${_maxlvl} radius ENV targetable]}
 		/for _count 1 to ${_spawns}
 			/varset _tmpID ${NearestSpawn[${_count}, npc los Range 1 ${_maxlvl} radius ENV targetable].ID}
-			/if (${CharmMobList.Find[${Spawn[id ${_tmpID}].DisplayName}]} && !${Spawn[${_tmpID}].Master.Type.Equal[Pet]} && !${Spawn[${_tmpID}].Master.Type.Equal[Corpse]}) {
+			/if (${_tmpID} == TARGET) /continue
+			/if (${lsZoneCharm.Contains[${Spawn[id ${_tmpID}].DisplayName}]} && !${Spawn[${_tmpID}].Master.Type.Equal[Pet]} && !${Spawn[${_tmpID}].Master.Type.Equal[Corpse]}) {
 
 				/squelch /target ID ${_tmpID}
-				/if (!${Target.Tashed.Duration}) /call cast_tash ${_tmpID}
-				/if (${is_ready[${_debug}, spell, "${spellpbaeMez}", ${Me.ID}]}) /call voodoo ${_debug} "${spellpbaeMez}" 0 0 check_for_adds
+				/if (!${Target.Tashed.Duration}) {
+					/call voodoo ${_debug} {madeBuff.Find[stTash].Value} ${_tmpID} FALSE
+
+					/while (${Me.SpellInCooldown}) {
+						CHECKEXIT
+						ISMEDEAD
+						/if (!${Me.SpellInCooldown}) /break
+						/delay 5
+					}
+
+				| /if (${is_ready[${_debug}, spell, "${spellpbaeMez}", ${Me.ID}]}) /call voodoo ${_debug} "${spellpbaeMez}" 0 check_for_adds
 
 				/if (${Target.Level} <= 46) {
-					/if (${is_ready[${_debug}, alt, "Dire Charm", ${_tmpID}]}) /call voodoo ${_debug} "Dire Charm" alt ${_tmpID} FALSE
+					/if (${is_ready[${_debug}, "Dire Charm"]}) {
+						/call voodoo ${_debug} "Dire Charm" ${_tmpID} FALSE
+					}
 				} else {
-					/if (${is_ready[${_debug}, spell, "${spellCharm}", ${_tmpID}]}) /call voodoo ${_debug} "${spellCharm}" 0 ${_tmpID} FALSE
+					/if (${is_ready[${_debug}, "${maChr.Find[stCharm].Value}"]}) {
+						/call voodoo ${_debug} "${maChr.Find[stCharm].Value}" ${_tmpID} FALSE
+					}
 				}
 
-				/if (${Defined[timer_mez_ID${_tmpID}]}) /deletevar timer_mez_ID${_tmpID}
+
+
+
+
 				/break
 			}
 		/next _count
 	}
 /return
- ***|
 
 
 
+${Spell[${maChr.Find[stCharm].Value}].Max[1]}
 
-
+${Spell[CHARMSPELL].Max[1]}
 
 
 |***

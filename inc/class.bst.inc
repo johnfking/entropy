@@ -43,7 +43,8 @@ sub set_BST(bool _debug)
 
 	/invoke ${set_data_timer[FALSE, Check_Para, 2s]}
  	/call set_data_map FALSE maChr stPctParagonG 												0															"${auxnum} pct mana to use group paragon aa"
-	/call set_data_map FALSE maChr stPctParagonF 												0															"${auxnum} pct mana to use focused paragon aa"
+	/call set_data_map FALSE maChr stPctParagonF 												0															"${auxnum} pct mana to use focused paragon aa on you"
+	/call set_data_map FALSE maChr stPctParagonFO												0															"${auxnum} pct mana to use focused paragon aa on someone else"
 	/call set_data_map FALSE maChr stPctConsume 												0															"${auxnum} pct mana to use consume aa"
  	/call set_data_list FALSE maChr lsHealToT		 												PREGEN|3											"${auxli} targets target healing line of spells"
 
@@ -60,6 +61,23 @@ sub set_BST(bool _debug)
 
 
 
+Roaring Strike
+Attack of the Warders
+Bestial Alignment
+Frenzied Swipes
+Ferociousness
+Companion's Fury
+Paragon of Spirit
+Focused Paragon of Spirits
+Frenzy of Spirit
+Group Bestial Alignment
+BloodLust
+Roar of Thunder
+
+
+
+
+
 |***
  * note: main beastlord routine
  * use:
@@ -71,7 +89,7 @@ sub main_BST(bool _debug)
 	/if (AUTO && !ENGINE3) {
 		/call check_mana_${Me.Class.ShortName}
 		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
-	} else /if (VALID && ENGINE3) {
+	} else /if (AUTO && ENGINE3) {
 		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
 			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
 		}
@@ -81,11 +99,9 @@ sub main_BST(bool _debug)
 		GETINPUT
 		CHECKREZ
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
-
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
 		}
-
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
 		/if (VALID && !ENGINE3) {
@@ -120,10 +136,7 @@ sub main_BST(bool _debug)
 			/if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
 				/call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
 			}
-
-
 		}
-
 	}
 
 /return TRUE
@@ -370,38 +383,6 @@ sub check_heal_BST(bool _debug, string _type)
 
 
 
-|***
- * note: MGB beast Paragon if both AAs are ready
- *use: /paragon
- ***|
-#bind cast_AA_paragon /paragon
-sub Bind_cast_AA_paragon(bool _debug)
-	/if (${Select[${Me.Class.ShortName},BST]}) {
-		/call cast_AA_paragon
-	}
-/return true
-
-
-sub cast_AA_paragon(bool _debug)
-	DEBUG \atcast_AA_paragon\ax()
-	FLOW cast_AA_paragon
-
-	ISMEDEAD
-	CHECKEXIT Bind_cast_AA_paragon
-	GETINPUT
-
-	/if (${Me.AltAbilityReady[Mass Group Buff]} && ${Me.AltAbilityReady[Paragon of Spirit]} && !${Me.Song[Paragon of Spirit].ID}) {
-		/if (${is_ready[${_debug}, "Mass Group Buff"]}) {
-			/call voodoo ${_debug} "Mass Group Buff" 0 FALSE
-		}
-		/if (${is_ready[${_debug}, "Paragon of Spirit"]}) {
-			/call voodoo ${_debug} "Paragon of Spirit" 0 FALSE
-		}
-	} else /if (${Bool[${Me.Song[Paragon of Spirit]}]}) {
-		OUT ${owarning} trying to cast ${csp}Paragon of Spirit\ax while its running.
-	}
-
-/return TRUE
 
 
 
@@ -543,13 +524,23 @@ sub set_control_BST(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[consume]}) {
 		/if (!${set_control_num_range[${_debug}, stPctConsume, "${_verbage}", 0, 99]}) /return
 
-	| focused paragon
-	} else /if (${_type.Equal[parafocus]}) {
-		/if (!${set_control_num_range[${_debug}, stPctParagonF, "${_verbage}", 0, 99]}) /return
 
-	| group paragon
-	} else /if (${_type.Equal[paragroup]}) {
-		/if (!${set_control_num_range[${_debug}, stPctParagonG, "${_verbage}", 0, 99]}) /return
+	| paragon aa % usages
+	} else /if (${_type.Equal[para]}) {
+		/if (${_verbage.Equal[self]}) {
+			/if (!${set_control_num_range[${_debug}, stPctParagonF, "${_verbage}", 0, 99]}) /return
+		} else /if (${_verbage.Equal[other]}) {
+			/if (!${set_control_num_range[${_debug}, stPctParagonFO, "${_verbage}", 0, 99]}) /return
+		} else /if (${_verbage.Equal[group]}) {
+			/if (!${set_control_num_range[${_debug}, stPctParagonG, "${_verbage}", 0, 99]}) /return
+		}
+
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[self,stPctParagonF]}
+		/invoke ${maControl.Add[other,stPctParagonFO]}
+		/invoke ${maControl.Add[group,stPctParagonG]}
+		/invoke ${set_control_output[${_debug}, maChr, "chr para", maControl]}
+		/return TRUE
 
 	| use hiatus disc
 	} else /if (${_type.Equal[hiatus]}) {

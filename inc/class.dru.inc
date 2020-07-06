@@ -62,9 +62,13 @@ sub main_DRU(bool _debug)
 
 
 	| correct any and all XTarget healing spots
-	/if (AUTO) {
+	/if (AUTO && !ENGINE3) {
 	  /if (${maHeal.Find[swHealXTarget].Value} && !${timer_Check_Xtarget_Build}) {
 	    /call check_xtarget_build FALSE
+		}
+	} else /if (AUTO && ENGINE3) {
+		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
+			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
 		}
 	}
 
@@ -83,7 +87,7 @@ sub main_DRU(bool _debug)
 		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
-		/if (VALID) {
+		/if (VALID && !ENGINE3) {
 			CHECKREZ
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
@@ -95,11 +99,19 @@ sub main_DRU(bool _debug)
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
+		} else /if (VALID && ENGINE3) {
+			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
+				/call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 
-		/if (AUTO) {
+		/if (AUTO && !ENGINE3) {
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			CHECKFADE
+		} else /if (AUTO && !ENGINE3) {
+			/if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
+				/call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 
 	}

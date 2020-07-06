@@ -57,9 +57,17 @@ sub set_NEC(bool _debug)
 sub main_NEC(bool _debug)
 	DEBUG \atmain_NEC\ax()
 
-	/if (AUTO) {
-		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
-		/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
+	/if (AUTO && !ENGINE3) {
+		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) {
+			/call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
+		}
+		/if (PET || SWARM) {
+			/call send_pet ${maDebug.Find[sic].Value} TARGET
+		}
+	} else /if (AUTO && ENGINE3) {
+		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
+			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+		}
 	}
 
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
@@ -70,7 +78,7 @@ sub main_NEC(bool _debug)
 		}
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
-		/if (VALID) {
+		/if (VALID && !ENGINE3) {
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
@@ -89,9 +97,13 @@ sub main_NEC(bool _debug)
 			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
 
+		} else /if (VALID && ENGINE3) {
+			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
+				/call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 
-		/if (AUTO) {
+		/if (AUTO && !ENGINE3) {
 			/if (${maChr.Find[stPctManaRecovery].Value}) {
 				/call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			}
@@ -99,6 +111,10 @@ sub main_NEC(bool _debug)
 				/call cast_bloom ${maDebug.Find[bloom].Value}
 			}
 			CHECKFADE
+		} else /if (AUTO && !ENGINE3) {
+			/if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
+				/call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 	}
 

@@ -73,13 +73,17 @@ sub main_SHM(bool _debug)
 	CHECKTIE
 
 	| correct any and all XTarget healing spots
-	/if (AUTO) {
+	/if (AUTO && !ENGINE3) {
 	  /if (${maHeal.Find[swHealXTarget].Value} && !${timer_Check_Xtarget_Build}) {
 	    /call check_xtarget_build FALSE
 		}
 		/call check_cani ${maDebug.Find[canni].Value}
 		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
 		/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
+	} else /if (AUTO && ENGINE3) {
+		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
+			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+		}
 
 	}
 
@@ -95,7 +99,7 @@ sub main_SHM(bool _debug)
 		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
-		/if (VALID) {
+		/if (VALID && !ENGINE3) {
 			CHECKREZ
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
@@ -111,12 +115,20 @@ sub main_SHM(bool _debug)
 			/if (${maCC.Find[swAlliance].Value}) /call cast_alliance_SHM ${maDebug.Find[alliance].Value}
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
+		} else /if (VALID && ENGINE3) {
+			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
+				/call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 
-		/if (AUTO) {
+		/if (AUTO && !ENGINE3) {
 			CHECKFADE
 			/call check_cani ${maDebug.Find[canni].Value}
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
+		} else /if (AUTO && !ENGINE3) {
+			/if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
+				/call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 	}
 

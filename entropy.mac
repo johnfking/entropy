@@ -19,11 +19,6 @@
 #turbo 240
 #engine parser 2
 
-
-| MQ2Live/Next flag
-#define NEXT "${MacroQuest.InternalName.Equal[Next]}"
-
-
 #define DEBUG "/if (${_debug}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
 #define SDEBUG "/echo \ay+[\ax\aw${Time.Second}\ax\at::\ax\aw${Macro.CurLine}\ax\ay]\ax(\a-t${Macro.RunTime}\ax) \ay--\ax "
 #define EDEBUG "/if (${maDebug.Find[event].Value}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax${sep}\a-t----\ax${submenu}"
@@ -70,6 +65,9 @@
 #define ENGINE2 "${maEntropy.Find[stEngine].Value.Equal[2]}"
 #define ENGINE3 "${maEntropy.Find[stEngine].Value.Equal[3]}"
 #define MERCENARY "${maMercenary.Find[swMercenary].Value}"
+#define MQCLEAR "/if (${Bool[${Plugin[MQ2ChatWnd]}]}) /mqclear"
+#define NEXT "${MacroQuest.InternalName.Equal[Next]}"
+
 
 
 #include exspes\inc\initialize.inc
@@ -102,7 +100,7 @@
  ***|
 sub main(string _debug, string _param1, string _auto)
 	/declare _boottimestart int local ${MacroQuest.Running}
-	/mqclear
+	MQCLEAR
 
 	| Make sure plugins are loaded. kill macro if not
 	/if (!${check_plugin[FALSE, TRUE, |MQ2SQLite|MQ2DanNet|Mq2Nav|MQ2MoveUtils|MQ2Collections]}) {
@@ -120,11 +118,11 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer B200621.01
-	/call set_data FALSE maEnv schema													map outer 1.00
-	/call set_data FALSE maEnv repo														map outer 20200615.01
+	/call set_data FALSE maEnv build													map outer 200706.01
+	/call set_data FALSE maEnv schema													map outer 1.01
+	/call set_data FALSE maEnv repo														map outer 200706.01
 
-	| using this as a merker for live vs Next
+	| using this as a marker for live vs Next
 	/declare _next 																						bool outer ${MacroQuest.InternalName.Equal[Next]}
 
 	| prep macro
@@ -221,8 +219,8 @@ sub main(string _debug, string _param1, string _auto)
 		/if (AUTO) {
 
 			| check curing observers
-			/if (!${timer_Check_Observers}) {
-				/if (${maHeal.Find[swHealCure].Value}) /call set_observers ${maDebug.Find[cure].Value} maCure add
+			/if (!${timer_Check_Observers} && (${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value})) {
+				/call set_observers ${maDebug.Find[cure].Value} maCure add
 			}
 
 			/if (!${timer_Check_Target}) {
@@ -293,8 +291,6 @@ sub main(string _debug, string _param1, string _auto)
 						| hardstop check
 						/if (!${timer_Check_Pull_Hardstop}) {
 							/call pull_hardstop ${_debug}
-						} else /if (${timer_Check_Pull_Hardstop}) {
-							/return FALSE
 						}
 
 						/if (${maCC.Find[stPullMode].Value.Equal[base]}) {
@@ -419,7 +415,6 @@ sub prepare_the_end(bool _debug)
 	| check character shema
 	/call sql_schema_character ${maDebug.Find[s_character].Value}
 
-
 	| set any custom defines
 	/if (${SubDefined[custom_define]}) {
 		/call custom_define ${maDebug.Find[define].Value}
@@ -443,20 +438,14 @@ sub prepare_the_end(bool _debug)
 	| set any aliases needs
 	/call set_alias ${maDebug.Find[init].Value} add
 
-	| build the zone lists
-	| /call set_zone_lists ${maDebug.Find[zone].Value}
-
 	| build crew data
 	/call set_initialize_crew ${maDebug.Find[init].Value}
 
 	| create the shared schema
-	| /call sql_schema_shared ${maDebug.Find[s_shared].Value}
+	/call sql_schema_shared ${maDebug.Find[s_shared].Value}
 
 	| set class databits'n-bytes
 	/call set_${Me.Class.ShortName} ${maDebug.Find[init].Value}
-
-	| get the conditions.
-	/call set_initialize_map_conditions ${maDebug.Find[init].Value}
 
  	| check game cash?
 	/call check_free_ingame_cash ${maDebug.Find[init].Value}

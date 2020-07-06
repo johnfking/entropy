@@ -99,11 +99,6 @@ sub set_CLR(bool _debug)
 	| complete heal
 	/call set_data_map ${_debug} maHeal stPctCH													0															"${auxnum} complete heal %" heal
 
-	| /call set_data_map ${_debug} maHeal swCHChainListen									FALSE													"${auxnum} " heal
-	| /call set_data_map5 ${_debug} maHeal stCHPause												0															"${auxna} Name of the Complete Heal" heal
-	| /call set_data_map ${_debug} maHeal stCHTank												FALSE													"${auxna} Name of the Complete Heal" heal
-
-
 	| AAs
 	/call set_data_map ${_debug} maChr stAABeaconofLife									PREGEN|1											"${auxna} Beacon of Life aa"
 	/call set_data_map ${_debug} maChr stAAUnity												PREGEN|1											"${auxna} class aa unity buff"
@@ -142,7 +137,7 @@ sub main_CLR(bool _debug)
 	DEBUG \atmain_CLR\ax()
 
 	| correct all XTarget healing spots
-	/if (AUTO) {
+	/if (AUTO && !ENGINE3) {
 	  /if (${maHeal.Find[swHealXTarget].Value} && !${timer_Check_Xtarget_Build}) {
 	    /call check_xtarget_build FALSE
 		}
@@ -160,6 +155,10 @@ sub main_CLR(bool _debug)
 			 		}
 			 	}
 			}
+		}
+	} else /if (AUTO && ENGINE3) {
+		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
+			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
 		}
 
 	}
@@ -180,7 +179,7 @@ sub main_CLR(bool _debug)
 		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
-		/if (VALID) {
+		/if (VALID && !ENGINE3) {
 			CHECKREZ
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
@@ -191,11 +190,19 @@ sub main_CLR(bool _debug)
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
+		} else /if (VALID && ENGINE3) {
+			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
+				/call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 
-		/if (AUTO) {
+		/if (AUTO && !ENGINE3) {
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			CHECKFADE
+		} else /if (AUTO && !ENGINE3) {
+			/if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
+				/call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 
 	}
@@ -306,7 +313,7 @@ sub check_heal_CLR(bool _debug, string _type)
 
 	| Group Regen Heal
 	/if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
-		/call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 healgrouphot
+		/call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 grouphot
 	}
 
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
@@ -328,9 +335,15 @@ sub check_heal_CLR(bool _debug, string _type)
 
 	/if (!SAFEZONE) {
 
+		| Complete Heal
+		| requires group roll Main Tank set to function
+		/if (${Select[${_type},ch]} && ${hurtCount}) {
+			/call cast_cycle_heal ${_debug} ${Group.MainTank.ID} complete
+ 			/return FALSE
+		}
 
 		| group healing
-		/if (${Select[${_type},group]} && ${Group}) {
+		/if (${Select[${_type},group]} && ${hurtCount}) {
 
 			| AA Beacon of life (3 min use)
 		  /if (!${timer_ofLife_pause} && ${maChr.Find[stCountBeaconofLife].Value} && ${hurtCount} >= ${maChr.Find[stCountBeaconofLife].Value}) {
@@ -351,28 +364,16 @@ sub check_heal_CLR(bool _debug, string _type)
 			 	}
 			}
 
-
-			| Complete Heal
-			| requires group roll Main Tank set to function
-			/if (${maHeal.Find[stPctCH].Value}) {
-				/if (${hurtID} == ${Group.MainTank.ID} &&  ${Group.MainTank.PctHPs} <= ${maHeal.Find[stPctCH].Value}*.PCTHO) {
-					/call cast_cycle_heal ${_debug} ${Group.MainTank.ID} healcomplete
-			 		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
-			 			/return FALSE
-			 		}
-			 	}
-			}
-
 			| group heal
 			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
-				/call cast_cycle_heal ${_debug} 0 healgroup
+				/call cast_cycle_heal ${_debug} 0 group
  			}
 		}
 
 		| single heal over time
 		/if (${maChr.Find[swHealOverTime].Value} && !${timer_Check_Regen}) {
 			/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
-				/call cast_cycle_heal_regen ${maDebug.Find[regen].Value} ${hurtID} healhot
+				/call cast_cycle_heal_regen ${maDebug.Find[regen].Value} ${hurtID} hot
 			}
 		}
 
@@ -440,7 +441,7 @@ sub check_heal_CLR(bool _debug, string _type)
 	CHECKFADE
 	GETINPUT clr_heal_end type|${_type}
 
-	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
+	/call cast_cycle_heal ${_debug} ${hurtID} single
 
 /return	TRUE
 

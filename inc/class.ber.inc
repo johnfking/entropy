@@ -73,6 +73,13 @@ sub main_BER(bool _debug)
 	CHECKTIE
 	CHECKREZ
 
+	/if (AUTO && !ENGINE3) {
+	} else /if (AUTO && ENGINE3) {
+		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
+			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+		}
+	}
+
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
 		GETINPUT
 		CHECKREZ
@@ -80,7 +87,7 @@ sub main_BER(bool _debug)
 		CHECKDEFENSE
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
 
-		/if (VALID) {
+		/if (VALID && !ENGINE3) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
@@ -93,11 +100,19 @@ sub main_BER(bool _debug)
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
+		} else /if (VALID && ENGINE3) {
+			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
+				/call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 
-		/if (AUTO) {
+		/if (AUTO && !ENGINE3) {
 			CHECKFADE
 			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery
+		} else /if (AUTO && !ENGINE3) {
+			/if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
+				/call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 	}
 
@@ -148,7 +163,7 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stSappingStrikes].Value}" 0 FALSE
 	}
 
-	/if (${Me.Buff[Frenzied Resolve].ID} && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.8) {
+	/if (${Me.ActiveDisc[Frenzied Resolve].ID} && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.8) {
 		/if (${is_ready[${_debug}, "Drawn to Blood"]}) {
 			/call voodoo ${_debug} "Drawn to Blood" 0 FALSE
 		}
@@ -211,7 +226,7 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "Braxi's Howl" 0 FALSE
 	}
 
-	| serper dicho
+	| dicho
 	/if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]} && ${Me.CurrentEndurance} > ${Spell[${maChr.Find[stDichotomic].Value}].EnduranceCost}*2) {
 		/call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" ${_tmpID} FALSE
 	}

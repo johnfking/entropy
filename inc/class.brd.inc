@@ -54,6 +54,14 @@ sub set_BRD(bool _debug)
 sub main_BRD(bool _debug)
 	DEBUG \atmain_BRD\ax()
 
+	/if (AUTO && !ENGINE3) {
+	} else /if (AUTO && ENGINE3) {
+		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
+			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+		}
+	}
+
+
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
 		GETINPUT
 		CHECKREZ
@@ -65,7 +73,7 @@ sub main_BRD(bool _debug)
 		}
 		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
-		/if (VALID) {
+		/if (VALID && !ENGINE3) {
 			/call control_routine FALSE
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
@@ -88,12 +96,19 @@ sub main_BRD(bool _debug)
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			| /call control_routine FALSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
-
+		} else /if (VALID && ENGINE3) {
+			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
+				/call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 
-		/if (AUTO) {
+		/if (AUTO && !ENGINE3) {
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			CHECKFADE
+		} else /if (AUTO && !ENGINE3) {
+			/if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
+				/call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+			}
 		}
 
 	}
@@ -159,7 +174,7 @@ sub misc_combat_BRD(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "Cacophony"]}) {
 		/call voodoo ${_debug} "Cacophony" ${_tmpID} FALSE
 	}
-	/if (${Spawn[TARGET].PctHPs} > 30 && ${maChr.Find[swAABellow].Value}) {
+	/if (${Spawn[TARGET].PctHPs} > 30 && ${maChr.Find[swAABellow].Value} && ${Me.PctEndurance} > 30) {
 		/if (${is_ready[${_debug}, "Boastful Bellow"]}) {
 			/call voodoo ${_debug} "Boastful Bellow" ${_tmpID} FALSE
 		}

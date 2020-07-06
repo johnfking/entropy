@@ -2334,3 +2334,49 @@ Griklor's griffon's wings are shredded by deadly ice and Griklor falls to the gr
 are the two success messages
 
 
+
+
+
+| Icebound Avatar mission
+
+#Event IceAoWUnduck "#*#The Avatar of War nods, accepting the subservience of those that gave it#*#"
+sub Event_IceAoWUnduck()
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+
+	/if (!${Defined[AoW_Event_Acceptance]}) {
+		/declare bool AoW_Event_Acceptance outer
+	}
+	/varsaet AoW_Event_Acceptance TRUE
+}
+
+
+#Event IceAoW "#*#The ice encrusted Avatar of War shouts that |${Me.DisplayName}| must bend the knee#*#"
+sub Event_IceAoW()
+
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+
+
+	/call clear_combat
+  /call set_stop ${maDebug.Find[stop].Value} SILENT
+
+  /echo ${Me.Animation} ?? 24)
+  /while (!${Select[${Me.Animation},24]} && !${Me.Ducking}) {
+    /keypress DUCK
+    /delay 1s
+    /if (${Select[${Me.Animation},24]} || ${Me.Ducking}) {
+    	/break
+    }
+  }
+
+	/delay 10s
+	/doevents IceAoWUnduck
+
+	/if (!${Me.Dead} && ${AoW_Event_Acceptance}) {
+		/varset AoW_Event_Acceptance FALSE
+		/if (${Select[${Me.Animation},24]} || ${Me.Ducking}) {
+     /keypress DUCK
+    }
+  }
+
+/return TRUE
+
