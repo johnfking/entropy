@@ -201,6 +201,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 		| testing afor a known column first
 		/sqlite query ${maData.Find[DBzone].Value} dummy SELECT 1 FROM PRAGMA_TABLE_INFO('zone_control') WHERE name='element'
+		/if	(!${sql_check[${_debug}, dummy,	Bind_control_admin,	"SELECT 1 (PRAGMA_TABLE_INFO)"]})	/endmacro
 		DEBUG SELECT 1 FROM PRAGMA_TABLE_INFO 'zone_control' \ay${sqlite.Status[dummy]}\ax
 		DEBUG Rows${sep}\ap${sqlite.Rows[dummy]}\ax
 
@@ -1538,10 +1539,8 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[autolist,swAutoList]}
-	/invoke ${maControl.Add[autolist,swAutoList]}
 	/invoke ${maControl.Add[engine,stEngine]}
 	/invoke ${maControl.Add[castloops,stCastLoop]}
-	/invoke ${maControl.Add[dpsmeter,swDPSMeter]}
 	/invoke ${maControl.Add[events,swEventsInc]}
 	/invoke ${maControl.Add[hook,swHookSub]}
 	/invoke ${maControl.Add[hud,submenu]}
@@ -2758,7 +2757,7 @@ sub Bind_command_aux(string _type, bool _debug)
 
 	| /varset _debug TRUE
 	/declare _lsout1 list local
-	/invoke ${_lsout1.Append[alto,beg,buff,build,burn,cc,crew,condition,cursor]}
+	/invoke ${_lsout1.Append[alto,beg,buff,build,burn,cc,crew,cursor]}
 	/invoke ${_lsout1.Append[debuff,debug,edit,enter,cure,heal,home,invis,mode,minion]}
 	/invoke ${_lsout1.Append[navto,off,on,override,repeat,see,splash,take,tag,rez,tag]}
 
@@ -4623,8 +4622,8 @@ sub Bind_control_song(string _type, string _verbage, string _verbage2, string _a
 		/return FALSE
 	}
 
-	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
-		/call control_base_edit ${maDebug.Find[edit].Value} Song 50 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} Song 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
 	}
 
@@ -4807,6 +4806,7 @@ sub Bind_control_pred(string _type, string _verbage, string _silent, bool _debug
 	| clear the TTL statiestics
 	} else /if (${_type.Equal[clear]}) {
 		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT swTTL FROM environment_character
+		/if	(!${sql_check[${_debug}, dummy,	Bind_control_pred,	"SELECT (swTTL)"]})	/endmacro
 		/invoke ${maPred.Add[swPredInc,FALSE]}
 		/invoke ${maPred.Add[stPredCountMob,0]}
 		/invoke ${maPred.Add[swPredNamed,FALSE]}
@@ -5018,7 +5018,7 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval)
 			/invoke	${out[18,	0, 33]}
 			/return	FALSE
 
-		}	else /if (${Select[${_grouping},list,see]} &&	${Range.Between[1,2:${Int[${_tagname}]}]})	{
+		}	else /if (${Select[${_grouping},list]} &&	${Range.Between[1,2:${Int[${_tagname}]}]})	{
 			/for _count	1	to ${sqlite.Rows[dummy]}
 				/if	(${sqlite.Result[dummy ${_count} created_by].Equal[${_tagname}]}) {
 					OUT	\aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}${If[${sqlite.Result[dummy ${_count} created_by].Equal[1]},\a-g${sqlite.Result[dummy ${_count} name]}\ax,\at${sqlite.Result[dummy	${_count}	name]}\ax]}${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} eval]}]}\ax
@@ -5026,6 +5026,17 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval)
 			/next	_count
 			/invoke	${out[18,	0, 33]}
 			/return	FALSE
+
+		}	else /if (${Select[${_grouping},list]} &&	${_tagname.Equal[marker]})	{
+			/for _count	1	to ${sqlite.Rows[dummy]}
+				/if	(${Parse[99,${sqlite.Result[dummy	${_count}	eval].Find[::MARKER]}]}) {
+					OUT	\aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}${If[${sqlite.Result[dummy ${_count} created_by].Equal[1]},\a-g${sqlite.Result[dummy ${_count} name]}\ax,\at${sqlite.Result[dummy	${_count}	name]}\ax]}${sep}\a-w${sqlite.Result[dummy ${_count} aux]}\ax
+				}
+			/next	_count
+			/invoke	${out[18,	0, 33]}
+			/return	FALSE
+
+
 
 
 		}	else /if (${Select[${_grouping},list,see]} &&	${Bool[${_tagname}]})	{

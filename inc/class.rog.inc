@@ -294,7 +294,7 @@ sub check_heal_ROG(bool _debug, string _type)
 		/call voodoo ${_debug} "${maChr.Find[stAATumble].Value}" 0 FALSE
 	}
 
-	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
+	/call cast_cycle_heal ${_debug} ${hurtID} single
 
 	SETHUD EMPTY
 

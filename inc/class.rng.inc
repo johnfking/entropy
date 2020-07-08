@@ -264,7 +264,7 @@ sub check_heal_RNG(bool _debug, string _type)
 	| ToT heals
 	/if (${Select[${_type},tot]} && ${maHeal.Find[swHealToT].Value}) {
 		/if (${hurtCount})  {
-			/call cast_cycle_heal ${_debug} ${hurtID} healtot
+			/call cast_cycle_heal ${_debug} ${hurtID} tot
 			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		}
 	}
@@ -284,7 +284,7 @@ sub check_heal_RNG(bool _debug, string _type)
 	CHECKREZ
 	CHECKFADE
 
-	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
+	/call cast_cycle_heal ${_debug} ${hurtID} single
 
 	SETHUD EMPTY
 

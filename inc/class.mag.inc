@@ -35,19 +35,8 @@ sub set_MAG(bool _debug)
 	/call set_data_map FALSE maChr stPctGather			 										0															"${auxnum} percent to start using gather tricks"
 
 	| current nuke line
-	| /declare lsNukeLine list outer
-	| /invoke ${lsNukeLine.Append[base,fire,magic]}
 	/call set_data_map FALSE maChr stCurrent														base
-	| /call set_data FALSE FALSE stLine																		string outer ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
-	| /call set_data_map FALSE maChr stNukeSalvo													PREGEN|1											"${auxna} nuke that relys on area pet count to do more damage"
 	/call set_data_map FALSE maChr stNukeServant 												PREGEN|1											"${auxna} the little spam pets mages love to use so much."
-
-| 	/invoke ${set_data_timer[FALSE, Force_TC, 6s]}
-| 	/call set_data_map FALSE maChr swForceTC														FALSE													"${auxsw} force using twincast aa/spells as much as possible"
-| 	/call set_data_map FALSE maChr stTC																	PREGEN|1											"${auxna} whatever the hell you want to use for twincast"
-| 	/call set_data_map FALSE maChr stNukeTCFire													PREGEN|1											"${auxna} fire line twincast spell"
-| 	/call set_data_map FALSE maChr stNukeTCMagic												PREGEN|1											"${auxna} magic line twincast spell"
-| 	/call set_data_map FALSE maChr stNukeTCBase													FALSE													"${auxna} base line twincast spell"
 
 	| temp buff
   /call set_data_list ${_debug} maChr lsTempBuffToon									EMPTY													"${auxli} list of toons to use your temp buff on"
@@ -204,14 +193,14 @@ sub check_heal_MAG(bool _debug, string _type)
 			}
 		}
 
-		/call cast_cycle_heal ${_debug} ${Pet.ID} healminion
+		/call cast_cycle_heal ${_debug} ${Pet.ID} minion
 	}
 
  	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
 	| heal anything spell
-	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
+	/call cast_cycle_heal ${_debug} ${hurtID} single
 
 	SETHUD EMPTY
 

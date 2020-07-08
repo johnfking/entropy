@@ -164,7 +164,7 @@ sub check_heal_NEC(bool _debug, string _type)
  	}
 
 	| heal anything spell
-	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
+	/call cast_cycle_heal ${_debug} ${hurtID} single
 
 	| aa Dying grasp
 	/if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.PCTHO) {

@@ -171,7 +171,7 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 
 	/if (!${Me.Song[Battle Leap].ID} && !${Me.Song[Group Bestial Alignment].ID}) {
 		/if (${is_ready[${_debug}, "Battle Leap"]} && !${Me.Underwater}) {
-			/call voodoo ${_debug} "Battle Leap" 0 FALSE
+			/call voodoo ${_debug} "Battle Leap" ${_tmpID} FALSE
 		}
 	}
 
@@ -296,7 +296,7 @@ sub check_heal_BER(bool _debug, string _type)
 
 	/if (${Me.PctHPs} > ${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO) /return FALSE
 
-	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
+	/call cast_cycle_heal ${_debug} ${hurtID} single
 
 	SETHUD EMPTY
 

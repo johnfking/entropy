@@ -426,7 +426,7 @@ sub check_heal_PAL(bool _debug, string _type)
 				}
 			}
 
-			/call cast_cycle_heal ${_debug} ${Target.ID} healtot
+			/call cast_cycle_heal ${_debug} ${Target.ID} tot
 
 			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 		}
@@ -449,7 +449,7 @@ sub check_heal_PAL(bool _debug, string _type)
 
 		| group heal
 		/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
-			/call cast_cycle_heal ${_debug} 0 healgroup
+			/call cast_cycle_heal ${_debug} 0 group
 		}
 
 		| Hand of Piety AA Group heal
@@ -504,7 +504,7 @@ sub check_heal_PAL(bool _debug, string _type)
 	CHECKREZ
 	CHECKFADE
 
-	/call cast_cycle_heal ${_debug} ${hurtID}
+	/call cast_cycle_heal ${_debug} ${hurtID} single
 
 	SETHUD EMPTY
 

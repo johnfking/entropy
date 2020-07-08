@@ -231,7 +231,7 @@ sub check_heal_WIZ(bool _debug, string _type)
 	CHECKEXIT
 
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
-	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
+	/call cast_cycle_heal ${_debug} ${hurtID} single
 
 /return TRUE
 

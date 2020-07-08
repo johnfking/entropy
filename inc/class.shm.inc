@@ -189,7 +189,7 @@ sub check_heal_SHM(bool _debug, string _type)
 
 	| Group Regen Heal
 	/if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
-		/call cast_cycle_heal_regen ${_debug} 0 healgrouphot
+		/call cast_cycle_heal_regen ${_debug} 0 grouphot
 	}
 
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
@@ -228,7 +228,7 @@ sub check_heal_SHM(bool _debug, string _type)
 		| PET HEALING
 		/if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value} && ${Pet.ID}) {
 			/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-				/call cast_cycle_heal ${_debug} ${Pet.ID} healminion
+				/call cast_cycle_heal ${_debug} ${Pet.ID} minion
 			}
 		}
 
@@ -239,7 +239,7 @@ sub check_heal_SHM(bool _debug, string _type)
 		| single heal over time
 		/if (${maHeal.Find[swHealOverTime].Value} && !${timer_Check_Regen}) {
 			/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
-				/call cast_cycle_heal_regen ${_debug} ${hurtID} healhot
+				/call cast_cycle_heal_regen ${_debug} ${hurtID} hot
 			}
 		}
 
@@ -254,7 +254,7 @@ sub check_heal_SHM(bool _debug, string _type)
 	CHECKFADE
 	CHECKREZ
 
-	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
+	/call cast_cycle_heal ${_debug} ${hurtID} single
 
 	SETHUD EMPTY
 

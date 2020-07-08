@@ -109,7 +109,7 @@ sub set_data_timer(string _debug, string _env_timer, string _value, string _verb
 
 	| is the data there already?
 	/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_timer WHERE env_timer='ti${_env_timer}'
-	DEBUG ${sep}dummy SELECT * FROM environment_timer WHERE env_timer='${_env_timer}' count:\ap${sqlite.Rows[dummy]}\ax
+	/if (!${sql_check[${_debug}, dummy, set_data_timer, "SELECT *"]}) /endmacro
 
 	| data exists. get from DB and call good
 	/if (${sqlite.Rows[dummy]}) {
@@ -119,7 +119,7 @@ sub set_data_timer(string _debug, string _env_timer, string _value, string _verb
 	} else /if (!${sqlite.Rows[dummy]}) {
 		DEBUG ${sep}Timer does \arNOT\ax exists. add to DB and map it
 		/sqlite query ${maData.Find[DBcharacter].Value} dummy INSERT INTO environment_timer(env_timer, value) VALUES('ti${_env_timer}', '${_value}')
-		DEBUG ${sep} /sqlite query ${maData.Find[DBcharacter].Value} dummy INSERT INTO environment_timer(env_timer, value) VALUES('ti${_env_timer}', '${_value}') \ay${sqlite.Status[dummy]}\ax
+		/if (!${sql_check[${_debug}, dummy, set_data_timer, "INSERT INTO environment_timer"]}) /endmacro
 		/invoke ${maTimer.Add[ti${_env_timer},${_value}]}
 	}
 
@@ -153,21 +153,14 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 		/varset _table character
 	}
 
-	| record pregen data
-	| /if (${_value.Arg[1,|].Equal[PREGEN]}) {
-	| 	/invoke ${maPREGEN.Add[${_env_var},${_value.Arg[2,|]}]}
-	| }
-
 	| is the data there already?
 	/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_env_var}"
-	/if (!${sql_check[${_debug}, dummy, set_data_map, SELECT]}) /endmacro
+	/if (!${sql_check[${_debug}, dummy, set_data_map, "SELECT (*)"]}) /endmacro
 
 	| data exists. get from DB and call it good
 	/if (${sqlite.Rows[dummy]}) {
 		/if (${maEnv.Find[schema].Value.Equal[${maData.Find[stPreviousSchema].Value}]}) {
-			| DEBUG ${sep}DATA \agdoes exists VERSIONS MATCH\ax
 			/invoke ${${_map}.Add[${sqlite.Result[dummy 1 env_var]},${sqlite.Result[dummy 1 value]}]}
-			| DEBUG ${sep}${_map}${${_map}.Find[${sqlite.Result[dummy 1 env_var]}]}
 			/return TRUE
 
 		| data exists but versions are different
@@ -177,7 +170,7 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 			DEBUG ${sep}${_map}${${_map}.Find[${sqlite.Result[dummy 1 env_var]}]}
 			/declare _DBLOC string local ${get_key_DBLOC[${_debug}, ${_env_var}]}
 			/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET 'aux'="${Parse[1,${_aux}]}"  WHERE env_var="${_env_var}"
-			/if (!${sql_check[${_debug}, dummy, set_data_map, SELECT]}) /endmacro
+			/if (!${sql_check[${_debug}, dummy, set_data_map, "UPDATE ${_DBLOC.Arg[1,|]}"]}) /endmacro
 			/return TRUE
 
 		}
@@ -192,7 +185,7 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 			/declare _tmpValue string local
 
 			/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM env_${Me.Class.ShortName.Lower} WHERE env_var="${_env_var}"
-			/if (!${sql_check[${_debug}, dummy, set_data_map, SELECT]}) /endmacro
+			/if (!${sql_check[${_debug}, dummy, set_data_map, "SELECT (*)"]}) /endmacro
 
 			DEBUG .... ${sqlite.Result[dummy 1 value].Count[|]} ..${sqlite.Result[dummy 1 value]}
 
@@ -213,8 +206,7 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 		}
 
 		/sqlite query ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${_aux}")
-		DEBUG INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${_aux}")
-		/if (!${sql_check[${_debug}, dummy, set_data_map, "INSERT OR IGNORE INTO"]}) /endmacro
+		/if (!${sql_check[${_debug}, dummy, set_data_map, "INSERT OR IGNORE INTO (environment_${_table})"]}) /endmacro
 
 		/invoke ${${_map}.Add[${_env_var},"${_value}"]}
 	}
@@ -246,14 +238,9 @@ sub set_data_list(bool _debug, string _map, string _env_var, string _value, stri
 		/varset _table character
 	}
 
-	| record pregen data
-	| /if (${_value.Arg[1,|].Equal[PREGEN]}) {
-	| 	/invoke ${maPREGEN.Add[${_env_var},${_value.Arg[2,|]}]}
-	| }
-
 	| is the data there already?
 	/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var="${_env_var}"
-	| DEBUG ${sep}dummy SELECT * FROM environment_${_table} WHERE env_var='${_env_var}' ${dot} count:\ap${sqlite.Rows[dummy]}\ax \ay${sqlite.Status[dummy]}\ax
+	/if	(!${sql_check[${_debug}, dummy,	set_data_list, "SELECT *"]})	/endmacro
 
 	| data exists. get from DB and call it good
 	/if (${sqlite.Rows[dummy]}) {
@@ -284,7 +271,7 @@ sub set_data_list(bool _debug, string _map, string _env_var, string _value, stri
 			}
 			/declare _DBLOC string local ${get_key_DBLOC[${_debug}, ${_env_var}]}
 			/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET 'aux'='${Parse[1,${_aux}]}' WHERE env_var="${_env_var}"
-			DEBUG ${sep}dummy UPDATE ${_DBLOC.Arg[1,|]} SET 'aux'='${Parse[1,${_aux}]}' WHERE env_var='${_env_var}' ${dot} \ay${sqlite.Status[dummy]}\ax
+			/if	(!${sql_check[${_debug}, dummy,	set_data_list, "UPDATE ${_DBLOC.Arg[1,|]}"]})	/endmacro
 			/return TRUE
 
 		}
@@ -298,8 +285,7 @@ sub set_data_list(bool _debug, string _map, string _env_var, string _value, stri
 		/if (${_value.Find[PREGEN]}) {
 			DEBUG PREGEN DATA
 			/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM env_${Me.Class.ShortName.Lower} WHERE env_var="${_env_var}"
-			DEBUG ${sep}dummy SELECT * From env_${Me.Class.ShortName.Lower} WHERE env_var='${_env_var}' ${dot} \ay${sqlite.Status[dummy]}\ax
-			DEBUG ${sep}${sep}${sqlite.Result[dummy 1 env_var]}${sep}\a-w${sqlite.Result[dummy 1 value]}\ax
+			/if	(!${sql_check[${_debug}, dummy,	set_data_list, "SELECT *"]})	/endmacro
 
 			| how many do we want to find?
 
@@ -324,7 +310,7 @@ sub set_data_list(bool _debug, string _map, string _env_var, string _value, stri
 
 		| put shit into the database.. took us this long to get here. may as well do something
 		/sqlite query ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${Parse[1,${_aux}]}")
-		DEBUG ${sep}  dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES('${_env_var}', "${_value}", '${Parse[1,${_aux}]}') ${dot} \ay${sqlite.Status[dummy]}\ax
+		/if	(!${sql_check[${_debug}, dummy,	set_data_list,	"INSERT OR IGNORE INTO environment_${_table}"]})	/endmacro
 
 	}
 
@@ -637,8 +623,8 @@ sub get_hurt(bool _debug, string _type)
 
 
 	| Cleric Complete Heal hurt check
-	} else /if (${_type.Equal[ch]}) {
-		DEBUG \a-w{_type.Equal[ch]}\ax
+	} else /if (${_type.Equal[complete]}) {
+		DEBUG \a-w{_type.Equal[complete]}\ax
 
 		DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}${Group.MainTank.Name}${sep}${Group.MainTank.ID}\ax
 		/if (${Group.MainTank.PctHPs} > ${maHeal.Find[stPctCH].Value}*.PCTHO) /return 0
@@ -933,7 +919,6 @@ sub set_switch_env(bool _debug, string _switch, bool _sql, string _verbage)
 	| swap the switch status
 	} else /if (!${_verbage.Length} || (!${Bool[${_verbage}]} && ${_verbage.NotEqual[NULL]})) {
 		DEBUG ${sep}swapping${sep}\a-w{${_map}.Add[${_switch},${If[${${_map}.Find[${_switch}].Value},FALSE,TRUE]}]}\ax
-
 		/invoke ${${_map}.Add[${_switch},${If[${${_map}.Find[${_switch}].Value},FALSE,TRUE]}]}
 
 	}
@@ -944,6 +929,7 @@ sub set_switch_env(bool _debug, string _switch, bool _sql, string _verbage)
 		/varset _DBLOC ${get_key_DBLOC[${_debug}, ${_switch}]}
 		DEBUG ${sep}dummy UPDATE ${_DBLOC.Arg[1,|]} SET value='${${_map}.Find[${_switch}].Value}' WHERE ${_DBLOC.Arg[2,|]}='${_switch}'
 		/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE ${_DBLOC.Arg[1,|]} SET value='${${_map}.Find[${_switch}].Value}' WHERE ${_DBLOC.Arg[2,|]}='${_switch}'
+		/if	(!${sql_check[${_debug}, dummy,	set_switch_env,	"UPDATE ${_DBLOC.Arg[1,|]}"]})	/endmacro
 	}
 
 /return ${${_map}.Find[${_switch}].Value}
@@ -8512,12 +8498,6 @@ sub cast_AA_spire(bool _debug)
 	FLOW cast_AA_spire (2)
 	GETINPUT cast_AA_spire NA|NA
 
-
-	| apply any conditions
-	| /if (!${check_condition[${maDebug.Find[condition].Value}, ${maChr.Find[stSpireCon].Value}]}) {
-	| 	/return FALSE
-	| }
-
 	/if (${Raid.Members} && ${maChr.Find[swSpireRaid].Value}) {
 		DEBUG spire${sep}Raid
 		/if (!${Me.Buff[${maData.Find[stSpire].Value}].ID} && ${Spell[${maData.Find[stSpire].Value}].Stacks}) {
@@ -12989,7 +12969,6 @@ sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _sp
 
 		/invoke	${_litag.Advance}
 	}
-
 
 /return	TRUE
 

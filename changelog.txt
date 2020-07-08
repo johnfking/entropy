@@ -28,6 +28,18 @@ epics with commas in their names are currently not functioning
 
 
 
+
+200708.01
+- /song list
+  was counting too high. shouldnt error anymore
+- zerkers
+  now have a target for aa battle leap
+- /entropy
+  removed the dpsmeter option
+- tags
+  corrected the function calls to reflect new tag names for every class
+
+
 200706.01
 - lsProtectOutsideGroup - is now the only list for adding Players/NPCs to your XTarget list for healing
 - /line command has been removed

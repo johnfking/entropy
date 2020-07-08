@@ -251,7 +251,7 @@ sub check_heal_MNK(bool _debug, string _type)
 		/return
 	}
 
-	/call cast_cycle_heal ${_debug} ${hurtID} healsingle
+	/call cast_cycle_heal ${_debug} ${hurtID} single
 
 	SETHUD EMPTY
 
