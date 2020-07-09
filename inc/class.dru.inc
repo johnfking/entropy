@@ -85,7 +85,7 @@ sub main_DRU(bool _debug)
 		}
 		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
+		/if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
 		/if (VALID && !ENGINE3) {
 			CHECKREZ

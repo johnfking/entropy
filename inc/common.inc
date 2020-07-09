@@ -2343,7 +2343,7 @@ sub is_burn_valid(bool _debug)
 
 |***
  * note: do we want to exit the class while loop. assume no exit (FALSE)
- * use: ${exit_class_loop[DEBUG]}
+ * use: ${check_class_loop[DEBUG]}
  ***|
 sub check_class_loop(bool _debug)
 	DEBUG \atcheck_class_loop\ax()
@@ -2353,40 +2353,38 @@ sub check_class_loop(bool _debug)
 		| no target.. were done
 		/if (!${Spawn[TARGET].ID}) {
 			DEBUG ${sep}no target
-			/return TRUE
+			/return FALSE
 		}
 
 		/if (${target[isdead, TARGET]}) {
 			FLOW check_class_loop
-			/return TRUE
+			/return FALSE
 		}
 
-		| validate the target.. again...
-		/if (!${is_target_valid[${_debug}, TARGET]}) {
-			/invoke ${maCC.Add[swValidAssTarID,FALSE]}
-			/invoke ${maCC.Add[swSetCombat,FALSE]}
-			/return TRUE
+		| engage point met?
+		/if (!${maOver.Find[swOverPctEngage].Value} && !PULL) {
+			/if (${Spawn[TARGET].PctHPs} > ${maCC.Find[stPctEngage].Value} && ${Select[${maCC.Find[stAssistMode].Value},1,2,3,g]}) {
+				/invoke ${maCC.Add[swValidAssTarID,FALSE]}
+				/invoke ${maCC.Add[swSetCombat,FALSE]}
+				/return FALSE
+			}
 		}
 
 	| manual mode
 	} else /if (!AUTO) {
 		| no target. go away
-		/if (!${Target.ID}) /return TRUE
+		/if (!${Target.ID}) /return FALSE
 		| forced combat in manual
 		/if (COMBAT) {
 			| target dead. end
-			| /if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return TRUE
-
 			/if (${target[isdead, ${Target.ID}]}) {
 				FLOW check_class_loop
-				/return TRUE
+				/return FALSE
 			}
-
 		}
-
 	}
 
-/return FALSE
+/return TRUE
 
 
 
@@ -6034,13 +6032,13 @@ sub check_buff_cycle_others(bool _debug, string _type)
 			/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
 
 			| skip self only
-			/if (${lsBuff${_count}Tag.Count} == 1 && (${lsBuff${_count}Tag.Contains[buffself]} || ${lsBuff${_count}Tag.Contains[buffminion]})) /continue
+			/if (${lsBuff${_count}Tag.Count} == 1 && (${lsBuff${_count}Tag.Contains[self]} || ${lsBuff${_count}Tag.Contains[minion]})) /continue
 
 			| make sure base tags are there?
 			/if (${_type.Equal[group]}) {
-				/if (!${lsBuff${_count}Tag.Contains[buffgroup]}) /continue
+				/if (!${lsBuff${_count}Tag.Contains[group]}) /continue
 			} else /if (${_type.Equal[raid]}) {
-				/if (!${lsBuff${_count}Tag.Contains[buffraid]}) /continue
+				/if (!${lsBuff${_count}Tag.Contains[raid]}) /continue
 			}
 
 			DEBUG ${sep}_count${sep}\a-w${_count}\ax

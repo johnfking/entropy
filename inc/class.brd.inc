@@ -71,7 +71,7 @@ sub main_BRD(bool _debug)
 		/if (${maChr.Find[swPulseOOC].Value}) {
 			/call pulse_cycle ${maDebug.Find[pulse].Value} 0 OOC
 		}
-		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
+		/if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE FALSE
 
 		/if (VALID && !ENGINE3) {
 			/call control_routine FALSE

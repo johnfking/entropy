@@ -76,7 +76,7 @@ sub main_NEC(bool _debug)
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
 		}
-		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
+		/if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
 		/if (VALID && !ENGINE3) {
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET

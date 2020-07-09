@@ -28,6 +28,18 @@ epics with commas in their names are currently not functioning
 
 
 
+
+200709.02
+- engage % logic issues
+  so, toons with /cc mode heal and CC enabled, were getting past the engage % checks and going balls deep soon
+  as something was targeted when they also had nuking/dotting/melee enabled. this should be resolved. now, they
+  should only go balls deep with written permission
+- tags
+  more were found in buffing other merc/RL players. they have been corrected
+- reversed the loginc in check_class_loop() so FALSE is actually bad now. not sure why it was good before
+
+
+
 200709.01
 - tags
   still missed a couple.. soo damn many of them.. #alwaysknightlysfault

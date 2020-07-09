@@ -85,7 +85,7 @@ sub main_MNK(bool _debug)
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
 		GETINPUT
 		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
-		/if (${check_class_loop[${maDebug.Find[status].Value}]}) /return
+		/if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
 		/if (VALID && !ENGINE3) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET

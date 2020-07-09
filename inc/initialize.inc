@@ -117,31 +117,35 @@ sub	set_initialize(bool	_debug)
 	/call	set_data ${_debug} FALSE DNQReturn2	string outer FALSE
 
 
-	|	map	iterator dump	variable
-	|	/declare mi	mapiterator	outer
+	| map iterator dump	variable
+	| /declare mi	mapiterator	outer
 
-	|	list iterator	dump variable
+	| list iterator dump variable
 	/declare li	listiterator outer
 
-	|	control	list dump	variable
-	|	/declare cli listiterator	outer
+	| control	list dump	variable
+	| /declare cli listiterator outer
 
-	|	control	map	dumps
+	| control	map	dumps
 	/declare maControl map outer
 	/declare maChrControl	map	outer
 	/declare cmi mapiterator outer
 
-	|	set	iterator dump	variable
-	|	/declare si	setiterator	outer
+	| set	iterator dump	variable
+	| /declare si	setiterator	outer
 
-	|	hook map
+	| hook map
 	/declare maHook	map	outer
 
-	|	buff beg map
+	| buff beg map
 	/declare maBuffRequest map outer
 
-	|	watchspawn map
-	|	/declare maWatchspawn	map	outer
+	| cure map
+	/declare maCure map outer
+
+
+	| watchspawn map
+	| /declare maWatchspawn	map	outer
 
 	|	rez	control	map
 	/declare maControlRez	map	outer
