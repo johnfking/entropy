@@ -358,7 +358,7 @@ sub check_heal_CLR(bool _debug, string _type)
 			/if (${maChr.Find[stCountArbitrate].Value} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
 				/call cast_arbitration ${maDebug.Find[arb].Value}
 			 	/if (${Macro.Return}) {
-			 		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+			 		/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}, TRUE]}) {
 			 			/return FALSE
 			 		}
 			 	}

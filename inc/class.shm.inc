@@ -27,7 +27,7 @@ sub set_SHM(bool _debug)
 	/call set_data_map ${_debug} maChr stTalisman	 											PREGEN|1											"${auxna} talisman spell"
 	/call set_data_map ${_debug} maChr swTalisman			 									FALSE													"${auxsw} use talisman spell"
 
-	/call set_data_list ${_debug} maChr lsNukeTC									 			PREGEN|2											"${auxli} heal twincast nukes"
+	| /call set_data_list ${_debug} maChr lsNukeTC									 			PREGEN|2											"${auxli} heal twincast nukes"
 	/call set_data_map ${_debug} maChr stCannibalization								PREGEN|1											"${auxna} canni spell"
 
 	/call set_data_map ${_debug} maChr stPctCanniHP				 							60														"${auxnum} HP level to stop using canni"
@@ -209,7 +209,7 @@ sub check_heal_SHM(bool _debug, string _type)
 
 			| group heal
 			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
-				/call cast_cycle_heal ${_debug} 0 healgroup
+				/call cast_cycle_heal ${_debug} 0 group
 			}
 
 		 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
@@ -325,13 +325,13 @@ sub cast_cycle_heal_surge(bool _debug)
 		}
 
 		| check matching tag for failure
-		/if (!${lsHeal${_liHeal.Value}Tag.Contains[healsurge]}) {
+		/if (!${lsHeal${_liHeal.Value}Tag.Contains[surge]}) {
 			/invoke ${_liHeal.Advance}
 			/continue
 		}
 
 		| check matching tag pass
-		/if (${lsHeal${_liHeal.Value}Tag.Contains[healsurge]}) {
+		/if (${lsHeal${_liHeal.Value}Tag.Contains[surge]}) {
 			/varset _myHeal ${maHeal.Find[stHeal${_liHeal.Value}].Value}
 		}
 
@@ -342,14 +342,8 @@ sub cast_cycle_heal_surge(bool _debug)
 			/continue
 		}
 
-		| apply any conditions
-		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maHeal.Find[stHeal${_liHeal.Value}Con].Value}]}) {
-			/varset _myHeal FALSE
-			/invoke ${_liHeal.Advance}
-			/continue
-		}
-
-		/call check_basic_tags ${maDebug.Find[tag].Value} Heal${_liHeal.Value} FALSE "${maHeal.Find[stHeal${_liHeal.Value}Con].Value}"
+		| cycle the tags
+		/call tag_evaluation ${maDebug.Find[tag].Value} Heal ${_liHeal.Value} ${Spawn[${_tmpID}].DisplayName} "${maHeal.Find[stHeal${_liHeal.Value}Con].Value}" cast_cycle_heal_surge
 		/if (!${Macro.Return}) {
 			/invoke ${_liHeal.Advance}
 			/continue

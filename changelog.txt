@@ -28,6 +28,26 @@ epics with commas in their names are currently not functioning
 
 
 
+200709.01
+- tags
+  still missed a couple.. soo damn many of them.. #alwaysknightlysfault
+  redesigned the class tag checks.. might work, might not. /shrug
+  added in a twincast marker for twincast nukes
+  corrected the nosafezone tag
+  deleteing a tag will not readd it instantly as a delete evaluation
+  removed the debug from deletes
+
+  added:
+	/tag buff::assist::your assist
+	/tag heal::assist::your assist
+
+- healing
+  should break sooner when the threshold is reached for the grouphurt count to do a gorup heal
+- bard
+  corrected (read deleted) some old condition calls
+- sql inits
+  reversed the checks from errors 5/6 for fails on a db write to a 0 for a pass
+
 
 200708.01
 - /song list

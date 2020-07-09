@@ -4945,22 +4945,23 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval)
 			DEBUG	${sep}delete tag_validate${sep}\a-w${_grouping}, ${_tagname}\ax
 
 			| see	if it	is even	there?
-			/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	*	FROM tag_validate	LEFT JOIN	tag	ON tag_validate.tag	=	tag.id LEFT	JOIN tag_group ON	tag_validate.grouping	=	tag_group.id WHERE tag_group.grouping	=	"${_grouping}" AND tag.name	=	"${_tagname}"	AND	tag_validate.created_by	<> 1
+			/sqlite query ${maData.Find[DBshared].Value} dummy SELECT * FROM tag_validate LEFT JOIN tag ON tag_validate.tag = tag.id LEFT	JOIN tag_group ON	tag_validate.grouping	=	tag_group.id WHERE tag_group.grouping	=	"${_grouping}" AND tag.name	=	"${_tagname}"	AND	tag_validate.created_by	<> 1
 
 			/if	(!${sqlite.Rows[dummy]}) {
-				OUT	Something	is invalid${sep}\a-w${_grouping},	${_tagname}\ax
+				OUT	Something	is invalid${sep}\a-r${_grouping}\ax, \a-r${_tagname}\ax
 				/return	FALSE
 			}
 
 			| delete the bastard
 			/sqlite	query	${maData.Find[DBshared].Value} dummy DELETE	FROM tag_validate	WHERE	tag	IN (SELECT tag.id	FROM tag WHERE tag.name	=	"${_tagname}") AND grouping	=	(SELECT	tag_group.id FROM	tag_group	WHERE	tag_group.grouping = "${_grouping}") AND created_by	<> 1
-			OUT	Evaluation Deleted${sep}\a-w${_grouping},	${_tagname}\ax
+			OUT	Evaluation Deleted${sep}\aw${_grouping}\ax${sep}\a-t${_tagname}\ax
+			/return TRUE
 
 		}
 
 		| delete the tag
 		/if	(${_tagname.Equal[delete]})	{
-			SDEBUG ${sep}delete	tag${sep}\a-w${_grouping}\ax
+			DEBUG ${sep}delete tag${sep}\a-t${_grouping}\ax
 
 			| see	if the tag is	there
 			/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	*	FROM tag WHERE tag.name	=	"${_grouping}" AND created_by	<> 1
@@ -4980,7 +4981,7 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval)
 
 			| delete it, now that	we are passed	the	checks
 			/sqlite	query	${maData.Find[DBshared].Value} dummy DELETE	FROM tag WHERE tag.name	=	"${_grouping}" AND created_by	<> 1
-			OUT	Tag	Deleted${sep}\a-w${_grouping}\ax
+			OUT	Tag	Deleted${sep}\a-t${_grouping}\ax
 
 			/return	TRUE
 		}
@@ -5030,14 +5031,11 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval)
 		}	else /if (${Select[${_grouping},list]} &&	${_tagname.Equal[marker]})	{
 			/for _count	1	to ${sqlite.Rows[dummy]}
 				/if	(${Parse[99,${sqlite.Result[dummy	${_count}	eval].Find[::MARKER]}]}) {
-					OUT	\aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}${If[${sqlite.Result[dummy ${_count} created_by].Equal[1]},\a-g${sqlite.Result[dummy ${_count} name]}\ax,\at${sqlite.Result[dummy	${_count}	name]}\ax]}${sep}\a-w${sqlite.Result[dummy ${_count} aux]}\ax
+					OUT	\aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}${If[${sqlite.Result[dummy ${_count} created_by].Equal[1]},\a-o${sqlite.Result[dummy ${_count} name]}\ax,\at${sqlite.Result[dummy	${_count}	name]}\ax]}${sep}\a-w${sqlite.Result[dummy ${_count} aux]}\ax
 				}
 			/next	_count
 			/invoke	${out[18,	0, 33]}
 			/return	FALSE
-
-
-
 
 		}	else /if (${Select[${_grouping},list,see]} &&	${Bool[${_tagname}]})	{
 			/for _count	1	to ${sqlite.Rows[dummy]}
@@ -5055,8 +5053,17 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval)
 		/return	FALSE
 	}
 
-	| create the tag first
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	INTO tag (name,	created_by)	VALUES ("${_tagname}", 2)
+	| check the tag first. do not let them make tags that already exist
+	/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT name,	created_by FROM tag;
+	/if	(${sqlite.Rows[dummy]})	{
+		/if	(${Select[${sqlite.Result[dummy	1	created_by]},1]})	{
+			OUT	Tag	Exists${sep}\ag${_tagname}\ax	(\arDo not edit	default	tags\ax)
+			/return	FALSE
+		}
+	}
+
+	| create the tag if it does not exist
+	/sqlite query	${maData.Find[DBshared].Value} dummy INSERT	INTO tag (name,	created_by)	VALUES ("${_tagname}", 2)
 
 	| check	if what	they want	to do	is trying	to overwrite the defaults?
 	/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'1'

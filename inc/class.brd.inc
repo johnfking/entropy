@@ -314,16 +314,10 @@ sub pulse_cycle(bool _debug, _tmpID, string _oocSing)
 			/continue
 		}
 
-		| apply any conditions
-		/if (!${check_condition[${_debug}, ${maSong.Find[stSong${_lipl.Value}Con].Value}]}) {
-			DEBUG ${sep}condition fail${sep}\a-w${maSong.Find[stSong${_lipl.Value}].Value}\ax
-			/invoke ${_lipl.Advance}
-			/continue
-		}
-
-		/call check_basic_tags ${_debug} Song${_lipl.Value} ${Me.DisplayName} "${maSong.Find[stSong${_lipl.Value}].Value}"
+		| cycle the tags
+		/call tag_evaluation ${maDebug.Find[tag].Value} Song ${_lipl.Value} ${Me.DisplayName} "${maSong.Find[stSong${_lipl.Value}].Value}" pulse_cycle
 		/if (!${Macro.Return}) {
-			DEBUG ${sep}tag fail${sep}\a-w${maSong.Find[stSong${_lipl.Value}].Value}\ax
+			DEBUG ${break}condition${sep}Buff${_lipl.Value}
 			/invoke ${_lipl.Advance}
 			/continue
 		}

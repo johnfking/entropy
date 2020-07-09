@@ -471,7 +471,7 @@ sub check_free_ingame_cash(bool _debug)
  * note: checks whos hurt, returns a count. sets most hurt: ID, Class, pct hurt
  * use: /call get_hurt DEBUG [group|pet|mypet|xtarget|tot|CH] || ${get_hurt[DEBUG, group|pet|mypet|xtarget|tot]}
  ***|
-sub get_hurt(bool _debug, string _type)
+sub get_hurt(bool _debug, string _type, bool _breakonGroup)
 	DEBUG \atget_hurt\ax(\a-w${_type}\ax)
 	DEBUG ${sep}using weighted HP check${sep}\a-w${maHeal.Find[swHealWeighted].Value}\ax
 
@@ -502,10 +502,10 @@ sub get_hurt(bool _debug, string _type)
 			| group hurt running count
 			/if (${Group.Member[${_count}].PctHPs} <= ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}*.PCTHO) {
 				/varcalc hurtCount ${hurtCount} + 1
-				/if (${maHeal.Find[stCountHealGroup].Value}) {
+				/if (${maHeal.Find[stCountHealGroup].Value} && ${_breakonGroup}) {
 					DEBUG ${sep}break on${sep}\a-w${hurtCount}\ax \aw>=\ax \a-w${maHeal.Find[stCountHealGroup].Value}\ax
 					/if (${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
-						/break
+						/return ${hurtCount}
 					}
 				}
 			}
@@ -2356,11 +2356,15 @@ sub check_class_loop(bool _debug)
 			/return TRUE
 		}
 
-		| targets dead. why bother
-		| /if (${is_target_dead[${maDebug.Find[target].Value}, TARGET]}) /return TRUE
-
 		/if (${target[isdead, TARGET]}) {
 			FLOW check_class_loop
+			/return TRUE
+		}
+
+		| validate the target.. again...
+		/if (!${is_target_valid[${_debug}, TARGET]}) {
+			/invoke ${maCC.Add[swValidAssTarID,FALSE]}
+			/invoke ${maCC.Add[swSetCombat,FALSE]}
 			/return TRUE
 		}
 
@@ -4548,7 +4552,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 		} else /if (${Bool[${_map}]}) {
 			DEBUG MAP output
 			/if (${lsGrain.Contains[24]}) {
-				OUT /edit ${_variable}${sep}\a-w${Parse[1, ${sqlite.Result[dummy 1 value]}]}\ax
+				OUT /edit ${_variable}${sep}\a-w${Parse[1,${sqlite.Result[dummy 1 value]}]}\ax
 			}
 
 		} else /if (${_found}) {
@@ -5017,29 +5021,12 @@ sub check_buff_cycle_now(bool _debug)
 		}
 
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_licountself.Value} ${Me.DisplayName} "${maBuff.Find[stBuff${_licountself.Value}].Value}"
+		/call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_licountself.Value} ${Me.DisplayName} "${maBuff.Find[stBuff${_licountself.Value}].Value}" check_buff_cycle_now
 		/if (!${Macro.Return}) {
 			DEBUG ${break}condition${sep}Buff${_licountself.Value}
 			/invoke ${_licountself.Advance}
 			/continue
 		}
-
-		|** condition check
-		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maBuff.Find[stBuff${_licountself.Value}Con].Value}]}) {
-			DEBUG ${break}condition
-			/invoke ${_licountself.Advance}
-			/continue
-		}
-		**|
-
-		|** tag check
-		/call check_basic_tags ${maDebug.Find[tag].Value} Buff${_licountself.Value} ${Me.DisplayName} "${maBuff.Find[stBuff${_licountself.Value}].Value}" buffnow
-		/if (!${Macro.Return}) {
-			DEBUG ${break}tag
-			/invoke ${_licountself.Advance}
-			/continue
-		}
-		**|
 
 		DEBUG ${sep}Buff#: ${_licountself.Value}${sep}\a-w${maBuff.Find[stBuff${_licountself.Value}].Value}\ax
 		/varset _spell ${maBuff.Find[stBuff${_licountself.Value}].Value}
@@ -5817,35 +5804,35 @@ sub check_buff_cycle_crew(bool _debug)
 		| each buff
 		/for _count 1 to 50
 
-			/if (!${maBuff.Find[swBuff${_count}].Value}) /continue
-			/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) /continue
-
-			/if (${Spell[${_spell}].TargetType.Equal[Self]}) /continue
-
-			| skip self only
-			/if (!${lsBuff${_count}Tag.Contains[crew]} && (${lsBuff${_count}Tag.Contains[self]} || ${lsBuff${_count}Tag.Contains[minion]})) /continue
-
-			/if (${Select[${Spell[${maBuff.Find[stBuff${_count}].Value}].RankName.TargetType},self]}) /continue
-
-			| skip auras
-			/if (${lsBuff${_count}Tag.Contains[aura]}) /continue
-
-			| skip summon ranged items
-			/if (${lsBuff${_count}Tag.Contains[summonrange]}) /continue
-
-
-			|**
-			/if (!${check_condition[${maDebug.Find[condition].Value}, ${maBuff.Find[stBuff${_count}Con].Value}]}) {
+			/if (!${maBuff.Find[swBuff${_count}].Value}) {
 				/continue
 			}
 
-			| check basic tags
-			/call check_basic_tags ${maDebug.Find[tag].Value} Buff${_count} ${_toonName} "${maBuff.Find[stBuff${_count}].Value}" buffcrew
-			/if (!${Macro.Return}) /continue
-			**|
+			/if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) {
+				/continue
+			}
+
+			/if (!${lsBuff${_count}Tag.Contains[crew]}) {
+				/continue
+			}
+
+			| skip self only
+			/if (${Select[${Spell[${maBuff.Find[stBuff${_count}].Value}].RankName.TargetType},self]}) {
+				/continue
+			}
+
+			| skip auras
+			/if (${lsBuff${_count}Tag.Contains[aura]}) {
+				/continue
+			}
+
+			| skip summon ranged items/zerker axes
+			/if (${lsBuff${_count}Tag.Contains[summonrange]} || ${lsBuff${_count}Tag.Contains[summonaxe]}) {
+				/continue
+			}
 
 			| cycle the tags
-			/call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_toonName} "${maBuff.Find[stBuff${_count}].Value}"
+			/call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_toonName} "${maBuff.Find[stBuff${_count}].Value}" check_buff_cycle_crew
 			/if (!${Macro.Return}) {
 				/continue
 			}
@@ -5916,15 +5903,7 @@ sub check_buff_cycle_crew(bool _debug)
 				DEBUG ${sep}${sep}\ay****\ax Found:${_found} .. Target:${_target}
 				/if (!${_found} && ${_target}) {
 					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Spawn[pc ${_toonName}].ID} FALSE
-					/if (${maEntropy.Find[swBuffCooldownWait].Value}) {
-						DEBUG ${sep}buff cooldown recycle
-						/while (${Me.SpellInCooldown}) {
-							CHECKEXIT
-							ISMEDEAD
-							/if (!${Me.SpellInCooldown}) /break
-							/delay 5
-						}
-					}
+					/call cast_cooldown_wait ${_debug}
 					/continue
 				}
 
@@ -5951,20 +5930,11 @@ sub check_buff_cycle_crew(bool _debug)
 					/continue
 				}
 
-
-					DEBUG ${sep}${sep}HAVE: .Trigger.ID \at${DNQReturn}\ax ${dot} ${_spellTrigger}
+				DEBUG ${sep}${sep}HAVE: .Trigger.ID \at${DNQReturn}\ax ${dot} ${_spellTrigger}
 
 				/if (${_target}) {
 					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Spawn[pc ${_toonName}].ID} FALSE
-					/if (${maEntropy.Find[swBuffCooldownWait].Value}) {
-						DEBUG ${sep}buff cooldown recycle
-						/while (${Me.SpellInCooldown}) {
-							CHECKEXIT
-							ISMEDEAD
-							/if (!${Me.SpellInCooldown}) /break
-							/delay 5
-						}
-					}
+					/call cast_cooldown_wait ${_debug}
 					/continue
 				}
 
@@ -6079,7 +6049,7 @@ sub check_buff_cycle_others(bool _debug, string _type)
 			| /if (!${Macro.Return}) /continue
 
 			| cycle the tags
-			/call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_toonName} "${maBuff.Find[stBuff${_count}].Value}"
+			/call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_toonName} "${maBuff.Find[stBuff${_count}].Value}" check_buff_cycle_others
 			/if (!${Macro.Return}) {
 				/continue
 			}
@@ -7880,7 +7850,7 @@ sub check_minion_cycle_buff(bool _debug)
 		| /if (!${Macro.Return}) /continue
 
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${Me.DisplayName} "${maBuff.Find[stBuff${_count}].Value}"
+		/call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${Me.DisplayName} "${maBuff.Find[stBuff${_count}].Value}" check_minion_cycle_buff
 		/if (!${Macro.Return}) {
 			/continue
 		}
@@ -7908,16 +7878,7 @@ sub check_minion_cycle_buff(bool _debug)
 		/if (!${Spell[${_spell}].StacksTarget}) /continue
 
 		/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Pet.ID} FALSE
-		/if (${maEntropy.Find[swBuffCooldownWait].Value}) {
-			DEBUG ${sep}buff cooldown recycle
-			/while (${Me.SpellInCooldown}) {
-				CHECKEXIT
-				ISMEDEAD
-				/if (!${Me.SpellInCooldown}) /break
-				/delay 5
-			}
-		}
-
+		/call cast_cooldown_wait ${_debug}
 
 	/next _count
 
@@ -10657,22 +10618,8 @@ sub cast_cycle_defense(bool _debug, int _tmpID)
 			/continue
 		}
 
-		|** apply any conditions
-		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maDefense.Find[stDefense${_liC20.Value}Con].Value}]}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		| check any tags
-		/call check_basic_tags ${maDebug.Find[tag].Value} Defense${_liC20.Value} ${Me.DisplayName} "${maDefense.Find[stDefense${_liC20.Value}].Value}" defense
-		/if (!${Macro.Return}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-		**|
-
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} Defense ${_liC20.Value} ${Me.DisplayName} "${maDefense.Find[stDefense${_liC20.Value}].Value}"
+		/call tag_evaluation ${maDebug.Find[tag].Value} Defense ${_liC20.Value} ${Me.DisplayName} "${maDefense.Find[stDefense${_liC20.Value}].Value}" cast_cycle_defense
 		/if (!${Macro.Return}) {
 			/invoke ${_liC20.Advance}
 			/continue
@@ -10756,21 +10703,8 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 			/continue
 		}
 
-		|** apply any conditions
-		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maItem.Find[stItem${_liC20.Value}Con].Value}]}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		/call check_basic_tags ${maDebug.Find[tag].Value} Item${_liC20.Value} ${Me.DisplayName} "${maItem.Find[stItem${_liC20.Value}].Value}" item
-		/if (!${Macro.Return}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-		**|
-
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} Item ${_liC20.Value} ${Me.DisplayName} "${maItem.Find[stItem${_liC20.Value}].Value}"
+		/call tag_evaluation ${maDebug.Find[tag].Value} Item ${_liC20.Value} ${Me.DisplayName} "${maItem.Find[stItem${_liC20.Value}].Value}" check_item_cycle
 		/if (!${Macro.Return}) {
 			/invoke ${_liC20.Advance}
 			/continue
@@ -10877,26 +10811,14 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
 			/continue
 		}
 
-		| apply any conditions
-		| /if (!${check_condition[${maDebug.Find[condition].Value}, ${maNuke.Find[stNuke${_liNuke.Value}Con].Value}]}) {
-		| 	/invoke ${_liNuke.Advance}
-		| 	/continue
-		| }
-
 		| skip twincast nukes (they are accessed a different way
 		/if (${lsNuke${_liNuke.Value}Tag.Contains[twincast]} && ${_tag.NotEqual[twincast]}) {
 			/invoke ${_liNuke.Advance}
 			/continue
 		}
 
-		| /call check_basic_tags ${maDebug.Find[tag].Value} Nuke${_liNuke.Value} ${Me.DisplayName} "${maNuke.Find[stNuke${_liNuke.Value}].Value}" nuke
-		| /if (!${Macro.Return}) {
-		| 	/invoke ${_liNuke.Advance}
-		| 	/continue
-		| }
-
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} Nuke ${_liNuke.Value} ${Me.DisplayName} "${maNuke.Find[stNuke${_liNuke.Value}].Value}"
+		/call tag_evaluation ${maDebug.Find[tag].Value} Nuke ${_liNuke.Value} ${Me.DisplayName} "${maNuke.Find[stNuke${_liNuke.Value}].Value}" cast_cycle_nuke
 		/if (!${Macro.Return}) {
 			/invoke ${_liNuke.Advance}
 			/continue
@@ -11031,22 +10953,8 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 			/continue
 		}
 
-		|** apply any conditions
-		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maDoT.Find[stDoT${_liC20.Value}Con].Value}]}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		/call check_basic_tags ${maDebug.Find[tag].Value} DoT${_liC20.Value} ${Me.DisplayName} "${maDoT.Find[stDoT${_liC20.Value}].Value}" dot
-		/if (!${Macro.Return}) {
-			DEBUG ${sep}tag fail${sep}\a-w${maDoT.Find[stDoT${_liC20.Value}].Value}\ax
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-		**|
-
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} DoT ${_liC20.Value} ${Me.DisplayName} "${maDoT.Find[stDoT${_liC20.Value}].Value}"
+		/call tag_evaluation ${maDebug.Find[tag].Value} DoT ${_liC20.Value} ${Me.DisplayName} "${maDoT.Find[stDoT${_liC20.Value}].Value}" cast_cycle_dot
 		/if (!${Macro.Return}) {
 			/invoke ${_liC20.Advance}
 			/continue
@@ -11118,22 +11026,8 @@ sub cast_cycle_agro(bool _debug, int _tmpID)
 			/continue
 		}
 
-		|** apply any conditions
-		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maAgro.Find[stAgro${_liC20.Value}Con].Value}]}) {
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		/call check_basic_tags ${maDebug.Find[tag].Value} Agro${_liC20.Value} ${Me.DisplayName} "${maAgro.Find[stAgro${_liC20.Value}].Value}" agro
-		/if (!${Macro.Return}) {
-			DEBUG ${sep}tag fail${sep}\a-w${maAgro.Find[stAgro${_liC20.Value}].Value}\ax
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-		**|
-
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} Agro ${_liC20.Value} ${Me.DisplayName} "${maAgro.Find[stAgro${_liC20.Value}].Value}"
+		/call tag_evaluation ${maDebug.Find[tag].Value} Agro ${_liC20.Value} ${Me.DisplayName} "${maAgro.Find[stAgro${_liC20.Value}].Value}" cast_cycle_agro
 		/if (!${Macro.Return}) {
 			/invoke ${_liC20.Advance}
 			/continue
@@ -11221,22 +11115,8 @@ sub cast_cycle_miscdps(bool _debug, int _tmpID)
 			/continue
 		}
 
-		|** apply any conditions
-		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maMiscDPS.Find[stMiscDPS${_liC50.Value}Con].Value}]}) {
-			/invoke ${_liC50.Advance}
-			/continue
-		}
-
-		/call check_basic_tags ${maDebug.Find[tag].Value} MiscDPS${_liC50.Value} ${Me.DisplayName} "${maMiscDPS.Find[stMiscDPS${_liC50.Value}].Value}" miscdps
-		/if (!${Macro.Return}) {
-			DEBUG ${sep}tag fail${sep}\a-w${maMiscDPS.Find[stMiscDPS${_liC50.Value}].Value}\ax
-			/invoke ${_liC50.Advance}
-			/continue
-		}
-		**|
-
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} MiscDPS ${_liC50.Value} ${Me.DisplayName} "${maMiscDPS.Find[stMiscDPS${_liC50.Value}].Value}"
+		/call tag_evaluation ${maDebug.Find[tag].Value} MiscDPS ${_liC50.Value} ${Me.DisplayName} "${maMiscDPS.Find[stMiscDPS${_liC50.Value}].Value}" cast_cycle_miscdps
 		/if (!${Macro.Return}) {
 			/invoke ${_liC50.Advance}
 			/continue
@@ -11310,23 +11190,8 @@ sub cast_cycle_burn(bool _debug, int _tmpID)
 			/continue
 		}
 
-		|** apply any conditions
-		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maBurn.Find[stBurn${_liC20.Value}Con].Value}]}) {
-			DEBUG ${break}condition${sep}\a-w${maBurn.Find[stBurn${_liC20.Value}Con].Value}\ax${sep}\arFAIL\ax
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-
-		/call check_basic_tags ${maDebug.Find[tag].Value} Burn${_liC20.Value} ${Me.DisplayName} "${maBurn.Find[stBurn${_liC20.Value}].Value}" burn
-		/if (!${Macro.Return}) {
-			DEBUG ${break}
-			/invoke ${_liC20.Advance}
-			/continue
-		}
-		**|
-
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} Burn ${_liC20.Value} ${Me.DisplayName} "${maBurn.Find[stBurn${_liC20.Value}].Value}"
+		/call tag_evaluation ${maDebug.Find[tag].Value} Burn ${_liC20.Value} ${Me.DisplayName} "${maBurn.Find[stBurn${_liC20.Value}].Value}" cast_cycle_burn
 		/if (!${Macro.Return}) {
 			/invoke ${_liC20.Advance}
 			/continue
@@ -11402,19 +11267,8 @@ sub cycle_sash(bool _debug)
 		/varset _condition FALSE
 		/varset _tag FALSE
 
-		|** apply any conditions
-		/if (${check_condition[${maDebug.Find[condition].Value}, ${maSash.Find[stSash${_liC12.Value}Con].Value}]}) {
-			/varset _condition TRUE
-		}
-
-		/call check_basic_tags ${maDebug.Find[tag].Value} Sash${_liC12.Value} ${Me.DisplayName} "${maSash.Find[stSash${_liC12.Value}].Value}" sash
-		/if (${Macro.Return}) {
-			/varset _tag TRUE
-		}
-		**|
-
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} Sash ${_liC12.Value} ${Me.DisplayName} "${maSash.Find[stSash${_liC12.Value}].Value}"
+		/call tag_evaluation ${maDebug.Find[tag].Value} Sash ${_liC12.Value} ${Me.DisplayName} "${maSash.Find[stSash${_liC12.Value}].Value}" cycle_sash
 		/if (!${Macro.Return}) {
 			/continue
 		}
@@ -11988,24 +11842,8 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 				/continue
 			}
 
-			|** apply any conditions
-			/if (!${check_condition[${maDebug.Find[condition].Value}, ${maHeal.Find[stHeal${_liHoT.Value}Con].Value}]}) {
-				DEBUG ${break}condition
-				/varset _myHoT FALSE
-				/invoke ${_liHoT.Advance}
-				/continue
-			}
-
-			/call check_basic_tags ${maDebug.Find[tag].Value} Heal${_liHoT.Value} ${Spawn[${hurtID}].DisplayName} "${maHeal.Find[stHeal${_liHoT.Value}Con].Value}" healregen
-			/if (!${Macro.Return}) {
-				/varset _myHoT FALSE
-				/invoke ${_liHoT.Advance}
-				/continue
-			}
-			**|
-
 			| cycle the tags
-			/call tag_evaluation ${maDebug.Find[tag].Value} Heal ${_liHoT.Value} ${Me.DisplayName} "${maHeal.Find[stHeal${_liHoT.Value}].Value}"
+			/call tag_evaluation ${maDebug.Find[tag].Value} Heal ${_liHoT.Value} ${Me.DisplayName} "${maHeal.Find[stHeal${_liHoT.Value}].Value}" cast_cycle_heal_regen
 			/if (!${Macro.Return}) {
 				/varset _myHoT FALSE
 				/invoke ${_liHoT.Value}
@@ -12077,12 +11915,12 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 				/continue
 			}
 			| check matching tag
-			/if (!${lsHeal${_liHoT.Value}Tag.Contains[healhot]}) {
+			/if (!${lsHeal${_liHoT.Value}Tag.Contains[hot]}) {
 				/invoke ${_liHoT.Advance}
 				/continue
 			}
 			| cehck matching tag
-			/if (${lsHeal${_liHoT.Value}Tag.Contains[healhot]}) {
+			/if (${lsHeal${_liHoT.Value}Tag.Contains[hot]}) {
 				/varset _myHoT ${maHeal.Find[stHeal${_liHoT.Value}].Value}
 				/break
 			}
@@ -12167,21 +12005,8 @@ sub cast_cycle_heal(bool _debug, int _tmpID, string _tag)
 			/continue
 		}
 
-		|** apply any conditions
-		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maHeal.Find[stHeal${_liHeal.Value}Con].Value}]}) {
-			/invoke ${_liHeal.Advance}
-			/continue
-		}
-
-		/call check_basic_tags ${maDebug.Find[tag].Value} Heal${_liHeal.Value} ${Spawn[${hurtID}].DisplayName} "${maHeal.Find[stHeal${_liHeal.Value}Con].Value}" heal
-		/if (!${Macro.Return}) {
-			/invoke ${_liHeal.Advance}
-			/continue
-		}
-		**|
-
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} Heal ${_liHeal.Value} ${Me.DisplayName} "${maHeal.Find[stHeal${_liHeal.Value}].Value}"
+		/call tag_evaluation ${maDebug.Find[tag].Value} Heal ${_liHeal.Value} ${Me.DisplayName} "${maHeal.Find[stHeal${_liHeal.Value}].Value}" cast_cycle_heal
 		/if (!${Macro.Return}) {
 			/invoke ${_liHeal.Advance}
 			/continue
@@ -12240,13 +12065,13 @@ sub cast_cycle_heal_promise(bool _debug)
 		}
 
 		| check matching tag for failure
-		/if (!${lsHeal${_liHeal.Value}Tag.Contains[healpromise]}) {
+		/if (!${lsHeal${_liHeal.Value}Tag.Contains[promise]}) {
 			/invoke ${_liHeal.Advance}
 			/continue
 		}
 
 		| check matching tag pass
-		/if (${lsHeal${_liHeal.Value}Tag.Contains[healpromise]}) {
+		/if (${lsHeal${_liHeal.Value}Tag.Contains[promise]}) {
 			/varset _myHeal ${maHeal.Find[stHeal${_liHeal.Value}].Value}
 		}
 
@@ -12257,21 +12082,8 @@ sub cast_cycle_heal_promise(bool _debug)
 			/continue
 		}
 
-		|** apply any conditions
-		/if (!${check_condition[${maDebug.Find[condition].Value}, ${maHeal.Find[stHeal${_liHeal.Value}Con].Value}]}) {
-			/invoke ${_liHeal.Advance}
-			/continue
-		}
-
-		/call check_basic_tags ${maDebug.Find[tag].Value} Heal${_liHeal.Value} FALSE "${maHeal.Find[stHeal${_liHeal.Value}Con].Value}" healpromise
-		/if (!${Macro.Return}) {
-			/invoke ${_liHeal.Advance}
-			/continue
-		}
-		**|
-
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} Heal ${_count} ${Me.DisplayName} "${maHeal.Find[stHeal${_count}].Value}"
+		/call tag_evaluation ${maDebug.Find[tag].Value} Heal ${_count} ${Me.DisplayName} "${maHeal.Find[stHeal${_count}].Value}" cast_cycle_heal_promise
 		/if (!${Macro.Return}) {
 			/invoke ${_liHeal.Advance}
 			/continue
@@ -12406,7 +12218,7 @@ sub check_buff_cycle_aura(bool _debug, int _tmpID, string _tag)
 		}
 
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_liBuff.Value} ${Me.DisplayName} "${maBuff.Find[stBuff${_liBuff.Value}].Value}"
+		/call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_liBuff.Value} ${Me.DisplayName} "${maBuff.Find[stBuff${_liBuff.Value}].Value}" check_buff_cycle_aura
 		/if (!${Macro.Return}) {
 			DEBUG ${break}condition${sep}Buff${_liBuff.Value}
 			/invoke ${_liBuff.Advance}
@@ -12415,16 +12227,7 @@ sub check_buff_cycle_aura(bool _debug, int _tmpID, string _tag)
 
 
 		/call voodoo ${_debug} "${maBuff.Find[stBuff${_liBuff.Value}].Value}" 0 FALSE
-
-		/if (${maEntropy.Find[swBuffCooldownWait].Value}) {
-			DEBUG ${sep}buff cooldown recycle
-			/while (${Me.SpellInCooldown}) {
-				CHECKEXIT
-				ISMEDEAD
-				/if (!${Me.SpellInCooldown}) /break
-				/delay 5
-			}
-		}
+		/call cast_cooldown_wait ${_debug}
 
 		/invoke ${_liBuff.Advance}
 	}
@@ -12687,11 +12490,10 @@ sub popup(string _verbage)
  * use: /call check_buff_cycle_self DEBUG
  ***|
 sub check_buff_cycle_self(bool _debug)
-	| /varset _debug true
-	DEBUG \atcheck_buff_cycle_self2\ax()
+	DEBUG \atcheck_buff_cycle_self\ax()
 	FLOW check_buff_cycle_self (1)
 
-	SETHUD "buff self2"
+	SETHUD "buff self"
 
 	/if (AUTO) {
 		/invoke ${set_data_timer[FALSE, Check_Buff_Self, RESTART]}
@@ -12728,8 +12530,10 @@ sub check_buff_cycle_self(bool _debug)
 		DEBUG ${sep}_count ${_count}${sep}\a-w${maBuff.Find[stBuff${_count}].Value}\ax
 
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${Me.DisplayName} "${maBuff.Find[stBuff${_count}].Value}"
-		/if (!${Macro.Return}) /continue
+		/call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${Me.DisplayName} "${maBuff.Find[stBuff${_count}].Value}" check_buff_cycle_self
+		/if (!${Macro.Return}) {
+			/continue
+		}
 
 		/varset _spell "${maBuff.Find[stBuff${_count}].Value}"
 
@@ -12818,15 +12622,7 @@ sub check_buff_cycle_self(bool _debug)
 		}
 
 		/call voodoo FALSE "${maBuff.Find[stBuff${_count}].Value}" ${Me.ID} FALSE
-		/if (${maEntropy.Find[swBuffCooldownWait].Value}) {
-			DEBUG ${sep}buff cooldown recycle
-			/while (${Me.SpellInCooldown}) {
-				CHECKEXIT
-				ISMEDEAD
-				/if (!${Me.SpellInCooldown}) /break
-				/delay 5
-			}
-		}
+		/call cast_cooldown_wait ${_debug}
 
 		/if (${lsBuff${_count}Tag.Contains[autoinventory]}) {
 			/delay 2s ${Cursor.ID}
@@ -12864,12 +12660,12 @@ sub check_buff_cycle_self(bool _debug)
 
 
 |***
- * note: checks	tags for buffs..
- * use:	/call	tag_evaluation type, ##, toonname, spellname
+ * note: checks	tags for stuff and things..
+ * use:	/call	tag_evaluation type, ##, toonname, spellname, calling routine
  ***|
-sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _spell)
-	DEBUG	\attag_evaluation\ax(\a-w${_type}, ${_num},	${_name},	${_spell}\ax)
-	FLOW tag_eval
+sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _spell, string _sub)
+	DEBUG	\attag_evaluation\ax(\a-w${_type}, ${_num},	${_name},	${_spell}, ${_sub}\ax)
+	FLOW tag_evaluation
 
 	| is the master switch off?
 	/if	(!${maBuff.Find[swBuffMaster].Value})	{
@@ -12886,9 +12682,12 @@ sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _sp
 	| start cycling	the	tags
 	/declare _litag	listiterator local
 	/vardata _litag	ls${_type}${_num}Tag.First.Clone
+	/declare _containsclass bool local FALSE
+	/declare _licls listiterator local
+
 	/while (!${_litag.IsEnd})	{
 
-		|	is the tag list	empty?
+		| is the tag list	empty?
 		/if	(${_litag.Value.Equal[EMPTY]}) {
 			/invoke	${_litag.Advance}
 			/continue
@@ -12897,14 +12696,17 @@ sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _sp
 		| does our query exist?
 		/if	(${sqlite.Status[q${_type}${_num}_${_litag.Value}].NotEqual[success]}) {
 			DEBUG	${sep}\agpulling\ax	sql	data for \a-oq${_type}${_num}_${_litag.Value}\ax
-			/sqlite	query	${maData.Find[DBshared].Value} q${_type}${_num}_${_litag.Value}	SELECT tag_group.grouping, tag.name, tag_validate.created_by,	tag_validate.eval, tag_validate.aux	FROM tag_validate	LEFT JOIN	tag	ON tag_validate.tag	=	tag.id LEFT	JOIN tag_group ON	tag_validate.grouping	=	tag_group.id WHERE tag_group.grouping	=	"${_type.Lower}" AND tag.name	=	"${_litag.Value}"
-			/if	(!${sql_check[${_debug}, q${_type}${_num}_${_litag.Value}, sql_schema_shared,	"SELECT	(tag eval)"]}) /endmacro
+			/while (TRUE) {
+				/sqlite query ${maData.Find[DBshared].Value} q${_type}${_num}_${_litag.Value} SELECT tag_group.grouping, tag.name, tag_validate.created_by, tag_validate.eval, tag_validate.aux FROM tag_validate LEFT JOIN tag	ON tag_validate.tag	=	tag.id LEFT	JOIN tag_group ON	tag_validate.grouping = tag_group.id WHERE tag_group.grouping = "${_type.Lower}" AND tag.name = "${_litag.Value}"
+				/if	(!${sql_check[${_debug}, q${_type}${_num}_${_litag.Value}, sql_schema_shared, "SELECT (tag eval)"]}) /endmacro
+				/if	(${sqlite.Resultcode[q${_type}${_num}_${_litag.Value} == 0]}) /break
+			}
+
 		}
 
 		| bad tag?
 		/if	(!${sqlite.Rows[q${_type}${_num}_${_litag.Value}]})	{
-			OUT	${warning} \arInvalid\ax${sep}ls${_type}${_num}Tag${sep}\at${_litag.Value}\ax
-			/delay 1
+			OUT	${warning} \arInvalid\ax (\a-r${_sub}\ax)${sep}ls${_type}${_num}Tag${sep}\at${_litag.Value}\ax
 			/invoke	${_litag.Advance}
 			/continue
 		}
@@ -12912,12 +12714,12 @@ sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _sp
 
 		| we have something	to work	with
 		/if	(${sqlite.Rows[q${_type}${_num}_${_litag.Value}]}	== 1)	{
-			DEBUG	${sep}cycling	tag(\a-oq${_type}${_num}_${_litag.Value}\ax)${sep}\a-w${_type}${_num}${sep}${_litag.Value}\ax${sep}\a-r${Parse[2,${sqlite.Result[q${_type}${_num}_${_litag.Value}	1	eval]}]}\ax
+			DEBUG ${sep}cycling tag(\a-oq${_type}${_num}_${_litag.Value}\ax)${sep}\a-w${_type}${_num}${sep}${_litag.Value}\ax${sep}\a-r${Parse[2,${sqlite.Result[q${_type}${_num}_${_litag.Value} 1 eval]}]}\ax
 
 			| control markers	we skip. will	already	be checked
 			/if	(${Parse[99,${sqlite.Result[q${_type}${_num}_${_litag.Value} 1 eval].Equal[CONTROL::MARKER]}]})	{
 				DEBUG	${skip}evaluation${sep}
-				|	do jack	all	here...	just ignore	the	shit
+				| do jack all here... just ignore the shit
 
 			| execute	sub	here
 			}	else /if (${Parse[99,${sqlite.Result[q${_type}${_num}_${_litag.Value}	1	eval].Find[SUB::]}]})	{
@@ -12954,14 +12756,37 @@ sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _sp
 				| drop
 				| this is a	very specific	use	tag.
 
-
 			| evaluate the tag eval here
 			}	else {
-				DEBUG	${sep}evaluation${sep}
-				/if	(!${Math.Calc[${Parse[99,${sqlite.Result[q${_type}${_num}_${_litag.Value}	1	eval]}]}]})	{
-				| /if	(${Parse[99,${sqlite.Result[q${_type}${_num}_${_litag.Value} 1 eval]}]}) {
-					DEBUG	${break}Returning${sep}\a-wFALSE\ax${sep}${_litag.Value}
-					/return	FALSE
+
+				| checks to match a class shortname
+				/varset _containsclass FALSE
+				/vardata _licls lsClassAll.First.Clone
+
+				| cycle all 16 classes to see if there is a class in there at all
+				| if we find even one class, we mark found and get out
+				/while (!${_licls.IsEnd}) {
+					/if (${ls${_type}${_num}Tag.Contains[${_licls.Value}]}) {
+						/varset _containsclass TRUE
+						/break
+					}
+					/invoke ${_licls.Advance}
+				}
+
+				| if we do find a class in the tag list, any class, we see if our class is one of them
+				| if our class is not, we fail the check
+				/if (${_containsclass}) {
+					/if (!${ls${_type}${_num}Tag.Contains[${Spawn[pc ${_name}].Class.ShortName}]}) {
+						/return FALSE
+					}
+
+				| if theres not class in the tag check, we evaluate whatever it is..
+				} else /if (!${_containsclass}) {
+					DEBUG	${sep}evaluation${sep}${_litag.Value}${sep}\a-o${sqlite.Result[q${_type}${_num}_${_litag.Value} 1 eval]}\ax
+					/if	(!${Math.Calc[${Parse[99,${sqlite.Result[q${_type}${_num}_${_litag.Value} 1 eval]}]}]})	{
+						DEBUG ${break}Returning${sep}\a-wFALSE\ax${sep}${_litag.Value}
+						/return	FALSE
+					}
 				}
 
 			}
@@ -12979,7 +12804,7 @@ sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _sp
  * use:	/call	control_base_edit	[WHATTOCHECK]	[rowcount] yadah yadah
  ***|
 sub	control_base_edit(bool _debug, string	_chk,	int	_loopnum,	string _type,	string _verbage, string	_verbage2, string	_add_delete)
-	DEBUG\atcontrol_base_edit\ax(\a-w${_chk},${_loopnum}, ${_type}, ${_verbage},	${_verbage2},	${_add_delete},	\ax)
+	DEBUG\atcontrol_base_edit\ax(\a-w${_chk}, ${_loopnum}, ${_type}, ${_verbage}, ${_verbage2},	${_add_delete}\ax)
 	/declare _count	int	local	0
 
 	| list control contents
@@ -13036,7 +12861,7 @@ sub	control_base_edit(bool _debug, string	_chk,	int	_loopnum,	string _type,	stri
 					/break
 				}
 
-				/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	tag_group.grouping,	tag.name,	tag_validate.created_by, tag_validate.eval,	tag_validate.aux FROM	tag_validate LEFT	JOIN tag ON	tag_validate.tag = tag.id	LEFT JOIN	tag_group	ON tag_validate.grouping = tag_group.id	WHERE	tag_group.grouping = "${_chk.Lower}" AND tag.name	=	"${_lisee.Value}"
+				/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	tag_group.grouping,	tag.name,	tag_validate.created_by, tag_validate.eval,	tag_validate.aux FROM	tag_validate LEFT	JOIN tag ON	tag_validate.tag = tag.id	LEFT JOIN	tag_group	ON tag_validate.grouping = tag_group.id	WHERE	tag_group.grouping = "${_chk.Lower}" AND tag.name	=	"${_lisee.Value}";
 				/if	(!${sqlite.Rows[dummy]}) {
 					OUT	${dot} ${_chk.Lower}${sep}\at${_lisee.Value}\ax${sep}${warning}	\arInvalid\ax
 				}	else /if (${Parse[99,${sqlite.Result[dummy 1 eval].Find[::]}]})	{
@@ -13079,7 +12904,7 @@ sub	control_base_edit(bool _debug, string	_chk,	int	_loopnum,	string _type,	stri
 
 		| clear	the	current	line data
 		/invoke	${lsLine${_chk}.Clear}
-		/sqlite	query	${maData.Find[DBcharacter].Value}	dummy	UPDATE environment_${_chk.Lower} SET value="EMPTY" WHERE env_var="lsLine${_chk}"
+		/sqlite	query	${maData.Find[DBcharacter].Value}	dummy	UPDATE environment_${_chk.Lower} SET value="EMPTY" WHERE env_var="lsLine${_chk}";
 
 		| if clearing. we	stop here
 		/if	(${Select[${_verbage},clear,empty]}) {
@@ -13100,17 +12925,43 @@ sub	control_base_edit(bool _debug, string	_chk,	int	_loopnum,	string _type,	stri
 
 |***
  * note: returns 1/0 for class do's and dont's
+ * note: markers::HealToT HealGroup Heal Rez Pet Eradicate Cure Snare Cast Melee HealSelf HealXT HealCure HealPet
  * use:	${marker[check]}
  ***|
 sub marker(string _verbage)
-
-	| class shortname HealToT HealGroup Heal Rez Pet Eradicate Cure Snare Cast Melee HealSelf HealXT HealCure HealPet
+	DEBUG \atmarker\ax(\a-w${_verbage}\ax)
 
 	/if (${sqlite.Status[qMarker${Me.Class.ShortName}].NotEqual[success]}) {
+		DEBUG ${sep}Pulling data for (\a-rqMarker${Me.Class.ShortName}\ax)${sep}\a-w${_verbage}\ax
 		/sqlite	query	${maData.Find[DBstatic].Value} qMarker${Me.Class.ShortName} SELECT * FROM markers WHERE shortname = '${Me.Class.ShortName}';
 	}
 
-/return ${sqlite.Result[qMarker${Me.Class.ShortName} 1 ${_verbage}]}
+	/if (${sqlite.Result[qMarker${Me.Class.ShortName} 1 ${_verbage}]} == 1) {
+		/return 1
+	}
+
+/return 0
 
 
 
+|***
+ * note: forces a wait for spell gem cooldowns
+ * use:	/call cast_cooldown_wait DEBUG
+ ***|
+sub cast_cooldown_wait(bool _debug)
+	DEBUG \atcast_cooldown_wait\ax()
+
+	/if (!${maEntropy.Find[swBuffCooldownWait].Value}) {
+		/return TRUE
+	}
+
+	/while (${Me.SpellInCooldown}) {
+		CHECKEXIT
+		ISMEDEAD
+		/if (!${Me.SpellInCooldown}) {
+			/break
+		}
+		/delay 5
+	}
+
+/return TRUE

@@ -548,9 +548,8 @@ sub	sql_schema_zone(bool _debug)
 			/sqlite	query	${maData.Find[DBzone].Value} build CREATE	TABLE	IF NOT EXISTS	zone_control('zone_shortname'	TEXT NOT NULL,'element'	TEXT NOT NULL,'value'	TEXT NOT NULL, PRIMARY KEY (zone_shortname,element,value))
 			/if	(!${sql_check[${_debug}, build,	sql_schema_zone, "CREATE TABLE"]}) /endmacro
 
-			/delay 1
 			| if not locked, were good
-			/if	(!${Select[${sqlite.Resultcode[build]},6,5]})	/break
+			/if (${sqlite.Resultcode[build]} == 0) /break
 		}
 		/sqlite clear schemanumber
 		/sqlite clear build
@@ -567,7 +566,7 @@ sub	sql_schema_zone(bool _debug)
 			/call sql_db_update ${_debug} zone
 
 			| db locked?
-			/if	(!${Select[${sqlite.Resultcode[updatebuildnum]},6,5]}) /break
+			/if	(${sqlite.Resultcode[updatebuildnum]} == 0) /break
 		}
 		/sqlite clear updatebuildnum
 	}
@@ -585,7 +584,7 @@ sub	sql_schema_zone(bool _debug)
 
 			/call sql_schema_update ${_debug} zone
 
-			/if	(!${Select[${sqlite.Resultcode[updateschemanum]},6,5]})	/break
+			/if (${sqlite.Resultcode[updateschemanum]} == 0) /break
 		}
 		/sqlite clear updateschemanum
 
@@ -657,7 +656,7 @@ sub	sql_schema_loot(bool _debug)
 			/if	(!${sql_check[${_debug}, build,	sql_schema_loot, "CREATE TABLE IF (loot_control)"]}) /endmacro
 
 			/delay 1
-			/if	(!${Select[${sqlite.Resultcode[build]},6,5]})	/break
+			/if (${sqlite.Resultcode[build]} == 0) /break
 		}
 		/sqlite clear schemanumber
 		/sqlite clear build
@@ -674,7 +673,7 @@ sub	sql_schema_loot(bool _debug)
 			/call sql_db_update ${_debug} loot
 
 			/delay 1
-			/if	(!${Select[${sqlite.Resultcode[updatebuildnum]},6,5]}) /break
+			/if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
 		}
 		/sqlite clear updatebuildnum
 	}
@@ -694,7 +693,7 @@ sub	sql_schema_loot(bool _debug)
 			/call	sql_schema_update ${_debug} loot
 
 			/delay 1
-			/if	(!${Select[${sqlite.Resultcode[updateschemanum]},6,5]})	/break
+			/if (${sqlite.Resultcode[updateschemanum]} == 0) /break
 		}
 		/sqlite clear schemanumber
 		/sqlite clear updateschemanum
@@ -1593,8 +1592,8 @@ sub	set_initialize_static_map(bool _debug)
 	/invoke	${maStaticMaps.Add[maExpansion,	env_xpac]}
 	/invoke	${maStaticMaps.Add[maCure, cure]}
 
-	|	leave	this out.	only for design
-	|	/invoke	${maStaticMaps.Add[maSPA,	eq_spa]}
+	| leave	this out.	only for design
+	| /invoke ${maStaticMaps.Add[maSPA,	eq_spa]}
 
 	/declare _count	int	local	0
 	/declare _mi mapiterator local
@@ -1602,12 +1601,13 @@ sub	set_initialize_static_map(bool _debug)
 	/while (!${_mi.IsEnd}) {
 		/sqlite	query	${maData.Find[DBstatic].Value} dummycount	SELECT Count(*)	as data	FROM ${_mi.Value}
 		/for _count	1	to ${sqlite.Result[dummycount	1	data]}
-			|	/while (TRUE)	{
-				/sqlite	query	${maData.Find[DBstatic].Value} dummy SELECT	*	FROM ${_mi.Value}	WHERE	ROWID=${_count}
-			|		/if	(!${Select[${sqlite.Resultcode[dummy]},6,5]})	/break
-			|	}
-			/if	(!${sql_check[${_debug}, dummy,	set_initialize_static_map, "SELECT (${_mi.Value})"]})	/endmacro
-			/call	set_data ${_debug} "${_mi.Key}"	"${sqlite.Result[dummy 1 env_var]}"	map	outer	"${sqlite.Result[dummy 1 value]}"
+			/while (TRUE)	{
+				/sqlite query	${maData.Find[DBstatic].Value} dummy SELECT	*	FROM ${_mi.Value}	WHERE	ROWID=${_count}
+				/if	(!${sql_check[${_debug}, dummy,	set_initialize_static_map, "SELECT (${_mi.Value})"]})	/endmacro
+				/if	(${sqlite.Resultcode[dummy]} == 0) /break
+			}
+
+		/call	set_data ${_debug} "${_mi.Key}"	"${sqlite.Result[dummy 1 env_var]}"	map	outer	"${sqlite.Result[dummy 1 value]}"
 		/next	_count
 		/invoke	${_mi.Advance}
 	}
@@ -2212,7 +2212,7 @@ sub	sql_schema_nav(bool	_debug)
 			/if	(!${sql_check[${_debug}, build,	sql_schema_nav, "CREATE TABLE IF (waypoint)"]}) /endmacro
 
 			/delay 1
-			/if	(!${Select[${sqlite.Resultcode[build]},6,5]})	/break
+			/if (${sqlite.Resultcode[build]} == 0) /break
 		}
 		/sqlite clear schemanumber
 		/sqlite clear build
@@ -2230,7 +2230,7 @@ sub	sql_schema_nav(bool	_debug)
 			/call sql_db_update ${_debug} nav
 
 			| db locked?
-			/if	(!${Select[${sqlite.Resultcode[updatebuildnum]},6,5]}) /break
+			/if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
 		}
 		/sqlite clear updatebuildnum
 	}
@@ -2250,7 +2250,7 @@ sub	sql_schema_nav(bool	_debug)
 			| call schema	update by	version	here!
 			/call sql_schema_update ${_debug} nav
 
-			/if	(!${Select[${sqlite.Resultcode[updateschemanum]},6,5]})	/break
+			/if (${sqlite.Resultcode[updateschemanum]} == 0) /break
 		}
 		/sqlite clear updateschemanum
 	}
@@ -2275,7 +2275,7 @@ sub	sql_drop(string _table,	string _field, bool	_echo)
 
 	/if	(${sqlite.Rows[dummy]})	{
 		/sqlite query ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_table} WHERE	env_var="${_field}"
-		/if	(${_echo}) OUT SQL DROP${sep}\a-w${_table}${submenu}${_field}\ax ${dot}	\a-w${sqlite.Status[dummy]}\ax
+		/if	(${_echo}) OUT SQL DROP${sep}\a-w${_table}${submenu}${_field}\ax ${dot} \a-w${sqlite.Status[dummy]}\ax
 
 	}	else /if (!${sqlite.Rows[dummy]})	{
 		/if	(${_echo}) OUT Not Found${sep}\a-w\a-w${_table}${submenu}${_field}\ax\ax
@@ -2399,7 +2399,7 @@ sub	sql_schema_shared(bool _debug)
 			/call	data_schema_tag_validation
 
 			/delay 1
-			/if	(!${Select[${sqlite.Resultcode[build]},6,5]}) /break
+			/if (${sqlite.Resultcode[build]} == 0) /break
 		}
 		/sqlite clear schemanumber
 		/sqlite clear build
@@ -2416,7 +2416,7 @@ sub	sql_schema_shared(bool _debug)
 			/call sql_db_update ${_debug} shared
 
 			/delay 1
-			/if	(!${Select[${sqlite.Resultcode[updatebuildnum]},6,5]}) /break
+			/if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
 		}
 		/sqlite clear updatebuildnum
 	}
@@ -2432,10 +2432,13 @@ sub	sql_schema_shared(bool _debug)
 			/if	(!${sql_check[${_debug}, updateschemanum,	sql_schema_shared, "UPDATE (value)"]}) /endmacro
 
 			| call schema	update by	version	here!
+			/call	data_schema_tag
+			/call	data_schema_tag_group
+			/call	data_schema_tag_validation
 			/call sql_schema_update ${_debug} shared
 
 			/delay 1
-			/if	(!${Select[${sqlite.Resultcode[updateschemanum]},6,5]})	/break
+			/if (${sqlite.Resultcode[updateschemanum]} == 0) /break
 		}
 		/sqlite clear updateschemanum
 	}
@@ -2513,28 +2516,30 @@ sub	data_schema_tag()
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('41',	'dropdisc',	'1');
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('42',	'dropinvis', '1');
 
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('43',	'single',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('44',	'group', '1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('45',	'hot', '1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('46',	'grouphot',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('47',	'tot', '1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('48',	'minion',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('49',	'self',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('50',	'splash',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('51',	'complete',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('52',	'promise', '1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('53',	'surge', '1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('56',	'crew',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('58',	'now', '1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('59',	'ps',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('60',	'aura',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('61',	'raid',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('62',	'summonrange', '1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('63',	'summonpoison',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('64',	'summonweapons', '1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('65',	'summonitem',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('66',	'summonaxe', '1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('67',	'outofwater',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('43', 'single',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('44', 'group', '1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('45', 'hot', '1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('46', 'grouphot',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('47', 'tot', '1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('48', 'minion',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('49', 'self',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('50', 'splash',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('51', 'complete',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('52', 'promise', '1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('53', 'surge', '1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('56', 'crew',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('58', 'now', '1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('59', 'ps',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('60', 'aura',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('61', 'raid',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('62', 'summonrange', '1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('63', 'summonpoison',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('64', 'summonweapons', '1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('65', 'summonitem',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('66', 'summonaxe', '1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('67', 'outofwater',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('1000', 'twincast',	'1');
+	| /sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag(id, name, created_by) VALUES('1001', 'myassist', '1');
 
 
 /return	TRUE
@@ -2556,8 +2561,8 @@ sub	data_schema_tag_group()
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_group(id, grouping) VALUES('7', 'buff');
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_group(id, grouping) VALUES('8', 'miscdps');
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_group(id, grouping) VALUES('9', 'item');
-	|	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_group(id, grouping) VALUES('10',	'engine2');
-	|/sqlite query ${maData.Find[DBshared].Value}	dummy	INSERT OR	IGNORE INTO	tag_group(id,	grouping)	VALUES('11', 'engine3');
+	| /sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_group(id, grouping) VALUES('10', 	'engine2');
+	| /sqlite query ${maData.Find[DBshared].Value}	dummy	INSERT OR	IGNORE INTO	tag_group(id,	grouping)	VALUES('11' , 'engine3');
 
 /return	TRUE
 
@@ -2573,214 +2578,217 @@ sub	data_schema_tag_group()
 sub	data_schema_tag_validation
 
 	| heals
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'43',	'1', 'CONTROL::MARKER',	'marker	single target	heals');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'44',	'1', 'CONTROL::MARKER',	'marker	no target	group	heals');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'45',	'1', 'CONTROL::MARKER',	'marker	single target	heal over	time');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'46',	'1', 'CONTROL::MARKER',	'marker	no target	group	heal over	time');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'47',	'1', 'CONTROL::MARKER',	'marker	/heal	tot	single target	of target	heal');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'48',	'1', 'CONTROL::MARKER',	'marker	single target	minion heal');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'49',	'1', 'CONTROL::MARKER',	'marker	/heal	self only	single heal');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'50',	'1', 'CONTROL::MARKER',	'marker	splash heal	[PAL|CLR]');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'51',	'1', 'CONTROL::MARKER',	'marker	complete heal	[CLR]');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'52',	'1', 'CONTROL::MARKER',	'marker	promised heal	(stupid	things)');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'53',	'1', 'CONTROL::MARKER',	'marker	surge	heals	[SHM]');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'1', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WAR]}]}', 'heal is	for	a	warrior');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'2', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[PAL]}]}', 'heal is	for	a	paladin');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'3', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHD]}]}', 'heal is	for	a	snowflake');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'4', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BRD]}]}', 'heal is	for	a	bard');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'5', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[RNG]}]}', 'heal is	for	a	ranger');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'6', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BST]}]}', 'heal is	for	a	beastlord');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'7', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BER]}]}', 'heal is	for	a	berserker');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'8', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MNK]}]}', 'heal is	for	a	monk');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'9', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ROG]}]}', 'heal is	for	a	rogue');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'10',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WIZ]}]}',	'heal	is for a wizard');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'11',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MAG]}]}',	'heal	is for a magician');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'12',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ENC]}]}',	'heal	is for a enchanter');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'13',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[NEC]}]}',	'heal	is for a necromancer');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'14',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[CLR]}]}',	'heal	is for a cleric');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'15',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[DRU]}]}',	'heal	is for a druid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'16',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHM]}]}',	'heal	is for a shaman');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'18',	'1', '${Parse[0,!${Select[${Me.CombatState},combat]} &&	!${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'cannot	be in	combat');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'19',	'1', '${Parse[0,${Select[${Me.CombatState},combat]}	|| ${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'must	be in	combat');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'20',	'1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have	an active	disc');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'21',	'1', '${Parse[0,!${Zone.Indoor}]}',	'must	be outdoor');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'23',	'1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be	the	puller');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'24',	'1', '${Parse[0,${maEnv.Find[swAgro].Value}]}',	'must	have agro	enabled');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'25',	'1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have	agro enabled');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'26',	'1', '${Parse[0,!${Raid.Members}]}', 'not	in a raid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'27',	'1', '${Parse[0,${Raid.Members}]}',	'in	a	raid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'28',	'1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions	must be	met');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'29',	'1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}',	'use with	swarm	pets');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'30',	'1', '${Parse[0,${Group.Members}]}', 'must be	in a group');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'31',	'1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be	used in	a	safe zone');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'35',	'1', '${Parse[0,${Target.ID}]}', 'you	must have	a	target');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'36',	'1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}',	'target	must be	undead');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'37',	'1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}',	'target	must be	humanoid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'38',	'1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must	be a plant');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'34',	'1', 'ACTION::aliasonly',	'skip	instances, use this	for	alias	only');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'39',	'1', 'ACTION::delay1s',	'causes	a	1	second pause');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'40',	'1', '${Parse[0,!${Group.Members}]}',	'cannot	be in	a	group');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'41',	'1', 'ACTION::dropdisc', 'drops	any	running	active discs');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'42',	'1', 'ACTION::dropinvis',	'drops invis and sos');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('1',	'67',	'1', '${Parse[0,!${Me.FeetWet}]}', 'must be	out	of water');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'43',	'1', 'CONTROL::MARKER',	'marker	single target	heals');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'44',	'1', 'CONTROL::MARKER',	'marker	no target	group	heals');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'45',	'1', 'CONTROL::MARKER',	'marker	single target	heal over	time');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'46',	'1', 'CONTROL::MARKER',	'marker	no target	group	heal over	time');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'47',	'1', 'CONTROL::MARKER',	'marker	/heal	tot	single target	of target	heal');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'48',	'1', 'CONTROL::MARKER',	'marker	single target	minion heal');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'49',	'1', 'CONTROL::MARKER',	'marker	/heal	self only	single heal');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'50',	'1', 'CONTROL::MARKER',	'marker	splash heal	[PAL|CLR]');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'51',	'1', 'CONTROL::MARKER',	'marker	complete heal	[CLR]');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'52',	'1', 'CONTROL::MARKER',	'marker	promised heal	(stupid	things)');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'53',	'1', 'CONTROL::MARKER',	'marker	surge	heals	[SHM]');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'1', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WAR]}]}', 'heal is	for	a	warrior');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'2', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[PAL]}]}', 'heal is	for	a	paladin');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'3', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHD]}]}', 'heal is	for	a	snowflake');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'4', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BRD]}]}', 'heal is	for	a	bard');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'5', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[RNG]}]}', 'heal is	for	a	ranger');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'6', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BST]}]}', 'heal is	for	a	beastlord');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'7', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BER]}]}', 'heal is	for	a	berserker');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'8', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MNK]}]}', 'heal is	for	a	monk');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'9', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ROG]}]}', 'heal is	for	a	rogue');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'10',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WIZ]}]}',	'heal	is for a wizard');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'11',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MAG]}]}',	'heal	is for a magician');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'12',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ENC]}]}',	'heal	is for a enchanter');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'13',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[NEC]}]}',	'heal	is for a necromancer');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'14',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[CLR]}]}',	'heal	is for a cleric');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'15',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[DRU]}]}',	'heal	is for a druid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'16',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHM]}]}',	'heal	is for a shaman');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'18',	'1', '${Parse[0,!${Select[${Me.CombatState},combat]} &&	!${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'cannot	be in	combat');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'19',	'1', '${Parse[0,${Select[${Me.CombatState},combat]}	|| ${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'must	be in	combat');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'20',	'1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have	an active	disc');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'21',	'1', '${Parse[0,!${Zone.Indoor}]}',	'must	be outdoor');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'23',	'1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be	the	puller');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'24',	'1', '${Parse[0,${maEnv.Find[swAgro].Value}]}',	'must	have agro	enabled');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'25',	'1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have	agro enabled');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'26',	'1', '${Parse[0,!${Raid.Members}]}', 'not	in a raid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'27',	'1', '${Parse[0,${Raid.Members}]}',	'in	a	raid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'28',	'1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions	must be	met');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'29',	'1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}',	'use with	swarm	pets');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'30',	'1', '${Parse[0,${Group.Members}]}', 'must be	in a group');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'31',	'1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be	used in	a	safe zone');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'35',	'1', '${Parse[0,${Target.ID}]}', 'you	must have	a	target');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'36',	'1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}',	'target	must be	undead');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'37',	'1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}',	'target	must be	humanoid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'38',	'1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must	be a plant');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'34',	'1', 'ACTION::aliasonly',	'skip	instances, use this	for	alias	only');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'39',	'1', 'ACTION::delay1s',	'causes	a	1	second pause');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'40',	'1', '${Parse[0,!${Group.Members}]}',	'cannot	be in	a	group');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'41',	'1', 'ACTION::dropdisc', 'drops	any	running	active discs');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'42',	'1', 'ACTION::dropinvis',	'drops invis and sos');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'67',	'1', '${Parse[0,!${Me.FeetWet}]}', 'must be	out	of water');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('1',	'17',	'1', '${Parse[0,${Select[${_name},${Group.MainAssist.DisplayName},${maCC.Find[stManualAssist1].Value},${maCC.Find[stManualAssist2].Value}]}]}', 'my assist');
 
 	| nuke
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'18',	'1', '${Parse[0,!${Select[${Me.CombatState},combat]} &&	!${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'cannot	be in	combat');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'19',	'1', '${Parse[0,${Select[${Me.CombatState},combat]}	|| ${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'must	be in	combat');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'20',	'1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have	an active	disc');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'21',	'1', '${Parse[0,!${Zone.Indoor}]}',	'must	be outdoor');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'23',	'1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be	the	puller');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'24',	'1', '${Parse[0,${maEnv.Find[swAgro].Value}]}',	'must	have agro	enabled');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'25',	'1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have	agro enabled');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'26',	'1', '${Parse[0,!${Raid.Members}]}', 'not	in a raid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'27',	'1', '${Parse[0,${Raid.Members}]}',	'in	a	raid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'28',	'1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions	must be	met');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'29',	'1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}',	'use with	swarm	pets');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'30',	'1', '${Parse[0,${Group.Members}]}', 'must be	in a group');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'31',	'1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be	used in	a	safe zone');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'35',	'1', '${Parse[0,${Target.ID}]}', 'you	must have	a	target');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'36',	'1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}',	'target	must be	undead');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'37',	'1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}',	'target	must be	humanoid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'38',	'1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must	be a plant');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'34',	'1', 'ACTION::aliasonly',	'skip	instances, use this	for	alias	only');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'39',	'1', 'ACTION::delay1s',	'causes	a	1	second pause');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'40',	'1', '${Parse[0,!${Group.Members}]}',	'cannot	be in	a	group');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'41',	'1', 'ACTION::dropdisc', 'drops	any	running	active discs');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'42',	'1', 'ACTION::dropinvis',	'drops invis and sos');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('2',	'67',	'1', '${Parse[0,!${Me.FeetWet}]}', 'must be	out	of water');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'18',	'1', '${Parse[0,!${Select[${Me.CombatState},combat]} &&	!${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'cannot	be in	combat');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'19',	'1', '${Parse[0,${Select[${Me.CombatState},combat]}	|| ${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'must	be in	combat');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'20',	'1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have	an active	disc');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'21',	'1', '${Parse[0,!${Zone.Indoor}]}',	'must	be outdoor');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'23',	'1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be	the	puller');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'24',	'1', '${Parse[0,${maEnv.Find[swAgro].Value}]}',	'must	have agro	enabled');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'25',	'1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have	agro enabled');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'26',	'1', '${Parse[0,!${Raid.Members}]}', 'not	in a raid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'27',	'1', '${Parse[0,${Raid.Members}]}',	'in	a	raid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'28',	'1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions	must be	met');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'29',	'1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}',	'use with	swarm	pets');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'30',	'1', '${Parse[0,${Group.Members}]}', 'must be	in a group');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'31',	'1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be	used in	a	safe zone');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'35',	'1', '${Parse[0,${Target.ID}]}', 'you	must have	a	target');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'36',	'1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}',	'target	must be	undead');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'37',	'1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}',	'target	must be	humanoid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'38',	'1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must	be a plant');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'34',	'1', 'ACTION::aliasonly',	'skip	instances, use this	for	alias	only');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'39',	'1', 'ACTION::delay1s',	'causes	a	1	second pause');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'40',	'1', '${Parse[0,!${Group.Members}]}',	'cannot	be in	a	group');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'41',	'1', 'ACTION::dropdisc', 'drops	any	running	active discs');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'42',	'1', 'ACTION::dropinvis',	'drops invis and sos');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'67',	'1', '${Parse[0,!${Me.FeetWet}]}', 'must be	out	of water');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'1000',	'1', 'CONTROL::MARKER',	'marker	twincast nukes');
 
 	| dot
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'18',	'1', '${Parse[0,!${Select[${Me.CombatState},combat]} &&	!${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'cannot	be in	combat');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'19',	'1', '${Parse[0,${Select[${Me.CombatState},combat]}	|| ${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'must	be in	combat');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'20',	'1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have	an active	disc');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'21',	'1', '${Parse[0,!${Zone.Indoor}]}',	'must	be outdoor');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'23',	'1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be	the	puller');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'24',	'1', '${Parse[0,${maEnv.Find[swAgro].Value}]}',	'must	have agro	enabled');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'25',	'1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have	agro enabled');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'26',	'1', '${Parse[0,!${Raid.Members}]}', 'not	in a raid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'27',	'1', '${Parse[0,${Raid.Members}]}',	'in	a	raid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'28',	'1', '${Parse[0,!${maBurn.Find[swBurnConditionMet].Value}]}',	'burn	conditions must	be met');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'29',	'1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}',	'use with	swarm	pets');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'30',	'1', '${Parse[0,${Group.Members}]}', 'must be	in a group');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'31',	'1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be	used in	a	safe zone');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'35',	'1', '${Parse[0,${Target.ID}]}', 'you	must have	a	target');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'36',	'1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}',	'target	must be	undead');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'37',	'1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}',	'target	must be	humanoid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'38',	'1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must	be a plant');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'34',	'1', 'ACTION::aliasonly',	'skip	instances, use this	for	alias	only');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'39',	'1', 'ACTION::delay1s',	'causes	a	1	second pause');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'40',	'1', '${Parse[0,!${Group.Members}]}',	'cannot	be in	a	group');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'41',	'1', 'ACTION::dropdisc', 'drops	any	running	active discs');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'42',	'1', 'ACTION::dropinvis',	'drops invis and sos');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('3',	'67',	'1', '${Parse[0,!${Me.FeetWet}]}', 'must be	out	of water');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'18',	'1', '${Parse[0,!${Select[${Me.CombatState},combat]} &&	!${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'cannot	be in	combat');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'19',	'1', '${Parse[0,${Select[${Me.CombatState},combat]}	|| ${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'must	be in	combat');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'20',	'1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have	an active	disc');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'21',	'1', '${Parse[0,!${Zone.Indoor}]}',	'must	be outdoor');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'23',	'1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be	the	puller');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'24',	'1', '${Parse[0,${maEnv.Find[swAgro].Value}]}',	'must	have agro	enabled');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'25',	'1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have	agro enabled');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'26',	'1', '${Parse[0,!${Raid.Members}]}', 'not	in a raid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'27',	'1', '${Parse[0,${Raid.Members}]}',	'in	a	raid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'28',	'1', '${Parse[0,!${maBurn.Find[swBurnConditionMet].Value}]}',	'burn	conditions must	be met');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'29',	'1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}',	'use with	swarm	pets');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'30',	'1', '${Parse[0,${Group.Members}]}', 'must be	in a group');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'31',	'1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be	used in	a	safe zone');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'35',	'1', '${Parse[0,${Target.ID}]}', 'you	must have	a	target');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'36',	'1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}',	'target	must be	undead');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'37',	'1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}',	'target	must be	humanoid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'38',	'1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must	be a plant');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'34',	'1', 'ACTION::aliasonly',	'skip	instances, use this	for	alias	only');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'39',	'1', 'ACTION::delay1s',	'causes	a	1	second pause');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'40',	'1', '${Parse[0,!${Group.Members}]}',	'cannot	be in	a	group');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'41',	'1', 'ACTION::dropdisc', 'drops	any	running	active discs');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'42',	'1', 'ACTION::dropinvis',	'drops invis and sos');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'67',	'1', '${Parse[0,!${Me.FeetWet}]}', 'must be	out	of water');
 
 	| song
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'18',	'1', '${Parse[0,!${Select[${Me.CombatState},combat]} &&	!${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'cannot	be in	combat');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'19',	'1', '${Parse[0,${Select[${Me.CombatState},combat]}	|| ${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'must	be in	combat');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'20',	'1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have	an active	disc');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'21',	'1', '${Parse[0,!${Zone.Indoor}]}',	'must	be outdoor');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'23',	'1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be	the	puller');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'24',	'1', '${Parse[0,${maEnv.Find[swAgro].Value}]}',	'must	have agro	enabled');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'25',	'1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have	agro enabled');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'26',	'1', '${Parse[0,!${Raid.Members}]}', 'not	in a raid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'27',	'1', '${Parse[0,${Raid.Members}]}',	'in	a	raid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'28',	'1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions	must be	met');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'29',	'1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}',	'use with	swarm	pets');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'30',	'1', '${Parse[0,${Group.Members}]}', 'must be	in a group');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'31',	'1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be	used in	a	safe zone');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'35',	'1', '${Parse[0,${Target.ID}]}', 'you	must have	a	target');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'36',	'1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}',	'target	must be	undead');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'37',	'1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}',	'target	must be	humanoid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'38',	'1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must	be a plant');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'67',	'1', '${Parse[0,!${Me.FeetWet}]}', 'must be	out	of water');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'34',	'1', 'ACTION::aliasonly',	'skip	instances, use this	for	alias	only');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'39',	'1', 'ACTION::delay1s',	'causes	a	1	second pause');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'40',	'1', '${Parse[0,!${Group.Members}]}',	'cannot	be in	a	group');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'41',	'1', 'ACTION::dropdisc', 'drops	any	running	active discs');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('5',	'42',	'1', 'ACTION::dropinvis',	'drops invis and sos');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'18',	'1', '${Parse[0,!${Select[${Me.CombatState},combat]} &&	!${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'cannot	be in	combat');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'19',	'1', '${Parse[0,${Select[${Me.CombatState},combat]}	|| ${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'must	be in	combat');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'20',	'1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have	an active	disc');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'21',	'1', '${Parse[0,!${Zone.Indoor}]}',	'must	be outdoor');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'23',	'1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be	the	puller');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'24',	'1', '${Parse[0,${maEnv.Find[swAgro].Value}]}',	'must	have agro	enabled');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'25',	'1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have	agro enabled');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'26',	'1', '${Parse[0,!${Raid.Members}]}', 'not	in a raid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'27',	'1', '${Parse[0,${Raid.Members}]}',	'in	a	raid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'28',	'1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions	must be	met');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'29',	'1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}',	'use with	swarm	pets');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'30',	'1', '${Parse[0,${Group.Members}]}', 'must be	in a group');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'31',	'1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be	used in	a	safe zone');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'35',	'1', '${Parse[0,${Target.ID}]}', 'you	must have	a	target');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'36',	'1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}',	'target	must be	undead');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'37',	'1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}',	'target	must be	humanoid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'38',	'1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must	be a plant');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'67',	'1', '${Parse[0,!${Me.FeetWet}]}', 'must be	out	of water');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'34',	'1', 'ACTION::aliasonly',	'skip	instances, use this	for	alias	only');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'39',	'1', 'ACTION::delay1s',	'causes	a	1	second pause');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'40',	'1', '${Parse[0,!${Group.Members}]}',	'cannot	be in	a	group');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'41',	'1', 'ACTION::dropdisc', 'drops	any	running	active discs');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'42',	'1', 'ACTION::dropinvis',	'drops invis and sos');
 
 	| defense
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'18',	'1', '${Parse[0,!${Select[${Me.CombatState},combat]} &&	!${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'cannot	be in	combat');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'19',	'1', '${Parse[0,${Select[${Me.CombatState},combat]}	|| ${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'must	be in	combat');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'20',	'1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have	an active	disc');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'21',	'1', '${Parse[0,!${Zone.Indoor}]}',	'must	be outdoor');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'23',	'1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be	the	puller');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'24',	'1', '${Parse[0,${maEnv.Find[swAgro].Value}]}',	'must	have agro	enabled');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'25',	'1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have	agro enabled');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'26',	'1', '${Parse[0,!${Raid.Members}]}', 'not	in a raid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'27',	'1', '${Parse[0,${Raid.Members}]}',	'in	a	raid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'28',	'1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions	must be	met');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'29',	'1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}',	'use with	swarm	pets');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'30',	'1', '${Parse[0,${Group.Members}]}', 'must be	in a group');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'31',	'1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be	used in	a	safe zone');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'35',	'1', '${Parse[0,${Target.ID}]}', 'you	must have	a	target');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'36',	'1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}',	'target	must be	undead');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'37',	'1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}',	'target	must be	humanoid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'38',	'1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must	be a plant');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'34',	'1', 'ACTION::aliasonly',	'skip	instances, use this	for	alias	only');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'39',	'1', 'ACTION::delay1s',	'causes	a	1	second pause');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'40',	'1', '${Parse[0,!${Group.Members}]}',	'cannot	be in	a	group');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'41',	'1', 'ACTION::dropdisc', 'drops	any	running	active discs');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'42',	'1', 'ACTION::dropinvis',	'drops invis and sos');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('6',	'67',	'1', '${Parse[0,!${Me.FeetWet}]}', 'must be	out	of water');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'18',	'1', '${Parse[0,!${Select[${Me.CombatState},combat]} &&	!${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'cannot	be in	combat');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'19',	'1', '${Parse[0,${Select[${Me.CombatState},combat]}	|| ${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'must	be in	combat');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'20',	'1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have	an active	disc');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'21',	'1', '${Parse[0,!${Zone.Indoor}]}',	'must	be outdoor');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'23',	'1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be	the	puller');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'24',	'1', '${Parse[0,${maEnv.Find[swAgro].Value}]}',	'must	have agro	enabled');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'25',	'1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have	agro enabled');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'26',	'1', '${Parse[0,!${Raid.Members}]}', 'not	in a raid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'27',	'1', '${Parse[0,${Raid.Members}]}',	'in	a	raid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'28',	'1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions	must be	met');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'29',	'1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}',	'use with	swarm	pets');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'30',	'1', '${Parse[0,${Group.Members}]}', 'must be	in a group');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'31',	'1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be	used in	a	safe zone');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'35',	'1', '${Parse[0,${Target.ID}]}', 'you	must have	a	target');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'36',	'1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}',	'target	must be	undead');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'37',	'1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}',	'target	must be	humanoid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'38',	'1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must	be a plant');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'34',	'1', 'ACTION::aliasonly',	'skip	instances, use this	for	alias	only');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'39',	'1', 'ACTION::delay1s',	'causes	a	1	second pause');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'40',	'1', '${Parse[0,!${Group.Members}]}',	'cannot	be in	a	group');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'41',	'1', 'ACTION::dropdisc', 'drops	any	running	active discs');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'42',	'1', 'ACTION::dropinvis',	'drops invis and sos');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'67',	'1', '${Parse[0,!${Me.FeetWet}]}', 'must be	out	of water');
 
 
 	| buffs
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'49',	'1', 'CONTROL::MARKER',	'marker	/buff	self');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'48',	'1', 'CONTROL::MARKER',	'marker	/buff	minion');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'56',	'1', 'CONTROL::MARKER',	'marker	/buff	crew (dannet peoples)');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'44',	'1', 'CONTROL::MARKER',	'marker	/buff	group	(not dannet, outsiders and mercs)');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'58',	'1', 'CONTROL::MARKER',	'marker	/buff	now	24/7 buffs,	always have	them');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'59',	'1', 'CONTROL::MARKER',	'marker	/buff	ps (power	source)');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'60',	'1', 'CONTROL::MARKER',	'marker	/buff	aura');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'61',	'1', 'CONTROL::MARKER',	'marker	/buff	raid (not	dannet)');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'62',	'1', 'CONTROL::MARKER',	'marker	ranged summoning,	like arrows, or	daggers');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'63',	'1', 'CONTROL::MARKER',	'marker	pants	poison summoning for rogues');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'64',	'1', 'CONTROL::MARKER',	'marker	weapon summoning for mages');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'65',	'1', 'CONTROL::MARKER',	'marker	item sommoning from	spells');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'66',	'1', 'CONTROL::MARKER',	'marker	axe	summoning	for	zerkers');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'1', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WAR]}]}', 'buff is	for	a	warrior');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'2', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[PAL]}]}', 'buff is	for	a	paladin');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'3', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHD]}]}', 'buff is	for	a	snowflake');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'4', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BRD]}]}', 'buff is	for	a	bard');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'5', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[RNG]}]}', 'buff is	for	a	ranger');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'6', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BST]}]}', 'buff is	for	a	beastlord');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'7', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BER]}]}', 'buff is	for	a	berserker');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'8', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MNK]}]}', 'buff is	for	a	monk');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'9', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ROG]}]}', 'buff is	for	a	rogue');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'10',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WIZ]}]}',	'buff	is for a wizard');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'11',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MAG]}]}',	'buff	is for a magician');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'12',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ENC]}]}',	'buff	is for a enchanter');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'13',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[NEC]}]}',	'buff	is for a necromancer');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'14',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[CLR]}]}',	'buff	is for a cleric');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'15',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[DRU]}]}',	'buff	is for a druid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'16',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHM]}]}',	'buff	is for a shaman');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'18',	'1', '${Parse[0,!${Select[${Me.CombatState},combat]} &&	!${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'cannot	be in	combat');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'19',	'1', '${Parse[0,${Select[${Me.CombatState},combat]}	|| ${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'must	be in	combat');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'20',	'1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have	an active	disc');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'21',	'1', '${Parse[0,!${Zone.Indoor}]}',	'must	be outdoor');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'23',	'1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be	the	puller');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'24',	'1', '${Parse[0,${maEnv.Find[swAgro].Value}]}',	'must	have agro	enabled');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'25',	'1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have	agro enabled');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'26',	'1', '${Parse[0,!${Raid.Members}]}', 'not	in a raid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'27',	'1', '${Parse[0,${Raid.Members}]}',	'in	a	raid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'28',	'1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions	must be	met');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'29',	'1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}',	'use with	swarm	pets');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'30',	'1', '${Parse[0,${Group.Members}]}', 'must be	in a group');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'31',	'1', '${Parse[0,${maEnv.Find[swZoneSafe].Value}]}',	'cannot	be used	in a safe	zone');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'35',	'1', '${Parse[0,${Target.ID}]}', 'you	must have	a	target');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'36',	'1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}',	'target	must be	undead');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'37',	'1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}',	'target	must be	humanoid');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'38',	'1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must	be a plant');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'22',	'1', 'ACTION::drop', 'removes	illusion and mount buffs');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'32',	'1', 'ACTION::autoinventory',	'forces	your hands emptied');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'33',	'1', 'SUB::tag_epic',	'fires your	epic');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'34',	'1', 'ACTION::aliasonly',	'skip	instances, use this	for	alias	only');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'39',	'1', 'ACTION::delay1s',	'causes	a	1	second pause');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'40',	'1', '${Parse[0,!${Group.Members}]}',	'cannot	be in	a	group');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'41',	'1', 'ACTION::dropdisc', 'drops	any	running	active discs');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'42',	'1', 'ACTION::dropinvis',	'drops invis and sos');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_validate(grouping,	tag, created_by, eval, aux)	VALUES('7',	'67',	'1', '${Parse[0,!${Me.FeetWet}]}', 'must be	out	of water');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'49',	'1', 'CONTROL::MARKER',	'marker	/buff	self');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'48',	'1', 'CONTROL::MARKER',	'marker	/buff	minion');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'56',	'1', 'CONTROL::MARKER',	'marker	/buff	crew (dannet peoples)');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'44',	'1', 'CONTROL::MARKER',	'marker	/buff	group	(not dannet, outsiders and mercs)');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'58',	'1', 'CONTROL::MARKER',	'marker	/buff	now	24/7 buffs,	always have	them');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'59',	'1', 'CONTROL::MARKER',	'marker	/buff	ps (power	source)');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'60',	'1', 'CONTROL::MARKER',	'marker	/buff	aura');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'61',	'1', 'CONTROL::MARKER',	'marker	/buff	raid (not	dannet)');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'62',	'1', 'CONTROL::MARKER',	'marker	ranged summoning,	like arrows, or	daggers');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'63',	'1', 'CONTROL::MARKER',	'marker	pants	poison summoning for rogues');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'64',	'1', 'CONTROL::MARKER',	'marker	weapon summoning for mages');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'65',	'1', 'CONTROL::MARKER',	'marker	item sommoning from	spells');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'66',	'1', 'CONTROL::MARKER',	'marker	axe	summoning	for	zerkers');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'1', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WAR]}]}', 'buff is	for	a	warrior');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'2', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[PAL]}]}', 'buff is	for	a	paladin');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'3', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHD]}]}', 'buff is	for	a	snowflake');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'4', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BRD]}]}', 'buff is	for	a	bard');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'5', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[RNG]}]}', 'buff is	for	a	ranger');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'6', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BST]}]}', 'buff is	for	a	beastlord');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'7', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BER]}]}', 'buff is	for	a	berserker');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'8', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MNK]}]}', 'buff is	for	a	monk');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'9', '1',	'${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ROG]}]}', 'buff is	for	a	rogue');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'10',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WIZ]}]}',	'buff	is for a wizard');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'11',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MAG]}]}',	'buff	is for a magician');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'12',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ENC]}]}',	'buff	is for a enchanter');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'13',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[NEC]}]}',	'buff	is for a necromancer');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'14',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[CLR]}]}',	'buff	is for a cleric');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'15',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[DRU]}]}',	'buff	is for a druid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'16',	'1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHM]}]}',	'buff	is for a shaman');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'18',	'1', '${Parse[0,!${Select[${Me.CombatState},combat]} &&	!${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'cannot	be in	combat');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'19',	'1', '${Parse[0,${Select[${Me.CombatState},combat]}	|| ${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'must	be in	combat');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'20',	'1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have	an active	disc');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'21',	'1', '${Parse[0,!${Zone.Indoor}]}',	'must	be outdoor');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'23',	'1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be	the	puller');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'24',	'1', '${Parse[0,${maEnv.Find[swAgro].Value}]}',	'must	have agro	enabled');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'25',	'1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have	agro enabled');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'26',	'1', '${Parse[0,!${Raid.Members}]}', 'not	in a raid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'27',	'1', '${Parse[0,${Raid.Members}]}',	'in	a	raid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'28',	'1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions	must be	met');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'29',	'1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}',	'use with	swarm	pets');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'30',	'1', '${Parse[0,${Group.Members}]}', 'must be	in a group');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'31',	'1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}',	'cannot	be used	in a safe	zone');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'35',	'1', '${Parse[0,${Target.ID}]}', 'you	must have	a	target');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'36',	'1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}',	'target	must be	undead');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'37',	'1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}',	'target	must be	humanoid');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'38',	'1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must	be a plant');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'22',	'1', 'ACTION::drop', 'removes	illusion and mount buffs');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'32',	'1', 'ACTION::autoinventory',	'forces	your hands emptied');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'33',	'1', 'SUB::tag_epic',	'fires your	epic');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'34',	'1', 'ACTION::aliasonly',	'skip	instances, use this	for	alias	only');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'39',	'1', 'ACTION::delay1s',	'causes	a	1	second pause');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'40',	'1', '${Parse[0,!${Group.Members}]}',	'cannot	be in	a	group');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'41',	'1', 'ACTION::dropdisc', 'drops	any	running	active discs');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'42',	'1', 'ACTION::dropinvis',	'drops invis and sos');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'67',	'1', '${Parse[0,!${Me.FeetWet}]}', 'must be	out	of water');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('7',	'17',	'1', '${Parse[0,${Select[${_name},${Group.MainAssist.DisplayName},${maCC.Find[stManualAssist1].Value},${maCC.Find[stManualAssist2].Value}]}]}', 'my assist');
 
 /return	TRUE
 
@@ -2879,7 +2887,7 @@ sub	sql_db_update(bool _debug, string	_type)
 			/invoke ${_tmpList.Append[buff,character,item,defense,heal,song,nuke,dot,agro,miscdps,burn,sash]}
 			/vardata _li _tmpList.First.Clone
 			/while (!${_li.IsEnd}) {
-				/sqlite	query	${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_li.Value} WHERE env_var LIKE "%Con";
+				/sqlite	query	${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_li.Value} WHERE env_var  LIKE "%Con";
 				/invoke ${_li.Advance}
 			}
 
