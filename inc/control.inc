@@ -29,11 +29,12 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
 		OUT Nearest \aw5\ax spawns
 		/declare _tmpID int local
 
-		/for _count 1 to 3
+		/for _count 1 to 5
 			/varset _tmpID ${NearestSpawn[${_count}].ID}
 			OUT #\ag${_count}\ax${sep}name:\a-w${Spawn[id ${_tmpID}].Name}\ax${sep}${Spawn[id ${_tmpID}].DisplayName}
 			OUT ${sep}Dis(\a-r${Spawn[${_tmpID}].Distance}\ax) ${dot} Y(\a-r${Spawn[id ${_tmpID}].Y}\ax)X(\a-r${Spawn[id ${_tmpID}].X}\ax)
-			OUT ${sep}Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax)
+			OUT ${sep}Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax) ${dot} ID(\a-r${Spawn[id ${_tmpID}].ID}\ax)
+			OUT ${sep}Master(\a-r${Spawn[id ${_tmpID}].Master}\ax) ${dot} Owner(\a-r${Spawn[id ${_tmpID}].Owner}\ax)
 			/echo
 
 		/next _count
@@ -2121,12 +2122,13 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
 	DEBUG \atBind_control_burn\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\\ax)
 
-	/if (ENGINE1) {
-		/invoke ${out[0, "/burn is only available with engine 2/3 enabled."]}
-		/return FALSE
-	}
 
 	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+
+		/if (ENGINE1) {
+			/invoke ${out[0, "/burn engine is only available with engine 2/3 enabled."]}
+			/return FALSE
+		}
 		/call control_base_edit ${maDebug.Find[edit].Value} Burn 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
 	}
@@ -2156,15 +2158,25 @@ sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _a
 			/invoke ${maBurn.Add[swBurnConditionMet,FALSE]}
 		}
 
+	| spin up some burns before combat
+	} else /if (${_type.Equal[spinup]}) {
+		OUT Starting the burns I can get away with ${dot}${dot}
+		/invoke ${maBurn.Add[swBurnConditionMet,TRUE]}
+		/invoke ${maBurn.Add[swBurnSpinUp,TRUE]}
+		/call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} 0
+		/delay 5
+		/invoke ${maBurn.Add[swBurnSpinUp,FALSE]}
+
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[auto,swBurnAuto]}
 	/invoke ${maControl.Add[count,stBurnCount]}
 	/invoke ${maControl.Add[engage,stPctBurnEngage]}
 	/invoke ${maControl.Add[force,swBurnForce]}
 	/invoke ${maControl.Add[raid,swBurnRaid]}
+	/invoke ${maControl.Add[spinup,option]}
+
 	/invoke ${set_control_output[${_debug}, maBurn, burn, maControl]}
 
 /return TRUE

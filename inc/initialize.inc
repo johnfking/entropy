@@ -141,8 +141,10 @@ sub	set_initialize(bool	_debug)
 	/declare maBuffRequest map outer
 
 	| cure map
-	/declare maCure map outer
+	| /declare maCure map outer
 
+	| mana recover map
+	| /declare maManaRecovery map outer
 
 	| watchspawn map
 	| /declare maWatchspawn	map	outer
@@ -1232,6 +1234,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 
 |**	control: burn	**|
 	/call	set_data ${_debug} maBurn	swBurnConditionMet											map	outer	FALSE
+	/call	set_data ${_debug} maBurn	swBurnSpinUp														map	outer	FALSE
 	/call	set_data_map ${_debug} maBurn	swBurnForce													FALSE													"${auxsw}	force	burn routines"																		burn
 	/call	set_data_map ${_debug} maBurn	swBurnAuto													FALSE													"${auxsw}	auto burn	on named encounters"													burn
 	/call	set_data_map ${_debug} maBurn	stPctBurnEngage											99														"${auxnum} % of	mobs health	to start burns"												burn
@@ -1563,10 +1566,10 @@ sub	set_initialize_map_50(bool _debug)
 	/while (!${_tmi.IsEnd})	{
 		/vardata _liC50	lsCount50.First.Clone
 		/while (!${_liC50.IsEnd})	{
-			/call	set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC50.Value}				FALSE		"${auxsw}	${_tmi.Value}	${_liC50.Value}	switch"	${_tmi.Value}
-			/call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC50.Value}				FALSE		"${auxna}	${_tmi.Value}	${_liC50.Value}	name"	${_tmi.Value}
-			/call	set_data_list	${_debug}	ma${_tmi.Key}	ls${_tmi.Key}${_liC50.Value}Tag		EMPTY		"${auxli}	${_tmi.Value}	${_liC50.Value}	tag	list"	${_tmi.Value}
-			| /call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC50.Value}Con		0				"${auxnum} ${_tmi.Value} ${_liC50.Value} condition"	${_tmi.Value}
+			/call	set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC50.Value} FALSE "${auxsw}	${_tmi.Value}	${_liC50.Value}	switch" ${_tmi.Value}
+			/call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC50.Value} FALSE "${auxna}	${_tmi.Value}	${_liC50.Value}	name" ${_tmi.Value}
+			/call	set_data_list	${_debug}	ma${_tmi.Key}	ls${_tmi.Key}${_liC50.Value}Tag EMPTY "${auxli}	${_tmi.Value}	${_liC50.Value}	tag	list" ${_tmi.Value}
+			| /call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC50.Value}Con 0 "${auxnum} ${_tmi.Value} ${_liC50.Value} condition" ${_tmi.Value}
 			/invoke	${_liC50.Advance}
 		}
 
@@ -1587,36 +1590,38 @@ sub	set_initialize_map_50(bool _debug)
  * use:	don't	fucking	use	it..
  ***|
 sub	set_initialize_static_map(bool _debug)
-	DEBUG	\atset_initialize_static_map\ax()
+	 DEBUG\atset_initialize_static_map\ax()
 
-	/declare maStaticMaps	map	local
-	/invoke	${maStaticMaps.Add[maShade,	shade]}
-	/invoke	${maStaticMaps.Add[maSQLError, sql_error]}
-	/invoke	${maStaticMaps.Add[maManaRecovery, mana_recovery]}
-	/invoke	${maStaticMaps.Add[maExpansion,	env_xpac]}
-	/invoke	${maStaticMaps.Add[maCure, cure]}
+	/declare maStaticMaps map local
+	/invoke ${maStaticMaps.Add[maShade,shade]}
+	/invoke ${maStaticMaps.Add[maSQLError,sql_error]}
+	/invoke ${maStaticMaps.Add[maManaRecovery,mana_recovery]}
+	/invoke ${maStaticMaps.Add[maExpansion,env_xpac]}
+	/invoke ${maStaticMaps.Add[maCure,cure]}
 
-	| leave	this out.	only for design
-	| /invoke ${maStaticMaps.Add[maSPA,	eq_spa]}
+	| leave this out. only for design
+	| /invoke ${maStaticMaps.Add[maSPA,eq_spa]}
 
-	/declare _count	int	local	0
+	/declare _count int local 0
 	/declare _mi mapiterator local
 	/vardata _mi maStaticMaps.First.Clone
 	/while (!${_mi.IsEnd}) {
-		/sqlite	query	${maData.Find[DBstatic].Value} dummycount	SELECT Count(*)	as data	FROM ${_mi.Value}
-		/for _count	1	to ${sqlite.Result[dummycount	1	data]}
-			/while (TRUE)	{
-				/sqlite query	${maData.Find[DBstatic].Value} dummy SELECT	*	FROM ${_mi.Value}	WHERE	ROWID=${_count}
-				/if	(!${sql_check[${_debug}, dummy,	set_initialize_static_map, "SELECT (${_mi.Value})"]})	/endmacro
-				/if	(${sqlite.Resultcode[dummy]} == 0) /break
-			}
+		/sqlite query ${maData.Find[DBstatic].Value} dummycount SELECT Count(*) as data FROM ${_mi.Value}
+		/for _count 1 to ${sqlite.Result[dummycount	1	data]}
+			| /while (TRUE)	{
+				/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM ${_mi.Value} WHERE ROWID=${_count}
+				/if (!${sql_check[${_debug}, dummy, set_initialize_static_map, "SELECT (${_mi.Value})"]}) /endmacro
+				| /if (${sqlite.Resultcode[dummy]} == 0) /break
+			| }
 
-		/call	set_data ${_debug} "${_mi.Key}"	"${sqlite.Result[dummy 1 env_var]}"	map	outer	"${sqlite.Result[dummy 1 value]}"
-		/next	_count
-		/invoke	${_mi.Advance}
+		| /echo here
+		/call set_data ${_debug} "${_mi.Key}" "${sqlite.Result[dummy 1 env_var]}" map outer "${sqlite.Result[dummy 1 value]}"
+		| SDEBUG set_data ${_debug} "${_mi.Key}" "${sqlite.Result[dummy 1 env_var]}" map outer "${sqlite.Result[dummy 1 value]}"
+		/next _count
+		/invoke ${_mi.Advance}
 	}
 
-/return	TRUE
+/return TRUE
 
 
 
@@ -2543,6 +2548,8 @@ sub	data_schema_tag()
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('66', 'summonaxe', '1');
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('67', 'outofwater',	'1');
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('1000', 'twincast',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('1001', 'totem',	'1');
+
 	| /sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag(id, name, created_by) VALUES('1001', 'myassist', '1');
 
 
@@ -2565,8 +2572,8 @@ sub	data_schema_tag_group()
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_group(id, grouping) VALUES('7', 'buff');
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_group(id, grouping) VALUES('8', 'miscdps');
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_group(id, grouping) VALUES('9', 'item');
-	| /sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_group(id, grouping) VALUES('10', 	'engine2');
-	| /sqlite query ${maData.Find[DBshared].Value}	dummy	INSERT OR	IGNORE INTO	tag_group(id,	grouping)	VALUES('11' , 'engine3');
+	| /sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag_group(id, grouping) VALUES('10',	'engine2');
+	| /sqlite query ${maData.Find[DBshared].Value}	dummy	INSERT OR	IGNORE INTO	tag_group(id,	grouping)	VALUES('11', 'engine3');
 
 /return	TRUE
 
@@ -2659,6 +2666,7 @@ sub	data_schema_tag_validation
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'42',	'1', 'ACTION::dropinvis',	'drops invis and sos');
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'67',	'1', '${Parse[0,!${Me.FeetWet}]}', 'must be	out	of water');
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('2',	'1000',	'1', 'CONTROL::MARKER',	'marker	twincast nukes');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '1001', '1', 'CONTROL::MARKER', 'marker for totem type cast results');
 
 	| dot
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('3',	'18',	'1', '${Parse[0,!${Select[${Me.CombatState},combat]} &&	!${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'cannot	be in	combat');

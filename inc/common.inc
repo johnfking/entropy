@@ -645,6 +645,13 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
  ***|
 sub check_facing(bool _debug, int _tmpID, string _adjust)
 	DEBUG \atcheck_facing\ax(\a-w${_tmpID}, ${_adjust}\ax)
+
+	| no target == bail
+	/if (!${_tmpID}) {
+		DEBUG ${break}._tmpID
+		/return FALSE
+	}
+
 	/if (!AUTO && !${swModeToken}) /return FALSE
 
 	| /if (${Stick.Active}) /return FALSE
@@ -887,11 +894,6 @@ sub set_observers(bool _debug, string _map, string _action)
 
 /return
 
-/declare corli_Counters string outer
-
-/dobserve corli -q "Me.TotalCounters" -o corli_Counters
-
-${airavas_TotalCounters}
 
 
 |***
@@ -2134,6 +2136,7 @@ sub clear_combat(bool _debug)
 	}
 
 	/invoke ${maBurn.Add[swBurnConditionMet,FALSE]}
+	/invoke ${maBurn.Add[swBurnSpinUp,FALSE]}
 
 	/if (${Stick.Active}) {
 		/squelch /stick off
@@ -2153,7 +2156,9 @@ sub clear_combat(bool _debug)
 sub clear_timer(bool _debug, int _tmpID)
 	DEBUG \atclear_timer\ax(\a-w${_tmpID}\ax)
 
-	/if (${Defined[timer_${_tmpID}]}) /deletevar timer_${_tmpID}
+	/if (${Defined[timer_${_tmpID}]}) {
+		/deletevar timer_${_tmpID}
+	}
 
 /return
 
@@ -7666,7 +7671,6 @@ sub check_deBuffs(bool _debug, int _tmpID)
 
 
 				/if (AE# && ${_mobCount} >= AE#) {
-					/here 2
 					/if (${is_ready[${_debug}, "${madeBuff.Find[stAE${_lideb.Value}].Value}"]}) {
 						DEBUG ${sep}sw${_lideb.Value}${sep}\a-wMULTI\ax
 						/call voodoo ${_debug} "${madeBuff.Find[stAE${_lideb.Value}].Value}" ${_tmpID} FALSE
@@ -7853,7 +7857,6 @@ sub check_minion_cycle_buff(bool _debug)
 			/continue
 		}
 
-
 		DEBUG _count${sep}\a-w${_count}
 
 		/varset _spell ${set_rank[FALSE, "${maBuff.Find[stBuff${_count}].Value}"]}
@@ -7862,18 +7865,16 @@ sub check_minion_cycle_buff(bool _debug)
 		| distance check
 		/if (${Pet.Distance} > ${Spell[${_spell}].MyRange}) /continue
 
-		| target the group member
-		/invoke ${target[set, ${Pet.ID}]}
 		FLOW check_minion_cycle_buff
 
 		| have the buff?
 		/if (${Pet.Buff[${maBuff.Find[stBuff${_count}].Value}]}) /continue
 
 		| give the game a second to populate the targets buffs
-		/delay 1s ${Target.BuffsPopulated}
+		| /delay 1s ${Target.BuffsPopulated}
 
 		| stacks
-		/if (!${Spell[${_spell}].StacksTarget}) /continue
+		| /if (!${Spell[${_spell}].StacksTarget}) /continue
 
 		/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" ${Pet.ID} FALSE
 		/call cast_cooldown_wait ${_debug}
@@ -10091,6 +10092,10 @@ sub set_control_output(bool _debug, string _map, string _outname, string _contro
 		/if (${cmi.Value.Equal[submenu]}) {
 			/varset _out ${_out} ${info}${cmi.Key}\ax:${submenu}
 
+		| no variables just an option
+		} else /if (${cmi.Value.Equal[option]}) {
+			/varset _out ${_out} ${info}${cmi.Key}
+
 		| string in brackets
 		} else /if (${cmi.Value.Left[2].Equal[st]} && ${cmi.Value.Arg[2,|].Equal[br]}) {
 			/varset _out ${_out} ${info}${cmi.Key}\ax:[${If[${Bool[${${_map}.Find[${_value}].Value}]},${num}${${_map}.Find[${_value}].Value}\ax,${off}]}]
@@ -10258,6 +10263,11 @@ sub target(string _type, int _tmpID)
 	| return TRUE if dead otherwise return FALSE
 	/if (${Select[${_type},isdead]} || ${_isdead}) {
 		DEBUG ${sep}\a-y${_type}\ax${sep}
+
+		| burn spinup command short circut
+		/if (${maBurn.Find[swBurnSpinUp].Value}) {
+			/return FALSE
+		}
 
 		/if (!AUTO) {
 			/if (!${Bool[${_tmpID}]} && ${Target.ID}) {
@@ -10725,8 +10735,6 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 			}
 		}
 
-		| /if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return FALSE
-
 		/if (${target[isdead, ${_tmpID}]}) {
 			FLOW check_item_cycle ${_tmpID}|${_tag}
 			/return FALSE
@@ -10756,6 +10764,8 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
 		/invoke ${lsLineNuke.Append[${stCount20}]}
 	}
 
+	/declare _count int local 0
+	/declare _match bool local FALSE
 	/declare _liNuke listiterator local
 	/vardata _liNuke lsLineNuke.First.Clone
 	/while (!${_liNuke.IsEnd}) {
@@ -10809,7 +10819,7 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
 			/continue
 		}
 
-		| skip twincast nukes (they are accessed a different way
+		| skip twincast nukes (they are accessed a different way)
 		/if (${lsNuke${_liNuke.Value}Tag.Contains[twincast]} && ${_tag.NotEqual[twincast]}) {
 			/invoke ${_liNuke.Advance}
 			/continue
@@ -10822,8 +10832,40 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
 			/continue
 		}
 
-		/call voodoo ${_debug} "${maNuke.Find[stNuke${_liNuke.Value}].Value}" ${_tmpID} FALSE
 
+		| totem type nukes?
+		/if (${lsNuke${_liNuke.Value}Tag.Contains[totem]}) {
+			| necro ae dps aura spawns
+			/if (${Select[${Me.Class.ShortName},NEC]}) {
+				/if (${Me.Aura[1].ID}) {
+					/invoke ${_liNuke.Advance}
+					/continue
+				}
+
+			| shaman totems
+			} else /if (${Select[${Me.Class.ShortName},SHM]}) {
+				/for _count 1 to ${SpawnCount[radius ENV]}
+					/if (${NearestSpawn[${_count}].DisplayName.Equal[Soul Idol]} || ${NearestSpawn[${_count}].DisplayName.Equal[Spirit Idol]}) {
+						/varset _match TRUE
+						/break
+					}
+				/next _count
+
+				/if (${_match}) {
+					/varset _match FALSE
+					/invoke ${_liNuke.Advance}
+					/continue
+				}
+
+			} else /if (${Select[${Me.Class.ShortName},ENC]}) {
+
+			}
+
+
+			| /varset _tmpID ${Me.ID}
+		}
+
+		/call voodoo ${_debug} "${maNuke.Find[stNuke${_liNuke.Value}].Value}" ${_tmpID} FALSE
 
 		/if (${Select[${maData.Find[stCastReturn].Value},OUTOFMANA,STUNNED]} && !${maNuke.Find[stNukeDelay].Value}) {
 			/break
@@ -11797,6 +11839,10 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
  	| group heal over time
 	/if (${_tag.Equal[grouphot]}) {
 		DEBUG ${sep}tag.Found
+
+		/if (!AE#) {
+			/return FALSE
+		}
 
 		| break on no mobs in area
 		/if (AE# && ${SpawnCount[npc radius ENV PS4 targetable]} < AE#) {

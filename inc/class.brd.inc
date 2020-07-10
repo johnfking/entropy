@@ -71,7 +71,7 @@ sub main_BRD(bool _debug)
 		/if (${maChr.Find[swPulseOOC].Value}) {
 			/call pulse_cycle ${maDebug.Find[pulse].Value} 0 OOC
 		}
-		/if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE FALSE
+		/if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
 		/if (VALID && !ENGINE3) {
 			/call control_routine FALSE
@@ -404,11 +404,11 @@ sub burn_BRD(bool _debug, int _tmpID)
 	FLOW burn_BRD
 
 	ISMEDEAD
-		/if (${target[isdead, ${_tmpID}]}) {
-			/call pulse_stop
-			/call clear_combat
-			/return FALSE
-		}
+	/if (${target[isdead, ${_tmpID}]}) {
+		/call pulse_stop
+		/call clear_combat
+		/return FALSE
+	}
 
 	CHECKEXIT
 	GETINPUT

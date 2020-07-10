@@ -27,6 +27,16 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+200710.01
+- removed pet targeting requirements for buff checking (some peoples kids...)
+- tag
+  nuke::totem - marker for totem type spells, like shaman debuff totem, or necro skull aura totems.
+- worked around a _bug_ thats causing some variables to not get defined properly
+  things like curing and mana regen clicks will work again.. for now
+- shaman
+  shoudnt spam its checking its pet all the time
+- bard
+  removed an extra FALSE that was doing absolutly nothing. i mean, it could have just stayed ther forever
 
 
 200709.02
@@ -37,7 +47,6 @@ epics with commas in their names are currently not functioning
 - tags
   more were found in buffing other merc/RL players. they have been corrected
 - reversed the loginc in check_class_loop() so FALSE is actually bad now. not sure why it was good before
-
 
 
 200709.01

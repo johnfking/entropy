@@ -78,7 +78,7 @@ sub main_SHM(bool _debug)
 	    /call check_xtarget_build FALSE
 		}
 		/call check_cani ${maDebug.Find[canni].Value}
-		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
+		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
 		/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 	} else /if (AUTO && ENGINE3) {
 		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
@@ -544,8 +544,6 @@ sub cast_alliance_SHM(bool _debug)
 sub set_control_SHM(string _type, string _verbage, string _silent, bool _debug)
 	DEBUG \atset_control_SHM\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
-  /declare _out string local
-
 	| output control map
 	/if (${_type.Equal[see]}) {
 		/call Bind_command_see maChr ${_verbage}
@@ -572,11 +570,7 @@ sub set_control_SHM(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[cannimanna]}) {
 		/if (!${set_control_num_range[${_debug}, stPctCanniManna, "${_verbage}", 0, 99]}) /return
 
-	|
-	| } else /if (${_type.Equal[surge]}) {
-	| 	/invoke ${set_switch_env[${_debug}, swSurge, TRUE, ${_verbage}]}
-
-	|
+	| use talisman
 	} else /if (${_type.Equal[talisman]}) {
 		/invoke ${set_switch_env[${_debug}, swTalisman, TRUE, ${_verbage}]}
 
