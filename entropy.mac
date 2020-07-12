@@ -116,7 +116,7 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 200710.01
+	/call set_data FALSE maEnv build													map outer 200712.01
 	/call set_data FALSE maEnv schema													map outer 1.04
 	/call set_data FALSE maEnv repo														map outer 200706.01
 

@@ -89,6 +89,7 @@ sub main_BST(bool _debug)
 	/if (AUTO && !ENGINE3) {
 		/call check_mana_${Me.Class.ShortName}
 		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
+		/if (!${timer_Check_Para}) /call check_mana_BST ${maDebug.Find[para].Value}
 	} else /if (AUTO && ENGINE3) {
 		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
 			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -236,7 +237,6 @@ sub check_mana_BST(bool _debug)
 	DEBUG \atcheck_mana_BST\ax()
 	FLOW check_mana_BST
 
-
 	/invoke ${set_data_timer[${_debug}, Check_Para, RESTART]}
 
 	ISMEDEAD
@@ -251,8 +251,14 @@ sub check_mana_BST(bool _debug)
 		}
 	}
 
-	/if (${Me.Song[Paragon of Spirit].ID}) /return FALSE
-	/if (${Me.Song[Focused Paragon of Spirit].ID}) /return FALSE
+	/if (${Me.Song[Paragon of Spirit].ID}) {
+		DEBUG ${break}Paragon of Spirit (1)
+		/return FALSE
+	}
+	/if (${Me.Song[Focused Paragon of Spirit].ID}) {
+		DEBUG ${break}Focused Paragon of Spirit (1)
+		/return FALSE
+	}
 
 	| self paragon
 	DEBUG ${sep}checking${sep}\a-wfocused paragon\ax
@@ -264,50 +270,53 @@ sub check_mana_BST(bool _debug)
 		}
 	}
 
-	/if (${Me.Song[Paragon of Spirit].ID}) /return FALSE
-	/if (${Me.Song[Focused Paragon of Spirit].ID}) /return FALSE
-
-	| Paragon Group Members	NOT IN RAID.... if 2+ need stamina or mana
-	DEBUG ${sep}checking${sep}\a-wparagon\ax
-	| /if (!${Group.Members} || ${Raid.Members} || !${Me.AltAbilityReady[Paragon of Spirit]}) /return TRUE
-
-	/declare _below int local 0
-	/declare _liC6 listiterator local
-	/vardata _liC6 lsCount6.First.Clone
-
-	/while (!${_liC6.IsEnd}) {
-		DEBUG ${sep}${_liC6.Value}${sep}\a-w${Group.Member[${_liC6.Value}].DisplayName}\ax
-		ISMEDEAD
-		CHECKEXIT check_mana_BST2
-		/if (${Group.Member[${_liC6.Value}].Class.ShortName.Equal[BRD]}) {
-			/invoke ${_liC6.Advance}
-			/continue
-		}
-		/if (${Group.Member[${_liC6.Value}].PctMana} >= ${maChr.Find[stPctParagonG].Value}*.PCTHO) {
-			/invoke ${_liC6.Advance}
-			/continue
-		}
-		/if (${Group.Member[${_liC6.Value}].Distance} > 100) {
-			/invoke ${_liC6.Advance}
-			/continue
-		}
-		/if (${Group.Member[${_liC6.Value}].Type.Equal[CORPSE]}) {
-			/invoke ${_liC6.Advance}
-			/continue
-		}
-
-		/if (${Group.Member[${_liC6.Value}].ID} == ${Pet.ID}) {
-			/invoke ${_liC6.Advance}
-			/continue
-		}
-
-
-
-		/varcalc _below ${_below}+1
-		/invoke ${_liC6.Advance}
+	/if (${Me.Song[Paragon of Spirit].ID}) {
+		DEBUG ${break}Paragon of Spirit (2)
+		/return FALSE
+	}
+	/if (${Me.Song[Focused Paragon of Spirit].ID} || !${Me.AltAbilityReady[Paragon of Spirit]}) {
+		DEBUG ${break}Focused Paragon of Spirit (2)
+		/return FALSE
 	}
 
-	/if (${_below} >= 1 && !SAFEZONE) {
+	DEBUG ${sep}checking${sep}\a-wparagon for group\ax
+	/declare _below int local 0
+	/declare _count int local 0
+
+	/for _count 0 to 5
+		DEBUG ${sep}${_count}${sep}\a-w${Group.Member[${_count}].DisplayName}\ax
+		ISMEDEAD
+		CHECKEXIT check_mana_BST2
+		/if (${Group.Member[${_count}].Class.ShortName.Equal[BRD]}) {
+			DEBUG ${break}bard
+			/continue
+		}
+		/if (${Group.Member[${_count}].PctMana} >= ${maChr.Find[stPctParagonG].Value}*.PCTHO) {
+			DEBUG ${break}maChr.Find[stPctParagonG].Value
+			/continue
+		}
+		/if (${Group.Member[${_count}].Distance} > 100) {
+			DEBUG ${break}Distance
+			/continue
+		}
+		/if (${Group.Member[${_count}].Type.Equal[corpse]}) {
+			DEBUG ${break}corpse
+			/continue
+		}
+
+		/if (${Group.Member[${_count}].ID} == ${Pet.ID}) {
+			DEBUG ${break}pet
+			/continue
+		}
+
+		/varcalc _below ${_below}+1
+		/if (${_below}) {
+			DEBUG ${break}we found someone
+			/break
+		}
+	/next _count
+
+	/if (${_below} && !SAFEZONE) {
 		/call voodoo ${_debug} "Paragon of Spirit" 0 FALSE
 	}
 

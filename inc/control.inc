@@ -3678,7 +3678,7 @@ sub Bind_command_coh(string _verbage, bool _debug)
 
 |***
  * note: allows for custom builds
- * use: /build [save|load] [nickname] [DEBUG]
+ * use: /build [save|load|set] [nickname] [all] [DEBUG]
  ***|
 #bind control_build /build
 sub Bind_control_build(string _build, string _nickname, string _verbage, bool _debug)
@@ -3687,7 +3687,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 
 	| output control map
 	/if (${_build.Equal[aux]}) {
-		/call Bind_command_aux build ${_nickname}
+		/call Bind_command_aux build
 		/return
 
 	} else /if (!${Bool[${_build}]} || !${Bool[${_nickname}]}) {
@@ -3704,19 +3704,20 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 	| set stuff to not export/import
 	/declare _skipMap list local
 	/invoke ${_skipMap.Append[maDebug,maTimer,Gems,maCrew,maMode,maDeez,maPREGEN,maRezControl,maWatchspawn]}
-	/invoke ${_skipMap.Append[maBuffRequest,maHook,maData,maManaRecovery,maDeez,maTTL]}
+	/invoke ${_skipMap.Append[maBuffRequest,maHook,maData,maManaRecovery,maDeez,maTTL,Header,Evals,maPred]}
 	/declare _skipKey list local
 	/invoke ${_skipKey.Append[swBuffMaster,swIsMeDead,swSetCombat,swValidAssTarID,swSnapStuck,swHomeMarker,verbosity,swZoneSafe,swAuto]}
-	/invoke ${_skipKey.Append[stCurrentZoneID,stCastReturn,build,swSetTie,swBurnConditionMet]}
+	/invoke ${_skipKey.Append[stCurrentZoneID,stCastReturn,build,swSetTie,swBurnConditionMet,swBurnSpinUp,repo,schema,stPredID]}
+	/invoke ${_skipKey.Append[swWatch,stWatchCount,swSetForced]}
 
 	| obfuscation
 	/invoke ${_skipKey.Append[lsProtectInsideRaid,lsProtectOutsideGroup,stTieToon,lsRetortToon,lsWardToon,stManualAssist1,stManualAssist2]}
-	/invoke ${_skipKey.Append[lsGrowthToon]}
+	/invoke ${_skipKey.Append[lsGrowthToon,lsTempBuffToon]}
 
 	| export to INI routine
 	/if (${_build.Equal[save]}) {
 		OUT /build save${sep}\a-w${_fn}\ax
-		OUT \awSaving Maps\ax${sep}
+		OUT \awExporting\ax${sep}
 
 		/ini "${_fqn}" "Header" "Macro" "Entropy"
 		/ini "${_fqn}" "Header" "Build" "${maEnv.Find[build].Value}"
@@ -3756,27 +3757,31 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 					}
 
 					| OUTPUT TO THE INI
-					/if (${_limaps.Value.Equal[maCondition]}) {
-						| /sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_condition ORDER BY ROWID
-						| /for _count 1 to ${sqlite.Rows[dummy]}
-						| 	/ini "${_fqn}" ${_limaps.Value} "${sqlite.Result[dummy ${_count} env_var]}" "${Parse[2,${sqlite.Result[dummy ${_count} value]}]}"
-						| /next _count
-					} else {
-						/ini "${_fqn}" ${_limaps.Value} "${_mi.Key}" "${Parse[1,${_mi.Value}]}"
-					}
+					/ini "${_fqn}" ${_limaps.Value} "${_mi.Key}" "${Parse[1,${_mi.Value}]}"
 					/invoke ${_mi.Advance}
 				}
 			/invoke ${_limaps.Advance}
 		}
 
+		| output gems
 		/if (${Me.NumGems} && ${lsClassCast.Contains[${Me.Class.ShortName}]}) {
-			OUT \awSaving Gems\ax${sep}\a-w${Me.NumGems}\ax
+			/echo \at...\ax\a-wgem\ax
 			/for _count 1 to ${Me.NumGems}
 				/ini "${_fqn}" Gems "Gem${_count}" "${Spell[${Me.Gem[${_count}]}].BaseName}"
 			/next _count
 		}
 
-		OUT \awUpdating\ax${sep}\a-wMD5\ax
+		| output tag/eval
+		/echo \at...\ax\a-weval\ax
+		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	tag_group.grouping,	tag.name,	tag_validate.created_by, tag_validate.eval,	tag_validate.aux FROM	tag_validate LEFT	JOIN tag ON	tag_validate.tag = tag.id	LEFT JOIN	tag_group	ON tag_validate.grouping = tag_group.id	ORDER	BY tag_group.grouping, tag.name
+		/for _count	1	to ${sqlite.Rows[dummy]}
+			/if	(${sqlite.Result[dummy ${_count} created_by].Equal[2]}) {
+				/ini "${_fqn}" "Evals" "${sqlite.Result[dummy ${_count} grouping]}::${sqlite.Result[dummy ${_count} name]}" "${Parse[2,${sqlite.Result[dummy ${_count} eval]}]}"
+			}
+		/next	_count
+
+		| output md5
+		/echo \at...\ax\a-wmd5\ax
 		/squelch /exec powershell "(get-content ${MacroQuest.Path}\macros\exspes\data\${_fn}).Replace('MD5',(Get-FileHash ${MacroQuest.Path}\macros\exspes\data\${_fn} -Algorithm MD5).Hash) | Set-Content ${MacroQuest.Path}\macros\exspes\data\${_fn}" bg
 		/invoke ${out[18, 0, 33]}
 		/echo
@@ -3791,42 +3796,44 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 		/declare _countK int local 0
 
 		OUT /build load${sep}\a-w${_fn}\ax
-		OUT \awLoading Maps\ax${sep}
+		OUT \awLoading\ax${sep}
 
 		/for _countS 1 to ${Ini[${_fqn}].Count[|]}
 			/varset _section ${Ini[${_fqn}].Arg[${_countS},|]}
 			/if (${_skipMap.Contains[${_section}]}) /continue
-			/if (${Select[${_section},Header,NULL]}) /continue
+			/if (${Select[${_section},,NULL,Header,Gems,Evals]}) /continue
 			/echo \at...\ax\a-w${_section}\ax
-
-			/if (${_section.Equal[maCondition]}) {
-				| /for _countK 1 to ${Ini[${_fqn},${_section}].Count[|]}
-				| 	/varset _key ${Ini[${_fqn},${_section} ].Arg[${_countK},|]}
-				| 	/if (${Select[${_key},NULL]}) /continue
-				| 		/varset _value ${Ini[${_fqn},${_section},${Parse[1,${_key}]},noparse]}
-				| 		DEBUG ${sep}dummy UPDATE environment_condition SET value="${Parse[1,${_value}]}" WHERE env_var="${_key}"
-				| 		/sqlite query ${maData.Find[DBcharacter].Value} dummy UPDATE environment_condition SET value="${Parse[1,${_value}]}" WHERE env_var="${_key}"
-				| 	/next _countK
-			} else {
-				/for _countK 1 to ${Ini[${_fqn},${_section}].Count[|]}
-					/varset _key ${Ini[${_fqn},${_section} ].Arg[${_countK},|]}
-					/if (${Select[${_key},NULL]}) /continue
-					DEBUG ${_key}=${Ini[${_fqn},${_section},${Parse[1,${_key}]},noparse]}
-					/call do_raw_edit FALSE SILENT ${_key} "${Ini[${_fqn},${_section},${Parse[1,${_key}]},noparse]}" OVERRIDE
-				/next _countK
-			}
-
+			/for _countK 1 to ${Ini[${_fqn},${_section}].Count[|]}
+				/varset _key ${Ini[${_fqn},${_section} ].Arg[${_countK},|]}
+				/if (${Select[${_key},NULL]}) /continue
+				/if (${_skipKey.Contains[${_key}]}) /continue
+				DEBUG ${_key}=${Ini[${_fqn},${_section},${Parse[1,${_key}]},noparse]}
+				/call do_raw_edit FALSE SILENT ${_key} "${Ini[${_fqn},${_section},${Parse[1,${_key}]},noparse]}" OVERRIDE
+			/next _countK
 		/next _countS
 
-		| load spells
+
+		| load gems
 		/if (${Me.NumGems} && ${lsClassCast.Contains[${Me.Class.ShortName}]}) {
-			OUT \awLoading Gems\ax${sep}\a-w${Me.NumGems}\ax
+			/echo \at...\ax\a-wgem\ax
 			/if (!${Window[SpellBookWnd].Open}) /invoke ${Window[SpellBookWnd].DoOpen}
 			/for _count 1 to ${Me.NumGems}
 				/call set_spell_to ${_debug} TRUE "${Spell[${Ini[${_fqn},Gems,Gem${_count}]}].RankName}" ${_count} FALSE
 			/next _count
 			/if (${Window[SpellBookWnd].Open}) /invoke ${Window[SpellBookWnd].DoClose}
 		}
+
+		| load evals
+		/echo \at...\ax\a-weval\ax
+		/for _countK 1 to ${Ini[${_fqn},Evals].Count[|]}
+			/varset _key ${Ini[${_fqn},Evals].Arg[${_countK},|]}
+			/if (${Select[${_key},NULL]}) /continue
+
+			DEBUG ${sep}${_key.Arg[1,::]} ${_key.Arg[2,::]} "${Ini[${_fqn},Evals,${Parse[1,${_key}]},noparse]}"
+			/call Bind_noparse_tag ${_key.Arg[1,::]} ${_key.Arg[2,::]} "${Ini[${_fqn},Evals,${Parse[1,${_key}]},noparse]}" TRUE
+
+		/next _countK
+
 
 		/invoke ${out[18, 0, 33]}
 		/echo
@@ -4937,7 +4944,7 @@ sub Bind_control_mercenary(string _type, string _verbage, string _silent, bool _
  * use:
  ***|
 #bind_noparse	tag	/tag
-sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval)
+sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _silent)
 	/declare _debug	bool local FALSE
 	DEBUG	\atBind_noparse_tag\ax(\a-w${_grouping}, ${_tagname},	${Parse[1,${_eval}]}\ax)
 
@@ -5066,13 +5073,16 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval)
 	}
 
 	| check the tag first. do not let them make tags that already exist
-	/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT name,	created_by FROM tag;
+	/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT name,	created_by FROM tag WHERE created_by = '1' AND name = '${_tagname}';
+	|**
+
 	/if	(${sqlite.Rows[dummy]})	{
-		/if	(${Select[${sqlite.Result[dummy	1	created_by]},1]})	{
+		/if	(${sqlite.Result[dummy 1 created_by].Equal[1]})	{
 			OUT	Tag	Exists${sep}\ag${_tagname}\ax	(\arDo not edit	default	tags\ax)
 			/return	FALSE
 		}
 	}
+	**|
 
 	| create the tag if it does not exist
 	/sqlite query	${maData.Find[DBshared].Value} dummy INSERT	INTO tag (name,	created_by)	VALUES ("${_tagname}", 2)
@@ -5098,7 +5108,9 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval)
 		/if	(!${sql_check[${_debug}, dummy,	Bind_noparse_tag,	"UPDATE	(tag_validate)"]}) /endmacro
 
 		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'2'
-		OUT	Evaluation Updated${sep}\aw${_grouping}\ax${sep}${If[${sqlite.Result[dummy 1 created_by].Equal[1]},\aw${_tagname}\ax,\at${_tagname}\ax]}${sep}\a-w${Parse[1,${_eval}]}\ax
+		/if (!${_silent}) {
+			OUT	Evaluation Updated${sep}\aw${_grouping}\ax${sep}${If[${sqlite.Result[dummy 1 created_by].Equal[1]},\aw${_tagname}\ax,\at${_tagname}\ax]}${sep}\a-w${Parse[1,${_eval}]}\ax
+		}
 		/return	TRUE
 
 	| if its not there,	we create/insert a new on
@@ -5108,7 +5120,7 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval)
 		/if	(!${sql_check[${_debug}, dummy,	Bind_noparse_tag,	"INSERT	INTO (tag_validate)"]})	/endmacro
 		| check	it
 		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'2'
-		/if	(${sqlite.Rows[dummy]})	{
+		/if	(${sqlite.Rows[dummy]} && !${_silent})	{
 			OUT	Tag	and	Evaluation Created${sep}\aw${_grouping}\ax${sep}\aw${If[${sqlite.Result[dummy	1	created_by].Equal[2]},\at${_tagname}\ax,\aw${_tagname}\ax]}\ax${sep}\a-w${Parse[1,${_eval}]}\ax
 		}
 

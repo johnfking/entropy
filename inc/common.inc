@@ -13,7 +13,7 @@
  * use: /call set_data DEBUG [container|FALSE] [variable/key name] [col|map|list|set|string|int|bool] [outer|local|global] ["value"]
  ***|
 sub set_data(bool _debug, string _container, string _name, string _type, string _scope, string _value)
-	/if (${_debug}) /echo \atset_data\ax(\a-w${_container}, ${_name}, ${_type}, ${_scope}, "${_value}"\ax)
+	/if (${_debug}) /echo \atset_data\ax(\a-w${_container}, ${_name}, t-${_type}, ${_scope}, "${_value}"\ax)
 
 	| default MQ2 variables
 	/if (${Select[${_type},bool,string,int,float]}) {
@@ -1033,17 +1033,21 @@ sub check_for_rezbox(bool _debug)
 			}
 		}
 
-		DEBUG  _stRezWindowPct ${_stRezWindowPct}
+		DEBUG  ${sep}_stRezWindowPct ${_stRezWindowPct}
 
-		/declare _swValidRezFound bool local FALSE
+		/declare _swVali=dRezFound bool local FALSE
 
 		| we do not accept any 0% rezes
 		/if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["(0 percent)"]}]}) {
+			/nomodkey /notify ConfirmationDialogBox No_Button leftmouseup
 			/varset _swValidRezFound FALSE
+
+		| take our own rez..
+		} else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["${Me.DisplayName"]}]}) {
+			/varset _swValidRezFound TRUE
 
 		| we take call to corpse as well
 		} else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["you will still be able to get a resurrection later"]}]}) {
-			| /varset swNeedRez TRUE
 			/varset _swValidRezFound TRUE
 
 		} else /if (${maRez.Find[stPctMinRez].Value} <= ${_stRezWindowPct}) {
@@ -1236,6 +1240,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 
 	/declare _castLoop int local ${maEntropy.Find[stCastLoop].Value}
+	/invoke ${maData.Add[stCastReturn,FALSE]}
 
 	| alt abilities
 	/if (${_type.Equal[ALT]}) {
@@ -1295,7 +1300,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			| /echo maData.Find[stCastReturn].Value == ${maData.Find[stCastReturn].Value}
 
 
-			/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,TAKEHOLD,DISTRACTED,RESISTED,FALSE]}) {
+			/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,TAKEHOLD,DISTRACTED,RESISTED]}) {
 				/varset _castLoop 0
 				/if (${Select[${Me.Class.ShortName},BRD]}) {
 					/call pulse_stop
@@ -1454,7 +1459,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			/call set_spell_to ${_debug} TRUE "${_verbage}" ${maEnv.Find[stBuffGem].Value} TRUE
 		}
 
-		/if (${Spawn[npc ${_tmpID}].Dead}) {
+		/if (${Spawn[npc ${_tmpID}].Dead} && ${_sub.NotEqual[skiptargetcheck]}) {
 			/return FALSE
 		}
 
@@ -1493,7 +1498,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 				/invoke ${set_timer[${_debug}, _castTime, ${_castTime}]}
 				/while (${_castTime} > 0) {
-					/if (${_tmpID} != 0) {
+					/if (${_tmpID} != 0 && ${_sub.NotEqual[skiptargetcheck]}) {
 						/if (${Spawn[id ${_tmpID}].Dead}) {
 							DEBUG ${sep}spell.target dead.break
 							/stopcast
@@ -1508,8 +1513,6 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 				}
 
-
-
 				| delay for longer casts if there is any, cooldowns or open spell cast windows
 				DEBUG ${sep}castloop.casting,window,cooldown
 				/while (${Me.Casting.ID} || ${Window[CastingWindow].Open} || ${Me.SpellInCooldown}) {
@@ -1523,7 +1526,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 				DEBUG ${sep}cast return${sep}\ay${maData.Find[stCastReturn].Value}\ax
 
 				| notready/ cant cast
-				/if (${Select[${maData.Find[stCastReturn].Value},DISTRACTED,NOTREADY,CANNOTSEE]}) {
+				/if (${Select[${maData.Find[stCastReturn].Value},DISTRACTED,NOTREADY,CANNOTSEE,OUTOFMANA]}) {
 					DEBUG ${sep}spell.cr:DISTRACTED,NOTREADY,CANNOTSEE.\arbreak\ax
 					/varset _castLoop 0
 					/if (${Select[${Me.Class.ShortName},BRD]}) {
@@ -1532,7 +1535,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 					/break
 
 				| good
-				} else /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,BLOCKED,RESISTED,FALSE,IMMUNE]}) {
+				} else /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,BLOCKED,RESISTED,IMMUNE]}) {
 					DEBUG ${sep}spell.cr:SUCCESS,BLOCKED,RESISTED,IMMUNE.\agbreak\ax
 					/varset _castLoop 0
 					/if (${Select[${Me.Class.ShortName},BRD]}) {
@@ -3133,7 +3136,7 @@ sub pull_hardstop(bool _debug)
 		}
 
 		| manna
-		/if (${Select[${Spawn[pc${_toonName}].Class.ShortName}],PAL,SHD,RNG,BST,WIZ,MAG,ENC,NEC,CLR,DRU,SHM}) {
+		/if (${Select[${Spawn[pc${_toonName}].Class.ShortName},PAL,SHD,RNG,BST,WIZ,MAG,ENC,NEC,CLR,DRU,SHM]}) {
 			/dquery ${_toonName} -q "Me.PctMana"  -o DNQHardStop -t 5
 			DEBUG ${sep}${sep}manna: .PctMana \at${DNQHardStop}\ax
 			/if (${Math.Calc[${DNQHardStop} < ${maCC.Find[stPctHardStop].Value}]}) {
@@ -3142,7 +3145,7 @@ sub pull_hardstop(bool _debug)
 		}
 
 		| stamina
-		/if (${Select[${Spawn[pc${_toonName}].Class.ShortName}],WAR,PAL,SHD,BRD,RNG,BST,BER,MNK,ROG}) {
+		/if (${Select[${Spawn[pc${_toonName}].Class.ShortName},WAR,PAL,SHD,BRD,RNG,BST,BER,MNK,ROG]}) {
 			/dquery ${_toonName} -q "Me.PctEndurance"  -o DNQHardStop -t 5
 			DEBUG ${sep}${sep}stamina: .PctEndurance \at${DNQHardStop}\ax
 			/if (${Math.Calc[${DNQHardStop} < ${maCC.Find[stPctHardStop].Value}]}) {
@@ -3493,6 +3496,7 @@ sub pull_mob_find(bool _debug, int _spCount)
 	/declare _closestNAV int local PULLENV
 	/declare _closestID int local 0
 	/declare _navRange int local 0
+	/declare _mobcount int local 0
 
 	| /declare _tmpCombatRange int local ${maHard.Find[stMinBowDist].Value}
 
@@ -3508,10 +3512,21 @@ sub pull_mob_find(bool _debug, int _spCount)
 	/while (${_tmpAgroRange} <= PULLENV && !TARGET) {
 		/delay 1
 
+		/if (${_tmpAgroRange} <= SAFEENV) {
+			/varset _mobcount ${SpawnCount[npc ${_los} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}
+		} else {
+			/varset _mobcount ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}
+		}
+
 		| search local ENV range in steps of 10 for mob acquisition
 		DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
+
+
+
 		/if (${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}) {
+
 			/for _count 1 to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}
+
 				ISMEDEAD
 
 				/varset _tmpID ${NearestSpawn[${If[${_spCount},${Math.Calc[${_count}+${_spCount}]},${_count}]}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value}].ID}
@@ -11717,6 +11732,8 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 			FLOW check_for_corpse ${_tmpID}|${_rez} (3)
 
 			/call voodoo ${_debug} "${_rez}" ${_tmpID} skiptargetcheck
+			/delay 5
+			/delay 5s !${Me.Casting.ID}
 
 		| token rez
 		} else /if (${maRez.Find[swRezToken].Value}) {
@@ -11729,6 +11746,9 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 			FLOW check_for_corpse ${_tmpID}|${_rez} (4)
 			/varset _rez "Token of Resurrection"
 			/call voodoo ${_debug} "Token of Resurrection" ${_tmpID} skiptargetcheck
+			/delay 5
+			/delay 5s !${Me.Casting.ID}
+
 		}
 
 		/doevents

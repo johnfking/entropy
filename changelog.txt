@@ -27,6 +27,19 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+
+
+200712.01
+- /tag
+  added some more "protection" to the creation routine
+- beastlord
+  should be a lot more aggressive using paragon for group members
+- voodoo()
+  some corrections made so it will let casts be completed on corpses for rezing
+- /build
+  updated for new tag system
+
+
 200710.01
 - removed pet targeting requirements for buff checking (some peoples kids...)
 - tag
