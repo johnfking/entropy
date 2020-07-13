@@ -26,6 +26,15 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
+200712.02
+- /heal break
+  will watch the intended targets health. if it happens to hit the healpoint you have set for that class
+  it will stop the cast and move on. the HP check is 3/second. this is only applied to spells and not
+  items being used for healing.
+- /buff shrink
+  corrected a bad variable from all the tag changes
+- redesign of mac start options
+  https://entropy.exspes.com/wiki/index.php/Install#options
 
 
 

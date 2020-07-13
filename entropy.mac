@@ -96,7 +96,7 @@
  * note: entropy main sub and master loop
  * use: none. auto
  ***|
-sub main(string _debug, string _param1, string _auto)
+sub main(string _var1, string _var2, string _var3, string _var4)
 	/declare _boottimestart int local ${MacroQuest.Running}
 	MQCLEAR
 
@@ -111,12 +111,8 @@ sub main(string _debug, string _param1, string _auto)
 	| build the debugs
 	/call set_debug FALSE
 
-	/if (${Bool[${_debug}]}) {
-		/invoke ${maDebug.Add[${_debug.Lower},TRUE]}
-	}
-
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 200712.01
+	/call set_data FALSE maEnv build													map outer 200712.02
 	/call set_data FALSE maEnv schema													map outer 1.04
 	/call set_data FALSE maEnv repo														map outer 200706.01
 
@@ -125,6 +121,20 @@ sub main(string _debug, string _param1, string _auto)
 
 	| prep macro
 	/call prepare_the_end FALSE
+
+
+	| check all mac start options
+	/declare _countVar int local 0
+	/for _countVar 1 to 4
+		/if (${Bool[${_var${_countVar}}]}) {
+			/if (${_var${_countVar}.Arg[1,:].Equal[debug]}) {
+				/invoke ${maDebug.Add[${_var${_countVar}.Arg[2,:].Lower},TRUE]}
+			} else /if (${_var${_countVar}.Arg[1,:].Equal[auto]}) {
+				/invoke ${maEnv.Add[swAuto,${_var${_countVar}.Arg[2,:].Upper}]}
+			}
+		}
+	/next _countVar
+
 
 	| environment notices
  	/if (${maEntropy.Find[swMaintenance].Value}) {
@@ -159,11 +169,6 @@ sub main(string _debug, string _param1, string _auto)
 	}
 
 	/invoke ${out[0, "\agReady\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax", 0]}
-
-	| force on start switch
-	/if (${_debug.Equal[forceauto]}) {
-		/call Bind_control_env auto on
-	}
 
 	| maintenance loop
 	/while (${maEntropy.Find[swMaintenance].Value}) {

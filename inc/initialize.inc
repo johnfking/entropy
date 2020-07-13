@@ -945,6 +945,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maHeal	swHealCureSelf											FALSE													"${auxsw}	enable self	curing"																									heal
 	/call	set_data_map ${_debug} maHeal	swHealCureGroup											FALSE													"${auxsw}	enable group curing"																								heal
 	/call	set_data_map ${_debug} maHeal	swHealCureCrew											FALSE													"${auxsw}	enable crew	curing (everyone)"																			heal
+	/call	set_data_map ${_debug} maHeal	swBreakHealPCT											FALSE													"${auxsw}	enable a stop heal when target is > its heal point"									heal
 
 	/call	set_data_map ${_debug} maHeal	stCureCurseItem											FALSE													"${auxna}	name of	item to	cure self	curses"																		heal
 	/call	set_data_map ${_debug} maHeal	stCurePoisonItem										FALSE													"${auxna}	name of	item to	cure self	poisons"																	heal

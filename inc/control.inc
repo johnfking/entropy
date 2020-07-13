@@ -28,12 +28,20 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
 	} else /if (${_type.Equal[spawns]}) {
 		OUT Nearest \aw5\ax spawns
 		/declare _tmpID int local
+		/declare _animationresult string local UNKNOWN ANIMATION
 
 		/for _count 1 to 5
 			/varset _tmpID ${NearestSpawn[${_count}].ID}
 			OUT #\ag${_count}\ax${sep}name:\a-w${Spawn[id ${_tmpID}].Name}\ax${sep}${Spawn[id ${_tmpID}].DisplayName}
 			OUT ${sep}Dis(\a-r${Spawn[${_tmpID}].Distance}\ax) ${dot} Y(\a-r${Spawn[id ${_tmpID}].Y}\ax)X(\a-r${Spawn[id ${_tmpID}].X}\ax)
-			OUT ${sep}Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax) ${dot} ID(\a-r${Spawn[id ${_tmpID}].ID}\ax)
+
+			/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT value FROM animation WHERE env_var='${Spawn[id ${_tmpID}].Animation}'
+			/if (!${sql_check[${_debug}, dummy, control_debug, "SELECT (value)"]}) /endmacro
+			/varset _animationresult string local UNKNOWN ANIMATION
+			/if (${sqlite.Rows[dummy]}) {
+				/varset _animationresult ${sqlite.Result[dummy 1 value]}
+			}
+			OUT ${sep}Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax${sep}\a-w${_animationresult}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax) ${dot} ID(\a-r${Spawn[id ${_tmpID}].ID}\ax)
 			OUT ${sep}Master(\a-r${Spawn[id ${_tmpID}].Master}\ax) ${dot} Owner(\a-r${Spawn[id ${_tmpID}].Owner}\ax)
 			/echo
 
@@ -1252,7 +1260,7 @@ sub Bind_command_requestbuff(string _toon, string _operate, string _buff)
 sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
 	DEBUG \atcontrol_heal\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
 		/call control_base_edit ${maDebug.Find[edit].Value} Heal 50 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
 	}
@@ -1357,6 +1365,11 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
 	} else /if (${_type.Equal[groupcount]}) {
 		/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return
 
+	| enable break heal on %
+	} else /if (${_type.Equal[break]}) {
+		/invoke ${set_switch_env[${_debug}, swBreakHealPCT, TRUE, ${_verbage}]}
+
+
 	| set single hot
 	} else /if (${_type.Equal[hot]}) {
 		/if (${_verbage.Equal[use]}) {
@@ -1380,6 +1393,7 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
 		/invoke ${maControl.Add[tot,swHealToT]}
 	}
 
+  /invoke ${maControl.Add[break,swBreakHealPCT]}
   /invoke ${maControl.Add[grouphot,swHealGroupOverTime]}
 	/invoke ${maControl.Add[group,swHealGroup]}
 	/invoke ${maControl.Add[groupcount,stCountHealGroup]}
@@ -1827,7 +1841,7 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
 	DEBUG \atBind_control_buff\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
 
-	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
 		/call control_base_edit ${maDebug.Find[edit].Value} Buff 50 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
 	}
@@ -1878,9 +1892,9 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
 
 	} else /if (${_type.Equal[shrink]}) {
 		/if (${_verbage.Equal[item]}) {
-			/call do_raw_edit ${_debug} SILENT stShrinkItem "${_silent}"
+			/call do_raw_edit ${_debug} SILENT stShrinkItem "${_verbage2}"
 		} else /if (${_verbage.Equal[use]}) {
-			/invoke ${set_switch_env[${_debug}, swBuffShrink, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swBuffShrink, TRUE, ${_verbage2}]}
 		}
 
 		/invoke ${maControl.Clear}
@@ -2031,8 +2045,6 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 		/invoke ${out[18, 0, 33]}
 		/return
 
-
-
 	| see what we are observing
 	} else /if (${_variable.Equal[observed]}) {
 		/for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
@@ -2122,8 +2134,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
 	DEBUG \atBind_control_burn\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\\ax)
 
-
-	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
 
 		/if (ENGINE1) {
 			/invoke ${out[0, "/burn engine is only available with engine 2/3 enabled."]}
@@ -4440,7 +4451,7 @@ sub Bind_command_condition()
 sub Bind_control_clickitem(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
 	DEBUG \atBind_control_clickitem\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
 		/call control_base_edit ${maDebug.Find[edit].Value} Item 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
 	}
@@ -4457,7 +4468,7 @@ sub Bind_control_clickitem(string _type, string _verbage, string _verbage2, stri
 sub Bind_control_defense(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
 	DEBUG \atcontrol_defense\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
 		/call control_base_edit ${maDebug.Find[edit].Value} Defense 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
 	}
@@ -4528,7 +4539,7 @@ sub Bind_control_TTL(string _type, string _verbage, string _silent, bool _debug)
 sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
 	DEBUG \atcontrol_nuke\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
 		/call control_base_edit ${maDebug.Find[edit].Value} Nuke 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
 	}
@@ -4559,7 +4570,7 @@ sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _a
 sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
 	DEBUG \atcontrol_dor\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\\ax)
 
-	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
 		/call control_base_edit ${maDebug.Find[edit].Value} DoT 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
 	}
@@ -4596,7 +4607,7 @@ sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _a
 		/return FALSE
 	}
 
-	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
 		/call control_base_edit ${maDebug.Find[edit].Value} Agro 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
 	}
@@ -4618,7 +4629,7 @@ sub Bind_control_miscdps(string _type, string _verbage, string _verbage2, string
 		/return FALSE
 	}
 
-	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
 		/call control_base_edit ${maDebug.Find[edit].Value} MiscDPS 50 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
 	}
@@ -4641,7 +4652,7 @@ sub Bind_control_song(string _type, string _verbage, string _verbage2, string _a
 		/return FALSE
 	}
 
-	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
 		/call control_base_edit ${maDebug.Find[edit].Value} Song 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
 	}
@@ -4658,7 +4669,7 @@ sub Bind_control_song(string _type, string _verbage, string _verbage2, string _a
 sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
 	DEBUG \atcontrol_sash\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
 		/call control_base_edit ${maDebug.Find[edit].Value} Sash 12 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
 		/return TRUE
 	}

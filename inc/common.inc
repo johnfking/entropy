@@ -1175,12 +1175,9 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 	}
 
 	| are we moving? and not a bard?
-	| /if (!${Select[${Me.Class.ShortName},BRD]} && (${Me.Moving} || ${Stick.Active} || ${Navigation.Active})) {
 	/if (!${Select[${Me.Class.ShortName},BRD]} && ${Me.Moving}) {
 		DEBUG ${sep}break voodoo.moving
 		/if (${Me.Moving}) /return FALSE
-		| /if (${Stick.Active}) /return FALSE
-		| /if (${Navigation.Active}) /return FALSE
 	}
 
 	| correct the range if needed
@@ -1421,19 +1418,14 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			/if (${lsZoneNoCorruption.Contains[${Target.DisplayName}]} && ${Spell[${_verbage}].ResistType.Equal[Corruption]}) /return FALSE
 		}
 
-
-
-		|**
 		| check any subs? yes.. no.. maybe??
-		/if (${SubDefined[${_sub}]} && ${_sub.NotEqual[skiptargetcheck]}) {
-			DEBUG ${sep}/call ${_sub}
-			/call ${_sub}
-			/if (${castBreak}) {
-				/varset ${maData.Find[stCastReturn].Value} BREAK
-				/return BREAK
+		/if (${_sub.Equal[breakonhealpct]} && ${maHeal.Find[swBreakHealPCT].Value}) {
+			DEBUG ${sep}${_sub}${sep}\a-wbreakonhealpct\ax
+			/if (${Spawn[id ${_tmpID}].PctHPs} >= ${maHeal.Find[stHealPoint${Spawn[id ${_tmpID}].Class.ShortName}].Value}*.PCTHO) {
+				/stopcast
+				/return TURE
 			}
 		}
-		**|
 
 		| if a gom procs and a spell is ready, we hijack the existing cast and use the GOM spell in its place
 		/if (${_tmpID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]} && COMBAT) {
@@ -1492,17 +1484,26 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 				| set delays for casting. GTFO out of this as fast as possible
 				| /delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
-
 				/varset _castTime ${Math.Calc[${Spell[${_verbage}].MyCastTime}+50]}
 				DEBUG ${sep}_castTime${sep}\a-w${_castTime}\ax
 
 				/invoke ${set_timer[${_debug}, _castTime, ${_castTime}]}
+
 				/while (${_castTime} > 0) {
 					/if (${_tmpID} != 0 && ${_sub.NotEqual[skiptargetcheck]}) {
 						/if (${Spawn[id ${_tmpID}].Dead}) {
 							DEBUG ${sep}spell.target dead.break
 							/stopcast
 							/return FALSE
+						}
+
+						| break on heal % check
+						/if (${_sub.Equal[breakonhealpct]} && ${maHeal.Find[swBreakHealPCT].Value}) {
+							DEBUG ${sep}${_sub}${sep}\a-wbreakonhealpct\ax
+							/if (${Spawn[id ${_tmpID}].PctHPs} >= ${maHeal.Find[stHealPoint${Spawn[id ${_tmpID}].Class.ShortName}].Value}*.PCTHO) {
+								/stopcast
+								/return TURE
+							}
 						}
 					}
 
@@ -5275,7 +5276,7 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
 
 	| powersource
 	/if (${maBuff.Find[swBuffPowersource].Value} && ((AUTO && !${timer_Check_Buff_Powersource}) || ${_force})) {
-		/call check_buff_cycle_powersource ${If[${_force},${_debug},${maDebug.Find[power].Value}]}
+		| /call check_buff_cycle_powersource ${If[${_force},${_debug},${maDebug.Find[power].Value}]}
 	}
 
 	| ranged ammo
@@ -12076,8 +12077,7 @@ sub cast_cycle_heal(bool _debug, int _tmpID, string _tag)
 			/continue
 		}
 
-
-		/call voodoo ${_debug} "${maHeal.Find[stHeal${_liHeal.Value}].Value}" ${_tmpID} FALSE
+		/call voodoo ${_debug} "${maHeal.Find[stHeal${_liHeal.Value}].Value}" ${_tmpID} breakonhealpct
 
 		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]}) {
 			/break
@@ -12868,7 +12868,7 @@ sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _sp
  * use:	/call	control_base_edit	[WHATTOCHECK]	[rowcount] yadah yadah
  ***|
 sub	control_base_edit(bool _debug, string	_chk,	int	_loopnum,	string _type,	string _verbage, string	_verbage2, string	_add_delete)
-	DEBUG\atcontrol_base_edit\ax(\a-w${_chk}, ${_loopnum}, ${_type}, ${_verbage}, ${_verbage2},	${_add_delete}\ax)
+	SDEBUG\atcontrol_base_edit\ax(\a-w${_chk}, ${_loopnum}, ${_type}, ${_verbage}, ${_verbage2},	${_add_delete}\ax)
 	/declare _count	int	local	0
 
 	| list control contents
@@ -12897,6 +12897,12 @@ sub	control_base_edit(bool _debug, string	_chk,	int	_loopnum,	string _type,	stri
 		/call	Bind_command_aux ${_chk.Lower}
 		/return	TRUE
 	}
+
+	/if	(${_type.Equal[see]})	{
+		/call Bind_command_see ma${_chk}
+		/return	TRUE
+	}
+
 
 	| check	specific #
 	/if	(${Range.Between[1,${_loopnum}:${Int[${_type}]}]}) {
