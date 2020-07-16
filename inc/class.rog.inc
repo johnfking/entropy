@@ -288,17 +288,44 @@ sub check_heal_ROG(bool _debug, string _type)
 
 	SETHUD "heal ${_type}"
 
-	/if (!${check_hurt[${_debug}, ${_type}]}) /return FALSE
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
-	/if (${is_ready[${_debug}, "${maChr.Find[stAATumble].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stAATumble].Value}" 0 FALSE
+	| if no one is hurt. back to the start
+	/if (!${hurtCount}) {
+		SETHUD EMPTY
+		/return TRUE
 	}
+
+	/if (!SAFEZONE) {
+
+		| group healing
+		/if (${Select[${_type},group]} && ${hurtCount}) {
+
+			| group heal
+			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+				/call cast_cycle_heal ${_debug} 0 group
+ 			}
+		}
+
+		/if (${Select[${_type},self]} && ${hurtCount}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stAATumble].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAATumble].Value}" 0 FALSE
+			}
+		}
+
+	}
+
+  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+ 		/return FALSE
+ 	}
+
+	GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
 
 	/call cast_cycle_heal ${_debug} ${hurtID} single
 
 	SETHUD EMPTY
 
-/return
+/return TRUE
 
 
 
@@ -401,7 +428,7 @@ sub burn_ROG(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stPinPoint].Value}" ${_tmpID} FALSE
 	}
 	/if (${is_ready[${_debug}, "${maChr.Find[stAARoguesFury].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stAARoguesFury].Value}" 0 FALSE
+		/call voodoo ${_debug} "${maChr.Find[stAARoguesFury].Value}" ${_tmpID} FALSE
 	}
 	/if (${is_ready[${_debug}, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15) {
 		/call voodoo ${_debug} "${maChr.Find[stMark].Value}" ${_tmpID} FALSE

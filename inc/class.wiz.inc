@@ -224,14 +224,42 @@ sub check_heal_WIZ(bool _debug, string _type)
 	DEBUG \atcheck_heal_WIZ\ax(\a-w${_type}\ax)
 	FLOW check_heal_WIZ ${_type}
 
-
-	/if (${Me.PctHPs} > ${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO) /return FALSE
-
+	CHECKTIE
 	ISMEDEAD
 	CHECKEXIT
+	CHECKREZ
+	CHECKFADE
 
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+
+	| if no one is hurt. back to the start
+	/if (!${hurtCount}) {
+		SETHUD EMPTY
+		/return TRUE
+	}
+
+	/if (!SAFEZONE) {
+
+		| group healing
+		/if (${Select[${_type},group]} && ${hurtCount}) {
+
+			| group heal
+			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+				/call cast_cycle_heal ${_debug} 0 group
+ 			}
+		}
+
+	}
+
+  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+ 		/return FALSE
+ 	}
+
+	GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
+
 	/call cast_cycle_heal ${_debug} ${hurtID} single
+
+	SETHUD EMPTY
 
 /return TRUE
 

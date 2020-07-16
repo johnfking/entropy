@@ -317,13 +317,30 @@ sub check_heal_ENC(bool _debug, string _type)
 	DEBUG \atcheck_heal_${Me.Class.ShortName}\ax(\a-w${_type}\ax)
 	FLOW check_heal_ENC ${_type} (1)
 
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
-	ISMEDEAD
-	CHECKEXIT check_heal_ENC
-	FLOW check_heal_ENC (2)
-	CHECKTIE
+	| if no one is hurt. back to the start
+	/if (!${hurtCount}) {
+		SETHUD EMPTY
+		/return TRUE
+	}
 
-	/IF (${Select[${_type},self]}) {
+	/if (!SAFEZONE) {
+		| group healing
+		/if (${Select[${_type},group]} && ${hurtCount}) {
+			| group heal
+			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+				/call cast_cycle_heal ${_debug} 0 group
+ 			}
+		}
+	}
+
+  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+ 		/return FALSE
+ 	}
+
+
+	/if (${Select[${_type},self]}) {
 		/if (${Me.PctHPs} > ${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO) {
 
 			| AA Sanguine mind crystal summoned item 5 min
@@ -347,11 +364,15 @@ sub check_heal_ENC(bool _debug, string _type)
 		}
 	}
 
- 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
 
+	GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
+
 	/call cast_cycle_heal ${_debug} ${hurtID} single
+
+	SETHUD EMPTY
 
 /return TRUE
 

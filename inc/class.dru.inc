@@ -26,7 +26,6 @@ sub set_DRU(bool _debug)
 
  	/call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} alliance spell"
 
-	/call set_data_map FALSE maHeal stCountHealGroup										0															"${auxnum} number in group hurt to use a group heal" heal
  	/call set_data_map FALSE maChr swWolfSpirit													FALSE													"${auxsw} enable spirit of the great wolf aa (self/group)"
 
 	| temp buff: growth family
@@ -192,7 +191,6 @@ sub check_heal_DRU(bool _debug, string _type)
 	SETHUD "heal ${_type}"
 
 	/call get_hurt FALSE ${_type}
-	/declare _count int local 0
 
 	/if (!${hurtCount}) {
 		SETHUD EMPTY
@@ -202,14 +200,6 @@ sub check_heal_DRU(bool _debug, string _type)
 	CHECKEXIT
 
 	/if (!SAFEZONE) {
-
-		/if (${hurtPctHP} < ${maHeal.Find[stHealPointPanic].Value}*.PCTHO) {
-			/if (${Me.Casting.ID}) /stopcast
-			/if (${is_ready[${_debug}, "${maChr.Find[stHealPanic].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stHealPanic].Value}" ${hurtID} FALSE
-			}
-			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
-		}
 
 		/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
 			/if (${is_ready[${_debug}, "Swarm of Fireflies"]}) {
@@ -267,11 +257,6 @@ sub check_heal_DRU(bool _debug, string _type)
  	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
-
-	ISMEDEAD
-	CHECKEXIT
-	CHECKFADE
-	CHECKREZ
 
 	/call cast_cycle_heal ${_debug} ${hurtID} single
 

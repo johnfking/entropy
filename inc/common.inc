@@ -480,6 +480,7 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
 	/varset hurtPctHP 100
 	/varset hurtCLS ${Me.Class.ShortName}
 	/varset hurtCount 0
+	/varset hurtDead 0
 	/declare _hurtWeight float local 98
 	/declare _tmpWeight float local 99
 
@@ -495,7 +496,11 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
 			DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}${Group.Member[${_count}].Name}${sep}${Group.Member[${_count}].ID}\ax
 			/if (${Group.Member[${_count}].PctHPs} > ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}*.PCTHO) /continue
 			/if (${Group.Member[${_count}].Distance} > ENV) /continue
-			/if (!${Group.Member[${_count}].Present} || ${Group.Member[${_count}].Dead}) /continue
+			/if (!${Group.Member[${_count}].Present}) /continue
+			/if (${Group.Member[${_count}].Dead}) {
+				/varcalc hurtDead ${hurtDead} + 1
+				/continue
+			}
 			/if (${Group.Member[${_count}].DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}) /continue
 			/if (${lsNoHealToon.Contains[${Group.Member[${_count}].DisplayName}]}) /continue
 
@@ -633,6 +638,63 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
 
 		/return 1
 
+
+
+
+
+
+	| dannet healing
+	} else /if (${_type.Equal[DanNet]}) {
+
+		/declare _toonName string local
+
+		| each toon
+		/for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
+
+			| get the name to something usable
+			/varset _toonName ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
+			DEBUG ${sep}_toonName${sep}\ay${_toonName}\ax
+
+			| is the observer set
+			/if (!${Defined[${_toonName}_PctHPs]}) {
+				DEBUG ${break}defined${sep}!\a-w${_toonName}_PctHPs\ax
+				/varcalc _countToon ${_countToon}+1
+				/continue
+			}
+
+			DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}${Spawn[pc ${_toonName}].DisplayName}${sep}${Spawn[pc ${_toonName}].ID}\ax
+			/if (${Spawn[pc ${_toonName}].PctHPs} > ${maHeal.Find[stHealPoint${Spawn[pc ${_toonName}].Class.ShortName}].Value}*.PCTHO) /continue
+			/if (${Spawn[pc ${_toonName}].Distance} > ENV) /continue
+			/if (${Spawn[pc ${_toonName}].Dead}) {
+				/varcalc hurtDead ${hurtDead} + 1
+				/continue
+			}
+			/if (${Spawn[pc ${_toonName}].DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}) /continue
+
+			| group hurt running count
+			/if (${Spawn[pc ${_toonName}].PctHPs} <= ${maHeal.Find[stHealPoint${Spawn[pc pc ${_toonName}].Class.ShortName}].Value}*.PCTHO) {
+				/varcalc hurtCount ${hurtCount} + 1
+			}
+
+			/if (${maHeal.Find[swHealWeighted].Value}) {
+				/varset _tmpWeight ${Math.Calc[(${Spawn[pc ${_toonName}].PctHPs} / ${maHeal.Find[stHealPoint${Spawn[pc ${_toonName}].Class.ShortName}].Value}) - .${maHeal.Find[stHealPoint${Spawn[pc ${_toonName}].Class.ShortName}].Value}]}
+				DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}_tmpWeight${sep}\a-w${_tmpWeight}\ax
+				/if (${_tmpWeight} < ${_hurtWeight}) {
+					/varset _hurtWeight ${_tmpWeight}
+					/varset hurtPctHP ${Spawn[pc ${_toonName}].PctHPs}
+					/varset hurtID ${Spawn[pc ${_toonName}].ID}
+					/varset hurtCLS ${Spawn[pc ${_toonName}].Class.ShortName}
+				}
+			} else /if (!${maHeal.Find[swHealWeighted].Value}) {
+				/varset hurtPctHP ${Spawn[pc ${_toonName}].PctHPs}
+				/varset hurtID ${Spawn[pc ${_toonName}].ID}
+				/varset hurtCLS ${Spawn[pc ${_toonName}].Class.ShortName}
+			}
+
+		/next _count
+		/return ${hurtCount}
+
+
 	}
 
 /return 0
@@ -724,7 +786,7 @@ sub is_ready(bool _debug, string _verbage)
 
 |***
  * note: finds youre current assisst and returns their info Name, ID, or both
- * use: ${get_assist_info[DEBUG, name|id|both}
+ * use: ${get_assist_info[DEBUG, name|id|both]}
  ***|
 sub get_assist_info(bool _debug, string _type)
 	DEBUG \atget_assist_info\ax(\a-w${_type}\ax)
@@ -795,13 +857,13 @@ sub get_assist_info(bool _debug, string _type)
 
 |***
  * note: creates observers
- * use: /call set_observers DEBUG [map of things to observe] [add|drop]
+ * use: /call set_observers DEBUG [map of things to observe] [add|drop] [silent T/F]
  ***|
-sub set_observers(bool _debug, string _map, string _action)
-	DEBUG \atset_observers\ax(\a-w${_map}, ${_action}\ax)
+sub set_observers(bool _debug, string _map, string _action, bool _silent)
+	DEBUG \atset_observers\ax(\a-w${_map}, ${_action}, ${_silent}\ax)
 	FLOW set_observers
 
-	/declare _count						int 		local 0
+	/declare _count						int 		local 1
 	/declare _actionO					string	local FALSE
 	/declare _toon		 				string 	local FALSE
 	/declare _timestart				int			local 0
@@ -822,19 +884,20 @@ sub set_observers(bool _debug, string _map, string _action)
 	}
 
 	| do all the peoples!
-	/for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
+	/while (${_count} <= ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) {
 		/varset _timestart ${MacroQuest.Running}
 
 		| skip toons that are not here
-		/if (!${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}) /continue
+		| /if (!${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}) {
+		| 	DEBUG ${break}nospawn
+		| 	/varcalc _count ${_count}+1
+		| 	/continue
+		| }
 
 		| cure group only
-		/if (${maHeal.Find[swHealCureGroup].Value} && !${maHeal.Find[swHealCureCrew].Value}) {
-			/if (!${Group.Member[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}) /continue
-		}
-
-
-
+		| /if (${_map.Equal[maCure]} && ${maHeal.Find[swHealCureGroup].Value} && !${maHeal.Find[swHealCureCrew].Value}) {
+		| 	/if (!${Group.Member[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}) /continue
+		| }
 
 		| were going to use the dannet default all group to get names from. can be whatever you like tho
 		/varset _toon ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
@@ -855,7 +918,7 @@ sub set_observers(bool _debug, string _map, string _action)
 				/continue
 			}
 
-			| DEBUG ${sep}map(key,value)${sep}${_map}(\a-w${_miso.Key},${_miso.Value}\ax)
+			DEBUG ${sep}map(key,value)${sep}${_map}(\a-w${_miso.Key},${_miso.Value}\ax)
 
 			| define or delete the variables as we need
 			/if (${_action.Equal[drop]}) {
@@ -887,10 +950,13 @@ sub set_observers(bool _debug, string _map, string _action)
 		| set an end time for our test for that characer
 		/varset _timeend ${MacroQuest.Running}
 		| give us some response so we know that something is happening
-		/invoke ${out[17, "Observed(${If[${_action.Equal[add]},\agadd\ax,\ardrop\ax]})${sep}${_map}${sep}\aw${_toon}\ax${sep}\a-w${Math.Calc[((${_timeend}-${_timestart}) / 10) / 60]}s\ax"]}
+		/if (!${_silent}) {
+			/invoke ${out[17, "Observed(${If[${_action.Equal[add]},\agadd\ax,\ardrop\ax]})${sep}${_map}${sep}\aw${_toon}\ax${sep}\a-w${Math.Calc[((${_timeend}-${_timestart}) / 10) / 60]}s\ax"]}
+		}
 
-	| moving to the next toon in the dannet all default channel
-	/next _count
+		| moving to the next toon in the dannet all default channel
+		/varcalc _count ${_count}+1
+	}
 
 /return
 
@@ -1035,7 +1101,7 @@ sub check_for_rezbox(bool _debug)
 
 		DEBUG  ${sep}_stRezWindowPct ${_stRezWindowPct}
 
-		/declare _swVali=dRezFound bool local FALSE
+		/declare _swValidRezFound bool local FALSE
 
 		| we do not accept any 0% rezes
 		/if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["(0 percent)"]}]}) {
@@ -1043,7 +1109,7 @@ sub check_for_rezbox(bool _debug)
 			/varset _swValidRezFound FALSE
 
 		| take our own rez..
-		} else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["${Me.DisplayName"]}]}) {
+		} else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["${Me.DisplayName}"]}]}) {
 			/varset _swValidRezFound TRUE
 
 		| we take call to corpse as well
@@ -1237,7 +1303,11 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 
 	/declare _castLoop int local ${maEntropy.Find[stCastLoop].Value}
-	/invoke ${maData.Add[stCastReturn,FALSE]}
+	| /invoke ${maData.Add[stCastReturn,FALSE]}
+
+	/if (!${Defined[_castTime]}) {
+		/declare _castTime int local 0
+	}
 
 	| alt abilities
 	/if (${_type.Equal[ALT]}) {
@@ -1280,8 +1350,43 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			}
 
 			/alt act ${Me.AltAbility[${_verbage}].ID}
+			/delay 1s ${Me.Casting.ID}
+
+				| set delays for casting. GTFO out of this as fast as possible
+				| /delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
+				/varset _castTime ${Math.Calc[${Spell[${_verbage}].MyCastTime}+50]}
+				DEBUG ${sep}_castTime${sep}\a-w${_castTime}\ax
+
+				/invoke ${set_timer[${_debug}, _castTime, ${_castTime}]}
+
+				/while (${_castTime} > 0) {
+					/if (${_tmpID} != 0 && ${_sub.NotEqual[skiptargetcheck]}) {
+						/if (${Spawn[id ${_tmpID}].Dead}) {
+							DEBUG ${sep}spell.target dead.break
+							/stopcast
+							/return FALSE
+						}
+					}
+
+					/if (!${Me.Casting.ID}) {
+						/break
+					}
+					/delay 3
+
+				}
+
+				| delay for longer casts if there is any, cooldowns or open spell cast windows
+				DEBUG ${sep}altloop.casting,window,cooldown
+				/while (${Me.Casting.ID} || ${Window[CastingWindow].Open} || ${Me.SpellInCooldown}) {
+					/if (!${Me.Casting.ID}) /break
+					/delay 3
+				}
 
 
+
+
+
+			|**
 			/if (${Spell[${_verbage}].MyCastTime}) {
 				DEBUG ${sep}alt cast delay loop start
 				/delay 1s ${Me.Casting.ID}
@@ -1290,6 +1395,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 					/delay 3
 				}
 			}
+			**|
 
 			/doevents
 			DEBUG ${sep}cast return${sep}\ay${maData.Find[stCastReturn].Value}\ax
@@ -1313,13 +1419,10 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 				/break
 			}
 
-
-
 			/if (${Select[${maData.Find[stCastReturn].Value},NOTREADY]}) {
 				/varcalc _castLoop ${_castLoop}-1
 				/delay 2
 			}
-
 
 		}
 		/return TRUE
@@ -1454,11 +1557,6 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		/if (${Spawn[npc ${_tmpID}].Dead} && ${_sub.NotEqual[skiptargetcheck]}) {
 			/return FALSE
 		}
-
-		/if (!${Defined[_castTime]}) {
-			/declare _castTime int local 0
-		}
-
 
 		| is the spell memed
 		/if (${Me.Gem[${_verbage}]}) {
@@ -4658,14 +4756,17 @@ sub set_control_heal_point(bool _debug, int _verbage, string _verbage2)
 	FLOW set_control_heal_point
 
 	| non healers (self only)
-	/if (!${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
-		/if (${set_control_num_range[${_debug}, stHealPoint${Me.Class.ShortName}, "${_verbage}", 1, 99]}) {
-			/invoke ${out[12, "/heal point ${dot} ${num}${_verbage}\ax"]}
-		}
-		/return
+	| /if (!${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
+	| 	/if (${set_control_num_range[${_debug}, stHealPoint${Me.Class.ShortName}, "${_verbage}", 1, 99]}) {
+	| 		/invoke ${out[12, "/heal point ${dot} ${num}${_verbage}\ax"]}
+	| 	}
+	| 	/return
 
 	| Healer Classes
-	} else /if (${lsClassHeal.Contains[${Me.Class.ShortName}]} && ${Bool[${_verbage}]}) {
+	| } else /if (${lsClassHeal.Contains[${Me.Class.ShortName}]} && ${Bool[${_verbage}]}) {
+
+
+	/if (${Bool[${_verbage}]}) {
 
 		/declare _target string local FALSE
 		/if (${lsClassAll.Contains[${_verbage2.Upper}]}) {
@@ -10171,27 +10272,32 @@ sub check_heal_routines()
 	}
 
 	| heal: self
-	/if (${lsClassHealSelf.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealSelf].Value}) {
+	/if (${maHeal.Find[swHealSelf].Value}) {
 		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
 	}
 
+	| heal: DanNet
+	/if (${maHeal.Find[swHealDanNet].Value}) {
+		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[dannet].Value} DanNet
+	}
+
 	| heal: ch (CLERIC ONLY)
-	/if (${Select[${Me.Class.ShortName}]} && ${maHeal.Find[stPctCH].Value} && ${Group.Members}) {
+	/if (${Select[${Me.Class.ShortName},CLR]} && ${maHeal.Find[stPctCH].Value} && ${Group.Members}) {
 		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[group].Value} ch
 	}
 
 	| heal: group
-	/if (${lsClassHealGroup.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
+	/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
 		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[group].Value} Group
 	}
 
 	| heal: extended target lists
-	/if (${lsClassHealXT.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealXTarget].Value}) {
+	/if (${maHeal.Find[swHealXTarget].Value}) {
 		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[xt].Value} XTarget
 	}
 
 	| heal: pets
-	/if (${lsClassHealPet.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealPet].Value}) {
+	/if (${maHeal.Find[swHealPet].Value}) {
 		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[pet].Value} Pet
 	}
 
@@ -10211,7 +10317,7 @@ sub check_heal_routines()
  * note: checks/corrects a/the a target
  * note: returns FALSE if a target is dead or does not exist, returns TRUE otherwise
  * use: /call target [assist|isdead|clear|set] [TARGETID]
- * use: ${target[assist|isdead|clear|set, [TARGETID]]}
+ * use: ${target[assist|isdead|clear|set, TARGETID]}
  ***|
 sub target(string _type, int _tmpID)
 	FLOW target ${_type}|${_tmpID}
@@ -10229,7 +10335,7 @@ sub target(string _type, int _tmpID)
 	}
 
 
-	| check assist (XTarget[1] vs. _tmpID
+	| check assist XTarget[1] vs. _tmpID
 	/if (!PULL && AUTO) {
 		/if (${Select[${_type},assist]}) {
 			/if (${Me.XTarget[1].ID} != ${_tmpID}) {
@@ -12868,7 +12974,7 @@ sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _sp
  * use:	/call	control_base_edit	[WHATTOCHECK]	[rowcount] yadah yadah
  ***|
 sub	control_base_edit(bool _debug, string	_chk,	int	_loopnum,	string _type,	string _verbage, string	_verbage2, string	_add_delete)
-	SDEBUG\atcontrol_base_edit\ax(\a-w${_chk}, ${_loopnum}, ${_type}, ${_verbage}, ${_verbage2},	${_add_delete}\ax)
+	DEBUG\atcontrol_base_edit\ax(\a-w${_chk}, ${_loopnum}, ${_type}, ${_verbage}, ${_verbage2},	${_add_delete}\ax)
 	/declare _count	int	local	0
 
 	| list control contents
@@ -13035,3 +13141,6 @@ sub cast_cooldown_wait(bool _debug)
 	}
 
 /return TRUE
+
+
+

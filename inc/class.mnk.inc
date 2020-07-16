@@ -232,8 +232,6 @@ sub check_heal_MNK(bool _debug, string _type)
 	CHECKREZ
 	CHECKFADE
 
-	SETHUD "heal ${_type}"
-
 	| mend training
 	/if (${maChr.Find[swTrainMelee].Value}) {
 		/if (${Me.Skill[Mend]} < ${Me.SkillCap[Mend]} && ${Me.AbilityReady[Mend]}) {
@@ -241,15 +239,38 @@ sub check_heal_MNK(bool _debug, string _type)
 		}
 	}
 
-	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
-	/if (${is_ready[${_debug}, "${maChr.Find[stDeath].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stDeath].Value}" 0 FALSE
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+
+	| if no one is hurt. back to the start
+	/if (!${hurtCount}) {
+		SETHUD EMPTY
+		/return TRUE
 	}
 
-	/if (${Me.AbilityReady[Mend]}) {
-		/doability Mend
-		/return
+	/if (!SAFEZONE) {
+
+		| group healing
+		/if (${Select[${_type},group]} && ${hurtCount}) {
+
+			| group heal
+			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+				/call cast_cycle_heal ${_debug} 0 group
+ 			}
+		}
+
+		/if (${Select[${_type},self]} && ${hurtCount}) {
+			/if (${Me.AbilityReady[Mend]}) {
+				/doability Mend
+				/return
+			}
+		}
 	}
+
+  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+ 		/return FALSE
+ 	}
+
+	GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
 
 	/call cast_cycle_heal ${_debug} ${hurtID} single
 

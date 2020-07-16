@@ -360,25 +360,48 @@ sub check_heal_WAR(bool _debug, string _type)
 	DEBUG \atcheck_heal_WAR\ax(\a-w${_type}\ax)
 	FLOW check_heal_WAR ${_type}
 
-	ISMEDEAD
-	CHECKTIE
-	CHECKEXIT
-	CHECKREZ
-
-	SETHUD "heal ${_type}"
-
- 	/if (!${get_hurt[FALSE, Self]} || ${Me.PctHPs} >= ${maHeal.Find[stHealPointWAR].Value}*.PCTHO) {
-		SETHUD EMPTY
- 		/return FALSE
- 	}
-
 	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 		/call cast_shield_flash FALSE disc
 	}
 
+	CHECKTIE
+	ISMEDEAD
+	CHECKEXIT
+	CHECKREZ
+	CHECKFADE
+
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+
+	| if no one is hurt. back to the start
+	/if (!${hurtCount}) {
+		SETHUD EMPTY
+		/return TRUE
+	}
+
+	/if (!SAFEZONE) {
+
+		| group healing
+		/if (${Select[${_type},group]} && ${hurtCount}) {
+
+			| group heal
+			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+				/call cast_cycle_heal ${_debug} 0 group
+ 			}
+		}
+
+	}
+
+  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+ 		/return FALSE
+ 	}
+
+	GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
+
 	/call cast_cycle_heal ${_debug} ${hurtID} single
 
-/return
+	SETHUD EMPTY
+
+/return TRUE
 
 
 

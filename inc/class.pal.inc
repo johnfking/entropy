@@ -23,9 +23,6 @@ sub set_PAL(bool _debug)
 	/call set_data ${_debug} maData stEpic2															map outer "Nightbane, Sword of the Valiant"
 	/call set_data ${_debug} maData stFade															map outer "Balefire Burst"
 
-	| Rampage Tank
-	/call set_data_map ${_debug} maHeal stRampageTank										FALSE													"${auxna} sets a rampage tank name for healing exclusion" heal
-
 	| attraction AA used for pulling / agro
 	/call set_data_map ${_debug} maChr swAttraction											FALSE													"${auxsw} use the attraction aa to help with agro/pulling"
 
@@ -37,8 +34,6 @@ sub set_PAL(bool _debug)
 
 	| heals
 	/call set_data_map ${_debug} maHeal stCountSplash										0															"${auxnum} number mobs in range to use a splash heal" heal
-
-	/call set_data_map ${_debug} maHeal stCountHealGroup								0															"${auxnum} number in group hurt to use a group heal" 			heal
 
 	| temp combat buffs
  	/call set_data_map ${_debug} maChr stStance 												PREGEN|1											"${auxna} name of the self stance buff"

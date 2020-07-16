@@ -251,38 +251,49 @@ sub check_heal_RNG(bool _debug, string _type)
 	CHECKREZ
 	CHECKFADE
 
-	SETHUD "heal ${_type}"
-
-	/call get_hurt FALSE ${_type}
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
 		SETHUD EMPTY
-		/return	FALSE
+		/return TRUE
 	}
 
-	| ToT heals
-	/if (${Select[${_type},tot]} && ${maHeal.Find[swHealToT].Value}) {
-		/if (${hurtCount})  {
-			/call cast_cycle_heal ${_debug} ${hurtID} tot
-			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
+	/if (!SAFEZONE) {
+
+		| group healing
+		/if (${Select[${_type},group]} && ${hurtCount}) {
+
+			| group heal
+			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+				/call cast_cycle_heal ${_debug} 0 group
+ 			}
+		}
+
+		| ToT heals
+		/if (${Select[${_type},tot]} && ${hurtCount}) {
+			/if (${hurtCount})  {
+				/call cast_cycle_heal ${_debug} ${hurtID} tot
+				/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
+			}
+		}
+
+
+		/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+
+		| Reflexive Healing Disc
+		/if (${hurtCount} && ${Select[${_type},self,group,tot]}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stDiscHeal].Value}"]} && !${Me.Song[Bladespur Reflection].ID}) {
+				/call voodoo ${_debug} "${maChr.Find[stDiscHeal].Value}" TARGET FALSE
+			}
 		}
 	}
 
+  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+ 		/return FALSE
+ 	}
 
-	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
-
-	| Reflexive Healing Disc
-	/if (${hurtCount} && ${Select[${_type},self,group,tot]}) {
-		/if (${is_ready[${_debug}, "${maChr.Find[stDiscHeal].Value}"]} && !${Me.Song[Bladespur Reflection].ID}) {
-			/call voodoo ${_debug} "${maChr.Find[stDiscHeal].Value}" TARGET FALSE
-		}
-	}
-
-
-	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
-	CHECKREZ
-	CHECKFADE
+	GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
 
 	/call cast_cycle_heal ${_debug} ${hurtID} single
 

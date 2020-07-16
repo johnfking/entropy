@@ -164,45 +164,62 @@ sub check_heal_SHD(bool _debug, string _type)
 	DEBUG \atcheck_heal_${Me.Class.ShortName}\ax(\a-w${_type}\ax)
 	FLOW check_heal_SHD ${_type}
 
+
+
 	CHECKTIE
 	ISMEDEAD
 	CHECKEXIT
 	CHECKREZ
 	CHECKFADE
-	GETINPUT check_heal_SHD NA|NA
 
-	SETHUD "heal ${_type}"
-
-	| tap 'dat ass..
-	/if (${maHeal.Find[swHealSelf].Value}) {
-
-		/if (${is_ready[${_debug}, "${maChr.Find[stRancor].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
-			/call voodoo ${_debug} "${maChr.Find[stRancor].Value}" TARGET FALSE
-		}
-
-		/if (${is_ready[${_debug}, "${maChr.Find[stAALeechTouch].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
-			/call voodoo ${_debug} "${maChr.Find[stAALeechTouch].Value}" TARGET FALSE
-		}
-
-		/if (${SpawnCount[npc OVERLOS radius SAFEENV*2 targetable]} >= ${maChr.Find[stCountDefensive].Value}) {
-			/if (${is_ready[${_debug}, "${maChr.Find[stLeechcurs].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
-				/call voodoo ${_debug} "${maChr.Find[stLeechcurse].Value}" 0 FALSE
-			}
-		}
-		/if (${is_ready[${_debug}, "${maChr.Find[stAAViciousBiteofChaos].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stAAViciousBiteofChaos].Value}" TARGET FALSE
-		}
-	}
-
-	/call get_hurt FALSE ${_type}
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
 		SETHUD EMPTY
-		/return	FALSE
+		/return TRUE
 	}
 
-	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+	/if (!SAFEZONE) {
+
+		| group healing
+		/if (${Select[${_type},group]} && ${hurtCount}) {
+
+			| group heal
+			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+				/call cast_cycle_heal ${_debug} 0 group
+ 			}
+		}
+
+		/if (${Select[${_type},self]} && ${hurtCount}) {
+
+			/if (${is_ready[${_debug}, "${maChr.Find[stRancor].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
+				/call voodoo ${_debug} "${maChr.Find[stRancor].Value}" TARGET FALSE
+			}
+
+			/if (${is_ready[${_debug}, "${maChr.Find[stAALeechTouch].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
+				/call voodoo ${_debug} "${maChr.Find[stAALeechTouch].Value}" TARGET FALSE
+			}
+
+			/if (${SpawnCount[npc OVERLOS radius SAFEENV*2 targetable]} >= ${maChr.Find[stCountDefensive].Value}) {
+				/if (${is_ready[${_debug}, "${maChr.Find[stLeechcurs].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
+					/call voodoo ${_debug} "${maChr.Find[stLeechcurse].Value}" 0 FALSE
+				}
+			}
+
+			/if (${is_ready[${_debug}, "${maChr.Find[stAAViciousBiteofChaos].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAAViciousBiteofChaos].Value}" TARGET FALSE
+			}
+		}
+
+
+	}
+
+  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+ 		/return FALSE
+ 	}
+
+	GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
 
 	/call cast_cycle_heal ${_debug} ${hurtID} single
 

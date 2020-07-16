@@ -332,63 +332,74 @@ sub check_heal_BST(bool _debug, string _type)
 	DEBUG \atcheck_heal_BST\ax(\a-w${_type}\ax)
 	FLOW check_heal_BST ${_type}
 
+
+
+
 	CHECKTIE
 	ISMEDEAD
-	CHECKEXIT check_heal_BST
+	CHECKEXIT
 	CHECKREZ
 	CHECKFADE
 
-	SETHUD "heal ${_type}"
-
- 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
- 		/return FALSE
- 	}
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
 		SETHUD EMPTY
-		/return
+		/return TRUE
 	}
 
-	| ToT heals
-	/if (${Select[${_type},tot]} && ${maHeal.Find[swHealToT].Value}) {
-		/if (${hurtCount} >= 1)  {
-			/call cast_cycle_heal ${_debug} ${Target.ID} tot
-			/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
+	/if (!SAFEZONE) {
+
+		| group healing
+		/if (${Select[${_type},group]} && ${hurtCount}) {
+
+			| group heal
+			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+				/call cast_cycle_heal ${_debug} 0 group
+ 			}
 		}
-	}
 
-	| PET HEALING
-	/if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value}) {
-		/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-			/if (${is_ready[${_debug}, "Mend Companion"]}) {
-				/call voodoo ${_debug} "Mend Companion" ${Pet.ID} FALSE
+		| ToT heals
+		/if (${Select[${_type},tot]} && ${hurtCount}) {
+			/if (${hurtCount} >= 1)  {
+				/call cast_cycle_heal ${_debug} ${Target.ID} tot
+				/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 			}
 		}
 
-		/call cast_cycle_heal ${_debug} ${Pet.ID} minion
-	}
+		| PET HEALING
+		/if (${Select[${_type},pet]} && ${hurtCount}) {
+			/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+				/if (${is_ready[${_debug}, "Mend Companion"]}) {
+					/call voodoo ${_debug} "Mend Companion" ${Pet.ID} FALSE
+				}
+			}
 
-	| self healing
-	/if (${Select[${_type},self]} && ${maHeal.Find[swHealSelf].Value}) {
-	 	/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-	 		/if (${is_ready[${_debug}, "Warder's Gift", ${hurtID}]}) {
-	 			/call voodoo ${_debug} "Warder's Gift" 0 FALSE
-	 		}
+			/call cast_cycle_heal ${_debug} ${Pet.ID} minion
+		}
+
+		| self healing
+		/if (${Select[${_type},self]} && ${hurtCount}) {
+		 	/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+		 		/if (${is_ready[${_debug}, "Warder's Gift", ${hurtID}]}) {
+		 			/call voodoo ${_debug} "Warder's Gift" 0 FALSE
+		 		}
+			}
 		}
 	}
 
- 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
-	| heal anything spell
-	/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-		/call cast_cycle_heal ${_debug} ${hurtID} single
-	}
+
+	GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
+
+	/call cast_cycle_heal ${_debug} ${hurtID} single
 
 	SETHUD EMPTY
 
-/return FALSE
+/return TRUE
 
 
 

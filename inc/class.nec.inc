@@ -136,42 +136,50 @@ sub check_heal_NEC(bool _debug, string _type)
 	CHECKREZ
 	CHECKFADE
 
-	SETHUD "heal ${_type.Lower}"
-
- 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
- 		/return FALSE
- 	}
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
 		SETHUD EMPTY
-		/return	FALSE
+		/return TRUE
 	}
 
-	/if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value}) {
-		/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-			/call cast_list ${_debug} lsHealPetMend ${Pet.ID}
+	/if (!SAFEZONE) {
+
+		| group healing
+		/if (${Select[${_type},group]} && ${hurtCount}) {
+
+			| group heal
+			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+				/call cast_cycle_heal ${_debug} 0 group
+ 			}
 		}
 
-		/if (${is_ready[${_debug}, "Mend Companion"]}) {
-			/call voodoo ${_debug} "Mend Companion" ${Pet.ID} FALSE
+		/if (${Select[${_type},self]} && ${hurtCount}) {
+
+			| aa Dying grasp
+			/if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.PCTHO) {
+				/if (${is_ready[${_debug}, "Dying Grasp"]}) {
+					/call voodoo ${_debug} "Dying Grasp" ${_type} FALSE
+				}
+			}
+
 		}
 
+		/if (${Select[${_type},pet]} && ${hurtCount}) {
+			/if (${is_ready[${_debug}, "Mend Companion"]}) {
+				/call voodoo ${_debug} "Mend Companion" ${Pet.ID} FALSE
+			}
+		}
 	}
 
- 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
 
-	| heal anything spell
-	/call cast_cycle_heal ${_debug} ${hurtID} single
+	GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
 
-	| aa Dying grasp
-	/if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.PCTHO) {
-		/if (${is_ready[${_debug}, "Dying Grasp"]}) {
-			/call voodoo ${_debug} "Dying Grasp" ${_type} FALSE
-		}
-	}
+	/call cast_cycle_heal ${_debug} ${hurtID} single
 
 	SETHUD EMPTY
 

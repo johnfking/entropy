@@ -168,38 +168,54 @@ sub check_heal_MAG(bool _debug, string _type)
 	DEBUG \atcheck_heal_MAG\ax(\a-w${_type}\ax)
 	FLOW check_heal_MAG ${_type}
 
+
+
+
+
 	CHECKTIE
 	ISMEDEAD
 	CHECKEXIT
 	CHECKREZ
 	CHECKFADE
 
-	SETHUD "heal ${_type}"
-
- 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
- 		/return FALSE
- 	}
+	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
 	| if no one is hurt. back to the start
 	/if (!${hurtCount}) {
 		SETHUD EMPTY
-		/return
+		/return TRUE
 	}
 
-	/if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value}) {
-		/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-			/if (${is_ready[${_debug}, "Mend Companion"]}) {
-				/call voodoo ${_debug} "Mend Companion" ${Pet.ID} FALSE
-			}
+	/if (!SAFEZONE) {
+
+		| group healing
+		/if (${Select[${_type},group]} && ${hurtCount}) {
+
+			| group heal
+			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+				/call cast_cycle_heal ${_debug} 0 group
+ 			}
 		}
 
-		/call cast_cycle_heal ${_debug} ${Pet.ID} minion
+		/if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value}) {
+			/if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+				/if (${is_ready[${_debug}, "Mend Companion"]}) {
+					/call voodoo ${_debug} "Mend Companion" ${Pet.ID} FALSE
+				}
+			}
+
+			/call cast_cycle_heal ${_debug} ${Pet.ID} minion
+		}
+
+
 	}
 
- 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
-	| heal anything spell
+
+	GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
+
 	/call cast_cycle_heal ${_debug} ${hurtID} single
 
 	SETHUD EMPTY

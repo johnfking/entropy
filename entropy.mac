@@ -112,7 +112,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	/call set_debug FALSE
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 200712.02
+	/call set_data FALSE maEnv build													map outer 200716.01
 	/call set_data FALSE maEnv schema													map outer 1.04
 	/call set_data FALSE maEnv repo														map outer 200706.01
 
@@ -221,9 +221,21 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 
 		/if (AUTO) {
 
-			| check curing observers
-			/if (!${timer_Check_Observers} && (${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value})) {
-				/call set_observers ${maDebug.Find[cure].Value} maCure add
+			| check observers
+			/if (!${timer_Check_Observers} ) {
+
+				/call set_observers ${maDebug.Find[chrwatch].Value} maChrWatch add TRUE
+
+				| curing observers
+				/if (${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value}) {
+					/call set_observers ${maDebug.Find[cure].Value} maCure add
+				}
+
+				| healing observers
+				| /if (${maHeal.Find[swHealDanNet].Value}) {
+				| 	/call set_observers ${maDebug.Find[dannet].Value} maHealDanNet add
+				| }
+
 			}
 
 			/if (!${timer_Check_Target}) {
@@ -293,7 +305,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 
 						| hardstop check
 						/if (!${timer_Check_Pull_Hardstop}) {
-							/call pull_hardstop ${_debug}
+							/call pull_hardstop ${maDebug.Find[pull].Value}
 						}
 
 						/if (${maCC.Find[stPullMode].Value.Equal[base]}) {

@@ -40,14 +40,7 @@ sub set_SHM(bool _debug)
  	/call set_data_map ${_debug} maChr stDichotomic											PREGEN|1											"${auxna} dichotomic spell"
  	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
 
-
   /call set_data_map ${_debug} maHeal swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas" 						heal
-
-	| count heal over time single
-	/call set_data_map ${_debug} maHeal swHealOverTime									FALSE													"${auxsw} enable to use heal over time" 									heal
-
-
-	/call set_data_map ${_debug} maHeal stCountHealGroup									0														"${auxnum} number in group hurt to use a group heal" 			heal
 
 	| temp buff: growth family
   /call set_data_list ${_debug} maChr lsGrowthToon	 									EMPTY													"${auxli} list of toons to use ward temp hp growth on"
@@ -523,8 +516,8 @@ sub cast_alliance_SHM(bool _debug)
 
 	/if (!${is_ready[${_debug}, "${maChr.Find[stAlliance].Value}"]}) /return FALSE
 
-	/declare _name string local ${get_assist_info[${_debug}, name}
-	/declare _tmpID int local ${get_assist_info[${_debug}, id}
+	/declare _name string local ${get_assist_info[${_debug}, name]}
+	/declare _tmpID int local ${get_assist_info[${_debug}, id]}
 
 	/invoke ${set_target[${_name}]}
 

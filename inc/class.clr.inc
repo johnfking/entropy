@@ -44,9 +44,7 @@ sub set_CLR(bool _debug)
 	/call set_data_map ${_debug} maChr stCountIssuance									0															"${auxnum} number of mobs in area to use issuance"
 
 	| count heal over time single
-	/call set_data_map ${_debug} maHeal swHealOverTime									FALSE													"${auxsw} enable to use heal over time" heal
 
-	/call set_data_map ${_debug} maHeal stCountHealGroup								0															"${auxnum} number in group hurt to use a group heal" heal
 
 	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
 	/call set_data ${_debug} maData stAllianceSPA												map outer "481"
@@ -63,9 +61,6 @@ sub set_CLR(bool _debug)
 
 	| divine rez
 	/call set_data_map ${_debug} maRez swDivineCleric										FALSE													"${auxsw} divine rez other clerics"
-
-	| Rampage Tank
-	/call set_data_map ${_debug} maHeal stRampageTank										FALSE													"${auxna} rampage tank to not heal (\a-wcompletely ignore\ax)" heal
 
 	| arbitration
 	/call set_data_map ${_debug} maChr stCountArbitrate									0															"${auxnum} num of group hurt to use arbitration "

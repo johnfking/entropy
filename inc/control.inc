@@ -1369,6 +1369,9 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
 	} else /if (${_type.Equal[break]}) {
 		/invoke ${set_switch_env[${_debug}, swBreakHealPCT, TRUE, ${_verbage}]}
 
+	| heal with dannet
+	} else /if (${_type.Equal[dannet]}) {
+		/invoke ${set_switch_env[${_debug}, swHealDanNet, TRUE, ${_verbage}]}
 
 	| set single hot
 	} else /if (${_type.Equal[hot]}) {
@@ -1393,7 +1396,10 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
 		/invoke ${maControl.Add[tot,swHealToT]}
 	}
 
+
+
   /invoke ${maControl.Add[break,swBreakHealPCT]}
+  /invoke ${maControl.Add[dannet,swHealDanNet]}
   /invoke ${maControl.Add[grouphot,swHealGroupOverTime]}
 	/invoke ${maControl.Add[group,swHealGroup]}
 	/invoke ${maControl.Add[groupcount,stCountHealGroup]}
@@ -1842,7 +1848,7 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
 
 
 	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
-		/call control_base_edit ${maDebug.Find[edit].Value} Buff 50 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+		/call control_base_edit ${maDebug.Find[edit].Value} Buff 50 "${_type}" "${_verbage}" "${_verbage2}" "${_add_delete}"
 		/return TRUE
 	}
 
@@ -3176,8 +3182,8 @@ sub Bind_command_enter(string _type, bool _debug)
  ***|
 #bind command_invis /invis
 sub Bind_command_invis(bool _debug)
-	/dgexecute /AA_invis
-	/call Bind_command_invis_cast
+	/dgexecute ${maComm.Find[stEntropyGroup_all].Value} /AA_invis FALSE
+	/call Bind_command_invis_cast FALSE
 /return TRUE
 
 |***
@@ -3190,30 +3196,30 @@ sub Bind_command_invis_cast(bool _debug)
 	| fucking bards
 	/if (${Me.AltAbilityReady[Shauri's Sonorous Clouding]} && ${Select[${Me.Class.ShortName},BRD]}) {
 		/call pulse_stop
-		/call voodoo FALSE "Shauri's Sonorous Clouding" 0 FALSE
+		/call voodoo ${_debug} "Shauri's Sonorous Clouding" 0 FALSE
 		/return TRUE
 
 	| Invis vs Normies  casters
 	} else /if (${Me.AltAbilityReady[Group Perfected Invisibility]} && ${Select[${Me.Class.ShortName},WIZ,MAG,ENC]}) {
-		/call voodoo FALSE "Group Perfected Invisibility" 0 FALSE
+		/call voodoo ${_debug} "Group Perfected Invisibility" 0 FALSE
 		/return TRUE
 
 	| Invis Vs undead casters
 	} else /if (${Me.AltAbilityReady[Group Perfected Invisibility to Undead]} && ${Select[${Me.Class.ShortName},CLR,SHD,NEC,PAL]}) {
 		/delay 3
-		/call voodoo FALSE "Group Perfected Invisibility to Undead" 0 FALSE
+		/call voodoo ${_debug} "Group Perfected Invisibility to Undead" 0 FALSE
 		/return TRUE
 
 	| shaman
 	} else /if (${Me.AltAbilityReady[Group Silent Presence]} && ${Select[${Me.Class.ShortName},SHM]}) {
 		/delay 5
-		/call voodoo FALSE "Group Silent Presence" ${Me.ID} FALSE
+		/call voodoo ${_debug} "Group Silent Presence" ${Me.ID} FALSE
 		/return TRUE
 
 	| rangers and druids
 	}	else /if (${Me.AltAbilityReady[Shared Camouflage]} && ${Select[${Me.Class.ShortName},RNG,DRU]}) {
 		/delay 15
-		/call voodoo FALSE "Shared Camouflage" 0 FALSE
+		/call voodoo ${_debug} "Shared Camouflage" 0 FALSE
 		/return
 	}
 

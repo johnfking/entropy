@@ -29,7 +29,7 @@ sub	set_debug(string _verbage)
 	| buff
 	/invoke	${lsDebugbuff.Append[cb,ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp,bocked,buffgroup,buffraid]}
 	| heal
-	/invoke	${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot]}
+	/invoke	${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot,dannet]}
 	| move
 	/invoke	${lsDebugmove.Append[face,tie,zone,stick,stop,home]}
 	| debuff
@@ -45,7 +45,7 @@ sub	set_debug(string _verbage)
 	| combat
 	/invoke	${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait]}
 	| other
-	/invoke	${lsDebugother.Append[rest,rez,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity]}
+	/invoke	${lsDebugother.Append[rest,rez,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch]}
 	| admin
 	/invoke	${lsDebugadmin.Append[build,observe,house,flow,exit,sql,edit,e3]}
 	| schema (database creation/modification)
@@ -117,34 +117,19 @@ sub	set_initialize(bool	_debug)
 	/call	set_data ${_debug} FALSE DNQReturn2	string outer FALSE
 
 
-	| map iterator dump	variable
-	| /declare mi	mapiterator	outer
-
 	| list iterator dump variable
 	/declare li	listiterator outer
-
-	| control	list dump	variable
-	| /declare cli listiterator outer
 
 	| control	map	dumps
 	/declare maControl map outer
 	/declare maChrControl	map	outer
 	/declare cmi mapiterator outer
 
-	| set	iterator dump	variable
-	| /declare si	setiterator	outer
-
 	| hook map
 	/declare maHook	map	outer
 
 	| buff beg map
 	/declare maBuffRequest map outer
-
-	| cure map
-	| /declare maCure map outer
-
-	| mana recover map
-	| /declare maManaRecovery map outer
 
 	| watchspawn map
 	| /declare maWatchspawn	map	outer
@@ -249,7 +234,7 @@ sub	set_initial_environment(bool _debug)
 
 	/declare _count	int	local	0
 
-	|	sin/cos	generation for ranged	movement/adjustment	combat
+	| sin/cos	generation for ranged	movement/adjustment	combat
 	/declare cos[20] float outer
 	/declare sin[20] float outer
 	/for _count	1	to 20
@@ -257,7 +242,7 @@ sub	set_initial_environment(bool _debug)
 		/varcalc sin[${_count}]	${Math.Sin[9 * ${_count}]}
 	/next	_count
 
-	|	yo'	dawg,	i	heard	you	like lists.	so heres a list	of lists for your	lists
+	| yo'	dawg,	i	heard	you	like lists.	so heres a list	of lists for your	lists
 	/call	set_data ${_debug} FALSE lsClassAll																list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
 	/call	set_data ${_debug} FALSE lsClassMercenary													list outer WAR|CLR|WIZ|ROG
 	/call	set_data ${_debug} FALSE lsClassMelee															list outer WAR|ROG|BST|MNK|SHD|PAL|BER|BRD|RNG
@@ -282,13 +267,21 @@ sub	set_initial_environment(bool _debug)
 	/call	set_data ${_debug} FALSE lsRezBuffTriggers												list outer "Revival	Sickness"|"Resurrection	Sickness"
 
 
-	|	things we	ont	want pullers attacking
+	| things we dont want pullers attacking
 	/call	set_data ${_debug} FALSE lsNoAttackBodyType												list outer aura|banner|campfire|corpse|chest|item|trigger|trap|timer|mount|mercenary|object
 	/call	set_data ${_debug} FALSE lsNoTargetNPC														list outer "a	campfire"|"a corpse"|"controller"|"Steel Mass"|"Sphere of	Fire"|"an ant"
 	/call	set_data ${_debug} FALSE lsNoTargetPC															list outer "eye	of"
 	/call	set_data ${_debug} FALSE lsNoTargetMagic													list outer "eye	of"
 	/call	set_data ${_debug} FALSE lsAnimationNoTarget											list outer 16|43|44|146
 	/call	set_data ${_debug} FALSE lsAnimationMezed													list outer 13|49|58
+
+
+
+	| healing observers
+	| /declare maHealDanNet map outer
+	| /invoke ${maHealDanNet.Add[pcthps,PctHPs]}
+	| /invoke ${maHealDanNet.Add[tlo,Me]}
+
 
 	| custom /build	set	variables
 	/call	set_data ${_debug} FALSE lsBuildSet																list outer primary|secondary|range|spellset
@@ -307,7 +300,7 @@ sub	set_initial_environment(bool _debug)
 	/call	set_data ${_debug} FALSE stCount20																string outer "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20"
 	/call	set_data ${_debug} FALSE stCount50																string outer "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50"
 
-	/call	set_data ${_debug} FALSE lsCount6																	list outer "1|2|3|4|5"
+	/call	set_data ${_debug} FALSE lsCount6																	list outer "${stCount6}"
 	/call	set_data ${_debug} FALSE lsCount10																list outer "${stCount10}"
 	/call	set_data ${_debug} FALSE lsCount12																list outer "${stCount12}"
 	/call	set_data ${_debug} FALSE lsCount20																list outer "${stCount20}"
@@ -346,7 +339,7 @@ sub	set_initial_environment(bool _debug)
 	| get	the	stick	timer	started
 	/invoke	${set_timer[${_debug}, timer_check_stick,	1s]}
 
-	|	controls for all classes
+	| controls for all classes
 	/invoke	${maChrControl.Add[ae,stCountAE]}
 	/invoke	${maChrControl.Add[fade,stPctFade]}
 	/invoke	${maChrControl.Add[spire,submenu]}
@@ -942,6 +935,12 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maHeal	swHealPet														FALSE													"${auxsw}	enable pet healing"																									heal
 	/call	set_data_map ${_debug} maHeal	swHealGroup													FALSE													"${auxsw}	enable group healing"																								heal
 
+	/call set_data_map ${_debug} maHeal stRampageTank												FALSE													"${auxna} rampage tank to not heal (\a-wcompletely ignore\ax)" 								heal
+	/call set_data_map ${_debug} maHeal swHealOverTime											FALSE													"${auxsw} enable to use heal over time" 																			heal
+	/call set_data_map ${_debug} maHeal stCountHealGroup										0															"${auxnum} number in group hurt to use a group heal" 													heal
+
+
+
 	/call	set_data_map ${_debug} maHeal	swHealCureSelf											FALSE													"${auxsw}	enable self	curing"																									heal
 	/call	set_data_map ${_debug} maHeal	swHealCureGroup											FALSE													"${auxsw}	enable group curing"																								heal
 	/call	set_data_map ${_debug} maHeal	swHealCureCrew											FALSE													"${auxsw}	enable crew	curing (everyone)"																			heal
@@ -956,6 +955,9 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_list	${_debug}	maHeal lsNoHealToon												EMPTY													"${auxli}	fuck these people..	no heals for them.."														heal
 	/call	set_data_map ${_debug} maHeal	swHealWeighted											FALSE													"${auxsw}	enable weighted	HP check healing"																		heal
 	/call	set_data_map ${_debug} maHeal	swHealPromise												FALSE													"${auxsw}	enable use of	promised heal	spells healing"													heal
+	/call	set_data_map ${_debug} maHeal	swHealDanNet												FALSE													"${auxsw}	enable use of	DanNet for healing"																		heal
+
+
 
 
 	/call	set_data ${_debug} FALSE tmpHealAdjust														float	outer	99.99
@@ -963,9 +965,10 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data ${_debug} FALSE hurtPctHP																int	outer	100
 	/call	set_data ${_debug} FALSE hurtCLS																	string outer ${Me.Class.ShortName}
 	/call	set_data ${_debug} FALSE hurtCount																int	outer	0
+	/call	set_data ${_debug} FALSE hurtDead																	int	outer	0
 
-	| points for healers
-	/if	(${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
+	| points for healing
+	| /if	(${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
 		/call	set_data_map ${_debug} maHeal	stHealPointHoT										80														"${auxnum} % of	health to	use	single heal	over time"													heal
 		/declare _lishp	listiterator local
 		/vardata _lishp	lsClassAll.First
@@ -973,12 +976,11 @@ sub	set_initialize_map_character_environment(bool	_debug)
 			/call	set_data_map ${_debug} maHeal	stHealPoint${_lishp.Value}			80														"${auxnum} % of	health to	start	healing:\a-w${_lishp.Value}\ax"								heal
 			/invoke	${_lishp.Advance}
 		}
-	/call	set_data_list	${_debug}	maHeal lsProtectOutsideGroup							EMPTY													"${auxli}	names	outside	of your	group	to add to	xtarget	for	healing" heal
 
-	|	points for everyone	else
-	}	else /if (!${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
-		/call	set_data_map ${_debug} maHeal	stHealPoint${Me.Class.ShortName}	60														"${auxnum} % of	health to	start	healing:\a-w${Me.Class.ShortName}\ax"	heal
-	}
+	| points for everyone	else
+	| }	else /if (!${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
+	| 	/call	set_data_map ${_debug} maHeal	stHealPoint${Me.Class.ShortName}	60														"${auxnum} % of	health to	start	healing:\a-w${Me.Class.ShortName}\ax"	heal
+	| }
 
 	/if	(${lsClassCastCure.Contains[${Me.Class.ShortName}]}) {
 		/call	set_data_map ${_debug} maHeal	stCureCurse												FALSE													"${auxna}	name of	cure curse spell"												heal
@@ -987,6 +989,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 		/call	set_data_map ${_debug} maHeal	stCureCorruption									FALSE													"${auxna}	name of	corruption cure	spell"									heal
 	}
 
+	/call	set_data_list	${_debug}	maHeal lsProtectOutsideGroup							EMPTY													"${auxli}	names	outside	of your	group	to add to	xtarget	for	healing" heal
 	/call	set_data_list	${_debug}	maHeal lsLineHeal													EMPTY													"${auxli}	alternate	cast order for heals"									heal
 
 	|	xtarget	sets heal	classes
@@ -1599,6 +1602,7 @@ sub	set_initialize_static_map(bool _debug)
 	/invoke ${maStaticMaps.Add[maManaRecovery,mana_recovery]}
 	/invoke ${maStaticMaps.Add[maExpansion,env_xpac]}
 	/invoke ${maStaticMaps.Add[maCure,cure]}
+	/invoke ${maStaticMaps.Add[maChrWatch,chrwatch]}
 
 	| leave this out. only for design
 	| /invoke ${maStaticMaps.Add[maSPA,eq_spa]}

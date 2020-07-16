@@ -26,6 +26,39 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
+
+
+200716.01
+- corrected a debug from the mac start option changes for the hard stop checks
+- corrected an error in rezing always taking your own rezes
+- shaman
+  corrected assist info for alliances
+- removed a castresult reset from the start of voodoo(). i'm not convinced this is the aa spam
+  problem, but its a start
+- healing changes
+  restrictions: removed them. if you want to be a wizard and heal xtarget people.. why the hell not
+  you do you.
+  /heal point - all clases now have access to all class points
+** new healing mode
+  /heal dannet
+  will heal all your toons that are in the entropyall dannet group
+  does not exclude your toons that you may have in xtarget or group
+
+- ${hurtDead} can now be pulled from group/dannet healing. int return
+  healing routine variables - https://entropy.exspes.com/wiki/index.php/Healing#Routine_Variables
+- / commands will take "names of spells" a bit more reliably
+
+- tags
+
+  i've added a few dannet variables for tag usage. they are in the form of toonname_TLO, like so
+  fred_CombatState - Freds combat state. returns string
+  mike_PctHPs - Mikes current Hit Point percent. returns int
+  bob_PctMana - Bobs current Mana percent. returns int
+  tom_PctEndurance - Toms current Endurance percent. returns int
+  * NOTE, the character name has to be lowercase.
+  I can open more on request
+
+
 200712.02
 - /heal break
   will watch the intended targets health. if it happens to hit the healpoint you have set for that class
@@ -35,7 +68,6 @@ epics with commas in their names are currently not functioning
   corrected a bad variable from all the tag changes
 - redesign of mac start options
   https://entropy.exspes.com/wiki/index.php/Install#options
-
 
 
 200712.01
