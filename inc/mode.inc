@@ -336,13 +336,16 @@ sub mode_petfarm(bool _debug)
 	GETINPUT
 
 	/if (AUTO) {
-		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[minion].Value} FALSE
-		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) /call check_heal_${Me.Class.ShortName} ${maDebug.Find[minion].Value} Pet
+		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) {
+			/call check_minion_cycle ${maDebug.Find[minion].Value} FALSE
+		}
+		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) {
+			/call check_heal_${Me.Class.ShortName} ${maDebug.Find[minion].Value} Pet
+		}
 	}
 
-	SETHUD "mode scorch"
 	| find a mob
-	/call pull_mob_find ${_debug}
+	/call pull_mob_find ${_debug} 0 tagpets
 	DEBUG pull_mob_find.return${sep}\a-w${Macro.Return}\ax
 
 	/if (!TARGET) {

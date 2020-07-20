@@ -1094,6 +1094,27 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 		/varset _debug TRUE
 	}
 
+	/if (${_type.Equal[see]}) {
+		/echo
+		OUT ${num}${Zone.Name}\ax${sep}\a-w${Zone.ShortName}\ax
+		/invoke ${out[12, "${dot}swZoneSafe${sep}\a-wSAFEZONE\ax"]}
+		/declare _liwtf listiterator local
+	  /declare _liseez listiterator local
+		/vardata _liseez lsZoneProperty.First.Clone
+		/while (!${_liseez.IsEnd}) {
+			OUT ${dot}${_liseez.Value}
+				/vardata _liwtf ${_liseez}.First.Clone
+				/while (!${_liwtf.IsEnd}) {
+					/invoke ${out[12, "${dot}${dot}${dot}${dot}\a-w${_liwtf.Value}\ax"]}
+					/invoke ${_liwtf.Advance}
+				}
+			/invoke ${_liseez.Advance}
+		}
+		/invoke ${out[18, 0, 33]}
+		/return TRUE
+	}
+
+
 	| get the zone data
 	| /sqlite query ${maData.Find[DBzone].Value} curZoneData SELECT * FROM zone WHERE ShortName="${Zone.ShortName.Lower}"
 	| /if (!${sql_check[${_debug}, curZoneData, Bind_control_area, SELECT]}) /endmacro
@@ -1152,27 +1173,27 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 	/if (${_type.Equal[safe]}) {
 		/if (${maEnv.Find[swZoneSafe].Value} || ${_verbage.Equal[FALSE]}) {
 			/sqlite query ${maData.Find[DBzone].Value} QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' and element='swZoneSafe'
-			/if (!${sql_check[${_debug}, QZone, Bind_control_area, UPDATE]}) /endmacro
+			/if (!${sql_check[${_debug}, QZone, Bind_control_area, "UPDATE (zone_control)"]}) /endmacro
 			/invoke ${maEnv.Add[swZoneSafe,FALSE]}
 
 		} else /if (!${maEnv.Find[swZoneSafe].Value} || ${_verbage.Equal[TRUE]}) {
 			/sqlite query ${maData.Find[DBzone].Value} QZone UPDATE zone_control SET value='TRUE' WHERE zone_shortname='${Zone.ShortName}' and element='swZoneSafe'
-			/if (!${sql_check[${_debug}, QZone, Bind_control_area, UPDATE]}) /endmacro
+			/if (!${sql_check[${_debug}, QZone, Bind_control_area, "UPDATE (zone_control)"]}) /endmacro
 			/invoke ${maEnv.Add[swZoneSafe,TRUE]}
 		}
 
 	| remove a mob from the current zone
 	} else /if (${_type.Equal[delete]}) {
 		/sqlite query ${maData.Find[DBzone].Value} QZone DELETE FROM zone_control WHERE zone_shortname='${Zone.ShortName}' and value='${Target.DisplayName}'
-		/if (!${sql_check[${_debug}, QZone, Bind_control_area, "DELETE FROM"]}) /endmacro
+		/if (!${sql_check[${_debug}, QZone, Bind_control_area, "DELETE FROM (zone_control)"]}) /endmacro
 		/invoke ${out[12, "/area delete ${dot} ${num}${Zone.ShortName}\ax${sep}\a-w${Target.DisplayName}"]}
 
 	| remaining list adjustments
 	} else /if (${Select[${_type},exclude,named,ranged,hunt,nomez,nocast,nomelee,nomagic,nodisease,nofire,nopoision,nocold,nocorruption]} && ${Target.ID}) {
 		/if (!${${_element}.Contains[${Target.DisplayName}]}) {
 			| Add a property to a mob
-			/sqlite query ${maData.Find[DBzone].Value} QZone INSERT INTO zone_control VALUES ("${Zone.ShortName}", "${_element}", "${Target.DisplayName}")
-			/if (!${sql_check[${_debug}, QZone, Bind_control_area, "INSERT INTO"]}) /endmacro
+			/sqlite query ${maData.Find[DBzone].Value} QZone INSERT OR IGNORE INTO zone_control VALUES ("${Zone.ShortName}", "${_element}", "${Target.DisplayName}")
+			/if (!${sql_check[${_debug}, QZone, Bind_control_area, "INSERT INTO (zone_control)"]}) /endmacro
 			/invoke ${out[12, "/area ${_type} ${dot} ${num}${_element}\ax${sep}\a-w${Target.DisplayName}\ax"]}
 		} else /if (${${_element}.Contains[${Target.DisplayName}]}) {
 			/invoke ${out[0, "${Target.DisplayName} already exists in${sep}\a-w${_element}\ax"]}
@@ -1833,6 +1854,104 @@ sub Bind_deez(string _type, string _verbage)
 		/delay 30s !${Me.Moving}
 		/call check_facing ${maDebug.Find[face].Value} ${Target.ID} FORCE
 	}
+
+
+
+	| Mock testing of the weighted system for whos hurt
+	/if (${_type.Equal[hurttest]}) {
+
+		/declare lsNames list local
+		/invoke ${lsNames.Append[James,Mary,John,Patricia,Robert,Jennifer,Michael,Linda,William,Elizabeth,David,Barbara]}
+		/invoke ${lsNames.Append[Richard,Susan,Edward,Heather,Aaron,Virginia,Larry,Anna,Ethan,Olivia,Christian,Hannah]}
+		/invoke ${lsNames.Append[Gerald,Megan,Terry,Jacqueline,Lawrence,Alice,Joe,Gloria]}
+
+
+		| random classes
+		/declare _cls string local
+
+		| random distance range (how far away)
+		/declare _range int local
+
+		| random health hurt % 0(dead) - 100(full health)
+		/declare _hurtPCT float local
+
+		| running count of the dead
+		/declare _hurtDead int local 0
+
+		| running count of the hurt
+		/declare _hurtCount int local 0
+
+		| rotating worst of
+		/declare _hurtCLS string local
+		/declare _hurtName string local
+		/declare _hurtWeight float local 99.01
+		/declare _tmpWeight float local 99.02
+
+		/declare _lina listiterator local
+		/vardata _lina lsNames.First.Clone
+
+		/while (!${_lina.IsEnd}) {
+
+			/varset _cls ${lsClassAll.Item[${Math.Rand[0,15]}]}
+			/varset _hurtPCT ${Math.Rand[0,100]}
+			/varset _range ${Math.Rand[1,300]}
+
+			 /if (${_hurtPCT} == 0) {
+			 	/varcalc _hurtDead ${_hurtDead}+1
+			 }
+
+			| if dead, move on or if out of range
+			/if (!${_hurtPCT} || ${_range} > 201) {
+				OUT ${_lina.Value}(\a-r${_cls}\ax) ${dot} ${If[${_hurtPCT} == 0,\ardead\ax,\a-g${_hurtPCT}\ax]} ${If[${_range} > 201,${dot} \a-oOOR\ax,]}
+				/invoke ${_lina.Advance}
+				/continue
+			}
+
+
+			| not hurt?
+			/if (${_hurtPCT} > ${maHeal.Find[stHealPoint${_cls}].Value}) {
+				/invoke ${_lina.Advance}
+				/continue
+			} else {
+				/varcalc _hurtCount ${_hurtCount} + 1
+			}
+
+			| /echo ${_lina.Value}[(\a-r${_cls}\ax${dot}\a-p${maHeal.Find[stHealPoint${_cls}].Value}\ax) -- {Math.Calc[(${_hurtPCT} - .${maHeal.Find[stHealPoint${_cls}].Value}) / ${maHeal.Find[stHealPoint${_cls}].Value}]}
+			/varset _tmpWeight ${Float[${Math.Calc[(${_hurtPCT} - .${maHeal.Find[stHealPoint${_cls}].Value}) / ${maHeal.Find[stHealPoint${_cls}].Value}]}].Precision[5]}
+
+			/if (${Float[${_tmpWeight}].Precision[5]} < ${Float[${_hurtWeight}].Precision[5]}) {
+				/varset _hurtWeight ${Float[${_tmpWeight}].Precision[5]}
+				/varset _hurtCLS ${_cls}
+				/varset _hurtName ${_lina.Value}
+			}
+
+			OUT ${_lina.Value}(\a-r${_cls}\ax${dot}\a-p${maHeal.Find[stHealPoint${_cls}].Value}\ax) ${dot} \a-g${Math.Calc[${_hurtPCT} - .${maHeal.Find[stHealPoint${_cls}].Value}]}\ax ${dot} ${Float[${_tmpWeight}].Precision[5]}
+
+			/invoke ${_lina.Advance}
+		}
+
+		/invoke ${out[18, 0, 33]}
+		OUT ${_hurtName}${sep}${_hurtCLS}${sep}${Float[${_hurtWeight}].Precision[5]}
+		/invoke ${out[18, 0, 33]}
+		/echo
+		/return
+
+
+
+
+
+
+
+
+
+
+	}
+
+
+${Float[5.123456789].Precision[5]}
+
+
+
 
 /return TRUE
 
@@ -3196,30 +3315,30 @@ sub Bind_command_invis_cast(bool _debug)
 	| fucking bards
 	/if (${Me.AltAbilityReady[Shauri's Sonorous Clouding]} && ${Select[${Me.Class.ShortName},BRD]}) {
 		/call pulse_stop
-		/call voodoo ${_debug} "Shauri's Sonorous Clouding" 0 FALSE
+		/call voodoo ${_debug} "Shauri's Sonorous Clouding" 0 ignoreall
 		/return TRUE
 
 	| Invis vs Normies  casters
 	} else /if (${Me.AltAbilityReady[Group Perfected Invisibility]} && ${Select[${Me.Class.ShortName},WIZ,MAG,ENC]}) {
-		/call voodoo ${_debug} "Group Perfected Invisibility" 0 FALSE
+		/call voodoo ${_debug} "Group Perfected Invisibility" 0 ignoreall
 		/return TRUE
 
 	| Invis Vs undead casters
 	} else /if (${Me.AltAbilityReady[Group Perfected Invisibility to Undead]} && ${Select[${Me.Class.ShortName},CLR,SHD,NEC,PAL]}) {
 		/delay 3
-		/call voodoo ${_debug} "Group Perfected Invisibility to Undead" 0 FALSE
+		/call voodoo ${_debug} "Group Perfected Invisibility to Undead" 0 ignoreall
 		/return TRUE
 
 	| shaman
 	} else /if (${Me.AltAbilityReady[Group Silent Presence]} && ${Select[${Me.Class.ShortName},SHM]}) {
 		/delay 5
-		/call voodoo ${_debug} "Group Silent Presence" ${Me.ID} FALSE
+		/call voodoo ${_debug} "Group Silent Presence" ${Me.ID} ignoreall
 		/return TRUE
 
 	| rangers and druids
 	}	else /if (${Me.AltAbilityReady[Shared Camouflage]} && ${Select[${Me.Class.ShortName},RNG,DRU]}) {
-		/delay 15
-		/call voodoo ${_debug} "Shared Camouflage" 0 FALSE
+		/delay 5
+		/call voodoo ${_debug} "Shared Camouflage" 0 ignoreall
 		/return
 	}
 

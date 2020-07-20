@@ -190,14 +190,12 @@ sub check_heal_DRU(bool _debug, string _type)
 
 	SETHUD "heal ${_type}"
 
-	/call get_hurt FALSE ${_type}
+	/call get_hurt ${_debug} ${_type}
 
 	/if (!${hurtCount}) {
 		SETHUD EMPTY
 		/return
 	}
-
-	CHECKEXIT
 
 	/if (!SAFEZONE) {
 
@@ -216,8 +214,6 @@ sub check_heal_DRU(bool _debug, string _type)
 	}
 
 	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
-
-	GETINPUT
 
   | Group Heal
   /if (${Select[${_type},group]} && ${maHeal.Find[stCountHealGroup].Value}) {
@@ -254,9 +250,16 @@ sub check_heal_DRU(bool _debug, string _type)
 	  }
 	}
 
- 	/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+ 	/if (!${get_hurt[${_debug}, ${_type}]}) {
  		/return FALSE
  	}
+
+	CHECKTIE
+	ISMEDEAD
+	CHECKEXIT
+	CHECKREZ
+	CHECKFADE
+	GETINPUT dru_heal_end type|${_type}
 
 	/call cast_cycle_heal ${_debug} ${hurtID} single
 

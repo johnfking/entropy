@@ -27,6 +27,31 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+200720.01
+** BARD BREAKING UPDATE ** (i loved typing that...)
+- /area see
+  shows all the name settings for the current zone
+- healing::dannet
+  will account for missing spawns
+- weighted healing
+	shouldn't try imploding the universe anymore with division by 0
+	.. this is a completely different approach. so, will have to see how it goes for a bit
+- /invis
+  round three of: Dear god quit chain casting invis...
+- safezones
+  corrected an issue were the safezone DB field wasnt being generated on entering a new missions
+- tags
+  song::pulseooc - marker for songs to play while out of combat
+  song::pulseincombat - marker for songs to play while in combat
+  song::pulserest - marker for songs to play while resting (or just use OOC??)
+- bard
+  needs tags for the types of songs to play.. read up!!
+- mode
+  petfarm - corrected the hud notice so it reads correctly.. copy paste fail..
+- druid
+  updated the healing debugs
+- burn checks are now checked on entrance to all melee routines, nuke, dot, heal
+
 
 200716.01
 - corrected a debug from the mac start option changes for the hard stop checks
@@ -43,13 +68,10 @@ epics with commas in their names are currently not functioning
   /heal dannet
   will heal all your toons that are in the entropyall dannet group
   does not exclude your toons that you may have in xtarget or group
-
 - ${hurtDead} can now be pulled from group/dannet healing. int return
   healing routine variables - https://entropy.exspes.com/wiki/index.php/Healing#Routine_Variables
 - / commands will take "names of spells" a bit more reliably
-
 - tags
-
   i've added a few dannet variables for tag usage. they are in the form of toonname_TLO, like so
   fred_CombatState - Freds combat state. returns string
   mike_PctHPs - Mikes current Hit Point percent. returns int

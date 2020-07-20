@@ -921,7 +921,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	|	tribute	switch
 	/call	set_data_map ${_debug} maEnv swCheckTribute												FALSE													"${auxsw}	check	and	corect tribute for raids"
 
-	|	drop buffs list
+	| drop buffs list
 	/invoke	${set_data_timer[${_debug},	Check_Drop_Buffs,	6s]}
 	/call	set_data_list	${_debug}	maEnv	lsDropBuffs													EMPTY													"${auxli}	list of	buffs	to auto	drop"
 
@@ -2404,7 +2404,7 @@ sub	sql_schema_shared(bool _debug)
 			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (tag)"]}) /endmacro
 			/call	data_schema_tag
 
-			/sqlite	query	${maData.Find[DBshared].Value} build CREATE	TABLE	IF NOT EXISTS	tag_group(id INTEGER PRIMARY KEY,	grouping TEXT, UNIQUE	(grouping));
+			/sqlite	query	${maData.Find[DBshared].Value} build  CREATE TABLE IF NOT EXISTS tag_group(id INTEGER PRIMARY KEY, grouping TEXT, UNIQUE (grouping));
 			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (tag_group)"]}) /endmacro
 			/call	data_schema_tag_group
 
@@ -2554,6 +2554,9 @@ sub	data_schema_tag()
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('67', 'outofwater',	'1');
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('1000', 'twincast',	'1');
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('1001', 'totem',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('1003', 'pulseincombat',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('1004', 'pulserest',	'1');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('1005', 'pulseooc',	'1');
 
 	| /sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR REPLACE INTO tag(id, name, created_by) VALUES('1001', 'myassist', '1');
 
@@ -2722,6 +2725,9 @@ sub	data_schema_tag_validation
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'40',	'1', '${Parse[0,!${Group.Members}]}',	'cannot	be in	a	group');
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'41',	'1', 'ACTION::dropdisc', 'drops	any	running	active discs');
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'42',	'1', 'ACTION::dropinvis',	'drops invis and sos');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'1005',	'1', 'CONTROL::MARKER',	'marker for songs to pulse out of combat');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'1003',	'1', 'CONTROL::MARKER',	'marker for songs to pulse while in combat');
+	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('5',	'1004',	'1', 'CONTROL::MARKER',	'marker for songs to pulse while resting');
 
 	| defense
 	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux)	VALUES('6',	'18',	'1', '${Parse[0,!${Select[${Me.CombatState},combat]} &&	!${SpawnCount[npc	radius ${maEnv.Find[stEnvSafeRadius].Value}	playerstate	4]}]}',	'cannot	be in	combat');

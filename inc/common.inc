@@ -481,8 +481,8 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
 	/varset hurtCLS ${Me.Class.ShortName}
 	/varset hurtCount 0
 	/varset hurtDead 0
-	/declare _hurtWeight float local 98
-	/declare _tmpWeight float local 99
+	/declare _hurtWeight float local 99.01
+	/declare _tmpWeight float local 99.02
 
 	| we just take defaults of no one hurt and exit.
 	/if (${_type.Equal[reset]}) {
@@ -516,10 +516,10 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
 			}
 
 			/if (${maHeal.Find[swHealWeighted].Value}) {
-				/varset _tmpWeight ${Math.Calc[(${Group.Member[${_count}].PctHPs} / ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}) - .${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}]}
+				/varset _tmpWeight ${Float[${Math.Calc[(${Group.Member[${_count}].PctHPs} - .${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}) / ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}].Value}]}].Precision[5]}
 				DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}_tmpWeight${sep}\a-w${_tmpWeight}\ax
-				/if (${_tmpWeight} < ${_hurtWeight}) {
-					/varset _hurtWeight ${_tmpWeight}
+				/if (${Float[${_tmpWeight}].Precision[5]} < ${Float[${_hurtWeight}].Precision[5]}) {
+					/varset _hurtWeight ${Float[${_tmpWeight}].Precision[5]}
 					/varset hurtPctHP ${Group.Member[${_count}].PctHPs}
 					/varset hurtID ${Group.Member[${_count}].ID}
 					/varset hurtCLS ${Group.Member[${_count}].Class.ShortName}
@@ -546,10 +546,10 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
 			/if (${lsNoHealToon.Contains[${Me.XTarget[${_count}].DisplayName}]}) /continue
 	  	/if (!${Me.XTarget[${_count}].Type.Equal[PC]} && !${lsProtectOutsideGroup.Contains[${Me.XTarget[${_count}].DisplayName}]}) /continue
 			/if (${Me.XTarget[${_count}].PctHPs} > ${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}*.PCTHO) /continue
-			/varset _tmpWeight ${Math.Calc[(${Me.XTarget[${_count}].PctHPs} / ${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}) - .${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}]}
+			/varset _tmpWeight ${Float[${Math.Calc[(${Me.XTarget[${_count}].PctHPs} - .${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}) / ${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}].Value}]}].Precision[5]}
 
-			/if (${_tmpWeight} < ${_hurtWeight}) {
-				/varset _hurtWeight ${_tmpWeight}
+			/if (${Float[${_tmpWeight}].Precision[5]} < ${Float[${_hurtWeight}].Precision[5]}) {
+				/varset _hurtWeight ${Float[${_tmpWeight}].Precision[5]}
 				/varset hurtID ${Me.XTarget[${_count}].ID}
 				/varset hurtPctHP ${Me.XTarget[${_count}].PctHPs}
 				/varset hurtCLS ${Me.XTarget[${_count}].Class.ShortName}
@@ -669,18 +669,21 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
 				/varcalc hurtDead ${hurtDead} + 1
 				/continue
 			}
+			/if (!${Spawn[pc ${_toonName}].ID}) /continue
+
 			/if (${Spawn[pc ${_toonName}].DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}) /continue
 
 			| group hurt running count
-			/if (${Spawn[pc ${_toonName}].PctHPs} <= ${maHeal.Find[stHealPoint${Spawn[pc pc ${_toonName}].Class.ShortName}].Value}*.PCTHO) {
+			/if (${Spawn[pc ${_toonName}].PctHPs} <= ${maHeal.Find[stHealPoint${Spawn[pc ${_toonName}].Class.ShortName}].Value}*.PCTHO) {
 				/varcalc hurtCount ${hurtCount} + 1
 			}
 
 			/if (${maHeal.Find[swHealWeighted].Value}) {
-				/varset _tmpWeight ${Math.Calc[(${Spawn[pc ${_toonName}].PctHPs} / ${maHeal.Find[stHealPoint${Spawn[pc ${_toonName}].Class.ShortName}].Value}) - .${maHeal.Find[stHealPoint${Spawn[pc ${_toonName}].Class.ShortName}].Value}]}
+				DEBUG ${sep}_count${sep}\a-w${_toonName}\ax${sep}\a-o(${Spawn[pc ${_toonName}].PctHPs} / ${maHeal.Find[stHealPoint${Spawn[pc ${_toonName}].Class.ShortName}].Value}) - .${maHeal.Find[stHealPoint${Spawn[pc ${_toonName}].Class.ShortName}].Value}\ax
+				/varset _tmpWeight ${Float[${Math.Calc[(${Spawn[pc ${_toonName}].PctHPs} / ${maHeal.Find[stHealPoint${Spawn[pc ${_toonName}].Class.ShortName}].Value}) - .${maHeal.Find[stHealPoint${Spawn[pc ${_toonName}].Class.ShortName}].Value}]}].Precision[5]}
 				DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}_tmpWeight${sep}\a-w${_tmpWeight}\ax
-				/if (${_tmpWeight} < ${_hurtWeight}) {
-					/varset _hurtWeight ${_tmpWeight}
+				/if (${Float[${_tmpWeight}].Precision[5]} < ${Float[${_hurtWeight}].Precision[5]}) {
+					/varset _hurtWeight ${Float[${_tmpWeight}].Precision[5]}
 					/varset hurtPctHP ${Spawn[pc ${_toonName}].PctHPs}
 					/varset hurtID ${Spawn[pc ${_toonName}].ID}
 					/varset hurtCLS ${Spawn[pc ${_toonName}].Class.ShortName}
@@ -1233,7 +1236,8 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 	}
 
 	| generic validations
-	/if (${Me.Invis}) {
+	/if (${Me.Invis} && ${_sub.NotEqual[ignoreall]}) {
+		/echo here
 		/return FALSE
 	}
 	/if (${swIsMeDead}) {
@@ -1321,10 +1325,10 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		| 	/if (!${Spell[${AltAbility[${_verbage}].Spell.ID}].Stacks}) /return FALSE
 		| }
 
-		/if (${Me.Buff[${_verbage}].ID}) {
+		/if (${Me.Buff[${_verbage}].ID} && ${_sub.NotEqual[ignoreall]}) {
 			/return FALSE
 		}
-		/if (${Me.Song[${_verbage}].ID}) {
+		/if (${Me.Song[${_verbage}].ID} && ${_sub.NotEqual[ignoreall]}) {
 			/return FALSE
 		}
 
@@ -1382,22 +1386,12 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 					/delay 3
 				}
 
-
-
-
-
-			|**
-			/if (${Spell[${_verbage}].MyCastTime}) {
-				DEBUG ${sep}alt cast delay loop start
-				/delay 1s ${Me.Casting.ID}
-				/delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
-				/while (${Me.Casting.ID}) {
-					/delay 3
-				}
-			}
-			**|
-
 			/doevents
+
+			/if (${_sub.Equal[ignoreall]}) {
+				/return TRUE
+			}
+
 			DEBUG ${sep}cast return${sep}\ay${maData.Find[stCastReturn].Value}\ax
 
 			| /echo maData.Find[stCastReturn].Value == ${maData.Find[stCastReturn].Value}
@@ -1570,7 +1564,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 			/while (${_castLoop} > 0) {
 
-				/if (${Me.Invis}) {
+				/if (${Me.Invis} && ${_sub.NotEqual[ignoreall]}) {
 					DEBUG ${sep}spell.cr:DISTRACTED(invis).break
 					/varset _castLoop 0
 					/invoke ${maData.Add[stCastReturn,DISTRACTED]}
@@ -1623,6 +1617,10 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 				/doevents
 				DEBUG ${sep}cast return${sep}\ay${maData.Find[stCastReturn].Value}\ax
+
+				/if (${_sub.Equal[ignoreall]}) {
+					/return TRUE
+				}
 
 				| notready/ cant cast
 				/if (${Select[${maData.Find[stCastReturn].Value},DISTRACTED,NOTREADY,CANNOTSEE,OUTOFMANA]}) {
@@ -1799,6 +1797,11 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			/while (${Window[CastingWindow].Open}) {
 				/delay 3
 			}
+
+			/if (${_sub.Equal[ignoreall]}) {
+				/return TRUE
+			}
+
 			GETINPUT voodoo_pulse NA|NA
 			/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,RESISTED,IMMUNE]}) {
 				/varset _castLoop 0
@@ -2746,6 +2749,8 @@ sub set_combat_control(bool _debug, int _tmpID)
 		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	}
 
+	/invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
+
 	| set the max range so we dont have to keep calculating it over and over
 	| /declare _maxrange float local ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
 
@@ -3563,7 +3568,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
  * note: Finds and sets stAssTarID
  * use: /call pull_mob_find DEBUG [# to force SpawnCount increment]
  ***|
-sub pull_mob_find(bool _debug, int _spCount)
+sub pull_mob_find(bool _debug, int _spCount, string _tag)
 	DEBUG \atpull_mob_find\ax(\a-w${_spCount}\ax)
 	FLOW pull_mob_find ${_spCount}
 
@@ -3620,8 +3625,6 @@ sub pull_mob_find(bool _debug, int _spCount)
 		| search local ENV range in steps of 10 for mob acquisition
 		DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
 
-
-
 		/if (${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}) {
 
 			/for _count 1 to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}
@@ -3629,7 +3632,7 @@ sub pull_mob_find(bool _debug, int _spCount)
 				ISMEDEAD
 
 				/varset _tmpID ${NearestSpawn[${If[${_spCount},${Math.Calc[${_count}+${_spCount}]},${_count}]}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value}].ID}
-				DEBUG ${sep}_tmpID${sep}\a-w${_tmpID}\ax
+				DEBUG ${sep}_tmpID${sep}\a-w${_tmpID}\ax navlength${sep}\a-w${Navigation.PathLength[id ${_tmpID}]}\ax
 
 				| excluded mobs
 				/if (${lsZoneExclude.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
@@ -3678,7 +3681,9 @@ sub pull_mob_find(bool _debug, int _spCount)
 					}
 				}
 
-				/if (${_tmpID} == ${Me.Pet.ID}) /continue
+				/if (${_tmpID} == ${Me.Pet.ID}) {
+					/continue
+				}
 
 				| CYA for shit MQ will pick up in the environment that does not have a name
 				/if (${Spawn[ID ${_tmpID}].DisplayName.Length} < 1) {
@@ -3717,7 +3722,7 @@ sub pull_mob_find(bool _debug, int _spCount)
 				}
 
 				| added because MQ sucks ass for getting accurate HP values returned over a mouse dick in length.
-				/if (${Spawn[ID ${_tmpID}].PctHPs} > 100 && ${_tmpAgroRange} > 200) {
+				/if (${Spawn[id ${_tmpID}].PctHPs} > 100 && ${_tmpAgroRange} > 200) {
 					/varset _tmpHPAdj 100
 				} else {
 					/varset _tmpHPAdj ${Spawn[id ${_tmpID}].PctHPs}
@@ -3766,7 +3771,10 @@ sub set_spell_to(bool _debug, bool _echo, string _spellname, string _spellgem, b
 	DEBUG \atset_spell_to\ax(\a-w${_echo}, ${_spellname}, ${_spellgem}, ${_wait}\ax)
 	FLOW set_spell_to
 
- 	/if (${Me.Gem[${_spellname}]}) /return TRUE
+ 	/if (${Me.Gem[${_spellname}]}) {
+ 		/return TRUE
+ 	}
+
 	ISMEDEAD
 	GETINPUT set_spell_to NA|NA
 
@@ -3810,7 +3818,9 @@ sub set_spell_to(bool _debug, bool _echo, string _spellname, string _spellgem, b
 		/delay 5
 		/delay 6s ${Me.Gem[${_gem}].Name.Equal[${_spellname}]}
 
-		/if (${Me.Gem[${_gem}].Name.Equal[${_spellname}]}) /varset _ready TRUE
+		/if (${Me.Gem[${_gem}].Name.Equal[${_spellname}]}) {
+			/varset _ready TRUE
+		}
 	}
 
 	| wait for spell to be ready
@@ -3855,21 +3865,16 @@ sub check_exit(bool _debug, string _call)
 	FLOW check_exit::${_call}
 
 	| invis
-	/if (${Me.Invis} && !${Select[${Me.Class.ShortName},ROG]}) {
-		/return TRUE
-	}
+	/if (${Me.Invis} && !${Select[${Me.Class.ShortName},ROG]}) /return TRUE
 
 	| movement
-	/if (${Me.Moving} && !${Select[${Me.Class.ShortName},BRD]}) {
-		/return TRUE
-	}
+	/if (${Me.Moving} && !${Select[${Me.Class.ShortName},BRD]}) /return TRUE
 
 	| charm
 	/if (${Me.SPA[22]}) /return TRUE
 
 	| inhibit: 96=spell 191=skill
 	/if (${Me.SPA[96]} || ${Me.SPA[191]}) /return TRUE
-
 
 	| SELF STATES
 	/if (${Me.Invulnerable.ID}) /return TRUE
@@ -4237,9 +4242,9 @@ sub get_assist_target(bool _debug)
 		}
 
 		| set actual pc target
-		/if (${Spawn[ID ${stAssTarID}].Distance} <= ENV && ${stAssTarID}) {
+		/if (${Spawn[id ${stAssTarID}].Distance} <= ENV && ${stAssTarID}) {
 			/if (MELEE || RANGE || NUKE || DOT) {
-				/if (${Me.XTarget[1].PctHPs} <= ${maCC.Find[stPctEngage].Value}) {
+				/if (${Me.XTarget[1].PctHPs} <= ${maCC.Find[stPctEngage].Value} || ${maOver.Find[swOverPctEngage].Value}) {
 					DEBUG targeting${sep}stAssTarID${sep}${maCC.Find[stPctEngage].Value}
 					/if (${Target.ID} != ${stAssTarID} && !${Spawn[${stAssTarID}].Dead}) {
 						/squelch /target id ${stAssTarID}
@@ -4341,26 +4346,23 @@ sub set_zone_lists(bool _debug)
 
 	| check zone exists
 	/sqlite query ${maData.Find[DBzone].Value} QZone SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}'
-	/if (!${sql_check[${_debug}, QZone, set_zone_lists, SELECT]}) /endmacro
+	/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT count(*)"]}) /endmacro
 	/if (!${sqlite.Rows[QZone]}) {
 		/sqlite query ${maData.Find[DBzone].Value} QZone INSERT INTO zone_control VALUES ('${Zone.ShortName}', 'swZoneSafe', 'FALSE')
-		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "INSERT INTO zone_control"]}) /endmacro
+		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "INSERT INTO (zone_control)"]}) /endmacro
 	}
 
 	| get safe zone
-	/sqlite query ${maData.Find[DBzone].Value} QZone SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}'
-	/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT zone_control"]}) /endmacro
+	/sqlite query ${maData.Find[DBzone].Value} QZone SELECT value FROM zone_control WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
+	/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT (zone_control)"]}) /endmacro
 
-	/if (!${sqlite.Result[QZone 1 data]}) {
+	/if (!${sqlite.Rows[QZone]}) {
 		/sqlite query ${maData.Find[DBzone].Value} QZone INSERT INTO zone_control VALUES ('${Zone.ShortName}', 'swZoneSafe', 'FALSE')
-		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "INSERT INTO swZoneSafe"]}) /endmacro
+		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "INSERT INTO (swZoneSafe)"]}) /endmacro
 		/invoke ${maEnv.Add[swZoneSafe,FALSE]}
 	} else {
-		/sqlite query ${maData.Find[DBzone].Value} QZone SELECT value from zone_control where zone_shortname='${Zone.ShortName}' and element='swZoneSafe'
-		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT zone_shortname"]}) /endmacro
 		/invoke ${maEnv.Add[swZoneSafe,${sqlite.Result[QZone 1 value]}]}
 	}
-
 
 	| load zone properties
   /declare _li listiterator local
@@ -4369,12 +4371,12 @@ sub set_zone_lists(bool _debug)
 		/invoke ${${_li.Value}.Clear}
 
 		/sqlite query ${maData.Find[DBzone].Value} QZone SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}' and element='${_li.Value}'
-		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT ${_li.Value}"]}) /endmacro
+		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT (${_li.Value})"]}) /endmacro
 
 
 		/if (${sqlite.Result[QZone 1 data]} > 0) {
 			/sqlite query ${maData.Find[DBzone].Value} QZone SELECT group_concat(value) as data FROM zone_control WHERE zone_shortname = '${Zone.ShortName}' and element = '${_li.Value}' group by element
-			/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT group"]}) /endmacro
+			/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT (group)"]}) /endmacro
 			/invoke ${${_li.Value}.Append[${sqlite.Result[QZone 1 data]}]}
 		}
 
@@ -4838,7 +4840,7 @@ sub set_control_chr_xtclass(bool _debug, string _verbage)
 
 
 |***
- * note: make sure you have the correct zone INI info loaded
+ * note: make sure you have the correct zone db info loaded
  * use: /call check_zone_id DEBUG [force T/F]
  ***|
 sub check_zone_id(bool _debug, bool _force)
@@ -4855,7 +4857,9 @@ sub check_zone_id(bool _debug, bool _force)
 	/declare _zoned bool local FALSE
 
 	| zone matches. nothing to see here. move on
-	/if (${maEnv.Find[stCurrentZoneID].Value} == ${Zone.ID} && !${_force}) /return TRUE
+	/if (${maEnv.Find[stCurrentZoneID].Value} == ${Zone.ID} && !${_force}) {
+		/return TRUE
+	}
 
 	| zone does not match. wtf..
 	/if (${maEnv.Find[stCurrentZoneID].Value} != ${Zone.ID} || ${_force}) {
@@ -4890,7 +4894,9 @@ sub check_zone_id(bool _debug, bool _force)
 		/if (${maBurn.Find[swBurnForce].Value}) {
 			/invoke ${maBurn.Add[swBurnForce,FALSE]}
 		}
-		/if (HOME) /call Bind_control_home clear FALSE silent ${maDebug.Find[home].Value}
+		/if (HOME) {
+			/call Bind_control_home clear FALSE silent ${maDebug.Find[home].Value}
+		}
 		| /if (!${swModePersistent}) /call switch_clear_mode
 		/if (AUTO && ${maChr.Find[stShrink].Value}) /call check_shrink
 	}
@@ -6552,6 +6558,8 @@ sub do_melee(bool _debug, int _tmpID)
 	/invoke ${target[set, ${_tmpID}]}
 	FLOW do_melee ${_tmpID}
 
+	/invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
+
 	/if (AUTO || ${swModeToken}) {
 		| /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 		/if (!${timer_check_stick}) {
@@ -7442,7 +7450,9 @@ sub cast_temp_pet(bool _debug, int _tmpID, string _tmpSpell)
 		/return FALSE
 	}
 
-	/if (${Target.PctHPs} > ${maMinion.Find[stPctSwarmEngage].Value}) /return FALSE
+	/if (${Target.PctHPs} > ${maMinion.Find[stPctSwarmEngage].Value}) {
+		/return FALSE
+	}
 
 	/if (${is_ready[${_debug}, "${_tmpSpell}"]}) {
 		/call voodoo ${_debug} "${_tmpSpell}" ${_tmpID} FALSE
@@ -10155,7 +10165,7 @@ sub control_mez(bool _debug, int _tmpID)
 					/sqlite query ${maData.Find[DBzone].Value} dummy INSERT INTO zone_control VALUES ("${Zone.ShortName}", "lsZoneNoMez", "${Target.DisplayName}")
 					/if (!${sql_check[${_debug}, dummy, control_mez, "INSERT INTO"]}) /endmacro
 					/invoke ${out[15, 0, 58]}
-					/call set_zone_lists
+					/call set_zone_lists ${maDebug.Find[zone].Value}
 				}
 
 				| were not going to try this target again, clear its current control settings
@@ -10886,6 +10896,8 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
 		/invoke ${lsLineNuke.Append[${stCount20}]}
 	}
 
+	/invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
+
 	/declare _count int local 0
 	/declare _match bool local FALSE
 	/declare _liNuke listiterator local
@@ -11031,6 +11043,8 @@ sub cast_cycle_dot(bool _debug, int _tmpID)
 		/invoke ${lsLineDoT.Append[${stCount20}]}
 	}
 
+	/invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
+
 	/declare _liC20 listiterator local
 	/vardata _liC20 lsLineDoT.First.Clone
 	/while (!${_liC20.IsEnd}) {
@@ -11150,6 +11164,8 @@ sub cast_cycle_agro(bool _debug, int _tmpID)
 		/invoke ${lsLineAgro.Append[${stCount20}]}
 	}
 
+	/invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
+
 	/declare _liC20 listiterator local
 	/vardata _liC20 lsLineAgro.First.Clone
 	/while (!${_liC20.IsEnd}) {
@@ -11219,6 +11235,8 @@ sub cast_cycle_miscdps(bool _debug, int _tmpID)
 		/invoke ${lsLineMiscdps.Clear}
 		/invoke ${lsLineMiscdps.Append[${stCount50}]}
 	}
+
+	/invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
 
 	/declare _flagtmpID bool local FALSE
 	/declare _liC50 listiterator local
@@ -12136,6 +12154,8 @@ sub cast_cycle_heal(bool _debug, int _tmpID, string _tag)
 		/invoke ${lsLineHeal.Append[${stCount50}]}
 	}
 
+	/invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
+
 	/declare _myHeal string local FALSE
 	/declare _liHeal listiterator local
 	/vardata _liHeal lsLineHeal.First.Clone
@@ -12620,19 +12640,23 @@ sub validate_input(bool _debug, string _type, string _verbage)
 sub check_drop_buffs(bool _debug)
 	DEBUG \atcheck_drop_buffs\ax(\a-w\ax)
 
- /invoke ${set_data_timer[${_debug}, Check_Drop_Buffs, RESTART]}
+	/invoke ${set_data_timer[${_debug}, Check_Drop_Buffs, RESTART]}
 
- /if (${lsDropBuffs.Contains[EMPTY]} && ${lsDropBuffs.Count} == 1) /return FALSE
+	/return TRUE
+
+	/if (${lsDropBuffs.Contains[EMPTY]} && ${lsDropBuffs.Count} == 1) {
+		/return FALSE
+	}
 
 	/declare _lidb listiterator local
 	/vardata _lidb lsDropBuffs.First.Clone
 	/while (!${_lidb.IsEnd}) {
 
-		/if (${Me.Buff[${_lidb.Value}].ID} || ${Me.Song[${_lidb.Value}].ID})  {
+		/if (${Me.Buff[="${_lidb.Value}"].ID} || ${Me.Song[="${_lidb.Value}"].ID})  {
 			OUT Drop${sep}${info}${_lidb.Value}\ax
-			/invoke ${Me.Buff[${_lidb.Value}].Remove}
+			/invoke ${Me.Buff[="${_lidb.Value}"].Remove}
 		}
-		/invoke ${_liCL.Advance}
+		/invoke ${_lidb.Advance}
 	}
 
 /return TRUE

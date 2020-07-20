@@ -181,9 +181,6 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 		}
 
 	} else /if (!AGRO) {
-		| /if (${is_ready[${_debug}, "Chameleon Strike"]}) {
-		| 	/call voodoo ${_debug} "Chameleon Strike" ${_tmpID} FALSE
-		| }
 		/if (${is_ready[${_debug}, "Roar of Thunder"]}) {
 			/call voodoo ${_debug} "Roar of Thunder" ${_tmpID} FALSE
 		}
@@ -219,8 +216,8 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 		/return FALSE
 	}
 
-	/if (${Me.Pet.ID}) {
-		/if (${is_ready[${_debug}, "${maChr.Find[stGrowl].Value}"]} && !${Me.Song[${maChr.Find[stGrowl].Value}].ID}) {
+	/if (${Me.Pet.ID} && !${Me.Song[${maChr.Find[stGrowl].Value}].ID}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stGrowl].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stGrowl].Value}" 0 FALSE
 		}
 	}
@@ -439,6 +436,10 @@ sub burn_BST(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "Bestial Alignment"]}) {
 		/call voodoo ${_debug} "Bestial Alignment" 0 FALSE
 	}
+
+| Group ???
+
+
 	/if (${is_ready[${_debug}, "Frenzied Swipes"]}) {
 		/call voodoo ${_debug} "Frenzied Swipes" 0 FALSE
 	}
@@ -498,9 +499,9 @@ sub burn_BST(bool _debug, int _tmpID)
 		/if (${is_ready[${_debug}, "${maChr.Find[stSavage].Value}"]} && !${Me.Song[Bestial Alignment].ID}) {
 			/call voodoo ${_debug} "${maChr.Find[stSavage].Value}" 0 FALSE
 		}
-		| /if (${is_ready[${_debug}, "Group Bestial Alignment"]} && !${Me.Buff[Ferociousness].ID}) {
-		| 	/call voodoo ${_debug} "Group Bestial Alignment" ${Me.ID} FALSE
-		| }
+		/if (${is_ready[${_debug}, "Group Bestial Alignment"]} && !${Me.Buff[Ferociousness].ID}) {
+			/call voodoo ${_debug} "Group Bestial Alignment" 0 FALSE
+		}
 	}
 
 /return TRUE

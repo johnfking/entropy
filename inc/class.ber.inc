@@ -340,7 +340,6 @@ sub burn_BER(bool _debug, int _tmpID)
 		/return FALSE
 	}
 
-
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
