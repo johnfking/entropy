@@ -27,7 +27,7 @@
 #define ISMEDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}"
 #define CHECKDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /return FALSE"
 #define CHECKEXIT "/if (${check_exit[${maDebug.Find[exit].Value}]}) /return"
-#define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maCC.Find[swPull].Value} && !${Me.Invis} && ${maRez.Find[swRezGive].Value}) /call check_for_corpse ${maDebug.Find[rez].Value}"
+#define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maCC.Find[swPull].Value} && !${Me.Invis}) /call check_for_corpse ${maDebug.Find[rez].Value}"
 #define CHECKFADE "/if (${maChr.Find[stPctFade].Value}) /call cast_AA_fade ${maDebug.Find[fade].Value}"
 #define OVERLOS "${If[${maOver.Find[swOverLOS].Value},,los]}"
 #define PS4 "playerstate 4"
@@ -67,6 +67,7 @@
 #define MERCENARY "${maMercenary.Find[swMercenary].Value}"
 #define MQCLEAR "/if (${Bool[${Plugin[MQ2ChatWnd]}]}) /mqclear"
 #define NEXT "${MacroQuest.InternalName.Equal[Next]}"
+
 
 #include exspes\inc\initialize.inc
 #include exspes\inc\common.inc
@@ -111,9 +112,12 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	| build the debugs
 	/call set_debug FALSE
 
+	| clear bad aliases
+	/call delete_conflict_alias FALSE
+
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 200720.01
-	/call set_data FALSE maEnv schema													map outer 1.05
+	/call set_data FALSE maEnv build													map outer 200727.01
+	/call set_data FALSE maEnv schema													map outer 1.06
 	/call set_data FALSE maEnv repo														map outer 200706.01
 
 	| using this as a marker for live vs Next
@@ -209,8 +213,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 		}
 
 		| look for buffs to drop
-		/if (!${timer_Check_Drop_Buffs}) {
-			/call check_drop_buffs FALSE
+		/if (${maBuff.Find[swDropBuffs].Value} && !${timer_Check_Drop_Buffs}) {
+			/call check_drop_buffs ${maDebug.Find[drop].Value}
 		}
 
 
@@ -230,12 +234,6 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 				/if (${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value}) {
 					/call set_observers ${maDebug.Find[cure].Value} maCure add
 				}
-
-				| healing observers
-				| /if (${maHeal.Find[swHealDanNet].Value}) {
-				| 	/call set_observers ${maDebug.Find[dannet].Value} maHealDanNet add
-				| }
-
 			}
 
 			/if (!${timer_Check_Target}) {
@@ -383,6 +381,8 @@ sub prepare_the_end(bool _debug)
 	/call set_data FALSE maData INIset										  						map outer exspes\\data\\sets.ini
 	| shared crew database
 	/call set_data FALSE maData DBshared									  						map outer macros\\exspes\\data\\shared.sqlite
+	| farmroute location ini
+	/call set_data FALSE maData INIfarmroute							  						map outer exspes\\data\\farmroute.ini
 
 
 	| fuck MQ2Melee
@@ -574,6 +574,7 @@ sub check_housekeeping(bool _debug)
 		/invoke ${set_switch_env[${_debug}, swCombatControl, TRUE, FALSE]}
 	}
 
+
 	| more shit to come....
 
 	DEBUG ${sep}housekeeping${sep}\a-wDONE\ax
@@ -581,3 +582,36 @@ sub check_housekeeping(bool _debug)
 /return TRUE
 
 
+
+
+
+
+|***
+ * note: delete any conflicting aliases
+ * use: see the note....
+ ***|
+sub delete_conflict_alias(bool _debug)
+
+	/declare _liAlias list local
+	/invoke ${_liAlias.Append[debug]}
+
+	/declare _lial listiterator local
+	/vardata _lial _liAlias.First.Clone
+	/while (!${_lial.IsEnd}) {
+	 	/squelch /alias /${_lial.Value} delete
+		/invoke ${_lial.Advance}
+	}
+
+
+
+/return
+
+
+
+
+
+${Ini[${MacroQuest.Path}\MacroQuest.ini,Aliases,/wndinfo]}
+
+${MacroQuest.Path}
+
+/wndinfo

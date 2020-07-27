@@ -27,6 +27,63 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+200727.01
+* on todays episode of wtf did he change this time, we show you the changes in /rez
+  and how to play well with the group stealing your named
+
+  https://entropy.exspes.com/wiki/index.php/Rezing
+- all rez data has been moved to the environment_rez table in the character DB.
+  you will need to reset your /rez options.
+- you can now control the priority spawn search strings for rezing. there are 8 available
+  the first 6 match how rezing has always been done. change them at your own peril
+  the remaining 2 are unused, for now
+- all classes now have access to:
+  lsRezIC - list of things to rez incombat with
+  lsRezOOC - list of things to rez with while out of combat
+	if you are not a rezing class, these lists will be EMPTY by default.
+	if you are a rezing class, these lists will be populated with the default rez AAs
+- token rezing has not changed
+- /rez dannet - on/off switch to use dannet rezing or not
+- /rez ic - on/off rez while in active combat
+- /rez ooc - on/off rez while out of combat
+- /rez give - has been removed.
+- /rez other (as in use somethign else to rez with) is no longer a thing.
+  can rez with whatever you want using the ic/ooc lists
+- cleric
+  /chr divinrez has been moved to /rez divine, will only shows up for clerics
+  adjusted focused reuse for Issuance. hopefully wont get stuck in a loop anymore
+
+- HUD has been updated to reflect the latest buff and rez changes
+- i've split off the zradius for pulling
+  /cc pull zrad ##. default is 60.
+- dropping buffs
+  /buff drop - on/off to use enable buff removals
+  lsDropBuffs - add the buffs like any other list
+- mac start will now delete conflicting aliases.. like KA debug.. bitches...
+- druid
+  some corrections on the pregen data
+- PREGEN lists will now accept AAs
+
+- mode petfarm
+  will not take an optiona paramater of a zone shortname
+  in the file (you create it) exspes\data\farmroute.ini
+  example:
+	[kodtaz]
+	stops=18
+	loc1=645.23 -1415.99 -452.27
+	loc1wait=1m
+	loc2=492.14 -1275.01 -432.16
+	loc2wait=1m
+	..
+	loc18=-1117.23 -891.90 -409.53
+	loc18wait=2m
+
+	this will nac to that yxz location. and wait that duration while
+	the pet kills everything there, then move on to hte next.
+
+
+
+
 200720.01
 ** BARD BREAKING UPDATE ** (i loved typing that...)
 - /area see

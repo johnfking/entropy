@@ -60,7 +60,7 @@ sub set_CLR(bool _debug)
 	/call set_data_map ${_debug} maHeal stCountSplash										0															"${auxnum} number mobs in range to use a splash heal" heal
 
 	| divine rez
-	/call set_data_map ${_debug} maRez swDivineCleric										FALSE													"${auxsw} divine rez other clerics"
+	/call set_data_map ${_debug} maRez swDivineCleric										FALSE													"${auxsw} divine rez other clerics" rez
 
 	| arbitration
 	/call set_data_map ${_debug} maChr stCountArbitrate									0															"${auxnum} num of group hurt to use arbitration "
@@ -95,6 +95,7 @@ sub set_CLR(bool _debug)
 	/call set_data_map ${_debug} maHeal stPctCH													0															"${auxnum} complete heal %" heal
 
 	| AAs
+	/call	set_data_map ${_debug} maRez stAADivineResurrection						PREGEN|1											"${auxna}	Divine Resurrection AA"				rez
 	/call set_data_map ${_debug} maChr stAABeaconofLife									PREGEN|1											"${auxna} Beacon of Life aa"
 	/call set_data_map ${_debug} maChr stAAUnity												PREGEN|1											"${auxna} class aa unity buff"
 	/call set_data_map ${_debug} maChr stAADivineArbitration						PREGEN|1											"${auxna} divine arbitration aa"
@@ -113,7 +114,6 @@ sub set_CLR(bool _debug)
 	/call set_data_map ${_debug} maChr stAATurnUndead										PREGEN|1											"${auxna} turn undead aa"
 	/call set_data_map ${_debug} maChr stAACelestialHammer							PREGEN|1											"${auxna} celestial hammer aa"
 	/call set_data_map ${_debug} maChr stAAVeturikasPerseverance				PREGEN|1											"${auxna} Veturika's Perseverance AA"
-
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -274,7 +274,6 @@ sub cast_nut_smasher(bool _debug)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT clr_summon_primary stSummonPrimary|${maChr.Find[stSummonPrimary].Value}
-	CHECKREZ
 
 	/if (!${FindItem[${Spell[${maChr.Find[stSummonPrimary].Value}].Base[1]}].ID}) {
 		/call cast_item_summon FALSE stSummonPrimary
@@ -455,7 +454,6 @@ sub Bind_command_issuance(bool _debug)
 	ISMEDEAD
 	CHECKEXIT
 
-	:castIssuance
 	/if (!${is_ready[${_debug}, "${maChr.Find[stIssuance].Value}"]}) {
 		/return FALSE
 	}
@@ -483,7 +481,6 @@ sub Bind_command_issuance(bool _debug)
 		/if (${is_Ready[${_debug}, "${maChr.Find[stAAForcefulRejuvenation].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stAAForcefulRejuvenation].Value}" 0 FALSE
 			/delay 4s !${Me.Casting.ID}
-			/goto :castIssuance
 		}
 	}
 
@@ -657,9 +654,6 @@ sub prediction_CLR(bool _debug)
 		/call cast_cycle_heal_regen ${_debug} 0 healgrouphot
 	}
 
-
-
-
 /return tRUE
 
 
@@ -767,10 +761,6 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 		/invoke ${maControl.Add[epic,swArbitrateEpic]}
 		/invoke ${set_control_output[${_debug}, maChr, "chr arb", maControl]}
 		/return TRUE
-
-	| use divine rez
-	} else /if (${_type.Equal[divinerez]}) {
-		/invoke ${set_switch_env[${_debug}, swDivineCleric, TRUE, ${_verbage}]}
 
 	| defensive mob agro count
 	} else /if (${_type.Equal[def]}) {

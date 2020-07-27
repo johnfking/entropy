@@ -103,7 +103,7 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
  * use: /mode []
  ***|
 #bind control_mode /mode
-sub Bind_control_mode(string _type, string _verbage, bool _debug)
+sub Bind_control_mode(string _type, string _verbage, string _verbage2, bool _debug)
 	DEBUG \atBind_control_mode\ax(\a-w${_type}\ax)
 
   | output control map
@@ -146,7 +146,13 @@ sub Bind_control_mode(string _type, string _verbage, bool _debug)
 		}
 
 	} else /if (${maMode.Contains[${_type}]}) {
+
 		/invoke ${maMode.Add[${_type},${If[${maMode.Find[${_type}].Value},FALSE,TRUE]}]}
+
+		/if (${_type.Equal[petfarm]} && ${Bool[${_verbage}]}) {
+			/call petfarm_route ${_verbage} ${_verbage2}
+			/return
+		}
 	}
 
   /declare _out string local
@@ -224,7 +230,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 		/return TRUE
 
-	| delete aliases
+	| delete entropy aliases
 	} else /if (${_type.Equal[whitewash]}) {
 
 		/declare _lidel listiterator local
@@ -930,6 +936,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 
 		/delay 2 ${Navigation.Active}
 		/while (${Navigation.Active}) {
+			CHECKDEAD
 			/delay 2
 		}
 		SETHUD EMPTY
@@ -1617,33 +1624,38 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 		/call Bind_command_aux rez ${_verbage}
 		/return TRUE
 
-	| give rez
-	} else /if (${_type.Equal[give]}) {
-		/invoke ${set_switch_env[FALSE, swRezGive, TRUE, ${_verbage}]}
-
 	| take rez
 	} else /if (${_type.Equal[take]}) {
-		/invoke ${set_switch_env[FALSE, swRezTake, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swRezTake, TRUE, ${_verbage}]}
 
 	| rez in combat
-	} else /if (${_type.Equal[combat]}) {
-		/invoke ${set_switch_env[FALSE, swRezCombat, TRUE, ${_verbage}]}
+	} else /if (${_type.Equal[ic]}) {
+		/invoke ${set_switch_env[${_debug}, swRezIC, TRUE, ${_verbage}]}
 
-	| other thing to rez with
-	} else /if (${_type.Equal[other]}) {
-		/call do_raw_edit ${_debug} SILENT stResurrection "${_verbage}"
+	| rez OOC
+	} else /if (${_type.Equal[ooc]}) {
+		/invoke ${set_switch_env[${_debug}, swRezOOC, TRUE, ${_verbage}]}
+
+	| rez everyone
+	} else /if (${_type.Equal[dannet]}) {
+		/invoke ${set_switch_env[${_debug}, swRezDanNet, TRUE, ${_verbage}]}
 
 	| rez everyone
 	} else /if (${_type.Equal[everyone]}) {
-		/invoke ${set_switch_env[FALSE, swRezEveryone, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swRezEveryone, TRUE, ${_verbage}]}
 
 	| use rez tokens
 	} else /if (${_type.Equal[token]}) {
-		/invoke ${set_switch_env[FALSE, swRezToken, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swRezToken, TRUE, ${_verbage}]}
 
 	| rez radius
 	} else /if (${_type.Equal[rad]}) {
-		/if (!${set_control_num_range[FALSE, stMaxRezRange, "${_verbage}", 0, 200]}) /return
+		/if (!${set_control_num_range[${_debug}, stMaxRezRange, "${_verbage}", 0, 200]}) /return
+
+	| use divine rez
+	} else /if (${_type.Equal[divine]} && ${Select[${Me.Class.ShortName},CLR]}) {
+		/invoke ${set_switch_env[${_debug}, swDivineCleric, TRUE, ${_verbage}]}
+
 
 	| set rez accept percent
 	} else /if (${_type.Equal[pct]}) {
@@ -1664,14 +1676,17 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 
 	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
-	/invoke ${maControl.Add[give,swRezGive]}
 	/invoke ${maControl.Add[pct,stPctMinRez]}
 	/invoke ${maControl.Add[rad,stMaxRezRange]}
 	/invoke ${maControl.Add[token,swRezToken]}
 	/invoke ${maControl.Add[everyone,swRezEveryone]}
 	/invoke ${maControl.Add[take,swRezTake]}
-	/invoke ${maControl.Add[combat,swRezCombat]}
-	/invoke ${maControl.Add[other,stResurrection|br]}
+	/invoke ${maControl.Add[ic,swRezIC]}
+	/invoke ${maControl.Add[ooc,swRezOOC]}
+	/invoke ${maControl.Add[dannet,swRezDanNet]}
+	/if (${Select[${Me.Class.ShortName},CLR]}) {
+		/invoke ${maControl.Add[divine,swDivineCleric]}
+	}
 	/invoke ${set_control_output[${_debug}, maRez, rez, maControl, maControl]}
 
 /return TRUE
@@ -1700,6 +1715,10 @@ sub Bind_deez(string _type, string _verbage)
 
 	/if (!${Defined[lsDeez]}) {
 		/declare lsDeez list outer
+	}
+
+	/if (${_type.Equal[kodtaz]}) {
+		/call farm_kodtaz
 	}
 
 
@@ -2015,6 +2034,9 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
 	} else /if (${_type.Equal[temp]}) {
 		/invoke ${set_switch_env[${_debug}, swBuffTemp, TRUE, ${_verbage}]}
 
+	} else /if (${_type.Equal[drop]}) {
+		/invoke ${set_switch_env[${_debug}, swDropBuffs, TRUE, ${_verbage}]}
+
 	} else /if (${_type.Equal[shrink]}) {
 		/if (${_verbage.Equal[item]}) {
 			/call do_raw_edit ${_debug} SILENT stShrinkItem "${_verbage2}"
@@ -2034,10 +2056,11 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
 	/invoke ${maControl.Add[ammo,swBuffAmmo]}
 	/invoke ${maControl.Add[aura,swBuffAura]}
 	/invoke ${maControl.Add[beg,swBuffBeg]}
+	/invoke ${maControl.Add[drop,swDropBuffs]}
 	/invoke ${maControl.Add[crew,swBuffCrew]}
 	/invoke ${maControl.Add[master,swBuffMaster|pr]}
 	/invoke ${maControl.Add[now,swBuffNow]}
-	/invoke ${maControl.Add[ps,swBuffPowersource]}
+	| /invoke ${maControl.Add[ps,swBuffPowersource]}
 	/invoke ${maControl.Add[raid,swBuffRaid]}
 	/invoke ${maControl.Add[group,swBuffGroup]}
 	/invoke ${maControl.Add[self,swBuffSelf]}
@@ -2131,7 +2154,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
 		/call Bind_command_aux see
 		/return	FALSE
-	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song,burn,sash,out]}) {
+	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song,burn,sash,out,rez]}) {
 		/invoke ${out[0, "Crack says your input sucks${sep}\a-w${_variable}\ax"]}
 		/return FALSE
 	}
@@ -2694,8 +2717,12 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 			/invoke ${set_switch_env[FALSE, swPull, TRUE, ${_verbage2}]}
 
 		| pull radius
-		} else /if (${_verbage.Equal[rad]}) {
+		} else /if (${_verbage.Equal[zrad]}) {
 			/invoke ${do_raw_edit[FALSE, SILENT, stPullRadius, "${_verbage2}"]}
+
+		| pull zradius
+		} else /if (${_verbage.Equal[zrad]}) {
+			/invoke ${do_raw_edit[FALSE, SILENT, stPullZRadius, "${_verbage2}"]}
 
 		| nav stop distance
 		} else /if (${_verbage.Equal[navstop]}) {
@@ -2794,6 +2821,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 		/invoke ${maControl.Clear}
 		/invoke ${maControl.Add[active,swPull]}
 		/invoke ${maControl.Add[rad,stPullRadius]}
+		/invoke ${maControl.Add[zrad,stPullZRadius]}
 		/invoke ${maControl.Add[mode,submenu]}
 		/invoke ${maControl.Add[with,submenu]}
 		/invoke ${maControl.Add[sethome,swPullSetHome]}
@@ -3088,7 +3116,7 @@ sub Bind_command_navto(string _verbage, string _loc, bool _debug)
 	} else /if (${_verbage.Equal[wplist]}) {
 
 		/sqlite query ${maData.Find[DBnav].Value} wpdummy SELECT COUNT(*) as data FROM waypoint WHERE zone_shortname='${Zone.ShortName}'
-		SDEBUG ${sep}wpdummy SELECT count(*) as data from zone_control where zone_shortname  \ay${sqlite.Status[dummy]}\ax resutl:${sqlite.Result[wpdummy 1 data]}
+		DEBUG ${sep}wpdummy SELECT count(*) as data from zone_control where zone_shortname  \ay${sqlite.Status[dummy]}\ax resutl:${sqlite.Result[wpdummy 1 data]}
 		/if (${sqlite.Status[wpdummy].Find[no such table:]}) {
 			/echo fail
 		}
@@ -3115,7 +3143,7 @@ sub Bind_command_navto(string _verbage, string _loc, bool _debug)
 	| input notice
 	/if (!${Target.ID} && !${Bool[${_verbage}]}) {
 		OUT ${notice}
-		OUT ${sep}need a name, target, locxyz, or waypoint options
+		OUT ${sep}need a name, target, loc, or waypoint options
 		/return FALSE
 	}
 

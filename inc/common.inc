@@ -220,7 +220,7 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
  * use: /call set_data_list DEBUG [list name] [variable] [value] [aux]
  ***|
 sub set_data_list(bool _debug, string _map, string _env_var, string _value, string _aux, string _table)
-	| DEBUG \atset_data_list\ax(\a-w${_map}, ${_env_var}, "${_value}", "${_aux}", ${_table}\ax)
+	DEBUG \atset_data_list\ax(\a-w${_map}, ${_env_var}, "${_value}", "${_aux}", ${_table}\ax)
 
 	| make sure list container exists
 	/if (!${Defined[${_env_var}]}) {
@@ -245,14 +245,14 @@ sub set_data_list(bool _debug, string _map, string _env_var, string _value, stri
 	| data exists. get from DB and call it good
 	/if (${sqlite.Rows[dummy]}) {
 		/if (${maEnv.Find[schema].Value.Equal[${maData.Find[stPreviousSchema].Value}]}) {
-			| DEBUG ${sep}DATA \agdoes exists VERSIONS MATCH\ax
+			DEBUG ${sep}DATA \agdoes exists VERSIONS MATCH\ax
 
 			/if (${Bool[${sqlite.Result[dummy 1 value]}]}) {
 				/declare _tmpValue string local ${sqlite.Result[dummy 1 value]}
-				| DEBUG ${sep}_tmpValue${sep}${_tmpValue}
+				DEBUG ${sep}_tmpValue${sep}${_tmpValue}
 
 				/invoke ${${_env_var}.Append["${_tmpValue}"]}
-				| DEBUG ${sep}${_map}.Add[${_env_var},"${_tmpValue}"]
+				 DEBUG ${sep}${_map}.Add[${_env_var},"${_tmpValue}"]
 				/invoke ${${_map}.Add[${_env_var},"${_tmpValue}"]}
 			}
 			/return TRUE
@@ -292,11 +292,12 @@ sub set_data_list(bool _debug, string _map, string _env_var, string _value, stri
 			/while (${_count} <= ${_value.Arg[2,|]}) {
 				DEBUG ++ ${sqlite.Result[dummy 1 value].Arg[${_count},|]}
 				| is it in the book?
-				/if (${Me.Book[${Spell[${sqlite.Result[dummy 1 value].Arg[${_count},|]}].RankName}]} || ${Me.CombatAbility[${Spell[${sqlite.Result[dummy 1 value].Arg[${_count},|]}].RankName}]}) {
+				DEBUG --- ${Me.Book[${Spell[${sqlite.Result[dummy 1 value].Arg[${_count},|]}].RankName}]} || ${Me.CombatAbility[${sqlite.Result[dummy 1 value].Arg[${_count},|]}]} || ${Me.AltAbility[${sqlite.Result[dummy 1 value].Arg[${_count},|]}]} || ${sqlite.Result[dummy 1 value].Arg[${_count},|].Equal[EMPTY]}
+				/if (${Me.Book[${Spell[${sqlite.Result[dummy 1 value].Arg[${_count},|]}].RankName}]} || ${Me.CombatAbility[${Spell[${sqlite.Result[dummy 1 value].Arg[${_count},|]}].RankName}]} || ${Me.AltAbility[${sqlite.Result[dummy 1 value].Arg[${_count},|]}]} || ${sqlite.Result[dummy 1 value].Arg[${_count},|].Equal[EMPTY]}) {
 					/if (${Bool[${_tmpList}]}) /varset _tmpList ${_tmpList}|
 					/varset _tmpList ${_tmpList}${sqlite.Result[dummy 1 value].Arg[${_count},|]}
 					/varcalc _count ${_count}+1
-				} else /if (!${Me.Book[${Spell[${sqlite.Result[dummy 1 value].Arg[${_count},|]}].RankName}]} && !${Me.CombatAbility[${Spell[${sqlite.Result[dummy 1 value].Arg[${_count},|]}].RankName}]}) {
+				} else /if (!${Me.Book[${Spell[${sqlite.Result[dummy 1 value].Arg[${_count},|]}].RankName}]} && !${Me.CombatAbility[${Spell[${sqlite.Result[dummy 1 value].Arg[${_count},|]}].RankName}]} && !${Me.AltAbility[${sqlite.Result[dummy 1 value].Arg[${_count},|]}]}) {
 					/varcalc _count ${_count}+1
 					/continue
 				}
@@ -1063,16 +1064,18 @@ sub check_for_rezbox(bool _debug)
 	GETINPUT rez_box_found swIsMeDead|${swIsMeDead}
 
 	| dont rezz me
-	/if (!${maRez.Find[swRezTake].Value}) /return
+	/if (!${maRez.Find[swRezTake].Value}) {
+		/return FALSE
+	}
 
-	| do I have corpses around ?
-	/if (!${SpawnCount[pccorpse name ${Me.DisplayName}]}) {
+	| not dead? GO AWAY
+	/if (!${swIsMeDead}) {
+		/return FALSE
+	}
 
-		| not dead? GO AWAY
-		/if (!${swIsMeDead}) /return
-
-		| bail if no rez box to check
-		/if (!${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["Do you wish this?"]}]}) /return
+	| bail if no rez box to check
+	/if (!${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["Do you wish this?"]}]}) {
+		/return FALSE
 	}
 
 	| is there a rez window?
@@ -1081,9 +1084,11 @@ sub check_for_rezbox(bool _debug)
 		/declare _stRezWindowPct string local FALSE
 
 		| get rez window % to something we can use
-		/if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["percent"]}]}) {
+		/if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["Do you wish this?"]}]}) {
 
-			/if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["(10 percent)"]}]}) {
+			/if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["(0 percent)"]}]}) {
+				/varset _stRezWindowPct 0
+			} else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["(10 percent)"]}]}) {
 				/varset _stRezWindowPct 10
 			} else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["(20 percent)"]}]}) {
 				/varset _stRezWindowPct 20
@@ -1099,6 +1104,12 @@ sub check_for_rezbox(bool _debug)
 				/varset _stRezWindowPct 90
 			} else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["(96 percent)"]}]}) {
 				/varset _stRezWindowPct 96
+			} else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["(100 percent)"]}]}) {
+				/varset _stRezWindowPct 100
+			} else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["you will still be able to get a resurrection later"]}]}) {
+				/varset _stRezWindowPct 100
+			} else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["${Me.DisplayName}"]}]}) {
+				/varset _stRezWindowPct 100
 			}
 		}
 
@@ -1106,28 +1117,15 @@ sub check_for_rezbox(bool _debug)
 
 		/declare _swValidRezFound bool local FALSE
 
-		| we do not accept any 0% rezes
-		/if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["(0 percent)"]}]}) {
-			/nomodkey /notify ConfirmationDialogBox No_Button leftmouseup
-			/varset _swValidRezFound FALSE
-
-		| take our own rez..
-		} else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["${Me.DisplayName}"]}]}) {
+		/if (${maRez.Find[stPctMinRez].Value} <= ${_stRezWindowPct}) {
 			/varset _swValidRezFound TRUE
-
-		| we take call to corpse as well
-		} else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["you will still be able to get a resurrection later"]}]}) {
-			/varset _swValidRezFound TRUE
-
-		} else /if (${maRez.Find[stPctMinRez].Value} <= ${_stRezWindowPct}) {
-			/varset _swValidRezFound TRUE
-
 		}
 
-
 		DEBUG _swValidRezFound ${_swValidRezFound}
+
 		| more waiting
 		/if (${_swValidRezFound}) {
+			/delay 1s
 			/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
 			/delay 5
 			/if (${Window[RespawnWnd].Open}) {
@@ -1155,7 +1153,6 @@ sub check_for_rezbox(bool _debug)
 			/varset _swValidRezFound FALSE
 
 			/call set_stop ${maDebug.Find[stop].Value} SILENT
-
 
 			/if (${maHome.Find[swHomeMarker].Value}) {
 				/call Bind_control_home clear NULL NULL ${maDebug.Find[home].Value}
@@ -1383,6 +1380,11 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 				DEBUG ${sep}altloop.casting,window,cooldown
 				/while (${Me.Casting.ID} || ${Window[CastingWindow].Open} || ${Me.SpellInCooldown}) {
 					/if (!${Me.Casting.ID}) /break
+					/if (!${Window[CastingWindow].Open}) /break
+					/if (${Select[${Me.Class.ShortName},BRD]} && ${Me.SpellInCooldown} && !${Me.Casting.ID}) {
+						/break
+					}
+
 					/delay 3
 				}
 
@@ -1632,7 +1634,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 					/break
 
 				| good
-				} else /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,BLOCKED,RESISTED,IMMUNE]}) {
+				} else /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,BLOCKED,RESISTED,IMMUNE,FALSE]}) {
 					DEBUG ${sep}spell.cr:SUCCESS,BLOCKED,RESISTED,IMMUNE.\agbreak\ax
 					/varset _castLoop 0
 					/if (${Select[${Me.Class.ShortName},BRD]}) {
@@ -3611,27 +3613,27 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
 	}
 
 	| time to step the agro range out so we get mobs closer first
-	DEBUG ${sep}range${sep}\aw${maEnv.Find[stMobLvlMin].Value}\ax-\aw${maEnv.Find[stMobLvlMax].Value}\ax zradius${sep}\a-w${maCC.Find[stZRadius].Value}\ax
+	DEBUG ${sep}range${sep}\aw${maEnv.Find[stMobLvlMin].Value}\ax-\aw${maEnv.Find[stMobLvlMax].Value}\ax zradius${sep}\a-w${maCC.Find[stPullZRadius].Value}\ax
 
 	/while (${_tmpAgroRange} <= PULLENV && !TARGET) {
 		/delay 1
 
 		/if (${_tmpAgroRange} <= SAFEENV) {
-			/varset _mobcount ${SpawnCount[npc ${_los} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}
+			/varset _mobcount ${SpawnCount[npc ${_los} radius ${_tmpAgroRange} zradius ${maCC.Find[stPullZRadius].Value} targetable]}
 		} else {
-			/varset _mobcount ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}
+			/varset _mobcount ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stPullZRadius].Value} targetable]}
 		}
 
 		| search local ENV range in steps of 10 for mob acquisition
-		DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
+		DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stPullZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
 
-		/if (${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}) {
+		/if (${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stPullZRadius].Value} targetable]}) {
 
-			/for _count 1 to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value} targetable]}
+			/for _count 1 to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stPullZRadius].Value} targetable]}
 
 				ISMEDEAD
 
-				/varset _tmpID ${NearestSpawn[${If[${_spCount},${Math.Calc[${_count}+${_spCount}]},${_count}]}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stZRadius].Value}].ID}
+				/varset _tmpID ${NearestSpawn[${If[${_spCount},${Math.Calc[${_count}+${_spCount}]},${_count}]}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stPullZRadius].Value}].ID}
 				DEBUG ${sep}_tmpID${sep}\a-w${_tmpID}\ax navlength${sep}\a-w${Navigation.PathLength[id ${_tmpID}]}\ax
 
 				| excluded mobs
@@ -4868,7 +4870,7 @@ sub check_zone_id(bool _debug, bool _force)
 		}
 
 		/call set_zone_lists ${maDebug.Find[zone].Value}
-		/varset swIsMeDead FALSE
+		| /varset swIsMeDead FALSE
 		/varset _zoned TRUE
 		/doevents flush
 
@@ -8690,6 +8692,7 @@ sub set_hud_data(string _mode)
 	/varset h_pet						${maHeal.Find[swHealPet].Value}
 	/varset h_cure					${maHeal.Find[swHealCure].Value}
 	/varset h_tot						${maHeal.Find[swHealToT].Value}
+	/varset h_dan						${maHeal.Find[swHealDanNet].Value}
 
 	| buff
 	/varset h_bself					${maBuff.Find[swBuffSelf].Value}
@@ -8729,11 +8732,13 @@ sub set_hud_data(string _mode)
 	/varset h_rcombat				${maEnv.Find[swRestCombat].Value}
 
 	| rez
-	/varset h_zgive					${maRez.Find[swRezGive].Value}
+	/varset h_zooc					${maRez.Find[swRezOOC].Value}
 	/varset h_ztake					${maRez.Find[swRezTake].Value}
-	/varset h_zcombat				${maRez.Find[swRezCombat].Value}
+	/varset h_zic						${maRez.Find[swRezIC].Value}
 	/varset h_zeveryone			${maRez.Find[swRezEveryone].Value}
 	/varset h_ztoken				${maRez.Find[swRezToken].Value}
+	/varset h_zdan					${maRez.Find[swRezDanNet].Value}
+	/varset h_zrad					${maRez.Find[stMaxRezRange].Value}
 
 	| character build
 	/varset h_eset					${maEnv.Find[stBuildSetCurrent].Value}
@@ -9848,7 +9853,7 @@ sub control_routine(bool _debug)
 	| returns the # of mobs that do not have a current mez timer associated
 	/varset _countArea ${control_area[${_debug}]}
 
-	| if ${check_control_area returns more then 1
+	| if ${check_control_area returns more then the toons AE setting
 	| hit the AE routines
 	/if (${_countArea} >= AE#) {
 		/call control_mezae ${_debug}
@@ -9971,7 +9976,7 @@ sub control_area(bool _debug)
 
 
 |***
- * note: cheeck the IDs in the passed list. remove them from the list if they are dead/gone
+ * note: check the IDs in the passed list. remove them from the list if they are dead/gone
  * use: ${control_map[DEBUG, THINGIETOCHECK??]}
  *
  * THINGIETOCHECK:
@@ -11538,6 +11543,14 @@ sub is_me_dead(bool _debug)
 
 
 
+
+
+
+
+
+
+
+
 |***
  * note: looks for dead fuckers. if we find dead fuckers, and they fall under dead fucker res status, we rez said dead fuckers
  * use: /call check_for_corpse DEBUG
@@ -11549,16 +11562,19 @@ sub check_for_corpse(bool _debug)
 	/if (${Me.State.Equal[HOVER]} || ${Me.Hovering} || ${Me.Dead}) {
 		/return FALSE
 	}
+
 	| fuck your corpse
-	/if (!${maRez.Find[swRezGive].Value}) {
+	/if (!${maRez.Find[swRezIC].Value} && !${maRez.Find[swRezOOC].Value}) {
 		/return	FALSE
 	}
+
 	| no one dead
 	/if (!${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}) {
 		/return FALSE
 	}
+
 	| no combat rez
-	/if (!${maRez.Find[swRezCombat].Value} && COMBAT) {
+	/if (!${maRez.Find[swRezCombat].Value} && (COMBAT || ${Select[${Me.CombatState},combat]})) {
 		/return FALSE
 	}
 
@@ -11584,218 +11600,160 @@ sub check_for_corpse(bool _debug)
 		}
 	}
 
-	| set rez name/type
-	| necro stuff
-	/if (${Select[${Me.Class.ShortName},NEC]}) {
-		/if (!${FindItem[=Essence Emerald].ID}) {
-			/return FALSE
-		}
-		/declare _rezNEC												string	local "Convergence"
 
-	| cleric stuff
-	} else /if (${Select[${Me.Class.ShortName},CLR]}) {
-		/declare _divinerezCLR									string	local FALSE
-		/declare _rezCLR												string	local FALSE
+	/declare _rezReady bool local FALSE
+	/declare _tokenReady bool local FALSE
+	/declare _rez string local
 
-
-		/if (!${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
-			DEBUG ${sep}in combat rez${sep}\a-wcleric aas\ax
-			/varset _divinerezCLR						"Divine Resurrection"
-			/varset _rezCLR									"Blessing of Resurrection"
-
-			/if (!${Me.AltAbility[Blessing of Resurrection]} && ${FindItemCount[=Water Sprinkler of Nem Ankh]}) {
-				DEBUG ${sep}in combat rez${sep}\a-wcleric epic\ax
-				/varset _divinerezCLR					"Water Sprinkler of Nem Ankh"
-				/varset _rezCLR 							"Water Sprinkler of Nem Ankh"
+	| get thing to rez with in combat
+	/if (${Select[${Me.CombatState},combat]}) {
+		/declare _liic listiterator local
+		/vardata _liic lsRezIC.First.Clone
+		/while (!${_liic.IsEnd}) {
+			/if (${is_ready[${_debug}, "${_liic.Value}"]}) {
+				/varset _rez ${_liic.Value}
+				/varset _rezReady TRUE
+				/break
 			}
-
-		} else {
-			DEBUG ${sep}in combat rez${sep}\a-w${maRez.Find[stResurrection].Value}\ax
-			/varset _divinerezCLR						"${maRez.Find[stResurrection].Value}"
-			/varset _rezCLR									"${maRez.Find[stResurrection].Value}"
+			/invoke ${_liic.Advance}
 		}
 
-
-	| pally, shaman, druid stuff
-	} else /if (${Select[${Me.Class.ShortName},PAL,SHM,DRU]}) {
-		/declare _rezPAL									string	local FALSE
-		/declare _rezSHM									string	local FALSE
-		/declare _rezDRU									string	local FALSE
-
-		|  in combat
-		/if (${Select[${Me.CombatState},combat]}) {
-			/if (!${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
-				DEBUG ${sep}in combat rez${sep}\a-w${Me.Class.ShortName} aas\ax
-				/varset _rezDRU												"Call of the Wild"
-				/varset _rezSHM												"Call of the Wild"
-				/varset _rezPAL												"Gift of Resurrection"
-			} else {
-				DEBUG ${sep}in combat rez${sep}\a-w${Me.Class.ShortName} aas\ax
-				/varset _rez${Me.Class.ShortName}			"${maRez.Find[stResurrection].Value}"
+	| something to rez with out of combat? should let the corpses rot...0
+	} else /if (!${Select[${Me.CombatState},combat]}) {
+		/declare _liooc listiterator local
+		/vardata _liooc lsRezOOC.First.Clone
+		/while (!${_liooc.IsEnd}) {
+			/if (${is_ready[${_debug}, "${_liooc.Value}"]}) {
+				/varset _rez ${_liooc.Value}
+				/varset _rezReady TRUE
+				/break
 			}
-
-		| out of combat
-		} else /if (!${Select[${Me.CombatState},combat]}) {
-			/if (!${is_ready[${_debug}, "${maRez.Find[stResurrection].Value}"]}) {
-				DEBUG ${sep}out combat rez${sep}\a-w${Me.Class.ShortName} aas\ax
-				/varset _rezDRU												"Rejuvenation of Spirit"
-				/varset _rezSHM												"Rejuvenation of Spirit"
-				/varset _rezPAL												"Gift of Resurrection"
-			} else {
-				DEBUG ${sep}out combat rez${sep}\a-w${Me.Class.ShortName} ${maRez.Find[stResurrection].Value}\ax
-				/varset _rez${Me.Class.ShortName}			"${maRez.Find[stResurrection].Value}"
-			}
+			/invoke ${_liooc.Advance}
 		}
+
 	}
 
 	/if (${maRez.Find[swRezToken].Value}) {
-		DEBUG ${sep}Token rez
-		/declare _rezEmergency									string	local "Token of Resurrection"
+		/declare _rezEmergency string	local "Token of Resurrection"
+		/if (${is_ready[${_debug}, "${_rezEmergency}"]}) {
+			/varset _tokenReady TRUE
+		}
 	}
 
+	| still good???
+	/if (!${_rezReady} && !${_rezReady}) {
+		DEBUG ${break}fail${sep}\a-wno rez type available\ax
+		/return FALSE
+	}
+
+	SETHUD "resurrect"
+
+	| make the damn variables
 	/declare _count 													int 		local 0
 	/declare _tmpID 													int 		local 0
 
-	| make the damn variables
 	/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}
 		/varset _tmpID ${NearestSpawn[${_count},pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}
-
 		/if (!${Defined[timer_corpse_${_tmpID}]}) {
 			/declare timer_corpse_${_tmpID} timer outer 1
 			/delay 1
 		}
-
 		| for the people that suck ass (not in a good way)
 		/if (${lsNoRezToon.Contains[${Spawn[${_tmpID}].DisplayName}]}) {
 			/varset timer_corpse_${_tmpID} ${maHard.Find[stRezIgnoreFucktards].Value}
+			/continue
 		}
+
+		/declare _countPri int local 0
+
+		| check priorities
+		/for _countPri 1 to 8
+			DEBUG ${sep}_countPri${sep}\a-w${maRez.Find[stRezPriority${_countPri}].Value}\ax
+
+			| skip false priority strings
+			/if (${maRez.Find[stRezPriority${_countPri}].Value.Equal[FALSE]}) {
+				/continue
+			}
+
+			/if (${SpawnCount[${maRez.Find[stRezPriority${_countPri}].Value} radius ${maRez.Find[stMaxRezRange].Value}]}) {
+				/varset _tmpID ${NearestSpawn[${_count},${maRez.Find[stRezPriority${_countPri}].Value} radius ${maRez.Find[stMaxRezRange].Value}].ID}
+				DEBUG ${sep}_tmpID${sep}\a-w${NearestSpawn[${_count},${maRez.Find[stRezPriority${_countPri}].Value} radius ${maRez.Find[stMaxRezRange].Value}].ID}\ax (\a-rNearestSpawn[${_count},${maRez.Find[stRezPriority${_countPri}].Value} radius ${maRez.Find[stMaxRezRange].Value}].ID\ax)
+				/if (!${Defined[timer_corpse_${_tmpID}]}) {
+					/declare timer_corpse_${_tmpID} timer outer 0
+				}
+				/if (!${timer_corpse_${_tmpID}}) {
+
+					| cleric rezing
+					/if (${Select[${Me.Class.ShortName},CLR]}) {
+
+						| divine rez another cleric?
+						/if (${maRez.Find[swDivineCleric].Value} && ${Select[${Spawn[id ${_tmpID}].Class.ShortName},CLR]}) {
+							/if (${Me.AltAbilityReady[${maRez.Find[stAADivineResurrection].Value}]} || ${Me.ItemReady[${maRez.Find[stAADivineResurrection].Value}]}) {
+								/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} ${maRez.Find[stAADivineResurrection].Value}
+								/return TRUE
+							}
+						| normal rez
+						} else {
+							/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rez}"
+							/return TRUE
+						}
+
+					| other rez classes
+					} else /if (${Select[${Me.Class.ShortName},DRU,PAL,SHM,NEC]}) {
+						/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rez}"
+						/return TRUE
+
+					| token rezing
+					} else /if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
+						/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rezEmergency}"
+						/return TRUE
+					}
+				}
+			}
+
+		/next _countPri
+
+		| fuck it.. rez everyone!
+		| needs /rez everyone switch to be true
+		/if (${maRez.Find[swRezEveryone].Value}) {
+			/if (${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}) {
+				/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}
+				/if (!${Defined[timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}]}) /continue
+				/varset _tmpID ${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}
+				/if (!${timer_corpse_${_tmpID}}) {
+					/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
+						/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} ${_rezEmergency}
+					} else {
+						/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rez}"
+					}
+					/return
+				}
+				/next _count
+			}
+		}
+
 
 	/next _count
 
-	SETHUD "resurrect"
-
-	| clerics first group or raid
-	/if (${SpawnCount[pccorpse cleric raid radius ${maRez.Find[stMaxRezRange].Value}]} && ${Raid.Members} || ${SpawnCount[pccorpse cleric group radius ${maRez.Find[stMaxRezRange].Value}]}) {
-		/for _count 1 to ${SpawnCount[pccorpse cleric radius ${maRez.Find[stMaxRezRange].Value}]}
-			/varset _tmpID ${NearestSpawn[${_count},pccorpse cleric radius ${maRez.Find[stMaxRezRange].Value}].ID}
-			/if (!${Defined[timer_corpse_${_tmpID}]}) /declare timer_corpse_${_tmpID} timer outer 0
-			/if (!${timer_corpse_${_tmpID}}) {
-				/if (${Select[${Me.Class.ShortName},CLR]}) {
-					/if (${maRez.Find[swDivineCleric].Value} && (${Me.AltAbilityReady[${_divinerezCLR}]} || ${Me.ItemReady[${_divinerezCLR}]})) {
-						/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} ${_divinerezCLR}
-					}
-				} else /if (${Select[${Me.Class.ShortName},CLR,DRU,PAL,SHM,NEC]} && ${Me.AltAbilityReady[${_rez${Me.Class.ShortName}}]}) {
-					/call cast_rez ${_debug} ${_tmpID} ${_rez${Me.Class.ShortName}}
-				} else /if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
-					/call cast_rez ${_debug} ${_tmpID} ${_rezEmergency}
-				}
-				/return
-			}
-		/next _count
-	}
-
-	| group members
-	/if (${SpawnCount[pccorpse group radius ${maRez.Find[stMaxRezRange].Value}]}) {
-		/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value} group]}
-		/if (!${Defined[timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} group].ID}]}) /continue
-		/varset _tmpID ${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} group].ID}
-		/if (!${timer_corpse_${_tmpID}}) {
-
-			/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
-				/call cast_rez ${_debug} ${_tmpID} ${_rezEmergency}
-			} else /if (${Defined[_rez${Me.Class.ShortName}]}) {
-				/call cast_rez ${_debug} ${_tmpID} ${_rez${Me.Class.ShortName}}
-			}
-			/return
-		}
-		/next _count
-	}
-
-	| tanks
-	/if (${Raid.Members}) {
-		/if (${SpawnCount[pccorpse raid tank radius ${maRez.Find[stMaxRezRange].Value}]}) {
-			/for _count 1 to ${SpawnCount[pccorpse raid radius ${maRez.Find[stMaxRezRange].Value} tank]}
-			/if (!${Defined[timer_corpse_${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value} tank].ID}]}) /continue
-			/varset _tmpID ${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value} tank].ID}
-			/if (!${timer_corpse_${_tmpID}}) {
-				/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]} && (!${lsRezTokenToon.CountOf[EMPTY]} && ${lsRezTokenToon.Count} != 1)) {
-					/call cast_rez ${_debug} ${_tmpID} ${_rezEmergency}
-				} else /if (${Defined[_rez${Me.Class.ShortName}]}) {
-					/call cast_rez ${_debug} ${_tmpID} ${_rez${Me.Class.ShortName}}
-				}
-				/return
-			}
-			/next _count
-		}
-
-		| remaining raid members
-		/if (${SpawnCount[pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}]}) {
-			/for _count 1 to ${SpawnCount[pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}]}
-			/if (!${Defined[timer_corpse_${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}].ID}]}) /continue
-			/varset _tmpID ${NearestSpawn[${_count},pccorpse raid radius ${maRez.Find[stMaxRezRange].Value}].ID}
-			/if (!${timer_corpse_${_tmpID}}) {
-				/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
-					/call cast_rez ${_debug} ${_tmpID} ${_rezEmergency}
-				} else /if (${Defined[_rez${Me.Class.ShortName}]}) {
-					/call cast_rez ${_debug} ${_tmpID} ${_rez${Me.Class.ShortName}}
-				}
-				/return
-			}
-			/next _count
-		}
-	}
 
 	| dannet members
-	/for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
-		/if (!${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}) /continue
-		/if (!${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].Dead}) /continue
-		/if (!${Defined[timer_corpse_${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}]}) /continue
-		/varset _tmpID ${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}
-		/if (!${timer_corpse_${_tmpID}}) {
-			/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
-				/call cast_rez ${_debug} ${_tmpID} ${_rezEmergency}
-			} else /if (${Defined[_rez${Me.Class.ShortName}]}) {
-				/call cast_rez ${_debug} ${_tmpID} ${_rez${Me.Class.ShortName}}
-			}
-			/return
-		}
-	/next _count
-
-	| guildies - all the time
-	/if (${SpawnCount[pccorpse guild radius ${maRez.Find[stMaxRezRange].Value}]}) {
-		/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value} GUILD]}
-		/if (!${Defined[timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} guild].ID}]}) /continue
-		/varset _tmpID ${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value} guild].ID}
-		/if (!${timer_corpse_${_tmpID}}) {
-			/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
-				/call cast_rez ${_debug} ${_tmpID} ${_rezEmergency}
-			} else /if (${Defined[_rez${Me.Class.ShortName}]}) {
-				/call cast_rez ${_debug} ${_tmpID} ${_rez${Me.Class.ShortName}}
-			}
-			/return
-		}
-		/next _count
-	}
-
-
-	| outside guild and raid
-	| needs /rez everyone switch to be true
-	/if (${maRez.Find[swRezEveryone].Value}) {
-		/if (${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}) {
-			/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}
-			/if (!${Defined[timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}]}) /continue
-			/varset _tmpID ${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}
+	/if (${maRez.Find[swRezDanNet].Value}) {
+		/for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
+			/if (!${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}) /continue
+			/if (!${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].Dead}) /continue
+			/if (!${Defined[timer_corpse_${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}]}) /continue
+			/varset _tmpID ${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}
 			/if (!${timer_corpse_${_tmpID}}) {
 				/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
-					/call cast_rez ${_debug} ${_tmpID} ${_rezEmergency}
-				} else /if (${Defined[_rez${Me.Class.ShortName}]}) {
-					/call cast_rez ${_debug} ${_tmpID} ${_rez${Me.Class.ShortName}}
+					/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rezEmergency}"
+				} else {
+					/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rez}"
 				}
 				/return
 			}
-			/next _count
-		}
+		/next _count
 	}
+
 
 	SETHUD EMPTY
 
@@ -11840,6 +11798,9 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 
 	| get the corpse close to us
 	/if (${Spawn[pccorpse ${_tmpID}].Distance} <= ${maHard.Find[stRezSummonRange].Value}) {
+		DEBUG ${sep}/corpse${sep}\a-wid ${_tmpID}\ax
+		/target id ${_tmpID}
+		/delay 1
 		/squelch /corpse
 	}
 
@@ -12642,8 +12603,6 @@ sub check_drop_buffs(bool _debug)
 
 	/invoke ${set_data_timer[${_debug}, Check_Drop_Buffs, RESTART]}
 
-	/return TRUE
-
 	/if (${lsDropBuffs.Contains[EMPTY]} && ${lsDropBuffs.Count} == 1) {
 		/return FALSE
 	}
@@ -12664,8 +12623,8 @@ sub check_drop_buffs(bool _debug)
 
 
 |***
- * note: removes any unwanted buffs or songs
- * use: /call check_drop_buffs DEBUG
+ * note: popups
+ * use: ${popup["STRING"]}
  ***|
 sub popup(string _verbage)
 

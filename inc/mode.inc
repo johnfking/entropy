@@ -1212,25 +1212,6 @@ sub task_output(bool _debug, string _verbage)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /return
 
 
@@ -1305,3 +1286,227 @@ sub task_combatloop(int _tmpID)
 
 
 /return TRUE
+
+
+
+
+
+
+
+
+
+
+
+
+|**
+|/declare QuestNPC               string      outer       Bodhessel the Caller
+|Your Location is 465.33, -1892.90, 4.23, and are heading south by southwest.
+|quest npc loc
+|kill mob area 1
+|Your Location is -188.00, 2280.12, -329.76, and are heading south by southeast.
+|Your Location is -676.93, 2176.57, -393.76, and are heading west by northwest.
+|Your Location is -826.69, 1700.63, -499.69, and are heading east.**|
+quest phrase agreed
+Fear Begins at Home
+task step 1:Your Location is 696.12, 2104.34, -295.69, and are heading south.
+step 2: kill 10 mobs near
+|Your Location is -188.00, 2280.12, -329.76, and are heading south by southeast.
+|Your Location is -676.93, 2176.57, -393.76, and are heading west by northwest.
+|Your Location is -826.69, 1700.63, -499.69, and are heading east.
+|Your Location is 52.02, 1965.41, -459.76, and are heading west.**|
+**|
+
+
+sub rof_shard_bodhe(bool _debug)
+	DEBUG \atrof_shard_bodhe\ax()
+
+	/if (${Target.ID}) /squelch /target clear
+
+	/declare _quest string local Fear Begins at Home
+	/declare _count int local 0
+
+	/if (!${Task[${_quest}].ID}) {
+		/call task_get ${_debug} "${_quest}"
+		/if (!${Macro.Return}) {
+			/invoke ${out[23, "Failed to get${sep}\a-w${_quest}\ax"]}
+		} else /if (${Macro.Return}) {
+			/invoke ${out[23, "Quest started${sep}\a-w${_quest}\ax"]}
+		}
+
+	/if (${Me.Sitting}) /stand
+	/squelch /hidecorpse always
+
+	/call Bind_control_cc pull rad 200
+	/call Bind_control_cc pull active on
+	/call Bind_control_cc agro on
+
+	| step 1
+		/invoke ${out[23, "\agSTEP 1\ax${sep}\a-w${sqlite.Result[farmquery1 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery1 1 step]}].Status}\ax)"]}
+		:rof_shard_bodhe_step1
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery1 1 step]}].Status.NotEqual[Done]}) {
+			/call task_output ${_debug} 1
+			DEBUG ${sep}step${sep}${sqlite.Result[farmquery1 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery1 1 step]}].Status}\ax)
+			GETINPUT
+			ISMEDEAD
+			/if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery1 1 invis]}]} && ${Me.ItemReady[Cloudy Potion]} && ${FindItemCount[=Cloudy Potion]} > 4) {
+				/call voodoo FALSE "Cloudy Potion" 0 FALSE
+			}
+			/call Bind_command_navto loc "${sqlite.Result[farmquery1 1 locyxz]}" FALSE
+			/delay 2s
+		}
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery1 1 step]}].Status.NotEqual[done]}) /goto :rof_shard_bodhe_step1
+
+	| step 2
+		/invoke ${out[23, "\agSTEP 2\ax${sep}\a-w${sqlite.Result[farmquery2 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status}\ax)"]}
+		:rof_shard_bodhe_step2
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status.NotEqual[Done]}) {
+			/call task_output ${_debug} 3
+			DEBUG ${sep}step${sep}${sqlite.Result[farmquery2 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status}\ax)
+			GETINPUT
+			ISMEDEAD
+			/if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery2 1 invis]}]} && ${Me.ItemReady[Cloudy Potion]} && ${FindItemCount[=Cloudy Potion]} > 4) {
+				/call voodoo FALSE "Cloudy Potion" 0 FALSE
+			}
+			/call Bind_command_navto loc "${sqlite.Result[farmquery2 1 locyxz]}" FALSE
+			/delay 2s
+			/if (${Task[Fear Begins at Home].Objective[2].Status.NotEqual["Done"]}) {
+				/if (${SpawnCount[loc 2280 -188 -329 radius 200]} > 0)
+					/declare lsBodheMobs list outer
+					/invoke ${lsBodheMobs.Delimiter["|"]}
+
+					/invoke ${lsBodheMobs.Append[a citizen|a council advisor|a council overseer|a conscripted tender|a council judicator|High Guard Strakiv|High Guard Volintias|a taskmaster|High Guard Verichitek|High Guard Stavus]}
+
+					/declare _liBodhe listiterator local
+					/vardata _liBodhe lsBodheMobs.First.Clone
+					/while (!${_liBodhe.IsEnd}) {
+
+						/echo ${_liBodhe.Value}
+						/invoke ${_liBodhe.Advance}
+					}
+				} else if (${SpawnCount[loc 2176 -677 -393 radius 200]} > 0) {
+					/call Bind_command_navto loc "2176 -677 -393" FALSE
+					/declare lsBodheMobs list outer
+					/invoke ${lsBodheMobs.Delimiter["|"]}
+
+					/invoke ${lsBodheMobs.Append[a citizen|a council advisor|a council overseer|a conscripted tender|a council judicator|High Guard Strakiv|High Guard Volintias|a taskmaster|High Guard Verichitek|High Guard Stavus]}
+
+					/declare _liBodhe listiterator local
+					/vardata _liBodhe lsBodheMobs.First.Clone
+					/while (!${_liBodhe.IsEnd}) {
+
+						/echo ${_liBodhe.Value}
+						/invoke ${_liBodhe.Advance}
+					}
+				} else if (${SpawnCount[loc 1700 -826 -499 radius 200]} > 0) {
+					/call Bind_command_navto loc "1700 -826 -499" FALSE
+					/declare lsBodheMobs list outer
+					/invoke ${lsBodheMobs.Delimiter["|"]}
+
+					/invoke ${lsBodheMobs.Append[a citizen|a council advisor|a council overseer|a conscripted tender|a council judicator|High Guard Strakiv|High Guard Volintias|a taskmaster|High Guard Verichitek|High Guard Stavus]}
+
+					/declare _liBodhe listiterator local
+					/vardata _liBodhe lsBodheMobs.First.Clone
+					/while (!${_liBodhe.IsEnd}) {
+
+						/echo ${_liBodhe.Value}
+						/invoke ${_liBodhe.Advance}
+					}
+				} else if (${SpawnCount[loc 1965 52 -459 radius 200]} > 0) {
+					/call Bind_command_navto loc "1965 52 -459" FALSE
+					/declare lsBodheMobs list outer
+					/invoke ${lsBodheMobs.Delimiter["|"]}
+
+					/invoke ${lsBodheMobs.Append[a citizen|a council advisor|a council overseer|a conscripted tender|a council judicator|High Guard Strakiv|High Guard Volintias|a taskmaster|High Guard Verichitek|High Guard Stavus]}
+
+					/declare _liBodhe listiterator local
+					/vardata _liBodhe lsBodheMobs.First.Clone
+					/while (!${_liBodhe.IsEnd}) {
+
+						/echo ${_liBodhe.Value}
+						/invoke ${_liBodhe.Advance}
+					}
+				}
+			}
+		}
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status.NotEqual[done]}) /goto :rof_shard_bodhe_step2
+
+	| step 3
+		/invoke ${out[23, "\agSTEP 3\ax${sep}\a-w${sqlite.Result[farmquery3 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery3 1 step]}].Status}\ax)"]}
+		:rof_shard_bodhe_step3
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery3 1 step]}].Status.NotEqual[Done]}) {
+			/call task_output ${_debug} 2
+			DEBUG ${sep}step${sep}${sqlite.Result[farmquery3 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery3 1 step]}].Status}\ax)
+			GETINPUT
+			ISMEDEAD
+			/if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery3 1 invis]}]} && ${Me.ItemReady[Cloudy Potion]} && ${FindItemCount[=Cloudy Potion]} > 4) {
+				/call voodoo FALSE "Cloudy Potion" 0 FALSE
+			}
+			/call Bind_command_navto loc "${sqlite.Result[farmquery3 1 locyxz]}" FALSE
+			/delay 2s
+		}
+		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery3 1 step]}].Status.NotEqual[done]}) /goto :rof_shard_bodhe_step3
+		/if (${Window[ConfirmationDialogBox].Open}) {
+			/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+		}
+		/delay 5
+
+	/return TRUE
+
+
+
+
+    /call set_data_farm "Fear Begins at Home" "0" "start" shardslanding "Bodhessel the Caller" FALSE FALSE FALSE FALSE "agreed" TRUE FALSE FALSE FALSE
+    /call set_data_farm "Fear Begins at Home" "1" "Find the Underground City" shardslanding FALSE "696.12 2104.34 -295.69" TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+    /call set_data_farm "Fear Begins at Home" "2" "Kill Alaran in the housing and council area" shardslanding FALSE "2280 -188 -329" TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+    /call set_data_farm "Fear Begins at Home" "3" "Return to Bodhessel the Caller" shardslanding "Bodhessel the Caller" FALSE TRUE FALSE FALSE "hail" FALSE FALSE FALSE FALSE
+
+
+
+
+
+
+|***
+ * note: addition to petfarm for location route,
+ * use: /mode petfarm ROUTENAME
+ ***|
+sub petfarm_route(string _route, int _start)
+	/declare _debug bool local ${maDebug.Find[petfarm].Value}
+
+	/if (!${Pet.ID}) {
+		DEBUG ${break}no pet
+		/invoke ${maMode.Add[petfarm,FALSE]}
+		OUT need a pet
+		/return FALSE
+	}
+
+	/invoke ${maMode.Add[petfarm,TRUE]}
+	/declare _count int local 0
+
+	/while (TRUE) {
+		DEBUG ${sep}initial loop start
+		CHECKDEAD
+		GETINPUT
+
+		/for _count ${If[${_start},${_start},1]} to ${Ini[${maData.Find[INIfarmroute].Value},${_route},stops]}
+			DEBUG ${sep}_count${sep}${_count}${sep}${Ini[${maData.Find[INIfarmroute].Value},${_route},stops]}
+			DEBUG ${sep}navto ${dot} ${Ini[${maData.Find[INIfarmroute].Value},${_route},loc${_count}]}
+			/call Bind_command_navto loc "${Ini[${maData.Find[INIfarmroute].Value},${_route},loc${_count}]}" ${_debug}
+			/invoke ${set_timer[FALSE, _timerWait, ${Ini[${maData.Find[INIfarmroute].Value},${_route},loc${_count}wait]}]}
+			OUT Location${sep}\a-w${_count}\ax (\a-r${Ini[${maData.Find[INIfarmroute].Value},${_route},loc${_count}wait]}\ax)
+			/while (${_timerWait}) {
+				/if (!${timer_Check_Mode}) {
+					/call check_mode ${maDebug.Find[mode].Value}
+				}
+				GETINPUT
+				/delay 5
+			}
+		/next _count
+
+		/varset _start 1
+		/call check_buff_cycle_self ${_debug}
+		/call check_minion_cycle ${_debug}
+
+	}
+	/invoke ${maMode.Add[petfarm,FALSE]}
+
+/return

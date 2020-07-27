@@ -27,9 +27,9 @@ sub	set_debug(string _verbage)
 	}
 
 	| buff
-	/invoke	${lsDebugbuff.Append[cb,ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp,bocked,buffgroup,buffraid]}
+	/invoke	${lsDebugbuff.Append[cb,ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp,bocked,buffgroup,buffraid,drop]}
 	| heal
-	/invoke	${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot,dannet]}
+	/invoke	${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot,dannet,rez]}
 	| move
 	/invoke	${lsDebugmove.Append[face,tie,zone,stick,stop,home]}
 	| debuff
@@ -45,7 +45,7 @@ sub	set_debug(string _verbage)
 	| combat
 	/invoke	${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait]}
 	| other
-	/invoke	${lsDebugother.Append[rest,rez,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch]}
+	/invoke	${lsDebugother.Append[rest,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch]}
 	| admin
 	/invoke	${lsDebugadmin.Append[build,observe,house,flow,exit,sql,edit,e3]}
 	| schema (database creation/modification)
@@ -134,23 +134,23 @@ sub	set_initialize(bool	_debug)
 	| watchspawn map
 	| /declare maWatchspawn	map	outer
 
-	|	rez	control	map
+	| rez control	map
 	/declare maControlRez	map	outer
 
-	|	self blocked buffs
+	| self blocked buffs
 	/declare lsBlockedBuffsMe	string outer
 
-	|	PREGEN recorder
+	| PREGEN recorder
 	/declare maPREGEN	map	outer
 
-	|	TTL	stuff
+	| TTL	stuff
 	/declare maTTL map outer
 	/call	set_data ${_debug} maTTL stTTLTimeStart														map	outer	0
 
-	|	predictive combat
+	| predictive combat
 	/declare maPred	map	outer
 
-	|	list of	all	maps used	with usable	data
+	| list of	all	maps used	with usable	data
 	/declare lsMaps	list outer
 	/invoke	${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maBuff,maBurn,maPred]}
 	/invoke	${lsMaps.Append[maEntropy,maTimer,madeBuff,maTie,maMinion,maCrew]}
@@ -158,7 +158,7 @@ sub	set_initialize(bool	_debug)
 	/invoke	${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro,maMercenary]}
 	/invoke	${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
 
-	|	set	all	output shortcuts
+	| set	all	output shortcuts
 	/call	set_data ${_debug} FALSE num																			string outer "\a-t"
 	/call	set_data ${_debug} FALSE submenu																	string outer "\a#1E90FF->\ax"
 	/call	set_data ${_debug} FALSE r0																				string outer "\ar0\ax"
@@ -196,15 +196,13 @@ sub	set_initialize(bool	_debug)
 	/call	set_data ${_debug} FALSE skip																			string outer "${sep}\a#FF06BBskip\ax${sep}"
 
 
-
 	/call	set_data ${_debug} FALSE enabled																	string outer "\agenabled\ax"
 	/call	set_data ${_debug} FALSE disabled																	string outer "\ardisabled\ax"
 
-	|	all	character	db tables
+	| all	character	db tables
 	/declare maDBTables	map	outer
 	/invoke	${maDBTables.Add[environment_buff,env_var]}
 	/invoke	${maDBTables.Add[environment_character,env_var]}
-	| /invoke	${maDBTables.Add[environment_condition,env_var]}
 	/invoke	${maDBTables.Add[environment_timer,env_timer]}
 	/invoke	${maDBTables.Add[environment_item,env_var]}
 	/invoke	${maDBTables.Add[environment_crew,env_var]}
@@ -220,6 +218,7 @@ sub	set_initialize(bool	_debug)
 	/invoke	${maDBTables.Add[environment_hard,env_var]}
 	/invoke	${maDBTables.Add[environment_mercenary,env_var]}
 	/invoke	${maDBTables.Add[environment_minion,env_var]}
+	/invoke	${maDBTables.Add[environment_rez,env_var]}
 
 /return	TRUE
 
@@ -276,13 +275,6 @@ sub	set_initial_environment(bool _debug)
 	/call	set_data ${_debug} FALSE lsAnimationMezed													list outer 13|49|58
 
 
-
-	| healing observers
-	| /declare maHealDanNet map outer
-	| /invoke ${maHealDanNet.Add[pcthps,PctHPs]}
-	| /invoke ${maHealDanNet.Add[tlo,Me]}
-
-
 	| custom /build	set	variables
 	/call	set_data ${_debug} FALSE lsBuildSet																list outer primary|secondary|range|spellset
 
@@ -291,7 +283,6 @@ sub	set_initial_environment(bool _debug)
 
 	| control	lines
 	/call	set_data ${_debug} FALSE lsControlLine														list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn
-
 
 	| increment lists
 	/call	set_data ${_debug} FALSE stCount6																	string outer "0|1|2|3|4|5"
@@ -594,7 +585,6 @@ sub	sql_schema_zone(bool _debug)
 		/mqp
 	}
 
-
 /return	TRUE
 
 
@@ -713,11 +703,11 @@ sub	sql_schema_loot(bool _debug)
  ***|
 sub	sql_schema_character(bool	_debug)
 	DEBUG	\atsql_schema_character\ax()
+	| /varset _debug TRUE
 
 	/if	(${maDebug.Find[init].Value})	{
 		/declare _boottimestart	int	local	${MacroQuest.Running}
 	}
-
 
 	/declare _metadataFail bool local FALSE
 
@@ -773,14 +763,6 @@ sub	sql_schema_character(bool	_debug)
 		/sqlite	query	${maData.Find[DBcharacter].Value}	build	INSERT INTO	metadata VALUES('repo_number', '${maEnv.Find[repo].Value}');
 		/if	(!${sql_check[${_debug}, build,	sql_schema_character,	"INSERT	INTO (metadata)"]})	/endmacro
 
-		/declare _mi mapiterator local
-		/vardata _mi maDBTables.First.Clone
-		/while (!${_mi.IsEnd}) {
-			/sqlite	query	${maData.Find[DBcharacter].Value}	build	CREATE TABLE IF	NOT	EXISTS '${_mi.Key}'	('${_mi.Value}'	TEXT NOT NULL	PRIMARY	KEY,'value'	TEXT NOT NULL, 'aux' TEXT);
-			/if	(!${sql_check[${_debug}, build,	sql_schema_character,	"CREATE	TABLE	IF NOT EXISTS	(${_mi.Key})"]}) /endmacro
-			/invoke	${_mi.Advance}
-		}
-
 		/sqlite clear build
 		/if (!${_metadataFail}) {
 			/sqlite clear schemanumber
@@ -810,6 +792,14 @@ sub	sql_schema_character(bool	_debug)
 
 		/sqlite	query	${maData.Find[DBcharacter].Value}	updateschemanum	UPDATE metadata	SET	version='${maEnv.Find[schema].Value}'	WHERE	name='schema_number';
 		/if	(!${sql_check[${_debug}, updateschemanum,	sql_schema_shared, "UPDATE (metadata)"]}) /endmacro
+
+		/declare _mi mapiterator local
+		/vardata _mi maDBTables.First.Clone
+		/while (!${_mi.IsEnd}) {
+			/sqlite	query	${maData.Find[DBcharacter].Value}	build	CREATE TABLE IF	NOT	EXISTS '${_mi.Key}'	('${_mi.Value}'	TEXT NOT NULL	PRIMARY	KEY,'value'	TEXT NOT NULL, 'aux' TEXT);
+			/if	(!${sql_check[${_debug}, build,	sql_schema_character,	"CREATE	TABLE	IF NOT EXISTS	(${_mi.Key})"]}) /endmacro
+			/invoke	${_mi.Advance}
+		}
 
 		/call	sql_schema_update ${_debug} character
 		/sqlite clear updateschemanum
@@ -905,7 +895,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maEnv swTakeRaidInvite											FALSE													"${auxsw}	take raid	invites	from people	you	trust"
 	/call	set_data_map ${_debug} maEnv swSoS																FALSE													"${auxsw}	rogue	sos	switch"
 
-	|	rest
+	| rest
 	/call	set_data_map ${_debug} maEnv stPctRest														0															"${auxnum} % health/mana to	rest at"
 	/call	set_data_map ${_debug} maEnv swRestFull														FALSE													"${auxsw}	rest to	full health	if possible"
 	/call	set_data_map ${_debug} maEnv swRestModRod													FALSE													"${auxsw}	use	mod	rods while resting"
@@ -913,17 +903,18 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maEnv swRestCombat													FALSE													"${auxsw}	continue resting whilke	in combat"
 	/call	set_data_map ${_debug} maEnv swBegMAG															FALSE													"${auxsw}	beg	mages	for	pet	gear or	rods"
 
-	|	food and drink
+	| food and drink
 	/invoke	${set_data_timer[${_debug},	Check_FoodDrink, 10m]}
 	/call	set_data_map ${_debug} maEnv stFood																FALSE													"${auxna}	food item	you	want to	eat"
 	/call	set_data_map ${_debug} maEnv stDrink															FALSE													"${auxna}	drink	item you want	to drink"
 
-	|	tribute	switch
+	| tribute switch
 	/call	set_data_map ${_debug} maEnv swCheckTribute												FALSE													"${auxsw}	check	and	corect tribute for raids"
 
 	| drop buffs list
 	/invoke	${set_data_timer[${_debug},	Check_Drop_Buffs,	6s]}
-	/call	set_data_list	${_debug}	maEnv	lsDropBuffs													EMPTY													"${auxli}	list of	buffs	to auto	drop"
+	/call	set_data_map ${_debug} maBuff	swDropBuffs													FALSE													"${auxsw}	enable buff removal"
+	/call	set_data_list	${_debug}	maEnv	lsDropBuffs													EMPTY													"${auxli}	list of	buffs	to drop that are smelly"
 
 
 |**	control: heal	**|
@@ -938,8 +929,6 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call set_data_map ${_debug} maHeal stRampageTank												FALSE													"${auxna} rampage tank to not heal (\a-wcompletely ignore\ax)" 								heal
 	/call set_data_map ${_debug} maHeal swHealOverTime											FALSE													"${auxsw} enable to use heal over time" 																			heal
 	/call set_data_map ${_debug} maHeal stCountHealGroup										0															"${auxnum} number in group hurt to use a group heal" 													heal
-
-
 
 	/call	set_data_map ${_debug} maHeal	swHealCureSelf											FALSE													"${auxsw}	enable self	curing"																									heal
 	/call	set_data_map ${_debug} maHeal	swHealCureGroup											FALSE													"${auxsw}	enable group curing"																								heal
@@ -957,9 +946,6 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maHeal	swHealPromise												FALSE													"${auxsw}	enable use of	promised heal	spells healing"													heal
 	/call	set_data_map ${_debug} maHeal	swHealDanNet												FALSE													"${auxsw}	enable use of	DanNet for healing"																		heal
 
-
-
-
 	/call	set_data ${_debug} FALSE tmpHealAdjust														float	outer	99.99
 	/call	set_data ${_debug} FALSE hurtID																		int	outer	0
 	/call	set_data ${_debug} FALSE hurtPctHP																int	outer	100
@@ -968,19 +954,13 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data ${_debug} FALSE hurtDead																	int	outer	0
 
 	| points for healing
-	| /if	(${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
-		/call	set_data_map ${_debug} maHeal	stHealPointHoT										80														"${auxnum} % of	health to	use	single heal	over time"													heal
-		/declare _lishp	listiterator local
-		/vardata _lishp	lsClassAll.First
-		/while (!${_lishp.IsEnd})	{
-			/call	set_data_map ${_debug} maHeal	stHealPoint${_lishp.Value}			80														"${auxnum} % of	health to	start	healing:\a-w${_lishp.Value}\ax"								heal
-			/invoke	${_lishp.Advance}
-		}
-
-	| points for everyone	else
-	| }	else /if (!${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
-	| 	/call	set_data_map ${_debug} maHeal	stHealPoint${Me.Class.ShortName}	60														"${auxnum} % of	health to	start	healing:\a-w${Me.Class.ShortName}\ax"	heal
-	| }
+	/call	set_data_map ${_debug} maHeal	stHealPointHoT										80														"${auxnum} % of	health to	use	single heal	over time"													heal
+	/declare _lishp	listiterator local
+	/vardata _lishp	lsClassAll.First
+	/while (!${_lishp.IsEnd})	{
+		/call	set_data_map ${_debug} maHeal	stHealPoint${_lishp.Value}			80														"${auxnum} % of	health to	start	healing:\a-w${_lishp.Value}\ax"								heal
+		/invoke	${_lishp.Advance}
+	}
 
 	/if	(${lsClassCastCure.Contains[${Me.Class.ShortName}]}) {
 		/call	set_data_map ${_debug} maHeal	stCureCurse												FALSE													"${auxna}	name of	cure curse spell"												heal
@@ -992,11 +972,38 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_list	${_debug}	maHeal lsProtectOutsideGroup							EMPTY													"${auxli}	names	outside	of your	group	to add to	xtarget	for	healing" heal
 	/call	set_data_list	${_debug}	maHeal lsLineHeal													EMPTY													"${auxli}	alternate	cast order for heals"									heal
 
-	|	xtarget	sets heal	classes
+	| xtarget sets heal classes
 	/if	(${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
 		/declare lsXTargetClass	list outer
 		/invoke	${set_data_timer[${_debug},	Check_Xtarget_Build, 10m]}
 	}
+
+
+|**	control: rez	**|
+	/call	set_data ${_debug} FALSE swIsMeDead																bool outer FALSE
+	/call	set_data ${_debug} FALSE lsRezPct																	list outer "10|20|35|50|60|75|90|93|96"
+	/call	set_data_list ${_debug} maRez lsRezIC															PREGEN|1											"${auxli}	names of in combat rezes"																						rez
+	/call	set_data_list ${_debug} maRez lsRezOOC														PREGEN|1											"${auxli}	names of	out of combat rezes"																			rez
+	/call	set_data_list	${_debug} maRez lsNoRezToon													EMPTY													"${auxli}	names	of people	you	never	want to	rez"															rez
+	/call	set_data_list	${_debug}	maRez	lsRezTokenToon											EMPTY													"${auxli}	list of	class	shortnames you want	to use a rez token on"            rez
+	/call	set_data_map ${_debug} maRez swRezIC															FALSE													"${auxsw}	rez	people while in combat"                                         rez
+	/call	set_data_map ${_debug} maRez swRezOOC															FALSE													"${auxsw}	rez	people while out of combat"                                     rez
+
+	/call	set_data_map ${_debug} maRez swRezTake														FALSE													"${auxsw}	take rezes"                                                         rez
+	/call	set_data_map ${_debug} maRez swRezEveryone												FALSE													"${auxsw}	rez	anyone.. we just don't care do we?"                            	rez
+	/call	set_data_map ${_debug} maRez swRezDanNet													FALSE													"${auxsw}	rez	your DanNet peoples"							                            	rez
+	/call	set_data_map ${_debug} maRez swRezToken														FALSE													"${auxsw}	use	rez	tokens (\a-wseparate from	stResurrection\ax)"               rez
+	/call	set_data_map ${_debug} maRez stPctMinRez													90														"${auxnum} minimum % rez you are willing to	accept"                           rez
+	/call	set_data_map ${_debug} maRez stMaxRezRange												60														"${auxnum} how far away	to look	for	corpses	to rez"                           rez
+	| /call	set_data_map ${_debug} maRez stResurrection												FALSE													"${auxna}	spell/item/aa	to rez with	(\awoptional for rezing	classes\ax)"      rez
+	/call	set_data_map ${_debug} maRez stRezPriority1												"pccorpse cleric raid"				"rez priority 1 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez stRezPriority2												"pccorpse cleric group"				"rez priority 2 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez stRezPriority3												"pccorpse group"							"rez priority 3 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez stRezPriority4												"pccorpse raid tank"					"rez priority 4 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez stRezPriority5												"pccorpse raid"								"rez priority 5 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez stRezPriority6												"pccorpse guild"							"rez priority 6 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez stRezPriority7												"FALSE"												"rez priority 7 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez stRezPriority8												"FALSE"												"rez priority 8 spawn string search" 																					rez
 
 
 |**	control: buff	**|
@@ -1026,7 +1033,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maBuff	swBuffNow														FALSE													"${auxsw}	buff the now things"
 	/call	set_data_map ${_debug} maBuff	swBuffAmmo													FALSE													"${auxsw}	summons	ammo"
 
-	|	auras
+	| auras
 	/invoke	${set_data_timer[${_debug},	Check_Buff_Aura, 3m]}
 	/call	set_data_map ${_debug} maBuff	swBuffAura													FALSE													"${auxsw}	use	auras	or not.	i	dont care"
 
@@ -1035,21 +1042,6 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maDefense stCountDef												0															"${auxna}	number of	imediate area	mobs to	activate defensive"	defense
 	/call	set_data_map ${_debug} maDefense stPctDef													0															"${auxna}	pct	of health	to activate	a	defensive" defense
 	/call	set_data_list	${_debug}	maDefense	lsLineDefense										EMPTY													"${auxli}	alternate	defense	activation order"	defense
-
-
-|**	control: rez **|
-	/call	set_data ${_debug} FALSE swIsMeDead																bool outer FALSE
-	/call	set_data ${_debug} FALSE lsRezPct																	list outer "10|20|35|50|60|75|90|93|96"
-	/call	set_data_list	FA${_debug}LSE maRez lsNoRezToon										EMPTY													"${auxli}	names	of people	you	never	want to	rez"
-	/call	set_data_list	${_debug}	maRez	lsRezTokenToon											EMPTY													"${auxli}	list of	class	shortnames you want	to use a rez token on"
-	/call	set_data_map ${_debug} maRez swRezGive														FALSE													"${auxsw}	rez	people"
-	/call	set_data_map ${_debug} maRez swRezTake														FALSE													"${auxsw}	take rezes"
-	/call	set_data_map ${_debug} maRez swRezCombat													FALSE													"${auxsw}	rez	duting combat	(inc using tokens	if enabled)"
-	/call	set_data_map ${_debug} maRez swRezEveryone												FALSE													"${auxsw}	rez	people not in	your group/raid/guild"
-	/call	set_data_map ${_debug} maRez swRezToken														FALSE													"${auxsw}	use	rez	tokens (\a-wseparate from	stResurrection\ax)"
-	/call	set_data_map ${_debug} maRez stPctMinRez													90														"${auxnum} minimum % rez you are willing to	accept"
-	/call	set_data_map ${_debug} maRez stMaxRezRange												60														"${auxnum} how far away	to look	for	corpses	to rez"
-	/call	set_data_map ${_debug} maRez stResurrection												FALSE													"${auxna}	spell/item/aa	to rez with	(/awoptional for rezing	classes/ax)"
 
 
 |**	control: home	**|
@@ -1121,6 +1113,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maCC	stPctHardStop													0															"${auxnum} % of	crew sta/manna to	stop pulling at	to give	them rest	time?"
 	/call	set_data_map ${_debug} maCC	stHardStopDuration										0															"${auxnum} duration	to stop	pulling	for	crew to	recover"
 	/call	set_data_map ${_debug} maCC	swStoponDS														FALSE													"${auxsw}	Stop combat	when the target	has	a	DS.	Does not apply agro	enabled."
+	/call	set_data_map ${_debug} maCC	stPullZRadius													60														"${auxnum} the z distance	of your	pulling environment"
 
 	| glyph
 	/call	set_data_map ${_debug} maCC	swGlyphGroup													FALSE													"${auxsw}	use	glyph	in a group"
@@ -1134,7 +1127,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maCC	stManualAssist2												FALSE													"${auxna}	name of	manual assist	2	toon"
 	/call	set_data_map ${_debug} maCC	stPctEngage														98														"${auxnum} mobs	%	health to	engage it"
 
-	/call	set_data_map ${_debug} maCC	stZRadius															60														"${auxnum} the z distance	of your	universe"
+	/call	set_data_map ${_debug} maCC	stZRadius															60														"${auxnum} the z distance	of your	environment"
 
 	/call	set_data_list	${_debug}	maCC lsNoCastWith													EMPTY													"${auxli}	list of	target buffs you dont	want to	cast with"
 	/call	set_data_list	${_debug}	maCC lsNoMeleeWith												EMPTY													"${auxli}	list of	target buffs you dont	want to	melee	with"
@@ -1339,27 +1332,27 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maEntropy swRelayTell											FALSE													"${auxsw}	relay	tells	to the tie toon"
 	/call	set_data_map ${_debug} maEntropy swRelayTellBeep									FALSE													"${auxsw}	beep on	a	tell relay"
 
-	|	GoM	list
+	| GoM	list
 	/call	set_data_list	${_debug}	maChr	lsGoM																EMPTY													"${auxli}	things to	use	on a gift	of mana	aa proc"
 
-	|	ae count you act on
+	| ae count you act on
 	/call	set_data_map ${_debug} maChr stCountAE														0															"${auxnum} number	of mobs	in your	area to	even consider	using	ae skills"
 
-	|	fade
+	| fade
 	/call	set_data_map ${_debug} maChr stPctFade														0															"${auxnum} % of	your healt to	use	class	aa fade	skill"
 
-	|	spire	AA
+	| spire	AA
 	/call	set_data_map ${_debug} maChr swSpireRaid													FALSE													"${auxsw}	use	while	in group for burns"
 	/call	set_data_map ${_debug} maChr swSpireGroup													FALSE													"${auxsw}	use	while	in a raid	for	burns"
 	| /call	set_data_map ${_debug} maChr stSpireCon														0															"${auxnum} number	of the condition to	use	for	spires"
 
-	|	intensity	of the resolute	AA
+	| intensity of the resolute	AA
 	/call	set_data_map ${_debug} maChr swIntensityRaid											FALSE													"${auxsw}	use	while	in group for burns"
 	/call	set_data_map ${_debug} maChr swIntensityGroup											FALSE													"${auxsw}	use	while	in a raid	for	burns"
 	| /call	set_data_map ${_debug} maChr stIntensityCon												0															"${auxnum} number	of the condition to	use	for	spires"
 	/call	set_data_map ${_debug} maChr stAAIntensity												"Intensity of	the	Resolute"		"${auxna}	Intensity	of the Resolute	AA"
 
-	|	can	cast?
+	| can	cast?
 	/if	(${lsClassCast.Contains[${Me.Class.ShortName}]}) {
 		/call	set_data_map ${_debug} maChr stPctManaRecovery									 0														"${auxna}	%	to use whatever	manna	recovery things	entropy	can	find on	you"
 	}
@@ -1387,7 +1380,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maSash	stSashProc													FALSE													"${auxna}	name of	sash with	procing	weapon"								sash
 	/call	set_data_map ${_debug} maSash	swSash															FALSE													"${auxsw}	enable auto	sash swapping	based	off	conditions"	sash
 
-	|	tank shield	flash
+	| tank shield flash
 	/if	(${Select[${Me.Class.ShortName},PAL,WAR,SHD]}) {
 		/call	set_data_map ${_debug} maSash	stPctShieldFlash									0															"${auxnum} % of	HP to	try	to get shield	flash	running"		sash
 		/call	set_data_map ${_debug} maSash	stCountShieldFlash								0															"${auxnum} # of	mobs to	hit	shield flash"									sash
@@ -1448,11 +1441,10 @@ sub	set_initialize_map_buffs(bool	_debug)
 
 	/declare _count	int	local	0
 	/for _count	1	to 50
-		/call	set_data_map ${_debug} maBuff	swBuff${_count}							 FALSE													"${auxsw}	buff ${_count} switch"	buff
-		/call	set_data_map ${_debug} maBuff	stBuff${_count}							 FALSE													"${auxna}	buff ${_count} name"	buff
-		/call	set_data_map ${_debug} maBuff	stBuff${_count}Alias				 FALSE													"${auxna}	buff ${_count} alias"	buff
-		/call	set_data_list	${_debug}	maBuff lsBuff${_count}Tag					 EMPTY													"${auxli}	buff ${_count} tag list"	buff
-		| /call	set_data_map ${_debug} maBuff	stBuff${_count}Con					 0															"${auxnum} buff	${_count}	condition"	buff
+		/call	set_data_map ${_debug} maBuff	swBuff${_count} FALSE "${auxsw} buff ${_count} switch"	buff
+		/call	set_data_map ${_debug} maBuff	stBuff${_count} FALSE "${auxna} buff ${_count} name"	buff
+		/call	set_data_map ${_debug} maBuff	stBuff${_count}Alias FALSE "${auxna} buff ${_count} alias"	buff
+		/call	set_data_list	${_debug}	maBuff lsBuff${_count}Tag EMPTY "${auxli}	buff ${_count} tag list"	buff
 	/next	_count
 
 	/if	(${maDebug.Find[init].Value})	{
@@ -1485,10 +1477,9 @@ sub	set_initialize_map_12(bool _debug)
 	/while (!${_tmi.IsEnd})	{
 		/vardata _liC12	lsCount12.First.Clone
 		/while (!${_liC12.IsEnd})	{
-			/call	set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC12.Value}				FALSE		"${auxsw}	${_tmi.Value}	${_liC12.Value}	switch"	${_tmi.Value}
-			/call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC12.Value}				FALSE		"${auxna}	${_tmi.Value}	${_liC12.Value}	name"	${_tmi.Value}
-			/call	set_data_list	${_debug}	ma${_tmi.Key}	ls${_tmi.Key}${_liC12.Value}Tag		EMPTY		"${auxli}	${_tmi.Value}	${_liC12.Value}	tag	list"	${_tmi.Value}
-			| /call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC12.Value}Con		0				"${auxnum} ${_tmi.Value} ${_liC12.Value} condition"	${_tmi.Value}
+			/call	set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC12.Value} FALSE "${auxsw}	${_tmi.Value}	${_liC12.Value}	switch"	${_tmi.Value}
+			/call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC12.Value} FALSE "${auxna}	${_tmi.Value}	${_liC12.Value}	name"	${_tmi.Value}
+			/call	set_data_list	${_debug}	ma${_tmi.Key}	ls${_tmi.Key}${_liC12.Value}Tag EMPTY "${auxli}	${_tmi.Value}	${_liC12.Value}	tag	list"	${_tmi.Value}
 			/invoke	${_liC12.Advance}
 		}
 
@@ -1530,10 +1521,9 @@ sub	set_initialize_map_20(bool _debug)
 	/while (!${_tmi.IsEnd})	{
 		/vardata _liC20	lsCount20.First.Clone
 		/while (!${_liC20.IsEnd})	{
-			/call	set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC20.Value}				FALSE		"${auxsw}	${_tmi.Value}	${_liC20.Value}	switch"	${_tmi.Value}
-			/call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC20.Value}				FALSE		"${auxna}	${_tmi.Value}	${_liC20.Value}	name"	${_tmi.Value}
-			/call	set_data_list	${_debug}	ma${_tmi.Key}	ls${_tmi.Key}${_liC20.Value}Tag		EMPTY		"${auxli}	${_tmi.Value}	${_liC20.Value}	tag	list"	${_tmi.Value}
-			| /call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC20.Value}Con		0				"${auxnum} ${_tmi.Value} ${_liC20.Value} condition"	${_tmi.Value}
+			/call	set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC20.Value} FALSE "${auxsw}	${_tmi.Value}	${_liC20.Value}	switch"	${_tmi.Value}
+			/call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC20.Value} FALSE "${auxna}	${_tmi.Value}	${_liC20.Value}	name"	${_tmi.Value}
+			/call	set_data_list	${_debug}	ma${_tmi.Key}	ls${_tmi.Key}${_liC20.Value}Tag EMPTY "${auxli}	${_tmi.Value}	${_liC20.Value}	tag	list"	${_tmi.Value}
 			/invoke	${_liC20.Advance}
 		}
 
@@ -1573,7 +1563,6 @@ sub	set_initialize_map_50(bool _debug)
 			/call	set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC50.Value} FALSE "${auxsw}	${_tmi.Value}	${_liC50.Value}	switch" ${_tmi.Value}
 			/call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC50.Value} FALSE "${auxna}	${_tmi.Value}	${_liC50.Value}	name" ${_tmi.Value}
 			/call	set_data_list	${_debug}	ma${_tmi.Key}	ls${_tmi.Key}${_liC50.Value}Tag EMPTY "${auxli}	${_tmi.Value}	${_liC50.Value}	tag	list" ${_tmi.Value}
-			| /call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC50.Value}Con 0 "${auxnum} ${_tmi.Value} ${_liC50.Value} condition" ${_tmi.Value}
 			/invoke	${_liC50.Advance}
 		}
 
@@ -1689,13 +1678,13 @@ sub	set_initialize_hud_variables()
 	/invoke	${lsHUD.Append[build,mode,time]}
 	/invoke	${lsHUD.Append[engage,swpet,engagepet,swswarm,engageswarm,env]}
 	/invoke	${lsHUD.Append[auto,melee,range,nuke,dot,heal,control]}
-	/invoke	${lsHUD.Append[override,self,group,xt,pet,cure,tot]}
+	/invoke	${lsHUD.Append[override,self,group,xt,pet,cure,tot,dan]}
 	/invoke	${lsHUD.Append[bmaster,bself,bcrew,braid,bbeg,btemp,bunity,baura,bnow,bpet,bammo,bgroup]}
 	/invoke	${lsHUD.Append[agro,pull,pullarea,pullmode]}
 	/invoke	${lsHUD.Append[tie,tietoon,tiemode]}
 	/invoke	${lsHUD.Append[buauto,bupct,bucount,buraid]}
 	/invoke	${lsHUD.Append[rpct,rfull,rrod,rbuff,rcombat]}
-	/invoke	${lsHUD.Append[zgive,ztake,zcombat,zeveryone,ztoken]}
+	/invoke	${lsHUD.Append[zooc,ztake,zic,zeveryone,ztoken,zdan,zrad]}
 	/invoke	${lsHUD.Append[eset]}
 
 	|	dev	hud	variables
@@ -1741,9 +1730,9 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 		ma2
 **|
 
-	|	row	0
+	| row	0
 
-		|	invisibilities
+		| invisibilities
 		/ini ${_path}	entropy	INV1		${Parse[0, "3,134,0,0,255,0,${If[${Me.SPA[12]}||${Me.SPA[314]},I,]}"]}
 		/ini ${_path}	entropy	INV2		${Parse[0, "3,134,0,255,0,0,${If[${Me.SPA[12]}||${Me.SPA[314]},,I]}"]}
 		/ini ${_path}	entropy	IVU1		${Parse[0, "3,138,0,0,255,0,${If[${Me.SPA[28]}||${Me.SPA[315]},U,]}"]}
@@ -1755,22 +1744,22 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 
 		/ini ${_path}	entropy	BG0			3,131,0,0,0,0,██████████████████████████
 
-		|	conbat controls
+		| conbat controls
 		/ini ${_path}	entropy	ccA1		${Parse[0, "19,134,14,255,255,0,${If[${h_auto},A,]}"]}
 		/ini ${_path}	entropy	ccA2		${Parse[0, "19,134,9,25,25,25,${If[${h_auto},,_]}"]}
 		/ini ${_path}	entropy	ccEnv1	${Parse[0, "19,146,14,140,140,140,${h_env}"]}
 
-		|	pulling
+		| pulling
 		/ini ${_path}	entropy	ccPM1		${Parse[0, "19,170,14,0,255,0,${If[${h_pull},${h_pullmode},]}"]}
 		/ini ${_path}	entropy	ccPM2		${Parse[0, "19,170,14,255,0,0,${If[${h_pull},,${h_pullmode}]}"]}
 		/ini ${_path}	entropy	ccPR1		${Parse[0, "19,200,14,255,255,255,${If[${h_pullarea},${h_pullarea},]}"]}
 		/ini ${_path}	entropy	ccPR2		${Parse[0, "19,200,9,25,25,25,${If[${h_pullarea},,___]}"]}
 
-		|	agro
+		| agro
 		/ini ${_path}	entropy	ccAg1		${Parse[0, "19,225,14,255,255,255,${If[${h_agro},A,]}"]}
 		/ini ${_path}	entropy	ccAg2		${Parse[0, "19,225,9,25,25,25,${If[${h_agro},,_]}"]}
 
-		|	conbat modes
+		| combat modes
 		/ini ${_path}	entropy	ccM1		${Parse[0, "19,255,14,255,255,255,${If[${h_melee},M,]}"]}
 		/ini ${_path}	entropy	ccM2		${Parse[0, "19,255,9,25,25,25,${If[${h_melee},,_]}"]}
 		/ini ${_path}	entropy	ccR1		${Parse[0, "19,264,14,255,255,255,${If[${h_range},R,]}"]}
@@ -1785,18 +1774,16 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 		/ini ${_path}	entropy	ccC2		${Parse[0, "19,300,9,25,25,25,${If[${h_control},,_]}"]}
 
 
-	|	row	13
+	| row	13
 		/ini ${_path}	entropy	BG13		3,131,13,0,0,0,██████████████████████████
 
 
-	|	row	26
-
-		|	build	mode
+	| row	26
+		| build	mode
 		/ini ${_path}	entropy	build1	3,5,26,100,149,237,build
 		/ini ${_path}	entropy	build2	${Parse[0, "19,40,26,140,140,140,${h_build}"]}
 
-		|	healing
-		|	/ini ${_path}	entropy	h2			19,133,26,255,255,255,${h_healmode}
+		| healing
 		/ini ${_path}	entropy	hS1			${Parse[0, "19,133,26,255,255,255,${If[${h_self},S,]}"]}
 		/ini ${_path}	entropy	hS2			${Parse[0, "19,133,21,25,25,25,${If[${h_self},,_]}"]}
 		/ini ${_path}	entropy	hG1			${Parse[0, "19,142,26,255,255,255,${If[${h_group},G,]}"]}
@@ -1805,14 +1792,16 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 		/ini ${_path}	entropy	hX2			${Parse[0, "19,151,21,25,25,25,${If[${h_xt},,_]}"]}
 		/ini ${_path}	entropy	hP1			${Parse[0, "19,160,26,255,255,255,${If[${h_pet},P,]}"]}
 		/ini ${_path}	entropy	hP2			${Parse[0, "19,160,21,25,25,25,${If[${h_pet},,_]}"]}
-		|	/ini ${_path}	entropy	hC1			${Parse[0, "19,169,26,255,255,255,${If[${h_cure},C,]}"]}
-		|	/ini ${_path}	entropy	hC2			${Parse[0, "19,169,21,25,25,25,${If[${h_cure},,_]}"]}
 		/ini ${_path}	entropy	hT1			${Parse[0, "19,169,26,255,255,255,${If[${h_tot},T,]}"]}
 		/ini ${_path}	entropy	hT2			${Parse[0, "19,169,21,25,25,25,${If[${h_tot},,_]}"]}
+
+		/ini ${_path}	entropy	hD1			${Parse[0, "19,178,26,255,255,255,${If[${h_dan},D,]}"]}
+		/ini ${_path}	entropy	hD2			${Parse[0, "19,178,21,25,25,25,${If[${h_dan},,_]}"]}
+
 		/ini ${_path}	entropy	ho1			${Parse[0, "19,187,26,255,255,255,${If[${h_override},${h_override},]}"]}
 		/ini ${_path}	entropy	ho2			${Parse[0, "19,187,21,25,25,25,${If[${h_override},,__]}"]}
 
-		|	tie
+		| tie
 		/ini ${_path}	entropy	tie1		${Parse[0, "19,255,26,100,149,237,${h_tiemode}"]}
 		/ini ${_path}	entropy	tie2		${Parse[0, "19,280,26,0,255,0,${If[${Bool[${h_tietoon}]},${If[${Bool[${Spawn[${h_tietoon}]}]},${h_tietoon},]},]}"]}
 		/ini ${_path}	entropy	tie3		${Parse[0, "19,280,26,255,0,0,${If[${Bool[${h_tietoon}]},${If[!${Bool[${Spawn[${h_tietoon}]}]},${If[${Bool[${h_tietoon}]},${h_tietoon},]},]},]}"]}
@@ -1821,11 +1810,11 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 		/ini ${_path}	entropy	BG26		3,3,26,0,0,0,██████████████████████████████████████████
 
 
-	|	row	39
+	| row	39
 		/ini ${_path}	entropy	mode1		19,5,39,100,149,237,mode
 		/ini ${_path}	entropy	mode2		${Parse[0, "19,40,39,255,255,255,${If[${h_mode.NotEqual[EMPTY]},${h_mode},]}"]}
 
-	|	buffing
+		| buffing
 		/ini ${_path}	entropy	b1			${Parse[0, "19,133,39,0,255,0,${If[${h_bmaster},buff,]}"]}
 		/ini ${_path}	entropy	b2			${Parse[0, "19,133,39,255,0,0,${If[${h_bmaster},,buff]}"]}
 		/ini ${_path}	entropy	bS1			${Parse[0, "19,157,39,255,255,255,${If[${h_bself},S,]}"]}
@@ -1849,8 +1838,7 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 		/ini ${_path}	entropy	bG1			${Parse[0, "19,238,39,255,255,255,${If[${h_bgroup},G,]}"]}
 		/ini ${_path}	entropy	bG2			${Parse[0, "19,238,34,25,25,25,${If[${h_bgroup},,_]}"]}
 
-
-		|	burn
+		| burn
 		/ini ${_path}	entropy	burn1		${Parse[0, "19,255,39,0,255,0,${If[${h_buauto},burn,]}"]}
 		/ini ${_path}	entropy	burn2		${Parse[0, "19,255,39,255,0,0,${If[${h_buauto},,burn]}"]}
 		/ini ${_path}	entropy	burn4		${Parse[0, "19,280,39,255,255,255,${If[${h_bupct},${h_bupct},]}"]}
@@ -1863,13 +1851,13 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 		/ini ${_path}	entropy	BG39		3,3,39,0,0,0,██████████████████████████████████████████
 
 
-	|	row	52
+	| row	52
 
-		|	toons	loc
+		| toons	loc
 		/ini ${_path}	entropy	yxz1		3,5,52,100,149,237,yxz
 		/ini ${_path}	entropy	yxz2		${Parse[0, "3,40,52,140,140,140,${Int[${Me.Y}]}, ${Int[${Me.X}]},	${Int[${Me.Z}]}"]}
 
-		|	rest
+		| rest
 		/ini ${_path}	entropy	rest1		${Parse[0, "19,255,52,0,255,0,${If[${Me.CombatState.Equal[resting]},rest,]}"]}
 		/ini ${_path}	entropy	rest2		${Parse[0, "19,255,52,255,0,0,${If[${Me.CombatState.Equal[resting]},,rest]}"]}
 		/ini ${_path}	entropy	rest3		${Parse[0, "19,280,52,255,255,255,${If[${h_rpct},${h_rpct},]}"]}
@@ -1885,30 +1873,35 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 
 		/ini ${_path}	entropy	BG52		3,3,52,0,0,0,██████████████████████████████████████████
 
-	|	row	65
+	| row	65
 
 		/ini ${_path}	entropy	envset1		 3,5,65,100,149,237,set
 		/ini ${_path}	entropy	envset2		 ${Parse[0,	"19,40,65,140,140,140,${h_eset}"]}
 
-		|	rez
+		| rez
 		/ini ${_path}	entropy	rez1		${Parse[0, "19,255,65,0,255,0,${If[${h_ztake},rez,]}"]}
 		/ini ${_path}	entropy	rez2		${Parse[0, "19,255,65,255,0,0,${If[${h_ztake},,rez]}"]}
-		/ini ${_path}	entropy	rez3		${Parse[0, "19,275,65,255,255,255,${If[${h_zgive},G,]}"]}
-		/ini ${_path}	entropy	rez4		${Parse[0, "19,275,60,25,25,25,${If[${h_zgive},,_]}"]}
-		/ini ${_path}	entropy	rez5		${Parse[0, "19,284,65,255,255,255,${If[${h_zcombat},C,]}"]}
-		/ini ${_path}	entropy	rez6		${Parse[0, "19,284,60,25,25,25,${If[${h_zcombat},,_]}"]}
-		/ini ${_path}	entropy	rez7		${Parse[0, "19,293,65,255,255,255,${If[${h_zeveryone},E,]}"]}
-		/ini ${_path}	entropy	rez8		${Parse[0, "19,293,60,25,25,25,${If[${h_zeveryone},,_]}"]}
-		/ini ${_path}	entropy	rez9		${Parse[0, "19,302,65,255,255,255,${If[${h_ztoken},T,]}"]}
-		/ini ${_path}	entropy	rez10		${Parse[0, "19,302,60,25,25,25,${If[${h_ztoken},,_]}"]}
+		/ini ${_path}	entropy	rez3		${Parse[0, "19,274,65,255,255,255,${If[${h_zooc},O,]}"]}
+		/ini ${_path}	entropy	rez4		${Parse[0, "19,274,60,25,25,25,${If[${h_zooc},,_]}"]}
+		/ini ${_path}	entropy	rez5		${Parse[0, "19,285,65,255,255,255,${If[${h_zic},I,]}"]}
+		/ini ${_path}	entropy	rez6		${Parse[0, "19,283,60,25,25,25,${If[${h_zic},,_]}"]}
+		/ini ${_path}	entropy	rez7		${Parse[0, "19,292,65,255,255,255,${If[${h_zeveryone},E,]}"]}
+		/ini ${_path}	entropy	rez8		${Parse[0, "19,292,60,25,25,25,${If[${h_zeveryone},,_]}"]}
+		/ini ${_path}	entropy	rez9		${Parse[0, "19,301,65,255,255,255,${If[${h_ztoken},T,]}"]}
+		/ini ${_path}	entropy	rez10		${Parse[0, "19,301,60,25,25,25,${If[${h_ztoken},,_]}"]}
+		/ini ${_path}	entropy	rez11		${Parse[0, "19,310,65,255,255,255,${If[${h_zdan},D,]}"]}
+		/ini ${_path}	entropy	rez12		${Parse[0, "19,310,60,25,25,25,${If[${h_zdan},,_]}"]}
+
+		/ini ${_path}	entropy	rez13		${Parse[0, "19,319,65,140,140,140,${h_zrad}"]}
+
 
 		/ini ${_path}	entropy	BG65		3,3,65,0,0,0,██████████████████████████████████████████
 
-		|	row	78
+	| row	78
 		/ini ${_path}	entropy	body1		${Parse[0, "3,73,78,0,255,0,${If[${Target.LineOfSight},${Target.Body},]}"]}
 		/ini ${_path}	entropy	body2		${Parse[0, "3,73,78,255,0,0,${If[${Target.LineOfSight},,${Target.Body}]}"]}
 		/ini ${_path}	entropy	body3		${Parse[0, "3,145,78,140,140,140,${Target.Distance}	(${Math.Calc[${Spawn[${Target.ID}].MaxRangeTo}*.9]})"]}
-		/ini ${_path}	entropy	eng0		"3,5,77,100,149,237,[			][		 ][			][											 ]"
+		/ini ${_path}	entropy	eng0		"3,5,77,100,149,237,[     ][     ][     ][                       ]"
 		/ini ${_path}	entropy	eng1		${Parse[0, "19,10,78,255,255,255,${If[${h_engage},${h_engage},]}"]}
 		/ini ${_path}	entropy	eng2		${Parse[0, "19,12,73,25,25,25,${If[(!${h_engage},__,]}"]}
 		/ini ${_path}	entropy	eng5		${Parse[0, "19,31,78,255,255,255,${If[${h_swpet},${h_engagepet},]}"]}
@@ -1918,14 +1911,14 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 		/ini ${_path}	entropy	BG78		3,3,78,0,0,0,██████████████████████████████████████████
 
 
-	|	row	91
+	| row	91
 		/ini ${_path}	entropy	target		${Parse[0, "3,5,91,100,149,237,${If[${Target.ID},[${Target.Class.ShortName}	${Target.Level}] ${Target.Name}	${If[${Bool[${Target.Guild}]},<${Target.Guild}>, ]}, ]}"]}
 		/ini ${_path}	entropy	time1			${Parse[0, "19,290,91,146,149,180,${If[${h_time},${Time.Time24},${GameTime}]}"]}
 		/ini ${_path}	entropy	BG91			3,3,91,0,0,0,██████████████████████████████████████████
 
 
 
-	|	cursor over	hud
+	| cursor over	hud
 	}	else /if (${_verbage.Equal[cursor]}) {
 		OUT	Updating MQ2HUD.INI${sep}\a-w${_verbage}\ax
 
@@ -1933,19 +1926,19 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 		/ini ${_path}	cursor overbg			21,2,50,0,0,0,${If[${EverQuest.LastMouseOver},█████████████████████████,]}
 
 
-	|	additional development hud
+	| additional development hud
 	}	else /if (${_verbage.Equal[dev]})	{
 		OUT	Updating MQ2HUD.INI${sep}\a-w${_verbage}\ax
 
 		/ini ${_path}	dev	HL1								"3,3,95,247,152,10,________________________________________________________"
 		/ini ${_path}	dev	HL2								"3,3,96,247,152,10,________________________________________________________"
 
-	|	row	110
+	| row	110
 		/ini ${_path}	dev	devflow						${Parse[0, "19,5,110,100,149,237,${flow}"]}
 		/ini ${_path}	dev	BG110							3,3,110,0,0,0,██████████████████████████████████████████
 
 
-	|	row	123
+	| row	123
 		/ini ${_path}	dev	devCombat1				3,5,123,100,149,237,combat
 		/ini ${_path}	dev	devCombat2				${Parse[0, "19,45,123,0,255,0,${If[${h_dcombat},T,]}"]}
 		/ini ${_path}	dev	devCombat3				${Parse[0, "19,45,123,255,0,0,${If[${h_dcombat},,F]}"]}
@@ -1961,7 +1954,7 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 
 		/ini ${_path}	dev	BG123							3,3,123,0,0,0,██████████████████████████████████████████
 
-	|	row	136
+	| row 136
 		/ini ${_path}	dev	devTargetID1			3,5,136,100,149,237,targetID
 		/ini ${_path}	dev	devTargetID2			${Parse[0, "19,45,136,255,255,255,${Target.ID}"]}
 
@@ -1974,7 +1967,7 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 
 		/ini ${_path}	dev	BG136							3,3,136,0,0,0,██████████████████████████████████████████
 
-	|	row	149
+	| row 149
 		/ini ${_path}	dev	devASSTargetID1		3,5,149,100,149,237,AssID
 		/ini ${_path}	dev	devASSTargetID2		${Parse[0, "19,45,149,255,255,255,${stAssTarID}"]}
 
@@ -1988,7 +1981,7 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 		/ini ${_path}	dev	BG149							3,3,149,0,0,0,██████████████████████████████████████████
 
 
-	|	row	162
+	| row	162
 		/ini ${_path}	dev	devIsDead1				3,5,162,100,149,237,IsDead
 		/ini ${_path}	dev	devIsDead2				${Parse[0, "19,45,162,0,255,0,${If[${swIsMeDead},T,]}"]}
 		/ini ${_path}	dev	devIsDead3				${Parse[0, "19,45,162,255,0,0,${If[${swIsMeDead},,F]}"]}
@@ -2009,7 +2002,7 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 		/ini ${_path}	dev	HL4								3,3,167,247,152,10,________________________________________________________
 
 
-	|	row	181
+	| row	181
 		/ini ${_path}	dev	tTIE1							3,5,181,100,149,237,tie
 		/ini ${_path}	dev	tTIE2							${Parse[0, "19,30,181,255,239,0,${timer_Check_Tie}"]}
 		/ini ${_path}	dev	tb1								3,50,181,100,149,237,b
@@ -2028,7 +2021,7 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 
 		/ini ${_path}	dev	BG181							3,3,181,0,0,0,██████████████████████████████████████████
 
-	|	row	194
+	| row	194
 
 		|	/ini ${_path}	dev	tCure1						3,5,194,100,149,237,cure
 		|	/ini ${_path}	dev	tCure2						${Parse[0, "19,30,194,255,239,0,${timer_Check_Cure}"]}
@@ -2046,7 +2039,7 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 
 		/ini ${_path}	dev	BG194							3,3,194,0,0,0,██████████████████████████████████████████
 
-	|	row207
+	| row207
 
 		/ini ${_path}	dev	tbS1							3,50,207,100,149,237,bS
 		/ini ${_path}	dev	tbS2							${Parse[0, "19,70,207,255,239,0,${timer_Check_Buff_Self}"]}
@@ -2055,7 +2048,7 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 
 		/ini ${_path}	dev	BG207							3,3,207,0,0,0,██████████████████████████████████████████
 
-	|	row	220
+	| row	220
 
 		/ini ${_path}	dev	tbU1							3,50,220,100,149,237,bU
 		/ini ${_path}	dev	tbU2							${Parse[0, "19,70,220,255,239,0,${timer_Check_Buff_Unity}"]}
@@ -2077,45 +2070,45 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 
 		OUT	Updating MQ2MyButtons.INI${sep}\a-w${_verbage}\ax
 
-		|	window label
+		| window label
 		/ini ${_path}	"UISettings" "WindowTitle" "Entropy"
 
-		|	here command
+		| here command
 		/ini ${_path}	"Button1"	"Label"	"Combat	Now"
 		/ini ${_path}	"Button1"	"Command"	"/here"
 		/ini ${_path}	"Button1"	"Red"	"255"
 		/ini ${_path}	"Button1"	"Green"	"255"
 		/ini ${_path}	"Button1"	"Blue" "153"
 
-		|	auto/manual
+		| auto/manual
 		/ini ${_path}	"Button2"	"Label"	"/env	auto ${If[${maEnv.Find[swAuto].Value},On,OFF]}"
 		/ini ${_path}	"Button2"	"Command"	"/env	auto"
 		/ini ${_path}	"Button2"	"Red"	"255"
 		/ini ${_path}	"Button2"	"Green"	"255"
 		/ini ${_path}	"Button2"	"Blue" "153"
 
-		|	pull switch
+		| pull switch
 		/ini ${_path}	"Button3"	"Label"	"Puller	On/Off"
 		/ini ${_path}	"Button3"	"Command"	"/cc pull"
 		/ini ${_path}	"Button3"	"Red"	"255"
 		/ini ${_path}	"Button3"	"Green"	"255"
 		/ini ${_path}	"Button3"	"Blue" "153"
 
-		|	agro switch
+		| agro switch
 		/ini ${_path}	"Button4"	"Label"	"Agro	On/Off"
 		/ini ${_path}	"Button4"	"Command"	"/cc agro"
 		/ini ${_path}	"Button4"	"Red"	"255"
 		/ini ${_path}	"Button4"	"Green"	"255"
 		/ini ${_path}	"Button4"	"Blue" "153"
 
-		|	tie	all	switch
+		| tie	all	switch
 		/ini ${_path}	"Button5"	"Label"	"	Tie	(All)"
 		/ini ${_path}	"Button5"	"Command"	"/dga	/tie"
 		/ini ${_path}	"Button5"	"Red"	"255"
 		/ini ${_path}	"Button5"	"Green"	"255"
 		/ini ${_path}	"Button5"	"Blue" "153"
 
-		|	in charege command
+		| in charege command
 		/ini ${_path}	"Button6"	"Label"	"In	Charge"
 		/ini ${_path}	"Button6"	"Command"	"/env	incharge"
 		/ini ${_path}	"Button6"	"Red"	"100"
@@ -2129,35 +2122,35 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
 		/ini ${_path}	"Button7"	"Green"	"255"
 		/ini ${_path}	"Button7"	"Blue" "153"
 
-		|	set	toons	home camp
+		| set	toons	home camp
 		/ini ${_path}	"Button8"	"Label"	"Home	Camp"
 		/ini ${_path}	"Button8"	"Command"	"/movement home"
 		/ini ${_path}	"Button8"	"Red"	"255"
 		/ini ${_path}	"Button8"	"Green"	"255"
 		/ini ${_path}	"Button8"	"Blue" "153"
 
-		|	builds crew	1
+		| builds crew	1
 		/ini ${_path}	"Button9"	"Label"	"Build Crew"
 		/ini ${_path}	"Button9"	"Command"	"/crew 1"
 		/ini ${_path}	"Button9"	"Red"	"255"
 		/ini ${_path}	"Button9"	"Green"	"255"
 		/ini ${_path}	"Button9"	"Blue" "153"
 
-		|	gather your	group
+		| gather your	group
 		/ini ${_path}	"Button10" "Label" "Gather"
 		/ini ${_path}	"Button10" "Command" "/home	gather"
 		/ini ${_path}	"Button10" "Red" "255"
 		/ini ${_path}	"Button10" "Green" "255"
 		/ini ${_path}	"Button10" "Blue"	"153"
 
-		|	start	self
+		| start	self
 		/ini ${_path}	"Button11" "Label" "Start	(Me)"
 		/ini ${_path}	"Button11" "Command" "/mac exspes/entropy.mac"
 		/ini ${_path}	"Button11" "Red" "255"
 		/ini ${_path}	"Button11" "Green" "255"
 		/ini ${_path}	"Button11" "Blue"	"153"
 
-		|	start	everyone
+		| start	everyone
 		/ini ${_path}	"Button12" "Label" "Start	(All)"
 		/ini ${_path}	"Button12" "Command" "/dga all /mac	exspes/entropy.mac"
 		/ini ${_path}	"Button12" "Red" "255"
@@ -2890,22 +2883,36 @@ sub	sql_schema_update(bool _debug, string	_type)
  ***|
 sub	sql_db_update(bool _debug, string	_type)
 
-
-	/if (${sqlite.Status[buildnumber].NotEqual[success]}) {
-		/return FALSE
-	}
-
 	/declare _tmpMap map local
 	/declare _mi mapiterator local
 
 	/declare _tmpList list local
 	/declare _li listiterator local
 
-
 	| character database
 	/if	(${_type.Equal[character]}) {
 
-		/if (${sqlite.Result[buildnumber 1 version]} >= 200704.01) {
+
+
+		| rez redesign
+		/if (${maEnv.Find[build].Value} >= 200724.01) {
+			/invoke ${_tmpMap.Add[lsNoRezToon,character]}
+			/invoke ${_tmpMap.Add[lsRezTokenToon,character]}
+			/invoke ${_tmpMap.Add[swRezGive,character]}
+			/invoke ${_tmpMap.Add[swRezTake,character]}
+			/invoke ${_tmpMap.Add[swRezCombat,character]}
+			/invoke ${_tmpMap.Add[swRezEveryone,character]}
+			/invoke ${_tmpMap.Add[swRezToken,character]}
+			/invoke ${_tmpMap.Add[stPctMinRez,character]}
+			/invoke ${_tmpMap.Add[stMaxRezRange,character]}
+			/invoke ${_tmpMap.Add[stResurrection,character]}
+			/invoke ${_tmpMap.Add[swDivineCleric,character]}
+		}
+
+
+
+
+		/if (${maEnv.Find[build].Value} >= 200704.01) {
 			| remove all conditions (condition table, do that later)
 			/invoke ${_tmpList.Append[buff,character,item,defense,heal,song,nuke,dot,agro,miscdps,burn,sash]}
 			/vardata _li _tmpList.First.Clone
@@ -3038,13 +3045,14 @@ sub	sql_db_update(bool _debug, string	_type)
 			/invoke ${_tmpMap.Add[stTwistedShankcharacter]}
 			/invoke ${_tmpMap.Add[swSurge,character]}
 			/invoke ${_tmpMap.Add[stHealSurge,character]}
+		}
 
 
-			/vardata _mi _tmpMap.First.Clone
-			/while (!${_mi.IsEnd}) {
-				/call	sql_drop ${_mi.Value} ${_mi.Key} ${maDebug.Find[sql].Value}
-				/invoke ${_mi.Advance}
-			}
+		| remove the items we've collected
+		/vardata _mi _tmpMap.First.Clone
+		/while (!${_mi.IsEnd}) {
+			/call	sql_drop ${_mi.Value} ${_mi.Key} ${maDebug.Find[sql].Value}
+			/invoke ${_mi.Advance}
 		}
 
 
