@@ -1608,7 +1608,6 @@ sub	set_initialize_static_map(bool _debug)
 				| /if (${sqlite.Resultcode[dummy]} == 0) /break
 			| }
 
-		| /echo here
 		/call set_data ${_debug} "${_mi.Key}" "${sqlite.Result[dummy 1 env_var]}" map outer "${sqlite.Result[dummy 1 value]}"
 		| SDEBUG set_data ${_debug} "${_mi.Key}" "${sqlite.Result[dummy 1 env_var]}" map outer "${sqlite.Result[dummy 1 value]}"
 		/next _count

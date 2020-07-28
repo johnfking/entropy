@@ -2717,7 +2717,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 			/invoke ${set_switch_env[FALSE, swPull, TRUE, ${_verbage2}]}
 
 		| pull radius
-		} else /if (${_verbage.Equal[zrad]}) {
+		} else /if (${_verbage.Equal[rad]}) {
 			/invoke ${do_raw_edit[FALSE, SILENT, stPullRadius, "${_verbage2}"]}
 
 		| pull zradius
@@ -3093,7 +3093,7 @@ sub Bind_command_alto(string _debug)
  * use: /navto [NAME|TARGET|locyxz|wp] [nickname|yxzloc]
  ***|
 #bind command_navto /navto
-sub Bind_command_navto(string _verbage, string _loc, bool _debug)
+sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 	DEBUG \atBind_command_navto\ax(\a-w${_verbage}, "${_loc}"\ax)
 
 	| add/update a waypoint
@@ -3190,6 +3190,9 @@ sub Bind_command_navto(string _verbage, string _loc, bool _debug)
 
 	DEBUG ${sep}ok we're moving. right this way now..
 	/while (${Me.Moving}) {
+		/if (${_opt.Equal[invis]} && !${Me.Invis}) {
+			/call voodoo FALSE "Cloudy Potion" 0 ignoremovement
+		}
 		GETINPUT
 		/delay 2
 	}

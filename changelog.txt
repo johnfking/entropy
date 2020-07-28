@@ -27,6 +27,22 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+
+200728.01
+- bard
+  fixed the bard pulseincombat tag, it should do things in combat now
+- /mode farm
+  rof_shard_bodhe - will farm the quest in Shards Landing - Fear Begins at Home
+  this is the no down time quest for shard farming for the tear.
+  i highly advise you have a metric fucktonne of invis pots on you
+  notes:
+  - use at your own risk
+  - if you cant solo these mobs normally, get a dps merc up or a healer
+  - if you get to less then 40 Cloudy Potions, it will end
+  - if your mesh sucks, it will do sucky things
+- removed the stupid here echo in casting
+
+
 200727.01
 * on todays episode of wtf did he change this time, we show you the changes in /rez
   and how to play well with the group stealing your named
@@ -40,8 +56,8 @@ epics with commas in their names are currently not functioning
 - all classes now have access to:
   lsRezIC - list of things to rez incombat with
   lsRezOOC - list of things to rez with while out of combat
-	if you are not a rezing class, these lists will be EMPTY by default.
-	if you are a rezing class, these lists will be populated with the default rez AAs
+  if you are not a rezing class, these lists will be EMPTY by default.
+  if you are a rezing class, these lists will be populated with the default rez AAs
 - token rezing has not changed
 - /rez dannet - on/off switch to use dannet rezing or not
 - /rez ic - on/off rez while in active combat
@@ -63,25 +79,6 @@ epics with commas in their names are currently not functioning
 - druid
   some corrections on the pregen data
 - PREGEN lists will now accept AAs
-
-- mode petfarm
-  will not take an optiona paramater of a zone shortname
-  in the file (you create it) exspes\data\farmroute.ini
-  example:
-	[kodtaz]
-	stops=18
-	loc1=645.23 -1415.99 -452.27
-	loc1wait=1m
-	loc2=492.14 -1275.01 -432.16
-	loc2wait=1m
-	..
-	loc18=-1117.23 -891.90 -409.53
-	loc18wait=2m
-
-	this will nac to that yxz location. and wait that duration while
-	the pet kills everything there, then move on to hte next.
-
-
 
 
 200720.01

@@ -1234,7 +1234,6 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
 	| generic validations
 	/if (${Me.Invis} && ${_sub.NotEqual[ignoreall]}) {
-		/echo here
 		/return FALSE
 	}
 	/if (${swIsMeDead}) {
@@ -1242,7 +1241,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 	}
 
 	| are we moving? and not a bard?
-	/if (!${Select[${Me.Class.ShortName},BRD]} && ${Me.Moving}) {
+	/if (!${Select[${Me.Class.ShortName},BRD]} && ${Me.Moving} && ${_sub.NotEqual[ignoremovement]}) {
 		DEBUG ${sep}break voodoo.moving
 		/if (${Me.Moving}) /return FALSE
 	}
