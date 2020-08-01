@@ -640,10 +640,6 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
 		/return 1
 
 
-
-
-
-
 	| dannet healing
 	} else /if (${_type.Equal[DanNet]}) {
 
@@ -3783,7 +3779,7 @@ sub set_spell_to(bool _debug, bool _echo, string _spellname, string _spellgem, b
 
 	| cant open a book with shit in hands
 	/if (${Cursor.ID}) {
-		/call check_cursor ${_debug} CLEAR
+		/call check_cursor ${_debug} clear
 	}
 
 	| set timer for.. whatever
@@ -5194,7 +5190,7 @@ sub check_buff_cycle_now(bool _debug)
 
 		/if (${lsBuff${_licountself.Value}Tag.Contains[autoinventory]}) {
 			/delay 2s ${Cursor.ID}
-			/call check_cursor ${_debug} CLEAR
+			/call check_cursor ${_debug} clear
 		}
 
 		DEBUG ${sep}next iteration
@@ -5715,7 +5711,7 @@ sub check_buff_cycle_ammo(bool _debug)
 		| autoinventory?
 		/if (${lsBuff${_count}Tag.Contains[autoinventory]}) {
 			/delay 2s ${Cursor.ID}
-			/call check_cursor ${_debug} CLEAR
+			/call check_cursor ${_debug} clear
 		}
 
 	/next _count
@@ -7061,7 +7057,7 @@ sub do_loot(bool _debug)
 							/invoke ${out[14, "Destroying${sep}\a-w${_advlItem}\ax", 0]}
 							/nomodkey /destroy
 
-							/call check_cursor ${_debug} CLEAR
+							/call check_cursor ${_debug} clear
 							/if (${Window[ConfirmationDialogBox].Open}) {
 								/delay 1
 								/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
@@ -7357,7 +7353,7 @@ sub check_cursor(bool _debug, string _verbage)
 	}
 
 	| force clearing the cursor and GTFO
-	/if (${_verbage.Equal[CLEAR]}) {
+	/if (${_verbage.Equal[clear]}) {
 		DEBUG ${sep}Force Inventory${sep}\a-w${Cursor.Name}\ax
 		/invoke ${set_timer[${_debug}, Check_Cursor, 0]}
 	}
@@ -8228,7 +8224,7 @@ sub give_to_pet(string _item, bool _debug)
 			/click left target
 			/delay 5s !${Bool[${Cursor.ID}]}
 		} else {
-			/call check_cursor ${_debug} CLEAR
+			/call check_cursor ${_debug} clear
 		}
 	}
 
@@ -8260,7 +8256,7 @@ sub get_minion_summon_weapons(bool _debug)
 	/declare _openPackSlot int local 0
 
 	| get everything out of your hands, including your dick
-	/call check_cursor ${_debug} CLEAR
+	/call check_cursor ${_debug} clear
 
 	| we have the weapons we can rebuild her better then before
 	/if (${FindItemCount[=${maMinion.Find[stPetWeapon].Value}]} > 1) /goto :havepetweapons
@@ -8288,7 +8284,7 @@ sub get_minion_summon_weapons(bool _debug)
 	}
 
 	| have bag/not opened
-	/call check_cursor ${_debug} CLEAR
+	/call check_cursor ${_debug} clear
 
 	/if (${FindItemCount[=${get_MAG_folded_pack[]}]}) {
 		DEBUG ${sep} :havemageclosedbag
@@ -8297,14 +8293,14 @@ sub get_minion_summon_weapons(bool _debug)
 			/call Bind_command_swap "${get_MAG_folded_pack[]}" ${_openPackSlot} ${_debug}
 		}
 
-		/call check_cursor ${_debug} CLEAR
+		/call check_cursor ${_debug} clear
 
 		| convert the folded pack
 		/if (${is_ready[${_debug}, "${get_MAG_folded_pack[]}"]}) {
 			/call voodoo ${_debug} "${get_MAG_folded_pack[]}" 0 FALSE
 		}
 
-		/call check_cursor ${_debug} CLEAR
+		/call check_cursor ${_debug} clear
 
 	}
 
@@ -8335,7 +8331,7 @@ sub get_minion_summon_weapons(bool _debug)
 		/invoke ${Window[GiveWnd].DoClose}
 	}
 
-	/call check_cursor ${_debug} CLEAR
+	/call check_cursor ${_debug} clear
 
 	:havepouchandnoweapons
 	DEBUG ${sep} :havepouchandnoweapons
@@ -8346,7 +8342,7 @@ sub get_minion_summon_weapons(bool _debug)
 
 	}
 
-	/if (${Cursor.ID}) /call check_cursor ${_debug} CLEAR
+	/if (${Cursor.ID}) /call check_cursor ${_debug} clear
 
 	/if (${Window[InventoryWindow].Open}) {
 		/invoke ${Window[InventoryWindow].DoClose}
@@ -13126,3 +13122,42 @@ sub cast_cooldown_wait(bool _debug)
 
 
 
+
+|***
+ * note: check/cast single instant cast invis only
+ * use:	/call
+ ***|
+sub check_invis_single(bool _debug)
+	DEBUG \atcheck_invis_single\ax()
+
+	/if (${Me.Invis}) {
+		/return TRUE
+	}
+
+	| ranger
+	/if (${Select[${Me.Class.ShortName},RNG]} && ${Me.AltAbilityReady[Innate Camouflage]}) {
+		/call voodoo ${_debug} "Innate Camouflage" 0 ignoremovement
+
+	| druid
+	} else /if (${Select[${Me.Class.ShortName},DRU]} && ${Me.AltAbilityReady[Innate Camouflage]}) {
+
+	| shadowflake
+	} else /if (${Select[${Me.Class.ShortName},SHD]} && ${Me.AltAbilityReady[]}) {
+
+	| rogue
+	| } else /if (${Select[${Me.Class.ShortName},ROG]}) {
+	| 	/call set_sos ${_debug}
+
+	| everyone else
+	} else /if (${FindItemCount[=Cloudy Potion]}) {
+		/call voodoo ${_debug} "Cloudy Potion" 0 ignoremovement
+	}
+
+	/delay 1
+
+	/if (!${Me.Invis}) {
+		/return FALSE
+	}
+
+
+/return TRUE

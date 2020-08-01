@@ -51,7 +51,7 @@ sub mode_get_mob(bool _debug)
 	GETINPUT
 	ISMEDEAD
 
-	/call check_cursor ${_debug} CLEAR
+	/call check_cursor ${_debug} clear
 
 	/if (!${Spawn[id TARGET].ID} || ${Spawn[id TARGET].Dead} || ${Target.Dead}) {
 		/call set_stop ${_debug} SILENT
@@ -137,7 +137,7 @@ sub mode_fish(bool _debug)
 
 	/if (!${Me.Standing}) /stand
 
-	/call check_cursor ${_debug} TRUE
+	/call check_cursor ${_debug} clear
 
 	/if (${Me.ItemReady[Fisherman's Companion]} && !${Me.ItemReady[Brell's Fishin' Pole]} && !${Me.Inventory[mainhand].ID}) {
 		/if (${Me.Invis}) /docommand /makemevisable
@@ -146,14 +146,14 @@ sub mode_fish(bool _debug)
 		}
 	}
 
-	/call check_cursor ${_debug} TRUE
+	/call check_cursor ${_debug} clear
 
 	/if (${Me.AbilityReady[fishing]}) {
 		DEBUG ${sep}fish
 		/doability fishing
 	}
 
-	/call check_cursor ${_debug} TRUE
+	/call check_cursor ${_debug} clear
 
 	SETHUD EMPTY
 
@@ -191,7 +191,7 @@ sub mode_forage(bool _debug)
 		GETINPUT
 		ISMEDEAD
 
-		/call check_cursor ${_debug} TRUE
+		/call check_cursor ${_debug} clear
 		/if (!${Cursor.ID}) /break
 		/delay 2
 	}
@@ -437,7 +437,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
 	DEBUG \atget_ground_item\ax(\a-w"${_tmpItem}"\ax)
 
 	/if (${Cursor.ID}) {
-		/call check_cursor ${_debug} CLEAR
+		/call check_cursor ${_debug} clear
 	}
 
 	/if (!${GroundItemCount[${_tmpItem}]}) {
@@ -488,7 +488,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
 		DEBUG ${sep}whileloop${sep}\a-wMe.Moving\ax
 
 		/if (${Cursor.ID}) {
-			/call check_cursor ${_debug} CLEAR
+			/call check_cursor ${_debug} clear
 		}
 
 		/if (${_finalGround.Distance3D} <= 19) {
@@ -496,7 +496,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
 			/nav stop |log=off
 			/call Bind_command_grab "${_tmpItem}" ${_debug}
 			/if (${Cursor.ID}) {
-				/call check_cursor ${_debug} CLEAR
+				/call check_cursor ${_debug} clear
 			}
 			/break
 		}
@@ -634,7 +634,7 @@ sub mode_trainspell(string _type, bool _debug)
 
 		| empty hands
 		/if (${Cursor.ID}) {
-			/call check_cursor ${_debug} CLEAR
+			/call check_cursor ${_debug} clear
 		}
 
 		| cast the spell
@@ -645,7 +645,7 @@ sub mode_trainspell(string _type, bool _debug)
 
 		| seriously theres an apocalypse going on, shoud wash your hands
 		/if (${Cursor.ID}) {
-			/call check_cursor ${_debug} CLEAR
+			/call check_cursor ${_debug} clear
 		}
 
 
@@ -1131,7 +1131,8 @@ sub task_get(bool _debug, string _verbage)
 	| get to quest target we should be kinda close for a say
 	/while (${Spawn[${sqlite.Result[farmquery 1 questmob]}].Distance} > 60) {
 		/if (${sqlite.Result[farmquery 1 invis]}) {
-			/call voodoo ${_debug} "Cloudy Potion" 0 FALSE
+			/call check_invis_single ${_debug}
+			| /call voodoo ${_debug} "Cloudy Potion" 0 FALSE
 		}
 		/if (!${Me.Moving} || !${Navigation.Active}) {
 			/call Bind_command_navto "${Spawn[${sqlite.Result[farmquery 1 questmob]}].ID}"
@@ -1180,47 +1181,19 @@ sub task_output(bool _debug, string _verbage)
 
 
 
+|***
+ * note: task specific combat loops
+ * use: /call task_combatloop TARGETID DEBUG
+ ***|
+sub task_combatloop(int _tmpID, bool _debug)
 
-
-
-
-/return
-
-
-| current step.. always
-${Task[The Way Back Home].Step}
-
-/nav locyxz 1605.96 -1847.82 -24.6491
-
-| id if have task?
-${Task[The Way Back Home].ID}
-
-
-
-${Task[The Way Back Home].Objective[1].Instruction}
-
-
-${Task[The Way Back Home].Objective[${Task[The Way Back Home].Step}].Status.Equal[Done]}
-
-
-
-${Task[The Way Back Home].Objective[1].Status}
-
-${sqlite.Result[farmquery 1 locyxz]}
-
-${Task[The Way Back Home].Index}
-
-
-
-${Task[The Way Back Home].Step.Equal[kodiak]}
-
-
-
-
-
-sub task_combatloop(int _tmpID)
-
+	SETHUD "killing target"
 	/while (${_tmpID}) {
+
+		/invoke ${maCC.Add[swSetForced,TRUE]}
+		/varset swModeToken TRUE
+
+
 		/call check_heal_routines
 		/call set_combat_control ${maDebug.Find[decision].Value} ${_tmpID}
 
@@ -1229,7 +1202,9 @@ sub task_combatloop(int _tmpID)
 		/if (${maChr.Find[swYaulp].Value}) {
 			/if (!${timer_Check_Yaulp}) /call cast_yaulp FALSE
 		}
-		/if (AGRO) /call get_agro_${Me.Class.ShortName} FALSE ${_tmpID}
+		/if (${Defined[get_agro_${Me.Class.ShortName}]}) {
+			/if (AGRO) /call get_agro_${Me.Class.ShortName} FALSE ${_tmpID}
+		}
 		/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 		/call set_combat_control ${maDebug.Find[decision].Value} ${_tmpID}
 
@@ -1254,6 +1229,11 @@ sub task_combatloop(int _tmpID)
 			}
 		}
 
+		| readjust if needed
+		/if (!${Spawn[id ${_tmpID}].Dead}) {
+			/call task_mob_move_to ${_debug} ${_tmpID} ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
+		}
+
 		/if (${maChr.Find[stPctManaRecovery].Value}) {
 			/call do_mana_recovery ${maDebug.Find[manarecover].Value}
 		}
@@ -1262,6 +1242,7 @@ sub task_combatloop(int _tmpID)
 		}
 
 		/if (${target[isdead, ${_tmpID}]}) {
+			SETHUD EMPTY
 			/return FALSE
 		}
 
@@ -1270,51 +1251,23 @@ sub task_combatloop(int _tmpID)
 /return TRUE
 
 
-			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
-			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
-			/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
-				/call cast_shield_flash FALSE aa
-			}
-			/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} TARGET
-			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-			/call check_heal_routines
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
-			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
-			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
-			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 
-
-
-
-
-
-
-
-
-
-|**
-| /declare QuestNPC               string      outer       Bodhessel the Caller
-| Your Location is 465.33, -1892.90, 4.23, and are heading south by southwest.
-| quest npc loc
-| kill mob area 1
-| Your Location is -188.00, 2280.12, -329.76, and are heading south by southeast.
-| Your Location is -676.93, 2176.57, -393.76, and are heading west by northwest.
-| Your Location is -826.69, 1700.63, -499.69, and are heading east.**|
-| quest phrase agreed
-| Fear Begins at Home
-| task step 1:Your Location is 696.12, 2104.34, -295.69, and are heading south.
-| step 2: kill 10 mobs near
-| Your Location is -188.00, 2280.12, -329.76, and are heading south by southeast.
-| Your Location is -676.93, 2176.57, -393.76, and are heading west by northwest.
-| Your Location is -826.69, 1700.63, -499.69, and are heading east.
-| Your Location is 52.02, 1965.41, -459.76, and are heading west.**|
-**|
-
-
-sub rof_shard_bodhe(bool _debug)
+|***
+ * note: quest farm: Fear Begins at Home
+ *  This will do the quest forever
+ *  You better have a LOT (read hundreds!!) of Cloudy Potions if you plan to leave this on auto for a while.
+ *  Will not eat the shards, just collects them.
+ * use: /mode farm rof_shard_bodhe [wait]
+ *  Adding the option wait to the command execution will cause this farm routine to pause outside the entrance
+ *  to the Alarian temple. The toon will wait there until the 10/10 count for step 2 has been reached. It will then
+ *  go claim the quest reqard, get it again, and return to wait.
+ *  This is here so you can run many toons at once through this stupid leveling of the tear, and only need 1 or 2
+ *  toons to actually do the killing.
+ ***|
+sub rof_shard_bodhe(string _opt, bool _debug)
 	| /varset _debug TRUE
-	DEBUG \atrof_shard_bodhe\ax()
+	DEBUG \atrof_shard_bodhe\ax(\a-w${_opt}\ax)
+	/declare _timestart int local 0
 
 	/declare _quest string local Fear Begins at Home
 	/declare _count int local 0
@@ -1322,16 +1275,17 @@ sub rof_shard_bodhe(bool _debug)
 	/declare _spcount int local 0
 	/declare _pullrad int local 200
 
+	/declare _huntlocs int local 5
+	/declare _curpos int local 0
+	/declare _loc1 string local |61|2331|-329
+	/declare _loc2 string local |-215|2282|-329
+	/declare _loc3 string local |-591|2212|-399
+	/declare _loc4 string local |-823|1741|-498
+	/declare _loc5 string local |-674|1436|-539
 
 	:start_rof_shard_bodhe
-
-	/if (${FindItemCount[=Cloudy Potion]} < 40) {
-		OUT go buy \aw40\ax Cloudy Potion(s) and restart the quest farm.
-		/return FALSE
-	}
-
+	/varset _timestart ${MacroQuest.Running}
 	/invoke ${target[clear]}
-
 	/if (!${Task[${_quest}].ID}) {
 		/call task_get ${_debug} "${_quest}"
 		/if (!${Macro.Return}) {
@@ -1341,15 +1295,28 @@ sub rof_shard_bodhe(bool _debug)
 		}
 	}
 
+	SETHUD "starting task"
+
 	/if (${Window[TaskWnd].Open}) /keypress esc
 
 	/if (${Me.Sitting}) /stand
 	/squelch /hidecorpse always
 
-	/call Bind_control_env auto off
+	/if (AUTO) {
+		/call Bind_control_env auto off
+	}
 	/call Bind_control_cc pull rad ${_pullrad}
-	/call Bind_control_cc pull active on
-	/call Bind_control_cc agro on
+	/if (!AGRO) {
+		/call Bind_control_cc agro on
+	}
+
+	| set nav pulling
+	/call Bind_control_cc pull mode nav
+
+	/if (${Select[${Me.Class.ShortName},ROG]}) {
+		/invoke ${set_switch_env[${_debug}, swMoveBehind, TRUE, FALSE]}
+	}
+
 
 	| how big is the quest?
 	/sqlite query ${maData.Find[DBstatic].Value} farmcount SELECT count(*) AS data FROM farm WHERE task="${_quest}"
@@ -1367,15 +1334,19 @@ sub rof_shard_bodhe(bool _debug)
 		/invoke ${out[23, "\agSTEP 1\ax${sep}\a-w${sqlite.Result[farmquery1 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery1 1 step]}].Status}\ax)"]}
 		:rof_shard_bodhe_step1
 		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery1 1 step]}].Status.NotEqual[Done]}) {
-			| /call task_output ${_debug} 1
 			DEBUG ${sep}step${sep}${sqlite.Result[farmquery1 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery1 1 step]}].Status}\ax)
 			GETINPUT
 			ISMEDEAD
 			/if (!${Me.Invis} && ${sqlite.Result[farmquery1 1 invis]}) {
-				/call voodoo ${_debug} "Cloudy Potion" 0 ignoremovement
+				/call check_invis_single ${_debug}
 			}
-			/call Bind_command_navto loc "${sqlite.Result[farmquery1 1 locyxz]}" invis ${_debug}
-			/delay 1s
+
+			SETHUD "navto marker"
+			/if (${_opt.Equal[wait]}) {
+				/call Bind_command_navto loc "660 2093 -295" invis ${_debug}
+			} else {
+				/call Bind_command_navto loc "${sqlite.Result[farmquery1 1 locyxz]}" invis ${_debug}
+			}
 		}
 
 		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery1 1 step]}].Status.NotEqual[done]}) {
@@ -1384,99 +1355,115 @@ sub rof_shard_bodhe(bool _debug)
 
 	| step 2
 		/invoke ${out[23, "\agSTEP 2\ax${sep}\a-w${sqlite.Result[farmquery2 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status}\ax)"]}
-		| /call task_output ${_debug} 3
 		:rof_shard_bodhe_step2
-		/while (${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status.NotEqual[Done]}) {
-			DEBUG ${sep}step${sep}${sqlite.Result[farmquery2 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status}\ax)
-			GETINPUT
-			ISMEDEAD
 
-			/if (!${Me.Invis} && ${sqlite.Result[farmquery2 1 invis]}) {
-				/call voodoo ${_debug} "Cloudy Potion" 0 ignoremovement
+		/if (${_opt.Equal[wait]}) {
+			/invoke ${out[23, "\agSTEP 2\ax${sep}\a-wWaiting for kill count\ax"]}
+			SETHUD "waiting"
+			/while (${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status.NotEqual[Done]}) {
+				DEBUG ${sep}step${sep}${sqlite.Result[farmquery2 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status}\ax)
+				GETINPUT
+				ISMEDEAD
+
+				| find us something to kill
+				/while (${Task[Fear Begins at Home].Objective[${sqlite.Result[farmquery2 1 step]}].Status.NotEqual["Done"]}) {
+					/delay 1s
+					GETINPUT
+				}
 			}
 
-			/call Bind_command_navto loc "${sqlite.Result[farmquery2 1 locyxz]}" FALSE ${_debug}
+		} else {
+			/while (${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status.NotEqual[Done]}) {
+				DEBUG ${sep}step${sep}${sqlite.Result[farmquery2 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status}\ax)
+				GETINPUT
+				ISMEDEAD
 
-			| 61 2331 -329
-			| -215 2282 -329
-			| -591 2212 -399
-			| -823 1741 -498
+				| find us something to kill
+				/if (${Task[Fear Begins at Home].Objective[${sqlite.Result[farmquery2 1 step]}].Status.NotEqual["Done"]}) {
 
-			/if (${Task[Fear Begins at Home].Objective[${sqlite.Result[farmquery2 1 step]}].Status.NotEqual["Done"]}) {
+					SETHUD "finding location"
+					/for _count 1 to ${_huntlocs}
+						/varset _curpos ${_count}
+						/if (${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius ${_pullrad}]}) {
+							DEBUG _count${sep}\a-w${_curpos}\ax .. SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius ${_pullrad}]
+							OUT location ${_curpos}${sep}\a-w${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius ${_pullrad}]} mobs\ax
+							SETHUD "navto marker"
+							/call Bind_command_navto loc "${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[2,|]} ${_loc${_curpos}.Arg[3,|]}" FALSE ${_debug}
+							/if (${_curpos} == 1) {
+								/call check_buff_cycle ${maDebug.Find[cb].Value} TRUE a
+								/call check_buff_cycle ${maDebug.Find[cb].Value} TRUE s
 
-				/if (${SpawnCount[npc loc 2331 61 -329 radius ${_pullrad}]} >= 2) {
-					/varset _spcount ${SpawnCount[npc loc 2331 61 -329 radius ${_pullrad}]}
-					OUT location 1${sep}\a-w${_spcount} mobs\ax
-					/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:61,2331,-329]} > 80) {
-						/call Bind_command_navto loc "61 2331 -329" FALSE ${_debug}
+								/if (PCTREST && !${SpawnCount[npc radius SAFEENV PS4]}) {
+									/call do_rest ${maDebug.Find[rest].Value}
+								}
+
+							}
+							/call check_cursor ${_debug} clear
+							DEBUG _count${sep}\a-w${_count}\ax
+							/goto :kill_rof_shard_bodhe
+						}
+					/next _count
+					/delay 2
+					SETHUD EMPTY
+				}
+
+				:kill_rof_shard_bodhe
+				/while (${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius ${_pullrad}]}) {
+					DEBUG spawncount loc${_curpos}${sep}\a-w${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius ${_pullrad}]}\ax
+
+					SETHUD "find target"
+					/call task_mob_find ${_debug}
+
+					/if (!TARGET) {
+						/goto :rof_shard_bodhe_step2
 					}
 
-				} else /if (${SpawnCount[npc loc 2282 -215 -329 radius ${_pullrad}]} >= 2 ) {
-					/varset _spcount ${SpawnCount[npc loc 2282 -215 -329 radius ${_pullrad}]}
-					OUT location 1${sep}\a-w${_spcount} mobs\ax
-					/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:-215,2282,-329]} > 80) {
-						/call Bind_command_navto loc "-215 2282 -329" FALSE ${_debug}
+					/invoke ${target[set, TARGET]}
+					SETHUD "navto target"
+					/call task_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
+					/call task_combatloop TARGET
+					/delay 1s
+					/if (${SpawnCount[npc PS4 radius SAFEENV]}) /goto :kill_rof_shard_bodhe
+
+					| finished.. go kill more
+					/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status.Equal[done]}) {
+						/break
 					}
 
-				} else /if (${SpawnCount[npc loc 2212 -591 -399 radius ${_pullrad}]} >= 2) {
-					/varset _spcount ${SpawnCount[npc loc 2212 -591 -399 radius ${_pullrad}]}
-					OUT location 1${sep}\a-w${_spcount} mobs\ax
-					/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:-591,2212,-399]} > 80) {
-						/call Bind_command_navto loc "-591 2212 -399" FALSE ${_debug}
-					}
-
-				} else /if (${SpawnCount[npc loc 1741 -823 -498 radius ${_pullrad}]} >= 2) {
-					/varset _spcount ${SpawnCount[npc loc 1741 -823 -498 radius ${_pullrad}]}
-					OUT location 1${sep}\a-w${_spcount} mobs\ax
-					/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:-823,1741,-498]} > 80) {
-						/call Bind_command_navto loc "-823 1741 -498" FALSE ${_debug}
+					| move to start if we get too far away
+					/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[2,|]} ${_loc${_curpos}.Arg[3,|]}]} > 80 || !${SpawnCount[npc radius ${_pullrad}]}) {
+						/call Bind_command_navto loc "${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[2,|]} ${_loc${_curpos}.Arg[3,|]}" FALSE ${_debug}
 					}
 
 				}
 			}
-
-			/call task_mob_find ${_debug}
-
-			/if (!TARGET) {
-				/continue
-			}
-
-			/invoke ${target[set, TARGET]}
-
-			/call task_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
-			/call task_combatloop TARGET
-			/delay 5
-
-			| finished.. go kill more
-			/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status.Equal[done]}) {
-				/break
-			}
-
 		}
 
 	| step 3
+		:wait_step_3
 		/invoke ${out[23, "\agSTEP 3\ax${sep}\a-w${sqlite.Result[farmquery3 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery3 1 step]}].Status}\ax)"]}
 		:rof_shard_bodhe_step3
+		/delay ${Math.Rand[1,30]}
 		/if (${Task[${_quest}].Objective[${sqlite.Result[farmquery3 1 step]}].Status.NotEqual[Done]}) {
-			| /call task_output ${_debug} 2
+			SETHUD "collecting"
 			DEBUG ${sep}step${sep}${sqlite.Result[farmquery3 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery3 1 step]}].Status}\ax)
 			GETINPUT
 			ISMEDEAD
-			/if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery3 1 invis]}]} && ${Me.ItemReady[Cloudy Potion]} && ${FindItemCount[=Cloudy Potion]} > 4) {
-				/call voodoo FALSE "Cloudy Potion" 0 ignoremovement
+			/if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery3 1 invis]}]}) {
+				/call check_invis_single ${_debug}
 			}
-			/call Bind_command_navto "${sqlite.Result[farmquery3 1 questmob]}" FALSE ${_debug}
+			/invoke ${target[clear]}
+			/call Bind_command_navto "${sqlite.Result[farmquery3 1 questmob]}" invis ${_debug}
 			/delay 1s
 		}
 
-		| /if (${Spawn[npc ${sqlite.Result[farmquery3 1 questmob]}].Distance} <= 20) {
+		/if (${Spawn[npc ${sqlite.Result[farmquery3 1 questmob]}].Distance} <= 20) {
 			/invoke ${target[set, ${Spawn[npc ${sqlite.Result[farmquery3 1 questmob]}].ID}]}]}
 			/delay 5
 			/makemevisible
 			/delay 5
 			/keypress hail
-		| }
-
+		}
 
 		/delay 5s ${Window[ConfirmationDialogBox].Open}
 
@@ -1485,20 +1472,16 @@ sub rof_shard_bodhe(bool _debug)
 		}
 		/delay 5
 
-
-		| /if (${Task[${_quest}].Objective[${sqlite.Result[farmquery3 1 step]}].Status.NotEqual[done]}) {
-		| 	/goto :rof_shard_bodhe_step3
-		| }
-
 		GETINPUT
 
-		/delay 5s
+		/delay ${Math.Rand[1,30]}
 		/if (${Window[RewardSelectionWnd].Open}) /nomodkey /notify RewardSelectionWnd RewardSelectionChooseButton leftmouseup
+		/keypress esc
+		/invoke ${out[0, "\agTask Completion Time\ax${sep}\a-w${Math.Calc[(((${MacroQuest.Running}-${_timestart}) / 10) / 60) /60]}m\ax", 0]}
+		/invoke ${out[18, 0, 33]}
 		/goto :start_rof_shard_bodhe
 
-
-	/return TRUE
-
+/return TRUE
 
 
 
@@ -1549,6 +1532,52 @@ sub petfarm_route(string _route, int _start)
 /return
 
 
+
+|***
+ * note: addition to petfarm for location route,
+ * use: /mode petfarm ROUTENAME
+ ***|
+sub petfarm_route(string _route, int _start)
+	/declare _debug bool local ${maDebug.Find[petfarm].Value}
+
+	/if (!${Pet.ID}) {
+		DEBUG ${break}no pet
+		/invoke ${maMode.Add[petfarm,FALSE]}
+		OUT need a pet
+		/return FALSE
+	}
+
+	/invoke ${maMode.Add[petfarm,TRUE]}
+	/declare _count int local 0
+
+	/while (TRUE) {
+		DEBUG ${sep}initial loop start
+		CHECKDEAD
+		GETINPUT
+
+		/for _count ${If[${_start},${_start},1]} to ${Ini[${maData.Find[INIfarmroute].Value},${_route},stops]}
+			DEBUG ${sep}_count${sep}${_count}${sep}${Ini[${maData.Find[INIfarmroute].Value},${_route},stops]}
+			DEBUG ${sep}navto ${dot} ${Ini[${maData.Find[INIfarmroute].Value},${_route},loc${_count}]}
+			/call Bind_command_navto loc "${Ini[${maData.Find[INIfarmroute].Value},${_route},loc${_count}]}" ${_debug}
+			/invoke ${set_timer[FALSE, _timerWait, ${Ini[${maData.Find[INIfarmroute].Value},${_route},loc${_count}wait]}]}
+			OUT Location${sep}\a-w${_count}\ax (\a-r${Ini[${maData.Find[INIfarmroute].Value},${_route},loc${_count}wait]}\ax)
+			/while (${_timerWait}) {
+				/if (!${timer_Check_Mode}) {
+					/call check_mode ${maDebug.Find[mode].Value}
+				}
+				GETINPUT
+				/delay 5
+			}
+		/next _count
+
+		/varset _start 1
+		/call check_buff_cycle_self ${_debug}
+		/call check_minion_cycle ${_debug}
+
+	}
+	/invoke ${maMode.Add[petfarm,FALSE]}
+
+/return
 
 
 
@@ -1608,8 +1637,6 @@ sub task_mob_move_to(bool _debug, int _tmpID, int _dist)
 	}
 
 /return TRUE
-
-
 
 
 

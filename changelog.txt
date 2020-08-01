@@ -18,6 +18,7 @@ on the to do list
 - look at a way to split coordination for assists across more then one mob in a raid
 - externalize class AAs: WAR|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|NEC|DRU|SHM
 - buffing system by name
+- pet gear handing for damn TLP feeders..
 --------------------
 
 
@@ -26,6 +27,19 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
+
+
+
+200801.01
+- bard
+  fixed the singing in combat... again..
+- /mode farm
+  rof_shard_bodhe - a lot of small fixes
+- /navto now takes an optional invis switch
+  /navto [target|spawn|wp|loc] [name] [invis]
+  RNG/DRU/SHD will use their instant single invis AAs. everyone else is hardcoded to Cloudy Potions
+  if you dont have access to these, sorry. this overrides the nocast while moving, so it has to be
+  an instant cast invis
 
 
 200728.01

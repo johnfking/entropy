@@ -339,7 +339,8 @@ sub set_sos(bool _debug)
 
 	/if (!${maEnv.Find[swSoS].Value}) /return FALSE
 	/if (${Me.Combat} || ${Me.Stunned} || ${Me.State.Equal[FEIGN]}) /return FALSE
-	/if (${Me.Casting.ID} || ${Window[TradeWnd].Open} || ${Window[MerchantWnd].Open} || ${Window[BigBankWnd].Open} || ${Me.Mount.ID}) /return FALSE
+	| /if (${Me.Casting.ID} || ${Window[TradeWnd].Open} || ${Window[MerchantWnd].Open} || ${Window[BigBankWnd].Open} || ${Me.Mount.ID}) /return FALSE
+	/if (${Me.Casting.ID} || ${Me.Mount.ID}) /return FALSE
 
 	ISMEDEAD
 	CHECKTIE

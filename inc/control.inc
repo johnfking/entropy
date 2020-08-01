@@ -141,7 +141,7 @@ sub Bind_control_mode(string _type, string _verbage, string _verbage2, bool _deb
 
 		} else /if (${SubDefined[${_verbage}]}) {
 			/invoke ${out[20, "Starting farm${sep}\a-w${_verbage}\ax"]}
-			/call ${_verbage}
+			/call ${_verbage} ${_verbage2}
 			/return TRUE
 		}
 
@@ -3160,6 +3160,10 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 		/invoke ${maCC.Add[swPull,FALSE]}
 	}
 
+	/if (${_opt.Equal[invis]} && !${Me.Invis}) {
+		/call check_invis_single ${_debug}
+	}
+
 	| location given
 	/if (${_verbage.Equal[loc]}) {
 		DEBUG navto${sep}\a-wloc\ax
@@ -3172,7 +3176,7 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 	} else /if (${Target.ID} && !${Bool[${_verbage}]} && ${_verbage.NotEqual[loc]}) {
 		DEBUG navto${sep}\a-wtarget\ax
 		/invoke ${out[22, "/navto \a-w${Target.DisplayName}\ax"]}
-		/nav ID ${Target.ID} |dist=${maHome.Find[stHomeVariance].Value} log=off
+		/nav id ${Target.ID} |dist=${maHome.Find[stHomeVariance].Value} log=off
 
 	| nav to closest spawn matching name
 	}	else /if (!${Target.ID} && ${Bool[${_verbage}]} && ${_verbage.NotEqual[loc]}) {
@@ -3182,8 +3186,12 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 		}
 		DEBUG navto${sep}\a-wspawn\ax
 		/invoke ${out[22, "/navto \a-w${Spawn[${_verbage}].DisplayName}\ax"]}
-		/nav ID ${Spawn[${_verbage}].ID} |dist=${maHome.Find[stHomeVariance].Value} log=off
+		/nav id ${Spawn[${_verbage}].ID} |dist=${maHome.Find[stHomeVariance].Value} log=off
 
+	}
+
+	/if (${_opt.Equal[invis]} && !${Me.Invis}) {
+		/call check_invis_single ${_debug}
 	}
 
 	/delay 5 ${Me.Moving}
@@ -3191,7 +3199,8 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 	DEBUG ${sep}ok we're moving. right this way now..
 	/while (${Me.Moving}) {
 		/if (${_opt.Equal[invis]} && !${Me.Invis}) {
-			/call voodoo FALSE "Cloudy Potion" 0 ignoremovement
+		/echo here
+			/call check_invis_single ${_debug}
 		}
 		GETINPUT
 		/delay 2

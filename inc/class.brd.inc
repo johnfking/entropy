@@ -90,7 +90,7 @@ sub main_BRD(bool _debug)
 			| /call control_routine FALSE
 			| /if (${swAlliance}) /call trigger_alliance TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
-			/call pulse_cycle ${maDebug.Find[pulse].Value} TARGET incombat
+			/call pulse_cycle ${maDebug.Find[pulse].Value} TARGET pulseincombat
 			| /call control_routine FALSE
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			| /call control_routine FALSE

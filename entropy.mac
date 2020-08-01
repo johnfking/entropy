@@ -75,6 +75,9 @@
 #include exspes\inc\events.inc
 #include exspes\inc\mode.inc
 #include exspes\data\custom.inc
+#include exspes\inc\class.${Me.Class.ShortName.Lower}.inc
+
+|**
 #include exspes\inc\class.ber.inc
 #include exspes\inc\class.brd.inc
 #include exspes\inc\class.bst.inc
@@ -91,6 +94,7 @@
 #include exspes\inc\class.shm.inc
 #include exspes\inc\class.war.inc
 #include exspes\inc\class.wiz.inc
+**|
 
 
 |***
@@ -116,7 +120,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	/call delete_conflict_alias FALSE
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 200728.01
+	/call set_data FALSE maEnv build													map outer 200801.01
 	/call set_data FALSE maEnv schema													map outer 1.06
 	/call set_data FALSE maEnv repo														map outer 200706.01
 
