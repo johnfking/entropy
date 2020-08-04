@@ -9,8 +9,8 @@
  * note: primary initilization of all beastlord non shared data
  * use: not for you
  ***|
-sub set_BST(bool _debug)
-	DEBUG \atset_BST\ax()
+sub class_init(bool _debug)
+	DEBUG \atclass_init\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -82,9 +82,9 @@ Roar of Thunder
  * note: main beastlord routine
  * use:
  ***|
-sub main_BST(bool _debug)
-	DEBUG \atmain_BST\ax()
-	FLOW main_BST
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
+	FLOW class_main
 
 	/if (AUTO && !ENGINE3) {
 		/call check_mana_${Me.Class.ShortName}
@@ -114,8 +114,8 @@ sub main_BST(bool _debug)
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
+			/call misc_combat ${maDebug.Find[misc].Value} TARGET
+			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
@@ -130,7 +130,7 @@ sub main_BST(bool _debug)
 
 		/if (AUTO && !ENGINE3) {
 			CHECKFADE
-			/if (!${timer_Check_Para}) /call check_mana_BST ${maDebug.Find[para].Value}
+			/if (!${timer_Check_Para}) /call check_mana ${maDebug.Find[para].Value}
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			/if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[rest].Value}
 		} else /if (AUTO && !ENGINE3) {
@@ -146,18 +146,18 @@ sub main_BST(bool _debug)
 
 |***
  * note:
- * use: /call misc_combat_BST DEBUG
+ * use: /call misc_combat DEBUG
  ***|
-sub misc_combat_BST(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_BST\ax(\a-w${_tmpID}\ax)
-	FLOW misc_combat_BST
+sub misc_combat(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
-	CHECKEXIT misc_combat_BST
+	CHECKEXIT misc_combat
 	GETINPUT
 	CHECKTIE
 
@@ -228,11 +228,11 @@ sub misc_combat_BST(bool _debug, int _tmpID)
 
 |***
  * note: Focused Paragon. will maintain the bst
- * use: /call check_mana_${Me.Class.ShortName}
+ * use: /call check_mana
  ***|
-sub check_mana_BST(bool _debug)
-	DEBUG \atcheck_mana_BST\ax()
-	FLOW check_mana_BST
+sub check_mana(bool _debug)
+	DEBUG \atcheck_mana\ax()
+	FLOW check_mana
 
 	/invoke ${set_data_timer[${_debug}, Check_Para, RESTART]}
 
@@ -272,7 +272,7 @@ sub check_mana_BST(bool _debug)
 		/return FALSE
 	}
 	/if (${Me.Song[Focused Paragon of Spirit].ID} || !${Me.AltAbilityReady[Paragon of Spirit]}) {
-		DEBUG ${break}Focused Paragon of Spirit (2)
+		DEBUG ${break}Focused Paragon of Spirit (3)
 		/return FALSE
 	}
 
@@ -325,9 +325,9 @@ sub check_mana_BST(bool _debug)
  * note: healing for beastlord
  * use:  when you or your agro whore pet get hurt
  ***|
-sub check_heal_BST(bool _debug, string _type)
-	DEBUG \atcheck_heal_BST\ax(\a-w${_type}\ax)
-	FLOW check_heal_BST ${_type}
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type}
 
 
 
@@ -405,10 +405,10 @@ sub check_heal_BST(bool _debug, string _type)
 
 |***
  * note: Beast burn routines
- * use: establish all comp/trigger skills
+ * use:
  ***|
-sub burn_BST(bool _debug, int _tmpID)
-	DEBUG \atburn_BST\ax(\a-w${_tmpID}\ax)
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax(\a-w${_tmpID}\ax)
 	FLOW burn_BST
 
 	ISMEDEAD
@@ -512,8 +512,8 @@ sub burn_BST(bool _debug, int _tmpID)
  * note: beastlord specific control
  * use: /chr
  ***|
-sub set_control_BST(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_BST\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
 	| output control map
 	/if (${_type.Equal[see]}) {
@@ -567,13 +567,18 @@ sub set_control_BST(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[hiatus]}) {
 		/invoke ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
 
+
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
+
+
 	}
 
 	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
 /return TRUE
-
-
 
 

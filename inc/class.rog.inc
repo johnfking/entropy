@@ -9,8 +9,8 @@
  * note: primary initilization of all cleric non shared data
  * use: not for you
  ***|
-sub set_ROG(bool _debug)
-	DEBUG \atset_ROG\ax()
+sub class_init(bool _debug)
+	DEBUG \atclass_init\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -76,8 +76,8 @@ sub set_ROG(bool _debug)
  * note: stabb'em in the ass
  * use:
  ***|
-sub main_ROG(bool _debug)
-	DEBUG \atmain_ROG\ax()
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
 
 	GETINPUT
 	ISMEDEAD
@@ -103,8 +103,8 @@ sub main_ROG(bool _debug)
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			CHECKDEFENSE
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
+			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
+			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
@@ -161,9 +161,9 @@ sub do_sneak_attack(bool _debug, int _tmpID)
  * note: Combat skills, Disciplines and Alternate abilities.
  * use: /call misc_combat_ROG DEBUG
  ***|
-sub misc_combat_ROG(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
-	FLOW misc_combat_ROG
+sub misc_combat(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -276,9 +276,9 @@ sub misc_combat_ROG(bool _debug, int _tmpID)
  * note: healing
  * use: auto
  ***|
-sub check_heal_ROG(bool _debug, string _type)
-	DEBUG \atcheck_heal_ROG\ax(\a-w${_type}\ax)
-	FLOW check_heal_ROG ${_type}
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -373,9 +373,9 @@ sub set_sos(bool _debug)
  * note: burn routines
  * use: seriously. if you are not buning constantly, you are doing something wrong. wtf you thinking.
  ***|
-sub burn_ROG(bool _debug, int _tmpID)
-	DEBUG \atburn_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
-	FLOW burn_ROG
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+	FLOW burn
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -478,8 +478,8 @@ sub burn_ROG(bool _debug, int _tmpID)
  * note: rogue specific controls
  * use: /chr
  ***|
-sub set_control_ROG(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_ROG\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
 	/declare _out string local
 
@@ -516,6 +516,11 @@ sub set_control_ROG(string _type, string _verbage, string _silent, bool _debug)
 	| leg poisons to keep
 	} else /if (${_type.Equal[poison]}) {
 		/if (!${set_control_num_range[${_debug}, stLegPoison, "${_verbage}", 0, 99]}) /return FALSE
+
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
 
 	}
 

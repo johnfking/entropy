@@ -6,10 +6,10 @@
 
 
 |***
- * note: primary initilization of all bard non shared data
+ * note: primary initilization of all non shared data
  * use: god i hate bards...
  ***|
-sub set_BRD(bool _debug)
+sub class_init(bool _debug)
 	DEBUG \atset_BRD\ax()
 
 	/if (${maDebug.Find[init].Value}) {
@@ -34,13 +34,31 @@ sub set_BRD(bool _debug)
 	/call set_data_map FALSE maChr stSongRefresh												6															"${auxnum} remaining duration on a song to refresh. in seconds"
 
 	| current song line
-	/call set_data_list ${_debug} maSong lsLineSong											EMPTY												"${auxli} list of song numbers to sing"  song
+	/call set_data_list ${_debug} maSong lsLineSong											EMPTY													"${auxli} list of song numbers to sing"  song
 
 	| aa boastful bellow switch
 	/call set_data_map FALSE maChr swAABellow														FALSE													"${auxsw} enable/disable using AA Boastful Bellow"
 
 	| sing OOC
 	/call set_data_map FALSE maChr swPulseOOC														FALSE													"${auxna} sing while out of combat"
+
+	| AAs
+	/call set_data_map ${_debug} maChr stAAFierceEye										PREGEN|1											"${auxna} Fierce Eye aa"
+	/call set_data_map ${_debug} maChr stAAReflexiveRetort							PREGEN|1											"${auxna} Reflexive Retort aa"
+	/call set_data_map ${_debug} maChr stAARelfexiveRejoinder						PREGEN|1											"${auxna} Relfexive Rejoinder aa"
+	/call set_data_map ${_debug} maChr stAABladedSong										PREGEN|1											"${auxna} Bladed Song aa"
+	/call set_data_map ${_debug} maChr stAACacophony										PREGEN|1											"${auxna} Cacophony aa"
+	/call set_data_map ${_debug} maChr stAABoastfulBellow								PREGEN|1											"${auxna} Boastful Bellow aa"
+	/call set_data_map ${_debug} maChr stAALyricalPrankster							PREGEN|1											"${auxna} Lyrical Prankster aa"
+	/call set_data_map ${_debug} maChr stAASongofStone									PREGEN|1											"${auxna} Song of Stone aa"
+	/call set_data_map ${_debug} maChr stAARallyingSolo									PREGEN|1											"${auxna} Rallying Solo aa"
+	/call set_data_map ${_debug} maChr stAAThousandBlades								PREGEN|1											"${auxna} Thousand Blades aa"
+	/call set_data_map ${_debug} maChr stAAFuneralDirge									PREGEN|1											"${auxna} Funeral Dirge aa"
+	/call set_data_map ${_debug} maChr stAAQuickTime										PREGEN|1											"${auxna} Quick Time aa"
+	/call set_data_map ${_debug} maChr stAAFrenziedKicks								PREGEN|1											"${auxna} Frenzied Kicks aa"
+	/call set_data_map ${_debug} maChr stAASelosSonata									PREGEN|1											"${auxna} Selo's Sonata aa"
+	/call set_data_map ${_debug} maChr stAAShaurisSonorousClouding			PREGEN|1											"${auxna} Shauri's Sonorous Clouding aa"
+
 
 
 	/if (${maDebug.Find[init].Value}) {
@@ -51,8 +69,13 @@ sub set_BRD(bool _debug)
 /return TRUE
 
 
-sub main_BRD(bool _debug)
-	DEBUG \atmain_BRD\ax()
+
+|***
+ * note: main class routine
+ * use:
+ ***|
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
 
 	/if (AUTO && !ENGINE3) {
 		/if (${maChr.Find[swPulseOOC].Value} && !${Select[${Me.CombatState},combat]}) {
@@ -82,8 +105,8 @@ sub main_BRD(bool _debug)
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
 			| /call control_routine FALSE
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
+			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
+			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/call control_routine FALSE
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (SWARM) /call cast_servant_swarm FALSE TARGET
@@ -120,9 +143,9 @@ sub main_BRD(bool _debug)
  *	DES: Combat skills, Disciplines and Alternate abilities.
  *	USE: Disc/aas and stuffs
  ***|
-sub misc_combat_BRD(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_BRD\ax()
-	FLOW misc_combat_BRD
+sub misc_combat(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat\ax()
+	FLOW misc_combat
 
 	ISMEDEAD
 
@@ -154,28 +177,28 @@ sub misc_combat_BRD(bool _debug, int _tmpID)
 		/call stick_to_target FALSE ${_tmpID}
 	}
 
-	/if (${is_ready[${_debug}, "Fierce Eye"]}) {
-		/call voodoo ${_debug} "Fierce Eye" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAFierceEye].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAFierceEye].Value}" 0 FALSE
 	}
 
- 	/if (${is_ready[${_debug}, "Reflexive Retort"]}) {
- 		/call voodoo ${_debug} "Reflexive Retort" ${_tmpID} FALSE
+ 	/if (${is_ready[${_debug}, "${maChr.Find[stAAReflexiveRetort].Value}"]}) {
+ 		/call voodoo ${_debug} "${maChr.Find[stAAReflexiveRetort].Value}" ${_tmpID} FALSE
  	}
 
- 	/if (${is_ready[${_debug}, "Relfexive Rejoinder"]}) {
- 		/call voodoo ${_debug} "Relfexive Rejoinder" ${_tmpID} FALSE
+ 	/if (${is_ready[${_debug}, "${maChr.Find[stAARelfexiveRejoinder].Value}"]}) {
+ 		/call voodoo ${_debug} "${maChr.Find[stAARelfexiveRejoinder].Value}" ${_tmpID} FALSE
  	}
 
- 	/if (${is_ready[${_debug}, "Bladed Song"]}) {
- 		/call voodoo ${_debug} "Bladed Song" 0 FALSE
+ 	/if (${is_ready[${_debug}, "${maChr.Find[stAABladedSong].Value}"]}) {
+ 		/call voodoo ${_debug} "${maChr.Find[stAABladedSong].Value}" 0 FALSE
  	}
 
-	/if (${is_ready[${_debug}, "Cacophony"]}) {
-		/call voodoo ${_debug} "Cacophony" ${_tmpID} FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAACacophony].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAACacophony].Value}" ${_tmpID} FALSE
 	}
-	/if (${Spawn[TARGET].PctHPs} > 30 && ${maChr.Find[swAABellow].Value} && ${Me.PctEndurance} > 30) {
-		/if (${is_ready[${_debug}, "Boastful Bellow"]}) {
-			/call voodoo ${_debug} "Boastful Bellow" ${_tmpID} FALSE
+	/if (${Spawn[${_tmpID}].PctHPs} > 30 && ${maChr.Find[swAABellow].Value} && ${Me.PctEndurance} > 30) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAABoastfulBellow].Value}" ${_tmpID} FALSE
 		}
 		/if (${target[isdead, ${_tmpID}]}) {
 			/call pulse_stop
@@ -190,11 +213,11 @@ sub misc_combat_BRD(bool _debug, int _tmpID)
 
 |***
  * note: self healing
- * use: /call check_heal__${Me.Class.ShortName}
+ * use: /call check_heal
  ***|
-sub check_heal_BRD(bool _debug, string _type)
-	DEBUG \atcheck_heal_BRD\ax(\a-w${_type}\ax)
-	FLOW check_heal_BRD ${_type}
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -261,13 +284,13 @@ sub cast_servant_swarm(bool _debug, int _tmpID)
 
 	/if (${Target.ID}) /pet swarm
 
-	/if (${is_ready[${_debug}, "Lyrical Prankster"]}) {
-		/call voodoo ${_debug} "Lyrical Prankster" ${_tmpID} FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAALyricalPrankster].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAALyricalPrankster].Value}" ${_tmpID} FALSE
 		/return
 	}
 
-	/if (${is_ready[${_debug}, "Song of Stone"]}) {
-		/call voodoo ${_debug} "Song of Stone" alt ${_tmpID} FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAASongofStone].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAASongofStone].Value}" alt ${_tmpID} FALSE
 		/return
 	}
 
@@ -331,7 +354,6 @@ sub pulse_cycle(bool _debug, _tmpID, string _tag)
 			/continue
 		}
 
-
 		| check the tag passed
 		/if (${Bool[${_tag}]}) {
 			/if (!${lsSong${_lipl.Value}Tag.Contains[${_tag}]}) {
@@ -371,6 +393,12 @@ sub pulse_cycle(bool _debug, _tmpID, string _tag)
 		}
 
 		/call voodoo ${_debug} "${maSong.Find[stSong${_lipl.Value}].Value}" 0 FALSE
+
+		/doevents
+
+		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,RESISTED,IMMUNE]}) {
+			/return TRUE
+		}
 
 		/invoke ${_lipl.Advance}
 
@@ -412,7 +440,10 @@ sub cast_AA_rallying(bool _debug)
 	DEBUG \atcast_AA_rallying\ax()
 	FLOW cast_AA_rallying
 
- 	/if (SAFEZONE || !${Me.AltAbilityReady[Rallying Solo]}) /return
+ 	/if (SAFEZONE || !${Me.AltAbilityReady[${maChr.Find[stAARallyingSolo].Value}]}) {
+ 		/return FALSE
+ 	}
+
 	ISMEDEAD
 	GETINPUT
 
@@ -422,8 +453,11 @@ sub cast_AA_rallying(bool _debug)
  	/declare _manaPoint int local 30
 
  	/if (((${Me.PctEndurance} < ${_endurancePoint}) && (${Me.PctMana} < ${_manaPoint})) && ${Select[${Me.CombatState},resting]}) {
-		/if (${is_ready[${_debug}, "Rallying Solo"]}) /call voodoo ${_debug} "Rallying Solo" ${Me.ID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAARallyingSolo].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAARallyingSolo].Value}" ${Me.ID} FALSE
+		}
 	}
+
 /return TRUE
 
 
@@ -432,9 +466,9 @@ sub cast_AA_rallying(bool _debug)
  * note: Bard burn routines
  * use: establish all comp/trigger skills
  ***|
-sub burn_BRD(bool _debug, int _tmpID)
-	DEBUG \atburn_BRD\ax(\a-w${_tmpID}\ax)
-	FLOW burn_BRD
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+	FLOW burn
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -462,24 +496,24 @@ sub burn_BRD(bool _debug, int _tmpID)
 
 	| /call control_routine FALSE
 
- 	/if (${is_ready[${_debug}, "Thousand Blades"]}) {
- 		/call voodoo ${_debug} "Thousand Blades" 0 FALSE
+ 	/if (${is_ready[${_debug}, "${maChr.Find[stAAThousandBlades].Value}"]}) {
+ 		/call voodoo ${_debug} "${maChr.Find[stAAThousandBlades].Value}" 0 FALSE
  	}
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
-	/if (${is_ready[${_debug}, "Funeral Dirge"]}) {
-		/call voodoo ${_debug} "Funeral Dirge" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAFuneralDirge].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAFuneralDirge].Value}" 0 FALSE
 	}
 
 	| this is disabled until the stuck gem bug is fixed
-	| /if (${is_ready[${_debug}, "Quick Time"]} && !${Me.Song[Ruaabri's Fury].ID}) {
-	| 	/call voodoo ${_debug} "Quick Time" 0 FALSE
+	| /if (${is_ready[${_debug}, "${maChr.Find[stAAQuickTime].Value}"]} && !${Me.Song[Ruaabri's Fury].ID}) {
+	| 	/call voodoo ${_debug} "${maChr.Find[stAAQuickTime].Value}" 0 FALSE
 	| }
 
 	| trigger Frenzied kicks AA for bards if target is debuffed from intimidate
-	/if (${Target.Buff[Harbinger's Intimidation].ID} && ${is_ready[${_debug}, "Frenzied Kicks"]}) {
-		/call voodoo ${_debug} "Frenzied Kicks" 0 FALSE
+	/if (${Target.Buff[Harbinger's Intimidation].ID} && ${is_ready[${_debug}, "${maChr.Find[stAAFrenziedKicks].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAFrenziedKicks].Value}" 0 FALSE
 	}
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
@@ -501,14 +535,14 @@ sub Bind_command_brd_travel(bool _debug)
 	DEBUG \atBind_command_brd_travel\ax
 	FLOW Bind_command_brd_travel
 
-	/if (!${check_class[TRUE, |BRD]}) /return
-
-	/if (${is_ready[${_debug}, "Selo's Sonata"]}) {
-		/call voodoo ${_debug} "Selo's Sonata" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAASelosSonata].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAASelosSonata].Value}" 0 FALSE
 	}
+
 	/delay 1
-	/if (${is_ready[${_debug}, "Shauri's Sonorous Clouding"]}) {
-		/call voodoo ${_debug} "Shauri's Sonorous Clouding" alt 0 FALSE
+
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAShaurisSonorousClouding].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAShaurisSonorousClouding].Value}" 0 FALSE
 	}
 
 /return
@@ -516,11 +550,11 @@ sub Bind_command_brd_travel(bool _debug)
 
 
 |***
- * note: bard specific control
+ * note: class control
  * use: /chr
  ***|
-sub set_control_BRD(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_BRD\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
   /declare _out string local
 
@@ -531,7 +565,7 @@ sub set_control_BRD(string _type, string _verbage, string _silent, bool _debug)
 
 	| use mana click items
 	} else /if (${_type.Equal[manarecover]}) {
-		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return FALSE
 
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
@@ -540,19 +574,19 @@ sub set_control_BRD(string _type, string _verbage, string _silent, bool _debug)
 
 	| set AA fade use %
 	} else /if (${_type.Equal[fade]}) {
-		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return FALSE
 
 	| defensive mob agro count
 	} else /if (${_type.Equal[def]}) {
-		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return FALSE
 
 	| defensive mob agro count
 	} else /if (${_type.Equal[refresh]}) {
-		/if (!${set_control_num_range[${_debug}, stSongRefresh, "${_verbage}", 0, 18]}) /return
+		/if (!${set_control_num_range[${_debug}, stSongRefresh, "${_verbage}", 0, 18]}) /return FALSE
 
 	| set ae on/off / count
 	} else /if (${_type.Equal[ae]}) {
-		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return FALSE
 
 	| use rest song
 	} else /if (${_type.Equal[rest]}) {
@@ -566,6 +600,10 @@ sub set_control_BRD(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[ooc]}) {
 		/invoke ${set_switch_env[${_debug}, swPulseOOC, TRUE, ${_verbage}]}
 
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
 
 	}
 

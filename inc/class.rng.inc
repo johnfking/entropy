@@ -10,8 +10,8 @@
  * note: primary initilization of all ranger non shared data
  * use: not for you
  ***|
-sub set_RNG(bool _debug)
-	DEBUG \atset_RNG\ax()
+sub class_init(bool _debug)
+	DEBUG \atclass_init\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -60,6 +60,22 @@ sub set_RNG(bool _debug)
   /call set_data_list ${_debug} maChr lsTempBuffToon									EMPTY													"${auxli} list of toons to use your temp buff on"
 	/call set_data_map ${_debug} maChr stTempBuff		 										FALSE													"${auxna} temp buff spell"
 
+
+	| AAs
+	/call set_data_map ${_debug} maChr stAAImbuedFerocity								PREGEN|1											"${auxna} Imbued Ferocity aa"
+	/call set_data_map ${_debug} maChr stAAEmpoweredBlades							PREGEN|1											"${auxna} Empowered Blades aa"
+	/call set_data_map ${_debug} maChr stAAOutridersAccuracy						PREGEN|1											"${auxna} Outrider's Accuracy aa"
+	/call set_data_map ${_debug} maChr stAAOutridersAttack							PREGEN|1											"${auxna} Outrider's Attack aa"
+	/call set_data_map ${_debug} maChr stAAGroupGuardianoftheForest			PREGEN|1											"${auxna} Group Guardian of the Forest aa"
+	/call set_data_map ${_debug} maChr stAAGuardianoftheForest					PREGEN|1											"${auxna} Guardian of the Forest aa"
+	/call set_data_map ${_debug} maChr stAAPackHunt											PREGEN|1											"${auxna} Pack Hunt aa"
+	/call set_data_map ${_debug} maChr stAAElementalArrow								PREGEN|1											"${auxna} Elemental Arrow aa"
+	/call set_data_map ${_debug} maChr stAAAuspiceoftheHunter						PREGEN|1											"${auxna} Auspice of the Hunter aa"
+	/call set_data_map ${_debug} maChr stAAScarletCheetahsFang					PREGEN|1											"${auxna} Scarlet Cheetah's Fang aa"
+
+
+
+
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
 		/mqp
@@ -69,28 +85,12 @@ sub set_RNG(bool _debug)
 
 
 
-Imbued Ferocity
-Empowered Blades
-Outrider's Accuracy
-Outrider's Attack
-Group Guardian of the Forest
-Guardian of the Forest
-Pack Hunt
-Elemental Arrow
-Auspice of the Hunter
-Scarlet Cheetah's Fang
-
-
-
-
-
-
 |***
  * note: Main Ranger Routine
  * use:
  ***|
-sub main_RNG(bool _debug)
-	DEBUG \atmain_RNG\ax()
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
 
 	GETINPUT
 	ISMEDEAD
@@ -116,8 +116,8 @@ sub main_RNG(bool _debug)
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/call check_heal_routines
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value}
+			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
+			/call misc_combat ${maDebug.Find[misc].Value}
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/if (${maChr.Find[swSummer].Value} && !${timer_Summer_Nuke}) /call cast_nuke_summer ${maDebug.Find[summer].Value} TARGET
@@ -151,11 +151,11 @@ sub main_RNG(bool _debug)
 
 |***
  * note: Combat skills, Disciplines and Alternate abilities.
- * use: /call misc_combat_${Me.Class.ShortName}
+ * use: /call misc_combat
  ***|
-sub misc_combat_RNG(bool _debug)
-	DEBUG \atmisc_combat_RNG\ax()
-	FLOW misc_combat_RNG
+sub misc_combat(bool _debug)
+	DEBUG \atmisc_combat\ax()
+	FLOW misc_combat
 
 	ISMEDEAD
 	/if (${target[isdead, TARGET]}) {
@@ -223,15 +223,15 @@ sub cast_AA_auspice(bool _debug)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
-	/if (${Me.AltAbilityReady[Mass Group Buff]} && ${Me.AltAbilityReady[Auspice of the Hunter]} && !${Bool[${Me.Song[Auspice of the Hunter]}]}) {
+	/if (${Me.AltAbilityReady[Mass Group Buff]} && ${Me.AltAbilityReady[${maChr.Find[stAAAuspiceoftheHunter].Value}]} && !${Bool[${Me.Song[${maChr.Find[stAAAuspiceoftheHunter].Value}]}]}) {
 		/if (${is_ready[${_debug}, "Mass Group Buff"]}) {
 			/call voodoo ${_debug} "Mass Group Buff" 0 FALSE
 		}
-		/if (${is_ready[${_debug}, "Auspice of the Hunter"]}) {
-			/call voodoo ${_debug} "Auspice of the Hunter" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAAuspiceoftheHunter].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAAuspiceoftheHunter].Value}" 0 FALSE
 		}
-	} else /if (${Me.Song[Auspice of the Hunter].ID}) {
-		OUT ${bad}QUIT\ax trying to cast ${sp}Auspice of the Hunter\ax while its running.
+	} else /if (${Me.Song[${maChr.Find[stAAAuspiceoftheHunter].Value}].ID}) {
+		OUT ${bad}QUIT\ax trying to cast ${sp}${maChr.Find[stAAAuspiceoftheHunter].Value}\ax while its running.
 	}
 /return TRUE
 
@@ -239,11 +239,11 @@ sub cast_AA_auspice(bool _debug)
 
 |***
  * note: healing
- * use: /call check_heal_self_${Me.Class.ShortName}
+ * use: /call check_heal
  ***|
-sub check_heal_RNG(bool _debug, string _type)
-	DEBUG \atcheck_heal_RNG\ax(\a-w${_type}\ax)
-	FLOW check_heal_RNG ${_type}
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -289,6 +289,15 @@ sub check_heal_RNG(bool _debug, string _type)
 		}
 	}
 
+
+	/if (${Select[${_type},tot]}) {
+ 	 /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+ 			/return FALSE
+ 		}
+
+		/call cast_cycle_heal ${_debug} ${Target.ID} tot
+	}
+
   /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
  		/return FALSE
  	}
@@ -331,9 +340,9 @@ sub cast_nuke_summer(bool _debug, int _tmpID)
  * note: really should be starting fires
  * use:
  ***|
-sub burn_RNG(bool _debug, int _tmpID)
-	DEBUG \atburn_RNG\ax(\a-w${_tmpID}\ax)
-	FLOW burn_RNG
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+	FLOW burn
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -361,35 +370,35 @@ sub burn_RNG(bool _debug, int _tmpID)
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 	| cheeta
-	/if (${is_ready[${_debug}, "Scarlet Cheetah's Fang"]}) {
-		/call voodoo ${_debug} "Scarlet Cheetah's Fang" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAScarletCheetahsFang].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAScarletCheetahsFang].Value}" 0 FALSE
 	}
 
 	| auspice
-	/if (${is_ready[${_debug}, "Auspice of the Hunter"]}) {
-		/call voodoo ${_debug} "Auspice of the Hunter" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAAuspiceoftheHunter].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAAuspiceoftheHunter].Value}" 0 FALSE
 	}
 
 	| MELEE
 	/if (MELEE && !RANGE || MELEE && ${Spawn[${_tmpID}].Distance} <= ${Spawn[${_tmpID}].MaxRangeTo}*.9) {
 
 		| weapon proc
-		/if (${is_ready[${_debug}, "Imbued Ferocity"]}) {
-			/call voodoo ${_debug} "Imbued Ferocity" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAImbuedFerocity].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAImbuedFerocity].Value}" 0 FALSE
 		}
 
 		/if (!${Me.ActiveDisc.ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
-			/if (${is_ready[${_debug}, "Empowered Blades"]}) {
-				/call voodoo ${_debug} "Empowered Blades" 0 FALSE
+			/if (${is_ready[${_debug}, "${maChr.Find[stAAEmpoweredBlades].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAAEmpoweredBlades].Value}" 0 FALSE
 			}
 
-		} else /if (!${Me.ActiveDisc.ID} && !${Me.Song[Empowered Blades].ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
+		} else /if (!${Me.ActiveDisc.ID} && !${Me.Song[${maChr.Find[stAAEmpoweredBlades].Value}].ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
 			/if (${is_ready[${_debug}, "${maChr.Find[stDiscMele].Value}"]}) {
 				/call voodoo ${_debug} "${maChr.Find[stDiscMele].Value}" 0 FALSE
 			}
 		}
 
-		/if (!${Me.ActiveDisc.ID} && !${is_ready[${_debug}, "${maChr.Find[stDiscMele].Value}"]} && !${Me.AltAbilityReady[Empowered Blades]} && !${Me.Song[Empowered Blades].ID}) {
+		/if (!${Me.ActiveDisc.ID} && !${is_ready[${_debug}, "${maChr.Find[stDiscMele].Value}"]} && !${Me.AltAbilityReady[${maChr.Find[stAAEmpoweredBlades].Value}]} && !${Me.Song[${maChr.Find[stAAEmpoweredBlades].Value}].ID}) {
 			/call cast_glyph ${maDebug.Find[glyph].Value}
 		  | Intensity of the Resolute AA 4 hour reuse
 		  /call cast_AA_intensity ${maDebug.Find[intensity].Value}
@@ -415,29 +424,29 @@ sub burn_RNG(bool _debug, int _tmpID)
 
 
 	| attack / dmg AA
-	/if (${is_ready[${_debug}, "Outrider's Accuracy"]}) {
-		/call voodoo ${_debug} "Outrider's Accuracy" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAOutridersAccuracy].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAOutridersAccuracy].Value}" 0 FALSE
 	}
-	/if (${is_ready[${_debug}, "Outrider's Attack"]}) {
-		/call voodoo ${_debug} "Outrider's Attack" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAOutridersAttack].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAOutridersAttack].Value}" 0 FALSE
 	}
 
 	| guardian buff (group first)
-	/if (!${Me.Song[Guardian of the Forest].ID} && ${Me.AltAbilityReady[Group Guardian of the Forest]}) {
-		/if (${is_ready[${_debug}, "Group Guardian of the Forest"]}) {
-			/call voodoo ${_debug} "Group Guardian of the Forest" 0 FALSE
+	/if (!${Me.Song[${maChr.Find[stAAGuardianoftheForest].Value}].ID} && ${Me.AltAbilityReady[${maChr.Find[stAAGroupGuardianoftheForest].Value}]}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAGroupGuardianoftheForest].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAGroupGuardianoftheForest].Value}" 0 FALSE
 		}
 
-	} else /if (!${Me.Song[Group Guardian of the Forest].ID} && ${Me.AltAbilityReady[Guardian of the Forest]}) {
-		/if (${is_ready[${_debug}, "Guardian of the Forest"]}) {
-			/call voodoo ${_debug} "Guardian of the Forest" 0 FALSE
+	} else /if (!${Me.Song[${maChr.Find[stAAGroupGuardianoftheForest].Value}].ID} && ${Me.AltAbilityReady[${maChr.Find[stAAGuardianoftheForest].Value}]}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAGuardianoftheForest].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAGuardianoftheForest].Value}" 0 FALSE
 		}
 	}
 
 	| swarm pets
 	/if (SWARM) {
-		/if (${is_ready[${_debug}, "Pack Hunt"]}) {
-			/call voodoo ${_debug} "Pack Hunt" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAPackHunt].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAPackHunt].Value}" ${_tmpID} FALSE
 		}
 	}
 
@@ -454,8 +463,8 @@ sub burn_RNG(bool _debug, int _tmpID)
  * note: ranger specific control
  * use: /chr
  ***|
-sub set_control_RNG(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_RNG\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
   /declare _out string local
 
@@ -491,6 +500,11 @@ sub set_control_RNG(string _type, string _verbage, string _silent, bool _debug)
 	| use hiatus disc
 	} else /if (${_type.Equal[hiatus]}) {
 		/invoke ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
 
 	}
 

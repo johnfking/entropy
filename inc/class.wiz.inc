@@ -9,8 +9,8 @@
  * note: primary initilization of all wizard non shared data
  * use: not for you
  ***|
-sub set_WIZ(bool _debug)
-	DEBUG \atset_WIZ\ax()
+sub init_class(bool _debug)
+	DEBUG \atinit_class\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -66,8 +66,8 @@ sub set_WIZ(bool _debug)
  * note: main wizzeurd routine
  * use:
  ***|
-sub main_WIZ(bool _debug)
-	DEBUG \atmain_WIZ\ax()
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
 
 	/if (AUTO && !ENGINE3) {
 	} else /if (AUTO && ENGINE3) {
@@ -92,18 +92,18 @@ sub main_WIZ(bool _debug)
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
+			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stTempPet].Value}"
 			/if (${maCC.Find[swAlliance].Value}) /call trigger_alliance TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) {
 				/if (${maChr.Find[swForceTC].Value}) {
-					/call force_twincast_${Me.Class.ShortName} ${maDebug.Find[twincast].Value} TARGET
+					/call force_twincast ${maDebug.Find[twincast].Value} TARGET
 				}
 				/call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			}
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
+			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 		} else /if (VALID && ENGINE3) {
 			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
@@ -131,9 +131,9 @@ sub main_WIZ(bool _debug)
  * note: Combat skills, Disciplines and Alternate abilities.
  * use: /call misc_combat_${Me.Class.ShortName} DEBUG TARGETID
  ***|
-sub misc_combat_WIZ(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_WIZ\ax(\a-w${_tmpID}\ax)
-	FLOW misc_combat_WIZ
+sub misc_combat(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -218,11 +218,11 @@ sub check_harvest(bool _debug)
 
 |***
  * note: healing. no. you dont get any. suck it up butercup
- * use: /call check_heal_${Me.Class.ShortName}
+ * use: /call check_heal
  ***|
-sub check_heal_WIZ(bool _debug, string _type)
-	DEBUG \atcheck_heal_WIZ\ax(\a-w${_type}\ax)
-	FLOW check_heal_WIZ ${_type}
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -269,9 +269,9 @@ sub check_heal_WIZ(bool _debug, string _type)
  * note: Wizard burn routines
  * use: bug guns?
  ***|
-sub burn_WIZ(bool _debug, int _tmpID)
-	DEBUG \atburn_WIZ\ax(\a-w${_tmpID}\ax)
-	FLOW burn_WIZ
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+	FLOW burn
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -365,11 +365,11 @@ sub burn_WIZ(bool _debug, int _tmpID)
 
 |***
  * note: Control for getting Twincast either spell or Proc
- * use: /call force_twincast_wiz DEBUG
+ * use: /call force_twincast DEBUG
  ***|
-sub force_twincast_WIZ(bool _debug, int _tmpID)
-	DEBUG \atforce_twincast_WIZ\ax(\a-w${_tmpID}\ax)
-	FLOW force_twincast_WIZ
+sub force_twincast(bool _debug, int _tmpID)
+	DEBUG \atforce_twincast\ax(\a-w${_tmpID}\ax)
+	FLOW force_twincast
 
 	ISMEDEAD
 	CHECKEXIT
@@ -402,8 +402,8 @@ sub force_twincast_WIZ(bool _debug, int _tmpID)
  * note: Class controls
  * use: /chr []
  ***|
-sub set_control_WIZ(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_WIZ\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
   /declare _out string local
 
@@ -448,6 +448,11 @@ sub set_control_WIZ(string _type, string _verbage, string _silent, bool _debug)
 	| force twincast attempts
 	} else /if (${_type.Equal[forcetc]}) {
 		/invoke ${set_switch_env[${_debug}, swForceTC, TRUE, ${_verbage}]}
+
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
 
 
 	}

@@ -9,8 +9,8 @@
  * note: primary initilization of all cleric non shared data
  * use: not for you
  ***|
-sub set_SHD(bool _debug)
-	DEBUG \atset_SHD\ax()
+sub class_init(bool _debug)
+	DEBUG \atclass_init\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -87,8 +87,8 @@ sub set_SHD(bool _debug)
  * note: Main Shadowknight Routine
  * use: self absorbed asses.. think they can tank but in reality wet TP is tougher.
  ***|
-sub main_SHD(bool _debug)
-	DEBUG \atmain_SHD\ax()
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
 
 	/if (AUTO && !ENGINE3) {
 		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle FALSE
@@ -115,10 +115,10 @@ sub main_SHD(bool _debug)
 			/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 				/call cast_shield_flash ${_debug} aa
 			}
-			/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} TARGET
+			/if (AGRO) /call get_agro ${maDebug.Find[agro].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
+			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
+			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
@@ -160,11 +160,9 @@ sub main_SHD(bool _debug)
  * note: healing
  * use: /call check_heal_self_${Me.Class.ShortName}
  ***|
-sub check_heal_SHD(bool _debug, string _type)
-	DEBUG \atcheck_heal_${Me.Class.ShortName}\ax(\a-w${_type}\ax)
-	FLOW check_heal_SHD ${_type}
-
-
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -211,8 +209,6 @@ sub check_heal_SHD(bool _debug, string _type)
 				/call voodoo ${_debug} "${maChr.Find[stAAViciousBiteofChaos].Value}" TARGET FALSE
 			}
 		}
-
-
 	}
 
   /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
@@ -220,9 +216,7 @@ sub check_heal_SHD(bool _debug, string _type)
  	}
 
 	GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
-
 	/call cast_cycle_heal ${_debug} ${hurtID} single
-
 	SETHUD EMPTY
 
 /return TRUE
@@ -233,9 +227,9 @@ sub check_heal_SHD(bool _debug, string _type)
  * note: kill all the things!
  * use: this shits auto, learn to love it.
  ***|
-sub misc_combat_SHD(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_SHD\ax(\a-w${_tmpID}\ax)
-	FLOW misc_combat_SHD
+sub misc_combat(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -277,7 +271,7 @@ sub misc_combat_SHD(bool _debug, int _tmpID)
 
 	| get me sum...
 	/if (AGRO) {
-		/call get_agro_${Me.Class.ShortName} ${_debug} ${_tmpID}
+		/call get_agro ${_debug} ${_tmpID}
 	}
 
 	| quickspear proc
@@ -314,13 +308,13 @@ sub misc_combat_SHD(bool _debug, int _tmpID)
  * note: we are agro gods.
  * use: /call get_agro_${Me.Class.ShortName}
  ***|
-sub get_agro_SHD(bool _debug, int _tmpID)
-	DEBUG \atget_agro_SHD\ax()
-	FLOW get_agro_SHD
+sub get_agro(bool _debug, int _tmpID)
+	DEBUG \atget_agro\ax()
+	FLOW get_agro
 
 	ISMEDEAD
 	CHECKEXIT
-	GETINPUT get_agro_SHD _tmpID|${_tmpID}
+	GETINPUT get_agr _tmpID|${_tmpID}
 
 	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
@@ -391,12 +385,6 @@ sub get_agro_SHD(bool _debug, int _tmpID)
 	}
 	| named fake hate
 	/if (${lsZoneNamed.Contains[${Target.DisplayName}]}) {
-		| i have no idea WTF happened to mindless hatred
-		| /if (${Me.PctAggro} < 90 || ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
-		| 	/if (${is_ready[${_debug}, "Mindless Hatred"]} && ${Target.Level} <= ${Me.Level}) {
-		| 		/call voodoo ${_debug} "Mindless Hatred" ${_tmpID} FALSE
-		| 	}
-		| }
 		/if (${Me.PctAggro} < 90 || ${Me.TargetOfTarget.ID} != ${Me.ID}) {
 			/if (${is_ready[${_debug}, "${maChr.Find[stAcrimony].Value}"]}) {
 				/call voodoo ${_debug} "${maChr.Find[stAcrimony].Value}" ${_tmpID} FALSE
@@ -412,9 +400,9 @@ sub get_agro_SHD(bool _debug, int _tmpID)
  * note: don't touch me there...
  * use:
  ***|
-sub burn_SHD(bool _debug, int _tmpID)
-	DEBUG \atburn_SHD\ax()
-	FLOW burn_SHD
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax()
+	FLOW burn
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -499,8 +487,8 @@ sub burn_SHD(bool _debug, int _tmpID)
  * note: class controls
  * use:
  ***|
-sub set_control_SHD(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_SHD\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
   /declare _out string local
 
@@ -545,6 +533,11 @@ sub set_control_SHD(string _type, string _verbage, string _silent, bool _debug)
 	| use hiatus disc
 	} else /if (${_type.Equal[hiatus]}) {
 		/invoke ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
 
 	}
 

@@ -1900,6 +1900,42 @@ sub set_stop(bool _debug, string _silent)
 
 
 
+
+|***
+ * note: stops: movement
+ * use: /call set_stop_movement DEBUG
+ ***|
+sub set_stop_movement(bool _debug)
+	DEBUG \atset_stop_movement\ax(\a-w\ax)
+
+	| stop movement
+	/declare _breakmove int local 1
+	/while (${Me.Moving} || ${Navigation.Active}) {
+
+		/if (${Stick.Active}) {
+			DEBUG ${sep}stop${sep}\a-wstick\ax (\a-r${_breakmove}\ax)
+			/squelch /stick off
+		}
+
+		/if (${Navigation.Active}) {
+			DEBUG ${sep}stop${sep}\a-wnavigation\ax (\a-r${_breakmove}\ax)
+			/nav stop |log=off
+		}
+
+		/varcalc _breakmove ${_breakmove}+1
+		/if (${Me.Moving} || ${_breakmove} > 4) /break
+
+	}
+
+/return TRUE
+
+
+
+
+
+
+
+
 |***
  * note: moves the toon to a valid/LoS location of a target id with a given distance
  * use : /call moveto_range [ID] [DISTANCE]
@@ -4437,7 +4473,7 @@ sub get_key_DBLOC(bool _debug, string _key)
  * use: /call do_raw_edit DEBUG [silent T/F] [variable to change] [value to change it too|gem#|cursor] [add|delete|clear (for lists)] [not used yet]
  ***|
 sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, string _add_delete, string _verbage)
-	DEBUG \atdo_raw_edit\ax(\aw${_silent}, ${_variable}, ${Parse[1,${_value}]}, ${_add_delete}, ${_verbage}\ax)
+	DEBUG \atdo_raw_edit\ax(\aw${_silent}, ${_variable}, ${Parse[1,"${_value}"]}, ${_add_delete}, ${_verbage}\ax)
 	FLOW do_raw_edit
 
 	| ** error control ** |
@@ -4696,8 +4732,6 @@ sub set_control_chr_spire(bool _debug, string _type, string _verbage)
 	DEBUG \atset_control_chr_spire\ax(\a-w${_type}\ax)
 	FLOW set_control_chr_spire
 
-  /declare _out string local
-
 	/if (${_type.Equal[group]}) {
 		/invoke ${set_switch_env[${_debug}, swSpireGroup, TRUE, ${_verbage}]}
 
@@ -4712,6 +4746,35 @@ sub set_control_chr_spire(bool _debug, string _type, string _verbage)
 	/invoke ${maControl.Add[group,swSpireGroup]}
 	/invoke ${maControl.Add[raid,swSpireRaid]}
 	/invoke ${set_control_output[${_debug}, maChr, "chr spire", maControl]}
+
+/return TRUE
+
+
+
+|***
+ * note: sets /chr invis
+ * use: /call set_control_chr_invis [debug] [type] [NAME]
+ ***|
+sub set_control_chr_invis(bool _debug, string _type, string _verbage)
+	DEBUG \atset_control_chr_spire\ax(\a-w"${_verbage}"\ax)
+	FLOW set_control_chr_invis
+
+		/if (${_type.Equal[self]}) {
+			/call do_raw_edit ${_debug} SILENT stInvisSingle "${_verbage}"
+		} else /if (${_type.Equal[group]}) {
+			/call do_raw_edit ${_debug} SILENT stInvisGroup "${_verbage}"
+		} else /if (${_type.Equal[selfivu]}) {
+			/call do_raw_edit ${_debug} SILENT stInvisSingleIVU "${_verbage}"
+		} else /if (${_type.Equal[groupivu]}) {
+			/call do_raw_edit ${_debug} SILENT stInvisGroupIVU "${_verbage}"
+		}
+
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[self,stInvisSingle|br]}
+		/invoke ${maControl.Add[group,stInvisGroup|Br]}
+		/invoke ${maControl.Add[selfivu,stInvisSingleIVU|br]}
+		/invoke ${maControl.Add[groupivu,stInvisGroupIVU|br]}
+		/invoke ${set_control_output[${_debug}, maChr, "chr invis", maControl]}
 
 /return TRUE
 
@@ -6814,13 +6877,13 @@ sub set_timer(bool _debug, string _my_timer, string _my_duration)
  ***|
 | #Event forcedloreleave "#*#already has #1# and it is lore#*#"
 | #Event forcedloreleave "#*#does not want #1#. It is either on their never list or they have selected No#*#"
-sub Event_forcedloreleave(string line, string _itemName, bool _debug)
+| sub Event_forcedloreleave(string line, string _itemName, bool _debug)
 	| /if (!${maEnv.Find[swADVLoot].Value}) /return
 	| /varset _itemName ${AdvLoot.SList[1].Name}
 	| /invoke ${out[14, "Cursor ${sep} ${cinfo}${_itemName}\ax -> ${oleave}"]}
 	| /ini "${INILoot}" "${_itemName.Left[1]}" "${_itemName}" Leave
 	| /doevents flush
-/return
+| /return
 
 sub do_loot(bool _debug)
 	DEBUG \atdo_loot\ax()
@@ -6836,7 +6899,11 @@ sub do_loot(bool _debug)
 		/return
 	}
 
-	/if (${Stick.Active} || !${Me.FreeInventory} || !${Me.UseAdvancedLooting} || ${AdvLoot.LootInProgress}) {
+	/if (!${AdvLoot.SCount} && !${AdvLoot.PCount}) {
+		DEBUG ${break}loot empty
+	}
+
+	/if (!${Me.FreeInventory} || !${Me.UseAdvancedLooting} || ${AdvLoot.LootInProgress}) {
 		/return FALSE
 	}
 
@@ -6867,49 +6934,68 @@ sub do_loot(bool _debug)
 	/if ((${Raid.Members} || ${Group.Members}) && ${AdvLoot.SCount}) {
 
 		/while (${AdvLoot.SCount}) {
-		| /for _scount ${AdvLoot.SCount} downto 1
-			| /varset _advlItem ${AdvLoot.SList[${_scount}].Name}
-			/varset _advlItem ${AdvLoot.SList[1].Name}
 
-			/if (${_advlItem.Equal[NULL]}) {
+			/if (${AdvLoot.SList[1].Name.Equal[NULL]}) {
 				/continue
 			}
 
+			| advloot window checkboxes will override
+			/delay 1s !${AdvLoot.LootInProgress}
+			/if (${AdvLoot.SList[1].Need}) {
+				/advloot shared 1 giveto ${Me.Name}
+				/continue
+			} else /if (${AdvLoot.SList[1].Greed}) {
+				/advloot shared 1 giveto ${Me.Name}
+				/continue
+			} else /if (${AdvLoot.SList[1].No}) {
+				/advloot shared 1 leave
+				/continue
+			} else /if (${AdvLoot.SList[1].AlwaysGreed}) {
+				/advloot shared 1 giveto ${Me.Name}
+				/continue
+			} else /if (${AdvLoot.SList[1].AlwaysNeed}) {
+				/advloot shared 1 giveto ${Me.Name}
+				/continue
+			} else /if (${AdvLoot.SList[1].Never}) {
+				/advloot shared 1 leave
+				/continue
+			}
+
+
 			| get all the data for that item from loot file
-			/sqlite query ${maData.Find[DBloot].Value} slootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
+			/sqlite query ${maData.Find[DBloot].Value} slootquery SELECT * FROM loot_control WHERE item="${AdvLoot.SList[1].Name}"
 			/if (!${sql_check[${_debug}, slootquery, loot_control, "SELECT (loot_control)"]}) /endmacro
 
 			| if we did not find the item?
 			/if (!${sqlite.Rows[slootquery]}) {
 
 				/if (${lsGrain.Contains[14]}) {
-					OUT ${sep}${_advlItem}${sep}\a-w not in database\ax
+					OUT Loot${sep}${sep}\a-w${AdvLoot.SList[1].Name}\ax (\a-rnot in database\ax)
 				}
-				/if (${AdvLoot.SList[1].NoDrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
+				/if (${AdvLoot.SList[1].NoDrop} || ${FindItem[=${AdvLoot.SList[1].Name}].Lore} || ${FindItemBank[${AdvLoot.SList[1].Name}].Lore}) {
 					/if (${lsGrain.Contains[14]}) {
-						OUT ${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]
+						OUT Loot${sep}${add}${sep}\a-w${AdvLoot.SList[1].Name}\ax (\a-r${leave} [no drop/lore]\ax)
 					}
-					/sqlite query ${maData.Find[DBloot].Value} slootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
-					/if (!${sql_check[${_debug}, slootquery, loot_control, "INSERT INTO (loot_control)"]}) /endmacro
+					/sqlite query ${maData.Find[DBloot].Value} slootquery INSERT OR REPLACE INTO loot_control(item,action) VALUES("${AdvLoot.SList[1].Name}", "leave")
+					/if (!${sql_check[${_debug}, slootquery, loot_control, "INSERT OR REPLACE INTO (loot_control)"]}) /endmacro
 						/delay 1s !${AdvLoot.LootInProgress}
 						/if (${AdvLoot.SList[1].ID}) {
-							DEBUG ${sep}Leaving${sep}\a-w${_advlItem}\ax
+							DEBUG ${sep}Leaving${sep}\a-w${AdvLoot.SList[1].Name}\ax
 							/advloot shared 1 leave
 							/delay 1
-							/return TRUE
 						}
 
 				} else {
 					/if (${lsGrain.Contains[14]}) {
-						OUT ${add} ${dot} ${_advlItem} = ${keep} [default]
+						OUT Loot${sep}${add}${sep}\a-w${AdvLoot.SList[1].Name}\ax (\a-r${keep} [default]\ax)
 					}
-
-					/sqlite query ${maData.Find[DBloot].Value} slootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep")
-					/if (!${sql_check[${_debug}, slootquery, loot_control, "INSERT INTO (loot_control)"]}) /endmacro
+					| set item as keep
+					/sqlite query ${maData.Find[DBloot].Value} slootquery INSERT OR REPLACE INTO loot_control(item,action) VALUES("${AdvLoot.SList[1].Name}", "keep")
+					/if (!${sql_check[${_debug}, slootquery, loot_control, "INSERT OR REPLACE INTO (loot_control)"]}) /endmacro
 				}
 
 				| reload lootquery
-				/sqlite query ${maData.Find[DBloot].Value} slootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
+				/sqlite query ${maData.Find[DBloot].Value} slootquery SELECT * FROM loot_control WHERE item="${AdvLoot.SList[1].Name}"
 				/if (!${sql_check[${_debug}, slootquery, loot_control, "SELECT (loot_control)"]}) /endmacro
 
 			}
@@ -6930,14 +7016,18 @@ sub do_loot(bool _debug)
 				}
 
 			| ditch the item if we need too
-			} else /if (${Select[${_advlChoice},leave]} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
-				/if (${Select[${_advlChoice},Announce]}) ${out[14 "Loot Leaving${sep}\a-w${_advlItem}\ax" 0]}
+			} else /if (${Select[${_advlChoice},leave]} || ${FindItem[=${AdvLoot.SList[1].Name}].Lore} || ${FindItemBank[${AdvLoot.SList[1].Name}].Lore}) {
+
+				/if (${Select[${_advlChoice},Announce]} && ${lsGrain.Contains[14]}) {
+					OUT Loot${sep}\ayLeaving\ax${sep}\a-w${AdvLoot.SList[1].Name}
+				}
+
 				/delay 1s !${AdvLoot.LootInProgress}
 				/if (${AdvLoot.SList[1].ID}) {
-					DEBUG ${sep}Leaving${sep}\a-w${_advlItem}\ax
+					DEBUG ${sep}eaving${sep}\a-w${AdvLoot.SList[1].Name}\ax
 					/advloot shared 1 leave
 					/delay 1
-					/return TRUE
+					| /return TRUE
 				}
 
 			| or we keep it.
@@ -6945,7 +7035,7 @@ sub do_loot(bool _debug)
 				/if (${Select[${_advlChoice},keep,destroy,sell]}) {
 					/delay 1s !${AdvLoot.LootInProgress}
 					/if (${AdvLoot.SList[1].ID}) {
-						DEBUG ${sep}Moving to PList${sep}\a-w${_advlItem}\ax
+						DEBUG ${sep}Moving to PList${sep}\a-w${AdvLoot.SList[1].Name}\ax
 						/delay 1
 						/advloot shared 1 giveto ${Me.Name}
 						/delay 1s !${AdvLoot.LootInProgress}
@@ -6953,8 +7043,6 @@ sub do_loot(bool _debug)
 				}
 			}
 		}
-		| /next _scount
-		/return TRUE
 	}
 
 	| Personal List sorting. ALSO for solo killing
@@ -6964,29 +7052,47 @@ sub do_loot(bool _debug)
 
 		/while (${AdvLoot.PCount}) {
 
-			/varset _advlItem ${AdvLoot.PList[1].Name}
-
-			/if (${_advlItem.Equal[NULL]}) {
-				/return TRUE
+			| advloot window checkboxes will override
+			/delay 1s !${AdvLoot.LootInProgress}
+			/if (${AdvLoot.PList[1].Need}) {
+				/advloot personal 1 loot
+				/continue
+			} else /if (${AdvLoot.PList[1].Greed}) {
+				/advloot personal 1 loot
+				/continue
+			} else /if (${AdvLoot.PList[1].No}) {
+				/advloot personal 1 leave
+				/continue
+			} else /if (${AdvLoot.PList[1].AlwaysGreed}) {
+				/advloot personal 1 loot
+				/continue
+			} else /if (${AdvLoot.PList[1].AlwaysNeed}) {
+				/advloot personal 1 loot
+				/continue
+			} else /if (${AdvLoot.PList[1].Never}) {
+				/advloot personal 1 leave
+				/continue
 			}
 
 			DEBUG ${sep}personal${sep}1${sep}\a-e${AdvLoot.PList[1].Name}\ax
 
-			/sqlite query ${maData.Find[DBloot].Value} plootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
-			/if (!${sql_check[${_debug}, plootquery, loot_control, "SELECT (loot_control)"]}) /endmacro
+			/sqlite query ${maData.Find[DBloot].Value} plootquery SELECT * FROM loot_control WHERE item="${AdvLoot.PList[1].Name}"
+			/if (!${sql_check[${_debug}, plootquery, loot_control, "SELECT (loot_control 1)"]}) /endmacro
 
 			/if (!${sqlite.Rows[plootquery]}) {
-				/invoke ${out[14, "${sep}${_advlItem}${sep}\a-w not in database\ax", 0]}
+				/if (${lsGrain.Contains[14]}) {
+					OUT Loot${sep}\a-w${AdvLoot.PList[1].Name}\ax (\a-rnot in database\ax)
+				}
 
-				/if (${AdvLoot.SList[1].NoDrop} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
+				/if (${AdvLoot.PList[1].NoDrop} || ${FindItem[=${AdvLoot.PList[1].Name}].Lore} || ${FindItemBank[1].Lore}) {
 					/if (${lsGrain.Contains[14]}) {
-						OUT ${add} ${dot} ${_advlItem} = ${leave} [no drop/lore]
+						OUT Loot${sep}${add}${sep}\a-w${AdvLoot.PList[1].Name}\ax (\a-r${leave} [no drop/lore]\ax)
 					}
-					/sqlite query ${maData.Find[DBloot].Value} plootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "leave")
-					/if (!${sql_check[${_debug}, plootquery, loot_control, "INSERT INTO (loot_control)"]}) /endmacro
+					/sqlite query ${maData.Find[DBloot].Value} plootquery INSERT OR REPLACE INTO loot_control(item,action) VALUES("${AdvLoot.PList[1].Name}", "leave")
+					/if (!${sql_check[${_debug}, plootquery, loot_control, "INSERT OR REPLACE INTO (loot_control 2)"]}) /endmacro
 
 					/if (${AdvLoot.PList[1].ID}) {
-						DEBUG ${sep}Leaving${sep}\a-w${_advlItem}\ax
+						DEBUG ${sep}\ayLeaving\ax${sep}\a-w${AdvLoot.PList[1].Name}\ax
 						/delay 1
 						/advloot personal 1 leave
 						/delay 1s !${AdvLoot.LootInProgress}
@@ -6994,15 +7100,15 @@ sub do_loot(bool _debug)
 
 				} else {
 					/if (${lsGrain.Contains[14]}) {
-						OUT ${add} ${dot} ${_advlItem} = ${keep} [default]
+						OUT Loot${sep}${add}${sep}\a-w${AdvLoot.PList[1].Name}\ax (\a-r${keep} [default]\ax)
 					}
-					/sqlite query ${maData.Find[DBloot].Value} plootquery INSERT INTO loot_control(item,action) VALUES("${_advlItem}", "keep")
-					/if (!${sql_check[${_debug}, plootquery, loot_control, "INSERT INTO (loot_control)"]}) /endmacro
+					/sqlite query ${maData.Find[DBloot].Value} plootquery INSERT OR REPLACE INTO loot_control(item,action) VALUES("${AdvLoot.PList[1].Name}", "keep")
+					/if (!${sql_check[${_debug}, plootquery, loot_control, "INSERT OR REPLACE INTO (loot_control)"]}) /endmacro
 
 				}
 				/delay 5
 				| reload lootquery
-				/sqlite query ${maData.Find[DBloot].Value} plootquery SELECT * FROM loot_control WHERE item="${_advlItem}"
+				/sqlite query ${maData.Find[DBloot].Value} plootquery SELECT * FROM loot_control WHERE item="${AdvLoot.PList[1].Name}"
 				/if (!${sql_check[${_debug}, plootquery, loot_control, "SELECT (loot_control)"]}) /endmacro
 
 			}
@@ -7013,19 +7119,19 @@ sub do_loot(bool _debug)
 			/if (${AdvLoot.PList[1].ID}) {
 				DEBUG ${sep}${AdvLoot.PList[1].ID}
 				/delay 2s !${AdvLoot.LootInProgress}
-				/if (${Select[${_advlChoiceP},ignore,leave]} || ${FindItem[=${_advlItem}].Lore} || ${FindItemBank[${_advlItem}].Lore}) {
+				/if (${Select[${_advlChoiceP},ignore,leave]} || ${FindItem[=${AdvLoot.PList[1].Name}].Lore} || ${FindItemBank[${AdvLoot.PList[1].Name}].Lore}) {
 					/if (${lsGrain.Contains[14]}) {
-						OUT Leaving${sep}\a-w${_advlItem}\ax
+					 	OUT Loot${sep}\a-yLeaving\ax${sep}\a-w${AdvLoot.PList[1].Name}\ax
 					}
 					/if (${AdvLoot.PList[1].ID}) {
-						DEBUG ${sep}Leaving${sep}\a-w${_advlItem}\ax
+						DEBUG ${sep}Leaving${sep}\a-w${AdvLoot.PList[1].Name}\ax
 						/delay 1
 						/advloot personal 1 leave
 						/delay 1s !${AdvLoot.LootInProgress}
 					}
 
 				} else /if (${Select[${_advlChoiceP},keep,sell]}) {
-					DEBUG ${sep}Moving to Inventory${sep}\a-w${_advlItem}\ax
+					DEBUG ${sep}Moving to Inventory${sep}\a-w${AdvLoot.PList[1].Name}\ax
 					/if (${AdvLoot.PList[1].ID}) {
 						/delay 1
 						/advloot personal 1 loot
@@ -7039,22 +7145,24 @@ sub do_loot(bool _debug)
 
 				} else /if (${Select[${_advlChoiceP},destroy]}) {
 					/if (${AdvLoot.PList[1].ID}) {
-						DEBUG ${sep}Moving to Inventory to destroy${sep}\a-w${_advlItem}\ax
+						DEBUG ${sep}Moving to Inventory to destroy${sep}\a-w${AdvLoot.PList[1].Name}\ax
 						/delay 1
 						/advloot personal 1 loot
 						/delay 1s !${AdvLoot.LootInProgress}
 					}
 
 					/delay 5
-					/if (${FindItem[=${_advlItem}].ID}) {
+					/if (${FindItem[="${AdvLoot.PList[1].Name}"].ID}) {
 
 
 | I'M SERIOUSLY SICK OF FIXING THIS delete code.
-						/while (${FindItem[=${_advlItem}].ID}) {
+						/while (${FindItem[="${AdvLoot.PList[1].Name}"].ID}) {
 							/delay 5
-							/nomodkey /shift /itemnotify in Pack${Math.Calc[${FindItem[=${_advlItem}].ItemSlot}-22]} ${Math.Calc[${FindItem[=${_advlItem}].ItemSlot2}+1]} leftmouseup
+							/nomodkey /shift /itemnotify in Pack${Math.Calc[${FindItem[=${AdvLoot.PList[1].Name}].ItemSlot}-22]} ${Math.Calc[${FindItem[=${AdvLoot.PList[1].Name}].ItemSlot2}+1]} leftmouseup
 
-							/invoke ${out[14, "Destroying${sep}\a-w${_advlItem}\ax", 0]}
+							/if (${lsGrain.Contains[14]}) {
+								OUT Loot${sep}\arDestroying\ax${sep}\a-w${AdvLoot.PList[1].Name}\ax
+							}
 							/nomodkey /destroy
 
 							/call check_cursor ${_debug} clear
@@ -8051,6 +8159,7 @@ sub check_minion_cycle_summon(bool _debug)
 	}
 
 	/invoke ${out[0, 0, 46]}
+	/call set_spell_to ${_debug} TRUE "${Spell[${maMinion.Find[stPetType].Value}].RankName}" ${maEnv.Find[stBuffGem].Value} TRUE
 	/call voodoo ${_debug} "${maMinion.Find[stPetType].Value}" 0 FALSE
 	/delay 15s !${Me.Casting.ID}
 	/pet hold on
@@ -9159,6 +9268,10 @@ sub get_target_navpull(bool _debug, int _tmpID)
 			DEBUG ${sep}\arPrep FAILURE\ax${sep}resetting
 			/invoke ${target[clear]}
 			/return FALSE
+		}
+
+		/if (MELEE && ${Spawn[${_tmpID}].Distance} > ${Math.Calc[${Spawn[${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
+			/call pull_mob_move_to ${_debug} ${_tmpID} ${maCC.Find[stPullNavStopDistance].Value} on
 		}
 
 		/call pull_mob_tag ${_debug} ${_tmpID}
@@ -10278,37 +10391,37 @@ sub check_heal_routines()
 
 	| heal: target of target
 	/if (${lsClassHealToT.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealToT].Value}) {
-		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[tot].Value} ToT
+		/call check_heal ${maDebug.Find[tot].Value} ToT
 	}
 
 	| heal: self
 	/if (${maHeal.Find[swHealSelf].Value}) {
-		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
+		/call check_heal ${maDebug.Find[self].Value} Self
 	}
 
 	| heal: DanNet
 	/if (${maHeal.Find[swHealDanNet].Value}) {
-		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[dannet].Value} DanNet
+		/call check_heal ${maDebug.Find[dannet].Value} DanNet
 	}
 
 	| heal: ch (CLERIC ONLY)
 	/if (${Select[${Me.Class.ShortName},CLR]} && ${maHeal.Find[stPctCH].Value} && ${Group.Members}) {
-		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[group].Value} ch
+		/call check_heal ${maDebug.Find[group].Value} ch
 	}
 
 	| heal: group
 	/if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
-		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[group].Value} Group
+		/call check_heal ${maDebug.Find[group].Value} Group
 	}
 
 	| heal: extended target lists
 	/if (${maHeal.Find[swHealXTarget].Value}) {
-		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[xt].Value} XTarget
+		/call check_heal ${maDebug.Find[xt].Value} XTarget
 	}
 
 	| heal: pets
 	/if (${maHeal.Find[swHealPet].Value}) {
-		/call check_heal_${Me.Class.ShortName} ${maDebug.Find[pet].Value} Pet
+		/call check_heal ${maDebug.Find[pet].Value} Pet
 	}
 
 	| heal: curing
@@ -11636,7 +11749,7 @@ sub check_for_corpse(bool _debug)
 	}
 
 	| still good???
-	/if (!${_rezReady} && !${_rezReady}) {
+	/if (!${_rezReady} && !${_tokenReady}) {
 		DEBUG ${break}fail${sep}\a-wno rez type available\ax
 		/return FALSE
 	}
@@ -11644,8 +11757,9 @@ sub check_for_corpse(bool _debug)
 	SETHUD "resurrect"
 
 	| make the damn variables
-	/declare _count 													int 		local 0
-	/declare _tmpID 													int 		local 0
+	/declare _count int local 0
+	/declare _tmpID int local 0
+	/declare _countPri int local 0
 
 	/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}
 		/varset _tmpID ${NearestSpawn[${_count},pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}
@@ -11658,8 +11772,6 @@ sub check_for_corpse(bool _debug)
 			/varset timer_corpse_${_tmpID} ${maHard.Find[stRezIgnoreFucktards].Value}
 			/continue
 		}
-
-		/declare _countPri int local 0
 
 		| check priorities
 		/for _countPri 1 to 8
@@ -13122,7 +13234,6 @@ sub cast_cooldown_wait(bool _debug)
 
 
 
-
 |***
  * note: check/cast single instant cast invis only
  * use:	/call
@@ -13134,30 +13245,23 @@ sub check_invis_single(bool _debug)
 		/return TRUE
 	}
 
-	| ranger
-	/if (${Select[${Me.Class.ShortName},RNG]} && ${Me.AltAbilityReady[Innate Camouflage]}) {
-		/call voodoo ${_debug} "Innate Camouflage" 0 ignoremovement
-
-	| druid
-	} else /if (${Select[${Me.Class.ShortName},DRU]} && ${Me.AltAbilityReady[Innate Camouflage]}) {
-
-	| shadowflake
-	} else /if (${Select[${Me.Class.ShortName},SHD]} && ${Me.AltAbilityReady[]}) {
-
-	| rogue
-	| } else /if (${Select[${Me.Class.ShortName},ROG]}) {
-	| 	/call set_sos ${_debug}
-
-	| everyone else
-	} else /if (${FindItemCount[=Cloudy Potion]}) {
-		/call voodoo ${_debug} "Cloudy Potion" 0 ignoremovement
+	/if (!${is_ready[${_debug}, "${maChr.Find[stInvisSingle].Value}"]}) {
+		/return FALSE
 	}
 
-	/delay 1
+	/if (!${Spell[${maChr.Find[stInvisSingle].Value}].MyCastTime}) {
+		/call voodoo ${_debug} "${maChr.Find[stInvisSingle].Value}" 0 ignoremovement
+	} else {
+		/call set_stop_movement ${_debug}
+		/call voodoo ${_debug} "${maChr.Find[stInvisSingle].Value}" 0 FALSE
+		/delay 2
+		/delay 2s !${Me.Casting.ID}
+
+	}
+
 
 	/if (!${Me.Invis}) {
 		/return FALSE
 	}
-
 
 /return TRUE

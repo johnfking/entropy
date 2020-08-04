@@ -9,8 +9,8 @@
  * note: primary initilization of all zerker non shared data
  * use: not for you
  ***|
-sub set_BER(bool _debug)
-	DEBUG \atset_BER\ax()
+sub class_init(bool _debug)
+	DEBUG \atclass_init\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -65,8 +65,8 @@ sub set_BER(bool _debug)
  * note: i have one purpose,  otherwise i'm useless
  * use:
  ***|
-sub main_BER(bool _debug)
-	DEBUG \atmain_BER\ax()
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
 
 	GETINPUT
 	ISMEDEAD
@@ -92,8 +92,8 @@ sub main_BER(bool _debug)
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			CHECKDEFENSE
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
+			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
+			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
@@ -124,9 +124,9 @@ sub main_BER(bool _debug)
  * note:
  * use:
  ***|
-sub misc_combat_BER(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_BER\ax(\a-w${_tmpID}\ax)
-	FLOW misc_combat_BER
+sub misc_combat(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -163,7 +163,11 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stSappingStrikes].Value}" 0 FALSE
 	}
 
-	/if (${Me.ActiveDisc[Frenzied Resolve].ID} && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.8) {
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
+
+	/if (${Me.ActiveDisc[Frenzied Resolve].ID} && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
 		/if (${is_ready[${_debug}, "Drawn to Blood"]}) {
 			/call voodoo ${_debug} "Drawn to Blood" 0 FALSE
 		}
@@ -280,11 +284,11 @@ sub misc_combat_BER(bool _debug, int _tmpID)
 
 |***
  * note: if you are using this.. and people find out.. you will get laughed at. zerkers are glass cannons..
- * use: /heal self
+ * use:
  ***|
-sub check_heal_BER(bool _debug, string _type)
-	DEBUG \atcheck_heal_BER\ax(\a-w${_type}\ax)
-	FLOW check_heal_BER ${_type}
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -331,9 +335,9 @@ sub check_heal_BER(bool _debug, string _type)
  * note: Berzerker burn routines
  * use: if you're not burning. you are doing it wrong..
  ***|
-sub burn_BER(bool _debug, int _tmpID)
-	DEBUG \atburn_BER\ax(\aw${_tmpID}\ax)
-	FLOW burn_BER
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax(\aw${_tmpID}\ax)
+	FLOW burn
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -475,13 +479,11 @@ sub burn_BER(bool _debug, int _tmpID)
 
 
 |***
- * note: rogue specific controls
+ * note: class specific controls
  * use: /chr
  ***|
-sub set_control_BER(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_BER\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
-
-	/declare _out string local
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
 	| output control map
 	/if (${_type.Equal[see]}) {
@@ -490,15 +492,15 @@ sub set_control_BER(string _type, string _verbage, string _silent, bool _debug)
 
 	| set ae on/off / count
 	} else /if (${_type.Equal[ae]}) {
-		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return FALSE
 
 	| defensive mob agro count
 	} else /if (${_type.Equal[def]}) {
-		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return FALSE
 
 	| set AA fade use %
 	} else /if (${_type.Equal[fade]}) {
-		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return FALSE
 
 	| set spire to be used
 	} else /if (${_type.Equal[spire]}) {
@@ -508,6 +510,11 @@ sub set_control_BER(string _type, string _verbage, string _silent, bool _debug)
 	| use hiatus disc
 	} else /if (${_type.Equal[hiatus]}) {
 		/invoke ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
 
 	}
 

@@ -185,6 +185,10 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		/echo
 		/return
 
+	} else /if (${_type.Equal[doloot]}) {
+		/call do_loot ${maDebug.Find[loot].Value}
+		/return TRUE
+
 	} else /if (${_type.Equal[sqlcheck]}) {
 		/invoke ${out[0, "Checking database for stale data${sep}"]}
 		/call sql_check ${maDebug.Find[sql].Value}
@@ -427,7 +431,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 	/if (${_silent.Equal[SILENT]}) /return
 	/declare liout list local
-	/invoke ${liout.Append[checkvar,spa,whitewash,import,keymap,see,sqlcheck,sqldrop,out,zonerefresh]}
+	/invoke ${liout.Append[checkvar,spa,whitewash,import,keymap,see,sqlcheck,sqldrop,out,zonerefresh,doloot]}
   /declare _out string local
   /declare _liadout listiterator local
 	/vardata _liadout liout.First.Clone
@@ -699,9 +703,9 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
  ***|
 #bind to_chr /chr
 sub Bind_to_chr(string _type, string _verbage, string _silent, bool _debug)
-	| DEBUG /call set_control_${Me.Class.ShortName} _type:${_type} _verbage:${_verbage} _silent:${_silent} _debug:${_debug}
+	| DEBUG /call set_control _type:${_type} _verbage:${_verbage} _silent:${_silent} _debug:${_debug}
 
-	/call set_control_${Me.Class.ShortName} ${_type} "${_verbage}" ${_silent} ${_debug}
+	/call set_control ${_type} "${_verbage}" "${_silent}" "${_debug}"
 
 /return TRUE
 
@@ -3199,7 +3203,6 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 	DEBUG ${sep}ok we're moving. right this way now..
 	/while (${Me.Moving}) {
 		/if (${_opt.Equal[invis]} && !${Me.Invis}) {
-		/echo here
 			/call check_invis_single ${_debug}
 		}
 		GETINPUT
@@ -4109,13 +4112,13 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 
 		/sqlite query ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${_item}"
 		DEBUG ${sep}lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${_item}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
-		OUT /cursor ${_item}${sep}\a-w${_type.Lower}\ax
+		OUT Cursor${sep}\aw${_item}\ax${sep}\a-w${_type.Lower}\ax
 		/return TRUE
 
 	} else /if (${_type.Equal[pass]}) {
 		/sqlite query ${maData.Find[DBloot].Value} lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}"
 		DEBUG ${sep}lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
-		OUT /cursor pass${sep}\a-w${_verbage}\ax
+		OUT Cursor${sep}\aw${_verbage}\ax${sep}\a-wpass\ax
 		/return TRUE
 	} else /if (${_type.Equal[count]}) {
 
@@ -5062,8 +5065,8 @@ sub control_pred(bool _debug)
 	}
 
 	| start class predictions
-	/if (${maPred.Find[swPredPrepClass].Value} && ${Defined[prediction_${Me.Class.ShortName}]}) {
-		/call prediction_${Me.Class.ShortName} ${maDebug.Find[pred].Value}
+	/if (${maPred.Find[swPredPrepClass].Value} && ${SubDefined[prediction]}) {
+		/call prediction ${maDebug.Find[pred].Value}
 	}
 
 /return TRUE

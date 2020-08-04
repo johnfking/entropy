@@ -9,8 +9,8 @@
  * note: primary initilization of all enchanter non shared data
  * use: not for you
  ***|
-sub set_ENC(bool _debug)
-	DEBUG \atset_ENC\ax()
+sub class_init(bool _debug)
+	DEBUG \atclass_init\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -84,8 +84,8 @@ sub set_ENC(bool _debug)
  * note: main enchanter routine
  * use:
  ***|
-sub main_ENC(bool _debug)
-	DEBUG \atmain_ENC\ax()
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
 
 
 	/if (AUTO && !ENGINE3) {
@@ -177,14 +177,14 @@ sub main_ENC(bool _debug)
  * note: basic DPS discs
  * use:
  ***|
-sub misc_combat_ENC(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
-	FLOW misc_combat_ENC ${_tmpID} (1)
+sub misc_combat(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat ${_tmpID} (1)
 
 	ISMEDEAD
 	/invoke ${target[assist, ${_tmpID}]}
 
-	CHECKEXIT misc_combat_ENC
+	CHECKEXIT misc_combat
 	FLOW misc_combat_ENC ${_tmpID} (2)
 	GETINPUT
 	CHECKTIE
@@ -279,15 +279,15 @@ sub check_crystals(bool _debug)
  * note: needs manna!!!
  * use: /call check_gather DEBUG
  ***|
-sub check_gather_ENC(bool _debug)
-	DEBUG \atcheck_gather_${Me.Class.ShortName}\ax()
-	FLOW check_gather_ENC (1)
+sub check_gather(bool _debug)
+	DEBUG \atcheck_gather\ax()
+	FLOW check_gather (1)
 
 	/if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
 
 	ISMEDEAD
 	CHECKEXIT check_gather_ENC
-	FLOW check_gather_ENC (2)
+	FLOW check_gather (2)
 	GETINPUT
 	CHECKTIE
 
@@ -313,9 +313,9 @@ sub check_gather_ENC(bool _debug)
  * note: chanter self healing? like this is really gonna work. wtf
  * use: /call check_heal_${Me.Class.ShortName} ${maDebug.Find[self].Value} Self
  ***|
-sub check_heal_ENC(bool _debug, string _type)
-	DEBUG \atcheck_heal_${Me.Class.ShortName}\ax(\a-w${_type}\ax)
-	FLOW check_heal_ENC ${_type} (1)
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type} (1)
 
 	/call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
@@ -382,17 +382,17 @@ sub check_heal_ENC(bool _debug, string _type)
  * note: toast should not be burnt
  * use: establish all comp/trigger skills
  ***|
-sub burn_ENC(bool _debug, int _tmpID)
-	DEBUG \atburn_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
-	FLOW burn_ENC (1)
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+	FLOW burn (1)
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
-	CHECKEXIT burn_ENC
-	FLOW burn_ENC (2)
+	CHECKEXIT
+	FLOW burn (2)
 	GETINPUT
 	CHECKTIE
 
@@ -512,10 +512,6 @@ sub find_mob_to_charm(bool _debug)
 					}
 				}
 
-
-
-
-
 				/break
 			}
 		/next _count
@@ -524,17 +520,12 @@ sub find_mob_to_charm(bool _debug)
 
 
 
-${Spell[${maChr.Find[stCharm].Value}].Max[1]}
-
-${Spell[CHARMSPELL].Max[1]}
-
-
 |***
  * note: class specific control
  * use: /chr
  ***|
-sub set_control_ENC(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_${Me.Class.ShortName}\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
   /declare _out string local
 
@@ -575,6 +566,11 @@ sub set_control_ENC(string _type, string _verbage, string _silent, bool _debug)
 	| use AA Beam of Slumber
 	} else /if (${_type.Equal[bos]}) {
 		/invoke ${set_switch_env[${_debug}, swAABoS, TRUE, ${_verbage}]}
+
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
 
 	}
 

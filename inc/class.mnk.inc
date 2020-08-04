@@ -9,8 +9,8 @@
  * note: primary initilization of all monk non shared data
  * use: not for you
  ***|
-sub set_MNK(bool _debug)
-	DEBUG \atset_MNK\ax()
+sub class_init(bool _debug)
+	DEBUG \atclass_init\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -67,8 +67,8 @@ sub set_MNK(bool _debug)
  * note: kick 'em in the nuts
  * use:
  ***|
-sub main_MNK(bool _debug)
-	DEBUG \atmain_MNK\ax()
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
 
 	GETINPUT
 	ISMEDEAD
@@ -93,8 +93,8 @@ sub main_MNK(bool _debug)
 			CHECKDEFENSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/call check_fd ${_debug}
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
+			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
+			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
@@ -126,9 +126,9 @@ sub main_MNK(bool _debug)
  * note: al the extra combat shit
  * use:
  ***|
-sub misc_combat_MNK(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_MNK\ax(\a-w${_tmpID}\ax)
-	FLOW misc_combat_MNK
+sub misc_combat(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -222,9 +222,9 @@ sub misc_combat_MNK(bool _debug, int _tmpID)
  * note: healing
  * use: auto
  ***|
-sub check_heal_MNK(bool _debug, string _type)
-	DEBUG \atcheck_heal_MNK\ax(\a-w${_type}\ax)
-	FLOW check_heal_MNK ${_type}
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -284,9 +284,9 @@ sub check_heal_MNK(bool _debug, string _type)
  * note: Monk burn routines
  * use: you made a monk... hahaha
  ***|
-sub burn_MNK(bool _debug, int _tmpID)
-	DEBUG \atburn_MNK\ax(\a-w${_tmpID}\ax)
-	FLOW burn_MNK
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+	FLOW burn
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -579,8 +579,8 @@ sub check_fists_of_steel(bool _debug)
  * note: monk specific controls
  * use: /chr
  ***|
-sub set_control_MNK(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_MNK\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
 	/declare _out string local
 
@@ -635,6 +635,11 @@ sub set_control_MNK(string _type, string _verbage, string _silent, bool _debug)
 	| set AA fade use %
 	} else /if (${_type.Equal[fdaggro]}) {
 		/if (!${set_control_num_range[${_debug}, stPctFDAggro, "${_verbage}", 0, 99]}) /return
+
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
 
 	}
 

@@ -9,8 +9,8 @@
  * note: primary initilization of all magician non shared data
  * use: i think we've been over this once already
  ***|
-sub set_MAG(bool _debug)
-	DEBUG \atset_MAG\ax()
+sub class_init(bool _debug)
+	DEBUG \atclass_init\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -58,15 +58,15 @@ sub set_MAG(bool _debug)
  * note: main magician routine
  * use:
  ***|
-sub main_MAG(bool _debug)
-	DEBUG \atmain_MAG\ax()
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
 	GETINPUT
 	ISMEDEAD
 	CHECKTIE
 
 	/if (AUTO && !ENGINE3) {
 		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-		/if (${maChr.Find[stPctGather].Value} && !${timer_Check_Gather}) /call check_gather_${Me.Class.ShortName} ${maDebug.Find[gather].Value}
+		/if (${maChr.Find[stPctGather].Value} && !${timer_Check_Gather}) /call check_gather ${maDebug.Find[gather].Value}
 		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
 		/if (${maChr.Find[swCauldron].Value}) /call check_cauldron  ${maDebug.Find[cauldron].Value}
 	} else /if (AUTO && ENGINE3) {
@@ -92,7 +92,7 @@ sub main_MAG(bool _debug)
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
+			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			| /if (${swAlliance}) /call trigger_alliance TARGET
@@ -101,7 +101,7 @@ sub main_MAG(bool _debug)
 				/if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} TRUE
 				/call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			}
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
+			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 		} else /if (VALID && ENGINE3) {
 			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
@@ -112,7 +112,7 @@ sub main_MAG(bool _debug)
 		/if (AUTO && !ENGINE3) {
 			| /call Bind_setMAG rods
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-			/if (${maChr.Find[stPctGather].Value} && !${timer_Check_Gather}) /call check_gather_${Me.Class.ShortName} ${maDebug.Find[gather].Value}
+			/if (${maChr.Find[stPctGather].Value} && !${timer_Check_Gather}) /call check_gather ${maDebug.Find[gather].Value}
 		} else /if (AUTO && !ENGINE3) {
 			/if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
 				/call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -125,11 +125,11 @@ sub main_MAG(bool _debug)
 
 |***
  * note: Combat skills, Disciplines and Alternate abilities.
- * use: /call misc_combat_${Me.Class.ShortName}
+ * use: /call misc_combat
  ***|
-sub misc_combat_MAG(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_MAG\ax(\a-w${_tmpID}\ax)
-	FLOW misc_combat_MAG
+sub misc_combat(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) /return FALSE
@@ -164,13 +164,9 @@ sub misc_combat_MAG(bool _debug, int _tmpID)
  * note: "One can never have enough socks." - dumbledor
  * use:  when you or your agro whore pet get hurt
  ***|
-sub check_heal_MAG(bool _debug, string _type)
-	DEBUG \atcheck_heal_MAG\ax(\a-w${_type}\ax)
-	FLOW check_heal_MAG ${_type}
-
-
-
-
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -203,11 +199,8 @@ sub check_heal_MAG(bool _debug, string _type)
 					/call voodoo ${_debug} "Mend Companion" ${Pet.ID} FALSE
 				}
 			}
-
 			/call cast_cycle_heal ${_debug} ${Pet.ID} minion
 		}
-
-
 	}
 
   /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
@@ -215,9 +208,7 @@ sub check_heal_MAG(bool _debug, string _type)
  	}
 
 	GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
-
 	/call cast_cycle_heal ${_debug} ${hurtID} single
-
 	SETHUD EMPTY
 
 /return TRUE
@@ -229,9 +220,9 @@ sub check_heal_MAG(bool _debug, string _type)
  * use: establish all comp/trigger skills
  *	NOTE:
  ***|
-sub burn_MAG(bool _debug, int _tmpID)
-	DEBUG \atburn_MAG\ax(\a-w${_tmpID}\ax)
-	FLOW burn_MAG
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+	FLOW burn
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) /return FALSE
@@ -349,9 +340,9 @@ sub force_twincast_MAG(bool _debug)
  * note: All that you buy, beg, borrow or steal.
  * use:
  ***|
-sub check_gather_MAG(bool _debug)
-	DEBUG \atcheck_gather_${Me.Class.ShortName}\ax()
-	FLOW check_gather_MAG (1)
+sub check_gather(bool _debug)
+	DEBUG \atcheck_gather\ax()
+	FLOW check_gather (1)
 
 	/invoke ${set_data_timer[${_debug}, Check_Gather, RESTART]}
 
@@ -481,8 +472,8 @@ sub check_cauldron(bool _debug)
  * note: mage specific control
  * use: /chr
  ***|
-sub set_control_MAG(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_Mag\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
   /declare _out string local
 
@@ -538,6 +529,12 @@ sub set_control_MAG(string _type, string _verbage, string _silent, bool _debug)
 	| force twincast attempts
 	| } else /if (${_type.Equal[forcetc]}) {
 	| 	/invoke ${set_switch_env[${_debug}, swForceTC, TRUE, ${_verbage}]}
+
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
+
 
 	}
 

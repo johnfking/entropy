@@ -16,7 +16,7 @@ on the to do list
 - check cure exits / recasts
 - shared map for rez
 - look at a way to split coordination for assists across more then one mob in a raid
-- externalize class AAs: WAR|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|NEC|DRU|SHM
+- externalize class AAs: WAR|BST|BER|MNK|WIZ|MAG|NEC|DRU|SHM
 - buffing system by name
 - pet gear handing for damn TLP feeders..
 --------------------
@@ -28,6 +28,29 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+
+200804.01
+- ranger
+  moved the remainder of the AAs into the DB
+  added back in ToT healing. i dont know where it went. dont ask..
+- rezing
+  corrections to the rez priority loop
+  relocated an errant /declare. it was unhappy in its current position
+- all classes
+  converted to the new parsed #include design
+- sqlite
+  pragma=WALL has been added to all shared databases
+- /mode farm
+  rof_shard_bodhe - some more small adjustments
+  5 tears of alaris completed now..
+- loot
+  if you have something checked in the advloot window
+  like Always Greed, or Need, it will override the
+  database settings and use advloot like you have it checked.
+  should be a little faster too
+- /chr invis [self|group|selfivu|groupivu] [name]
+  currently this setting is only being used in /mode, but it
+  will be expanded as needed. next stop is the /invis command
 
 
 200801.01
@@ -45,6 +68,7 @@ epics with commas in their names are currently not functioning
 200728.01
 - bard
   fixed the bard pulseincombat tag, it should do things in combat now
+  moved all AAs to the DB
 - /mode farm
   rof_shard_bodhe - will farm the quest in Shards Landing - Fear Begins at Home
   this is the no down time quest for shard farming for the tear.

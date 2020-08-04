@@ -9,8 +9,8 @@
  * note: primary initilization of all necromancer non shared data
  * use: not for you
  ***|
-sub set_NEC(bool _debug)
-	DEBUG \atset_NEC\ax()
+sub class_init(bool _debug)
+	DEBUG \atclass_init\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -54,8 +54,8 @@ sub set_NEC(bool _debug)
  * note: Main Necro Routine
  * use:
  ***|
-sub main_NEC(bool _debug)
-	DEBUG \atmain_NEC\ax()
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
 
 	/if (AUTO && !ENGINE3) {
 		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) {
@@ -87,14 +87,14 @@ sub main_NEC(bool _debug)
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
+			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
 			/call check_heal_routines
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			| /if (${maCC.Find[swAlliance].Value}) /call trigger_alliance TARGET
 			/if (${maChr.Find[swblood].Value} && !${timer_Check_Blood}) /call cast_blood ${maDebug.Find[blood].Value} TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
+			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[castitem].Value} TARGET
 
 		} else /if (VALID && ENGINE3) {
@@ -126,9 +126,9 @@ sub main_NEC(bool _debug)
  * note: why are we healing the dead?
  * use:
  ***|
-sub check_heal_NEC(bool _debug, string _type)
-	DEBUG \atcheck_heal_NEC\ax(\a-w${_type}\ax)
-	FLOW check_heal_NEC ${_type}
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -191,9 +191,9 @@ sub check_heal_NEC(bool _debug, string _type)
  * note: the extra stuff
  * use: normal routine
  ***|
-sub misc_combat_NEC(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_NEC\ax(\a-w${_tmpID}\ax)
-	FLOW misc_combat_NEC
+sub misc_combat(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -247,9 +247,9 @@ sub misc_combat_NEC(bool _debug, int _tmpID)
  * note: “You should never attack a necromancer in a cemetery; it’s like chasing Rambo into a building full of loaded guns." --Laurell K. Hamilton, Dead Ice
  * use: burn the dead
  ***|
-sub burn_NEC(bool _debug, int _tmpID)
-	DEBUG \atburn_NEC\ax(\a-w${_tmpID}\ax)
-	FLOW burn_NEC
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+	FLOW burn=
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -279,9 +279,6 @@ sub burn_NEC(bool _debug, int _tmpID)
 	| /if (!${Me.Song[Gift of Deathly Resolve].ID} && ${Me.Buff[Deathly Resolve].ID}) /call cast_nuke FALSE TARGET
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
-
-
-
 
 	| Pet Burnage
 	/if (PET && ${Me.Pet.ID}) {
@@ -388,8 +385,8 @@ sub cast_bloom(bool _debug)
  * note: Class controls
  * use: /chr []
  ***|
-sub set_control_NEC(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_NEC\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
   /declare _out string local
 
@@ -438,6 +435,11 @@ sub set_control_NEC(string _type, string _verbage, string _silent, bool _debug)
 	| use bloom mana recovery
 	} else /if (${_type.Equal[bloom]}) {
 		/invoke ${set_switch_env[${_debug}, stPctBloom, TRUE, ${_verbage}]}
+
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
 
 	}
 

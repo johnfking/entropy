@@ -9,8 +9,8 @@
  * note: primary initilization of all cleric non shared data
  * use: not for you
  ***|
-sub set_SHM(bool _debug)
-	DEBUG \atset_SHM\ax()
+sub class_init(bool _debug)
+	DEBUG \atclass_init\ax()
 
 	/call set_data ${_debug} maData stSpire															map outer "Spire of Ancestors"
 	/call set_data ${_debug} maData stSynergy														map outer "Luminary's Synergy"
@@ -59,8 +59,8 @@ sub set_SHM(bool _debug)
  * note: main shaman routine
  * use:
  ***|
-sub main_SHM(bool _debug)
-	DEBUG main_SHM()
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
 	GETINPUT
 	ISMEDEAD
 	CHECKTIE
@@ -89,7 +89,7 @@ sub main_SHM(bool _debug)
 		}
 
 		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
+		/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
 		/if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
 		/if (VALID && !ENGINE3) {
@@ -98,14 +98,14 @@ sub main_SHM(bool _debug)
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
+			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/if (${maChr.Find[swTalisman].Value}) /call cast_talisman ${maDebug.Find[talisman].Value}
-			/if (${maCC.Find[swAlliance].Value}) /call cast_alliance_SHM ${maDebug.Find[alliance].Value}
+			/if (${maCC.Find[swAlliance].Value}) /call cast_alliance ${maDebug.Find[alliance].Value}
 			/if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 		} else /if (VALID && ENGINE3) {
@@ -130,11 +130,11 @@ sub main_SHM(bool _debug)
 
 |***
  * noote: Combat skills, Disciplines and Alternate abilities.
- * use: yes, there are a lot here.
+ * use: yes, there are a lot here... lies..
  ***|
-sub misc_combat_SHM(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_SHM\ax(\a-w${_tmpID}\ax)
-	FLOW misc_combat_SHM
+sub misc_combat(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -168,9 +168,9 @@ sub misc_combat_SHM(bool _debug, int _tmpID)
  * note:
  * use:
  ***|
-sub check_heal_SHM(bool _debug, string _type)
-	DEBUG \atcheck_heal_SHM\ax(\a-w${_type}\ax)
-	FLOW check_heal_SHM ${_type}
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -359,8 +359,8 @@ sub cast_cycle_heal_surge(bool _debug)
  * note: Shaman burn routines
  * use: normal burn stuf
  ***|
-sub burn_SHM(bool _debug, int _tmpID)
-	DEBUG \atburn_SHM\ax(\a-w${_tmpID}\ax)
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax(\a-w${_tmpID}\ax)
 	FLOW burn_SHM
 
 	ISMEDEAD
@@ -507,9 +507,9 @@ sub check_cani(bool _debug)
  * note: check/cast shaman alliance
  * use: yahh... not really sure this even works anymore
  ***|
-sub cast_alliance_SHM(bool _debug)
- 	DEBUG \atcast_alliance_SHM\ax()
- 	FLOW cast_alliance_SHM
+sub cast_alliance(bool _debug)
+ 	DEBUG \atcast_alliance\ax()
+ 	FLOW cast_alliance
 
 	CHECKEXIT
 	GETINPUT
@@ -534,8 +534,8 @@ sub cast_alliance_SHM(bool _debug)
  * note: shaman specific control
  * use: /chr
  ***|
-sub set_control_SHM(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_SHM\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
 	| output control map
 	/if (${_type.Equal[see]}) {
@@ -575,9 +575,12 @@ sub set_control_SHM(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[ae]}) {
 		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
 
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
 
 	}
-
 
 	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}

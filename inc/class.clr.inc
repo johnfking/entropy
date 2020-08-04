@@ -9,8 +9,8 @@
  * note: primary initilization of all cleric non shared data
  * use: not for you
  ***|
-sub set_CLR(bool _debug)
-	DEBUG \atset_CLR\ax()
+sub class_init(bool _debug)
+	DEBUG \atclass_init\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -125,11 +125,11 @@ sub set_CLR(bool _debug)
 
 
 |***
- * note: main cleric routine
+ * note: main class routine
  * use:
  ***|
-sub main_CLR(bool _debug)
-	DEBUG \atmain_CLR\ax()
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
 
 	| correct all XTarget healing spots
 	/if (AUTO && !ENGINE3) {
@@ -159,11 +159,11 @@ sub main_CLR(bool _debug)
 	}
 
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-		GETINPUT clr_main_loop NA|NA
+		GETINPUT class_main_CLR NA|NA
 		/call check_heal_routines
 
 		CHECKFADE
-		/if (${maCC.Find[swAlliance].Value} && !${timer_Check_Alliance}) /call check_${Me.Class.ShortName}_alliance ${maDebug.Find[alliance].Value}
+		/if (${maCC.Find[swAlliance].Value} && !${timer_Check_Alliance}) /call check_alliance ${maDebug.Find[alliance].Value}
 		/if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp ${maDebug.Find[yaulp].Value}
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stWard lsWardToon
@@ -171,14 +171,14 @@ sub main_CLR(bool _debug)
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
 		}
 		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
+		/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
 		/if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
 		/if (VALID && !ENGINE3) {
 			CHECKREZ
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
 			/if (MELEE) /call do_melee FALSE TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
+			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
@@ -210,9 +210,9 @@ sub main_CLR(bool _debug)
  * note: Combat skills, Disciplines and Alternate abilities.
  * use: /call misc_combat_${Me.Class.ShortName}
  ***|
-sub misc_combat_CLR(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_CLR\ax(\a-w${_tmpID}\ax)
-	FLOW misc_combat_CLR
+sub misc_combat(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -291,11 +291,11 @@ sub cast_nut_smasher(bool _debug)
 
 |***
  * note: heal sub
- * use: /call check_heal_CLR [DEBUG] [group|pet|xtarget]
+ * use: /call check_heal [DEBUG] [group|pet|xtarget]
  ***|
-sub check_heal_CLR(bool _debug, string _type)
-	DEBUG \atcheck_heal_CLR\ax(\a-w${_type}\ax)
-	FLOW check_heal_CLR ${_type}
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -496,9 +496,9 @@ sub Bind_command_issuance(bool _debug)
  * "It's the day we burn this mother fucker to the ground." squeaked Piglet
  * "My favorite day." said Pooh
  ***|
-sub burn_CLR(bool _debug, int _tmpID)
-	DEBUG \atburn_CLR\ax(\a-w${_tmpID}\ax)
-	FLOW burn_CLR
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+	FLOW burn
 
 	ISMEDEAD
 	CHECKEXIT
@@ -646,7 +646,7 @@ sub cast_arbitration(bool _debug)
  * note: predictive combat preperation
  * use: /call prediction_${Me.Class.ShortName} ${maDebug.Find[pred].Value}
  ***|
-sub prediction_CLR(bool _debug)
+sub prediction(bool _debug)
 
 
 	| Group Regen Heal
@@ -662,9 +662,9 @@ sub prediction_CLR(bool _debug)
  * note: check alliance and reapply if needed
  * use: /call cast_alliance_${Me.Class.ShortName} [DEBUG]
  ***|
-sub check_CLR_alliance(bool _debug)
-	DEBUG \atcheck_${Me.Class.ShortName}_alliance\ax()
- 	FLOW cast_alliance_${Me.Class.ShortName} (1)
+sub check_alliance(bool _debug)
+	DEBUG \atcheck_alliance\ax()
+ 	FLOW check_alliance (1)
 
 	CHECKEXIT
 	GETINPUT
@@ -704,8 +704,8 @@ sub check_CLR_alliance(bool _debug)
  * note: cleric specific control
  * use: /chr
  ***|
-sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_CLR\ax(\a-wt:${_type}, v:"${_verbage}", s:${_silent}\ax)
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-wt:${_type}, v:"${_verbage}", s:${_silent}\ax)
 
   /declare _out string local
 
@@ -799,6 +799,11 @@ sub set_control_CLR(string _type, string _verbage, string _silent, bool _debug)
 		}
 		OUT /chr primary ${_out}
 		/return
+
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
 
 	}
 

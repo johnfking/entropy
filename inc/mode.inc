@@ -344,6 +344,11 @@ sub mode_petfarm(bool _debug)
 		}
 	}
 
+	| check loot
+	/if (${maEnv.Find[swADVLoot].Value} && !${timer_Check_Loot}) {
+		/if (${Me.UseAdvancedLooting} && !${AdvLoot.LootInProgress}) /call do_loot ${maDebug.Find[loot].Value}
+	}
+
 	| find a mob
 	/call pull_mob_find ${_debug} 0 tagpets
 	DEBUG pull_mob_find.return${sep}\a-w${Macro.Return}\ax
@@ -1193,7 +1198,6 @@ sub task_combatloop(int _tmpID, bool _debug)
 		/invoke ${maCC.Add[swSetForced,TRUE]}
 		/varset swModeToken TRUE
 
-
 		/call check_heal_routines
 		/call set_combat_control ${maDebug.Find[decision].Value} ${_tmpID}
 
@@ -1209,12 +1213,13 @@ sub task_combatloop(int _tmpID, bool _debug)
 		/call set_combat_control ${maDebug.Find[decision].Value} ${_tmpID}
 
 		/call check_item_cycle ${maDebug.Find[item].Value} ${_tmpID} epic
-		/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} ${_tmpID}
-		/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} ${_tmpID}
+		/call misc_combat ${maDebug.Find[misc].Value} ${_tmpID}
+		/if (BURN) /call burn ${maDebug.Find[burn].Value} ${_tmpID}
 		/if (MELEE) /call do_melee FALSE ${_tmpID}
 		/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} ${_tmpID}
 		/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} ${_tmpID}
 		/call check_item_cycle ${maDebug.Find[item].Value} ${_tmpID}
+		/call check_heal_routines
 		/call check_deBuffs ${maDebug.Find[debuff].Value} ${_tmpID}
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} ${_tmpID}
@@ -1435,12 +1440,23 @@ sub rof_shard_bodhe(string _opt, bool _debug)
 						/call Bind_command_navto loc "${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[2,|]} ${_loc${_curpos}.Arg[3,|]}" FALSE ${_debug}
 					}
 
+					| check loot
+					/if (${maEnv.Find[swADVLoot].Value} && !${timer_Check_Loot}) {
+						/if (${Me.UseAdvancedLooting} && !${AdvLoot.LootInProgress}) /call do_loot ${maDebug.Find[loot].Value}
+					}
+
 				}
 			}
 		}
 
 	| step 3
 		:wait_step_3
+
+		| check loot
+		/if (${maEnv.Find[swADVLoot].Value} && !${timer_Check_Loot}) {
+			/if (${Me.UseAdvancedLooting} && !${AdvLoot.LootInProgress}) /call do_loot ${maDebug.Find[loot].Value}
+		}
+
 		/invoke ${out[23, "\agSTEP 3\ax${sep}\a-w${sqlite.Result[farmquery3 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery3 1 step]}].Status}\ax)"]}
 		:rof_shard_bodhe_step3
 		/delay ${Math.Rand[1,30]}
@@ -1491,6 +1507,7 @@ sub rof_shard_bodhe(string _opt, bool _debug)
  ***|
 sub petfarm_route(string _route, int _start)
 	/declare _debug bool local ${maDebug.Find[petfarm].Value}
+	| /varset _debug TRUE
 
 	/if (!${Pet.ID}) {
 		DEBUG ${break}no pet
@@ -1508,11 +1525,11 @@ sub petfarm_route(string _route, int _start)
 		GETINPUT
 
 		/for _count ${If[${_start},${_start},1]} to ${Ini[${maData.Find[INIfarmroute].Value},${_route},stops]}
-			DEBUG ${sep}_count${sep}${_count}${sep}${Ini[${maData.Find[INIfarmroute].Value},${_route},stops]}
+			DEBUG ${sep}_count${sep}${_count}${sep}${Ini[${maData.Find[INIfarmroute].Value},${_route},stops]} stops
 			DEBUG ${sep}navto ${dot} ${Ini[${maData.Find[INIfarmroute].Value},${_route},loc${_count}]}
 			/call Bind_command_navto loc "${Ini[${maData.Find[INIfarmroute].Value},${_route},loc${_count}]}" ${_debug}
 			/invoke ${set_timer[FALSE, _timerWait, ${Ini[${maData.Find[INIfarmroute].Value},${_route},loc${_count}wait]}]}
-			OUT Location${sep}\a-w${_count}\ax (\a-r${Ini[${maData.Find[INIfarmroute].Value},${_route},loc${_count}wait]}\ax)
+			OUT Location${sep}\a-w${_count}\ax/\a-w${Ini[${maData.Find[INIfarmroute].Value},${_route},stops]}\ax (\a-r${Ini[${maData.Find[INIfarmroute].Value},${_route},loc${_count}wait]}\ax)
 			/while (${_timerWait}) {
 				/if (!${timer_Check_Mode}) {
 					/call check_mode ${maDebug.Find[mode].Value}
@@ -1536,7 +1553,7 @@ sub petfarm_route(string _route, int _start)
 |***
  * note: addition to petfarm for location route,
  * use: /mode petfarm ROUTENAME
- ***|
+
 sub petfarm_route(string _route, int _start)
 	/declare _debug bool local ${maDebug.Find[petfarm].Value}
 
@@ -1578,7 +1595,7 @@ sub petfarm_route(string _route, int _start)
 	/invoke ${maMode.Add[petfarm,FALSE]}
 
 /return
-
+ ***|
 
 
 |***

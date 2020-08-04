@@ -9,8 +9,8 @@
  * note: primary initilization of all paladin non shared data
  * use: are you a paladin?
  ***|
-sub set_PAL(bool _debug)
-	DEBUG \atset_PAL\ax()
+sub class_init(bool _debug)
+	DEBUG \atclass_init\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -101,8 +101,8 @@ sub set_PAL(bool _debug)
  * note: Main Paladin Routine
  * use: primarly for making unicorn jokes at. also useful for throwing at raid mobs as speed bumps.
  ***|
-sub main_PAL(bool _debug)
-	DEBUG \atmain_PAL\ax()
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
 
 	GETINPUT
 	ISMEDEAD
@@ -153,8 +153,8 @@ sub main_PAL(bool _debug)
 			/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/call check_heal_routines
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
+			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
+			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
@@ -194,11 +194,11 @@ sub main_PAL(bool _debug)
 
 |***
  * note: all other combat .. things
- * use: /call misc_combat_CLS DEBUG [TARGETID]
+ * use: /call misc_combat DEBUG [TARGETID]
  ***|
-sub misc_combat_PAL(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_${Me.Class.ShortName\ax(\a-w${_tmpID}\ax)
-		FLOW misc_combat_PAL
+sub misc_combat(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+		FLOW misc_combat
 
 	ISMEDEAD
 
@@ -273,9 +273,9 @@ sub misc_combat_PAL(bool _debug, int _tmpID)
  * note: I'm more important then you are!
  * use: /call get_agro_PAL DEBUG [TARRGETID]
  ***|
-sub get_agro_PAL(bool _debug, int _tmpID)
-	DEBUG \atget_agro_PAL\ax()
-	FLOW get_agro_PAL
+sub get_agro(bool _debug, int _tmpID)
+	DEBUG \atget_agro\ax()
+	FLOW get_agro
 
 	ISMEDEAD
 	CHECKEXIT
@@ -378,9 +378,9 @@ sub get_agro_PAL(bool _debug, int _tmpID)
  * note: Palading group heal. centered more to splashing
  * use:
  ***|
-sub check_heal_PAL(bool _debug, string _type)
-	DEBUG \atcheck_heal_group_PAL\ax(\a-w${_type}\ax)
-	FLOW check_heal_PAL ${_type}
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal_group\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -540,9 +540,9 @@ sub cast_AA_marrs_gift(bool _debug)
  * note: Paladin burn routines (like pallys can do any DPS.!)
  * use: seriously why bother
  ***|
-sub burn_PAL(bool _debug, int _tmpID)
-	DEBUG \atburn_PAL\ax(\a-w${_tmpID}\ax)
-	FLOW burn_PAL
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+	FLOW burn
 
 	ISMEDEAD
 
@@ -615,8 +615,8 @@ sub burn_PAL(bool _debug, int _tmpID)
  * note: paladin controls
  * use:
  ***|
-sub set_control_PAL(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_PAL\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
   /declare _out string local
 
@@ -702,6 +702,11 @@ sub set_control_PAL(string _type, string _verbage, string _silent, bool _debug)
 	| use hiatus disc
 	} else /if (${_type.Equal[hiatus]}) {
 		/invoke ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
 
 	}
 

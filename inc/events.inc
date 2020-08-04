@@ -59,6 +59,16 @@ sub Event_AP_IN_PROGRESS(string _line)
 /return
 
 
+| rez accept marker clear
+#event REZ_ACCEPT									"You regain some experience from resurrection#.#"
+sub REZ_ACCEPT(string _line, bool _debug)
+	EDEBUG REZ_ACCEPT
+	/if (${swIsMeDead}) {
+		/varset swIsMeDead FALSE
+	}
+/return
+
+
 
 |***
  * note: cast return events

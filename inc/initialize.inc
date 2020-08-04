@@ -429,6 +429,10 @@ sub	set_initial_environment(bool _debug)
 
 	}
 
+	| all classes
+	/if (${lsClassAll.Contains[${Me.Class.ShortName}]})	{
+		/invoke	${maChrControl.Add[invis,submenu]}
+	}
 
 	| set	current	zone
 	/call	set_data ${_debug} maEnv stCurrentZoneID														map	outer	FALSE
@@ -500,9 +504,9 @@ sub	sql_schema_zone(bool _debug)
 	/declare _buildMismatch bool local FALSE
 
 	| get the data from the table
-	/sqlite	query	${maData.Find[DBzone].Value} buildnumber SELECT	version	FROM metadata	WHERE	name='build_number'
+	/sqlite	query	${maData.Find[DBzone].Value} buildnumber SELECT	version	FROM metadata	WHERE	name='build_number';
 	/if	(!${sql_check[${_debug}, buildnumber,	sql_schema_zone,	"SELECT (version)"]})	/endmacro
-	/sqlite	query	${maData.Find[DBzone].Value} schemanumber	SELECT version FROM	metadata WHERE name='schema_number'
+	/sqlite	query	${maData.Find[DBzone].Value} schemanumber	SELECT version FROM	metadata WHERE name='schema_number';
 	/if	(!${sql_check[${_debug}, schemanumber, sql_schema_zone, "SELECT (version)"]}) /endmacro
 
 	| macro mismatch flag
@@ -528,11 +532,11 @@ sub	sql_schema_zone(bool _debug)
 		OUT	\a-tSchema Build\ax${sep}\a-wzone\ax (\a-r${maEnv.Find[schema].Value}\ax)
 		/while (TRUE)	{
 			| create shared build	table
-			/sqlite	query	${maData.Find[DBzone].Value} build CREATE	TABLE	IF NOT EXISTS	metadata(name, version)
+			/sqlite	query	${maData.Find[DBzone].Value} build CREATE	TABLE	IF NOT EXISTS	metadata(name, version);
 			/if	(!${sql_check[${_debug}, build,	sql_schema_zone, "CREATE TABLE IF	NOT	EXISTS (metadata)"]})	/endmacro
-			/sqlite	query	${maData.Find[DBzone].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('build_number', '${maEnv.Find[build].Value}')
+			/sqlite	query	${maData.Find[DBzone].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('build_number', '${maEnv.Find[build].Value}');
 			/if	(!${sql_check[${_debug}, build,	sql_schema_zone, "INSERT INTO	(metadata)"]}) /endmacro
-			/sqlite	query	${maData.Find[DBzone].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('schema_number',	'${maEnv.Find[schema].Value}')
+			/sqlite	query	${maData.Find[DBzone].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('schema_number',	'${maEnv.Find[schema].Value}');
 			/if	(!${sql_check[${_debug}, build,	sql_schema_zone, "INSERT INTO	(metadata)"]}) /endmacro
 
 			/sqlite	query	${maData.Find[DBzone].Value} build CREATE	TABLE	IF NOT EXISTS	zone_control('zone_shortname'	TEXT NOT NULL,'element'	TEXT NOT NULL,'value'	TEXT NOT NULL, PRIMARY KEY (zone_shortname,element,value))
@@ -580,8 +584,11 @@ sub	sql_schema_zone(bool _debug)
 
 	}
 
+	| set pragma
+	/sqlite query ${maData.Find[DBzone].Value} query_journal_DBzone PRAGMA journal_mode=WAL;
+
 	/if	(${maDebug.Find[init].Value})	{
-		OUT	\agsql_set_zone_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
+		OUT	\agsql_schema_zone\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
 		/mqp
 	}
 
@@ -602,9 +609,9 @@ sub	sql_schema_loot(bool _debug)
 	}
 
 	| check	the	current	schema/build versions
-	/sqlite	query	${maData.Find[DBloot].Value} buildnumber SELECT	version	FROM metadata	WHERE	name='build_number'
+	/sqlite	query	${maData.Find[DBloot].Value} buildnumber SELECT	version	FROM metadata	WHERE	name='build_number';
 	/if	(!${sql_check[${_debug}, buildnumber,	sql_schema_loot, "SELECT (version)"]}) /endmacro
-	/sqlite	query	${maData.Find[DBloot].Value} schemanumber	SELECT version FROM	metadata WHERE name='schema_number'
+	/sqlite	query	${maData.Find[DBloot].Value} schemanumber	SELECT version FROM	metadata WHERE name='schema_number';
 	/if	(!${sql_check[${_debug}, schemanumber, sql_schema_loot,	"SELECT	(version)"]})	/endmacro
 
 	/declare _schemaMismatch bool local FALSE
@@ -635,13 +642,13 @@ sub	sql_schema_loot(bool _debug)
 
 		/while (TRUE)	{
 			| create shared	build	table
-			/sqlite	query	${maData.Find[DBloot].Value} build CREATE	TABLE	IF NOT EXISTS	metadata(name, version)
+			/sqlite	query	${maData.Find[DBloot].Value} build CREATE	TABLE	IF NOT EXISTS	metadata(name, version);
 			/if	(!${sql_check[${_debug}, build,	sql_schema_loot, "CREATE TABLE IF	NOT	EXISTS (metadata)"]})	/endmacro
-			/sqlite	query	${maData.Find[DBloot].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('build_number', '${maEnv.Find[build].Value}')
+			/sqlite	query	${maData.Find[DBloot].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('build_number', '${maEnv.Find[build].Value}');
 			/if	(!${sql_check[${_debug}, build,	sql_schema_loot, "INSERT INTO	(metadata)"]}) /endmacro
-			/sqlite	query	${maData.Find[DBloot].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('schema_number',	'${maEnv.Find[schema].Value}')
+			/sqlite	query	${maData.Find[DBloot].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('schema_number',	'${maEnv.Find[schema].Value}');
 			/if	(!${sql_check[${_debug}, build,	sql_schema_loot, "INSERT INTO	(metadata)"]}) /endmacro
-      /sqlite query ${maData.Find[DBloot].Value} build CREATE TABLE IF NOT EXISTS loot_control(item TEXT NOT NULL PRIMARY KEY, action TEXT, pass TEXT, count TEXT)
+      /sqlite query ${maData.Find[DBloot].Value} build CREATE TABLE IF NOT EXISTS loot_control(item TEXT NOT NULL PRIMARY KEY, action TEXT, pass TEXT, count TEXT);
 			/if	(!${sql_check[${_debug}, build,	sql_schema_loot, "CREATE TABLE IF (loot_control)"]}) /endmacro
 
 			/delay 1
@@ -655,7 +662,7 @@ sub	sql_schema_loot(bool _debug)
 	/if	(${_buildMismatch}) {
 		DEBUG	${sep}build	mismatch
 		/while (TRUE)	{
-			/sqlite	query	${maData.Find[DBloot].Value} updatebuildnum	UPDATE metadata	SET	version='${maEnv.Find[build].Value}' WHERE name='build_number'
+			/sqlite	query	${maData.Find[DBloot].Value} updatebuildnum	UPDATE metadata	SET	version='${maEnv.Find[build].Value}' WHERE name='build_number';
 			/if	(!${sql_check[${_debug}, updatebuildnum, sql_schema_loot,	"UPDATE	(metadata)"]})	/endmacro
 
 			| call macro update	by version here. doubt there will	be any
@@ -675,7 +682,7 @@ sub	sql_schema_loot(bool _debug)
 		}
 
 		/while (TRUE)	{
-			/sqlite	query	${maData.Find[DBloot].Value} updateschemanum UPDATE	metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number'
+			/sqlite	query	${maData.Find[DBloot].Value} updateschemanum UPDATE	metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number';
 			/if	(!${sql_check[${_debug}, updateschemanum,	sql_schema_loot, "UPDATE (metadata)"]}) /endmacro
 
 			| call schema update by	version	here!
@@ -688,8 +695,11 @@ sub	sql_schema_loot(bool _debug)
 		/sqlite clear updateschemanum
 	}
 
+	| set pragma
+	/sqlite query ${maData.Find[DBloot].Value} query_journal_DBloot PRAGMA journal_mode=WAL;
+
 	/if	(${maDebug.Find[init].Value})	{
-		OUT	\agsql_set_loot_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
+		OUT	\agsql_schema_loot\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
 		/mqp
 	}
 
@@ -712,7 +722,7 @@ sub	sql_schema_character(bool	_debug)
 	/declare _metadataFail bool local FALSE
 
 	| get	character	build	version	and	maintain previous	number
-	/sqlite	query	${maData.Find[DBcharacter].Value}	buildnumber	SELECT version FROM	metadata WHERE name='build_number'
+	/sqlite	query	${maData.Find[DBcharacter].Value}	buildnumber	SELECT version FROM	metadata WHERE name='build_number';
 	/if (!${sql_check[${_debug}, buildnumber, sql_schema_character, "SELECT (buildnumber)"]})	/endmacro
 	/if	(${sqlite.Rows[buildnumber]})	{
 		/invoke	${maData.Add[stPreviousBuild,${sqlite.Result[buildnumber 1 version]}]}
@@ -721,7 +731,7 @@ sub	sql_schema_character(bool	_debug)
 	}
 
 	| get	character	schema version and maintain	previous number
-	/sqlite	query	${maData.Find[DBcharacter].Value}	schemanumber SELECT	version	FROM metadata	WHERE	name='schema_number'
+	/sqlite	query	${maData.Find[DBcharacter].Value}	schemanumber SELECT	version	FROM metadata	WHERE	name='schema_number';
 	/if	(!${sql_check[${_debug}, schemanumber, sql_schema_character, "SELECT (schemanumber)"]})	/endmacro
 	/if (${sqlite.Rows[schemanumber]}) {
 		/invoke	${maData.Add[stPreviousSchema,${sqlite.Result[schemanumber 1 version]}]}
@@ -866,6 +876,17 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maHard	stRezIgnoreFucktards								30m														"${auxnum} suration	to mark	corpses	on the no	rez	list"	hard
 	/call	set_data_map ${_debug} maHard	stMaxCureRad												200														"${auxnum} max radius	to check for curing" hard
 	/call	set_data_map ${_debug} maHard	stPullMobTagTry											5															"${auxnum} max trys	to tag a mob while pulling"	hard
+
+
+
+|**	control: chr (shared) **|
+
+	| invs
+	/call	set_data_map ${_debug} maChr stInvisSingle												FALSE													"${auxsw}	self invisibility"
+	/call	set_data_map ${_debug} maChr stInvisGroup													FALSE													"${auxsw}	group invisibility"
+	/call	set_data_map ${_debug} maChr stInvisSingleIVU											FALSE													"${auxsw}	self invis vs undead"
+	/call	set_data_map ${_debug} maChr stInvisGroupIVU											FALSE													"${auxsw}	group invis vs undead"
+
 
 
 |**	control: env **|
@@ -2261,8 +2282,11 @@ sub sql_schema_nav(bool _debug)
 		/sqlite clear updateschemanum
 	}
 
+	| set pragma
+	/sqlite query ${maData.Find[DBnav].Value} query_journal_DBnav PRAGMA journal_mode=WAL;
+
 	/if (${maDebug.Find[init].Value}) {
-		OUT \agsql_set_loot_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		OUT \agsql_schema_nav\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
 		/mqp
 	}
 
@@ -2277,10 +2301,10 @@ sub sql_schema_nav(bool _debug)
 sub sql_drop(string _table, string _field, bool _echo)
 
 	| is the data there?
-	/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var='${_field}'
+	/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var='${_field}';
 
 	/if (${sqlite.Rows[dummy]}) {
-		/sqlite query ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_table} WHERE env_var="${_field}"
+		/sqlite query ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_table} WHERE env_var='${_field}';
 		/if (${_echo}) OUT SQL DROP${sep}\a-w${_table}${submenu}${_field}\ax ${dot} \a-w${sqlite.Status[dummy]}\ax
 
 	} else /if (!${sqlite.Rows[dummy]}) {
@@ -2293,17 +2317,17 @@ sub sql_drop(string _table, string _field, bool _echo)
 
 |***
  * note: sqlite query result validation
- * use: ${DEBUG, QUERYNAME, DATABASECHECKINGNAME]}
+ * use: ${sql_check[DEBUG, QUERYNAME, DATABASECHECKINGNAME]}
  ***|
-sub sql_check(bool _debug, string _query, string _dbname, string _action)
+sub sql_check(bool _debug, string _query, string _subname, string _action)
 
 	| results we accept at face value and move on
 	/if (!${Select[${sqlite.Resultcode[${_query}]},0,1,6,5]} || ${_debug}) {
-		/sqlite query ${maData.Find[DBstatic].Value} queryresult SELECT * FROM sql_error WHERE env_var='${sqlite.Resultcode[${_query}]}'
+		/sqlite query ${maData.Find[DBstatic].Value} queryresult SELECT * FROM sql_error WHERE env_var='${sqlite.Resultcode[${_query}]}';
 		/if (!${_debug}) {
-			OUT \ap${_action}\ax${sep}${_dbname} (\a-r${_query}\ax)${sep}\ay${sqlite.Resultcode[${_query}]}\ax${sep}\aw${sqlite.Result[queryresult 1 value]}\ax${sep}\a-w${sqlite.Result[queryresult 1 aux]}\ax
+			OUT \ap${_action}\ax${sep}${_subname} (\a-r${_query}\ax)${sep}\ay${sqlite.Resultcode[${_query}]}\ax${sep}\aw${sqlite.Result[queryresult 1 value]}\ax${sep}\a-w${sqlite.Result[queryresult 1 aux]}\ax
 		} else {
-			DEBUG ${sep}\ap${_action}\ax${sep}${_dbname} (\a-r${_query}\ax)${sep}${sqlite.Rows[${_query}]}${sep}\ay${sqlite.Resultcode[${_query}]}\ax${sep}\aw${sqlite.Result[queryresult	1 value]}\ax${sep}\a-w${sqlite.Result[queryresult 1 aux]}\ax
+			DEBUG ${sep}\ap${_action}\ax${sep}${_subname} (\a-r${_query}\ax)${sep}${sqlite.Rows[${_query}]}${sep}\ay${sqlite.Resultcode[${_query}]}\ax${sep}\aw${sqlite.Result[queryresult	1 value]}\ax${sep}\a-w${sqlite.Result[queryresult 1 aux]}\ax
 			/if (${Select[${sqlite.Resultcode[${_query}]},0,1,6,5]}) {
 				/return TRUE
 			}
@@ -2330,9 +2354,9 @@ sub sql_schema_shared(bool _debug)
 	}
 
 	| check the current schema/build versions
-	/sqlite query ${maData.Find[DBshared].Value} buildnumber SELECT version FROM metadata WHERE name='build_number'
+	/sqlite query ${maData.Find[DBshared].Value} buildnumber SELECT version FROM metadata WHERE name='build_number';
 	/if (!${sql_check[${_debug}, buildnumber, sql_schema_shared, "SELECT (version)"]}) /endmacro
-	/sqlite query ${maData.Find[DBshared].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number'
+	/sqlite query ${maData.Find[DBshared].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number';
 	/if (!${sql_check[${_debug}, schemanumber, sql_schema_shared, "SELECT (version)"]}) /endmacro
 
 	/declare _schemaMismatch bool local FALSE
@@ -2362,20 +2386,20 @@ sub sql_schema_shared(bool _debug)
 
 			| -------------------- metadata build
 			| create shared build table
-			/sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version)
+			/sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version);
 			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (metadata)"]})	/endmacro
-			/sqlite	query	${maData.Find[DBshared].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('build_number', '${maEnv.Find[build].Value}')
+			/sqlite	query	${maData.Find[DBshared].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('build_number', '${maEnv.Find[build].Value}');
 			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "INSERT INTO	(metadata)"]}) /endmacro
-			/sqlite	query	${maData.Find[DBshared].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('schema_number',	'${maEnv.Find[schema].Value}')
+			/sqlite	query	${maData.Find[DBshared].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('schema_number',	'${maEnv.Find[schema].Value}');
 			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "INSERT INTO	(metadata)"]}) /endmacro
 
 			| -------------------- rolls for crews
 			| create the characters
-			/sqlite	query	${maData.Find[DBshared].Value} build CREATE	TABLE	IF NOT EXISTS	characters(id	INTEGER	PRIMARY	KEY	autoincrement, charactername TEXT	NOT	NULL,	server TEXT	NOT	NULL)
+			/sqlite	query	${maData.Find[DBshared].Value} build CREATE	TABLE	IF NOT EXISTS	characters(id	INTEGER	PRIMARY	KEY	autoincrement, charactername TEXT	NOT	NULL,	server TEXT	NOT	NULL);
 			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (characters)"]})	/endmacro
 
 			| create the rolls.. move	to entropy.sqlite???
-			/sqlite	query	${maData.Find[DBshared].Value} build CREATE	TABLE	IF NOT EXISTS	roles(name)
+			/sqlite	query	${maData.Find[DBshared].Value} build CREATE	TABLE	IF NOT EXISTS	roles(name);
 			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (roles)"]}) /endmacro
 			/call	data_schema_roles
 
@@ -2449,8 +2473,11 @@ sub sql_schema_shared(bool _debug)
 		/sqlite clear updateschemanum
 	}
 
+	| set pragma
+	/sqlite query ${maData.Find[DBshared].Value} query_journal_DBshared PRAGMA journal_mode=WAL;
+
 	/if (${maDebug.Find[init].Value}) {
-		OUT \agsql_set_loot_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+		OUT \agsql_schema_shared\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
 		/mqp
 	}
 

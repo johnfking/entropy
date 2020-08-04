@@ -10,8 +10,8 @@
  * note: primary initilization of all cleric non shared data
  * use: not for you
  ***|
-sub set_WAR(bool _debug)
-	DEBUG \atset_WAR\ax()
+sub class_init(bool _debug)
+	DEBUG \atclass_init\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}
@@ -76,8 +76,8 @@ sub set_WAR(bool _debug)
  * note: main warrior routine
  * use:
  ***|
-sub main_WAR(bool _debug)
-	DEBUG \atmain_WAR\ax()
+sub class_main(bool _debug)
+	DEBUG \atclass_main\ax()
 
 	GETINPUT
 	ISMEDEAD
@@ -102,9 +102,9 @@ sub main_WAR(bool _debug)
 				/call cast_shield_flash FALSE disc
 			}
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-			/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} TARGET
-			/if (BURN) /call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} TARGET
-			/call misc_combat_${Me.Class.ShortName} ${maDebug.Find[misc].Value} TARGET
+			/if (AGRO) /call get_agro ${maDebug.Find[agro].Value} TARGET
+			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
+			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
@@ -134,9 +134,9 @@ sub main_WAR(bool _debug)
  * note: the things we to to irritate chanters and clerics
  * use:
  ***|
-sub misc_combat_WAR(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat_WAR\ax(\a-w${_tmpID}\ax)
-	FLOW misc_combat_WAR
+sub misc_combat(bool _debug, int _tmpID)
+	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+	FLOW misc_combat
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -230,7 +230,7 @@ sub misc_combat_WAR(bool _debug, int _tmpID)
 
 	| Duplicating these two sub calls here b/c don't want to lose agro or mitigation while firing off this other stuff.
 	/if (AGRO) {
-		/call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} ${_tmpID}
+		/call get_agro ${maDebug.Find[agro].Value} ${_tmpID}
 	}
 
 	CHECKDEFENSE
@@ -275,9 +275,9 @@ sub misc_combat_WAR(bool _debug, int _tmpID)
  * note:
  * use:
  ***|
-sub get_agro_WAR(bool _debug, int _tmpID)
-	DEBUG \atget_agro_WAR\ax(\a-w${_tmpID}\ax)
-	FLOW get_agro_WAR
+sub get_agro(bool _debug, int _tmpID)
+	DEBUG \atget_agro\ax(\a-w${_tmpID}\ax)
+	FLOW get_agro
 
 	ISMEDEAD
 	GETINPUT
@@ -356,9 +356,9 @@ sub get_agro_WAR(bool _debug, int _tmpID)
  * note: Self heals
  * use: *see note*
  ***|
-sub check_heal_WAR(bool _debug, string _type)
-	DEBUG \atcheck_heal_WAR\ax(\a-w${_type}\ax)
-	FLOW check_heal_WAR ${_type}
+sub check_heal(bool _debug, string _type)
+	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+	FLOW check_heal ${_type}
 
 	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 		/call cast_shield_flash FALSE disc
@@ -410,8 +410,8 @@ sub check_heal_WAR(bool _debug, string _type)
  * not: burn routines
  * use:
  ***|
-sub burn_WAR(bool _debug, int _tmpID)
-	DEBUG \atburn_WAR\x(\a-w${_tmpID}\ax)
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\x(\a-w${_tmpID}\ax)
 	FLOW burn_WAR
 
 	ISMEDEAD
@@ -547,8 +547,8 @@ sub burn_WAR(bool _debug, int _tmpID)
  * note: warrior controls
  * use:
  ***|
-sub set_control_WAR(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control_WAR\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _silent, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
 
   /declare _out string local
 
@@ -582,6 +582,11 @@ sub set_control_WAR(string _type, string _verbage, string _silent, bool _debug)
 	| use hiatus disc
 	} else /if (${_type.Equal[hiatus]}) {
 		/invoke ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
+		/return TRUE
 
 	}
 
