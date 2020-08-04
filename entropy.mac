@@ -77,24 +77,6 @@
 #include exspes\data\custom.inc
 #include exspes\inc\class.${Me.Class.ShortName.Lower}.inc
 
-|**
-#include exspes\inc\class.ber.inc
-#include exspes\inc\class.brd.inc
-#include exspes\inc\class.bst.inc
-#include exspes\inc\class.clr.inc
-#include exspes\inc\class.dru.inc
-#include exspes\inc\class.enc.inc
-#include exspes\inc\class.mag.inc
-#include exspes\inc\class.mnk.inc
-#include exspes\inc\class.nec.inc
-#include exspes\inc\class.pal.inc
-#include exspes\inc\class.rng.inc
-#include exspes\inc\class.rog.inc
-#include exspes\inc\class.shd.inc
-#include exspes\inc\class.shm.inc
-#include exspes\inc\class.war.inc
-#include exspes\inc\class.wiz.inc
-**|
 
 
 |***
@@ -120,7 +102,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	/call delete_conflict_alias FALSE
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 200804.01
+	/call set_data FALSE maEnv build													map outer 200804.02
 	/call set_data FALSE maEnv schema													map outer 1.06
 	/call set_data FALSE maEnv repo														map outer 200706.01
 

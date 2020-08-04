@@ -9,8 +9,8 @@
  * note: primary initilization of all wizard non shared data
  * use: not for you
  ***|
-sub init_class(bool _debug)
-	DEBUG \atinit_class\ax()
+sub class_init(bool _debug)
+	DEBUG \atclass_init\ax()
 
 	/if (${maDebug.Find[init].Value}) {
 		/declare _boottimestart int local ${MacroQuest.Running}

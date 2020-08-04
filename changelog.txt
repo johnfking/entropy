@@ -28,6 +28,10 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+200804.02
+- wizard
+  corrected the class init sub name
+
 
 200804.01
 - ranger
