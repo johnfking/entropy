@@ -68,6 +68,9 @@ sub REZ_ACCEPT(string _line, bool _debug)
 	}
 /return
 
+#event BIND_RETURN 								"Returning to Bind Location. Please Wait#.#"
+
+
 
 
 |***

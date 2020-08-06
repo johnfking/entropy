@@ -341,8 +341,8 @@ sub pulse_cycle(bool _debug, _tmpID, string _tag)
 
 
 		| check the switch
-		/if (!${Bool[${maSong.Find[swSong${_lipl.Value}].Value}]}) {
-			DEBUG ${sep}switch off${sep}\a-w${maSong.Find[stSong${_lipl.Value}].Value}\ax
+		/if (!${maSong.Find[swSong${_lipl.Value}].Value}) {
+			DEBUG ${sep}switch off${sep}\a-w${maSong.Find[swSong${_lipl.Value}].Value}\ax
 			/invoke ${_lipl.Advance}
 			/continue
 		}

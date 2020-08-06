@@ -102,7 +102,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	/call delete_conflict_alias FALSE
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 200804.02
+	/call set_data FALSE maEnv build													map outer 200805.01
 	/call set_data FALSE maEnv schema													map outer 1.06
 	/call set_data FALSE maEnv repo														map outer 200706.01
 
@@ -280,9 +280,10 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 
 					/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w1\ax (\a-rentering assist/pull routine\ax)
 
-					/if ((!PULL && ${SpawnCount[NPC radius ENV PS4]}) || (PULL && ${Group.MainAssist.ID} != ${Me.ID} && (TARGET || ${SpawnCount[NPC radius ENV PS4 targetable]}))) {
+					/if ((!PULL && ${SpawnCount[NPC radius ENV PS4]}) || (PULL && ${Group.MainAssist.ID} != ${Me.ID} && ${Group.Members} && (TARGET || ${SpawnCount[NPC radius ENV PS4 targetable]}))) {
 						/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w2\ax (\a-rget_assist_target\ax)
 						/call get_assist_target ${maDebug.Find[assist].Value}
+
 					} else /if (PULL && !TARGET) {
 						/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w3\ax (\a-rpull-base\ax)
 

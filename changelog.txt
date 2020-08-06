@@ -28,6 +28,22 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+200805.01
+** The long awaited TLP edition
+- gem mem routine
+  increased the base wait time to allow for extended mem time spells
+- enchanter
+  corected the sub name for mis_combat()
+- rest
+  corrected the heal check sub names
+- peeps should no longer try to melee when its turned off
+- adjusted the distance option for pulling with melee
+  it will no longer obey the /cc pull navstop distance option
+  its stop distance is now default 80% of the targets max melee range
+- DB pregen entries where a toon is too low to have any of the spell family
+  line will now default to FALSE
+
+
 200804.02
 - wizard
   corrected the class init sub name
