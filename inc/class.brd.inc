@@ -16,31 +16,37 @@ sub class_init(bool _debug)
 		/declare _boottimestart int local ${MacroQuest.Running}
 	}
 
-	/call set_data FALSE maData stSpire																	map outer "Spire of the Minstrels"
-	/call set_data FALSE maData stSynergy																map outer "Troubadour's Synergy"
-	/call set_data FALSE maData stEpic1																	map outer "Singing Short Sword"
-	/call set_data FALSE maData stEpic15																map outer "Prismatic Dragon Blade"
-	/call set_data FALSE maData stEpic2																	map outer "Blade of Vesagran"
-	/call set_data FALSE maData stFade																	map outer "Fading Memories"
-	/call set_data_map FALSE maChr stAAUnity														FALSE													"${auxna} class aa unity buff"
-	/call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} alliance song"
-	/call set_data_map FALSE maChr stNukeServant 												PREGEN|1											"${auxna} spam pet song"
+	/call set_data ${_debug} maData stSpire															map outer "Spire of the Minstrels"
+	/call set_data ${_debug} maData stSynergy														map outer "Troubadour's Synergy"
+	/call set_data ${_debug} maData stEpic1															map outer "Singing Short Sword"
+	/call set_data ${_debug} maData stEpic15														map outer "Prismatic Dragon Blade"
+	/call set_data ${_debug} maData stEpic2															map outer "Blade of Vesagran"
+	/call set_data ${_debug} maData stFade															map outer "Fading Memories"
+	/call set_data_map ${_debug} maChr stAAUnity												FALSE													"${auxna} class aa unity buff"
+	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance song"
+	/call set_data_map ${_debug} maChr stNukeServant 										PREGEN|1											"${auxna} spam pet song"
 
 	| map for mob control
 	/declare maMobControl map outer
 
-	/call set_data_map FALSE maChr swSongRest														FALSE													"${auxna} enable song while resting"
-	/call set_data_map FALSE maChr stSongRest														FALSE													"${auxna} song to use while group resting"
-	/call set_data_map FALSE maChr stSongRefresh												6															"${auxnum} remaining duration on a song to refresh. in seconds"
+	/call set_data_map ${_debug} maChr swSongRest												FALSE													"${auxna} enable song while resting"
+	/call set_data_map ${_debug} maChr stSongRest												FALSE													"${auxna} song to use while group resting"
+	/call set_data_map ${_debug} maChr stSongRefresh										6															"${auxnum} remaining duration on a song to refresh. in seconds"
 
 	| current song line
 	/call set_data_list ${_debug} maSong lsLineSong											EMPTY													"${auxli} list of song numbers to sing"  song
 
 	| aa boastful bellow switch
-	/call set_data_map FALSE maChr swAABellow														FALSE													"${auxsw} enable/disable using AA Boastful Bellow"
+	/call set_data_map ${_debug} maChr swAABellow												FALSE													"${auxsw} enable/disable using AA Boastful Bellow"
 
 	| sing OOC
-	/call set_data_map FALSE maChr swPulseOOC														FALSE													"${auxna} sing while out of combat"
+	/call set_data_map ${_debug} maChr swPulseOOC												FALSE													"${auxna} sing while out of combat"
+
+	| swap instruments
+	/call set_data_map ${_debug} maChr swInstrumentSwap									FALSE													"${auxsw} enable swapping instruments"
+	/call set_data_map ${_debug} maChr stInstrumentSecondary						FALSE													"${auxna} name of secondary weapon to return from swap"
+	/call set_data_map ${_debug} maChr stInstrumentPrimary							FALSE													"${auxna} name of primary weapon to return from swap"
+
 
 	| AAs
 	/call set_data_map ${_debug} maChr stAAFierceEye										PREGEN|1											"${auxna} Fierce Eye aa"
@@ -60,6 +66,9 @@ sub class_init(bool _debug)
 	/call set_data_map ${_debug} maChr stAAShaurisSonorousClouding			PREGEN|1											"${auxna} Shauri's Sonorous Clouding aa"
 
 
+	| set base instrument focuses
+	/declare maBardFocus map outer
+	/call scan_focus FALSE ${_debug}
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -67,6 +76,7 @@ sub class_init(bool _debug)
 	}
 
 /return TRUE
+
 
 
 
@@ -321,25 +331,6 @@ sub pulse_cycle(bool _debug, _tmpID, string _tag)
 	/vardata _lipl lsLineSong.First.Clone
 	/while (!${_lipl.IsEnd}) {
 
-		| break on mobs around
-		| /if (${_oocSing.Equal[ooc]} && COMBAT) {
-		| 	DEBUG ${sep}break.ooc singing stop for combat
-		| 	/return FALSE
-		| }
-
-		| /if (${target[isdead, ${_tmpID}]} && !${maPred.Find[swPred].Value} && !${maChr.Find[swPulseOOC].Value}) {
-		|**
-		/if (${_oocSing.NotEqual[ooc]}) {
-		DEBUG ${sep}alter.not ooc dead check
-			/if (${target[isdead, ${_tmpID}]}) {
-				/call pulse_stop
-				/call clear_combat
-				/return FALSE
-			}
-		}
-		**|
-
-
 		| check the switch
 		/if (!${maSong.Find[swSong${_lipl.Value}].Value}) {
 			DEBUG ${sep}switch off${sep}\a-w${maSong.Find[swSong${_lipl.Value}].Value}\ax
@@ -362,6 +353,12 @@ sub pulse_cycle(bool _debug, _tmpID, string _tag)
 			}
 		}
 
+		| song has time left
+		/if (${Me.Song[${Spell[${maSong.Find[stSong${_lipl.Value}].Value}].RankName}].Duration} > ${maChr.Find[stSongRefresh].Value}*10) {
+			/invoke ${_lipl.Advance}
+			/continue
+		}
+
 		| ready
 		/if (!${is_ready[${_debug}, "${maSong.Find[stSong${_lipl.Value}].Value}"]}) {
 			DEBUG ${sep}not ready${sep}\a-w${maSong.Find[stSong${_lipl.Value}].Value}\ax
@@ -373,12 +370,6 @@ sub pulse_cycle(bool _debug, _tmpID, string _tag)
 		/call tag_evaluation ${maDebug.Find[tag].Value} Song ${_lipl.Value} ${Me.DisplayName} "${maSong.Find[stSong${_lipl.Value}].Value}" pulse_cycle
 		/if (!${Macro.Return}) {
 			DEBUG ${break}condition${sep}Buff${_lipl.Value}
-			/invoke ${_lipl.Advance}
-			/continue
-		}
-
-		| song has time left
-		/if (${Me.Song[${Spell[${maSong.Find[stSong${_lipl.Value}].Value}].RankName}].Duration} > ${maChr.Find[stSongRefresh].Value}*10) {
 			/invoke ${_lipl.Advance}
 			/continue
 		}
@@ -419,7 +410,7 @@ sub pulse_stop(string _marker, bool _debug)
 	FLOW pulse_stop
 
 	/while (${Me.Casting.ID} || ${Me.BardSongPlaying}) {
-		/invoke ${maData.Add[stCastReturn,NOTREADY]}
+		/invoke ${maData.Add[stCastReturn,FALSE]}
 		/stopsong
 		/stopcast
 		/delay 10 !${Me.Casting.ID}
@@ -550,6 +541,63 @@ sub Bind_command_brd_travel(bool _debug)
 
 
 |***
+ * note: scans the toons inventory to find the best instrument focuses
+ * use: /call scan_focus DEBUG
+ ***|
+sub scan_focus(string _type, bool _debug)
+	DEBUG \atscan_focus\ax(\a-w${_type}\ax)
+
+	/declare _invItem					int			local 0
+	/declare _containerItem		int			local 0
+	/declare _tmpString 			string 	local FALSE
+	/invoke ${maBardFocus.Add[Brass,|empty|0|worn]}
+	/invoke ${maBardFocus.Add[Wind,|empty|0|worn]}
+	/invoke ${maBardFocus.Add[Percussion,|empty|0|worn]}
+	/invoke ${maBardFocus.Add[String,|empty|0|worn]}
+	/invoke ${maBardFocus.Add[Singing,|empty|0|worn]}
+
+	| loop all inventory items
+	/for _invItem 1 to 32
+
+		| if the item is a container, look inside
+		/if (${InvSlot[${_invItem}].Item.Container}) {
+
+			| loop every item in the container
+			/for _containerItem 1 to ${InvSlot[${_invItem}].Item.Container}
+
+				/if (${InvSlot[${_invItem}].Item[${_containerItem}].ID} && ${FindItem[${Me.Inventory[${_invItem}].Item[${_containerItem}].Name}].Focus2.Spell.ID} && ${Me.Level} >= ${Me.Inventory[${_invItem}].Item[${_containerItem}].RequiredLevel}) {
+					DEBUG ${sep}${Me.Inventory[${_invItem}].Item[${_containerItem}].Name}${sep}\a-w${FindItem[${Me.Inventory[${_invItem}].Item[${_containerItem}].Name}].Focus2}\ax
+					/varset _tmpString ${FindItem[${Me.Inventory[${_invItem}].Item[${_containerItem}].Name}].Focus2.Spell.Name}
+
+					| if the current iteration is > then the set one. replace it
+					/if (${_tmpString.Arg[3, ]} > ${maBardFocus.Find[${_tmpString.Arg[1, ]}].Value.Arg[2,|]}) {
+						/invoke ${maBardFocus.Add[${_tmpString.Arg[1, ]},|${Me.Inventory[${_invItem}].Item[${_containerItem}].Name}|${_tmpString.Arg[3, ]}|swap]}
+					}
+				}
+			/next _containerItem
+
+		| if its not a container?
+		} else /if (${InvSlot[${_invItem}].Item.ID} && ${FindItem[${InvSlot[${_invItem}].Item}].Focus2.Spell.ID} && ${Me.Level} >= ${InvSlot[${_invItem}].Item.RequiredLevel}) {
+			DEBUG ${sep}${InvSlot[${_invItem}].Item}${sep}\a-w${FindItem[${InvSlot[${_invItem}].Item}].Focus2}\ax
+			/varset _tmpString ${FindItem[${Me.Inventory[${_invItem}].Name}].Focus2.Spell.Name}
+
+			| if the current iteration is > then the set one. replace it
+			/if (${_tmpString.Arg[3, ]} > ${maBardFocus.Find[${_tmpString.Arg[1, ]}].Value.Arg[2,|]}) {
+				/invoke ${maBardFocus.Add[${_tmpString.Arg[1, ]},|${Me.Inventory[${_invItem}].Name}|${_tmpString.Arg[3, ]}|worn]}
+			}
+		}
+
+	/next _invItem
+
+	/if (${_type.Equal[see]}) {
+		/call Bind_command_see maBardFocus
+	}
+
+/return TRUE
+
+
+
+|***
  * note: class control
  * use: /chr
  ***|
@@ -600,6 +648,29 @@ sub set_control(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[ooc]}) {
 		/invoke ${set_switch_env[${_debug}, swPulseOOC, TRUE, ${_verbage}]}
 
+	| swap
+	} else /if (${_type.Equal[swap]}) {
+
+		/if (${_verbage.Equal[active]}) {
+			/invoke ${set_switch_env[${_debug}, swInstrumentSwap, TRUE, ${_silent}]}
+		} else /if (${_verbage.Equal[secondary]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stInstrumentSecondary, "${_silent}"]}
+		} else /if (${_verbage.Equal[primary]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stInstrumentPrimary, "${_silent}"]}
+		}
+
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[active,swInstrumentSwap]}
+		/invoke ${maControl.Add[secondary,stInstrumentSecondary|br]}
+		/invoke ${maControl.Add[primary,stInstrumentPrimary|br]}
+		/invoke ${set_control_output[${_debug}, maChr, "chr swap", maControl]}
+		/return TRUE
+
+	| scan for new singing focus effects
+	} else /if (${_type.Equal[scan]}) {
+		/call scan_focus see ${_debug}
+		/return TRUE
+
 	| set invis
 	} else /if (${_type.Equal[invis]}) {
 		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
@@ -611,5 +682,4 @@ sub set_control(string _type, string _verbage, string _silent, bool _debug)
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
 /return TRUE
-
 

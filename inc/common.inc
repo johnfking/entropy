@@ -158,7 +158,8 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 	/if (!${sql_check[${_debug}, dummy, set_data_map, "SELECT (*)"]}) /endmacro
 
 	| data exists. get from DB and call it good
-	/if (${sqlite.Rows[dummy]}) {
+	/if (${sqlite.Rows[dummy]} && !${pregenUpdate}) {
+		DEBUG ${sep}sqlite.Rows[dummy]${sep}\a-w${sqlite.Rows[dummy]}\ax
 		/if (${maEnv.Find[schema].Value.Equal[${maData.Find[stPreviousSchema].Value}]}) {
 			/invoke ${${_map}.Add[${sqlite.Result[dummy 1 env_var]},${sqlite.Result[dummy 1 value]}]}
 			/return TRUE
@@ -176,8 +177,8 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 		}
 
 	| data does not exist
-	} else /if (!${sqlite.Rows[dummy]}) {
-		DEBUG ${sep}DATA \ardoes NOT exists\ax
+	} else /if (!${sqlite.Rows[dummy]} || ${pregenUpdate}) {
+		DEBUG ${sep}DATA \ardoes NOT exists || Forced rebuild\ax
 
 		/if (${_value.Find[PREGEN]}) {
 			DEBUG \agPREGEN DATA\ax
@@ -214,8 +215,8 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
 
 		/sqlite query ${maData.Find[DBcharacter].Value} dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${_aux}")
 		/if (!${sql_check[${_debug}, dummy, set_data_map, "INSERT OR IGNORE INTO (environment_${_table})"]}) /endmacro
-
 		/invoke ${${_map}.Add[${_env_var},"${_value}"]}
+
 	}
 
 /return TRUE
@@ -1304,9 +1305,9 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		/varset _verbage ${Spell[${_verbage}].RankName}
 	}
 
-
+	| set number of cast trys
 	/declare _castLoop int local ${maEntropy.Find[stCastLoop].Value}
-	| /invoke ${maData.Add[stCastReturn,FALSE]}
+
 
 	/if (!${Defined[_castTime]}) {
 		/declare _castTime int local 0
@@ -1754,9 +1755,9 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 					/varcalc _castLoop ${_castLoop}-1
 					/delay 2
 				}
+			}
+			/return TRUE
 		}
-		/return TRUE
-	}
 
 
 	| pulses
@@ -1789,22 +1790,40 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		}
 
 		/while (${_castLoop}) {
-				/cast ${Me.Gem[${_verbage}]}
-			/delay 5
+			/cast ${Me.Gem[${_verbage}]}
+			/delay 1
+
 			| adjust delay for Metronome AA (fuck bards)
-			/if (${Me.AltAbility[Metronome]}) {
-				/delay ${Spell[${_verbage}].CastTime.Seconds}s
-			} else {
-				/delay ${Math.Calc[${Spell[${_verbage}].CastTime.Seconds}+${Math.Calc[${Spell[${_verbage}].CastTime.Seconds}*.05]}]}s
-			}
+			| /if (${Me.AltAbility[Metronome]}) {
+			| /delay ${Spell[${_verbage}].CastTime.Seconds}s
+			| } else {
+			| 	/delay ${Math.Calc[${Spell[${_verbage}].CastTime.Seconds}+${Math.Calc[${Spell[${_verbage}].CastTime.Seconds}*.05]}]}s
+			| }
 
 			/while (${Window[CastingWindow].Open}) {
-				/delay 3
+
+				/if (${maChr.Find[swInstrumentSwap].Value}) {
+					/if (${Me.CastTimeLeft} < 1500) {
+						/if (${maBardFocus.Find[${Spell[${_verbage}].Skill.Arg[1, ]}].Value.Arg[3,|].NotEqual[worn]}) {
+							/if (${FindItem[${maBardFocus.Find[${Spell[${_verbage}].Skill.Arg[1, ]}].Value.Arg[1,|]}].WornSlot[offhand]}) {
+								/call Bind_command_swap "${maBardFocus.Find[${Spell[${_verbage}].Skill.Arg[1, ]}].Value.Arg[1,|]}" 14 FALSE
+							} else /if (${FindItem[${maBardFocus.Find[${Spell[${_verbage}].Skill.Arg[1, ]}].Value.Arg[1,|]}].WornSlot[mainhand]}) {
+								/call Bind_command_swap "${maBardFocus.Find[${Spell[${_verbage}].Skill.Arg[1, ]}].Value.Arg[1,|]}" 13 FALSE
+							}
+
+						}
+					}
+				}
+
+				/delay 2
 			}
+			/delay 1
+			/doevents
 
 			/if (${_sub.Equal[ignoreall]}) {
 				/return TRUE
 			}
+
 
 			GETINPUT voodoo_pulse NA|NA
 			/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,RESISTED,IMMUNE]}) {
@@ -1813,10 +1832,18 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 				/break
 			}
 			/if (${Select[${maData.Find[stCastReturn].Value},NOTREADY,DISTRACTED]}) {
-			 	/varcalc _castLoop ${_castLoop}-1
 			 	/delay 2
 			}
+			/varcalc _castLoop ${_castLoop}-1
 		}
+
+		/if (${maChr.Find[swInstrumentSwap].Value}) {
+			/call Bind_command_swap "${maChr.Find[stInstrumentSecondary].Value}" 14 FALSE
+			/call Bind_command_swap "${maChr.Find[stInstrumentPrimary].Value}" 13 FALSE
+		}
+
+
+
 		/return TRUE
 	}
 
@@ -1837,7 +1864,7 @@ sub set_stop(bool _debug, string _silent)
 	/if (${Select[${Me.Class.ShortName},BRD]} && (${Me.Casting.ID} || ${Me.BardSongPlaying})) {
 		DEBUG ${sep}stop${sep}\a-wbard bs\ax
 		/while (${Me.Casting.ID} || ${Me.BardSongPlaying}) {
-			/invoke ${maData.Add[stCastReturn,NOTREADY]}
+			| /invoke ${maData.Add[stCastReturn,NOTREADY]}
 			/stopsong
 			/stopcast
 			/delay 10 !${Me.Casting.ID}
@@ -4410,22 +4437,28 @@ sub set_zone_lists(bool _debug)
 	}
 
 	| load zone properties
-  /declare _li listiterator local
-	/vardata _li lsZoneProperty.First.Clone
-	/while (!${_li.IsEnd}) {
-		/invoke ${${_li.Value}.Clear}
+  /declare _lizl listiterator local
+	/vardata _lizl lsZoneProperty.First.Clone
+	/while (!${_lizl.IsEnd}) {
+		/invoke ${${_lizl.Value}.Clear}
 
-		/sqlite query ${maData.Find[DBzone].Value} QZone SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}' and element='${_li.Value}'
-		/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT (${_li.Value})"]}) /endmacro
-
-
-		/if (${sqlite.Result[QZone 1 data]} > 0) {
-			/sqlite query ${maData.Find[DBzone].Value} QZone SELECT group_concat(value) as data FROM zone_control WHERE zone_shortname = '${Zone.ShortName}' and element = '${_li.Value}' group by element
-			/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT (group)"]}) /endmacro
-			/invoke ${${_li.Value}.Append[${sqlite.Result[QZone 1 data]}]}
+		/while (TRUE) {
+			/sqlite query ${maData.Find[DBzone].Value} QZone SELECT count(*) as data from zone_control where zone_shortname='${Zone.ShortName}' and element='${_lizl.Value}'
+			/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT (${_lizl.Value})"]}) /endmacro
+			/if (${sqlite.Resultcode[QZone]} != 0) {
+				/delay 1
+			} else /if (${sqlite.Resultcode[QZone]} == 0) {
+				/break
+			}
 		}
 
-		/invoke ${_li.Advance}
+		/if (${sqlite.Result[QZone 1 data]} > 0) {
+			/sqlite query ${maData.Find[DBzone].Value} QZone SELECT group_concat(value) as data FROM zone_control WHERE zone_shortname = '${Zone.ShortName}' and element = '${_lizl.Value}' group by element
+			/if (!${sql_check[${_debug}, QZone, set_zone_lists, "SELECT (group)"]}) /endmacro
+			/invoke ${${_lizl.Value}.Append[${sqlite.Result[QZone 1 data]}]}
+		}
+
+		/invoke ${_lizl.Advance}
 	}
 
 /return TRUE

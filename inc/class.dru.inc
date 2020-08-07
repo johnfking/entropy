@@ -273,9 +273,9 @@ sub check_heal(bool _debug, string _type)
  * note: Druid burn routines
  * use: dpsing the things
  ***|
-sub burn_DRU(bool _debug, int _tmpID)
-	DEBUG \atburn_DRU\ax()
-	FLOW burn_DRU
+sub burn(bool _debug, int _tmpID)
+	DEBUG \atburn\ax()
+	FLOW burn
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {

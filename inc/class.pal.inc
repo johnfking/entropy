@@ -150,7 +150,7 @@ sub class_main(bool _debug)
 			/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 				/call cast_shield_flash FALSE aa
 			}
-			/if (AGRO) /call get_agro_${Me.Class.ShortName} ${maDebug.Find[agro].Value} TARGET
+			/if (AGRO) /call get_agro ${maDebug.Find[agro].Value} TARGET
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/call check_heal_routines
 			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
@@ -271,7 +271,7 @@ sub misc_combat(bool _debug, int _tmpID)
 
 |***
  * note: I'm more important then you are!
- * use: /call get_agro_PAL DEBUG [TARRGETID]
+ * use: /call get_agro DEBUG [TARRGETID]
  ***|
 sub get_agro(bool _debug, int _tmpID)
 	DEBUG \atget_agro\ax()

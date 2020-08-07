@@ -107,15 +107,12 @@ sub	set_debug(string _verbage)
 sub	set_initialize(bool	_debug)
 	DEBUG	\atset_initialize\ax()
 
-	|	set	inital trash variables
-	|	/call	set_data ${_debug} FALSE dump	string outer FALSE
+	| set inital trash variables
 	/call	set_data ${_debug} FALSE bindswap	bool outer FALSE
-	|	/call	set_data ${_debug} FALSE swap	string outer FALSE
 	/call	set_data ${_debug} FALSE DNReturn	string outer FALSE
 	/call	set_data ${_debug} FALSE swDBlocked	bool outer FALSE
 	/call	set_data ${_debug} FALSE DNQReturn string	outer	FALSE
 	/call	set_data ${_debug} FALSE DNQReturn2	string outer FALSE
-
 
 	| list iterator dump variable
 	/declare li	listiterator outer
@@ -358,6 +355,9 @@ sub	set_initial_environment(bool _debug)
 		/invoke	${maChrControl.Add[refresh,stSongRefresh]}
 		/invoke	${maChrControl.Add[bellow,swAABellow]}
 		/invoke	${maChrControl.Add[ooc,swPulseOOC]}
+		/invoke	${maChrControl.Add[swap,submenu]}
+		/invoke	${maChrControl.Add[scan,option]}
+
 
 	}	else /if (${Select[${Me.Class.ShortName},BST]})	{
 		/invoke	${maChrControl.Add[consume,stPctConsume]}
@@ -651,7 +651,7 @@ sub	sql_schema_loot(bool _debug)
       /sqlite query ${maData.Find[DBloot].Value} build CREATE TABLE IF NOT EXISTS loot_control(item TEXT NOT NULL PRIMARY KEY, action TEXT, pass TEXT, count TEXT);
 			/if	(!${sql_check[${_debug}, build,	sql_schema_loot, "CREATE TABLE IF (loot_control)"]}) /endmacro
 
-			/delay 1
+			/if (${sqlite.Resultcode[build]} != 0) /delay 1
 			/if (${sqlite.Resultcode[build]} == 0) /break
 		}
 		/sqlite clear schemanumber
@@ -668,7 +668,7 @@ sub	sql_schema_loot(bool _debug)
 			| call macro update	by version here. doubt there will	be any
 			/call sql_db_update ${_debug} loot
 
-			/delay 1
+			/if (${sqlite.Resultcode[updatebuildnum]} != 0) /delay 1
 			/if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
 		}
 		/sqlite clear updatebuildnum
@@ -688,7 +688,7 @@ sub	sql_schema_loot(bool _debug)
 			| call schema update by	version	here!
 			/call	sql_schema_update ${_debug} loot
 
-			/delay 1
+			/if (${sqlite.Resultcode[updateschemanum]} != 0) /delay 1
 			/if (${sqlite.Resultcode[updateschemanum]} == 0) /break
 		}
 		/sqlite clear schemanumber
@@ -2238,7 +2238,7 @@ sub sql_schema_nav(bool _debug)
 			/sqlite query ${maData.Find[DBnav].Value} build CREATE TABLE IF NOT EXISTS waypoint(zone_shortname, nickname, locY, locX, locZ);
 			/if (!${sql_check[${_debug}, build, sql_schema_nav, "CREATE TABLE IF (waypoint)"]}) /endmacro
 
-			/delay 1
+			/if (${sqlite.Resultcode[build]} != 0) /delay 1
 			/if (${sqlite.Resultcode[build]} == 0) /break
 		}
 		/sqlite clear schemanumber
@@ -2428,7 +2428,7 @@ sub sql_schema_shared(bool _debug)
 			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (tag_validate)"]})	/endmacro
 			/call	data_schema_tag_validation
 
-			/delay 1
+			/if (${sqlite.Resultcode[build]} != 0) /delay 1
 			/if (${sqlite.Resultcode[build]} == 0) /break
 		}
 		/sqlite clear schemanumber
@@ -2445,7 +2445,7 @@ sub sql_schema_shared(bool _debug)
 			| call macro update	by version here. doubt there will	be any
 			/call sql_db_update ${_debug} shared
 
-			/delay 1
+			/if (${sqlite.Resultcode[updatebuildnum]} != 0) /delay 1
 			/if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
 		}
 		/sqlite clear updatebuildnum
@@ -2467,7 +2467,7 @@ sub sql_schema_shared(bool _debug)
 			/call data_schema_tag_validation
 			/call sql_schema_update ${_debug} shared
 
-			/delay 1
+			/if (${sqlite.Resultcode[updateschemanum]} != 0) /delay 1
 			/if (${sqlite.Resultcode[updateschemanum]} == 0) /break
 		}
 		/sqlite clear updateschemanum

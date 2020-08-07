@@ -28,6 +28,36 @@ epics with commas in their names are currently not functioning
 --------------------
 
 
+
+
+
+200807.01
+** TLP QoL round 2
+- bard instrument swapping
+  /chr swap [active|primary|secondary]
+  active - the on/off switch for using instrument swapping
+  primary - your primary weapon
+  secondary - your secondary weapon
+  No, i dont want to use a bandolier for this.
+  /chr scan - will rescan you inventory for the best instrument mods (or you can restart)
+
+  On macro start, the bard will scan its inventory and creat a map of the best instrument mods it has.
+  When the bard goes to play a song, if there is a swappable instrument for that song type, that is
+  not already equiped, it will swap the instrument out in the last 1.5 seconds of the song cast.
+  After the song finishes, it will immediately swap the weapons back.
+  This process continues for every song cast.
+
+- druid
+  corrected the burn sub name
+- paladin
+  fixed the pally agro sub name /sigh
+- /admin pregen
+  this will force an update of all the pregen data (spells/AAs/Discs/Songs)
+  that entropy populates for you, to what you currently have in your book for you level.
+  It will NOT reset things like /buffs /chr or other control settings.
+  JUST the pregenerated data.
+
+
 200805.01
 ** The long awaited TLP edition
 - gem mem routine

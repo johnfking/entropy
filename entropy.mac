@@ -95,6 +95,9 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 		/endmacro
 	}
 
+	| forced PREGEN updates
+	/declare pregenUpdate bool outer FALSE
+
 	| build the debugs
 	/call set_debug FALSE
 
@@ -102,7 +105,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	/call delete_conflict_alias FALSE
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 200805.01
+	/call set_data FALSE maEnv build													map outer 200807.01
 	/call set_data FALSE maEnv schema													map outer 1.06
 	/call set_data FALSE maEnv repo														map outer 200706.01
 

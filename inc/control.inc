@@ -189,6 +189,14 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		/call do_loot ${maDebug.Find[loot].Value}
 		/return TRUE
 
+	} else /if (${_type.Equal[pregen]}) {
+		/invoke ${out[0, "Checking \aw${MacroQuest.Server}_${Me.Class.ShortName}_${Me.DisplayName}\ax${sep}\awenvironment_character\ax table for updated skills/spells/AAs${sep}"]}
+		/varset pregenUpdate TRUE
+		/call class_init ${maDebug.Find[init].Value}
+		/varset pregenUpdate FALSE
+		/invoke ${out[0, "Done"]}
+		/return TRUE
+
 	} else /if (${_type.Equal[sqlcheck]}) {
 		/invoke ${out[0, "Checking database for stale data${sep}"]}
 		/call sql_check ${maDebug.Find[sql].Value}
@@ -2995,6 +3003,12 @@ sub Bind_command_aux(string _type, bool _debug)
 sub Bind_command_swap(string _item, int _toslot, bool _debug)
 	DEBUG \atBind_command_swap\ax(\aw${_item}, ${_toslot}\ax)
 
+	| skip if its already there?
+	/if (${InvSlot[${_toslot}].Item.Name.Equal[${_item}]}) /return TRUE
+
+	| reasons to not do this thing!!
+	/if (!${FindItemCount[${_item}]}) /return FALSE
+
   /declare _swapslot string local NULL
   /declare _pack int local 0
   /declare _slot int local 0
@@ -3045,11 +3059,11 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
 	| put item in slot
 	/if (${Range.Between[1,32:${_toslot}]}) {
 		DEBUG ${sep}\awNEWITEM Home\ax /itemnotify ${Int[${Math.Calc[${_toslot}]}]} leftmouseup
-		/nomodkey /shiftkey /itemnotify ${Int[${Math.Calc[${_toslot} +1]}]} leftmouseup
+		/nomodkey /shiftkey /itemnotify ${Int[${Math.Calc[${_toslot}]}]} leftmouseup
 		| /nomodkey /shiftkey /itemnotify ${_toslot} leftmouseup
 	}
 
-	/delay 1s ${Cursor.ID}
+	| /delay 1s ${Cursor.ID}
 
 	| place the swaped item back where you found the other one
 	DEBUG ${sep}\a-yRETURNING SWAPPED ITEM TO\ax
@@ -3070,6 +3084,12 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
 	}
 
 /return TRUE
+
+/itemnotify ${Int[${Math.Calc[${_toslot}]}]} leftmouseup
+
+/squelch /nomodkey /shiftkey /itemnotify in pack10 9 leftmouseup
+/squelch /nomodkey /shiftkey /itemnotify in pack${_swapslot.Arg[2,|]} ${_swapslot.Arg[3,|]} leftmouseup
+
 
 
 
