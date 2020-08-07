@@ -27,12 +27,14 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
-200807.02
+
+
+200807.03
 - in this corner we have the bard standing at lvl 112
-  in the other corner we havve a bloodied and beaten exspes..
+  and in the opposing corner we havve a bloodied and beaten exspes..
 - bards
   will now obey the /chr refresh time for their songs. it is in seconds btw..
-  Complete redesign for the bard swap. blame dannuic for this
+  complete redesign for the bard swap. blame dannuic for this
   it is now based entirely off IDs. should be no more problems with matching
 - sqlite
   zone data should account for locked files

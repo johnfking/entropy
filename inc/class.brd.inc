@@ -628,38 +628,6 @@ sub scan_focus(string _type, bool _debug)
 /return TRUE
 
 
-${FindItem[148302].InstrumentMod}
-${FindItem[148302].Name}
-
-
-Lute of the Howler
-
-${FindItem[=Lute of the Howler].InstrumentMod}
-
-${FindItem[148375].RequiredLevel}
-
-
-${Me.Inventory[13].InstrumentMod}
-
-
-
-${InvSlot[1].Name}
-
-
-${FindItem[11626].Focus2.Spell.Name}
-
-
-.InstrumentMod
-
-${FindItem[].Focus2.Spell.Base[3]}
-
-
-
-70 Percussion
-
-
-${FindItem[=Lute of the Howler].Focus2.Spell.Base[1]}
-
 
 |***
  * note: class control

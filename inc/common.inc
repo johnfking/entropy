@@ -1765,7 +1765,6 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		DEBUG ${sep}\agPULSE\ax${sep}${_verbage}
 
 		/if (${Me.CurrentMana} < ${Spell[${_verbage}].Mana}) /return FALSE
-		| /if (!${Spell[${_verbage}].Stacks}) /return FALSE
 
 		/if (${Window[SpellBookWnd].Open}) /invoke ${Window[SpellBookWnd].DoClose}
 
