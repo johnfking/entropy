@@ -54,7 +54,7 @@ sub	set_debug(string _verbage)
 	| class	specific debugs
 	/if	(${Select[${Me.Class.ShortName},BER]}) {
 	}	else /if (${Select[${Me.Class.ShortName},BRD]})	{
-		/invoke	${lsDebugclass.Append[pulse]}
+		/invoke	${lsDebugclass.Append[pulse,scan]}
 	}	else /if (${Select[${Me.Class.ShortName},BST]})	{
 		/invoke	${lsDebugclass.Append[para]}
 	}	else /if (${Select[${Me.Class.ShortName},CLR]})	{

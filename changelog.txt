@@ -27,8 +27,15 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
-
-
+200807.02
+- in this corner we have the bard standing at lvl 112
+  in the other corner we havve a bloodied and beaten exspes..
+- bards
+  will now obey the /chr refresh time for their songs. it is in seconds btw..
+  Complete redesign for the bard swap. blame dannuic for this
+  it is now based entirely off IDs. should be no more problems with matching
+- sqlite
+  zone data should account for locked files
 
 
 200807.01
@@ -39,7 +46,7 @@ epics with commas in their names are currently not functioning
   primary - your primary weapon
   secondary - your secondary weapon
   No, i dont want to use a bandolier for this.
-  /chr scan - will rescan you inventory for the best instrument mods (or you can restart)
+  /chr scan - will rescan your inventory for the best instrument mods (or you can restart)
 
   On macro start, the bard will scan its inventory and creat a map of the best instrument mods it has.
   When the bard goes to play a song, if there is a swappable instrument for that song type, that is

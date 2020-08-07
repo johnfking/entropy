@@ -1765,10 +1765,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		DEBUG ${sep}\agPULSE\ax${sep}${_verbage}
 
 		/if (${Me.CurrentMana} < ${Spell[${_verbage}].Mana}) /return FALSE
-		/if (${Me.Buff[${_verbage}].Duration.Seconds} > ${maChr.Find[stSongRefresh].Value}*10) /return FALSE
-		/if (${Me.Song[${_verbage}].Duration.Seconds} > ${maChr.Find[stSongRefresh].Value}*10) /return FALSE
-		/if (!${Spell[${_verbage}].Stacks}) /return FALSE
-		| /if (${Me.BardSongPlaying}) /call pulse_stop core_cast_pulsestop
+		| /if (!${Spell[${_verbage}].Stacks}) /return FALSE
 
 		/if (${Window[SpellBookWnd].Open}) /invoke ${Window[SpellBookWnd].DoClose}
 
@@ -1789,10 +1786,12 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			/invoke ${out[5, "Play${sep}${sp}${_verbage}\ax ${dot} ${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax"]}
 		}
 
+
 		/while (${_castLoop}) {
 			/cast ${Me.Gem[${_verbage}]}
 			/delay 1
 
+			| old loop duration control. leave for now.
 			| adjust delay for Metronome AA (fuck bards)
 			| /if (${Me.AltAbility[Metronome]}) {
 			| /delay ${Spell[${_verbage}].CastTime.Seconds}s
@@ -1800,32 +1799,28 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			| 	/delay ${Math.Calc[${Spell[${_verbage}].CastTime.Seconds}+${Math.Calc[${Spell[${_verbage}].CastTime.Seconds}*.05]}]}s
 			| }
 
+			| bard swaqp mechanics
 			/while (${Window[CastingWindow].Open}) {
-
 				/if (${maChr.Find[swInstrumentSwap].Value}) {
 					/if (${Me.CastTimeLeft} < 1500) {
-						/if (${maBardFocus.Find[${Spell[${_verbage}].Skill.Arg[1, ]}].Value.Arg[3,|].NotEqual[worn]}) {
-							/if (${FindItem[${maBardFocus.Find[${Spell[${_verbage}].Skill.Arg[1, ]}].Value.Arg[1,|]}].WornSlot[offhand]}) {
-								/call Bind_command_swap "${maBardFocus.Find[${Spell[${_verbage}].Skill.Arg[1, ]}].Value.Arg[1,|]}" 14 FALSE
-							} else /if (${FindItem[${maBardFocus.Find[${Spell[${_verbage}].Skill.Arg[1, ]}].Value.Arg[1,|]}].WornSlot[mainhand]}) {
-								/call Bind_command_swap "${maBardFocus.Find[${Spell[${_verbage}].Skill.Arg[1, ]}].Value.Arg[1,|]}" 13 FALSE
+						/if (${maBardFocus.Find[${Skill[${Spell[${_verbage}].Skill}].ID}].Value.Arg[3,|]}) {
+							/if (${FindItem[${maBardFocus.Find[${Skill[${Spell[${_verbage}].Skill}].ID}].Value.Arg[1,|]}].WornSlot[offhand]}) {
+								/call Bind_command_swap "${FindItem[${maBardFocus.Find[${Skill[${Spell[${Spell[${_verbage}].ID}].Skill}].ID}].Value.Arg[1,|]}].Name}" 14 FALSE
+							} else /if (${FindItem[${maBardFocus.Find[${Skill[${Spell[${_verbage}].Skill}].ID}].Value.Arg[1,|]}].WornSlot[mainhand]}) {
+								/call Bind_command_swap "${FindItem[${maBardFocus.Find[${Skill[${Spell[${Spell[${_verbage}].ID}].Skill}].ID}].Value.Arg[1,|]}].Name}" 13 FALSE
 							}
-
 						}
 					}
 				}
-
-				/delay 2
+				/delay 3
 			}
-			/delay 1
+			/delay 3
 			/doevents
 
 			/if (${_sub.Equal[ignoreall]}) {
 				/return TRUE
 			}
 
-
-			GETINPUT voodoo_pulse NA|NA
 			/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,RESISTED,IMMUNE]}) {
 				/varset _castLoop 0
 				/call pulse_stop

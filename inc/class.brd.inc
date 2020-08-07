@@ -47,7 +47,6 @@ sub class_init(bool _debug)
 	/call set_data_map ${_debug} maChr stInstrumentSecondary						FALSE													"${auxna} name of secondary weapon to return from swap"
 	/call set_data_map ${_debug} maChr stInstrumentPrimary							FALSE													"${auxna} name of primary weapon to return from swap"
 
-
 	| AAs
 	/call set_data_map ${_debug} maChr stAAFierceEye										PREGEN|1											"${auxna} Fierce Eye aa"
 	/call set_data_map ${_debug} maChr stAAReflexiveRetort							PREGEN|1											"${auxna} Reflexive Retort aa"
@@ -65,10 +64,9 @@ sub class_init(bool _debug)
 	/call set_data_map ${_debug} maChr stAASelosSonata									PREGEN|1											"${auxna} Selo's Sonata aa"
 	/call set_data_map ${_debug} maChr stAAShaurisSonorousClouding			PREGEN|1											"${auxna} Shauri's Sonorous Clouding aa"
 
-
 	| set base instrument focuses
 	/declare maBardFocus map outer
-	/call scan_focus FALSE ${_debug}
+	/call scan_focus FALSE ${maDebug.Find[scan].Value}
 
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -354,8 +352,10 @@ sub pulse_cycle(bool _debug, _tmpID, string _tag)
 		}
 
 		| song has time left
-		/if (${Me.Song[${Spell[${maSong.Find[stSong${_lipl.Value}].Value}].RankName}].Duration} > ${maChr.Find[stSongRefresh].Value}*10) {
+		/if (${Me.Song[${Spell[${maSong.Find[stSong${_lipl.Value}].Value}].RankName}].Duration.TotalSeconds} > ${maChr.Find[stSongRefresh].Value}) {
+			DEBUG ${break}${Me.Song[${Spell[${maSong.Find[stSong${_lipl.Value}].Value}].RankName}].Duration.TotalSeconds} > ${maChr.Find[stSongRefresh].Value} (refresh)
 			/invoke ${_lipl.Advance}
+
 			/continue
 		}
 
@@ -383,9 +383,7 @@ sub pulse_cycle(bool _debug, _tmpID, string _tag)
 			/call do_melee FALSE TARGET
 		}
 
-		/call voodoo ${_debug} "${maSong.Find[stSong${_lipl.Value}].Value}" 0 FALSE
-
-		/doevents
+		/call voodoo ${_debug} "${maSong.Find[stSong${_lipl.Value}].Value}" 0 ignoremovement
 
 		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,RESISTED,IMMUNE]}) {
 			/return TRUE
@@ -547,17 +545,31 @@ sub Bind_command_brd_travel(bool _debug)
 sub scan_focus(string _type, bool _debug)
 	DEBUG \atscan_focus\ax(\a-w${_type}\ax)
 
-	/declare _invItem					int			local 0
-	/declare _containerItem		int			local 0
-	/declare _tmpString 			string 	local FALSE
-	/invoke ${maBardFocus.Add[Brass,|empty|0|worn]}
-	/invoke ${maBardFocus.Add[Wind,|empty|0|worn]}
-	/invoke ${maBardFocus.Add[Percussion,|empty|0|worn]}
-	/invoke ${maBardFocus.Add[String,|empty|0|worn]}
-	/invoke ${maBardFocus.Add[Singing,|empty|0|worn]}
+	/declare _invItem					int local 0
+	/declare _containerItem		int local 0
+	/declare _tmpItemID		 		int local 0
+	/declare _tmpUsable				int local 0
+
+	| stringed
+	/invoke ${maBardFocus.Add[49,|0|0|0]}
+	| percussion
+	/invoke ${maBardFocus.Add[70,|0|0|0]}
+	| brass
+	/invoke ${maBardFocus.Add[12,|0|0|0]}
+	| wind
+	/invoke ${maBardFocus.Add[54,|0|0|0]}
+	| singing
+	/invoke ${maBardFocus.Add[41,|0|0|0]}
 
 	| loop all inventory items
 	/for _invItem 1 to 32
+
+		/varset _tmpUsable 0
+
+		| skip enpty slots
+		/if (!${InvSlot[${_invItem}].Item.ID}) /continue
+
+		DEBUG ${sep}\ay${_invItem}\ax${sep}${InvSlot[${_invItem}].Item} :: ${InvSlot[${_invItem}].Item.ID}
 
 		| if the item is a container, look inside
 		/if (${InvSlot[${_invItem}].Item.Container}) {
@@ -565,25 +577,45 @@ sub scan_focus(string _type, bool _debug)
 			| loop every item in the container
 			/for _containerItem 1 to ${InvSlot[${_invItem}].Item.Container}
 
-				/if (${InvSlot[${_invItem}].Item[${_containerItem}].ID} && ${FindItem[${Me.Inventory[${_invItem}].Item[${_containerItem}].Name}].Focus2.Spell.ID} && ${Me.Level} >= ${Me.Inventory[${_invItem}].Item[${_containerItem}].RequiredLevel}) {
-					DEBUG ${sep}${Me.Inventory[${_invItem}].Item[${_containerItem}].Name}${sep}\a-w${FindItem[${Me.Inventory[${_invItem}].Item[${_containerItem}].Name}].Focus2}\ax
-					/varset _tmpString ${FindItem[${Me.Inventory[${_invItem}].Item[${_containerItem}].Name}].Focus2.Spell.Name}
+				| skip empty slots in bags
+				/if (!${Me.Inventory[${_invItem}].Item[${_containerItem}].ID}) /continue
 
-					| if the current iteration is > then the set one. replace it
-					/if (${_tmpString.Arg[3, ]} > ${maBardFocus.Find[${_tmpString.Arg[1, ]}].Value.Arg[2,|]}) {
-						/invoke ${maBardFocus.Add[${_tmpString.Arg[1, ]},|${Me.Inventory[${_invItem}].Item[${_containerItem}].Name}|${_tmpString.Arg[3, ]}|swap]}
-					}
+				| set the item
+				/varset _tmpItemID ${Me.Inventory[${_invItem}].Item[${_containerItem}].ID}
+
+				| is there a focus on it?
+				/if (!${FindItem[${_tmpItemID}].Focus2.Spell.ID}) /continue
+
+				| can i use it?
+				/if (${Me.Level} < ${FindItem[${_tmpItemID}].RequiredLevel}) /continue
+
+				| usable in primary/secondary?
+				/if (${FindItem[${_tmpItemID}].WornSlot[offhand]} || ${FindItem[${_tmpItemID}].WornSlot[mainhand]}) {
+					/varset _tmpUsable 1
 				}
+
+				| if the current iteration is > then the set one. replace it
+				DEBUG ${sep}${sep}${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]} > ${maBardFocus.Find[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]}].Value.Arg[2,|]}
+				/if (${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]} > ${maBardFocus.Find[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]}].Value.Arg[2,|]}) {
+					DEBUG ${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},|${_tmpItemID}|${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]}|${_tmpUsable}
+					/invoke ${maBardFocus.Add[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},|${_tmpItemID}|${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]}|${_tmpUsable}]}
+				}
+
 			/next _containerItem
 
-		| if its not a container?
-		} else /if (${InvSlot[${_invItem}].Item.ID} && ${FindItem[${InvSlot[${_invItem}].Item}].Focus2.Spell.ID} && ${Me.Level} >= ${InvSlot[${_invItem}].Item.RequiredLevel}) {
-			DEBUG ${sep}${InvSlot[${_invItem}].Item}${sep}\a-w${FindItem[${InvSlot[${_invItem}].Item}].Focus2}\ax
-			/varset _tmpString ${FindItem[${Me.Inventory[${_invItem}].Name}].Focus2.Spell.Name}
+		| if its not a container? top level inv/gear
+		} else {
 
-			| if the current iteration is > then the set one. replace it
-			/if (${_tmpString.Arg[3, ]} > ${maBardFocus.Find[${_tmpString.Arg[1, ]}].Value.Arg[2,|]}) {
-				/invoke ${maBardFocus.Add[${_tmpString.Arg[1, ]},|${Me.Inventory[${_invItem}].Name}|${_tmpString.Arg[3, ]}|worn]}
+			/varset _tmpItemID ${Me.Inventory[${_invItem}].ID}
+			/if (!${FindItem[${_tmpItemID}].Focus2.Spell.ID}) /continue
+			/if (${Me.Level} < ${FindItem[${_tmpItemID}].RequiredLevel}) /continue
+			/if (${FindItem[${_tmpItemID}].WornSlot[offhand]} || ${FindItem[${_tmpItemID}].WornSlot[mainhand]}) {
+				/varset _tmpUsable 1
+			}
+			DEBUG ${sep}${sep}${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]} > ${maBardFocus.Find[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]}].Value.Arg[2,|]}
+			/if (${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]} > ${maBardFocus.Find[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]}].Value.Arg[2,|]}) {
+				DEBUG ${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},|${_tmpItemID}|${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]}|${_tmpUsable}
+				/invoke ${maBardFocus.Add[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},|${_tmpItemID}|${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]}|${_tmpUsable}]}
 			}
 		}
 
@@ -595,6 +627,38 @@ sub scan_focus(string _type, bool _debug)
 
 /return TRUE
 
+
+${FindItem[148302].InstrumentMod}
+${FindItem[148302].Name}
+
+
+Lute of the Howler
+
+${FindItem[=Lute of the Howler].InstrumentMod}
+
+${FindItem[148375].RequiredLevel}
+
+
+${Me.Inventory[13].InstrumentMod}
+
+
+
+${InvSlot[1].Name}
+
+
+${FindItem[11626].Focus2.Spell.Name}
+
+
+.InstrumentMod
+
+${FindItem[].Focus2.Spell.Base[3]}
+
+
+
+70 Percussion
+
+
+${FindItem[=Lute of the Howler].Focus2.Spell.Base[1]}
 
 
 |***
@@ -668,7 +732,7 @@ sub set_control(string _type, string _verbage, string _silent, bool _debug)
 
 	| scan for new singing focus effects
 	} else /if (${_type.Equal[scan]}) {
-		/call scan_focus see ${_debug}
+		/call scan_focus see ${maDebug.Find[scan].Value}
 		/return TRUE
 
 	| set invis
