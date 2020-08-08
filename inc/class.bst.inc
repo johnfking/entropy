@@ -52,29 +52,30 @@ sub class_init(bool _debug)
   /call set_data_list ${_debug} maChr lsTempBuffToon									EMPTY													"${auxli} list of toons to use your temp buff on"
 	/call set_data_map ${_debug} maChr stTempBuff		 										FALSE													"${auxna} temp buff spell"
 
+
+	| AAs
+	/call set_data_map ${_debug} maChr stAARoaringStrike								PREGEN|1											"${auxna} Roaring Strike aa"
+	/call set_data_map ${_debug} maChr stAAAttackoftheWarders						PREGEN|1											"${auxna} Attack of the Warders aa"
+	/call set_data_map ${_debug} maChr stAABestialAlignment							PREGEN|1											"${auxna} Bestial Alignment aa"
+	/call set_data_map ${_debug} maChr stAAFrenziedSwipes								PREGEN|1											"${auxna} Frenzied Swipes aa"
+	/call set_data_map ${_debug} maChr stAAFerociousness								PREGEN|1											"${auxna} Ferociousness aa"
+	/call set_data_map ${_debug} maChr stAACompanionsFury								PREGEN|1											"${auxna} Companion's Fury aa"
+	/call set_data_map ${_debug} maChr stAAParagonofSpirit							PREGEN|1											"${auxna} Paragon of Spirit aa"
+	/call set_data_map ${_debug} maChr stAAFocusedParagonofSpirits			PREGEN|1											"${auxna} Focused Paragon of Spirits aa"
+	/call set_data_map ${_debug} maChr stAAFrenzyofSpirit								PREGEN|1											"${auxna} Frenzy of Spirit aa"
+	/call set_data_map ${_debug} maChr stAAGroupBestialAlignment				PREGEN|1											"${auxna} Group Bestial Alignment aa"
+	/call set_data_map ${_debug} maChr stAABloodLust										PREGEN|1											"${auxna} BloodLust aa"
+	/call set_data_map ${_debug} maChr stAARoarofThunder								PREGEN|1											"${auxna} Roar of Thunder aa"
+
+
+
+
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
 		/mqp
 	}
 
 /return TRUE
-
-
-
-Roaring Strike
-Attack of the Warders
-Bestial Alignment
-Frenzied Swipes
-Ferociousness
-Companion's Fury
-Paragon of Spirit
-Focused Paragon of Spirits
-Frenzy of Spirit
-Group Bestial Alignment
-BloodLust
-Roar of Thunder
-
-
 
 
 
@@ -87,9 +88,9 @@ sub class_main(bool _debug)
 	FLOW class_main
 
 	/if (AUTO && !ENGINE3) {
-		/call check_mana_${Me.Class.ShortName}
+		/call check_mana
 		/if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
-		/if (!${timer_Check_Para}) /call check_mana_BST ${maDebug.Find[para].Value}
+		/if (!${timer_Check_Para}) /call check_mana ${maDebug.Find[para].Value}
 	} else /if (AUTO && ENGINE3) {
 		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
 			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -176,13 +177,13 @@ sub misc_combat(bool _debug, int _tmpID)
 
 	| do we want the mobs attention?
 	/if (AGRO) {
-		/if (${is_ready[${_debug}, "Roaring Strike"]}) {
-			/call voodoo ${_debug} "Roaring Strike" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAARoaringStrike].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAARoaringStrike].Value}" ${_tmpID} FALSE
 		}
 
 	} else /if (!AGRO) {
-		/if (${is_ready[${_debug}, "Roar of Thunder"]}) {
-			/call voodoo ${_debug} "Roar of Thunder" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAARoarofThunder].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAARoarofThunder].Value}" ${_tmpID} FALSE
 		}
 	}
 
@@ -248,12 +249,12 @@ sub check_mana(bool _debug)
 		}
 	}
 
-	/if (${Me.Song[Paragon of Spirit].ID}) {
-		DEBUG ${break}Paragon of Spirit (1)
+	/if (${Me.Song[${maChr.Find[stAAParagonofSpirit].Value}].ID}) {
+		DEBUG ${break}${maChr.Find[stAAParagonofSpirit].Value} (1)
 		/return FALSE
 	}
-	/if (${Me.Song[Focused Paragon of Spirit].ID}) {
-		DEBUG ${break}Focused Paragon of Spirit (1)
+	/if (${Me.Song[${maChr.Find[stAAFocusedParagonofSpirits].Value}].ID}) {
+		DEBUG ${break}${maChr.Find[stAAFocusedParagonofSpirits].Value} (1)
 		/return FALSE
 	}
 
@@ -261,18 +262,18 @@ sub check_mana(bool _debug)
 	DEBUG ${sep}checking${sep}\a-wfocused paragon\ax
 	/if (${maChr.Find[stPctParagonF].Value} && !SAFEZONE) {
 		/if (${Me.PctMana} <= ${maChr.Find[stPctParagonF].Value}*.PCTHO || ${Me.PctEndurance} <= ${maChr.Find[stPctParagonF].Value}*.PCTHO) {
-			/if (${is_ready[${_debug}, "Focused Paragon of Spirits"]}) {
-				/call voodoo ${_debug} "Focused Paragon of Spirits" ${Me.ID} FALSE
+			/if (${is_ready[${_debug}, "${maChr.Find[stAAFocusedParagonofSpirits].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAAFocusedParagonofSpirits].Value}" ${Me.ID} FALSE
 			}
 		}
 	}
 
-	/if (${Me.Song[Paragon of Spirit].ID}) {
-		DEBUG ${break}Paragon of Spirit (2)
+	/if (${Me.Song[${maChr.Find[stAAParagonofSpirit].Value}].ID}) {
+		DEBUG ${break}${maChr.Find[stAAParagonofSpirit].Value} (2)
 		/return FALSE
 	}
-	/if (${Me.Song[Focused Paragon of Spirit].ID} || !${Me.AltAbilityReady[Paragon of Spirit]}) {
-		DEBUG ${break}Focused Paragon of Spirit (3)
+	/if (${Me.Song[${maChr.Find[stAAFocusedParagonofSpirits].Value}].ID} || !${Me.AltAbilityReady[${maChr.Find[stAAParagonofSpirit].Value}]}) {
+		DEBUG ${break}${maChr.Find[stAAFocusedParagonofSpirits].Value} (3)
 		/return FALSE
 	}
 
@@ -314,7 +315,7 @@ sub check_mana(bool _debug)
 	/next _count
 
 	/if (${_below} && !SAFEZONE) {
-		/call voodoo ${_debug} "Paragon of Spirit" 0 FALSE
+		/call voodoo ${_debug} "${maChr.Find[stAAParagonofSpirit].Value}" 0 FALSE
 	}
 
 /return TRUE
@@ -328,9 +329,6 @@ sub check_mana(bool _debug)
 sub check_heal(bool _debug, string _type)
 	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
 	FLOW check_heal ${_type}
-
-
-
 
 	CHECKTIE
 	ISMEDEAD
@@ -433,18 +431,18 @@ sub burn(bool _debug, int _tmpID)
 	}
 
 
-	/if (${is_ready[${_debug}, "Bestial Alignment"]}) {
-		/call voodoo ${_debug} "Bestial Alignment" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAABestialAlignment].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAABestialAlignment].Value}" 0 FALSE
 	}
 
 | Group ???
 
 
-	/if (${is_ready[${_debug}, "Frenzied Swipes"]}) {
-		/call voodoo ${_debug} "Frenzied Swipes" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAFrenziedSwipes].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAFrenziedSwipes].Value}" 0 FALSE
 	}
-	/if (${is_ready[${_debug}, "Ferociousness"]} && !${Me.Song[${maChr.Find[stSavage].Value}].ID}) {
-		/call voodoo ${_debug} "Ferociousness" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAFerociousness].Value}"]} && !${Me.Song[${maChr.Find[stSavage].Value}].ID}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAFerociousness].Value}" 0 FALSE
 	}
 
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -452,14 +450,14 @@ sub burn(bool _debug, int _tmpID)
 	}
 
 	/if (SWARM) {
-		/if (${is_ready[${_debug}, "Attack of the Warders"]}) {
-			/call voodoo ${_debug} "Attack of the Warders" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAAttackoftheWarders].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAAttackoftheWarders].Value}" ${_tmpID} FALSE
 		}
 	}
 
 	/if (${Me.Pet.ID}) {
-		/if (${is_ready[${_debug}, "Companion's Fury"]}) {
-			/call voodoo ${_debug} "Companion's Fury" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAACompanionsFury].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAACompanionsFury].Value}" 0 FALSE
 		}
 	}
 
@@ -477,17 +475,17 @@ sub burn(bool _debug, int _tmpID)
   | Intensity of the Resolute AA 4 hour reuse
   /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 
-	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stFury].Value}].RankName}]} && !${Me.Song[Frenzy of Spirit].ID} && !${Me.Buff[${maChr.Find[stDichotomic].Value}].ID}) {
+	/if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stFury].Value}].RankName}]} && !${Me.Song[${maChr.Find[stAAFrenzyofSpirit].Value}].ID} && !${Me.Buff[${maChr.Find[stDichotomic].Value}].ID}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stFury].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stFury].Value}" 0 FALSE
 		}
 	} else {
 		/if (${Me.Song[${maChr.Find[stFury].Value}].ID}) /return
-		/if (${is_ready[${_debug}, "Frenzy of Spirit"]}) {
-			/call voodoo ${_debug} "Frenzy of Spirit" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAFrenzyofSpirit].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAFrenzyofSpirit].Value}" 0 FALSE
 		}
-		/if (${is_ready[${_debug}, "BloodLust"]}) {
-			/call voodoo ${_debug} "BloodLust" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAABloodLust].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAABloodLust].Value}" 0 FALSE
 		}
 
 		/if (${target[isdead, ${_tmpID}]}) {
@@ -496,11 +494,11 @@ sub burn(bool _debug, int _tmpID)
 
 		/call cast_AA_spire ${maDebug.Find[spire].Value}
 
-		/if (${is_ready[${_debug}, "${maChr.Find[stSavage].Value}"]} && !${Me.Song[Bestial Alignment].ID}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stSavage].Value}"]} && !${Me.Song[${maChr.Find[stAABestialAlignment].Value}].ID}) {
 			/call voodoo ${_debug} "${maChr.Find[stSavage].Value}" 0 FALSE
 		}
-		/if (${is_ready[${_debug}, "Group Bestial Alignment"]} && !${Me.Buff[Ferociousness].ID}) {
-			/call voodoo ${_debug} "Group Bestial Alignment" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAGroupBestialAlignment].Value}"]} && !${Me.Buff[Ferociousness].ID}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAGroupBestialAlignment].Value}" 0 FALSE
 		}
 	}
 
@@ -512,37 +510,12 @@ sub burn(bool _debug, int _tmpID)
  * note: beastlord specific control
  * use: /chr
  ***|
-sub set_control(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_verbage2}\ax)
 
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maChr
-		/return
-
-	| use mana click items
-	} else /if (${_type.Equal[manarecover]}) {
-		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
-
-	| set spire to be used
-	} else /if (${_type.Equal[spire]}) {
-		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
-		/return
-
-	| set AA fade use %
-	} else /if (${_type.Equal[fade]}) {
-		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
-
-	| defensive mob agro count
-	} else /if (${_type.Equal[def]}) {
-		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return
-
-	| set ae on/off / count
-	} else /if (${_type.Equal[ae]}) {
-		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
 
 	| consume spirit
-	} else /if (${_type.Equal[consume]}) {
+	/if (${_type.Equal[consume]}) {
 		/if (!${set_control_num_range[${_debug}, stPctConsume, "${_verbage}", 0, 99]}) /return
 
 
@@ -563,20 +536,12 @@ sub set_control(string _type, string _verbage, string _silent, bool _debug)
 		/invoke ${set_control_output[${_debug}, maChr, "chr para", maControl]}
 		/return TRUE
 
-	| use hiatus disc
-	} else /if (${_type.Equal[hiatus]}) {
-		/invoke ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
-
-
-	| set invis
-	} else /if (${_type.Equal[invis]}) {
-		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
-		/return TRUE
-
-
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return
+	/call set_control_shared ${_type} "${_verbage}" "${_verbage2}" ${_debug}
+	/if (${Macro.Return.Equal[SKIP]}) /return FALSE
+
+	/if (${_verbage2.Equal[SILENT]}) /return
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
 /return TRUE

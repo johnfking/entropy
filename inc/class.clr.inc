@@ -33,7 +33,6 @@ sub class_init(bool _debug)
 	| arbitration pause
 	/invoke ${set_timer[${_debug}, timer_arbitration_pause, 12s]}
 
-
 	| Veturika's Preserverance
 	/call set_data_map ${_debug} maChr stPctVP													0															"${auxnum} % of manna to use veturikas perseverance"
 
@@ -42,9 +41,6 @@ sub class_init(bool _debug)
 
 	| single heal over time
 	/call set_data_map ${_debug} maChr stCountIssuance									0															"${auxnum} number of mobs in area to use issuance"
-
-	| count heal over time single
-
 
 	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
 	/call set_data ${_debug} maData stAllianceSPA												map outer "481"
@@ -701,58 +697,33 @@ sub check_alliance(bool _debug)
 
 
 |***
- * note: cleric specific control
+ * note: class control
  * use: /chr
  ***|
-sub set_control(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control\ax(\a-wt:${_type}, v:"${_verbage}", s:${_silent}\ax)
-
-  /declare _out string local
-
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maChr ${_verbage}
-		/return
-
-	| use mana click items
-	} else /if (${_type.Equal[manarecover]}) {
-		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
-
-	| set spire to be used
-	} else /if (${_type.Equal[spire]}) {
-		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
-		/return
-
-	| set intensity AA
-	} else /if (${_type.Equal[intensity]}) {
-		/call set_control_chr_intensity ${_debug} ${_verbage} ${_silent}
-		/return
-
-	| set AA fade use %
-	} else /if (${_type.Equal[fade]}) {
-		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
+sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
+	DEBUG \atset_control\ax(\a-wt:${_type}, v:"${_verbage}", v2:"${_verbage2}"\ax)
 
 	| to Yaulp or not
-	} else /if (${_type.Equal[yaulp]}) {
+	/if (${_type.Equal[yaulp]}) {
 		/invoke ${set_switch_env[${_debug}, swYaulp, TRUE, ${_verbage}]}
 
 	| Veturika's Perseverance
 	} else /if (${_type.Equal[vp]}) {
-		/if (!${set_control_num_range[${_debug}, stPctVP, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctVP, "${_verbage}", 0, 99]}) /return FALSE
 
 	| use Issuance Shield
 	} else /if (${_type.Equal[issuance]}) {
-		/if (!${set_control_num_range[${_debug}, stCountIssuance, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountIssuance, "${_verbage}", 0, 99]}) /return FALSE
 
 
 	| arbitration (sheild AND AA)
 	} else /if (${_type.Equal[arb]}) {
 		/if (${_verbage.Equal[count]}) {
-			/if (!${set_control_num_range[${_debug}, stCountArbitrate, ${_silent}, 0, 6]}) /return
+			/if (!${set_control_num_range[${_debug}, stCountArbitrate, ${_verbage2}, 0, 6]}) /return FALSE
 		} else /if (${_verbage.Equal[aa]}) {
-			/invoke ${set_switch_env[${_debug}, swArbitrateAA, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swArbitrateAA, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[epic]}) {
-			/invoke ${set_switch_env[${_debug}, swArbitrateEpic, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swArbitrateEpic, TRUE, ${_verbage2}]}
 		}
 
 		/invoke ${maControl.Clear}
@@ -762,31 +733,24 @@ sub set_control(string _type, string _verbage, string _silent, bool _debug)
 		/invoke ${set_control_output[${_debug}, maChr, "chr arb", maControl]}
 		/return TRUE
 
-	| defensive mob agro count
-	} else /if (${_type.Equal[def]}) {
-		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return
-
-	| set ae on/off / count
-	} else /if (${_type.Equal[ae]}) {
-		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
-
 	| set beacon of life count
 	} else /if (${_type.Equal[beacon]}) {
-		/if (!${set_control_num_range[${_debug}, stCountBeaconofLife, "${_verbage}", 0, 6]}) /return
+		/if (!${set_control_num_range[${_debug}, stCountBeaconofLife, "${_verbage}", 0, 6]}) /return FALSE
 
 	| cleric summoned weapon
 	} else /if (${_type.Equal[primary]}) {
 
 		| use the weapon.. seriously.. go camp something. put some effort into the class
 		/if (${_verbage.Equal[use]}) {
-			/invoke ${set_switch_env[FALSE, swSummonPrimary, TRUE]}
+			/invoke ${set_switch_env[${_debug}, swSummonPrimary, TRUE]}
 
 		| spell to summon
 		} else /if (${_verbage.Equal[spell]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stSummonPrimary, "${_silent}"]}
+			/invoke ${do_raw_edit[${_debug}, SILENT, stSummonPrimary, "${_verbage2}"]}
 
 		}
 
+		/declare _out string local
 		/declare _lsout list local
 		/declare _lichrs listiterator local
 		/invoke ${_lsout.Append[use,spell]}
@@ -800,22 +764,15 @@ sub set_control(string _type, string _verbage, string _silent, bool _debug)
 		OUT /chr primary ${_out}
 		/return
 
-	| set invis
-	} else /if (${_type.Equal[invis]}) {
-		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
-		/return TRUE
-
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return
+	/call set_control_shared ${_type} "${_verbage}" "${_verbage2}" ${_debug}
+	/if (${Macro.Return.Equal[SKIP]}) /return FALSE
+
+	/if (${_verbage2.Equal[SILENT]}) /return
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
-/return
-
-
-
-
-
+/return TRUE
 
 
 

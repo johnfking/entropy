@@ -876,6 +876,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maHard	stRezIgnoreFucktards								30m														"${auxnum} suration	to mark	corpses	on the no	rez	list"	hard
 	/call	set_data_map ${_debug} maHard	stMaxCureRad												200														"${auxnum} max radius	to check for curing" hard
 	/call	set_data_map ${_debug} maHard	stPullMobTagTry											5															"${auxnum} max trys	to tag a mob while pulling"	hard
+	/call	set_data_map ${_debug} maHard	stBardSwapRemain										1500													"${auxnum} ms left on cast time to swap instrument in"	hard
 
 
 

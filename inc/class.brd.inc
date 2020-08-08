@@ -351,11 +351,17 @@ sub pulse_cycle(bool _debug, _tmpID, string _tag)
 			}
 		}
 
+		| buff has time left
+		/if (${Me.Buff[${Spell[${maSong.Find[stSong${_lipl.Value}].Value}].RankName}].Duration.TotalSeconds} > ${maChr.Find[stSongRefresh].Value}) {
+			DEBUG ${break}${Me.Buff[${Spell[${maSong.Find[stSong${_lipl.Value}].Value}].RankName}].Duration.TotalSeconds} > ${maChr.Find[stSongRefresh].Value} (refresh: buff)
+			/invoke ${_lipl.Advance}
+			/continue
+		}
+
 		| song has time left
 		/if (${Me.Song[${Spell[${maSong.Find[stSong${_lipl.Value}].Value}].RankName}].Duration.TotalSeconds} > ${maChr.Find[stSongRefresh].Value}) {
-			DEBUG ${break}${Me.Song[${Spell[${maSong.Find[stSong${_lipl.Value}].Value}].RankName}].Duration.TotalSeconds} > ${maChr.Find[stSongRefresh].Value} (refresh)
+			DEBUG ${break}${Me.Song[${Spell[${maSong.Find[stSong${_lipl.Value}].Value}].RankName}].Duration.TotalSeconds} > ${maChr.Find[stSongRefresh].Value} (refresh: song)
 			/invoke ${_lipl.Advance}
-
 			/continue
 		}
 
@@ -633,40 +639,12 @@ sub scan_focus(string _type, bool _debug)
  * note: class control
  * use: /chr
  ***|
-sub set_control(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_verbage2}\ax)
 
-  /declare _out string local
-
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maChr ${_verbage}
-		/return
-
-	| use mana click items
-	} else /if (${_type.Equal[manarecover]}) {
-		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return FALSE
-
-	| set spire to be used
-	} else /if (${_type.Equal[spire]}) {
-		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
-		/return
-
-	| set AA fade use %
-	} else /if (${_type.Equal[fade]}) {
-		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return FALSE
-
-	| defensive mob agro count
-	} else /if (${_type.Equal[def]}) {
-		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return FALSE
-
-	| defensive mob agro count
-	} else /if (${_type.Equal[refresh]}) {
+	| song refresh
+	/if (${_type.Equal[refresh]}) {
 		/if (!${set_control_num_range[${_debug}, stSongRefresh, "${_verbage}", 0, 18]}) /return FALSE
-
-	| set ae on/off / count
-	} else /if (${_type.Equal[ae]}) {
-		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return FALSE
 
 	| use rest song
 	} else /if (${_type.Equal[rest]}) {
@@ -684,11 +662,11 @@ sub set_control(string _type, string _verbage, string _silent, bool _debug)
 	} else /if (${_type.Equal[swap]}) {
 
 		/if (${_verbage.Equal[active]}) {
-			/invoke ${set_switch_env[${_debug}, swInstrumentSwap, TRUE, ${_silent}]}
+			/invoke ${set_switch_env[${_debug}, swInstrumentSwap, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[secondary]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stInstrumentSecondary, "${_silent}"]}
+			/invoke ${do_raw_edit[${_debug}, SILENT, stInstrumentSecondary, "${_verbage2}"]}
 		} else /if (${_verbage.Equal[primary]}) {
-			/invoke ${do_raw_edit[${_debug}, SILENT, stInstrumentPrimary, "${_silent}"]}
+			/invoke ${do_raw_edit[${_debug}, SILENT, stInstrumentPrimary, "${_verbage2}"]}
 		}
 
 		/invoke ${maControl.Clear}
@@ -703,14 +681,12 @@ sub set_control(string _type, string _verbage, string _silent, bool _debug)
 		/call scan_focus see ${maDebug.Find[scan].Value}
 		/return TRUE
 
-	| set invis
-	} else /if (${_type.Equal[invis]}) {
-		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
-		/return TRUE
-
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return
+	/call set_control_shared ${_type} "${_verbage}" "${_verbage2}" ${_debug}
+	/if (${Macro.Return.Equal[SKIP]}) /return FALSE
+
+	/if (${_verbage2.Equal[SILENT]}) /return
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
 /return TRUE

@@ -1790,18 +1790,19 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			/cast ${Me.Gem[${_verbage}]}
 			/delay 1
 
-			| old loop duration control. leave for now.
+			|** old loop duration control. leave for now.
 			| adjust delay for Metronome AA (fuck bards)
-			| /if (${Me.AltAbility[Metronome]}) {
-			| /delay ${Spell[${_verbage}].CastTime.Seconds}s
-			| } else {
-			| 	/delay ${Math.Calc[${Spell[${_verbage}].CastTime.Seconds}+${Math.Calc[${Spell[${_verbage}].CastTime.Seconds}*.05]}]}s
-			| }
+			/if (${Me.AltAbility[Metronome]}) {
+			/delay ${Spell[${_verbage}].CastTime.Seconds}s
+			} else {
+				/delay ${Math.Calc[${Spell[${_verbage}].CastTime.Seconds}+${Math.Calc[${Spell[${_verbage}].CastTime.Seconds}*.05]}]}s
+			}
+			**|
 
 			| bard swaqp mechanics
 			/while (${Window[CastingWindow].Open}) {
 				/if (${maChr.Find[swInstrumentSwap].Value}) {
-					/if (${Me.CastTimeLeft} < 1500) {
+					/if (${Me.CastTimeLeft} < ${maHard.Find[stBardSwapRemain].Value}) {
 						/if (${maBardFocus.Find[${Skill[${Spell[${_verbage}].Skill}].ID}].Value.Arg[3,|]}) {
 							/if (${FindItem[${maBardFocus.Find[${Skill[${Spell[${_verbage}].Skill}].ID}].Value.Arg[1,|]}].WornSlot[offhand]}) {
 								/call Bind_command_swap "${FindItem[${maBardFocus.Find[${Skill[${Spell[${Spell[${_verbage}].ID}].Skill}].ID}].Value.Arg[1,|]}].Name}" 14 FALSE
@@ -4122,7 +4123,7 @@ sub do_rest(bool _debug)
 
 			} else /if (${Select[${Me.Class.ShortName},RNG]}) {
 			} else /if (${Select[${Me.Class.ShortName},BST]}) {
-				/if (!${timer_Check_Para}) /call check_mana_BST ${maDebug.Find[para].Value}
+				/if (!${timer_Check_Para}) /call check_mana ${maDebug.Find[para].Value}
 				/if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
 			}
 
@@ -13304,9 +13305,60 @@ sub check_invis_single(bool _debug)
 
 	}
 
-
 	/if (!${Me.Invis}) {
 		/return FALSE
 	}
 
 /return TRUE
+
+
+
+|***
+ * note: shared class controls
+ * use: /call set_control_shared ${_type} "${_verbage}" "${_verbage2}" ${_debug}
+ ***|
+sub set_control_shared(string _type, string _verbage, string _verbage2, bool _debug)
+	DEBUG \atset_control_shared\ax(\a-wt:${_type}, v:"${_verbage}", s2:"${_verbage2}"\ax)
+
+
+	| output control map
+	/if (${_type.Equal[see]}) {
+		/call Bind_command_see maChr ${_verbage}
+		/return SKIP
+
+	| set spire to be used
+	} else /if (${_type.Equal[spire]}) {
+		/call set_control_chr_spire ${_debug} "${_verbage}" "${_verbage2}"
+		/return SKIP
+
+	| set invis
+	} else /if (${_type.Equal[invis]}) {
+		/call set_control_chr_invis ${_debug} "${_verbage}" "${_verbage2}"
+		/return SKIP
+
+	| set ae on/off / count
+	} else /if (${_type.Equal[ae]}) {
+		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return FALSE
+
+	| set intensity AA
+	} else /if (${_type.Equal[intensity]}) {
+		/call set_control_chr_intensity ${_debug} ${_verbage} ${_verbage2}
+		/return
+
+	| set AA fade use %
+	} else /if (${_type.Equal[fade]}) {
+		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return FALSE
+
+	| use mana click items
+	} else /if (${_type.Equal[manarecover]} && ${lsClassCast.Contains[${Me.Class.ShortName}]}) {
+		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return FALSE
+
+	| use hiatus disc
+	} else /if (${_type.Equal[hiatus]} && ${lsClassMelee.Contains[${Me.Class.ShortName}]}) {
+		/invoke ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+
+	}
+
+/return TRUE
+
+

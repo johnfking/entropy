@@ -16,7 +16,7 @@ on the to do list
 - check cure exits / recasts
 - shared map for rez
 - look at a way to split coordination for assists across more then one mob in a raid
-- externalize class AAs: WAR|BST|BER|MNK|WIZ|MAG|NEC|DRU|SHM
+- externalize class AAs: WAR|BER|MNK|WIZ|MAG|NEC|DRU|SHM
 - buffing system by name
 - pet gear handing for damn TLP feeders..
 --------------------
@@ -27,6 +27,17 @@ known bugs
 epics with commas in their names are currently not functioning
 --------------------
 
+
+
+200808.01
+- voodoo
+  moved the MS delay time to swap weapons out to the DB.
+  its in maHard if you want to edit it.
+- /chr
+  all class controls adjusted to be more uniform
+- beastlord
+  moved all AAs to the DB
+- corrected several more missed sub names
 
 
 200807.03

@@ -531,60 +531,32 @@ sub cast_alliance(bool _debug)
 
 
 |***
- * note: shaman specific control
+ * note: class control
  * use: /chr
  ***|
-sub set_control(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_silent}\ax)
+sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
+	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_verbage2}\ax)
 
-	| output control map
-	/if (${_type.Equal[see]}) {
-		/call Bind_command_see maChr ${_verbage}
-		/return
-
-	| use mana click items
-	} else /if (${_type.Equal[manarecover]}) {
-		/if (!${set_control_num_range[${_debug}, stPctManaRecovery, "${_verbage}", 0, 99]}) /return
-
-	| set spire to be used
-	} else /if (${_type.Equal[spire]}) {
-		/call set_control_chr_spire ${_debug} ${_verbage} ${_silent}
-		/return
-
-	| set AA fade use %
-	} else /if (${_type.Equal[fade]}) {
-		/if (!${set_control_num_range[${_debug}, stPctFade, "${_verbage}", 0, 99]}) /return
-
-	|
-	} else /if (${_type.Equal[cannihps]}) {
-		/if (!${set_control_num_range[${_debug}, stPctCanniHP, "${_verbage}", 0, 99]}) /return
+	| % of HP to canni at
+	/if (${_type.Equal[cannihps]}) {
+		/if (!${set_control_num_range[${_debug}, stPctCanniHP, "${_verbage}", 0, 99]}) /return FALSE
 
 	|
 	} else /if (${_type.Equal[cannimanna]}) {
-		/if (!${set_control_num_range[${_debug}, stPctCanniManna, "${_verbage}", 0, 99]}) /return
+		/if (!${set_control_num_range[${_debug}, stPctCanniManna, "${_verbage}", 0, 99]}) /return FALSE
 
 	| use talisman
 	} else /if (${_type.Equal[talisman]}) {
 		/invoke ${set_switch_env[${_debug}, swTalisman, TRUE, ${_verbage}]}
 
-	| defensive mob agro count
-	} else /if (${_type.Equal[def]}) {
-		/if (!${set_control_num_range[${_debug}, stCountDefensive, "${_verbage}", 0, 99]}) /return
-
-	| set ae on/off / count
-	} else /if (${_type.Equal[ae]}) {
-		/if (!${set_control_num_range[${_debug}, stCountAE, "${_verbage}", 0, 99]}) /return
-
-	| set invis
-	} else /if (${_type.Equal[invis]}) {
-		/call set_control_chr_invis ${_debug} ${_verbage} "${_silent}"
-		/return TRUE
-
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return
+	/call set_control_shared ${_type} "${_verbage}" "${_verbage2}" ${_debug}
+	/if (${Macro.Return.Equal[SKIP]}) /return FALSE
+
+	/if (${_verbage2.Equal[SILENT]}) /return
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
-/return
+/return TRUE
 
 
