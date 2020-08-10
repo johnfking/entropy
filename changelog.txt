@@ -34,8 +34,7 @@ epics with commas in their names are currently not functioning
   /cc melee taunt and /cc agro have been moved to the /agro control
   /agro active - on/off switch for using a class agro skills to be the big dick
   /agro taunt - has been changed from on/off to a ##% (0-99). 0 for off
-  you will need to reset the value on your tanks
-  make it as aggressive as you like now
+  you will need to reset the value on your tanks, make it as aggressive as you like now
 - /rez ic should work properly now
 
 

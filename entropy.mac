@@ -69,10 +69,6 @@
 #define NEXT "${MacroQuest.InternalName.Equal[Next]}"
 
 
-
-
-
-
 #include exspes\inc\initialize.inc
 #include exspes\inc\common.inc
 #include exspes\inc\control.inc
