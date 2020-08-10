@@ -340,7 +340,7 @@ sub mode_petfarm(bool _debug)
 			/call check_minion_cycle ${maDebug.Find[minion].Value} FALSE
 		}
 		/if (${maHeal.Find[swHealPet].Value} && ${Group.Members}) {
-			/call check_heal_${Me.Class.ShortName} ${maDebug.Find[minion].Value} Pet
+			/call check_heal ${maDebug.Find[minion].Value} Pet
 		}
 	}
 
@@ -905,7 +905,7 @@ sub mode_hunt(bool _debug)
 	| /call check_facing ${_debug} TARGET FORCE
 
 	/call Bind_control_cc FORCE
-	/call main_${Me.Class.ShortName}
+	/call class_main
 	/call clear_combat
 
 	/invoke ${maOver.Add[swOverPctEngage,FALSE]}
@@ -1206,8 +1206,8 @@ sub task_combatloop(int _tmpID, bool _debug)
 		/if (${maChr.Find[swYaulp].Value}) {
 			/if (!${timer_Check_Yaulp}) /call cast_yaulp FALSE
 		}
-		/if (${Defined[get_agro_${Me.Class.ShortName}]}) {
-			/if (AGRO) /call get_agro_${Me.Class.ShortName} FALSE ${_tmpID}
+		/if (${Defined[get_agro]}) {
+			/if (AGRO) /call get_agro FALSE ${_tmpID}
 		}
 		/if (${maChr.Find[stPctShieldFlash].Value} || ${maChr.Find[stCountShieldFlash].Value}) /call cast_shield_flash FALSE aa
 		/call set_combat_control ${maDebug.Find[decision].Value} ${_tmpID}
@@ -1312,7 +1312,7 @@ sub rof_shard_bodhe(string _opt, bool _debug)
 	}
 	/call Bind_control_cc pull rad ${_pullrad}
 	/if (!AGRO) {
-		/call Bind_control_cc agro on
+		/call Bind_control_agro active on
 	}
 
 	| set nav pulling

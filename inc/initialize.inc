@@ -1143,7 +1143,6 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maCC	stGlyph																FALSE													"${auxna}	name of	the	glyph	you	want to	use"
 
 	| agro on or off and current agro	mode (g,1,2,3,ma1,ma2)
-	/call	set_data_map ${_debug} maCC	swAgro																FALSE													"${auxsw}	use	any	agro skills	you	can	(\a-wtaunt not included	separate control under /cc\ax)"
 	/call	set_data_map ${_debug} maCC	stAssistMode													FALSE													"${auxna}	[\axg,1,2,3,ma1,ma2\ax]	your current assist	mode"
 	/call	set_data_map ${_debug} maCC	stManualAssist1												FALSE													"${auxna}	name of	manual assist	1	toon"
 	/call	set_data_map ${_debug} maCC	stManualAssist2												FALSE													"${auxna}	name of	manual assist	2	toon"
@@ -1204,12 +1203,12 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	}	else /if (${Select[${Me.Class.ShortName},PAL]})	{
 		/invoke	${lsMeleeSkill.Append[bash,taunt,disarm]}
 		/call	set_data_map ${_debug} maCC	swBash															FALSE													"${auxsw}	switch for bashing the shit	out	of things"
-		/call	set_data_map ${_debug} maCC	swTaunt															FALSE													"${auxsw}	you	mama is	sooo fat!"
+		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Aggro Pct to spam the taunt key like a noob!" agro
 		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
 
 	}	else /if (${Select[${Me.Class.ShortName},RNG]})	{
 		/invoke	${lsMeleeSkill.Append[taunt,kick,disarm]}
-		/call	set_data_map ${_debug} maCC	swTaunt															FALSE													"${auxsw}	you	mama is	sooo fat!"
+		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Aggro Pct to spam the taunt key like a noob!" agro
 		/call	set_data_map ${_debug} maCC	swKick															FALSE													"${auxsw}	raise	foot,	impact nuts.."
 		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
 
@@ -1221,7 +1220,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 
 	}	else /if (${Select[${Me.Class.ShortName},SHD]})	{
 		/invoke	${lsMeleeSkill.Append[taunt,disarm,bash]}
-		/call	set_data_map ${_debug} maCC	swTaunt															FALSE													"${auxsw}	you	mama is	sooo fat!"
+		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Aggro Pct to spam the taunt key like a noob!" agro
 		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
 		/call	set_data_map ${_debug} maCC	swBash															FALSE													"${auxsw}	switch for bashing the shit	out	of things"
 
@@ -1230,7 +1229,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	}	else /if (${Select[${Me.Class.ShortName},WAR]})	{
 		/invoke	${lsMeleeSkill.Append[bash,taunt,kick,disarm]}
 		/call	set_data_map ${_debug} maCC	swBash															FALSE													"${auxsw}	switch for bashing the shit	out	of things"
-		/call	set_data_map ${_debug} maCC	swTaunt															FALSE													"${auxsw}	you	mama is	sooo fat!"
+		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Aggro Pct to spam the taunt key like a noob!" agro
 		/call	set_data_map ${_debug} maCC	swKick															FALSE													"${auxsw}	raise	foot,	impact nuts.."
 		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
 
@@ -1353,6 +1352,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maEntropy swBuffCooldownWait								FALSE													"${auxsw}	force	a	wait between buffs for cooldown	to do	complete cycle"
 	/call	set_data_map ${_debug} maEntropy swRelayTell											FALSE													"${auxsw}	relay	tells	to the tie toon"
 	/call	set_data_map ${_debug} maEntropy swRelayTellBeep									FALSE													"${auxsw}	beep on	a	tell relay"
+	/call	set_data_map ${_debug} maEntropy swUseConColor										FALSE													"${auxsw}	Use ConColors for targets"
 
 	| GoM	list
 	/call	set_data_list	${_debug}	maChr	lsGoM																EMPTY													"${auxli}	things to	use	on a gift	of mana	aa proc"
@@ -1393,7 +1393,8 @@ sub	set_initialize_map_character_environment(bool	_debug)
 
 
 |**	control: Agro	 **|
-	/call	set_data_list	${_debug}	maAgro lsLineAgro													EMPTY													"${auxli}	alternate	activation order for agro	routine	(engine	2)"
+	/call	set_data_list	${_debug}	maAgro lsLineAgro													EMPTY													"${auxli}	alternate	activation order for agro	routine	(engine	2/3)" agro
+	/call	set_data_map ${_debug} maAgro	swAgro															FALSE													"${auxsw}	use	any	agro skills	you	can	(\a-wtaunt not included	separate control under /agro\ax)" agro
 
 
 |**	control: sash	 **|
@@ -2649,8 +2650,8 @@ sub data_schema_tag_validation
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '23', '1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be the puller');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '24', '1', '${Parse[0,${maEnv.Find[swAgro].Value}]}', 'must have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '25', '1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
@@ -2675,8 +2676,8 @@ sub data_schema_tag_validation
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '23', '1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be the puller');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '24', '1', '${Parse[0,${maEnv.Find[swAgro].Value}]}', 'must have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '25', '1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
@@ -2702,8 +2703,8 @@ sub data_schema_tag_validation
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '23', '1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be the puller');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '24', '1', '${Parse[0,${maEnv.Find[swAgro].Value}]}', 'must have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '25', '1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '28', '1', '${Parse[0,!${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
@@ -2727,8 +2728,8 @@ sub data_schema_tag_validation
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '23', '1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be the puller');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '24', '1', '${Parse[0,${maEnv.Find[swAgro].Value}]}', 'must have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '25', '1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
@@ -2755,8 +2756,8 @@ sub data_schema_tag_validation
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '23', '1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be the puller');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '24', '1', '${Parse[0,${maEnv.Find[swAgro].Value}]}', 'must have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '25', '1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
@@ -2810,8 +2811,8 @@ sub data_schema_tag_validation
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '23', '1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be the puller');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '24', '1', '${Parse[0,${maEnv.Find[swAgro].Value}]}', 'must have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '25', '1', '${Parse[0,!${maEnv.Find[swAgro].Value}]}', 'cannot have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
@@ -2882,6 +2883,31 @@ sub sql_schema_update(bool _debug, string _type)
 	| shared database
 	} else /if (${_type.Equal[shared]}) {
 
+
+		| agro map change
+		/if (${sqlite.Result[schemanumber 1 version]} >= 1.06) {
+			| 7
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='7' AND tag='24'
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='7' AND tag='25'
+      | 6
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='6' AND tag='24'
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='6' AND tag='25'
+			| 5
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='5' AND tag='24'
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='5' AND tag='25'
+			| 3
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='3' AND tag='24'
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='3' AND tag='25'
+			| 2
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='2' AND tag='24'
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='2' AND tag='25'
+			| 1
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='1' AND tag='24'
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='1' AND tag='25'
+
+		}
+
+
 		/if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
 			| drop build table
 			/sqlite query ${maData.Find[DBshared].Value} dummy DROP TABLE IF EXISTS build
@@ -2921,9 +2947,19 @@ sub sql_db_update(bool _debug, string _type)
 
 
 
+	/if (${maEnv.Find[build].Value} >= 200810.01) {
+		/if (${Select[${Me.Class.ShortName},RNG,PAL,SHD,WAR]}) {
+			/invoke ${_tmpMap.Add[swTaunt,character]}
+			/invoke ${_tmpMap.Add[stPctTaunt,character]}
+		}
+		/invoke ${_tmpMap.Add[swAgro,character]}
+	}
+
+
+
  	| rez redesign
 		/if (${maEnv.Find[build].Value} >= 200724.01) {
-			/invoke ${_tmpMap.Add[lsNoRezToon,character]}
+
 			/invoke ${_tmpMap.Add[lsRezTokenToon,character]}
 			/invoke ${_tmpMap.Add[swRezGive,character]}
 			/invoke ${_tmpMap.Add[swRezTake,character]}

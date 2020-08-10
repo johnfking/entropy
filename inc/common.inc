@@ -1343,7 +1343,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		/if (${_tmpID} == 0) {
 			/invoke ${out[2, "AA${sep}${sp}${_verbage}\ax"]}
 		} else /if (${_tmpID} != 0 && ${Target.ID}) {
-			/invoke ${out[2, "AA${sep}${sp}${_verbage}\ax ${dot} ${tar}${Spawn[id ${_tmpID}].DisplayName}\ax"]}
+			/invoke ${out[2, "AA${sep}${sp}${_verbage}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
 		}
 
 		/while (${_castLoop} > 0) {
@@ -1564,7 +1564,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 			/if (${_tmpID} == 0) {
 				/invoke ${out[3, "Cast${sep}${sp}${_verbage}\ax"]}
 			} else /if (${_tmpID} != 0 && ${Target.ID} && ${Target.ID} == ${_tmpID}) {
-				/invoke ${out[3, "Cast${sep}${sp}${_verbage}\ax ${dot} ${tar}${Spawn[id ${_tmpID}].DisplayName}\ax"]}
+				/invoke ${out[3, "Cast${sep}${sp}${_verbage}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
 			}
 
 			/while (${_castLoop} > 0) {
@@ -1678,7 +1678,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		/if (${_tmpID} == 0) {
 			/invoke ${out[4, "Disc${sep}${sp}${_verbage}\ax"]}
 		} else /if (${_tmpID} != 0 && ${Target.ID}) {
-			/invoke ${out[4, "Disc${sep}${sp}${_verbage}\ax ${dot} ${tar}${Spawn[id ${_tmpID}].DisplayName}\ax"]}
+			/invoke ${out[4, "Disc${sep}${sp}${_verbage}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
 		}
 		/disc ${Spell[${_verbage}].ID}
 
@@ -1722,7 +1722,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		/if (${_tmpID} == 0 || ${_tmpID} == ${Me.ID}) {
 			/invoke ${out[7, "Item${sep}${sp}${_verbage}\ax"]}
 		} else /if (${_tmpID} != 0 && ${Target.ID}) {
-			/invoke ${out[7, "Item${sep}${sp}${_verbage}\ax ${dot} ${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax"]}
+			/invoke ${out[7, "Item${sep}${sp}${_verbage}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
 		}
 
 		/while (${_castLoop}) {
@@ -1782,9 +1782,8 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		/if (${_tmpID} == 0) {
 			/invoke ${out[5, "Play${sep}${sp}${_verbage}\ax"]}
 		} else /if (${_tmpID} != 0 && ${Target.ID}) {
-			/invoke ${out[5, "Play${sep}${sp}${_verbage}\ax ${dot} ${tar}${Spawn[ID ${_tmpID}].DisplayName}\ax"]}
+			/invoke ${out[5, "Pulse${sep}${sp}${_verbage}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
 		}
-
 
 		/while (${_castLoop}) {
 			/cast ${Me.Gem[${_verbage}]}
@@ -3103,7 +3102,7 @@ sub get_target_wait(bool _debug, int _tmpID, string _waittime)
 		/invoke ${set_timer[${_debug}, wait_for_mob, ${_waittime}]}
 
 		/if (!${Spawn[${_tmpID}].Dead}) {
-			/invoke ${out[9, "Waiting on${sep}${tar}${Spawn[${_tmpID}].DisplayName}\ax${sep}\a-w${_waittime}\ax"]}
+			/invoke ${out[9, "Waiting on${sep}${con_color[${_debug}, ${_tmpID}]}${sep}\a-w${_waittime}\ax"]}
 		}
 
 		/while (${wait_for_mob}) {
@@ -3178,7 +3177,7 @@ sub get_target_wait(bool _debug, int _tmpID, string _waittime)
 
 			| timer ran out
 			/if (!${wait_for_mob}) {
-				/invoke ${out[9, "Sick of waiting on${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax"]}
+				/invoke ${out[9, "Sick of waiting on${sep}${con_color[${_debug}, ${_tmpID}]}"]}
 				/invoke ${target[clear]}
 				FLOW get_target_wait ${_tmpID} (3)
 				/break
@@ -6673,10 +6672,10 @@ sub do_melee(bool _debug, int _tmpID)
 		/call check_sash_proc ${_debug}
 	}
 
-	| taunt /onoff agro
-	/if (${maCC.Find[swTaunt].Value} && AGRO) {
-		/if (${Me.AbilityReady[Taunt]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
-			/invoke ${out[8, "Melee${sep}${sp}Taunt\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
+	| taunt aggro mob % ??
+	/if (${maCC.Find[stPctTaunt].Value} && AGRO) {
+		/if (${Me.AbilityReady[Taunt]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} && (${Me.TargetOfTarget.ID} != ${Me.ID} || ${Me.PctAggro} <= ${maCC.Find[stPctTaunt].Value})) {
+			/invoke ${out[8, "Melee${sep}${sp}Taunt\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
 			/doability Taunt
 		}
 	}
@@ -6684,7 +6683,7 @@ sub do_melee(bool _debug, int _tmpID)
 	| disarm
 	/if (${maCC.Find[swDisarm].Value} && !${Skill[Disarm].Auto} && AGRO) {
 		/if (${Me.AbilityReady[Disarm]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
-			/invoke ${out[8, "Melee${sep}${sp}Disarm\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
+			/invoke ${out[8, "Melee${sep}${sp}Disarm\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
 			/doability Disarm
 		}
 	}
@@ -6692,7 +6691,7 @@ sub do_melee(bool _debug, int _tmpID)
 	| kick
 	/if (${maCC.Find[swKick].Value} && !${Skill[Kick].Auto} && !${Select[${Me.Class.ShortName},MNK]}) {
 	 	/if (${Me.AbilityReady[Kick]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
-			/invoke ${out[8, "Melee${sep}${sp}Kick\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
+			/invoke ${out[8, "Melee${sep}${sp}Kick\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
 			/doability Kick
 		}
 	}
@@ -6700,7 +6699,7 @@ sub do_melee(bool _debug, int _tmpID)
 	| bash
 	/if (${maCC.Find[swBash].Value} && !${Skill[Bash].Auto}) {
 		/if (${Me.AbilityReady[Bash]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
-			/invoke ${out[8, "Melee${sep}${sp}Bash\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
+			/invoke ${out[8, "Melee${sep}${sp}Bash\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
 			/doability Bash
 			|**
 			/if (${maCC.Find[swBandolier].Value} && ${Bool[${bandolierBash}]} && ${Bool[${bandolierNormal}]}) {
@@ -6722,7 +6721,7 @@ sub do_melee(bool _debug, int _tmpID)
 	/if (${check_class[FALSE, |BRD|ROG|BER]}) {
 		/if (${maCC.Find[swIntimidation].Value}) {
 			/if (${Me.AbilityReady[Intimidation]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
-				/invoke ${out[8, "Melee${sep}${sp}Intimidation\ax ${dot} ${tar}${Spawn[TARGET].DisplayName}\ax"]}
+				/invoke ${out[8, "Melee${sep}${sp}Intimidation\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}"]}
 				/doability Intimidation
 			}
 		}
@@ -6732,7 +6731,7 @@ sub do_melee(bool _debug, int _tmpID)
 	/if (${check_class[FALSE, |BER]}) {
 		/if (${maCC.Find[swFrenzy].Value} && !${Skill[Frenzy].Auto}) {
 			/if (${Me.AbilityReady[Frenzy]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
-			/invoke ${out[8, "Melee${sep}${sp}Frenzy\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
+			/invoke ${out[8, "Melee${sep}${sp}Frenzy\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}"]}
 				/doability Frenzy
 			}
 		}
@@ -6742,7 +6741,7 @@ sub do_melee(bool _debug, int _tmpID)
 	/if (${check_class[FALSE, |ROG]}) {
 		/if (${maCC.Find[swBackstab].Value} && !${Skill[Backstab].Auto}) {
 			/if (${Me.AbilityReady[Backstab]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
-			/invoke ${out[8, "Melee${sep}${sp}Backstab\ax ${dot} ${tar}${Spawn[TARGET].DisplayName}\ax"]}
+			/invoke ${out[8, "Melee${sep}${sp}Backstab\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}"]}
 				/doability Backstab
 			}
 		}
@@ -6753,24 +6752,24 @@ sub do_melee(bool _debug, int _tmpID)
 			/if (${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
 			| fist
 			/if (${maCC.Find[swDragonpunch].Value} && !${Skill[Dragon Punch].Auto} && ${Me.AbilityReady[Dragon Punch]}) {
-				/invoke ${out[8, "Melee${sep}${sp}Dragon Punch\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
+				/invoke ${out[8, "Melee${sep}${sp}Dragon Punch\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}"]}
 				/doability "Dragon Punch"
 			} else /if (${maCC.Find[swEaglestrike].Value} && !${Skill[Eagle Strike].Auto} && ${Me.AbilityReady[Eagle Strike]}) {
-				/invoke ${out[8, "Melee${sep}${sp}Eagle Strike\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
+				/invoke ${out[8, "Melee${sep}${sp}Eagle Strike\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
 				/doability "Eagle Strike"
 			} else /if (${maCC.Find[swTigerclaw].Value} && !${Skill[Tiger Claw].Auto} && ${Me.AbilityReady[Tiger Claw]}) {
-			/invoke ${out[8, "Melee${sep}${sp}Tiger Claw\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
+			/invoke ${out[8, "Melee${sep}${sp}Tiger Claw\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
 				/doability "Tiger Claw"
 			}
 			| kick
 		 	/if (${maCC.Find[swKick].Value} && !${Skill[Kick].Auto} && ${Me.AbilityReady[Kick]}) {
-				/invoke ${out[8, "Melee${sep}${sp}Kick\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
+				/invoke ${out[8, "Melee${sep}${sp}Kick\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
 				/doability Kick
 			} else /if (${maCC.Find[swFlyingkick].Value} && !${Skill[Flying Kick].Auto} && ${Me.AbilityReady[Flying Kick]}) {
-				/invoke ${out[8, "Melee${sep}${sp}Flying Kick\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
+				/invoke ${out[8, "Melee${sep}${sp}Flying Kick\ax ${con_color[${_debug}, ${_tmpID}]}\ax"]}
 				/doability "Flying Kick"
 			} else /if (${maCC.Find[swRoundkick].Value} && !${Skill[Round Kick].Auto} && ${Me.AbilityReady[Round Kick]}) {
-				/invoke ${out[8, "Melee${sep}${sp}Round Kick\ax ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
+				/invoke ${out[8, "Melee${sep}${sp}Round Kick\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
 				/doability "Round Kick"
 			}
 		}
@@ -8852,7 +8851,7 @@ sub set_hud_data(string _mode)
 	/varset h_bgroup				${maBuff.Find[swBuffGroup].Value}
 
 	| pull / agro
-	/varset h_agro					${maCC.Find[swAgro].Value}
+	/varset h_agro					${maAgro.Find[swAgro].Value}
 	/varset h_pull					${maCC.Find[swPull].Value}
 	/varset h_pullarea			${maCC.Find[stPullRadius].Value}
 	/varset h_pullmode			${maCC.Find[stPullMode].Value}
@@ -9154,7 +9153,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 		/call check_buff_cycle_ammo ${maDebug.Find[ammo].Value} TRUE
 	}
 
-	/invoke ${out[9, "Fetching${sep}${tar}${Spawn[id ${_tmpID}].DisplayName}\ax (\a-r${Spawn[${_tmpID}].Distance}\ax)"]}
+	/invoke ${out[9, "Fetching${sep}${con_color[${_debug}, ${_tmpID}]}\ax (\a-r${Spawn[${_tmpID}].Distance}\ax)"]}
 
 	/if (!${Pet.ID} && PET) {
 		/call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
@@ -9276,7 +9275,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	| we have a target, get us within range to pull
 	/if	(!${Navigation.PathExists[id ${_tmpID}]} && !${maOver.Find[swOverNavCheck].Value}) {
 		GETINPUT get_target_navpull_wait _tmpID|${_tmpID}
-		/invoke ${out[9, "${notice}${sep}No Nav Path ${dot} ${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
+		/invoke ${out[9, "${notice}${sep}No Nav Path ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
 		/varcalc _count ${_count}+1
 		/if (${_count} > 10) /return FALSE
 		/delay 1s
@@ -9294,7 +9293,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
 	}
 
 	| set the target
-	/invoke ${out[9, "Fetching${sep}${tar}${Spawn[${_tmpID}].DisplayName}\ax"]}
+	/invoke ${out[9, "Fetching${sep}${con_color[${_debug}, ${_tmpID}]}\ax"]}
 	/invoke ${target[set, ${_tmpID}]}
 	FLOW get_target_navpull ${_tmpID}
 
@@ -9501,7 +9500,7 @@ sub get_target_multipull(bool _debug)
 	/if (!${SpawnCount[npc radius ${maHard.Find[stMinBowDist].Value} PS4 targetable]}) {
 
 		/invoke ${set_timer[${_debug}, wait_for_mob, 30s]}
-		/invoke ${out[9, "Waiting on ${dot} ${tar}${Spawn[TARGET].DisplayName}\ax${sep}\a-w30s\ax"]}
+		/invoke ${out[9, "Waiting on ${dot} ${con_color[${_debug}, ${_tmpID}]}${sep}\a-w30s\ax"]}
 		/while (TARGET && ${Spawn[TARGET].Distance} > ${maHard.Find[stMinBowDist].Value}) {
 			GETINPUT get_target_multipull_wait NA|NA
 			/delay 2
@@ -11728,7 +11727,7 @@ sub check_for_corpse(bool _debug)
 	}
 
 	| no combat rez
-	/if (!${maRez.Find[swRezCombat].Value} && (COMBAT || ${Select[${Me.CombatState},combat]})) {
+	/if (!${maRez.Find[swRezCombat].Value} && ${Select[${Me.CombatState},combat]}) {
 		/return FALSE
 	}
 
@@ -11995,7 +11994,7 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 		| if cast was good, set the timers.
 		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
 			/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, ${maHard.Find[stRezSuccess].Value}]}
-			/invoke ${out[0, "Rez Success${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax (\a-r${_rez}\ax)"]}
+			/invoke ${out[0, "Rez Success${sep}${con_color[${_debug}, ${_tmpID}]} (\a-r${_rez}\ax)"]}
 		} else {
 			/if (${Select[${Me.Class.ShortName},CLR,DRU,SHM,PAL,NEC]}) {
 				/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, ${maHard.Find[stRezFail].Value}]}
@@ -13360,5 +13359,38 @@ sub set_control_shared(string _type, string _verbage, string _verbage2, bool _de
 	}
 
 /return TRUE
+
+
+
+|***
+ * note: returns the spawn ID name in its con color
+ * use: ${con_color[DEBUG, ID]}
+ ***|
+sub con_color(bool _debug, int _targetID)
+	DEBUG \atcon_color\ax(\a-w${_targetID}\ax)
+
+	/if (!${maEntropy.Find[swUseConColor].Value}) {
+		/return ${tar}${Spawn[id ${_targetID}].DisplayName}\ax
+	} else /if (${Spawn[id ${_targetID}].ConColor.Equal[RED]}) {
+		/return \a#FF0000${Spawn[id ${_targetID}].DisplayName}\ax
+	} else /if (${Spawn[id ${_targetID}].ConColor.Equal[YELLOW]}) {
+		/return \a#FFFF00${Spawn[id ${_targetID}].DisplayName}\ax
+	} else /if (${Spawn[id ${_targetID}].ConColor.Equal[WHITE]}) {
+		/return \a#FFFFFF${Spawn[id ${_targetID}].DisplayName}\ax
+	} else /if (${Spawn[id ${_targetID}].ConColor.Equal[BLUE]}) {
+		/return \a#0000FF${Spawn[id ${_targetID}].DisplayName}\ax
+	} else /if (${Spawn[id ${_targetID}].ConColor.Equal[LIGHT BLUE]}) {
+		/return \a#4FC3F7${Spawn[id ${_targetID}].DisplayName}\ax
+	} else /if (${Spawn[id ${_targetID}].ConColor.Equal[GREEN]}) {
+		/return \a#008000${Spawn[id ${_targetID}].DisplayName}\ax
+	} else /if (${Spawn[id ${_targetID}].ConColor.Equal[GREY]}) {
+		/return \a#808080${Spawn[id ${_targetID}].DisplayName}\ax
+	}
+
+/return \arError\ax${sep}con_colorID
+
+
+
+
 
 

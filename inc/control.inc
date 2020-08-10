@@ -32,7 +32,7 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
 
 		/for _count 1 to 5
 			/varset _tmpID ${NearestSpawn[${_count}].ID}
-			OUT #\ag${_count}\ax${sep}name:\a-w${Spawn[id ${_tmpID}].Name}\ax${sep}${Spawn[id ${_tmpID}].DisplayName}
+			OUT #\ag${_count}\ax${sep}name:\a-w${Spawn[id ${_tmpID}].Name}\ax${sep}${con_color[${_debug}, ${_tmpID}]}
 			OUT ${sep}Dis(\a-r${Spawn[${_tmpID}].Distance}\ax) ${dot} Y(\a-r${Spawn[id ${_tmpID}].Y}\ax)X(\a-r${Spawn[id ${_tmpID}].X}\ax)
 
 			/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT value FROM animation WHERE env_var='${Spawn[id ${_tmpID}].Animation}'
@@ -1496,9 +1496,13 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 		/invoke ${out[12, "${warning} ${dot} ENDING MACRO${dot}${dot}${dot}please restart"]}
 		/endmacro
 
+	| use concolors for targets
+	} else /if (${_type.Equal[concolor]}) {
+		/invoke ${set_switch_env[FALSE, swUseConColor, TRUE, ${_verbage}]}
+
 	| enable the DPS meter
-	} else /if (${_type.Equal[dpsmeter]}) {
-		/invoke ${set_switch_env[FALSE, swDPSMeter, TRUE, ${_verbage}]}
+	| } else /if (${_type.Equal[dpsmeter]}) {
+	| 	/invoke ${set_switch_env[FALSE, swDPSMeter, TRUE, ${_verbage}]}
 
 	| enable/disable using events.inc file
 	} else /if (${_type.Equal[events]}) {
@@ -1600,6 +1604,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[autolist,swAutoList]}
+	/invoke ${maControl.Add[concolor,swUseConColor]}
 	/invoke ${maControl.Add[engine,stEngine]}
 	/invoke ${maControl.Add[castloops,stCastLoop]}
 	/invoke ${maControl.Add[events,swEventsInc]}
@@ -1733,6 +1738,13 @@ sub Bind_deez(string _type, string _verbage)
 		/call farm_kodtaz
 	}
 
+	/if (${_type.Equal[concolor]}) {
+		/if (${Target.ID}) /echo \ar${Target.Class}\ax is named ${ConColor[FALSE, ${Target.ID}]}
+		/return
+	}
+
+
+
 
 	| fakes a hash
 	/if (${_type.Equal[hash]}) {
@@ -1846,7 +1858,7 @@ sub Bind_deez(string _type, string _verbage)
 
 		/call pull_mob_find ${_debug}
 
-		OUT Closest mob${sep}\awTARGET\ax${sep}\a-w${Spawn[id TARGET].DisplayName}\ax
+		OUT Closest mob${sep}\awTARGET\ax${sep}${con_color[${_debug}, ${_tmpID}]}
 		OUT Setting Target
 		/invoke ${set_target[TARGET]}
 		/varset stAssTarID 0
@@ -1967,22 +1979,7 @@ sub Bind_deez(string _type, string _verbage)
 		/echo
 		/return
 
-
-
-
-
-
-
-
-
-
 	}
-
-
-${Float[5.123456789].Precision[5]}
-
-
-
 
 /return TRUE
 
@@ -2184,7 +2181,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 
 		/echo
 		OUT Target Info${sep}
-		OUT name:\aw${Target.DisplayName}\ax${sep}\a-w${Target.Name}\ax${sep}\ay${Target.ID}\ax
+		OUT name:${con_color[${_debug}, ${_tmpID}]}${sep}\a-w${Target.Name}\ax${sep}\ay${Target.ID}\ax
 		OUT lvl${sep}\a-w${Target.Level}\ax
 		OUT named${sep}\a-w\ax
 
@@ -2678,14 +2675,13 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 			/invoke ${set_switch_env[${_debug}, swFlyingkick, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[roundkick]} && ${lsMeleeSkill.Contains[roundkick]}) {
 			/invoke ${set_switch_env[${_debug}, swRoundkick, TRUE, ${_verbage2}]}
-		} else /if (${_verbage.Equal[taunt]} && ${lsMeleeSkill.Contains[taunt]}) {
-			/invoke ${set_switch_env[${_debug}, swTaunt, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[frenzy]} && ${lsMeleeSkill.Contains[frenzy]}) {
 			/invoke ${set_switch_env[${_debug}, swFrenzy, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[intimidation]} && ${lsMeleeSkill.Contains[intimidation]}) {
 			/invoke ${set_switch_env[${_debug}, swIntimidation, TRUE, ${_verbage2}]}
 
 		}
+
 
 		/declare _limelee listiterator local
 		/vardata _limelee lsMeleeSkill.First.Clone
@@ -2701,7 +2697,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 			/if (${_limelee.Value.Equal[intimidation]}) /varset _out ${_out}:${If[${Skill[intimidation].Auto},\apauto\ax,${If[${maCC.Find[swIntimidation].Value},${on},${off}]}]}
 			/if (${_limelee.Value.Equal[kick]}) /varset _out ${_out}:${If[${Skill[kick].Auto},\apauto\ax,${If[${maCC.Find[swKick].Value},${on},${off}]}]}
 			/if (${_limelee.Value.Equal[roundkick]}) /varset _out ${_out}:${If[${Skill[round kick].Auto},\apauto\ax,${If[${maCC.Find[swRoundkick].Value},${on},${off}]}]}
-			/if (${_limelee.Value.Equal[taunt]}) /varset _out ${_out}:${If[${Skill[taunt].Auto},\apauto\ax,${If[${maCC.Find[swTaunt].Value},${on},${off}]}]}
+			/if (${_limelee.Value.Equal[taunt]}) /varset _out ${_out}:${If[${Skill[taunt].Auto},\apauto\ax,${If[${maCC.Find[stPctTaunt].Value},${num}${maCC.Find[stPctTaunt].Value}\ax,${r0}]}]}
 			/if (${_limelee.Value.Equal[tigerclaw]}) /varset _out ${_out}:${If[${Skill[tiger claw].Auto},\apauto\ax,${If[${maCC.Find[swTigerclaw].Value},${on},${off}]}]}
 			/invoke ${_limelee.Advance}
 		}
@@ -2857,11 +2853,6 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 	} else /if (${_type.Equal[alliance]}) {
 		/invoke ${set_switch_env[${_debug}, swAlliance, TRUE, ${_verbage}]}
 
-	| agro
-	} else /if (${_type.Equal[agro]}) {
-		/invoke ${set_switch_env[${_debug}, swAgro, TRUE, ${_verbage}]}
-		/call set_AA_agro ${_debug}
-
 	| stop on target DS switch
 	} else /if (${_type.Equal[stoponds]}) {
 		/invoke ${set_switch_env[${_debug}, swStoponDS, TRUE, ${_verbage}]}
@@ -2881,9 +2872,9 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 		/invoke ${maCC.Add[swSetCombat,TRUE]}
 		/invoke ${maCC.Add[swSetForced,TRUE]}
 		/if (${swModeToken}) {
-			/invoke ${out[12, "Hunting ${dot} ${tar}${Target.DisplayName}\ax"]}
+			/invoke ${out[12, "Hunting ${dot} ${con_color[${_debug}, ${Target.ID}]}"]}
 		} else {
-			/invoke ${out[12, "/cc force ${dot} ${tar}${Target.DisplayName}\ax"]}
+			/invoke ${out[12, "/cc force ${dot} ${con_color[${_debug}, ${Target.ID}]}"]}
 		}
 		/if (${maMinion.Find[swonForce].Value}) {
 			/pet attack
@@ -3199,7 +3190,7 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 	| nav to current target
 	} else /if (${Target.ID} && !${Bool[${_verbage}]} && ${_verbage.NotEqual[loc]}) {
 		DEBUG navto${sep}\a-wtarget\ax
-		/invoke ${out[22, "/navto \a-w${Target.DisplayName}\ax"]}
+		/invoke ${out[22, "/navto ${con_color[${_debug}, ${Target.ID}]}"]}
 		/nav id ${Target.ID} |dist=${maHome.Find[stHomeVariance].Value} log=off
 
 	| nav to closest spawn matching name
@@ -3209,7 +3200,7 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 			/return FALSE
 		}
 		DEBUG navto${sep}\a-wspawn\ax
-		/invoke ${out[22, "/navto \a-w${Spawn[${_verbage}].DisplayName}\ax"]}
+		/invoke ${out[22, "/navto ${con_color[${_debug}, ${Spawn[${_verbage}].ID}]}"]}
 		/nav id ${Spawn[${_verbage}].ID} |dist=${maHome.Find[stHomeVariance].Value} log=off
 
 	}
@@ -4790,15 +4781,28 @@ sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _ad
 sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
 	DEBUG \atcontrol_agro\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-	/if (ENGINE1) {
-		/invoke ${out[0, "/agro is only available with engine 2/3 enabled."]}
-		/return FALSE
+	/if (ENGINE2 || ENGINE3) {
+		/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+			/call control_base_edit ${maDebug.Find[edit].Value} Agro 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+			/return TRUE
+		}
 	}
 
-	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
-		/call control_base_edit ${maDebug.Find[edit].Value} Agro 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
-		/return TRUE
+	/if (${_type.Equal[taunt]} && ${lsMeleeSkill.Contains[taunt]}) {
+		/if (!${set_control_num_range[${_debug}, stPctTaunt, "${_verbage}", 0, 99]}) /return FALSE
+
+	| agro
+	} else /if (${_type.Equal[active]}) {
+		/invoke ${set_switch_env[${_debug}, swAgro, TRUE, ${_verbage}]}
+		/call set_AA_agro ${_debug}
 	}
+
+	/invoke ${maControl.Clear}
+	/invoke ${maControl.Add[active,swAgro]}
+	/if (${lsMeleeSkill.Contains[taunt]}) {
+		/invoke ${maControl.Add[taunt,stPctTaunt]}
+	}
+	/invoke ${set_control_output[${_debug}, maAgro, agro, maControl]}
 
 /return	TRUE
 
