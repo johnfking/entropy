@@ -16,7 +16,7 @@ on the to do list
 - check cure exits / recasts
 - shared map for rez
 - look at a way to split coordination for assists across more then one mob in a raid
-- externalize class AAs: WAR|BER|MNK|WIZ|MAG|NEC|DRU|SHM
+- externalize class AAs: WAR|MNK|WIZ|MAG|NEC|DRU|SHM
 - buffing system by name
 - pet gear handing for damn TLP feeders..
 --------------------
@@ -26,6 +26,26 @@ known bugs
 --------------------
 epics with commas in their names are currently not functioning
 --------------------
+
+200813.01
+- zerker
+  put engine3 back into its main class routine
+  finished moving remaining AAs to the DB
+  should engage in combat again. wasnt my fault.. honestly!
+- rez
+  complete redesign of the priority loop
+  /rez line - alter the order of the priorites
+  /rez # - (on/off) switch for a specific priority
+  /rez list - lsit all the stuffs
+  and so on, like most of the normal commands
+  removed the /corpse component dor now. so it will rez the corpse in place
+- /burn spinup wont kill your goldfish anymore
+- taunt
+  moved to /agro
+  moved the activation out of melee skills into its own sub (testing with pally)
+- paladin
+  some minor alterations to combat flow
+
 
 
 200810.01

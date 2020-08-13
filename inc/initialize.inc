@@ -265,9 +265,9 @@ sub	set_initial_environment(bool _debug)
 
 	| things we dont want pullers attacking
 	/call	set_data ${_debug} FALSE lsNoAttackBodyType												list outer aura|banner|campfire|corpse|chest|item|trigger|trap|timer|mount|mercenary|object
-	/call	set_data ${_debug} FALSE lsNoTargetNPC														list outer "a	campfire"|"a corpse"|"controller"|"Steel Mass"|"Sphere of	Fire"|"an ant"
-	/call	set_data ${_debug} FALSE lsNoTargetPC															list outer "eye	of"
-	/call	set_data ${_debug} FALSE lsNoTargetMagic													list outer "eye	of"
+	/call	set_data ${_debug} FALSE lsNoTargetNPC														list outer "a campfire"|"a corpse"|"controller"|"Steel Mass"|"Sphere of Fire"|"an ant"
+	/call	set_data ${_debug} FALSE lsNoTargetPC															list outer "eye of"
+	/call	set_data ${_debug} FALSE lsNoTargetMagic													list outer "eye of"
 	/call	set_data ${_debug} FALSE lsAnimationNoTarget											list outer 16|43|44|146
 	/call	set_data ${_debug} FALSE lsAnimationMezed													list outer 13|49|58
 
@@ -279,7 +279,7 @@ sub	set_initial_environment(bool _debug)
 	/call	set_data ${_debug} FALSE lsFreePassSpells													list outer Beneficial|Pet
 
 	| control	lines
-	/call	set_data ${_debug} FALSE lsControlLine														list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn
+	/call	set_data ${_debug} FALSE lsControlLine														list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez
 
 	| increment lists
 	/call	set_data ${_debug} FALSE stCount6																	string outer "0|1|2|3|4|5"
@@ -1018,14 +1018,23 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maRez stPctMinRez													90														"${auxnum} minimum % rez you are willing to	accept"                           rez
 	/call	set_data_map ${_debug} maRez stMaxRezRange												60														"${auxnum} how far away	to look	for	corpses	to rez"                           rez
 	| /call	set_data_map ${_debug} maRez stResurrection												FALSE													"${auxna}	spell/item/aa	to rez with	(\awoptional for rezing	classes\ax)"      rez
-	/call	set_data_map ${_debug} maRez stRezPriority1												"pccorpse cleric raid"				"rez priority 1 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez stRezPriority2												"pccorpse cleric group"				"rez priority 2 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez stRezPriority3												"pccorpse group"							"rez priority 3 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez stRezPriority4												"pccorpse raid tank"					"rez priority 4 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez stRezPriority5												"pccorpse raid"								"rez priority 5 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez stRezPriority6												"pccorpse guild"							"rez priority 6 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez stRezPriority7												"FALSE"												"rez priority 7 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez stRezPriority8												"FALSE"												"rez priority 8 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez stRez1																"pccorpse cleric raid"				"rez priority 1 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez swRez1																TRUE													"rez priority 1 switch" 																											rez
+	/call	set_data_map ${_debug} maRez stRez2																"pccorpse cleric group"				"rez priority 2 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez swRez2																TRUE													"rez priority 2 switch" 																											rez
+	/call	set_data_map ${_debug} maRez stRez3																"pccorpse group"							"rez priority 3 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez swRez3																TRUE													"rez priority 3 switch" 																											rez
+	/call	set_data_map ${_debug} maRez stRez4																"pccorpse raid tank"					"rez priority 4 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez swRez4																TRUE													"rez priority 4 switch" 																											rez
+	/call	set_data_map ${_debug} maRez stRez5																"pccorpse raid"								"rez priority 5 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez swRez5																TRUE													"rez priority 5 switch" 																											rez
+	/call	set_data_map ${_debug} maRez stRez6																"pccorpse guild"							"rez priority 6 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez swRez6																TRUE													"rez priority 6 switch" 																											rez
+	/call	set_data_map ${_debug} maRez stRez7																FALSE													"rez priority 7 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez swRez7																FALSE													"rez priority 7 switch" 																											rez
+	/call	set_data_map ${_debug} maRez stRez8																FALSE													"rez priority 8 spawn string search" 																					rez
+	/call	set_data_map ${_debug} maRez swRez8																FALSE													"rez priority 8 switch" 																											rez
+	/call	set_data_list	${_debug}	maRez	lsLineRez														"1|2|3|4|5|6"									"${auxli}	rez order priorities"																								rez
 
 
 |**	control: buff	**|
@@ -2946,6 +2955,17 @@ sub sql_db_update(bool _debug, string _type)
  /if (${_type.Equal[character]}) {
 
 
+	| more rez redesign
+	/if (${maEnv.Find[build].Value} >= 200813.01) {
+		/invoke ${_tmpMap.Add[stRezPriority1,rez]}
+		/invoke ${_tmpMap.Add[stRezPriority2,rez]}
+		/invoke ${_tmpMap.Add[stRezPriority3,rez]}
+		/invoke ${_tmpMap.Add[stRezPriority4,rez]}
+		/invoke ${_tmpMap.Add[stRezPriority5,rez]}
+		/invoke ${_tmpMap.Add[stRezPriority6,rez]}
+		/invoke ${_tmpMap.Add[stRezPriority7,rez]}
+		/invoke ${_tmpMap.Add[stRezPriority8,rez]}
+	}
 
 	/if (${maEnv.Find[build].Value} >= 200810.01) {
 		/if (${Select[${Me.Class.ShortName},RNG,PAL,SHD,WAR]}) {
@@ -2954,7 +2974,6 @@ sub sql_db_update(bool _debug, string _type)
 		}
 		/invoke ${_tmpMap.Add[swAgro,character]}
 	}
-
 
 
  	| rez redesign
@@ -3138,21 +3157,6 @@ sub sql_db_update(bool _debug, string _type)
 	}
 
 /return
-
-
-
-
-| delete this shit....
-
-
-${maChr.Find[stSpireCon].Value}
-${maChr.Find[stIntensityCon].Value}
-
-maChr stSpireCon
-
-
-environment_
-
 
 
 

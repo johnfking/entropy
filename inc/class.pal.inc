@@ -233,6 +233,8 @@ sub misc_combat(bool _debug, int _tmpID)
 		/return FALSE
 	}
 
+	/invoke ${do_taunt[${_debug}, ${_tmpID}]}
+
 	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 
 	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
@@ -293,37 +295,25 @@ sub get_agro(bool _debug, int _tmpID)
 	}
 
 	/call set_combat ${_debug}
-	/call check_heal_routines
+	| /call check_heal_routines
 
 	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 		/call cast_shield_flash FALSE aa
 	}
 
-	| aa LoH
-	/if (${maHeal.Find[swHealSelf].Value} && ${maChr.Find[stPctLoH].Value}) {
-	  /if (${Me.PctHPs} <= ${maChr.Find[stPctLoH].Value}*.PCTHO) {
-			/if (${is_ready[${_debug}, "${maChr.Find[stAALayonHands].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stAALayonHands].Value}" ${Me.ID} FALSE
-			}
-		}
-	}
-
-	/if (${target[isdead, ${_tmpID}]}) {
-		/return FALSE
-	}
-
-	| challenge
 	/call cast_challenge ${_debug} ${_tmpID}
+
+	/invoke ${do_taunt[${_debug}, ${_tmpID}]}
 
 	| chain stun
 	/if (${is_ready[${_debug}, "${maChr.Find[stStun].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stStun].Value}" ${_tmpID} FALSE
 	}
 
-	/declare _coutAE int local 0
 
 	| AE Stuns
 	/if (${SpawnCount[npc OVERLOS radius 60 PS4 targetable]} >= AE# && AE#) {
+		/declare _coutAE int local 0
 		/varset _coutAE ${SpawnCount[npc OVERLOS radius 60 PS4 targetable]}
 
 		/if (!${Raid.Members} || ${Raid.Members} && ${Raid.MainAssist.Name.Equal[${Me.DisplayName}]}) {
@@ -331,7 +321,8 @@ sub get_agro(bool _debug, int _tmpID)
 				/if (${is_ready[${_debug}, "${maChr.Find[stAAHallowedLodestar].Value}"]}) {
 					/call voodoo ${_debug} "${maChr.Find[stAAHallowedLodestar].Value}" ${_tmpID} FALSE
 				}
-			} else /if (${_coutAE} > 4) {
+			}
+			/if (${_coutAE} > 4) {
 				/if (${is_ready[${_debug}, "${maChr.Find[stAABeaconoftheRighteous].Value}"]}) {
 					/call voodoo ${_debug} "${maChr.Find[stAABeaconoftheRighteous].Value}" 0 ${_tmpID}
 				}
@@ -340,13 +331,15 @@ sub get_agro(bool _debug, int _tmpID)
 	}
 
 
-	/if (${Me.TargetOfTarget.Name.Equal[${Me.DisplayName}]}) {
+	/if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
 		/return
 	}
 
 	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
+
+	/invoke ${do_taunt[${_debug}, ${_tmpID}]}
 
 	| AA pet hate (the little sword thingie)
 	/if (${Me.PctAggro} < 80 && ${is_ready[${_debug}, "${maChr.Find[stAAProjectionofPiety].Value}"]}) {
@@ -580,6 +573,8 @@ sub burn(bool _debug, int _tmpID)
 	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 		/call cast_shield_flash FALSE aa
 	}
+
+	/invoke ${do_taunt[${_debug}, ${_tmpID}]}
 
 	| aa LoH
 	/if (${maHeal.Find[swHealSelf].Value} && ${maChr.Find[stPctLoH].Value}) {

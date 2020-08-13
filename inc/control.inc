@@ -1627,10 +1627,21 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
  * use:
  ***|
 #Bind control_rez /rez
-sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atcontrol_rez\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
+sub Bind_control_rez(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+	DEBUG \atcontrol_rez\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-  /declare _out string local
+
+
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} Rez 8 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+
+		/if (${Select[${_type},list]}) {
+			/call Bind_command_see lsRezIC
+			/call Bind_command_see lsRezOOC
+		}
+		/return TRUE
+	}
+
 
 	| output control map
 	/if (${_type.Equal[see]}) {
@@ -1680,6 +1691,7 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 			/if (${lsRezPct.Contains[${_verbage}]}) /call do_raw_edit ${_debug} SILENT stPctMinRez "${_verbage}"
 		}
 
+ 		 /declare _out string local
 		/declare _lirezpct listiterator local
 		/vardata _lirezpct lsRezPct.First.Clone
 		/while (!${_lirezpct.IsEnd}) {
@@ -1691,7 +1703,7 @@ sub Bind_control_rez(string _type, string _verbage, string _silent, bool _debug)
 
 	}
 
-	/if (${_silent.Equal[SILENT]}) /return
+	/if (${_verbage2.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[pct,stPctMinRez]}
 	/invoke ${maControl.Add[rad,stMaxRezRange]}
@@ -2331,7 +2343,7 @@ sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _a
 		OUT Starting the burns I can get away with ${dot}${dot}
 		/invoke ${maBurn.Add[swBurnConditionMet,TRUE]}
 		/invoke ${maBurn.Add[swBurnSpinUp,TRUE]}
-		/call burn_${Me.Class.ShortName} ${maDebug.Find[burn].Value} 0
+		/call burn ${maDebug.Find[burn].Value} 0
 		/delay 5
 		/invoke ${maBurn.Add[swBurnSpinUp,FALSE]}
 
@@ -4747,7 +4759,7 @@ sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _a
  ***|
 #Bind control_dot /dot
 sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
-	DEBUG \atcontrol_dor\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\\ax)
+	DEBUG \atcontrol_dor\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
 	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
 		/call control_base_edit ${maDebug.Find[edit].Value} DoT 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}

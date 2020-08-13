@@ -4323,7 +4323,7 @@ sub get_assist_target(bool _debug)
 		/return TRUE
 	}
 
-	| target acquisition when not using manual assist.
+	| target acquisition when using manual assist.
 	:skippingtoMAtarget
 	/if ((${Bool[MA1]} || ${Bool[MA2]}) || !${Bool[${Group.MainAssist}]}) {
 	DEBUG ${sep}Manual Assist${sep}\a-w${maCC.Find[stAssistMode].Value}\ax
@@ -6673,12 +6673,7 @@ sub do_melee(bool _debug, int _tmpID)
 	}
 
 	| taunt aggro mob % ??
-	/if (${maCC.Find[stPctTaunt].Value} && AGRO) {
-		/if (${Me.AbilityReady[Taunt]} && ${Spawn[${_tmpID}].Distance} <= ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} && (${Me.TargetOfTarget.ID} != ${Me.ID} || ${Me.PctAggro} <= ${maCC.Find[stPctTaunt].Value})) {
-			/invoke ${out[8, "Melee${sep}${sp}Taunt\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
-			/doability Taunt
-		}
-	}
+	/invoke ${do_taunt[${_debug}, ${_tmpID}]}
 
 	| disarm
 	/if (${maCC.Find[swDisarm].Value} && !${Skill[Disarm].Auto} && AGRO) {
@@ -10431,8 +10426,10 @@ sub set_dnet_group(bool _debug)
 sub check_heal_routines()
 	FLOW check_heal_routines
 
-	| check for any defensives first
-	CHECKDEFENSE
+	| heal: curing
+	/if (!${timer_Check_Cure} && (${maHeal.Find[swHealCureSelf].Value} || ${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value})) {
+		/call check_cure ${maDebug.Find[cure].Value}
+	}
 
 	| heal: target of target
 	/if (${lsClassHealToT.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealToT].Value}) {
@@ -10469,10 +10466,6 @@ sub check_heal_routines()
 		/call check_heal ${maDebug.Find[pet].Value} Pet
 	}
 
-	| heal: curing
-	/if (!${timer_Check_Cure} && (${maHeal.Find[swHealCureSelf].Value} || ${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value})) {
-		/call check_cure ${maDebug.Find[cure].Value}
-	}
 
 	GETINPUT check_heal_routines_end NA|NA
 	CHECKREZ
@@ -11696,14 +11689,6 @@ sub is_me_dead(bool _debug)
 
 
 
-
-
-
-
-
-
-
-
 |***
  * note: looks for dead fuckers. if we find dead fuckers, and they fall under dead fucker res status, we rez said dead fuckers
  * use: /call check_for_corpse DEBUG
@@ -11712,27 +11697,44 @@ sub check_for_corpse(bool _debug)
 	DEBUG \atcheck_for_corpse\ax()
 	FLOW check_for_corpse
 
+	/if (${_debug}) /delay 1
+
 	/if (${Me.State.Equal[HOVER]} || ${Me.Hovering} || ${Me.Dead}) {
+		DEBUG ${break}i'm fucking dead too.
 		/return FALSE
 	}
 
 	| fuck your corpse
 	/if (!${maRez.Find[swRezIC].Value} && !${maRez.Find[swRezOOC].Value}) {
+		DEBUG ${break}no rezing enabled
 		/return	FALSE
 	}
 
 	| no one dead
 	/if (!${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}) {
+		DEBUG ${break}no one is dead
 		/return FALSE
 	}
 
 	| no combat rez
-	/if (!${maRez.Find[swRezCombat].Value} && ${Select[${Me.CombatState},combat]}) {
-		/return FALSE
+	/if (${Select[${Me.CombatState},combat]}) {
+		/if (!${maRez.Find[swRezIC].Value}) {
+			DEBUG ${break}no rezing in combat
+			/return FALSE
+		}
+	}
+
+	| no out of combat combat rez
+	/if (!${Select[${Me.CombatState},combat]}) {
+		/if (!${maRez.Find[swRezOOC].Value}) {
+			DEBUG ${break}no rezing out of combat combat
+			/return FALSE
+		}
 	}
 
 	| not enough manna for a rez
 	/if (${Me.PctMana} < 2 && !${maRez.Find[swRezToken].Value}) {
+		DEBUG ${break}manna too low
 		/return FALSE
 	}
 
@@ -11752,7 +11754,6 @@ sub check_for_corpse(bool _debug)
 			/invoke ${out[0, 0, 59]}
 		}
 	}
-
 
 	/declare _rezReady bool local FALSE
 	/declare _tokenReady bool local FALSE
@@ -11801,111 +11802,167 @@ sub check_for_corpse(bool _debug)
 
 	SETHUD "resurrect"
 
-	| make the damn variables
-	/declare _count int local 0
 	/declare _tmpID int local 0
-	/declare _countPri int local 0
+	/declare _increment int local 1
+	/declare _found bool local FALSE
+	/declare _liC8 listiterator local
+	/vardata _liC8 lsLineRez.First.Clone
 
-	/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}
-		/varset _tmpID ${NearestSpawn[${_count},pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}
-		/if (!${Defined[timer_corpse_${_tmpID}]}) {
-			/declare timer_corpse_${_tmpID} timer outer 1
-			/delay 1
-		}
-		| for the people that suck ass (not in a good way)
-		/if (${lsNoRezToon.Contains[${Spawn[${_tmpID}].DisplayName}]}) {
-			/varset timer_corpse_${_tmpID} ${maHard.Find[stRezIgnoreFucktards].Value}
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineRez.Contains[EMPTY]} && ${lsLineRez.Count} == 1) {
+		DEBUG ${sep}resetting the empty dot line
+		/invoke ${lsLineRez.Clear}
+		/invoke ${lsLineRez.Append[1|2|3|4|5|6|7|8]}
+	}
+
+	| check priorities
+	/while (!${_liC8.IsEnd}) {
+		DEBUG ${sep}_liC8.Value${sep}${_liC8.Value}${sep}\a-w${maRez.Find[stRez${_liC8.Value}].Value}\ax
+
+		| check the switch
+		/if (!${maRez.Find[swRez${_liC8.Value}].Value}) {
+			DEBUG ${sep}switch off${sep}\a-w${maRez.Find[swRez${_liC8.Value}].Value}\ax
+			/invoke ${_liC8.Advance}
 			/continue
 		}
 
-		| check priorities
-		/for _countPri 1 to 8
-			DEBUG ${sep}_countPri${sep}\a-w${maRez.Find[stRezPriority${_countPri}].Value}\ax
+		| check the name
+		/if (!${Bool[${maRez.Find[stRez${_liC8.Value}].Value}]}) {
+			DEBUG ${sep}no name${sep}\a-w${swRez.Find[stDoT${_liC8.Value}].Value}\ax
+			/invoke ${_liC8.Advance}
+			/continue
+		}
 
-			| skip false priority strings
-			/if (${maRez.Find[stRezPriority${_countPri}].Value.Equal[FALSE]}) {
-				/continue
-			}
+		| any corpses matching this priority? if not, we move to the next priority, else, tag the closest toon and get to work
+		/if (!${SpawnCount[${maRez.Find[stRez${_liC8.Value}].Value} radius ${maRez.Find[stMaxRezRange].Value}]}) {
+		 	/invoke ${_liC8.Advance}
+		 	/continue
+		} else {
 
-			/if (${SpawnCount[${maRez.Find[stRezPriority${_countPri}].Value} radius ${maRez.Find[stMaxRezRange].Value}]}) {
-				/varset _tmpID ${NearestSpawn[${_count},${maRez.Find[stRezPriority${_countPri}].Value} radius ${maRez.Find[stMaxRezRange].Value}].ID}
-				DEBUG ${sep}_tmpID${sep}\a-w${NearestSpawn[${_count},${maRez.Find[stRezPriority${_countPri}].Value} radius ${maRez.Find[stMaxRezRange].Value}].ID}\ax (\a-rNearestSpawn[${_count},${maRez.Find[stRezPriority${_countPri}].Value} radius ${maRez.Find[stMaxRezRange].Value}].ID\ax)
+			| find us a corpse!
+			/while (!${_found}) {
+				/varset _tmpID ${NearestSpawn[${_increment},${maRez.Find[stRez${_liC8.Value}].Value} radius ${maRez.Find[stMaxRezRange].Value}].ID}
+				DEBUG ${sep}_tmpID${sep}\a-w${NearestSpawn[${_increment},${maRez.Find[stRez${_liC8.Value}].Value} radius ${maRez.Find[stMaxRezRange].Value}].ID}\ax (\a-r${maRez.Find[stRez${_liC8.Value}].Value}\ax)
+
+				| theres an error, get out
+				/if (!${_tmpID}) {
+					/break
+				}
+
+				| fix any timer
 				/if (!${Defined[timer_corpse_${_tmpID}]}) {
-					/declare timer_corpse_${_tmpID} timer outer 0
+					/declare timer_corpse_${_tmpID} timer outer 1
+					/delay 1
 				}
-				/if (!${timer_corpse_${_tmpID}}) {
 
-					| cleric rezing
-					/if (${Select[${Me.Class.ShortName},CLR]}) {
-
-						| divine rez another cleric?
-						/if (${maRez.Find[swDivineCleric].Value} && ${Select[${Spawn[id ${_tmpID}].Class.ShortName},CLR]}) {
-							/if (${Me.AltAbilityReady[${maRez.Find[stAADivineResurrection].Value}]} || ${Me.ItemReady[${maRez.Find[stAADivineResurrection].Value}]}) {
-								/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} ${maRez.Find[stAADivineResurrection].Value}
-								/return TRUE
-							}
-						| normal rez
-						} else {
-							/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rez}"
-							/return TRUE
-						}
-
-					| other rez classes
-					} else /if (${Select[${Me.Class.ShortName},DRU,PAL,SHM,NEC]}) {
-						/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rez}"
-						/return TRUE
-
-					| token rezing
-					} else /if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
-						/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rezEmergency}"
-						/return TRUE
-					}
+				| for the people that suck ass (not in a good way)
+				/if (${lsNoRezToon.Contains[${Spawn[${_tmpID}].DisplayName}]}) {
+					/varset timer_corpse_${_tmpID} ${maHard.Find[stRezIgnoreFucktards].Value}
+					/varset _tmpID 0
 				}
-			}
 
-		/next _countPri
-
-		| fuck it.. rez everyone!
-		| needs /rez everyone switch to be true
-		/if (${maRez.Find[swRezEveryone].Value}) {
-			/if (${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}) {
-				/for _count 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}
-				/if (!${Defined[timer_corpse_${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}]}) /continue
-				/varset _tmpID ${NearestSpawn[${_count}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}
-				/if (!${timer_corpse_${_tmpID}}) {
-					/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
-						/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} ${_rezEmergency}
-					} else {
-						/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rez}"
-					}
-					/return
+				| if there is no id, or the current corpse has a marker on it, move on
+				/if (!${_tmpID} || ${timer_corpse_${_tmpID}}) {
+					DEBUG ${sep}badID or timer set. next corpse
+					/varcalc _increment ${_increment} + 1
+				} else {
+					DEBUG found good corpse
+					/varset _found TRUE
 				}
-				/next _count
 			}
 		}
 
+		| cleric rezing
+		/if (${Select[${Me.Class.ShortName},CLR]}) {
 
-	/next _count
+			| divine rez another cleric?
+			/if (${maRez.Find[swDivineCleric].Value} && ${Select[${Spawn[id ${_tmpID}].Class.ShortName},CLR]}) {
+				/if (${Me.AltAbilityReady[${maRez.Find[stAADivineResurrection].Value}]} || ${Me.ItemReady[${maRez.Find[stAADivineResurrection].Value}]}) {
+					/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} ${maRez.Find[stAADivineResurrection].Value}
+					/return TRUE
+				}
+			| normal rez
+			} else {
+				/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rez}"
+				/return TRUE
+			}
 
+		| other rez classes
+		} else /if (${Select[${Me.Class.ShortName},DRU,PAL,SHM,NEC]}) {
+			/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rez}"
+			/return TRUE
+
+		| token rezing
+		} else /if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
+			/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rezEmergency}"
+			/return TRUE
+		}
+
+		/invoke ${_liC8.Advance}
+	}
+
+	| end of priority rezing
 
 	| dannet members
 	/if (${maRez.Find[swRezDanNet].Value}) {
-		/for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
-			/if (!${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}) /continue
-			/if (!${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].Dead}) /continue
-			/if (!${Defined[timer_corpse_${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}]}) /continue
-			/varset _tmpID ${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}
-			/if (!${timer_corpse_${_tmpID}}) {
-				/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
-					/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rezEmergency}"
-				} else {
-					/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rez}"
-				}
-				/return
+		DEBUG ${sep}swRezDanNet rez
+		/declare _countD int local 0
+		/for _countD 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
+
+			/if (!${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].Dead}) {
+				DEBUG ${sep}${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} dead${sep}\a-w${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].Dead}\ax
+				/continue
+			} else /if (${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].Dead}) {
+				/varset _tmpID ${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].ID}
 			}
-		/next _count
+
+			| mark the toon if it isnt already
+			/if (!${Defined[timer_corpse_${_tmpID}]}) {
+				DEBUG ${sep}timer_corpse_${_tmpID}
+				/declare timer_corpse_${_tmpID} timer outer 0
+				/delay 1
+			} else /if (${timer_corpse_${_tmpID}}) {
+			DEBUG ${sep}timer_corpse_${_tmpID} == ${timer_corpse_${_tmpID}}
+				/continue
+			}
+
+			/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
+				/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rezEmergency}"
+				/break
+			} else {
+				/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rez}"
+				/break
+			}
+		/next _countD
 	}
 
+	| fuck it.. rez everyone!
+	| needs /rez everyone switch to be true
+	/if (${maRez.Find[swRezEveryone].Value}) {
+		DEBUG ${sep}swRezEveryone rez
+		/declare _countE int local 0
+		/if (${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}) {
+			/for _countE 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}
+			/varset _tmpID ${NearestSpawn[${_countE}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID}
+
+			/if (!${Defined[timer_corpse_${_tmpID}]}) {
+				DEBUG ${sep}timer_corpse_${_tmpID}
+				/declare timer_corpse_${_tmpID} timer outer 0
+				/delay 1
+			} else /if (${timer_corpse_${_tmpID}}) {
+				/continue
+			}
+
+			/if (${maRez.Find[swRezToken].Value} && ${lsRezTokenToon.Contains[${Spawn[${_tmpID}].Class.ShortName}]}) {
+				/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} ${_rezEmergency}
+				/break
+			} else {
+				/call cast_rez ${maDebug.Find[rez].Value} ${_tmpID} "${_rez}"
+				/break
+			}
+			/next _countE
+		}
+	}
 
 	SETHUD EMPTY
 
@@ -11949,12 +12006,12 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 	}
 
 	| get the corpse close to us
-	/if (${Spawn[pccorpse ${_tmpID}].Distance} <= ${maHard.Find[stRezSummonRange].Value}) {
-		DEBUG ${sep}/corpse${sep}\a-wid ${_tmpID}\ax
-		/target id ${_tmpID}
-		/delay 1
-		/squelch /corpse
-	}
+	| /if (${Spawn[pccorpse ${_tmpID}].Distance} <= ${maHard.Find[stRezSummonRange].Value}) {
+	| 	DEBUG ${sep}/corpse${sep}\a-wid ${_tmpID}\ax
+	| 	/target id ${_tmpID}
+	| 	/delay 1
+	| 	/squelch /corpse
+	| }
 
 	| can we AA res or token, maybe spell?
 	/if (${Me.AltAbilityReady[${_rez}]} || (${Me.ItemReady[Token of Resurrection]} && ${maRez.Find[swRezToken].Value}) || ${Me.SpellReady[${_rez}]} || ${Me.ItemReady[${_rez}]}) {
@@ -11994,7 +12051,7 @@ sub cast_rez(bool _debug, int _tmpID, string _rez)
 		| if cast was good, set the timers.
 		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
 			/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, ${maHard.Find[stRezSuccess].Value}]}
-			/invoke ${out[0, "Rez Success${sep}${con_color[${_debug}, ${_tmpID}]} (\a-r${_rez}\ax)"]}
+			/invoke ${out[0, "Rez Success${sep}${con_color[${_debug}, ${_tmpID}]}"]}
 		} else {
 			/if (${Select[${Me.Class.ShortName},CLR,DRU,SHM,PAL,NEC]}) {
 				/invoke ${set_timer[${_debug}, timer_corpse_${_tmpID}, ${maHard.Find[stRezFail].Value}]}
@@ -13117,14 +13174,14 @@ sub	control_base_edit(bool _debug, string	_chk,	int	_loopnum,	string _type,	stri
 		/echo
 		/invoke	${out[12,	"\aw${_chk}	List\ax${sep}"]}
 
-		|	output any lines?
-		/if	(${lsControlLine.Contains[${_chk.Lower}]}) {
+		| output any lines?
+		/if (${lsControlLine.Contains[${_chk.Lower}]}) {
 			/sqlite	query	${maData.Find[DBcharacter].Value}	dummy	SELECT value FROM	environment_${_chk.Lower}	WHERE	env_var="lsLine${_chk}"
 			/invoke	${out[12,	"Line${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
 		}
 
 		| output the list
-		/for _count	1	to ${_loopnum}
+		/for _count 1	to ${_loopnum}
 			/if	(${ma${_chk}.Find[st${_chk}${_count}].Value.NotEqual[FALSE]})	{
 				/invoke	${out[12,	"\awst${_chk}${_count}\ax${sep}${If[${ma${_chk}.Find[sw${_chk}${_count}].Value},${on},${off}]}${sep}\a-w${ma${_chk}.Find[st${_chk}${_count}].Value}\ax"]}
 			}
@@ -13187,6 +13244,7 @@ sub	control_base_edit(bool _debug, string	_chk,	int	_loopnum,	string _type,	stri
 
 		| reset	control	item to	default
 		}	else /if (${Select[${_verbage},clear]})	{
+			DEBUG ${sep}clear/reset
 			/call	do_raw_edit	${maDebug.Find[edit].Value}	SILENT "sw${_chk}${_type}" FALSE
 			/if	(${Select[${_chk},buff]})	{
 				/call	do_raw_edit	${maDebug.Find[edit].Value}	SILENT "st${_chk}${_type}Alias"	FALSE
@@ -13207,6 +13265,7 @@ sub	control_base_edit(bool _debug, string	_chk,	int	_loopnum,	string _type,	stri
 
 	| edit the line
 	/if	(${_type.Equal[line]}	&& ${lsControlLine.Contains[${_chk.Lower}]}) {
+		DEBUG ${sep}line${sep}\a-w${_verbage}\ax
 
 		| adjust to	proper case
 		/if	(${Select[${_chk},dot]}) {
@@ -13388,6 +13447,28 @@ sub con_color(bool _debug, int _targetID)
 	}
 
 /return \arError\ax${sep}con_colorID
+
+
+
+
+|***
+ * note: taunts a mob, but only if needed
+ * use: ${do_taunt[DEBUG, ID]}
+ ***|
+sub do_taunt(bool _debug, int _tmpID)
+	DEBUG \atdo_taunt\ax(\a-w${_tmpID}\ax)
+
+	/if (!${maAgro.Find[stPctTaunt].Value} || !AGRO) /return FALSE
+	/if (${Me.TargetOfTarget.ID} == ${Me.ID}) /return FALSE
+	/if (!${Me.AbilityReady[Taunt]}) /return FALSE
+	/if (${Me.PctAggro} > ${maCC.Find[stPctTaunt].Value}) /return FALSE
+	/if (${Spawn[${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) /return FALSE
+
+	/invoke ${out[8, "Melee${sep}${sp}Taunt\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
+	/doability Taunt
+
+/return TRUE
+
 
 
 
