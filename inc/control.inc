@@ -1756,8 +1756,6 @@ sub Bind_deez(string _type, string _verbage)
 	}
 
 
-
-
 	| fakes a hash
 	/if (${_type.Equal[hash]}) {
 		/declare alpha list local
@@ -2175,7 +2173,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 	/if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
 		/call Bind_command_aux see
 		/return	FALSE
-	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song,burn,sash,out,rez]}) {
+	} else /if (!${Defined[${_variable}]} && !${Select[${_variable},${lsControls}]}) {
 		/invoke ${out[0, "Crack says your input sucks${sep}\a-w${_variable}\ax"]}
 		/return FALSE
 	}
@@ -4803,6 +4801,10 @@ sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _a
 	/if (${_type.Equal[taunt]} && ${lsMeleeSkill.Contains[taunt]}) {
 		/if (!${set_control_num_range[${_debug}, stPctTaunt, "${_verbage}", 0, 99]}) /return FALSE
 
+	| hold
+	} else /if (${_type.Equal[hold]}) {
+		/if (!${set_control_num_range[${_debug}, stPctAgroHold, "${_verbage}", 0, 99]}) /return FALSE
+
 	| agro
 	} else /if (${_type.Equal[active]}) {
 		/invoke ${set_switch_env[${_debug}, swAgro, TRUE, ${_verbage}]}
@@ -4813,6 +4815,7 @@ sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _a
 	/invoke ${maControl.Add[active,swAgro]}
 	/if (${lsMeleeSkill.Contains[taunt]}) {
 		/invoke ${maControl.Add[taunt,stPctTaunt]}
+		/invoke ${maControl.Add[hold,stPctAgroHold]}
 	}
 	/invoke ${set_control_output[${_debug}, maAgro, agro, maControl]}
 
@@ -4936,8 +4939,15 @@ sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _s
 
 	| output control map
 	/if (${_type.Equal[see]}) {
-		OUT nothing to see here
-		/return
+
+
+
+
+
+
+
+
+
 	} else /if (${_type.Equal[aux]}) {
 		/call Bind_command_aux cure ${_verbage}
 		/return

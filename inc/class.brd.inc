@@ -18,9 +18,9 @@ sub class_init(bool _debug)
 
 	/call set_data ${_debug} maData stSpire															map outer "Spire of the Minstrels"
 	/call set_data ${_debug} maData stSynergy														map outer "Troubadour's Synergy"
-	/call set_data ${_debug} maData stEpic1															map outer "Singing Short Sword"
-	/call set_data ${_debug} maData stEpic15														map outer "Prismatic Dragon Blade"
-	/call set_data ${_debug} maData stEpic2															map outer "Blade of Vesagran"
+	| /call set_data ${_debug} maData stEpic1															map outer "Singing Short Sword"
+	| /call set_data ${_debug} maData stEpic15														map outer "Prismatic Dragon Blade"
+	| /call set_data ${_debug} maData stEpic2															map outer "Blade of Vesagran"
 	/call set_data ${_debug} maData stFade															map outer "Fading Memories"
 	/call set_data_map ${_debug} maChr stAAUnity												FALSE													"${auxna} class aa unity buff"
 	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance song"

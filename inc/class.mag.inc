@@ -18,9 +18,9 @@ sub class_init(bool _debug)
 
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Elements"
 	/call set_data FALSE maData stSynergy																map outer "Conjurer's Synergy"
-	/call set_data FALSE maData stEpic1																	map outer "Orb of Mastery"
-	/call set_data FALSE maData stEpic15																map outer "Staff of Elemental Essence"
-	/call set_data FALSE maData stEpic2																	map outer "Focus of Primal Elements"
+	| /call set_data FALSE maData stEpic1																	map outer "Orb of Mastery"
+	| /call set_data FALSE maData stEpic15																map outer "Staff of Elemental Essence"
+	| /call set_data FALSE maData stEpic2																	map outer "Focus of Primal Elements"
 	/call set_data FALSE maData stFade																	map outer "Drape of Shadows"
 	/call set_data_map FALSE maChr stAAUnity														"Thaumaturge's Unity"					"${auxna} class aa unity buff"
 

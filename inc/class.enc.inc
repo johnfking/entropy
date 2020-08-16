@@ -18,9 +18,9 @@ sub class_init(bool _debug)
 
 	/call set_data ${_debug} maData stSpire															map outer "Spire of Enchantment"
 	/call set_data ${_debug} maData stSynergy														map outer "Begulier's Synergy"
-	/call set_data ${_debug} maData stEpic1															map outer "Staff of the Serpent"
-	/call set_data ${_debug} maData stEpic15														map outer "Oculus of Persuasion"
-	/call set_data ${_debug} maData stEpic2															map outer "Staff of Eternal Eloquence"
+	| /call set_data ${_debug} maData stEpic1															map outer "Staff of the Serpent"
+	| /call set_data ${_debug} maData stEpic15														map outer "Oculus of Persuasion"
+	| /call set_data ${_debug} maData stEpic2															map outer "Staff of Eternal Eloquence"
 	/call set_data ${_debug} maData stFade															map outer "Self Stasis"
 
 	| map for mob control

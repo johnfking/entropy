@@ -19,9 +19,9 @@ sub class_init(bool _debug)
 
 	/call set_data FALSE maData stSpire 																map outer "Spire of the Warlord"
 	/call set_data FALSE maData stSynergy																map outer "Myrmidon's Synergy"
-	/call set_data FALSE maData stEpic1																	map outer "Jagged Blade of War"
-	/call set_data FALSE maData stEpic15																map outer "Champion's Sword of Eternal Power"
-	/call set_data FALSE maData stEpic2																	map outer "Kreljnok's Sword of Eternal Power"
+	| /call set_data FALSE maData stEpic1																	map outer "Jagged Blade of War"
+	| /call set_data FALSE maData stEpic15																map outer "Champion's Sword of Eternal Power"
+	| /call set_data FALSE maData stEpic2																	map outer "Kreljnok's Sword of Eternal Power"
 	/call set_data FALSE maData stFade																	map outer FALSE
 	/call set_data_map FALSE maChr stAAUnity														FALSE													"${auxna} class aa unity buff"
 
@@ -63,6 +63,33 @@ sub class_init(bool _debug)
 	/call set_data_map FALSE maChr stOnslaught													PREGEN|1											"${auxna} Savage Onslaught Discipline family disc"
 	/call set_data_map FALSE maChr stOffensive													PREGEN|1											"${auxna} Offensive Discipline family disc"
 
+	/call set_data_map FALSE maChr stFortitude													PREGEN|1											"${auxna} Fortitude Discipline family disc"
+
+	| AAs
+	/call set_data_map ${_debug} maChr stAABlastofAnger									PREGEN|1											"${auxna} Blast of Anger AA"
+	/call set_data_map ${_debug} maChr stAAWarlordsFury									PREGEN|1											"${auxna} Warlord's Fury AA"
+	/call set_data_map ${_debug} maChr stAAAreaTaunt										PREGEN|1											"${auxna} Area Taunt AA"
+	/call set_data_map ${_debug} maChr stAARageoftheForsaken						PREGEN|1											"${auxna} Rage of the Forsaken AA"
+	/call set_data_map ${_debug} maChr stAABraceforImpact								PREGEN|1											"${auxna} Brace for Impact AA"
+	/call set_data_map ${_debug} maChr stAAWarStomp											PREGEN|1											"${auxna} War Stomp AA"
+	/call set_data_map ${_debug} maChr stAAGutPunch											PREGEN|1											"${auxna} Gut Punch AA"
+	/call set_data_map ${_debug} maChr stAAImperatorsCommand						PREGEN|1											"${auxna} Imperator's Command AA"
+	/call set_data_map ${_debug} maChr stAAKneeStrike										PREGEN|1											"${auxna} Knee Strike AA"
+	/call set_data_map ${_debug} maChr stAABladeGuardian								PREGEN|1											"${auxna} Blade Guardian AA"
+	/call set_data_map ${_debug} maChr stAAVehementRage									PREGEN|1											"${auxna} Vehement Rage AA"
+	/call set_data_map ${_debug} maChr stAABattleLeap										PREGEN|1											"${auxna} Battle Leap AA"
+	/call set_data_map ${_debug} maChr stAAResplendentGlory							PREGEN|1											"${auxna} Resplendent Glory AA"
+	/call set_data_map ${_debug} maChr stAAHoldtheLine									PREGEN|1											"${auxna} Hold the Line AA"
+	/call set_data_map ${_debug} maChr stAAWarlordsTenacity							PREGEN|1											"${auxna} Warlords Tenacity AA"
+	/call set_data_map ${_debug} maChr stAAWarlordsBravery							PREGEN|1											"${auxna} Warlords Bravery AA"
+	/call set_data_map ${_debug} maChr stAARageofRallosZek							PREGEN|1											"${auxna} Rage of Rallos Zek AA"
+	/call set_data_map ${_debug} maChr stAAMarkoftheMageHunter					PREGEN|1											"${auxna} Mark of the Mage Hunter AA"
+	/call set_data_map ${_debug} maChr stAAWarsSheolsHeroicBlade				PREGEN|1											"${auxna} Wars Sheol's Heroic Blade AA"
+
+
+Fortitude Discipline
+Fortitude Discipline
+
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
 		/mqp
@@ -97,6 +124,7 @@ sub class_main(bool _debug)
 
 		/if (VALID && !ENGINE3) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/invoke ${do_taunt[${_debug}, ${_tmpID}]}
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 				/call cast_shield_flash FALSE disc
@@ -170,7 +198,7 @@ sub misc_combat(bool _debug, int _tmpID)
 	}
 
 	| stShocking blocks Brace for Impact
-	/if (${is_ready[${_debug}, "${maChr.Find[stShocking].Value}"]} && !${Me.Buff[Brace for Impact].ID}) {
+	/if (${is_ready[${_debug}, "${maChr.Find[stShocking].Value}"]} && !${Me.Buff[${maChr.Find[stAABraceforImpact].Value}].ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stShocking].Value}" ${_tmpID} FALSE
 	}
 
@@ -194,16 +222,16 @@ sub misc_combat(bool _debug, int _tmpID)
 		/return FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Brace for Impact"]} && !${Me.ActiveDisc.Name.Equal[${Spell[${maChr.Find[stShocking].Value}].RankName}]}) {
-		/call voodoo ${_debug} "Brace for Impact" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAABraceforImpact].Value}"]} && !${Me.ActiveDisc.Name.Equal[${Spell[${maChr.Find[stShocking].Value}].RankName}]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAABraceforImpact].Value}" 0 FALSE
 	}
 
-	/if (${is_ready[${_debug}, "War Stomp"]} && !${Me.Song[Battle Leap].ID}) {
-		/call voodoo ${_debug} "War Stomp" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAWarStomp].Value}"]} && !${Me.Song[${maChr.Find[stAABattleLeap].Value}].ID}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAWarStomp].Value}" 0 FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Gut Punch"]}) {
-		/call voodoo ${_debug} "Gut Punch" ${_tmpID} FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAGutPunch].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAGutPunch].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stField].Value}"]} && !${Me.Song[${maChr.Find[stField].Value}].ID}) {
@@ -218,12 +246,12 @@ sub misc_combat(bool _debug, int _tmpID)
 		/return FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Imperator's Command"]}) {
-		/call voodoo ${_debug} "Imperator's Command" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAImperatorsCommand].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAImperatorsCommand].Value}" 0 FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Knee Strike"]}) {
-		/call voodoo ${_debug} "Knee Strike" ${_tmpID} FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAKneeStrike].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAKneeStrike].Value}" ${_tmpID} FALSE
 	}
 
 	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FALSE
@@ -255,16 +283,16 @@ sub misc_combat(bool _debug, int _tmpID)
 	}
 
 
-	/if (${is_ready[${_debug}, "Blade Guardian"]}) {
-		/call voodoo ${_debug} "Blade Guardian" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAABladeGuardian].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAABladeGuardian].Value}" 0 FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Vehement Rage"]}) {
-		/call voodoo ${_debug} "Vehement Rage" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAVehementRage].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAVehementRage].Value}" 0 FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Battle Leap"]} && !${Me.Song[Battle Leap Warcry].ID} && !${Me.Song[Group Bestial Alignment].ID}) {
-		/call voodoo ${_debug} "Battle Leap" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAABattleLeap].Value}"]} && !${Me.Song[${maChr.Find[stAABattleLeap].Value}].ID} && !${Me.Song[Group Bestial Alignment].ID}) {
+		/call voodoo ${_debug} "${maChr.Find[stAABattleLeap].Value}" 0 FALSE
 	}
 
 /return
@@ -291,16 +319,28 @@ sub get_agro(bool _debug, int _tmpID)
 		/return TRUE
 	}
 
+	/if (AE#) {
+		/if (${SpawnCount[npc radius ENV targetable PS4]} >= AE#) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stAAAreaTaunt].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAAAreaTaunt].Value}" 0 FALSE
+			}
+			/if (${is_ready[${_debug}, "${maChr.Find[stWhirling].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stWhirling].Value}" ${_tmpID} FALSE
+			}
+			/if (${is_ready[${_debug}, "${maChr.Find[stRallying].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stRallying].Value}" 0 FALSE
+			}
+		}
+	}
+
+	/invoke ${do_taunt[${_debug}, ${_tmpID}]}
+
 	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 		/call cast_shield_flash FALSE disc
 	}
 
-	| (60 seconds) and ae taunt
-	/if (${SpawnCount[npc OVERLOS radius 30 targetable PS4]} >= AE#) {
-		/if (${is_ready[${_debug}, "${maChr.Find[stRallying].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stRallying].Value}" 0 FALSE
-
-		}
+	/if (${Me.PctAggro} >= ${maAgro.Find[stPctAgroHold].Value}) {
+		/return FALSE
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stProvoke].Value}"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
@@ -317,35 +357,23 @@ sub get_agro(bool _debug, int _tmpID)
 	}
 
 	/if (${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
-		/if (${is_ready[${_debug}, "Rage of the Forsaken"]}) {
-			/call voodoo ${_debug} "Rage of the Forsaken" ${_tmpID} FALSE
-			/if (${is_ready[${_debug}, "Blast of Anger"]}) {
-				/call voodoo ${_debug} "Blast of Anger" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAARageoftheForsaken].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAARageoftheForsaken].Value}" ${_tmpID} FALSE
+			/if (${is_ready[${_debug}, "${maChr.Find[stAABlastofAnger].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAABlastofAnger].Value}" ${_tmpID} FALSE
 			}
 		}
 	}
 
-	/if (AE#) {
-		/if (${SpawnCount[npc radius ENV targetable PS4]} >= AE#) {
-			/if (${is_ready[${_debug}, "Area Taunt"]}) {
-				/call voodoo ${_debug} "Area Taunt" 0 FALSE
-			}
-			/if (${is_ready[${_debug}, "${maChr.Find[stWhirling].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stWhirling].Value}" ${_tmpID} FALSE
-			}
-			/if (${is_ready[${_debug}, "${maChr.Find[stRallying].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stRallying].Value}" 0 FALSE
-			}
-		}
-	}
+	/invoke ${do_taunt[${_debug}, ${_tmpID}]}
 
 	| 20% agro boost AA with 2/10 uptime
-	/if (${is_ready[${_debug}, "Warlord's Fury"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
-		/call voodoo ${_debug} "Warlord's Fury" ${_tmpID} FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAWarlordsFury].Value}"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAWarlordsFury].Value}" ${_tmpID} FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Blast of Anger"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
-		/call voodoo ${_debug} "Blast of Anger" ${_tmpID} FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAABlastofAnger].Value}"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAABlastofAnger].Value}" ${_tmpID} FALSE
 	}
 
 /return
@@ -452,8 +480,8 @@ sub burn(bool _debug, int _tmpID)
 			/if (${is_ready[${_debug}, "${maChr.Find[stWarriors].Value}"]}) {
 				/call voodoo ${_debug} "${maChr.Find[stWarriors].Value}" ${_tmpID} FALSE
 			}
-			/if (${is_ready[${_debug}, "Mark of the Mage Hunter"]}) {
-				/call voodoo ${_debug} "Mark of the Mage Hunter" 0 FALSE
+			/if (${is_ready[${_debug}, "${maChr.Find[stAAMarkoftheMageHunter].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAAMarkoftheMageHunter].Value}" 0 FALSE
 			}
 		}
 
@@ -508,24 +536,24 @@ sub burn(bool _debug, int _tmpID)
 		/call voodoo ${_debug} "${maChr.Find[stPhantom].Value}" ${_tmpID} FALSE
 	}
 
-	/if (${Me.AltAbilityReady[Resplendent Glory]} && !${Me.Song[Hold the Line].ID}) {
-		/if (${is_ready[${_debug}, "Resplendent Glory"]}) {
-			/call voodoo ${_debug} "Resplendent Glory" 0 FALSE
+	/if (${Me.AltAbilityReady[${maChr.Find[stAAResplendentGlory].Value}]} && !${Me.Song[${maChr.Find[stAAHoldtheLine].Value}].ID}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAResplendentGlory].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAResplendentGlory].Value}" 0 FALSE
 		}
-	} else /if (${Me.AltAbilityReady[Hold the Line]} && !${Me.Song[Resplendent Glory].ID}) {
-		/if (${is_ready[${_debug}, "Hold the Line"]}) {
-			/call voodoo ${_debug} "Hold the Line" 0 FALSE
+	} else /if (${Me.AltAbilityReady[${maChr.Find[stAAHoldtheLine].Value}]} && !${Me.Song[${maChr.Find[stAAResplendentGlory].Value}].ID}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAHoldtheLine].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAHoldtheLine].Value}" 0 FALSE
 		}
 	}
-	/if (${is_ready[${_debug}, "Warlords Tenacity"]}) {
-		/call voodoo ${_debug} "Warlords Tenacity" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAWarlordsTenacity].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAWarlordsTenacity].Value}" 0 FALSE
 	}
-	/if (${is_ready[${_debug}, "Warlords Bravery"]}) {
-		/call voodoo ${_debug} "Warlords Bravery" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAWarlordsBravery].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAWarlordsBravery].Value}" 0 FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Wars Sheol's Heroic Blade"]}) {
-		/call voodoo ${_debug} "Wars Sheol's Heroic Blade" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAWarsSheoolsHeroicBlade].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAWarsSheoolsHeroicBlade].Value}" 0 FALSE
 	}
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
@@ -534,8 +562,8 @@ sub burn(bool _debug, int _tmpID)
   | Intensity of the Resolute AA 4 hour reuse
   /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 
-	/if (${is_ready[${_debug}, "Rage of Rallos Zek"]}) {
-		/call voodoo ${_debug} "Rage of Rallos Zek" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAARageofRallosZek].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAARageofRallosZek].Value}" 0 FALSE
 	}
 
 /return TRUE

@@ -18,9 +18,9 @@ sub class_init(bool _debug)
 
 	/call set_data FALSE maData stSpire																	map outer "Spire of Nature"
 	/call set_data FALSE maData stSynergy																map outer "Preserver's Synergy"
-	/call set_data FALSE maData stEpic1																	map outer "Nature Walker's Scimitar"
-	/call set_data FALSE maData stEpic15																map outer "Staff of Living Brambles"
-	/call set_data FALSE maData stEpic2																	map outer "Staff of Everliving Brambles"
+	| /call set_data FALSE maData stEpic1																	map outer "Nature Walker's Scimitar"
+	| /call set_data FALSE maData stEpic15																map outer "Staff of Living Brambles"
+	| /call set_data FALSE maData stEpic2																	map outer "Staff of Everliving Brambles"
 	/call set_data FALSE maData stFade																	map outer "Veil of the Underbrush"
 	/call set_data_map FALSE maChr stAAUnity														"Wildtender's Unity"					"${auxna} class aa unity buff"
 
@@ -37,6 +37,25 @@ sub class_init(bool _debug)
 	/call set_data_map ${_debug} maChr stTempBuff		 										FALSE													"${auxna} temp buff spell"
 
   /call set_data_map FALSE maChr stTwincast														PREGEN|1											"${auxna} twincast spell"
+
+
+	| AAs
+	/call set_data_map ${_debug} maChr stAASeasonsWrath									PREGEN|1											"${auxna} Season's Wrath AA"
+	/call set_data_map ${_debug} maChr stAAStormStrike									PREGEN|1											"${auxna} Storm Strike AA"
+	/call set_data_map ${_debug} maChr stAASpiritoftheGreatWolf					PREGEN|1											"${auxna} Spirit of the Great Wolf AA"
+	/call set_data_map ${_debug} maChr stAAGroupSpiritoftheGreatWolf		PREGEN|1											"${auxna} Group Spirit of the Great Wolf AA"
+	/call set_data_map ${_debug} maChr stAASwarmofFireflies							PREGEN|1											"${auxna} Swarm of Fireflies AA"
+	/call set_data_map ${_debug} maChr stAAConvergenceofSpirits					PREGEN|1											"${auxna} Convergence of Spirits AA"
+	/call set_data_map ${_debug} maChr stAAWildtendersSurvival					PREGEN|1											"${auxna} Wildtender's Survival AA"
+	/call set_data_map ${_debug} maChr stAAPeacefulSpiritoftheWood			PREGEN|1											"${auxna} Peaceful Spirit of the Wood AA"
+	/call set_data_map ${_debug} maChr stAABlessingofTunare							PREGEN|1											"${auxna} Blessing of Tunare AA"
+	/call set_data_map ${_debug} maChr stAANaturesGuardian							PREGEN|1											"${auxna} Nature's Guardian AA"
+	/call set_data_map ${_debug} maChr stAAProtectionofDirewood					PREGEN|1											"${auxna} Protection of Direwood AA"
+	/call set_data_map ${_debug} maChr stAASilentCasting								PREGEN|1											"${auxna} Silent Casting AA"
+	/call set_data_map ${_debug} maChr stAADistructiveVortex						PREGEN|1											"${auxna} Distructive Vortex AA"
+	/call set_data_map ${_debug} maChr stAANaturesFury									PREGEN|1											"${auxna} Natures Fury AA"
+	/call set_data_map ${_debug} maChr stAANaturesBlessing							PREGEN|1											"${auxna} Nature's Blessing AA"
+	/call set_data_map ${_debug} maChr stAANaturesBoon									PREGEN|1											"${auxna} Nature's Boon AA"
 
 
 	/if (${maDebug.Find[init].Value}) {
@@ -148,23 +167,23 @@ sub misc_combat(bool _debug, int _tmpID)
 		/return TRUE
 	}
 
-	/if (${is_ready[${_debug}, "Season's Wrath"]} && ${madeBuff.Find[malo].Value}) {
-		/call voodoo ${_debug} "Season's Wrath" ${_tmpID} FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAASeasonsWrath].Value}"]} && ${madeBuff.Find[malo].Value}) {
+		/call voodoo ${_debug} "${maChr.Find[stAASeasonsWrath].Value}" ${_tmpID} FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Storm Strike"]}) {
-		/call voodoo ${_debug} "Storm Strike" ${_tmpID} FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAStormStrike].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAStormStrike].Value}" ${_tmpID} FALSE
 	}
 
 	| great wolf self/group aa
 	/if (${maChr.Find[swWolfSpirit].Value}) {
-		/if (${Me.AltAbilityReady[Spirit of the Great Wolf]} && !${Me.Buff[Spirit of the Great Wolf].ID} && !${Me.Buff[Group Spirit of the Great Wolf].ID}) {
-			/if (${is_ready[${_debug}, "Spirit of the Great Wolf"]}) {
-				/call voodoo ${_debug} "Spirit of the Great Wolf" 0 FALSE
+		/if (${Me.AltAbilityReady[${maChr.Find[stAASpiritoftheGreatWolf].Value}]} && !${Me.Buff[${maChr.Find[stAASpiritoftheGreatWolf].Value}].ID} && !${Me.Buff[${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}].ID}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stAASpiritoftheGreatWolf].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAASpiritoftheGreatWolf].Value}" 0 FALSE
 			}
-		} else /if (${Me.AltAbilityReady[Group Spirit of the Great Wolf]} && !${Me.AltAbilityReady[Spirit of the Great Wolf]} && !${Me.Buff[Spirit of the Great Wolf].ID} && !${Me.Buff[Group Spirit of the Great Wolf].ID}) {
-			/if (${is_ready[${_debug}, "Group Spirit of the Great Wolf"]}) {
-				/call voodoo ${_debug} "Group Spirit of the Great Wolf" 0 FALSE
+		} else /if (${Me.AltAbilityReady[${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}]} && !${Me.AltAbilityReady[${maChr.Find[stAASpiritoftheGreatWolf].Value}]} && !${Me.Buff[${maChr.Find[stAASpiritoftheGreatWolf].Value}].ID} && !${Me.Buff[Group Spirit of the Great Wolf].ID}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}" 0 FALSE
 			}
 		}
 	}
@@ -200,14 +219,14 @@ sub check_heal(bool _debug, string _type)
 	/if (!SAFEZONE) {
 
 		/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-			/if (${is_ready[${_debug}, "Swarm of Fireflies"]}) {
-				/call voodoo ${_debug} "Swarm of Fireflies" ${hurtID} FALSE
+			/if (${is_ready[${_debug}, "${maChr.Find[stAASwarmofFireflies].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAASwarmofFireflies].Value}" ${hurtID} FALSE
 			}
 		}
 
 		/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-			/if (${is_ready[${_debug}, "Convergence of Spirits"]}) {
-				/call voodoo ${_debug} "Convergence of Spirits" ${hurtID} FALSE
+			/if (${is_ready[${_debug}, "${maChr.Find[stAAConvergenceofSpirits].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAAConvergenceofSpirits].Value}" ${hurtID} FALSE
 			}
 		}
 
@@ -222,20 +241,20 @@ sub check_heal(bool _debug, string _type)
 			/if (!SAFEZONE) {
 
 			/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-				/if (${is_ready[${_debug}, "Wildtender's Survival"]}) {
-					/call voodoo ${_debug} "Wildtender's Survival" 0 FALSE
+				/if (${is_ready[${_debug}, "${maChr.Find[stAAWildtendersSurvival].Value}"]}) {
+					/call voodoo ${_debug} "${maChr.Find[stAAWildtendersSurvival].Value}" 0 FALSE
 				}
 			}
 
-		  	/if (${is_ready[${_debug}, "Peaceful Spirit of the Wood"]}) {
-		  		/call voodoo ${_debug} "Peaceful Spirit of the Wood" ${Me.ID} FALSE
+		  	/if (${is_ready[${_debug}, "${maChr.Find[stAAPeacefulSpiritoftheWood].Value}"]}) {
+		  		/call voodoo ${_debug} "${maChr.Find[stAAPeacefulSpiritoftheWood].Value}" ${Me.ID} FALSE
 		  		/return
 		  	}
 
 		  	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 
-			 	/if (${is_ready[${_debug}, "Blessing of Tunare"]}) {
-			 		/call voodoo ${_debug} "Blessing of Tunare" 0 FALSE
+			 	/if (${is_ready[${_debug}, "${maChr.Find[stAABlessingofTunare].Value}"]}) {
+			 		/call voodoo ${_debug} "${maChr.Find[stAABlessingofTunare].Value}" 0 FALSE
 			 		/return
 			 	}
 			}
@@ -302,46 +321,45 @@ sub burn(bool _debug, int _tmpID)
 
 	| swarm pets
 	/if (SWARM) {
-		/if (${is_ready[${_debug}, "Nature's Guardian"]})) {
-			/call voodoo ${_debug} "Nature's Guardian" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAANaturesGuardian].Value}"]})) {
+			/call voodoo ${_debug} "${maChr.Find[stAANaturesGuardian].Value}" ${_tmpID} FALSE
 		}
 	}
 
 	| defense
-	/if (${is_ready[${_debug}, "Protection of Direwood"]}) {
-		/call voodoo ${_debug} "Protection of Direwood" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAProtectionofDirewood].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAProtectionofDirewood].Value}" 0 FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Silent Casting"]}) {
-		/call voodoo ${_debug} "Silent Casting" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAASilentCasting].Value}" 0 FALSE
 	}
 
 	| damage boost
-	/if (${is_ready[${_debug}, "Distructive Vortex"]}) {
-		/call voodoo ${_debug} "Distructive Vortex" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAADistructiveVortex].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAADistructiveVortex].Value}" 0 FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Natures Fury"]}) {
-		/call voodoo ${_debug} "Natures Fury" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAANaturesFury].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAANaturesFury].Value}" 0 FALSE
 	}
-
-	| /if (${is_ready[${_debug}, "Group Spirit of the Black Wolf"]}) /call voodoo ${_debug} "Group Spirit of the Black Wolf" 0 FALSE
 
 	| heal boost
-	/if (${is_ready[${_debug}, "Nature's Blessing"]}) {
-		/call voodoo ${_debug} "Nature's Blessing" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAANaturesBlessing].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAANaturesBlessing].Value}" 0 FALSE
 	}
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 	| AA AE heal
 	/if (!${Raid.Members}) {
-		/if (${is_ready[${_debug}, "Nature's Boon"]}) {
-			/call voodoo ${_debug} "Nature's Boon" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAANaturesBoon].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAANaturesBoon].Value}" 0 FALSE
 		}
 	}
 
 	/call cast_glyph ${maDebug.Find[glyph].Value}
+
   | Intensity of the Resolute AA 4 hour reuse
   /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 

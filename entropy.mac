@@ -105,7 +105,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	/call delete_conflict_alias FALSE
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 200813.01
+	/call set_data FALSE maEnv build													map outer 200815.01
 	/call set_data FALSE maEnv schema													map outer 1.09
 	/call set_data FALSE maEnv repo														map outer 200706.01
 
@@ -450,6 +450,9 @@ sub prepare_the_end(bool _debug)
 	| set class databits'n-bytes
 	/call class_init ${maDebug.Find[init].Value}
 
+	| load epics
+	/call set_initialize_class_epic ${maDebug.Find[init].Value}
+
  	| check game cash?
 	/call check_free_ingame_cash ${maDebug.Find[init].Value}
 
@@ -571,17 +574,16 @@ sub check_housekeeping(bool _debug)
 
 
 
-
-
-
 |***
  * note: delete any conflicting aliases
  * use: see the note....
  ***|
 sub delete_conflict_alias(bool _debug)
 
+	/declare lsControls string outer buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song,burn,sash,out,rez
+
 	/declare _liAlias list local
-	/invoke ${_liAlias.Append[debug]}
+	/invoke ${_liAlias.Append[debug,${lsControls}]}
 
 	/declare _lial listiterator local
 	/vardata _lial _liAlias.First.Clone
@@ -590,16 +592,5 @@ sub delete_conflict_alias(bool _debug)
 		/invoke ${_lial.Advance}
 	}
 
+/return TRUE
 
-
-/return
-
-
-
-
-
-${Ini[${MacroQuest.Path}\MacroQuest.ini,Aliases,/wndinfo]}
-
-${MacroQuest.Path}
-
-/wndinfo

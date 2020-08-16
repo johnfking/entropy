@@ -18,9 +18,9 @@ sub class_init(bool _debug)
 
 	/call set_data FALSE maData stSpire																	map outer "Spire of Arcanum"
 	/call set_data FALSE maData stSynergy																map outer "Evoker's Synergy"
-	/call set_data FALSE maData stEpic1																	map outer "Staff of the Four"
-	/call set_data FALSE maData stEpic15																map outer "Staff of Prismatic Power"
-	/call set_data FALSE maData stEpic2																	map outer "Staff of Phenomenal Power"
+	| /call set_data FALSE maData stEpic1																	map outer "Staff of the Four"
+	| /call set_data FALSE maData stEpic15																map outer "Staff of Prismatic Power"
+	| /call set_data FALSE maData stEpic2																	map outer "Staff of Phenomenal Power"
 	/call set_data FALSE maData stFade																	map outer "A Hole in Space"
 	/call set_data FALSE maData stCompleteHeal													map outer "Complete Heal"
 	/call set_data_map FALSE maChr stAAUnity														"Etherealist's Unity"					"${auxna} class aa unity buff"

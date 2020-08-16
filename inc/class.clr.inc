@@ -18,11 +18,10 @@ sub class_init(bool _debug)
 
 	/call set_data ${_debug} maData stSpire															map outer "Spire of the Vicar"
 	/call set_data ${_debug} maData stSynergy														map outer "Templar's Synergy"
-	/call set_data ${_debug} maData stEpic1															map outer "Water Sprinkler of Nem Ankh"
-	/call set_data ${_debug} maData stEpic15														map outer "Harmony of the Soul"
-	/call set_data ${_debug} maData stEpic2															map outer "Aegis of Superior Divinity"
+	| /call set_data ${_debug} maData stEpic1															map outer "Water Sprinkler of Nem Ankh"
+	| /call set_data ${_debug} maData stEpic15														map outer "Harmony of the Soul"
+	| /call set_data ${_debug} maData stEpic2															map outer "Aegis of Superior Divinity"
 	/call set_data ${_debug} maData stFade															map outer "Divine Peace"
-
 
 	| group regen timer
 	/invoke ${set_data_timer[${_debug}, Check_Regen, 3s]}
@@ -30,13 +29,10 @@ sub class_init(bool _debug)
 	| beacon/burst timer slowdown
 	/invoke ${set_timer[${_debug}, timer_ofLife_pause, 3s]}
 
-	| arbitration pause
-	/invoke ${set_timer[${_debug}, timer_arbitration_pause, 12s]}
-
 	| Veturika's Preserverance
 	/call set_data_map ${_debug} maChr stPctVP													0															"${auxnum} % of manna to use veturikas perseverance"
 
-  /call set_data_map ${_debug} maHeal swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas" heal
+  /call set_data_map ${_debug} maHeal swHealGroupOverTime							FALSE													"${auxsw} use group heal over time spells/aas" 							heal
   /call set_data_map ${_debug} maChr swCelestialRegen									FALSE													"${auxsw} use celestial regen aa"
 
 	| single heal over time
@@ -53,15 +49,17 @@ sub class_init(bool _debug)
 	/call set_data_map ${_debug} maChr stTempPet												PREGEN|1											"${auxna} temp hammer pet spell"
 
 	| splash
-	/call set_data_map ${_debug} maHeal stCountSplash										0															"${auxnum} number mobs in range to use a splash heal" heal
+	/call set_data_map ${_debug} maHeal stCountSplash										0															"${auxnum} number mobs in range to use a splash heal" 			heal
 
 	| divine rez
-	/call set_data_map ${_debug} maRez swDivineCleric										FALSE													"${auxsw} divine rez other clerics" rez
+	/call set_data_map ${_debug} maRez swDivineCleric										FALSE													"${auxsw} divine rez other clerics" 												rez
 
 	| arbitration
-	/call set_data_map ${_debug} maChr stCountArbitrate									0															"${auxnum} num of group hurt to use arbitration "
+	/call set_data_map ${_debug} maChr stCountArbitrate									0															"${auxnum} num of group hurt to use arbitration"
+	/call set_data_map ${_debug} maChr stArbitratePause									12														"${auxnum} delay in seconds between arbitration uses"
 	/call set_data_map ${_debug} maChr swArbitrateAA 										FALSE													"${auxsw} use aa for arbitration"
 	/call set_data_map ${_debug} maChr swArbitrateEpic									FALSE													"${auxsw} use epic for arbitration"
+	/invoke ${set_timer[${_debug}, timer_arbitration_pause, ${maChr.Find[stArbitratePause].Value}s]}
 
 	| yaulp
 	/invoke ${set_data_timer[${_debug}, Check_Yaulp, 6s]}
@@ -88,10 +86,10 @@ sub class_init(bool _debug)
 	/call set_data_map ${_debug} maChr stCountBeaconofLife							0															"${auxnum} num of group hurt to use beacon of life aa"
 
 	| complete heal
-	/call set_data_map ${_debug} maHeal stPctCH													0															"${auxnum} complete heal %" heal
+	/call set_data_map ${_debug} maHeal stPctCH													0															"${auxnum} complete heal %" 																heal
 
 	| AAs
-	/call	set_data_map ${_debug} maRez stAADivineResurrection						PREGEN|1											"${auxna}	Divine Resurrection AA"				rez
+	/call	set_data_map ${_debug} maRez stAADivineResurrection						PREGEN|1											"${auxna}	Divine Resurrection AA"														rez
 	/call set_data_map ${_debug} maChr stAABeaconofLife									PREGEN|1											"${auxna} Beacon of Life aa"
 	/call set_data_map ${_debug} maChr stAAUnity												PREGEN|1											"${auxna} class aa unity buff"
 	/call set_data_map ${_debug} maChr stAADivineArbitration						PREGEN|1											"${auxna} divine arbitration aa"
@@ -605,33 +603,38 @@ sub cast_arbitration(bool _debug)
 	DEBUG \atcast_arbitration\ax()
 	FLOW cast_arbitration
 
+	/if (${timer_arbitration_pause}) {
+		/return FALSE
+	}
+
   | AA arb
-  /if (!${timer_arbitration_pause} && ${maChr.Find[swArbitrateAA].Value}) {
+  /if (${maChr.Find[swArbitrateAA].Value}) {
   	/if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
 	    /call voodoo ${_debug} "${maChr.Find[stAADivineArbitration].Value}" 0 FALSE
-	    /call get_hurt ${maDebug.Find[hurt].Value} reset
-	    /invoke ${set_timer[${_debug}, timer_arbitration_pause, 12s]}
+	    | /call get_hurt ${maDebug.Find[hurt].Value} reset
+	    /invoke ${set_timer[${_debug}, timer_arbitration_pause, ${maChr.Find[stArbitratePause].Value}s]}
 	    /return TRUE
 	  }
   }
 
-  /if (${maChr.Find[swArbitrateEpic].Value}) {
+  /if (${maChr.Find[swArbitrateEpic].Value} && !${timer_arbitration_pause}) {
 
-		| Second epic shield
-	  /if (!${timer_arbitration_pause} && ${is_ready[${_debug}, "${maData.Find[stEpic2].Value}"]}) {
-	    /call voodoo ${_debug} "${maData.Find[stEpic2].Value}" 0 FALSE
-	    /call get_hurt ${maDebug.Find[hurt].Value} reset
-	    /invoke ${set_timer[${_debug}, timer_arbitration_pause, 12s]}
+		| Second epic shield 2.0
+	  /if (${is_ready[${_debug}, "${sqlite.Result[epic${Me.Class.ShortName} 3 name]}"]}) {
+	    /call voodoo ${_debug} "${sqlite.Result[epic${Me.Class.ShortName} 3 name]}" 0 FALSE
+	    | /call get_hurt ${maDebug.Find[hurt].Value} reset
+	    /invoke ${set_timer[${_debug}, timer_arbitration_pause, ${maChr.Find[stArbitratePause].Value}s]}
+	    /return TRUE
+		}
+
+	  | First epic shield 1.5
+	  /if (${is_ready[${_debug}, "${sqlite.Result[epic${Me.Class.ShortName} 2 name]}"]}) {
+	    /call voodoo ${_debug} "${sqlite.Result[epic${Me.Class.ShortName} 2 name]}" 0 FALSE
+	    | /call get_hurt ${maDebug.Find[hurt].Value} reset
+	    /invoke ${set_timer[${_debug}, timer_arbitration_pause, ${maChr.Find[stArbitratePause].Value}s]}
 	    /return TRUE
 	  }
 
-	  | First epic shield
-	  /if (!${timer_arbitration_pause} && ${is_ready[${_debug}, "${maData.Find[stEpic15].Value}"]}) {
-	    /call voodoo ${_debug} "${maData.Find[stEpic15].Value}" 0 FALSE
-	    /call get_hurt ${maDebug.Find[hurt].Value} reset
-	    /invoke ${set_timer[${_debug}, timer_arbitration_pause, 12s]}
-	    /return TRUE
-	  }
 	}
 
 /return FALSE
@@ -640,7 +643,7 @@ sub cast_arbitration(bool _debug)
 
 |***
  * note: predictive combat preperation
- * use: /call prediction_${Me.Class.ShortName} ${maDebug.Find[pred].Value}
+ * use: /call prediction ${maDebug.Find[pred].Value}
  ***|
 sub prediction(bool _debug)
 
@@ -720,6 +723,8 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 	} else /if (${_type.Equal[arb]}) {
 		/if (${_verbage.Equal[count]}) {
 			/if (!${set_control_num_range[${_debug}, stCountArbitrate, ${_verbage2}, 0, 6]}) /return FALSE
+		} else /if (${_verbage.Equal[pause]}) {
+			/if (!${set_control_num_range[${_debug}, stArbitratePause, ${_verbage2}, 0, 999]}) /return FALSE
 		} else /if (${_verbage.Equal[aa]}) {
 			/invoke ${set_switch_env[${_debug}, swArbitrateAA, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[epic]}) {
@@ -727,6 +732,7 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 		}
 
 		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[pause,stArbitratePause]}
 		/invoke ${maControl.Add[count,stCountArbitrate]}
 		/invoke ${maControl.Add[aa,swArbitrateAA]}
 		/invoke ${maControl.Add[epic,swArbitrateEpic]}

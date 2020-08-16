@@ -1,4 +1,4 @@
-|*********************************************************************
+rr|*********************************************************************
  * entropy
  * initialize.inc
  * all shared/static data	initilization
@@ -255,6 +255,7 @@ sub	set_initial_environment(bool _debug)
 	/call	set_data ${_debug} FALSE lsClassHealXT														list outer CLR|SHM|PAL|DRU
 	/call	set_data ${_debug} FALSE lsClassHealPet														list outer CLR|SHM|PAL|DRU|NEC|MAG|BST|SHM|RNG
 	/call	set_data ${_debug} FALSE lsClassHealCure													list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
+
 
 	/call	set_data ${_debug} FALSE lsIVU																		list outer "Group	Perfected	Invisibility to	Undead"|"Perfected Invisibility	to Undead"|"Invisibility to	Undead"|"Invisibility	versus Undead"|"Shauri's Sonorous	Clouding"
 	/call	set_data ${_debug} FALSE lsIV																			list outer "Shared Perfected Camouflage"|"Shared Camouflage"|"Camouflage"|"Group Perfected Invisibility"|"Invisibility"|"Perfected Invisibility"|"Phase	March"|"Nethervoid March"|"Perfected Silent	Presence"|"Cloak of	Shadows"|"Gather Umbra"|"Invisibility	Cloak"|"Perfected	Natural	Invisibility"|"Perfected Spirit	Walk Invisibility"|"Perfected	Group	Spirit Walk	Invisibility"|"Shauri's	Sonorous Clouding"|"Selo's Song	of Travel"
@@ -940,7 +941,6 @@ sub	set_initialize_map_character_environment(bool	_debug)
 
 
 |**	control: heal	**|
-	/invoke	${set_data_timer[FALSE,	Check_Cure,	6s]}
 	/call	set_data_map ${_debug} maHeal	stHealAdjust												0															"${auxnum} % to	overide	max	health to"																				heal
 	/call	set_data_map ${_debug} maHeal	swHealSelf													FALSE													"${auxsw}	enable self	healing"																								heal
 	/call	set_data_map ${_debug} maHeal	swHealToT														FALSE													"${auxsw}	enable healing your	targets	target"																	heal
@@ -952,16 +952,8 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call set_data_map ${_debug} maHeal swHealOverTime											FALSE													"${auxsw} enable to use heal over time" 																			heal
 	/call set_data_map ${_debug} maHeal stCountHealGroup										0															"${auxnum} number in group hurt to use a group heal" 													heal
 
-	/call	set_data_map ${_debug} maHeal	swHealCureSelf											FALSE													"${auxsw}	enable self	curing"																									heal
-	/call	set_data_map ${_debug} maHeal	swHealCureGroup											FALSE													"${auxsw}	enable group curing"																								heal
-	/call	set_data_map ${_debug} maHeal	swHealCureCrew											FALSE													"${auxsw}	enable crew	curing (everyone)"																			heal
 	/call	set_data_map ${_debug} maHeal	swBreakHealPCT											FALSE													"${auxsw}	enable a stop heal when target is > its heal point"									heal
 
-	/call	set_data_map ${_debug} maHeal	stCureCurseItem											FALSE													"${auxna}	name of	item to	cure self	curses"																		heal
-	/call	set_data_map ${_debug} maHeal	stCurePoisonItem										FALSE													"${auxna}	name of	item to	cure self	poisons"																	heal
-	/call	set_data_map ${_debug} maHeal	stCureDiseaseItem										FALSE													"${auxna}	name of	item to	cure self	diseases"																	heal
-	/call	set_data_map ${_debug} maHeal	stCureCorruptionItem								FALSE													"${auxna}	name of	item to	cure self	corruption"																heal
-	/call	set_data_list	${_debug}	maHeal lsNoCureDeBuff											EMPTY													"${auxli}	list of	debuffs	you	DO NOT want	to cure"														heal
 	/call	set_data_list	${_debug}	maHeal lsHealXTClass											EMPTY													"${auxli}	classes	to populate	xtarget	for	healing	use: \a-t/heal xtarget\ax"	heal
 	/call	set_data_list	${_debug}	maHeal lsNoHealToon												EMPTY													"${auxli}	fuck these people..	no heals for them.."														heal
 	/call	set_data_map ${_debug} maHeal	swHealWeighted											FALSE													"${auxsw}	enable weighted	HP check healing"																		heal
@@ -984,12 +976,23 @@ sub	set_initialize_map_character_environment(bool	_debug)
 		/invoke	${_lishp.Advance}
 	}
 
+	| curing shit
+	/invoke	${set_data_timer[FALSE,	Check_Cure,	6s]}
 	/if	(${lsClassCastCure.Contains[${Me.Class.ShortName}]}) {
 		/call	set_data_map ${_debug} maHeal	stCureCurse												FALSE													"${auxna}	name of	cure curse spell"												heal
 		/call	set_data_map ${_debug} maHeal	stCurePoison											FALSE													"${auxna}	name of	cure poison	spell"											heal
 		/call	set_data_map ${_debug} maHeal	stCureDisease											FALSE													"${auxna}	name of	cure disease spell"											heal
 		/call	set_data_map ${_debug} maHeal	stCureCorruption									FALSE													"${auxna}	name of	corruption cure	spell"									heal
 	}
+	/call	set_data_list	${_debug}	maHeal lsNoCureDeBuff											EMPTY													"${auxli}	list of	debuffs	you	DO NOT want	to cure"				heal
+	/call	set_data_map ${_debug} maHeal	stCureCurseItem											FALSE													"${auxna}	name of	item to	cure self	curses"								heal
+	/call	set_data_map ${_debug} maHeal	stCurePoisonItem										FALSE													"${auxna}	name of	item to	cure self	poisons"							heal
+	/call	set_data_map ${_debug} maHeal	stCureDiseaseItem										FALSE													"${auxna}	name of	item to	cure self	diseases"							heal
+	/call	set_data_map ${_debug} maHeal	stCureCorruptionItem								FALSE													"${auxna}	name of	item to	cure self	corruption"						heal
+	/call	set_data_map ${_debug} maHeal	swHealCureSelf											FALSE													"${auxsw}	enable self	curing"															heal
+	/call	set_data_map ${_debug} maHeal	swHealCureGroup											FALSE													"${auxsw}	enable group curing"														heal
+	/call	set_data_map ${_debug} maHeal	swHealCureCrew											FALSE													"${auxsw}	enable crew	curing (everyone)"									heal
+
 
 	/call	set_data_list	${_debug}	maHeal lsProtectOutsideGroup							EMPTY													"${auxli}	names	outside	of your	group	to add to	xtarget	for	healing" heal
 	/call	set_data_list	${_debug}	maHeal lsLineHeal													EMPTY													"${auxli}	alternate	cast order for heals"									heal
@@ -1212,12 +1215,14 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	}	else /if (${Select[${Me.Class.ShortName},PAL]})	{
 		/invoke	${lsMeleeSkill.Append[bash,taunt,disarm]}
 		/call	set_data_map ${_debug} maCC	swBash															FALSE													"${auxsw}	switch for bashing the shit	out	of things"
-		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Aggro Pct to spam the taunt key like a noob!" agro
+		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Agro Pct to spam the taunt key like a noob!" 					agro
+		/call	set_data_map ${_debug} maAgro	stPctAgroHold											FALSE													"${auxnum} Minimum Agro Pct you want to maintain" 								agro
 		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
 
 	}	else /if (${Select[${Me.Class.ShortName},RNG]})	{
 		/invoke	${lsMeleeSkill.Append[taunt,kick,disarm]}
-		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Aggro Pct to spam the taunt key like a noob!" agro
+		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Agro Pct to spam the taunt key like a noob!" 					agro
+		/call	set_data_map ${_debug} maAgro	stPctAgroHold											FALSE													"${auxnum} Minimum Agro Pct you want to maintain" 								agro
 		/call	set_data_map ${_debug} maCC	swKick															FALSE													"${auxsw}	raise	foot,	impact nuts.."
 		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
 
@@ -1229,7 +1234,8 @@ sub	set_initialize_map_character_environment(bool	_debug)
 
 	}	else /if (${Select[${Me.Class.ShortName},SHD]})	{
 		/invoke	${lsMeleeSkill.Append[taunt,disarm,bash]}
-		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Aggro Pct to spam the taunt key like a noob!" agro
+		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Agro Pct to spam the taunt key like a noob!" 					agro
+		/call	set_data_map ${_debug} maAgro	stPctAgroHold											FALSE													"${auxnum} Minimum Agro Pct you want to maintain" 								agro
 		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
 		/call	set_data_map ${_debug} maCC	swBash															FALSE													"${auxsw}	switch for bashing the shit	out	of things"
 
@@ -1238,7 +1244,8 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	}	else /if (${Select[${Me.Class.ShortName},WAR]})	{
 		/invoke	${lsMeleeSkill.Append[bash,taunt,kick,disarm]}
 		/call	set_data_map ${_debug} maCC	swBash															FALSE													"${auxsw}	switch for bashing the shit	out	of things"
-		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Aggro Pct to spam the taunt key like a noob!" agro
+		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Agro Pct to spam the taunt key like a noob!" 					agro
+		/call	set_data_map ${_debug} maAgro	stPctAgroHold											FALSE													"${auxnum} Minimum Agro Pct you want to maintain" 								agro
 		/call	set_data_map ${_debug} maCC	swKick															FALSE													"${auxsw}	raise	foot,	impact nuts.."
 		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
 
@@ -1250,13 +1257,13 @@ sub	set_initialize_map_character_environment(bool	_debug)
 |**	control: dot **|
 	/call	set_data_map ${_debug} maDoT stDotRefresh													3															"${auxnum} time	left on	a	dot	to refresh it, in	seconds"
 	/call	set_data_map ${_debug} maDoT stPctStopDoT													0															"${auxnum} % of	mob	health to	stop dotting it	at"
-	/call	set_data_list	${_debug}	maDoT	lsLineDoT														EMPTY													"${auxli}	alternate	cast order for dots" dot
+	/call	set_data_list	${_debug}	maDoT	lsLineDoT														EMPTY													"${auxli}	alternate	cast order for dots" 													dot
 
 
 |**	control: nuke	**|
 	/call	set_data_map ${_debug} maNuke	stPctStopNuke												0															"${auxnum} % of	mob	health to	stop nuking	it at"
 	/call	set_data_map ${_debug} maNuke	stNukeDelay													0															"${auxnum} time	to force between using nukes or	dots"
-	/call	set_data_list	${_debug}	maNuke lsLineNuke													EMPTY													"${auxli}	alternate	cast order for nukes"	nuke
+	/call	set_data_list	${_debug}	maNuke lsLineNuke													EMPTY													"${auxli}	alternate	cast order for nukes"													nuke
 
 
 |**	control: burn	**|
@@ -1426,6 +1433,23 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	}
 
 /return	TRUE
+
+
+|***
+ * note: loads class epics
+ * use: do i need to ssay it again?
+ ***|
+sub	set_initialize_class_epic(bool _debug)
+	DEBUG	\atset_initialize_class_epic\ax()
+
+	/sqlite query ${maData.Find[DBstatic].Value} epic${Me.Class.ShortName} SELECT * FROM epic WHERE env_var='${Me.Class.ShortName}'
+
+	/declare epic1 string outer ${sqlite.Result[epic${Me.Class.ShortName} 1 name]}
+	/declare epic15 string outer ${sqlite.Result[epic${Me.Class.ShortName} 2 name]}
+	/declare epic2 string outer ${sqlite.Result[epic${Me.Class.ShortName} 3 name]}
+
+/return
+
 
 
 
@@ -2916,12 +2940,10 @@ sub sql_schema_update(bool _debug, string _type)
 
 		}
 
-
 		/if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
 			| drop build table
 			/sqlite query ${maData.Find[DBshared].Value} dummy DROP TABLE IF EXISTS build
 		}
-
 
 	| zone database
 	} else /if (${_type.Equal[zone]}) {
@@ -2930,8 +2952,6 @@ sub sql_schema_update(bool _debug, string _type)
 			| drop build table
 			/sqlite query ${maData.Find[DBzone].Value} dummy DROP TABLE IF EXISTS build
 		}
-
-
 
  }
 

@@ -13,25 +13,41 @@ on the to do list
 - find a way to grade debuffs and overwrite if needed
 - ranger silent shot ambush spell
 - break out triggers for minion buffs
-- check cure exits / recasts
-- shared map for rez
 - look at a way to split coordination for assists across more then one mob in a raid
-- externalize class AAs: WAR|MNK|WIZ|MAG|NEC|DRU|SHM
+- externalize class AAs: MNK|WIZ|MAG|NEC|SHM
 - buffing system by name
 - pet gear handing for damn TLP feeders..
 --------------------
 
 
-known bugs
---------------------
-epics with commas in their names are currently not functioning
---------------------
+
+200815.01
+- /agro hold ##% - the minimum % aggro you want to hold
+  for classes that can taunt
+- warrior
+  moved the AAs to the database
+	added in the new taunt controls
+- paladin
+  some adjustments to the agro routine
+- shadowknight
+  some adjustments to the agro routine
+	added in the new taunt controls
+- ranger
+  corrected the target id passing in misc_combat()
+  added in the new taunt control
+- druid
+  moved the AAs to the database
+- epics
+  epics go in /clickitem or /burn
+  use epic1, epic15 and epic2 as the name
+  eg. /clickitem 15 epic2 or /burn 3 epic1
+  apply any tags as you would normally
+- cleric
+  some tweakign to arbitration
+
+
 
 200813.01
-- zerker
-  put engine3 back into its main class routine
-  finished moving remaining AAs to the DB
-  should engage in combat again. wasnt my fault.. honestly!
 - rez
   complete redesign of the priority loop
   /rez line - alter the order of the priorites
@@ -43,6 +59,10 @@ epics with commas in their names are currently not functioning
 - taunt
   moved to /agro
   moved the activation out of melee skills into its own sub (testing with pally)
+- zerker
+  put engine3 back into its main class routine
+  finished moving remaining AAs to the DB
+  should engage in combat again. wasnt my fault.. honestly!
 - paladin
   some minor alterations to combat flow
 

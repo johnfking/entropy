@@ -478,7 +478,7 @@ sub check_free_ingame_cash(bool _debug)
 
 |***
  * note: checks whos hurt, returns a count. sets most hurt: ID, Class, pct hurt
- * use: /call get_hurt DEBUG [group|pet|mypet|xtarget|tot|CH] || ${get_hurt[DEBUG, group|pet|mypet|xtarget|tot]}
+ * use: /call get_hurt DEBUG [group|pet|mypet|xtarget|tot|CH|reset] || ${get_hurt[DEBUG, group|pet|mypet|xtarget|tot|ch|reset]}
  ***|
 sub get_hurt(bool _debug, string _type, bool _breakonGroup)
 	DEBUG \atget_hurt\ax(\a-w${_type}\ax)
@@ -747,7 +747,7 @@ sub check_facing(bool _debug, int _tmpID, string _adjust)
  * use: ${is_ready[DEBUG, "Thingtocheck"]}
  ***|
 sub is_ready(bool _debug, string _verbage)
-	DEBUG \atis_ready\ax(\a-w${_verbage}\ax)
+	DEBUG \atis_ready\ax(\a-w"${_verbage}"\ax)
 	FLOW is_ready::${_verbage} (1)
 
 	/if (!${Bool[${_verbage}]} || ${_verbage.Equal[NULL]}) {
@@ -1720,9 +1720,13 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 		}
 
 		/if (${_tmpID} == 0 || ${_tmpID} == ${Me.ID}) {
-			/invoke ${out[7, "Item${sep}${sp}${_verbage}\ax"]}
+			/if (${lsGrain.Contains[7]}) {
+				OUT Item${sep}${sp}${_verbage}\ax
+			}
 		} else /if (${_tmpID} != 0 && ${Target.ID}) {
-			/invoke ${out[7, "Item${sep}${sp}${_verbage}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
+			/if (${lsGrain.Contains[7]}) {
+				OUT Item${sep}${sp}${_verbage}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}
+			}
 		}
 
 		/while (${_castLoop}) {
@@ -6673,7 +6677,7 @@ sub do_melee(bool _debug, int _tmpID)
 	}
 
 	| taunt aggro mob % ??
-	/invoke ${do_taunt[${_debug}, ${_tmpID}]}
+	| /invoke ${do_taunt[${_debug}, ${_tmpID}]}
 
 	| disarm
 	/if (${maCC.Find[swDisarm].Value} && !${Skill[Disarm].Auto} && AGRO) {
@@ -7299,7 +7303,6 @@ sub check_cure(bool _debug)
 
 
 	| time to check the others
-
 	/declare _count int local 0
 	/declare _name string local
 
@@ -7324,7 +7327,6 @@ sub check_cure(bool _debug)
 		| if the observer hasnt "observerd" the toon yet. go no further!
 		/if (!${Defined[${_name}_TotalCounters]}) {
 			DEBUG ${sep}\aw${_name}\ax is not being observerd.. \archeck observers\ax...
-			| /declare ${_name}_TotalCounters int outer 0
 			/continue
 		}
 
@@ -10951,7 +10953,20 @@ sub cast_cycle_defense(bool _debug, int _tmpID)
  * note: clicks stuff
  * use: /call check_item_cycle DEBUG [TARGETID]
  ***|
+sub check_item_epic(bool _debug, int _tmpID, string _tag)
+	DEBUG \atcheck_item_cycle\ax(\a-w${_tmpID}, ${_tag}\ax)
+	FLOW check_item_cycle ${_tmpID}|${_tag}
+
+/return
+
+
+
+|***
+ * note: clicks stuff
+ * use: /call check_item_cycle DEBUG [TARGETID]
+ ***|
 sub check_item_cycle(bool _debug, int _tmpID, string _tag)
+| /varset _debug true
 	DEBUG \atcheck_item_cycle\ax(\a-w${_tmpID}, ${_tag}\ax)
 	FLOW check_item_cycle ${_tmpID}|${_tag}
 
@@ -10962,6 +10977,7 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 		/invoke ${lsLineItem.Append[${stCount20}]}
 	}
 
+	/declare _tmpName string local
 	/declare _liC20 listiterator local
 	/vardata _liC20 lsLineItem.First.Clone
 	/while (!${_liC20.IsEnd}) {
@@ -10981,22 +10997,32 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 			/continue
 		}
 
-		| check for specific tags, like epics
-		/if (${Bool[${_tag}]}) {
-			/if (!${lsItem${_liC20.Value}Tag.Contains[${_tag}]}) {
-				/invoke ${_liC20.Advance}
-				/continue
-			}
-		}
+		| simplify the name
+		/varset _tmpName ${maItem.Find[stItem${_liC20.Value}].Value}
 
-		/if (!${is_ready[${_debug}, "${maItem.Find[stItem${_liC20.Value}].Value}"]}) {
+		| detour item name to epic if needed
+		| class epic 1
+		/if (${maItem.Find[stItem${_liC20.Value}].Value.Equal[epic1]}) {
+			/varset _tmpName ${sqlite.Result[epic${Me.Class.ShortName} 1 name]}
+		| class epic 1.5
+		} else /if (${maItem.Find[stItem${_liC20.Value}].Value.Equal[epic15]}) {
+			/varset _tmpName ${sqlite.Result[epic${Me.Class.ShortName} 2 name]}
+		| class epic 2
+		} else /if (${maItem.Find[stItem${_liC20.Value}].Value.Equal[epic2]}) {
+			/varset _tmpName ${sqlite.Result[epic${Me.Class.ShortName} 3 name]}
+		}
+		DEBUG _tmpName${sep}\a-w${_tmpName}\ax
+
+		/call is_ready ${_debug} "${_tmpName}"
+		/if (!${Macro.Return}) {
 			/invoke ${_liC20.Advance}
 			/continue
 		}
 
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} Item ${_liC20.Value} ${Me.DisplayName} "${maItem.Find[stItem${_liC20.Value}].Value}" check_item_cycle
+		/call tag_evaluation ${maDebug.Find[tag].Value} Item ${_liC20.Value} ${Me.DisplayName} "${_tmpName}" check_item_cycle
 		/if (!${Macro.Return}) {
+			DEBUG ${break}item failed tag
 			/invoke ${_liC20.Advance}
 			/continue
 		}
@@ -11004,15 +11030,16 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 		DEBUG ${sep}_liC20.Value${sep}\a-w${_liC20.Value}\ax${sep}passed tags
 		/delay 1
 		/if (${lsItem${_liC20.Value}Tag.Contains[buffself]}) {
-			/if (!${Me.Buff[${maItem.Find[stItem${_liC20.Value}].ID}]}) {
+			/if (!${Me.Buff[${_tmpName}].ID}]}) {
 				/varset _tmpID ${Me.ID}
 			}
 		}
 
-		/if (${FindItem[${maItem.Find[stItem${_liC20.Value}].Value}].Spell.Duration.TotalSeconds} && ${FindItem[${maItem.Find[stItem${_liC20.Value}].Value}].Spell.Range}) {
+		/if (${FindItem[${_tmpName}].Spell.Duration.TotalSeconds} && ${FindItem[${_tmpName}].Spell.Range}) {
 			/invoke ${target[set, ${_tmpID}]}
 			FLOW check_item_cycle ${_tmpID}|${_tag}
-			/if (${Target.BuffDuration[${maItem.Find[stItem${_liC20.Value}].Value}].TotalSeconds}) {
+			/if (${Target.BuffDuration[${_tmpName}].TotalSeconds}) {
+				DEBUG ${break}target has buff
 				/invoke ${_liC20.Advance}
 				/continue
 			}
@@ -11023,7 +11050,7 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 			/return FALSE
 		}
 
-		/call voodoo ${_debug} "${maItem.Find[stItem${_liC20.Value}].Value}" ${_tmpID} FALSE
+		/call voodoo ${_debug} "${_tmpName}" ${_tmpID} FALSE
 
 		/invoke ${_liC20.Advance}
 	}
@@ -11484,6 +11511,7 @@ sub cast_cycle_burn(bool _debug, int _tmpID)
 		/invoke ${lsLineBurn.Append[${stCount20}]}
 	}
 
+	/declare _tmpName string local
 	/declare _liC20 listiterator local
 	/vardata _liC20 lsLineBurn.First.Clone
 	/while (!${_liC20.IsEnd}) {
@@ -11515,30 +11543,46 @@ sub cast_cycle_burn(bool _debug, int _tmpID)
 			/continue
 		}
 
-		/if (!${is_ready[${_debug}, "${maBurn.Find[stBurn${_liC20.Value}].Value}"]}) {
-			DEBUG ${break}\a-w${maBurn.Find[stBurn${_liC20.Value}].Value}\ax${sep}NOT READY
+		| simplify the name
+		/varset _tmpName ${maBurn.Find[stBurn${_liC20.Value}].Value}
+
+		| detour item name to epic if needed
+		| class epic 1
+		/if (${maBurn.Find[stBurn${_liC20.Value}].Value.Equal[epic1]}) {
+			/varset _tmpName ${sqlite.Result[epic${Me.Class.ShortName} 1 name]}
+		| class epic 1.5
+		} else /if (${maBurn.Find[stBurn${_liC20.Value}].Value.Equal[epic15]}) {
+			/varset _tmpName ${sqlite.Result[epic${Me.Class.ShortName} 2 name]}
+		| class epic 2
+		} else /if (${maBurn.Find[stBurn${_liC20.Value}].Value.Equal[epic2]}) {
+			/varset _tmpName ${sqlite.Result[epic${Me.Class.ShortName} 3 name]}
+		}
+		DEBUG _tmpName${sep}\a-w${_tmpName}\ax
+
+		/if (!${is_ready[${_debug}, "${_tmpName}"]}) {
+			DEBUG ${break}\a-w${_tmpName}\ax${sep}NOT READY
 			/invoke ${_liC20.Advance}
 			/continue
 		}
 
 		| cycle the tags
-		/call tag_evaluation ${maDebug.Find[tag].Value} Burn ${_liC20.Value} ${Me.DisplayName} "${maBurn.Find[stBurn${_liC20.Value}].Value}" cast_cycle_burn
+		/call tag_evaluation ${maDebug.Find[tag].Value} Burn ${_liC20.Value} ${Me.DisplayName} "${_tmpName}" cast_cycle_burn
 		/if (!${Macro.Return}) {
 			/invoke ${_liC20.Advance}
 			/continue
 		}
 
-		/call voodoo ${_debug} "${maBurn.Find[stBurn${_liC20.Value}].Value}" ${_tmpID} FALSE
+		/call voodoo ${_debug} "${_tmpName}" ${_tmpID} FALSE
 
-		/if (${Select[${maData.Find[stCastReturn].Value},OUTOFMANA,STUNNED]} && !${maBurn.Find[stBurnDelay].Value}) {
+		/if (${Select[${maData.Find[stCastReturn].Value},OUTOFMANA,STUNNED,SUCCESS,DISTRACTED]} && !${maBurn.Find[stBurnDelay].Value}) {
 			DEBUG ${break}CR${sep}${maData.Find[stCastReturn].Value}
 			/break
 		}
 
-		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED]} && !${maBurn.Find[stBurnDelay].Value}) {
-			DEBUG ${break}CR${sep}${maData.Find[stCastReturn].Value}
-			/break
-		}
+		| /if (${Select[${maData.Find[stCastReturn].Value}]} && !${maBurn.Find[stBurnDelay].Value}) {
+		| 	DEBUG ${break}CR${sep}${maData.Find[stCastReturn].Value}
+		| 	/break
+		| }
 
 		/invoke ${_liC20.Advance}
 	}
@@ -12792,6 +12836,11 @@ sub validate_input(bool _debug, string _type, string _verbage)
 		| click item
 		} else /if (${Me.ItemReady[=${_verbage}]}) {
 			/return TRUE
+
+		| click item
+		} else /if (${_verbage.Find[epic]}) {
+			/return TRUE
+
 		}
 
 		OUT ${notice} this is not a thing${sep}\a-w${_verbage}\ax
@@ -13450,7 +13499,6 @@ sub con_color(bool _debug, int _targetID)
 
 
 
-
 |***
  * note: taunts a mob, but only if needed
  * use: ${do_taunt[DEBUG, ID]}
@@ -13468,9 +13516,6 @@ sub do_taunt(bool _debug, int _tmpID)
 	/doability Taunt
 
 /return TRUE
-
-
-
 
 
 

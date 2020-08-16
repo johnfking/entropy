@@ -18,9 +18,9 @@ sub class_init(bool _debug)
 
 	/call set_data ${_debug} maData stSpire															map outer "Spire of Chivalry"
 	/call set_data ${_debug} maData stSynergy														map outer "Knight's Synergy"
-	/call set_data ${_debug} maData stEpic1															map outer "Fiery Defender"
-	/call set_data ${_debug} maData stEpic15														map outer "Heartwood Blade"
-	/call set_data ${_debug} maData stEpic2															map outer "Nightbane, Sword of the Valiant"
+	| /call set_data ${_debug} maData stEpic1															map outer "Fiery Defender"
+	| /call set_data ${_debug} maData stEpic15														map outer "Heartwood Blade"
+	| /call set_data ${_debug} maData stEpic2															map outer "Nightbane, Sword of the Valiant"
 	/call set_data ${_debug} maData stFade															map outer "Balefire Burst"
 
 	| attraction AA used for pulling / agro
@@ -86,6 +86,9 @@ sub class_init(bool _debug)
 	/call set_data_map ${_debug} maChr stAADeflectionDiscipline					PREGEN|1											"${auxna} Deflection Discipline AA"
 	/call set_data_map ${_debug} maChr stAAInquisitorsJudgmen						PREGEN|1											"${auxna} Inquisitor's Judgment AA"
 	/call set_data_map ${_debug} maChr stAAUnity												PREGEN|1											"${auxna} Class Unity AA"
+	/call set_data_map ${_debug} maChr stAAHandofPiety									PREGEN|1											"${auxna} Hand of Piety AA"
+
+
 
 
 	/if (${maDebug.Find[init].Value}) {
@@ -146,6 +149,7 @@ sub class_main(bool _debug)
 
 		/if (VALID && !ENGINE3) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/invoke ${do_taunt[${_debug}, TARGET]}
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 				/call cast_shield_flash FALSE aa
@@ -282,12 +286,11 @@ sub get_agro(bool _debug, int _tmpID)
 	ISMEDEAD
 	CHECKEXIT
 	GETINPUT
+	CHECKDEFENSE
 
 	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
-
-	CHECKDEFENSE
 
 	/if (ENGINE2) {
 		/call cast_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
@@ -295,7 +298,6 @@ sub get_agro(bool _debug, int _tmpID)
 	}
 
 	/call set_combat ${_debug}
-	| /call check_heal_routines
 
 	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 		/call cast_shield_flash FALSE aa
@@ -312,49 +314,54 @@ sub get_agro(bool _debug, int _tmpID)
 
 
 	| AE Stuns
-	/if (${SpawnCount[npc OVERLOS radius 60 PS4 targetable]} >= AE# && AE#) {
-		/declare _coutAE int local 0
-		/varset _coutAE ${SpawnCount[npc OVERLOS radius 60 PS4 targetable]}
+	/if (AE#) {
+		/if (${SpawnCount[npc OVERLOS radius 60 PS4 targetable]} >= AE#) {
+			/declare _coutAE int local 0
+			/varset _coutAE ${SpawnCount[npc OVERLOS radius 60 PS4 targetable]}
 
-		/if (!${Raid.Members} || ${Raid.Members} && ${Raid.MainAssist.Name.Equal[${Me.DisplayName}]}) {
-			/if (${_coutAE} > 1) {
-				/if (${is_ready[${_debug}, "${maChr.Find[stAAHallowedLodestar].Value}"]}) {
-					/call voodoo ${_debug} "${maChr.Find[stAAHallowedLodestar].Value}" ${_tmpID} FALSE
+			/if (!${Raid.Members} || ${Raid.Members} && ${Raid.MainAssist.Name.Equal[${Me.DisplayName}]}) {
+				/if (${_coutAE} > 1) {
+					/if (${is_ready[${_debug}, "${maChr.Find[stAAHallowedLodestar].Value}"]}) {
+						/call voodoo ${_debug} "${maChr.Find[stAAHallowedLodestar].Value}" ${_tmpID} FALSE
+					}
 				}
-			}
-			/if (${_coutAE} > 4) {
-				/if (${is_ready[${_debug}, "${maChr.Find[stAABeaconoftheRighteous].Value}"]}) {
-					/call voodoo ${_debug} "${maChr.Find[stAABeaconoftheRighteous].Value}" 0 ${_tmpID}
+				/if (${_coutAE} > 4) {
+					/if (${is_ready[${_debug}, "${maChr.Find[stAABeaconoftheRighteous].Value}"]}) {
+						/call voodoo ${_debug} "${maChr.Find[stAABeaconoftheRighteous].Value}" 0 ${_tmpID}
+					}
 				}
 			}
 		}
-	}
-
-
-	/if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
-		/return
 	}
 
 	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
+	/if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
+		/return
+	}
+
 	/invoke ${do_taunt[${_debug}, ${_tmpID}]}
 
+	/if (${Me.PctAggro} >= ${maAgro.Find[stPctAgroHold].Value}) {
+		/return FALSE
+	}
+
 	| AA pet hate (the little sword thingie)
-	/if (${Me.PctAggro} < 80 && ${is_ready[${_debug}, "${maChr.Find[stAAProjectionofPiety].Value}"]}) {
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAProjectionofPiety].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stAAProjectionofPiety].Value}" ${_tmpID} FALSE
 	}
 
 	| snap hate
 	/if (!${Raid.Members}) {
-		/if (${Me.PctAggro} < 60 && ${is_ready[${_debug}, "${maChr.Find[stAAAgelessEnmity].Value}"]}) {
+		/if (${Me.PctAggro} < ${maAgro.Find[stPctAgroHold].Value} && ${is_ready[${_debug}, "${maChr.Find[stAAAgelessEnmity].Value}"]}) {
 			/call voodoo ${_debug} "${maChr.Find[stAAAgelessEnmity].Value}" ${_tmpID} FALSE
 		}
 	}
 
 	| named fake hate
-	/if ((${Me.PctAggro} < 60 || ${lsZoneNamed.Contains[${Target.DisplayName}]}) && ${is_ready[${_debug}, "${maChr.Find[stUnflinching].Value}"]}) {
+	/if ((${Me.PctAggro} < ${maAgro.Find[stPctAgroHold].Value} || ${lsZoneNamed.Contains[${Target.DisplayName}]}) && ${is_ready[${_debug}, "${maChr.Find[stUnflinching].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stUnflinching].Value}" ${_tmpID} FALSE
 	}
 
@@ -441,9 +448,9 @@ sub check_heal(bool _debug, string _type)
 		}
 
 		| Hand of Piety AA Group heal
-		/if (${hurtCount} >= 1) {
-			/if (${is_ready[${_debug}, "Hand of Piety"]}) {
-				/call voodoo ${_debug} "Hand of Piety" 0 FALSE
+		/if (${hurtCount} >= 1 || BURN) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stAAHandofPiety].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stAAHandofPiety].Value}" 0 FALSE
 				/if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
 			}
 		}

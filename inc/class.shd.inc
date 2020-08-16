@@ -18,9 +18,9 @@ sub class_init(bool _debug)
 
 	/call set_data ${_debug} maData stSpire															map outer "Spire of the Reavers"
 	/call set_data ${_debug} maData stSynergy														map outer "Knight's Synergy"
-	/call set_data ${_debug} maData stEpic1															map outer "Innoruuk's Curse"
-	/call set_data ${_debug} maData stEpic15														map outer "Innoruuk's Voice"
-	/call set_data ${_debug} maData stEpic2															map outer "Innoruuk's Dark Blessing"
+	| /call set_data ${_debug} maData stEpic1															map outer "Innoruuk's Curse"
+	| /call set_data ${_debug} maData stEpic15														map outer "Innoruuk's Voice"
+	| /call set_data ${_debug} maData stEpic2															map outer "Innoruuk's Dark Blessing"
 	/call set_data ${_debug} maData stFade															map outer "Death Peace"
 
  	/call set_data_map ${_debug} maChr stRest 													PREGEN|1											"${auxna} name of stamina rest disc"
@@ -111,6 +111,7 @@ sub class_main(bool _debug)
 
 		/if (VALID && !ENGINE3) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
+			/invoke ${do_taunt[${_debug}, TARGET]}
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 				/call cast_shield_flash ${_debug} aa
@@ -253,6 +254,8 @@ sub misc_combat(bool _debug, int _tmpID)
 		/return TRUE
 	}
 
+	/invoke ${do_taunt[${_debug}, ${_tmpID}]}
+
 	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 		/call cast_shield_flash ${_debug} aa
 	}
@@ -329,17 +332,38 @@ sub get_agro(bool _debug, int _tmpID)
 		/return TRUE
 	}
 
+	/invoke ${do_taunt[${_debug}, ${_tmpID}]}
+
 	/call cast_challenge ${_debug} ${_tmpID}
 
 	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 		/call cast_shield_flash ${_debug} aa
 	}
 
-	| AA pet hate
-	/if (${Me.TargetOfTarget.ID} != ${Me.ID}) {
-		/if (${is_ready[${_debug}, "${maChr.Find[stAAProjectionofDoom].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stAAProjectionofDoom].Value}" ${_tmpID} FALSE
+	| AE Hate
+	/if (AE#) {
+		/if (${SpawnCount[npc radius 50 PS4]} >= AE#) {
+				/declare _liaeha listiterator local
+				/vardata _liaeha lsAEHate.First.Clone
+				/while (!${_liaeha.IsEnd}) {
+					/if (${is_ready[${_debug}, "${_liaeha.Value}"]}) {
+						/call voodoo ${_debug} "${_liaeha.Value}" 0 FALSE
+						/break
+					}
+					/invoke ${_liaeha.Advance}
+				}
+
+			| AE lifetap
+			/if (!${SpawnCount[pc enchanter radius SAFEENV*2]}) {
+				/if (${is_ready[${_debug}, "${maChr.Find[stAELifeTap].Value}"]}) {
+					/call voodoo ${_debug} "${maChr.Find[stAELifeTap].Value}" 0 FALSE
+				}
+			}
 		}
+	}
+
+	/if (${Me.PctAggro} >= ${maAgro.Find[stPctAgroHold].Value}) {
+		/return FALSE
 	}
 
 	| single hate
@@ -353,42 +377,30 @@ sub get_agro(bool _debug, int _tmpID)
 		/invoke ${_liha.Advance}
 	}
 
-	| AE Hate
-	/if (AE# && ${SpawnCount[npc radius 50 PS4]} >= AE#) {
-			/declare _liaeha listiterator local
-			/vardata _liaeha lsAEHate.First.Clone
-			/while (!${_liaeha.IsEnd}) {
-				/if (${is_ready[${_debug}, "${_liaeha.Value}"]}) {
-					/call voodoo ${_debug} "${_liaeha.Value}" 0 FALSE
-					/break
-				}
-				/invoke ${_liaeha.Advance}
-			}
-
-		| AE lifetap
-		/if (!${SpawnCount[pc enchanter radius SAFEENV*2]}) {
-			/if (${is_ready[${_debug}, "${maChr.Find[stAELifeTap].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stAELifeTap].Value}" 0 FALSE
-			}
-		}
-	}
-
 	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
+	/invoke ${do_taunt[${_debug}, ${_tmpID}]}
+
+	/if (${Me.PctAggro} >= ${maAgro.Find[stPctAgroHold].Value}) {
+		/return FALSE
+	}
+
+	| AA pet hate
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAProjectionofDoom].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAProjectionofDoom].Value}" ${_tmpID} FALSE
+	}
+
 
 	| fake hate
-	/if (${Me.PctAggro} < 90 || ${Me.TargetOfTarget.ID} != ${Me.ID}) {
-		/if (${is_ready[${_debug}, "${maChr.Find[stAAAgelessEnmity].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stAAAgelessEnmity].Value}" ${_tmpID} FALSE
-		}
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAAgelessEnmity].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAAgelessEnmity].Value}" ${_tmpID} FALSE
 	}
+
 	| named fake hate
 	/if (${lsZoneNamed.Contains[${Target.DisplayName}]}) {
-		/if (${Me.PctAggro} < 90 || ${Me.TargetOfTarget.ID} != ${Me.ID}) {
-			/if (${is_ready[${_debug}, "${maChr.Find[stAcrimony].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stAcrimony].Value}" ${_tmpID} FALSE
-			}
+		/if (${is_ready[${_debug}, "${maChr.Find[stAcrimony].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAcrimony].Value}" ${_tmpID} FALSE
 		}
 	}
 

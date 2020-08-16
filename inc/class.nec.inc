@@ -18,9 +18,9 @@ sub class_init(bool _debug)
 
 	/call set_data FALSE maData stSpire																	map outer "Spire of Necromancy"
 	/call set_data FALSE maData stSynergy																map outer "Defiler's Synergy"
-	/call set_data FALSE maData stEpic1																	map outer "Scythe of the Shadowed Soul"
-	/call set_data FALSE maData stEpic15																map outer "Soulwhisper"
-	/call set_data FALSE maData stEpic2																	map outer "Deathwhisper"
+	| /call set_data FALSE maData stEpic1																	map outer "Scythe of the Shadowed Soul"
+	| /call set_data FALSE maData stEpic15																map outer "Soulwhisper"
+	| /call set_data FALSE maData stEpic2																	map outer "Deathwhisper"
 	/call set_data FALSE maData stFade																	map outer "A Hole in Space"
 	/call set_data FALSE maData stCompleteHeal													map outer "Complete Heal"
 	/call set_data_map ${_debug} maChr stAAUnity												"Mortifier's Unity"					"${auxna} class aa unity buff"

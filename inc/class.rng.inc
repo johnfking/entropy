@@ -19,9 +19,9 @@ sub class_init(bool _debug)
 
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Pathfinders"
 	/call set_data FALSE maData stSynergy																map outer "Outrider's Synergy"
-	/call set_data FALSE maData stEpic1																	map outer "Earthcaller"
-	/call set_data FALSE maData stEpic15																map outer "Heartwood Blade"
-	/call set_data FALSE maData stEpic2																	map outer "Aurora, the Heartwood Blade"
+	| /call set_data FALSE maData stEpic1																	map outer "Earthcaller"
+	| /call set_data FALSE maData stEpic15																map outer "Heartwood Blade"
+	| /call set_data FALSE maData stEpic2																	map outer "Aurora, the Heartwood Blade"
 	/call set_data FALSE maData stFade																	map outer "Cover Tracks"
 	/call set_data_map FALSE maChr stAAUnity														"Wildstalker's Unity (Azia)"	"${auxna} class aa unity buff"
 
@@ -113,7 +113,7 @@ sub class_main(bool _debug)
 			/call check_heal_routines
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
-			/call misc_combat ${maDebug.Find[misc].Value}
+			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 			/if (${maChr.Find[swSummer].Value} && !${timer_Summer_Nuke}) /call cast_nuke_summer ${maDebug.Find[summer].Value} TARGET
@@ -147,28 +147,27 @@ sub class_main(bool _debug)
 
 |***
  * note: Combat skills, Disciplines and Alternate abilities.
- * use: /call misc_combat
+ * use: /call misc_combat DEBUG TARGETID
  ***|
-sub misc_combat(bool _debug)
+sub misc_combat(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat\ax()
 	FLOW misc_combat
 
 	ISMEDEAD
-	/if (${target[isdead, TARGET]}) {
+	CHECKEXIT
+	GETINPUT
+	CHECKTIE
+	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
 	}
 
 
-	CHECKEXIT
-	GETINPUT
-	CHECKTIE
-
 	/call check_heal_routines
 	/if (SWARM || PET) {
-		/call send_pet ${maDebug.Find[sic].Value} TARGET
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	}
 	/if (AUTO && MELEE) {
-		/call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	}
 
 	/if (ENGINE2) {
@@ -178,29 +177,36 @@ sub misc_combat(bool _debug)
 
 	| agro control
 	/if (AGRO) {
-		/if (${is_ready[${_debug}, "${maChr.Find[stDiscEnrage].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stDiscEnrage].Value}" TARGET FALSE
+
+		/invoke ${do_taunt[${_debug}, ${_tmpID}]}
+
+		/if (${Me.PctAggro} < ${maAgro.Find[stPctAgroHold].Value}) {
+			/if (${is_ready[${_debug}, "${maChr.Find[stDiscEnrage].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[stDiscEnrage].Value}" ${_tmpID} FALSE
+			}
 		}
-	} else /if (!AGRO) {
+	}
+
+	/if (!AGRO) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stDiscJolt].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stDiscJolt].Value}" TARGET FALSE
+			/call voodoo ${_debug} "${maChr.Find[stDiscJolt].Value}" ${_tmpID} FALSE
 		}
 	}
 
 	| elemental arrows rotation
 	/if (!${Target.Buff[Elemental Arrow].ID}) {
 		/if (${is_ready[${_debug}, "Elemental Arrow"]}) {
-			/call voodoo ${_debug} "Elemental Arrow" TARGET FALSE
+			/call voodoo ${_debug} "Elemental Arrow" ${_tmpID} FALSE
 		}
 	}
 
-	/if (!${maChr.Find[stCountAE].Value}) {
+	/if (!AE#) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stDiscMeleeSingle].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stDiscMeleeSingle].Value}" TARGET FALSE
+			/call voodoo ${_debug} "${maChr.Find[stDiscMeleeSingle].Value}" ${_tmpID} FALSE
 		}
 	} else /if (${SpawnCount[npc OVERLOS radius 60 PS4 targetable]} >= ${maChr.Find[stCountAE].Value} && ${maChr.Find[stCountAE].Value}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stDiscMeleeAE].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stDiscMeleeAE].Value}" TARGET FALSE
+			/call voodoo ${_debug} "${maChr.Find[stDiscMeleeAE].Value}" ${_tmpID} FALSE
 		}
 	}
 

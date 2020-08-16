@@ -14,9 +14,9 @@ sub class_init(bool _debug)
 
 	/call set_data ${_debug} maData stSpire															map outer "Spire of Ancestors"
 	/call set_data ${_debug} maData stSynergy														map outer "Luminary's Synergy"
-	/call set_data ${_debug} maData stEpic1															map outer "Spear of Fate"
-	/call set_data ${_debug} maData stEpic15														map outer "Crafted Talisman of Fates"
-	/call set_data ${_debug} maData stEpic2															map outer "Blessed Spiritstaff of the Heyokah"
+	| /call set_data ${_debug} maData stEpic1															map outer "Spear of Fate"
+	| /call set_data ${_debug} maData stEpic15														map outer "Crafted Talisman of Fates"
+	| /call set_data ${_debug} maData stEpic2															map outer "Blessed Spiritstaff of the Heyokah"
 	/call set_data ${_debug} maData stFade															map outer FALSE
 	/call set_data_map ${_debug} maChr stAAUnity												"Visionary's Unity"						"${auxna} class aa unity buff"
 
