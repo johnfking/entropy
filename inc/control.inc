@@ -189,6 +189,26 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		/call do_loot ${maDebug.Find[loot].Value}
 		/return TRUE
 
+	| reset dannet.. if you need too
+	} else /if (${_type.Equal[reset]}) {
+		/if (!${Bool[${_verbage}]}) {
+			OUT This is for resetting plugins.
+			OUT eg. \a-w/admin reset dannet\ax
+			OUT will reset the MQ2DanNet plugin.
+			/return
+		}
+
+		/if (!${Bool[${Plugin[MQ2${_verbage}]}]}) {
+			OUT Invalid or unloaded plugin${sep}\a-wMQ2${_verbage}\ax
+			/return
+		}
+
+		/invoke ${out[0, "Resetting Plugin${sep}\a-wMQ2${_verbage}\ax"]}
+		/plugin MQ2${_verbage} unload
+		/delay 3s
+		/plugin MQ2${_verbage}
+		/return TRUE
+
 	} else /if (${_type.Equal[pregen]}) {
 		/invoke ${out[0, "Checking \aw${MacroQuest.Server}_${Me.Class.ShortName}_${Me.DisplayName}\ax${sep}\awenvironment_character\ax table for updated skills/spells/AAs${sep}"]}
 		/varset pregenUpdate TRUE
@@ -207,7 +227,8 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		/if (${Bool[${_verbage}]} && ${Bool[${_verbage2}]}) {
 			/call sql_drop ${_verbage} ${_verbage2} TRUE
 		} else {
-			OUT /admin sqldrop TABLE FIELD
+			OUT This  is for dropping sqlite tables. Probably shouldn't be doing ths.
+			OUT eg. \a-w/admin sqldrop TABLE FIELD\ax
 		}
 
  	| see output resonses from database (strings)
@@ -238,7 +259,6 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		DEBUG SELECT 1 FROM PRAGMA_TABLE_INFO 'zone_control' \ay${sqlite.Status[dummy]}\ax
 
 		DEBUG Rows${sep}\ap${sqlite.Rows[dummy]}\ax
-
 
 		/return TRUE
 
@@ -3060,7 +3080,7 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
 	| put item in slot
 	/if (${Range.Between[1,32:${_toslot}]}) {
 		DEBUG ${sep}\awNEWITEM Home\ax /itemnotify ${Int[${Math.Calc[${_toslot}]}]} leftmouseup
-		/nomodkey /shiftkey /itemnotify ${Int[${Math.Calc[${_toslot}]}]} leftmouseup
+		/squelch /nomodkey /shiftkey /itemnotify ${Int[${Math.Calc[${_toslot}]}]} leftmouseup
 		| /nomodkey /shiftkey /itemnotify ${_toslot} leftmouseup
 	}
 

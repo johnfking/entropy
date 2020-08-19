@@ -573,14 +573,14 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
 	} else /if (${_type.Equal[pet]}) {
 		/for _count 0 to ${Group}
 			/if (!${Group.Member[${_count}].Pet.ID}) /continue
-	    /if (${Group.Member[${_count}].Pet.PctHPs} > ${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}) /continue
+	    /if (${Group.Member[${_count}].Pet.PctHPs} > ${maHeal.Find[stHealPoint${Group.Member[${_count}].Pet.Class.ShortName}].Value}) /continue
 	    /if (${Group.Member[${_count}].Pet.Distance} > ENV) /continue
 	    /if (${Group.Member[${_count}].Pet.PctHPs} >= ${hurtPctHP}) /continue
 
 			/varset hurtCount 1
 			/varset hurtID ${Group.Member[${_count}].Pet.ID}
 			/varset hurtPctHP ${Group.Member[${_count}].Pet.PctHPs}
-			/varset hurtCLS Pet
+			/varset hurtCLS ${Group.Member[${_count}].Pet.Class.ShortName}
 	  /next _count
 	  /return ${hurtCount}
 
@@ -2180,25 +2180,31 @@ sub stick_to_target(bool _debug, int _tmpID)
 
 	/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FALSE
 
+
 	| if the stick behind switch is on. we do that over ranged decision combat
-	/if (${maHome.Find[swMoveBehind].Value} && !${Stick.Behind} && ${Target.Distance} <= ENV && !${timer_Check_Behind} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
-		DEBUG ${sep}stick${sep}\a-wbehind\ax
+	/if (${Target.ID} && ${Me.TargetOfTarget.ID} != ${Me.ID}&& !${timer_Check_Behind}) {
+		/if (${maHome.Find[swMoveBehind].Value} && !${Stick.Behind} && ${Target.Distance} <= ENV ) {
+			DEBUG ${sep}stick${sep}\a-wbehind\ax
 
-		/squelch /stick id ${_tmpID} ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} snaproll
-		/invoke ${set_data_timer[FALSE, Check_Behind, RESTART]}
-		/delay 1s ${Me.Moving}
-		/delay 5s !${Me.Moving}
+			/squelch /stick id ${_tmpID} ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} snaproll
+			/invoke ${set_data_timer[${_debug}, Check_Behind, RESTART]}
+			/delay 1s ${Me.Moving}
+			/delay 5s !${Me.Moving}
 
-		| if we get stuck, get out and give it a sec.
-		/if (${MoveUtils.Stuck}) {
-			/delay 1
-			/squelch /stick off
-			/invoke ${set_data_timer[FALSE, Check_Behind, RESTART]}
+			| if we get stuck, get out and give it a sec.
+			/if (${MoveUtils.Stuck}) {
+				/delay 1
+				/squelch /stick off
+				/invoke ${set_data_timer[${_debug}, Check_Behind, RESTART]}
+			}
 		}
+	} else 	/if (${Target.ID} && ${Me.TargetOfTarget.ID} == ${Me.ID} && !${timer_Check_Behind}) {
+		/invoke ${set_data_timer[${_debug}, Check_Behind, RESTART]}
 	}
 
 
-	/if (${Target.Distance} <= ENV && ${Spawn[id ${_tmpID}].Distance} >= ${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
+
+	/if (${Spawn[id ${_tmpID}].Distance} <= ENV && ${Spawn[id ${_tmpID}].Distance} >= ${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
 		DEBUG ${sep}stick
 
 		/if (!${Stick.Active} && ${Target.ID} && VALID && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
@@ -5798,8 +5804,15 @@ sub check_buff_cycle_ammo(bool _debug)
 				/if (${is_ready[${_debug}, "${maBuff.Find[stBuff${_count}].Value}"]}) {
 					/call voodoo ${_debug} "${maBuff.Find[stBuff${_count}].Value}" 0 FALSE
 				}
-				/delay 1s
-				/call Bind_command_swap "${FindItem[=${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}" 22 ${_debug}
+				/delay 5
+				| /autoinventory
+				/if (${Me.Inventory[22].Name.NotEqual[${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].Base[1]}]}) {
+					/call Bind_command_swap "${FindItem[=${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}" 22 ${_debug}
+				}
+			} else /if (${FindItemCount[${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].Base[1]}]}) {
+				/if (${Me.Inventory[22].Name.NotEqual[${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].Base[1]}]}) {
+					/call Bind_command_swap "${FindItem[=${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].Base[1]}].Name}" 22 ${_debug}
+				}
 			}
 		}
 
@@ -5814,6 +5827,8 @@ sub check_buff_cycle_ammo(bool _debug)
 		| /delay 1s ${Me.Casting.ID}
 		| /delay 15s !${Me.Casting.ID}
 
+		| ${Me.Inventory[22].NotEqual[${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].Base[1]}]}
+
 		| autoinventory?
 		/if (${lsBuff${_count}Tag.Contains[autoinventory]}) {
 			/delay 2s ${Cursor.ID}
@@ -5823,6 +5838,10 @@ sub check_buff_cycle_ammo(bool _debug)
 	/next _count
 
 /return TRUE
+
+
+
+
 
 
 
@@ -7349,10 +7368,10 @@ sub check_cure(bool _debug)
 		| healer class AA curing
 		/if (${Select[${Me.Class.ShortName},PAL,CLR,SHM,DRU]}) {
 
-			| AA Radient Cure
-			| 100' 1 min
-			/if (${Select[${Me.Class.ShortName},PAL,CLR,SHM,DRU]} && ${Me.AltAbilityReady[Radiant Cure]} && ${Spawn[pc ${_name}].Distance} < 100 && ${Group.Member[${_name}].ID}) {
-				/call voodoo FALSE "Radiant Cure" alt 0 FALSE
+			| AA Purify Soul
+			| 200' 5 min
+			/if (${Select[${Me.Class.ShortName},PAL,CLR,DRU]} && ${Me.AltAbilityReady[Purify Soul]} && ${Spawn[pc ${_name}].Distance} < 200) {
+				/call voodoo FALSE "Purify Soul" ${Spawn[pc ${_name}].ID} FALSE
 				/delay 5
 				/if (!${Bool[${${_name}_TotalCounters}]}) {
 					/invoke ${set_data_timer[FALSE, Check_Cure, 1s]}
@@ -7360,10 +7379,10 @@ sub check_cure(bool _debug)
 				}
 			}
 
-			| AA Purify Soul
-			| 200' 5 min
-			/if (${Select[${Me.Class.ShortName},PAL,CLR,DRU]} && ${Me.AltAbilityReady[Purify Soul]} && ${Spawn[pc ${_name}].Distance} < 200) {
-				/call voodoo FALSE "Purify Soul" ${Spawn[pc ${_name}].ID} FALSE
+			| AA Radient Cure
+			| 100' 1 min
+			/if (${Select[${Me.Class.ShortName},PAL,CLR,SHM,DRU]} && ${Me.AltAbilityReady[Radiant Cure]} && ${Spawn[pc ${_name}].Distance} < 100 && ${Group.Member[${_name}].ID}) {
+				/call voodoo FALSE "Radiant Cure" alt 0 FALSE
 				/delay 5
 				/if (!${Bool[${${_name}_TotalCounters}]}) {
 					/invoke ${set_data_timer[FALSE, Check_Cure, 1s]}
@@ -13507,15 +13526,18 @@ sub do_taunt(bool _debug, int _tmpID)
 	DEBUG \atdo_taunt\ax(\a-w${_tmpID}\ax)
 
 	/if (!${maAgro.Find[stPctTaunt].Value} || !AGRO) /return FALSE
-	/if (${Me.TargetOfTarget.ID} == ${Me.ID}) /return FALSE
+	| /if (${Me.TargetOfTarget.ID} == ${Me.ID}) /return FALSE
 	/if (!${Me.AbilityReady[Taunt]}) /return FALSE
-	/if (${Me.PctAggro} > ${maCC.Find[stPctTaunt].Value}) /return FALSE
+	/if (${Me.PctAggro} > ${maCC.Find[stPctTaunt].Value} && ${Me.TargetOfTarget.ID} == ${Me.ID}) /return FALSE
 	/if (${Spawn[${_tmpID}].Distance} > ${Math.Calc[${Spawn[ID ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) /return FALSE
 
 	/invoke ${out[8, "Melee${sep}${sp}Taunt\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
 	/doability Taunt
 
 /return TRUE
+
+
+
 
 
 

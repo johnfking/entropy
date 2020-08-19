@@ -20,6 +20,19 @@ on the to do list
 --------------------
 
 
+200819.01
+- some adjustments to ranged item summoning
+- curing
+  altered order of AAs, go big or go home
+- warrior
+  left in some uncommented notes. so, i took them out
+- healing
+  fixed a rather stupid copypasta bug in pet healing.
+- stick behind
+  some logic changes to see if i can get it to work a tad better
+- rogue
+  some adjustments to sneak attack
+
 
 200815.01
 - /agro hold ##% - the minimum % aggro you want to hold
@@ -44,7 +57,6 @@ on the to do list
   apply any tags as you would normally
 - cleric
   some tweakign to arbitration
-
 
 
 200813.01

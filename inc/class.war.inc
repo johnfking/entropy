@@ -86,10 +86,6 @@ sub class_init(bool _debug)
 	/call set_data_map ${_debug} maChr stAAMarkoftheMageHunter					PREGEN|1											"${auxna} Mark of the Mage Hunter AA"
 	/call set_data_map ${_debug} maChr stAAWarsSheolsHeroicBlade				PREGEN|1											"${auxna} Wars Sheol's Heroic Blade AA"
 
-
-Fortitude Discipline
-Fortitude Discipline
-
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
 		/mqp

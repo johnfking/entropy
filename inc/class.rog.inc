@@ -55,12 +55,12 @@ sub class_init(bool _debug)
 	/call set_data_map ${_debug} maChr stLegPoison											0															"${auxna} number of summon leg poisons to keep. dont forget the buff tag (\a-wsummonpoison\ax) for legs"
 
 	| AAs
-	/call set_data_map ${_debug} maChr stAATwistedShank										PREGEN|1											"${auxna} Twisted Shank aa"
-	/call set_data_map ${_debug} maChr stAAShadowsFlanking								PREGEN|1											"${auxna} Shadow's Flanking AA"
-	/call set_data_map ${_debug} maChr stAAFocusedRakesRampage						PREGEN|1											"${auxna} Focused Rake's Rampage AA"
-	/call set_data_map ${_debug} maChr stAARakesRampage										PREGEN|1											"${auxna} Rake's Rampage AA"
-	/call set_data_map ${_debug} maChr stAARoguesFury											PREGEN|1											"${auxna} Rogue's Fury AA"
-	/call set_data_map ${_debug} maChr stAATumble													PREGEN|1											"${auxna} Tumble AA"
+	/call set_data_map ${_debug} maChr stAATwistedShank									PREGEN|1											"${auxna} Twisted Shank aa"
+	/call set_data_map ${_debug} maChr stAAShadowsFlanking							PREGEN|1											"${auxna} Shadow's Flanking AA"
+	/call set_data_map ${_debug} maChr stAAFocusedRakesRampage					PREGEN|1											"${auxna} Focused Rake's Rampage AA"
+	/call set_data_map ${_debug} maChr stAARakesRampage									PREGEN|1											"${auxna} Rake's Rampage AA"
+	/call set_data_map ${_debug} maChr stAARoguesFury										PREGEN|1											"${auxna} Rogue's Fury AA"
+	/call set_data_map ${_debug} maChr stAATumble												PREGEN|1											"${auxna} Tumble AA"
 
 
 	/if (${maDebug.Find[init].Value}) {
@@ -137,19 +137,16 @@ sub do_sneak_attack(bool _debug, int _tmpID)
 	DEBUG \atdo_sneak_attack\ax(\a-w${_tmpID}\ax)
 	FLOW do_sneak_attack
 
-  /if (!${Select[${Me.CombatState},active,resting,debuffed]} || ${Me.ActiveDisc.ID}) {
+  /if (!${Me.Sneaking} || ${Me.ActiveDisc.ID}) {
 		/return FALSE
   }
 
-	/if (!${is_ready[${_debug}, "${maChr.Find[stSneakAttack].Value}"]}) {
-		/return FALSE
-	}
-
-	CHECKEXIT
-
-	/if (${Target.ID} && ${Me.Sneaking}) {
+	/if (${is_ready[${_debug}, "${maChr.Find[stSneakAttack].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stSneakAttack].Value}" ${_tmpID} FALSE
-		/doability backstab
+
+		/if (${maCC.Find[swBackstab].Value} && !${Skill[Backstab].Auto}) {
+			/doability backstab
+		}
 	}
 
 /return TRUE
@@ -430,7 +427,7 @@ sub burn(bool _debug, int _tmpID)
 	/if (${is_ready[${_debug}, "${maChr.Find[stAARoguesFury].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stAARoguesFury].Value}" ${_tmpID} FALSE
 	}
-	/if (${is_ready[${_debug}, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15) {
+	/if (${is_ready[${_debug}, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15 && ${Spawn[id ${_tmpID}].Level} < ${Spell[${maChr.Find[stMark].Value}].Max[1]}) {
 		/call voodoo ${_debug} "${maChr.Find[stMark].Value}" ${_tmpID} FALSE
 	}
 
