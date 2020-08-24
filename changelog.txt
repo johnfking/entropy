@@ -20,6 +20,42 @@ on the to do list
 --------------------
 
 
+
+200824.01
+- corrected a target ID detour in engine2
+- added oodles more death checks
+- warrior
+  corrected a target call in main loop taunt
+- testing a new way to enter buffs
+	instead of using the spell name, you are entering three paramaters to help narrow down the spell
+  |one = the .TargetType of the casting spell
+  |two = the .SubCategory the casting spell belongs too
+  |three = the attribute name we want to look for to filter out the best spell.
+
+  the following examples will find the best version of the spell you have in your book
+
+ -eg1: cleric single Righteousness
+  /buff 1 "|Single|Aegolism|Max HP"
+  in this example we use the proc Righteousness which has an attribute Max HP
+ -eg2: paladin brells
+  /buff 2 "|Group V2|HP type two|Max HP"
+ -eg3: chanter group haste
+  /buff 1 "|Group V2|Haste|AGI"
+  for this one we look at the AGI stat as the measure since melee speed incerase stops at 68% around lvl 95
+  you could use any of the stat bonues. AGI was just an arbitrary choice
+ -eg4: chanter single mana regen
+  /buff 3 "|Single|Mana|Max Mana"
+ -eg5: chanter Legion group rune line
+  /buff 10 "|Group V1|Spell Guard|Spell Guard"
+ -eg6 chanter group mana
+  /buff 1 "|Group V2|Mana|Max Mana"
+
+  Notes: This does not replace the current system of buffs or alter it in any way. This is a test run,
+  I'm not completely sure how well this will adapt. I have been running this on 5 of 6 toons for a
+  couple days now and have noticed no hits in performance.
+  you can find out all the information about a spell with the command /admin spa "FULL SPELL AND RANK NAME"
+
+
 200819.01
 - some adjustments to ranged item summoning
 - curing

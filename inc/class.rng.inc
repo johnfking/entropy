@@ -30,7 +30,7 @@ sub class_init(bool _debug)
 	| spam summer nuke
 	/invoke ${set_data_timer[FALSE, Summer_Nuke, 1s]}
 	/call set_data_map FALSE maChr stSummer		 													PREGEN|1											"${auxna} summer line nuke spell"
-	/call set_data_map FALSE maChr swSummer															FALSE													"${auxsw} use summer nuke line spell"
+	/call set_data_map FALSE maChr stCountSummer												0															"${auxnum} number of mobs in environment to start using summer nuke line"
 
 	| rest disc
  	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
@@ -116,7 +116,7 @@ sub class_main(bool _debug)
 			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
-			/if (${maChr.Find[swSummer].Value} && !${timer_Summer_Nuke}) /call cast_nuke_summer ${maDebug.Find[summer].Value} TARGET
+			/if (${maChr.Find[stCountSummer].Value} && !${timer_Summer_Nuke}) /call cast_nuke_summer ${maDebug.Find[summer].Value} TARGET
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
@@ -326,6 +326,14 @@ sub cast_nuke_summer(bool _debug, int _tmpID)
 		/return FALSE
 	}
 
+	/if (!${maChr.Find[stCountSummer].Value}) {
+		/return FALSE
+	}
+
+	/if (${SpawnCount[npc radius ENV PS4]} < ${maChr.Find[stCountSummer].Value}) {
+		/return FALSE
+	}
+
 	ISMEDEAD
 	CHECKEXIT
 	/invoke ${set_data_timer[${_debug}, Summer_Nuke, RESTART]}
@@ -470,8 +478,7 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 
 	| summer switch
 	/if (${_type.Equal[summer]}) {
-		/invoke ${set_switch_env[${_debug}, swSummer, TRUE, ${_verbage}]}
-
+		/if (!${set_control_num_range[${_debug}, stCountSummer, "${_verbage}", 0, 100]}) /return
 	}
 
 	/call set_control_shared ${_type} "${_verbage}" "${_verbage2}" ${_debug}

@@ -294,6 +294,8 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		MQCLEAR
 		OUT \aw${_spell}\ax ${sep} ID\a-w ${_spellID}\ax ${sep} Group \a-w${Spell[${_spellID}].SpellGroup}\ax
 		OUT \a-w${Spell[${Int[${Math.Calc[${_spellID} + ${If[${Spell[${_spellID}].SpellGroup},3,1]}]}]}].Name}\ax ${sep} ID \a-w${Spell[${Int[${Math.Calc[${_spellID} + ${If[${Spell[${_spellID}].SpellGroup},3,1]}]}]}].ID}\ax
+		OUT \awTarget Type ${sep} \a-w${Spell[${_spellID}].TargetType}\ax
+		OUT \awSub Category ${sep} \a-w${Spell[${_spellID}].Subcategory}\ax
 		OUT \awSPA Count\ax ${sep} \a-w${Spell[${_spell}].NumEffects}\ax
 
 		/for _count 1 to ${Spell[${_spell}].NumEffects}
@@ -1747,7 +1749,7 @@ sub Bind_control_rez(string _type, string _verbage, string _verbage2, string _ad
  * use:  please see note: and stop asking stupid questions
  ***|
 #Bind deez /deez
-sub Bind_deez(string _type, string _verbage)
+sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
 
 	/declare _count int local 0
 
@@ -1774,6 +1776,249 @@ sub Bind_deez(string _type, string _verbage)
 		/if (${Target.ID}) /echo \ar${Target.Class}\ax is named ${ConColor[FALSE, ${Target.ID}]}
 		/return
 	}
+
+
+	/if (${_type.Equal[best]}) {
+
+		/declare _running 				int local 0
+		/declare _max 						int local 0
+		/declare _maxName					string local FALSE
+		/declare _findAttrib			string local Spell Guard
+		/declare _subcat 					string local Spell Guard
+		/declare _targettype 			string local Group v1
+
+		/declare _countNumEff			int local 0
+		/declare _countSPA				int local 0
+
+		/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM eq_spa WHERE value="${_findAttrib}";
+
+		/echo SQLITE${sep}\a-w${sqlite.Result[dummy 1 env_var]}\ax
+
+		/for _count 1 to 960
+
+			| skip empty slots
+			/if (!${Me.Book[${_count}].ID}) /continue
+
+			| subcategory does not match
+			/if (${Me.Book[${_count}].Subcategory.NotEqual[${_subcat}]}) /continue
+			| target type does not match
+			/if (${Me.Book[${_count}].TargetType.NotEqual[${_targettype}]}) /continue
+
+
+			/echo \ag${Me.Book[${_count}]}\ax ${dot} (\a-rSPA${sep}${Me.Book[${_count}].SPA}\ax)  ${dot}${dot} SPA ${sqlite.Result[dummy 1 env_var]}${sep}${Me.Book[${_count}].HasSPA[${sqlite.Result[dummy 1 env_var]}]}
+
+
+			| multiple landing non single target
+			/if (${Me.Book[${_count}].HasSPA[470]} || ${Me.Book[${_count}].HasSPA[374]} || ${Me.Book[${_count}].HasSPA[340]}) {
+				/echo ${sep}multiple landing spell${sep}\a-w${Me.Book[${_count}]}\ax
+
+				/for _countNumEff 1 to ${Me.Book[${_count}].NumEffects}
+
+					| does not contain the SPA we are after
+					| /if (!${Me.Book[${_count}].Trigger[${_countNumEff}].HasSPA[${sqlite.Result[dummy 1 env_var]}]}) /continue
+
+					| /echo ${_countNumEff} -- (${Me.Book[${_count}].Attrib[${_countSPA}]} != ${sqlite.Result[dummy 1 env_var]})
+
+
+					/echo ${sep}\a-g${Me.Book[${_count}].Trigger[${_countNumEff}]}\ax ${dot} (\a-rEffects${sep}${Me.Book[${_count}].Trigger[${_countNumEff}].NumEffects}\ax) ${dot}${dot} SPA ${sqlite.Result[dummy 1 env_var]}${sep}${Me.Book[${_count}].Trigger[${_countNumEff}].HasSPA[${sqlite.Result[dummy 1 env_var]}]}
+
+					| cycle every effect of the spell find the one we are after
+					/for _countSPA 1 to ${Me.Book[${_count}].Trigger[${_countNumEff}].NumEffects}
+
+						| /echo ${_countSPA} .. ${Me.Book[${_count}].Trigger[${_countNumEff}]} .. \a-w${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}\ax
+
+						/if (${Me.Book[${_count}].Trigger[${_countNumEff}].Attrib[${_countSPA}]} != ${sqlite.Result[dummy 1 env_var]}) /continue
+
+						| /echo ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]} == ${sqlite.Result[dummy 1 env_var]} ..winner
+
+						/varset _running ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}
+						| /varset _running ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[2]}
+						| /echo _running ${_countSPA} -- ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}
+
+						/if (${_running} < -1) {
+							/if (${_running} <= ${_max}) {
+								/varset _max ${_running}
+								/varset _maxName ${Me.Book[${_count}]}
+							}
+						} else {
+							/if (${_running} >= ${_max}) {
+								/varset _max ${_running}
+								/varset _maxName ${Me.Book[${_count}]}
+							}
+						}
+
+
+					/next _countSPA
+
+				/next _countNumEff
+
+			| no procing spells
+			} else /if (${Me.Book[${_count}].SPA}) {
+				/for _countSPA 1 to ${Me.Book[${_count}].NumEffects}
+
+					/echo _running ${_countSPA} -- ${Me.Book[${_count}].Base[${_countSPA}]} .. ${Me.Book[${_count}].Base[${_countSPA}]} .. A:${Me.Book[${_count}].Attrib[${_countSPA}]}
+					/if (${Me.Book[${_count}].Attrib[${_countSPA}]} != ${sqlite.Result[dummy 1 env_var]}) /continue
+
+
+					/varset _running ${Me.Book[${_count}].Base[${_countSPA}]}
+
+					/if (${_running} < -1) {
+						/if (${_running} <= ${_max}) {
+							/varset _max ${_running}
+							/varset _maxName ${Me.Book[${_count}]}
+						}
+					} else {
+						/if (${_running} >= ${_max}) {
+							/varset _max ${_running}
+							/varset _maxName ${Me.Book[${_count}]}
+						}
+					}
+
+
+				/next _countSPA
+			}
+
+		/next _count
+		/echo ${_maxName}${sep}\a-w${_max}\ax
+
+
+| ${Spell[${Spell[${Me.Book[${_count}]}].Trigger[2]}].Base[2]}
+
+|**
+
+			| /echo ${Me.Book[${_count}]}${sep} ${Spell[${Me.Book[${_count}]}].Trigger[2].Base[2]}
+			| /echo ${Me.Book[${_count}]}${sep} ${Spell[${Me.Book[${_count}]}].Base[2]}
+
+
+		/echo ${Spell[Unified Righteousness].ID} 588642
+		/echo  ${Spell[Unified Righteousness].Trigger[2].TargetType}
+
+		${Spell[${Spell[Unified Righteousness].Trigger[2]}].Base[4]}
+
+		${Spell[${Spell[Unified Righteousness].Trigger[2]}].Base[2]}
+		${Spell[${Spell[Unified Righteousness].Trigger[2]}].SPA[69]}
+
+
+
+
+${Spell[Unified Righteousness].Trigger[2].Description}
+
+
+
+
+
+
+
+
+
+
+
+    Name,
+    Level,
+    Skill,
+    Mana,
+    ResistAdj,
+    Range,
+    AERange,
+    PushBack,
+    CastTime,
+    FizzleTime,
+    MyCastTime,
+    RecoveryTime,
+    RecastTime,
+    Duration,
+    SpellType,
+    TargetType,
+    ResistType,
+    CastOnYou,
+    CastOnAnother,
+    WearOff,
+    CounterType,
+    CounterNumber,
+    Stacks,
+    StacksPet,
+    WillStack,
+    MyRange,
+    Address,
+    EnduranceCost,
+    MaxLevel,
+    Category,
+    Subcategory,
+    Restrictions,
+    Base,
+    Base2,
+    Max,
+    Calc,
+    Attrib,
+    AutoCast,
+    Extra,
+    RecastTimerID,
+    SPA,
+    ReagentID,
+    ReagentCount,
+    CastByOther,
+    TimeOfDay,
+    DurationWindow,
+    CanMGB,
+    Deletable,
+    BookIcon,
+    Target,
+    Description,
+    StacksWith,
+    Rank,
+    RankName,
+    SpellGroup,
+    SubSpellGroup,
+    Beneficial,
+    IsActiveAA,
+    CalcIndex,
+    NumEffects,
+    Location,
+    IsSwarmSpell,
+    IsSkill,
+    DurationValue1,
+    NewStacks,
+    NewStacksWith,
+    StacksTarget,
+    StacksWithDiscs,
+    IllusionOkWhenMounted,
+    EQSpellDuration,
+    CastByMe,
+    HasSPA,
+    Trigger,
+    BaseName,
+    NoExpendReagentID,
+    StacksSpawn,
+    SpellIcon,
+    GemIcon,
+    SlowPct,
+    HastePct,
+    MyDuration,
+**|
+
+	/if (${_type.Equal[best2]}) {
+		/echo ${get_best_in_spell[FALSE, "Group V2", "Aegolism", "Max HP"]}
+	}
+
+
+
+	| multi positional swap
+	/if (${_type.Equal[incvar]}) {
+		/if (${_verbage3.Equal[+]}) {
+			/varcalc ${_verbage} ${${_verbage}}+1
+		} else /if (${_verbage3.Equal[-]}) {
+			/varcalc ${_verbage} ${${_verbage}}-1
+		} else {
+			/varcalc ${_verbage} ${${_verbage}}+1
+		}
+
+		/echo Range.Between[1,${_verbage2}:${${_verbage}}]
+		/if (!${Range.Between[1,${_verbage2}:${${_verbage}}]}) /varset ${_verbage} 0
+		/echo ${_verbage} is now ${${_verbage}}
+
+	}
+
+
 
 
 	| fakes a hash
@@ -5209,7 +5454,7 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 			DEBUG	${sep}delete tag_validate${sep}\a-w${_grouping}, ${_tagname}\ax
 
 			| see	if it	is even	there?
-			/sqlite query ${maData.Find[DBshared].Value} dummy SELECT * FROM tag_validate LEFT JOIN tag ON tag_validate.tag = tag.id LEFT	JOIN tag_group ON	tag_validate.grouping	=	tag_group.id WHERE tag_group.grouping	=	"${_grouping}" AND tag.name	=	"${_tagname}"	AND	tag_validate.created_by	<> 1
+			/sqlite query ${maData.Find[DBshared].Value} dummy SELECT * FROM tag_validate LEFT JOIN tag ON tag_validate.tag = tag.id LEFT	JOIN tag_group ON	tag_validate.grouping	=	tag_group.id WHERE tag_group.grouping	=	"${_grouping}" AND tag.name	=	"${_tagname}"	AND	tag_validate.created_by	<> 1;
 
 			/if	(!${sqlite.Rows[dummy]}) {
 				OUT	Something	is invalid${sep}\a-r${_grouping}\ax, \a-r${_tagname}\ax
@@ -5217,7 +5462,7 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 			}
 
 			| delete the bastard
-			/sqlite	query	${maData.Find[DBshared].Value} dummy DELETE	FROM tag_validate	WHERE	tag	IN (SELECT tag.id	FROM tag WHERE tag.name	=	"${_tagname}") AND grouping	=	(SELECT	tag_group.id FROM	tag_group	WHERE	tag_group.grouping = "${_grouping}") AND created_by	<> 1
+			/sqlite	query	${maData.Find[DBshared].Value} dummy DELETE	FROM tag_validate	WHERE	tag	IN (SELECT tag.id	FROM tag WHERE tag.name	=	"${_tagname}") AND grouping	=	(SELECT	tag_group.id FROM	tag_group	WHERE	tag_group.grouping = "${_grouping}") AND created_by	<> 1;
 			OUT	Evaluation Deleted${sep}\aw${_grouping}\ax${sep}\a-t${_tagname}\ax
 			/return TRUE
 
@@ -5228,14 +5473,14 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 			DEBUG ${sep}delete tag${sep}\a-t${_grouping}\ax
 
 			| see	if the tag is	there
-			/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	*	FROM tag WHERE tag.name	=	"${_grouping}" AND created_by	<> 1
+			/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	*	FROM tag WHERE tag.name	=	"${_grouping}" AND created_by	<> 1;
 			/if	(!${sqlite.Rows[dummy]}) {
 				OUT	Something	is invalid${sep}\a-w${_grouping}\ax
 				/return	FALSE
 			}
 
 			| make sure	the	tag	isn't	being	used somewhere?!
-			/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by FROM	tag_validate WHERE tag=(SELECT id	FROM tag WHERE name="${_grouping}")	AND	created_by <>	1
+			/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by FROM	tag_validate WHERE tag=(SELECT id	FROM tag WHERE name="${_grouping}")	AND	created_by <>	1;
 
 			/if	(${sqlite.Rows[dummy]})	{
 				OUT	Tag	is currently attached	to an	evaluation${sep}\a-w${_grouping}\ax
@@ -5244,7 +5489,7 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 			}
 
 			| delete it, now that	we are passed	the	checks
-			/sqlite	query	${maData.Find[DBshared].Value} dummy DELETE	FROM tag WHERE tag.name	=	"${_grouping}" AND created_by	<> 1
+			/sqlite	query	${maData.Find[DBshared].Value} dummy DELETE	FROM tag WHERE tag.name	=	"${_grouping}" AND created_by	<> 1;
 			OUT	Tag	Deleted${sep}\a-t${_grouping}\ax
 
 			/return	TRUE
@@ -5252,7 +5497,7 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 	}
 
 	| help / lists
-	/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	grouping FROM	tag_group	WHERE	grouping="${_grouping}"
+	/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	grouping FROM	tag_group	WHERE	grouping="${_grouping}";
 
 	/if	(!${sqlite.Rows[dummy]}	&& !${Select[${_grouping},list,see]})	{
 		/echo
@@ -5261,7 +5506,7 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 		OUT	To delete	an evaluation${sep}\a-w/tag	groupname	tagname	delete\ax
 		OUT	To delete	a	tag${sep}\a-w/tag	tagname	delete\ax
 		/declare _out	string local
-		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	grouping FROM	tag_group
+		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	grouping FROM	tag_group;
 		/for _count	1	to ${sqlite.Rows[dummy]}
 			/varset	_out ${_out} ${dot}	\a-w${sqlite.Result[dummy	${_count}	grouping]}\ax
 		/next	_count
@@ -5330,10 +5575,10 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 	**|
 
 	| create the tag if it does not exist
-	/sqlite query	${maData.Find[DBshared].Value} dummy INSERT	INTO tag (name,	created_by)	VALUES ("${_tagname}", 2)
+	/sqlite query	${maData.Find[DBshared].Value} dummy INSERT	INTO tag (name,	created_by)	VALUES ("${_tagname}", 2);
 
 	| check	if what	they want	to do	is trying	to overwrite the defaults?
-	/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'1'
+	/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'1';
 	/if	(!${sql_check[FALSE, dummy,	Bind_noparse_tag,	"SELECT	(created_by)"]}) /endmacro
 
 	/if	(${sqlite.Rows[dummy]})	{
@@ -5344,15 +5589,15 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 	}
 
 	| see	if what	we are trying	to make	is there?
-	/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'2'
+	/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'2';
 
 	| if it	is there,	we update	the	current	one
 	/if	(${sqlite.Rows[dummy]})	{
 		| tag	exists,	update
-		/sqlite	query	${maData.Find[DBshared].Value} dummy UPDATE	tag_validate SET eval="${Parse[1,${_eval}]}" WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping="${_grouping}") AND tag=(SELECT id	FROM tag WHERE name="${_tagname}")
+		/sqlite	query	${maData.Find[DBshared].Value} dummy UPDATE	tag_validate SET eval="${Parse[1,${_eval}]}" WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping="${_grouping}") AND tag=(SELECT id	FROM tag WHERE name="${_tagname}");
 		/if	(!${sql_check[${_debug}, dummy,	Bind_noparse_tag,	"UPDATE	(tag_validate)"]}) /endmacro
 
-		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'2'
+		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'2';
 		/if (!${_silent}) {
 			OUT	Evaluation Updated${sep}\aw${_grouping}\ax${sep}${If[${sqlite.Result[dummy 1 created_by].Equal[1]},\aw${_tagname}\ax,\at${_tagname}\ax]}${sep}\a-w${Parse[1,${_eval}]}\ax
 		}
@@ -5361,10 +5606,10 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 	| if its not there,	we create/insert a new on
 	}	else /if (!${sqlite.Rows[dummy]})	{
 		| insert
-		/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	INTO tag_validate	(tag,	grouping,	eval,	created_by)	SELECT tag.id, tag_group.id, "${Parse[1,${_eval}]}", 2 FROM	tag	CROSS	JOIN tag_group WHERE tag.name="${_tagname}"	AND	tag_group.grouping="${_grouping}"	LIMIT	1
+		/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	INTO tag_validate	(tag,	grouping,	eval,	created_by)	SELECT tag.id, tag_group.id, "${Parse[1,${_eval}]}", 2 FROM	tag	CROSS	JOIN tag_group WHERE tag.name="${_tagname}"	AND	tag_group.grouping="${_grouping}"	LIMIT	1;
 		/if	(!${sql_check[${_debug}, dummy,	Bind_noparse_tag,	"INSERT	INTO (tag_validate)"]})	/endmacro
 		| check	it
-		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'2'
+		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'2';
 		/if	(${sqlite.Rows[dummy]} && !${_silent})	{
 			OUT	Tag	and	Evaluation Created${sep}\aw${_grouping}\ax${sep}\aw${If[${sqlite.Result[dummy	1	created_by].Equal[2]},\at${_tagname}\ax,\aw${_tagname}\ax]}\ax${sep}\a-w${Parse[1,${_eval}]}\ax
 		}

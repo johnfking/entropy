@@ -404,7 +404,7 @@ sub	set_initial_environment(bool _debug)
 		/invoke	${maChrControl.Add[stun,submenu]}
 
 	}	else /if (${Select[${Me.Class.ShortName},RNG]})	{
-		/invoke	${maChrControl.Add[summer,swSummer]}
+		/invoke	${maChrControl.Add[summer,stCountSummer]}
 
 	}	else /if (${Select[${Me.Class.ShortName},ROG]})	{
 		/invoke	${maChrControl.Add[blind,swBlinding]}
@@ -839,6 +839,9 @@ sub	set_initialize_map_character_environment(bool	_debug)
 
 	/declare _count	int	local	0
 
+|** testing variables (no ingame use)**|
+	/declare test1 int outer 0
+
 
 |**	data **|
 	/call	set_data ${_debug} maData	stCastReturn														map	outer	FALSE
@@ -878,6 +881,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maHard	stMaxCureRad												200														"${auxnum} max radius	to check for curing" hard
 	/call	set_data_map ${_debug} maHard	stPullMobTagTry											5															"${auxnum} max trys	to tag a mob while pulling"	hard
 	/call	set_data_map ${_debug} maHard	stBardSwapRemain										1500													"${auxnum} ms left on cast time to swap instrument in"	hard
+	/call	set_data_map ${_debug} maHard	stSpellBookSize											960														"${auxnum} maximum # of spell book slots"	hard
 
 
 
@@ -2973,6 +2977,12 @@ sub sql_db_update(bool _debug, string _type)
 
  | character database
  /if (${_type.Equal[character]}) {
+
+	| ranger summer change
+	/if (${maEnv.Find[build].Value} >= 200824.01) {
+		/invoke ${_tmpMap.Add[swSummer,character]}
+	}
+
 
 
 	| more rez redesign

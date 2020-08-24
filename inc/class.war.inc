@@ -7,7 +7,7 @@
 
 
 |***
- * note: primary initilization of all cleric non shared data
+ * note: primary initilization of all class non shared data
  * use: not for you
  ***|
 sub class_init(bool _debug)
@@ -120,7 +120,7 @@ sub class_main(bool _debug)
 
 		/if (VALID && !ENGINE3) {
 			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
-			/invoke ${do_taunt[${_debug}, ${_tmpID}]}
+			/invoke ${do_taunt[${_debug}, TARGET]}
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
 				/call cast_shield_flash FALSE disc
