@@ -1325,7 +1325,6 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/if	(${Select[${Me.Class.ShortName},ENC,DRU,MAG,NEC]}) {
 		/call	set_data_map ${_debug} maMinion	swPetCharm											FALSE													"${auxsw}	use	charm	pets"																										minion
 	}
-	/call	set_data_map ${_debug} maMinion	stPetType													FALSE													"${auxna}	name of	pet	spell	to summon	pet	with"															minion
 	/call	set_data_map ${_debug} maMinion	stPetIllusion											FALSE													"${auxna}	name of	pet	illusion whatever	spell, clickie,	left over	dinner"		minion
 	/call	set_data_map ${_debug} maMinion	stPctPetEngage										95														"${auxnum} % of	mob	health to	engage pet at"																minion
 	/call	set_data_map ${_debug} maMinion	swSwarm														FALSE													"${auxsw}	use	swarm	pets/items/aas/left	shoe"																minion
@@ -2978,12 +2977,17 @@ sub sql_db_update(bool _debug, string _type)
  | character database
  /if (${_type.Equal[character]}) {
 
+
+	| removal of pet type option in minion
+	/if (${maEnv.Find[build].Value} >= 200826.01) {
+		/invoke ${_tmpMap.Add[stPetType,minion]}
+	}
+
+
 	| ranger summer change
 	/if (${maEnv.Find[build].Value} >= 200824.01) {
 		/invoke ${_tmpMap.Add[swSummer,character]}
 	}
-
-
 
 	| more rez redesign
 	/if (${maEnv.Find[build].Value} >= 200813.01) {

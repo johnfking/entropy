@@ -18,9 +18,6 @@ sub class_init(bool _debug)
 
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Juggernaut"
 	/call set_data FALSE maData stSynergy																map outer "Fury's Synergy"
-	| /call set_data FALSE maData stEpic1																	map outer "Kerasian Axe of Ire"
-	| /call set_data FALSE maData stEpic15																map outer "Raging Taelosian Alloy Axe"
-	| /call set_data FALSE maData stEpic2																	map outer "Vengeful Taelosian Blood Axe"
 	/call set_data FALSE maData stFade																	map outer "Self Preservation"
 	/call set_data_map FALSE maChr stAAUnity														FALSE													"${auxna} class aa unity buff"
 

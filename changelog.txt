@@ -21,13 +21,28 @@ on the to do list
 
 
 
+- buffing should account for those of you that do not have full access toons
+- pets (minions)
+  i have removed stPetType
+  all pet classes will now simply use the best in their book
+  mages can choose by elemet type
+- magician
+  /chr pettype [air|earth|fire|water] - set type type of pet you want to summon
+- all classes
+  removed a bunch of old commented code
+
+
+
 200824.01
 - corrected a target ID detour in engine2
 - added oodles more death checks
 - warrior
   corrected a target call in main loop taunt
+- ranger
+  changed the summer switch to an int. you can set # of mobs in area to start using summer nuke. 0=off
+
 - testing a new way to enter buffs
-	instead of using the spell name, you are entering three paramaters to help narrow down the spell
+  instead of using the spell name, you are entering three paramaters to help narrow down the spell
   |one = the .TargetType of the casting spell
   |two = the .SubCategory the casting spell belongs too
   |three = the attribute name we want to look for to filter out the best spell.
@@ -49,11 +64,14 @@ on the to do list
   /buff 10 "|Group V1|Spell Guard|Spell Guard"
  -eg6 chanter group mana
   /buff 1 "|Group V2|Mana|Max Mana"
+ -eg7: ranger enrichment line
+  /buff 13 "|Group V1|Combat Abilities|Fc_BaseEffects"
 
   Notes: This does not replace the current system of buffs or alter it in any way. This is a test run,
-  I'm not completely sure how well this will adapt. I have been running this on 5 of 6 toons for a
+  I'm not completely sure how well this will adapt, but.. I have been running this on 5 of 6 toons for a
   couple days now and have noticed no hits in performance.
   you can find out all the information about a spell with the command /admin spa "FULL SPELL AND RANK NAME"
+  This only works on spells in books. Not AAs/discs/items, I'll look into those later.
 
 
 200819.01

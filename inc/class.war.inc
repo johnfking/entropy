@@ -19,9 +19,6 @@ sub class_init(bool _debug)
 
 	/call set_data FALSE maData stSpire 																map outer "Spire of the Warlord"
 	/call set_data FALSE maData stSynergy																map outer "Myrmidon's Synergy"
-	| /call set_data FALSE maData stEpic1																	map outer "Jagged Blade of War"
-	| /call set_data FALSE maData stEpic15																map outer "Champion's Sword of Eternal Power"
-	| /call set_data FALSE maData stEpic2																	map outer "Kreljnok's Sword of Eternal Power"
 	/call set_data FALSE maData stFade																	map outer FALSE
 	/call set_data_map FALSE maChr stAAUnity														FALSE													"${auxna} class aa unity buff"
 

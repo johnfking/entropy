@@ -18,9 +18,6 @@ sub class_init(bool _debug)
 
 	/call set_data ${_debug} maData stSpire															map outer "Spire of Chivalry"
 	/call set_data ${_debug} maData stSynergy														map outer "Knight's Synergy"
-	| /call set_data ${_debug} maData stEpic1															map outer "Fiery Defender"
-	| /call set_data ${_debug} maData stEpic15														map outer "Heartwood Blade"
-	| /call set_data ${_debug} maData stEpic2															map outer "Nightbane, Sword of the Valiant"
 	/call set_data ${_debug} maData stFade															map outer "Balefire Burst"
 
 	| attraction AA used for pulling / agro
@@ -681,8 +678,8 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 	}
 
 	/call set_control_shared ${_type} "${_verbage}" "${_verbage2}" ${_debug}
-	/if (${Macro.Return.Equal[SKIP]}) /return FALSE
 
+	/if (${Macro.Return.Equal[SKIP]}) /return FALSE
 	/if (${_verbage2.Equal[SILENT]}) /return
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 

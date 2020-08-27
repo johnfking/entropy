@@ -18,9 +18,6 @@ sub class_init(bool _debug)
 
 	/call set_data ${_debug} maData stSpire															map outer "Spire of the Rake"
 	/call set_data ${_debug} maData stSynergy														map outer "Blackguard's Synergy"
-	| /call set_data ${_debug} maData stEpic1															map outer "Ragebringer"
-	| /call set_data ${_debug} maData stEpic15														map outer "Fatestealer"
-	| /call set_data ${_debug} maData stEpic2															map outer "Nightshade, Blade of Entropy"
 	/call set_data ${_debug} maData stFade															map outer "Escape"
 
 	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"

@@ -18,9 +18,6 @@ sub class_init(bool _debug)
 
 	/call set_data FALSE maData stSpire																	map outer "Spire of Nature"
 	/call set_data FALSE maData stSynergy																map outer "Preserver's Synergy"
-	| /call set_data FALSE maData stEpic1																	map outer "Nature Walker's Scimitar"
-	| /call set_data FALSE maData stEpic15																map outer "Staff of Living Brambles"
-	| /call set_data FALSE maData stEpic2																	map outer "Staff of Everliving Brambles"
 	/call set_data FALSE maData stFade																	map outer "Veil of the Underbrush"
 	/call set_data_map FALSE maChr stAAUnity														"Wildtender's Unity"					"${auxna} class aa unity buff"
 

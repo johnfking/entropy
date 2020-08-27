@@ -19,9 +19,6 @@ sub class_init(bool _debug)
 
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Pathfinders"
 	/call set_data FALSE maData stSynergy																map outer "Outrider's Synergy"
-	| /call set_data FALSE maData stEpic1																	map outer "Earthcaller"
-	| /call set_data FALSE maData stEpic15																map outer "Heartwood Blade"
-	| /call set_data FALSE maData stEpic2																	map outer "Aurora, the Heartwood Blade"
 	/call set_data FALSE maData stFade																	map outer "Cover Tracks"
 	/call set_data_map FALSE maChr stAAUnity														"Wildstalker's Unity (Azia)"	"${auxna} class aa unity buff"
 

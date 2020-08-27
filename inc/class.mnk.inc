@@ -18,9 +18,6 @@ sub class_init(bool _debug)
 
 	/call set_data ${_debug} maData stSpire															map outer "Spire of the Sensei"
 	/call set_data ${_debug} maData stSynergy														map outer "Calanin's Synergy"
-	| /call set_data ${_debug} maData stEpic1															map outer "Celestial Fists"
-	| /call set_data ${_debug} maData stEpic15														map outer "Fistwraps of Celestial Discipline"
-	| /call set_data ${_debug} maData stEpic2															map outer "Transcended Fistwraps of Immortality"
 	/call set_data ${_debug} maData stFade															map outer "Imitate Death"
 	/call set_data ${_debug} maData stCompleteHeal											map outer "Complete Heal"
 	/call set_data_map ${_debug} maChr stAAUnity												FALSE													"${auxna} class aa unity buff"

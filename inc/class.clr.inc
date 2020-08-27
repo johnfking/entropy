@@ -18,9 +18,6 @@ sub class_init(bool _debug)
 
 	/call set_data ${_debug} maData stSpire															map outer "Spire of the Vicar"
 	/call set_data ${_debug} maData stSynergy														map outer "Templar's Synergy"
-	| /call set_data ${_debug} maData stEpic1															map outer "Water Sprinkler of Nem Ankh"
-	| /call set_data ${_debug} maData stEpic15														map outer "Harmony of the Soul"
-	| /call set_data ${_debug} maData stEpic2															map outer "Aegis of Superior Divinity"
 	/call set_data ${_debug} maData stFade															map outer "Divine Peace"
 
 	| group regen timer

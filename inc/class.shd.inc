@@ -18,9 +18,6 @@ sub class_init(bool _debug)
 
 	/call set_data ${_debug} maData stSpire															map outer "Spire of the Reavers"
 	/call set_data ${_debug} maData stSynergy														map outer "Knight's Synergy"
-	| /call set_data ${_debug} maData stEpic1															map outer "Innoruuk's Curse"
-	| /call set_data ${_debug} maData stEpic15														map outer "Innoruuk's Voice"
-	| /call set_data ${_debug} maData stEpic2															map outer "Innoruuk's Dark Blessing"
 	/call set_data ${_debug} maData stFade															map outer "Death Peace"
 
  	/call set_data_map ${_debug} maChr stRest 													PREGEN|1											"${auxna} name of stamina rest disc"

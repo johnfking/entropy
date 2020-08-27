@@ -292,7 +292,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 		/declare _spellID ${Spell[${_spell}].ID}
 
 		MQCLEAR
-		OUT \aw${_spell}\ax ${sep} ID\a-w ${_spellID}\ax ${sep} Group \a-w${Spell[${_spellID}].SpellGroup}\ax
+		OUT \aw${_spell}\ax ${sep} ID\a-w ${_spellID}\ax ${sep} Group \a-w${Spell[${_spellID}].SpellGroup}\ax ${sep} lvl \a-w${Spell[${_spellID}].Level}\ax
 		OUT \a-w${Spell[${Int[${Math.Calc[${_spellID} + ${If[${Spell[${_spellID}].SpellGroup},3,1]}]}]}].Name}\ax ${sep} ID \a-w${Spell[${Int[${Math.Calc[${_spellID} + ${If[${Spell[${_spellID}].SpellGroup},3,1]}]}]}].ID}\ax
 		OUT \awTarget Type ${sep} \a-w${Spell[${_spellID}].TargetType}\ax
 		OUT \awSub Category ${sep} \a-w${Spell[${_spellID}].Subcategory}\ax
@@ -1784,8 +1784,8 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
 		/declare _max 						int local 0
 		/declare _maxName					string local FALSE
 		/declare _findAttrib			string local Spell Guard
-		/declare _subcat 					string local Spell Guard
-		/declare _targettype 			string local Group v1
+		/declare _subcat 					string local Sum: Warder
+		/declare _targettype 			string local Self
 
 		/declare _countNumEff			int local 0
 		/declare _countSPA				int local 0
@@ -1827,7 +1827,7 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
 
 						| /echo ${_countSPA} .. ${Me.Book[${_count}].Trigger[${_countNumEff}]} .. \a-w${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}\ax
 
-						/if (${Me.Book[${_count}].Trigger[${_countNumEff}].Attrib[${_countSPA}]} != ${sqlite.Result[dummy 1 env_var]}) /continue
+						| /if (${Me.Book[${_count}].Trigger[${_countNumEff}].Attrib[${_countSPA}]} != ${sqlite.Result[dummy 1 env_var]}) /continue
 
 						| /echo ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]} == ${sqlite.Result[dummy 1 env_var]} ..winner
 
@@ -1880,6 +1880,7 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
 
 		/next _count
 		/echo ${_maxName}${sep}\a-w${_max}\ax
+	}
 
 
 | ${Spell[${Spell[${Me.Book[${_count}]}].Trigger[2]}].Base[2]}
@@ -1999,6 +2000,57 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 	/if (${_type.Equal[best2]}) {
 		/echo ${get_best_in_spell[FALSE, "Group V2", "Aegolism", "Max HP"]}
 	}
+
+
+
+
+	/if (${_type.Equal[toppet]}) {
+
+		/declare _running 				int local 0
+		/declare _max 						int local 0
+		/declare _maxName					string local FALSE
+		/declare _subcat 					string local FALSE
+
+		/if (${Select[${Me.Class.ShortName},MAG]}) {
+			| Sum: Air, Earth, Fire, Water
+
+		} else /if (${Select[${Me.Class.ShortName},ENC,BST,NEC,SHM]}) {
+
+			/if (${Select[${Me.Class.ShortName},ENC]}) /varset _subcat Sum: Animation
+			/if (${Select[${Me.Class.ShortName},BST,SHM]}) /varset _subcat Sum: Warder
+			/if (${Select[${Me.Class.ShortName},NEC]}) /varset _subcat Sum: Undead
+
+			/for _count 1 to ${maHard.Find[stSpellBookSize].Value}
+				/if (!${Me.Book[${_count}].ID}) /continue
+				/if (${Me.Book[${_count}].TargetType.NotEqual[Self]}) /continue
+				/if (${Me.Book[${_count}].Subcategory.NotEqual[${_subcat}]}) /continue
+
+				/varset _running ${Me.Book[${_count}].Level}
+				/if (${_running} >= ${_max}) {
+					/varset _max ${_running}
+					/varset _maxName ${Me.Book[${_count}]}
+				}
+
+			/next _count
+			/echo ${_maxName}${sep}\a-w${_max}\ax
+		}
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4455,8 +4507,8 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 		/if (!${set_control_num_range[${_debug}, stPctPetEngage, "${_verbage}", 0, 99]}) /return
 
 	| spell for pet
-	} else /if (${_type.Equal[type]}) {
-		/invoke ${do_raw_edit[FALSE, SILENT, stPetType, "${_verbage}"]}
+	| } else /if (${_type.Equal[type]}) {
+	| 	/invoke ${do_raw_edit[FALSE, SILENT, stPetType, "${_verbage}"]}
 
 	| illusion for pet
 	} else /if (${_type.Equal[illusion]}) {
@@ -4540,7 +4592,7 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 	/if (${_silent.Equal[SILENT]}) /return
 
 	/invoke ${maControl.Clear}
-	/invoke ${maControl.Add[type,stPetType|br]}
+	| /invoke ${maControl.Add[type,stPetType|br]}
 	/invoke ${maControl.Add[illusion,stPetIllusion|br]}
 	/invoke ${maControl.Add[pet,swPet]}
   /if (${Select[${Me.Class.ShortName},ENC,DRU,MAG,NEC]}) {
@@ -5555,7 +5607,7 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 				}	else {
 					OUT	\aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}${If[${sqlite.Result[dummy ${_count} created_by].Equal[1]},\a-g${sqlite.Result[dummy ${_count} name]}\ax,\at${sqlite.Result[dummy	${_count}	name]}\ax]}${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} eval]}]}\ax
 				}
-				/next	_count
+			/next	_count
 			/invoke	${out[18,	0, 33]}
 			/return	FALSE
 		}
@@ -5600,6 +5652,7 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'2';
 		/if (!${_silent}) {
 			OUT	Evaluation Updated${sep}\aw${_grouping}\ax${sep}${If[${sqlite.Result[dummy 1 created_by].Equal[1]},\aw${_tagname}\ax,\at${_tagname}\ax]}${sep}\a-w${Parse[1,${_eval}]}\ax
+			/sqlite clear q${_grouping}_${_tagname}
 		}
 		/return	TRUE
 

@@ -18,9 +18,6 @@ sub class_init(bool _debug)
 
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Elements"
 	/call set_data FALSE maData stSynergy																map outer "Conjurer's Synergy"
-	| /call set_data FALSE maData stEpic1																	map outer "Orb of Mastery"
-	| /call set_data FALSE maData stEpic15																map outer "Staff of Elemental Essence"
-	| /call set_data FALSE maData stEpic2																	map outer "Focus of Primal Elements"
 	/call set_data FALSE maData stFade																	map outer "Drape of Shadows"
 	/call set_data_map FALSE maChr stAAUnity														"Thaumaturge's Unity"					"${auxna} class aa unity buff"
 
@@ -29,13 +26,14 @@ sub class_init(bool _debug)
 	/call set_data_map FALSE maChr stCoHGroup														PREGEN|1											"${auxna} group target call of the hero"
 	/call set_data_map FALSE maChr stCoH																PREGEN|1											"${auxna} single target call of the hero"
 
+	| pet element type
+	/call set_data_map FALSE maChr stMinionElementType									FALSE													"${auxna} type of pet; Air, Earth, Fire, Water"
+	/call	set_data ${_debug} FALSE lsElementType												list outer Air|Earth|Fire|Water
 
 	/invoke ${set_data_timer[FALSE, Check_Gather, 3s]}
 	/call set_data_map FALSE maChr stGather															PREGEN|1											"${auxna} spell or item to use to recover manna (not rods or aas)"
 	/call set_data_map FALSE maChr stPctGather			 										0															"${auxnum} percent to start using gather tricks"
 
-	| current nuke line
-	/call set_data_map FALSE maChr stCurrent														base
 	/call set_data_map FALSE maChr stNukeServant 												PREGEN|1											"${auxna} the little spam pets mages love to use so much."
 
 	| temp buff
@@ -479,12 +477,29 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 	/if (${_type.Equal[concussion]}) {
 		/if (!${set_control_num_range[${_debug}, stPctConcussion, "${_verbage}", 0, 99]}) /return FALSE
 
+	| minion type
+	} else /if (${_type.Equal[pettype]}) {
+
+		/if (!${lsElementType.Contains[${_verbage.Left[1].Upper}${_verbage.Right[-1].Lower}]}) {
+			/declare _out string local
+			/declare _lipt listiterator local
+			/vardata _lipt lsElementType.First.Clone
+			/while (!${_lipt.IsEnd}) {
+				/varset _out ${_out} ${If[${lsElementType.First.Value.Equal[${_lipt.Value}]},,${dot}]} ${If[${maChr.Find[stMinionElementType].Value.Equal[${_lipt.Value}]},${good}${_lipt.Value}\ax,${info}${_lipt.Value}\ax]}
+				/invoke ${_lipt.Advance}
+			}
+			OUT /chr pettype ${_out}
+			/return FALSE
+		} else {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stMinionElementType, "${_verbage.Left[1].Upper}${_verbage.Right[-1].Lower}"]}
+		}
+
 	| set ae on/off / count
 	} else /if (${_type.Equal[cauldron]}) {
 		/if (${_verbage.Equal[use]}) {
 			/invoke ${set_switch_env[${_debug}, swCauldron, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[item]}) {
-			/invoke ${do_raw_edit[TRUE, SILENT, stCauldron, "${_verbage2}"]}
+			/invoke ${do_raw_edit[${_debug}, SILENT, stCauldron, "${_verbage2}"]}
 		}
 
 	  /declare _out string local
@@ -500,9 +515,10 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 	}
 
 	/call set_control_shared ${_type} "${_verbage}" "${_verbage2}" ${_debug}
-	/if (${Macro.Return.Equal[SKIP]}) /return FALSE
 
+	/if (${Macro.Return.Equal[SKIP]}) /return FALSE
 	/if (${_verbage2.Equal[SILENT]}) /return
+	/invoke	${maChrControl.Add[pettype,stMinionElementType|br]}
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
 /return TRUE

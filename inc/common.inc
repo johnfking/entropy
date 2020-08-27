@@ -5314,24 +5314,6 @@ sub check_buff_cycle_now(bool _debug)
 
 
 |***
- * note: returns a rank if there is one
- * use: ${set_rank[DEBUG, NAME]}
- ***|
-sub set_rank(bool _debug, string _spell)
-	DEBUG \atset_rank\ac(\a-w${_spell}\ax)
-
-	/if (${_spell.Find[+c]}) {
-		/varset _spell ${_spell.Arg[1,+c]}
-	}
-
-	/if (${Me.Book[${Spell[${_spell}].RankName}]}) {
-		/return ${Spell[${_spell}].RankName}
-	}
-/return ${_spell}
-
-
-
-|***
  * note: casts an in order value from a list at passed target ID
  * use: /call cast_list DEBUG [lsNAME] [TARGETID]
  ***|
@@ -8219,9 +8201,12 @@ sub check_minion_cycle_summon(bool _debug)
 		}
 	}
 
-	/invoke ${out[0, 0, 46]}
-	/call set_spell_to ${_debug} TRUE "${Spell[${maMinion.Find[stPetType].Value}].RankName}" ${maEnv.Find[stBuffGem].Value} TRUE
-	/call voodoo ${_debug} "${maMinion.Find[stPetType].Value}" 0 FALSE
+	/declare _minion string local ${get_best_in_pet[${_debug}]}
+	/varset _minion ${set_rank[${_debug}, "${_minion}"]}
+
+	| /invoke ${out[0, 0, 46]}
+	/call set_spell_to ${_debug} TRUE "${_minion}" ${maEnv.Find[stBuffGem].Value} TRUE
+	/call voodoo ${_debug} "${_minion}" 0 FALSE
 	/delay 15s !${Me.Casting.ID}
 	/pet hold on
 	/pet ghold on
@@ -8273,7 +8258,7 @@ sub check_minion_cycle_weapons(bool _debug)
 
 				| /if (${FindItem[=${Spell[${maBuff.Find[stBuff${_count}].Value}].Base[1]}].ID}) /return TRUE
 
-				/delay 4s !${Me.SpellInCooldown}
+				/call cast_cooldown_wait ${_debug}
 
 				/call voodoo FALSE "${maBuff.Find[stBuff${_count}].Value}" ${Me.ID} FALSE
 				/delay 10s !${Me.Casting.ID}
@@ -8293,7 +8278,6 @@ sub check_minion_cycle_weapons(bool _debug)
 				/return TRUE
 			}
 
-		|
 	}
 
 	/if (${Pet.ID}) {
@@ -9134,9 +9118,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
 	CHECKTIE
 
 	/if (!${Pet.ID} && PET) {
-		/if (${Me.SpellInCooldown}) {
-			/delay 5s !${Me.SpellInCooldown}
-		}
+		/call cast_cooldown_wait ${_debug}
 		/call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
 	}
 
@@ -13144,18 +13126,18 @@ sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _sp
 		}
 
 		| does our query exist?
-		/if	(${sqlite.Status[q${_type}${_num}_${_litag.Value}].NotEqual[success]}) {
-			DEBUG	${sep}\agpulling\ax	sql	data for \a-oq${_type}${_num}_${_litag.Value}\ax
+		/if	(${sqlite.Status[q${_type}_${_litag.Value}].NotEqual[success]}) {
+			SDEBUG	${sep}\agpulling\ax	sql	data for \a-oq${_type}_${_litag.Value}\ax
 			/while (TRUE) {
-				/sqlite query ${maData.Find[DBshared].Value} q${_type}${_num}_${_litag.Value} SELECT tag_group.grouping, tag.name, tag_validate.created_by, tag_validate.eval, tag_validate.aux FROM tag_validate LEFT JOIN tag	ON tag_validate.tag	=	tag.id LEFT	JOIN tag_group ON	tag_validate.grouping = tag_group.id WHERE tag_group.grouping = "${_type.Lower}" AND tag.name = "${_litag.Value}"
-				/if	(!${sql_check[${_debug}, q${_type}${_num}_${_litag.Value}, sql_schema_shared, "SELECT (tag eval)"]}) /endmacro
-				/if	(${sqlite.Resultcode[q${_type}${_num}_${_litag.Value} == 0]}) /break
+				/sqlite query ${maData.Find[DBshared].Value} q${_type}_${_litag.Value} SELECT tag_group.grouping, tag.name, tag_validate.created_by, tag_validate.eval, tag_validate.aux FROM tag_validate LEFT JOIN tag	ON tag_validate.tag	=	tag.id LEFT	JOIN tag_group ON	tag_validate.grouping = tag_group.id WHERE tag_group.grouping = "${_type.Lower}" AND tag.name = "${_litag.Value}"
+				/if	(!${sql_check[${_debug}, q${_type}_${_litag.Value}, sql_schema_shared, "SELECT (tag eval)"]}) /endmacro
+				/if	(${sqlite.Resultcode[q${_type}_${_litag.Value} == 0]}) /break
 			}
 
 		}
 
 		| bad tag?
-		/if	(!${sqlite.Rows[q${_type}${_num}_${_litag.Value}]})	{
+		/if	(!${sqlite.Rows[q${_type}_${_litag.Value}]})	{
 			OUT	${warning} \arInvalid\ax (\a-r${_sub}\ax)${sep}ls${_type}${_num}Tag${sep}\at${_litag.Value}\ax
 			/invoke	${_litag.Advance}
 			/continue
@@ -13163,21 +13145,21 @@ sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _sp
 
 
 		| we have something	to work	with
-		/if	(${sqlite.Rows[q${_type}${_num}_${_litag.Value}]}	== 1)	{
-			DEBUG ${sep}cycling tag(\a-oq${_type}${_num}_${_litag.Value}\ax)${sep}\a-w${_type}${_num}${sep}${_litag.Value}\ax${sep}\a-r${Parse[2,${sqlite.Result[q${_type}${_num}_${_litag.Value} 1 eval]}]}\ax
+		/if	(${sqlite.Rows[q${_type}_${_litag.Value}]}	== 1)	{
+			DEBUG ${sep}cycling tag(\a-oq${_type}_${_litag.Value}\ax)${sep}\a-w${_type}${_num}${sep}${_litag.Value}\ax${sep}\a-r${Parse[2,${sqlite.Result[q${_type}_${_litag.Value} 1 eval]}]}\ax
 
 			| control markers	we skip. will	already	be checked
-			/if	(${Parse[99,${sqlite.Result[q${_type}${_num}_${_litag.Value} 1 eval].Equal[CONTROL::MARKER]}]})	{
+			/if	(${Parse[99,${sqlite.Result[q${_type}_${_litag.Value} 1 eval].Equal[CONTROL::MARKER]}]})	{
 				DEBUG	${skip}evaluation${sep}
 				| do jack all here... just ignore the shit
 
 			| execute	sub	here
-			}	else /if (${Parse[99,${sqlite.Result[q${_type}${_num}_${_litag.Value}	1	eval].Find[SUB::]}]})	{
+			}	else /if (${Parse[99,${sqlite.Result[q${_type}_${_litag.Value}	1	eval].Find[SUB::]}]})	{
 				DEBUG	${sep}releasing	to sub${sep}
 
 
 			| action tags	here
-			}	else /if (${Parse[99,${sqlite.Result[q${_type}${_num}_${_litag.Value}	1	eval].Find[ACTION::]}]}) {
+			}	else /if (${Parse[99,${sqlite.Result[q${_type}_${_litag.Value}	1	eval].Find[ACTION::]}]}) {
 				DEBUG	${sep}doing	a	thing	for	tag${sep}
 
 				| delay1s
@@ -13232,8 +13214,8 @@ sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _sp
 
 				| if theres not class in the tag check, we evaluate whatever it is..
 				} else /if (!${_containsclass}) {
-					DEBUG	${sep}evaluation${sep}${_litag.Value}${sep}\a-o${sqlite.Result[q${_type}${_num}_${_litag.Value} 1 eval]}\ax
-					/if	(!${Math.Calc[${Parse[99,${sqlite.Result[q${_type}${_num}_${_litag.Value} 1 eval]}]}]})	{
+					DEBUG	${sep}evaluation${sep}${_litag.Value}${sep}\a-o${sqlite.Result[q${_type}_${_litag.Value} 1 eval]}\ax
+					/if	(!${Math.Calc[${Parse[99,${sqlite.Result[q${_type}_${_litag.Value} 1 eval]}]}]})	{
 						DEBUG ${break}Returning${sep}\a-wFALSE\ax${sep}${_litag.Value}
 						/return	FALSE
 					}
@@ -13423,6 +13405,8 @@ sub marker(string _verbage)
  ***|
 sub cast_cooldown_wait(bool _debug)
 	DEBUG \atcast_cooldown_wait\ax()
+
+	/if (!${Me.SpellInCooldown}) /return TRUE
 
 	/if (!${maEntropy.Find[swBuffCooldownWait].Value}) {
 		/return TRUE
@@ -13633,6 +13617,69 @@ sub get_best_in_spell(bool _debug, string _targettype, string _subcat, string _a
 	DEBUG ${sep}Returning${sep}\a-w${_maxName}\ax
 
 /return ${_maxName}
+
+
+
+
+|***
+ * note: returns a rank if there is one
+ * use: ${set_rank[DEBUG, NAME]}
+ ***|
+sub set_rank(bool _debug, string _spell)
+	DEBUG \atset_rank\ac(\a-w${_spell}\ax)
+
+	/if (${Me.Book[${Spell[${_spell}].RankName}]}) {
+		/if (!${Select[${Me.Subscription},GOLD]}) {
+			DEBUG ${sep} returning basename${sep}\a-w${Spell[${_spell}].BaseName}\ax
+			/return ${Spell[${_spell}].BaseName}
+		} else {
+			DEBUG ${sep} returning rankname${sep}\a-w${Spell[${_spell}].BaseName}\ax
+			/return ${Spell[${_spell}].RankName}
+		}
+	}
+
+	DEBUG ${sep} returning${sep}\a-w${Spell[${_spell}].BaseName}\ax
+
+/return ${_spell}
+
+
+
+
+
+|***
+ * note: find the best pet you have in your book
+ * use: ${get_best_in_pet[DEBUG]}
+ ***|
+sub get_best_in_pet(bool _debug)
+	DEBUG \atget_best_in_pet\ax()
+
+	/declare _running 				int local 0
+	/declare _max 						int local 0
+	/declare _maxName					string local FALSE
+	/declare _subcat 					string local FALSE
+	/declare _count 					int local 0
+
+	/if (${Select[${Me.Class.ShortName},ENC]}) /varset _subcat Sum: Animation
+	/if (${Select[${Me.Class.ShortName},BST,SHM]}) /varset _subcat Sum: Warder
+	/if (${Select[${Me.Class.ShortName},NEC]}) /varset _subcat Sum: Undead
+	/if (${Select[${Me.Class.ShortName},MAG]}) /varset _subcat Sum: ${maChr.Find[stMinionElementType].Value}
+
+	/for _count 1 to ${maHard.Find[stSpellBookSize].Value}
+		/if (!${Me.Book[${_count}].ID}) /continue
+		/if (${Me.Book[${_count}].Subcategory.NotEqual[${_subcat}]}) /continue
+		/if (${Me.Book[${_count}].TargetType.NotEqual[Self]}) /continue
+
+		/varset _running ${Me.Book[${_count}].Level}
+		/if (${_running} >= ${_max}) {
+			/varset _max ${_running}
+			/varset _maxName ${Me.Book[${_count}]}
+		}
+
+	/next _count
+
+
+/return ${_maxName}
+
 
 
 

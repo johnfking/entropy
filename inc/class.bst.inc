@@ -18,9 +18,6 @@ sub class_init(bool _debug)
 
 	/call set_data FALSE maData stSpire																	map outer "Spire of the Savage Lord"
 	/call set_data FALSE maData stSynergy																map outer "Primalist's Synergy"
-	| /call set_data FALSE maData stEpic1																	map outer "Claw of the Savage Spirit"
-	| /call set_data FALSE maData stEpic15																map outer "Savage Lord's Totem"
-	| /call set_data FALSE maData stEpic2																	map outer "Spiritcaller Totem of the Feral"
 	/call set_data FALSE maData stFade																	map outer "Falsified Death"
 	/call set_data_map FALSE maChr stAAUnity														"Feralist's Unity"						"${auxna} class aa unity buff"
 
