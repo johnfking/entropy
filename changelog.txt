@@ -21,16 +21,24 @@ on the to do list
 
 
 
+
+200827.02
+- missed a debug
+
+
+
+200827.01
 - buffing should account for those of you that do not have full access toons
 - pets (minions)
   i have removed stPetType
-  all pet classes will now simply use the best in their book
+  all pet classes will now simply use the best pet in their book
   mages can choose by elemet type
 - magician
   /chr pettype [air|earth|fire|water] - set type type of pet you want to summon
 - all classes
   removed a bunch of old commented code
-
+- tags
+  writing over/correcting a tag you created will clear the running variable that stores it
 
 
 200824.01

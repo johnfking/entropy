@@ -13127,7 +13127,7 @@ sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _sp
 
 		| does our query exist?
 		/if	(${sqlite.Status[q${_type}_${_litag.Value}].NotEqual[success]}) {
-			SDEBUG	${sep}\agpulling\ax	sql	data for \a-oq${_type}_${_litag.Value}\ax
+			DEBUG	${sep}\agpulling\ax	sql	data for \a-oq${_type}_${_litag.Value}\ax
 			/while (TRUE) {
 				/sqlite query ${maData.Find[DBshared].Value} q${_type}_${_litag.Value} SELECT tag_group.grouping, tag.name, tag_validate.created_by, tag_validate.eval, tag_validate.aux FROM tag_validate LEFT JOIN tag	ON tag_validate.tag	=	tag.id LEFT	JOIN tag_group ON	tag_validate.grouping = tag_group.id WHERE tag_group.grouping = "${_type.Lower}" AND tag.name = "${_litag.Value}"
 				/if	(!${sql_check[${_debug}, q${_type}_${_litag.Value}, sql_schema_shared, "SELECT (tag eval)"]}) /endmacro
