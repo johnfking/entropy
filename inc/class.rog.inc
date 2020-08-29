@@ -51,6 +51,9 @@ sub class_init(bool _debug)
 
 	/call set_data_map ${_debug} maChr stLegPoison											0															"${auxna} number of summon leg poisons to keep. dont forget the buff tag (\a-wsummonpoison\ax) for legs"
 
+	| no sneak while tie is active?
+	/call set_data_map ${_debug} maChr swNoSneakinTie										FALSE													"${auxsw} turn off sneaking while /tie is active"
+
 	| AAs
 	/call set_data_map ${_debug} maChr stAATwistedShank									PREGEN|1											"${auxna} Twisted Shank aa"
 	/call set_data_map ${_debug} maChr stAAShadowsFlanking							PREGEN|1											"${auxna} Shadow's Flanking AA"
@@ -478,6 +481,11 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 	/if (${_type.Equal[blind]}) {
 		/invoke ${set_switch_env[${_debug}, swBlinding, TRUE, ${_verbage}]}
 
+	| sneak while tie is active switch
+	} else /if (${_type.Equal[nosneaktie]}) {
+		/invoke ${set_switch_env[${_debug}, swNoSneakinTie, TRUE, ${_verbage}]}
+
+
 	| leg poisons to keep
 	} else /if (${_type.Equal[poison]}) {
 		/if (!${set_control_num_range[${_debug}, stLegPoison, "${_verbage}", 0, 99]}) /return FALSE
@@ -491,4 +499,7 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
 /return TRUE
+
+
+
 

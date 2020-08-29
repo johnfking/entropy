@@ -109,19 +109,19 @@ sub class_main(bool _debug)
 			/if (!${timer_Check_deBuffs}) {
 				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
 			}
-			| /call control_routine FALSE
+			/call control_routine FALSE
 			/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
 			/call misc_combat ${maDebug.Find[misc].Value} TARGET
 			/call control_routine FALSE
 			/if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
 			/if (SWARM) /call cast_servant_swarm FALSE TARGET
-			| /call control_routine FALSE
+			/call control_routine FALSE
 			| /if (${swAlliance}) /call trigger_alliance TARGET
 			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 			/call pulse_cycle ${maDebug.Find[pulse].Value} TARGET pulseincombat
-			| /call control_routine FALSE
+			/call control_routine FALSE
 			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
-			| /call control_routine FALSE
+			/call control_routine FALSE
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
 		} else /if (VALID && ENGINE3) {
 			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {

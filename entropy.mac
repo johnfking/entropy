@@ -105,7 +105,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	/call delete_conflict_alias FALSE
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 200827.02
+	/call set_data FALSE maEnv build													map outer 200829.01
 	/call set_data FALSE maEnv schema													map outer 1.12
 	/call set_data FALSE maEnv repo														map outer 200706.01
 
@@ -291,8 +291,15 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 						/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w3\ax (\a-rpull-base\ax)
 
 						| hardstop check
-						/if (!${timer_Check_Pull_Hardstop}) {
-							/call pull_hardstop ${maDebug.Find[pull].Value}
+						/if (!${timer_Check_Pull_Hardstop_Delay}) {
+							/if (!${timer_Check_Pull_Hardstop} && !${SpawnCount[npc radius SAFEENV]}) {
+								/if (${pull_hardstop[ ${maDebug.Find[hardstop].Value}]}) {
+									/return TRUE
+								}
+							} else /if (${timer_Check_Pull_Hardstop} && !${SpawnCount[npc radius SAFEENV]}) {
+								/delay 5
+								/return TRUE
+							}
 						}
 
 						/if (${maCC.Find[stPullMode].Value.Equal[base]}) {
@@ -305,11 +312,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 							/call get_target_${maCC.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
 						}
 					}
-
-
 				}
 			}
-
 			/delay 1
 		}
 

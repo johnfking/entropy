@@ -43,7 +43,7 @@ sub	set_debug(string _verbage)
 	| mode
 	/invoke	${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell]}
 	| combat
-	/invoke	${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait]}
+	/invoke	${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait,hardstop]}
 	| other
 	/invoke	${lsDebugother.Append[rest,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch]}
 	| admin
@@ -113,6 +113,7 @@ sub	set_initialize(bool	_debug)
 	/call	set_data ${_debug} FALSE swDBlocked	bool outer FALSE
 	/call	set_data ${_debug} FALSE DNQReturn string	outer	FALSE
 	/call	set_data ${_debug} FALSE DNQReturn2	string outer FALSE
+	/call	set_data ${_debug} FALSE DNQHardStop string outer FALSE
 
 	| list iterator dump variable
 	/declare li	listiterator outer
@@ -321,6 +322,7 @@ sub	set_initial_environment(bool _debug)
 	/invoke	${set_data_timer[FALSE,	Check_Alliance,	6s]}
 	/invoke	${set_data_timer[FALSE,	Check_Mercenary, 1s]}
 	/invoke	${set_data_timer[FALSE,	Check_Pull_Hardstop, 1]}
+	/invoke	${set_data_timer[FALSE,	Check_Pull_Hardstop_Delay, 1]}
 
 	| wait time	for	pulling
 	/invoke	${set_timer[FALSE, wait_for_mob, 0]}
@@ -409,6 +411,7 @@ sub	set_initial_environment(bool _debug)
 	}	else /if (${Select[${Me.Class.ShortName},ROG]})	{
 		/invoke	${maChrControl.Add[blind,swBlinding]}
 		/invoke	${maChrControl.Add[poison,stLegPoison]}
+		/invoke	${maChrControl.Add[nosneaktie,swNoSneakinTie]}
 
 	}	else /if (${Select[${Me.Class.ShortName},SHD]})	{
 		/invoke	${maChrControl.Add[attraction,swAttraction]}
@@ -882,6 +885,9 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maHard	stPullMobTagTry											5															"${auxnum} max trys	to tag a mob while pulling"	hard
 	/call	set_data_map ${_debug} maHard	stBardSwapRemain										1500													"${auxnum} ms left on cast time to swap instrument in"	hard
 	/call	set_data_map ${_debug} maHard	stSpellBookSize											960														"${auxnum} maximum # of spell book slots"	hard
+	/call	set_data_map ${_debug} maHard	stFoodMaintain											3000													"${auxnum} level of, i'm full, to maintain for food"	hard
+	/call	set_data_map ${_debug} maHard	stDrinkMaintain											3000													"${auxnum} level of, i'm not thirsty, to maintain for drink"	hard
+	/call	set_data_map ${_debug} maHard	stPullMobFindStep										5															"${auxnum} number of increments your pull radius is broken into to look for mobs"	hard
 
 
 

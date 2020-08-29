@@ -21,10 +21,18 @@ on the to do list
 
 
 
+- moved food and drink maintain levels to database
+- /debug combat hardstop - enable debugging for the pulling hardstop point for endurance and manna for group
+- pull hardstop design corrections. should be a bit more reliable now
+- rogue
+  /chr nosneaktie - (on/off) can disable sneaking while tie is active for servers that do not have the sos movement boost
+- pulling
+  addedd in some error corrections when additional mobs are in camp and the puller seems to target and release constantly
+
+
 
 200827.02
 - missed a debug
-
 
 
 200827.01
