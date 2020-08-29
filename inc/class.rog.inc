@@ -485,7 +485,6 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 	} else /if (${_type.Equal[nosneaktie]}) {
 		/invoke ${set_switch_env[${_debug}, swNoSneakinTie, TRUE, ${_verbage}]}
 
-
 	| leg poisons to keep
 	} else /if (${_type.Equal[poison]}) {
 		/if (!${set_control_num_range[${_debug}, stLegPoison, "${_verbage}", 0, 99]}) /return FALSE

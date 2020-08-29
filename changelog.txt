@@ -20,15 +20,21 @@ on the to do list
 --------------------
 
 
+200829.02
+- correction to the hard pct and time stops ending the macro on the puller
 
+
+200829.01
 - moved food and drink maintain levels to database
+- moved pull radius step increment value to database
 - /debug combat hardstop - enable debugging for the pulling hardstop point for endurance and manna for group
 - pull hardstop design corrections. should be a bit more reliable now
 - rogue
   /chr nosneaktie - (on/off) can disable sneaking while tie is active for servers that do not have the sos movement boost
+- bard
+  uncommented the majority of the mez routine checks. the end must really be near..
 - pulling
-  addedd in some error corrections when additional mobs are in camp and the puller seems to target and release constantly
-
+  added in some error corrections when additional mobs are in camp and the puller seems to target and release constantly
 
 
 200827.02

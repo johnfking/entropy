@@ -663,7 +663,7 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
 			| is the observer set
 			/if (!${Defined[${_toonName}_PctHPs]}) {
 				DEBUG ${break}defined${sep}!\a-w${_toonName}_PctHPs\ax
-				/varcalc _countToon ${_countToon}+1
+				| /varcalc _countToon ${_countToon}+1
 				/continue
 			}
 
