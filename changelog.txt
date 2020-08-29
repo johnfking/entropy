@@ -20,6 +20,13 @@ on the to do list
 --------------------
 
 
+200829.03
+- corrected a bad member in the melee distance check for pulling
+- added some crash protection around the pulling hard checks
+- added shadowknights to the new best in book pet summoning
+- added several AUTO checks in the pulling routines
+
+
 200829.02
 - correction to the hard pct and time stops ending the macro on the puller
 

@@ -2193,15 +2193,13 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 	}
 
 	/if (${_type.Equal[legs]})  {
-		/echo Test 1: ${FindItem[=Battleworn Stalwart Moon Shadowscale Leggings].Spell}
-		/echo Test 2: ${FindItem[=Battleworn Stalwart Moon Shadowscale Leggings].SpellID}
-		/echo Test 3: ${FindItem[=Battleworn Stalwart Moon Shadowscale Leggings].Spell.SpellID}
-		/echo Test 4: ${FindItem[=Battleworn Stalwart Moon Shadowscale Leggings].Clicky}
-		/echo Test 5: ${FindItem[=Battleworn Stalwart Moon Shadowscale Leggings].Clicky.Spell}
-		/echo Test 6: ${FindItem[=Battleworn Stalwart Moon Shadowscale Leggings].Clicky.SpellID}
+		/echo Test 1: ${FindItem[=Ice Woven Shadowscale Leggings].Spell}
+		/echo Test 2: ${FindItem[=Ice Woven Shadowscale Leggings].SpellID}
+		/echo Test 3: ${FindItem[=Ice Woven Shadowscale Leggings].Spell.SpellID}
+		/echo Test 4: ${FindItem[=Ice Woven Shadowscale Leggings].Clicky}
+		/echo Test 5: ${FindItem[=Ice Woven Shadowscale Leggings].Clicky.Spell}
+		/echo Test 6: ${FindItem[=Ice Woven Shadowscale Leggings].Clicky.SpellID}
 	}
-
-
 
 	| get the hurt variables
 	/if (${_type.Equal[gethurt]}) {
