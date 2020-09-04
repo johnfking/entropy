@@ -19,6 +19,14 @@ on the to do list
 - pet gear handing for damn TLP feeders..
 --------------------
 
+200903.01
+- corrected an old sub name for magician gather_manna routine
+- small adjustment to tag updating
+- added monks to intimidation
+- predictive combat
+  https://entropy.exspes.com/wiki/index.php/Prediction
+  this is a test run of the system. yell if you find issues wsith it
+
 
 200829.03
 - corrected a bad member in the melee distance check for pulling

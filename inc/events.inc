@@ -2393,3 +2393,53 @@ sub Event_IceAoW()
 
 /return TRUE
 
+
+
+| Till Death do us Part
+#Event Tofs2 "#*#The usher requires the attention of #1##*#"
+| #Event Tofs2 "#*#Honored guest. I require your presence.#*#"
+sub Event_Tofs2(string Line)
+  /if (!${maEntropy.Find[swEventsInc].Value}) {
+  	/return FALSE
+  }
+
+  /if (!${Line.Find[${Me.CleanName}]}) {
+    | /echo Not My Time
+    /return FALSE
+  }
+
+  /call clear_combat ${maDebug.Find[clear].Value} SILENT
+  /call set_stop ${maDebug.Find[clear].Value} SILENT
+
+  OUT ive been picked
+  /if (!${Spawn[npc a golem usher].ID}) {
+  	/return FALSE
+  }
+
+  /nav id ${Spawn[npc a golem usher].ID} |log=off distance=20
+  /delay 1s ${Navigation.Active}
+  /delay 5s !${Navigation.Active}
+
+  :target
+  CHECKDEAD
+  /target id ${Spawn[npc a golem usher].ID}
+  /if (${Target.DisplayName.Equal[a golem usher]}) {
+    /say show
+  } else {
+    /goto :target
+  }
+
+  /delay 2s
+
+  /if (${Me.Song[Groom's Side].ID}) {
+    OUT You are heading to the Bride's camp
+    /nav locyxz 420 -110 ${Me.Z} |log=off distance=10
+  } else /if (${Me.Song[Bride's Side].ID}) {
+    OUT You are heading to the Groom's camp
+    /nav locyxz 411 -211 ${Me.Z} |log=off distance=10
+  }
+
+/return TRUE
+
+
+

@@ -105,8 +105,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	/call delete_conflict_alias FALSE
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 200829.03
-	/call set_data FALSE maEnv schema													map outer 1.12
+	/call set_data FALSE maEnv build													map outer 200903.01
+	/call set_data FALSE maEnv schema													map outer 1.13
 	/call set_data FALSE maEnv repo														map outer 200706.01
 
 	| using this as a marker for live vs Next
@@ -281,6 +281,11 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 			/if (!SAFEZONE) {
 				/if (!${Me.Invis} || (${Select[${Me.Class.ShortName},ROG]} && ${maEnv.Find[swSoS].Value})) {
 
+					| prediction
+					/if (${maPred.Find[swPred].Value} && !${timer_Check_Prediction}) {
+						/call get_prediction ${maDebug.Find[prediction].Value}
+					}
+
 					/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w1\ax (\a-rentering assist/pull routine\ax)
 
 					/if ((!PULL && ${SpawnCount[NPC radius ENV PS4]}) || (PULL && ${Group.MainAssist.ID} != ${Me.ID} && ${Group.Members} && (TARGET || ${SpawnCount[NPC radius ENV PS4 targetable]}))) {
@@ -314,7 +319,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 					}
 				}
 			}
-			/delay 1
+			| /delay 1
 		}
 
 		ISMEDEAD
@@ -324,7 +329,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 
 		/call class_main FALSE
 		/if (!AUTO) {
-			/delay 1
+			| /delay 1
 		}
 
 	}
@@ -584,7 +589,7 @@ sub check_housekeeping(bool _debug)
  ***|
 sub delete_conflict_alias(bool _debug)
 
-	/declare lsControls string outer buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song,burn,sash,out,rez
+	/declare lsControls string outer buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song,burn,sash,out,rez,pred
 
 	/declare _liAlias list local
 	/invoke ${_liAlias.Append[debug,${lsControls}]}
@@ -597,4 +602,6 @@ sub delete_conflict_alias(bool _debug)
 	}
 
 /return TRUE
+
+
 

@@ -43,7 +43,7 @@ sub	set_debug(string _verbage)
 	| mode
 	/invoke	${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell]}
 	| combat
-	/invoke	${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait,hardstop]}
+	/invoke	${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait,hardstop,prediction]}
 	| other
 	/invoke	${lsDebugother.Append[rest,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch]}
 	| admin
@@ -273,6 +273,9 @@ sub	set_initial_environment(bool _debug)
 	/call	set_data ${_debug} FALSE lsAnimationNoTarget											list outer 16|43|44|146
 	/call	set_data ${_debug} FALSE lsAnimationMezed													list outer 13|49|58
 
+	| playerstates
+	/call	set_data ${_debug} FALSE lsPlayerstate														list outer 1|2|4|8|16|32|64|128|0
+
 
 	| custom /build	set	variables
 	/call	set_data ${_debug} FALSE lsBuildSet																list outer primary|secondary|range|spellset
@@ -323,6 +326,7 @@ sub	set_initial_environment(bool _debug)
 	/invoke	${set_data_timer[FALSE,	Check_Mercenary, 1s]}
 	/invoke	${set_data_timer[FALSE,	Check_Pull_Hardstop, 1]}
 	/invoke	${set_data_timer[FALSE,	Check_Pull_Hardstop_Delay, 1]}
+	/invoke	${set_data_timer[FALSE,	Check_Prediction, 1]}
 
 	| wait time	for	pulling
 	/invoke	${set_timer[FALSE, wait_for_mob, 0]}
@@ -842,24 +846,32 @@ sub	set_initialize_map_character_environment(bool	_debug)
 
 	/declare _count	int	local	0
 
+
+
 |** testing variables (no ingame use)**|
 	/declare test1 int outer 0
+
 
 
 |**	data **|
 	/call	set_data ${_debug} maData	stCastReturn														map	outer	FALSE
 
 
+
 |**	control: grain **|
 	/call	set_data_list	${_debug}	maEnv	lsGrain															1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30				"${auxnum} visual	outputs	you	wish to	see. \aw/verb	aux\ax for full	list"
 
 
+
 |**	control: predictive	**|
-	/call	set_data_map ${_debug} maPred	swPred															FALSE													"${auxsw}	use	predictive combat	logic"
-	/call	set_data_map ${_debug} maPred	stPredRad														40														"${auxnum} radius	around predicted pull	target"
-	/call	set_data_map ${_debug} maPred	swPredPrepBurn											FALSE													"${auxsw}	prep burn	routines"
-	/call	set_data_map ${_debug} maPred	swPredPrepClass											FALSE													"${auxsw}	prep class specific	routine"
+	/call	set_data_map ${_debug} maPred	swPred															FALSE													"${auxsw}	use predictive combat logic"
+	/call	set_data_map ${_debug} maPred	stPredRad														40														"${auxnum} radius around predicted pull	target"
+	/call	set_data_map ${_debug} maPred	stPredCountPrepBurn									0															"${auxnum} prep burn routines on number of mobs"
+	/call	set_data_map ${_debug} maPred	stPredCountPrepClass								0															"${auxnum} prep class specific routine on number of mobs"
+	/call	set_data_map ${_debug} maPred	stPredPlayerstate										4															"${auxnum} playerstate of the type of mobs you are looking for"
+	/call	set_data_map ${_debug} maPred	stPredDelay													60														"${auxnum} seconds to delay next check once activated"
 	/call	set_data ${_debug} maPred	stPredID																map	outer	FALSE
+
 
 
 |**	control: mercenary **|
@@ -867,27 +879,28 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maMercenary stMercenaryClass								FALSE													"${auxna}	class	type of	the	mercenary	you	want to	use" mercenary
 
 
+
 |**	control: hard	**|
 | these	variables	are	not	for	users	to change
 | they are here in case	adjustments	need to	be made	so i dont	have to	go through k's of	lines	of code	to find	them all
-	/call	set_data_map ${_debug} maHard	stMaxMeleeAdj												9															"${auxna}	%	variance for max meele range adjustment" hard
-	/call	set_data_map ${_debug} maHard	stRadGrab														20														"${auxna}	pick up	allowable	3d radius	for	EQ"	hard
-	/call	set_data_map ${_debug} maHard	stMaxRadPet													200														"${auxna}	max	usable range for pets" hard
-	/call	set_data_map ${_debug} maHard	stMinBowDist												31														"${auxna}	minimum	distance to	be able	to bow or	throw" hard
-	/call	set_data_map ${_debug} maHard	stMaxBowDist												250														"${auxna}	maximum	distance to	bow	or throw"	hard
-	/call	set_data_map ${_debug} maHard	stMinMovetoBow											35														"${auxna}	minimum	distance to	move to	get	bow/throw	range" hard
-	/call	set_data_map ${_debug} maHard	stRezSuccess												30s														"${auxnum} timer reset to	rez	the	same person	on a success"	hard
-	/call	set_data_map ${_debug} maHard	stRezFail														15s														"${auxnum} timer reset to	rez	the	same person	on a fail" hard
-	/call	set_data_map ${_debug} maHard	stRezFailToken											1m														"${auxnum} timer reset to	rez	the	same person	on a fail	with a token rez"	hard
-	/call	set_data_map ${_debug} maHard	stRezSummonRange										100														"${auxnum} /corpse summon	range	when rezing" hard
-	/call	set_data_map ${_debug} maHard	stRezIgnoreFucktards								30m														"${auxnum} suration	to mark	corpses	on the no	rez	list"	hard
-	/call	set_data_map ${_debug} maHard	stMaxCureRad												200														"${auxnum} max radius	to check for curing" hard
-	/call	set_data_map ${_debug} maHard	stPullMobTagTry											5															"${auxnum} max trys	to tag a mob while pulling"	hard
-	/call	set_data_map ${_debug} maHard	stBardSwapRemain										1500													"${auxnum} ms left on cast time to swap instrument in"	hard
-	/call	set_data_map ${_debug} maHard	stSpellBookSize											960														"${auxnum} maximum # of spell book slots"	hard
-	/call	set_data_map ${_debug} maHard	stFoodMaintain											3000													"${auxnum} level of, i'm full, to maintain for food"	hard
-	/call	set_data_map ${_debug} maHard	stDrinkMaintain											3000													"${auxnum} level of, i'm not thirsty, to maintain for drink"	hard
-	/call	set_data_map ${_debug} maHard	stPullMobFindStep										5															"${auxnum} number of increments your pull radius is broken into to look for mobs"	hard
+	/call	set_data_map ${_debug} maHard	stMaxMeleeAdj												9															"${auxna}	%	variance for max meele range adjustment" 																hard
+	/call	set_data_map ${_debug} maHard	stRadGrab														20														"${auxna}	pick up	allowable	3d radius	for	EQ"																				hard
+	/call	set_data_map ${_debug} maHard	stMaxRadPet													200														"${auxna}	max	usable range for pets" 																								hard
+	/call	set_data_map ${_debug} maHard	stMinBowDist												31														"${auxna}	minimum	distance to	be able	to bow or	throw" 															hard
+	/call	set_data_map ${_debug} maHard	stMaxBowDist												250														"${auxna}	maximum	distance to	bow	or throw"																					hard
+	/call	set_data_map ${_debug} maHard	stMinMovetoBow											35														"${auxna}	minimum	distance to	move to	get	bow/throw	range" 													hard
+	/call	set_data_map ${_debug} maHard	stRezSuccess												30s														"${auxnum} timer reset to	rez	the	same person	on a success"													hard
+	/call	set_data_map ${_debug} maHard	stRezFail														15s														"${auxnum} timer reset to	rez	the	same person	on a fail" 														hard
+	/call	set_data_map ${_debug} maHard	stRezFailToken											1m														"${auxnum} timer reset to	rez	the	same person	on a fail	with a token rez"						hard
+	/call	set_data_map ${_debug} maHard	stRezSummonRange										100														"${auxnum} /corpse summon	range	when rezing" 																				hard
+	/call	set_data_map ${_debug} maHard	stRezIgnoreFucktards								30m														"${auxnum} suration	to mark	corpses	on the no	rez	list"															hard
+	/call	set_data_map ${_debug} maHard	stMaxCureRad												200														"${auxnum} max radius	to check for curing" 																					hard
+	/call	set_data_map ${_debug} maHard	stPullMobTagTry											5															"${auxnum} max trys	to tag a mob while pulling"																			hard
+	/call	set_data_map ${_debug} maHard	stBardSwapRemain										1500													"${auxnum} ms left on cast time to swap instrument in"															hard
+	/call	set_data_map ${_debug} maHard	stSpellBookSize											960														"${auxnum} maximum # of spell book slots"																						hard
+	/call	set_data_map ${_debug} maHard	stFoodMaintain											3000													"${auxnum} level of, i'm full, to maintain for food"																hard
+	/call	set_data_map ${_debug} maHard	stDrinkMaintain											3000													"${auxnum} level of, i'm not thirsty, to maintain for drink"												hard
+	/call	set_data_map ${_debug} maHard	stPullMobFindStep										5															"${auxnum} number of increments your pull radius is broken into to look for mobs"		hard
 
 
 
@@ -948,6 +961,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/invoke	${set_data_timer[${_debug},	Check_Drop_Buffs,	6s]}
 	/call	set_data_map ${_debug} maBuff	swDropBuffs													FALSE													"${auxsw}	enable buff removal"
 	/call	set_data_list	${_debug}	maEnv	lsDropBuffs													EMPTY													"${auxli}	list of	buffs	to drop that are smelly"
+
 
 
 |**	control: heal	**|
@@ -1014,6 +1028,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	}
 
 
+
 |**	control: rez	**|
 	/call	set_data ${_debug} FALSE swIsMeDead																bool outer FALSE
 	/call	set_data ${_debug} FALSE lsRezPct																	list outer "10|20|35|50|60|75|90|93|96"
@@ -1050,6 +1065,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_list	${_debug}	maRez	lsLineRez														"1|2|3|4|5|6"									"${auxli}	rez order priorities"																								rez
 
 
+
 |**	control: buff	**|
 	/invoke	${set_data_timer[${_debug},	Check_Buff_Cycle,	1m]}
 	/invoke	${set_data_timer[${_debug},	Check_Buff_Unity,	5m]}
@@ -1082,10 +1098,12 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maBuff	swBuffAura													FALSE													"${auxsw}	use	auras	or not.	i	dont care"
 
 
+
 |**	control: defense **|
 	/call	set_data_map ${_debug} maDefense stCountDef												0															"${auxna}	number of	imediate area	mobs to	activate defensive"	defense
 	/call	set_data_map ${_debug} maDefense stPctDef													0															"${auxna}	pct	of health	to activate	a	defensive" defense
 	/call	set_data_list	${_debug}	maDefense	lsLineDefense										EMPTY													"${auxli}	alternate	defense	activation order"	defense
+
 
 
 |**	control: home	**|
@@ -1104,6 +1122,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maHome	swinCombat													FALSE													"${auxsw}	keep home	camp while in	combat"
 
 
+
 |**	control: tie **|
 	/invoke	${set_data_timer[${_debug},	Check_Tie, 5]}
 	/call	set_data ${_debug} maTie swSetTie																	map	outer	FALSE
@@ -1111,6 +1130,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maTie stTieMode														nav														"${auxna}	[\a-wstick-nav\ax] the mode	you	want to	use	for	tie	movements"
 	/call	set_data_map ${_debug} maTie stTieVariance												5															"${auxnum} acceptabe distances to	be away	from the tiem	toon before	moving to	it"
 	/call	set_data_map ${_debug} maTie swTieCombat													FALSE													"${auxsw}	enable tie while in	active combat"
+
 
 
 |**	control: mode	**|
@@ -1124,10 +1144,12 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	| /call	set_data ${_debug} FALSE swTrainSpecialize												FALSE													"${auxsw}	train	specialize field type	spells"
 
 
+
 |**	control: watch **|
 	/call	set_data ${_debug} maWatch swWatch																map	outer	FALSE
 	/call	set_data ${_debug} maWatch stWatchCount														map	outer	0
 	/call	set_data_list	${_debug}	maWatch	lsWatch														EMPTY													"${auxli}	list of	mobs to	watch	for"
+
 
 
 |**	control: cc	**|
@@ -1264,16 +1286,19 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	}
 
 
+
 |**	control: dot **|
 	/call	set_data_map ${_debug} maDoT stDotRefresh													3															"${auxnum} time	left on	a	dot	to refresh it, in	seconds"
 	/call	set_data_map ${_debug} maDoT stPctStopDoT													0															"${auxnum} % of	mob	health to	stop dotting it	at"
 	/call	set_data_list	${_debug}	maDoT	lsLineDoT														EMPTY													"${auxli}	alternate	cast order for dots" 													dot
 
 
+
 |**	control: nuke	**|
 	/call	set_data_map ${_debug} maNuke	stPctStopNuke												0															"${auxnum} % of	mob	health to	stop nuking	it at"
 	/call	set_data_map ${_debug} maNuke	stNukeDelay													0															"${auxnum} time	to force between using nukes or	dots"
 	/call	set_data_list	${_debug}	maNuke lsLineNuke													EMPTY													"${auxli}	alternate	cast order for nukes"													nuke
+
 
 
 |**	control: burn	**|
@@ -1285,6 +1310,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maBurn	stBurnCount													0															"${auxnum} number	of mobs	in your	area to	auto engage	burns"			burn
 	/call	set_data_map ${_debug} maBurn	swBurnRaid													FALSE													"${auxsw}	use	burns	on raids"																			burn
 	/call	set_data_list	${_debug}	maBurn lsLineBurn													FALSE													"${auxli}	alternate	burn line	order	(engine	2	only)"							burn
+
 
 
 |**	control: debuff	**|
@@ -1325,6 +1351,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/declare lsdeBuffSnare list	outer
 
 
+
 |**	control: minion	**|
 	/invoke	${set_data_timer[FALSE,	Check_Minion_Cycle,	1m]}
 	/call	set_data_map ${_debug} maMinion	swPet															FALSE													"${auxsw}	use	pets"																													minion
@@ -1349,6 +1376,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maMinion	swPetBuff													FALSE													"${auxsw}	buff minion	(\ayyours\ax)"																				minion
 
 
+
 |**	control: over	**|
 	/call	set_data_map ${_debug} maOver	swOverLOS														FALSE													"${auxsw}	override line	of sight validations"
 	/call	set_data_map ${_debug} maOver	swOverPctEngage											FALSE													"${auxsw}	ocerride engage	%	for	all	types, instant engage	of a mob"
@@ -1359,6 +1387,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maOver	swOverDSCheck												FALSE													"${auxsw}	ignore damage	shield checks	while	melee"
 	/call	set_data_map ${_debug} maOver	swOverNavCheck											FALSE													"${auxsw}	bypass Nav PathExists	checks"
 	/call	set_data_map ${_debug} maOver	swOverGroupAss											FALSE													"${auxsw}	override group assist	rules	and	force	manual"
+
 
 
 |**	control: entropy	**|
@@ -1405,21 +1434,26 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	}
 
 
+
 |**	control: clickitem	**|
 	/call	set_data_list	${_debug}	maItem lsLineItem													EMPTY													"${auxli}	alternate	cast order for clickitems" item
+
 
 
 |**	control: TTL	**|
 	/call	set_data_map ${_debug} maTTL swTTL																FALSE													"${auxsw}	use	ttl	logic"
 
 
+
 |**	control: MiscDPS	**|
 	/call	set_data_list	${_debug}	maMiscDPS	lsLineMiscdps										EMPTY													"${auxli}	alternate	activation order for miscdps routine (engine 2)"
+
 
 
 |**	control: Agro	 **|
 	/call	set_data_list	${_debug}	maAgro lsLineAgro													EMPTY													"${auxli}	alternate	activation order for agro	routine	(engine	2/3)" agro
 	/call	set_data_map ${_debug} maAgro	swAgro															FALSE													"${auxsw}	use	any	agro skills	you	can	(\a-wtaunt not included	separate control under /agro\ax)" agro
+
 
 
 |**	control: sash	 **|
@@ -2982,6 +3016,13 @@ sub sql_db_update(bool _debug, string _type)
 
  | character database
  /if (${_type.Equal[character]}) {
+
+
+	| predictive changes
+	/if (${maEnv.Find[build].Value} >= 200903.01) {
+		/invoke ${_tmpMap.Add[swPredPrepBurn,character]}
+		/invoke ${_tmpMap.Add[swPredPrepClass,character]}
+	}
 
 
 	| removal of pet type option in minion

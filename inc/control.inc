@@ -1713,7 +1713,7 @@ sub Bind_control_rez(string _type, string _verbage, string _verbage2, string _ad
 			/if (${lsRezPct.Contains[${_verbage}]}) /call do_raw_edit ${_debug} SILENT stPctMinRez "${_verbage}"
 		}
 
- 		 /declare _out string local
+ 		/declare _out string local
 		/declare _lirezpct listiterator local
 		/vardata _lirezpct lsRezPct.First.Clone
 		/while (!${_lirezpct.IsEnd}) {
@@ -1775,6 +1775,18 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
 	/if (${_type.Equal[concolor]}) {
 		/if (${Target.ID}) /echo \ar${Target.Class}\ax is named ${ConColor[FALSE, ${Target.ID}]}
 		/return
+	}
+
+
+	/if (${_type.Equal[sort]}) {
+		/echo string of numbers 56,282,900,991,8,67,23,62,76,023,001,5.05
+		/declare _list list local
+		/invoke ${_list.Append[56,282,900,991,8,67,23,62,76,023,001,5.05,.01,-1]}
+		/invoke ${_list.Sort}
+		/echo ${_list.Head}
+		/echo ${_list.Tail}
+
+
 	}
 
 
@@ -2002,6 +2014,9 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 	}
 
 
+	/if (${_type.Equal[pred]}) {
+		/call get_prediction
+	}
 
 
 	/if (${_type.Equal[toppet]}) {
@@ -2210,6 +2225,13 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 		OUT hurtPctHP${sep}\a-w${hurtPctHP}\ax
 		OUT hurtCLS${sep}\a-w${hurtCLS}\ax
 		OUT hurtCount${sep}\a-w${hurtCount}\ax
+	}
+
+	/if (${_type.Equal[tag]}) {
+		/call tag_evaluation TRUE Nuke 20 ${Me.DisplayName} "${Me.DisplayName}"
+		/echo macro.return${sep}${Macro.Return}
+		| /sqlite clear qNuke_lifetap
+		}
 	}
 
 
@@ -3243,7 +3265,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 	/invoke ${maControl.Add[glyph,submenu]}
 	/invoke ${maControl.Add[engage,stPctEngage]}
 	/invoke ${maControl.Add[zradius,stZRadius]}
-	/invoke ${maControl.Add[agro,swAgro]}
+	| /invoke ${maControl.Add[agro,swAgro]}
 	/invoke ${maControl.Add[stoponds,swStoponDS]}
 	/invoke ${maControl.Add[alliance,swAlliance]}
 	/invoke ${set_control_output[${_debug}, maCC, cc, maControl]}
@@ -3320,10 +3342,14 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
 	DEBUG \atBind_command_swap\ax(\aw${_item}, ${_toslot}\ax)
 
 	| skip if its already there?
-	/if (${InvSlot[${_toslot}].Item.Name.Equal[${_item}]}) /return TRUE
+	/if (${InvSlot[${_toslot}].Item.Name.Equal[${_item}]}) {
+		/return TRUE
+	}
 
 	| reasons to not do this thing!!
-	/if (!${FindItemCount[${_item}]}) /return FALSE
+	/if (!${FindItemCount[${_item}]}) {
+		/return FALSE
+	}
 
   /declare _swapslot string local NULL
   /declare _pack int local 0
@@ -3375,11 +3401,11 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
 	| put item in slot
 	/if (${Range.Between[1,32:${_toslot}]}) {
 		DEBUG ${sep}\awNEWITEM Home\ax /itemnotify ${Int[${Math.Calc[${_toslot}]}]} leftmouseup
-		/squelch /nomodkey /shiftkey /itemnotify ${Int[${Math.Calc[${_toslot}]}]} leftmouseup
-		| /nomodkey /shiftkey /itemnotify ${_toslot} leftmouseup
+		| /squelch /nomodkey /shiftkey /itemnotify ${_toslot} leftmouseup
+		/nomodkey /shiftkey /itemnotify ${_toslot} leftmouseup
 	}
 
-	| /delay 1s ${Cursor.ID}
+| /delay 1s ${Cursor.ID}
 
 	| place the swaped item back where you found the other one
 	DEBUG ${sep}\a-yRETURNING SWAPPED ITEM TO\ax
@@ -3400,12 +3426,6 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
 	}
 
 /return TRUE
-
-/itemnotify ${Int[${Math.Calc[${_toslot}]}]} leftmouseup
-
-/squelch /nomodkey /shiftkey /itemnotify in pack10 9 leftmouseup
-/squelch /nomodkey /shiftkey /itemnotify in pack${_swapslot.Arg[2,|]} ${_swapslot.Arg[3,|]} leftmouseup
-
 
 
 
@@ -3571,7 +3591,7 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
 	}
 
 	/makemevisible
-	/invoke ${out[21, "${broadcast}${sep}\a-w/repeate ${_verbage}\ax"]}
+	/invoke ${out[21, "${broadcast}${sep}\a-w/repeat ${_verbage}\ax"]}
 	| sender
 	/if (!${Bool[${_sender}]}) {
 		| need a target
@@ -5340,7 +5360,7 @@ sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _s
  * use: predictive combat
  ***|
 #bind control_pred /pred
-sub Bind_control_pred(string _type, string _verbage, string _silent, bool _debug)
+sub Bind_control_pred(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
 	DEBUG \atBind_control_TTL\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
 	| output control map
@@ -5352,23 +5372,36 @@ sub Bind_control_pred(string _type, string _verbage, string _silent, bool _debug
 		/return TRUE
 
 	| set the switch to use
-	} else /if (${_type.Equal[logic]}) {
+	} else /if (${_type.Equal[active]}) {
 		/invoke ${set_switch_env[${_debug}, swPred, TRUE, ${_verbage}]}
 
-	} else /if (${_type.Equal[prepclass]}) {
-		/invoke ${set_switch_env[${_debug}, swPredPrepClass, TRUE, ${_verbage}]}
+	} else /if (${_type.Equal[class]}) {
+		/if (!${set_control_num_range[${_debug}, stPredCountPrepClass, "${_verbage}", 0, 99]}) /return
 
-	} else /if (${_type.Equal[prepburn]}) {
-		/invoke ${set_switch_env[${_debug}, swPredPrepBurn, TRUE, ${_verbage}]}
+	} else /if (${_type.Equal[burn]}) {
+		/if (!${set_control_num_range[${_debug}, stPredCountPrepBurn, "${_verbage}", 0, 99]}) /return
 
+	| } else /if (${_type.Equal[delay]}) {
+	| 	/if (!${set_control_num_range[${_debug}, stPredDelay, "${_verbage}", 1, 99]}) /return
 
-	| clear the TTL statiestics
-	} else /if (${_type.Equal[clear]}) {
-		/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT swTTL FROM environment_character
-		/if	(!${sql_check[${_debug}, dummy,	Bind_control_pred,	"SELECT (swTTL)"]})	/endmacro
-		/invoke ${maPred.Add[swPredInc,FALSE]}
-		/invoke ${maPred.Add[stPredCountMob,0]}
-		/invoke ${maPred.Add[swPredNamed,FALSE]}
+	} else /if (${_type.Equal[state]}) {
+
+		/if (!${lsPlayerstate.Contains[${_verbage}]}) {
+			OUT /pred state [\a-w0|1|2|4|8|16|32|64|128\ax]
+			/return FALSE
+		}
+
+		/invoke ${do_raw_edit[${_debug}, SILENT, stPredPlayerstate, "${_verbage}"]}
+
+ 		/declare _out string local
+		/declare _listate listiterator local
+		/vardata _listate lsPlayerstate.First.Clone
+		/while (!${_listate.IsEnd}) {
+			/varset _out ${_out} ${If[${_listate.Value.Equal[${lsPlayerstate.First}]},,${dot}]} ${If[${maPred.Find[stPredPlayerstate].Value} == ${_listate.Value},${good}${_listate.Value}\ax,${info}${_listate.Value}\ax]}
+			/invoke ${_listate.Advance}
+		}
+		/invoke ${out[12, "/pred state ${_out}"]}
+		/return TRUE
 
 	| predictive radius
 	} else /if (${_type.Equal[rad]}) {
@@ -5378,14 +5411,15 @@ sub Bind_control_pred(string _type, string _verbage, string _silent, bool _debug
 
 	/if (${_silent.Equal[SILENT]}) /return
 	/invoke ${maControl.Clear}
-	/invoke ${maControl.Add[logic,swPred]}
+	/invoke ${maControl.Add[active,swPred]}
 	/invoke ${maControl.Add[rad,stPredRad]}
-	/invoke ${maControl.Add[prepclass,swPredPrepClass]}
-	/invoke ${maControl.Add[prepburn,swPredPrepBurn]}
+	/invoke ${maControl.Add[class,stPredCountPrepClass]}
+	/invoke ${maControl.Add[burn,stPredCountPrepBurn]}
+	/invoke ${maControl.Add[state,stPredPlayerstate|show]}
+
 	/invoke ${set_control_output[${_debug}, maPred, pred, maControl]}
 
 /return TRUE
-
 
 
 |***
@@ -5650,8 +5684,9 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	created_by,	eval FROM	tag_validate WHERE grouping=(SELECT	id FROM	tag_group	WHERE	grouping='${_grouping}') AND tag=(SELECT id	FROM tag WHERE name='${_tagname}') AND created_by	=	'2';
 		/if (!${_silent}) {
 			OUT	Evaluation Updated${sep}\aw${_grouping}\ax${sep}${If[${sqlite.Result[dummy 1 created_by].Equal[1]},\aw${_tagname}\ax,\at${_tagname}\ax]}${sep}\a-w${Parse[1,${_eval}]}\ax
-			/sqlite clear q${_grouping}_${_tagname}
-		}
+			DEBUG ${sep}clear q${_grouping.Left[1].Upper}${_grouping.Right[-1].Lower}_${_tagname}
+			/sqlite clear q${_grouping.Left[1].Upper}${_grouping.Right[-1].Lower}_${_tagname}
+			}
 		/return	TRUE
 
 	| if its not there,	we create/insert a new on
@@ -5668,5 +5703,7 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 	}
 
 /return	TRUE
+
+
 
 

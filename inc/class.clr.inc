@@ -608,7 +608,6 @@ sub cast_arbitration(bool _debug)
   /if (${maChr.Find[swArbitrateAA].Value}) {
   	/if (${is_ready[${_debug}, "${maChr.Find[stAADivineArbitration].Value}"]}) {
 	    /call voodoo ${_debug} "${maChr.Find[stAADivineArbitration].Value}" 0 FALSE
-	    | /call get_hurt ${maDebug.Find[hurt].Value} reset
 	    /invoke ${set_timer[${_debug}, timer_arbitration_pause, ${maChr.Find[stArbitratePause].Value}s]}
 	    /return TRUE
 	  }
@@ -619,7 +618,6 @@ sub cast_arbitration(bool _debug)
 		| Second epic shield 2.0
 	  /if (${is_ready[${_debug}, "${sqlite.Result[epic${Me.Class.ShortName} 3 name]}"]}) {
 	    /call voodoo ${_debug} "${sqlite.Result[epic${Me.Class.ShortName} 3 name]}" 0 FALSE
-	    | /call get_hurt ${maDebug.Find[hurt].Value} reset
 	    /invoke ${set_timer[${_debug}, timer_arbitration_pause, ${maChr.Find[stArbitratePause].Value}s]}
 	    /return TRUE
 		}
@@ -627,7 +625,6 @@ sub cast_arbitration(bool _debug)
 	  | First epic shield 1.5
 	  /if (${is_ready[${_debug}, "${sqlite.Result[epic${Me.Class.ShortName} 2 name]}"]}) {
 	    /call voodoo ${_debug} "${sqlite.Result[epic${Me.Class.ShortName} 2 name]}" 0 FALSE
-	    | /call get_hurt ${maDebug.Find[hurt].Value} reset
 	    /invoke ${set_timer[${_debug}, timer_arbitration_pause, ${maChr.Find[stArbitratePause].Value}s]}
 	    /return TRUE
 	  }
@@ -643,14 +640,14 @@ sub cast_arbitration(bool _debug)
  * use: /call prediction ${maDebug.Find[pred].Value}
  ***|
 sub prediction(bool _debug)
-
+	DEBUG \atprediction\ax()
 
 	| Group Regen Heal
 	/if (${maHeal.Find[swHealGroupOverTime].Value}) {
 		/call cast_cycle_heal_regen ${_debug} 0 healgrouphot
 	}
 
-/return tRUE
+/return TRUE
 
 
 
