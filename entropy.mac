@@ -67,6 +67,7 @@
 #define MERCENARY "${maMercenary.Find[swMercenary].Value}"
 #define MQCLEAR "/if (${Bool[${Plugin[MQ2ChatWnd]}]}) /mqclear"
 #define NEXT "${MacroQuest.InternalName.Equal[Next]}"
+#define BUFFNOW "/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) /call check_buff_cycle_now ${maDebug.Find[now].Value}"
 
 
 #include exspes\inc\initialize.inc
@@ -105,7 +106,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	/call delete_conflict_alias FALSE
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 200903.01
+	/call set_data FALSE maEnv build													map outer 200914.01
 	/call set_data FALSE maEnv schema													map outer 1.13
 	/call set_data FALSE maEnv repo														map outer 200706.01
 
@@ -298,9 +299,14 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 						| hardstop check
 						/if (!${timer_Check_Pull_Hardstop_Delay}) {
 							/if (!${timer_Check_Pull_Hardstop} && !${SpawnCount[npc radius SAFEENV]}) {
-								/if (${pull_hardstop[${maDebug.Find[hardstop].Value}]}) {
+								/call pull_hardstop ${maDebug.Find[hardstop].Value}
+								/if (${Macro.Return}) {
 									/continue
 								}
+
+								| /if (${pull_hardstop[${maDebug.Find[hardstop].Value}]}) {
+								| 	/continue
+								| }
 							} else /if (${timer_Check_Pull_Hardstop} && !${SpawnCount[npc radius SAFEENV]}) {
 								/delay 5
 								/continue

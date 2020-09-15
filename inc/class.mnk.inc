@@ -81,7 +81,7 @@ sub class_main(bool _debug)
 
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
 		GETINPUT
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
+		/call check_heal_routines
 		/if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
 		/if (VALID && !ENGINE3) {
@@ -170,7 +170,7 @@ sub misc_combat(bool _debug, int _tmpID)
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stMonkey].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stMonkey].Value}" ${_tmpID} FALSE
+		| /call voodoo ${_debug} "${maChr.Find[stMonkey].Value}" ${_tmpID} FALSE
 	}
 
 	/if (${maCC.Find[swIntimidation].Value} && ${Me.AbilityReady["Intimidation"]}) {

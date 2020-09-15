@@ -45,7 +45,7 @@ sub	set_debug(string _verbage)
 	| combat
 	/invoke	${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait,hardstop,prediction]}
 	| other
-	/invoke	${lsDebugother.Append[rest,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch]}
+	/invoke	${lsDebugother.Append[rest,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch,staminarecover]}
 	| admin
 	/invoke	${lsDebugadmin.Append[build,observe,house,flow,exit,sql,edit,e3]}
 	| schema (database creation/modification)
@@ -1407,6 +1407,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maEntropy swRelayTell											FALSE													"${auxsw}	relay	tells	to the tie toon"
 	/call	set_data_map ${_debug} maEntropy swRelayTellBeep									FALSE													"${auxsw}	beep on	a	tell relay"
 	/call	set_data_map ${_debug} maEntropy swUseConColor										FALSE													"${auxsw}	Use ConColors for targets"
+	/call	set_data_map ${_debug} maEntropy swNavLogSpew											off														"${auxsw}	(on/off) Show mq2nav log spew in mq2 chat window"
 
 	| GoM	list
 	/call	set_data_list	${_debug}	maChr	lsGoM																EMPTY													"${auxli}	things to	use	on a gift	of mana	aa proc"
@@ -1485,7 +1486,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 sub	set_initialize_class_epic(bool _debug)
 	DEBUG	\atset_initialize_class_epic\ax()
 
-	/sqlite query ${maData.Find[DBstatic].Value} epic${Me.Class.ShortName} SELECT * FROM epic WHERE env_var='${Me.Class.ShortName}'
+	/sqlite query ${maData.Find[DBstatic].Value} epic${Me.Class.ShortName} SELECT * FROM epic WHERE env_var='${Me.Class.ShortName}';
 
 	/declare epic1 string outer ${sqlite.Result[epic${Me.Class.ShortName} 1 name]}
 	/declare epic15 string outer ${sqlite.Result[epic${Me.Class.ShortName} 2 name]}
@@ -1699,10 +1700,10 @@ sub	set_initialize_static_map(bool _debug)
 	/declare _mi mapiterator local
 	/vardata _mi maStaticMaps.First.Clone
 	/while (!${_mi.IsEnd}) {
-		/sqlite query ${maData.Find[DBstatic].Value} dummycount SELECT Count(*) as data FROM ${_mi.Value}
+		/sqlite query ${maData.Find[DBstatic].Value} dummycount SELECT Count(*) as data FROM ${_mi.Value};
 		/for _count 1 to ${sqlite.Result[dummycount	1	data]}
 			| /while (TRUE)	{
-				/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM ${_mi.Value} WHERE ROWID=${_count}
+				/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM ${_mi.Value} WHERE ROWID=${_count};
 				/if (!${sql_check[${_debug}, dummy, set_initialize_static_map, "SELECT (${_mi.Value})"]}) /endmacro
 				| /if (${sqlite.Resultcode[dummy]} == 0) /break
 			| }
@@ -2307,7 +2308,7 @@ sub sql_schema_nav(bool _debug)
 	/if (!${sqlite.Rows[schemanumber]}) {
 		OUT \a-tSchema Build\ax${sep}\a-wnav\ax (\a-r${maEnv.Find[schema].Value}\ax)
 		/while (TRUE) {
-			/sqlite query ${maData.Find[DBnav].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version)
+			/sqlite query ${maData.Find[DBnav].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version);
 			/if (!${sql_check[${_debug}, build, sql_schema_nav, "CREATE TABLE IF NOT EXISTS (metadata)"]}) /endmacro
 			/sqlite query ${maData.Find[DBnav].Value} build INSERT OR IGNORE INTO metadata VALUES('build_number', '${maEnv.Find[build].Value}');
 			/if (!${sql_check[${_debug}, build, sql_schema_nav, "INSERT INTO (metadata)"]}) /endmacro
@@ -2921,11 +2922,9 @@ sub data_schema_tag_validation
  ***|
 sub sql_schema_update(bool _debug, string _type)
 
-
 	/if (${sqlite.Status[schemanumber].NotEqual[success]}) {
 		/return FALSE
 	}
-
 
 	| character database
 	/if (${_type.Equal[character]}) {
@@ -2934,7 +2933,6 @@ sub sql_schema_update(bool _debug, string _type)
 			| drop build table character
 			/sqlite query ${maData.Find[DBcharacter].Value} dummy DROP TABLE IF EXISTS build
 		}
-
 
 
 	| loot database
@@ -2963,29 +2961,29 @@ sub sql_schema_update(bool _debug, string _type)
 		| agro map change
 		/if (${sqlite.Result[schemanumber 1 version]} >= 1.06) {
 			| 7
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='7' AND tag='24'
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='7' AND tag='25'
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='7' AND tag='24';
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='7' AND tag='25';
       | 6
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='6' AND tag='24'
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='6' AND tag='25'
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='6' AND tag='24';
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='6' AND tag='25';
 			| 5
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='5' AND tag='24'
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='5' AND tag='25'
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='5' AND tag='24';
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='5' AND tag='25';
 			| 3
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='3' AND tag='24'
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='3' AND tag='25'
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='3' AND tag='24';
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='3' AND tag='25';
 			| 2
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='2' AND tag='24'
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='2' AND tag='25'
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='2' AND tag='24';
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='2' AND tag='25';
 			| 1
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='1' AND tag='24'
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='1' AND tag='25'
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='1' AND tag='24';
+			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='1' AND tag='25';
 
 		}
 
 		/if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
 			| drop build table
-			/sqlite query ${maData.Find[DBshared].Value} dummy DROP TABLE IF EXISTS build
+			/sqlite query ${maData.Find[DBshared].Value} dummy DROP TABLE IF EXISTS build;
 		}
 
 	| zone database
@@ -2993,7 +2991,7 @@ sub sql_schema_update(bool _debug, string _type)
 
 		/if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
 			| drop build table
-			/sqlite query ${maData.Find[DBzone].Value} dummy DROP TABLE IF EXISTS build
+			/sqlite query ${maData.Find[DBzone].Value} dummy DROP TABLE IF EXISTS build;
 		}
 
  }
@@ -3242,4 +3240,29 @@ sub sql_db_update(bool _debug, string _type)
 
 
 
+
+
+
+|***
+ * note: sqlite wrapper
+ * use:
+ ***|
+sub sql(bool _debug, string _verb, string _db, string _query, string _action, string _table, )
+
+
+
+/sqlite ${_verb} ${maData.Find[${_db}].Value} ${_query} ${_action} ${_table};
+
+
+
+
+
+
+
+/return TRUE
+
+
+
+              verb     db                        query action  table
+			/sqlite query ${maData.Find[DBzone].Value} QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe';
 

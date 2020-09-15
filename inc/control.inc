@@ -962,10 +962,10 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 
 		/if (${_curVarDis} > ${maHome.Find[stHomeVariance].Value} && ${_curVarDis} < SAFEENV && PULL) {
 			DEBUG ${sep}move backwords${sep}\a-w${_curVarDis} > ${maHome.Find[stHomeVariance].Value}*2 && ${_curVarDis} < SAFEENV && PULL\ax
-			/nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=off facing=backward
+			/nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=${maEntropy.Find[swNavLogSpew].Value} facing=backward
 		} else {
 			DEBUG ${sep}move normal
-			/nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=off
+			/nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=${maEntropy.Find[swNavLogSpew].Value}
 		}
 
 		/delay 2 ${Navigation.Active}
@@ -1129,11 +1129,12 @@ sub Bind_command_tie(string _type, bool _debug)
  ***|
 #bind control_area /area
 sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug)
-	DEBUG \atBind_control_area\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
 	/if (${maDebug.Find[zone].Value}) {
 		/varset _debug TRUE
 	}
+
+	DEBUG \atBind_control_area\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
 	/if (${_type.Equal[see]}) {
 		/echo
@@ -1189,10 +1190,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 		/varset _element lsZoneNoCorruption
 	}
 
-	| zone oputput goes here.. someday
-	/if (${_type.NotEqual[see]}) {
-	}
-
+	DEBUG ${sep}_element${sep}\a-w${_element}\ax
 
 	| check whats in the lists
 	/if (${_type.NotEqual[rwp]}) {
@@ -1212,20 +1210,25 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 
 	| safezone toggle
 	/if (${_type.Equal[safe]}) {
+		DEBUG ${sep}safezone toggle
 		/if (${maEnv.Find[swZoneSafe].Value} || ${_verbage.Equal[FALSE]}) {
-			/sqlite query ${maData.Find[DBzone].Value} QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' and element='swZoneSafe'
+			DEBUG FALSE
+			DEBUG ${sep}sqlite query DBzone QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
+			/sqlite query ${maData.Find[DBzone].Value} QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
 			/if (!${sql_check[${_debug}, QZone, Bind_control_area, "UPDATE (zone_control)"]}) /endmacro
 			/invoke ${maEnv.Add[swZoneSafe,FALSE]}
 
 		} else /if (!${maEnv.Find[swZoneSafe].Value} || ${_verbage.Equal[TRUE]}) {
-			/sqlite query ${maData.Find[DBzone].Value} QZone UPDATE zone_control SET value='TRUE' WHERE zone_shortname='${Zone.ShortName}' and element='swZoneSafe'
+			DEBUG TRUE
+			DEBUG ${sep}sqlite query DBzone QZone UPDATE zone_control SET value='TRUE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
+			/sqlite query ${maData.Find[DBzone].Value} QZone UPDATE zone_control SET value='TRUE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
 			/if (!${sql_check[${_debug}, QZone, Bind_control_area, "UPDATE (zone_control)"]}) /endmacro
 			/invoke ${maEnv.Add[swZoneSafe,TRUE]}
 		}
 
 	| remove a mob from the current zone
 	} else /if (${_type.Equal[delete]}) {
-		/sqlite query ${maData.Find[DBzone].Value} QZone DELETE FROM zone_control WHERE zone_shortname='${Zone.ShortName}' and value='${Target.DisplayName}'
+		/sqlite query ${maData.Find[DBzone].Value} QZone DELETE FROM zone_control WHERE zone_shortname='${Zone.ShortName}' AND value='${Target.DisplayName}'
 		/if (!${sql_check[${_debug}, QZone, Bind_control_area, "DELETE FROM (zone_control)"]}) /endmacro
 		/invoke ${out[12, "/area delete ${dot} ${num}${Zone.ShortName}\ax${sep}\a-w${Target.DisplayName}"]}
 
@@ -1246,7 +1249,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 
 	| update others?
 	/if (${Bool[${_type}]}) {
-		DEBUG ${sep} sending zone updates to rew in zone
+		DEBUG ${sep} sending zone updates to crew in zone
 		/call set_zone_lists ${maDebug.Find[zone].Value}
 		/if (${lsGrain.Contains[1]}) {
 			OUT ${num}${Zone.Name}\ax${sep}\a-w${Zone.ShortName}\ax
@@ -1407,7 +1410,7 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
 	} else /if (${_type.Equal[ch]} && ${Select[${Me.Class.ShortName},CLR]}) {
 
 		/if (${_verbage.Equal[pct]}) {
-			/call do_raw_edit ${_debug} SILENT stPctCH "${_silent}"
+			/call do_raw_edit ${_debug} SILENT stPctCH "${_verbage2}"
 		}
 
 		/invoke ${maControl.Clear}
@@ -1520,27 +1523,27 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 
 	| use concolors for targets
 	} else /if (${_type.Equal[concolor]}) {
-		/invoke ${set_switch_env[FALSE, swUseConColor, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swUseConColor, TRUE, ${_verbage}]}
 
 	| enable the DPS meter
 	| } else /if (${_type.Equal[dpsmeter]}) {
-	| 	/invoke ${set_switch_env[FALSE, swDPSMeter, TRUE, ${_verbage}]}
+	| 	/invoke ${set_switch_env[${_debug}, swDPSMeter, TRUE, ${_verbage}]}
 
 	| enable/disable using events.inc file
 	} else /if (${_type.Equal[events]}) {
-		/invoke ${set_switch_env[FALSE, swEventsInc, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swEventsInc, TRUE, ${_verbage}]}
 
 	| autoinvnetory while in manual
 	} else /if (${_type.Equal[manautoinv]}) {
-		/invoke ${set_switch_env[FALSE, swAutoInvManual, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swAutoInvManual, TRUE, ${_verbage}]}
 
 	| enable buff cooldown waits
 	} else /if (${_type.Equal[buffcooldownwait]}) {
-		/invoke ${set_switch_env[FALSE, swBuffCooldownWait, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swBuffCooldownWait, TRUE, ${_verbage}]}
 
 	| enable sub hook checking
 	} else /if (${_type.Equal[hook]}) {
-		/invoke ${set_switch_env[FALSE, swHookSub, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swHookSub, TRUE, ${_verbage}]}
 
 		/if (!${maHook.Find[swHookSub].Value}) {
 			/invoke ${maHook.Clear}
@@ -1558,15 +1561,15 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 
 	| remember the set build at mac start
 	} else /if (${_type.Equal[rememberset]}) {
-		/invoke ${set_switch_env[FALSE, swBuildSetRemember, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swBuildSetRemember, TRUE, ${_verbage}]}
 
 	| enable auto adding mobs to lists
 	} else /if (${_type.Equal[autolist]}) {
-		/invoke ${set_switch_env[FALSE, swAutoList, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swAutoList, TRUE, ${_verbage}]}
 
 	| count of cast loop attempts
 	} else /if (${_type.Equal[castloops]}) {
-		/invoke ${set_switch_env[FALSE, stCastLoop, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, stCastLoop, TRUE, ${_verbage}]}
 
 	| code engine
 	} else /if (${_type.Equal[engine]}) {
@@ -1574,7 +1577,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 
 	| relay tells
 	} else /if (${_type.Equal[relaytell]}) {
-		/invoke ${set_switch_env[FALSE, swRelayTell, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swRelayTell, TRUE, ${_verbage}]}
 
 	| hud adjustments
 	} else /if (${_type.Equal[hud]}) {
@@ -2351,7 +2354,7 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
 		/invoke ${set_switch_env[${_debug}, swBuffMaster, FALSE, ${_verbage}]}
 
 	} else /if (${_type.Equal[ps]}) {
-		/invoke ${set_switch_env[FALSE, swBuffPowersource, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swBuffPowersource, TRUE, ${_verbage}]}
 
 	} else /if (${_type.Equal[self]}) {
 		/invoke ${set_switch_env[${_debug}, swBuffSelf, TRUE, ${_verbage}]}
@@ -2446,23 +2449,23 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 		/return TRUE
 
 	} else /if (${_type.Equal[los]}) {
-		/invoke ${set_switch_env[FALSE, swOverLOS, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swOverLOS, TRUE, ${_verbage}]}
 	} else /if (${_type.Equal[engage]}) {
-		/invoke ${set_switch_env[FALSE, swOverPctEngage, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swOverPctEngage, TRUE, ${_verbage}]}
 	} else /if (${_type.Equal[loot]}) {
-		/invoke ${set_switch_env[FALSE, swOverLoot, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swOverLoot, TRUE, ${_verbage}]}
 	} else /if (${_type.Equal[safenames]}) {
-		/invoke ${set_switch_env[FALSE, swOverSafeNames, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swOverSafeNames, TRUE, ${_verbage}]}
 	} else /if (${_type.Equal[trainspell]}) {
-		/invoke ${set_switch_env[FALSE, swOverTrainSpell, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swOverTrainSpell, TRUE, ${_verbage}]}
 	} else /if (${_type.Equal[envauto]}) {
-		/invoke ${set_switch_env[FALSE, swOverEnvAuto, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swOverEnvAuto, TRUE, ${_verbage}]}
 	} else /if (${_type.Equal[dscheck]}) {
-		/invoke ${set_switch_env[FALSE, swOverDSCheck, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swOverDSCheck, TRUE, ${_verbage}]}
 	} else /if (${_type.Equal[navcheck]}) {
-		/invoke ${set_switch_env[FALSE, swOverNavCheck, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swOverNavCheck, TRUE, ${_verbage}]}
 	} else /if (${_type.Equal[groupass]}) {
-		/invoke ${set_switch_env[FALSE, swOverGroupAss, TRUE, ${_verbage}]}
+		/invoke ${set_switch_env[${_debug}, swOverGroupAss, TRUE, ${_verbage}]}
 
 	}
 
@@ -3069,7 +3072,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 	} else /if (${_type.Equal[pull]}) {
 		| turn pull on or off
 		/if (${_verbage.Equal[active]}) {
-			/invoke ${set_switch_env[FALSE, swPull, TRUE, ${_verbage2}]}
+			/invoke ${set_switch_env[${_debug}, swPull, TRUE, ${_verbage2}]}
 
 		| pull radius
 		} else /if (${_verbage.Equal[rad]}) {
@@ -3085,7 +3088,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 
 		| enable/disable setting home marker when pulling
 		} else /if (${_verbage.Equal[sethome]}) {
-			/invoke ${set_switch_env[FALSE, swPullSetHome, TRUE, ${_verbage2}]}
+			/invoke ${set_switch_env[${_debug}, swPullSetHome, TRUE, ${_verbage2}]}
 
 		| base pulling
 		} else /if (${_verbage.Equal[base]}) {
@@ -3495,7 +3498,7 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 			/return FALSE
 		}
 		/invoke ${out[19, "Waypoint move${sep}\a-w${_loc}\ax ${dot} Y:${num}${Me.Y}\ax X:${num}${Me.X}\ax Z:${num}${Me.Z}\ax"]}
-		/nav locyxz ${sqlite.Result[dummy 1 locY]} ${sqlite.Result[dummy 1 locX]} ${sqlite.Result[dummy 1 locZ]} |dist=${maHome.Find[stHomeVariance].Value} log=off
+		/nav locyxz ${sqlite.Result[dummy 1 locY]} ${sqlite.Result[dummy 1 locX]} ${sqlite.Result[dummy 1 locZ]} |dist=${maHome.Find[stHomeVariance].Value} log=${maEntropy.Find[swNavLogSpew].Value}
 		/return TRUE
 
 	}
@@ -3530,13 +3533,13 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 		/squelch /target clear
 		/delay 1
 		/invoke ${out[22, "/navto \a-w${_loc}\ax"]}
-		/nav locyxz ${_loc} |dist=${maHome.Find[stHomeVariance].Value} log=off
+		/nav locyxz ${_loc} |dist=${maHome.Find[stHomeVariance].Value} log=${maEntropy.Find[swNavLogSpew].Value}
 
 	| nav to current target
 	} else /if (${Target.ID} && !${Bool[${_verbage}]} && ${_verbage.NotEqual[loc]}) {
 		DEBUG navto${sep}\a-wtarget\ax
 		/invoke ${out[22, "/navto ${con_color[${_debug}, ${Target.ID}]}"]}
-		/nav id ${Target.ID} |dist=${maHome.Find[stHomeVariance].Value} log=off
+		/nav id ${Target.ID} |dist=${maHome.Find[stHomeVariance].Value} log=${maEntropy.Find[swNavLogSpew].Value}
 
 	| nav to closest spawn matching name
 	}	else /if (!${Target.ID} && ${Bool[${_verbage}]} && ${_verbage.NotEqual[loc]}) {
@@ -3546,7 +3549,7 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 		}
 		DEBUG navto${sep}\a-wspawn\ax
 		/invoke ${out[22, "/navto ${con_color[${_debug}, ${Spawn[${_verbage}].ID}]}"]}
-		/nav id ${Spawn[${_verbage}].ID} |dist=${maHome.Find[stHomeVariance].Value} log=off
+		/nav id ${Spawn[${_verbage}].ID} |dist=${maHome.Find[stHomeVariance].Value} log=${maEntropy.Find[swNavLogSpew].Value}
 
 	}
 
@@ -3865,8 +3868,8 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 
 		/if (${Bool[${_portName}]}) {
 			/makemevisible
-			/if (${is_ready[FALSE, "${_portName}"]}) {
-				/call voodoo FALSE "${_portName}" 0 FALSE
+			/if (${is_ready[${_debug}, "${_portName}"]}) {
+				/call voodoo ${_debug} "${_portName}" 0 FALSE
 			}
 		}
 
@@ -4020,7 +4023,7 @@ sub Bind_command_cls(bool _debug, string _sender)
  * use: /here [all]
  ***|
 #bind command_here /here
-sub Bind_command_here(string _type)
+sub Bind_command_here(string _type, bool _debug)
 
 	/if (${_type.Equal[aux]}) {
 		/call Bind_command_aux here
@@ -4046,10 +4049,10 @@ sub Bind_command_here(string _type)
 	| sort movements
 	/if (${Stick.Active}) /squelch /stick off
 	| stop mq2nav
-	/if (${Navigation.Active}) /squelch /nav stop |log=off
+	/if (${Navigation.Active}) /squelch /nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
 
 	| enable auto
-	/invoke ${set_switch_env[FALSE, swAuto, FALSE, TRUE]}
+	/invoke ${set_switch_env[${_debug}, swAuto, FALSE, TRUE]}
 
 	/makemevisible
 	/stopcast
@@ -4168,6 +4171,8 @@ sub Bind_command_grab(string _name, string _silent, bool _debug)
 		/return
 	} else /if (${Ground[${_name}].Distance3D} <= ${maHard.Find[stRadGrab].Value}) {
 		/invoke ${Ground[${_name}].Grab}
+		| /invoke ${Ground.Search[${_name}].Grab}
+
 	}
 
 /return TRUE
@@ -4185,7 +4190,7 @@ sub Bind_command_lesson(bool _debug)
   	/return FALSE
   }
 
-  /call voodoo FALSE "Lesson of the Devoted" 0 FALSE
+  /call voodoo ${_debug} "Lesson of the Devoted" 0 FALSE
 
 /return TRUE
 

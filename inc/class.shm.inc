@@ -24,15 +24,12 @@ sub class_init(bool _debug)
 	/call set_data_map ${_debug} maChr stTalisman	 											PREGEN|1											"${auxna} talisman spell"
 	/call set_data_map ${_debug} maChr swTalisman			 									FALSE													"${auxsw} use talisman spell"
 
-	| /call set_data_list ${_debug} maChr lsNukeTC									 			PREGEN|2											"${auxli} heal twincast nukes"
 	/call set_data_map ${_debug} maChr stCannibalization								PREGEN|1											"${auxna} canni spell"
 
 	/call set_data_map ${_debug} maChr stPctCanniHP				 							60														"${auxnum} HP level to stop using canni"
 	/call set_data_map ${_debug} maChr stPctCanniManna				 					60														"${auxnum} mana level to start using canni"
 
-	| /call set_data_map ${_debug} maChr swSurge													FALSE													"${auxsw} use surge healing"
 	/call set_data_map ${_debug} maHeal stCountSurge										0															"${auxnum} number of people hurt to use surge healing"
- 	| /call set_data_map ${_debug} maHeal stHealSurge											PREGEN|1											"${auxna} area surge spell" heal
 
  	/call set_data_map ${_debug} maChr stDichotomic											PREGEN|1											"${auxna} dichotomic spell"
  	/call set_data_map ${_debug} maChr stAlliance												PREGEN|1											"${auxna} alliance spell"
@@ -486,7 +483,7 @@ sub check_cani(bool _debug)
 	}
 
 	| check HP requirements
-	/sqlite ${maData.Find[DBstatic].Value} dummy SELECT * FROM mana_recovery WHERE env_var="${maChr.Find[stCannibalization].Value}"
+	/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM mana_recovery WHERE env_var="${maChr.Find[stCannibalization].Value}";
 	/if (${Me.CurrentHPs} < ${sqlite.Result[dummy 1 value]}) {
 		DEBUG ${sep}canni usage would kill us${sep}\a-w${Me.CurrentHPs} < ${sqlite.Result[dummy 1 value]}\ax
 		/return FALSE

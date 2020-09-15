@@ -142,6 +142,7 @@ sub class_main(bool _debug)
 			 	}
 			}
 		}
+		BUFFNOW
 	} else /if (AUTO && ENGINE3) {
 		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
 			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -183,6 +184,7 @@ sub class_main(bool _debug)
 		}
 
 		/if (AUTO && !ENGINE3) {
+			BUFFNOW
 			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
 			CHECKFADE
 		} else /if (AUTO && !ENGINE3) {

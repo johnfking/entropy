@@ -63,9 +63,7 @@ sub Event_AP_IN_PROGRESS(string _line)
 #event REZ_ACCEPT									"You regain some experience from resurrection#.#"
 sub REZ_ACCEPT(string _line, bool _debug)
 	EDEBUG REZ_ACCEPT
-	/if (${swIsMeDead}) {
-		/varset swIsMeDead FALSE
-	}
+	/varset swIsMeDead FALSE
 /return
 
 #event BIND_RETURN 								"Returning to Bind Location. Please Wait#.#"

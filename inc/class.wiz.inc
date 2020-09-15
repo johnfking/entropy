@@ -16,35 +16,33 @@ sub class_init(bool _debug)
 		/declare _boottimestart int local ${MacroQuest.Running}
 	}
 
-	/call set_data FALSE maData stSpire																	map outer "Spire of Arcanum"
-	/call set_data FALSE maData stSynergy																map outer "Evoker's Synergy"
-	/call set_data FALSE maData stFade																	map outer "A Hole in Space"
-	/call set_data FALSE maData stCompleteHeal													map outer "Complete Heal"
-	/call set_data_map FALSE maChr stAAUnity														"Etherealist's Unity"					"${auxna} class aa unity buff"
+	/call set_data ${_debug} maData stSpire															map outer "Spire of Arcanum"
+	/call set_data ${_debug} maData stSynergy														map outer "Evoker's Synergy"
+	/call set_data ${_debug} maData stFade															map outer "A Hole in Space"
+	/call set_data ${_debug} maData stCompleteHeal											map outer "Complete Heal"
+	/call set_data_map ${_debug} maChr stAAUnity												"Etherealist's Unity"					"${auxna} class aa unity buff"
 
-	/call set_data_map FALSE maChr stPctGather													0															"${auxnum} % of your mana to start using gather spells and AAs"
-	/call set_data_map FALSE maChr stGather															PREGEN|1											"${auxna} name of mana gather spell (\a-wNOT THE AA\ax)"
+	/call set_data_map ${_debug} maChr stPctGather											0															"${auxnum} % of your mana to start using gather spells and AAs"
+	/call set_data_map ${_debug} maChr stGather													PREGEN|1											"${auxna} name of mana gather spell (\a-wNOT THE AA\ax)"
+	/call set_data_map ${_debug} maChr stTempPet												PREGEN|1											"${auxna} temp flame'ie pig sticker pet spell"
 
-	/call set_data_map FALSE maChr stTempPet														PREGEN|1											"${auxna} temp flame'ie pig sticker pet spell"
+	/call set_data_map ${_debug} maChr swManaBurn		 										FALSE													"${auxsw} use aa manaburn during burns"
 
-	/call set_data_map FALSE maChr swManaBurn		 												FALSE													"${auxsw} use aa manaburn during burns"
-
-	/call set_data_map FALSE maChr stConcussion													PREGEN|1											"${auxna} name of anti agro spell cause you nuke to damn much and dont let tank get agro"
-	/call set_data_map FALSE maChr stPctConcussion											0															"${auxnum} % of your agro you want to try and cover your ass at"
+	/call set_data_map ${_debug} maChr stConcussion											PREGEN|1											"${auxna} name of anti agro spell cause you nuke to damn much and dont let tank get agro"
+	/call set_data_map ${_debug} maChr stPctConcussion									0															"${auxnum} % of your agro you want to try and cover your ass at"
 
 	| current nuke line
-	/declare lsNukeLine list outer
-	/invoke ${lsNukeLine.Append[base,fire,ice,magic]}
-	/call set_data_map FALSE maChr stCurrent														base
-	/call set_data FALSE FALSE stLine																		string outer ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
+	/call	set_data ${_debug} FALSE lsNukeLine														list outer base|fire|ice|magic
+	/call set_data_map ${_debug} maChr stCurrent												base
+	/call set_data ${_debug} FALSE stLine																string outer ${maChr.Find[stCurrent].Value.Left[1].Upper}${maChr.Find[stCurrent].Value.Right[-1].Lower}
 
 	/invoke ${set_data_timer[FALSE, Force_TC, 6s]}
-	/call set_data_map FALSE maChr stTC																	PREGEN|1											"${auxna} whatever the hell you want to use for twincast"
-	/call set_data_map FALSE maChr swForceTC														FALSE													"${auxsw} force using twincast aa/spells as much as possible"
-	/call set_data_map FALSE maChr stNukeTCFire													PREGEN|1											"${auxna} fire line twincast spell"
-	/call set_data_map FALSE maChr stNukeTCIce													PREGEN|1											"${auxna} ice line twincast spell"
-	/call set_data_map FALSE maChr stNukeTCMagic												PREGEN|1											"${auxna} magic line twincast spell"
-	/call set_data_map FALSE maChr stNukeTCBase													FALSE													"${auxna} base line twincast spell"
+	/call set_data_map ${_debug} maChr stTC															PREGEN|1											"${auxna} whatever the hell you want to use for twincast"
+	/call set_data_map ${_debug} maChr swForceTC												FALSE													"${auxsw} force using twincast aa/spells as much as possible"
+	/call set_data_map ${_debug} maChr stNukeTCFire											PREGEN|1											"${auxna} fire line twincast spell"
+	/call set_data_map ${_debug} maChr stNukeTCIce											PREGEN|1											"${auxna} ice line twincast spell"
+	/call set_data_map ${_debug} maChr stNukeTCMagic										PREGEN|1											"${auxna} magic line twincast spell"
+	/call set_data_map ${_debug} maChr stNukeTCBase											FALSE													"${auxna} base line twincast spell"
 
 	| temp buff
   /call set_data_list ${_debug} maChr lsTempBuffToon									EMPTY													"${auxli} list of toons to use your temp buff on"
@@ -56,6 +54,44 @@ sub class_init(bool _debug)
 	}
 
 /return TRUE
+
+
+
+
+
+
+
+
+Arcane Whisper
+Mind Crash
+Concussive Intuition
+Harvest of Druzzil
+Silent Casting
+Frenzied Devastation
+Focus of Arcanum
+Improved Twincast
+Fury of the Gods
+Arcane Destruction
+Arcane Fury
+Arcane Fury
+Call of Xuzl
+
+
+
+Arcane Whisper
+Mind Crash
+Concussive Intuition
+Harvest of Druzzil
+Silent Casting
+Frenzied Devastation
+Focus of Arcanum
+Improved Twincast
+Fury of the Gods
+Arcane Destruction
+Arcane Fury
+Arcane Fury
+Call of Xuzl
+
 
 
 
@@ -76,7 +112,7 @@ sub class_main(bool _debug)
 	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
 		GETINPUT
 		CHECKREZ
-		/if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
+		/call check_heal_routines
 		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
 			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
 		}
@@ -137,7 +173,6 @@ sub misc_combat(bool _debug, int _tmpID)
 		/return FALSE
 	}
 
-
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
@@ -164,7 +199,7 @@ sub misc_combat(bool _debug, int _tmpID)
 		/if (${is_ready[${_debug}, "Mind Crash"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value} && ${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]}) {
 			/call voodoo ${_debug} "Mind Crash" ${_tmpID} FALSE
 		}
-		/if (${is_ready[${_debug}, "Concussive Intuition"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) /{
+		/if (${is_ready[${_debug}, "Concussive Intuition"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) {
 			call voodoo ${_debug} "Concussive Intuition" ${_tmpID} FALSE
 		}
 		/if (${is_ready[${_debug}, "${maChr.Find[stConcussion].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctConcussion].Value}) {
@@ -188,25 +223,29 @@ sub check_harvest(bool _debug)
 	GETINPUT
 	CHECKTIE
 
-	/if (${Me.Buff[Improved Twincast].ID} || ${Me.Buff[${maChr.Find[stTC].Value}].ID}) /return
+	/if (${Me.Buff[Improved Twincast].ID}) {
+		/return FALSE
+	}
+
+	/if (${Bool[${maChr.Find[stTC].Value}]} && ${Me.Buff[${maChr.Find[stTC].Value}].ID}) {
+		/return FALSE
+	}
 
 	/if (!${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
 		/if (${is_ready[${_debug}, "Forceful Rejuvenation"]}) {
 			/call voodoo ${_debug} "Forceful Rejuvenation" 0 FALSE
+			/delay 5
 		}
-		/delay 5
 	}
-	/if (${Me.PctMana} < ${maChr.Find[stPctGather].Value}*.PCTHO) {
-		/if (${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
-			/if (${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stGather].Value}" 0 FALSE
-			}
-		}
-		/if (${Me.AltAbilityReady[Harvest of Druzzil]}) {
-			/if (${is_ready[${_debug}, "Harvest of Druzzil"]}) {
-				/call voodoo ${_debug} "Harvest of Druzzil" 0 FALSE
-			}
-		}
+
+	/if (${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stGather].Value}" 0 FALSE
+		/return TRUE
+	}
+
+	/if (${is_ready[${_debug}, "Harvest of Druzzil"]}) {
+		/call voodoo ${_debug} "Harvest of Druzzil" 0 FALSE
+		/return TRUE
 	}
 
 /return TRUE
@@ -340,7 +379,7 @@ sub burn(bool _debug, int _tmpID)
 		/invoke ${set_target[TARGET]}
 		/if (!${Target.Buff[Mana Burn].ID}) {
 			/if (${is_ready[${_debug}, "Mana Burn"]}) {
-				/call voodoo ${_debug} "Mana Burn" TARGET FALSE
+				/call voodoo ${_debug} "Mana Burn" ${_tmpID} FALSE
 			}
 		}
 	}

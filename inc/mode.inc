@@ -486,7 +486,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
 
 	DEBUG FINAL ID:${_finalGround.ID}
 	/invoke ${Ground.Search[${_finalGround.ID}]}
-	/nav item |dist=10 log=off
+	/nav item |dist=10 log=${maEntropy.Find[swNavLogSpew].Value}
 	/delay 1s
 
 	/while (${Me.Moving} || ${_finalGround.Distance3D} <= 19) {
@@ -498,7 +498,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
 
 		/if (${_finalGround.Distance3D} <= 19) {
 			DEBUG ${sep}distance${sep}\a-w${_finalGround.Distance3D}\ax
-			/nav stop |log=off
+			/nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
 			/call Bind_command_grab "${_tmpItem}" ${_debug}
 			/if (${Cursor.ID}) {
 				/call check_cursor ${_debug} clear
@@ -782,7 +782,7 @@ sub mode_summon(bool _debug)
 
 	| do we need to buy a stone?
   /if (!${FindItemCount[=${_soulstone}]}) {
-		/nav spawn npc A Disciple of Luclin |log=off
+		/nav spawn npc A Disciple of Luclin |log=${maEntropy.Find[swNavLogSpew].Value}
 
 		:priestinventory
 			/delay 10s !${Navigation.Active}
@@ -803,7 +803,7 @@ sub mode_summon(bool _debug)
 	/if (!${FindItemCount[=${_soulstone}]}) /goto :start
 
 	| move to rezer
-  /nav spawn npc A Priest of Luclin |log=off distance=6
+  /nav spawn npc A Priest of Luclin |log=${maEntropy.Find[swNavLogSpew].Value} distance=6
   /delay 10s !${Navigation.Active}
 
 	| get stone on cursor
@@ -1606,7 +1606,7 @@ sub task_mob_move_to(bool _debug, int _tmpID, int _dist)
 	DEBUG \attask_mob_move_to\ax(\a-w${_tmpID}, ${_dist}\ax)
 	FLOW task_pull_mob_move_to ${_tmpID}|${_dist} (1)
 
-	/nav id ${_tmpID} | distance=${_dist} log=off
+	/nav id ${_tmpID} | distance=${_dist} log=${maEntropy.Find[swNavLogSpew].Value}
 	/delay 1s ${Navigation.Active}
 
 	DEBUG ${sep}moving to${sep}\a-w${_tmpID}\ax
@@ -1637,7 +1637,7 @@ sub task_mob_move_to(bool _debug, int _tmpID, int _dist)
 		/if (${Spawn[${_tmpID}].Distance} < ${_dist} && ${Spawn[${_tmpID}].LineOfSight}) {
 			| DEBUG ${sep}dis \arHALT\ax${sep}\a-w${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]} < \ag${_dist}\ax && \agLOS\a-w (\a-r${_tmpID}\ax)
 			DEBUG ${sep}dis \arHALT\ax${sep}\a-w${Spawn[${_tmpID}].Distance} < \ag${_dist}\ax && \agLOS\a-w (\a-r${_tmpID}\ax)
-			/nav stop |log=off
+			/nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
 			/return TRUE
 		}
 

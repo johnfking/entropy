@@ -19,6 +19,26 @@ on the to do list
 - pet gear handing for damn TLP feeders..
 --------------------
 
+
+
+
+200914.01
+- increased the delay for ${AdvLoot.LootInProgress}
+- wizard
+  moved the AAs to the database
+  some adjustments to the harvest code to enable use by TLPers
+- shaman
+  corrected a sqlite call
+- wizard
+  corrected a delcare for /admin pregen command
+- corrected some checks for glyphs
+- /debug other staminarecover
+- corrected a map for stRest (the melee rest disc line)
+- monk
+  commented out the monkey line of discs till i can find a
+  good way around it breaking the zoning emote
+
+
 200903.01
 - corrected an old sub name for magician gather_manna routine
 - small adjustment to tag updating
