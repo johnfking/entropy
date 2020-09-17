@@ -135,6 +135,11 @@ sub class_main(bool _debug)
  ***|
 sub do_sneak_attack(bool _debug, int _tmpID)
 	DEBUG \atdo_sneak_attack\ax(\a-w${_tmpID}\ax)
+	ISMEDEAD
+	/if (!PULL) {
+		/call get_assist_target ${maDebug.Find[target].Value}
+		/if (TARGET != ${_tmpID}) /varset _tmpID TARGET
+	}
 	FLOW do_sneak_attack
 
   /if (!${Me.Sneaking} || ${Me.ActiveDisc.ID}) {
@@ -169,8 +174,12 @@ sub misc_combat(bool _debug, int _tmpID)
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
-
 	CHECKDEFENSE
+	/if (!PULL) {
+		/call get_assist_target ${maDebug.Find[target].Value}
+		/if (TARGET != ${_tmpID}) /varset _tmpID TARGET
+	}
+
 	/if (SWARM || PET) {
 		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	}
@@ -381,8 +390,12 @@ sub burn(bool _debug, int _tmpID)
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
-
 	CHECKDEFENSE
+	/if (!PULL) {
+		/call get_assist_target ${maDebug.Find[target].Value}
+		/if (TARGET != ${_tmpID}) /varset _tmpID TARGET
+	}
+
 	/if (SWARM || PET) {
 		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	}

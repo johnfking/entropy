@@ -167,6 +167,11 @@ sub misc_combat(bool _debug, int _tmpID)
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
+	CHECKDEFENSE
+	/if (!PULL) {
+		/call get_assist_target ${maDebug.Find[target].Value}
+		/if (TARGET != ${_tmpID}) /varset _tmpID TARGET
+	}
 
 	/if (SWARM || PET) {
 		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
@@ -444,6 +449,11 @@ sub burn(bool _debug, int _tmpID)
 	CHECKEXIT
 	GETINPUT
 	CHECKTIE
+	CHECKDEFENSE
+	/if (!PULL) {
+		/call get_assist_target ${maDebug.Find[target].Value}
+		/if (TARGET != ${_tmpID}) /varset _tmpID TARGET
+	}
 
 	/if (SWARM || PET) {
 		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}

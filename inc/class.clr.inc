@@ -214,8 +214,11 @@ sub misc_combat(bool _debug, int _tmpID)
 	CHECKEXIT
 	GETINPUT misc_combat_CLR NA|NA
 	CHECKTIE
-
 	CHECKDEFENSE
+	/if (!PULL) {
+		/call get_assist_target ${maDebug.Find[target].Value}
+		/if (TARGET != ${_tmpID}) /varset _tmpID TARGET
+	}
 
 	/if (SWARM || PET) {
 		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
@@ -313,6 +316,7 @@ sub check_heal(bool _debug, string _type)
 	/if (!${hurtCount}) {
 		CHECKREZ
 		SETHUD EMPTY
+		/delay 1
 		/return
 	}
 
@@ -494,22 +498,25 @@ sub burn(bool _debug, int _tmpID)
 	FLOW burn
 
 	ISMEDEAD
+
+	/if (${target[isdead, ${_tmpID}]}) {
+		/return FALSE
+	}
+
 	CHECKEXIT
 	GETINPUT clr_burn NA|NA
 	CHECKTIE
+	CHECKDEFENSE
+	/if (!PULL) {
+		/call get_assist_target ${maDebug.Find[target].Value}
+		/if (TARGET != ${_tmpID}) /varset _tmpID TARGET
+	}
 
-	/if (${Bool[${_tmpID}]}) {
-		/if (${target[isdead, ${_tmpID}]}) {
-			/return FALSE
-		}
-
-		CHECKDEFENSE
-		/if (SWARM || PET) {
-			/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
-		}
-		/if (AUTO && MELEE) {
-			/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
-		}
+	/if (SWARM || PET) {
+		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+	}
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
 	}
 
 	/if (ENGINE2) {
@@ -527,7 +534,7 @@ sub burn(bool _debug, int _tmpID)
 	}
 
 	| stage 1
-	/if ((${Me.AltAbilityReady[${maChr.Find[stAAChannelingtheDivine].Value}]} || ${Me.AltAbilityReady[${maChr.Find[stAACelestialRapidity].Value}]}) && !${Me.Buff[${maChr.Find[stAAHealingFrenzy].Value}].ID}) {
+	/if ((${Me.AltAbilityReady[${maChr.Find[stAAHealingFrenzy].Value}]} || ${Me.AltAbilityReady[${maChr.Find[stAACelestialRapidity].Value}]}) && !${Me.Buff[${maChr.Find[stAAChannelingtheDivine].Value}].ID} && !${Me.Buff[${maChr.Find[stAAFlurryofLife].Value}].ID}) {
 
 	  | Spire 1:30 min duration 7:30 min reuse
    	/call cast_AA_spire ${maDebug.Find[spire].Value}
@@ -539,10 +546,10 @@ sub burn(bool _debug, int _tmpID)
 			}
 		}
 
-	 	| 50% chance to twincast (proc:Channeling of the Divine, 45 sec duration 10 min resuse)
-	 	/if (${is_ready[${_debug}, "${maChr.Find[stAAChannelingtheDivine].Value}"]}) {
-	 		/call voodoo ${_debug} "${maChr.Find[stAAChannelingtheDivine].Value}" 0 FALSE
-	 	}
+		| heal power bost: 35% (proc Healing Frenzy, 40sec duration 15 min reuse)
+		/if (${is_ready[${_debug}, "${maChr.Find[stAAHealingFrenzy].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAAHealingFrenzy].Value}" 0 FALSE
+		}
 
 		| - ~50% to cast times [proc:Celestial Rapidity, 1 min duration 10 min reuse]
 		/if (${is_ready[${_debug}, "${maChr.Find[stAACelestialRapidity].Value}"]}) {
@@ -550,7 +557,7 @@ sub burn(bool _debug, int _tmpID)
 		}
 
 	| stage 2
-	} else /if ((${Me.AltAbilityReady[${maChr.Find[stAAHealingFrenzy].Value}]} || ${Me.AltAbilityReady[${maChr.Find[stAAFlurryofLife].Value}]}) && !${Me.Buff[${maData.Find[stSpire].Value}].ID}) {
+	} else /if ((${Me.AltAbilityReady[${maChr.Find[stAAChannelingtheDivine].Value}]} || ${Me.AltAbilityReady[${maChr.Find[stAAFlurryofLife].Value}]}) && !${Me.Buff[${maChr.Find[stAAHealingFrenzy].Value}].ID} && !${Me.Buff[${maChr.Find[stAACelestialRapidity].Value}].ID}) {
 
 		| melee block anti agro (20 min reuse)
 		/if (!${Me.Song[${maChr.Find[stAASilentCasting].Value}].ID}) {
@@ -559,10 +566,10 @@ sub burn(bool _debug, int _tmpID)
 			}
 		}
 
-		| heal power bost: 35% (proc Healing Frenzy, 40sec duration 15 min reuse)
-		/if (${is_ready[${_debug}, "${maChr.Find[stAAHealingFrenzy].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stAAHealingFrenzy].Value}" 0 FALSE
-		}
+	 	| 50% chance to twincast (proc:Channeling of the Divine, 45 sec duration 10 min resuse)
+	 	/if (${is_ready[${_debug}, "${maChr.Find[stAAChannelingtheDivine].Value}"]}) {
+	 		/call voodoo ${_debug} "${maChr.Find[stAAChannelingtheDivine].Value}" 0 FALSE
+	 	}
 
 		| 100% exceptional heal (proc: Flurry of Life, 1:30 min duration 15 min reuse)
 		/if (${is_ready[${_debug}, "${maChr.Find[stAAFlurryofLife].Value}"]}) {
@@ -570,6 +577,9 @@ sub burn(bool _debug, int _tmpID)
 		}
 
 	}
+
+
+
 
 	| heal ward (20 min reuse)
 	/if (${is_ready[${_debug}, "${maChr.Find[stAAExquisiteBenediction].Value}"]}) {

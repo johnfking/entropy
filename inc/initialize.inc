@@ -31,7 +31,7 @@ sub	set_debug(string _verbage)
 	| heal
 	/invoke	${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot,dannet,rez]}
 	| move
-	/invoke	${lsDebugmove.Append[face,tie,zone,stick,stop,home]}
+	/invoke	${lsDebugmove.Append[face,tie,zone,stick,stop,home,gtfo]}
 	| debuff
 	/invoke	${lsDebugdebuff.Append[debuff,mez]}
 	| minion
@@ -155,6 +155,7 @@ sub	set_initialize(bool	_debug)
 	/invoke	${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard]}
 	/invoke	${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro,maMercenary]}
 	/invoke	${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
+	/invoke	${lsMaps.Append[maGTFO]}
 
 	| set	all	output shortcuts
 	/call	set_data ${_debug} FALSE num																			string outer "\a-t"
@@ -217,6 +218,7 @@ sub	set_initialize(bool	_debug)
 	/invoke	${maDBTables.Add[environment_mercenary,env_var]}
 	/invoke	${maDBTables.Add[environment_minion,env_var]}
 	/invoke	${maDBTables.Add[environment_rez,env_var]}
+	/invoke	${maDBTables.Add[environment_gtfo,env_var]}
 
 /return	TRUE
 
@@ -284,7 +286,7 @@ sub	set_initial_environment(bool _debug)
 	/call	set_data ${_debug} FALSE lsFreePassSpells													list outer Beneficial|Pet
 
 	| control	lines
-	/call	set_data ${_debug} FALSE lsControlLine														list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez
+	/call	set_data ${_debug} FALSE lsControlLine														list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez|gtfo
 
 	| increment lists
 	/call	set_data ${_debug} FALSE stCount6																	string outer "0|1|2|3|4|5"
@@ -1436,6 +1438,14 @@ sub	set_initialize_map_character_environment(bool	_debug)
 
 
 
+|**	control: gtfo	**|
+	/call	set_data_list	${_debug}	maGTFO lsLineGTFO													EMPTY													"${auxli} order line for GTFO stuff" gtfo
+	/call	set_data_map	${_debug}	maGTFO swGTFOActive												FALSE													"${auxsw} use GTFO logic" gtfo
+	/call	set_data_map	${_debug}	maGTFO stCountGTFODead										0															"${auxnum} number of group dead to activate" gtfo
+	/call	set_data_map	${_debug}	maGTFO stCountGTFOSpawns									0															"${auxnum} number of spawns in your env range to bail on your healer" gtfo
+
+
+
 |**	control: clickitem	**|
 	/call	set_data_list	${_debug}	maItem lsLineItem													EMPTY													"${auxli}	alternate	cast order for clickitems" item
 
@@ -1572,6 +1582,7 @@ sub	set_initialize_map_12(bool _debug)
 	/declare _tmi	mapiterator	local
 	/declare _liC12	listiterator local
 	/invoke	${_tmpMap.Add[Sash,sash]}
+	/invoke	${_tmpMap.Add[GTFO,gtfo]}
 
 	/vardata _tmi	_tmpMap.First.Clone
 	/while (!${_tmi.IsEnd})	{

@@ -1326,7 +1326,7 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
 	DEBUG \atcontrol_heal\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
 	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
-		/call control_base_edit ${maDebug.Find[edit].Value} Heal 50 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+		/call control_base_edit ${maDebug.Find[edit].Value} Heal 50 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
 		/return TRUE
 	}
 
@@ -1658,7 +1658,7 @@ sub Bind_control_rez(string _type, string _verbage, string _verbage2, string _ad
 
 
 	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
-		/call control_base_edit ${maDebug.Find[edit].Value} Rez 8 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+		/call control_base_edit ${maDebug.Find[edit].Value} Rez 8 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
 
 		/if (${Select[${_type},list]}) {
 			/call Bind_command_see lsRezIC
@@ -2647,7 +2647,7 @@ sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _a
 			/invoke ${out[0, "/burn engine is only available with engine 2/3 enabled."]}
 			/return FALSE
 		}
-		/call control_base_edit ${maDebug.Find[edit].Value} Burn 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+		/call control_base_edit ${maDebug.Find[edit].Value} Burn 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
 		/return TRUE
 	}
 
@@ -4981,7 +4981,7 @@ sub Bind_control_clickitem(string _type, string _verbage, string _verbage2, stri
 	DEBUG \atBind_control_clickitem\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
 	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
-		/call control_base_edit ${maDebug.Find[edit].Value} Item 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+		/call control_base_edit ${maDebug.Find[edit].Value} Item 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
 		/return TRUE
 	}
 
@@ -4998,7 +4998,7 @@ sub Bind_control_defense(string _type, string _verbage, string _verbage2, string
 	DEBUG \atcontrol_defense\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
 	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
-		/call control_base_edit ${maDebug.Find[edit].Value} Defense 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+		/call control_base_edit ${maDebug.Find[edit].Value} Defense 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
 		/return TRUE
 	}
 
@@ -5069,7 +5069,7 @@ sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _a
 	DEBUG \atcontrol_nuke\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
 	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
-		/call control_base_edit ${maDebug.Find[edit].Value} Nuke 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+		/call control_base_edit ${maDebug.Find[edit].Value} Nuke 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
 		/return TRUE
 	}
 
@@ -5100,7 +5100,7 @@ sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _ad
 	DEBUG \atcontrol_dor\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
 	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
-		/call control_base_edit ${maDebug.Find[edit].Value} DoT 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+		/call control_base_edit ${maDebug.Find[edit].Value} DoT 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
 		/return TRUE
 	}
 
@@ -5133,7 +5133,7 @@ sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _a
 
 	/if (ENGINE2 || ENGINE3) {
 		/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
-			/call control_base_edit ${maDebug.Find[edit].Value} Agro 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+			/call control_base_edit ${maDebug.Find[edit].Value} Agro 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
 			/return TRUE
 		}
 	}
@@ -5177,7 +5177,7 @@ sub Bind_control_miscdps(string _type, string _verbage, string _verbage2, string
 	}
 
 	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
-		/call control_base_edit ${maDebug.Find[edit].Value} MiscDPS 50 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+		/call control_base_edit ${maDebug.Find[edit].Value} MiscDPS 50 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
 		/return TRUE
 	}
 
@@ -5200,7 +5200,7 @@ sub Bind_control_song(string _type, string _verbage, string _verbage2, string _a
 	}
 
 	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
-		/call control_base_edit ${maDebug.Find[edit].Value} Song 20 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+		/call control_base_edit ${maDebug.Find[edit].Value} Song 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
 		/return TRUE
 	}
 
@@ -5217,7 +5217,7 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _a
 	DEBUG \atcontrol_sash\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
 	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
-		/call control_base_edit ${maDebug.Find[edit].Value} Sash 12 ${_type} ${_verbage} ${_verbage2} ${_add_delete}
+		/call control_base_edit ${maDebug.Find[edit].Value} Sash 12 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
 		/return TRUE
 	}
 
@@ -5708,6 +5708,48 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 	}
 
 /return	TRUE
+
+
+
+
+|***
+ * note: gttfo editing / control
+ * use: /gtfo
+ ***|
+#bind control_gtfo /gtfo
+sub Bind_control_gtfo(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+	DEBUG \atcontrol_gtfo\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
+
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} GTFO 12 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
+		/return TRUE
+	}
+
+	/if (${_type.Equal[active]}) {
+		/invoke ${set_switch_env[${_debug}, swGTFOActive, TRUE, ${_verbage}]}
+
+	| number of group dead
+	} else /if (${_type.Equal[dead]}) {
+		/if (!${set_control_num_range[${_debug}, stCountGTFODead, "${_verbage}", 0, 5]}) /return
+
+	| number of group dead
+	} else /if (${_type.Equal[spawns]}) {
+		/if (!${set_control_num_range[${_debug}, stCountGTFOSpawns, "${_verbage}", 0, 99]}) /return
+
+
+
+
+	}
+
+	/invoke ${maControl.Clear}
+	/invoke ${maControl.Add[active,swGTFOActive]}
+	/invoke ${maControl.Add[dead,stCountGTFODead]}
+	/invoke ${maControl.Add[spawns,stCountGTFOSpawns]}
+	/invoke ${set_control_output[${_debug}, maGTFO, gtfo, maControl]}
+
+/return TRUE
+
+
 
 
 

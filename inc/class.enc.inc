@@ -185,8 +185,11 @@ sub misc_combat(bool _debug, int _tmpID)
 	FLOW misc_combat_ENC ${_tmpID} (2)
 	GETINPUT
 	CHECKTIE
-
 	CHECKDEFENSE
+	/if (!PULL) {
+		/call get_assist_target ${maDebug.Find[target].Value}
+		/if (TARGET != ${_tmpID}) /varset _tmpID TARGET
+	}
 
 	/if (SWARM || PET || ${maMinion.Find[swPetCharm].Value}) {
 		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
@@ -392,8 +395,12 @@ sub burn(bool _debug, int _tmpID)
 	FLOW burn (2)
 	GETINPUT
 	CHECKTIE
-
 	CHECKDEFENSE
+	/if (!PULL) {
+		/call get_assist_target ${maDebug.Find[target].Value}
+		/if (TARGET != ${_tmpID}) /varset _tmpID TARGET
+	}
+
 	/if (SWARM || PET || ${maMinion.Find[swPetCharm].Value}) {
 		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	}

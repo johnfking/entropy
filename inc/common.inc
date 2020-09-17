@@ -2597,7 +2597,7 @@ sub check_combat_status(bool _debug)
 		}
 		/if (!COMBAT) {
 			DEBUG ${break}manual${sep}no combat
-			/delay 1
+			| /delay 1
 			/return FALSE
 		}
 
@@ -5769,7 +5769,7 @@ sub set_target(int _tmpID)
 	}
 
 	/squelch /target id ${_tmpID}
-	/delay 1s ${Target.ID} == ${_tmpID}
+	| /delay 1s ${Target.ID} == ${_tmpID}
 
 	/if (${Target.ID} != ${_tmpID}) {
 		/return FALSE
@@ -7542,7 +7542,7 @@ sub check_cursor(bool _debug, string _verbage)
 
 	/invoke ${set_data_timer[${_debug}, Check_Cursor, 5s]}
 
-	/delay 2
+	| /delay 2
 
 	/if (!${Cursor.ID}) {
 		/return FALSE
@@ -7583,7 +7583,7 @@ sub check_cursor(bool _debug, string _verbage)
 		| do nothing.. seriously.. what do you think ignore means?
 	}
 
-	/delay 1
+	| /delay 1
 
 	| drop the timer so we dont have to wait again to check. get that shit off the cursor
 	/if (${Cursor.ID}) {
@@ -12831,7 +12831,7 @@ sub validate_input(bool _debug, string _type, string _verbage)
 	/if (${_type.Equal[control]}) {
 
 		| alt ability?
-		/if (${Me.AltAbilityReady[${_verbage}]}) {
+		/if (${Me.AltAbility[${_verbage}]}) {
 			/return TRUE
 
 		| spell
@@ -12843,7 +12843,7 @@ sub validate_input(bool _debug, string _type, string _verbage)
 			/return TRUE
 
 		| click item
-		} else /if (${Me.ItemReady[=${_verbage}]}) {
+		} else /if (${FindItem[=${_verbage}].ID}) {
 			/return TRUE
 
 		| click item
@@ -13763,5 +13763,68 @@ sub get_prediction(bool _debug)
 /return TRUE
 
 
+
+|***
+ * note: defensive things
+ * use: /call check_gtfo DEBUG
+ ***|
+sub check_gtfo(bool _debug)
+	DEBUG \atcheck_gtfo\ax(\a-w\ax)
+
+	| if the user has not set the line order, set it to a default for now
+	/if (${lsLineGTFO.Contains[EMPTY]} && ${lsLineDefense.Count} == 1) {
+		DEBUG ${sep}resetting the empty gtfo line
+		/invoke ${lsLineGTFO.Clear}
+		/invoke ${lsLineGTFO.Append[${stCount12}]}
+	}
+
+	/declare _liC12 listiterator local
+	/vardata _liC12 lsCount12.First.Clone
+	/while (!${_liC12.IsEnd}) {
+
+		ISMEDEAD
+
+		| check the switch
+		/if (!${Bool[${maGTFO.Find[swGTFO${_liC12.Value}].Value}]}) {
+			/invoke ${_liC12.Advance}
+			/continue
+		}
+
+		| check the item name
+		/if (!${Bool[${maGTFO.Find[stGTFO${_liC12.Value}].Value}]}) {
+			/invoke ${_liC12.Advance}
+			/continue
+		}
+
+		| ready?
+		/if (!${is_ready[${_debug}, "${maGTFO.Find[stGTFO${_liC12.Value}].Value}"]}) {
+			/invoke ${_liC12.Advance}
+			/continue
+		}
+
+		| cycle the tags
+		/call tag_evaluation ${maDebug.Find[tag].Value} GTFO ${_liC12.Value} ${Me.DisplayName} "${maGTFO.Find[stGTFO${_liC12.Value}].Value}" check_gtfo
+		/if (!${Macro.Return}) {
+			/invoke ${_liC12.Advance}
+			/continue
+		}
+
+		DEBUG ${sep}_liC12.Value${sep}\a-w${_liC12.Value}\ax${sep}passed tags
+
+		| seff targetable defnsive "things"
+		/if (${lsDefense${_liC12.Value}Tag.Contains[buffself]}) {
+			/varset _tmpID ${Me.ID}
+		} else {
+			/varset _tmpID 0
+		}
+
+		ISMEDEAD
+
+		/call voodoo ${_debug} "${maGTFO.Find[stGTFO${_liC12.Value}].Value}" 0 FALSE
+
+		/invoke ${_liC12.Advance}
+	}
+
+/return TRUE
 
 
