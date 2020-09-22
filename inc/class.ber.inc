@@ -189,6 +189,10 @@ sub misc_combat(bool _debug, int _tmpID)
 		/if (TARGET != ${_tmpID}) /varset _tmpID TARGET
 	}
 
+	/if (AUTO && MELEE) {
+		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+	}
+
 	/if (SWARM || PET) {
 		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
 	}

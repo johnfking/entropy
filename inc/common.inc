@@ -1,4 +1,4 @@
-|*********************************************************************
+5|*********************************************************************
  * entropy
  * common.inc
  *
@@ -773,7 +773,6 @@ sub is_ready(bool _debug, string _verbage)
 			/if (!${lsFreePassSpells.Contains[${Spell[${Spell[${_verbage}].RankName}].SpellType}]}) /return FALSE
 		}
 
-		| /if (!${Me.SpellReady[${Spell[${_verbage}].RankName}]} && !${Spell[${Spell[${_verbage}].RankName}].Category.Equal[Auras]}) /return FALSE
 		/if (!${Me.SpellReady[${Spell[${_verbage}].RankName}]}) /return FALSE
 		DEBUG ${sep}\a-ySPELL READY\ax${sep}\a-w${Spell[${_verbage}].RankName}\ax
 		/return TRUE
@@ -1150,9 +1149,9 @@ sub check_for_rezbox(bool _debug)
 			}
 
 			| Clear ALL THE MARKERS!
-			/delay 2s !${Me.State.Equal[HOVER]}
-			/delay 2s !${Me.Hovering}
-			/delay 2s !${Me.Dead}
+			| /delay 2s !${Me.State.Equal[HOVER]}
+			| /delay 2s !${Me.Hovering}
+			| /delay 2s !${Me.Dead}
 
 			/varset stAssTarID 0
 			/invoke ${maCC.Add[swValidAssTarID,FALSE]}
@@ -2414,7 +2413,7 @@ sub is_target_valid(bool _debug, int _tmpID)
 
 	/if (!${maOver.Find[swOverPctEngage].Value} && !PULL) {
 		/if (${Spawn[${_tmpID}].PctHPs} > ${maCC.Find[stPctEngage].Value} && !${Select[${maCC.Find[stAssistMode].Value},1,2,3,g]}) {
-			/delay 1
+			| /delay 1
 			/return FALSE
 		}
 	}
@@ -4274,7 +4273,7 @@ sub get_assist_target(bool _debug)
 		/return
 	}
 
-	ISMEDEAD
+	CHECKDEAD
 	GETINPUT get_assist_target NA|NA
 
 	| if were not assisting.. don't assist
@@ -4388,7 +4387,7 @@ sub get_assist_target(bool _debug)
 			}
 		}
 
-		/delay 2s ${Me.AssistComplete}
+		| /delay 2s ${Me.AssistComplete}
 		/if (!TARGET && ${Target.ID}) {
 			/varset stAssTarID ${Target.ID}
 		} else /if (TARGET != ${Target.ID} && TARGET != 0 && ${Target.ID} && ${Spawn[${Target}].Type.Equal[npc]}) {
@@ -4399,7 +4398,7 @@ sub get_assist_target(bool _debug)
 
 	}
 
-	ISMEDEAD
+	CHECKDEAD
 	GETINPUT
 	/if (TARGET == ${Target.ID}) {
 		/if (${Target.PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
@@ -10040,15 +10039,17 @@ sub control_routine(bool _debug)
 
 	**|
 
-	/declare _mzcheck mapiterator local
-  /vardata _mzcheck maMobControl.First.Clone
-  /while (!${_mzcheck.IsEnd}) {
-  	CHECKDEAD
-		/call control_mez ${_debug} ${_mzcheck.Key}
-		/invoke ${_mzcheck.Advance}
-  }
+	/if (${Bool[${madeBuff.Find[stAEMez].Value}]}) {
+		/declare _mzcheck mapiterator local
+	  /vardata _mzcheck maMobControl.First.Clone
+	  /while (!${_mzcheck.IsEnd}) {
+	  	CHECKDEAD
+			/call control_mez ${_debug} ${_mzcheck.Key}
+			/invoke ${_mzcheck.Advance}
+	  }
 
-	/delay 1
+		/delay 1
+	}
 
 	/if (!PULL) {
 		/call get_assist_target ${maDebug.Find[target].Value}
@@ -10286,6 +10287,8 @@ sub control_mez(bool _debug, int _tmpID)
 	FLOW control_mez ${_tmpID}
 
 	/if (!${_tmpID}) /return FALSE
+
+	/if (!${Bool[${madeBuff.Find[stAEMez].Value}]}) /return FALSE
 
 	/if (!${Defined[timer_mez_ID${_tmpID}]}) {
 		/invoke ${set_timer[${_debug}, timer_mez_ID${_tmpID}, 1]}
@@ -12919,7 +12922,7 @@ sub check_buff_cycle_self(bool _debug)
 	SETHUD "buff self"
 
 	/if (AUTO) {
-		/invoke ${set_data_timer[FALSE, Check_Buff_Self, RESTART]}
+		/invoke ${set_data_timer[${_debug}, Check_Buff_Self, RESTART]}
 		/if (!${maBuff.Find[swBuffMaster].Value}) {
 			/return FALSE
 		}
@@ -12948,9 +12951,11 @@ sub check_buff_cycle_self(bool _debug)
 			/call get_best_in_spell ${_debug} "${maBuff.Find[stBuff${_count}].Value.Arg[1,|]}" "${maBuff.Find[stBuff${_count}].Value.Arg[2,|]}" "${maBuff.Find[stBuff${_count}].Value.Arg[3,|]}"
 			| /varset _spell "${Macro.Return}"
 			/invoke ${maData.Add[tmpName,${Macro.Return}]}
+			/invoke ${maData.Add[tmpNameHold,${Macro.Return}]}
 		} else {
 			| /varset _spell "${maBuff.Find[stBuff${_count}].Value}"
 			/invoke ${maData.Add[tmpName,${maBuff.Find[stBuff${_count}].Value}]}
+			/invoke ${maData.Add[tmpNameHold,${maBuff.Find[stBuff${_count}].Value}]}
 		}
 
 		| cycle the tags
@@ -13043,7 +13048,7 @@ sub check_buff_cycle_self(bool _debug)
 	   	/makemevisible
 		}
 
-		/call voodoo ${_debug} "${maData.Find[tmpName].Value}" ${Me.ID} FALSE
+		/call voodoo ${_debug} "${maData.Find[tmpNameHold].Value}" ${Me.ID} FALSE
 		/call cast_cooldown_wait ${_debug}
 
 		/if (${lsBuff${_count}Tag.Contains[autoinventory]}) {
@@ -13055,18 +13060,18 @@ sub check_buff_cycle_self(bool _debug)
 		/if (${lsBuff${_count}Tag.Contains[drop]}) {
 			DEBUG ${sep}tag-\a-ydrop\ax
 			/delay 5s !${Me.Casting.ID}
-			/for _countD 1 to ${FindItem[${maData.Find[tmpName].Value}].Spell.NumEffects}
-				/if (${FindItem[${maData.Find[tmpName].Value}].Spell.Trigger[${_countD}].Name.Find[Illusion:]} || ${Me.Buff[${FindItem[${maData.Find[tmpName].Value}].Spell}].ID}) {
+			/for _countD 1 to ${FindItem[${maData.Find[tmpNameHold].Value}].Spell.NumEffects}
+				/if (${FindItem[${maData.Find[tmpNameHold].Value}].Spell.Trigger[${_countD}].Name.Find[Illusion:]} || ${Me.Buff[${FindItem[${maData.Find[tmpNameHold].Value}].Spell}].ID}) {
 					| mounts
-					/if (${Me.Buff[${FindItem[${maData.Find[tmpName].Value}].Spell}].ID}) {
-						/invoke ${out[0, "Removing${sep}\a-w${FindItem[${maData.Find[tmpName].Value}].Spell}\ax"]}
-						/removebuff ${FindItem[${maData.Find[tmpName].Value}].Spell}
+					/if (${Me.Buff[${FindItem[${maData.Find[tmpNameHold].Value}].Spell}].ID}) {
+						/invoke ${out[0, "Removing${sep}\a-w${FindItem[${maData.Find[tmpNameHold].Value}].Spell}\ax"]}
+						/removebuff ${FindItem[${maData.Find[tmpNameHold].Value}].Spell}
 						/delay 5
 					}
 					| illusions
-					/if (${Me.Buff[${FindItem[${maData.Find[tmpName].Value}].Spell.Trigger[${_countD}]}].ID}) {
-						/invoke ${out[0, "Removing${sep}\a-w${FindItem[${maData.Find[tmpName].Value}].Spell}\ax"]}
-						/removebuff ${FindItem[${maData.Find[tmpName].Value}].Spell.Trigger[${_countD}]}
+					/if (${Me.Buff[${FindItem[${maData.Find[tmpNameHold].Value}].Spell.Trigger[${_countD}]}].ID}) {
+						/invoke ${out[0, "Removing${sep}\a-w${FindItem[${maData.Find[tmpNameHold].Value}].Spell}\ax"]}
+						/removebuff ${FindItem[${maData.Find[tmpNameHold].Value}].Spell.Trigger[${_countD}]}
 						/delay 5
 					}
 				}
@@ -13214,6 +13219,7 @@ sub	tag_evaluation(bool	_debug,	string _type,	int	_num,	string _name,	string _sp
 		/invoke	${_litag.Advance}
 	}
 
+	DEBUG ${sep}tag_evaluation${sep}\agPASSED\ax
 /return	TRUE
 
 

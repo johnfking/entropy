@@ -20,12 +20,20 @@ on the to do list
 --------------------
 
 
+
+200921.01
+- self buffs
+  made some logic changes for AAs that pull your highest level spell for casting
+- inline delays
+  corrected a few more
+
+
 200917.01
 - corrected the default edit routine for spaces in "multi words" passed
 - removed 3 inline delays (2 in looting, one in manual no combat). #alwaysknightlysfault
 - added assist corrections to burn() and misc_dps() routines for all classes
 - cleric
-  alterd the burn routine for healing
+  altered the burn routine for healing
 
 
 200914.01
