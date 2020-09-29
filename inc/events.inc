@@ -48,9 +48,9 @@ sub Event_SPEAKLINE(string _target, string _verbage)
 sub Event_AP_IN_PROGRESS(string _line)
 	/if (!AUTO) /return
 	/if (HOME && PULL) {
-		/if (${Me.Stunned}) {
-			/delay 3s !${Me.Stunned}
-		}
+		| /if (${Me.Stunned}) {
+		| 	/delay 3s !${Me.Stunned}
+		| }
 		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} < ${maHome.Find[stHomeVariance].Value}) /return
 		/nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=off
 		/delay 5s !${Me.Moving}
@@ -151,6 +151,7 @@ sub Event_CAST_IMMUNE(string _line, bool _debug)
 /return
 
 #event CAST_INTERRUPTED            "Your spell is interrupted#*#"
+#event CAST_INTERRUPTED            "Your #*# spell is interrupted#*#"
 #event CAST_INTERRUPTED            "Your casting has been interrupted#*#"
 sub Event_CAST_INTERRUPTED(string _line, bool _debug)
 	EDEBUG INTERRUPTED

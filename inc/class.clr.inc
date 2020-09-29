@@ -60,7 +60,7 @@ sub class_init(bool _debug)
 
 	| yaulp
 	/invoke ${set_data_timer[${_debug}, Check_Yaulp, 6s]}
-	/call set_data_map ${_debug} maChr swYaulp 													FALSE													"${auxsw} use yaulp (\a-win combat, on cooldown\ax)"
+	/call set_data_map ${_debug} maChr swYaulp 													FALSE													"${auxsw} use yaulp (\a-win combat\ax)"
   /call set_data_map ${_debug} maChr stYaulp													PREGEN|1											"${auxna} name of yaulp spell/aa/item"
 
 	| temp buff: ward family

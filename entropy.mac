@@ -27,13 +27,13 @@
 #define ISMEDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}"
 #define CHECKDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /return FALSE"
 #define CHECKEXIT "/if (${check_exit[${maDebug.Find[exit].Value}]}) /return"
-#define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maCC.Find[swPull].Value} && !${Me.Invis}) /call check_for_corpse ${maDebug.Find[rez].Value}"
+#define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maPull.Find[swPull].Value} && !${Me.Invis}) /call check_for_corpse ${maDebug.Find[rez].Value}"
 #define CHECKFADE "/if (${maChr.Find[stPctFade].Value}) /call cast_AA_fade ${maDebug.Find[fade].Value}"
 #define OVERLOS "${If[${maOver.Find[swOverLOS].Value},,los]}"
 #define PS4 "playerstate 4"
 #define AUTO "${maEnv.Find[swAuto].Value}"
 #define ENV "${maEnv.Find[stEnvRadius].Value}"
-#define PULL "${maCC.Find[swPull].Value}"
+#define PULL "${maPull.Find[swPull].Value}"
 #define AGRO "${maAgro.Find[swAgro].Value}"
 #define TARGET "${stAssTarID}"
 #define TIE	"${maTie.Find[swSetTie].Value}"
@@ -47,7 +47,7 @@
 #define PCTHO "${tmpHealAdjust}"
 #define PCTREST "${maEnv.Find[stPctRest].Value}"
 #define SAFEENV "${maEnv.Find[stEnvSafeRadius].Value}"
-#define PULLENV "${maCC.Find[stPullRadius].Value}"
+#define PULLENV "${maPull.Find[stPullRadius].Value}"
 #define AE# "${maChr.Find[stCountAE].Value}"
 #define PET "${maMinion.Find[swPet].Value}"
 #define SWARM "${maMinion.Find[swSwarm].Value}"
@@ -106,8 +106,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	/call delete_conflict_alias FALSE
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 200921.01
-	/call set_data FALSE maEnv schema													map outer 1.14
+	/call set_data FALSE maEnv build													map outer 200928.01
+	/call set_data FALSE maEnv schema													map outer 1.17
 	/call set_data FALSE maEnv repo														map outer 200706.01
 
 	| using this as a marker for live vs Next
@@ -169,7 +169,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 		/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) {
 			/call check_buff_cycle_now ${maDebug.Find[now].Value}
 		}
-		/delay 1
+		/delay ${maEntropy.Find[stMainLoopDelay].Value}
 	}
 
  	| main loop
@@ -290,6 +290,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 					/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w1\ax (\a-rentering assist/pull routine\ax)
 
 					/if ((!PULL && ${SpawnCount[NPC radius ENV PS4]}) || (PULL && ${Group.MainAssist.ID} != ${Me.ID} && ${Group.Members} && (TARGET || ${SpawnCount[NPC radius ENV PS4 targetable]}))) {
+						/echo here 2
 						/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w2\ax (\a-rget_assist_target\ax)
 						/call get_assist_target ${maDebug.Find[assist].Value}
 
@@ -303,29 +304,24 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 								/if (${Macro.Return}) {
 									/continue
 								}
-
-								| /if (${pull_hardstop[${maDebug.Find[hardstop].Value}]}) {
-								| 	/continue
-								| }
 							} else /if (${timer_Check_Pull_Hardstop} && !${SpawnCount[npc radius SAFEENV]}) {
-								/delay 5
 								/continue
 							}
 						}
 
-						/if (${maCC.Find[stPullMode].Value.Equal[base]}) {
+						/if (${maPull.Find[stPullMode].Value.Equal[base]}) {
 							/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w4\ax
 							/call get_target_basepull ${maDebug.Find[pull].Value}
 						} else {
 							/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w5\ax (\a-rpull-advanced\ax)
 							/call pull_prep_advanced ${maDebug.Find[pull].Value}
-							/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w6\ax (\a-rpull-advanced-${maCC.Find[stPullMode].Value}\ax)
-							/call get_target_${maCC.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
+							/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w6\ax (\a-rpull-advanced-${maPull.Find[stPullMode].Value}\ax)
+							/call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
 						}
 					}
 				}
 			}
-			| /delay 1
+			/delay ${maEntropy.Find[stMainLoopDelay].Value}
 		}
 
 		ISMEDEAD
@@ -335,7 +331,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 
 		/call class_main FALSE
 		/if (!AUTO) {
-			| /delay 1
+			/delay ${maEntropy.Find[stMainLoopDelay].Value}
 		}
 
 	}

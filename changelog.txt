@@ -20,6 +20,25 @@ on the to do list
 --------------------
 
 
+200928.01
+- monks
+  they have hiatus now. i dont know why, but they do
+- /entropy loopdelay #
+  0-9 (default 1) 0 being off
+  changes the main loop delay of the macro. this is in 1/10ths of a second
+  this is the number of cycles the main macro loop does. the higher the number the less loops
+  the default of 1 is 10 cycles per second, a 5 would be 2 cycles per second
+  adjust this, ONLY if you are experiencing a FPS drop
+  NEVER take past 9. i honestly wouldnt advise going over a 5
+- /mode petfarm
+  some updates to the pulling
+- pullin (no not that)
+  /pull - now contains all the commands and controlls for whomever is puling.
+  it is also a line of usable things to pull with when using /pull with other
+  /pull other - will use whatever ites you set to pull with in /pull list
+	 the design is just like nukes or dots.
+	 i will update the wiki slowly.. er shortly..
+
 
 200921.01
 - self buffs

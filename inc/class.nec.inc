@@ -409,7 +409,7 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 
 	| use bloom mana recovery
 	} else /if (${_type.Equal[bloom]}) {
-		/invoke ${set_switch_env[${_debug}, stPctBloom, TRUE, ${_verbage}]}
+		/if (!${set_control_num_range[${_debug}, stPctBloom, "${_verbage}", 0, 99]}) /return FALSE
 
 	}
 

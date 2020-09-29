@@ -22,7 +22,8 @@ sub class_init(bool _debug)
 	/call set_data ${_debug} maData stCompleteHeal											map outer "Complete Heal"
 	/call set_data_map ${_debug} maChr stAAUnity												FALSE													"${auxna} class aa unity buff"
 
-  /call set_data_map ${_debug} maChr stRest 													PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map ${_debug} maChr stRest 													PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map ${_debug} maChr stHiatus													PREGEN|1											"${auxna} name of hiatus stamina recovery disc"
  	/call set_data_map ${_debug} maChr swHiatus													FALSE													"${auxsw} use hiatus rest disc"
 	/call set_data_map ${_debug} maChr swTrainMelee											FALSE													"${auxsw} alternate skills for training"
 

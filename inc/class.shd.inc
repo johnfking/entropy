@@ -310,7 +310,7 @@ sub misc_combat(bool _debug, int _tmpID)
 
 |***
  * note: we are agro gods.
- * use: /call get_agro_${Me.Class.ShortName}
+ * use: /call get_agro
  ***|
 sub get_agro(bool _debug, int _tmpID)
 	DEBUG \atget_agro\ax()

@@ -503,7 +503,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 			}
 			/invoke ${target[clear]}
 		} else /if (${_type.Equal[auto]}) {
-			/if ((${maCC.Find[swPullSetHome].Value} && PULL) || ${maHome.Find[swonAuto].Value}) {
+			/if ((${maPull.Find[swPullSetHome].Value} && PULL) || ${maHome.Find[swonAuto].Value}) {
 				/if (!${swModeToken}) {
 					/call Bind_control_home set NULL NULL ${maDebug.Find[home].Value}
 				}
@@ -1549,6 +1549,9 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 			/invoke ${maHook.Clear}
 		}
 
+	} else /if (${_type.Equal[loopdelay]}) {
+		/if (!${set_control_num_range[${_debug}, stMainLoopDelay, "${_verbage}", 0, 9]}) /return
+
 	} else /if (${_type.Equal[nettimeout]}) {
 		/if (!${set_control_num_range[${_debug}, stNetworkTimeout, "${_verbage}", 0, 30]}) /return
 
@@ -1635,6 +1638,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 	/invoke ${maControl.Add[events,swEventsInc]}
 	/invoke ${maControl.Add[hook,swHookSub]}
 	/invoke ${maControl.Add[hud,submenu]}
+	/invoke ${maControl.Add[loopdelay,stMainLoopDelay]}
 	/invoke ${maControl.Add[manautoinv,swAutoInvManual]}
 	/invoke ${maControl.Add[maintenance,swMaintenance]}
 	/invoke ${maControl.Add[nettimeout,stNetworkTimeout]}
@@ -2531,7 +2535,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 
 		/echo
 		OUT Target Info${sep}
-		OUT name:${con_color[${_debug}, ${_tmpID}]}${sep}\a-w${Target.Name}\ax${sep}\ay${Target.ID}\ax
+		OUT name:${con_color[${_debug}, ${Target.ID}]}${sep}\a-w${Target.Name}\ax${sep}\ay${Target.ID}\ax
 		OUT lvl${sep}\a-w${Target.Level}\ax
 		OUT named${sep}\a-w\ax
 
@@ -3032,7 +3036,6 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 
 		}
 
-
 		/declare _limelee listiterator local
 		/vardata _limelee lsMeleeSkill.First.Clone
 		/while (!${_limelee.IsEnd}) {
@@ -3067,129 +3070,6 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 		} else {
 			/invoke ${do_raw_edit[FALSE, SILENT, stManualAssist2, FALSE]}
 		}
-
-	| set pull mode
-	} else /if (${_type.Equal[pull]}) {
-		| turn pull on or off
-		/if (${_verbage.Equal[active]}) {
-			/invoke ${set_switch_env[${_debug}, swPull, TRUE, ${_verbage2}]}
-
-		| pull radius
-		} else /if (${_verbage.Equal[rad]}) {
-			/invoke ${do_raw_edit[FALSE, SILENT, stPullRadius, "${_verbage2}"]}
-
-		| pull zradius
-		} else /if (${_verbage.Equal[zrad]}) {
-			/invoke ${do_raw_edit[FALSE, SILENT, stPullZRadius, "${_verbage2}"]}
-
-		| nav stop distance
-		} else /if (${_verbage.Equal[navstop]}) {
-			/if (!${set_control_num_range[${_debug}, stPullNavStopDistance, "${_verbage2}", 31, 250]}) /return
-
-		| enable/disable setting home marker when pulling
-		} else /if (${_verbage.Equal[sethome]}) {
-			/invoke ${set_switch_env[${_debug}, swPullSetHome, TRUE, ${_verbage2}]}
-
-		| base pulling
-		} else /if (${_verbage.Equal[base]}) {
-			/call do_raw_edit ${_debug} SILENT stPullMode "base"
-
-		| intervention pulling
-		} else /if (${_verbage.Equal[int]}) {
-			/if (${Select[${Me.Class.ShortName},CLR,SHM]}) {
-				/invoke ${out[1, shade, 0]}
-				/return FALSE
-			}
-			/call do_raw_edit ${_debug} SILENT stPullMode "int"
-
-		| hard stop duration
-		} else /if (${_verbage.Equal[hardtime]}) {
-			/if (!${set_control_num_range[${_debug}, stHardStopDuration, "${_verbage2}", 0, 99]}) /return
-
-		| hard stop pct
-		} else /if (${_verbage.Equal[hardpct]}) {
-			/if (!${set_control_num_range[${_debug}, stPctHardStop, "${_verbage2}", 0, 99]}) /return
-
-		| pull modes
-		} else /if (${_verbage.Equal[mode]}) {
-			| pet pulling
-			/if (${_verbage2.Equal[pet]}) {
-				/if (!${Select[${Me.Class.ShortName},MAG,ENC,DRU,SHM,SHD,NEC,BST]}) {
-					/invoke ${out[1, shade, 0]}
-					/return TRUE
-				}
-				/call do_raw_edit ${_debug} SILENT stPullMode "pet"
-			| nav pulling
-			} else /if (${_verbage2.Equal[nav]}) {
-				/call do_raw_edit ${_debug} SILENT stPullMode "nav"
-			| decision pulling
-			} else /if (${_verbage2.Equal[multi]}) {
-				/call do_raw_edit ${_debug} SILENT stPullMode "multi"
-			| base pulling
-			} else /if (${_verbage2.Equal[base]}) {
-				/call do_raw_edit ${_debug} SILENT stPullMode "base"
-			| calm pulling
-			} else /if (${_verbage2.Equal[calm]}) {
-				/call do_raw_edit ${_debug} SILENT stPullMode "calm"
-			}
-
-			/declare _liP listiterator local
-			/declare _outP string local
-			/vardata _liP lsPullMode.First.Clone
-			/while (!${_liP.IsEnd}) {
-				/varset _outP ${_outP} ${If[${_liP.Value.Equal[${lsPullMode.First}]},,${dot}]} ${If[${_liP.Value.Equal[${maCC.Find[stPullMode].Value}]},${num}${_liP.Value}\ax,${info}${_liP.Value}\ax]}
-				/invoke ${_liP.Advance}
-			}
-			/invoke ${out[12, "/cc pull mode ${_outP}"]}
-			/return TRUE
-
-		| pull modes
-		} else /if (${_verbage.Equal[with]}) {
-
-			| range
-			/if (${_verbage2.Equal[range]}) {
-				/call do_raw_edit ${_debug} SILENT stPullWith "range"
-			| melee
-			} else /if (${_verbage2.Equal[melee]}) {
-				/call do_raw_edit ${_debug} SILENT stPullWith "melee"
-			| other
-			} else /if (${_verbage2.Equal[other]}) {
-				/call do_raw_edit ${_debug} SILENT stPullWith "other"
-			} else /if (${_verbage2.Equal[nameother]}) {
-				/call do_raw_edit ${_debug} SILENT stRangeOther "${_silent}"
-			} else /if (${_verbage2.Equal[bandolier]}) {
-				/call do_raw_edit ${_debug} SILENT stRangeBandolier "${_silent}"
-
-			}
-
-			/declare _liP listiterator local
-			/declare _outP string local
-			/vardata _liP lsPullWith.First.Clone
-			/while (!${_liP.IsEnd}) {
-				/varset _outP ${_outP} ${If[${_liP.Value.Equal[${lsPullWith.First}]},,${dot}]} ${If[${_liP.Value.Equal[${maCC.Find[stPullWith].Value}]},${num}${_liP.Value}\ax,${info}${_liP.Value}\ax]}
-				/invoke ${_liP.Advance}
-			}
-			/varset _outP ${_outP} ${dot} ${info}nameother\ax:[${If[${Bool[${maCC.Find[stRangeOther].Value}]},${num}${maCC.Find[stRangeOther].Value}\ax,${off}]}]
-			/varset _outP ${_outP} ${dot} ${info}bandolier\ax:[${If[${Bool[${maCC.Find[stRangeBandolier].Value}]},${num}${maCC.Find[stRangeBandolier].Value}\ax,${off}]}]
-			/invoke ${out[12, "/cc pull with ${_outP}"]}
-			/return TRUE
-
-		}
-
-		/invoke ${maControl.Clear}
-		/invoke ${maControl.Add[active,swPull]}
-		/invoke ${maControl.Add[rad,stPullRadius]}
-		/invoke ${maControl.Add[zrad,stPullZRadius]}
-		/invoke ${maControl.Add[mode,submenu]}
-		/invoke ${maControl.Add[with,submenu]}
-		/invoke ${maControl.Add[sethome,swPullSetHome]}
-		/invoke ${maControl.Add[navstop,stPullNavStopDistance]}
-		/invoke ${maControl.Add[hardtime,stHardStopDuration]}
-		/invoke ${maControl.Add[hardpct,stPctHardStop]}
-		/invoke ${set_control_output[${_debug}, maCC, "cc pull", maControl]}
-		/return
-
-
 
 	| mob engage %
 	} else /if (${_type.Equal[engage]}) {
@@ -3268,7 +3148,6 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 	/invoke ${maControl.Add[glyph,submenu]}
 	/invoke ${maControl.Add[engage,stPctEngage]}
 	/invoke ${maControl.Add[zradius,stZRadius]}
-	| /invoke ${maControl.Add[agro,swAgro]}
 	/invoke ${maControl.Add[stoponds,swStoponDS]}
 	/invoke ${maControl.Add[alliance,swAlliance]}
 	/invoke ${set_control_output[${_debug}, maCC, cc, maControl]}
@@ -3518,9 +3397,9 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 		/call Bind_control_home clear FALSE silent ${maDebug.Find[home].Value}
 	}
 
-	/if (${maCC.Find[swPull].Value}) {
+	/if (${maPull.Find[swPull].Value}) {
 		/varset _tmpPullMarker TRUE
-		/invoke ${maCC.Add[swPull,FALSE]}
+		/invoke ${maPull.Add[swPull,FALSE]}
 	}
 
 	/if (${_opt.Equal[invis]} && !${Me.Invis}) {
@@ -3573,7 +3452,7 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 		/call Bind_control_home set NULL NULL ${maDebug.Find[home].Value}
 	}
 	/if (${_tmpPullMarker}) {
-		/invoke ${maCC.Add[swPull,TRUE]}
+		/invoke ${maPull.Add[swPull,TRUE]}
 	}
 
 /return TRUE
@@ -4058,7 +3937,7 @@ sub Bind_command_here(string _type, bool _debug)
 	/stopcast
 
 	| reduce pull range if in a dense area
-	/if (${maCC.Find[swPull].Value}  && ${SpawnCount[NPC radius PULLENV PS4 targetable]} >= AE#) {
+	/if (${maPull.Find[swPull].Value}  && ${SpawnCount[NPC radius PULLENV PS4 targetable]} >= AE#) {
 		/if (PULLENV > 60) {
 			/call Bind_control_cc pull rad 60
 		}
@@ -5736,9 +5615,6 @@ sub Bind_control_gtfo(string _type, string _verbage, string _verbage2, string _a
 	} else /if (${_type.Equal[spawns]}) {
 		/if (!${set_control_num_range[${_debug}, stCountGTFOSpawns, "${_verbage}", 0, 99]}) /return
 
-
-
-
 	}
 
 	/invoke ${maControl.Clear}
@@ -5752,5 +5628,139 @@ sub Bind_control_gtfo(string _type, string _verbage, string _verbage2, string _a
 
 
 
+|***
+ * note: pulling controls
+ * use: /pull [no, dont pull that]
+ ***|
+#bind control_pull /pull
+sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _silent)
+	/declare _debug bool local FALSE
+	DEBUG \atBind_control_pulll\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+
+	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
+		/call control_base_edit ${maDebug.Find[edit].Value} Pull 12 "${_type}" "${_verbage}" "${_verbage2}" ${_silent}
+		/return TRUE
+	}
+
+	| turn pull on or off
+	/if (${_type.Equal[active]}) {
+		/invoke ${set_switch_env[${_debug}, swPull, TRUE, ${_verbage}]}
+
+	| pull radius
+	} else /if (${_type.Equal[rad]}) {
+		/invoke ${do_raw_edit[${_debug}, SILENT, stPullRadius, "${_verbage}"]}
+
+	| pull zradius
+	} else /if (${_type.Equal[zrad]}) {
+		/invoke ${do_raw_edit[${_debug}, SILENT, stPullZRadius, "${_verbage}"]}
+
+	| nav stop distance
+	} else /if (${_type.Equal[navstop]}) {
+		/if (!${set_control_num_range[${_debug}, stPullNavStopDistance, "${_verbage}", 31, 250]}) /return
+
+	| enable/disable setting home marker when pulling
+	} else /if (${_type.Equal[sethome]}) {
+		/invoke ${set_switch_env[${_debug}, swPullSetHome, TRUE, ${_verbage}]}
+
+	| pull modes
+	} else /if (${_type.Equal[mode]}) {
+		| pet pulling
+		/if (${_verbage.Equal[pet]}) {
+			/if (!${Select[${Me.Class.ShortName},MAG,ENC,DRU,SHM,SHD,NEC,BST]}) {
+				/invoke ${out[1, shade, 0]}
+				/return TRUE
+			}
+			/call do_raw_edit ${_debug} SILENT stPullMode "pet"
+		| nav pulling
+		} else /if (${_verbage.Equal[nav]}) {
+			/call do_raw_edit ${_debug} SILENT stPullMode "nav"
+		| decision pulling
+		} else /if (${_verbage.Equal[multi]}) {
+			/call do_raw_edit ${_debug} SILENT stPullMode "multi"
+		| base pulling
+		} else /if (${_verbage.Equal[base]}) {
+			/call do_raw_edit ${_debug} SILENT stPullMode "base"
+		| calm pulling
+		} else /if (${_verbage.Equal[calm]}) {
+			| /call do_raw_edit ${_debug} SILENT stPullMode "calm"
+		}
+
+		/declare _liP listiterator local
+		/declare _outP string local
+		/vardata _liP lsPullMode.First.Clone
+		/while (!${_liP.IsEnd}) {
+			/varset _outP ${_outP} ${If[${_liP.Value.Equal[${lsPullMode.First}]},,${dot}]} ${If[${_liP.Value.Equal[${maPull.Find[stPullMode].Value}]},${num}${_liP.Value}\ax,${info}${_liP.Value}\ax]}
+			/invoke ${_liP.Advance}
+		}
+		/invoke ${out[12, "/pull mode ${_outP}"]}
+		/return TRUE
+
+	| pull stop reasons
+	} else /if (${_type.Equal[stop]}) {
+
+
+		| hard stop duration
+		/if (${_verbage.Equal[time]}) {
+			/if (!${set_control_num_range[${_debug}, stHardStopDuration, "${_verbage2}", 0, 99]}) /return
+
+		| hard stop pct
+		} else /if (${_verbage.Equal[pct]}) {
+			/if (!${set_control_num_range[${_debug}, stPctHardStop, "${_verbage2}", 0, 99]}) /return
+
+		| hard stop pct
+		} else /if (${_verbage.Equal[rez]}) {
+			/invoke ${set_switch_env[${_debug}, swHardStoprez, TRUE, ${_verbage2}]}
+		}
+
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[time,stHardStopDuration]}
+		/invoke ${maControl.Add[pct,stPctHardStop]}
+		/invoke ${maControl.Add[rez,swHardStoprez]}
+		/invoke ${set_control_output[FALSE, maPull, "pull stop", maControl]}
+		/return
+
+
+	| pull modes
+	} else /if (${_type.Equal[with]}) {
+
+		| range
+		/if (${_verbage.Equal[range]}) {
+			/call do_raw_edit ${_debug} SILENT stPullWith "range"
+		| melee
+		} else /if (${_verbage.Equal[melee]}) {
+			/call do_raw_edit ${_debug} SILENT stPullWith "melee"
+		| other
+		} else /if (${_verbage.Equal[other]}) {
+			/call do_raw_edit ${_debug} SILENT stPullWith "other"
+		} else /if (${_verbage.Equal[bandolier]}) {
+			/call do_raw_edit ${_debug} SILENT stRangeBandolier "${_verbage2}"
+
+		}
+
+		/declare _liP listiterator local
+		/declare _outP string local
+		/vardata _liP lsPullWith.First.Clone
+		/while (!${_liP.IsEnd}) {
+			/varset _outP ${_outP} ${If[${_liP.Value.Equal[${lsPullWith.First}]},,${dot}]} ${If[${_liP.Value.Equal[${maPull.Find[stPullWith].Value}]},${num}${_liP.Value}\ax,${info}${_liP.Value}\ax]}
+			/invoke ${_liP.Advance}
+		}
+		/varset _outP ${_outP} ${dot} ${info}bandolier\ax:[${If[${Bool[${maPull.Find[stRangeBandolier].Value}]},${num}${maPull.Find[stRangeBandolier].Value}\ax,${off}]}]
+		/invoke ${out[12, "/pull with ${_outP}"]}
+		/return TRUE
+
+	}
+
+	/invoke ${maControl.Clear}
+	/invoke ${maControl.Add[active,swPull]}
+	/invoke ${maControl.Add[rad,stPullRadius]}
+	/invoke ${maControl.Add[zrad,stPullZRadius]}
+	/invoke ${maControl.Add[stop,submenu]}
+	/invoke ${maControl.Add[mode,submenu]}
+	/invoke ${maControl.Add[with,submenu]}
+	/invoke ${maControl.Add[sethome,swPullSetHome]}
+	/invoke ${maControl.Add[navstop,stPullNavStopDistance]}
+	/invoke ${set_control_output[FALSE, maPull, "pull", maControl]}
+
+/return TRUE
 
 

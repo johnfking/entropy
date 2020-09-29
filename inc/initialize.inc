@@ -1,4 +1,4 @@
-rr|*********************************************************************
+|*********************************************************************
  * entropy
  * initialize.inc
  * all shared/static data	initilization
@@ -155,7 +155,7 @@ sub	set_initialize(bool	_debug)
 	/invoke	${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard]}
 	/invoke	${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro,maMercenary]}
 	/invoke	${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
-	/invoke	${lsMaps.Append[maGTFO]}
+	/invoke	${lsMaps.Append[maGTFO,maPull]}
 
 	| set	all	output shortcuts
 	/call	set_data ${_debug} FALSE num																			string outer "\a-t"
@@ -219,6 +219,7 @@ sub	set_initialize(bool	_debug)
 	/invoke	${maDBTables.Add[environment_minion,env_var]}
 	/invoke	${maDBTables.Add[environment_rez,env_var]}
 	/invoke	${maDBTables.Add[environment_gtfo,env_var]}
+	/invoke	${maDBTables.Add[environment_pull,env_var]}
 
 /return	TRUE
 
@@ -286,7 +287,7 @@ sub	set_initial_environment(bool _debug)
 	/call	set_data ${_debug} FALSE lsFreePassSpells													list outer Beneficial|Pet
 
 	| control	lines
-	/call	set_data ${_debug} FALSE lsControlLine														list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez|gtfo
+	/call	set_data ${_debug} FALSE lsControlLine														list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez|gtfo|pull
 
 	| increment lists
 	/call	set_data ${_debug} FALSE stCount6																	string outer "0|1|2|3|4|5"
@@ -994,34 +995,34 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data ${_debug} FALSE hurtDead																	int	outer	0
 
 	| points for healing
-	/call	set_data_map ${_debug} maHeal	stHealPointHoT										80														"${auxnum} % of	health to	use	single heal	over time"													heal
+	/call set_data_map ${_debug} maHeal	stHealPointHoT										80														"${auxnum} % of	health to	use	single heal	over time"													heal
 	/declare _lishp	listiterator local
 	/vardata _lishp	lsClassAll.First
 	/while (!${_lishp.IsEnd})	{
-		/call	set_data_map ${_debug} maHeal	stHealPoint${_lishp.Value}			80														"${auxnum} % of	health to	start	healing:\a-w${_lishp.Value}\ax"								heal
+		/call set_data_map ${_debug} maHeal	stHealPoint${_lishp.Value}			80														"${auxnum} % of	health to	start	healing:\a-w${_lishp.Value}\ax"								heal
 		/invoke	${_lishp.Advance}
 	}
 
 	| curing shit
 	/invoke	${set_data_timer[FALSE,	Check_Cure,	6s]}
 	/if	(${lsClassCastCure.Contains[${Me.Class.ShortName}]}) {
-		/call	set_data_map ${_debug} maHeal	stCureCurse												FALSE													"${auxna}	name of	cure curse spell"												heal
-		/call	set_data_map ${_debug} maHeal	stCurePoison											FALSE													"${auxna}	name of	cure poison	spell"											heal
-		/call	set_data_map ${_debug} maHeal	stCureDisease											FALSE													"${auxna}	name of	cure disease spell"											heal
-		/call	set_data_map ${_debug} maHeal	stCureCorruption									FALSE													"${auxna}	name of	corruption cure	spell"									heal
+		/call set_data_map ${_debug} maHeal	stCureCurse												FALSE													"${auxna}	name of	cure curse spell"												heal
+		/call set_data_map ${_debug} maHeal	stCurePoison											FALSE													"${auxna}	name of	cure poison	spell"											heal
+		/call set_data_map ${_debug} maHeal	stCureDisease											FALSE													"${auxna}	name of	cure disease spell"											heal
+		/call set_data_map ${_debug} maHeal	stCureCorruption									FALSE													"${auxna}	name of	corruption cure	spell"									heal
 	}
-	/call	set_data_list	${_debug}	maHeal lsNoCureDeBuff											EMPTY													"${auxli}	list of	debuffs	you	DO NOT want	to cure"				heal
-	/call	set_data_map ${_debug} maHeal	stCureCurseItem											FALSE													"${auxna}	name of	item to	cure self	curses"								heal
-	/call	set_data_map ${_debug} maHeal	stCurePoisonItem										FALSE													"${auxna}	name of	item to	cure self	poisons"							heal
-	/call	set_data_map ${_debug} maHeal	stCureDiseaseItem										FALSE													"${auxna}	name of	item to	cure self	diseases"							heal
-	/call	set_data_map ${_debug} maHeal	stCureCorruptionItem								FALSE													"${auxna}	name of	item to	cure self	corruption"						heal
-	/call	set_data_map ${_debug} maHeal	swHealCureSelf											FALSE													"${auxsw}	enable self	curing"															heal
-	/call	set_data_map ${_debug} maHeal	swHealCureGroup											FALSE													"${auxsw}	enable group curing"														heal
-	/call	set_data_map ${_debug} maHeal	swHealCureCrew											FALSE													"${auxsw}	enable crew	curing (everyone)"									heal
+	/call set_data_list	${_debug}	maHeal lsNoCureDeBuff											EMPTY													"${auxli}	list of	debuffs	you	DO NOT want	to cure"				heal
+	/call set_data_map ${_debug} maHeal	stCureCurseItem											FALSE													"${auxna}	name of	item to	cure self	curses"								heal
+	/call set_data_map ${_debug} maHeal	stCurePoisonItem										FALSE													"${auxna}	name of	item to	cure self	poisons"							heal
+	/call set_data_map ${_debug} maHeal	stCureDiseaseItem										FALSE													"${auxna}	name of	item to	cure self	diseases"							heal
+	/call set_data_map ${_debug} maHeal	stCureCorruptionItem								FALSE													"${auxna}	name of	item to	cure self	corruption"						heal
+	/call set_data_map ${_debug} maHeal	swHealCureSelf											FALSE													"${auxsw}	enable self	curing"															heal
+	/call set_data_map ${_debug} maHeal	swHealCureGroup											FALSE													"${auxsw}	enable group curing"														heal
+	/call set_data_map ${_debug} maHeal	swHealCureCrew											FALSE													"${auxsw}	enable crew	curing (everyone)"									heal
 
 
-	/call	set_data_list	${_debug}	maHeal lsProtectOutsideGroup							EMPTY													"${auxli}	names	outside	of your	group	to add to	xtarget	for	healing" heal
-	/call	set_data_list	${_debug}	maHeal lsLineHeal													EMPTY													"${auxli}	alternate	cast order for heals"									heal
+	/call set_data_list	${_debug}	maHeal lsProtectOutsideGroup							EMPTY													"${auxli}	names	outside	of your	group	to add to	xtarget	for	healing" heal
+	/call set_data_list	${_debug}	maHeal lsLineHeal													EMPTY													"${auxli}	alternate	cast order for heals"									heal
 
 	| xtarget sets heal classes
 	/if	(${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
@@ -1047,7 +1048,6 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maRez swRezToken														FALSE													"${auxsw}	use	rez	tokens (\a-wseparate from	stResurrection\ax)"               rez
 	/call	set_data_map ${_debug} maRez stPctMinRez													90														"${auxnum} minimum % rez you are willing to	accept"                           rez
 	/call	set_data_map ${_debug} maRez stMaxRezRange												60														"${auxnum} how far away	to look	for	corpses	to rez"                           rez
-	| /call	set_data_map ${_debug} maRez stResurrection												FALSE													"${auxna}	spell/item/aa	to rez with	(\awoptional for rezing	classes\ax)"      rez
 	/call	set_data_map ${_debug} maRez stRez1																"pccorpse cleric raid"				"rez priority 1 spawn string search" 																					rez
 	/call	set_data_map ${_debug} maRez swRez1																TRUE													"rez priority 1 switch" 																											rez
 	/call	set_data_map ${_debug} maRez stRez2																"pccorpse cleric group"				"rez priority 2 spawn string search" 																					rez
@@ -1154,6 +1154,25 @@ sub	set_initialize_map_character_environment(bool	_debug)
 
 
 
+
+|**	control: pull	**|
+	/call set_data_list	${_debug}	maPull lsLinePull													EMPTY													"${auxli}	alternate	order for pulling"																					pull
+	/call	set_data_map ${_debug} maPull	swPull															FALSE													"${auxsw}	enable pulling (\a-wselect mobs	to kill\ax)"													pull
+	/call	set_data_map ${_debug} maPull	stPullRadius												0															"${auxnum} radius	to pull	mobs from"																						pull
+	/call	set_data_map ${_debug} maPull	swPullSetHome												FALSE													"${auxsw}	suto set home	marker when	pulling	is enabled"													pull
+	/call	set_data_map ${_debug} maPull	stPullNavStopDistance								60														"${auxnum} how close you will	nav	pull to	a	mob	before trying	too	tag	it"				pull
+	/call	set_data ${_debug} FALSE lsPullMode																list outer base|pet|int|nav|multi
+	/call	set_data_map ${_debug} maPull	stPullMode													base													"${auxna}	[\a-wbase-nav-int-pet-multi\ax]	the	mode of	pulling	you	wish to	use	while	looking	for	said mobs"				pull
+	/call	set_data ${_debug} FALSE lsPullWith																list outer melee|range|other
+	/call	set_data_map ${_debug} maPull	stPullWith													FALSE													"${auxna}	[\a-wmelee-range-other\ax] what	you	want to	pull with???"							pull
+	/call	set_data_map ${_debug} maPull	stRangeBandolier										FALSE													"${auxna}	name of	bandolier	for	ranged pulling?"																pull
+	/call	set_data_map ${_debug} maPull	stPctHardStop												0															"${auxnum} % of	crew sta/manna to	stop pulling at	to give	them rest	time?"			pull
+	/call	set_data_map ${_debug} maPull	stHardStopDuration									0															"${auxnum} duration	to stop	pulling	for	crew to	recover"												pull
+	/call	set_data_map ${_debug} maPull	swHardStopRez												FALSE													"${auxnum} stop pulling when someone has rez effects"														pull
+	/call	set_data_map ${_debug} maPull	stPullZRadius												60														"${auxnum} the z distance	of your	pulling environment"													pull
+
+
+
 |**	control: cc	**|
 	/call	set_data ${_debug} maCC	swSetForced																map	outer	FALSE
 	/call	set_data ${_debug} maCC	swSetCombat																map	outer	FALSE
@@ -1166,22 +1185,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maCC	swCombatHeal													FALSE													"${auxsw}	enable heal	modes	in or	out	of combat"
 	/call	set_data_map ${_debug} maCC	swCombatControl												FALSE													"${auxsw}	enable crowd control modes in	or out of	combat"
 	/call	set_data_map ${_debug} maCC	swAlliance														FALSE													"${auxsw}	enable class alliance"
-
-	| pulling
-	/call	set_data_map ${_debug} maCC	swPull																FALSE													"${auxsw}	enable pulling (\a-wselect mobs	to kill\ax)"
-	/call	set_data_map ${_debug} maCC	stPullRadius													0															"${auxnum} radius	to pull	mobs from"
-	/call	set_data_map ${_debug} maCC	swPullSetHome													FALSE													"${auxsw}	suto set home	marker when	pulling	is enabled"
-	/call	set_data_map ${_debug} maCC	stPullNavStopDistance									60														"${auxnum} how close you will	nav	pull to	a	mob	before trying	too	tag	it"
-	/call	set_data ${_debug} FALSE lsPullMode																list outer base|pet|int|nav|multi
-	/call	set_data_map ${_debug} maCC	stPullMode														base													"${auxna}	[\a-wbase-nav-int-pet-multi\ax]	the	mode of	pulling	you	wish to	use	while	looking	for	said mobs"
-	/call	set_data ${_debug} FALSE lsPullWith																list outer melee|range|other
-	/call	set_data_map ${_debug} maCC	stPullWith														FALSE													"${auxna}	[\a-wmelee-range-other\ax] what	you	want to	pull with???"
-	/call	set_data_map ${_debug} maCC	stRangeOther													FALSE													"${auxna}	something	else you would like	to use for ranged	pulling?"
-	/call	set_data_map ${_debug} maCC	stRangeBandolier											FALSE													"${auxna}	name of	bandolier	for	ranged pulling?"
-	/call	set_data_map ${_debug} maCC	stPctHardStop													0															"${auxnum} % of	crew sta/manna to	stop pulling at	to give	them rest	time?"
-	/call	set_data_map ${_debug} maCC	stHardStopDuration										0															"${auxnum} duration	to stop	pulling	for	crew to	recover"
 	/call	set_data_map ${_debug} maCC	swStoponDS														FALSE													"${auxsw}	Stop combat	when the target	has	a	DS.	Does not apply agro	enabled."
-	/call	set_data_map ${_debug} maCC	stPullZRadius													60														"${auxnum} the z distance	of your	pulling environment"
 
 	| glyph
 	/call	set_data_map ${_debug} maCC	swGlyphGroup													FALSE													"${auxsw}	use	glyph	in a group"
@@ -1410,6 +1414,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maEntropy swRelayTellBeep									FALSE													"${auxsw}	beep on	a	tell relay"
 	/call	set_data_map ${_debug} maEntropy swUseConColor										FALSE													"${auxsw}	Use ConColors for targets"
 	/call	set_data_map ${_debug} maEntropy swNavLogSpew											off														"${auxsw}	(on/off) Show mq2nav log spew in mq2 chat window"
+	/call	set_data_map ${_debug} maEntropy stMainLoopDelay									1															"${auxnum} this is the main delay for the master macro loops. USE CAUTION when changing!"
 
 	| GoM	list
 	/call	set_data_list	${_debug}	maChr	lsGoM																EMPTY													"${auxli}	things to	use	on a gift	of mana	aa proc"
@@ -1583,6 +1588,7 @@ sub	set_initialize_map_12(bool _debug)
 	/declare _liC12	listiterator local
 	/invoke	${_tmpMap.Add[Sash,sash]}
 	/invoke	${_tmpMap.Add[GTFO,gtfo]}
+	/invoke	${_tmpMap.Add[Pull,pull]}
 
 	/vardata _tmi	_tmpMap.First.Clone
 	/while (!${_tmi.IsEnd})	{
@@ -1595,7 +1601,7 @@ sub	set_initialize_map_12(bool _debug)
 		}
 
 		/if	(${maDebug.Find[init].Value})	{
-			OUT	\agset_initialize_map_heal\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
+			OUT	\agset_initialize_map_12\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
 			/mqp
 		}
 
@@ -1639,7 +1645,7 @@ sub	set_initialize_map_20(bool _debug)
 		}
 
 		/if	(${maDebug.Find[init].Value})	{
-			OUT	\agset_initialize_map_heal\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
+			OUT	\agset_initialize_map_20\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
 			/mqp
 		}
 
@@ -1678,7 +1684,7 @@ sub	set_initialize_map_50(bool _debug)
 		}
 
 		/if	(${maDebug.Find[init].Value})	{
-			OUT	\agset_initialize_map_heal\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
+			OUT	\agset_initialize_map_50\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
 			/mqp
 		}
 
@@ -2737,7 +2743,7 @@ sub data_schema_tag_validation
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '23', '1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be the puller');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
@@ -2763,7 +2769,7 @@ sub data_schema_tag_validation
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '23', '1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be the puller');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
@@ -2790,7 +2796,7 @@ sub data_schema_tag_validation
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '23', '1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be the puller');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
@@ -2815,7 +2821,7 @@ sub data_schema_tag_validation
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '23', '1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be the puller');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
@@ -2843,7 +2849,7 @@ sub data_schema_tag_validation
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '23', '1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be the puller');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
@@ -2898,7 +2904,7 @@ sub data_schema_tag_validation
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '23', '1', '${Parse[0,${maCC.Find[swPull].Value}]}', 'must be the puller');
+	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
 	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
@@ -3025,6 +3031,23 @@ sub sql_db_update(bool _debug, string _type)
 
  | character database
  /if (${_type.Equal[character]}) {
+
+
+
+	| pulling changes
+	/if (${maEnv.Find[build].Value} >= 200927.01) {
+		/invoke ${_tmpMap.Add[swPull,character]}
+		/invoke ${_tmpMap.Add[stPullRadius,character]}
+		/invoke ${_tmpMap.Add[swPullSetHome,character]}
+		/invoke ${_tmpMap.Add[stPullNavStopDistance,character]}
+		/invoke ${_tmpMap.Add[stPullMode,character]}
+		/invoke ${_tmpMap.Add[stPullWith,character]}
+		/invoke ${_tmpMap.Add[stRangeOther,character]}
+		/invoke ${_tmpMap.Add[stRangeBandolier,character]}
+		/invoke ${_tmpMap.Add[stPctHardStop,character]}
+		/invoke ${_tmpMap.Add[stHardStopDuration,character]}
+		/invoke ${_tmpMap.Add[stPullZRadius,character]}
+	}
 
 
 	| predictive changes

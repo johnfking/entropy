@@ -350,8 +350,8 @@ sub mode_petfarm(bool _debug)
 	}
 
 	| find a mob
-	/call pull_mob_find ${_debug} 0 tagpets
-	DEBUG pull_mob_find.return${sep}\a-w${Macro.Return}\ax
+	/call pull_mob_find ${_debug} 0 petfarm
+	DEBUG ${sep}pull_mob_find.return${sep}\a-w${Macro.Return}\ax
 
 	/if (!TARGET) {
 		DEBUG \arNO\ax stAssTarID
@@ -373,7 +373,7 @@ sub mode_petfarm(bool _debug)
 
 	/while (TARGET) {
 		GETINPUT
-		/delay 1s
+		/delay 5
 
 		/if (${Spawn[TARGET].Type.Equal[CORPSE]} || !${Spawn[TARGET].ID}) /break
 		/if (${Me.Pet.Target.ID} != TARGET) /break
@@ -1704,27 +1704,27 @@ sub task_mob_find(bool _debug, int _spCount, string _tag)
 	}
 
 	| time to step the agro range out so we get mobs closer first
-	DEBUG ${sep}range${sep}\aw${maEnv.Find[stMobLvlMin].Value}\ax-\aw${maEnv.Find[stMobLvlMax].Value}\ax zradius${sep}\a-w${maCC.Find[stPullZRadius].Value}\ax
+	DEBUG ${sep}range${sep}\aw${maEnv.Find[stMobLvlMin].Value}\ax-\aw${maEnv.Find[stMobLvlMax].Value}\ax zradius${sep}\a-w${maPull.Find[stPullZRadius].Value}\ax
 
 	/while (${_tmpAgroRange} <= PULLENV && !TARGET) {
 		/delay 1
 
 		/if (${_tmpAgroRange} <= SAFEENV) {
-			/varset _mobcount ${SpawnCount[npc ${_los} radius ${_tmpAgroRange} zradius ${maCC.Find[stPullZRadius].Value} targetable]}
+			/varset _mobcount ${SpawnCount[npc ${_los} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
 		} else {
-			/varset _mobcount ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stPullZRadius].Value} targetable]}
+			/varset _mobcount ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
 		}
 
 		| search local ENV range in steps of 10 for mob acquisition
-		DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stPullZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
+		DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
 
-		/if (${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stPullZRadius].Value} targetable]}) {
+		/if (${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
 
-			/for _count 1 to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stPullZRadius].Value} targetable]}
+			/for _count 1 to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
 
 				ISMEDEAD
 
-				/varset _tmpID ${NearestSpawn[${If[${_spCount},${Math.Calc[${_count}+${_spCount}]},${_count}]}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maCC.Find[stPullZRadius].Value}].ID}
+				/varset _tmpID ${NearestSpawn[${If[${_spCount},${Math.Calc[${_count}+${_spCount}]},${_count}]}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}].ID}
 				DEBUG ${sep}_tmpID${sep}\a-w${_tmpID}\ax navlength${sep}\a-w${Navigation.PathLength[id ${_tmpID}]}\ax
 
 				| excluded mobs
