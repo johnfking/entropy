@@ -20,6 +20,10 @@ on the to do list
 --------------------
 
 
+200929.01
+- corrected a left in command and a debug
+
+
 200928.01
 - monks
   they have hiatus now. i dont know why, but they do

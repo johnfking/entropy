@@ -3143,7 +3143,6 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[ass,submenu]}
 	/invoke ${maControl.Add[mode,submenu]}
-	/invoke ${maControl.Add[pull,submenu]}
 	/invoke ${maControl.Add[melee,submenu]}
 	/invoke ${maControl.Add[glyph,submenu]}
 	/invoke ${maControl.Add[engage,stPctEngage]}
