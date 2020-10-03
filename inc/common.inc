@@ -3837,18 +3837,20 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
 					}
 				}
 
-				| check nav length
-				/if (${Navigation.PathLength[id ${_tmpID}]} > -1) {
-					/varset _navRange ${Navigation.PathLength[id ${_tmpID}]}
+				| check nav path length
+				/if (${maPull.Find[swNavPathLogic].Value}) {
+					/if (${Navigation.PathLength[id ${_tmpID}]} > -1) {
+						/varset _navRange ${Navigation.PathLength[id ${_tmpID}]}
 
-					| sort by closest nav path length
-					/if (${_navRange} <= ${_closestNAV}) {
-						/varset _closestNAV ${_navRange}
-					} else /if (${_navRange} > ${_closestNAV}) {
+						| sort by closest nav path length
+						/if (${_navRange} <= ${_closestNAV}) {
+							/varset _closestNAV ${_navRange}
+						} else /if (${_navRange} > ${_closestNAV}) {
+							/continue
+						}
+					} else /if (${Navigation.PathLength[id ${_tmpID}]} <= 0) {
 						/continue
 					}
-				} else /if (${Navigation.PathLength[id ${_tmpID}]} <= 0) {
-					/continue
 				}
 
 				| added because MQ sucks ass for getting accurate HP values returned over a mouse dick in length.
@@ -7000,12 +7002,16 @@ sub do_loot(bool _debug)
 		/return FALSE
 	}
 
-	| I am not the raid loot master /sigh
-	/if (${Raid.Members} && ${Raid.MasterLooter.ID} != ${Me.ID} && !${maOver.Find[swOverLoot].Value}) {
-		/return FALSE
-	}
-	/if (!${Raid.Members} && ${Group.Members} && ${Group.MasterLooter.ID} != ${Me.ID} && !${maOver.Find[swOverLoot].Value}) {
-		/return FALSE
+	| what the fuck is going on here?
+	/if (!${maOver.Find[swOverLoot].Value}) {
+		/if (${Raid.Members}) {
+			/if (${Raid.MasterLooter.ID} != ${Me.ID} && ${Group.MasterLooter.ID} != ${Me.ID} ) {
+				/return FALSE
+			}
+		} else /if (!${Raid.Members}) {
+			/if (${Group.Members} && ${Group.MasterLooter.ID} != ${Me.ID}) {
+			/return FALSE
+		}
 	}
 
 	SETHUD "loot whoring"
@@ -10034,6 +10040,9 @@ sub control_routine(bool _debug)
 	| count of uncontrolled mobs in area
 	/declare _countArea int local 0
 
+	| ae mez marker
+	/declare _aeMezDone bool local FALSE
+
 	/declare _count int local 0
 
 	/if (!${Defined[maMobControl]}) {
@@ -10046,44 +10055,44 @@ sub control_routine(bool _debug)
 	| find unaccounted mobs in my area
 	| returns the # of mobs that do not have a current mez timer associated
 	/varset _countArea ${control_area[${_debug}]}
+	| DEBUG _countArea${sep}\ay${_countArea}\ax
 
-	| if ${check_control_area returns more then the toons AE setting
-	| hit the AE routines
-	/if (${_countArea} >= AE#) {
-		/call control_mezae ${_debug}
+	| if no mobs are returned we bail
+	/if (!${_countArea}) {
+		DEBUG ${break}\arNo\ax mez targets
+	 	/return TRUE
 	}
 
-	| else /if (!${_countArea}) {
-	| 	/return TRUE
-	| }
+	| if ${control_area returns more then the toons AE setting, hit the AE routines
+	/if (${_countArea} >= AE# && ${Bool[${madeBuff.Find[stAEMez].Value}]}) {
+		DEBUG ${sep}ae mez
+		/call control_mezae ${_debug}
+		/varset _aeMezDone TRUE
+	}
 
-	| check control map for any mobs marked as mezed with low or no timer
-	| /varset _mezzID ${control_map[${_debug}, mez]}
+	| if we have more then one mob in camp,
+	/if (${Bool[${madeBuff.Find[stMez].Value}]}) {
+		/if ((((${_countArea} && ${_countArea} < AE#) || (${_countArea} && !${Bool[${madeBuff.Find[stAEMez].Value}]}))) || ${_aeMezDone}) {
+			DEBUG ${sep}single target mez
 
+			| mez something for christs sake...
+			/declare _mzcheck mapiterator local
+		  /vardata _mzcheck maMobControl.First.Clone
+		  /while (!${_mzcheck.IsEnd}) {
 
+		  	/if (${_mzcheck.Key} == TARGET) {
+					/invoke ${_mzcheck.Advance}
+					/continue
+		  	}
 
-	| mez something for christs sake...
-	| /if (${_mezzID} && ${_countArea} && ${Bool[${madeBuff.Find[stMez].Value}]}) {
-	| 	/for _count 1 to ${_countArea}
-
-	| 		/varset _mezzID ${control_map[${_debug}, mez]}
-	| 		DEBUG  ${_count}--_mezzID--${_mezzID}
-	| 		/call control_mez ${_debug} ${_mezzID}
-	| 	/next _count
-	| }
-
-
-	| /if (${Bool[${madeBuff.Find[stAEMez].Value}]}) {
-		/declare _mzcheck mapiterator local
-	  /vardata _mzcheck maMobControl.First.Clone
-	  /while (!${_mzcheck.IsEnd}) {
-	  	CHECKDEAD
-			/call control_mez ${_debug} ${_mzcheck.Key}
-			/invoke ${_mzcheck.Advance}
-	  }
-
-		/delay 1
-	| }
+		  	CHECKDEAD
+				/call control_mez ${_debug} ${_mzcheck.Key}
+				/invoke ${_mzcheck.Advance}
+		  }
+			/varset _aeMezDone FALSE
+			/delay 1
+		}
+	}
 
 	/if (!PULL) {
 		/call get_assist_target ${maDebug.Find[target].Value}
@@ -10320,14 +10329,12 @@ sub control_mez(bool _debug, int _tmpID)
 
 	/if (!${_tmpID}) /return FALSE
 
-	/if (!${Bool[${madeBuff.Find[stAEMez].Value}]}) {
-		/return FALSE
-	}
-
+	| if theres no timer.. make it
 	/if (!${Defined[timer_mez_ID${_tmpID}]}) {
 		/invoke ${set_timer[${_debug}, timer_mez_ID${_tmpID}, 1]}
 	}
 
+	| if the current timer is greater then 6 seconds, move on
 	/if (${timer_mez_ID${_tmpID}} > 60) {
 		/return FALSE
 	}

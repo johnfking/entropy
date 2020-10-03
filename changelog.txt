@@ -20,6 +20,20 @@ on the to do list
 --------------------
 
 
+
+
+201003.01
+- /nav pathlogic - (on/off) (default on)
+  on=use path length to find a target to pull
+  off=find nearest mob to pull as the crow flys
+- several adjustments to looting while in a raid, but not in a raid build
+- mezing
+  trying something a little differet
+  the goal is to get single target mezing to be more responsive for TLP that
+  do not have access to AE cc yet
+
+
+
 200929.01
 - corrected a left in command and a debug
 

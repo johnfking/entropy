@@ -5661,6 +5661,10 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 	} else /if (${_type.Equal[sethome]}) {
 		/invoke ${set_switch_env[${_debug}, swPullSetHome, TRUE, ${_verbage}]}
 
+	| enable/disable using nav pull length to find mobs
+	} else /if (${_type.Equal[pathlogic]}) {
+		/invoke ${set_switch_env[${_debug}, swNavPathLogic, TRUE, ${_verbage}]}
+
 	| pull modes
 	} else /if (${_type.Equal[mode]}) {
 		| pet pulling
@@ -5753,6 +5757,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 	/invoke ${maControl.Add[active,swPull]}
 	/invoke ${maControl.Add[rad,stPullRadius]}
 	/invoke ${maControl.Add[zrad,stPullZRadius]}
+	/invoke ${maControl.Add[pathlogic,swNavPathLogic]}
 	/invoke ${maControl.Add[stop,submenu]}
 	/invoke ${maControl.Add[mode,submenu]}
 	/invoke ${maControl.Add[with,submenu]}

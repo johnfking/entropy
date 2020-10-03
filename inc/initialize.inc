@@ -1168,8 +1168,9 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maPull	stRangeBandolier										FALSE													"${auxna}	name of	bandolier	for	ranged pulling?"																pull
 	/call	set_data_map ${_debug} maPull	stPctHardStop												0															"${auxnum} % of	crew sta/manna to	stop pulling at	to give	them rest	time?"			pull
 	/call	set_data_map ${_debug} maPull	stHardStopDuration									0															"${auxnum} duration	to stop	pulling	for	crew to	recover"												pull
-	/call	set_data_map ${_debug} maPull	swHardStopRez												FALSE													"${auxnum} stop pulling when someone has rez effects"														pull
+	/call	set_data_map ${_debug} maPull	swHardStopRez												FALSE													"${auxsw} stop pulling when someone has rez effects"														pull
 	/call	set_data_map ${_debug} maPull	stPullZRadius												60														"${auxnum} the z distance	of your	pulling environment"													pull
+	/call	set_data_map ${_debug} maPull	swNavPathLogic											TRUE													"${auxnum} use nav path lenght logic for finding targets to pull"								pull
 
 
 
