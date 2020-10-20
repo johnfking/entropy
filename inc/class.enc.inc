@@ -154,7 +154,7 @@ sub class_main(bool _debug)
 			/call do_mana_recovery ${maDebug.Find[manarecover].Value}
 		}
 		/if (${maChr.Find[stPctGather].Value}) {
-			/call check_gather_${Me.Class.ShortName} ${maDebug.Find[gather].Value}
+			/call check_gather ${maDebug.Find[gather].Value}
 		}
 		| /if (${switchCharmPet} && ${swPet} && !${Me.Pet.ID}) {
 		| 	/call find_mob_to_charm

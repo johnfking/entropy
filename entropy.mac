@@ -19,10 +19,11 @@
 #turbo 240
 #engine parser 2
 
-#define DEBUG "/if (${_debug}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
-#define SDEBUG "/echo \ay+[\ax\aw${Time.Second}\ax\at::\ax\aw${Macro.CurLine}\ax\ay]\ax(\a-t${Macro.RunTime}\ax) \ay--\ax "
-#define EDEBUG "/if (${maDebug.Find[event].Value}) /echo \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax${sep}\a-t----\ax${submenu}"
-#define OUT /echo ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}
+#define ECHO /cecho
+#define DEBUG "/if (${_debug}) ECHO \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
+#define SDEBUG "ECHO \ay+[\ax\aw${Time.Second}\ax\at::\ax\aw${Macro.CurLine}\ax\ay]\ax(\a-t${Macro.RunTime}\ax) \ay--\ax "
+#define EDEBUG "/if (${maDebug.Find[event].Value}) ECHO \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax${sep}\a-t----\ax${submenu}"
+#define OUT ECHO ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}
 #define GETINPUT "/call get_input"
 #define ISMEDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}"
 #define CHECKDEAD "/if (${is_me_dead[${maDebug.Find[rez].Value}]}) /return FALSE"
@@ -30,43 +31,43 @@
 #define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maPull.Find[swPull].Value} && !${Me.Invis}) /call check_for_corpse ${maDebug.Find[rez].Value}"
 #define CHECKFADE "/if (${maChr.Find[stPctFade].Value}) /call cast_AA_fade ${maDebug.Find[fade].Value}"
 #define OVERLOS "${If[${maOver.Find[swOverLOS].Value},,los]}"
-#define PS4 "playerstate 4"
-#define AUTO "${maEnv.Find[swAuto].Value}"
-#define ENV "${maEnv.Find[stEnvRadius].Value}"
-#define PULL "${maPull.Find[swPull].Value}"
-#define AGRO "${maAgro.Find[swAgro].Value}"
-#define TARGET "${stAssTarID}"
-#define TIE	"${maTie.Find[swSetTie].Value}"
-#define HOME "${maHome.Find[swHomeMarker].Value}"
-#define MA1 "${maCC.Find[stManualAssist1].Value}"
-#define MA2 "${maCC.Find[stManualAssist2].Value}"
-#define VALID "${maCC.Find[swValidAssTarID].Value}"
-#define COMBAT "${maCC.Find[swSetCombat].Value}"
-#define SAFEZONE "${maEnv.Find[swZoneSafe].Value}"
-#define BURN "${maBurn.Find[swBurnConditionMet].Value}"
-#define PCTHO "${tmpHealAdjust}"
-#define PCTREST "${maEnv.Find[stPctRest].Value}"
-#define SAFEENV "${maEnv.Find[stEnvSafeRadius].Value}"
-#define PULLENV "${maPull.Find[stPullRadius].Value}"
-#define AE# "${maChr.Find[stCountAE].Value}"
-#define PET "${maMinion.Find[swPet].Value}"
-#define SWARM "${maMinion.Find[swSwarm].Value}"
-#define RANGE "${maCC.Find[swCombatRange].Value}"
-#define MELEE "${maCC.Find[swCombatMelee].Value}"
-#define NUKE "${maCC.Find[swCombatNuke].Value}"
-#define DOT "${maCC.Find[swCombatDoT].Value}"
-#define HEAL "${maCC.Find[swCombatHeal].Value}"
+#define PS4 playerstate 4
+#define AUTO ${maEnv.Find[swAuto].Value}
+#define ENV ${maEnv.Find[stEnvRadius].Value}
+#define PULL ${maPull.Find[swPull].Value}
+#define AGRO ${maAgro.Find[swAgro].Value}
+#define TARGET ${stAssTarID}
+#define TIE	${maTie.Find[swSetTie].Value}
+#define HOME ${maHome.Find[swHomeMarker].Value}
+#define MA1 ${maCC.Find[stManualAssist1].Value}
+#define MA2 ${maCC.Find[stManualAssist2].Value}
+#define VALID ${maCC.Find[swValidAssTarID].Value}
+#define COMBAT ${maCC.Find[swSetCombat].Value}
+#define SAFEZONE ${maEnv.Find[swZoneSafe].Value}
+#define BURN ${maBurn.Find[swBurnConditionMet].Value}
+#define PCTHO ${tmpHealAdjust}
+#define PCTREST ${maEnv.Find[stPctRest].Value}
+#define SAFEENV ${maEnv.Find[stEnvSafeRadius].Value}
+#define PULLENV ${maPull.Find[stPullRadius].Value}
+#define AE# ${maChr.Find[stCountAE].Value}
+#define PET ${maMinion.Find[swPet].Value}
+#define SWARM ${maMinion.Find[swSwarm].Value}
+#define RANGE ${maCC.Find[swCombatRange].Value}
+#define MELEE ${maCC.Find[swCombatMelee].Value}
+#define NUKE ${maCC.Find[swCombatNuke].Value}
+#define DOT ${maCC.Find[swCombatDoT].Value}
+#define HEAL ${maCC.Find[swCombatHeal].Value}
 #define CHECKTIE "/if (${maTie.Find[swSetTie].Value} && !${timer_Check_Tie}) /call set_tie ${maDebug.Find[tie].Value}"
 #define CHECKCURSOR "/if (${Cursor.ID} && !${timer_Check_Cursor} && ((AUTO && ${maEnv.Find[swAutoInv].Value}) || ${maEntropy.Find[swAutoInvManual].Value})) /call check_cursor ${maDebug.Find[loot].Value}"
 #define SETHUD "/call set_hud_data"
 #define CHECKDEFENSE	"/call cast_cycle_defense ${maDebug.Find[def].Value}"
 #define FLOW "/if (${maDebug.Find[flow].Value}) /varset flow ${stAssTarID} ::"
-#define ENGINE1 "${maEntropy.Find[stEngine].Value.Equal[1]}"
-#define ENGINE2 "${maEntropy.Find[stEngine].Value.Equal[2]}"
-#define ENGINE3 "${maEntropy.Find[stEngine].Value.Equal[3]}"
-#define MERCENARY "${maMercenary.Find[swMercenary].Value}"
+#define ENGINE1 ${maEntropy.Find[stEngine].Value.Equal[1]}
+#define ENGINE2 ${maEntropy.Find[stEngine].Value.Equal[2]}
+#define ENGINE3 ${maEntropy.Find[stEngine].Value.Equal[3]}
+#define MERCENARY ${maMercenary.Find[swMercenary].Value}
 #define MQCLEAR "/if (${Bool[${Plugin[MQ2ChatWnd]}]}) /mqclear"
-#define NEXT "${MacroQuest.InternalName.Equal[Next]}"
+#define NEXT ${MacroQuest.InternalName.Equal[Next]}
 #define BUFFNOW "/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) /call check_buff_cycle_now ${maDebug.Find[now].Value}"
 
 
@@ -90,9 +91,9 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 
 	| Make sure plugins are loaded. kill macro if not
 	/if (!${check_plugin[FALSE, TRUE, |MQ2SQLite|MQ2DanNet|Mq2Nav|MQ2MoveUtils|MQ2Collections]}) {
-		/echo Make sure the following plugins are loaded
-		/echo I'm not going to auto load the damn things for you.
-		/echo \a-wMQ2SQLite, MQ2DanNet, Mq2Nav, MQ2MoveUtils, MQ2Collections\ax
+		ECHO Make sure the following plugins are loaded
+		ECHO I'm not going to auto load the damn things for you.
+		ECHO \a-wMQ2SQLite, MQ2DanNet, Mq2Nav, MQ2MoveUtils, MQ2Collections\ax
 		/endmacro
 	}
 
@@ -106,7 +107,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	/call delete_conflict_alias FALSE
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 201003.01
+	/call set_data FALSE maEnv build													map outer 201019.01
 	/call set_data FALSE maEnv schema													map outer 1.17
 	/call set_data FALSE maEnv repo														map outer 200706.01
 
@@ -174,7 +175,6 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 
  	| main loop
 	/while (!${maEntropy.Find[swMaintenance].Value}) {
-		FLOW MAIN LOOP
 
 		| housekeeping first!
 		/if (!${timer_Check_Housekeeping}) {
@@ -192,9 +192,9 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 		}
 
 		| watchspawn
-		/if (${maWatch.Find[swWatch].Value} && !${timer_Check_Watch}) {
-			/if (${lsWatch.Count}) /call check_watch_spawn ${maDebug.Find[watch].Value}
-		}
+		| /if (${maWatch.Find[swWatch].Value} && !${timer_Check_Watch}) {
+		| 	/if (${lsWatch.Count}) /call check_watch_spawn ${maDebug.Find[watch].Value}
+		| }
 
 		| check do now things
 		/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) {
@@ -287,34 +287,38 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 						/call get_prediction ${maDebug.Find[prediction].Value}
 					}
 
-					/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w1\ax (\a-rentering assist/pull routine\ax)
+					/if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rentering assist/pull check\ax)
 
 					/if ((!PULL && ${SpawnCount[NPC radius ENV PS4]}) || (PULL && ${Group.MainAssist.ID} != ${Me.ID} && ${Group.Members} && (TARGET || ${SpawnCount[NPC radius ENV PS4 targetable]}))) {
-						/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w2\ax (\a-rget_assist_target\ax)
+						/if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rpullstate get assist\ax)
 						/call get_assist_target ${maDebug.Find[assist].Value}
 
 					} else /if (PULL && !TARGET) {
-						/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w3\ax (\a-rpull-base\ax)
+						/if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rpullstate: pull check\ax)
+
 
 						| hardstop check
-						/if (!${timer_Check_Pull_Hardstop_Delay}) {
-							/if (!${timer_Check_Pull_Hardstop} && !${SpawnCount[npc radius SAFEENV]}) {
+						/if (${SpawnCount[NPC radius ENV PS4 targetable]}) {
+							/if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rstate hardstop: check\ax)
+							/if (!${timer_Check_Pull_Hardstop}) {
 								/call pull_hardstop ${maDebug.Find[hardstop].Value}
 								/if (${Macro.Return}) {
 									/continue
 								}
-							} else /if (${timer_Check_Pull_Hardstop} && !${SpawnCount[npc radius SAFEENV]}) {
+							} else /if (${timer_Check_Pull_Hardstop}) {
+								/if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rHardstop Timer${sep}${timer_Check_Pull_Hardstop}\ax)
+								/delay 1
 								/continue
 							}
 						}
 
 						/if (${maPull.Find[stPullMode].Value.Equal[base]}) {
-							/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w4\ax
+							/if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rpullstate: base\ax)
 							/call get_target_basepull ${maDebug.Find[pull].Value}
 						} else {
-							/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w5\ax (\a-rpull-advanced\ax)
+							/if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rpullstate advanced: prep\ax)
 							/call pull_prep_advanced ${maDebug.Find[pull].Value}
-							/if (${maDebug.Find[pull].Value}) /echo pullstate${sep}\a-w6\ax (\a-rpull-advanced-${maPull.Find[stPullMode].Value}\ax)
+							/if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rpullstate advanced: ${maPull.Find[stPullMode].Value}\ax)
 							/call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
 						}
 					}

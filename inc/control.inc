@@ -43,7 +43,7 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
 			}
 			OUT ${sep}Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax${sep}\a-w${_animationresult}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax) ${dot} ID(\a-r${Spawn[id ${_tmpID}].ID}\ax)
 			OUT ${sep}Master(\a-r${Spawn[id ${_tmpID}].Master}\ax) ${dot} Owner(\a-r${Spawn[id ${_tmpID}].Owner}\ax)
-			/echo
+			ECHO
 
 		/next _count
 		/invoke ${out[18, 0, 33]}
@@ -180,15 +180,61 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 	| cehck for undeclared variables
 	/if (${_type.Equal[checkvar]}) {
-		/echo
+		ECHO
 		/invoke ${Macro.Undeclared}
-		/echo
+		ECHO
 		/return
 
 	} else /if (${_type.Equal[doloot]}) {
 		/call do_loot ${maDebug.Find[loot].Value}
 		/return TRUE
 
+	| output diag info
+	} else /if (${_type.Equal[diag]}) {
+		OUT Diagnostic${sep}\a-wstart\ax
+		OUT ${Me.Class.ShortName}${sep}\a-w${Me.Level}\ax ${dot} \aw${Zone.ShortName}\ax
+		OUT target: ID${sep}\a-w${Target.ID}\ax (\a-r${Spawn[${Target.ID}].Distance}\ax) ${dot} assist: ID${sep}\a-wTARGET\ax (\a-r${Spawn[TARGET].Range}\ax)
+		OUT env${sep}\a-wENV\ax(${maCC.Find[stZRadius].Value}) ${dot} safe${sep}\a-wSAFEENV\ax ${dot}
+
+
+
+pullrad${sep}\a-wPULLENV\ax(${maPull.Find[stPullZRadius].Value}) ${dot}
+
+pathlogic${sep}${maPull.Find[swNavPathLogic].Value}\ax
+
+
+
+
+pull${sep}\a-w${maPull.Find[swPull].Value}\ax
+navstop${sep}\a-w${maPull.Find[].Value}\ax
+mode${sep}\a-w${maPull.Find[stPullMode].Value}\ax
+with${sep}\a-w${maPull.Find[stPullWith].Value}\ax
+bando${sep}\a-w${maPull.Find[stRangeBandolier].Value}\ax
+hstop${sep}\a-w${maPull.Find[stPctHardStop].Value}\ax
+hstopdur${sep}\a-w${maPull.Find[stHardStopDuration].Value}\ax
+hstoprez${sep}\a-w${maPull.Find[swHardStopRez].Value}\ax
+
+
+
+arcL${sep}\a-w${stPullArcLeft}\ax
+arcR${sep}\a-w${stPullArcRight}\ax
+arcC${sep}\a-w${stPullArcCenter}\ax
+arcW${sep}\a-w${maPull.Find[stPullArcWidth].Value}\ax
+
+
+
+
+
+
+
+
+
+
+
+		ECHO
+		OUT Diagnostic${sep}\a-wend\ax
+
+		/return
 	| reset dannet.. if you need too
 	} else /if (${_type.Equal[reset]}) {
 		/if (!${Bool[${_verbage}]}) {
@@ -239,9 +285,9 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 				/return FALSE
 		}
 
-		/echo
+		ECHO
 		/invoke ${out[0, 0, ${_verbage}]}
-		/echo
+		ECHO
 		/return
 
 	| look for a column in a table
@@ -417,7 +463,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 		| refresh zone data
 		} else /if (${_type.Equal[zonerefresh]}) {
-			/call set_zone_lists ${maDebug.Find[zone].Value}
+			/call set_zone_lists ${maDebug.Find[area].Value}
 			/if (${lsGrain.Contains[1]}) {
 				OUT ${num}${Zone.Name}\ax${sep}\a-w${Zone.ShortName}\ax
 			}
@@ -436,8 +482,8 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 			/declare _countK int local 0
 			/declare _countV int local 0
 
-			/echo \awImporting Named File from\ax\at...\ax\a-w${_ini}\ax
-			/echo \a-yINI sections\ax::\a-w${Ini[${_ini}].Count[|]}\ax
+			ECHO \awImporting Named File from\ax\at...\ax\a-w${_ini}\ax
+			ECHO \a-yINI sections\ax::\a-w${Ini[${_ini}].Count[|]}\ax
 
 			/for _countS 1 to ${Ini[${_ini}].Count[|]}
 				/varset _section ${Ini[${_ini}].Arg[${_countS},|]}
@@ -455,7 +501,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 				/next _countK
 			/next _countS
 			/invoke ${out[18, 0, 33]}
-			/echo
+			ECHO
 			/return
 		}
 
@@ -1130,14 +1176,14 @@ sub Bind_command_tie(string _type, bool _debug)
 #bind control_area /area
 sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug)
 
-	/if (${maDebug.Find[zone].Value}) {
+	/if (${maDebug.Find[area].Value}) {
 		/varset _debug TRUE
 	}
 
 	DEBUG \atBind_control_area\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
 	/if (${_type.Equal[see]}) {
-		/echo
+		ECHO
 		OUT ${num}${Zone.Name}\ax${sep}\a-w${Zone.ShortName}\ax
 		/invoke ${out[12, "${dot}swZoneSafe${sep}\a-wSAFEZONE\ax"]}
 		/declare _liwtf listiterator local
@@ -1147,7 +1193,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 			OUT ${dot}${_liseez.Value}
 				/vardata _liwtf ${_liseez}.First.Clone
 				/while (!${_liwtf.IsEnd}) {
-					/invoke ${out[12, "${dot}${dot}${dot}${dot}\a-w${_liwtf.Value}\ax"]}
+					OUT ${dot}${dot}${dot}${dot}\a-w${_liwtf.Value}\ax
 					/invoke ${_liwtf.Advance}
 				}
 			/invoke ${_liseez.Advance}
@@ -1199,10 +1245,10 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 			/return TRUE
 		} else /if (${Target.ID} && ${_verbage.Equal[list]}) {
 			/if (${${_element}.CountOf[${Target.DisplayName}]}) {
-				/invoke ${out[0, "${_type} list contains${sep}\a-w${Target.DisplayName}\ax"]}
+				OUT ${_type} list contains${sep}\a-w${Target.DisplayName}\ax
 				/return TRUE
 			}	else {
-				/invoke ${out[0, "${_type} list does not contain${sep}\a-w${Target.DisplayName}\ax"]}
+				OUT ${_type} list does not contain${sep}\a-w${Target.DisplayName}\ax
 				/return TRUE
 			}
 		}
@@ -1230,17 +1276,23 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 	} else /if (${_type.Equal[delete]}) {
 		/sqlite query ${maData.Find[DBzone].Value} QZone DELETE FROM zone_control WHERE zone_shortname='${Zone.ShortName}' AND value='${Target.DisplayName}'
 		/if (!${sql_check[${_debug}, QZone, Bind_control_area, "DELETE FROM (zone_control)"]}) /endmacro
-		/invoke ${out[12, "/area delete ${dot} ${num}${Zone.ShortName}\ax${sep}\a-w${Target.DisplayName}"]}
+		/if (${lsGrain.Contains[12]}) {
+			OUT /area delete ${dot} ${num}${Zone.ShortName}\ax${sep}\a-w${Target.DisplayName}\ax
+		}
 
 	| remaining list adjustments
 	} else /if (${Select[${_type},exclude,named,ranged,hunt,nomez,nocast,nomelee,nomagic,nodisease,nofire,nopoision,nocold,nocorruption]} && ${Target.ID}) {
+		DEBUG ${sep}target${sep}\a-w${Target.DisplayName}\ax
 		/if (!${${_element}.Contains[${Target.DisplayName}]}) {
 			| Add a property to a mob
 			/sqlite query ${maData.Find[DBzone].Value} QZone INSERT OR IGNORE INTO zone_control VALUES ("${Zone.ShortName}", "${_element}", "${Target.DisplayName}")
 			/if (!${sql_check[${_debug}, QZone, Bind_control_area, "INSERT INTO (zone_control)"]}) /endmacro
-			/invoke ${out[12, "/area ${_type} ${dot} ${num}${_element}\ax${sep}\a-w${Target.DisplayName}\ax"]}
+			/if (${lsGrain.Contains[12]}) {
+				OUT /area ${_type} ${dot} ${num}${_element}\ax${sep}\a-w${Target.DisplayName}\ax
+			}
+
 		} else /if (${${_element}.Contains[${Target.DisplayName}]}) {
-			/invoke ${out[0, "${Target.DisplayName} already exists in${sep}\a-w${_element}\ax"]}
+			OUT \aw${Target.DisplayName}\ax already exists in${sep}\a-w${_element}\ax
 			/return TRUE
 		}
 
@@ -1250,7 +1302,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 	| update others?
 	/if (${Bool[${_type}]}) {
 		DEBUG ${sep} sending zone updates to crew in zone
-		/call set_zone_lists ${maDebug.Find[zone].Value}
+		/call set_zone_lists ${maDebug.Find[area].Value}
 		/if (${lsGrain.Contains[1]}) {
 			OUT ${num}${Zone.Name}\ax${sep}\a-w${Zone.ShortName}\ax
 		}
@@ -1697,6 +1749,10 @@ sub Bind_control_rez(string _type, string _verbage, string _verbage2, string _ad
 	} else /if (${_type.Equal[dannet]}) {
 		/invoke ${set_switch_env[${_debug}, swRezDanNet, TRUE, ${_verbage}]}
 
+	| take calls
+	} else /if (${_type.Equal[takecall]}) {
+		/invoke ${set_switch_env[${_debug}, swRezTakeCall, TRUE, ${_verbage}]}
+
 	| rez everyone
 	} else /if (${_type.Equal[everyone]}) {
 		/invoke ${set_switch_env[${_debug}, swRezEveryone, TRUE, ${_verbage}]}
@@ -1737,6 +1793,7 @@ sub Bind_control_rez(string _type, string _verbage, string _verbage2, string _ad
 	/invoke ${maControl.Add[pct,stPctMinRez]}
 	/invoke ${maControl.Add[rad,stMaxRezRange]}
 	/invoke ${maControl.Add[token,swRezToken]}
+	/invoke ${maControl.Add[takecall,swRezTakeCall]}
 	/invoke ${maControl.Add[everyone,swRezEveryone]}
 	/invoke ${maControl.Add[take,swRezTake]}
 	/invoke ${maControl.Add[ic,swRezIC]}
@@ -1780,20 +1837,24 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
 	}
 
 	/if (${_type.Equal[concolor]}) {
-		/if (${Target.ID}) /echo \ar${Target.Class}\ax is named ${ConColor[FALSE, ${Target.ID}]}
+		/if (${Target.ID}) ECHO \ar${Target.Class}\ax is named ${ConColor[FALSE, ${Target.ID}]}
+		/return
+	}
+
+
+	/if (${_type.Equal[scantest]}) {
+		/call scan_inventory_for FALSE ManaClick 2 15
 		/return
 	}
 
 
 	/if (${_type.Equal[sort]}) {
-		/echo string of numbers 56,282,900,991,8,67,23,62,76,023,001,5.05
+		ECHO string of numbers 56,282,900,991,8,67,23,62,76,023,001,5.05,.01,-1
 		/declare _list list local
 		/invoke ${_list.Append[56,282,900,991,8,67,23,62,76,023,001,5.05,.01,-1]}
 		/invoke ${_list.Sort}
-		/echo ${_list.Head}
-		/echo ${_list.Tail}
-
-
+		ECHO ${_list.Head}
+		ECHO ${_list.Tail}
 	}
 
 
@@ -1811,7 +1872,7 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
 
 		/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM eq_spa WHERE value="${_findAttrib}";
 
-		/echo SQLITE${sep}\a-w${sqlite.Result[dummy 1 env_var]}\ax
+		ECHO SQLITE${sep}\a-w${sqlite.Result[dummy 1 env_var]}\ax
 
 		/for _count 1 to 960
 
@@ -1824,35 +1885,35 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
 			/if (${Me.Book[${_count}].TargetType.NotEqual[${_targettype}]}) /continue
 
 
-			/echo \ag${Me.Book[${_count}]}\ax ${dot} (\a-rSPA${sep}${Me.Book[${_count}].SPA}\ax)  ${dot}${dot} SPA ${sqlite.Result[dummy 1 env_var]}${sep}${Me.Book[${_count}].HasSPA[${sqlite.Result[dummy 1 env_var]}]}
+			ECHO \ag${Me.Book[${_count}]}\ax ${dot} (\a-rSPA${sep}${Me.Book[${_count}].SPA}\ax)  ${dot}${dot} SPA ${sqlite.Result[dummy 1 env_var]}${sep}${Me.Book[${_count}].HasSPA[${sqlite.Result[dummy 1 env_var]}]}
 
 
 			| multiple landing non single target
 			/if (${Me.Book[${_count}].HasSPA[470]} || ${Me.Book[${_count}].HasSPA[374]} || ${Me.Book[${_count}].HasSPA[340]}) {
-				/echo ${sep}multiple landing spell${sep}\a-w${Me.Book[${_count}]}\ax
+				ECHO ${sep}multiple landing spell${sep}\a-w${Me.Book[${_count}]}\ax
 
 				/for _countNumEff 1 to ${Me.Book[${_count}].NumEffects}
 
 					| does not contain the SPA we are after
 					| /if (!${Me.Book[${_count}].Trigger[${_countNumEff}].HasSPA[${sqlite.Result[dummy 1 env_var]}]}) /continue
 
-					| /echo ${_countNumEff} -- (${Me.Book[${_count}].Attrib[${_countSPA}]} != ${sqlite.Result[dummy 1 env_var]})
+					| ECHO ${_countNumEff} -- (${Me.Book[${_count}].Attrib[${_countSPA}]} != ${sqlite.Result[dummy 1 env_var]})
 
 
-					/echo ${sep}\a-g${Me.Book[${_count}].Trigger[${_countNumEff}]}\ax ${dot} (\a-rEffects${sep}${Me.Book[${_count}].Trigger[${_countNumEff}].NumEffects}\ax) ${dot}${dot} SPA ${sqlite.Result[dummy 1 env_var]}${sep}${Me.Book[${_count}].Trigger[${_countNumEff}].HasSPA[${sqlite.Result[dummy 1 env_var]}]}
+					ECHO ${sep}\a-g${Me.Book[${_count}].Trigger[${_countNumEff}]}\ax ${dot} (\a-rEffects${sep}${Me.Book[${_count}].Trigger[${_countNumEff}].NumEffects}\ax) ${dot}${dot} SPA ${sqlite.Result[dummy 1 env_var]}${sep}${Me.Book[${_count}].Trigger[${_countNumEff}].HasSPA[${sqlite.Result[dummy 1 env_var]}]}
 
 					| cycle every effect of the spell find the one we are after
 					/for _countSPA 1 to ${Me.Book[${_count}].Trigger[${_countNumEff}].NumEffects}
 
-						| /echo ${_countSPA} .. ${Me.Book[${_count}].Trigger[${_countNumEff}]} .. \a-w${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}\ax
+						| ECHO ${_countSPA} .. ${Me.Book[${_count}].Trigger[${_countNumEff}]} .. \a-w${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}\ax
 
 						| /if (${Me.Book[${_count}].Trigger[${_countNumEff}].Attrib[${_countSPA}]} != ${sqlite.Result[dummy 1 env_var]}) /continue
 
-						| /echo ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]} == ${sqlite.Result[dummy 1 env_var]} ..winner
+						| ECHO ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]} == ${sqlite.Result[dummy 1 env_var]} ..winner
 
 						/varset _running ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}
 						| /varset _running ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[2]}
-						| /echo _running ${_countSPA} -- ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}
+						| ECHO _running ${_countSPA} -- ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}
 
 						/if (${_running} < -1) {
 							/if (${_running} <= ${_max}) {
@@ -1875,7 +1936,7 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
 			} else /if (${Me.Book[${_count}].SPA}) {
 				/for _countSPA 1 to ${Me.Book[${_count}].NumEffects}
 
-					/echo _running ${_countSPA} -- ${Me.Book[${_count}].Base[${_countSPA}]} .. ${Me.Book[${_count}].Base[${_countSPA}]} .. A:${Me.Book[${_count}].Attrib[${_countSPA}]}
+					ECHO _running ${_countSPA} -- ${Me.Book[${_count}].Base[${_countSPA}]} .. ${Me.Book[${_count}].Base[${_countSPA}]} .. A:${Me.Book[${_count}].Attrib[${_countSPA}]}
 					/if (${Me.Book[${_count}].Attrib[${_countSPA}]} != ${sqlite.Result[dummy 1 env_var]}) /continue
 
 
@@ -1898,7 +1959,7 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
 			}
 
 		/next _count
-		/echo ${_maxName}${sep}\a-w${_max}\ax
+		ECHO ${_maxName}${sep}\a-w${_max}\ax
 	}
 
 
@@ -1906,12 +1967,12 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
 
 |**
 
-			| /echo ${Me.Book[${_count}]}${sep} ${Spell[${Me.Book[${_count}]}].Trigger[2].Base[2]}
-			| /echo ${Me.Book[${_count}]}${sep} ${Spell[${Me.Book[${_count}]}].Base[2]}
+			| ECHO ${Me.Book[${_count}]}${sep} ${Spell[${Me.Book[${_count}]}].Trigger[2].Base[2]}
+			| ECHO ${Me.Book[${_count}]}${sep} ${Spell[${Me.Book[${_count}]}].Base[2]}
 
 
-		/echo ${Spell[Unified Righteousness].ID} 588642
-		/echo  ${Spell[Unified Righteousness].Trigger[2].TargetType}
+		ECHO ${Spell[Unified Righteousness].ID} 588642
+		ECHO  ${Spell[Unified Righteousness].Trigger[2].TargetType}
 
 		${Spell[${Spell[Unified Righteousness].Trigger[2]}].Base[4]}
 
@@ -2017,9 +2078,12 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 **|
 
 	/if (${_type.Equal[best2]}) {
-		/echo ${get_best_in_spell[FALSE, "Group V2", "Aegolism", "Max HP"]}
+		ECHO ${get_best_in_spell[FALSE, "Group V2", "Aegolism", "Max HP"]}
 	}
 
+	/if (${_type.Equal[zone]}) {
+		/call set_zone_lists ${maDebug.Find[area].Value}
+	}
 
 	/if (${_type.Equal[pred]}) {
 		/call get_prediction
@@ -2054,26 +2118,11 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 				}
 
 			/next _count
-			/echo ${_maxName}${sep}\a-w${_max}\ax
+			ECHO ${_maxName}${sep}\a-w${_max}\ax
 		}
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 	| multi positional swap
@@ -2086,9 +2135,9 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 			/varcalc ${_verbage} ${${_verbage}}+1
 		}
 
-		/echo Range.Between[1,${_verbage2}:${${_verbage}}]
+		ECHO Range.Between[1,${_verbage2}:${${_verbage}}]
 		/if (!${Range.Between[1,${_verbage2}:${${_verbage}}]}) /varset ${_verbage} 0
-		/echo ${_verbage} is now ${${_verbage}}
+		ECHO ${_verbage} is now ${${_verbage}}
 
 	}
 
@@ -2113,12 +2162,12 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 			}
 			/varset _hash ${_hash}${${_list}.Item[${Math.Rand[0,${Math.Calc[${${_list}.Count}-1]}]}]}
 		/next _count
-		/echo hash: \a-w${_hash}\ax
+		ECHO hash: \a-w${_hash}\ax
 	}
 
 	| var echos for debugging
 	/if (${_type.Equal[debug]}) {
-		/echo
+		ECHO
 		OUT \awmode\ax ${dot} melee${sep}\a-wMELEE\ax  nuke${sep}\a-wNUKE\ax  range${sep}\a-wRANGE\ax  dot${sep}\a-wDOT\ax  heal${sep}\a-wHEAL\ax
 		OUT {maEnv.Find[swAuto].Value}${sep}\a-w${maEnv.Find[swAuto].Value}\ax .. #auto:\a-wAUTO\ax
 		OUT {maCC.Find[swSetCombat].Value}${sep}\a-w${maCC.Find[swSetCombat].Value}
@@ -2163,7 +2212,7 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 		/varset _count 1
 		/while (${_count} <= ${GroundItemCount}) {
 			/if (${_item.DisplayName.Find[Glowing Globe]}) {
-				/echo ${_count}/${GroundItemCount} -- ${_item.DisplayName}\ax${sep}Path-\a-w${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}\ax${sep}dis-\a-w${_item.Distance}\ax
+				ECHO ${_count}/${GroundItemCount} -- ${_item.DisplayName}\ax${sep}Path-\a-w${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}\ax${sep}dis-\a-w${_item.Distance}\ax
 			}
 			/if (${_count} == ${GroundItemCount}) /break
 			/varcalc _count ${_count} + 1
@@ -2215,12 +2264,12 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 	}
 
 	/if (${_type.Equal[legs]})  {
-		/echo Test 1: ${FindItem[=Ice Woven Shadowscale Leggings].Spell}
-		/echo Test 2: ${FindItem[=Ice Woven Shadowscale Leggings].SpellID}
-		/echo Test 3: ${FindItem[=Ice Woven Shadowscale Leggings].Spell.SpellID}
-		/echo Test 4: ${FindItem[=Ice Woven Shadowscale Leggings].Clicky}
-		/echo Test 5: ${FindItem[=Ice Woven Shadowscale Leggings].Clicky.Spell}
-		/echo Test 6: ${FindItem[=Ice Woven Shadowscale Leggings].Clicky.SpellID}
+		ECHO Test 1: ${FindItem[=Ice Woven Shadowscale Leggings].Spell}
+		ECHO Test 2: ${FindItem[=Ice Woven Shadowscale Leggings].SpellID}
+		ECHO Test 3: ${FindItem[=Ice Woven Shadowscale Leggings].Spell.SpellID}
+		ECHO Test 4: ${FindItem[=Ice Woven Shadowscale Leggings].Clicky}
+		ECHO Test 5: ${FindItem[=Ice Woven Shadowscale Leggings].Clicky.Spell}
+		ECHO Test 6: ${FindItem[=Ice Woven Shadowscale Leggings].Clicky.SpellID}
 	}
 
 	| get the hurt variables
@@ -2236,7 +2285,7 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 
 	/if (${_type.Equal[tag]}) {
 		/call tag_evaluation TRUE Nuke 20 ${Me.DisplayName} "${Me.DisplayName}"
-		/echo macro.return${sep}${Macro.Return}
+		ECHO macro.return${sep}${Macro.Return}
 		| /sqlite clear qNuke_lifetap
 		}
 	}
@@ -2313,7 +2362,7 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 				/varcalc _hurtCount ${_hurtCount} + 1
 			}
 
-			| /echo ${_lina.Value}[(\a-r${_cls}\ax${dot}\a-p${maHeal.Find[stHealPoint${_cls}].Value}\ax) -- {Math.Calc[(${_hurtPCT} - .${maHeal.Find[stHealPoint${_cls}].Value}) / ${maHeal.Find[stHealPoint${_cls}].Value}]}
+			| ECHO ${_lina.Value}[(\a-r${_cls}\ax${dot}\a-p${maHeal.Find[stHealPoint${_cls}].Value}\ax) -- {Math.Calc[(${_hurtPCT} - .${maHeal.Find[stHealPoint${_cls}].Value}) / ${maHeal.Find[stHealPoint${_cls}].Value}]}
 			/varset _tmpWeight ${Float[${Math.Calc[(${_hurtPCT} - .${maHeal.Find[stHealPoint${_cls}].Value}) / ${maHeal.Find[stHealPoint${_cls}].Value}]}].Precision[5]}
 
 			/if (${Float[${_tmpWeight}].Precision[5]} < ${Float[${_hurtWeight}].Precision[5]}) {
@@ -2330,7 +2379,7 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 		/invoke ${out[18, 0, 33]}
 		OUT ${_hurtName}${sep}${_hurtCLS}${sep}${Float[${_hurtWeight}].Precision[5]}
 		/invoke ${out[18, 0, 33]}
-		/echo
+		ECHO
 		/return
 
 	}
@@ -2533,7 +2582,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 			/return
 		}
 
-		/echo
+		ECHO
 		OUT Target Info${sep}
 		OUT name:${con_color[${_debug}, ${Target.ID}]}${sep}\a-w${Target.Name}\ax${sep}\ay${Target.ID}\ax
 		OUT lvl${sep}\a-w${Target.Level}\ax
@@ -3179,7 +3228,7 @@ sub Bind_command_aux(string _type, bool _debug)
 		DEBUG dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY help_var
 		/declare _count int local 0
 		MQCLEAR
-		/echo
+		ECHO
 		/invoke ${out[0, "\aw/aux \ax\a-w${_type.Lower}\ax"]}
 		/for _count 1 to ${sqlite.Rows[dummy]}
 			/invoke ${out[0,${If[${sqlite.Result[dummy ${_count} help_var].Find[${_type}]},,${sqlite.Result[dummy ${_count} help_var]}${sep}]}\a-g${Parse[1,${sqlite.Result[dummy ${_count} value]}]}\ax]}
@@ -3190,7 +3239,7 @@ sub Bind_command_aux(string _type, bool _debug)
 
 	/declare _count int local 0
 
-	/echo
+	ECHO
 	/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT value FROM online WHERE env_var='discord'
 	/if (!${sql_check[${_debug}, dummy, Bind_command_aux, SELECT]}) /endmacro
 	/invoke ${out[0, "Discord${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
@@ -3359,12 +3408,12 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 		/sqlite query ${maData.Find[DBnav].Value} wpdummy SELECT COUNT(*) as data FROM waypoint WHERE zone_shortname='${Zone.ShortName}'
 		DEBUG ${sep}wpdummy SELECT count(*) as data from zone_control where zone_shortname  \ay${sqlite.Status[dummy]}\ax resutl:${sqlite.Result[wpdummy 1 data]}
 		/if (${sqlite.Status[wpdummy].Find[no such table:]}) {
-			/echo fail
+			ECHO fail
 		}
 		/declare _count int local 0
 
 		/for _count 1 to ${sqlite.Result[wpdummy 1 data]}
-			/echo ${sqlite.Result[wpdummy 1{_count} nickname]}
+			ECHO ${sqlite.Result[wpdummy 1{_count} nickname]}
 
 		/next count
 
@@ -3644,7 +3693,7 @@ sub Bind_command_port(string _type, string _nick1, string _nick2, bool _debug)
 		/if (${Select[${_nick1},wiz,dru,guild,item,vendor,aa]}) {
 			/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM port WHERE type='${_nick1}' ${If[${Bool[${_nick1}]},AND nick1='${_nick2}',]}
 
-			/echo \awList\ax${sep}\a-w${sqlite.Rows[dummy]}\ax
+			ECHO \awList\ax${sep}\a-w${sqlite.Rows[dummy]}\ax
 			/for _count 1 to ${sqlite.Rows[dummy]}
 				OUT ${dot}\a-w${sqlite.Result[dummy ${_count} nick1]} ${If[${Bool[${sqlite.Result[dummy ${_count} nick2]}]},${dot}${dot} ${sqlite.Result[dummy ${_count} nick2]},]}\ax
 			/next _count
@@ -4049,6 +4098,8 @@ sub Bind_command_grab(string _name, string _silent, bool _debug)
 		/return
 	} else /if (${Ground[${_name}].Distance3D} <= ${maHard.Find[stRadGrab].Value}) {
 		/invoke ${Ground[${_name}].Grab}
+
+		| save this line for next deployment
 		| /invoke ${Ground.Search[${_name}].Grab}
 
 	}
@@ -4139,6 +4190,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 
 		/ini "${_fqn}" "Header" "Macro" "Entropy"
 		/ini "${_fqn}" "Header" "Build" "${maEnv.Find[build].Value}"
+		/ini "${_fqn}" "Header" "Schema" "${maEnv.Find[schema].Value}"
 		/ini "${_fqn}" "Header" "Hash" "MD5"
 		/ini "${_fqn}" "Header" "NickName" "${_nickname}"
 		/ini "${_fqn}" "Header" "Date" "${Time.Date}"
@@ -4158,7 +4210,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 				/continue
 			}
 
-			/echo \at...\ax\a-w${_limaps.Value}\ax
+			ECHO \at...\ax\a-w${_limaps.Value}\ax
 				/vardata _mi ${_limaps.Value}.First.Clone
 				/while (!${_mi.IsEnd}) {
 					/if (${_skipKey.Contains[${_mi.Key}]}) {
@@ -4183,14 +4235,14 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 
 		| output gems
 		/if (${Me.NumGems} && ${lsClassCast.Contains[${Me.Class.ShortName}]}) {
-			/echo \at...\ax\a-wgem\ax
+			ECHO \at...\ax\a-wgem\ax
 			/for _count 1 to ${Me.NumGems}
 				/ini "${_fqn}" Gems "Gem${_count}" "${Spell[${Me.Gem[${_count}]}].BaseName}"
 			/next _count
 		}
 
 		| output tag/eval
-		/echo \at...\ax\a-weval\ax
+		ECHO \at...\ax\a-weval\ax
 		/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	tag_group.grouping,	tag.name,	tag_validate.created_by, tag_validate.eval,	tag_validate.aux FROM	tag_validate LEFT	JOIN tag ON	tag_validate.tag = tag.id	LEFT JOIN	tag_group	ON tag_validate.grouping = tag_group.id	ORDER	BY tag_group.grouping, tag.name
 		/for _count	1	to ${sqlite.Rows[dummy]}
 			/if	(${sqlite.Result[dummy ${_count} created_by].Equal[2]}) {
@@ -4199,10 +4251,10 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 		/next	_count
 
 		| output md5
-		/echo \at...\ax\a-wmd5\ax
+		ECHO \at...\ax\a-wmd5\ax
 		/squelch /exec powershell "(get-content ${MacroQuest.Path}\macros\exspes\data\${_fn}).Replace('MD5',(Get-FileHash ${MacroQuest.Path}\macros\exspes\data\${_fn} -Algorithm MD5).Hash) | Set-Content ${MacroQuest.Path}\macros\exspes\data\${_fn}" bg
 		/invoke ${out[18, 0, 33]}
-		/echo
+		ECHO
 		/return TRUE
 
 	| import INI routine
@@ -4220,7 +4272,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 			/varset _section ${Ini[${_fqn}].Arg[${_countS},|]}
 			/if (${_skipMap.Contains[${_section}]}) /continue
 			/if (${Select[${_section},,NULL,Header,Gems,Evals]}) /continue
-			/echo \at...\ax\a-w${_section}\ax
+			ECHO \at...\ax\a-w${_section}\ax
 			/for _countK 1 to ${Ini[${_fqn},${_section}].Count[|]}
 				/varset _key ${Ini[${_fqn},${_section} ].Arg[${_countK},|]}
 				/if (${Select[${_key},NULL]}) /continue
@@ -4233,7 +4285,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 
 		| load gems
 		/if (${Me.NumGems} && ${lsClassCast.Contains[${Me.Class.ShortName}]}) {
-			/echo \at...\ax\a-wgem\ax
+			ECHO \at...\ax\a-wgem\ax
 			/if (!${Window[SpellBookWnd].Open}) /invoke ${Window[SpellBookWnd].DoOpen}
 			/for _count 1 to ${Me.NumGems}
 				/call set_spell_to ${_debug} TRUE "${Spell[${Ini[${_fqn},Gems,Gem${_count}]}].RankName}" ${_count} FALSE
@@ -4242,7 +4294,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 		}
 
 		| load evals
-		/echo \at...\ax\a-weval\ax
+		ECHO \at...\ax\a-weval\ax
 		/for _countK 1 to ${Ini[${_fqn},Evals].Count[|]}
 			/varset _key ${Ini[${_fqn},Evals].Arg[${_countK},|]}
 			/if (${Select[${_key},NULL]}) /continue
@@ -4254,7 +4306,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 
 
 		/invoke ${out[18, 0, 33]}
-		/echo
+		ECHO
 		/return TRUE
 
 
@@ -4835,7 +4887,7 @@ sub Bind_command_condition()
 
 	/declare _count int local 0
 
-	/echo
+	ECHO
 	/invoke ${out[12, "\awCondition List\ax${sep}"]}
 	/for _count 1 to 50
 		/sqlite query ${maData.Find[DBcharacter].Value} condition SELECT value FROM environment_condition WHERE env_var="c${_count}"
@@ -5467,7 +5519,7 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 	/sqlite	query	${maData.Find[DBshared].Value} dummy SELECT	grouping FROM	tag_group	WHERE	grouping="${_grouping}";
 
 	/if	(!${sqlite.Rows[dummy]}	&& !${Select[${_grouping},list,see]})	{
-		/echo
+		ECHO
 		OUT	To create	a	tag	with an	evaluation${sep}\a-w/tag groupname tagname "evaluation"\ax
 		OUT	\arDO	NOT\ax use all uppercase in	tagname	or groupname
 		OUT	To delete	an evaluation${sep}\a-w/tag	groupname	tagname	delete\ax
@@ -5649,6 +5701,42 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 	} else /if (${_type.Equal[rad]}) {
 		/invoke ${do_raw_edit[${_debug}, SILENT, stPullRadius, "${_verbage}"]}
 
+	| pull arc
+	} else /if (${_type.Equal[arc]}) {
+		DEBUG ${sep}pull arc${sep}\a-w${_verbage}\ax
+
+		/if (${_verbage.Equal[reset]}) {
+			DEBUG ${sep}pull arc${sep}\a-wclear\ax
+			/invoke ${maPull.Add[stPullArcWidth,0]}
+			/varset stPullArcLeft 0
+			/varset stPullArcRight 0
+			/varset stPullArcCenter 0
+			/return TRUE
+		}
+
+		/if (${Range.Between[1,360:${_verbage}]}) {
+			/invoke ${maPull.Add[stPullArcWidth,${_verbage}]}
+		} else {
+			/invoke ${maPull.Add[stPullArcWidth,0]}
+			/return FALSE
+		}
+
+		/varset stPullArcCenter ${Me.Heading.Degrees}
+
+		| left
+		/if (${Math.Calc[${stPullArcCenter}-(${_verbage}*.5)]}<0) {
+			/varcalc stPullArcLeft 360-((${_verbage}*.5)-${_face})
+		} else {
+			/varcalc stPullArcLeft ${stPullArcCenter}-(${_verbage}*.5)
+		}
+
+		| right
+		/if (${Math.Calc[${stPullArcCenter} + (${_verbage}*.5)]} > 360) {
+			/varcalc stPullArcRight ((${_verbage}*.5) + ${stPullArcCenter} - 360)
+		} else {
+			/varcalc stPullArcRight ${stPullArcCenter}+(${_verbage}*.5)
+		}
+
 	| pull zradius
 	} else /if (${_type.Equal[zrad]}) {
 		/invoke ${do_raw_edit[${_debug}, SILENT, stPullZRadius, "${_verbage}"]}
@@ -5755,6 +5843,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[active,swPull]}
+	| /invoke ${maControl.Add[arc,stPullArcWidth|pr]}
 	/invoke ${maControl.Add[rad,stPullRadius]}
 	/invoke ${maControl.Add[zrad,stPullZRadius]}
 	/invoke ${maControl.Add[pathlogic,swNavPathLogic]}

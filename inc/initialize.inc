@@ -16,7 +16,7 @@ sub	set_debug(string _verbage)
 	| generate DEBUGS
 	/declare flow	string outer FALSE
 	/declare lsDebuglist list	outer
-	/invoke	${lsDebuglist.Append[buff,heal,move,debuff,cast,loot,mode,combat,other,minion,class,admin,schema]}
+	/invoke	${lsDebuglist.Append[buff,heal,move,debuff,cast,loot,mode,combat,other,minion,class,admin,schema,zone]}
 
 	| build the	variables	for	the	debug	lists
 	/declare _licdeb listiterator	local
@@ -31,7 +31,7 @@ sub	set_debug(string _verbage)
 	| heal
 	/invoke	${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot,dannet,rez]}
 	| move
-	/invoke	${lsDebugmove.Append[face,tie,zone,stick,stop,home,gtfo]}
+	/invoke	${lsDebugmove.Append[face,tie,stick,stop,home,gtfo]}
 	| debuff
 	/invoke	${lsDebugdebuff.Append[debuff,mez]}
 	| minion
@@ -45,11 +45,14 @@ sub	set_debug(string _verbage)
 	| combat
 	/invoke	${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait,hardstop,prediction]}
 	| other
-	/invoke	${lsDebugother.Append[rest,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch,staminarecover]}
+	/invoke	${lsDebugother.Append[rest,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch,staminarecover,inventoryscan]}
 	| admin
 	/invoke	${lsDebugadmin.Append[build,observe,house,flow,exit,sql,edit,e3]}
 	| schema (database creation/modification)
 	/invoke	${lsDebugschema.Append[init,s_zone,s_character,s_loot,s_nav,s_shared]}
+	| area
+	/invoke	${lsDebugzone.Append[area]}
+
 
 	| class	specific debugs
 	/if	(${Select[${Me.Class.ShortName},BER]}) {
@@ -276,6 +279,10 @@ sub	set_initial_environment(bool _debug)
 	/call	set_data ${_debug} FALSE lsAnimationNoTarget											list outer 16|43|44|146
 	/call	set_data ${_debug} FALSE lsAnimationMezed													list outer 13|49|58
 
+	| cardinal directions
+	/call	set_data ${_debug} FALSE lsCardinal																list outer n|nne|ne|ene|e|ese|se|sse|s|ssw|sw|wsw|w|wnw|nw|nnw
+
+
 	| playerstates
 	/call	set_data ${_debug} FALSE lsPlayerstate														list outer 1|2|4|8|16|32|64|128|0
 
@@ -330,6 +337,7 @@ sub	set_initial_environment(bool _debug)
 	/invoke	${set_data_timer[FALSE,	Check_Pull_Hardstop, 1]}
 	/invoke	${set_data_timer[FALSE,	Check_Pull_Hardstop_Delay, 1]}
 	/invoke	${set_data_timer[FALSE,	Check_Prediction, 1]}
+	/invoke	${set_data_timer[FALSE,	Check_Inventory_ManaClick, 1m]}
 
 	| wait time	for	pulling
 	/invoke	${set_timer[FALSE, wait_for_mob, 0]}
@@ -426,9 +434,11 @@ sub	set_initial_environment(bool _debug)
 		/invoke	${maChrControl.Add[vot,swVoT]}
 
 	}	else /if (${Select[${Me.Class.ShortName},SHM]})	{
-		/invoke	${maChrControl.Add[cannihps,stPctCanniHP]}
-		/invoke	${maChrControl.Add[cannimanna,stPctCanniManna]}
+		| /invoke	${maChrControl.Add[cannihps,stPctCanniHP]}
+		| /invoke	${maChrControl.Add[cannimanna,stPctCanniManna]}
 		/invoke	${maChrControl.Add[talisman,swTalisman]}
+		/invoke	${maChrControl.Add[canni,submenu]}
+
 
 	}	else /if (${Select[${Me.Class.ShortName},WAR]})	{
 		/invoke	${maChrControl.Add[attraction,swAttraction]}
@@ -508,6 +518,7 @@ sub	sql_schema_zone(bool _debug)
 	/vardata _lisszs lsZoneProperty.First
 	/while (!${_lisszs.IsEnd}) {
 		/declare ${_lisszs.Value}	list outer
+		/invoke	${${_lisszs.Value}.Delimiter["|"]}
 		/invoke	${_lisszs.Advance}
 	}
 
@@ -906,7 +917,6 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maHard	stPullMobFindStep										5															"${auxnum} number of increments your pull radius is broken into to look for mobs"		hard
 
 
-
 |**	control: chr (shared) **|
 
 	| invs
@@ -1043,6 +1053,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maRez swRezOOC															FALSE													"${auxsw}	rez	people while out of combat"                                     rez
 
 	/call	set_data_map ${_debug} maRez swRezTake														FALSE													"${auxsw}	take rezes"                                                         rez
+	/call	set_data_map ${_debug} maRez swRezTakeCall												FALSE													"${auxsw}	take call to corpses"                                               rez
 	/call	set_data_map ${_debug} maRez swRezEveryone												FALSE													"${auxsw}	rez	anyone.. we just don't care do we?"                            	rez
 	/call	set_data_map ${_debug} maRez swRezDanNet													FALSE													"${auxsw}	rez	your DanNet peoples"							                            	rez
 	/call	set_data_map ${_debug} maRez swRezToken														FALSE													"${auxsw}	use	rez	tokens (\a-wseparate from	stResurrection\ax)"               rez
@@ -1171,6 +1182,13 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maPull	swHardStopRez												FALSE													"${auxsw} stop pulling when someone has rez effects"														pull
 	/call	set_data_map ${_debug} maPull	stPullZRadius												60														"${auxnum} the z distance	of your	pulling environment"													pull
 	/call	set_data_map ${_debug} maPull	swNavPathLogic											TRUE													"${auxnum} use nav path lenght logic for finding targets to pull"								pull
+
+	| arc controls
+	| /call	set_data_map ${_debug} maPull	stPullArcCardinal										FALSE													"${auxna} cardinal direction to pull from camp"																	pull
+	/call set_data ${_debug} FALSE stPullArcLeft														float outer 0
+	/call set_data ${_debug} FALSE stPullArcRight														float outer 0
+	/call set_data ${_debug} FALSE stPullArcCenter													float outer 0
+	/call set_data ${_debug} maPull stPullArcWidth													map outer 0
 
 
 
@@ -3300,4 +3318,5 @@ sub sql(bool _debug, string _verb, string _db, string _query, string _action, st
 
               verb     db                        query action  table
 			/sqlite query ${maData.Find[DBzone].Value} QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe';
+
 

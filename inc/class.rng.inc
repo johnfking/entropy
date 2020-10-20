@@ -148,7 +148,7 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat\ax()
-	FLOW misc_combat
+	| FLOW misc_combat
 
 	ISMEDEAD
 	CHECKEXIT
@@ -227,7 +227,7 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub cast_AA_auspice(bool _debug)
 	DEBUG \atcast_AA_auspice\ax()
-	FLOW cast_AA_auspice
+	| FLOW cast_AA_auspice
 
 	ISMEDEAD
 	CHECKEXIT
@@ -252,7 +252,7 @@ sub cast_AA_auspice(bool _debug)
  ***|
 sub check_heal(bool _debug, string _type)
 	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-	FLOW check_heal ${_type}
+	| FLOW check_heal ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -327,7 +327,7 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub cast_nuke_summer(bool _debug, int _tmpID)
 	DEBUG \atcast_nuke_summer\ax(\a-w${_tmpID}\ax)
-	FLOW cast_nuke_summer
+	| FLOW cast_nuke_summer
 
 	/if (${target[isdead, ${_tmpID}]}) {
 		/return FALSE
@@ -359,7 +359,7 @@ sub cast_nuke_summer(bool _debug, int _tmpID)
  ***|
 sub burn(bool _debug, int _tmpID)
 	DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-	FLOW burn
+	| FLOW burn
 
 	ISMEDEAD
 	/if (${target[isdead, ${_tmpID}]}) {
@@ -401,7 +401,7 @@ sub burn(bool _debug, int _tmpID)
 	}
 
 	| MELEE
-	/if (MELEE && !RANGE || MELEE && ${Spawn[${_tmpID}].Distance} <= ${Spawn[${_tmpID}].MaxRangeTo}*.9) {
+	/if (MELEE && !RANGE || MELEE && ${Spawn[${_tmpID}].Distance} <= ${Spawn[${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
 
 		| weapon proc
 		/if (${is_ready[${_debug}, "${maChr.Find[stAAImbuedFerocity].Value}"]}) {
@@ -429,8 +429,8 @@ sub burn(bool _debug, int _tmpID)
 
 
 	| RANGE
-	/if (RANGE && ${Target.Distance} >= 31) {
-		/if (${Me.ActiveDisc.ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
+	/if (RANGE && ${Target.Distance} >= ${maHard.Find[stMinBowDist].Value}) {
+		/if (!${Me.ActiveDisc.ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
 			/if (${is_ready[${_debug}, "${maChr.Find[stDiscRange].Value}"]}) {
 				/call voodoo ${_debug} "${maChr.Find[stDiscRange].Value}" 0 FALSE
 			}

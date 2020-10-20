@@ -14,12 +14,44 @@ on the to do list
 - ranger silent shot ambush spell
 - break out triggers for minion buffs
 - look at a way to split coordination for assists across more then one mob in a raid
-- externalize class AAs: MNK|WIZ|MAG|NEC|SHM
+- externalize class AAs: MNK|WIZ|MAG|NEC
 - buffing system by name
 - pet gear handing for damn TLP feeders..
 --------------------
 
 
+201019.01
+- ranger
+  changed how it gets to ranged burn
+- /area
+  /debug zone area
+  mobs with commas in their names will now record and register properly
+- /rez takecall
+  you can turn on or off taking call to corpses
+  if left off, all calls to copse on your dead husk will be declined
+- mana recovery clickies -@themanwithnoname
+  macro will now search your inventory and register any you have
+  /chr manarecover ## will still be the starting point to use those clickies
+  but, if the clickie returns more manna then you need, it will be skipped and used when needed
+  will not let a clickie kill you from HP loss
+- casting (aa/spell/disc/item/song)
+  added in an absence of a passed target id check along with the dead check
+  its possible corpses are poofing before snares/debufs are getting cast
+- shaman
+  moved the hardcoded AAs to the DB
+  moved all canni controls to /chr canni
+  canni rules:
+  will not use if returns more mana then needed
+  will not use if it will kill you
+  will wait to use if you set a min mana % 
+  will not use if your HP is < /chr canni hp %     
+- cleric 
+  small adjustment to /chr primary
+- corrected some debugs in a few class incs
+- /buff self - should check the clickie buffs and not the clickie now.
+- /buff crew - see /buff self
+- warrior
+  changed a couple target checks from name to ID
 
 
 201003.01
@@ -31,7 +63,6 @@ on the to do list
   trying something a little differet
   the goal is to get single target mezing to be more responsive for TLP that
   do not have access to AE cc yet
-
 
 
 200929.01

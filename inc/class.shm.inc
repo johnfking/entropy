@@ -44,6 +44,14 @@ sub class_init(bool _debug)
   /call set_data_list ${_debug} maChr lsTempBuffToon									EMPTY													"${auxli} list of toons to use your temp buff on"
 	/call set_data_map ${_debug} maChr stTempBuff		 										FALSE													"${auxna} temp buff spell"
 
+	| AAs
+	/call set_data_map ${_debug} maChr stAACalloftheAncients						PREGEN|1											"${auxna} Call of the Ancients aa"
+	/call set_data_map ${_debug} maChr stAASpiritCall										PREGEN|1											"${auxna} Spirit Call aa"
+	/call set_data_map ${_debug} maChr stAADampenResistance							PREGEN|1											"${auxna} Dampen Resistance aa"
+	/call set_data_map ${_debug} maChr stAAFleetingSpirit								PREGEN|1											"${auxna} Fleeting Spirit aa"
+	/call set_data_map ${_debug} maChr stAASpiritualBlessing						PREGEN|1											"${auxna} Spiritual Blessing aa"
+	/call set_data_map ${_debug} maChr stAARabidBear										PREGEN|1											"${auxna} Rabid Bear aa"
+	/call set_data_map ${_debug} maChr stAACannibalization							PREGEN|1											"${auxna} Cannibalization aa"
 
 /return
 
@@ -209,8 +217,8 @@ sub check_heal(bool _debug, string _type)
 
 			| stationary ward heal
 			/if (${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
-			  /if (${is_ready[${_debug}, "Call of the Ancients"]}) {
-			  	/call voodoo ${_debug} "Call of the Ancients" ${Me.ID} FALSE
+			  /if (${is_ready[${_debug}, "${maChr.Find[stAACalloftheAncients].Value}"]}) {
+			  	/call voodoo ${_debug} "${maChr.Find[stAACalloftheAncients].Value}" ${Me.ID} FALSE
 			  }
 			}
 
@@ -385,8 +393,8 @@ sub burn(bool _debug, int _tmpID)
 
 	| swarm aa pet
 	/if (SWARM) {
-		/if (${is_ready[${_debug}, "Spirit Call"]}) {
-			/call voodoo ${_debug} "Spirit Call" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[stAASpiritCall].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAASpiritCall].Value}" ${_tmpID} FALSE
 		}
 	}
 
@@ -396,23 +404,23 @@ sub burn(bool _debug, int _tmpID)
 	}
 
 	| Lower spell resists
-	/if (${is_ready[${_debug}, "Dampen Resistance"]}) {
-		/call voodoo ${_debug} "Dampen Resistance" ${_tmpID} FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAADampenResistance].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAADampenResistance].Value}" ${_tmpID} FALSE
 	}
 
 	| Twincast next 6 DOTs/HOTs
-	/if (${is_ready[${_debug}, "Fleeting Spirit"]}) {
-		/call voodoo ${_debug} "Fleeting Spirit" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAFleetingSpirit].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAAFleetingSpirit].Value}" 0 FALSE
 	}
 
 	| Increase spell cost by 14% for 100% exceptional heals on instant heals for 18 seconds
-	/if (${is_ready[${_debug}, "Spiritual Blessing"]}) {
-		/call voodoo ${_debug} "Spiritual Blessing" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[stAASpiritualBlessing].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAASpiritualBlessing].Value}" 0 FALSE
 	}
 
 	| Mega bear crap
-	/if (AUTO && MELEE && ${is_ready[${_debug}, "Rabid Bear"]}) {
-		/call voodoo ${_debug} "Rabid Bear" ${_tmpID} FALSE
+	/if (AUTO && MELEE && ${is_ready[${_debug}, "${maChr.Find[stAARabidBear].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[stAARabidBear].Value}" ${_tmpID} FALSE
 	}
 
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
@@ -460,8 +468,17 @@ sub check_cani(bool _debug)
 	FLOW check_cani
 
 	/if (!${maChr.Find[stPctCanniManna].Value}) {
-		DEBUG ${sep}canni disabled
+		DEBUG ${break}canni disabled
 		/return TRUE
+	}
+
+	/if (${Me.PctMana} >= ${maChr.Find[stPctCanniManna].Value}) {
+		DEBUG ${break}returning(1) - too much mana${sep}\a-w${Me.PctMana} >= ${maChr.Find[stPctCanniManna].Value}\ax
+		/return FALSE
+	}
+	/if (${Me.PctHPs} <= ${maChr.Find[stPctCanniHP].Value}) {
+		DEBUG ${break}returning(1) - HP too low${sep}\a-w${Me.PctHPs} <= ${maChr.Find[stPctCanniHP].Value}\ax
+		/return FALSE
 	}
 
 
@@ -470,32 +487,40 @@ sub check_cani(bool _debug)
 	ISMEDEAD
 
 	| use the aa cani
-	/if (${Me.PctMana} <= ${maChr.Find[stPctCanniManna].Value}*.PCTHO && ${Me.PctHPs} >= ${maChr.Find[stPctCanniHP].Value}) {
-		/if (${is_ready[${_debug}, "Cannibalization"]}) {
-			/call voodoo ${_debug} "Cannibalization" 0 FALSE
+	/if (${AltAbility[${maChr.Find[stAACannibalization].Value}].Spell.Base[2]} < ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}].Int} && ${Me.CurrentMana} != ${Me.MaxMana} && ${Me.CurrentHPs} > ${AltAbility[${maChr.Find[stAACannibalization].Value}].Spell.Base[1]}) {
+		/if (${is_ready[${_debug}, "${maChr.Find[stAACannibalization].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[stAACannibalization].Value}" 0 FALSE
 		}
-	}
+	}	
+	
 
 	| if canni spell is not ready bail..
 	/if (!${is_ready[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) {
-		DEBUG ${sep}not ready${sep}\a-w${maChr.Find[stCannibalization].Value}\ax
+		DEBUG ${break}not ready${sep}\a-w${maChr.Find[stCannibalization].Value}\ax
 		/return FALSE
 	}
+	
 	/if (${Me.PctMana} >= ${maChr.Find[stPctCanniManna].Value}) {
-		DEBUG ${sep}returning - too much mana${sep}\a-w${Me.PctMana} >= ${maChr.Find[stPctCanniManna].Value}\ax
+		DEBUG ${break}returning(2) - too much mana${sep}\a-w${Me.PctMana} >= ${maChr.Find[stPctCanniManna].Value}\ax
 		/return FALSE
 	}
 	/if (${Me.PctHPs} <= ${maChr.Find[stPctCanniHP].Value}) {
-		DEBUG ${sep}returning - HP too low${sep}\a-w${Me.PctHPs} <= ${maChr.Find[stPctCanniHP].Value}\ax
+		DEBUG ${break}returning(2) - HP too low${sep}\a-w${Me.PctHPs} <= ${maChr.Find[stPctCanniHP].Value}\ax
 		/return FALSE
 	}
 
 	| check HP requirements
-	/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM mana_recovery WHERE env_var="${maChr.Find[stCannibalization].Value}";
-	/if (${Me.CurrentHPs} < ${sqlite.Result[dummy 1 value]}) {
-		DEBUG ${sep}canni usage would kill us${sep}\a-w${Me.CurrentHPs} < ${sqlite.Result[dummy 1 value]}\ax
+	
+	/if (${Spell[${Spell[${maChr.Find[stCannibalization].Value}].RankName}].Base[2]} >= ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}].Int} || ${Me.CurrentMana} == ${Me.MaxMana} || ${Me.CurrentHPs} < ${Spell[${Spell[${maChr.Find[stCannibalization].Value}].RankName}].Base[1]}) {
+		DEBUG ${break}bad time to cani!!
 		/return FALSE
 	}
+	
+	| /sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM mana_recovery WHERE env_var="${maChr.Find[stCannibalization].Value}";
+	| /if (${Me.CurrentHPs} < ${sqlite.Result[dummy 1 value]}) {
+	| 	DEBUG ${break}canni usage would kill us${sep}\a-w${Me.CurrentHPs} < ${sqlite.Result[dummy 1 value]}\ax
+	| 	/return FALSE
+	| }
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stCannibalization].Value}" 0 FALSE
@@ -550,6 +575,27 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 	| use talisman
 	} else /if (${_type.Equal[talisman]}) {
 		/invoke ${set_switch_env[${_debug}, swTalisman, TRUE, ${_verbage}]}
+
+	| arbitration (sheild AND AA)
+	} else /if (${_type.Equal[canni]}) {
+		/if (${_verbage.Equal[mana]}) {
+			/if (!${set_control_num_range[${_debug}, stPctCanniManna, ${_verbage2}, 0, 99]}) /return FALSE
+		} else /if (${_verbage.Equal[hp]}) {
+			/if (!${set_control_num_range[${_debug}, stPctCanniHP, ${_verbage2}, 0, 99]}) /return FALSE
+		} else /if (${_verbage.Equal[aa]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stAACannibalization, "${_verbage2}"]}
+		} else /if (${_verbage.Equal[spell]}) {
+			/invoke ${do_raw_edit[${_debug}, SILENT, stCannibalization, "${_verbage2}"]}
+		}
+
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[mana,stPctCanniManna]}
+		/invoke ${maControl.Add[hp,stPctCanniHP]}
+		/invoke ${maControl.Add[aa,stAACannibalization|br]}
+		/invoke ${maControl.Add[spell,stCannibalization|br]}
+		/invoke ${set_control_output[${_debug}, maChr, "chr canni", maControl]}
+		/return TRUE
+
 
 	}
 

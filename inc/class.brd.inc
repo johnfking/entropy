@@ -639,6 +639,9 @@ sub scan_focus(string _type, bool _debug)
 /return TRUE
 
 
+${FindItem[${maBardFocus.Find[70].Value.Arg[1,|]}].Name}
+
+
 
 |***
  * note: class control

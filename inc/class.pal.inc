@@ -199,7 +199,7 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
 	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-		FLOW misc_combat
+	| FLOW misc_combat
 
 	ISMEDEAD
 
@@ -282,7 +282,7 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub get_agro(bool _debug, int _tmpID)
 	DEBUG \atget_agro\ax()
-	FLOW get_agro
+	| FLOW get_agro
 
 	ISMEDEAD
 	CHECKEXIT
@@ -381,7 +381,7 @@ sub get_agro(bool _debug, int _tmpID)
  ***|
 sub check_heal(bool _debug, string _type)
 	DEBUG \atcheck_heal_group\ax(\a-w${_type}\ax)
-	FLOW check_heal ${_type}
+	| FLOW check_heal ${_type}
 
 	CHECKTIE
 	ISMEDEAD
@@ -514,7 +514,7 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub cast_AA_marrs_gift(bool _debug)
 	DEBUG \atcast_AA_marrs_gift\ax()
-	FLOW cast_AA_marrs_gift
+	| FLOW cast_AA_marrs_gift
 
 	ISMEDEAD
 	CHECKEXIT
@@ -543,7 +543,7 @@ sub cast_AA_marrs_gift(bool _debug)
  ***|
 sub burn(bool _debug, int _tmpID)
 	DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-	FLOW burn
+	| FLOW burn
 
 	ISMEDEAD
 

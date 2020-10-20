@@ -17,50 +17,50 @@ sub class_init(bool _debug)
 		/declare _boottimestart int local ${MacroQuest.Running}
 	}
 
-	/call set_data FALSE maData stSpire 																map outer "Spire of the Warlord"
-	/call set_data FALSE maData stSynergy																map outer "Myrmidon's Synergy"
-	/call set_data FALSE maData stFade																	map outer FALSE
-	/call set_data_map FALSE maChr stAAUnity														FALSE													"${auxna} class aa unity buff"
+	/call set_data ${_debug} maData stSpire 														map outer "Spire of the Warlord"
+	/call set_data ${_debug} maData stSynergy														map outer "Myrmidon's Synergy"
+	/call set_data ${_debug} maData stFade															map outer FALSE
+	/call set_data_map ${_debug} maChr stAAUnity												FALSE													"${auxna} class aa unity buff"
 
 	| attraction AA used for pulling / agro
-	/call set_data_map FALSE maChr swAttraction													FALSE													"${auxsw} use the attraction aa to help with agro/pulling"
+	/call set_data_map ${_debug} maChr swAttraction											FALSE													"${auxsw} use the attraction aa to help with agro/pulling"
 
- 	/call set_data_map FALSE maChr stRest 															PREGEN|1											"${auxna} name of stamina rest disc"
- 	/call set_data_map FALSE maChr stHiatus															PREGEN|1											"${auxna} name of hiatus stamina recovery disc"
- 	/call set_data_map FALSE maChr swHiatus															FALSE													"${auxsw} use hiatus rest disc"
+ 	/call set_data_map ${_debug} maChr stRest 													PREGEN|1											"${auxna} name of stamina rest disc"
+ 	/call set_data_map ${_debug} maChr stHiatus													PREGEN|1											"${auxna} name of hiatus stamina recovery disc"
+ 	/call set_data_map ${_debug} maChr swHiatus													FALSE													"${auxsw} use hiatus rest disc"
 
 
-	| /call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} "
-	/call set_data_map FALSE maChr stDichotomic													PREGEN|1											"${auxna} dichotomic disc"
-	/call set_data_map FALSE maChr stRunes															PREGEN|1											"${auxna} Aura of Runes Discipline family disc"
-	/call set_data_map FALSE maChr stKnuckle														PREGEN|1											"${auxna} Knuckle Smash family disc"
-	/call set_data_map FALSE maChr stCommanding													PREGEN|1											"${auxna} Commanding Voice family disc"
-	/call set_data_map FALSE maChr stReprisal														PREGEN|1											"${auxna} Determined Reprisal family disc"
-	/call set_data_map FALSE maChr stEvasive 														PREGEN|1											"${auxna} Evasive Discipline family disc"
-	/call set_data_map FALSE maChr stProvoke 														PREGEN|1											"${auxna} Provoke family disc"
-	/call set_data_map FALSE maChr stWhirling			 											PREGEN|1											"${auxna} Whirling Blade family disc"
-	/call set_data_map FALSE maChr stWade				 												PREGEN|1											"${auxna} Wade into Battle family disc"
-	/call set_data_map FALSE maChr stRallying														PREGEN|1											"${auxna} Rallying Roar family disc"
-	/call set_data_map FALSE maChr stShout				 											PREGEN|1											"${auxna} Harrassing Shout family disc"
-	/call set_data_map FALSE maChr stDefense 														PREGEN|1											"${auxna} Bracing Defense family disc"
-	/call set_data_map FALSE maChr stField				 											PREGEN|1											"${auxna} Field Armorer family disc"
+	| /call set_data_map FALSE maChr stAlliance													PREGEN|1											"${auxna} "
+	/call set_data_map ${_debug} maChr stDichotomic											PREGEN|1											"${auxna} dichotomic disc"
+	/call set_data_map ${_debug} maChr stRunes													PREGEN|1											"${auxna} Aura of Runes Discipline family disc"
+	/call set_data_map ${_debug} maChr stKnuckle												PREGEN|1											"${auxna} Knuckle Smash family disc"
+	/call set_data_map ${_debug} maChr stCommanding											PREGEN|1											"${auxna} Commanding Voice family disc"
+	/call set_data_map ${_debug} maChr stReprisal												PREGEN|1											"${auxna} Determined Reprisal family disc"
+	/call set_data_map ${_debug} maChr stEvasive 												PREGEN|1											"${auxna} Evasive Discipline family disc"
+	/call set_data_map ${_debug} maChr stProvoke 												PREGEN|1											"${auxna} Provoke family disc"
+	/call set_data_map ${_debug} maChr stWhirling			 									PREGEN|1											"${auxna} Whirling Blade family disc"
+	/call set_data_map ${_debug} maChr stWade				 										PREGEN|1											"${auxna} Wade into Battle family disc"
+	/call set_data_map ${_debug} maChr stRallying												PREGEN|1											"${auxna} Rallying Roar family disc"
+	/call set_data_map ${_debug} maChr stShout				 									PREGEN|1											"${auxna} Harrassing Shout family disc"
+	/call set_data_map ${_debug} maChr stDefense 												PREGEN|1											"${auxna} Bracing Defense family disc"
+	/call set_data_map ${_debug} maChr stField				 									PREGEN|1											"${auxna} Field Armorer family disc"
 
-	/call set_data_map FALSE maChr stFlash				 											PREGEN|1											"${auxna} Flash of Anger family disc"
+	/call set_data_map ${_debug} maChr stFlash				 									PREGEN|1											"${auxna} Flash of Anger family disc"
 
-	/call set_data_map FALSE maChr stNoTime				 											PREGEN|1											"${auxna} No Time to Bleed family disc"
-	/call set_data_map FALSE maChr stAttention													PREGEN|1											"${auxna} Undivided Attention family disc"
-	/call set_data_map FALSE maChr stPhantom														PREGEN|1											"${auxna} Phantom Aggressor family disc"
-	/call set_data_map FALSE maChr stShield 														PREGEN|1											"${auxna} Shield Topple family disc"
-	/call set_data_map FALSE maChr stExpanse 														PREGEN|1											"${auxna} Harmonious Expanse family disc"
-	/call set_data_map FALSE maChr stPrecision 													PREGEN|1											"${auxna} Harmonious Precision family disc"
-	/call set_data_map FALSE maChr stWarriors 													PREGEN|1											"${auxna} Warrior's Auspice family disc"
-	/call set_data_map FALSE maChr stBazu 															PREGEN|1											"${auxna} Bazu Bellow family disc"
-	/call set_data_map FALSE maChr stShocking 													PREGEN|1											"${auxna} Shocking Defense Discipline family disc"
-	/call set_data_map FALSE maChr stMighty															PREGEN|1											"${auxna} Mighty Strike Discipline family disc"
-	/call set_data_map FALSE maChr stOnslaught													PREGEN|1											"${auxna} Savage Onslaught Discipline family disc"
-	/call set_data_map FALSE maChr stOffensive													PREGEN|1											"${auxna} Offensive Discipline family disc"
+	/call set_data_map ${_debug} maChr stNoTime				 									PREGEN|1											"${auxna} No Time to Bleed family disc"
+	/call set_data_map ${_debug} maChr stAttention											PREGEN|1											"${auxna} Undivided Attention family disc"
+	/call set_data_map ${_debug} maChr stPhantom												PREGEN|1											"${auxna} Phantom Aggressor family disc"
+	/call set_data_map ${_debug} maChr stShield 												PREGEN|1											"${auxna} Shield Topple family disc"
+	/call set_data_map ${_debug} maChr stExpanse 												PREGEN|1											"${auxna} Harmonious Expanse family disc"
+	/call set_data_map ${_debug} maChr stPrecision 											PREGEN|1											"${auxna} Harmonious Precision family disc"
+	/call set_data_map ${_debug} maChr stWarriors 											PREGEN|1											"${auxna} Warrior's Auspice family disc"
+	/call set_data_map ${_debug} maChr stBazu 													PREGEN|1											"${auxna} Bazu Bellow family disc"
+	/call set_data_map ${_debug} maChr stShocking 											PREGEN|1											"${auxna} Shocking Defense Discipline family disc"
+	/call set_data_map ${_debug} maChr stMighty													PREGEN|1											"${auxna} Mighty Strike Discipline family disc"
+	/call set_data_map ${_debug} maChr stOnslaught											PREGEN|1											"${auxna} Savage Onslaught Discipline family disc"
+	/call set_data_map ${_debug} maChr stOffensive											PREGEN|1											"${auxna} Offensive Discipline family disc"
 
-	/call set_data_map FALSE maChr stFortitude													PREGEN|1											"${auxna} Fortitude Discipline family disc"
+	/call set_data_map ${_debug} maChr stFortitude											PREGEN|1											"${auxna} Fortitude Discipline family disc"
 
 	| AAs
 	/call set_data_map ${_debug} maChr stAABlastofAnger									PREGEN|1											"${auxna} Blast of Anger AA"
@@ -120,7 +120,7 @@ sub class_main(bool _debug)
 			/invoke ${do_taunt[${_debug}, TARGET]}
 			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
 			/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
-				/call cast_shield_flash FALSE disc
+				/call cast_shield_flash ${_debug} disc
 			}
 			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
 			/if (AGRO) /call get_agro ${maDebug.Find[agro].Value} TARGET
@@ -188,7 +188,7 @@ sub misc_combat(bool _debug, int _tmpID)
 	}
 
 	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
-		/call cast_shield_flash FALSE disc
+		/call cast_shield_flash ${_debug} disc
 	}
 
 	/if (${is_ready[${_debug}, "${maChr.Find[stNoTime].Value}"]} && !${Me.Buff[${maChr.Find[stDichotomic].Value}].ID}) {
@@ -334,14 +334,14 @@ sub get_agro(bool _debug, int _tmpID)
 	/invoke ${do_taunt[${_debug}, ${_tmpID}]}
 
 	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
-		/call cast_shield_flash FALSE disc
+		/call cast_shield_flash ${_debug} disc
 	}
 
 	/if (${Me.PctAggro} >= ${maAgro.Find[stPctAgroHold].Value}) {
 		/return FALSE
 	}
 
-	/if (${is_ready[${_debug}, "${maChr.Find[stProvoke].Value}"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
+	/if (${is_ready[${_debug}, "${maChr.Find[stProvoke].Value}"]} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stProvoke].Value}" ${_tmpID} FALSE
 	}
 
@@ -350,7 +350,7 @@ sub get_agro(bool _debug, int _tmpID)
 	}
 
 
-	/if (${is_ready[${_debug}, "${maChr.Find[stBazu].Value}"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
+	/if (${is_ready[${_debug}, "${maChr.Find[stBazu].Value}"]} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stBazu].Value}" ${_tmpID} FALSE
 	}
 
@@ -366,11 +366,11 @@ sub get_agro(bool _debug, int _tmpID)
 	/invoke ${do_taunt[${_debug}, ${_tmpID}]}
 
 	| 20% agro boost AA with 2/10 uptime
-	/if (${is_ready[${_debug}, "${maChr.Find[stAAWarlordsFury].Value}"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
+	/if (${is_ready[${_debug}, "${maChr.Find[stAAWarlordsFury].Value}"]} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stAAWarlordsFury].Value}" ${_tmpID} FALSE
 	}
 
-	/if (${is_ready[${_debug}, "${maChr.Find[stAABlastofAnger].Value}"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
+	/if (${is_ready[${_debug}, "${maChr.Find[stAABlastofAnger].Value}"]} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
 		/call voodoo ${_debug} "${maChr.Find[stAABlastofAnger].Value}" ${_tmpID} FALSE
 	}
 
@@ -387,7 +387,7 @@ sub check_heal(bool _debug, string _type)
 	FLOW check_heal ${_type}
 
 	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
-		/call cast_shield_flash FALSE disc
+		/call cast_shield_flash ${_debug} disc
 	}
 
 	CHECKTIE
@@ -468,7 +468,7 @@ sub burn(bool _debug, int _tmpID)
 	}
 
 	/if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
-		/call cast_shield_flash FALSE disc
+		/call cast_shield_flash ${_debug} disc
 	}
 
 	CHECKDEFENSE

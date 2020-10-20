@@ -755,26 +755,15 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 		| use the weapon.. seriously.. go camp something. put some effort into the class
 		/if (${_verbage.Equal[use]}) {
 			/invoke ${set_switch_env[${_debug}, swSummonPrimary, TRUE]}
-
 		| spell to summon
 		} else /if (${_verbage.Equal[spell]}) {
 			/invoke ${do_raw_edit[${_debug}, SILENT, stSummonPrimary, "${_verbage2}"]}
-
 		}
-
-		/declare _out string local
-		/declare _lsout list local
-		/declare _lichrs listiterator local
-		/invoke ${_lsout.Append[use,spell]}
-		/vardata _lichrs _lsout.First.Clone
-		/while (!${_lichrs.IsEnd}) {
-			/varset _out ${_out} ${If[${_lichrs.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${_lichrs.Value}\ax
-			/if (${_lichrs.Value.Equal[use]}) /varset _out ${_out}:${If[${maChr.Find[swSummonPrimary].Value},${on},${off}]}
-			/if (${_lichrs.Value.Equal[spell]}) /varset _out ${_out}:[${If[${Bool[${maChr.Find[stSummonPrimary].Value}]},${num}${maChr.Find[stSummonPrimary].Value}\ax,${r0}]}]
-			/invoke ${_lichrs.Advance}
-		}
-		OUT /chr primary ${_out}
-		/return
+		/invoke ${maControl.Clear}
+		/invoke ${maControl.Add[use,swSummonPrimary]}
+		/invoke ${maControl.Add[spell,stSummonPrimary|br]}
+		/invoke ${set_control_output[${_debug}, maChr, "chr primary", maControl]}
+		/return TRUE
 
 	}
 
