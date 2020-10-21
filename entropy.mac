@@ -19,7 +19,7 @@
 #turbo 240
 #engine parser 2
 
-#define ECHO /cecho
+#define ECHO /echo
 #define DEBUG "/if (${_debug}) ECHO \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
 #define SDEBUG "ECHO \ay+[\ax\aw${Time.Second}\ax\at::\ax\aw${Macro.CurLine}\ax\ay]\ax(\a-t${Macro.RunTime}\ax) \ay--\ax "
 #define EDEBUG "/if (${maDebug.Find[event].Value}) ECHO \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax${sep}\a-t----\ax${submenu}"
@@ -37,7 +37,7 @@
 #define PULL ${maPull.Find[swPull].Value}
 #define AGRO ${maAgro.Find[swAgro].Value}
 #define TARGET ${stAssTarID}
-#define TIE	${maTie.Find[swSetTie].Value}
+#define TIE ${maTie.Find[swSetTie].Value}
 #define HOME ${maHome.Find[swHomeMarker].Value}
 #define MA1 ${maCC.Find[stManualAssist1].Value}
 #define MA2 ${maCC.Find[stManualAssist2].Value}
@@ -107,7 +107,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	/call delete_conflict_alias FALSE
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 201019.01
+	/call set_data FALSE maEnv build													map outer 201021.01
 	/call set_data FALSE maEnv schema													map outer 1.17
 	/call set_data FALSE maEnv repo														map outer 200706.01
 

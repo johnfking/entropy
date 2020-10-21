@@ -48,50 +48,28 @@ sub class_init(bool _debug)
   /call set_data_list ${_debug} maChr lsTempBuffToon									EMPTY													"${auxli} list of toons to use your temp buff on"
 	/call set_data_map ${_debug} maChr stTempBuff		 										FALSE													"${auxna} temp buff spell"
 
+	| AAs
+	/call set_data_map ${_debug} maChr ArcaneWhisper										PREGEN|1											"${auxna} Arcane Whisper aa"
+	/call set_data_map ${_debug} maChr MindCrash												PREGEN|1											"${auxna} Mind Crash aa"
+	/call set_data_map ${_debug} maChr ConcussiveIntuition							PREGEN|1											"${auxna} Concussive Intuition aa"
+	/call set_data_map ${_debug} maChr HarvestofDruzzil									PREGEN|1											"${auxna} Harvest of Druzzil aa"
+	/call set_data_map ${_debug} maChr SilentCasting										PREGEN|1											"${auxna} Silent Casting aa"
+	/call set_data_map ${_debug} maChr FrenziedDevastation							PREGEN|1											"${auxna} Frenzied Devastation aa"
+	/call set_data_map ${_debug} maChr FocusofArcanum										PREGEN|1											"${auxna} Focus of Arcanum aa"
+	/call set_data_map ${_debug} maChr ImprovedTwincast									PREGEN|1											"${auxna} Improved Twincast aa"
+	/call set_data_map ${_debug} maChr FuryoftheGods										PREGEN|1											"${auxna} Fury of the Gods aa"
+	/call set_data_map ${_debug} maChr ArcaneDestruction								PREGEN|1											"${auxna} Arcane Destruction aa"
+	/call set_data_map ${_debug} maChr ArcaneFury												PREGEN|1											"${auxna} Arcane Fury aa"
+	/call set_data_map ${_debug} maChr CallofXuzl												PREGEN|1											"${auxna} Call of Xuzl aa"
+	/call set_data_map ${_debug} maChr ManaBurn													PREGEN|1											"${auxna} Mana Burn aa"
+
+
 	/if (${maDebug.Find[init].Value}) {
 		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
 		/mqp
 	}
 
 /return TRUE
-
-
-
-
-
-
-
-
-Arcane Whisper
-Mind Crash
-Concussive Intuition
-Harvest of Druzzil
-Silent Casting
-Frenzied Devastation
-Focus of Arcanum
-Improved Twincast
-Fury of the Gods
-Arcane Destruction
-Arcane Fury
-Arcane Fury
-Call of Xuzl
-
-
-
-Arcane Whisper
-Mind Crash
-Concussive Intuition
-Harvest of Druzzil
-Silent Casting
-Frenzied Devastation
-Focus of Arcanum
-Improved Twincast
-Fury of the Gods
-Arcane Destruction
-Arcane Fury
-Arcane Fury
-Call of Xuzl
-
 
 
 
@@ -197,14 +175,14 @@ sub misc_combat(bool _debug, int _tmpID)
 	| agro control
 	/if (AGRO) {
 	} else /if (!AGRO) {
-		/if (${is_ready[${_debug}, "Arcane Whisper"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) {
-			/call voodoo ${_debug} "Arcane Whisper" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[ArcaneWhisper].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) {
+			/call voodoo ${_debug} "${maChr.Find[ArcaneWhisper].Value}" ${_tmpID} FALSE
 		}
-		/if (${is_ready[${_debug}, "Mind Crash"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value} && ${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]}) {
-			/call voodoo ${_debug} "Mind Crash" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[MindCrash].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value} && ${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]}) {
+			/call voodoo ${_debug} "${maChr.Find[MindCrash].Value}" ${_tmpID} FALSE
 		}
-		/if (${is_ready[${_debug}, "Concussive Intuition"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) {
-			call voodoo ${_debug} "Concussive Intuition" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[ConcussiveIntuition].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) {
+			call voodoo ${_debug} "${maChr.Find[ConcussiveIntuition].Value}" ${_tmpID} FALSE
 		}
 		/if (${is_ready[${_debug}, "${maChr.Find[stConcussion].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctConcussion].Value}) {
 			/call voodoo ${_debug} "${maChr.Find[stConcussion].Value}" ${_tmpID} FALSE
@@ -236,8 +214,8 @@ sub check_harvest(bool _debug)
 	}
 
 	/if (!${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
-		/if (${is_ready[${_debug}, "Forceful Rejuvenation"]}) {
-			/call voodoo ${_debug} "Forceful Rejuvenation" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[ForcefulRejuvenation].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[ForcefulRejuvenation].Value}" 0 FALSE
 			/delay 5
 		}
 	}
@@ -247,8 +225,8 @@ sub check_harvest(bool _debug)
 		/return TRUE
 	}
 
-	/if (${is_ready[${_debug}, "Harvest of Druzzil"]}) {
-		/call voodoo ${_debug} "Harvest of Druzzil" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[HarvestofDruzzil].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[HarvestofDruzzil].Value}" 0 FALSE
 		/return TRUE
 	}
 
@@ -341,24 +319,24 @@ sub burn(bool _debug, int _tmpID)
 	}
 
 	| shhhhh..
-	/if (${is_ready[${_debug}, "Silent Casting"]}) {
-		/call voodoo ${_debug} "Silent Casting" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[SilentCasting].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[SilentCasting].Value}" 0 FALSE
 	}
 
 	| next 45 spells +51% crit rate
-	/if (${is_ready[${_debug}, "Frenzied Devastation"]}) {
-		/call voodoo ${_debug} "Frenzied Devastation" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[FrenziedDevastation].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[FrenziedDevastation].Value}" 0 FALSE
 	}
 	| increase chance to land
-	/if (${is_ready[${_debug}, "Focus of Arcanum"]}) {
-		/call voodoo ${_debug} "Focus of Arcanum" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[FocusofArcanum].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[FocusofArcanum].Value}" 0 FALSE
 	}
 
 
 	| alternate twincast
 	/if (!${Me.Buff[${maChr.Find[stTC].Value}].ID}) {
-		/if (${is_ready[${_debug}, "Improved Twincast"]}) {
-			/call voodoo ${_debug} "Improved Twincast" 0 FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[ImprovedTwincast].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[ImprovedTwincast].Value}" 0 FALSE
 		}
 	} else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.AltAbilityReady[Improved Twincast]}) {
 		/if (${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
@@ -369,33 +347,33 @@ sub burn(bool _debug, int _tmpID)
 	/call cast_AA_spire ${maDebug.Find[spire].Value}
 
 	| boost spell type damage
-	/if (${is_ready[${_debug}, "Fury of the Gods"]}) {
-		/call voodoo ${_debug} "Fury of the Gods" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[FuryoftheGods].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[FuryoftheGods].Value}" 0 FALSE
 	}
 
-	/if (${is_ready[${_debug}, "Arcane Destruction"]}) {
-		/call voodoo ${_debug} "Arcane Destruction" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[ArcaneDestruction].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[ArcaneDestruction].Value}" 0 FALSE
 	}
 
 	| increase damage
-	/if (${is_ready[${_debug}, "Arcane Fury"]}) {
-		/call voodoo ${_debug} "Arcane Fury" 0 FALSE
+	/if (${is_ready[${_debug}, "${maChr.Find[ArcaneFury].Value}"]}) {
+		/call voodoo ${_debug} "${maChr.Find[ArcaneFury].Value}" 0 FALSE
 	}
 
 	| aww baby
 	/if (${maChr.Find[swManaBurn].Value}) {
 		/invoke ${set_target[TARGET]}
 		/if (!${Target.Buff[Mana Burn].ID}) {
-			/if (${is_ready[${_debug}, "Mana Burn"]}) {
-				/call voodoo ${_debug} "Mana Burn" ${_tmpID} FALSE
+			/if (${is_ready[${_debug}, "${maChr.Find[ManaBurn].Value}"]}) {
+				/call voodoo ${_debug} "${maChr.Find[ManaBurn].Value}" ${_tmpID} FALSE
 			}
 		}
 	}
 
 	| swarm pet
 	/if (SWARM) {
-		/if (${is_ready[${_debug}, "Call of Xuzl"]}) {
-			/call voodoo ${_debug} "Call of Xuzl" ${_tmpID} FALSE
+		/if (${is_ready[${_debug}, "${maChr.Find[CallofXuzl].Value}"]}) {
+			/call voodoo ${_debug} "${maChr.Find[CallofXuzl].Value}" ${_tmpID} FALSE
 		}
 	}
 

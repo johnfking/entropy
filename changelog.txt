@@ -14,10 +14,16 @@ on the to do list
 - ranger silent shot ambush spell
 - break out triggers for minion buffs
 - look at a way to split coordination for assists across more then one mob in a raid
-- externalize class AAs: MNK|WIZ|MAG|NEC
+- externalize class AAs: MNK|MAG|NEC
 - buffing system by name
 - pet gear handing for damn TLP feeders..
 --------------------
+
+
+201021.01
+- wizard
+  moved hardcoded class AAs to DB
+- correction for /cecho   
 
 
 201019.01
