@@ -2483,14 +2483,14 @@ sub is_target_valid(bool _debug, int _tmpID)
 
 |***
  * note: Check if we need to engage burn routines. /combat heal/dual are treated differently
- * use: ${is_burn_validDEBUG}
+ * use: ${is_burn_valid[DEBUG]}
  ***|
 sub is_burn_valid(bool _debug)
 	DEBUG \atis_burn_valid\ax()
-	FLOW is_burn_valid
+	| FLOW is_burn_valid
 
 	| dont do shit in safe zone..
-	/if (${maEnv.Find[swZoneSafe].Value}) {
+	/if (SAFEZONE) {
 		DEBUG ${break}safezone${sep}\a-wreturning FALSE\ax
 		/invoke ${maBurn.Add[swBurnConditionMet,FALSE]}
 		/return FALSE
@@ -2518,7 +2518,7 @@ sub is_burn_valid(bool _debug)
 
 	| no mobs around
 	/if (!${SpawnCount[npc radius ENV PS4]}) {
-		DEBUG ${break}not enough mobs in radius${sep}\a-wreturning FALSE\ax
+		DEBUG ${break}no mobs in radius to check${sep}\a-wreturning FALSE\ax
 		/invoke ${maBurn.Add[swBurnConditionMet,FALSE]}
 		/return FALSE
 	}
@@ -3148,7 +3148,7 @@ sub get_target_wait(bool _debug, int _tmpID, string _waittime)
 			FLOW get_target_wait ${_tmpID} (2)
 			DEBUG ${sep}\awTARGET\ax.distance${sep}\a-w${Spawn[${_tmpID}].Distance}\ax${sep}\a-w${wait_for_mob}\ax
 			GETINPUT get_target_basepull_wait NA|NA
-			/delay 5
+			/delay 1
 
 			| check for ammo if needed
 			/if (!${Select[${Me.Class.ShortName},RNG]} && !${Me.Inventory[ammo].ID}) {
@@ -3324,7 +3324,7 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 sub pull_hardstop(bool _debug)
 	DEBUG \atpull_hardstop\ax()
 
-	| if anything is turned off, we dont come back to check for 30 seconds..
+	| if duration is turned off, we dont come back to check for 30 seconds..
 	/if (!${Bool[${maPull.Find[stHardStopDuration].Value}]}) {
 		/invoke ${set_data_timer[${_debug}, Check_Pull_Hardstop_Delay, 30s]}
 		/return FALSE
@@ -3350,7 +3350,6 @@ sub pull_hardstop(bool _debug)
 
 		| check mana and stamina
 		/if (${Bool[${maPull.Find[stPctHardStop].Value}]}) {
-			| manna
 			/if (${Select[${Spawn[pc ${_toonName}].Class.ShortName},PAL,SHD,RNG,BST,WIZ,MAG,ENC,NEC,CLR,DRU,SHM]}) {
 				/dquery ${_toonName} -q "Me.PctMana" -o DNQHardStop -t 5
 				DEBUG ${sep}${sep}.PctMana \at${DNQHardStop}\ax
@@ -3375,15 +3374,15 @@ sub pull_hardstop(bool _debug)
 
 		| rez efects
 		/if (${Bool[${maPull.Find[swHardStopRez].Value}]}) {
-			/dquery ${_toonName} -q "{Me.Buff[Revival Sickness].ID" -o DNQHardStop -t 5
-			DEBUG ${sep}${sep}.PctEndurance \at${DNQHardStop}\ax
-			/if (${Range.Between[1,100:${DNQHardStop}]}) {
+			/dquery ${_toonName} -q "Me.Buff[Revival Sickness].ID" -o DNQHardStop -t 5
+			DEBUG ${sep}${sep}Revival Sickness \at${DNQHardStop}\ax
+			/if (${Bool[${DNQHardStop}]}) {
 				/varset _found TRUE
 			}
 
 			/dquery ${_toonName} -q "Me.Buff[Resurrection Sickness].ID" -o DNQHardStop -t 5
-			DEBUG ${sep}${sep}.PctEndurance \at${DNQHardStop}\ax
-			/if (${Range.Between[1,100:${DNQHardStop}]}) {
+			DEBUG ${sep}${sep}Resurrection Sickness \at${DNQHardStop}\ax
+			/if (${Bool[${DNQHardStop}]}) {
 				/varset _found TRUE
 			}
 		}
@@ -3563,7 +3562,6 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 
 					| get its attention
 					/call pull_get_other_type ${_debug} ${_tmpID}
-					| /call voodoo ${_debug} "${maCC.Find[swRangeOther].Value}" ${_tmpID} FALSE ${_range}
 					/delay 5
 					GETINPUT
 
@@ -3852,24 +3850,23 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
 				| bishes suffering from tunnel vision
 				/if (${maPull.Find[stPullArcWidth].Value}) {
 
-	        /declare _tmpDegree float local 0
+	        /if (!${Defined[_tmpDegree]}) {
+	        	/declare _tmpDegree float local 0
+	        }
 
-	        /varset _tmpDegree ${Spawn[${aMobID}].HeadingTo[${maData.Find[stCampY].Value},${maData.Find[stCampX].Value}].Degrees}
-	        /if (${PullLSide}>=${PullRSide}) {
-	            /if (${_tmpDegree}<${PullLSide} && ${_tmpDegree}>${PullRSide}) /return 0
+	        /varset _tmpDegree ${Spawn[${_tmpID}].HeadingTo[${maData.Find[stCampY].Value},${maData.Find[stCampX].Value}].Degrees}
+	        /if (${stPullArcLeft} >= ${stPullArcRight}) {
+	            /if (${_tmpDegree} < ${stPullArcLeft} && ${_tmpDegree} > ${stPullArcRight}) /return 0
 	        } else {
-	            /if (${_tmpDegree}<${PullLSide} || ${_tmpDegree}>${PullRSide}) /return 0
+	            /if (${_tmpDegree} < ${stPullArcLeft} || ${_tmpDegree} > ${stPullArcRight}) /return 0
 	        }
 
 
-/if (${stPullArcLeft} >= ${stPullArcRight}) {
+					| /if (${stPullArcLeft} >= ${stPullArcRight}) {
+					| } else {
+					| }
 
-
-} else {
-
-}
-
-${Spawn[${Target.ID}].HeadingTo.Degrees}
+					| ${Spawn[${Target.ID}].HeadingTo.Degrees}
 
 				}
 
@@ -4147,7 +4144,9 @@ sub do_rest(bool _debug)
 	FLOW do_rest
 
 	| the dead dont need to rest
-	/if (!AUTO || ${swIsMeDead}) /return FALSE
+	/if (!AUTO || ${swIsMeDead}) {
+		/return FALSE
+	}
 
 	| dont rest while in tie
 	/if (TIE) /return FALSE
@@ -4211,7 +4210,7 @@ sub do_rest(bool _debug)
 		}
 	}
 
-	/if (PCTREST && !${Me.Moving} && ((${maEnv.Find[swRestCombat].Value} && ${Me.CombatState.NotEqual[combat]}) || !${SpawnCount[npc OVERLOS radius ENV PS4]})) {
+	/if (PCTREST && !${Me.Moving} && ((${maEnv.Find[swRestCombat].Value} && ${Me.CombatState.NotEqual[combat]}) || !${SpawnCount[npc OVERLOS radius ${maEnv.Find[stRestRadius].Value} PS4]})) {
 
 		| Hybrid: RNG,SHD,BST,PAL,BRD
 		/if ((${lsClassMelee.CountOf[${Me.Class.ShortName}]} && ${lsClassCast.CountOf[${Me.Class.ShortName}]}) || ${Me.Class.ShortName.Equal[BRD]}) {
@@ -9163,6 +9162,7 @@ sub get_target_intpull(bool _debug, int _tmpID)
  * use: /call pull_mob_move_to DEBUG [TARGETID] [distance to stop at] [Line Of Sight on|off]
  ***|
 sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
+/varset _debug TRUE
 	DEBUG \atpull_mob_move_to\ax(\a-w${_tmpID}, ${_dist}, ${_LoS}\ax)
 	FLOW pull_mob_move_to ${_tmpID}|${_dist}|${_LoS} (1)
 
@@ -9198,14 +9198,14 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 		}
 
 		| are we there yet???
-		/if (${Spawn[${_tmpID}].Distance} > ${_dist} && !${Spawn[${_tmpID}].LineOfSight}) {
-			DEBUG ${sep}dis check${sep}\a-w${Spawn[${_tmpID}].Distance} > ${_dist} && !\arLOS\ax
-			/delay 5
-		}
+		| /if (${Spawn[${_tmpID}].Distance} > ${_dist} && !${Spawn[${_tmpID}].LineOfSight}) {
+		| 	DEBUG ${sep}dis check${sep}\a-w${Spawn[${_tmpID}].Distance} > ${_dist} && !\arLOS\ax
+		| 	/delay 5
+		| }
 
 		| hell yah.. were here
-		/if (${Spawn[${_tmpID}].Distance} < ${_dist} && ${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} > ENV) {
-			DEBUG ${sep}dis \arHALT\ax${sep}\a-w${Spawn[${_tmpID}].Distance} < \ag${_dist}\ax && \agLOS\a-w (\a-r${_tmpID}\ax)
+		/if (${Spawn[${_tmpID}].Distance} <= ${_dist} && ${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} > ENV) {
+			DEBUG ${sep}dis \arHALT\ax${sep}\a-w${Spawn[${_tmpID}].Distance} <= \ag${_dist}\ax && \agLOS\a-w (\a-r${_tmpID}\ax)
 			/nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
 			/return TRUE
 		}
@@ -9227,7 +9227,7 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 			/return TRUE
 		}
 
-		/delay 5
+		/delay 1
 	}
 
 /return TRUE
@@ -12350,7 +12350,7 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 
 		| break on no mobs in area
 		/if (AE# && ${SpawnCount[npc radius ENV PS4 targetable]} < AE#) {
-			DEBUG ${break}not enough mobs in ae rad
+			DEBUG ${break}not enough mobs in env rad
 			/return FALSE
 		}
 
@@ -12446,7 +12446,7 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 		/return TRUE
 
  	| single heal over time
-	} else /if (${_tag.Equal[healhot]}) {
+	} else /if (${_tag.Equal[hot]}) {
 
 		| find my hot
 		/while (!${_liHoT.IsEnd}) {
@@ -12465,7 +12465,7 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 				/invoke ${_liHoT.Advance}
 				/continue
 			}
-			| cehck matching tag
+			| good tag, set a name
 			/if (${lsHeal${_liHoT.Value}Tag.Contains[hot]}) {
 				/varset _myHoT ${maHeal.Find[stHeal${_liHoT.Value}].Value}
 				/break
@@ -13922,14 +13922,61 @@ sub get_prediction(bool _debug)
 
 
 |***
+ * note: use GTFO oout or not
+ * use: /call control_GTFO [option]
+ ***|
+sub control_GTFO(string _verbage, bool _debug)
+	DEBUG \atcontrol_GTFO\ax(\a-w${_verbage}\ax)
+
+	/invoke ${set_data_timer[${_debug}, Check_GTFO, RESTART]}
+	
+	/if (SAFEZONE) /return FALSE
+	
+	ISMEDEAD
+
+	/if (!${maGTFO.Find[swGTFOActive].Value}) {
+		/return FALSE
+	}
+
+	| forced?
+	/if (${_verbage.Equal[force]}) {
+		/call check_gtfo FALSE ${_debug}
+		/return TRUE
+	}
+
+	| enough people dead in party?
+	/if (${maGTFO.Find[stCountGTFODead].Value}) {
+		/if (${Group.Injured[0]} >= ${maGTFO.Find[stCountGTFODead].Value}) {
+			/call check_gtfo FALSE ${_debug}
+			/return TRUE
+		}
+	}
+	
+	| too many mobs in area?
+	/if (${maGTFO.Find[stCountGTFOSpawns].Value}) {
+		/if (${SpawnCount[npc radius ENV PS4]} >= ${maGTFO.Find[stCountGTFOSpawns].Value}) {
+			/call check_gtfo FALSE ${_debug}
+			/return TRUE
+		}
+	}
+
+/return TRUE
+
+
+
+|***
  * note: defensive things
  * use: /call check_gtfo DEBUG
  ***|
 sub check_gtfo(bool _debug)
 	DEBUG \atcheck_gtfo\ax(\a-w\ax)
 
+	/if (!${maGTFO.Find[swGTFOActive].Value}) {
+		/return FALSE
+	}
+
 	| if the user has not set the line order, set it to a default for now
-	/if (${lsLineGTFO.Contains[EMPTY]} && ${lsLineDefense.Count} == 1) {
+	/if (${lsLineGTFO.Contains[EMPTY]} && ${lsLineGTFO.Count} == 1) {
 		DEBUG ${sep}resetting the empty gtfo line
 		/invoke ${lsLineGTFO.Clear}
 		/invoke ${lsLineGTFO.Append[${stCount12}]}
@@ -13942,7 +13989,7 @@ sub check_gtfo(bool _debug)
 		ISMEDEAD
 
 		| check the switch
-		/if (!${Bool[${maGTFO.Find[swGTFO${_liC12.Value}].Value}]}) {
+		/if (!${maGTFO.Find[swGTFO${_liC12.Value}].Value}) {
 			/invoke ${_liC12.Advance}
 			/continue
 		}
@@ -14023,14 +14070,14 @@ sub pull_get_other_type(bool _debug, int _tmpID)
 
 		| check the switch
 		/if (!${maPull.Find[swPull${_liC12}].Value}) {
-			DEBUG ${sep}switch off${sep}\a-w${maPull.Find[swPull${_liC12}].Value}\ax
+			DEBUG ${break}switch off${sep}\a-w${maPull.Find[swPull${_liC12}].Value}\ax
 			/invoke ${_liC12.Advance}
 			/continue
 		}
 
 		| check the name
 		/if (!${Bool[${maPull.Find[stPull${_liC12}].Value}]}) {
-			DEBUG ${sep}no name${sep}\a-w${maPull.Find[stPull${_liC12}].Value}\ax
+			DEBUG ${break}no name${sep}\a-w${maPull.Find[stPull${_liC12}].Value}\ax
 			/invoke ${_liC12.Advance}
 			/continue
 		}
@@ -14049,7 +14096,13 @@ sub pull_get_other_type(bool _debug, int _tmpID)
 		}
 
 		/call voodoo ${_debug} "${maPull.Find[stPull${_liC12}].Value}" ${_tmpID} FALSE PULLENV
-
+		
+		| good cast, get out...
+		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,BLOCKED,RESISTED,IMMUNE]}) {
+			DEBUG ${break}good use${sep}\a-w${maPull.Find[stPull${_liC12}].Value}\ax
+			/return TRUE
+		}
+			
 		/invoke ${_liC12.Advance}
 	}
 
@@ -14126,6 +14179,62 @@ sub scan_inventory_for(bool _debug, string _name, int _base, int _attrib)
 	}
 
 /return TRUE
+
+
+
+
+
+
+
+
+| test case for automated button generation
+sub control_hotbar(bool _debug, string _action, int _bar, int _page, int _button, int _line, string _color, sring _text)
+	DEBUG \atcontrol_hotbar\ax(\a-w${_action}, ${_bar}, ${_page}, ${_button}, ${_line}, ${_color}, ${_text}\ax)
+
+	/declare _eqcharacterini string local ${EverQuest.Path}\${Me.DisplayName}_${EverQuest.Server.Lower}.INI
+	DEBUG ${_eqcharacterini}
+
+
+
+
+
+	/if (${_action.Equal[get]}) {
+
+		ECHO HotButtons${_bar}${sep}Page${_page}Button${_button}Line${_line}${sep}\a-w${Parse[2,${Ini[${_eqcharacterini},HotButtons${_bar},Page${_page}Button${_button}Line${_line}]}]}\ax
+	
+	
+	} else /if (${_action.Equal[set]}) {
+		
+		
+	}
+
+
+
+	
+
+
+
+
+
+/return TRUE
+
+
+
+
+
+
+	Page6Button12Name
+	Page6Button12Color
+	Page6Button11Line1
+
+	${EverQuest.Server.Lower}_${Me.DisplayName}.INI
+
+	${EverQuest.}
+
+
+
+
+
 
 
 

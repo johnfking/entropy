@@ -4,7 +4,10 @@
  *
  * plugins: MQ2Collections, MQ2Nav, MQ2Map, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
  *
+ * wiki: https://entropy.exspes.com/wiki/index.php/Main_Page
+ *
  * Donations: paypal.me/exspes
+ *
  ***|
 
 
@@ -19,6 +22,28 @@ on the to do list
 - pet gear handing for damn TLP feeders..
 --------------------
 
+
+
+
+
+201104.01
+- EMU servers
+  you are now safe if your server has a space in its name
+- /pull 
+  stop (hard stop)
+    should now pause pulling if a member in your party has any type of rez effects  
+    adjustment to area spawn check
+  arc ##
+    sets pulling in an arc out from your current facing direction
+  some refinements to nav pulling
+- single HoT spells
+  corrected a tag issue in the heal pool search
+- wizard
+  redid a lot of the variable names. probably easier to start it over
+- /env rest rad ## - sets the safe radius for no mobs to rest in
+  default is 30
+- pulling
+ 
 
 201021.01
 - wizard

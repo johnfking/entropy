@@ -191,6 +191,8 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 	| output diag info
 	} else /if (${_type.Equal[diag]}) {
+		/echo this is a work in progress
+		/return FALSE
 		OUT Diagnostic${sep}\a-wstart\ax
 		OUT ${Me.Class.ShortName}${sep}\a-w${Me.Level}\ax ${dot} \aw${Zone.ShortName}\ax
 		OUT target: ID${sep}\a-w${Target.ID}\ax (\a-r${Spawn[${Target.ID}].Distance}\ax) ${dot} assist: ID${sep}\a-wTARGET\ax (\a-r${Spawn[TARGET].Range}\ax)
@@ -198,36 +200,28 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 
 
-pullrad${sep}\a-wPULLENV\ax(${maPull.Find[stPullZRadius].Value}) ${dot}
+			pullrad${sep}\a-wPULLENV\ax(${maPull.Find[stPullZRadius].Value}) ${dot}
 
-pathlogic${sep}${maPull.Find[swNavPathLogic].Value}\ax
-
-
-
-
-pull${sep}\a-w${maPull.Find[swPull].Value}\ax
-navstop${sep}\a-w${maPull.Find[].Value}\ax
-mode${sep}\a-w${maPull.Find[stPullMode].Value}\ax
-with${sep}\a-w${maPull.Find[stPullWith].Value}\ax
-bando${sep}\a-w${maPull.Find[stRangeBandolier].Value}\ax
-hstop${sep}\a-w${maPull.Find[stPctHardStop].Value}\ax
-hstopdur${sep}\a-w${maPull.Find[stHardStopDuration].Value}\ax
-hstoprez${sep}\a-w${maPull.Find[swHardStopRez].Value}\ax
-
-
-
-arcL${sep}\a-w${stPullArcLeft}\ax
-arcR${sep}\a-w${stPullArcRight}\ax
-arcC${sep}\a-w${stPullArcCenter}\ax
-arcW${sep}\a-w${maPull.Find[stPullArcWidth].Value}\ax
+			pathlogic${sep}${maPull.Find[swNavPathLogic].Value}\ax
 
 
 
 
+			pull${sep}\a-w${maPull.Find[swPull].Value}\ax
+			navstop${sep}\a-w${maPull.Find[].Value}\ax
+			mode${sep}\a-w${maPull.Find[stPullMode].Value}\ax
+			with${sep}\a-w${maPull.Find[stPullWith].Value}\ax
+			bando${sep}\a-w${maPull.Find[stRangeBandolier].Value}\ax
+			hstop${sep}\a-w${maPull.Find[stPctHardStop].Value}\ax
+			hstopdur${sep}\a-w${maPull.Find[stHardStopDuration].Value}\ax
+			hstoprez${sep}\a-w${maPull.Find[swHardStopRez].Value}\ax
 
 
 
-
+			arcL${sep}\a-w${stPullArcLeft}\ax
+			arcR${sep}\a-w${stPullArcRight}\ax
+			arcC${sep}\a-w${stPullArcCenter}\ax
+			arcW${sep}\a-w${maPull.Find[stPullArcWidth].Value}\ax
 
 
 
@@ -235,6 +229,16 @@ arcW${sep}\a-w${maPull.Find[stPullArcWidth].Value}\ax
 		OUT Diagnostic${sep}\a-wend\ax
 
 		/return
+
+
+	| reset dannet.. if you need too
+	} else /if (${_type.Equal[hotbar]}) {
+		ECHO hotbar
+
+		/call control_hotbar TRUE get
+		
+		/return TRUE
+		
 	| reset dannet.. if you need too
 	} else /if (${_type.Equal[reset]}) {
 		/if (!${Bool[${_verbage}]}) {
@@ -617,6 +621,10 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 		/if (${_verbage.Equal[pct]}) {
 			/if (!${set_control_num_range[${_debug}, stPctRest, "${_silent}", 0, 99]}) /return
 
+		| rest radius
+		} else /if (${_verbage.Equal[rad]}) {
+			/if (!${set_control_num_range[${_debug}, stRestRadius, "${_silent}", 1, 100]}) /return
+
 		| rest to full
 		} else /if (${_verbage.Equal[full]}) {
 			/invoke ${set_switch_env[FALSE, swRestFull, TRUE, ${_silent}]}
@@ -637,6 +645,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 
 		/invoke ${maControl.Clear}
 		/invoke ${maControl.Add[pct,stPctRest]}
+		/invoke ${maControl.Add[rad,stRestRadius]}
 		/invoke ${maControl.Add[full,swRestFull]}
 		/invoke ${maControl.Add[combat,swRestCombat]}
 		/invoke ${maControl.Add[modrod,swRestModRod]}
@@ -4730,7 +4739,7 @@ sub Bind_command_crew(string _type, bool _debug)
 |***
  * note: lets you initiate a single advanced pull routine
  * use: /pull.. i mean wtf do you want?
- ***|
+
 #bind command_pull /pull
 sub Bind_command_pull(string _type, int _tmpID, bool _debug)
 	DEBUG \atBind_advancedPulling\ax(\a-w${_type}, ${_tmpID}\ax)
@@ -4784,7 +4793,7 @@ sub Bind_command_pull(string _type, int _tmpID, bool _debug)
 	}
 
 /return TRUE
-
+ ***|
 
 
 |***
@@ -5669,6 +5678,7 @@ sub Bind_control_gtfo(string _type, string _verbage, string _verbage2, string _a
 	}
 
 	/invoke ${maControl.Clear}
+	/invoke ${maControl.Add[force,option]}
 	/invoke ${maControl.Add[active,swGTFOActive]}
 	/invoke ${maControl.Add[dead,stCountGTFODead]}
 	/invoke ${maControl.Add[spawns,stCountGTFOSpawns]}
@@ -5714,7 +5724,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 			/return TRUE
 		}
 
-		/if (${Range.Between[1,360:${_verbage}]}) {
+		/if (${Range.Between[0,360:${_verbage}]}) {
 			/invoke ${maPull.Add[stPullArcWidth,${_verbage}]}
 		} else {
 			/invoke ${maPull.Add[stPullArcWidth,0]}
@@ -5724,7 +5734,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 		/varset stPullArcCenter ${Me.Heading.Degrees}
 
 		| left
-		/if (${Math.Calc[${stPullArcCenter}-(${_verbage}*.5)]}<0) {
+		/if (${Math.Calc[${stPullArcCenter}-(${_verbage}*.5)]} < 0) {
 			/varcalc stPullArcLeft 360-((${_verbage}*.5)-${_face})
 		} else {
 			/varcalc stPullArcLeft ${stPullArcCenter}-(${_verbage}*.5)
@@ -5777,13 +5787,13 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 		}
 
 		/declare _liP listiterator local
-		/declare _outP string local
+		/declare _out string local
 		/vardata _liP lsPullMode.First.Clone
 		/while (!${_liP.IsEnd}) {
-			/varset _outP ${_outP} ${If[${_liP.Value.Equal[${lsPullMode.First}]},,${dot}]} ${If[${_liP.Value.Equal[${maPull.Find[stPullMode].Value}]},${num}${_liP.Value}\ax,${info}${_liP.Value}\ax]}
+			/varset _out ${_out} ${If[${_liP.Value.Equal[${lsPullMode.First}]},,${dot}]} ${If[${_liP.Value.Equal[${maPull.Find[stPullMode].Value}]},${num}${_liP.Value}\ax,${info}${_liP.Value}\ax]}
 			/invoke ${_liP.Advance}
 		}
-		/invoke ${out[12, "/pull mode ${_outP}"]}
+		/invoke ${out[12, "/pull mode ${_out}"]}
 		/return TRUE
 
 	| pull stop reasons
@@ -5800,14 +5810,14 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 
 		| hard stop pct
 		} else /if (${_verbage.Equal[rez]}) {
-			/invoke ${set_switch_env[${_debug}, swHardStoprez, TRUE, ${_verbage2}]}
+			/invoke ${set_switch_env[${_debug}, swHardStopRez, TRUE, ${_verbage2}]}
 		}
 
 		/invoke ${maControl.Clear}
 		/invoke ${maControl.Add[time,stHardStopDuration]}
 		/invoke ${maControl.Add[pct,stPctHardStop]}
-		/invoke ${maControl.Add[rez,swHardStoprez]}
-		/invoke ${set_control_output[FALSE, maPull, "pull stop", maControl]}
+		/invoke ${maControl.Add[rez,swHardStopRez]}
+		/invoke ${set_control_output[${_debug}, maPull, "pull stop", maControl]}
 		/return
 
 
@@ -5829,21 +5839,21 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 		}
 
 		/declare _liP listiterator local
-		/declare _outP string local
+		/declare _out string local
 		/vardata _liP lsPullWith.First.Clone
 		/while (!${_liP.IsEnd}) {
-			/varset _outP ${_outP} ${If[${_liP.Value.Equal[${lsPullWith.First}]},,${dot}]} ${If[${_liP.Value.Equal[${maPull.Find[stPullWith].Value}]},${num}${_liP.Value}\ax,${info}${_liP.Value}\ax]}
+			/varset _out ${_out} ${If[${_liP.Value.Equal[${lsPullWith.First}]},,${dot}]} ${If[${_liP.Value.Equal[${maPull.Find[stPullWith].Value}]},${num}${_liP.Value}\ax,${info}${_liP.Value}\ax]}
 			/invoke ${_liP.Advance}
 		}
-		/varset _outP ${_outP} ${dot} ${info}bandolier\ax:[${If[${Bool[${maPull.Find[stRangeBandolier].Value}]},${num}${maPull.Find[stRangeBandolier].Value}\ax,${off}]}]
-		/invoke ${out[12, "/pull with ${_outP}"]}
+		/varset _out ${_out} ${dot} ${info}bandolier\ax:[${If[${Bool[${maPull.Find[stRangeBandolier].Value}]},${num}${maPull.Find[stRangeBandolier].Value}\ax,${off}]}]
+		/invoke ${out[12, "/pull with ${_out}"]}
 		/return TRUE
 
 	}
 
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[active,swPull]}
-	| /invoke ${maControl.Add[arc,stPullArcWidth|pr]}
+	/invoke ${maControl.Add[arc,stPullArcWidth|pr]}
 	/invoke ${maControl.Add[rad,stPullRadius]}
 	/invoke ${maControl.Add[zrad,stPullZRadius]}
 	/invoke ${maControl.Add[pathlogic,swNavPathLogic]}

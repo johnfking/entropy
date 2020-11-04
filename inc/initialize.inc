@@ -955,12 +955,13 @@ sub	set_initialize_map_character_environment(bool	_debug)
 	/call	set_data_map ${_debug} maEnv swSoS																FALSE													"${auxsw}	rogue	sos	switch"
 
 	| rest
-	/call	set_data_map ${_debug} maEnv stPctRest														0															"${auxnum} % health/mana to	rest at"
-	/call	set_data_map ${_debug} maEnv swRestFull														FALSE													"${auxsw}	rest to	full health	if possible"
-	/call	set_data_map ${_debug} maEnv swRestModRod													FALSE													"${auxsw}	use	mod	rods while resting"
+	/call	set_data_map ${_debug} maEnv stPctRest														0															"${auxnum} % health/mana to rest at"
+	/call	set_data_map ${_debug} maEnv swRestFull														FALSE													"${auxsw}	rest to full health	if possible"
+	/call	set_data_map ${_debug} maEnv swRestModRod													FALSE													"${auxsw}	use mod rods while resting"
 	/call	set_data_map ${_debug} maEnv swRestBuff														FALSE													"${auxsw}	do buffing while resting"
-	/call	set_data_map ${_debug} maEnv swRestCombat													FALSE													"${auxsw}	continue resting whilke	in combat"
-	/call	set_data_map ${_debug} maEnv swBegMAG															FALSE													"${auxsw}	beg	mages	for	pet	gear or	rods"
+	/call	set_data_map ${_debug} maEnv swRestCombat													FALSE													"${auxsw}	continue resting while in combat"
+	/call	set_data_map ${_debug} maEnv swBegMAG															FALSE													"${auxsw}	beg mages for pet gear or rods"
+	/call	set_data_map ${_debug} maEnv stRestRadius													30														"${auxnum} no mob in radius for resting"
 
 	| food and drink
 	/invoke	${set_data_timer[${_debug},	Check_FoodDrink, 10m]}
@@ -1463,6 +1464,7 @@ sub	set_initialize_map_character_environment(bool	_debug)
 
 
 |**	control: gtfo	**|
+	/invoke	${set_data_timer[FALSE,	Check_GTFO, 6s]}
 	/call	set_data_list	${_debug}	maGTFO lsLineGTFO													EMPTY													"${auxli} order line for GTFO stuff" gtfo
 	/call	set_data_map	${_debug}	maGTFO swGTFOActive												FALSE													"${auxsw} use GTFO logic" gtfo
 	/call	set_data_map	${_debug}	maGTFO stCountGTFODead										0															"${auxnum} number of group dead to activate" gtfo

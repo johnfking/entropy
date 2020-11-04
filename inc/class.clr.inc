@@ -578,9 +578,6 @@ sub burn(bool _debug, int _tmpID)
 
 	}
 
-
-
-
 	| heal ward (20 min reuse)
 	/if (${is_ready[${_debug}, "${maChr.Find[stAAExquisiteBenediction].Value}"]}) {
 		/call voodoo ${_debug} "${maChr.Find[stAAExquisiteBenediction].Value}" 0 FALSE

@@ -107,7 +107,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	/call delete_conflict_alias FALSE
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 201021.01
+	/call set_data FALSE maEnv build													map outer 201104.01
 	/call set_data FALSE maEnv schema													map outer 1.17
 	/call set_data FALSE maEnv repo														map outer 200706.01
 
@@ -185,6 +185,11 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 		ISMEDEAD
 		CHECKCURSOR
 		SETHUD EMPTY
+
+		| check GTFO conditions
+		/if (${maGTFO.Find[swGTFOActive].Value} && !${timer_Check_GTFO}) {
+			/call control_GTFO FALSE ${maDebug.Find[gtfo].Value}
+		}
 
 		| check food / drink
 		/if (!${timer_Check_FoodDrink}) {
@@ -298,7 +303,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 
 
 						| hardstop check
-						/if (${SpawnCount[NPC radius ENV PS4 targetable]}) {
+						/if (!${SpawnCount[NPC radius ENV PS4 targetable]}) {
 							/if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rstate hardstop: check\ax)
 							/if (!${timer_Check_Pull_Hardstop}) {
 								/call pull_hardstop ${maDebug.Find[hardstop].Value}
@@ -368,7 +373,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 sub prepare_the_end(bool _debug)
 
 	| character database
-	/call set_data FALSE maData chrID																		map outer ${MacroQuest.Server}_${Me.Class.ShortName}_${Me.DisplayName}
+	/call set_data FALSE maData chrID																		map outer ${MacroQuest.Server.Replace[ ,_].Lower}_${Me.Class.ShortName}_${Me.DisplayName}
 	| character database
 	/call set_data FALSE maData DBcharacter 														map outer macros\\exspes\\data\\${maData.Find[chrID].Value}.sqlite
 	| set raw data database
