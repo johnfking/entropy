@@ -24,6 +24,8 @@ on the to do list
 
 
 
+201104.02
+- left a pulling debug on.. meh
 
 
 201104.01
@@ -42,7 +44,6 @@ on the to do list
   redid a lot of the variable names. probably easier to start it over
 - /env rest rad ## - sets the safe radius for no mobs to rest in
   default is 30
-- pulling
  
 
 201021.01

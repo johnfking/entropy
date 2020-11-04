@@ -9162,7 +9162,6 @@ sub get_target_intpull(bool _debug, int _tmpID)
  * use: /call pull_mob_move_to DEBUG [TARGETID] [distance to stop at] [Line Of Sight on|off]
  ***|
 sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
-/varset _debug TRUE
 	DEBUG \atpull_mob_move_to\ax(\a-w${_tmpID}, ${_dist}, ${_LoS}\ax)
 	FLOW pull_mob_move_to ${_tmpID}|${_dist}|${_LoS} (1)
 
