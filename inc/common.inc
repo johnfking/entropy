@@ -12322,7 +12322,6 @@ sub check_watch_spawn(bool _debug)
  * use: /call cast_cycle_heal_regen DEBUG [healgrouphot|healhot]
  ***|
 sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
-	| /varset _debug TRUE
 	DEBUG \atcast_cycle_heal_regen\ax(\a-w${_tmpID}, ${_tag}\ax)
 	FLOW cast_cycle_heal_regen ${_tmpID}|${_tag}
 
@@ -12342,10 +12341,6 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
  	| group heal over time
 	/if (${_tag.Equal[grouphot]}) {
 		DEBUG ${sep}tag.Found
-
-		/if (!AE#) {
-			/return FALSE
-		}
 
 		| break on no mobs in area
 		/if (AE# && ${SpawnCount[npc radius ENV PS4 targetable]} < AE#) {
@@ -12400,7 +12395,7 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 			/invoke ${_liHoT.Advance}
 		}
 
-		| bail if user doesnt have a healgrouphot tag set.. no one reads the damn changeloggs...
+		| bail if user doesnt have a grouphot tag set.. no one reads the damn changeloggs...
 		/if (!${Bool[${_myHoT}]}) {
 			DEBUG ${sep}fail, no groupregen set
 			/return FALSE
@@ -12449,23 +12444,29 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 
 		| find my hot
 		/while (!${_liHoT.IsEnd}) {
+			
 			| check the switch
-			/if (!${Bool[${maHeal.Find[swHeal${_liHoT.Value}].Value}]}) {
+			/if (!${maHeal.Find[swHeal${_liHoT.Value}].Value}) {
+				DEBUG ${break}swHeal${_liHoT.Value}${sep}\a-w${maHeal.Find[stHeal${_liHoT.Value}].Value}\ax off
 				/invoke ${_liHoT.Advance}
 				/continue
 			}
 			| check the item name
 			/if (!${Bool[${maHeal.Find[stHeal${_liHoT.Value}].Value}]}) {
+				DEBUG ${break}swHeal${_liHoT.Value}${sep}\a-w${maHeal.Find[stHeal${_liHoT.Value}].Value}\ax no name
 				/invoke ${_liHoT.Advance}
 				/continue
 			}
 			| check matching tag
 			/if (!${lsHeal${_liHoT.Value}Tag.Contains[hot]}) {
+				DEBUG ${break}heal does not contain tag${sep}\a-whot\ax
 				/invoke ${_liHoT.Advance}
 				/continue
 			}
+			
 			| good tag, set a name
 			/if (${lsHeal${_liHoT.Value}Tag.Contains[hot]}) {
+				DEBUG ${sep}setting _myHoT${sep}\a-w${maHeal.Find[stHeal${_liHoT.Value}].Value}\ax
 				/varset _myHoT ${maHeal.Find[stHeal${_liHoT.Value}].Value}
 				/break
 			}
@@ -12474,19 +12475,18 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
 
 		| could not find an available spell/item/whatever
 		/if (!${Bool[${_myHoT}]}) {
-			DEBUG ${sep}fail, no regen set
+			DEBUG ${break}fail, no single regen set
 			/return FALSE
 		}
 
-		/if (${maChr.Find[swHealOverTime].Value}) {
-			/if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
-				/dquery ${Spawn[${hurtID}].DisplayName} -q "Spell[${_myHoT}].Stacks" -o DNQReturn
-				/dquery ${Spawn[${hurtID}].DisplayName} -q "Me.Song[${_myHoT}].Duration" -o DNQReturn2
-				/if (${DNQReturn} && !${DNQReturn2}) {
-					/call voodoo ${_debug} "${_myHoT}" ${hurtID} FALSE
-				}
-			}
+		/dquery ${Spawn[id ${hurtID}].DisplayName} -q "Spell[${Spell[${_myHoT}].RankName}].Stacks" -o DNQReturn -t 5
+		DEBUG DNQReturn.Stacks${sep}\a-w${DNQReturn}\ax (\a-r${Spawn[id ${hurtID}].DisplayName}\ax)
+		/dquery ${Spawn[id ${hurtID}].DisplayName} -q "Me.Song[${Spell[${_myHoT}].RankName}].Duration" -o DNQReturn2 -t 5
+		DEBUG DNQReturn2.Duration${sep}\a-w${DNQReturn2}\ax (\a-r${Spawn[id ${hurtID}].DisplayName}\ax)
+		/if (${DNQReturn} && !${DNQReturn2}) {
+			/call voodoo ${_debug} "${_myHoT}" ${hurtID} FALSE
 		}
+
 		/return TRUE
 
 	}
@@ -13933,14 +13933,14 @@ sub control_GTFO(string _verbage, bool _debug)
 	
 	ISMEDEAD
 
-	/if (!${maGTFO.Find[swGTFOActive].Value}) {
-		/return FALSE
-	}
-
 	| forced?
 	/if (${_verbage.Equal[force]}) {
 		/call check_gtfo FALSE ${_debug}
 		/return TRUE
+	}
+
+	/if (!${maGTFO.Find[swGTFOActive].Value}) {
+		/return FALSE
 	}
 
 	| enough people dead in party?
@@ -13970,10 +13970,6 @@ sub control_GTFO(string _verbage, bool _debug)
 sub check_gtfo(bool _debug)
 	DEBUG \atcheck_gtfo\ax(\a-w\ax)
 
-	/if (!${maGTFO.Find[swGTFOActive].Value}) {
-		/return FALSE
-	}
-
 	| if the user has not set the line order, set it to a default for now
 	/if (${lsLineGTFO.Contains[EMPTY]} && ${lsLineGTFO.Count} == 1) {
 		DEBUG ${sep}resetting the empty gtfo line
@@ -13984,8 +13980,6 @@ sub check_gtfo(bool _debug)
 	/declare _liC12 listiterator local
 	/vardata _liC12 lsCount12.First.Clone
 	/while (!${_liC12.IsEnd}) {
-
-		ISMEDEAD
 
 		| check the switch
 		/if (!${maGTFO.Find[swGTFO${_liC12.Value}].Value}) {
@@ -14014,16 +14008,13 @@ sub check_gtfo(bool _debug)
 
 		DEBUG ${sep}_liC12.Value${sep}\a-w${_liC12.Value}\ax${sep}passed tags
 
-		| seff targetable defnsive "things"
-		/if (${lsDefense${_liC12.Value}Tag.Contains[buffself]}) {
-			/varset _tmpID ${Me.ID}
-		} else {
-			/varset _tmpID 0
-		}
-
 		ISMEDEAD
 
 		/call voodoo ${_debug} "${maGTFO.Find[stGTFO${_liC12.Value}].Value}" 0 FALSE
+
+		/if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
+			/return TRUE
+		}
 
 		/invoke ${_liC12.Advance}
 	}

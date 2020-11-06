@@ -23,6 +23,17 @@ on the to do list
 --------------------
 
 
+201106.01
+- /gtfo
+  https://entropy.exspes.com/wiki/index.php/GTFO
+- several /aux updates
+- /pull
+  https://entropy.exspes.com/wiki/index.php/Pull
+- /heal hot
+  pct - ##% of targets health to use
+  active - use single target hots or not
+- entropy.sqlite updated
+
 
 201104.02
 - left a pulling debug on.. meh

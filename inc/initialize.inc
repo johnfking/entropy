@@ -3225,8 +3225,8 @@ sub sql_db_update(bool _debug, string _type)
 			/invoke ${_tmpMap.Add[lsLineDefense,character]}
 			/invoke ${_tmpMap.Add[lsHealToT,character]}
 			/invoke ${_tmpMap.Add[stSplash,heal]}
-			/invoke ${_tmpMap.Add[stHealOverTime,heal]}
-			/invoke ${_tmpMap.Add[stHealGroupOverTime,heal]}
+			| /invoke ${_tmpMap.Add[stHealOverTime,heal]}
+			| /invoke ${_tmpMap.Add[stHealGroupOverTime,heal]}
 			/invoke ${_tmpMap.Add[stHealGroup,heal]}
 			/invoke ${_tmpMap.Add[stHealDesperate,character]}
 			/invoke ${_tmpMap.Add[stHealFont,character]}

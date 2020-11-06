@@ -1501,13 +1501,13 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
 
 	| set single hot
 	} else /if (${_type.Equal[hot]}) {
-		/if (${_verbage.Equal[use]}) {
-			/invoke ${set_switch_env[${_debug}, swHealOverTime, TRUE, ${_silent}]}
+		/if (${_verbage.Equal[active]}) {
+			/invoke ${set_switch_env[${_debug}, swHealOverTime, TRUE, ${_verbage2}]}
 		} else /if (${_verbage.Equal[pct]}) {
-			/if (!${set_control_num_range[${_debug}, stHealPointHoT, "${_silent}", 0, 99]}) /return
+			/if (!${set_control_num_range[${_debug}, stHealPointHoT, "${_verbage2}", 0, 99]}) /return
 		}
 		/invoke ${maControl.Clear}
-		/invoke ${maControl.Add[use,swHealOverTime]}
+		/invoke ${maControl.Add[active,swHealOverTime]}
 		/invoke ${maControl.Add[pct,stHealPointHoT]}
 		/invoke ${set_control_output[${_debug}, maHeal, "heal hot", maControl]}
 		/return TRUE
@@ -1516,7 +1516,6 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
 
 	/invoke ${maControl.Clear}
 	/invoke ${maControl.Add[point,submenu]}
-	| /invoke ${maControl.Add[mode,submenu]}
 	/invoke ${maControl.Add[self,swHealSelf]}
 	/if (${lsClassHealToT.Contains[${Me.Class.ShortName}]}) {
 		/invoke ${maControl.Add[tot,swHealToT]}
@@ -1541,6 +1540,7 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
 	}
 
 	/if (${Select[${Me.Class.ShortName},CLR]}) {
+		/invoke ${maControl.Add[hot,submenu]}
 		/invoke ${maControl.Add[ch,submenu]}
 		/invoke ${maControl.Add[promise,swHealPromise]}
 		| /invoke ${maControl.Add[chpct,stPctCH]}
@@ -3220,22 +3220,26 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 #Bind command_aux /aux
 sub Bind_command_aux(string _type, bool _debug)
 
-	| /varset _debug TRUE
-	/declare _lsout1 list local
-	/invoke ${_lsout1.Append[alto,beg,buff,build,burn,cc,crew,cursor]}
-	/invoke ${_lsout1.Append[debuff,debug,edit,enter,cure,heal,home,invis,mode,minion]}
-	/invoke ${_lsout1.Append[navto,off,on,override,repeat,see,splash,take,tag,rez,tag]}
+	/declare _count int local 0
+	/declare _lsCompleteAux list local
+	
+	/declare _list1 string local alto,beg,buff,build,burn,cc,crew,cursor,debuff,debug
+	/declare _list2 string local edit,enter,cure,heal,home,invis,mode,minion,navto,off
+	/declare _list3 string local on,override,repeat,see,splash,take,tag,rez,tag,entropy
+	/declare _list4 string local agro,miscdps,song,line,area,sash,pred,mercenary,tie,tc
+	/declare _list5 string local coh,farm,ttl,defense,dot,nuke,clickitem,env,grab,grain
+	/declare _list6 string local gtfo,pull
 
-	/declare _lsout2 list local
-	/invoke ${_lsout2.Append[entropy]}
-	/invoke ${_lsout2.Append[agro,miscdps,song,line,area,sash,pred,mercenary,tie,tc]}
-	/invoke ${_lsout2.Append[coh,farm,ttl,defense,dot,nuke,clickitem,env,grab,grain]}
+	/for _count 1 to 6
+		/declare _lsout${_count} list local
+		/invoke ${_lsout${_count}.Append[${_list${_count}}]}
+		/invoke ${_lsCompleteAux.Append[${_list${_count}},]}
+	/next _count		
 
-	/if (${_lsout1.Contains[${_type}]} || ${_lsout2.Contains[${_type}]}) {
+	/if (${_lsCompleteAux.Contains[${_type}]}) {
 		/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY ROWID
 		/if (!${sql_check[${_debug}, dummy, Bind_command_aux, SELECT]}) /endmacro
 		DEBUG dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY help_var
-		/declare _count int local 0
 		MQCLEAR
 		ECHO
 		/invoke ${out[0, "\aw/aux \ax\a-w${_type.Lower}\ax"]}
@@ -3246,8 +3250,6 @@ sub Bind_command_aux(string _type, bool _debug)
 		/return TRUE
 	}
 
-	/declare _count int local 0
-
 	ECHO
 	/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT value FROM online WHERE env_var='discord'
 	/if (!${sql_check[${_debug}, dummy, Bind_command_aux, SELECT]}) /endmacro
@@ -3256,7 +3258,7 @@ sub Bind_command_aux(string _type, bool _debug)
 	/declare _out string local
 	/declare _liaux listiterator local
 	/invoke ${out[0, "/aux${sep}"]}
-	/for _count 1 to 2
+	/for _count 1 to 6
 		/varset _out
 		/vardata _liaux _lsout${_count}.First.Clone
 		/while (!${_liaux.IsEnd}) {
@@ -5659,6 +5661,12 @@ sub	Bind_noparse_tag(string	_grouping, string	_tagname,	string _eval, bool _sile
 sub Bind_control_gtfo(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
 	DEBUG \atcontrol_gtfo\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
+	/if (${Select[${_type},force]}) {
+		OUT Getting out of here.
+		/call check_gtfo FALSE ${_debug}
+		/return TRUE
+	}
+
 	/if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
 		/call control_base_edit ${maDebug.Find[edit].Value} GTFO 12 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
 		/return TRUE
@@ -5783,6 +5791,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 			/call do_raw_edit ${_debug} SILENT stPullMode "base"
 		| calm pulling
 		} else /if (${_verbage.Equal[calm]}) {
+			OUT Non functional. go away...
 			| /call do_raw_edit ${_debug} SILENT stPullMode "calm"
 		}
 
@@ -5802,7 +5811,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 
 		| hard stop duration
 		/if (${_verbage.Equal[time]}) {
-			/if (!${set_control_num_range[${_debug}, stHardStopDuration, "${_verbage2}", 0, 99]}) /return
+			/if (!${set_control_num_range[${_debug}, stHardStopDuration, "${_verbage2}", 0, 6000]}) /return
 
 		| hard stop pct
 		} else /if (${_verbage.Equal[pct]}) {
@@ -5818,7 +5827,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 		/invoke ${maControl.Add[pct,stPctHardStop]}
 		/invoke ${maControl.Add[rez,swHardStopRez]}
 		/invoke ${set_control_output[${_debug}, maPull, "pull stop", maControl]}
-		/return
+		/return TRUE
 
 
 	| pull modes

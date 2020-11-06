@@ -35,7 +35,7 @@ sub class_init(bool _debug)
 
   | nights endless terror
   /call set_data_map ${_debug} maChr stTerror													PREGEN|1											"${auxna} name of terror spell"
-  /call set_data_list ${_debug} maChr lsTerrorToon										EMPTY													"${auxli} lsit of toons you want to keep terror buff on"
+  /call set_data_list ${_debug} maChr lsTerrorToon										EMPTY													"${auxli} list of toons you want to keep terror buff on"
 
 	/call set_data_map ${_debug} maChr stPctGather				 							0															"${auxnum} % of manna you want to use gather at"
 

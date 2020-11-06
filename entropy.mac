@@ -107,9 +107,9 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 	/call delete_conflict_alias FALSE
 
 	| current entropy version #'s
-	/call set_data FALSE maEnv build													map outer 201104.02
+	/call set_data FALSE maEnv build													map outer 201106.01
 	/call set_data FALSE maEnv schema													map outer 1.17
-	/call set_data FALSE maEnv repo														map outer 200706.01
+	/call set_data FALSE maEnv repo														map outer 201104.01
 
 	| using this as a marker for live vs Next
 	/declare _next 																						bool outer ${MacroQuest.InternalName.Equal[Next]}
