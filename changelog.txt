@@ -17,10 +17,46 @@ on the to do list
 - ranger silent shot ambush spell
 - break out triggers for minion buffs
 - look at a way to split coordination for assists across more then one mob in a raid
-- externalize class AAs: MNK|MAG|NEC
 - buffing system by name
 - pet gear handing for damn TLP feeders..
 --------------------
+
+
+201116.01
+- all tabs converted to spaces
+- /debug other invis added
+- /invis
+  now pulls the settings you have in /chr invis
+- cleric
+  will do group regens again. prob shouldnt have left it commented out
+- corrected /grab command for next vs. live
+- /admin 
+  sqlcheck - will throw out some spam so you know its doing something
+  added in a lot of help on the admin commands
+- events added for griklor  
+- /port
+  lots of changes
+  /port see item|guild|vendor|wiz|dru
+  still a lot of work to do on the class ports. but the guild hall, guild vendor, and personal items work
+- tags
+  self tags will ignore class checks now. @TempusX for the find
+- auras will now read the buff name convention of |target type|subcategory|spa
+  if they are a spell, not tried discs yet
+- made another change to the rest radius.. be warned; i could have seriously broken it with this one.
+- magician
+  moved the AAs to the database
+  corrected 3 tarrgeting issues
+- necromancer
+  moved the AAs to the database
+- monk
+  moved the AAs to the database
+  
+-- Changes to Controls --
+  - i've added in some of the `/control option` commands that are one shot, like /cc force or /minion build
+    they will be a blue color to stand out a little, and my daughter picked it so suck it up..
+  - changing the `use` options in the controls to `active` so they follow the same pattern
+  - /cc ass has been changed a little. to change smart assists its now /cc ass smart g|1|2|3
+  
 
 
 201106.01
@@ -32,6 +68,7 @@ on the to do list
 - /heal hot
   pct - ##% of targets health to use
   active - use single target hots or not
+  (this does not include the AA focused regen)
 - entropy.sqlite updated
 
 

@@ -1,1532 +1,1530 @@
 |*********************************************************************
  * entropy
  * initialize.inc
- * all shared/static data	initilization
+ * all shared/static data initilization
  *
  ***|
 
 
 
 |***
- * note: builds	all	the	debug	variables	and	lists	for	the	map
+ * note: builds all the DEBUG variables and lists for the map
  * use:
  ***|
-sub	set_debug(string _verbage)
+sub set_debug(string _verbage)
 
-	| generate DEBUGS
-	/declare flow	string outer FALSE
-	/declare lsDebuglist list	outer
-	/invoke	${lsDebuglist.Append[buff,heal,move,debuff,cast,loot,mode,combat,other,minion,class,admin,schema,zone]}
+  | generate DEBUGS
+  /declare flow string outer FALSE
+  /declare lsDebuglist list outer
+  /invoke ${lsDebuglist.Append[buff,heal,move,debuff,cast,loot,mode,combat,other,minion,class,admin,schema,zone]}
 
-	| build the	variables	for	the	debug	lists
-	/declare _licdeb listiterator	local
-	/vardata _licdeb lsDebuglist.First.Clone
-	/while (!${_licdeb.IsEnd}) {
-		/declare lsDebug${_licdeb.Value} list	outer
-		/invoke	${_licdeb.Advance}
-	}
+  | build the variables for the DEBUG lists
+  /declare _licdeb listiterator local
+  /vardata _licdeb lsDebuglist.First.Clone
+  /while (!${_licdeb.IsEnd}) {
+    /declare lsDebug${_licdeb.Value} list outer
+    /invoke ${_licdeb.Advance}
+  }
 
-	| buff
-	/invoke	${lsDebugbuff.Append[cb,ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp,bocked,buffgroup,buffraid,drop]}
-	| heal
-	/invoke	${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot,dannet,rez]}
-	| move
-	/invoke	${lsDebugmove.Append[face,tie,stick,stop,home,gtfo]}
-	| debuff
-	/invoke	${lsDebugdebuff.Append[debuff,mez]}
-	| minion
-	/invoke	${lsDebugminion.Append[petbuild,lost,sic,temp,heal]}
-	| cast
-	/invoke	${lsDebugcast.Append[item,nuke,dot]}
-	| loot
-	/invoke	${lsDebugloot.Append[loot]}
-	| mode
-	/invoke	${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell]}
-	| combat
-	/invoke	${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait,hardstop,prediction]}
-	| other
-	/invoke	${lsDebugother.Append[rest,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch,staminarecover,inventoryscan]}
-	| admin
-	/invoke	${lsDebugadmin.Append[build,observe,house,flow,exit,sql,edit,e3]}
-	| schema (database creation/modification)
-	/invoke	${lsDebugschema.Append[init,s_zone,s_character,s_loot,s_nav,s_shared]}
-	| area
-	/invoke	${lsDebugzone.Append[area]}
+  | buff
+  /invoke ${lsDebugbuff.Append[cb,ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp,bocked,buffgroup,buffraid,drop]}
+  | heal
+  /invoke ${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot,dannet,rez]}
+  | move
+  /invoke ${lsDebugmove.Append[face,tie,stick,stop,home,gtfo]}
+  | debuff
+  /invoke ${lsDebugdebuff.Append[debuff,mez]}
+  | minion
+  /invoke ${lsDebugminion.Append[petbuild,lost,sic,temp,heal]}
+  | cast
+  /invoke ${lsDebugcast.Append[item,nuke,dot]}
+  | loot
+  /invoke ${lsDebugloot.Append[loot]}
+  | mode
+  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell]}
+  | combat
+  /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait,hardstop,prediction]}
+  | other
+  /invoke ${lsDebugother.Append[rest,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch,staminarecover,inventoryscan,invis]}
+  | admin
+  /invoke ${lsDebugadmin.Append[build,observe,house,flow,exit,sql,edit,e3]}
+  | schema (database creation/modification)
+  /invoke ${lsDebugschema.Append[init,s_zone,s_character,s_loot,s_nav,s_shared]}
+  | area
+  /invoke ${lsDebugzone.Append[area]}
 
 
-	| class	specific debugs
-	/if	(${Select[${Me.Class.ShortName},BER]}) {
-	}	else /if (${Select[${Me.Class.ShortName},BRD]})	{
-		/invoke	${lsDebugclass.Append[pulse,scan]}
-	}	else /if (${Select[${Me.Class.ShortName},BST]})	{
-		/invoke	${lsDebugclass.Append[para]}
-	}	else /if (${Select[${Me.Class.ShortName},CLR]})	{
-		/invoke	${lsDebugclass.Append[arb,splash,regen,yaulp]}
-	}	else /if (${Select[${Me.Class.ShortName},DRU]})	{
-	}	else /if (${Select[${Me.Class.ShortName},ENC]})	{
-		/invoke	${lsDebugclass.Append[crystal,gather,charm]}
-	}	else /if (${Select[${Me.Class.ShortName},MAG]})	{
-		/invoke	${lsDebugclass.Append[coh,gather,cauldron]}
-	}	else /if (${Select[${Me.Class.ShortName},MNK]})	{
-		/invoke	${lsDebugclass.Append[fury]}
-	}	else /if (${Select[${Me.Class.ShortName},NEC]})	{
-		/invoke	${lsDebugclass.Append[blood,bloom]}
-	}	else /if (${Select[${Me.Class.ShortName},PAL]})	{
-		/invoke	${lsDebugclass.Append[splash,harmonious]}
-	}	else /if (${Select[${Me.Class.ShortName},RNG]})	{
-		/invoke	${lsDebugclass.Append[summer]}
-	}	else /if (${Select[${Me.Class.ShortName},ROG]})	{
-	}	else /if (${Select[${Me.Class.ShortName},SHD]})	{
-		/invoke	${lsDebugclass.Append[harmonious]}
-	}	else /if (${Select[${Me.Class.ShortName},SHM]})	{
-		/invoke	${lsDebugclass.Append[talisman,surge,canni]}
-	}	else /if (${Select[${Me.Class.ShortName},WAR]})	{
-	}	else /if (${Select[${Me.Class.ShortName},WIZ]})	{
-		/invoke	${lsDebugclass.Append[twincast]}
-	}
+  | class specific debugs
+  /if (${Select[${Me.Class.ShortName},BER]}) {
+  } else /if (${Select[${Me.Class.ShortName},BRD]}) {
+    /invoke ${lsDebugclass.Append[pulse,scan]}
+  } else /if (${Select[${Me.Class.ShortName},BST]}) {
+    /invoke ${lsDebugclass.Append[para]}
+  } else /if (${Select[${Me.Class.ShortName},CLR]}) {
+    /invoke ${lsDebugclass.Append[arb,splash,regen,yaulp]}
+  } else /if (${Select[${Me.Class.ShortName},DRU]}) {
+  } else /if (${Select[${Me.Class.ShortName},ENC]}) {
+    /invoke ${lsDebugclass.Append[crystal,gather,charm]}
+  } else /if (${Select[${Me.Class.ShortName},MAG]}) {
+    /invoke ${lsDebugclass.Append[coh,gather,cauldron]}
+  } else /if (${Select[${Me.Class.ShortName},MNK]}) {
+    /invoke ${lsDebugclass.Append[fury]}
+  } else /if (${Select[${Me.Class.ShortName},NEC]}) {
+    /invoke ${lsDebugclass.Append[blood,bloom]}
+  } else /if (${Select[${Me.Class.ShortName},PAL]}) {
+    /invoke ${lsDebugclass.Append[splash,harmonious]}
+  } else /if (${Select[${Me.Class.ShortName},RNG]}) {
+    /invoke ${lsDebugclass.Append[summer]}
+  } else /if (${Select[${Me.Class.ShortName},ROG]}) {
+  } else /if (${Select[${Me.Class.ShortName},SHD]}) {
+    /invoke ${lsDebugclass.Append[harmonious]}
+  } else /if (${Select[${Me.Class.ShortName},SHM]}) {
+    /invoke ${lsDebugclass.Append[talisman,surge,canni]}
+  } else /if (${Select[${Me.Class.ShortName},WAR]}) {
+  } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
+    /invoke ${lsDebugclass.Append[twincast]}
+  }
 
-	/declare maDebug map outer
+  /declare maDebug map outer
 
-	/declare _ligdeb listiterator	local
-	/vardata _ligdeb lsDebuglist.First.Clone
-	/declare _lideb	listiterator local
-	/while (!${_ligdeb.IsEnd}) {
-		/vardata _lideb	lsDebug${_ligdeb.Value}.First.Clone
-		/while (!${_lideb.IsEnd})	{
-			/invoke	${maDebug.Add[${_lideb.Value},FALSE]}
-			/invoke	${_lideb.Advance}
-		}
-		/invoke	${_ligdeb.Advance}
-	}
+  /declare _ligdeb listiterator local
+  /vardata _ligdeb lsDebuglist.First.Clone
+  /declare _lideb listiterator local
+  /while (!${_ligdeb.IsEnd}) {
+    /vardata _lideb lsDebug${_ligdeb.Value}.First.Clone
+    /while (!${_lideb.IsEnd}) {
+      /invoke ${maDebug.Add[${_lideb.Value},FALSE]}
+      /invoke ${_lideb.Advance}
+    }
+    /invoke ${_ligdeb.Advance}
+  }
 
-/return	TRUE
+/return TRUE
 
 
 
 |***
- * note: the start of	the	end, all visual	output formatting, debugs	trash	variables, verbosity
+ * note: the start of the end, all visual output formatting, debugs trash variables, verbosity
  * use:
  ***|
-sub	set_initialize(bool	_debug)
-	DEBUG	\atset_initialize\ax()
+sub set_initialize(bool _debug)
+  DEBUG \atset_initialize\ax()
 
-	| set inital trash variables
-	/call	set_data ${_debug} FALSE bindswap	bool outer FALSE
-	/call	set_data ${_debug} FALSE DNReturn	string outer FALSE
-	/call	set_data ${_debug} FALSE swDBlocked	bool outer FALSE
-	/call	set_data ${_debug} FALSE DNQReturn string	outer	FALSE
-	/call	set_data ${_debug} FALSE DNQReturn2	string outer FALSE
-	/call	set_data ${_debug} FALSE DNQHardStop string outer FALSE
+  | set inital trash variables
+  /call set_data ${_debug} FALSE bindswap bool outer FALSE
+  /call set_data ${_debug} FALSE DNReturn string outer FALSE
+  /call set_data ${_debug} FALSE swDBlocked bool outer FALSE
+  /call set_data ${_debug} FALSE DNQReturn string outer FALSE
+  /call set_data ${_debug} FALSE DNQReturn2 string outer FALSE
+  /call set_data ${_debug} FALSE DNQHardStop string outer FALSE
 
-	| list iterator dump variable
-	/declare li	listiterator outer
+  | list iterator dump variable
+  /declare li listiterator outer
 
-	| control	map	dumps
-	/declare maControl map outer
-	/declare maChrControl	map	outer
-	/declare cmi mapiterator outer
+  | control map dumps
+  /declare maControl map outer
+  /declare maChrControl map outer
+  /declare cmi mapiterator outer
 
-	| hook map
-	/declare maHook	map	outer
+  | hook map
+  /declare maHook map outer
 
-	| buff beg map
-	/declare maBuffRequest map outer
+  | buff beg map
+  /declare maBuffRequest map outer
 
-	| watchspawn map
-	| /declare maWatchspawn	map	outer
+  | watchspawn map
+  | /declare maWatchspawn map outer
 
-	| rez control	map
-	/declare maControlRez	map	outer
+  | rez control map
+  /declare maControlRez map outer
 
-	| self blocked buffs
-	/declare lsBlockedBuffsMe	string outer
+  | self blocked buffs
+  /declare lsBlockedBuffsMe string outer
 
-	| PREGEN recorder
-	/declare maPREGEN	map	outer
+  | PREGEN recorder
+  /declare maPREGEN map outer
 
-	| TTL	stuff
-	/declare maTTL map outer
-	/call	set_data ${_debug} maTTL stTTLTimeStart														map	outer	0
+  | TTL stuff
+  /declare maTTL map outer
+  /call set_data ${_debug} maTTL stTTLTimeStart                           map outer 0
 
-	| predictive combat
-	/declare maPred	map	outer
+  | predictive combat
+  /declare maPred map outer
 
-	| list of	all	maps used	with usable	data
-	/declare lsMaps	list outer
-	/invoke	${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maBuff,maBurn,maPred]}
-	/invoke	${lsMaps.Append[maEntropy,maTimer,madeBuff,maTie,maMinion,maCrew]}
-	/invoke	${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard]}
-	/invoke	${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro,maMercenary]}
-	/invoke	${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
-	/invoke	${lsMaps.Append[maGTFO,maPull]}
+  | list of all maps used with usable data
+  /declare lsMaps list outer
+  /invoke ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maBuff,maBurn,maPred]}
+  /invoke ${lsMaps.Append[maEntropy,maTimer,madeBuff,maTie,maMinion,maCrew]}
+  /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard]}
+  /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro,maMercenary]}
+  /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
+  /invoke ${lsMaps.Append[maGTFO,maPull]}
 
-	| set	all	output shortcuts
-	/call	set_data ${_debug} FALSE num																			string outer "\a-t"
-	/call	set_data ${_debug} FALSE submenu																	string outer "\a#1E90FF->\ax"
-	/call	set_data ${_debug} FALSE r0																				string outer "\ar0\ax"
-	/call	set_data ${_debug} FALSE error																		string outer "\arERROR\ax"
-	/call	set_data ${_debug} FALSE tar																			string outer "\a-w"
-	/call	set_data ${_debug} FALSE pc																				string outer "\a-w"
-	/call	set_data ${_debug} FALSE sp																				string outer "\a-r"
-	/call	set_data ${_debug} FALSE bad																			string outer "\ar"
-	/call	set_data ${_debug} FALSE good																			string outer "\ag"
-	/call	set_data ${_debug} FALSE bug																			string outer "\at"
-	/call	set_data ${_debug} FALSE info																			string outer "\aw"
-	/call	set_data ${_debug} FALSE sep																			string outer "\a#AA00AA::\ax"
-	/call	set_data ${_debug} FALSE dot																			string outer "\at.\ax"
-	/call	set_data ${_debug} FALSE on																				string outer "\agon\ax"
-	/call	set_data ${_debug} FALSE off																			string outer "\aroff\ax"
-	/call	set_data ${_debug} FALSE warning																	string outer "\arWARNING\ax"
-	/call	set_data ${_debug} FALSE fatal																		string outer "\arFATAL ERROR\ax	\at..\ax \arENDING MACRO\ax"
-	/call	set_data ${_debug} FALSE caution																	string outer "\arCAUTION\ax"
-	/call	set_data ${_debug} FALSE true																			string outer "\arTRUE\ax"
-	/call	set_data ${_debug} FALSE false																		string outer "\arFALSE\ax"
-	/call	set_data ${_debug} FALSE destroy																	string outer "\arDESTROY\ax"
-	/call	set_data ${_debug} FALSE leave																		string outer "\awLeave\ax"
-	/call	set_data ${_debug} FALSE add																			string outer "\agAdd\ax"
-	/call	set_data ${_debug} FALSE keep																			string outer "\agKeep\ax"
-	/call	set_data ${_debug} FALSE notice																		string outer "\ayNotice\ax"
-	/call	set_data ${_debug} FALSE combat																		string outer "\amCombat\ax"
-	/call	set_data ${_debug} FALSE remove																		string outer "\arRemoving\ax"
-	/call	set_data ${_debug} FALSE broadcast																string outer "Broadcast"
-	/call	set_data ${_debug} FALSE auxnum																		string outer "[\a-w#\ax]"
-	/call	set_data ${_debug} FALSE auxsw																		string outer "[\a-wswitch\ax]"
-	/call	set_data ${_debug} FALSE auxna																		string outer "[\a-wname\ax]"
-	/call	set_data ${_debug} FALSE auxli																		string outer "[\a-wlist\ax]"
-	/call	set_data ${_debug} FALSE eol																			string outer "\a#4183D7................\ax"
-	/call	set_data ${_debug} FALSE break																		string outer "${sep}\a#FF06BBbreak\ax${sep}"
-	/call	set_data ${_debug} FALSE skip																			string outer "${sep}\a#FF06BBskip\ax${sep}"
+  | set all output shortcuts
+  /call set_data ${_debug} FALSE num                                      string outer "\a-t"
+  /call set_data ${_debug} FALSE submenu                                  string outer "\a#1E90FF->\ax"
+  /call set_data ${_debug} FALSE r0                                       string outer "\ar0\ax"
+  /call set_data ${_debug} FALSE error                                    string outer "\arERROR\ax"
+  /call set_data ${_debug} FALSE tar                                      string outer "\a-w"
+  /call set_data ${_debug} FALSE pc                                       string outer "\a-w"
+  /call set_data ${_debug} FALSE sp                                       string outer "\a-r"
+  /call set_data ${_debug} FALSE bad                                      string outer "\ar"
+  /call set_data ${_debug} FALSE good                                     string outer "\ag"
+  /call set_data ${_debug} FALSE bug                                      string outer "\at"
+  /call set_data ${_debug} FALSE info                                     string outer "\aw"
+  /call set_data ${_debug} FALSE sep                                      string outer "\a#AA00AA::\ax"
+  /call set_data ${_debug} FALSE dot                                      string outer "\at.\ax"
+  /call set_data ${_debug} FALSE on                                       string outer "\agon\ax"
+  /call set_data ${_debug} FALSE off                                      string outer "\aroff\ax"
+  /call set_data ${_debug} FALSE warning                                  string outer "\arWARNING\ax"
+  /call set_data ${_debug} FALSE fatal                                    string outer "\arFATAL ERROR\ax \at..\ax \arENDING MACRO\ax"
+  /call set_data ${_debug} FALSE caution                                  string outer "\arCAUTION\ax"
+  /call set_data ${_debug} FALSE true                                     string outer "\arTRUE\ax"
+  /call set_data ${_debug} FALSE false                                    string outer "\arFALSE\ax"
+  /call set_data ${_debug} FALSE destroy                                  string outer "\arDESTROY\ax"
+  /call set_data ${_debug} FALSE leave                                    string outer "\awLeave\ax"
+  /call set_data ${_debug} FALSE add                                      string outer "\agAdd\ax"
+  /call set_data ${_debug} FALSE keep                                     string outer "\agKeep\ax"
+  /call set_data ${_debug} FALSE notice                                   string outer "\ayNotice\ax"
+  /call set_data ${_debug} FALSE combat                                   string outer "\amCombat\ax"
+  /call set_data ${_debug} FALSE remove                                   string outer "\arRemoving\ax"
+  /call set_data ${_debug} FALSE broadcast                                string outer "Broadcast"
+  /call set_data ${_debug} FALSE auxnum                                   string outer "[\a-w#\ax]"
+  /call set_data ${_debug} FALSE auxsw                                    string outer "[\a-wswitch\ax]"
+  /call set_data ${_debug} FALSE auxna                                    string outer "[\a-wname\ax]"
+  /call set_data ${_debug} FALSE auxli                                    string outer "[\a-wlist\ax]"
+  /call set_data ${_debug} FALSE eol                                      string outer "\a#4183D7................\ax"
+  /call set_data ${_debug} FALSE break                                    string outer "${sep}\a#FF06BBbreak\ax${sep}"
+  /call set_data ${_debug} FALSE skip                                     string outer "${sep}\a#FF06BBskip\ax${sep}"
 
 
-	/call	set_data ${_debug} FALSE enabled																	string outer "\agenabled\ax"
-	/call	set_data ${_debug} FALSE disabled																	string outer "\ardisabled\ax"
+  /call set_data ${_debug} FALSE enabled                                  string outer "\agenabled\ax"
+  /call set_data ${_debug} FALSE disabled                                 string outer "\ardisabled\ax"
 
-	| all	character	db tables
-	/declare maDBTables	map	outer
-	/invoke	${maDBTables.Add[environment_buff,env_var]}
-	/invoke	${maDBTables.Add[environment_character,env_var]}
-	/invoke	${maDBTables.Add[environment_timer,env_timer]}
-	/invoke	${maDBTables.Add[environment_item,env_var]}
-	/invoke	${maDBTables.Add[environment_crew,env_var]}
-	/invoke	${maDBTables.Add[environment_defense,env_var]}
-	/invoke	${maDBTables.Add[environment_heal,env_var]}
-	/invoke	${maDBTables.Add[environment_song,env_var]}
-	/invoke	${maDBTables.Add[environment_nuke,env_var]}
-	/invoke	${maDBTables.Add[environment_dot,env_var]}
-	/invoke	${maDBTables.Add[environment_agro,env_var]}
-	/invoke	${maDBTables.Add[environment_miscdps,env_var]}
-	/invoke	${maDBTables.Add[environment_burn,env_var]}
-	/invoke	${maDBTables.Add[environment_sash,env_var]}
-	/invoke	${maDBTables.Add[environment_hard,env_var]}
-	/invoke	${maDBTables.Add[environment_mercenary,env_var]}
-	/invoke	${maDBTables.Add[environment_minion,env_var]}
-	/invoke	${maDBTables.Add[environment_rez,env_var]}
-	/invoke	${maDBTables.Add[environment_gtfo,env_var]}
-	/invoke	${maDBTables.Add[environment_pull,env_var]}
+  | all character db tables
+  /declare maDBTables map outer
+  /invoke ${maDBTables.Add[environment_buff,env_var]}
+  /invoke ${maDBTables.Add[environment_character,env_var]}
+  /invoke ${maDBTables.Add[environment_timer,env_timer]}
+  /invoke ${maDBTables.Add[environment_item,env_var]}
+  /invoke ${maDBTables.Add[environment_crew,env_var]}
+  /invoke ${maDBTables.Add[environment_defense,env_var]}
+  /invoke ${maDBTables.Add[environment_heal,env_var]}
+  /invoke ${maDBTables.Add[environment_song,env_var]}
+  /invoke ${maDBTables.Add[environment_nuke,env_var]}
+  /invoke ${maDBTables.Add[environment_dot,env_var]}
+  /invoke ${maDBTables.Add[environment_agro,env_var]}
+  /invoke ${maDBTables.Add[environment_miscdps,env_var]}
+  /invoke ${maDBTables.Add[environment_burn,env_var]}
+  /invoke ${maDBTables.Add[environment_sash,env_var]}
+  /invoke ${maDBTables.Add[environment_hard,env_var]}
+  /invoke ${maDBTables.Add[environment_mercenary,env_var]}
+  /invoke ${maDBTables.Add[environment_minion,env_var]}
+  /invoke ${maDBTables.Add[environment_rez,env_var]}
+  /invoke ${maDBTables.Add[environment_gtfo,env_var]}
+  /invoke ${maDBTables.Add[environment_pull,env_var]}
 
-/return	TRUE
+/return TRUE
 
 
 
 |***
- * note: sets	all	list data. all of	it.	did	I	say	all	of it..
- * use:	/call	set_initial_environment	[DEBUG]
+ * note: sets all list data. all of it. did I say all of it..
+ * use: /call set_initial_environment [DEBUG]
  ***|
-sub	set_initial_environment(bool _debug)
-	DEBUG	\atset_initial_environment\ax()
+sub set_initial_environment(bool _debug)
+  DEBUG \atset_initial_environment\ax()
 
-	/declare _count	int	local	0
+  /declare _count int local 0
 
-	| sin/cos	generation for ranged	movement/adjustment	combat
-	/declare cos[20] float outer
-	/declare sin[20] float outer
-	/for _count	1	to 20
-		/varcalc cos[${_count}]	${Math.Cos[9 * ${_count}]}
-		/varcalc sin[${_count}]	${Math.Sin[9 * ${_count}]}
-	/next	_count
+  | sin/cos generation for ranged movement/adjustment combat
+  /declare cos[20] float outer
+  /declare sin[20] float outer
+  /for _count 1 to 20
+    /varcalc cos[${_count}] ${Math.Cos[9 * ${_count}]}
+    /varcalc sin[${_count}] ${Math.Sin[9 * ${_count}]}
+  /next _count
 
-	| yo'	dawg,	i	heard	you	like lists.	so heres a list	of lists for your	lists
-	/call	set_data ${_debug} FALSE lsClassAll																list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
-	/call	set_data ${_debug} FALSE lsClassMercenary													list outer WAR|CLR|WIZ|ROG
-	/call	set_data ${_debug} FALSE lsClassMelee															list outer WAR|ROG|BST|MNK|SHD|PAL|BER|BRD|RNG
-	/call	set_data ${_debug} FALSE lsClassCast															list outer PAL|SHD|BRD|RNG|BST|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
-	/call	set_data ${_debug} FALSE lsClassPet																list outer ENC|DRU|SHM|SHD|WIZ|BRD|BST|MAG|NEC
-	/call	set_data ${_debug} FALSE lsClassHeal															list outer CLR|DRU|SHM|PAL|RNG|BST
-	/call	set_data ${_debug} FALSE lsClassRez																list outer CLR|DRU|SHM|PAL|NEC
-	/call	set_data ${_debug} FALSE lsClassAASnare														list outer RNG|DRU|SHD|NEC|ROG|WAR|WIZ|MNK|PAL|BER
-	/call	set_data ${_debug} FALSE lsClassAAEradicate												list outer RNG|DRU|NEC|WIZ|ENC|MAG
-	/call	set_data ${_debug} FALSE lsClassCastCure													list outer CLR|DRU|SHM|BST|PAL|RNG
-	/call	set_data ${_debug} FALSE lsClassHealToT														list outer BST|PAL|RNG
-	/call	set_data ${_debug} FALSE lsClassHealSelf													list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
-	/call	set_data ${_debug} FALSE lsClassHealGroup													list outer CLR|SHM|PAL|DRU
-	/call	set_data ${_debug} FALSE lsClassHealXT														list outer CLR|SHM|PAL|DRU
-	/call	set_data ${_debug} FALSE lsClassHealPet														list outer CLR|SHM|PAL|DRU|NEC|MAG|BST|SHM|RNG
-	/call	set_data ${_debug} FALSE lsClassHealCure													list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
-
-
-	/call	set_data ${_debug} FALSE lsIVU																		list outer "Group	Perfected	Invisibility to	Undead"|"Perfected Invisibility	to Undead"|"Invisibility to	Undead"|"Invisibility	versus Undead"|"Shauri's Sonorous	Clouding"
-	/call	set_data ${_debug} FALSE lsIV																			list outer "Shared Perfected Camouflage"|"Shared Camouflage"|"Camouflage"|"Group Perfected Invisibility"|"Invisibility"|"Perfected Invisibility"|"Phase	March"|"Nethervoid March"|"Perfected Silent	Presence"|"Cloak of	Shadows"|"Gather Umbra"|"Invisibility	Cloak"|"Perfected	Natural	Invisibility"|"Perfected Spirit	Walk Invisibility"|"Perfected	Group	Spirit Walk	Invisibility"|"Shauri's	Sonorous Clouding"|"Selo's Song	of Travel"
-	/call	set_data ${_debug} FALSE lsAssistTypes														list outer g|ma1|ma2|1|2|3
-	/call	set_data ${_debug} FALSE lsPullTypes															list outer base|pet|int|nav|multi
-	/call	set_data ${_debug} FALSE lsRezBuffTriggers												list outer "Revival	Sickness"|"Resurrection	Sickness"
+  | yo' dawg, i heard you like lists. so heres a list of lists for your lists
+  /call set_data ${_debug} FALSE lsClassAll                               list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
+  /call set_data ${_debug} FALSE lsClassMercenary                         list outer WAR|CLR|WIZ|ROG
+  /call set_data ${_debug} FALSE lsClassMelee                             list outer WAR|ROG|BST|MNK|SHD|PAL|BER|BRD|RNG
+  /call set_data ${_debug} FALSE lsClassCast                              list outer PAL|SHD|BRD|RNG|BST|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
+  /call set_data ${_debug} FALSE lsClassPet                               list outer ENC|DRU|SHM|SHD|WIZ|BRD|BST|MAG|NEC
+  /call set_data ${_debug} FALSE lsClassHeal                              list outer CLR|DRU|SHM|PAL|RNG|BST
+  /call set_data ${_debug} FALSE lsClassRez                               list outer CLR|DRU|SHM|PAL|NEC
+  /call set_data ${_debug} FALSE lsClassAASnare                           list outer RNG|DRU|SHD|NEC|ROG|WAR|WIZ|MNK|PAL|BER
+  /call set_data ${_debug} FALSE lsClassAAEradicate                       list outer RNG|DRU|NEC|WIZ|ENC|MAG
+  /call set_data ${_debug} FALSE lsClassCastCure                          list outer CLR|DRU|SHM|BST|PAL|RNG
+  /call set_data ${_debug} FALSE lsClassHealToT                           list outer BST|PAL|RNG
+  /call set_data ${_debug} FALSE lsClassHealSelf                          list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
+  /call set_data ${_debug} FALSE lsClassHealGroup                         list outer CLR|SHM|PAL|DRU
+  /call set_data ${_debug} FALSE lsClassHealXT                            list outer CLR|SHM|PAL|DRU
+  /call set_data ${_debug} FALSE lsClassHealPet                           list outer CLR|SHM|PAL|DRU|NEC|MAG|BST|SHM|RNG
+  /call set_data ${_debug} FALSE lsClassHealCure                          list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
 
 
-	| things we dont want pullers attacking
-	/call	set_data ${_debug} FALSE lsNoAttackBodyType												list outer aura|banner|campfire|corpse|chest|item|trigger|trap|timer|mount|mercenary|object
-	/call	set_data ${_debug} FALSE lsNoTargetNPC														list outer "a campfire"|"a corpse"|"controller"|"Steel Mass"|"Sphere of Fire"|"an ant"
-	/call	set_data ${_debug} FALSE lsNoTargetPC															list outer "eye of"
-	/call	set_data ${_debug} FALSE lsNoTargetMagic													list outer "eye of"
-	/call	set_data ${_debug} FALSE lsAnimationNoTarget											list outer 16|43|44|146
-	/call	set_data ${_debug} FALSE lsAnimationMezed													list outer 13|49|58
-
-	| cardinal directions
-	/call	set_data ${_debug} FALSE lsCardinal																list outer n|nne|ne|ene|e|ese|se|sse|s|ssw|sw|wsw|w|wnw|nw|nnw
+  /call set_data ${_debug} FALSE lsIVU                                    list outer "Group Perfected Invisibility to Undead"|"Perfected Invisibility to Undead"|"Invisibility to Undead"|"Invisibility versus Undead"|"Shauri's Sonorous Clouding"
+  /call set_data ${_debug} FALSE lsIV                                     list outer "Shared Perfected Camouflage"|"Shared Camouflage"|"Camouflage"|"Group Perfected Invisibility"|"Invisibility"|"Perfected Invisibility"|"Phase March"|"Nethervoid March"|"Perfected Silent Presence"|"Cloak of Shadows"|"Gather Umbra"|"Invisibility Cloak"|"Perfected Natural Invisibility"|"Perfected Spirit Walk Invisibility"|"Perfected Group Spirit Walk Invisibility"|"Shauri's Sonorous Clouding"|"Selo's Song of Travel"
+  /call set_data ${_debug} FALSE lsAssistTypes                            list outer g|ma1|ma2|1|2|3
+  /call set_data ${_debug} FALSE lsPullTypes                              list outer base|pet|int|nav|multi
+  /call set_data ${_debug} FALSE lsRezBuffTriggers                        list outer "Revival Sickness"|"Resurrection Sickness"
 
 
-	| playerstates
-	/call	set_data ${_debug} FALSE lsPlayerstate														list outer 1|2|4|8|16|32|64|128|0
+  | things we dont want pullers attacking
+  /call set_data ${_debug} FALSE lsNoAttackBodyType                       list outer aura|banner|campfire|corpse|chest|item|trigger|trap|timer|mount|mercenary|object
+  /call set_data ${_debug} FALSE lsNoTargetNPC                            list outer "a campfire"|"a corpse"|"controller"|"Steel Mass"|"Sphere of Fire"|"an ant"
+  /call set_data ${_debug} FALSE lsNoTargetPC                             list outer "eye of"
+  /call set_data ${_debug} FALSE lsNoTargetMagic                          list outer "eye of"
+  /call set_data ${_debug} FALSE lsAnimationNoTarget                      list outer 16|43|44|146
+  /call set_data ${_debug} FALSE lsAnimationMezed                         list outer 13|49|58
+
+  | cardinal directions
+  /call set_data ${_debug} FALSE lsCardinal                               list outer n|nne|ne|ene|e|ese|se|sse|s|ssw|sw|wsw|w|wnw|nw|nnw
 
 
-	| custom /build	set	variables
-	/call	set_data ${_debug} FALSE lsBuildSet																list outer primary|secondary|range|spellset
-
-	| spell	types	we let through the checking/validation methods
-	/call	set_data ${_debug} FALSE lsFreePassSpells													list outer Beneficial|Pet
-
-	| control	lines
-	/call	set_data ${_debug} FALSE lsControlLine														list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez|gtfo|pull
-
-	| increment lists
-	/call	set_data ${_debug} FALSE stCount6																	string outer "0|1|2|3|4|5"
-	/call	set_data ${_debug} FALSE stCount10																string outer "1|2|3|4|5|6|7|8|9|10"
-	/call	set_data ${_debug} FALSE stCount12																string outer "1|2|3|4|5|6|7|8|9|10|11|12"
-	/call	set_data ${_debug} FALSE stCount20																string outer "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20"
-	/call	set_data ${_debug} FALSE stCount50																string outer "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50"
-
-	/call	set_data ${_debug} FALSE lsCount6																	list outer "${stCount6}"
-	/call	set_data ${_debug} FALSE lsCount10																list outer "${stCount10}"
-	/call	set_data ${_debug} FALSE lsCount12																list outer "${stCount12}"
-	/call	set_data ${_debug} FALSE lsCount20																list outer "${stCount20}"
-	/call	set_data ${_debug} FALSE lsCount50																list outer "${stCount50}"
-
-	| cleric group regens
-	/call	set_data ${_debug} FALSE lsGroupRegens														list outer "Elixir of	Transcendence|Elixir of	Wulthan|Elixir of	the	Seas|Elixir	of Expiation|Elixir	of Atonement|Elixir	of Redemption|Elixir of	Divinity|Ethereal	Elixir"
-	| shaman group regens
-	/call	set_data ${_debug} FALSE lsGroupRegens														list outer "Spectre	of Renewal|Talisman	of the Enduring|Cloud	of Renewal|Shear of	Renewal|Wisp of	Renewal|Phantom	of Renewal|Penumbra	of Renewal|Shadow	of Renewal|Shade of	Renewal|Specter	of Renewal|Ghost of	Renewal"
-
-	| timers	for	everyone
-	/invoke	${set_data_timer[FALSE,	Try_Door,	4s]}
-	/invoke	${set_data_timer[FALSE,	Check_Ammo,	5s]}
-	/invoke	${set_data_timer[FALSE,	Nuke_Delay,	1]}
-	/invoke	${set_data_timer[FALSE,	Check_Cursor,	1s]}
-	/invoke	${set_data_timer[FALSE,	Check_Zone_ID, 10s]}
-	/invoke	${set_data_timer[FALSE,	Check_Observers, 1m]}
-	/invoke	${set_data_timer[FALSE,	Check_Poison,	1m]}
-	/invoke	${set_data_timer[FALSE,	Check_deBuffs, 6s]}
-	/invoke	${set_data_timer[FALSE,	Check_Behind,	5s]}
-	/invoke	${set_data_timer[FALSE,	Check_Tribute, 1m]}
-	/invoke	${set_data_timer[FALSE,	Check_Loot,	1s]}
-	/invoke	${set_data_timer[FALSE,	Check_Mode,	5]}
-	/invoke	${set_data_timer[FALSE,	Check_LoS_Timeout, 10s]}
-	/invoke	${set_data_timer[FALSE,	Check_Housekeeping,	1m]}
-	/invoke	${set_data_timer[FALSE,	Check_Home,	1]}
-	/invoke	${set_data_timer[FALSE,	Check_Target,	5s]}
-	/invoke	${set_data_timer[FALSE,	Check_Watch, 5s]}
-	/invoke	${set_data_timer[FALSE,	Check_Alliance,	6s]}
-	/invoke	${set_data_timer[FALSE,	Check_Mercenary, 1s]}
-	/invoke	${set_data_timer[FALSE,	Check_Pull_Hardstop, 1]}
-	/invoke	${set_data_timer[FALSE,	Check_Pull_Hardstop_Delay, 1]}
-	/invoke	${set_data_timer[FALSE,	Check_Prediction, 1]}
-	/invoke	${set_data_timer[FALSE,	Check_Inventory_ManaClick, 1m]}
-
-	| wait time	for	pulling
-	/invoke	${set_timer[FALSE, wait_for_mob, 0]}
-
-	| get	the	stick	timer	started
-	/invoke	${set_timer[${_debug}, timer_check_stick,	1s]}
-
-	| controls for all classes
-	/invoke	${maChrControl.Add[ae,stCountAE]}
-	/invoke	${maChrControl.Add[fade,stPctFade]}
-	/invoke	${maChrControl.Add[spire,submenu]}
-	/invoke	${maChrControl.Add[intensity,submenu]}
-
-	| controls for heal	classes
-	/if	(${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
-	}
-
-	| controls for mana	users
-	/if	(${lsClassCast.Contains[${Me.Class.ShortName}]}) {
-		/invoke	${maChrControl.Add[manarecover,stPctManaRecovery]}
-	}
-
-	| controls for melee users
-	/if	(${lsClassMelee.Contains[${Me.Class.ShortName}]})	{
-		/invoke	${maChrControl.Add[hiatus,swHiatus]}
-	}
-
-	| controls by	class
-	/if	(${Select[${Me.Class.ShortName},BER]}) {
-
-	}	else /if (${Select[${Me.Class.ShortName},BRD]})	{
-		/invoke	${maChrControl.Add[rest,swSongRest]}
-		/invoke	${maChrControl.Add[refresh,stSongRefresh]}
-		/invoke	${maChrControl.Add[bellow,swAABellow]}
-		/invoke	${maChrControl.Add[ooc,swPulseOOC]}
-		/invoke	${maChrControl.Add[swap,submenu]}
-		/invoke	${maChrControl.Add[scan,option]}
+  | playerstates
+  /call set_data ${_debug} FALSE lsPlayerstate                            list outer 1|2|4|8|16|32|64|128|0
 
 
-	}	else /if (${Select[${Me.Class.ShortName},BST]})	{
-		/invoke	${maChrControl.Add[consume,stPctConsume]}
-		/invoke	${maChrControl.Add[para,submenu]}
+  | custom /build set variables
+  /call set_data ${_debug} FALSE lsBuildSet                               list outer primary|secondary|range|spellset
 
-	}	else /if (${Select[${Me.Class.ShortName},CLR]})	{
-		/invoke	${maChrControl.Add[arb,submenu]}
-		/invoke	${maChrControl.Add[beacon,stCountBeaconofLife]}
-		/invoke	${maChrControl.Add[divinerez,swDivineCleric]}
-		/invoke	${maChrControl.Add[issuance,stCountIssuance]}
-		/invoke	${maChrControl.Add[primary,submenu]}
-		/invoke	${maChrControl.Add[vp,stPctVP]}
-		/invoke	${maChrControl.Add[yaulp,swYaulp]}
+  | spell types we let through the checking/validation methods
+  /call set_data ${_debug} FALSE lsFreePassSpells                         list outer Beneficial|Pet
 
-	}	else /if (${Select[${Me.Class.ShortName},DRU]})	{
-		/invoke	${maChrControl.Add[wolf,swWolfSpirit]}
+  | control lines
+  /call set_data ${_debug} FALSE lsControlLine                            list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez|gtfo|pull
 
-	}	else /if (${Select[${Me.Class.ShortName},ENC]})	{
-		/invoke	${maChrControl.Add[gather,stPctGather]}
-		/invoke	${maChrControl.Add[bos,swAABoS]}
-		/invoke	${maChrControl.Add[crystal,swAACrystals]}
+  | increment lists
+  /call set_data ${_debug} FALSE stCount6                                 string outer "0|1|2|3|4|5"
+  /call set_data ${_debug} FALSE stCount10                                string outer "1|2|3|4|5|6|7|8|9|10"
+  /call set_data ${_debug} FALSE stCount12                                string outer "1|2|3|4|5|6|7|8|9|10|11|12"
+  /call set_data ${_debug} FALSE stCount20                                string outer "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20"
+  /call set_data ${_debug} FALSE stCount50                                string outer "1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50"
 
-	}	else /if (${Select[${Me.Class.ShortName},MAG]})	{
-		/invoke	${maChrControl.Add[gather,stPctGather]}
-		/invoke	${maChrControl.Add[cauldron,submenu]}
+  /call set_data ${_debug} FALSE lsCount6                                 list outer "${stCount6}"
+  /call set_data ${_debug} FALSE lsCount10                                list outer "${stCount10}"
+  /call set_data ${_debug} FALSE lsCount12                                list outer "${stCount12}"
+  /call set_data ${_debug} FALSE lsCount20                                list outer "${stCount20}"
+  /call set_data ${_debug} FALSE lsCount50                                list outer "${stCount50}"
 
-	}	else /if (${Select[${Me.Class.ShortName},MNK]})	{
-		/invoke	${maChrControl.Add[train,swTrainMelee]}
-		/invoke	${maChrControl.Add[fdhp,stPctFDHP]}
-		/invoke	${maChrControl.Add[fdaggro,stPctFDAggro]}
-		/invoke	${maChrControl.Add[fist,submenu]}
+  | cleric group regens
+  /call set_data ${_debug} FALSE lsGroupRegens                            list outer "Elixir of Transcendence|Elixir of Wulthan|Elixir of the Seas|Elixir of Expiation|Elixir of Atonement|Elixir of Redemption|Elixir of Divinity|Ethereal Elixir"
+  | shaman group regens
+  /call set_data ${_debug} FALSE lsGroupRegens                            list outer "Spectre of Renewal|Talisman of the Enduring|Cloud of Renewal|Shear of Renewal|Wisp of Renewal|Phantom of Renewal|Penumbra of Renewal|Shadow of Renewal|Shade of Renewal|Specter of Renewal|Ghost of Renewal"
 
-	}	else /if (${Select[${Me.Class.ShortName},NEC]})	{
-		/invoke	${maChrControl.Add[blood,submenu]}
-		/invoke	${maChrControl.Add[bloom,stPctBloom]}
+  | timers  for everyone
+  /invoke ${set_data_timer[FALSE, Try_Door, 4s]}
+  /invoke ${set_data_timer[FALSE, Check_Ammo, 5s]}
+  /invoke ${set_data_timer[FALSE, Nuke_Delay, 1]}
+  /invoke ${set_data_timer[FALSE, Check_Cursor, 1s]}
+  /invoke ${set_data_timer[FALSE, Check_Zone_ID, 10s]}
+  /invoke ${set_data_timer[FALSE, Check_Observers, 1m]}
+  /invoke ${set_data_timer[FALSE, Check_Poison, 1m]}
+  /invoke ${set_data_timer[FALSE, Check_deBuffs, 6s]}
+  /invoke ${set_data_timer[FALSE, Check_Behind, 5s]}
+  /invoke ${set_data_timer[FALSE, Check_Tribute, 1m]}
+  /invoke ${set_data_timer[FALSE, Check_Loot, 1s]}
+  /invoke ${set_data_timer[FALSE, Check_Mode, 5]}
+  /invoke ${set_data_timer[FALSE, Check_LoS_Timeout, 10s]}
+  /invoke ${set_data_timer[FALSE, Check_Housekeeping, 1m]}
+  /invoke ${set_data_timer[FALSE, Check_Home, 1]}
+  /invoke ${set_data_timer[FALSE, Check_Target, 5s]}
+  /invoke ${set_data_timer[FALSE, Check_Watch, 5s]}
+  /invoke ${set_data_timer[FALSE, Check_Alliance, 6s]}
+  /invoke ${set_data_timer[FALSE, Check_Mercenary, 1s]}
+  /invoke ${set_data_timer[FALSE, Check_Pull_Hardstop, 1]}
+  /invoke ${set_data_timer[FALSE, Check_Pull_Hardstop_Delay, 1]}
+  /invoke ${set_data_timer[FALSE, Check_Prediction, 1]}
+  /invoke ${set_data_timer[FALSE, Check_Inventory_ManaClick, 1m]}
 
-	}	else /if (${Select[${Me.Class.ShortName},PAL]})	{
-		/invoke	${maChrControl.Add[yaulp,swYaulp]}
-		/invoke	${maChrControl.Add[attraction,swAttraction]}
-		/invoke	${maChrControl.Add[harmonious,swHarmonious]}
-		/invoke	${maChrControl.Add[loh,stPctLoH]}
-		/invoke	${maChrControl.Add[mg,stPctMG]}
-		/invoke	${maChrControl.Add[stun,submenu]}
+  | wait time for pulling
+  /invoke ${set_timer[FALSE, wait_for_mob, 0]}
 
-	}	else /if (${Select[${Me.Class.ShortName},RNG]})	{
-		/invoke	${maChrControl.Add[summer,stCountSummer]}
+  | get the stick timer started
+  /invoke ${set_timer[${_debug}, timer_check_stick, 1s]}
 
-	}	else /if (${Select[${Me.Class.ShortName},ROG]})	{
-		/invoke	${maChrControl.Add[blind,swBlinding]}
-		/invoke	${maChrControl.Add[poison,stLegPoison]}
-		/invoke	${maChrControl.Add[nosneaktie,swNoSneakinTie]}
+  | controls for all classes
+  /invoke ${maChrControl.Add[ae,stCountAE]}
+  /invoke ${maChrControl.Add[fade,stPctFade]}
+  /invoke ${maChrControl.Add[spire,submenu]}
+  /invoke ${maChrControl.Add[intensity,submenu]}
 
-	}	else /if (${Select[${Me.Class.ShortName},SHD]})	{
-		/invoke	${maChrControl.Add[attraction,swAttraction]}
-		/invoke	${maChrControl.Add[harmonious,swHarmonious]}
-		/invoke	${maChrControl.Add[vot,swVoT]}
+  | controls for heal classes
+  /if (${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
+  }
 
-	}	else /if (${Select[${Me.Class.ShortName},SHM]})	{
-		| /invoke	${maChrControl.Add[cannihps,stPctCanniHP]}
-		| /invoke	${maChrControl.Add[cannimanna,stPctCanniManna]}
-		/invoke	${maChrControl.Add[talisman,swTalisman]}
-		/invoke	${maChrControl.Add[canni,submenu]}
+  | controls for mana users
+  /if (${lsClassCast.Contains[${Me.Class.ShortName}]}) {
+    /invoke ${maChrControl.Add[manarecover,stPctManaRecovery]}
+  }
+
+  | controls for melee users
+  /if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) {
+    /invoke ${maChrControl.Add[hiatus,swHiatus]}
+  }
+
+  | controls by class
+  /if (${Select[${Me.Class.ShortName},BER]}) {
+
+  } else /if (${Select[${Me.Class.ShortName},BRD]}) {
+    /invoke ${maChrControl.Add[rest,swSongRest]}
+    /invoke ${maChrControl.Add[refresh,stSongRefresh]}
+    /invoke ${maChrControl.Add[bellow,swAABellow]}
+    /invoke ${maChrControl.Add[ooc,swPulseOOC]}
+    /invoke ${maChrControl.Add[swap,submenu]}
+    /invoke ${maChrControl.Add[scan,option]}
+
+  } else /if (${Select[${Me.Class.ShortName},BST]}) {
+    /invoke ${maChrControl.Add[consume,stPctConsume]}
+    /invoke ${maChrControl.Add[para,submenu]}
+
+  } else /if (${Select[${Me.Class.ShortName},CLR]}) {
+    /invoke ${maChrControl.Add[arb,submenu]}
+    /invoke ${maChrControl.Add[beacon,stCountBeaconofLife]}
+    /invoke ${maChrControl.Add[divinerez,swDivineCleric]}
+    /invoke ${maChrControl.Add[issuance,stCountIssuance]}
+    /invoke ${maChrControl.Add[primary,submenu]}
+    /invoke ${maChrControl.Add[vp,stPctVP]}
+    /invoke ${maChrControl.Add[yaulp,swYaulp]}
+
+  } else /if (${Select[${Me.Class.ShortName},DRU]}) {
+    /invoke ${maChrControl.Add[wolf,swWolfSpirit]}
+
+  } else /if (${Select[${Me.Class.ShortName},ENC]}) {
+    /invoke ${maChrControl.Add[gather,stPctGather]}
+    /invoke ${maChrControl.Add[bos,swAABoS]}
+    /invoke ${maChrControl.Add[crystal,swAACrystals]}
+
+  } else /if (${Select[${Me.Class.ShortName},MAG]}) {
+    /invoke ${maChrControl.Add[gather,stPctGather]}
+    /invoke ${maChrControl.Add[cauldron,submenu]}
+
+  } else /if (${Select[${Me.Class.ShortName},MNK]}) {
+    /invoke ${maChrControl.Add[train,swTrainMelee]}
+    /invoke ${maChrControl.Add[fdhp,stPctFDHP]}
+    /invoke ${maChrControl.Add[fdaggro,stPctFDAggro]}
+    /invoke ${maChrControl.Add[fist,submenu]}
+
+  } else /if (${Select[${Me.Class.ShortName},NEC]}) {
+    /invoke ${maChrControl.Add[blood,submenu]}
+    /invoke ${maChrControl.Add[bloom,stPctBloom]}
+
+  } else /if (${Select[${Me.Class.ShortName},PAL]}) {
+    /invoke ${maChrControl.Add[yaulp,swYaulp]}
+    /invoke ${maChrControl.Add[attraction,swAttraction]}
+    /invoke ${maChrControl.Add[harmonious,swHarmonious]}
+    /invoke ${maChrControl.Add[loh,stPctLoH]}
+    /invoke ${maChrControl.Add[mg,stPctMG]}
+    /invoke ${maChrControl.Add[stun,submenu]}
+
+  } else /if (${Select[${Me.Class.ShortName},RNG]}) {
+    /invoke ${maChrControl.Add[summer,stCountSummer]}
+
+  } else /if (${Select[${Me.Class.ShortName},ROG]}) {
+    /invoke ${maChrControl.Add[blind,swBlinding]}
+    /invoke ${maChrControl.Add[poison,stLegPoison]}
+    /invoke ${maChrControl.Add[nosneaktie,swNoSneakinTie]}
+
+  } else /if (${Select[${Me.Class.ShortName},SHD]}) {
+    /invoke ${maChrControl.Add[attraction,swAttraction]}
+    /invoke ${maChrControl.Add[harmonious,swHarmonious]}
+    /invoke ${maChrControl.Add[vot,swVoT]}
+
+  } else /if (${Select[${Me.Class.ShortName},SHM]}) {
+    /invoke ${maChrControl.Add[talisman,swTalisman]}
+    /invoke ${maChrControl.Add[canni,submenu]}
+
+  } else /if (${Select[${Me.Class.ShortName},WAR]}) {
+    /invoke ${maChrControl.Add[attraction,swAttraction]}
+
+  } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
+    /invoke ${maChrControl.Add[mb,swManaBurn]}
+    /invoke ${maChrControl.Add[gather,stPctGather]}
+    /invoke ${maChrControl.Add[concussion,stPctConcussion]}
+
+  }
+
+  | all classes
+  /if (${lsClassAll.Contains[${Me.Class.ShortName}]}) {
+    /invoke ${maChrControl.Add[invis,submenu]}
+  }
+
+  | set current zone
+  /call set_data ${_debug} maEnv stCurrentZoneID                            map outer FALSE
+
+  | Comm
+  /call set_data ${_debug} maComm stLocalEcho                               map outer FALSE             "dannet local echo"
+  /call set_data ${_debug} maComm stCommandEcho                             map outer FALSE             "dannet local command echo"
+  /call set_data ${_debug} maComm stFrontDelim                              map outer ON                "dannet lead from delimiters"
+  /call set_data ${_debug} maComm stFullNames                               map outer FALSE             "dannet fullnames"
+
+  | set DanNet groups
+  /declare lsEntropyGroup list outer
+  /invoke ${lsEntropyGroup.Delimiter["|"]}
+
+  /invoke ${lsEntropyGroup.Append[all|1|2|3|4|5|6|7|8|9|10|11]}
+
+  /declare _lidn listiterator local
+  /vardata _lidn lsEntropyGroup.First
+  /while (!${_lidn.IsEnd}) {
+    /invoke ${maComm.Add[stEntropyGroup_${_lidn.Value},entropy${_lidn.Value}]}
+    /invoke ${_lidn.Advance}
+  }
+
+  | join the group
+  /djoin ${maComm.Find[stEntropyGroup_all].Value}
 
 
-	}	else /if (${Select[${Me.Class.ShortName},WAR]})	{
-		/invoke	${maChrControl.Add[attraction,swAttraction]}
+  | generate modes
+  /declare maMode map outer
+  /declare lsMode list outer
+  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell]}
 
-	}	else /if (${Select[${Me.Class.ShortName},WIZ]})	{
-		/invoke	${maChrControl.Add[mb,swManaBurn]}
-		/invoke	${maChrControl.Add[gather,stPctGather]}
-		/invoke	${maChrControl.Add[concussion,stPctConcussion]}
+  /declare _lisie listiterator local
+  /vardata _lisie lsMode.First.Clone
+  /while (!${_lisie.IsEnd}) {
+    /invoke ${maMode.Add[${_lisie.Value},FALSE]}
+    /invoke ${_lisie.Advance}
+  }
 
-	}
-
-	| all classes
-	/if (${lsClassAll.Contains[${Me.Class.ShortName}]})	{
-		/invoke	${maChrControl.Add[invis,submenu]}
-	}
-
-	| set	current	zone
-	/call	set_data ${_debug} maEnv stCurrentZoneID														map	outer	FALSE
-
-	| Comm
-	/call	set_data ${_debug} maComm	stLocalEcho																map	outer	FALSE							"dannet	local	echo"
-	/call	set_data ${_debug} maComm	stCommandEcho															map	outer	FALSE							"dannet	local	command	echo"
-	/call	set_data ${_debug} maComm	stFrontDelim															map	outer	ON								"dannet	lead from	delimiters"
-	/call	set_data ${_debug} maComm	stFullNames																map	outer	FALSE							"dannet	fullnames"
-
-	| set	DanNet groups
-	/declare lsEntropyGroup	list outer
-	/invoke	${lsEntropyGroup.Delimiter["|"]}
-
-	/invoke	${lsEntropyGroup.Append[all|1|2|3|4|5|6|7|8|9|10|11]}
-
-	/declare _lidn listiterator	local
-	/vardata _lidn lsEntropyGroup.First
-	/while (!${_lidn.IsEnd}) {
-		/invoke	${maComm.Add[stEntropyGroup_${_lidn.Value},entropy${_lidn.Value}]}
-		/invoke	${_lidn.Advance}
-	}
-
-	| join the group
-	/djoin ${maComm.Find[stEntropyGroup_all].Value}
-
-
-	| generate modes
-	/declare maMode	map	outer
-	/declare lsMode	list outer
-	/invoke	${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell]}
-
-	/declare _lisie	listiterator local
-	/vardata _lisie	lsMode.First.Clone
-	/while (!${_lisie.IsEnd})	{
-		/invoke	${maMode.Add[${_lisie.Value},FALSE]}
-		/invoke	${_lisie.Advance}
-	}
-
-/return	TRUE
+/return TRUE
 
 
 
 |***
- * note: generate	the	zone file	DB
+ * note: generate the zone file DB
  * use:
  ***|
-sub	sql_schema_zone(bool _debug)
-	DEBUG	\atsql_schema_zone\ax()
+sub sql_schema_zone(bool _debug)
+  DEBUG \atsql_schema_zone\ax()
 
-	/if	(${maDebug.Find[init].Value})	{
-		/declare _boottimestart	int	local	${MacroQuest.Running}
-	}
+  /if (${maDebug.Find[init].Value}) {
+    /declare _boottimestart int local ${MacroQuest.Running}
+  }
 
-	| zone fields
-	/declare lsZoneProperty	list outer
-	/invoke	${lsZoneProperty.Delimiter["|"]}
-	/invoke	${lsZoneProperty.Append[lsZoneNamed|lsZoneExclude|lsZoneCharm|lsZoneRange|lsZoneNoMez|lsZoneNoCast|lsZoneNoMelee]}
-	/invoke	${lsZoneProperty.Append[lsZoneNoFire|lsZoneNoPoison|lsZoneNoMagic|lsZoneNoCorruption|lsZoneNoCold|lsZoneNoDisease]}
+  | zone fields
+  /declare lsZoneProperty list outer
+  /invoke ${lsZoneProperty.Delimiter["|"]}
+  /invoke ${lsZoneProperty.Append[lsZoneNamed|lsZoneExclude|lsZoneCharm|lsZoneRange|lsZoneNoMez|lsZoneNoCast|lsZoneNoMelee]}
+  /invoke ${lsZoneProperty.Append[lsZoneNoFire|lsZoneNoPoison|lsZoneNoMagic|lsZoneNoCorruption|lsZoneNoCold|lsZoneNoDisease]}
 
-	/declare _lisszs listiterator	local
-	/vardata _lisszs lsZoneProperty.First
-	/while (!${_lisszs.IsEnd}) {
-		/declare ${_lisszs.Value}	list outer
-		/invoke	${${_lisszs.Value}.Delimiter["|"]}
-		/invoke	${_lisszs.Advance}
-	}
+  /declare _lisszs listiterator local
+  /vardata _lisszs lsZoneProperty.First
+  /while (!${_lisszs.IsEnd}) {
+    /declare ${_lisszs.Value} list outer
+    /invoke ${${_lisszs.Value}.Delimiter["|"]}
+    /invoke ${_lisszs.Advance}
+  }
 
-	/declare _schemaMismatch bool local FALSE
-	/declare _buildMismatch bool local FALSE
+  /declare _schemaMismatch bool local FALSE
+  /declare _buildMismatch bool local FALSE
 
-	| get the data from the table
-	/sqlite	query	${maData.Find[DBzone].Value} buildnumber SELECT	version	FROM metadata	WHERE	name='build_number';
-	/if	(!${sql_check[${_debug}, buildnumber,	sql_schema_zone,	"SELECT (version)"]})	/endmacro
-	/sqlite	query	${maData.Find[DBzone].Value} schemanumber	SELECT version FROM	metadata WHERE name='schema_number';
-	/if	(!${sql_check[${_debug}, schemanumber, sql_schema_zone, "SELECT (version)"]}) /endmacro
+  | get the data from the table
+  /sqlite query ${maData.Find[DBzone].Value} buildnumber SELECT version FROM metadata WHERE name='build_number';
+  /if (!${sql_check[${_debug}, buildnumber, sql_schema_zone,  "SELECT (version)"]}) /endmacro
+  /sqlite query ${maData.Find[DBzone].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number';
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_zone, "SELECT (version)"]}) /endmacro
 
-	| macro mismatch flag
-	/if	(${sqlite.Result[buildnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
-		/varset _buildMismatch TRUE
-	}
+  | macro mismatch flag
+  /if (${sqlite.Result[buildnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
+    /varset _buildMismatch TRUE
+  }
 
-	| schema mismatch flag
-	/if	(${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
-		/varset _schemaMismatch TRUE
-	}
+  | schema mismatch flag
+  /if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
+    /varset _schemaMismatch TRUE
+  }
 
-	| if the numbers match, we consider	it valid and go	away to	dosoemthing	else.
-	/if	(!${_schemaMismatch} &&	!${_buildMismatch}) {
-		DEBUG	${sep}Macro	and	Schema builds	match	for	zone database, bailing on	this routine
-		/sqlite clear schemanumber
-		/sqlite clear buildnumber
-		/return	TRUE
-	}
+  | if the numbers match, we consider it valid and go away to dosoemthing else.
+  /if (!${_schemaMismatch} && !${_buildMismatch}) {
+    DEBUG ${sep}Macro and Schema builds match for zone database, bailing on this routine
+    /sqlite clear schemanumber
+    /sqlite clear buildnumber
+    /return TRUE
+  }
 
-	| if there is no schema number? no database??
-	/if	(!${sqlite.Rows[schemanumber]})	{
-		OUT	\a-tSchema Build\ax${sep}\a-wzone\ax (\a-r${maEnv.Find[schema].Value}\ax)
-		/while (TRUE)	{
-			| create shared build	table
-			/sqlite	query	${maData.Find[DBzone].Value} build CREATE	TABLE	IF NOT EXISTS	metadata(name, version);
-			/if	(!${sql_check[${_debug}, build,	sql_schema_zone, "CREATE TABLE IF	NOT	EXISTS (metadata)"]})	/endmacro
-			/sqlite	query	${maData.Find[DBzone].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('build_number', '${maEnv.Find[build].Value}');
-			/if	(!${sql_check[${_debug}, build,	sql_schema_zone, "INSERT INTO	(metadata)"]}) /endmacro
-			/sqlite	query	${maData.Find[DBzone].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('schema_number',	'${maEnv.Find[schema].Value}');
-			/if	(!${sql_check[${_debug}, build,	sql_schema_zone, "INSERT INTO	(metadata)"]}) /endmacro
+  | if there is no schema number? no database??
+  /if (!${sqlite.Rows[schemanumber]}) {
+    OUT \a-tSchema Build\ax${sep}\a-wzone\ax (\a-r${maEnv.Find[schema].Value}\ax)
+    /while (TRUE) {
+      | create shared build table
+      /sqlite query ${maData.Find[DBzone].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version);
+      /if (!${sql_check[${_debug}, build, sql_schema_zone, "CREATE TABLE IF NOT EXISTS (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBzone].Value} build INSERT OR IGNORE INTO metadata VALUES('build_number', '${maEnv.Find[build].Value}');
+      /if (!${sql_check[${_debug}, build, sql_schema_zone, "INSERT INTO (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBzone].Value} build INSERT OR IGNORE INTO metadata VALUES('schema_number', '${maEnv.Find[schema].Value}');
+      /if (!${sql_check[${_debug}, build, sql_schema_zone, "INSERT INTO (metadata)"]}) /endmacro
 
-			/sqlite	query	${maData.Find[DBzone].Value} build CREATE	TABLE	IF NOT EXISTS	zone_control('zone_shortname'	TEXT NOT NULL,'element'	TEXT NOT NULL,'value'	TEXT NOT NULL, PRIMARY KEY (zone_shortname,element,value))
-			/if	(!${sql_check[${_debug}, build,	sql_schema_zone, "CREATE TABLE"]}) /endmacro
+      /sqlite query ${maData.Find[DBzone].Value} build CREATE TABLE IF NOT EXISTS zone_control('zone_shortname' TEXT NOT NULL,'element' TEXT NOT NULL,'value' TEXT NOT NULL, PRIMARY KEY (zone_shortname,element,value))
+      /if (!${sql_check[${_debug}, build, sql_schema_zone, "CREATE TABLE"]}) /endmacro
 
-			| if not locked, were good
-			/if (${sqlite.Resultcode[build]} == 0) /break
-		}
-		/sqlite clear schemanumber
-		/sqlite clear build
-		/return TRUE
-	}
+      | if not locked, were good
+      /if (${sqlite.Resultcode[build]} == 0) /break
+    }
+    /sqlite clear schemanumber
+    /sqlite clear build
+    /return TRUE
+  }
 
-	| correct build	mismatch
-	/if	(${_buildMismatch}) {
-		/while (TRUE)	{
-			/sqlite	query	${maData.Find[DBzone].Value} updatebuildnum UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number';
-			/if	(!${sql_check[${_debug}, updatebuildnum, sql_schema_zone,	"UPDATE (metadata)"]})	/endmacro
+  | correct build mismatch
+  /if (${_buildMismatch}) {
+    /while (TRUE) {
+      /sqlite query ${maData.Find[DBzone].Value} updatebuildnum UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number';
+      /if (!${sql_check[${_debug}, updatebuildnum, sql_schema_zone, "UPDATE (metadata)"]})  /endmacro
 
-			| call macro update by version here. doubt there will	be any
-			/call sql_db_update ${_debug} zone
+      | call macro update by version here. doubt there will be any
+      /call sql_db_update ${_debug} zone
 
-			| db locked?
-			/if	(${sqlite.Resultcode[updatebuildnum]} == 0) /break
-		}
-		/sqlite clear updatebuildnum
-	}
+      | db locked?
+      /if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
+    }
+    /sqlite clear updatebuildnum
+  }
 
-	| corect schema mismatch
-	/if	(${_schemaMismatch}) {
-		/if (${sqlite.Status[schemanumber].NotEqual[success]}) {
-			OUT	\a-tSchema Update\ax${sep}\a-wzone\ax (\a-r${sqlite.Result[schemanumber	1	version]}\ax -> \a-r${maEnv.Find[schema].Value}\ax)
-		} else {
-			OUT	\a-tSchema Update\ax${sep}\a-wzone\ax (\a-r${maEnv.Find[schema].Value}\ax)
-		}
-		/while (TRUE)	{
-			/sqlite	query	${maData.Find[DBzone].Value} updateschemanum UPDATE metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number';
-			/if	(!${sql_check[${_debug}, updateschemanum,	sql_schema_zone, "UPDATE (metadata)"]}) /endmacro
+  | corect schema mismatch
+  /if (${_schemaMismatch}) {
+    /if (${sqlite.Status[schemanumber].NotEqual[success]}) {
+      OUT \a-tSchema Update\ax${sep}\a-wzone\ax (\a-r${sqlite.Result[schemanumber 1 version]}\ax -> \a-r${maEnv.Find[schema].Value}\ax)
+    } else {
+      OUT \a-tSchema Update\ax${sep}\a-wzone\ax (\a-r${maEnv.Find[schema].Value}\ax)
+    }
+    /while (TRUE) {
+      /sqlite query ${maData.Find[DBzone].Value} updateschemanum UPDATE metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number';
+      /if (!${sql_check[${_debug}, updateschemanum, sql_schema_zone, "UPDATE (metadata)"]}) /endmacro
 
-			/call sql_schema_update ${_debug} zone
+      /call sql_schema_update ${_debug} zone
 
-			/if (${sqlite.Resultcode[updateschemanum]} == 0) /break
-		}
-		/sqlite clear updateschemanum
+      /if (${sqlite.Resultcode[updateschemanum]} == 0) /break
+    }
+    /sqlite clear updateschemanum
 
-	}
+  }
 
-	| set pragma
-	/sqlite query ${maData.Find[DBzone].Value} query_journal_DBzone PRAGMA journal_mode=WAL;
+  | set pragma
+  /sqlite query ${maData.Find[DBzone].Value} query_journal_DBzone PRAGMA journal_mode=WAL;
 
-	/if	(${maDebug.Find[init].Value})	{
-		OUT	\agsql_schema_zone\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
-		/mqp
-	}
+  /if (${maDebug.Find[init].Value}) {
+    OUT \agsql_schema_zone\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+    /mqp
+  }
 
-/return	TRUE
+/return TRUE
 
 
 
 
 |***
  * note:
- * use:	generate loot.sqlite
+ * use: generate loot.sqlite
  ***|
-sub	sql_schema_loot(bool _debug)
-	DEBUG	\atsql_schema_loot\ax()
+sub sql_schema_loot(bool _debug)
+  DEBUG \atsql_schema_loot\ax()
 
-	/if	(${maDebug.Find[init].Value})	{
-		/declare _boottimestart	int	local	${MacroQuest.Running}
-	}
+  /if (${maDebug.Find[init].Value}) {
+    /declare _boottimestart int local ${MacroQuest.Running}
+  }
 
-	| check	the	current	schema/build versions
-	/sqlite	query	${maData.Find[DBloot].Value} buildnumber SELECT	version	FROM metadata	WHERE	name='build_number';
-	/if	(!${sql_check[${_debug}, buildnumber,	sql_schema_loot, "SELECT (version)"]}) /endmacro
-	/sqlite	query	${maData.Find[DBloot].Value} schemanumber	SELECT version FROM	metadata WHERE name='schema_number';
-	/if	(!${sql_check[${_debug}, schemanumber, sql_schema_loot,	"SELECT	(version)"]})	/endmacro
+  | check the current schema/build versions
+  /sqlite query ${maData.Find[DBloot].Value} buildnumber SELECT version FROM metadata WHERE name='build_number';
+  /if (!${sql_check[${_debug}, buildnumber, sql_schema_loot, "SELECT (version)"]}) /endmacro
+  /sqlite query ${maData.Find[DBloot].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number';
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_loot, "SELECT (version)"]}) /endmacro
 
-	/declare _schemaMismatch bool local FALSE
-	/declare _buildMismatch bool local FALSE
+  /declare _schemaMismatch bool local FALSE
+  /declare _buildMismatch bool local FALSE
 
-	| macro mismatch flag
-	/if	(${sqlite.Result[buildnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
-		/varset _buildMismatch TRUE
-	}
+  | macro mismatch flag
+  /if (${sqlite.Result[buildnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
+    /varset _buildMismatch TRUE
+  }
 
-	| schema mismatch flag
-	/if	(${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
-		/varset _schemaMismatch TRUE
-	}
+  | schema mismatch flag
+  /if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
+    /varset _schemaMismatch TRUE
+  }
 
-	| if the numbers match, we consider	it valid and go	away to	dosoemthing	else.
-	/if	(!${_schemaMismatch} &&	!${_buildMismatch}) {
-		DEBUG	${sep}Macro	and	Schema builds	match	for	loot database, bailing on	this routine
-		/sqlite clear schemanumber
-		/sqlite clear buildnumber
-		/return	TRUE
-	}
+  | if the numbers match, we consider it valid and go away to dosoemthing else.
+  /if (!${_schemaMismatch} && !${_buildMismatch}) {
+    DEBUG ${sep}Macro and Schema builds match for loot database, bailing on this routine
+    /sqlite clear schemanumber
+    /sqlite clear buildnumber
+    /return TRUE
+  }
 
 
-	/if	(!${sqlite.Rows[schemanumber]})	{
-		DEBUG	${sep}FOUND${sep}\ar${sqlite.Rows[schemanumber]}\ax
-		OUT	\a-tSchema Build\ax${sep}\a-wloot\ax (\a-r${maEnv.Find[schema].Value}\ax)
+  /if (!${sqlite.Rows[schemanumber]}) {
+    DEBUG ${sep}FOUND${sep}\ar${sqlite.Rows[schemanumber]}\ax
+    OUT \a-tSchema Build\ax${sep}\a-wloot\ax (\a-r${maEnv.Find[schema].Value}\ax)
 
-		/while (TRUE)	{
-			| create shared	build	table
-			/sqlite	query	${maData.Find[DBloot].Value} build CREATE	TABLE	IF NOT EXISTS	metadata(name, version);
-			/if	(!${sql_check[${_debug}, build,	sql_schema_loot, "CREATE TABLE IF	NOT	EXISTS (metadata)"]})	/endmacro
-			/sqlite	query	${maData.Find[DBloot].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('build_number', '${maEnv.Find[build].Value}');
-			/if	(!${sql_check[${_debug}, build,	sql_schema_loot, "INSERT INTO	(metadata)"]}) /endmacro
-			/sqlite	query	${maData.Find[DBloot].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('schema_number',	'${maEnv.Find[schema].Value}');
-			/if	(!${sql_check[${_debug}, build,	sql_schema_loot, "INSERT INTO	(metadata)"]}) /endmacro
+    /while (TRUE) {
+      | create shared build table
+      /sqlite query ${maData.Find[DBloot].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version);
+      /if (!${sql_check[${_debug}, build, sql_schema_loot, "CREATE TABLE IF NOT EXISTS (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBloot].Value} build INSERT OR IGNORE INTO metadata VALUES('build_number', '${maEnv.Find[build].Value}');
+      /if (!${sql_check[${_debug}, build, sql_schema_loot, "INSERT INTO (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBloot].Value} build INSERT OR IGNORE INTO metadata VALUES('schema_number', '${maEnv.Find[schema].Value}');
+      /if (!${sql_check[${_debug}, build, sql_schema_loot, "INSERT INTO (metadata)"]}) /endmacro
       /sqlite query ${maData.Find[DBloot].Value} build CREATE TABLE IF NOT EXISTS loot_control(item TEXT NOT NULL PRIMARY KEY, action TEXT, pass TEXT, count TEXT);
-			/if	(!${sql_check[${_debug}, build,	sql_schema_loot, "CREATE TABLE IF (loot_control)"]}) /endmacro
+      /if (!${sql_check[${_debug}, build, sql_schema_loot, "CREATE TABLE IF (loot_control)"]}) /endmacro
 
-			/if (${sqlite.Resultcode[build]} != 0) /delay 1
-			/if (${sqlite.Resultcode[build]} == 0) /break
-		}
-		/sqlite clear schemanumber
-		/sqlite clear build
-		/return TRUE
-	}
+      /if (${sqlite.Resultcode[build]} != 0) /delay 1
+      /if (${sqlite.Resultcode[build]} == 0) /break
+    }
+    /sqlite clear schemanumber
+    /sqlite clear build
+    /return TRUE
+  }
 
-	/if	(${_buildMismatch}) {
-		DEBUG	${sep}build	mismatch
-		/while (TRUE)	{
-			/sqlite	query	${maData.Find[DBloot].Value} updatebuildnum	UPDATE metadata	SET	version='${maEnv.Find[build].Value}' WHERE name='build_number';
-			/if	(!${sql_check[${_debug}, updatebuildnum, sql_schema_loot,	"UPDATE	(metadata)"]})	/endmacro
+  /if (${_buildMismatch}) {
+    DEBUG ${sep}build mismatch
+    /while (TRUE) {
+      /sqlite query ${maData.Find[DBloot].Value} updatebuildnum UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number';
+      /if (!${sql_check[${_debug}, updatebuildnum, sql_schema_loot, "UPDATE (metadata)"]})  /endmacro
 
-			| call macro update	by version here. doubt there will	be any
-			/call sql_db_update ${_debug} loot
+      | call macro update by version here. doubt there will be any
+      /call sql_db_update ${_debug} loot
 
-			/if (${sqlite.Resultcode[updatebuildnum]} != 0) /delay 1
-			/if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
-		}
-		/sqlite clear updatebuildnum
-	}
+      /if (${sqlite.Resultcode[updatebuildnum]} != 0) /delay 1
+      /if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
+    }
+    /sqlite clear updatebuildnum
+  }
 
-	/if	(${_schemaMismatch}) {
-		/if (${sqlite.Status[schemanumber].NotEqual[success]}) {
-			OUT	\a-tSchema Update\ax${sep}\a-wloot\ax (\a-r${sqlite.Result[schemanumber	1	version]}\ax -> \a-r${maEnv.Find[schema].Value}\ax)
-		} else {
-			OUT	\a-tSchema Update\ax${sep}\a-wloot\ax (\a-r${maEnv.Find[schema].Value}\ax)
-		}
+  /if (${_schemaMismatch}) {
+    /if (${sqlite.Status[schemanumber].NotEqual[success]}) {
+      OUT \a-tSchema Update\ax${sep}\a-wloot\ax (\a-r${sqlite.Result[schemanumber 1 version]}\ax -> \a-r${maEnv.Find[schema].Value}\ax)
+    } else {
+      OUT \a-tSchema Update\ax${sep}\a-wloot\ax (\a-r${maEnv.Find[schema].Value}\ax)
+    }
 
-		/while (TRUE)	{
-			/sqlite	query	${maData.Find[DBloot].Value} updateschemanum UPDATE	metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number';
-			/if	(!${sql_check[${_debug}, updateschemanum,	sql_schema_loot, "UPDATE (metadata)"]}) /endmacro
+    /while (TRUE) {
+      /sqlite query ${maData.Find[DBloot].Value} updateschemanum UPDATE metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number';
+      /if (!${sql_check[${_debug}, updateschemanum, sql_schema_loot, "UPDATE (metadata)"]}) /endmacro
 
-			| call schema update by	version	here!
-			/call	sql_schema_update ${_debug} loot
+      | call schema update by version here!
+      /call sql_schema_update ${_debug} loot
 
-			/if (${sqlite.Resultcode[updateschemanum]} != 0) /delay 1
-			/if (${sqlite.Resultcode[updateschemanum]} == 0) /break
-		}
-		/sqlite clear schemanumber
-		/sqlite clear updateschemanum
-	}
+      /if (${sqlite.Resultcode[updateschemanum]} != 0) /delay 1
+      /if (${sqlite.Resultcode[updateschemanum]} == 0) /break
+    }
+    /sqlite clear schemanumber
+    /sqlite clear updateschemanum
+  }
 
-	| set pragma
-	/sqlite query ${maData.Find[DBloot].Value} query_journal_DBloot PRAGMA journal_mode=WAL;
+  | set pragma
+  /sqlite query ${maData.Find[DBloot].Value} query_journal_DBloot PRAGMA journal_mode=WAL;
 
-	/if	(${maDebug.Find[init].Value})	{
-		OUT	\agsql_schema_loot\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
-		/mqp
-	}
+  /if (${maDebug.Find[init].Value}) {
+    OUT \agsql_schema_loot\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+    /mqp
+  }
 
-/return	TRUE
+/return TRUE
 
 
 
 |***
- * note: generate	character	file DB
+ * note: generate character file DB
  * use:
  ***|
-sub	sql_schema_character(bool	_debug)
-	DEBUG	\atsql_schema_character\ax()
-	| /varset _debug TRUE
+sub sql_schema_character(bool _debug)
+  DEBUG \atsql_schema_character\ax()
+  | /varset _debug TRUE
 
-	/if	(${maDebug.Find[init].Value})	{
-		/declare _boottimestart	int	local	${MacroQuest.Running}
-	}
+  /if (${maDebug.Find[init].Value}) {
+    /declare _boottimestart int local ${MacroQuest.Running}
+  }
 
-	/declare _metadataFail bool local FALSE
+  /declare _metadataFail bool local FALSE
 
-	| get	character	build	version	and	maintain previous	number
-	/sqlite	query	${maData.Find[DBcharacter].Value}	buildnumber	SELECT version FROM	metadata WHERE name='build_number';
-	/if (!${sql_check[${_debug}, buildnumber, sql_schema_character, "SELECT (buildnumber)"]})	/endmacro
-	/if	(${sqlite.Rows[buildnumber]})	{
-		/invoke	${maData.Add[stPreviousBuild,${sqlite.Result[buildnumber 1 version]}]}
-	}	else {
-		/invoke	${maData.Add[stPreviousBuild,0]}
-	}
+  | get character build version and maintain previous number
+  /sqlite query ${maData.Find[DBcharacter].Value} buildnumber SELECT version FROM metadata WHERE name='build_number';
+  /if (!${sql_check[${_debug}, buildnumber, sql_schema_character, "SELECT (buildnumber)"]}) /endmacro
+  /if (${sqlite.Rows[buildnumber]}) {
+    /invoke ${maData.Add[stPreviousBuild,${sqlite.Result[buildnumber 1 version]}]}
+  } else {
+    /invoke ${maData.Add[stPreviousBuild,0]}
+  }
 
-	| get	character	schema version and maintain	previous number
-	/sqlite	query	${maData.Find[DBcharacter].Value}	schemanumber SELECT	version	FROM metadata	WHERE	name='schema_number';
-	/if	(!${sql_check[${_debug}, schemanumber, sql_schema_character, "SELECT (schemanumber)"]})	/endmacro
-	/if (${sqlite.Rows[schemanumber]}) {
-		/invoke	${maData.Add[stPreviousSchema,${sqlite.Result[schemanumber 1 version]}]}
-	}	else {
-		/invoke	${maData.Add[stPreviousSchema,0]}
-		/varset _metadataFail TRUE
-	}
+  | get character schema version and maintain previous number
+  /sqlite query ${maData.Find[DBcharacter].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number';
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_character, "SELECT (schemanumber)"]}) /endmacro
+  /if (${sqlite.Rows[schemanumber]}) {
+    /invoke ${maData.Add[stPreviousSchema,${sqlite.Result[schemanumber 1 version]}]}
+  } else {
+    /invoke ${maData.Add[stPreviousSchema,0]}
+    /varset _metadataFail TRUE
+  }
 
-	/declare _schemaMismatch bool local FALSE
-	/declare _buildMismatch bool local FALSE
+  /declare _schemaMismatch bool local FALSE
+  /declare _buildMismatch bool local FALSE
 
-	| macro mismatch flag
-	/if	(${sqlite.Result[buildnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
-		/varset _buildMismatch TRUE
-	}
+  | macro mismatch flag
+  /if (${sqlite.Result[buildnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
+    /varset _buildMismatch TRUE
+  }
 
-	| schema mismatch flag
-	/if	(${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
-		/varset _schemaMismatch TRUE
-	}
+  | schema mismatch flag
+  /if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
+    /varset _schemaMismatch TRUE
+  }
 
-	| if the numbers match, we consider	it valid and go	away to	dosoemthing	else.
-	/if	(!${_schemaMismatch} &&	!${_buildMismatch}) {
-		DEBUG	${sep}Macro	and	Schema builds	match	for	character database, bailing on this routine
-		/sqlite clear schemanumber
-		/sqlite clear buildnumber
-		/return	TRUE
-	}
+  | if the numbers match, we consider it valid and go away to dosoemthing else.
+  /if (!${_schemaMismatch} && !${_buildMismatch}) {
+    DEBUG ${sep}Macro and Schema builds match for character database, bailing on this routine
+    /sqlite clear schemanumber
+    /sqlite clear buildnumber
+    /return TRUE
+  }
 
-	| schema and macro builds	missing? (fresh	database)
-	/if	(!${sqlite.Rows[schemanumber]})	{
-		OUT	\a-tSchema Build\ax${sep}\a-wcharacter\ax (\a-r${maEnv.Find[schema].Value}\ax)
-		/sqlite	query	${maData.Find[DBcharacter].Value}	build	CREATE TABLE IF	NOT	EXISTS metadata(name,	version);
-		/if	(!${sql_check[${_debug}, build,	sql_schema_character,	"CREATE	TABLE	IF NOT EXISTS	(metadata)"]}) /endmacro
-		/sqlite	query	${maData.Find[DBcharacter].Value}	build	INSERT OR	IGNORE INTO	metadata VALUES('build_number',	'${maEnv.Find[build].Value}');
-		/if	(!${sql_check[${_debug}, build,	sql_schema_character,	"INSERT	INTO (metadata)"]})	/endmacro
-		/sqlite	query	${maData.Find[DBcharacter].Value}	build	INSERT OR	IGNORE INTO	metadata VALUES('schema_number', '${maEnv.Find[schema].Value}');
-		/if	(!${sql_check[${_debug}, build,	sql_schema_character,	"INSERT	INTO (metadata)"]})	/endmacro
-		/sqlite	query	${maData.Find[DBcharacter].Value}	build	INSERT INTO	metadata VALUES('repo_number', '${maEnv.Find[repo].Value}');
-		/if	(!${sql_check[${_debug}, build,	sql_schema_character,	"INSERT	INTO (metadata)"]})	/endmacro
+  | schema and macro builds missing? (fresh database)
+  /if (!${sqlite.Rows[schemanumber]}) {
+    OUT \a-tSchema Build\ax${sep}\a-wcharacter\ax (\a-r${maEnv.Find[schema].Value}\ax)
+    /sqlite query ${maData.Find[DBcharacter].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version);
+    /if (!${sql_check[${_debug}, build, sql_schema_character, "CREATE TABLE IF NOT EXISTS (metadata)"]}) /endmacro
+    /sqlite query ${maData.Find[DBcharacter].Value} build INSERT OR IGNORE INTO metadata VALUES('build_number', '${maEnv.Find[build].Value}');
+    /if (!${sql_check[${_debug}, build, sql_schema_character, "INSERT INTO (metadata)"]}) /endmacro
+    /sqlite query ${maData.Find[DBcharacter].Value} build INSERT OR IGNORE INTO metadata VALUES('schema_number', '${maEnv.Find[schema].Value}');
+    /if (!${sql_check[${_debug}, build, sql_schema_character, "INSERT INTO (metadata)"]}) /endmacro
+    /sqlite query ${maData.Find[DBcharacter].Value} build INSERT INTO metadata VALUES('repo_number', '${maEnv.Find[repo].Value}');
+    /if (!${sql_check[${_debug}, build, sql_schema_character, "INSERT INTO (metadata)"]}) /endmacro
 
-		/sqlite clear build
-		/if (!${_metadataFail}) {
-			/sqlite clear schemanumber
-			/return TRUE
-		}
-		/sqlite	query	${maData.Find[DBcharacter].Value}	schemanumber SELECT	version	FROM metadata	WHERE	name='schema_number'
-	}
+    /sqlite clear build
+    /if (!${_metadataFail}) {
+      /sqlite clear schemanumber
+      /return TRUE
+    }
+    /sqlite query ${maData.Find[DBcharacter].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number'
+  }
 
-	| updates	to macro on	a	version	mismatch
-	/if	(${_buildMismatch} || ${_metadataFail}) {
-		DEBUG	${sep}correct	build	mismatch
-		/sqlite	query	${maData.Find[DBcharacter].Value}	updatebuildnum	UPDATE metadata	SET	version='${maEnv.Find[build].Value}' WHERE name='build_number'
-		/if	(!${sql_check[${_debug}, updatebuildnum,	sql_schema_character,	"UPDATE	(metadata)"]}) /endmacro
-		/call sql_db_update ${_debug} character
-		/sqlite clear updatebuildnum
-	}
+  | updates to macro on a version mismatch
+  /if (${_buildMismatch} || ${_metadataFail}) {
+    DEBUG ${sep}correct build mismatch
+    /sqlite query ${maData.Find[DBcharacter].Value} updatebuildnum  UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number'
+    /if (!${sql_check[${_debug}, updatebuildnum,  sql_schema_character, "UPDATE (metadata)"]}) /endmacro
+    /call sql_db_update ${_debug} character
+    /sqlite clear updatebuildnum
+  }
 
-	| updates to schema	on a version mismatch
-	/if	(${_schemaMismatch} || ${_metadataFail}) {
-		DEBUG	${sep}\arcorrect schema	mismatch\ax
+ | updates to schema on a version mismatch
+  /if (${_schemaMismatch} || ${_metadataFail}) {
+    DEBUG ${sep}\arcorrect schema mismatch\ax
 
-		/if (${sqlite.Status[schemanumber].NotEqual[success]}) {
-			OUT	\a-tSchema Update\ax${sep}\a-wcharacter\ax (\a-r${sqlite.Result[schemanumber 1 version]}\ax -> \a-r${maEnv.Find[schema].Value}\ax)
-		} else {
-			OUT	\a-tSchema Update\ax${sep}\a-wcharacter\ax (\a-r${maEnv.Find[schema].Value}\ax)
-		}
+    /if (${sqlite.Status[schemanumber].NotEqual[success]}) {
+      OUT \a-tSchema Update\ax${sep}\a-wcharacter\ax (\a-r${sqlite.Result[schemanumber 1 version]}\ax -> \a-r${maEnv.Find[schema].Value}\ax)
+    } else {
+      OUT \a-tSchema Update\ax${sep}\a-wcharacter\ax (\a-r${maEnv.Find[schema].Value}\ax)
+    }
 
-		/sqlite	query	${maData.Find[DBcharacter].Value}	updateschemanum	UPDATE metadata	SET	version='${maEnv.Find[schema].Value}'	WHERE	name='schema_number';
-		/if	(!${sql_check[${_debug}, updateschemanum,	sql_schema_shared, "UPDATE (metadata)"]}) /endmacro
+    /sqlite query ${maData.Find[DBcharacter].Value} updateschemanum UPDATE metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number';
+    /if (!${sql_check[${_debug}, updateschemanum, sql_schema_shared, "UPDATE (metadata)"]}) /endmacro
 
-		/declare _mi mapiterator local
-		/vardata _mi maDBTables.First.Clone
-		/while (!${_mi.IsEnd}) {
-			/sqlite	query	${maData.Find[DBcharacter].Value}	build	CREATE TABLE IF	NOT	EXISTS '${_mi.Key}'	('${_mi.Value}'	TEXT NOT NULL	PRIMARY	KEY,'value'	TEXT NOT NULL, 'aux' TEXT);
-			/if	(!${sql_check[${_debug}, build,	sql_schema_character,	"CREATE	TABLE	IF NOT EXISTS	(${_mi.Key})"]}) /endmacro
-			/invoke	${_mi.Advance}
-		}
+    /declare _mi mapiterator local
+    /vardata _mi maDBTables.First.Clone
+    /while (!${_mi.IsEnd}) {
+      /sqlite query ${maData.Find[DBcharacter].Value} build CREATE TABLE IF NOT EXISTS '${_mi.Key}' ('${_mi.Value}' TEXT NOT NULL PRIMARY KEY,'value' TEXT NOT NULL, 'aux' TEXT);
+      /if (!${sql_check[${_debug}, build, sql_schema_character, "CREATE TABLE IF NOT EXISTS (${_mi.Key})"]}) /endmacro
+      /invoke ${_mi.Advance}
+    }
 
-		/call	sql_schema_update ${_debug} character
-		/sqlite clear updateschemanum
-		/sqlite clear schemanumber
+    /call sql_schema_update ${_debug} character
+    /sqlite clear updateschemanum
+    /sqlite clear schemanumber
 
-	}
+  }
 
-	/if	(${maDebug.Find[init].Value})	{
-		OUT	\agsql_set_character_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
-		/mqp
-	}
+  /if (${maDebug.Find[init].Value}) {
+    OUT \agsql_set_character_schema\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+    /mqp
+  }
 
-/return	TRUE
+/return TRUE
 
 
 
 |***
- * note: creat the base	character	environments
- * use:	no touching!
+ * note: creat the base character environments
+ * use: no touching!
  ***|
-sub	set_initialize_map_character_environment(bool	_debug)
+sub set_initialize_map_character_environment(bool _debug)
 
-	/if	(${maDebug.Find[init].Value})	{
-		/declare _boottimestart	int	local	${MacroQuest.Running}
-	}
+  /if (${maDebug.Find[init].Value}) {
+    /declare _boottimestart int local ${MacroQuest.Running}
+  }
 
-	/declare _count	int	local	0
+  /declare _count int local 0
 
 
 
 |** testing variables (no ingame use)**|
-	/declare test1 int outer 0
+  /declare test1 int outer 0
+
 
 
+|** data **|
+  /call set_data ${_debug} maData stCastReturn                            map outer FALSE
+
 
-|**	data **|
-	/call	set_data ${_debug} maData	stCastReturn														map	outer	FALSE
 
+|** control: grain **|
+  /call set_data_list ${_debug} maEnv lsGrain                             1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30        "${auxnum} visual outputs you wish to see. \aw/verb aux\ax for full list"
 
 
-|**	control: grain **|
-	/call	set_data_list	${_debug}	maEnv	lsGrain															1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30				"${auxnum} visual	outputs	you	wish to	see. \aw/verb	aux\ax for full	list"
+
+|** control: predictive **|
+  /call set_data_map ${_debug} maPred swPred                              FALSE                         "${auxsw} use predictive combat logic"
+  /call set_data_map ${_debug} maPred stPredRad                           40                            "${auxnum} radius around predicted pull target"
+  /call set_data_map ${_debug} maPred stPredCountPrepBurn                 0                             "${auxnum} prep burn routines on number of mobs"
+  /call set_data_map ${_debug} maPred stPredCountPrepClass                0                             "${auxnum} prep class specific routine on number of mobs"
+  /call set_data_map ${_debug} maPred stPredPlayerstate                   4                             "${auxnum} playerstate of the type of mobs you are looking for"
+  /call set_data_map ${_debug} maPred stPredDelay                         60                            "${auxnum} seconds to delay next check once activated"
+  /call set_data ${_debug} maPred stPredID                                map outer FALSE
 
 
 
-|**	control: predictive	**|
-	/call	set_data_map ${_debug} maPred	swPred															FALSE													"${auxsw}	use predictive combat logic"
-	/call	set_data_map ${_debug} maPred	stPredRad														40														"${auxnum} radius around predicted pull	target"
-	/call	set_data_map ${_debug} maPred	stPredCountPrepBurn									0															"${auxnum} prep burn routines on number of mobs"
-	/call	set_data_map ${_debug} maPred	stPredCountPrepClass								0															"${auxnum} prep class specific routine on number of mobs"
-	/call	set_data_map ${_debug} maPred	stPredPlayerstate										4															"${auxnum} playerstate of the type of mobs you are looking for"
-	/call	set_data_map ${_debug} maPred	stPredDelay													60														"${auxnum} seconds to delay next check once activated"
-	/call	set_data ${_debug} maPred	stPredID																map	outer	FALSE
+|** control: mercenary **|
+  /call set_data_map ${_debug} maMercenary swMercenary                    FALSE                         "${auxsw} use your mercenary" mercenary
+  /call set_data_map ${_debug} maMercenary stMercenaryClass               FALSE                         "${auxna} class type of the mercenary you want to use" mercenary
 
 
 
-|**	control: mercenary **|
-	/call	set_data_map ${_debug} maMercenary swMercenary										FALSE													"${auxsw}	use	your mercenary"	mercenary
-	/call	set_data_map ${_debug} maMercenary stMercenaryClass								FALSE													"${auxna}	class	type of	the	mercenary	you	want to	use" mercenary
-
-
-
-|**	control: hard	**|
-| these	variables	are	not	for	users	to change
-| they are here in case	adjustments	need to	be made	so i dont	have to	go through k's of	lines	of code	to find	them all
-	/call	set_data_map ${_debug} maHard	stMaxMeleeAdj												9															"${auxna}	%	variance for max meele range adjustment" 																hard
-	/call	set_data_map ${_debug} maHard	stRadGrab														20														"${auxna}	pick up	allowable	3d radius	for	EQ"																				hard
-	/call	set_data_map ${_debug} maHard	stMaxRadPet													200														"${auxna}	max	usable range for pets" 																								hard
-	/call	set_data_map ${_debug} maHard	stMinBowDist												31														"${auxna}	minimum	distance to	be able	to bow or	throw" 															hard
-	/call	set_data_map ${_debug} maHard	stMaxBowDist												250														"${auxna}	maximum	distance to	bow	or throw"																					hard
-	/call	set_data_map ${_debug} maHard	stMinMovetoBow											35														"${auxna}	minimum	distance to	move to	get	bow/throw	range" 													hard
-	/call	set_data_map ${_debug} maHard	stRezSuccess												30s														"${auxnum} timer reset to	rez	the	same person	on a success"													hard
-	/call	set_data_map ${_debug} maHard	stRezFail														15s														"${auxnum} timer reset to	rez	the	same person	on a fail" 														hard
-	/call	set_data_map ${_debug} maHard	stRezFailToken											1m														"${auxnum} timer reset to	rez	the	same person	on a fail	with a token rez"						hard
-	/call	set_data_map ${_debug} maHard	stRezSummonRange										100														"${auxnum} /corpse summon	range	when rezing" 																				hard
-	/call	set_data_map ${_debug} maHard	stRezIgnoreFucktards								30m														"${auxnum} suration	to mark	corpses	on the no	rez	list"															hard
-	/call	set_data_map ${_debug} maHard	stMaxCureRad												200														"${auxnum} max radius	to check for curing" 																					hard
-	/call	set_data_map ${_debug} maHard	stPullMobTagTry											5															"${auxnum} max trys	to tag a mob while pulling"																			hard
-	/call	set_data_map ${_debug} maHard	stBardSwapRemain										1500													"${auxnum} ms left on cast time to swap instrument in"															hard
-	/call	set_data_map ${_debug} maHard	stSpellBookSize											960														"${auxnum} maximum # of spell book slots"																						hard
-	/call	set_data_map ${_debug} maHard	stFoodMaintain											3000													"${auxnum} level of, i'm full, to maintain for food"																hard
-	/call	set_data_map ${_debug} maHard	stDrinkMaintain											3000													"${auxnum} level of, i'm not thirsty, to maintain for drink"												hard
-	/call	set_data_map ${_debug} maHard	stPullMobFindStep										5															"${auxnum} number of increments your pull radius is broken into to look for mobs"		hard
-
-
-|**	control: chr (shared) **|
-
-	| invs
-	/call	set_data_map ${_debug} maChr stInvisSingle												FALSE													"${auxsw}	self invisibility"
-	/call	set_data_map ${_debug} maChr stInvisGroup													FALSE													"${auxsw}	group invisibility"
-	/call	set_data_map ${_debug} maChr stInvisSingleIVU											FALSE													"${auxsw}	self invis vs undead"
-	/call	set_data_map ${_debug} maChr stInvisGroupIVU											FALSE													"${auxsw}	group invis vs undead"
-
-
-
-|**	control: env **|
-	/call	set_data ${_debug} maEnv swAuto																		map	outer	FALSE
-	/call	set_data_map ${_debug} maEnv swSafeListGuild											FALSE													"${auxsw}	let	guild	in your	safe list"
-	/invoke	${set_data_timer[${_debug},	Check_EXP_Adjust,	5m]}
-	/call	set_data_map ${_debug} maEnv stMobLvlMin													1															"${auxnum} lowest	level	mob	you	will attack"
-	/call	set_data_map ${_debug} maEnv stMobLvlMax													500														"${auxnum} highest level mob you will	attack"
-	/call	set_data_map ${_debug} maEnv swNukeLoop														FALSE													"${auxsw}	force	a	nuke loop	to complete	before releasing"
-
-	/call	set_data_map ${_debug} maEnv swADVLoot														FALSE													"${auxsw}	use	advanced loot	functions"
-	/call	set_data_map ${_debug} maEnv swAutoInv														FALSE													"${auxsw}	use	autoinventory	loot control on	cursor items"
-	/call	set_data_list	${_debug}	maEnv	lsAutoInventory											EMPTY													"${auxli}	list of	shit to	auto inventory"
-	/call	set_data_map ${_debug} maEnv stBuffGem														${Me.NumGems}									"${auxnum} gem slot	to use as	a	swap for buffing"
-	/call	set_data_map ${_debug} maEnv swHoldBuffGem												FALSE													"${auxsw}	remember and return	the	spell	used in	that slot	before buffing"
-	/call	set_data_map ${_debug} maEnv stEnvRadius													31														"${auxnum} radius	you	are	willing	to operate in"
-	/call	set_data_map ${_debug} maEnv stEnvSafeRadius											30														"${auxnum} radius	you	consider safe	even with	mobs in	it"
-	/call	set_data_map ${_debug} maEnv stLvlPct															99														"${auxnum} % of	exp	in a level you want	to maintain"
-	/call	set_data_map ${_debug} maEnv stLvlMax															110														"${auxnum} level you want	to maintain"
-	/call	set_data_map ${_debug} maEnv swCorrectEXPAA												FALSE													"${auxsw}	use	exp/aa adjust	functions"
-	/call	set_data_map ${_debug} maEnv stBuildSetCurrent										FALSE													"${auxna}	name of	current	\a-w/build set\ax"
-
-	/invoke	${set_data_timer[${_debug},	Waste_Fireworks, 15m]}
-	/call	set_data_map ${_debug} maEnv swAAFireworks												FALSE													"${auxsw}	waste	aa on	fireworks"
-
-	/call	set_data_map ${_debug} maEnv swTakeGroupInvite										FALSE													"${auxsw}	take group invites from	people you trust"
-	/call	set_data_map ${_debug} maEnv swTakeRaidInvite											FALSE													"${auxsw}	take raid	invites	from people	you	trust"
-	/call	set_data_map ${_debug} maEnv swSoS																FALSE													"${auxsw}	rogue	sos	switch"
-
-	| rest
-	/call	set_data_map ${_debug} maEnv stPctRest														0															"${auxnum} % health/mana to rest at"
-	/call	set_data_map ${_debug} maEnv swRestFull														FALSE													"${auxsw}	rest to full health	if possible"
-	/call	set_data_map ${_debug} maEnv swRestModRod													FALSE													"${auxsw}	use mod rods while resting"
-	/call	set_data_map ${_debug} maEnv swRestBuff														FALSE													"${auxsw}	do buffing while resting"
-	/call	set_data_map ${_debug} maEnv swRestCombat													FALSE													"${auxsw}	continue resting while in combat"
-	/call	set_data_map ${_debug} maEnv swBegMAG															FALSE													"${auxsw}	beg mages for pet gear or rods"
-	/call	set_data_map ${_debug} maEnv stRestRadius													30														"${auxnum} no mob in radius for resting"
-
-	| food and drink
-	/invoke	${set_data_timer[${_debug},	Check_FoodDrink, 10m]}
-	/call	set_data_map ${_debug} maEnv stFood																FALSE													"${auxna}	food item	you	want to	eat"
-	/call	set_data_map ${_debug} maEnv stDrink															FALSE													"${auxna}	drink	item you want	to drink"
-
-	| tribute switch
-	/call	set_data_map ${_debug} maEnv swCheckTribute												FALSE													"${auxsw}	check	and	corect tribute for raids"
-
-	| drop buffs list
-	/invoke	${set_data_timer[${_debug},	Check_Drop_Buffs,	6s]}
-	/call	set_data_map ${_debug} maBuff	swDropBuffs													FALSE													"${auxsw}	enable buff removal"
-	/call	set_data_list	${_debug}	maEnv	lsDropBuffs													EMPTY													"${auxli}	list of	buffs	to drop that are smelly"
-
-
-
-|**	control: heal	**|
-	/call	set_data_map ${_debug} maHeal	stHealAdjust												0															"${auxnum} % to	overide	max	health to"																				heal
-	/call	set_data_map ${_debug} maHeal	swHealSelf													FALSE													"${auxsw}	enable self	healing"																								heal
-	/call	set_data_map ${_debug} maHeal	swHealToT														FALSE													"${auxsw}	enable healing your	targets	target"																	heal
-	/call	set_data_map ${_debug} maHeal	swHealXTarget												FALSE													"${auxsw}	enable xtarget healing"																							heal
-	/call	set_data_map ${_debug} maHeal	swHealPet														FALSE													"${auxsw}	enable pet healing"																									heal
-	/call	set_data_map ${_debug} maHeal	swHealGroup													FALSE													"${auxsw}	enable group healing"																								heal
-
-	/call set_data_map ${_debug} maHeal stRampageTank												FALSE													"${auxna} rampage tank to not heal (\a-wcompletely ignore\ax)" 								heal
-	/call set_data_map ${_debug} maHeal swHealOverTime											FALSE													"${auxsw} enable to use heal over time" 																			heal
-	/call set_data_map ${_debug} maHeal stCountHealGroup										0															"${auxnum} number in group hurt to use a group heal" 													heal
-
-	/call	set_data_map ${_debug} maHeal	swBreakHealPCT											FALSE													"${auxsw}	enable a stop heal when target is > its heal point"									heal
-
-	/call	set_data_list	${_debug}	maHeal lsHealXTClass											EMPTY													"${auxli}	classes	to populate	xtarget	for	healing	use: \a-t/heal xtarget\ax"	heal
-	/call	set_data_list	${_debug}	maHeal lsNoHealToon												EMPTY													"${auxli}	fuck these people..	no heals for them.."														heal
-	/call	set_data_map ${_debug} maHeal	swHealWeighted											FALSE													"${auxsw}	enable weighted	HP check healing"																		heal
-	/call	set_data_map ${_debug} maHeal	swHealPromise												FALSE													"${auxsw}	enable use of	promised heal	spells healing"													heal
-	/call	set_data_map ${_debug} maHeal	swHealDanNet												FALSE													"${auxsw}	enable use of	DanNet for healing"																		heal
-
-	/call	set_data ${_debug} FALSE tmpHealAdjust														float	outer	99.99
-	/call	set_data ${_debug} FALSE hurtID																		int	outer	0
-	/call	set_data ${_debug} FALSE hurtPctHP																int	outer	100
-	/call	set_data ${_debug} FALSE hurtCLS																	string outer ${Me.Class.ShortName}
-	/call	set_data ${_debug} FALSE hurtCount																int	outer	0
-	/call	set_data ${_debug} FALSE hurtDead																	int	outer	0
-
-	| points for healing
-	/call set_data_map ${_debug} maHeal	stHealPointHoT										80														"${auxnum} % of	health to	use	single heal	over time"													heal
-	/declare _lishp	listiterator local
-	/vardata _lishp	lsClassAll.First
-	/while (!${_lishp.IsEnd})	{
-		/call set_data_map ${_debug} maHeal	stHealPoint${_lishp.Value}			80														"${auxnum} % of	health to	start	healing:\a-w${_lishp.Value}\ax"								heal
-		/invoke	${_lishp.Advance}
-	}
-
-	| curing shit
-	/invoke	${set_data_timer[FALSE,	Check_Cure,	6s]}
-	/if	(${lsClassCastCure.Contains[${Me.Class.ShortName}]}) {
-		/call set_data_map ${_debug} maHeal	stCureCurse												FALSE													"${auxna}	name of	cure curse spell"												heal
-		/call set_data_map ${_debug} maHeal	stCurePoison											FALSE													"${auxna}	name of	cure poison	spell"											heal
-		/call set_data_map ${_debug} maHeal	stCureDisease											FALSE													"${auxna}	name of	cure disease spell"											heal
-		/call set_data_map ${_debug} maHeal	stCureCorruption									FALSE													"${auxna}	name of	corruption cure	spell"									heal
-	}
-	/call set_data_list	${_debug}	maHeal lsNoCureDeBuff											EMPTY													"${auxli}	list of	debuffs	you	DO NOT want	to cure"				heal
-	/call set_data_map ${_debug} maHeal	stCureCurseItem											FALSE													"${auxna}	name of	item to	cure self	curses"								heal
-	/call set_data_map ${_debug} maHeal	stCurePoisonItem										FALSE													"${auxna}	name of	item to	cure self	poisons"							heal
-	/call set_data_map ${_debug} maHeal	stCureDiseaseItem										FALSE													"${auxna}	name of	item to	cure self	diseases"							heal
-	/call set_data_map ${_debug} maHeal	stCureCorruptionItem								FALSE													"${auxna}	name of	item to	cure self	corruption"						heal
-	/call set_data_map ${_debug} maHeal	swHealCureSelf											FALSE													"${auxsw}	enable self	curing"															heal
-	/call set_data_map ${_debug} maHeal	swHealCureGroup											FALSE													"${auxsw}	enable group curing"														heal
-	/call set_data_map ${_debug} maHeal	swHealCureCrew											FALSE													"${auxsw}	enable crew	curing (everyone)"									heal
-
-
-	/call set_data_list	${_debug}	maHeal lsProtectOutsideGroup							EMPTY													"${auxli}	names	outside	of your	group	to add to	xtarget	for	healing" heal
-	/call set_data_list	${_debug}	maHeal lsLineHeal													EMPTY													"${auxli}	alternate	cast order for heals"									heal
-
-	| xtarget sets heal classes
-	/if	(${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
-		/declare lsXTargetClass	list outer
-		/invoke	${set_data_timer[${_debug},	Check_Xtarget_Build, 10m]}
-	}
-
-
-
-|**	control: rez	**|
-	/call	set_data ${_debug} FALSE swIsMeDead																bool outer FALSE
-	/call	set_data ${_debug} FALSE lsRezPct																	list outer "10|20|35|50|60|75|90|93|96"
-	/call	set_data_list ${_debug} maRez lsRezIC															PREGEN|1											"${auxli}	names of in combat rezes"																						rez
-	/call	set_data_list ${_debug} maRez lsRezOOC														PREGEN|1											"${auxli}	names of	out of combat rezes"																			rez
-	/call	set_data_list	${_debug} maRez lsNoRezToon													EMPTY													"${auxli}	names	of people	you	never	want to	rez"															rez
-	/call	set_data_list	${_debug}	maRez	lsRezTokenToon											EMPTY													"${auxli}	list of	class	shortnames you want	to use a rez token on"            rez
-	/call	set_data_map ${_debug} maRez swRezIC															FALSE													"${auxsw}	rez	people while in combat"                                         rez
-	/call	set_data_map ${_debug} maRez swRezOOC															FALSE													"${auxsw}	rez	people while out of combat"                                     rez
-
-	/call	set_data_map ${_debug} maRez swRezTake														FALSE													"${auxsw}	take rezes"                                                         rez
-	/call	set_data_map ${_debug} maRez swRezTakeCall												FALSE													"${auxsw}	take call to corpses"                                               rez
-	/call	set_data_map ${_debug} maRez swRezEveryone												FALSE													"${auxsw}	rez	anyone.. we just don't care do we?"                            	rez
-	/call	set_data_map ${_debug} maRez swRezDanNet													FALSE													"${auxsw}	rez	your DanNet peoples"							                            	rez
-	/call	set_data_map ${_debug} maRez swRezToken														FALSE													"${auxsw}	use	rez	tokens (\a-wseparate from	stResurrection\ax)"               rez
-	/call	set_data_map ${_debug} maRez stPctMinRez													90														"${auxnum} minimum % rez you are willing to	accept"                           rez
-	/call	set_data_map ${_debug} maRez stMaxRezRange												60														"${auxnum} how far away	to look	for	corpses	to rez"                           rez
-	/call	set_data_map ${_debug} maRez stRez1																"pccorpse cleric raid"				"rez priority 1 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez swRez1																TRUE													"rez priority 1 switch" 																											rez
-	/call	set_data_map ${_debug} maRez stRez2																"pccorpse cleric group"				"rez priority 2 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez swRez2																TRUE													"rez priority 2 switch" 																											rez
-	/call	set_data_map ${_debug} maRez stRez3																"pccorpse group"							"rez priority 3 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez swRez3																TRUE													"rez priority 3 switch" 																											rez
-	/call	set_data_map ${_debug} maRez stRez4																"pccorpse raid tank"					"rez priority 4 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez swRez4																TRUE													"rez priority 4 switch" 																											rez
-	/call	set_data_map ${_debug} maRez stRez5																"pccorpse raid"								"rez priority 5 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez swRez5																TRUE													"rez priority 5 switch" 																											rez
-	/call	set_data_map ${_debug} maRez stRez6																"pccorpse guild"							"rez priority 6 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez swRez6																TRUE													"rez priority 6 switch" 																											rez
-	/call	set_data_map ${_debug} maRez stRez7																FALSE													"rez priority 7 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez swRez7																FALSE													"rez priority 7 switch" 																											rez
-	/call	set_data_map ${_debug} maRez stRez8																FALSE													"rez priority 8 spawn string search" 																					rez
-	/call	set_data_map ${_debug} maRez swRez8																FALSE													"rez priority 8 switch" 																											rez
-	/call	set_data_list	${_debug}	maRez	lsLineRez														"1|2|3|4|5|6"									"${auxli}	rez order priorities"																								rez
-
-
-
-|**	control: buff	**|
-	/invoke	${set_data_timer[${_debug},	Check_Buff_Cycle,	1m]}
-	/invoke	${set_data_timer[${_debug},	Check_Buff_Unity,	5m]}
-	/invoke	${set_data_timer[${_debug},	Check_Buff_Shrink, 10m]}
-	/invoke	${set_data_timer[${_debug},	Check_Buff_Self, 1m]}
-	/invoke	${set_data_timer[${_debug},	Check_Buff_Crew, 1m]}
-	/invoke	${set_data_timer[${_debug},	Check_Buff_Raid, 2m]}
-	/invoke	${set_data_timer[${_debug},	Check_Buff_Group,	1m]}
-	/invoke	${set_data_timer[${_debug},	Check_Buff_Beg,	1m]}
-	/invoke	${set_data_timer[${_debug},	Check_Buff_Temp, 30s]}
-	/invoke	${set_data_timer[${_debug},	Check_Buff_Now,	5s]}
-	/invoke	${set_data_timer[${_debug},	Check_Buff_Powersource,	10m]}
-	/call	set_data ${_debug} maBuff	swBuffMaster														map	outer	TRUE
-	/call	set_data_list	${_debug}	maBuff lsBuffRemove												EMPTY													"${auxli}	buffs	you	want auto	removed	from you"
-	/call	set_data_map ${_debug} maBuff	swBuffSelf													FALSE													"${auxsw}	buff yourself"
-	/call	set_data_map ${_debug} maBuff	swBuffCrew													FALSE													"${auxsw}	buff your	crew (\aynot you\ax)"
-	/call	set_data_map ${_debug} maBuff	swBuffRaid													FALSE													"${auxsw}	buff raid	members	(not crew)"
-	/call	set_data_map ${_debug} maBuff	swBuffGroup													FALSE													"${auxsw}	buff group members (not	crew)"
-	/call	set_data_map ${_debug} maBuff	swBuffBeg														FALSE													"${auxsw}	answer buff	beg	requests"
-	/call	set_data_map ${_debug} maBuff	swBuffUnity													FALSE													"${auxsw}	buff aa	unity"
-	/call	set_data_map ${_debug} maBuff	swBuffPowersource										FALSE													"${auxsw}	use	powersources (\a-wmust have	buff set with	tag\ax)"
-	/call	set_data_map ${_debug} maBuff	swBuffTemp													FALSE													"${auxsw}	buff short term	combat buffs"
-	/call	set_data_map ${_debug} maBuff	swBuffShrink												FALSE													"${auxsw}	buff shring"
-	/call	set_data_map ${_debug} maBuff	stShrinkItem												FALSE													"${auxna}	buff shrink	item/spell"
-	/call	set_data_map ${_debug} maBuff	swBuffNow														FALSE													"${auxsw}	buff the now things"
-	/call	set_data_map ${_debug} maBuff	swBuffAmmo													FALSE													"${auxsw}	summons	ammo"
-
-	| auras
-	/invoke	${set_data_timer[${_debug},	Check_Buff_Aura, 3m]}
-	/call	set_data_map ${_debug} maBuff	swBuffAura													FALSE													"${auxsw}	use	auras	or not.	i	dont care"
-
-
-
-|**	control: defense **|
-	/call	set_data_map ${_debug} maDefense stCountDef												0															"${auxna}	number of	imediate area	mobs to	activate defensive"	defense
-	/call	set_data_map ${_debug} maDefense stPctDef													0															"${auxna}	pct	of health	to activate	a	defensive" defense
-	/call	set_data_list	${_debug}	maDefense	lsLineDefense										EMPTY													"${auxli}	alternate	defense	activation order"	defense
-
-
-
-|**	control: home	**|
-	/call	set_data ${_debug} maHome	swHomeMarker														map	outer	FALSE
-	/call	set_data_map ${_debug} maHome	stHomeVariance											6															"${auxnum} acceptable	buffer range for being home"
-	/call	set_data ${_debug} maData	stCampX																	map	outer	999999999
-	/call	set_data ${_debug} maData	stCampY																	map	outer	999999999
-	/call	set_data ${_debug} maData	stCampZ																	map	outer	999999999
-	/call	set_data_map ${_debug} maHome	stMount															FALSE													"${auxna}	name of	mount	you	wish to	sit	your fat ass on"
-	/call	set_data_map ${_debug} maHome	swMoveDeathClear										FALSE													"${auxsw}	on = clear home	marker and movements on	death"
-	/call	set_data_map ${_debug} maHome	swMoveBehind												FALSE													"${auxsw}	move behind	the	target during	combat"
-	/call	set_data_map ${_debug} maHome	swFaceFast													FALSE													"${auxsw}	use	fast facing	movements"
-	/call	set_data_map ${_debug} maHome	stFaceArc														15														"${auxnum} [\a-w1-45\az] acceptable	range	of facing	and	still	be on	target"
-	/call	set_data ${_debug} maHome	swSnapStuck															map	outer	FALSE
-	/call	set_data_map ${_debug} maHome	swonAuto														FALSE													"${auxsw}	set	home camp	on auto"
-	/call	set_data_map ${_debug} maHome	swinCombat													FALSE													"${auxsw}	keep home	camp while in	combat"
-
-
-
-|**	control: tie **|
-	/invoke	${set_data_timer[${_debug},	Check_Tie, 5]}
-	/call	set_data ${_debug} maTie swSetTie																	map	outer	FALSE
-	/call	set_data_map ${_debug} maTie stTieToon														FALSE													"${auxna}	name of	toon you want	to tie too when	commanded"
-	/call	set_data_map ${_debug} maTie stTieMode														nav														"${auxna}	[\a-wstick-nav\ax] the mode	you	want to	use	for	tie	movements"
-	/call	set_data_map ${_debug} maTie stTieVariance												5															"${auxnum} acceptabe distances to	be away	from the tiem	toon before	moving to	it"
-	/call	set_data_map ${_debug} maTie swTieCombat													FALSE													"${auxsw}	enable tie while in	active combat"
-
-
-
-|**	control: mode	**|
-	/call	set_data ${_debug} FALSE swModeToken															bool outer FALSE
-	/call	set_data ${_debug} FALSE stModeData																string outer FALSE
-	| /call	set_data_map ${_debug} maMode	swTrainAlteration										FALSE													"${auxsw}	train	alteration type	spells"
-	| /call	set_data_map ${_debug} maMode	swTrainAbjuration										FALSE													"${auxsw}	train	abjuration type	spells"
-	| /call	set_data_map ${_debug} maMode	swTrainConjuration									FALSE													"${auxsw}	train	conjuration	type spells"
-	| /call	set_data_map ${_debug} maMode	swTrainDivination										FALSE													"${auxsw}	train	divination type	spells"
-	| /call	set_data_map ${_debug} maMode	swTrainEvocation										FALSE													"${auxsw}	train	evocation	type spells"
-	| /call	set_data ${_debug} FALSE swTrainSpecialize												FALSE													"${auxsw}	train	specialize field type	spells"
-
-
-
-|**	control: watch **|
-	/call	set_data ${_debug} maWatch swWatch																map	outer	FALSE
-	/call	set_data ${_debug} maWatch stWatchCount														map	outer	0
-	/call	set_data_list	${_debug}	maWatch	lsWatch														EMPTY													"${auxli}	list of	mobs to	watch	for"
-
-
-
-
-|**	control: pull	**|
-	/call set_data_list	${_debug}	maPull lsLinePull													EMPTY													"${auxli}	alternate	order for pulling"																					pull
-	/call	set_data_map ${_debug} maPull	swPull															FALSE													"${auxsw}	enable pulling (\a-wselect mobs	to kill\ax)"													pull
-	/call	set_data_map ${_debug} maPull	stPullRadius												0															"${auxnum} radius	to pull	mobs from"																						pull
-	/call	set_data_map ${_debug} maPull	swPullSetHome												FALSE													"${auxsw}	suto set home	marker when	pulling	is enabled"													pull
-	/call	set_data_map ${_debug} maPull	stPullNavStopDistance								60														"${auxnum} how close you will	nav	pull to	a	mob	before trying	too	tag	it"				pull
-	/call	set_data ${_debug} FALSE lsPullMode																list outer base|pet|int|nav|multi
-	/call	set_data_map ${_debug} maPull	stPullMode													base													"${auxna}	[\a-wbase-nav-int-pet-multi\ax]	the	mode of	pulling	you	wish to	use	while	looking	for	said mobs"				pull
-	/call	set_data ${_debug} FALSE lsPullWith																list outer melee|range|other
-	/call	set_data_map ${_debug} maPull	stPullWith													FALSE													"${auxna}	[\a-wmelee-range-other\ax] what	you	want to	pull with???"							pull
-	/call	set_data_map ${_debug} maPull	stRangeBandolier										FALSE													"${auxna}	name of	bandolier	for	ranged pulling?"																pull
-	/call	set_data_map ${_debug} maPull	stPctHardStop												0															"${auxnum} % of	crew sta/manna to	stop pulling at	to give	them rest	time?"			pull
-	/call	set_data_map ${_debug} maPull	stHardStopDuration									0															"${auxnum} duration	to stop	pulling	for	crew to	recover"												pull
-	/call	set_data_map ${_debug} maPull	swHardStopRez												FALSE													"${auxsw} stop pulling when someone has rez effects"														pull
-	/call	set_data_map ${_debug} maPull	stPullZRadius												60														"${auxnum} the z distance	of your	pulling environment"													pull
-	/call	set_data_map ${_debug} maPull	swNavPathLogic											TRUE													"${auxnum} use nav path lenght logic for finding targets to pull"								pull
-
-	| arc controls
-	| /call	set_data_map ${_debug} maPull	stPullArcCardinal										FALSE													"${auxna} cardinal direction to pull from camp"																	pull
-	/call set_data ${_debug} FALSE stPullArcLeft														float outer 0
-	/call set_data ${_debug} FALSE stPullArcRight														float outer 0
-	/call set_data ${_debug} FALSE stPullArcCenter													float outer 0
-	/call set_data ${_debug} maPull stPullArcWidth													map outer 0
-
-
-
-|**	control: cc	**|
-	/call	set_data ${_debug} maCC	swSetForced																map	outer	FALSE
-	/call	set_data ${_debug} maCC	swSetCombat																map	outer	FALSE
-	/call	set_data ${_debug} FALSE stAssTarID																int	outer	0
-	/call	set_data ${_debug} maCC	swValidAssTarID														map	outer	FALSE
-	/call	set_data_map ${_debug} maCC	swCombatMelee													FALSE													"${auxsw}	do melee things	while	in combat"
-	/call	set_data_map ${_debug} maCC	swCombatRange													FALSE													"${auxsw}	do range things	while	in combat"
-	/call	set_data_map ${_debug} maCC	swCombatNuke													FALSE													"${auxsw}	nuke things	while	in combat"
-	/call	set_data_map ${_debug} maCC	swCombatDoT														FALSE													"${auxsw}	dot	all	the	things!!"
-	/call	set_data_map ${_debug} maCC	swCombatHeal													FALSE													"${auxsw}	enable heal	modes	in or	out	of combat"
-	/call	set_data_map ${_debug} maCC	swCombatControl												FALSE													"${auxsw}	enable crowd control modes in	or out of	combat"
-	/call	set_data_map ${_debug} maCC	swAlliance														FALSE													"${auxsw}	enable class alliance"
-	/call	set_data_map ${_debug} maCC	swStoponDS														FALSE													"${auxsw}	Stop combat	when the target	has	a	DS.	Does not apply agro	enabled."
-
-	| glyph
-	/call	set_data_map ${_debug} maCC	swGlyphGroup													FALSE													"${auxsw}	use	glyph	in a group"
-	/call	set_data_map ${_debug} maCC	swGlyphRaid														FALSE													"${auxsw}	use	glyph	in a raid"
-	/call	set_data_map ${_debug} maCC	stGlyph																FALSE													"${auxna}	name of	the	glyph	you	want to	use"
-
-	| agro on or off and current agro	mode (g,1,2,3,ma1,ma2)
-	/call	set_data_map ${_debug} maCC	stAssistMode													FALSE													"${auxna}	[\axg,1,2,3,ma1,ma2\ax]	your current assist	mode"
-	/call	set_data_map ${_debug} maCC	stManualAssist1												FALSE													"${auxna}	name of	manual assist	1	toon"
-	/call	set_data_map ${_debug} maCC	stManualAssist2												FALSE													"${auxna}	name of	manual assist	2	toon"
-	/call	set_data_map ${_debug} maCC	stPctEngage														98														"${auxnum} mobs	%	health to	engage it"
-
-	/call	set_data_map ${_debug} maCC	stZRadius															60														"${auxnum} the z distance	of your	environment"
-
-	/call	set_data_list	${_debug}	maCC lsNoCastWith													EMPTY													"${auxli}	list of	target buffs you dont	want to	cast with"
-	/call	set_data_list	${_debug}	maCC lsNoMeleeWith												EMPTY													"${auxli}	list of	target buffs you dont	want to	melee	with"
-
-	| combat melee skills by class
-	/declare lsMeleeSkill	list outer
-
-	|	specific lists by	class
-	/if	(${Select[${Me.Class.ShortName},BER]}) {
-		/invoke	${lsMeleeSkill.Append[frenzy,intimidation,disarm]}
-		/call	set_data_map ${_debug} maCC	swFrenzy														FALSE													"${auxsw}	some odd form	of ocd for zerkers.. who knows."
-		/call	set_data_map ${_debug} maCC	swIntimidation											FALSE													"${auxsw}	you	think	you're all that..	you	aint nothing.."
-		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
-
-	}	else /if (${Select[${Me.Class.ShortName},BRD]})	{
-		/invoke	${lsMeleeSkill.Append[kick,intimidation,disarm]}
-		/call	set_data_map ${_debug} maCC	swKick															FALSE													"${auxsw}	raise	foot,	impact nuts.."
-		/call	set_data_map ${_debug} maCC	swIntimidation											FALSE													"${auxsw}	you	think	you're all that..	you	aint nothing.."
-		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
-
-	}	else /if (${Select[${Me.Class.ShortName},BST]})	{
-		/invoke	${lsMeleeSkill.Append[dragonpunch,eaglestrike,tigerclaw,flyingkick,roundkick,kick]}
-		/call	set_data_map ${_debug} maCC	swKick															FALSE													"${auxsw}	raise	foot,	impact nuts.."
-		/call	set_data_map ${_debug} maCC	swDragonpunch												FALSE													"${auxsw}	use	dragon punch"
-		/call	set_data_map ${_debug} maCC	swEaglestrike												FALSE													"${auxsw}	use	eagle	strike"
-		/call	set_data_map ${_debug} maCC	swTigerclaw													FALSE													"${auxsw}	use	tiger	claw"
-		/call	set_data_map ${_debug} maCC	swFlyingkick												FALSE													"${auxsw}	use	flying kick"
-		/call	set_data_map ${_debug} maCC	swRoundkick													FALSE													"${auxsw}	use	round	kick"
-
-	}	else /if (${Select[${Me.Class.ShortName},CLR]})	{
-		/invoke	${lsMeleeSkill.Append[bash]}
-		/call	set_data_map ${_debug} maCC	swBash															FALSE													"${auxsw}	switch for bashing the shit	out	of things"
-
-	}	else /if (${Select[${Me.Class.ShortName},DRU]})	{
-
-	}	else /if (${Select[${Me.Class.ShortName},ENC]})	{
-
-	}	else /if (${Select[${Me.Class.ShortName},MAG]})	{
-
-	}	else /if (${Select[${Me.Class.ShortName},MNK]})	{
-		/invoke	${lsMeleeSkill.Append[kick,dragonpunch,eaglestrike,tigerclaw,flyingkick,roundkick,intimidation]}
-		/call	set_data_map ${_debug} maCC	swKick															FALSE													"${auxsw}	raise	foot,	impact nuts.."
-		/call	set_data_map ${_debug} maCC	swDragonpunch												FALSE													"${auxsw}	use	dragon punch"
-		/call	set_data_map ${_debug} maCC	swEaglestrike												FALSE													"${auxsw}	use	eagle	strike"
-		/call	set_data_map ${_debug} maCC	swTigerclaw													FALSE													"${auxsw}	use	tiger	claw"
-		/call	set_data_map ${_debug} maCC	swFlyingkick												FALSE													"${auxsw}	use	flying kick"
-		/call	set_data_map ${_debug} maCC	swRoundkick													FALSE													"${auxsw}	use	round	kick"
-		/call	set_data_map ${_debug} maCC	swIntimidation											FALSE													"${auxsw}	you	think	you're all that..	you	aint nothing.."
-
-	}	else /if (${Select[${Me.Class.ShortName},NEC]})	{
-
-	}	else /if (${Select[${Me.Class.ShortName},PAL]})	{
-		/invoke	${lsMeleeSkill.Append[bash,taunt,disarm]}
-		/call	set_data_map ${_debug} maCC	swBash															FALSE													"${auxsw}	switch for bashing the shit	out	of things"
-		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Agro Pct to spam the taunt key like a noob!" 					agro
-		/call	set_data_map ${_debug} maAgro	stPctAgroHold											FALSE													"${auxnum} Minimum Agro Pct you want to maintain" 								agro
-		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
-
-	}	else /if (${Select[${Me.Class.ShortName},RNG]})	{
-		/invoke	${lsMeleeSkill.Append[taunt,kick,disarm]}
-		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Agro Pct to spam the taunt key like a noob!" 					agro
-		/call	set_data_map ${_debug} maAgro	stPctAgroHold											FALSE													"${auxnum} Minimum Agro Pct you want to maintain" 								agro
-		/call	set_data_map ${_debug} maCC	swKick															FALSE													"${auxsw}	raise	foot,	impact nuts.."
-		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
-
-	}	else /if (${Select[${Me.Class.ShortName},ROG]})	{
-		/invoke	${lsMeleeSkill.Append[backstab,intimidation,disarm]}
-		/call	set_data_map ${_debug} maCC	swBackstab													FALSE													"${auxsw}	surprise butt	sekx!"
-		/call	set_data_map ${_debug} maCC	swIntimidation											FALSE													"${auxsw}	you	think	you're all that..	you	aint nothing.."
-		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
-
-	}	else /if (${Select[${Me.Class.ShortName},SHD]})	{
-		/invoke	${lsMeleeSkill.Append[taunt,disarm,bash]}
-		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Agro Pct to spam the taunt key like a noob!" 					agro
-		/call	set_data_map ${_debug} maAgro	stPctAgroHold											FALSE													"${auxnum} Minimum Agro Pct you want to maintain" 								agro
-		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
-		/call	set_data_map ${_debug} maCC	swBash															FALSE													"${auxsw}	switch for bashing the shit	out	of things"
-
-	}	else /if (${Select[${Me.Class.ShortName},SHM]})	{
-
-	}	else /if (${Select[${Me.Class.ShortName},WAR]})	{
-		/invoke	${lsMeleeSkill.Append[bash,taunt,kick,disarm]}
-		/call	set_data_map ${_debug} maCC	swBash															FALSE													"${auxsw}	switch for bashing the shit	out	of things"
-		/call	set_data_map ${_debug} maAgro	stPctTaunt												FALSE													"${auxnum} Agro Pct to spam the taunt key like a noob!" 					agro
-		/call	set_data_map ${_debug} maAgro	stPctAgroHold											FALSE													"${auxnum} Minimum Agro Pct you want to maintain" 								agro
-		/call	set_data_map ${_debug} maCC	swKick															FALSE													"${auxsw}	raise	foot,	impact nuts.."
-		/call	set_data_map ${_debug} maCC	swDisarm														FALSE													"${auxsw}	dodge, parry,	thrust.."
-
-	}	else /if (${Select[${Me.Class.ShortName},WIZ]})	{
-
-	}
-
-
-
-|**	control: dot **|
-	/call	set_data_map ${_debug} maDoT stDotRefresh													3															"${auxnum} time	left on	a	dot	to refresh it, in	seconds"
-	/call	set_data_map ${_debug} maDoT stPctStopDoT													0															"${auxnum} % of	mob	health to	stop dotting it	at"
-	/call	set_data_list	${_debug}	maDoT	lsLineDoT														EMPTY													"${auxli}	alternate	cast order for dots" 													dot
-
-
-
-|**	control: nuke	**|
-	/call	set_data_map ${_debug} maNuke	stPctStopNuke												0															"${auxnum} % of	mob	health to	stop nuking	it at"
-	/call	set_data_map ${_debug} maNuke	stNukeDelay													0															"${auxnum} time	to force between using nukes or	dots"
-	/call	set_data_list	${_debug}	maNuke lsLineNuke													EMPTY													"${auxli}	alternate	cast order for nukes"													nuke
-
-
-
-|**	control: burn	**|
-	/call	set_data ${_debug} maBurn	swBurnConditionMet											map	outer	FALSE
-	/call	set_data ${_debug} maBurn	swBurnSpinUp														map	outer	FALSE
-	/call	set_data_map ${_debug} maBurn	swBurnForce													FALSE													"${auxsw}	force	burn routines"																		burn
-	/call	set_data_map ${_debug} maBurn	swBurnAuto													FALSE													"${auxsw}	auto burn	on named encounters"													burn
-	/call	set_data_map ${_debug} maBurn	stPctBurnEngage											99														"${auxnum} % of	mobs health	to start burns"												burn
-	/call	set_data_map ${_debug} maBurn	stBurnCount													0															"${auxnum} number	of mobs	in your	area to	auto engage	burns"			burn
-	/call	set_data_map ${_debug} maBurn	swBurnRaid													FALSE													"${auxsw}	use	burns	on raids"																			burn
-	/call	set_data_list	${_debug}	maBurn lsLineBurn													FALSE													"${auxli}	alternate	burn line	order	(engine	2	only)"							burn
-
-
-
-|**	control: debuff	**|
-	/call	set_data_map ${_debug} madeBuff	swCripple													FALSE													"${auxsw}	use	cripples"
-	/call	set_data_map ${_debug} madeBuff	stCripple													FALSE													"${auxna}	single target	cripple"
-	/call	set_data_map ${_debug} madeBuff	stAECripple												FALSE													"${auxna}	ae cripple to	use"
-	/declare lsdeBuffCripple list	outer
-
-	/call	set_data_map ${_debug} madeBuff	swMez															FALSE													"${auxsw}	use	mez"
-	/call	set_data_map ${_debug} madeBuff	stMez															FALSE													"${auxna}	single target	mez"
-	/call	set_data_map ${_debug} madeBuff	stCountMezResist									3															"${auxnum} number	of times to	retry	single mez with	resists"
-	/call	set_data_map ${_debug} madeBuff	stAEMez														FALSE													"${auxna}	ae mez for when	shit gets	deep"
-
-	/call	set_data_map ${_debug} madeBuff	swMalo														FALSE													"${auxsw}	use	malo"
-	/call	set_data_map ${_debug} madeBuff	stMalo														FALSE													"${auxna}	single target	malo"
-	/call	set_data_map ${_debug} madeBuff	stAEMalo													FALSE													"${auxna}	ae malo"
-	/declare lsdeBuffMalo	list outer
-
-	/call	set_data_map ${_debug} madeBuff	swTash														FALSE													"${auxsw}	use	tash"
-	/call	set_data_map ${_debug} madeBuff	stTash														FALSE													"${auxna}	single target	tash"
-	/call	set_data_map ${_debug} madeBuff	stAETash													FALSE													"${auxna}	ae tash	cause	fuck all the mobs"
-	/declare lsdeBuffTash	list outer
-
-	/call	set_data_map ${_debug} madeBuff	swSlow														FALSE													"${auxsw}	use	slow"
-	/call	set_data_map ${_debug} madeBuff	stSlow														FALSE													"${auxna}	single target	slow"
-	/call	set_data_map ${_debug} madeBuff	stAESlow													FALSE													"${auxna}	ae slow"
-	/declare lsdeBuffSlow	list outer
-
-	/call	set_data_map ${_debug} madeBuff	swEradicate												FALSE													"${auxsw}	use	eradicate"
-	/call	set_data_map ${_debug} madeBuff	stEradicate												FALSE													"${auxna}	single target	eradicate"
-	/call	set_data_map ${_debug} madeBuff	stAEEradicate											FALSE													"${auxna}	ae eradicate"
-	/call	set_data_map ${_debug} madeBuff	stTimerEradicate									30s														"${auxnum} time	to retry an	eradicate	on a target"
-	/declare lsdeBuffEradicate list	outer
-
-	/call	set_data_map ${_debug} madeBuff	swSnare														FALSE													"${auxsw}	use	snare"
-	/call	set_data_map ${_debug} madeBuff	stSnare														FALSE													"${auxna}	single target	snare"
-	/call	set_data_map ${_debug} madeBuff	stAESnare													FALSE													"${auxna}	ae snare"
-	/declare lsdeBuffSnare list	outer
-
-
-
-|**	control: minion	**|
-	/invoke	${set_data_timer[FALSE,	Check_Minion_Cycle,	1m]}
-	/call	set_data_map ${_debug} maMinion	swPet															FALSE													"${auxsw}	use	pets"																													minion
-	/if	(${Select[${Me.Class.ShortName},ENC,DRU,MAG,NEC]}) {
-		/call	set_data_map ${_debug} maMinion	swPetCharm											FALSE													"${auxsw}	use	charm	pets"																										minion
-	}
-	/call	set_data_map ${_debug} maMinion	stPetIllusion											FALSE													"${auxna}	name of	pet	illusion whatever	spell, clickie,	left over	dinner"		minion
-	/call	set_data_map ${_debug} maMinion	stPctPetEngage										95														"${auxnum} % of	mob	health to	engage pet at"																minion
-	/call	set_data_map ${_debug} maMinion	swSwarm														FALSE													"${auxsw}	use	swarm	pets/items/aas/left	shoe"																minion
-	/call	set_data_map ${_debug} maMinion	stPctSwarmEngage									95														"${auxnum} % of	mob	health to	engage swarm pets	at"													minion
-	/call	set_data_map ${_debug} maMinion	swNoSwarmonDS											FALSE													"${auxsw}	use	swarms on	mobs woth	a	damage shield"													minion
-	/call	set_data_map ${_debug} maMinion	swonForce													FALSE													"${auxsw}	send pets	on \a-w/cc force\ax	command"														minion
-	/call	set_data_map ${_debug} maMinion	swUsePetGear											FALSE													"${auxsw}	use	pet	weapons"																									minion
-	/call	set_data_map ${_debug} maMinion	stPetWeapon												FALSE													"${auxna}	weapon to	give your	pet"																					minion
-	/call	set_data_map ${_debug} maMinion	stBegAlias												FALSE													"${auxna}	the	alias	your mage	uses for /beg"																minion
-
-	/invoke	${set_data_timer[FALSE,	Check_Minion_Shrink, 10m]}
-	/call	set_data_map ${_debug} maMinion	swPetShrink												FALSE													"${auxsw}	use	pet	shrink item/spell/drugs?"																	minion
-	/call	set_data_map ${_debug} maMinion	stPetShrink												FALSE													"${auxna}	name of	pet	shrink thingie"																				minion
-
-	/invoke	${set_data_timer[FALSE,	Check_Minion_Buff, 1m]}
-	/call	set_data_map ${_debug} maMinion	swPetBuff													FALSE													"${auxsw}	buff minion	(\ayyours\ax)"																				minion
-
-
-
-|**	control: over	**|
-	/call	set_data_map ${_debug} maOver	swOverLOS														FALSE													"${auxsw}	override line	of sight validations"
-	/call	set_data_map ${_debug} maOver	swOverPctEngage											FALSE													"${auxsw}	ocerride engage	%	for	all	types, instant engage	of a mob"
-	/call	set_data_map ${_debug} maOver	swOverLoot													FALSE													"${auxsw}	attempt	to loot	regardless of	master looter"
-	/call	set_data_map ${_debug} maOver	swOverSafeNames											FALSE													"${auxsw}	ignore safename	checks,	trust	everyone.	pm me	your account info	please"
-	/call	set_data_map ${_debug} maOver	swOverTrainSpell										FALSE													"${auxsw}	ignore spell training	caps.	cast forever"
-	/call	set_data_map ${_debug} maOver	swOverEnvAuto												FALSE													"${auxsw}	ignore non-persistent	auto and start with	\a-w/env auto	on\ax"
-	/call	set_data_map ${_debug} maOver	swOverDSCheck												FALSE													"${auxsw}	ignore damage	shield checks	while	melee"
-	/call	set_data_map ${_debug} maOver	swOverNavCheck											FALSE													"${auxsw}	bypass Nav PathExists	checks"
-	/call	set_data_map ${_debug} maOver	swOverGroupAss											FALSE													"${auxsw}	override group assist	rules	and	force	manual"
-
-
-
-|**	control: entropy	**|
-	/call	set_data_map ${_debug} maEntropy swMaintenance										FALSE													"${auxsw}	place	entropy	in a limited maintenance mode	for	operations"
-	/call	set_data_map ${_debug} maEntropy swEventsInc											FALSE													"${auxsw}	use	events from	events.inc file"
-	/call	set_data_map ${_debug} maEntropy swDPSMeter												FALSE													"${auxsw}	use	dps	meeter"
-	/call	set_data_map ${_debug} maEntropy swHookSub												FALSE													"${auxsw}	use	hook functions"
-	/call	set_data_map ${_debug} maEntropy stNetworkTimeout									1															"${auxnum} dannet	timeout	for	network	lag. ignore	this if	at all possible"
-	/call	set_data_list	${_debug}	maEntropy	lsSafeNames											EMPTY													"${auxli}	list of	people you trust (\a-wDanNet connections trusted by	default\ax)"
-	/call	set_data_map ${_debug} maEntropy swAutoList												FALSE													"${auxsw}	autopopulate zone	listsnames for some	mob	types"
-	/call	set_data_map ${_debug} maEntropy stBuffRefresh										0															"${auxnum} time	in seconds to	refrsh a buff	before it	fades. 0=wait	till it	fades"
-	/call	set_data_map ${_debug} maEntropy swAutoInvManual									FALSE													"${auxsw}	obey autoinventory fast	list even	in manual	mode"
-	/call	set_data_map ${_debug} maEntropy swBuildSetRemember								FALSE													"${auxsw}	remember and refresh a set on	macro	boot"
-	/call	set_data_map ${_debug} maEntropy stCastLoop												1															"${auxna}	number of	castloop attempts, event based"
-	/call	set_data_map ${_debug} maEntropy stEngine													1															"${auxna}	code engine"
-	/call	set_data_map ${_debug} maEntropy swBuffCooldownWait								FALSE													"${auxsw}	force	a	wait between buffs for cooldown	to do	complete cycle"
-	/call	set_data_map ${_debug} maEntropy swRelayTell											FALSE													"${auxsw}	relay	tells	to the tie toon"
-	/call	set_data_map ${_debug} maEntropy swRelayTellBeep									FALSE													"${auxsw}	beep on	a	tell relay"
-	/call	set_data_map ${_debug} maEntropy swUseConColor										FALSE													"${auxsw}	Use ConColors for targets"
-	/call	set_data_map ${_debug} maEntropy swNavLogSpew											off														"${auxsw}	(on/off) Show mq2nav log spew in mq2 chat window"
-	/call	set_data_map ${_debug} maEntropy stMainLoopDelay									1															"${auxnum} this is the main delay for the master macro loops. USE CAUTION when changing!"
-
-	| GoM	list
-	/call	set_data_list	${_debug}	maChr	lsGoM																EMPTY													"${auxli}	things to	use	on a gift	of mana	aa proc"
-
-	| ae count you act on
-	/call	set_data_map ${_debug} maChr stCountAE														0															"${auxnum} number	of mobs	in your	area to	even consider	using	ae skills"
-
-	| fade
-	/call	set_data_map ${_debug} maChr stPctFade														0															"${auxnum} % of	your healt to	use	class	aa fade	skill"
-
-	| spire	AA
-	/call	set_data_map ${_debug} maChr swSpireRaid													FALSE													"${auxsw}	use	while	in group for burns"
-	/call	set_data_map ${_debug} maChr swSpireGroup													FALSE													"${auxsw}	use	while	in a raid	for	burns"
-	| /call	set_data_map ${_debug} maChr stSpireCon														0															"${auxnum} number	of the condition to	use	for	spires"
-
-	| intensity of the resolute	AA
-	/call	set_data_map ${_debug} maChr swIntensityRaid											FALSE													"${auxsw}	use	while	in group for burns"
-	/call	set_data_map ${_debug} maChr swIntensityGroup											FALSE													"${auxsw}	use	while	in a raid	for	burns"
-	| /call	set_data_map ${_debug} maChr stIntensityCon												0															"${auxnum} number	of the condition to	use	for	spires"
-	/call	set_data_map ${_debug} maChr stAAIntensity												"Intensity of	the	Resolute"		"${auxna}	Intensity	of the Resolute	AA"
-
-	| can	cast?
-	/if	(${lsClassCast.Contains[${Me.Class.ShortName}]}) {
-		/call	set_data_map ${_debug} maChr stPctManaRecovery									 0														"${auxna}	%	to use whatever	manna	recovery things	entropy	can	find on	you"
-	}
-
-
-
-|**	control: gtfo	**|
-	/invoke	${set_data_timer[FALSE,	Check_GTFO, 6s]}
-	/call	set_data_list	${_debug}	maGTFO lsLineGTFO													EMPTY													"${auxli} order line for GTFO stuff" gtfo
-	/call	set_data_map	${_debug}	maGTFO swGTFOActive												FALSE													"${auxsw} use GTFO logic" gtfo
-	/call	set_data_map	${_debug}	maGTFO stCountGTFODead										0															"${auxnum} number of group dead to activate" gtfo
-	/call	set_data_map	${_debug}	maGTFO stCountGTFOSpawns									0															"${auxnum} number of spawns in your env range to bail on your healer" gtfo
-
-
-
-|**	control: clickitem	**|
-	/call	set_data_list	${_debug}	maItem lsLineItem													EMPTY													"${auxli}	alternate	cast order for clickitems" item
-
-
-
-|**	control: TTL	**|
-	/call	set_data_map ${_debug} maTTL swTTL																FALSE													"${auxsw}	use	ttl	logic"
-
-
-
-|**	control: MiscDPS	**|
-	/call	set_data_list	${_debug}	maMiscDPS	lsLineMiscdps										EMPTY													"${auxli}	alternate	activation order for miscdps routine (engine 2)"
-
-
-
-|**	control: Agro	 **|
-	/call	set_data_list	${_debug}	maAgro lsLineAgro													EMPTY													"${auxli}	alternate	activation order for agro	routine	(engine	2/3)" agro
-	/call	set_data_map ${_debug} maAgro	swAgro															FALSE													"${auxsw}	use	any	agro skills	you	can	(\a-wtaunt not included	separate control under /agro\ax)" agro
-
-
-
-|**	control: sash	 **|
-	/invoke	${set_data_timer[FALSE,	Check_Proc_Sash, 5s]}
-	/call	set_data_map ${_debug} maSash	swSashProc													FALSE													"${auxsw}	enable sash	for	a	procing	weapon"								sash
-	/call	set_data_map ${_debug} maSash	stSashProc													FALSE													"${auxna}	name of	sash with	procing	weapon"								sash
-	/call	set_data_map ${_debug} maSash	swSash															FALSE													"${auxsw}	enable auto	sash swapping	based	off	conditions"	sash
-
-	| tank shield flash
-	/if	(${Select[${Me.Class.ShortName},PAL,WAR,SHD]}) {
-		/call	set_data_map ${_debug} maSash	stPctShieldFlash									0															"${auxnum} % of	HP to	try	to get shield	flash	running"		sash
-		/call	set_data_map ${_debug} maSash	stCountShieldFlash								0															"${auxnum} # of	mobs to	hit	shield flash"									sash
-		/call	set_data_map ${_debug} maSash	stSashShieldFlash									FALSE													"${auxna}	name of	sash to	be used	for	Slash	skills"				sash
-	}
-
-
-	/if	(${maDebug.Find[init].Value})	{
-		OUT	\agset_initialize_map_character_environment\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
-		/mqp
-	}
-
-/return	TRUE
+|** control: hard **|
+| these variables are not for users to change
+| they are here in case adjustments need to be made so i dont have to go through k's of lines of code to find them all
+  /call set_data_map ${_debug} maHard stMaxMeleeAdj                       9                             "${auxna} % variance for max meele range adjustment"                                hard
+  /call set_data_map ${_debug} maHard stRadGrab                           20                            "${auxna} pick up allowable 3d radius for EQ"                                       hard
+  /call set_data_map ${_debug} maHard stMaxRadPet                         200                           "${auxna} max usable range for pets"                                                hard
+  /call set_data_map ${_debug} maHard stMinBowDist                        31                            "${auxna} minimum distance to be able to bow or throw"                              hard
+  /call set_data_map ${_debug} maHard stMaxBowDist                        250                           "${auxna} maximum distance to bow or throw"                                         hard
+  /call set_data_map ${_debug} maHard stMinMovetoBow                      35                            "${auxna} minimum distance to move to get bow/throw range"                          hard
+  /call set_data_map ${_debug} maHard stRezSuccess                        30s                           "${auxnum} timer reset to rez the same person on a success"                         hard
+  /call set_data_map ${_debug} maHard stRezFail                           15s                           "${auxnum} timer reset to rez the same person on a fail"                            hard
+  /call set_data_map ${_debug} maHard stRezFailToken                      1m                            "${auxnum} timer reset to rez the same person on a fail with a token rez"           hard
+  /call set_data_map ${_debug} maHard stRezSummonRange                    100                           "${auxnum} /corpse summon range when rezing"                                        hard
+  /call set_data_map ${_debug} maHard stRezIgnoreFucktards                30m                           "${auxnum} suration to mark corpses on the no rez list"                             hard
+  /call set_data_map ${_debug} maHard stMaxCureRad                        200                           "${auxnum} max radius to check for curing"                                          hard
+  /call set_data_map ${_debug} maHard stPullMobTagTry                     5                             "${auxnum} max trys to tag a mob while pulling"                                     hard
+  /call set_data_map ${_debug} maHard stBardSwapRemain                    1500                          "${auxnum} ms left on cast time to swap instrument in"                              hard
+  /call set_data_map ${_debug} maHard stSpellBookSize                     960                           "${auxnum} maximum # of spell book slots"                                           hard
+  /call set_data_map ${_debug} maHard stFoodMaintain                      3000                          "${auxnum} level of, i'm full, to maintain for food"                                hard
+  /call set_data_map ${_debug} maHard stDrinkMaintain                     3000                          "${auxnum} level of, i'm not thirsty, to maintain for drink"                        hard
+  /call set_data_map ${_debug} maHard stPullMobFindStep                   5                             "${auxnum} number of increments your pull radius is broken into to look for mobs"   hard
+
+
+|** control: chr (shared) **|
+
+  | invs
+  /call set_data_map ${_debug} maChr stInvisSingle                        FALSE                         "${auxsw} self invisibility"
+  /call set_data_map ${_debug} maChr stInvisGroup                         FALSE                         "${auxsw} group invisibility"
+  /call set_data_map ${_debug} maChr stInvisSingleIVU                     FALSE                         "${auxsw} self invis vs undead"
+  /call set_data_map ${_debug} maChr stInvisGroupIVU                      FALSE                         "${auxsw} group invis vs undead"
+
+
+
+|** control: env **|
+  /call set_data ${_debug} FALSE lsLootMode                               list outer off|manual|advanced
+  /call set_data_map ${_debug} maEnv  stLootMode                          off                           "${auxna} [\a-woff-manual-advanced\ax] how or if you want to loot things"
+  /call set_data ${_debug} maEnv swAuto                                   map outer FALSE
+  /call set_data_map ${_debug} maEnv swSafeListGuild                      FALSE                         "${auxsw} let guild in your safe list"
+  /invoke ${set_data_timer[${_debug}, Check_EXP_Adjust, 5m]}
+  /call set_data_map ${_debug} maEnv stMobLvlMin                          1                             "${auxnum} lowest level mob you will attack"
+  /call set_data_map ${_debug} maEnv stMobLvlMax                          500                           "${auxnum} highest level mob you will attack"
+  /call set_data_map ${_debug} maEnv swNukeLoop                           FALSE                         "${auxsw} force a nuke loop to complete before releasing"
+
+  /call set_data_map ${_debug} maEnv swADVLoot                            FALSE                         "${auxsw} use advanced loot functions"
+  /call set_data_map ${_debug} maEnv swAutoInv                            FALSE                         "${auxsw} use autoinventory loot control on cursor items"
+  /call set_data_list ${_debug} maEnv lsAutoInventory                     EMPTY                         "${auxli} list of shit to auto inventory"
+  /call set_data_map ${_debug} maEnv stBuffGem                            ${Me.NumGems}                 "${auxnum} gem slot to use as a swap for buffing"
+  /call set_data_map ${_debug} maEnv swHoldBuffGem                        FALSE                         "${auxsw} remember and return the spell used in that slot before buffing"
+  /call set_data_map ${_debug} maEnv stEnvRadius                          31                            "${auxnum} radius you are willing to operate in"
+  /call set_data_map ${_debug} maEnv stEnvSafeRadius                      30                            "${auxnum} radius you consider safe even with mobs in it"
+  /call set_data_map ${_debug} maEnv stLvlPct                             99                            "${auxnum} % of exp in a level you want to maintain"
+  /call set_data_map ${_debug} maEnv stLvlMax                             110                           "${auxnum} level you want to maintain"
+  /call set_data_map ${_debug} maEnv swCorrectEXPAA                       FALSE                         "${auxsw} use exp/aa adjust functions"
+  /call set_data_map ${_debug} maEnv stBuildSetCurrent                    FALSE                         "${auxna} name of current \a-w/build set\ax"
+
+  /invoke ${set_data_timer[${_debug}, Waste_Fireworks, 15m]}
+  /call set_data_map ${_debug} maEnv swAAFireworks                        FALSE                         "${auxsw} waste aa on fireworks"
+
+  /call set_data_map ${_debug} maEnv swTakeGroupInvite                    FALSE                         "${auxsw} take group invites from people you trust"
+  /call set_data_map ${_debug} maEnv swTakeRaidInvite                     FALSE                         "${auxsw} take raid invites from people you trust"
+  /call set_data_map ${_debug} maEnv swSoS                                FALSE                         "${auxsw} rogue sos switch"
+
+  | rest
+  /call set_data_map ${_debug} maEnv stPctRest                            0                             "${auxnum} % health/mana to rest at"
+  /call set_data_map ${_debug} maEnv swRestFull                           FALSE                         "${auxsw} rest to full health if possible"
+  /call set_data_map ${_debug} maEnv swRestModRod                         FALSE                         "${auxsw} use mod rods while resting"
+  /call set_data_map ${_debug} maEnv swRestBuff                           FALSE                         "${auxsw} do buffing while resting"
+  /call set_data_map ${_debug} maEnv swRestCombat                         FALSE                         "${auxsw} continue resting while in combat"
+  /call set_data_map ${_debug} maEnv swBegMAG                             FALSE                         "${auxsw} beg mages for pet gear or rods"
+  /call set_data_map ${_debug} maEnv stRestRadius                         30                            "${auxnum} no mob in radius for resting"
+
+  | food and drink
+  /invoke ${set_data_timer[${_debug}, Check_FoodDrink, 10m]}
+  /call set_data_map ${_debug} maEnv stFood                               FALSE                         "${auxna} food item you want to eat"
+  /call set_data_map ${_debug} maEnv stDrink                              FALSE                         "${auxna} drink item you want to drink"
+
+  | tribute switch
+  /call set_data_map ${_debug} maEnv swCheckTribute                       FALSE                         "${auxsw} check and corect tribute for raids"
+
+  | drop buffs list
+  /invoke ${set_data_timer[${_debug}, Check_Drop_Buffs, 6s]}
+  /call set_data_map ${_debug} maBuff swDropBuffs                         FALSE                         "${auxsw} enable buff removal"
+  /call set_data_list ${_debug} maEnv lsDropBuffs                         EMPTY                         "${auxli} list of buffs to drop that are smelly"
+
+
+
+|** control: heal **|
+  /call set_data_map ${_debug} maHeal stHealAdjust                        0                             "${auxnum} % to overide max health to"                                        heal
+  /call set_data_map ${_debug} maHeal swHealSelf                          FALSE                         "${auxsw} enable self healing"                                                heal
+  /call set_data_map ${_debug} maHeal swHealToT                           FALSE                         "${auxsw} enable healing your targets target"                                 heal
+  /call set_data_map ${_debug} maHeal swHealXTarget                       FALSE                         "${auxsw} enable xtarget healing"                                             heal
+  /call set_data_map ${_debug} maHeal swHealPet                           FALSE                         "${auxsw} enable pet healing"                                                 heal
+  /call set_data_map ${_debug} maHeal swHealGroup                         FALSE                         "${auxsw} enable group healing"                                               heal
+
+  /call set_data_map ${_debug} maHeal stRampageTank                       FALSE                         "${auxna} rampage tank to not heal (\a-wcompletely ignore\ax)"                heal
+  /call set_data_map ${_debug} maHeal swHealOverTime                      FALSE                         "${auxsw} enable to use heal over time"                                       heal
+  /call set_data_map ${_debug} maHeal stCountHealGroup                    0                             "${auxnum} number in group hurt to use a group heal"                          heal
+
+  /call set_data_map ${_debug} maHeal swBreakHealPCT                      FALSE                         "${auxsw} enable a stop heal when target is > its heal point"                 heal
+
+  /call set_data_list ${_debug} maHeal lsHealXTClass                      EMPTY                         "${auxli} classes to populate xtarget for healing use: \a-t/heal xtarget\ax"  heal
+  /call set_data_list ${_debug} maHeal lsNoHealToon                       EMPTY                         "${auxli} fuck these people.. no heals for them.."                            heal
+  /call set_data_map ${_debug} maHeal swHealWeighted                      FALSE                         "${auxsw} enable weighted HP check healing"                                   heal
+  /call set_data_map ${_debug} maHeal swHealPromise                       FALSE                         "${auxsw} enable use of promised heal spells healing"                         heal
+  /call set_data_map ${_debug} maHeal swHealDanNet                        FALSE                         "${auxsw} enable use of DanNet for healing"                                   heal
+
+  /call set_data ${_debug} FALSE tmpHealAdjust                            float outer 99.99
+  /call set_data ${_debug} FALSE hurtID                                   int outer 0
+  /call set_data ${_debug} FALSE hurtPctHP                                int outer 100
+  /call set_data ${_debug} FALSE hurtCLS                                  string outer ${Me.Class.ShortName}
+  /call set_data ${_debug} FALSE hurtCount                                int outer 0
+  /call set_data ${_debug} FALSE hurtDead                                 int outer 0
+
+  | points for healing
+  /call set_data_map ${_debug} maHeal stHealPointHoT                    80                            "${auxnum} % of health to use single heal over time"                          heal
+  /declare _lishp listiterator local
+  /vardata _lishp lsClassAll.First
+  /while (!${_lishp.IsEnd}) {
+    /call set_data_map ${_debug} maHeal stHealPoint${_lishp.Value}      80                            "${auxnum} % of health to start healing:\a-w${_lishp.Value}\ax"               heal
+    /invoke ${_lishp.Advance}
+  }
+
+  | curing shit
+  /invoke ${set_data_timer[FALSE, Check_Cure, 6s]}
+  /if (${lsClassCastCure.Contains[${Me.Class.ShortName}]}) {
+    /call set_data_map ${_debug} maHeal stCureCurse                       FALSE                         "${auxna} name of cure curse spell"                       heal
+    /call set_data_map ${_debug} maHeal stCurePoison                      FALSE                         "${auxna} name of cure poison spell"                      heal
+    /call set_data_map ${_debug} maHeal stCureDisease                     FALSE                         "${auxna} name of cure disease spell"                     heal
+    /call set_data_map ${_debug} maHeal stCureCorruption                  FALSE                         "${auxna} name of corruption cure spell"                  heal
+  }
+  /call set_data_list ${_debug} maHeal lsNoCureDeBuff                     EMPTY                         "${auxli} list of debuffs you DO NOT want to cure"        heal
+  /call set_data_map ${_debug} maHeal stCureCurseItem                     FALSE                         "${auxna} name of item to cure self curses"               heal
+  /call set_data_map ${_debug} maHeal stCurePoisonItem                    FALSE                         "${auxna} name of item to cure self poisons"              heal
+  /call set_data_map ${_debug} maHeal stCureDiseaseItem                   FALSE                         "${auxna} name of item to cure self diseases"             heal
+  /call set_data_map ${_debug} maHeal stCureCorruptionItem                FALSE                         "${auxna} name of item to cure self corruption"           heal
+  /call set_data_map ${_debug} maHeal swHealCureSelf                      FALSE                         "${auxsw} enable self curing"                             heal
+  /call set_data_map ${_debug} maHeal swHealCureGroup                     FALSE                         "${auxsw} enable group curing"                            heal
+  /call set_data_map ${_debug} maHeal swHealCureCrew                      FALSE                         "${auxsw} enable crew curing (everyone)"                  heal
+
+
+  /call set_data_list ${_debug} maHeal lsProtectOutsideGroup              EMPTY                         "${auxli} names outside of your group to add to xtarget for healing" heal
+  /call set_data_list ${_debug} maHeal lsLineHeal                         EMPTY                         "${auxli} alternate cast order for heals"                            heal
+
+  | xtarget sets heal classes
+  /if (${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
+    /declare lsXTargetClass list outer
+    /invoke ${set_data_timer[${_debug}, Check_Xtarget_Build, 10m]}
+  }
+
+
+
+|** control: rez  **|
+  /call set_data ${_debug} FALSE swIsMeDead                               bool outer FALSE
+  /call set_data ${_debug} FALSE lsRezPct                                 list outer "10|20|35|50|60|75|90|93|96"
+  /call set_data_list ${_debug} maRez lsRezIC                             PREGEN|1                      "${auxli} names of in combat rezes"                                           rez
+  /call set_data_list ${_debug} maRez lsRezOOC                            PREGEN|1                      "${auxli} names of  out of combat rezes"                                      rez
+  /call set_data_list ${_debug} maRez lsNoRezToon                         EMPTY                         "${auxli} names of people you never want to rez"                              rez
+  /call set_data_list ${_debug} maRez lsRezTokenToon                      EMPTY                         "${auxli} list of class shortnames you want to use a rez token on"            rez
+  /call set_data_map ${_debug} maRez swRezIC                              FALSE                         "${auxsw} rez people while in combat"                                         rez
+  /call set_data_map ${_debug} maRez swRezOOC                             FALSE                         "${auxsw} rez people while out of combat"                                     rez
+
+  /call set_data_map ${_debug} maRez swRezTake                            FALSE                         "${auxsw} take rezes"                                                         rez
+  /call set_data_map ${_debug} maRez swRezTakeCall                        FALSE                         "${auxsw} take call to corpses"                                               rez
+  /call set_data_map ${_debug} maRez swRezEveryone                        FALSE                         "${auxsw} rez anyone.. we just don't care do we?"                             rez
+  /call set_data_map ${_debug} maRez swRezDanNet                          FALSE                         "${auxsw} rez your DanNet peoples"                                            rez
+  /call set_data_map ${_debug} maRez swRezToken                           FALSE                         "${auxsw} use rez tokens (\a-wseparate from stResurrection\ax)"               rez
+  /call set_data_map ${_debug} maRez stPctMinRez                          90                            "${auxnum} minimum % rez you are willing to accept"                           rez
+  /call set_data_map ${_debug} maRez stMaxRezRange                        60                            "${auxnum} how far away to look for corpses to rez"                           rez
+  /call set_data_map ${_debug} maRez stRez1                               "pccorpse cleric raid"        "rez priority 1 spawn string search"                                          rez
+  /call set_data_map ${_debug} maRez swRez1                               TRUE                          "rez priority 1 switch"                                                       rez
+  /call set_data_map ${_debug} maRez stRez2                               "pccorpse cleric group"       "rez priority 2 spawn string search"                                          rez
+  /call set_data_map ${_debug} maRez swRez2                               TRUE                          "rez priority 2 switch"                                                       rez
+  /call set_data_map ${_debug} maRez stRez3                               "pccorpse group"              "rez priority 3 spawn string search"                                          rez
+  /call set_data_map ${_debug} maRez swRez3                               TRUE                          "rez priority 3 switch"                                                       rez
+  /call set_data_map ${_debug} maRez stRez4                               "pccorpse raid tank"          "rez priority 4 spawn string search"                                          rez
+  /call set_data_map ${_debug} maRez swRez4                               TRUE                          "rez priority 4 switch"                                                       rez
+  /call set_data_map ${_debug} maRez stRez5                               "pccorpse raid"               "rez priority 5 spawn string search"                                          rez
+  /call set_data_map ${_debug} maRez swRez5                               TRUE                          "rez priority 5 switch"                                                       rez
+  /call set_data_map ${_debug} maRez stRez6                               "pccorpse guild"              "rez priority 6 spawn string search"                                          rez
+  /call set_data_map ${_debug} maRez swRez6                               TRUE                          "rez priority 6 switch"                                                       rez
+  /call set_data_map ${_debug} maRez stRez7                               FALSE                         "rez priority 7 spawn string search"                                          rez
+  /call set_data_map ${_debug} maRez swRez7                               FALSE                         "rez priority 7 switch"                                                       rez
+  /call set_data_map ${_debug} maRez stRez8                               FALSE                         "rez priority 8 spawn string search"                                          rez
+  /call set_data_map ${_debug} maRez swRez8                               FALSE                         "rez priority 8 switch"                                                       rez
+  /call set_data_list ${_debug} maRez lsLineRez                           "1|2|3|4|5|6"                 "${auxli} rez order priorities"                                               rez
+
+
+
+|** control: buff **|
+  /invoke ${set_data_timer[${_debug}, Check_Buff_Cycle, 1m]}
+  /invoke ${set_data_timer[${_debug}, Check_Buff_Unity, 5m]}
+  /invoke ${set_data_timer[${_debug}, Check_Buff_Shrink, 10m]}
+  /invoke ${set_data_timer[${_debug}, Check_Buff_Self, 1m]}
+  /invoke ${set_data_timer[${_debug}, Check_Buff_Crew, 1m]}
+  /invoke ${set_data_timer[${_debug}, Check_Buff_Raid, 2m]}
+  /invoke ${set_data_timer[${_debug}, Check_Buff_Group, 1m]}
+  /invoke ${set_data_timer[${_debug}, Check_Buff_Beg, 1m]}
+  /invoke ${set_data_timer[${_debug}, Check_Buff_Temp, 30s]}
+  /invoke ${set_data_timer[${_debug}, Check_Buff_Now, 5s]}
+  /invoke ${set_data_timer[${_debug}, Check_Buff_Powersource, 10m]}
+  /call set_data ${_debug} maBuff swBuffMaster                            map outer TRUE
+  /call set_data_list ${_debug} maBuff lsBuffRemove                       EMPTY                         "${auxli} buffs you want auto removed from you"
+  /call set_data_map ${_debug} maBuff swBuffSelf                          FALSE                         "${auxsw} buff yourself"
+  /call set_data_map ${_debug} maBuff swBuffCrew                          FALSE                         "${auxsw} buff your crew (\aynot you\ax)"
+  /call set_data_map ${_debug} maBuff swBuffRaid                          FALSE                         "${auxsw} buff raid members (not crew)"
+  /call set_data_map ${_debug} maBuff swBuffGroup                         FALSE                         "${auxsw} buff group members (not crew)"
+  /call set_data_map ${_debug} maBuff swBuffBeg                           FALSE                         "${auxsw} answer buff beg requests"
+  /call set_data_map ${_debug} maBuff swBuffUnity                         FALSE                         "${auxsw} buff aa unity"
+  /call set_data_map ${_debug} maBuff swBuffPowersource                   FALSE                         "${auxsw} use powersources (\a-wmust have buff set with tag\ax)"
+  /call set_data_map ${_debug} maBuff swBuffTemp                          FALSE                         "${auxsw} buff short term combat buffs"
+  /call set_data_map ${_debug} maBuff swBuffShrink                        FALSE                         "${auxsw} buff shring"
+  /call set_data_map ${_debug} maBuff stShrinkItem                        FALSE                         "${auxna} buff shrink item/spell"
+  /call set_data_map ${_debug} maBuff swBuffNow                           FALSE                         "${auxsw} buff the now things"
+  /call set_data_map ${_debug} maBuff swBuffAmmo                          FALSE                         "${auxsw} summons ammo"
+
+  | auras
+  /invoke ${set_data_timer[${_debug}, Check_Buff_Aura, 3m]}
+  /call set_data_map ${_debug} maBuff swBuffAura                          FALSE                         "${auxsw} use auras or not. i dont care"
+
+
+
+|** control: defense **|
+  /call set_data_map ${_debug} maDefense stCountDef                       0                             "${auxna} number of imediate area mobs to activate defensive" defense
+  /call set_data_map ${_debug} maDefense stPctDef                         0                             "${auxna} pct of health to activate a defensive" defense
+  /call set_data_list ${_debug} maDefense lsLineDefense                   EMPTY                         "${auxli} alternate defense activation order" defense
+
+
+
+|** control: home **|
+  /call set_data ${_debug} maHome swHomeMarker                            map outer FALSE
+  /call set_data_map ${_debug} maHome stHomeVariance                      6                             "${auxnum} acceptable buffer range for being home"
+  /call set_data ${_debug} maData stCampX                                 map outer 999999999
+  /call set_data ${_debug} maData stCampY                                 map outer 999999999
+  /call set_data ${_debug} maData stCampZ                                 map outer 999999999
+  /call set_data_map ${_debug} maHome stMount                             FALSE                         "${auxna} name of mount you wish to sit your fat ass on"
+  /call set_data_map ${_debug} maHome swMoveDeathClear                    FALSE                         "${auxsw} on = clear home marker and movements on death"
+  /call set_data_map ${_debug} maHome swMoveBehind                        FALSE                         "${auxsw} move behind the target during combat"
+  /call set_data_map ${_debug} maHome swFaceFast                          FALSE                         "${auxsw} use fast facing movements"
+  /call set_data_map ${_debug} maHome stFaceArc                           15                            "${auxnum} [\a-w1-45\az] acceptable range of facing and still be on target"
+  /call set_data ${_debug} maHome swSnapStuck                             map outer FALSE
+  /call set_data_map ${_debug} maHome swonAuto                            FALSE                         "${auxsw} set home camp on auto"
+  /call set_data_map ${_debug} maHome swinCombat                          FALSE                         "${auxsw} keep home camp while in combat"
+
+
+
+|** control: tie **|
+  /invoke ${set_data_timer[${_debug}, Check_Tie, 5]}
+  /call set_data ${_debug} maTie swSetTie                                 map outer FALSE
+  /call set_data_map ${_debug} maTie stTieToon                            FALSE                         "${auxna} name of toon you want to tie too when commanded"
+  /call set_data_map ${_debug} maTie stTieMode                            nav                           "${auxna} [\a-wstick-nav\ax] the mode you want to use for tie movements"
+  /call set_data_map ${_debug} maTie stTieVariance                        5                             "${auxnum} acceptabe distances to be away from the tiem toon before moving to it"
+  /call set_data_map ${_debug} maTie swTieCombat                          FALSE                         "${auxsw} enable tie while in active combat"
+
+
+
+|** control: mode **|
+  /call set_data ${_debug} FALSE swModeToken                              bool outer FALSE
+  /call set_data ${_debug} FALSE stModeData                               string outer FALSE
+  | /call set_data_map ${_debug} maMode swTrainAlteration                   FALSE                         "${auxsw} train alteration type spells"
+  | /call set_data_map ${_debug} maMode swTrainAbjuration                   FALSE                         "${auxsw} train abjuration type spells"
+  | /call set_data_map ${_debug} maMode swTrainConjuration                  FALSE                         "${auxsw} train conjuration type spells"
+  | /call set_data_map ${_debug} maMode swTrainDivination                   FALSE                         "${auxsw} train divination type spells"
+  | /call set_data_map ${_debug} maMode swTrainEvocation                    FALSE                         "${auxsw} train evocation type spells"
+  | /call set_data ${_debug} FALSE swTrainSpecialize                        FALSE                         "${auxsw} train specialize field type spells"
+
+
+
+|** control: watch **|
+  /call set_data ${_debug} maWatch swWatch                                map outer FALSE
+  /call set_data ${_debug} maWatch stWatchCount                           map outer 0
+  /call set_data_list ${_debug} maWatch lsWatch                           EMPTY                         "${auxli} list of mobs to watch for"
+
+
+
+
+|** control: pull **|
+  /call set_data_list ${_debug} maPull lsLinePull                         EMPTY                         "${auxli} alternate order for pulling"                                          pull
+  /call set_data_map ${_debug} maPull swPull                              FALSE                         "${auxsw} enable pulling (\a-wselect mobs to kill\ax)"                          pull
+  /call set_data_map ${_debug} maPull stPullRadius                        0                             "${auxnum} radius to pull mobs from"                                            pull
+  /call set_data_map ${_debug} maPull swPullSetHome                       FALSE                         "${auxsw} suto set home marker when pulling is enabled"                         pull
+  /call set_data_map ${_debug} maPull stPullNavStopDistance               60                            "${auxnum} how close you will nav pull to a mob before trying too tag it"       pull
+  /call set_data ${_debug} FALSE lsPullMode                               list outer base|pet|int|nav|multi
+  /call set_data_map ${_debug} maPull stPullMode                          base                          "${auxna} [\a-wbase-nav-int-pet-multi\ax] the mode of pulling you wish to use while looking for said mobs"        pull
+  /call set_data ${_debug} FALSE lsPullWith                               list outer melee|range|other
+  /call set_data_map ${_debug} maPull stPullWith                          FALSE                         "${auxna} [\a-wmelee-range-other\ax] what you want to pull with???"             pull
+  /call set_data_map ${_debug} maPull stRangeBandolier                    FALSE                         "${auxna} name of bandolier for ranged pulling?"                                pull
+  /call set_data_map ${_debug} maPull stPctHardStop                       0                             "${auxnum} % of crew sta/manna to stop pulling at to give them rest time?"      pull
+  /call set_data_map ${_debug} maPull stHardStopDuration                  0                             "${auxnum} duration to stop pulling for crew to recover"                        pull
+  /call set_data_map ${_debug} maPull swHardStopRez                       FALSE                         "${auxsw} stop pulling when someone has rez effects"                            pull
+  /call set_data_map ${_debug} maPull stPullZRadius                       60                            "${auxnum} the z distance of your pulling environment"                          pull
+  /call set_data_map ${_debug} maPull swNavPathLogic                      TRUE                          "${auxnum} use nav path lenght logic for finding targets to pull"               pull
+
+  | arc controls
+  | /call set_data_map ${_debug} maPull stPullArcCardinal                   FALSE                         "${auxna} cardinal direction to pull from camp"                                 pull
+  /call set_data ${_debug} FALSE stPullArcLeft                            float outer 0
+  /call set_data ${_debug} FALSE stPullArcRight                           float outer 0
+  /call set_data ${_debug} FALSE stPullArcCenter                          float outer 0
+  /call set_data ${_debug} maPull stPullArcWidth                          map outer 0
+
+
+
+|** control: cc **|
+  /call set_data ${_debug} maCC swSetForced                               map outer FALSE
+  /call set_data ${_debug} maCC swSetCombat                               map outer FALSE
+  /call set_data ${_debug} FALSE stAssTarID                               int outer 0
+  /call set_data ${_debug} maCC swValidAssTarID                           map outer FALSE
+  /call set_data_map ${_debug} maCC swCombatMelee                         FALSE                         "${auxsw} do melee things while in combat"
+  /call set_data_map ${_debug} maCC swCombatRange                         FALSE                         "${auxsw} do range things while in combat"
+  /call set_data_map ${_debug} maCC swCombatNuke                          FALSE                         "${auxsw} nuke things while in combat"
+  /call set_data_map ${_debug} maCC swCombatDoT                           FALSE                         "${auxsw} dot all the things!!"
+  /call set_data_map ${_debug} maCC swCombatHeal                          FALSE                         "${auxsw} enable heal modes in or OUT of combat"
+  /call set_data_map ${_debug} maCC swCombatControl                       FALSE                         "${auxsw} enable crowd control modes in or out of combat"
+  /call set_data_map ${_debug} maCC swAlliance                            FALSE                         "${auxsw} enable class alliance"
+  /call set_data_map ${_debug} maCC swStoponDS                            FALSE                         "${auxsw} Stop combat when the target has a DS. Does not apply agro enabled."
+
+  | glyph
+  /call set_data_map ${_debug} maCC swGlyphGroup                          FALSE                         "${auxsw} use glyph in a group"
+  /call set_data_map ${_debug} maCC swGlyphRaid                           FALSE                         "${auxsw} use glyph in a raid"
+  /call set_data_map ${_debug} maCC stGlyph                               FALSE                         "${auxna} name of the glyph you want to use"
+
+  | agro on or off and current agro mode (g,1,2,3,ma1,ma2)
+  /call set_data_map ${_debug} maCC stAssistMode                          FALSE                         "${auxna} [\axg,1,2,3,ma1,ma2\ax] your current assist mode"
+  /call set_data_map ${_debug} maCC stManualAssist1                       FALSE                         "${auxna} name of manual assist 1 toon"
+  /call set_data_map ${_debug} maCC stManualAssist2                       FALSE                         "${auxna} name of manual assist 2 toon"
+  /call set_data_map ${_debug} maCC stPctEngage                           98                            "${auxnum} mobs % health to engage it"
+
+  /call set_data_map ${_debug} maCC stZRadius                             60                            "${auxnum} the z distance of your environment"
+
+  /call set_data_list ${_debug} maCC lsNoCastWith                         EMPTY                         "${auxli} list of target buffs you dont want to cast with"
+  /call set_data_list ${_debug} maCC lsNoMeleeWith                        EMPTY                         "${auxli} list of target buffs you dont want to melee with"
+
+  | combat melee skills by class
+  /declare lsMeleeSkill list outer
+
+  | specific lists by class
+  /if (${Select[${Me.Class.ShortName},BER]}) {
+    /invoke ${lsMeleeSkill.Append[frenzy,intimidation,disarm]}
+    /call set_data_map ${_debug} maCC swFrenzy                            FALSE                         "${auxsw} some odd form of ocd for zerkers.. who knows."
+    /call set_data_map ${_debug} maCC swIntimidation                      FALSE                         "${auxsw} you think you're all that.. you aint nothing.."
+    /call set_data_map ${_debug} maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
+
+  } else /if (${Select[${Me.Class.ShortName},BRD]}) {
+    /invoke ${lsMeleeSkill.Append[kick,intimidation,disarm]}
+    /call set_data_map ${_debug} maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
+    /call set_data_map ${_debug} maCC swIntimidation                      FALSE                         "${auxsw} you think you're all that.. you aint nothing.."
+    /call set_data_map ${_debug} maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
+
+  } else /if (${Select[${Me.Class.ShortName},BST]}) {
+    /invoke ${lsMeleeSkill.Append[dragonpunch,eaglestrike,tigerclaw,flyingkick,roundkick,kick]}
+    /call set_data_map ${_debug} maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
+    /call set_data_map ${_debug} maCC swDragonpunch                       FALSE                         "${auxsw} use dragon punch"
+    /call set_data_map ${_debug} maCC swEaglestrike                       FALSE                         "${auxsw} use eagle strike"
+    /call set_data_map ${_debug} maCC swTigerclaw                         FALSE                         "${auxsw} use tiger claw"
+    /call set_data_map ${_debug} maCC swFlyingkick                        FALSE                         "${auxsw} use flying kick"
+    /call set_data_map ${_debug} maCC swRoundkick                         FALSE                         "${auxsw} use round kick"
+
+  } else /if (${Select[${Me.Class.ShortName},CLR]}) {
+    /invoke ${lsMeleeSkill.Append[bash]}
+    /call set_data_map ${_debug} maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit OUT of things"
+
+  } else /if (${Select[${Me.Class.ShortName},DRU]}) {
+
+  } else /if (${Select[${Me.Class.ShortName},ENC]}) {
+
+  } else /if (${Select[${Me.Class.ShortName},MAG]}) {
+
+  } else /if (${Select[${Me.Class.ShortName},MNK]}) {
+    /invoke ${lsMeleeSkill.Append[kick,dragonpunch,eaglestrike,tigerclaw,flyingkick,roundkick,intimidation]}
+    /call set_data_map ${_debug} maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
+    /call set_data_map ${_debug} maCC swDragonpunch                       FALSE                         "${auxsw} use dragon punch"
+    /call set_data_map ${_debug} maCC swEaglestrike                       FALSE                         "${auxsw} use eagle strike"
+    /call set_data_map ${_debug} maCC swTigerclaw                         FALSE                         "${auxsw} use tiger claw"
+    /call set_data_map ${_debug} maCC swFlyingkick                        FALSE                         "${auxsw} use flying kick"
+    /call set_data_map ${_debug} maCC swRoundkick                         FALSE                         "${auxsw} use round kick"
+    /call set_data_map ${_debug} maCC swIntimidation                      FALSE                         "${auxsw} you think you're all that.. you aint nothing.."
+
+  } else /if (${Select[${Me.Class.ShortName},NEC]}) {
+
+  } else /if (${Select[${Me.Class.ShortName},PAL]}) {
+    /invoke ${lsMeleeSkill.Append[bash,taunt,disarm]}
+    /call set_data_map ${_debug} maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit OUT of things"
+    /call set_data_map ${_debug} maAgro stPctTaunt                        FALSE                         "${auxnum} Agro Pct to spam the taunt key like a noob!"           agro
+    /call set_data_map ${_debug} maAgro stPctAgroHold                     FALSE                         "${auxnum} Minimum Agro Pct you want to maintain"                 agro
+    /call set_data_map ${_debug} maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
+
+  } else /if (${Select[${Me.Class.ShortName},RNG]}) {
+    /invoke ${lsMeleeSkill.Append[taunt,kick,disarm]}
+    /call set_data_map ${_debug} maAgro stPctTaunt                        FALSE                         "${auxnum} Agro Pct to spam the taunt key like a noob!"           agro
+    /call set_data_map ${_debug} maAgro stPctAgroHold                     FALSE                         "${auxnum} Minimum Agro Pct you want to maintain"                 agro
+    /call set_data_map ${_debug} maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
+    /call set_data_map ${_debug} maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
+
+  } else /if (${Select[${Me.Class.ShortName},ROG]}) {
+    /invoke ${lsMeleeSkill.Append[backstab,intimidation,disarm]}
+    /call set_data_map ${_debug} maCC swBackstab                          FALSE                         "${auxsw} surprise butt sekx!"
+    /call set_data_map ${_debug} maCC swIntimidation                      FALSE                         "${auxsw} you think you're all that.. you aint nothing.."
+    /call set_data_map ${_debug} maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
+
+  } else /if (${Select[${Me.Class.ShortName},SHD]}) {
+    /invoke ${lsMeleeSkill.Append[taunt,disarm,bash]}
+    /call set_data_map ${_debug} maAgro stPctTaunt                        FALSE                         "${auxnum} Agro Pct to spam the taunt key like a noob!"           agro
+    /call set_data_map ${_debug} maAgro stPctAgroHold                     FALSE                         "${auxnum} Minimum Agro Pct you want to maintain"                 agro
+    /call set_data_map ${_debug} maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
+    /call set_data_map ${_debug} maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit OUT of things"
+
+  } else /if (${Select[${Me.Class.ShortName},SHM]}) {
+
+  } else /if (${Select[${Me.Class.ShortName},WAR]}) {
+    /invoke ${lsMeleeSkill.Append[bash,taunt,kick,disarm]}
+    /call set_data_map ${_debug} maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit OUT of things"
+    /call set_data_map ${_debug} maAgro stPctTaunt                        FALSE                         "${auxnum} Agro Pct to spam the taunt key like a noob!"           agro
+    /call set_data_map ${_debug} maAgro stPctAgroHold                     FALSE                         "${auxnum} Minimum Agro Pct you want to maintain"                 agro
+    /call set_data_map ${_debug} maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
+    /call set_data_map ${_debug} maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
+
+  } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
+
+  }
+
+
+
+|** control: dot **|
+  /call set_data_map ${_debug} maDoT stDotRefresh                         3                             "${auxnum} time left on a dot to refresh it, in seconds"
+  /call set_data_map ${_debug} maDoT stPctStopDoT                         0                             "${auxnum} % of mob health to stop dotting it at"
+  /call set_data_list ${_debug} maDoT lsLineDoT                           EMPTY                         "${auxli} alternate cast order for dots"                          dot
+
+
+
+|** control: nuke **|
+  /call set_data_map ${_debug} maNuke stPctStopNuke                       0                             "${auxnum} % of mob health to stop nuking it at"
+  /call set_data_map ${_debug} maNuke stNukeDelay                         0                             "${auxnum} time to force between using nukes or dots"
+  /call set_data_list ${_debug} maNuke lsLineNuke                         EMPTY                         "${auxli} alternate cast order for nukes"                         nuke
+
+
+
+|** control: burn **|
+  /call set_data ${_debug} maBurn swBurnConditionMet                      map outer FALSE
+  /call set_data ${_debug} maBurn swBurnSpinUp                            map outer FALSE
+  /call set_data_map ${_debug} maBurn swBurnForce                         FALSE                         "${auxsw} force burn routines"                                    burn
+  /call set_data_map ${_debug} maBurn swBurnAuto                          FALSE                         "${auxsw} auto burn on named encounters"                          burn
+  /call set_data_map ${_debug} maBurn stPctBurnEngage                     99                            "${auxnum} % of mobs health to start burns"                       burn
+  /call set_data_map ${_debug} maBurn stBurnCount                         0                             "${auxnum} number of mobs in your area to auto engage burns"      burn
+  /call set_data_map ${_debug} maBurn swBurnRaid                          FALSE                         "${auxsw} use burns on raids"                                     burn
+  /call set_data_list ${_debug} maBurn lsLineBurn                         FALSE                         "${auxli} alternate burn line order (engine 2 only)"              burn
+
+
+
+|** control: debuff **|
+  /call set_data_map ${_debug} madeBuff swCripple                         FALSE                         "${auxsw} use cripples"
+  /call set_data_map ${_debug} madeBuff stCripple                         FALSE                         "${auxna} single target cripple"
+  /call set_data_map ${_debug} madeBuff stAECripple                       FALSE                         "${auxna} ae cripple to use"
+  /declare lsdeBuffCripple list outer
+
+  /call set_data_map ${_debug} madeBuff swMez                             FALSE                         "${auxsw} use mez"
+  /call set_data_map ${_debug} madeBuff stMez                             FALSE                         "${auxna} single target mez"
+  /call set_data_map ${_debug} madeBuff stCountMezResist                  3                             "${auxnum} number of times to retry single mez with resists"
+  /call set_data_map ${_debug} madeBuff stAEMez                           FALSE                         "${auxna} ae mez for when shit gets deep"
+
+  /call set_data_map ${_debug} madeBuff swMalo                            FALSE                         "${auxsw} use malo"
+  /call set_data_map ${_debug} madeBuff stMalo                            FALSE                         "${auxna} single target malo"
+  /call set_data_map ${_debug} madeBuff stAEMalo                          FALSE                         "${auxna} ae malo"
+  /declare lsdeBuffMalo list outer
+
+  /call set_data_map ${_debug} madeBuff swTash                            FALSE                         "${auxsw} use tash"
+  /call set_data_map ${_debug} madeBuff stTash                            FALSE                         "${auxna} single target tash"
+  /call set_data_map ${_debug} madeBuff stAETash                          FALSE                         "${auxna} ae tash cause fuck all the mobs"
+  /declare lsdeBuffTash list outer
+
+  /call set_data_map ${_debug} madeBuff swSlow                            FALSE                         "${auxsw} use slow"
+  /call set_data_map ${_debug} madeBuff stSlow                            FALSE                         "${auxna} single target slow"
+  /call set_data_map ${_debug} madeBuff stAESlow                          FALSE                         "${auxna} ae slow"
+  /declare lsdeBuffSlow list outer
+
+  /call set_data_map ${_debug} madeBuff swEradicate                       FALSE                         "${auxsw} use eradicate"
+  /call set_data_map ${_debug} madeBuff stEradicate                       FALSE                         "${auxna} single target eradicate"
+  /call set_data_map ${_debug} madeBuff stAEEradicate                     FALSE                         "${auxna} ae eradicate"
+  /call set_data_map ${_debug} madeBuff stTimerEradicate                  30s                           "${auxnum} time to retry an eradicate on a target"
+  /declare lsdeBuffEradicate list outer
+
+  /call set_data_map ${_debug} madeBuff swSnare                           FALSE                         "${auxsw} use snare"
+  /call set_data_map ${_debug} madeBuff stSnare                           FALSE                         "${auxna} single target snare"
+  /call set_data_map ${_debug} madeBuff stAESnare                         FALSE                         "${auxna} ae snare"
+  /declare lsdeBuffSnare list outer
+
+
+
+|** control: minion **|
+  /invoke ${set_data_timer[FALSE, Check_Minion_Cycle, 1m]}
+  /call set_data_map ${_debug} maMinion swPet                             FALSE                         "${auxsw} use pets"                                                         minion
+  /if (${Select[${Me.Class.ShortName},ENC,DRU,MAG,NEC]}) {
+    /call set_data_map ${_debug} maMinion swPetCharm                      FALSE                         "${auxsw} use charm pets"                                                   minion
+  }
+  /call set_data_map ${_debug} maMinion stPetIllusion                     FALSE                         "${auxna} name of pet illusion whatever spell, clickie, left over dinner"   minion
+  /call set_data_map ${_debug} maMinion stPctPetEngage                    95                            "${auxnum} % of mob health to engage pet at"                                minion
+  /call set_data_map ${_debug} maMinion swSwarm                           FALSE                         "${auxsw} use swarm pets/items/aas/left shoe"                               minion
+  /call set_data_map ${_debug} maMinion stPctSwarmEngage                  95                            "${auxnum} % of mob health to engage swarm pets at"                         minion
+  /call set_data_map ${_debug} maMinion swNoSwarmonDS                     FALSE                         "${auxsw} use swarms on mobs woth a damage shield"                          minion
+  /call set_data_map ${_debug} maMinion swonForce                         FALSE                         "${auxsw} send pets on \a-w/cc force\ax command"                            minion
+  /call set_data_map ${_debug} maMinion swUsePetGear                      FALSE                         "${auxsw} use pet weapons"                                                  minion
+  /call set_data_map ${_debug} maMinion stPetWeapon                       FALSE                         "${auxna} weapon to give your pet"                                          minion
+  /call set_data_map ${_debug} maMinion stBegAlias                        FALSE                         "${auxna} the alias your mage uses for /beg"                                minion
+
+  /invoke ${set_data_timer[FALSE, Check_Minion_Shrink, 10m]}
+  /call set_data_map ${_debug} maMinion swPetShrink                       FALSE                         "${auxsw} use pet shrink item/spell/drugs?"                                 minion
+  /call set_data_map ${_debug} maMinion stPetShrink                       FALSE                         "${auxna} name of pet shrink thingie"                                       minion
+
+  /invoke ${set_data_timer[FALSE, Check_Minion_Buff, 1m]}
+  /call set_data_map ${_debug} maMinion swPetBuff                         FALSE                         "${auxsw} buff minion (\ayyours\ax)"                                        minion
+
+
+
+|** control: over **|
+  /call set_data_map ${_debug} maOver swOverLOS                           FALSE                         "${auxsw} override line of sight validations"
+  /call set_data_map ${_debug} maOver swOverPctEngage                     FALSE                         "${auxsw} ocerride engage % for all types, instant engage of a mob"
+  /call set_data_map ${_debug} maOver swOverLoot                          FALSE                         "${auxsw} attempt to loot regardless of master looter"
+  /call set_data_map ${_debug} maOver swOverSafeNames                     FALSE                         "${auxsw} ignore safename checks, trust everyone. pm me your account info please"
+  /call set_data_map ${_debug} maOver swOverTrainSpell                    FALSE                         "${auxsw} ignore spell training caps. cast forever"
+  /call set_data_map ${_debug} maOver swOverEnvAuto                       FALSE                         "${auxsw} ignore non-persistent auto and start with \a-w/env auto on\ax"
+  /call set_data_map ${_debug} maOver swOverDSCheck                       FALSE                         "${auxsw} ignore damage shield checks while melee"
+  /call set_data_map ${_debug} maOver swOverNavCheck                      FALSE                         "${auxsw} bypass Nav PathExists checks"
+  /call set_data_map ${_debug} maOver swOverGroupAss                      FALSE                         "${auxsw} override group assist rules and force manual"
+
+
+
+|** control: entropy  **|
+  /call set_data_map ${_debug} maEntropy swMaintenance                    FALSE                         "${auxsw} place entropy in a limited maintenance mode for operations"
+  /call set_data_map ${_debug} maEntropy swEventsInc                      FALSE                         "${auxsw} use events from events.inc file"
+  /call set_data_map ${_debug} maEntropy swDPSMeter                       FALSE                         "${auxsw} use dps meeter"
+  /call set_data_map ${_debug} maEntropy swHookSub                        FALSE                         "${auxsw} use hook functions"
+  /call set_data_map ${_debug} maEntropy stNetworkTimeOUT                 1                             "${auxnum} dannet timeOUT for network lag. ignore this if at all possible"
+  /call set_data_list ${_debug} maEntropy lsSafeNames                     EMPTY                         "${auxli} list of people you trust (\a-wDanNet connections trusted by default\ax)"
+  /call set_data_map ${_debug} maEntropy swAutoList                       FALSE                         "${auxsw} autopopulate zone listsnames for some mob types"
+  /call set_data_map ${_debug} maEntropy stBuffRefresh                    0                             "${auxnum} time in seconds to refrsh a buff before it fades. 0=wait till it fades"
+  /call set_data_map ${_debug} maEntropy swAutoInvManual                  FALSE                         "${auxsw} obey autoinventory fast list even in manual mode"
+  /call set_data_map ${_debug} maEntropy swBuildSetRemember               FALSE                         "${auxsw} remember and refresh a set on macro boot"
+  /call set_data_map ${_debug} maEntropy stCastLoop                       1                             "${auxna} number of castloop attempts, event based"
+  /call set_data_map ${_debug} maEntropy stEngine                         1                             "${auxna} code engine"
+  /call set_data_map ${_debug} maEntropy swBuffCooldownWait               FALSE                         "${auxsw} force a wait between buffs for cooldown to do complete cycle"
+  /call set_data_map ${_debug} maEntropy swRelayTell                      FALSE                         "${auxsw} relay tells to the tie toon"
+  /call set_data_map ${_debug} maEntropy swRelayTellBeep                  FALSE                         "${auxsw} beep on a tell relay"
+  /call set_data_map ${_debug} maEntropy swUseConColor                    FALSE                         "${auxsw} Use ConColors for targets"
+  /call set_data_map ${_debug} maEntropy swNavLogSpew                     off                           "${auxsw} (on/off) Show mq2nav log spew in mq2 chat window"
+  /call set_data_map ${_debug} maEntropy stMainLoopDelay                  1                             "${auxnum} this is the main delay for the master macro loops. USE CAUTION when changing!"
+
+  | GoM list
+  /call set_data_list ${_debug} maChr lsGoM                               EMPTY                         "${auxli} things to use on a gift of mana aa proc"
+
+  | ae count you act on
+  /call set_data_map ${_debug} maChr stCountAE                            0                             "${auxnum} number of mobs in your area to even consider using ae skills"
+
+  | fade
+  /call set_data_map ${_debug} maChr stPctFade                            0                             "${auxnum} % of your healt to use class aa fade skill"
+
+  | spire AA
+  /call set_data_map ${_debug} maChr swSpireRaid                          FALSE                         "${auxsw} use while in group for burns"
+  /call set_data_map ${_debug} maChr swSpireGroup                         FALSE                         "${auxsw} use while in a raid for burns"
+  | /call set_data_map ${_debug} maChr stSpireCon                           0                             "${auxnum} number of the condition to use for spires"
+
+  | intensity of the resolute AA
+  /call set_data_map ${_debug} maChr swIntensityRaid                      FALSE                         "${auxsw} use while in a raid for burns"
+  /call set_data_map ${_debug} maChr swIntensityGroup                     FALSE                         "${auxsw} use while in group for burns"
+  | /call set_data_map ${_debug} maChr stIntensityCon                       0                             "${auxnum} number of the condition to use for spires"
+  /call set_data_map ${_debug} maChr stAAIntensity                        "Intensity of the Resolute"   "${auxna} Intensity of the Resolute AA"
+
+  | can cast?
+  /if (${lsClassCast.Contains[${Me.Class.ShortName}]}) {
+    /call set_data_map ${_debug} maChr stPctManaRecovery                   0                            "${auxna} % to use whatever manna recovery things entropy can find on you"
+  }
+
+
+
+|** control: gtfo **|
+  /invoke ${set_data_timer[FALSE, Check_GTFO, 6s]}
+  /call set_data_list ${_debug} maGTFO lsLineGTFO                         EMPTY                         "${auxli} order line for GTFO stuff" gtfo
+  /call set_data_map  ${_debug} maGTFO swGTFOActive                       FALSE                         "${auxsw} use GTFO logic" gtfo
+  /call set_data_map  ${_debug} maGTFO stCountGTFODead                    0                             "${auxnum} number of group dead to activate" gtfo
+  /call set_data_map  ${_debug} maGTFO stCountGTFOSpawns                  0                             "${auxnum} number of spawns in your env range to bail on your healer" gtfo
+
+
+
+|** control: clickitem  **|
+  /call set_data_list ${_debug} maItem lsLineItem                         EMPTY                         "${auxli} alternate cast order for clickitems" item
+
+
+
+|** control: TTL  **|
+  /call set_data_map ${_debug} maTTL swTTL                                FALSE                         "${auxsw} use ttl logic"
+
+
+
+|** control: MiscDPS  **|
+  /call set_data_list ${_debug} maMiscDPS lsLineMiscdps                   EMPTY                         "${auxli} alternate activation order for miscdps routine (engine 2)"
+
+
+
+|** control: Agro  **|
+  /call set_data_list ${_debug} maAgro lsLineAgro                         EMPTY                         "${auxli} alternate activation order for agro routine (engine 2/3)" agro
+  /call set_data_map ${_debug} maAgro swAgro                              FALSE                         "${auxsw} use any agro skills you can (\a-wtaunt not included separate control under /agro\ax)" agro
+
+
+
+|** control: sash  **|
+  /invoke ${set_data_timer[FALSE, Check_Proc_Sash, 5s]}
+  /call set_data_map ${_debug} maSash swSashProc                          FALSE                         "${auxsw} enable sash for a procing weapon"               sash
+  /call set_data_map ${_debug} maSash stSashProc                          FALSE                         "${auxna} name of ash with procing  weapon"               sash
+  /call set_data_map ${_debug} maSash swSash                              FALSE                         "${auxsw} enable auto sash swapping based off conditions" sash
+
+  | tank shield flash
+  /if (${Select[${Me.Class.ShortName},PAL,WAR,SHD]}) {
+    /call set_data_map ${_debug} maSash stPctShieldFlash                  0                             "${auxnum} % of HP to try to get shield flash running"    sash
+    /call set_data_map ${_debug} maSash stCountShieldFlash                0                             "${auxnum} # of mobs to hit shield flash"                 sash
+    /call set_data_map ${_debug} maSash stSashShieldFlash                 FALSE                         "${auxna} name of sash to be used for Slash skills"       sash
+  }
+
+
+  /if (${maDebug.Find[init].Value}) {
+    OUT \agset_initialize_map_character_environment\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+    /mqp
+  }
+
+/return TRUE
 
 
 |***
  * note: loads class epics
  * use: do i need to ssay it again?
  ***|
-sub	set_initialize_class_epic(bool _debug)
-	DEBUG	\atset_initialize_class_epic\ax()
+sub set_initialize_class_epic(bool _debug)
+  DEBUG \atset_initialize_class_epic\ax()
 
-	/sqlite query ${maData.Find[DBstatic].Value} epic${Me.Class.ShortName} SELECT * FROM epic WHERE env_var='${Me.Class.ShortName}';
+  /sqlite query ${maData.Find[DBstatic].Value} epic${Me.Class.ShortName} SELECT * FROM epic WHERE env_var='${Me.Class.ShortName}';
 
-	/declare epic1 string outer ${sqlite.Result[epic${Me.Class.ShortName} 1 name]}
-	/declare epic15 string outer ${sqlite.Result[epic${Me.Class.ShortName} 2 name]}
-	/declare epic2 string outer ${sqlite.Result[epic${Me.Class.ShortName} 3 name]}
+  /declare epic1 string outer ${sqlite.Result[epic${Me.Class.ShortName} 1 name]}
+  /declare epic15 string outer ${sqlite.Result[epic${Me.Class.ShortName} 2 name]}
+  /declare epic2 string outer ${sqlite.Result[epic${Me.Class.ShortName} 3 name]}
 
 /return
 
@@ -1534,33 +1532,33 @@ sub	set_initialize_class_epic(bool _debug)
 
 
 |***
- * note: set/build crew	lists/rolls
+ * note: set/build crew lists/rolls
  * use:
  ***|
-sub	set_initialize_crew(bool _debug)
-	DEBUG	\atset_initialize_crew\ax()
+sub set_initialize_crew(bool _debug)
+  DEBUG \atset_initialize_crew\ax()
 
-	/if	(${maDebug.Find[init].Value})	{
-		/declare _boottimestart	int	local	${MacroQuest.Running}
-	}
+  /if (${maDebug.Find[init].Value}) {
+    /declare _boottimestart int local ${MacroQuest.Running}
+  }
 
-	/declare _count	int	local	0
+  /declare _count int local 0
 
-	/for _count	1	to 12
-		/call	set_data_list	${_debug}	maCrew lsCrew${_count}							EMPTY													"${auxli}	list for crew	#${_count}"	crew
-		/call	set_data_map ${_debug} maCrew	stCrew${_count}Leader					FALSE													"${auxna}	crew #${_count}	leader"	crew
-		/call	set_data_map ${_debug} maCrew	stCrew${_count}Looter					FALSE													"${auxna}	crew #${_count}	looter"	crew
-		/call	set_data_map ${_debug} maCrew	stCrew${_count}Assist					FALSE													"${auxna}	crew #${_count}	assist"	crew
-	/next	_count
+  /for _count 1 to 12
+    /call set_data_list ${_debug} maCrew lsCrew${_count}              EMPTY                         "${auxli} list for crew #${_count}" crew
+    /call set_data_map ${_debug} maCrew stCrew${_count}Leader         FALSE                         "${auxna} crew #${_count} leader" crew
+    /call set_data_map ${_debug} maCrew stCrew${_count}Looter         FALSE                         "${auxna} crew #${_count} looter" crew
+    /call set_data_map ${_debug} maCrew stCrew${_count}Assist         FALSE                         "${auxna} crew #${_count} assist" crew
+  /next _count
 
-	/call	set_data ${_debug} FALSE stCurrentCrew												string outer EMPTY
+  /call set_data ${_debug} FALSE stCurrentCrew                        string outer EMPTY
 
-	/if	(${maDebug.Find[init].Value})	{
-		OUT	\agset_initialize_crew\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
-		/mqp
-	}
+  /if (${maDebug.Find[init].Value}) {
+    OUT \agset_initialize_crew\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+    /mqp
+  }
 
-/return	TRUE
+/return TRUE
 
 
 
@@ -1568,235 +1566,235 @@ sub	set_initialize_crew(bool _debug)
  * note: set/build buffs
  * use:
  ***|
-sub	set_initialize_map_buffs(bool	_debug)
-	DEBUG	\atset_initialize_map_buffs\ax()
+sub set_initialize_map_buffs(bool _debug)
+  DEBUG \atset_initialize_map_buffs\ax()
 
-	/if	(${maDebug.Find[init].Value})	{
-		/declare _boottimestart	int	local	${MacroQuest.Running}
-	}
+  /if (${maDebug.Find[init].Value}) {
+    /declare _boottimestart int local ${MacroQuest.Running}
+  }
 
-	/declare _count	int	local	0
-	/for _count	1	to 50
-		/call	set_data_map ${_debug} maBuff	swBuff${_count} FALSE "${auxsw} buff ${_count} switch"	buff
-		/call	set_data_map ${_debug} maBuff	stBuff${_count} FALSE "${auxna} buff ${_count} name"	buff
-		/call	set_data_map ${_debug} maBuff	stBuff${_count}Alias FALSE "${auxna} buff ${_count} alias"	buff
-		/call	set_data_list	${_debug}	maBuff lsBuff${_count}Tag EMPTY "${auxli}	buff ${_count} tag list"	buff
-	/next	_count
+  /declare _count int local 0
+  /for _count 1 to 50
+    /call set_data_map ${_debug} maBuff swBuff${_count} FALSE "${auxsw} buff ${_count} switch"  buff
+    /call set_data_map ${_debug} maBuff stBuff${_count} FALSE "${auxna} buff ${_count} name"  buff
+    /call set_data_map ${_debug} maBuff stBuff${_count}Alias FALSE "${auxna} buff ${_count} alias"  buff
+    /call set_data_list ${_debug} maBuff lsBuff${_count}Tag EMPTY "${auxli} buff ${_count} tag list"  buff
+  /next _count
 
-	/if	(${maDebug.Find[init].Value})	{
-		OUT	\agset_initialize_map_buffs\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
-		/mqp
-	}
+  /if (${maDebug.Find[init].Value}) {
+    OUT \agset_initialize_map_buffs\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+    /mqp
+  }
 
-
-/return	TRUE
-
-
-
-|***
- * note: set/build the 12	count	skill	maps
- * use:
- ***|
-sub	set_initialize_map_12(bool _debug)
-	DEBUG	\atset_initialize_map_12\ax()
-
-	/if	(${maDebug.Find[init].Value})	{
-		/declare _boottimestart	int	local	${MacroQuest.Running}
-	}
-
-	/declare _tmpMap map local
-	/declare _tmi	mapiterator	local
-	/declare _liC12	listiterator local
-	/invoke	${_tmpMap.Add[Sash,sash]}
-	/invoke	${_tmpMap.Add[GTFO,gtfo]}
-	/invoke	${_tmpMap.Add[Pull,pull]}
-
-	/vardata _tmi	_tmpMap.First.Clone
-	/while (!${_tmi.IsEnd})	{
-		/vardata _liC12	lsCount12.First.Clone
-		/while (!${_liC12.IsEnd})	{
-			/call	set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC12.Value} FALSE "${auxsw}	${_tmi.Value}	${_liC12.Value}	switch"	${_tmi.Value}
-			/call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC12.Value} FALSE "${auxna}	${_tmi.Value}	${_liC12.Value}	name"	${_tmi.Value}
-			/call	set_data_list	${_debug}	ma${_tmi.Key}	ls${_tmi.Key}${_liC12.Value}Tag EMPTY "${auxli}	${_tmi.Value}	${_liC12.Value}	tag	list"	${_tmi.Value}
-			/invoke	${_liC12.Advance}
-		}
-
-		/if	(${maDebug.Find[init].Value})	{
-			OUT	\agset_initialize_map_12\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
-			/mqp
-		}
-
-		/invoke	${_tmi.Advance}
-	}
-
-/return	TRUE
-
-
-
-|***
- * note: set/build the 20	count	skill	maps
- * use:
- ***|
-sub	set_initialize_map_20(bool _debug)
-	DEBUG	\atset_initialize_map_20\ax()
-
-	/if	(${maDebug.Find[init].Value})	{
-		/declare _boottimestart	int	local	${MacroQuest.Running}
-	}
-
-	/declare _tmpMap map local
-	/declare _tmi	mapiterator	local
-	/declare _liC20	listiterator local
-	/invoke	${_tmpMap.Add[DoT,dot]}
-	/invoke	${_tmpMap.Add[Nuke,nuke]}
-	/invoke	${_tmpMap.Add[Defense,defense]}
-	/invoke	${_tmpMap.Add[Item,item]}
-	/invoke	${_tmpMap.Add[Agro,agro]}
-	/invoke	${_tmpMap.Add[Song,song]}
-	/invoke	${_tmpMap.Add[Burn,burn]}
-
-	/vardata _tmi	_tmpMap.First.Clone
-	/while (!${_tmi.IsEnd})	{
-		/vardata _liC20	lsCount20.First.Clone
-		/while (!${_liC20.IsEnd})	{
-			/call	set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC20.Value} FALSE "${auxsw}	${_tmi.Value}	${_liC20.Value}	switch"	${_tmi.Value}
-			/call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC20.Value} FALSE "${auxna}	${_tmi.Value}	${_liC20.Value}	name"	${_tmi.Value}
-			/call	set_data_list	${_debug}	ma${_tmi.Key}	ls${_tmi.Key}${_liC20.Value}Tag EMPTY "${auxli}	${_tmi.Value}	${_liC20.Value}	tag	list"	${_tmi.Value}
-			/invoke	${_liC20.Advance}
-		}
-
-		/if	(${maDebug.Find[init].Value})	{
-			OUT	\agset_initialize_map_20\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
-			/mqp
-		}
-
-		/invoke	${_tmi.Advance}
-	}
-
-/return	TRUE
-
-
-
-|***
- * note: set/build the 50	count	skill	maps
- * use:
- ***|
-sub	set_initialize_map_50(bool _debug)
-	DEBUG	\atset_initialize_map_50\ax()
-
-	/if	(${maDebug.Find[init].Value})	{
-		/declare _boottimestart	int	local	${MacroQuest.Running}
-	}
-
-	/declare _tmpMap map local
-	/declare _tmi	mapiterator	local
-	/declare _liC50	listiterator local
-	/invoke	${_tmpMap.Add[MiscDPS,miscdps]}
-	/invoke	${_tmpMap.Add[Heal,heal]}
-
-	/vardata _tmi	_tmpMap.First.Clone
-	/while (!${_tmi.IsEnd})	{
-		/vardata _liC50	lsCount50.First.Clone
-		/while (!${_liC50.IsEnd})	{
-			/call	set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC50.Value} FALSE "${auxsw}	${_tmi.Value}	${_liC50.Value}	switch" ${_tmi.Value}
-			/call	set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC50.Value} FALSE "${auxna}	${_tmi.Value}	${_liC50.Value}	name" ${_tmi.Value}
-			/call	set_data_list	${_debug}	ma${_tmi.Key}	ls${_tmi.Key}${_liC50.Value}Tag EMPTY "${auxli}	${_tmi.Value}	${_liC50.Value}	tag	list" ${_tmi.Value}
-			/invoke	${_liC50.Advance}
-		}
-
-		/if	(${maDebug.Find[init].Value})	{
-			OUT	\agset_initialize_map_50\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
-			/mqp
-		}
-
-		/invoke	${_tmi.Advance}
-	}
-
-/return	TRUE
-
-
-
-|***
- * note: maps	for	data that	users	will not change
- * use:	don't	fucking	use	it..
- ***|
-sub	set_initialize_static_map(bool _debug)
-	 DEBUG\atset_initialize_static_map\ax()
-
-	/declare maStaticMaps map local
-	/invoke ${maStaticMaps.Add[maShade,shade]}
-	/invoke ${maStaticMaps.Add[maSQLError,sql_error]}
-	/invoke ${maStaticMaps.Add[maManaRecovery,mana_recovery]}
-	/invoke ${maStaticMaps.Add[maExpansion,env_xpac]}
-	/invoke ${maStaticMaps.Add[maCure,cure]}
-	/invoke ${maStaticMaps.Add[maChrWatch,chrwatch]}
-
-	| leave this out. only for design
-	| /invoke ${maStaticMaps.Add[maSPA,eq_spa]}
-
-	/declare _count int local 0
-	/declare _mi mapiterator local
-	/vardata _mi maStaticMaps.First.Clone
-	/while (!${_mi.IsEnd}) {
-		/sqlite query ${maData.Find[DBstatic].Value} dummycount SELECT Count(*) as data FROM ${_mi.Value};
-		/for _count 1 to ${sqlite.Result[dummycount	1	data]}
-			| /while (TRUE)	{
-				/sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM ${_mi.Value} WHERE ROWID=${_count};
-				/if (!${sql_check[${_debug}, dummy, set_initialize_static_map, "SELECT (${_mi.Value})"]}) /endmacro
-				| /if (${sqlite.Resultcode[dummy]} == 0) /break
-			| }
-
-		/call set_data ${_debug} "${_mi.Key}" "${sqlite.Result[dummy 1 env_var]}" map outer "${sqlite.Result[dummy 1 value]}"
-		| SDEBUG set_data ${_debug} "${_mi.Key}" "${sqlite.Result[dummy 1 env_var]}" map outer "${sqlite.Result[dummy 1 value]}"
-		/next _count
-		/invoke ${_mi.Advance}
-	}
 
 /return TRUE
 
 
 
 |***
- * note: sets	any	aliases
- * use:	/call	set_alias	DEBUG	[add|delete]
+ * note: set/build the 12 count skill maps
+ * use:
  ***|
-sub	set_alias(bool _debug, string	_action)
-	DEBUG	\atset_alias\ax()
+sub set_initialize_map_12(bool _debug)
+  DEBUG \atset_initialize_map_12\ax()
 
-	/if	(${maDebug.Find[init].Value})	{
-		/declare _boottimestart	int	local	${MacroQuest.Running}
-	}
+  /if (${maDebug.Find[init].Value}) {
+    /declare _boottimestart int local ${MacroQuest.Running}
+  }
 
-	/declare maAlias map outer
-	/declare _maal mapiterator local
-	/invoke	${maAlias.Add[/on,/command_on]}
-	/invoke	${maAlias.Add[/off,/command_off]}
+  /declare _tmpMap map local
+  /declare _tmi mapiterator local
+  /declare _liC12 listiterator local
+  /invoke ${_tmpMap.Add[Sash,sash]}
+  /invoke ${_tmpMap.Add[GTFO,gtfo]}
+  /invoke ${_tmpMap.Add[Pull,pull]}
 
-	|	add	aliases
-	/if	(${_action.Equal[add]})	{
-		/vardata _maal maAlias.First.Clone
-		/while (!${_maal.IsEnd}) {
-			|	/if	(!${Alias[${mi.Key}]}) {
-				/squelch /alias	${_maal.Key} ${_maal.Value}
-			|	}
-			/invoke	${_maal.Advance}
-		}
+  /vardata _tmi _tmpMap.First.Clone
+  /while (!${_tmi.IsEnd}) {
+    /vardata _liC12 lsCount12.First.Clone
+    /while (!${_liC12.IsEnd}) {
+      /call set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC12.Value} FALSE "${auxsw} ${_tmi.Value} ${_liC12.Value} switch" ${_tmi.Value}
+      /call set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC12.Value} FALSE "${auxna} ${_tmi.Value} ${_liC12.Value} name" ${_tmi.Value}
+      /call set_data_list ${_debug} ma${_tmi.Key} ls${_tmi.Key}${_liC12.Value}Tag EMPTY "${auxli} ${_tmi.Value} ${_liC12.Value} tag list" ${_tmi.Value}
+      /invoke ${_liC12.Advance}
+    }
 
-	|	delete established aliases
-	}	else /if (${_action.Equal[delete]})	{
-		/vardata _maal maAlias.First.Clone
-		/while (!${_maal.IsEnd}) {
-			/squelch /alias	${_maal.Key} delete
-			/invoke	${_maal.Advance}
-		}
-	}
+    /if (${maDebug.Find[init].Value}) {
+      OUT \agset_initialize_map_12\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+      /mqp
+    }
 
-	/if	(${maDebug.Find[init].Value})	{
-		OUT	\agset_alias\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart})	/	10)	/	60]}s\ax
-		/mqp
-	}
+    /invoke ${_tmi.Advance}
+  }
 
-/return	TRUE
+/return TRUE
+
+
+
+|***
+ * note: set/build the 20 count skill maps
+ * use:
+ ***|
+sub set_initialize_map_20(bool _debug)
+  DEBUG \atset_initialize_map_20\ax()
+
+  /if (${maDebug.Find[init].Value}) {
+    /declare _boottimestart int local ${MacroQuest.Running}
+  }
+
+  /declare _tmpMap map local
+  /declare _tmi mapiterator local
+  /declare _liC20 listiterator local
+  /invoke ${_tmpMap.Add[DoT,dot]}
+  /invoke ${_tmpMap.Add[Nuke,nuke]}
+  /invoke ${_tmpMap.Add[Defense,defense]}
+  /invoke ${_tmpMap.Add[Item,item]}
+  /invoke ${_tmpMap.Add[Agro,agro]}
+  /invoke ${_tmpMap.Add[Song,song]}
+  /invoke ${_tmpMap.Add[Burn,burn]}
+
+  /vardata _tmi _tmpMap.First.Clone
+  /while (!${_tmi.IsEnd}) {
+    /vardata _liC20 lsCount20.First.Clone
+    /while (!${_liC20.IsEnd}) {
+      /call set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC20.Value} FALSE "${auxsw} ${_tmi.Value} ${_liC20.Value} switch" ${_tmi.Value}
+      /call set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC20.Value} FALSE "${auxna} ${_tmi.Value} ${_liC20.Value} name" ${_tmi.Value}
+      /call set_data_list ${_debug} ma${_tmi.Key} ls${_tmi.Key}${_liC20.Value}Tag EMPTY "${auxli} ${_tmi.Value} ${_liC20.Value} tag list" ${_tmi.Value}
+      /invoke ${_liC20.Advance}
+    }
+
+    /if (${maDebug.Find[init].Value}) {
+      OUT \agset_initialize_map_20\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+      /mqp
+    }
+
+    /invoke ${_tmi.Advance}
+  }
+
+/return TRUE
+
+
+
+|***
+ * note: set/build the 50 count skill maps
+ * use:
+ ***|
+sub set_initialize_map_50(bool _debug)
+  DEBUG \atset_initialize_map_50\ax()
+
+  /if (${maDebug.Find[init].Value}) {
+    /declare _boottimestart int local ${MacroQuest.Running}
+  }
+
+  /declare _tmpMap map local
+  /declare _tmi mapiterator local
+  /declare _liC50 listiterator local
+  /invoke ${_tmpMap.Add[MiscDPS,miscdps]}
+  /invoke ${_tmpMap.Add[Heal,heal]}
+
+  /vardata _tmi _tmpMap.First.Clone
+  /while (!${_tmi.IsEnd}) {
+    /vardata _liC50 lsCount50.First.Clone
+    /while (!${_liC50.IsEnd}) {
+      /call set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC50.Value} FALSE "${auxsw} ${_tmi.Value} ${_liC50.Value} switch" ${_tmi.Value}
+      /call set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC50.Value} FALSE "${auxna} ${_tmi.Value} ${_liC50.Value} name" ${_tmi.Value}
+      /call set_data_list ${_debug} ma${_tmi.Key} ls${_tmi.Key}${_liC50.Value}Tag EMPTY "${auxli} ${_tmi.Value} ${_liC50.Value} tag list" ${_tmi.Value}
+      /invoke ${_liC50.Advance}
+    }
+
+    /if (${maDebug.Find[init].Value}) {
+      OUT \agset_initialize_map_50\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+      /mqp
+    }
+
+    /invoke ${_tmi.Advance}
+  }
+
+/return TRUE
+
+
+
+|***
+ * note: maps for data that users will not change
+ * use: don't fucking use it..
+ ***|
+sub set_initialize_static_map(bool _debug)
+   DEBUG\atset_initialize_static_map\ax()
+
+  /declare maStaticMaps map local
+  /invoke ${maStaticMaps.Add[maShade,shade]}
+  /invoke ${maStaticMaps.Add[maSQLError,sql_error]}
+  /invoke ${maStaticMaps.Add[maManaRecovery,mana_recovery]}
+  /invoke ${maStaticMaps.Add[maExpansion,env_xpac]}
+  /invoke ${maStaticMaps.Add[maCure,cure]}
+  /invoke ${maStaticMaps.Add[maChrWatch,chrwatch]}
+
+  | leave this out. only for design
+  | /invoke ${maStaticMaps.Add[maSPA,eq_spa]}
+
+  /declare _count int local 0
+  /declare _mi mapiterator local
+  /vardata _mi maStaticMaps.First.Clone
+  /while (!${_mi.IsEnd}) {
+    /sqlite query ${maData.Find[DBstatic].Value} dummycount SELECT Count(*) as data FROM ${_mi.Value};
+    /for _count 1 to ${sqlite.Result[dummycount 1 data]}
+      | /while (TRUE) {
+        /sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM ${_mi.Value} WHERE ROWID=${_count};
+        /if (!${sql_check[${_debug}, dummy, set_initialize_static_map, "SELECT (${_mi.Value})"]}) /endmacro
+        | /if (${sqlite.Resultcode[dummy]} == 0) /break
+      | }
+
+    /call set_data ${_debug} "${_mi.Key}" "${sqlite.Result[dummy 1 env_var]}" map outer "${sqlite.Result[dummy 1 value]}"
+    | SDEBUG set_data ${_debug} "${_mi.Key}" "${sqlite.Result[dummy 1 env_var]}" map outer "${sqlite.Result[dummy 1 value]}"
+    /next _count
+    /invoke ${_mi.Advance}
+  }
+
+/return TRUE
+
+
+
+|***
+ * note: sets any aliases
+ * use: /call set_alias DEBUG [add|delete]
+ ***|
+sub set_alias(bool _debug, string _action)
+  DEBUG \atset_alias\ax()
+
+  /if (${maDebug.Find[init].Value}) {
+    /declare _boottimestart int local ${MacroQuest.Running}
+  }
+
+  /declare maAlias map outer
+  /declare _maal mapiterator local
+  /invoke ${maAlias.Add[/on,/command_on]}
+  /invoke ${maAlias.Add[/off,/command_off]}
+
+  | add aliases
+  /if (${_action.Equal[add]}) {
+    /vardata _maal maAlias.First.Clone
+    /while (!${_maal.IsEnd}) {
+      | /if (!${Alias[${mi.Key}]}) {
+        /squelch /alias ${_maal.Key} ${_maal.Value}
+      | }
+      /invoke ${_maal.Advance}
+    }
+
+  | delete established aliases
+  } else /if (${_action.Equal[delete]}) {
+    /vardata _maal maAlias.First.Clone
+    /while (!${_maal.IsEnd}) {
+      /squelch /alias ${_maal.Key} delete
+      /invoke ${_maal.Advance}
+    }
+  }
+
+  /if (${maDebug.Find[init].Value}) {
+    OUT \agset_alias\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+    /mqp
+  }
+
+/return TRUE
 
 
 
@@ -1804,37 +1802,37 @@ sub	set_alias(bool _debug, string	_action)
  * note: build all the hud variables
  * use:
  ***|
-sub	set_initialize_hud_variables()
+sub set_initialize_hud_variables()
 
-	|	running	mode variable
-	/invoke	${maData.Add[mode,idle]}
-	/invoke	${maData.Add[swHUDTime,TRUE]}
-	/declare stHUDNotice string	outer
+  | running mode variable
+  /invoke ${maData.Add[mode,idle]}
+  /invoke ${maData.Add[swHUDTime,TRUE]}
+  /declare stHUDNotice string outer
 
-	/declare lsHUD list	local
-	/invoke	${lsHUD.Append[build,mode,time]}
-	/invoke	${lsHUD.Append[engage,swpet,engagepet,swswarm,engageswarm,env]}
-	/invoke	${lsHUD.Append[auto,melee,range,nuke,dot,heal,control]}
-	/invoke	${lsHUD.Append[override,self,group,xt,pet,cure,tot,dan]}
-	/invoke	${lsHUD.Append[bmaster,bself,bcrew,braid,bbeg,btemp,bunity,baura,bnow,bpet,bammo,bgroup]}
-	/invoke	${lsHUD.Append[agro,pull,pullarea,pullmode]}
-	/invoke	${lsHUD.Append[tie,tietoon,tiemode]}
-	/invoke	${lsHUD.Append[buauto,bupct,bucount,buraid]}
-	/invoke	${lsHUD.Append[rpct,rfull,rrod,rbuff,rcombat]}
-	/invoke	${lsHUD.Append[zooc,ztake,zic,zeveryone,ztoken,zdan,zrad]}
-	/invoke	${lsHUD.Append[eset]}
+  /declare lsHUD list local
+  /invoke ${lsHUD.Append[build,mode,time]}
+  /invoke ${lsHUD.Append[engage,swpet,engagepet,swswarm,engageswarm,env]}
+  /invoke ${lsHUD.Append[auto,melee,range,nuke,dot,heal,control]}
+  /invoke ${lsHUD.Append[override,self,group,xt,pet,cure,tot,dan]}
+  /invoke ${lsHUD.Append[bmaster,bself,bcrew,braid,bbeg,btemp,bunity,baura,bnow,bpet,bammo,bgroup]}
+  /invoke ${lsHUD.Append[agro,pull,pullarea,pullmode]}
+  /invoke ${lsHUD.Append[tie,tietoon,tiemode]}
+  /invoke ${lsHUD.Append[buauto,bupct,bucount,buraid]}
+  /invoke ${lsHUD.Append[rpct,rfull,rrod,rbuff,rcombat]}
+  /invoke ${lsHUD.Append[zooc,ztake,zic,zeveryone,ztoken,zdan,zrad]}
+  /invoke ${lsHUD.Append[eset]}
 
-	|	dev	hud	variables
-	/invoke	${lsHUD.Append[dcombat,dburn,denv,dpull,dsafe,dcaststatus]}
+  | dev hud variables
+  /invoke ${lsHUD.Append[dcombat,dburn,denv,dpull,dsafe,dcaststatus]}
 
-	/declare _lisihv listiterator	local
-	/vardata _lisihv lsHUD.First.Clone
-	/while (!${_lisihv.IsEnd}) {
-		/declare h_${_lisihv.Value}	string outer
-		/invoke	${_lisihv.Advance}
-	}
+  /declare _lisihv listiterator local
+  /vardata _lisihv lsHUD.First.Clone
+  /while (!${_lisihv.IsEnd}) {
+    /declare h_${_lisihv.Value} string outer
+    /invoke ${_lisihv.Advance}
+  }
 
-/return	TRUE
+/return TRUE
 
 
 
@@ -1842,460 +1840,460 @@ sub	set_initialize_hud_variables()
  * note: HUD pregeneration
  * use:
  ***|
-sub	set_initialize_hud(bool	_debug,	string _verbage)
+sub set_initialize_hud(bool _debug, string _verbage)
 
 
-	/delay 5
+  /delay 5
 
-	/declare _path string	local
-	/if	(!NEXT)	{
-		/varset	_path	".\..\MQ2HUD.ini"
-	}	else /if (NEXT)	{
-		/varset	_path	"MQ2HUD.ini"
-	}
+  /declare _path string local
+  /if (!NEXT) {
+    /varset _path ".\..\MQ2HUD.ini"
+  } else /if (NEXT) {
+    /varset _path "MQ2HUD.ini"
+  }
 
-	|	main HUD for Entropy
-	/if	(${_verbage.Equal[entropy]}) {
-		OUT	Updating MQ2HUD.INI${sep}\a-w${_verbage}\ax
+  | main HUD for Entropy
+  /if (${_verbage.Equal[entropy]}) {
+    OUT Updating MQ2HUD.INI${sep}\a-w${_verbage}\ax
 
 |**
-		home
-		behind
-		fast
-		assist
-		ma1
-		ma2
+    home
+    behind
+    fast
+    assist
+    ma1
+    ma2
 **|
 
-	| row	0
-
-		| invisibilities
-		/ini ${_path}	entropy	INV1		${Parse[0, "3,134,0,0,255,0,${If[${Me.SPA[12]}||${Me.SPA[314]},I,]}"]}
-		/ini ${_path}	entropy	INV2		${Parse[0, "3,134,0,255,0,0,${If[${Me.SPA[12]}||${Me.SPA[314]},,I]}"]}
-		/ini ${_path}	entropy	IVU1		${Parse[0, "3,138,0,0,255,0,${If[${Me.SPA[28]}||${Me.SPA[315]},U,]}"]}
-		/ini ${_path}	entropy	IVU2		${Parse[0, "3,138,0,255,0,0,${If[${Me.SPA[28]}||${Me.SPA[315]},,U]}"]}
-		/ini ${_path}	entropy	SOS1		${Parse[0, "3,146,0,0,255,0,${If[${Me.SPA[256]},S,]}"]}
-		/ini ${_path}	entropy	SOS2		${Parse[0, "3,146,0,255,0,0,${If[${Me.SPA[256]},,S]}"]}
-		/ini ${_path}	entropy	ANI1		${Parse[0, "3,154,0,0,255,0,${If[${Me.SPA[316]},A,]}"]}
-		/ini ${_path}	entropy	ANI2		${Parse[0, "3,154,0,255,0,0,${If[${Me.SPA[316]},,A]}"]}
-
-		/ini ${_path}	entropy	BG0			3,131,0,0,0,0,██████████████████████████
-
-		| conbat controls
-		/ini ${_path}	entropy	ccA1		${Parse[0, "19,134,14,255,255,0,${If[${h_auto},A,]}"]}
-		/ini ${_path}	entropy	ccA2		${Parse[0, "19,134,9,25,25,25,${If[${h_auto},,_]}"]}
-		/ini ${_path}	entropy	ccEnv1	${Parse[0, "19,146,14,140,140,140,${h_env}"]}
-
-		| pulling
-		/ini ${_path}	entropy	ccPM1		${Parse[0, "19,170,14,0,255,0,${If[${h_pull},${h_pullmode},]}"]}
-		/ini ${_path}	entropy	ccPM2		${Parse[0, "19,170,14,255,0,0,${If[${h_pull},,${h_pullmode}]}"]}
-		/ini ${_path}	entropy	ccPR1		${Parse[0, "19,200,14,255,255,255,${If[${h_pullarea},${h_pullarea},]}"]}
-		/ini ${_path}	entropy	ccPR2		${Parse[0, "19,200,9,25,25,25,${If[${h_pullarea},,___]}"]}
-
-		| agro
-		/ini ${_path}	entropy	ccAg1		${Parse[0, "19,225,14,255,255,255,${If[${h_agro},A,]}"]}
-		/ini ${_path}	entropy	ccAg2		${Parse[0, "19,225,9,25,25,25,${If[${h_agro},,_]}"]}
-
-		| combat modes
-		/ini ${_path}	entropy	ccM1		${Parse[0, "19,255,14,255,255,255,${If[${h_melee},M,]}"]}
-		/ini ${_path}	entropy	ccM2		${Parse[0, "19,255,9,25,25,25,${If[${h_melee},,_]}"]}
-		/ini ${_path}	entropy	ccR1		${Parse[0, "19,264,14,255,255,255,${If[${h_range},R,]}"]}
-		/ini ${_path}	entropy	ccR2		${Parse[0, "19,264,9,25,25,25,${If[${h_range},,_]}"]}
-		/ini ${_path}	entropy	ccN1		${Parse[0, "19,273,14,255,255,255,${If[${h_nuke},N,]}"]}
-		/ini ${_path}	entropy	ccN2		${Parse[0, "19,273,9,25,25,25,${If[${h_nuke},,_]}"]}
-		/ini ${_path}	entropy	ccD1		${Parse[0, "19,282,14,255,255,255,${If[${h_dot},D,]}"]}
-		/ini ${_path}	entropy	ccD2		${Parse[0, "19,282,9,25,25,25,${If[${h_dot},,_]}"]}
-		/ini ${_path}	entropy	ccH1		${Parse[0, "19,291,14,255,255,255,${If[${h_heal},H,]}"]}
-		/ini ${_path}	entropy	ccH2		${Parse[0, "19,291,9,25,25,25,${If[${h_heal},,_]}"]}
-		/ini ${_path}	entropy	ccC1		${Parse[0, "19,300,14,255,255,255,${If[${h_control},C,]}"]}
-		/ini ${_path}	entropy	ccC2		${Parse[0, "19,300,9,25,25,25,${If[${h_control},,_]}"]}
-
-
-	| row	13
-		/ini ${_path}	entropy	BG13		3,131,13,0,0,0,██████████████████████████
-
-
-	| row	26
-		| build	mode
-		/ini ${_path}	entropy	build1	3,5,26,100,149,237,build
-		/ini ${_path}	entropy	build2	${Parse[0, "19,40,26,140,140,140,${h_build}"]}
-
-		| healing
-		/ini ${_path}	entropy	hS1			${Parse[0, "19,133,26,255,255,255,${If[${h_self},S,]}"]}
-		/ini ${_path}	entropy	hS2			${Parse[0, "19,133,21,25,25,25,${If[${h_self},,_]}"]}
-		/ini ${_path}	entropy	hG1			${Parse[0, "19,142,26,255,255,255,${If[${h_group},G,]}"]}
-		/ini ${_path}	entropy	hG2			${Parse[0, "19,142,21,25,25,25,${If[${h_group},,_]}"]}
-		/ini ${_path}	entropy	hX1			${Parse[0, "19,151,26,255,255,255,${If[${h_xt},X,]}"]}
-		/ini ${_path}	entropy	hX2			${Parse[0, "19,151,21,25,25,25,${If[${h_xt},,_]}"]}
-		/ini ${_path}	entropy	hP1			${Parse[0, "19,160,26,255,255,255,${If[${h_pet},P,]}"]}
-		/ini ${_path}	entropy	hP2			${Parse[0, "19,160,21,25,25,25,${If[${h_pet},,_]}"]}
-		/ini ${_path}	entropy	hT1			${Parse[0, "19,169,26,255,255,255,${If[${h_tot},T,]}"]}
-		/ini ${_path}	entropy	hT2			${Parse[0, "19,169,21,25,25,25,${If[${h_tot},,_]}"]}
-
-		/ini ${_path}	entropy	hD1			${Parse[0, "19,178,26,255,255,255,${If[${h_dan},D,]}"]}
-		/ini ${_path}	entropy	hD2			${Parse[0, "19,178,21,25,25,25,${If[${h_dan},,_]}"]}
-
-		/ini ${_path}	entropy	ho1			${Parse[0, "19,187,26,255,255,255,${If[${h_override},${h_override},]}"]}
-		/ini ${_path}	entropy	ho2			${Parse[0, "19,187,21,25,25,25,${If[${h_override},,__]}"]}
-
-		| tie
-		/ini ${_path}	entropy	tie1		${Parse[0, "19,255,26,100,149,237,${h_tiemode}"]}
-		/ini ${_path}	entropy	tie2		${Parse[0, "19,280,26,0,255,0,${If[${Bool[${h_tietoon}]},${If[${Bool[${Spawn[${h_tietoon}]}]},${h_tietoon},]},]}"]}
-		/ini ${_path}	entropy	tie3		${Parse[0, "19,280,26,255,0,0,${If[${Bool[${h_tietoon}]},${If[!${Bool[${Spawn[${h_tietoon}]}]},${If[${Bool[${h_tietoon}]},${h_tietoon},]},]},]}"]}
-		/ini ${_path}	entropy	tie4		${Parse[0, "19,280,22,25,25,25,${If[${Bool[${h_tietoon}]},,____]}"]}
-
-		/ini ${_path}	entropy	BG26		3,3,26,0,0,0,██████████████████████████████████████████
-
-
-	| row	39
-		/ini ${_path}	entropy	mode1		19,5,39,100,149,237,mode
-		/ini ${_path}	entropy	mode2		${Parse[0, "19,40,39,255,255,255,${If[${h_mode.NotEqual[EMPTY]},${h_mode},]}"]}
-
-		| buffing
-		/ini ${_path}	entropy	b1			${Parse[0, "19,133,39,0,255,0,${If[${h_bmaster},buff,]}"]}
-		/ini ${_path}	entropy	b2			${Parse[0, "19,133,39,255,0,0,${If[${h_bmaster},,buff]}"]}
-		/ini ${_path}	entropy	bS1			${Parse[0, "19,157,39,255,255,255,${If[${h_bself},S,]}"]}
-		/ini ${_path}	entropy	bS2			${Parse[0, "19,157,34,25,25,25,${If[${h_bself},,_]}"]}
-		/ini ${_path}	entropy	bC1			${Parse[0, "19,166,39,255,255,255,${If[${h_bcrew},C,]}"]}
-		/ini ${_path}	entropy	bC2			${Parse[0, "19,166,34,25,25,25,${If[${h_bcrew},,_]}"]}
-		/ini ${_path}	entropy	bR1			${Parse[0, "19,175,39,255,255,255,${If[${h_braid},R,]}"]}
-		/ini ${_path}	entropy	bR2			${Parse[0, "19,175,34,25,25,25,${If[${h_braid},,_]}"]}
-		/ini ${_path}	entropy	bB1			${Parse[0, "19,184,39,255,255,255,${If[${h_bbeg},B,]}"]}
-		/ini ${_path}	entropy	bB2			${Parse[0, "19,184,34,25,25,25,${If[${h_bbeg},,_]}"]}
-		/ini ${_path}	entropy	bT1			${Parse[0, "19,193,39,255,255,255,${If[${h_btemp},T,]}"]}
-		/ini ${_path}	entropy	bT2			${Parse[0, "19,193,34,25,25,25,${If[${h_btemp},,_]}"]}
-		/ini ${_path}	entropy	bU1			${Parse[0, "19,202,39,255,255,255,${If[${h_bunity},U,]}"]}
-		/ini ${_path}	entropy	bU2			${Parse[0, "19,202,34,25,25,25,${If[${h_bunity},,_]}"]}
-		/ini ${_path}	entropy	bA1			${Parse[0, "19,211,39,255,255,255,${If[${h_baura},A,]}"]}
-		/ini ${_path}	entropy	bA2			${Parse[0, "19,211,34,25,25,25,${If[${h_baura},,_]}"]}
-		/ini ${_path}	entropy	bN1			${Parse[0, "19,220,39,255,255,255,${If[${h_bnow},N,]}"]}
-		/ini ${_path}	entropy	bN2			${Parse[0, "19,220,34,25,25,25,${If[${h_bnow},,_]}"]}
-		/ini ${_path}	entropy	bP1			${Parse[0, "19,229,39,255,255,255,${If[${h_bpet},P,]}"]}
-		/ini ${_path}	entropy	bP2			${Parse[0, "19,229,34,25,25,25,${If[${h_bpet},,_]}"]}
-		/ini ${_path}	entropy	bG1			${Parse[0, "19,238,39,255,255,255,${If[${h_bgroup},G,]}"]}
-		/ini ${_path}	entropy	bG2			${Parse[0, "19,238,34,25,25,25,${If[${h_bgroup},,_]}"]}
-
-		| burn
-		/ini ${_path}	entropy	burn1		${Parse[0, "19,255,39,0,255,0,${If[${h_buauto},burn,]}"]}
-		/ini ${_path}	entropy	burn2		${Parse[0, "19,255,39,255,0,0,${If[${h_buauto},,burn]}"]}
-		/ini ${_path}	entropy	burn4		${Parse[0, "19,280,39,255,255,255,${If[${h_bupct},${h_bupct},]}"]}
-		/ini ${_path}	entropy	burn5		${Parse[0, "19,280,34,25,25,25,${If[${h_bupct},,__]}"]}
-		/ini ${_path}	entropy	burn6		${Parse[0, "19,295,39,255,255,255,${If[${h_bucount},${h_bucount},]}"]}
-		/ini ${_path}	entropy	burn7		${Parse[0, "19,295,34,25,25,25,${If[${h_bucount},,__]}"]}
-		/ini ${_path}	entropy	burn8		${Parse[0, "19,310,39,255,255,255,${If[${h_buraid},R,]}"]}
-		/ini ${_path}	entropy	burn9		${Parse[0, "19,310,34,25,25,25,${If[${h_buraid},,_]}"]}
-
-		/ini ${_path}	entropy	BG39		3,3,39,0,0,0,██████████████████████████████████████████
-
-
-	| row	52
+  | row 0
+
+    | invisibilities
+    /ini ${_path} entropy INV1    ${Parse[0, "3,134,0,0,255,0,${If[${Me.SPA[12]}||${Me.SPA[314]},I,]}"]}
+    /ini ${_path} entropy INV2    ${Parse[0, "3,134,0,255,0,0,${If[${Me.SPA[12]}||${Me.SPA[314]},,I]}"]}
+    /ini ${_path} entropy IVU1    ${Parse[0, "3,138,0,0,255,0,${If[${Me.SPA[28]}||${Me.SPA[315]},U,]}"]}
+    /ini ${_path} entropy IVU2    ${Parse[0, "3,138,0,255,0,0,${If[${Me.SPA[28]}||${Me.SPA[315]},,U]}"]}
+    /ini ${_path} entropy SOS1    ${Parse[0, "3,146,0,0,255,0,${If[${Me.SPA[256]},S,]}"]}
+    /ini ${_path} entropy SOS2    ${Parse[0, "3,146,0,255,0,0,${If[${Me.SPA[256]},,S]}"]}
+    /ini ${_path} entropy ANI1    ${Parse[0, "3,154,0,0,255,0,${If[${Me.SPA[316]},A,]}"]}
+    /ini ${_path} entropy ANI2    ${Parse[0, "3,154,0,255,0,0,${If[${Me.SPA[316]},,A]}"]}
+
+    /ini ${_path} entropy BG0     3,131,0,0,0,0,██████████████████████████
+
+    | conbat controls
+    /ini ${_path} entropy ccA1    ${Parse[0, "19,134,14,255,255,0,${If[${h_auto},A,]}"]}
+    /ini ${_path} entropy ccA2    ${Parse[0, "19,134,9,25,25,25,${If[${h_auto},,_]}"]}
+    /ini ${_path} entropy ccEnv1  ${Parse[0, "19,146,14,140,140,140,${h_env}"]}
+
+    | pulling
+    /ini ${_path} entropy ccPM1   ${Parse[0, "19,170,14,0,255,0,${If[${h_pull},${h_pullmode},]}"]}
+    /ini ${_path} entropy ccPM2   ${Parse[0, "19,170,14,255,0,0,${If[${h_pull},,${h_pullmode}]}"]}
+    /ini ${_path} entropy ccPR1   ${Parse[0, "19,200,14,255,255,255,${If[${h_pullarea},${h_pullarea},]}"]}
+    /ini ${_path} entropy ccPR2   ${Parse[0, "19,200,9,25,25,25,${If[${h_pullarea},,___]}"]}
+
+    | agro
+    /ini ${_path} entropy ccAg1   ${Parse[0, "19,225,14,255,255,255,${If[${h_agro},A,]}"]}
+    /ini ${_path} entropy ccAg2   ${Parse[0, "19,225,9,25,25,25,${If[${h_agro},,_]}"]}
+
+    | combat modes
+    /ini ${_path} entropy ccM1    ${Parse[0, "19,255,14,255,255,255,${If[${h_melee},M,]}"]}
+    /ini ${_path} entropy ccM2    ${Parse[0, "19,255,9,25,25,25,${If[${h_melee},,_]}"]}
+    /ini ${_path} entropy ccR1    ${Parse[0, "19,264,14,255,255,255,${If[${h_range},R,]}"]}
+    /ini ${_path} entropy ccR2    ${Parse[0, "19,264,9,25,25,25,${If[${h_range},,_]}"]}
+    /ini ${_path} entropy ccN1    ${Parse[0, "19,273,14,255,255,255,${If[${h_nuke},N,]}"]}
+    /ini ${_path} entropy ccN2    ${Parse[0, "19,273,9,25,25,25,${If[${h_nuke},,_]}"]}
+    /ini ${_path} entropy ccD1    ${Parse[0, "19,282,14,255,255,255,${If[${h_dot},D,]}"]}
+    /ini ${_path} entropy ccD2    ${Parse[0, "19,282,9,25,25,25,${If[${h_dot},,_]}"]}
+    /ini ${_path} entropy ccH1    ${Parse[0, "19,291,14,255,255,255,${If[${h_heal},H,]}"]}
+    /ini ${_path} entropy ccH2    ${Parse[0, "19,291,9,25,25,25,${If[${h_heal},,_]}"]}
+    /ini ${_path} entropy ccC1    ${Parse[0, "19,300,14,255,255,255,${If[${h_control},C,]}"]}
+    /ini ${_path} entropy ccC2    ${Parse[0, "19,300,9,25,25,25,${If[${h_control},,_]}"]}
+
+
+  | row 13
+    /ini ${_path} entropy BG13    3,131,13,0,0,0,██████████████████████████
+
+
+  | row 26
+    | build mode
+    /ini ${_path} entropy build1  3,5,26,100,149,237,build
+    /ini ${_path} entropy build2  ${Parse[0, "19,40,26,140,140,140,${h_build}"]}
+
+    | healing
+    /ini ${_path} entropy hS1     ${Parse[0, "19,133,26,255,255,255,${If[${h_self},S,]}"]}
+    /ini ${_path} entropy hS2     ${Parse[0, "19,133,21,25,25,25,${If[${h_self},,_]}"]}
+    /ini ${_path} entropy hG1     ${Parse[0, "19,142,26,255,255,255,${If[${h_group},G,]}"]}
+    /ini ${_path} entropy hG2     ${Parse[0, "19,142,21,25,25,25,${If[${h_group},,_]}"]}
+    /ini ${_path} entropy hX1     ${Parse[0, "19,151,26,255,255,255,${If[${h_xt},X,]}"]}
+    /ini ${_path} entropy hX2     ${Parse[0, "19,151,21,25,25,25,${If[${h_xt},,_]}"]}
+    /ini ${_path} entropy hP1     ${Parse[0, "19,160,26,255,255,255,${If[${h_pet},P,]}"]}
+    /ini ${_path} entropy hP2     ${Parse[0, "19,160,21,25,25,25,${If[${h_pet},,_]}"]}
+    /ini ${_path} entropy hT1     ${Parse[0, "19,169,26,255,255,255,${If[${h_tot},T,]}"]}
+    /ini ${_path} entropy hT2     ${Parse[0, "19,169,21,25,25,25,${If[${h_tot},,_]}"]}
+
+    /ini ${_path} entropy hD1     ${Parse[0, "19,178,26,255,255,255,${If[${h_dan},D,]}"]}
+    /ini ${_path} entropy hD2     ${Parse[0, "19,178,21,25,25,25,${If[${h_dan},,_]}"]}
+
+    /ini ${_path} entropy ho1     ${Parse[0, "19,187,26,255,255,255,${If[${h_override},${h_override},]}"]}
+    /ini ${_path} entropy ho2     ${Parse[0, "19,187,21,25,25,25,${If[${h_override},,__]}"]}
+
+    | tie
+    /ini ${_path} entropy tie1    ${Parse[0, "19,255,26,100,149,237,${h_tiemode}"]}
+    /ini ${_path} entropy tie2    ${Parse[0, "19,280,26,0,255,0,${If[${Bool[${h_tietoon}]},${If[${Bool[${Spawn[${h_tietoon}]}]},${h_tietoon},]},]}"]}
+    /ini ${_path} entropy tie3    ${Parse[0, "19,280,26,255,0,0,${If[${Bool[${h_tietoon}]},${If[!${Bool[${Spawn[${h_tietoon}]}]},${If[${Bool[${h_tietoon}]},${h_tietoon},]},]},]}"]}
+    /ini ${_path} entropy tie4    ${Parse[0, "19,280,22,25,25,25,${If[${Bool[${h_tietoon}]},,____]}"]}
+
+    /ini ${_path} entropy BG26    3,3,26,0,0,0,██████████████████████████████████████████
+
+
+  | row 39
+    /ini ${_path} entropy mode1   19,5,39,100,149,237,mode
+    /ini ${_path} entropy mode2   ${Parse[0, "19,40,39,255,255,255,${If[${h_mode.NotEqual[EMPTY]},${h_mode},]}"]}
+
+    | buffing
+    /ini ${_path} entropy b1      ${Parse[0, "19,133,39,0,255,0,${If[${h_bmaster},buff,]}"]}
+    /ini ${_path} entropy b2      ${Parse[0, "19,133,39,255,0,0,${If[${h_bmaster},,buff]}"]}
+    /ini ${_path} entropy bS1     ${Parse[0, "19,157,39,255,255,255,${If[${h_bself},S,]}"]}
+    /ini ${_path} entropy bS2     ${Parse[0, "19,157,34,25,25,25,${If[${h_bself},,_]}"]}
+    /ini ${_path} entropy bC1     ${Parse[0, "19,166,39,255,255,255,${If[${h_bcrew},C,]}"]}
+    /ini ${_path} entropy bC2     ${Parse[0, "19,166,34,25,25,25,${If[${h_bcrew},,_]}"]}
+    /ini ${_path} entropy bR1     ${Parse[0, "19,175,39,255,255,255,${If[${h_braid},R,]}"]}
+    /ini ${_path} entropy bR2     ${Parse[0, "19,175,34,25,25,25,${If[${h_braid},,_]}"]}
+    /ini ${_path} entropy bB1     ${Parse[0, "19,184,39,255,255,255,${If[${h_bbeg},B,]}"]}
+    /ini ${_path} entropy bB2     ${Parse[0, "19,184,34,25,25,25,${If[${h_bbeg},,_]}"]}
+    /ini ${_path} entropy bT1     ${Parse[0, "19,193,39,255,255,255,${If[${h_btemp},T,]}"]}
+    /ini ${_path} entropy bT2     ${Parse[0, "19,193,34,25,25,25,${If[${h_btemp},,_]}"]}
+    /ini ${_path} entropy bU1     ${Parse[0, "19,202,39,255,255,255,${If[${h_bunity},U,]}"]}
+    /ini ${_path} entropy bU2     ${Parse[0, "19,202,34,25,25,25,${If[${h_bunity},,_]}"]}
+    /ini ${_path} entropy bA1     ${Parse[0, "19,211,39,255,255,255,${If[${h_baura},A,]}"]}
+    /ini ${_path} entropy bA2     ${Parse[0, "19,211,34,25,25,25,${If[${h_baura},,_]}"]}
+    /ini ${_path} entropy bN1     ${Parse[0, "19,220,39,255,255,255,${If[${h_bnow},N,]}"]}
+    /ini ${_path} entropy bN2     ${Parse[0, "19,220,34,25,25,25,${If[${h_bnow},,_]}"]}
+    /ini ${_path} entropy bP1     ${Parse[0, "19,229,39,255,255,255,${If[${h_bpet},P,]}"]}
+    /ini ${_path} entropy bP2     ${Parse[0, "19,229,34,25,25,25,${If[${h_bpet},,_]}"]}
+    /ini ${_path} entropy bG1     ${Parse[0, "19,238,39,255,255,255,${If[${h_bgroup},G,]}"]}
+    /ini ${_path} entropy bG2     ${Parse[0, "19,238,34,25,25,25,${If[${h_bgroup},,_]}"]}
+
+    | burn
+    /ini ${_path} entropy burn1   ${Parse[0, "19,255,39,0,255,0,${If[${h_buauto},burn,]}"]}
+    /ini ${_path} entropy burn2   ${Parse[0, "19,255,39,255,0,0,${If[${h_buauto},,burn]}"]}
+    /ini ${_path} entropy burn4   ${Parse[0, "19,280,39,255,255,255,${If[${h_bupct},${h_bupct},]}"]}
+    /ini ${_path} entropy burn5   ${Parse[0, "19,280,34,25,25,25,${If[${h_bupct},,__]}"]}
+    /ini ${_path} entropy burn6   ${Parse[0, "19,295,39,255,255,255,${If[${h_bucount},${h_bucount},]}"]}
+    /ini ${_path} entropy burn7   ${Parse[0, "19,295,34,25,25,25,${If[${h_bucount},,__]}"]}
+    /ini ${_path} entropy burn8   ${Parse[0, "19,310,39,255,255,255,${If[${h_buraid},R,]}"]}
+    /ini ${_path} entropy burn9   ${Parse[0, "19,310,34,25,25,25,${If[${h_buraid},,_]}"]}
+
+    /ini ${_path} entropy BG39    3,3,39,0,0,0,██████████████████████████████████████████
+
+
+  | row 52
 
-		| toons	loc
-		/ini ${_path}	entropy	yxz1		3,5,52,100,149,237,yxz
-		/ini ${_path}	entropy	yxz2		${Parse[0, "3,40,52,140,140,140,${Int[${Me.Y}]}, ${Int[${Me.X}]},	${Int[${Me.Z}]}"]}
+    | toons loc
+    /ini ${_path} entropy yxz1    3,5,52,100,149,237,yxz
+    /ini ${_path} entropy yxz2    ${Parse[0, "3,40,52,140,140,140,${Int[${Me.Y}]}, ${Int[${Me.X}]}, ${Int[${Me.Z}]}"]}
 
-		| rest
-		/ini ${_path}	entropy	rest1		${Parse[0, "19,255,52,0,255,0,${If[${Me.CombatState.Equal[resting]},rest,]}"]}
-		/ini ${_path}	entropy	rest2		${Parse[0, "19,255,52,255,0,0,${If[${Me.CombatState.Equal[resting]},,rest]}"]}
-		/ini ${_path}	entropy	rest3		${Parse[0, "19,280,52,255,255,255,${If[${h_rpct},${h_rpct},]}"]}
-		/ini ${_path}	entropy	rest4		${Parse[0, "19,280,47,25,25,25,${If[${h_rpct},,__]}"]}
-		/ini ${_path}	entropy	rest5		${Parse[0, "19,295,52,255,255,255,${If[${h_rfull},F,]}"]}
-		/ini ${_path}	entropy	rest6		${Parse[0, "19,295,47,25,25,25,${If[${h_rfull},,_]}"]}
-		/ini ${_path}	entropy	rest7		${Parse[0, "19,304,52,255,255,255,${If[${h_rrod},R,]}"]}
-		/ini ${_path}	entropy	rest8		${Parse[0, "19,304,47,25,25,25,${If[${h_rrod},,_]}"]}
-		/ini ${_path}	entropy	rest9		${Parse[0, "19,313,52,255,255,255,${If[${h_rbuff},B,]}"]}
-		/ini ${_path}	entropy	rest10	${Parse[0, "19,313,47,25,25,25,${If[${h_rbuff},,_]}"]}
-		/ini ${_path}	entropy	rest11	${Parse[0, "19,322,52,255,255,255,${If[${h_rcombat},C,]}"]}
-		/ini ${_path}	entropy	rest12	${Parse[0, "19,322,47,25,25,25,${If[${h_rcombat},,_]}"]}
+    | rest
+    /ini ${_path} entropy rest1   ${Parse[0, "19,255,52,0,255,0,${If[${Me.CombatState.Equal[resting]},rest,]}"]}
+    /ini ${_path} entropy rest2   ${Parse[0, "19,255,52,255,0,0,${If[${Me.CombatState.Equal[resting]},,rest]}"]}
+    /ini ${_path} entropy rest3   ${Parse[0, "19,280,52,255,255,255,${If[${h_rpct},${h_rpct},]}"]}
+    /ini ${_path} entropy rest4   ${Parse[0, "19,280,47,25,25,25,${If[${h_rpct},,__]}"]}
+    /ini ${_path} entropy rest5   ${Parse[0, "19,295,52,255,255,255,${If[${h_rfull},F,]}"]}
+    /ini ${_path} entropy rest6   ${Parse[0, "19,295,47,25,25,25,${If[${h_rfull},,_]}"]}
+    /ini ${_path} entropy rest7   ${Parse[0, "19,304,52,255,255,255,${If[${h_rrod},R,]}"]}
+    /ini ${_path} entropy rest8   ${Parse[0, "19,304,47,25,25,25,${If[${h_rrod},,_]}"]}
+    /ini ${_path} entropy rest9   ${Parse[0, "19,313,52,255,255,255,${If[${h_rbuff},B,]}"]}
+    /ini ${_path} entropy rest10  ${Parse[0, "19,313,47,25,25,25,${If[${h_rbuff},,_]}"]}
+    /ini ${_path} entropy rest11  ${Parse[0, "19,322,52,255,255,255,${If[${h_rcombat},C,]}"]}
+    /ini ${_path} entropy rest12  ${Parse[0, "19,322,47,25,25,25,${If[${h_rcombat},,_]}"]}
 
-		/ini ${_path}	entropy	BG52		3,3,52,0,0,0,██████████████████████████████████████████
+    /ini ${_path} entropy BG52    3,3,52,0,0,0,██████████████████████████████████████████
 
-	| row	65
+  | row 65
 
-		/ini ${_path}	entropy	envset1		 3,5,65,100,149,237,set
-		/ini ${_path}	entropy	envset2		 ${Parse[0,	"19,40,65,140,140,140,${h_eset}"]}
+    /ini ${_path} entropy envset1    3,5,65,100,149,237,set
+    /ini ${_path} entropy envset2    ${Parse[0, "19,40,65,140,140,140,${h_eset}"]}
 
-		| rez
-		/ini ${_path}	entropy	rez1		${Parse[0, "19,255,65,0,255,0,${If[${h_ztake},rez,]}"]}
-		/ini ${_path}	entropy	rez2		${Parse[0, "19,255,65,255,0,0,${If[${h_ztake},,rez]}"]}
-		/ini ${_path}	entropy	rez3		${Parse[0, "19,274,65,255,255,255,${If[${h_zooc},O,]}"]}
-		/ini ${_path}	entropy	rez4		${Parse[0, "19,274,60,25,25,25,${If[${h_zooc},,_]}"]}
-		/ini ${_path}	entropy	rez5		${Parse[0, "19,285,65,255,255,255,${If[${h_zic},I,]}"]}
-		/ini ${_path}	entropy	rez6		${Parse[0, "19,283,60,25,25,25,${If[${h_zic},,_]}"]}
-		/ini ${_path}	entropy	rez7		${Parse[0, "19,292,65,255,255,255,${If[${h_zeveryone},E,]}"]}
-		/ini ${_path}	entropy	rez8		${Parse[0, "19,292,60,25,25,25,${If[${h_zeveryone},,_]}"]}
-		/ini ${_path}	entropy	rez9		${Parse[0, "19,301,65,255,255,255,${If[${h_ztoken},T,]}"]}
-		/ini ${_path}	entropy	rez10		${Parse[0, "19,301,60,25,25,25,${If[${h_ztoken},,_]}"]}
-		/ini ${_path}	entropy	rez11		${Parse[0, "19,310,65,255,255,255,${If[${h_zdan},D,]}"]}
-		/ini ${_path}	entropy	rez12		${Parse[0, "19,310,60,25,25,25,${If[${h_zdan},,_]}"]}
+    | rez
+    /ini ${_path} entropy rez1    ${Parse[0, "19,255,65,0,255,0,${If[${h_ztake},rez,]}"]}
+    /ini ${_path} entropy rez2    ${Parse[0, "19,255,65,255,0,0,${If[${h_ztake},,rez]}"]}
+    /ini ${_path} entropy rez3    ${Parse[0, "19,274,65,255,255,255,${If[${h_zooc},O,]}"]}
+    /ini ${_path} entropy rez4    ${Parse[0, "19,274,60,25,25,25,${If[${h_zooc},,_]}"]}
+    /ini ${_path} entropy rez5    ${Parse[0, "19,285,65,255,255,255,${If[${h_zic},I,]}"]}
+    /ini ${_path} entropy rez6    ${Parse[0, "19,283,60,25,25,25,${If[${h_zic},,_]}"]}
+    /ini ${_path} entropy rez7    ${Parse[0, "19,292,65,255,255,255,${If[${h_zeveryone},E,]}"]}
+    /ini ${_path} entropy rez8    ${Parse[0, "19,292,60,25,25,25,${If[${h_zeveryone},,_]}"]}
+    /ini ${_path} entropy rez9    ${Parse[0, "19,301,65,255,255,255,${If[${h_ztoken},T,]}"]}
+    /ini ${_path} entropy rez10   ${Parse[0, "19,301,60,25,25,25,${If[${h_ztoken},,_]}"]}
+    /ini ${_path} entropy rez11   ${Parse[0, "19,310,65,255,255,255,${If[${h_zdan},D,]}"]}
+    /ini ${_path} entropy rez12   ${Parse[0, "19,310,60,25,25,25,${If[${h_zdan},,_]}"]}
 
-		/ini ${_path}	entropy	rez13		${Parse[0, "19,319,65,140,140,140,${h_zrad}"]}
+    /ini ${_path} entropy rez13   ${Parse[0, "19,319,65,140,140,140,${h_zrad}"]}
 
 
-		/ini ${_path}	entropy	BG65		3,3,65,0,0,0,██████████████████████████████████████████
+    /ini ${_path} entropy BG65    3,3,65,0,0,0,██████████████████████████████████████████
 
-	| row	78
-		/ini ${_path}	entropy	body1		${Parse[0, "3,73,78,0,255,0,${If[${Target.LineOfSight},${Target.Body},]}"]}
-		/ini ${_path}	entropy	body2		${Parse[0, "3,73,78,255,0,0,${If[${Target.LineOfSight},,${Target.Body}]}"]}
-		/ini ${_path}	entropy	body3		${Parse[0, "3,145,78,140,140,140,${Target.Distance}	(${Math.Calc[${Spawn[${Target.ID}].MaxRangeTo}*.9]})"]}
-		/ini ${_path}	entropy	eng0		"3,5,77,100,149,237,[     ][     ][     ][                       ]"
-		/ini ${_path}	entropy	eng1		${Parse[0, "19,10,78,255,255,255,${If[${h_engage},${h_engage},]}"]}
-		/ini ${_path}	entropy	eng2		${Parse[0, "19,12,73,25,25,25,${If[(!${h_engage},__,]}"]}
-		/ini ${_path}	entropy	eng5		${Parse[0, "19,31,78,255,255,255,${If[${h_swpet},${h_engagepet},]}"]}
-		/ini ${_path}	entropy	eng6		${Parse[0, "19,31,73,25,25,25,${If[!${h_swpet},__,]}"]}
-		/ini ${_path}	entropy	eng8		${Parse[0, "19,52,78,255,255,255,${If[${h_swswarm},${h_engageswarm},]}"]}
-		/ini ${_path}	entropy	eng9		${Parse[0, "19,52,73,25,25,25,${If[!${h_swswarm},__,]}"]}
-		/ini ${_path}	entropy	BG78		3,3,78,0,0,0,██████████████████████████████████████████
+  | row 78
+    /ini ${_path} entropy body1   ${Parse[0, "3,73,78,0,255,0,${If[${Target.LineOfSight},${Target.Body},]}"]}
+    /ini ${_path} entropy body2   ${Parse[0, "3,73,78,255,0,0,${If[${Target.LineOfSight},,${Target.Body}]}"]}
+    /ini ${_path} entropy body3   ${Parse[0, "3,145,78,140,140,140,${Target.Distance} (${Math.Calc[${Spawn[${Target.ID}].MaxRangeTo}*.9]})"]}
+    /ini ${_path} entropy eng0    "3,5,77,100,149,237,[     ][     ][     ][                       ]"
+    /ini ${_path} entropy eng1    ${Parse[0, "19,10,78,255,255,255,${If[${h_engage},${h_engage},]}"]}
+    /ini ${_path} entropy eng2    ${Parse[0, "19,12,73,25,25,25,${If[(!${h_engage},__,]}"]}
+    /ini ${_path} entropy eng5    ${Parse[0, "19,31,78,255,255,255,${If[${h_swpet},${h_engagepet},]}"]}
+    /ini ${_path} entropy eng6    ${Parse[0, "19,31,73,25,25,25,${If[!${h_swpet},__,]}"]}
+    /ini ${_path} entropy eng8    ${Parse[0, "19,52,78,255,255,255,${If[${h_swswarm},${h_engageswarm},]}"]}
+    /ini ${_path} entropy eng9    ${Parse[0, "19,52,73,25,25,25,${If[!${h_swswarm},__,]}"]}
+    /ini ${_path} entropy BG78    3,3,78,0,0,0,██████████████████████████████████████████
 
 
-	| row	91
-		/ini ${_path}	entropy	target		${Parse[0, "3,5,91,100,149,237,${If[${Target.ID},[${Target.Class.ShortName}	${Target.Level}] ${Target.Name}	${If[${Bool[${Target.Guild}]},<${Target.Guild}>, ]}, ]}"]}
-		/ini ${_path}	entropy	time1			${Parse[0, "19,290,91,146,149,180,${If[${h_time},${Time.Time24},${GameTime}]}"]}
-		/ini ${_path}	entropy	BG91			3,3,91,0,0,0,██████████████████████████████████████████
+  | row 91
+    /ini ${_path} entropy target    ${Parse[0, "3,5,91,100,149,237,${If[${Target.ID},[${Target.Class.ShortName} ${Target.Level}] ${Target.Name} ${If[${Bool[${Target.Guild}]},<${Target.Guild}>, ]}, ]}"]}
+    /ini ${_path} entropy time1     ${Parse[0, "19,290,91,146,149,180,${If[${h_time},${Time.Time24},${GameTime}]}"]}
+    /ini ${_path} entropy BG91      3,3,91,0,0,0,██████████████████████████████████████████
 
 
 
-	| cursor over	hud
-	}	else /if (${_verbage.Equal[cursor]}) {
-		OUT	Updating MQ2HUD.INI${sep}\a-w${_verbage}\ax
+  | cursor over hud
+  } else /if (${_verbage.Equal[cursor]}) {
+    OUT Updating MQ2HUD.INI${sep}\a-w${_verbage}\ax
 
-		/ini ${_path}	cursor over				${Parse[0, "21,4,50,0,255,0,${If[${Bool[${EverQuest.LastMouseOver}]},${EverQuest.LastMouseOver.Name},]}"]}
-		/ini ${_path}	cursor overbg			21,2,50,0,0,0,${If[${EverQuest.LastMouseOver},█████████████████████████,]}
+    /ini ${_path} cursor over       ${Parse[0, "21,4,50,0,255,0,${If[${Bool[${EverQuest.LastMouseOver}]},${EverQuest.LastMouseOver.Name},]}"]}
+    /ini ${_path} cursor overbg     21,2,50,0,0,0,${If[${EverQuest.LastMouseOver},█████████████████████████,]}
 
 
-	| additional development hud
-	}	else /if (${_verbage.Equal[dev]})	{
-		OUT	Updating MQ2HUD.INI${sep}\a-w${_verbage}\ax
+  | additional development hud
+  } else /if (${_verbage.Equal[dev]}) {
+    OUT Updating MQ2HUD.INI${sep}\a-w${_verbage}\ax
 
-		/ini ${_path}	dev	HL1								"3,3,95,247,152,10,________________________________________________________"
-		/ini ${_path}	dev	HL2								"3,3,96,247,152,10,________________________________________________________"
+    /ini ${_path} dev HL1               "3,3,95,247,152,10,________________________________________________________"
+    /ini ${_path} dev HL2               "3,3,96,247,152,10,________________________________________________________"
 
-	| row	110
-		/ini ${_path}	dev	devflow						${Parse[0, "19,5,110,100,149,237,${flow}"]}
-		/ini ${_path}	dev	BG110							3,3,110,0,0,0,██████████████████████████████████████████
+  | row 110
+    /ini ${_path} dev devflow           ${Parse[0, "19,5,110,100,149,237,${flow}"]}
+    /ini ${_path} dev BG110             3,3,110,0,0,0,██████████████████████████████████████████
 
 
-	| row	123
-		/ini ${_path}	dev	devCombat1				3,5,123,100,149,237,combat
-		/ini ${_path}	dev	devCombat2				${Parse[0, "19,45,123,0,255,0,${If[${h_dcombat},T,]}"]}
-		/ini ${_path}	dev	devCombat3				${Parse[0, "19,45,123,255,0,0,${If[${h_dcombat},,F]}"]}
+  | row 123
+    /ini ${_path} dev devCombat1        3,5,123,100,149,237,combat
+    /ini ${_path} dev devCombat2        ${Parse[0, "19,45,123,0,255,0,${If[${h_dcombat},T,]}"]}
+    /ini ${_path} dev devCombat3        ${Parse[0, "19,45,123,255,0,0,${If[${h_dcombat},,F]}"]}
 
 
-		/ini ${_path}	dev	devBurn1					3,80,123,100,149,237,burn
-		/ini ${_path}	dev	devBurn2					${Parse[0, "19,110,123,0,255,0,${If[${h_dburn},T,]}"]}
-		/ini ${_path}	dev	devBurn3					${Parse[0, "19,110,123,255,0,0,${If[${h_dburn},,F]}"]}
+    /ini ${_path} dev devBurn1          3,80,123,100,149,237,burn
+    /ini ${_path} dev devBurn2          ${Parse[0, "19,110,123,0,255,0,${If[${h_dburn},T,]}"]}
+    /ini ${_path} dev devBurn3          ${Parse[0, "19,110,123,255,0,0,${If[${h_dburn},,F]}"]}
 
-		/ini ${_path}	dev	hurtID1						3,130,123,100,149,237,hID
-		/ini ${_path}	dev	hurtID2						${Parse[0, "19,150,123,255,255,255,${hurtID}"]}
+    /ini ${_path} dev hurtID1           3,130,123,100,149,237,hID
+    /ini ${_path} dev hurtID2           ${Parse[0, "19,150,123,255,255,255,${hurtID}"]}
 
 
-		/ini ${_path}	dev	BG123							3,3,123,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG123             3,3,123,0,0,0,██████████████████████████████████████████
 
-	| row 136
-		/ini ${_path}	dev	devTargetID1			3,5,136,100,149,237,targetID
-		/ini ${_path}	dev	devTargetID2			${Parse[0, "19,45,136,255,255,255,${Target.ID}"]}
+  | row 136
+    /ini ${_path} dev devTargetID1      3,5,136,100,149,237,targetID
+    /ini ${_path} dev devTargetID2      ${Parse[0, "19,45,136,255,255,255,${Target.ID}"]}
 
-		/ini ${_path}	dev	stEnvRadius1			3,80,136,100,149,237,env
-		/ini ${_path}	dev	stEnvRadius2			${Parse[0, "19,110,136,255,255,255,${SpawnCount[NPC	radius ${h_denv}]}"]}
+    /ini ${_path} dev stEnvRadius1      3,80,136,100,149,237,env
+    /ini ${_path} dev stEnvRadius2      ${Parse[0, "19,110,136,255,255,255,${SpawnCount[NPC radius ${h_denv}]}"]}
 
-		/ini ${_path}	dev	hurtPctHP1				3,130,136,100,149,237,h%
-		/ini ${_path}	dev	hurtPctHP2				${Parse[0, "19,150,136,255,255,255,${hurtPctHP}"]}
+    /ini ${_path} dev hurtPctHP1        3,130,136,100,149,237,h%
+    /ini ${_path} dev hurtPctHP2        ${Parse[0, "19,150,136,255,255,255,${hurtPctHP}"]}
 
 
-		/ini ${_path}	dev	BG136							3,3,136,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG136             3,3,136,0,0,0,██████████████████████████████████████████
 
-	| row 149
-		/ini ${_path}	dev	devASSTargetID1		3,5,149,100,149,237,AssID
-		/ini ${_path}	dev	devASSTargetID2		${Parse[0, "19,45,149,255,255,255,${stAssTarID}"]}
+  | row 149
+    /ini ${_path} dev devASSTargetID1   3,5,149,100,149,237,AssID
+    /ini ${_path} dev devASSTargetID2   ${Parse[0, "19,45,149,255,255,255,${stAssTarID}"]}
 
-		/ini ${_path}	dev	stEnvSafeRadius1	,80,149,100,149,237,safe
-		/ini ${_path}	dev	stEnvSafeRadius2	${Parse[0, "19,110,149,255,255,255,${SpawnCount[NPC	radius ${h_dsafe}	playerstate	4]}"]}
+    /ini ${_path} dev stEnvSafeRadius1  ,80,149,100,149,237,safe
+    /ini ${_path} dev stEnvSafeRadius2  ${Parse[0, "19,110,149,255,255,255,${SpawnCount[NPC radius ${h_dsafe} playerstate 4]}"]}
 
-		/ini ${_path}	dev	hurtCLS1				3,130,149,100,149,237,hCL
-		/ini ${_path}	dev	hurtCLS2				${Parse[0, "19,150,149,255,255,255,${hurtCLS}"]}
+    /ini ${_path} dev hurtCLS1        3,130,149,100,149,237,hCL
+    /ini ${_path} dev hurtCLS2        ${Parse[0, "19,150,149,255,255,255,${hurtCLS}"]}
 
 
-		/ini ${_path}	dev	BG149							3,3,149,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG149             3,3,149,0,0,0,██████████████████████████████████████████
 
 
-	| row	162
-		/ini ${_path}	dev	devIsDead1				3,5,162,100,149,237,IsDead
-		/ini ${_path}	dev	devIsDead2				${Parse[0, "19,45,162,0,255,0,${If[${swIsMeDead},T,]}"]}
-		/ini ${_path}	dev	devIsDead3				${Parse[0, "19,45,162,255,0,0,${If[${swIsMeDead},,F]}"]}
+  | row 162
+    /ini ${_path} dev devIsDead1        3,5,162,100,149,237,IsDead
+    /ini ${_path} dev devIsDead2        ${Parse[0, "19,45,162,0,255,0,${If[${swIsMeDead},T,]}"]}
+    /ini ${_path} dev devIsDead3        ${Parse[0, "19,45,162,255,0,0,${If[${swIsMeDead},,F]}"]}
 
-		/ini ${_path}	dev	stPullRadius1			3,80,162,100,149,237,pull
-		/ini ${_path}	dev	stPullRadius2			${Parse[0, "19,110,162,255,255,255,${SpawnCount[NPC	radius ${h_dpull}]}"]}
+    /ini ${_path} dev stPullRadius1     3,80,162,100,149,237,pull
+    /ini ${_path} dev stPullRadius2     ${Parse[0, "19,110,162,255,255,255,${SpawnCount[NPC radius ${h_dpull}]}"]}
 
-		/ini ${_path}	dev	hurtCount1				3,130,162,100,149,237,h#
-		/ini ${_path}	dev	hurtCount2				${Parse[0, "19,150,162,255,255,255,${hurtCount}"]}
+    /ini ${_path} dev hurtCount1        3,130,162,100,149,237,h#
+    /ini ${_path} dev hurtCount2        ${Parse[0, "19,150,162,255,255,255,${hurtCount}"]}
 
-		/ini ${_path}	dev	castStatus1				3,250,162,100,149,237,cR
-		/ini ${_path}	dev	castStatus2				${Parse[0, "19,265,162,255,255,255,${h_dcaststatus}"]}
+    /ini ${_path} dev castStatus1       3,250,162,100,149,237,cR
+    /ini ${_path} dev castStatus2       ${Parse[0, "19,265,162,255,255,255,${h_dcaststatus}"]}
 
 
-		/ini ${_path}	dev	BG162							3,3,162,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG162             3,3,162,0,0,0,██████████████████████████████████████████
 
-		/ini ${_path}	dev	HL3								3,3,166,247,152,10,________________________________________________________
-		/ini ${_path}	dev	HL4								3,3,167,247,152,10,________________________________________________________
+    /ini ${_path} dev HL3               3,3,166,247,152,10,________________________________________________________
+    /ini ${_path} dev HL4               3,3,167,247,152,10,________________________________________________________
 
 
-	| row	181
-		/ini ${_path}	dev	tTIE1							3,5,181,100,149,237,tie
-		/ini ${_path}	dev	tTIE2							${Parse[0, "19,30,181,255,239,0,${timer_Check_Tie}"]}
-		/ini ${_path}	dev	tb1								3,50,181,100,149,237,b
-		/ini ${_path}	dev	tb2								${Parse[0, "19,70,181,255,239,0,${timer_Check_Buff_Cycle}"]}
+  | row 181
+    /ini ${_path} dev tTIE1             3,5,181,100,149,237,tie
+    /ini ${_path} dev tTIE2             ${Parse[0, "19,30,181,255,239,0,${timer_Check_Tie}"]}
+    /ini ${_path} dev tb1               3,50,181,100,149,237,b
+    /ini ${_path} dev tb2               ${Parse[0, "19,70,181,255,239,0,${timer_Check_Buff_Cycle}"]}
 
-		/ini ${_path}	dev	tbC1							3,105,181,100,149,237,bC
-		/ini ${_path}	dev	tbC2							${Parse[0, "19,125,181,255,239,0,${timer_Check_Buff_Crew}"]}
+    /ini ${_path} dev tbC1              3,105,181,100,149,237,bC
+    /ini ${_path} dev tbC2              ${Parse[0, "19,125,181,255,239,0,${timer_Check_Buff_Crew}"]}
 
-		/ini ${_path}	dev	tbR1							3,160,181,100,149,237,bR
-		/ini ${_path}	dev	tbR2							${Parse[0, "19,180,181,255,239,0,${timer_Check_Buff_Raid}"]}
+    /ini ${_path} dev tbR1              3,160,181,100,149,237,bR
+    /ini ${_path} dev tbR2              ${Parse[0, "19,180,181,255,239,0,${timer_Check_Buff_Raid}"]}
 
-		/ini ${_path}	dev	tMode1						3,215,181,100,149,237,tM
-		/ini ${_path}	dev	tMode2						${Parse[0, "19,240,181,255,239,0,${timer_Check_Mode}"]}
+    /ini ${_path} dev tMode1            3,215,181,100,149,237,tM
+    /ini ${_path} dev tMode2            ${Parse[0, "19,240,181,255,239,0,${timer_Check_Mode}"]}
 
 
 
-		/ini ${_path}	dev	BG181							3,3,181,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG181             3,3,181,0,0,0,██████████████████████████████████████████
 
-	| row	194
+  | row 194
 
-		|	/ini ${_path}	dev	tCure1						3,5,194,100,149,237,cure
-		|	/ini ${_path}	dev	tCure2						${Parse[0, "19,30,194,255,239,0,${timer_Check_Cure}"]}
+    | /ini ${_path} dev tCure1            3,5,194,100,149,237,cure
+    | /ini ${_path} dev tCure2            ${Parse[0, "19,30,194,255,239,0,${timer_Check_Cure}"]}
 
-		/ini ${_path}	dev	tbN1							3,50,194,100,149,237,bN
-		/ini ${_path}	dev	tbN2							${Parse[0, "19,70,194,255,239,0,${timer_Check_Buff_Now}"]}
+    /ini ${_path} dev tbN1              3,50,194,100,149,237,bN
+    /ini ${_path} dev tbN2              ${Parse[0, "19,70,194,255,239,0,${timer_Check_Buff_Now}"]}
 
-		/ini ${_path}	dev	tbA1							3,105,194,100,149,237,bA
-		/ini ${_path}	dev	tbA2							${Parse[0, "19,125,194,255,239,0,${timer_Check_Buff_Aura}"]}
+    /ini ${_path} dev tbA1              3,105,194,100,149,237,bA
+    /ini ${_path} dev tbA2              ${Parse[0, "19,125,194,255,239,0,${timer_Check_Buff_Aura}"]}
 
-		/ini ${_path}	dev	tbG1							3,160,194,100,149,237,bG
-		/ini ${_path}	dev	tbG2							${Parse[0, "19,180,194,255,239,0,${timer_Check_Buff_Group}"]}
+    /ini ${_path} dev tbG1              3,160,194,100,149,237,bG
+    /ini ${_path} dev tbG2              ${Parse[0, "19,180,194,255,239,0,${timer_Check_Buff_Group}"]}
 
 
 
-		/ini ${_path}	dev	BG194							3,3,194,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG194             3,3,194,0,0,0,██████████████████████████████████████████
 
-	| row207
+  | row207
 
-		/ini ${_path}	dev	tbS1							3,50,207,100,149,237,bS
-		/ini ${_path}	dev	tbS2							${Parse[0, "19,70,207,255,239,0,${timer_Check_Buff_Self}"]}
-		/ini ${_path}	dev	tbB1							3,105,207,100,149,237,bB
-		/ini ${_path}	dev	tbB2							${Parse[0, "19,125,207,255,239,0,${timer_Check_Buff_Beg}"]}
+    /ini ${_path} dev tbS1              3,50,207,100,149,237,bS
+    /ini ${_path} dev tbS2              ${Parse[0, "19,70,207,255,239,0,${timer_Check_Buff_Self}"]}
+    /ini ${_path} dev tbB1              3,105,207,100,149,237,bB
+    /ini ${_path} dev tbB2              ${Parse[0, "19,125,207,255,239,0,${timer_Check_Buff_Beg}"]}
 
-		/ini ${_path}	dev	BG207							3,3,207,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG207             3,3,207,0,0,0,██████████████████████████████████████████
 
-	| row	220
+  | row 220
 
-		/ini ${_path}	dev	tbU1							3,50,220,100,149,237,bU
-		/ini ${_path}	dev	tbU2							${Parse[0, "19,70,220,255,239,0,${timer_Check_Buff_Unity}"]}
-		/ini ${_path}	dev	tbT1							3,105,220,100,149,237,bT
-		/ini ${_path}	dev	tbT2							${Parse[0, "19,125,220,255,239,0,${timer_Check_Buff_Temp}"]}
+    /ini ${_path} dev tbU1              3,50,220,100,149,237,bU
+    /ini ${_path} dev tbU2              ${Parse[0, "19,70,220,255,239,0,${timer_Check_Buff_Unity}"]}
+    /ini ${_path} dev tbT1              3,105,220,100,149,237,bT
+    /ini ${_path} dev tbT2              ${Parse[0, "19,125,220,255,239,0,${timer_Check_Buff_Temp}"]}
 
-		/ini ${_path}	dev	BG220							3,3,220,0,0,0,██████████████████████████████████████████
+    /ini ${_path} dev BG220             3,3,220,0,0,0,██████████████████████████████████████████
 
 
-	 | additional	development	hud
-	}	else /if (${_verbage.Equal[buttons]})	{
+   | additional development hud
+  } else /if (${_verbage.Equal[buttons]}) {
 
-		/if	(!NEXT)	{
-			/invoke	${out[0, "Only available for MQ2Next"]}
-			/return	FALSE
-		}	else /if (NEXT)	{
-			/varset	_path	"MQ2MyButtons.ini"
-		}
+    /if (!NEXT) {
+      /invoke ${out[0, "Only available for MQ2Next"]}
+      /return FALSE
+    } else /if (NEXT) {
+      /varset _path "MQ2MyButtons.ini"
+    }
 
-		OUT	Updating MQ2MyButtons.INI${sep}\a-w${_verbage}\ax
+    OUT Updating MQ2MyButtons.INI${sep}\a-w${_verbage}\ax
 
-		| window label
-		/ini ${_path}	"UISettings" "WindowTitle" "Entropy"
+    | window label
+    /ini ${_path} "UISettings" "WindowTitle" "Entropy"
 
-		| here command
-		/ini ${_path}	"Button1"	"Label"	"Combat	Now"
-		/ini ${_path}	"Button1"	"Command"	"/here"
-		/ini ${_path}	"Button1"	"Red"	"255"
-		/ini ${_path}	"Button1"	"Green"	"255"
-		/ini ${_path}	"Button1"	"Blue" "153"
+    | here command
+    /ini ${_path} "Button1" "Label" "Combat Now"
+    /ini ${_path} "Button1" "Command" "/here"
+    /ini ${_path} "Button1" "Red" "255"
+    /ini ${_path} "Button1" "Green" "255"
+    /ini ${_path} "Button1" "Blue" "153"
 
-		| auto/manual
-		/ini ${_path}	"Button2"	"Label"	"/env	auto ${If[${maEnv.Find[swAuto].Value},On,OFF]}"
-		/ini ${_path}	"Button2"	"Command"	"/env	auto"
-		/ini ${_path}	"Button2"	"Red"	"255"
-		/ini ${_path}	"Button2"	"Green"	"255"
-		/ini ${_path}	"Button2"	"Blue" "153"
+    | auto/manual
+    /ini ${_path} "Button2" "Label" "/env auto ${If[${maEnv.Find[swAuto].Value},On,OFF]}"
+    /ini ${_path} "Button2" "Command" "/env auto"
+    /ini ${_path} "Button2" "Red" "255"
+    /ini ${_path} "Button2" "Green" "255"
+    /ini ${_path} "Button2" "Blue" "153"
 
-		| pull switch
-		/ini ${_path}	"Button3"	"Label"	"Puller	On/Off"
-		/ini ${_path}	"Button3"	"Command"	"/cc pull"
-		/ini ${_path}	"Button3"	"Red"	"255"
-		/ini ${_path}	"Button3"	"Green"	"255"
-		/ini ${_path}	"Button3"	"Blue" "153"
+    | pull switch
+    /ini ${_path} "Button3" "Label" "Puller On/Off"
+    /ini ${_path} "Button3" "Command" "/cc pull"
+    /ini ${_path} "Button3" "Red" "255"
+    /ini ${_path} "Button3" "Green" "255"
+    /ini ${_path} "Button3" "Blue" "153"
 
-		| agro switch
-		/ini ${_path}	"Button4"	"Label"	"Agro	On/Off"
-		/ini ${_path}	"Button4"	"Command"	"/cc agro"
-		/ini ${_path}	"Button4"	"Red"	"255"
-		/ini ${_path}	"Button4"	"Green"	"255"
-		/ini ${_path}	"Button4"	"Blue" "153"
+    | agro switch
+    /ini ${_path} "Button4" "Label" "Agro On/Off"
+    /ini ${_path} "Button4" "Command" "/cc agro"
+    /ini ${_path} "Button4" "Red" "255"
+    /ini ${_path} "Button4" "Green" "255"
+    /ini ${_path} "Button4" "Blue" "153"
 
-		| tie	all	switch
-		/ini ${_path}	"Button5"	"Label"	"	Tie	(All)"
-		/ini ${_path}	"Button5"	"Command"	"/dga	/tie"
-		/ini ${_path}	"Button5"	"Red"	"255"
-		/ini ${_path}	"Button5"	"Green"	"255"
-		/ini ${_path}	"Button5"	"Blue" "153"
+    | tie all switch
+    /ini ${_path} "Button5" "Label" " Tie (All)"
+    /ini ${_path} "Button5" "Command" "/dga /tie"
+    /ini ${_path} "Button5" "Red" "255"
+    /ini ${_path} "Button5" "Green" "255"
+    /ini ${_path} "Button5" "Blue" "153"
 
-		| in charege command
-		/ini ${_path}	"Button6"	"Label"	"In	Charge"
-		/ini ${_path}	"Button6"	"Command"	"/env	incharge"
-		/ini ${_path}	"Button6"	"Red"	"100"
-		/ini ${_path}	"Button6"	"Green"	"100"
-		/ini ${_path}	"Button6"	"Blue" "255"
+    | in charege command
+    /ini ${_path} "Button6" "Label" "In Charge"
+    /ini ${_path} "Button6" "Command" "/env incharge"
+    /ini ${_path} "Button6" "Red" "100"
+    /ini ${_path} "Button6" "Green" "100"
+    /ini ${_path} "Button6" "Blue" "255"
 
-		|
-		/ini ${_path}	"Button7"	"Label"	""
-		/ini ${_path}	"Button7"	"Command"	""
-		/ini ${_path}	"Button7"	"Red"	"255"
-		/ini ${_path}	"Button7"	"Green"	"255"
-		/ini ${_path}	"Button7"	"Blue" "153"
+    |
+    /ini ${_path} "Button7" "Label" ""
+    /ini ${_path} "Button7" "Command" ""
+    /ini ${_path} "Button7" "Red" "255"
+    /ini ${_path} "Button7" "Green" "255"
+    /ini ${_path} "Button7" "Blue" "153"
 
-		| set	toons	home camp
-		/ini ${_path}	"Button8"	"Label"	"Home	Camp"
-		/ini ${_path}	"Button8"	"Command"	"/movement home"
-		/ini ${_path}	"Button8"	"Red"	"255"
-		/ini ${_path}	"Button8"	"Green"	"255"
-		/ini ${_path}	"Button8"	"Blue" "153"
+    | set toons home camp
+    /ini ${_path} "Button8" "Label" "Home Camp"
+    /ini ${_path} "Button8" "Command" "/movement home"
+    /ini ${_path} "Button8" "Red" "255"
+    /ini ${_path} "Button8" "Green" "255"
+    /ini ${_path} "Button8" "Blue" "153"
 
-		| builds crew	1
-		/ini ${_path}	"Button9"	"Label"	"Build Crew"
-		/ini ${_path}	"Button9"	"Command"	"/crew 1"
-		/ini ${_path}	"Button9"	"Red"	"255"
-		/ini ${_path}	"Button9"	"Green"	"255"
-		/ini ${_path}	"Button9"	"Blue" "153"
+    | builds crew 1
+    /ini ${_path} "Button9" "Label" "Build Crew"
+    /ini ${_path} "Button9" "Command" "/crew 1"
+    /ini ${_path} "Button9" "Red" "255"
+    /ini ${_path} "Button9" "Green" "255"
+    /ini ${_path} "Button9" "Blue" "153"
 
-		| gather your	group
-		/ini ${_path}	"Button10" "Label" "Gather"
-		/ini ${_path}	"Button10" "Command" "/home	gather"
-		/ini ${_path}	"Button10" "Red" "255"
-		/ini ${_path}	"Button10" "Green" "255"
-		/ini ${_path}	"Button10" "Blue"	"153"
+    | gather your group
+    /ini ${_path} "Button10" "Label" "Gather"
+    /ini ${_path} "Button10" "Command" "/home gather"
+    /ini ${_path} "Button10" "Red" "255"
+    /ini ${_path} "Button10" "Green" "255"
+    /ini ${_path} "Button10" "Blue" "153"
 
-		| start	self
-		/ini ${_path}	"Button11" "Label" "Start	(Me)"
-		/ini ${_path}	"Button11" "Command" "/mac exspes/entropy.mac"
-		/ini ${_path}	"Button11" "Red" "255"
-		/ini ${_path}	"Button11" "Green" "255"
-		/ini ${_path}	"Button11" "Blue"	"153"
+    | start self
+    /ini ${_path} "Button11" "Label" "Start (Me)"
+    /ini ${_path} "Button11" "Command" "/mac exspes/entropy.mac"
+    /ini ${_path} "Button11" "Red" "255"
+    /ini ${_path} "Button11" "Green" "255"
+    /ini ${_path} "Button11" "Blue" "153"
 
-		| start	everyone
-		/ini ${_path}	"Button12" "Label" "Start	(All)"
-		/ini ${_path}	"Button12" "Command" "/dga all /mac	exspes/entropy.mac"
-		/ini ${_path}	"Button12" "Red" "255"
-		/ini ${_path}	"Button12" "Green" "255"
-		/ini ${_path}	"Button12" "Blue"	"153"
+    | start everyone
+    /ini ${_path} "Button12" "Label" "Start (All)"
+    /ini ${_path} "Button12" "Command" "/dga all /mac exspes/entropy.mac"
+    /ini ${_path} "Button12" "Red" "255"
+    /ini ${_path} "Button12" "Green" "255"
+    /ini ${_path} "Button12" "Blue" "153"
 
 
-		/squelch /mybutton reload
+    /squelch /mybutton reload
 
 
 }
@@ -2310,102 +2308,102 @@ sub	set_initialize_hud(bool	_debug,	string _verbage)
  * use: generate nav.sqlite
  ***|
 sub sql_schema_nav(bool _debug)
-	DEBUG \atsql_schema_nav\ax()
+  DEBUG \atsql_schema_nav\ax()
 
-	/if (${maDebug.Find[init].Value}) {
-		/declare _boottimestart int local ${MacroQuest.Running}
-	}
+  /if (${maDebug.Find[init].Value}) {
+    /declare _boottimestart int local ${MacroQuest.Running}
+  }
 
-	| get the data from the table
-	/sqlite query ${maData.Find[DBnav].Value} buildnumber SELECT version FROM metadata WHERE name='build_number';
-	/if (!${sql_check[${_debug}, buildnumber, sql_schema_nav, "SELECT (version)"]}) /endmacro
-	/sqlite query ${maData.Find[DBnav].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number';
-	/if (!${sql_check[${_debug}, schemanumber, sql_schema_nav, "SELECT (version)"]}) /endmacro
+  | get the data from the table
+  /sqlite query ${maData.Find[DBnav].Value} buildnumber SELECT version FROM metadata WHERE name='build_number';
+  /if (!${sql_check[${_debug}, buildnumber, sql_schema_nav, "SELECT (version)"]}) /endmacro
+  /sqlite query ${maData.Find[DBnav].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number';
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_nav, "SELECT (version)"]}) /endmacro
 
-	/declare _schemaMismatch bool local FALSE
-	/declare _buildMismatch bool local FALSE
+  /declare _schemaMismatch bool local FALSE
+  /declare _buildMismatch bool local FALSE
 
-	| macro mismatch flag
-	/if (${sqlite.Result[buildnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
-		/varset _buildMismatch TRUE
-	}
+  | macro mismatch flag
+  /if (${sqlite.Result[buildnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
+    /varset _buildMismatch TRUE
+  }
 
-	| schema mismatch flag
-	/if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
-		/varset _schemaMismatch TRUE
-	}
+  | schema mismatch flag
+  /if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
+    /varset _schemaMismatch TRUE
+  }
 
-	| if the numbers match, we consider it valid and go away to dosoemthing else.
-	/if (!${_schemaMismatch} && !${_buildMismatch}) {
-		DEBUG ${sep}Macro and Schema builds match for nav database, bailing on this routine
-		/sqlite clear schemanumber
-		/sqlite clear buildnumber
-		/return TRUE
-	}
+  | if the numbers match, we consider it valid and go away to dosoemthing else.
+  /if (!${_schemaMismatch} && !${_buildMismatch}) {
+    DEBUG ${sep}Macro and Schema builds match for nav database, bailing on this routine
+    /sqlite clear schemanumber
+    /sqlite clear buildnumber
+    /return TRUE
+  }
 
-	/if (!${sqlite.Rows[schemanumber]}) {
-		OUT \a-tSchema Build\ax${sep}\a-wnav\ax (\a-r${maEnv.Find[schema].Value}\ax)
-		/while (TRUE) {
-			/sqlite query ${maData.Find[DBnav].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version);
-			/if (!${sql_check[${_debug}, build, sql_schema_nav, "CREATE TABLE IF NOT EXISTS (metadata)"]}) /endmacro
-			/sqlite query ${maData.Find[DBnav].Value} build INSERT OR IGNORE INTO metadata VALUES('build_number', '${maEnv.Find[build].Value}');
-			/if (!${sql_check[${_debug}, build, sql_schema_nav, "INSERT INTO (metadata)"]}) /endmacro
-	 		/sqlite query ${maData.Find[DBnav].Value} build INSERT OR IGNORE INTO metadata VALUES('schema_number', '${maEnv.Find[schema].Value}');
-			/if (!${sql_check[${_debug}, build, sql_schema_nav, "INSERT INTO (metadata)"]}) /endmacro
-			/sqlite query ${maData.Find[DBnav].Value} build CREATE TABLE IF NOT EXISTS waypoint(zone_shortname, nickname, locY, locX, locZ);
-			/if (!${sql_check[${_debug}, build, sql_schema_nav, "CREATE TABLE IF (waypoint)"]}) /endmacro
+  /if (!${sqlite.Rows[schemanumber]}) {
+    OUT \a-tSchema Build\ax${sep}\a-wnav\ax (\a-r${maEnv.Find[schema].Value}\ax)
+    /while (TRUE) {
+      /sqlite query ${maData.Find[DBnav].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version);
+      /if (!${sql_check[${_debug}, build, sql_schema_nav, "CREATE TABLE IF NOT EXISTS (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBnav].Value} build INSERT OR IGNORE INTO metadata VALUES('build_number', '${maEnv.Find[build].Value}');
+      /if (!${sql_check[${_debug}, build, sql_schema_nav, "INSERT INTO (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBnav].Value} build INSERT OR IGNORE INTO metadata VALUES('schema_number', '${maEnv.Find[schema].Value}');
+      /if (!${sql_check[${_debug}, build, sql_schema_nav, "INSERT INTO (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBnav].Value} build CREATE TABLE IF NOT EXISTS waypoint(zone_shortname, nickname, locY, locX, locZ);
+      /if (!${sql_check[${_debug}, build, sql_schema_nav, "CREATE TABLE IF (waypoint)"]}) /endmacro
 
-			/if (${sqlite.Resultcode[build]} != 0) /delay 1
-			/if (${sqlite.Resultcode[build]} == 0) /break
-		}
-		/sqlite clear schemanumber
-		/sqlite clear build
-		/return TRUE
-	}
+      /if (${sqlite.Resultcode[build]} != 0) /delay 1
+      /if (${sqlite.Resultcode[build]} == 0) /break
+    }
+    /sqlite clear schemanumber
+    /sqlite clear build
+    /return TRUE
+  }
 
-	| correct build mismatch
-	/if (${_buildMismatch}) {
-		/while (TRUE) {
+  | correct build mismatch
+  /if (${_buildMismatch}) {
+    /while (TRUE) {
 
-			/sqlite query ${maData.Find[DBnav].Value} updatebuildnum UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number';
-			/if (!${sql_check[${_debug}, updatebuildnum, sql_schema_nav, "UPDATE (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBnav].Value} updatebuildnum UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number';
+      /if (!${sql_check[${_debug}, updatebuildnum, sql_schema_nav, "UPDATE (metadata)"]}) /endmacro
 
-			| call macro update by version here. doubt there will be any
-			/call sql_db_update ${_debug} nav
+      | call macro update by version here. doubt there will be any
+      /call sql_db_update ${_debug} nav
 
-			| db locked?
-			/if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
-		}
-		/sqlite clear updatebuildnum
-	}
+      | db locked?
+      /if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
+    }
+    /sqlite clear updatebuildnum
+  }
 
-	| corect schema mismatch
-	/if (${_schemaMismatch}) {
-		/if (${sqlite.Status[schemanumber].NotEqual[success]}) {
-			OUT \a-tSchema Update\ax${sep}\a-wnav\ax (\a-r${sqlite.Result[schemanumber 1 version]}\ax -> \a-r${maEnv.Find[schema].Value}\ax)
-		} else {
-			OUT \a-tSchema Update\ax${sep}\a-wnav\ax (\a-r${maEnv.Find[schema].Value}\ax)
-		}
-		/while (TRUE) {
+  | corect schema mismatch
+  /if (${_schemaMismatch}) {
+    /if (${sqlite.Status[schemanumber].NotEqual[success]}) {
+      OUT \a-tSchema Update\ax${sep}\a-wnav\ax (\a-r${sqlite.Result[schemanumber 1 version]}\ax -> \a-r${maEnv.Find[schema].Value}\ax)
+    } else {
+      OUT \a-tSchema Update\ax${sep}\a-wnav\ax (\a-r${maEnv.Find[schema].Value}\ax)
+    }
+    /while (TRUE) {
 
-			/sqlite query ${maData.Find[DBnav].Value} updateschemanum UPDATE metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number';
-			/if (!${sql_check[${_debug}, updateschemanum, sql_schema_nav, "UPDATE (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBnav].Value} updateschemanum UPDATE metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number';
+      /if (!${sql_check[${_debug}, updateschemanum, sql_schema_nav, "UPDATE (metadata)"]}) /endmacro
 
-			| call schema update by version here!
-			/call sql_schema_update ${_debug} nav
+      | call schema update by version here!
+      /call sql_schema_update ${_debug} nav
 
-			/if (${sqlite.Resultcode[updateschemanum]} == 0) /break
-		}
-		/sqlite clear updateschemanum
-	}
+      /if (${sqlite.Resultcode[updateschemanum]} == 0) /break
+    }
+    /sqlite clear updateschemanum
+  }
 
-	| set pragma
-	/sqlite query ${maData.Find[DBnav].Value} query_journal_DBnav PRAGMA journal_mode=WAL;
+  | set pragma
+  /sqlite query ${maData.Find[DBnav].Value} query_journal_DBnav PRAGMA journal_mode=WAL;
 
-	/if (${maDebug.Find[init].Value}) {
-		OUT \agsql_schema_nav\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
-		/mqp
-	}
+  /if (${maDebug.Find[init].Value}) {
+    OUT \agsql_schema_nav\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+    /mqp
+  }
 
 /return TRUE
 
@@ -2417,16 +2415,16 @@ sub sql_schema_nav(bool _debug)
  ***|
 sub sql_drop(string _table, string _field, bool _echo)
 
-	| is the data there?
-	/sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var='${_field}';
+  | is the data there?
+  /sqlite query ${maData.Find[DBcharacter].Value} dummy SELECT * FROM environment_${_table} WHERE env_var='${_field}';
 
-	/if (${sqlite.Rows[dummy]}) {
-		/sqlite query ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_table} WHERE env_var='${_field}';
-		/if (${_echo}) OUT SQL DROP${sep}\a-w${_table}${submenu}${_field}\ax ${dot} \a-w${sqlite.Status[dummy]}\ax
+  /if (${sqlite.Rows[dummy]}) {
+    /sqlite query ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_table} WHERE env_var='${_field}';
+    /if (${_echo}) OUT SQL DROP${sep}\a-w${_table}${submenu}${_field}\ax ${dot} \a-w${sqlite.Status[dummy]}\ax
 
-	} else /if (!${sqlite.Rows[dummy]}) {
-		/if (${_echo}) OUT Not Found${sep}\a-w\a-w${_table}${submenu}${_field}\ax\ax
-	}
+  } else /if (!${sqlite.Rows[dummy]}) {
+    /if (${_echo}) OUT Not Found${sep}\a-w\a-w${_table}${submenu}${_field}\ax\ax
+  }
 
 /return TRUE
 
@@ -2438,22 +2436,22 @@ sub sql_drop(string _table, string _field, bool _echo)
  ***|
 sub sql_check(bool _debug, string _query, string _subname, string _action)
 
-	| results we accept at face value and move on
-	/if (!${Select[${sqlite.Resultcode[${_query}]},0,1,6,5]} || ${_debug}) {
-		/sqlite query ${maData.Find[DBstatic].Value} queryresult SELECT * FROM sql_error WHERE env_var='${sqlite.Resultcode[${_query}]}';
-		/if (!${_debug}) {
-			OUT \ap${_action}\ax${sep}${_subname} (\a-r${_query}\ax)${sep}\ay${sqlite.Resultcode[${_query}]}\ax${sep}\aw${sqlite.Result[queryresult 1 value]}\ax${sep}\a-w${sqlite.Result[queryresult 1 aux]}\ax
-		} else {
-			DEBUG ${sep}\ap${_action}\ax${sep}${_subname} (\a-r${_query}\ax)${sep}${sqlite.Rows[${_query}]}${sep}\ay${sqlite.Resultcode[${_query}]}\ax${sep}\aw${sqlite.Result[queryresult	1 value]}\ax${sep}\a-w${sqlite.Result[queryresult 1 aux]}\ax
-			/if (${Select[${sqlite.Resultcode[${_query}]},0,1,6,5]}) {
-				/return TRUE
-			}
-		}
-	} else /if (${Select[${sqlite.Resultcode[${_query}]},0,1,6,5]}) {
-		/return TRUE
-	}
+  | results we accept at face value and move on
+  /if (!${Select[${sqlite.Resultcode[${_query}]},0,1,6,5]} || ${_debug}) {
+    /sqlite query ${maData.Find[DBstatic].Value} queryresult SELECT * FROM sql_error WHERE env_var='${sqlite.Resultcode[${_query}]}';
+    /if (!${_debug}) {
+      OUT \ap${_action}\ax${sep}${_subname} (\a-r${_query}\ax)${sep}\ay${sqlite.Resultcode[${_query}]}\ax${sep}\aw${sqlite.Result[queryresult 1 value]}\ax${sep}\a-w${sqlite.Result[queryresult 1 aux]}\ax
+    } else {
+      DEBUG ${sep}\ap${_action}\ax${sep}${_subname} (\a-r${_query}\ax)${sep}${sqlite.Rows[${_query}]}${sep}\ay${sqlite.Resultcode[${_query}]}\ax${sep}\aw${sqlite.Result[queryresult  1 value]}\ax${sep}\a-w${sqlite.Result[queryresult 1 aux]}\ax
+      /if (${Select[${sqlite.Resultcode[${_query}]},0,1,6,5]}) {
+        /return TRUE
+      }
+    }
+  } else /if (${Select[${sqlite.Resultcode[${_query}]},0,1,6,5]}) {
+    /return TRUE
+  }
 
-	OUT ${warning} Ending Entropy on SQLite error${sep}${sqlite.Resultcode[${_query}]}
+  OUT ${warning} Ending Entropy on SQLite error${sep}${sqlite.Resultcode[${_query}]}
 
 /return FALSE
 
@@ -2464,139 +2462,139 @@ sub sql_check(bool _debug, string _query, string _subname, string _action)
  * use: generate shared.sqlite
  ***|
 sub sql_schema_shared(bool _debug)
-	DEBUG \atsql_schema_shared\ax()
+  DEBUG \atsql_schema_shared\ax()
 
-	/if (${maDebug.Find[init].Value}) {
-		/declare _boottimestart int local ${MacroQuest.Running}
-	}
+  /if (${maDebug.Find[init].Value}) {
+    /declare _boottimestart int local ${MacroQuest.Running}
+  }
 
-	| check the current schema/build versions
-	/sqlite query ${maData.Find[DBshared].Value} buildnumber SELECT version FROM metadata WHERE name='build_number';
-	/if (!${sql_check[${_debug}, buildnumber, sql_schema_shared, "SELECT (version)"]}) /endmacro
-	/sqlite query ${maData.Find[DBshared].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number';
-	/if (!${sql_check[${_debug}, schemanumber, sql_schema_shared, "SELECT (version)"]}) /endmacro
+  | check the current schema/build versions
+  /sqlite query ${maData.Find[DBshared].Value} buildnumber SELECT version FROM metadata WHERE name='build_number';
+  /if (!${sql_check[${_debug}, buildnumber, sql_schema_shared, "SELECT (version)"]}) /endmacro
+  /sqlite query ${maData.Find[DBshared].Value} schemanumber SELECT version FROM metadata WHERE name='schema_number';
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_shared, "SELECT (version)"]}) /endmacro
 
-	/declare _schemaMismatch bool local FALSE
-	/declare _buildMismatch bool local FALSE
+  /declare _schemaMismatch bool local FALSE
+  /declare _buildMismatch bool local FALSE
 
-	| macro mismatch flag
-	/if (${sqlite.Result[buildnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
- 		/varset _buildMismatch TRUE
-	}
+  | macro mismatch flag
+  /if (${sqlite.Result[buildnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
+    /varset _buildMismatch TRUE
+  }
 
-	| schema mismatch flag
-	/if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
-		/varset _schemaMismatch TRUE
-	}
+  | schema mismatch flag
+  /if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
+    /varset _schemaMismatch TRUE
+  }
 
-	| if the numbers match, we consider it valid and go away to dosoemthing else.
-	/if (!${_schemaMismatch} && !${_buildMismatch}) {
-		DEBUG	${sep}Macro and Schema builds match for shared database, bailing on this routine
-		/sqlite clear schemanumber
-		/sqlite clear buildnumber
-		/return TRUE
-	}
+  | if the numbers match, we consider it valid and go away to dosoemthing else.
+  /if (!${_schemaMismatch} && !${_buildMismatch}) {
+    DEBUG ${sep}Macro and Schema builds match for shared database, bailing on this routine
+    /sqlite clear schemanumber
+    /sqlite clear buildnumber
+    /return TRUE
+  }
 
-	/if (!${sqlite.Rows[schemanumber]}) {
-		OUT \a-tSchema Build\ax${sep}\a-wshared\ax (\a-r${maEnv.Find[schema].Value}\ax)
-		/while (TRUE) {
+  /if (!${sqlite.Rows[schemanumber]}) {
+    OUT \a-tSchema Build\ax${sep}\a-wshared\ax (\a-r${maEnv.Find[schema].Value}\ax)
+    /while (TRUE) {
 
-			| -------------------- metadata build
-			| create shared build table
-			/sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version);
-			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (metadata)"]})	/endmacro
-			/sqlite	query	${maData.Find[DBshared].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('build_number', '${maEnv.Find[build].Value}');
-			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "INSERT INTO	(metadata)"]}) /endmacro
-			/sqlite	query	${maData.Find[DBshared].Value} build INSERT	OR IGNORE	INTO metadata	VALUES('schema_number',	'${maEnv.Find[schema].Value}');
-			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "INSERT INTO	(metadata)"]}) /endmacro
+      | -------------------- metadata build
+      | create shared build table
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS metadata(name, version);
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBshared].Value} build INSERT OR IGNORE INTO metadata VALUES('build_number', '${maEnv.Find[build].Value}');
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
+      /sqlite query ${maData.Find[DBshared].Value} build INSERT OR IGNORE INTO metadata VALUES('schema_number', '${maEnv.Find[schema].Value}');
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
 
-			| -------------------- rolls for crews
-			| create the characters
-			/sqlite	query	${maData.Find[DBshared].Value} build CREATE	TABLE	IF NOT EXISTS	characters(id	INTEGER	PRIMARY	KEY	autoincrement, charactername TEXT	NOT	NULL,	server TEXT	NOT	NULL);
-			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (characters)"]})	/endmacro
+      | -------------------- rolls for crews
+      | create the characters
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS characters(id INTEGER PRIMARY KEY autoincrement, charactername TEXT NOT NULL, server TEXT NOT NULL);
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (characters)"]}) /endmacro
 
-			| create the rolls.. move	to entropy.sqlite???
-			/sqlite	query	${maData.Find[DBshared].Value} build CREATE	TABLE	IF NOT EXISTS	roles(name);
-			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (roles)"]}) /endmacro
-			/call	data_schema_roles
+      | create the rolls.. move to entropy.sqlite???
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS roles(name);
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (roles)"]}) /endmacro
+      /call data_schema_roles
 
-			| create the crews table
-			/sqlite	query	${maData.Find[DBshared].Value} build CREATE	TABLE	IF NOT EXISTS	crews(id INTEGER PRIMARY KEY,	crewname TEXT	NOT	NULL);
-			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (crews)"]}) /endmacro
-			| create the crewmembers table
-			/sqlite	query	${maData.Find[DBshared].Value} build CREATE	TABLE	IF NOT EXISTS	crewmembers(id INTEGER PRIMARY KEY autoincrement,	crewid INTEGER,	characterid	INTEGER, FOREIGN KEY (crewid)	REFERENCES crews(id),	FOREIGN	KEY	(characterid)	REFERENCES characters(id), UNIQUE	(crewid,characterid));
-			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (crewmembers)"]}) /endmacro
-			| create crewmemberroles
-			/sqlite	query	${maData.Find[DBshared].Value} build CREATE	TABLE	IF NOT EXISTS	crewmemberroles(id INTEGER PRIMARY KEY autoincrement,	crewmemberid INTEGER,	role TEXT	NOT	NULL,	FOREIGN	KEY	(crewmemberid) REFERENCES	character(id), FOREIGN KEY (role)	REFERENCES roles(name),	UNIQUE (crewmemberid,	role));
-			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (crewmemberroles)"]}) /endmacro
+      | create the crews table
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS crews(id INTEGER PRIMARY KEY, crewname TEXT NOT NULL);
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (crews)"]}) /endmacro
+      | create the crewmembers table
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS crewmembers(id INTEGER PRIMARY KEY autoincrement, crewid INTEGER, characterid INTEGER, FOREIGN KEY (crewid) REFERENCES crews(id), FOREIGN KEY (characterid) REFERENCES characters(id), UNIQUE (crewid,characterid));
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (crewmembers)"]}) /endmacro
+      | create crewmemberroles
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS crewmemberroles(id INTEGER PRIMARY KEY autoincrement, crewmemberid INTEGER, role TEXT NOT NULL, FOREIGN KEY (crewmemberid) REFERENCES character(id), FOREIGN KEY (role) REFERENCES roles(name), UNIQUE (crewmemberid, role));
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (crewmemberroles)"]}) /endmacro
 
 
 
-			| -------------------- tags n'stuff
-			/sqlite	query	${maData.Find[DBshared].Value} build CREATE	TABLE	IF NOT EXISTS	tag(id INTEGER PRIMARY KEY,	name TEXT, created_by	INTEGER, UNIQUE	(name));
-			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (tag)"]}) /endmacro
-			/call	data_schema_tag
+      | -------------------- tags n'stuff
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS tag(id INTEGER PRIMARY KEY, name TEXT, created_by INTEGER, UNIQUE (name));
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (tag)"]}) /endmacro
+      /call data_schema_tag
 
-			/sqlite	query	${maData.Find[DBshared].Value} build  CREATE TABLE IF NOT EXISTS tag_group(id INTEGER PRIMARY KEY, grouping TEXT, UNIQUE (grouping));
-			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (tag_group)"]}) /endmacro
-			/call	data_schema_tag_group
+      /sqlite query ${maData.Find[DBshared].Value} build  CREATE TABLE IF NOT EXISTS tag_group(id INTEGER PRIMARY KEY, grouping TEXT, UNIQUE (grouping));
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (tag_group)"]}) /endmacro
+      /call data_schema_tag_group
 
-			/sqlite	query	${maData.Find[DBshared].Value} build CREATE	TABLE	IF NOT EXISTS	tag_validate(grouping	INTEGER, tag INTEGER,	created_by INTEGER,	eval TEXT, aux TEXT, UNIQUE(tag, grouping),	FOREIGN	KEY	(tag)	REFERENCES tag(id),	FOREIGN	KEY	(grouping) REFERENCES	tag_group(id));
-			/if	(!${sql_check[${_debug}, build,	sql_schema_shared, "CREATE TABLE IF	NOT	EXISTS (tag_validate)"]})	/endmacro
-			/call	data_schema_tag_validation
+      /sqlite query ${maData.Find[DBshared].Value} build CREATE TABLE IF NOT EXISTS tag_validate(grouping INTEGER, tag INTEGER, created_by INTEGER, eval TEXT, aux TEXT, UNIQUE(tag, grouping), FOREIGN KEY (tag) REFERENCES tag(id), FOREIGN KEY (grouping) REFERENCES tag_group(id));
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (tag_validate)"]}) /endmacro
+      /call data_schema_tag_validation
 
-			/if (${sqlite.Resultcode[build]} != 0) /delay 1
-			/if (${sqlite.Resultcode[build]} == 0) /break
-		}
-		/sqlite clear schemanumber
-		/sqlite clear build
-		/return TRUE
-	}
+      /if (${sqlite.Resultcode[build]} != 0) /delay 1
+      /if (${sqlite.Resultcode[build]} == 0) /break
+    }
+    /sqlite clear schemanumber
+    /sqlite clear build
+    /return TRUE
+  }
 
-	/if	(${_buildMismatch}) {
-		DEBUG	${sep}build	mismatch
-		/while (TRUE)	{
-			/sqlite	query	${maData.Find[DBshared].Value} updatebuildnum	UPDATE metadata	SET	version='${maEnv.Find[build].Value}' WHERE name='build_number';
-			/if	(!${sql_check[${_debug}, updatebuildnum, sql_schema_shared,	"UPDATE	(value)"]})	/endmacro
+  /if (${_buildMismatch}) {
+    DEBUG ${sep}build mismatch
+    /while (TRUE) {
+      /sqlite query ${maData.Find[DBshared].Value} updatebuildnum UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number';
+      /if (!${sql_check[${_debug}, updatebuildnum, sql_schema_shared, "UPDATE (value)"]}) /endmacro
 
-			| call macro update	by version here. doubt there will	be any
-			/call sql_db_update ${_debug} shared
+      | call macro update by version here. doubt there will be any
+      /call sql_db_update ${_debug} shared
 
-			/if (${sqlite.Resultcode[updatebuildnum]} != 0) /delay 1
-			/if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
-		}
-		/sqlite clear updatebuildnum
-	}
+      /if (${sqlite.Resultcode[updatebuildnum]} != 0) /delay 1
+      /if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
+    }
+    /sqlite clear updatebuildnum
+  }
 
-	/if	(${_schemaMismatch}) {
-		/if (${sqlite.Status[schemanumber].NotEqual[success]}) {
-			OUT	\a-tSchema Update\ax${sep}\a-wshared\ax (\a-r${sqlite.Result[schemanumber	1	version]}\ax -> \a-r${maEnv.Find[schema].Value}\ax)
-		} else {
-			OUT \a-tSchema Update\ax${sep}\a-wshared\ax (\a-r${maEnv.Find[schema].Value}\ax)
-		}
-		/while (TRUE) {
-			/sqlite query ${maData.Find[DBshared].Value} updateschemanum UPDATE metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number';
-			/if (!${sql_check[${_debug}, updateschemanum, sql_schema_shared, "UPDATE (value)"]}) /endmacro
+  /if (${_schemaMismatch}) {
+    /if (${sqlite.Status[schemanumber].NotEqual[success]}) {
+      OUT \a-tSchema Update\ax${sep}\a-wshared\ax (\a-r${sqlite.Result[schemanumber 1 version]}\ax -> \a-r${maEnv.Find[schema].Value}\ax)
+    } else {
+      OUT \a-tSchema Update\ax${sep}\a-wshared\ax (\a-r${maEnv.Find[schema].Value}\ax)
+    }
+    /while (TRUE) {
+      /sqlite query ${maData.Find[DBshared].Value} updateschemanum UPDATE metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number';
+      /if (!${sql_check[${_debug}, updateschemanum, sql_schema_shared, "UPDATE (value)"]}) /endmacro
 
-			| call schema update by version here!
-			/call data_schema_tag
-			/call data_schema_tag_group
-			/call data_schema_tag_validation
-			/call sql_schema_update ${_debug} shared
+      | call schema update by version here!
+      /call data_schema_tag
+      /call data_schema_tag_group
+      /call data_schema_tag_validation
+      /call sql_schema_update ${_debug} shared
 
-			/if (${sqlite.Resultcode[updateschemanum]} != 0) /delay 1
-			/if (${sqlite.Resultcode[updateschemanum]} == 0) /break
-		}
-		/sqlite clear updateschemanum
-	}
+      /if (${sqlite.Resultcode[updateschemanum]} != 0) /delay 1
+      /if (${sqlite.Resultcode[updateschemanum]} == 0) /break
+    }
+    /sqlite clear updateschemanum
+  }
 
-	| set pragma
-	/sqlite query ${maData.Find[DBshared].Value} query_journal_DBshared PRAGMA journal_mode=WAL;
+  | set pragma
+  /sqlite query ${maData.Find[DBshared].Value} query_journal_DBshared PRAGMA journal_mode=WAL;
 
-	/if (${maDebug.Find[init].Value}) {
-		OUT \agsql_schema_shared\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
-		/mqp
-	}
+  /if (${maDebug.Find[init].Value}) {
+    OUT \agsql_schema_shared\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+    /mqp
+  }
 
 /return TRUE
 
@@ -2607,12 +2605,12 @@ sub sql_schema_shared(bool _debug)
  * use: generate data for schema_roles
  ***|
 sub data_schema_roles()
-	/sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('Leader');
-	/sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('MainTank');
-	/sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('MainAssist');
-	/sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('MasterLooter');
-	/sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('MarkNPC');
-	/sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('Puller');
+  /sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('Leader');
+  /sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('MainTank');
+  /sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('MainAssist');
+  /sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('MasterLooter');
+  /sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('MarkNPC');
+  /sqlite query ${maData.Find[DBshared].Value} build INSERT INTO roles(name) VALUES('Puller');
 /return TRUE
 
 
@@ -2622,46 +2620,46 @@ sub data_schema_roles()
  * use: generate data for schema_tag
  ***|
 sub data_schema_tag()
-	| /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('X', '', '1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('1', 'WAR',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('2', 'PAL',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT	OR IGNORE	INTO tag(id, name, created_by) VALUES('3', 'SHD',	'1');
-	/sqlite	query	${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('4', 'BRD', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('5', 'RNG', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('6', 'BST', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('7', 'BER', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('8', 'MNK', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('9', 'ROG', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('10', 'WIZ', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('11', 'MAG', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('12', 'ENC', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('13', 'NEC', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('14', 'CLR', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('15', 'DRU', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('16', 'SHM', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('17', 'assist', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('18', 'nocombat', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('19', 'incombat', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('20', 'noactivedisc', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('21', 'outdoor', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('22', 'drop', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('23', 'puller', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('24', 'agro', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('25', 'noagro',	'1');
+  | /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('X', '', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1', 'WAR', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('2', 'PAL', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('3', 'SHD', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('4', 'BRD', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('5', 'RNG', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('6', 'BST', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('7', 'BER', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('8', 'MNK', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('9', 'ROG', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('10', 'WIZ', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('11', 'MAG', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('12', 'ENC', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('13', 'NEC', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('14', 'CLR', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('15', 'DRU', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('16', 'SHM', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('17', 'assist', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('18', 'nocombat', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('19', 'incombat', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('20', 'noactivedisc', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('21', 'outdoor', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('22', 'drop', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('23', 'puller', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('24', 'agro', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('25', 'noagro', '1');
  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('26', 'noraid', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('27', 'inraid', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('28', 'burn', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('29', 'swarm', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('30', 'ingroup', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('31', 'nosafezone',	'1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('27', 'inraid', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('28', 'burn', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('29', 'swarm', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('30', 'ingroup', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('31', 'nosafezone', '1');
  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('32', 'autoinventory', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('33', 'epic',	'1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('33', 'epic', '1');
  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('34', 'aliasonly', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('35', 'target', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('36', 'targetundead', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('37', 'targethumanoid',	'1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('35', 'target', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('36', 'targetundead', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('37', 'targethumanoid', '1');
  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('38', 'targetplant', '1');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('39', 'delay1s', '1');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('39', 'delay1s', '1');
  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('40', 'nogroup', '1');
  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('41', 'dropdisc', '1');
  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('42', 'dropinvis', '1');
@@ -2732,221 +2730,221 @@ sub data_schema_tag_group()
  ***|
 sub data_schema_tag_validation
 
-	| heals
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '43', '1', 'CONTROL::MARKER', 'marker single target heals');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '44', '1', 'CONTROL::MARKER', 'marker no target group heals');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '45', '1', 'CONTROL::MARKER', 'marker single target heal over time');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '46', '1', 'CONTROL::MARKER', 'marker no target group heal over time');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '47', '1', 'CONTROL::MARKER', 'marker /heal tot single target of target heal');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '48', '1', 'CONTROL::MARKER', 'marker single target minion heal');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '49', '1', 'CONTROL::MARKER', 'marker /heal self only single heal');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '50', '1', 'CONTROL::MARKER', 'marker splash heal [PAL|CLR]');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '51', '1', 'CONTROL::MARKER', 'marker complete heal [CLR]');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '52', '1', 'CONTROL::MARKER', 'marker promised heal (stupid things)');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '53', '1', 'CONTROL::MARKER', 'marker surge heals [SHM]');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '1', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WAR]}]}', 'heal is for a warrior');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '2', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[PAL]}]}', 'heal is for a paladin');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '3', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHD]}]}', 'heal is for a snowflake');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '4', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BRD]}]}', 'heal is for a bard');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '5', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[RNG]}]}', 'heal is for a ranger');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '6', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BST]}]}', 'heal is for a beastlord');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '7', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BER]}]}', 'heal is for a berserker');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '8', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MNK]}]}', 'heal is for a monk');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '9', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ROG]}]}', 'heal is for a rogue');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '10', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WIZ]}]}', 'heal is for a wizard');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '11', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MAG]}]}', 'heal is for a magician');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '12', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ENC]}]}', 'heal is for a enchanter');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '13', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[NEC]}]}', 'heal is for a necromancer');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '14', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[CLR]}]}', 'heal is for a cleric');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '15', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[DRU]}]}', 'heal is for a druid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '16', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHM]}]}', 'heal is for a shaman');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '31', '1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be used in a safe zone');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '35', '1', '${Parse[0,${Target.ID}]}', 'you must have a target');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '36', '1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}', 'target must be undead');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '37', '1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}', 'target must be humanoid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '38', '1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must be a plant');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '34', '1', 'ACTION::aliasonly', 'skip instances, use this for alias only');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '39', '1', 'ACTION::delay1s', 'causes a 1 second pause');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '40', '1', '${Parse[0,!${Group.Members}]}', 'cannot be in a group');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '41', '1', 'ACTION::dropdisc', 'drops any running active discs');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '17', '1', '${Parse[0,${Select[${_name},${Group.MainAssist.DisplayName},${maCC.Find[stManualAssist1].Value},${maCC.Find[stManualAssist2].Value}]}]}', 'my assist');
+  | heals
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '43', '1', 'CONTROL::MARKER', 'marker single target heals');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '44', '1', 'CONTROL::MARKER', 'marker no target group heals');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '45', '1', 'CONTROL::MARKER', 'marker single target heal over time');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '46', '1', 'CONTROL::MARKER', 'marker no target group heal over time');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '47', '1', 'CONTROL::MARKER', 'marker /heal tot single target of target heal');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '48', '1', 'CONTROL::MARKER', 'marker single target minion heal');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '49', '1', 'CONTROL::MARKER', 'marker /heal self only single heal');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '50', '1', 'CONTROL::MARKER', 'marker splash heal [PAL|CLR]');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '51', '1', 'CONTROL::MARKER', 'marker complete heal [CLR]');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '52', '1', 'CONTROL::MARKER', 'marker promised heal (stupid things)');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '53', '1', 'CONTROL::MARKER', 'marker surge heals [SHM]');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '1', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WAR]}]}', 'heal is for a warrior');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '2', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[PAL]}]}', 'heal is for a paladin');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '3', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHD]}]}', 'heal is for a snowflake');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '4', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BRD]}]}', 'heal is for a bard');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '5', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[RNG]}]}', 'heal is for a ranger');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '6', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BST]}]}', 'heal is for a beastlord');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '7', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BER]}]}', 'heal is for a berserker');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '8', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MNK]}]}', 'heal is for a monk');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '9', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ROG]}]}', 'heal is for a rogue');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '10', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WIZ]}]}', 'heal is for a wizard');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '11', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MAG]}]}', 'heal is for a magician');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '12', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ENC]}]}', 'heal is for a enchanter');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '13', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[NEC]}]}', 'heal is for a necromancer');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '14', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[CLR]}]}', 'heal is for a cleric');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '15', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[DRU]}]}', 'heal is for a druid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '16', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHM]}]}', 'heal is for a shaman');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '31', '1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be used in a safe zone');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '35', '1', '${Parse[0,${Target.ID}]}', 'you must have a target');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '36', '1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}', 'target must be undead');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '37', '1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}', 'target must be humanoid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '38', '1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must be a plant');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '34', '1', 'ACTION::aliasonly', 'skip instances, use this for alias only');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '39', '1', 'ACTION::delay1s', 'causes a 1 second pause');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '40', '1', '${Parse[0,!${Group.Members}]}', 'cannot be in a group');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '41', '1', 'ACTION::dropdisc', 'drops any running active discs');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '17', '1', '${Parse[0,${Select[${_name},${Group.MainAssist.DisplayName},${maCC.Find[stManualAssist1].Value},${maCC.Find[stManualAssist2].Value}]}]}', 'my assist');
 
-	| nuke
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '31', '1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be used in a safe zone');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '35', '1', '${Parse[0,${Target.ID}]}', 'you must have a target');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '36', '1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}', 'target must be undead');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '37', '1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}', 'target must be humanoid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '38', '1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must be a plant');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '34', '1', 'ACTION::aliasonly', 'skip instances, use this for alias only');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '39', '1', 'ACTION::delay1s', 'causes a 1 second pause');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '40', '1', '${Parse[0,!${Group.Members}]}', 'cannot be in a group');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '41', '1', 'ACTION::dropdisc', 'drops any running active discs');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '1000', '1', 'CONTROL::MARKER', 'marker twincast nukes');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '1001', '1', 'CONTROL::MARKER', 'marker for totem type cast results');
+  | nuke
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '31', '1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be used in a safe zone');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '35', '1', '${Parse[0,${Target.ID}]}', 'you must have a target');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '36', '1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}', 'target must be undead');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '37', '1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}', 'target must be humanoid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '38', '1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must be a plant');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '34', '1', 'ACTION::aliasonly', 'skip instances, use this for alias only');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '39', '1', 'ACTION::delay1s', 'causes a 1 second pause');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '40', '1', '${Parse[0,!${Group.Members}]}', 'cannot be in a group');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '41', '1', 'ACTION::dropdisc', 'drops any running active discs');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '1000', '1', 'CONTROL::MARKER', 'marker twincast nukes');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '1001', '1', 'CONTROL::MARKER', 'marker for totem type cast results');
 
-	| dot
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '28', '1', '${Parse[0,!${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '31', '1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be used in a safe zone');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '35', '1', '${Parse[0,${Target.ID}]}', 'you must have a target');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '36', '1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}', 'target must be undead');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '37', '1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}', 'target must be humanoid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '38', '1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must be a plant');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '34', '1', 'ACTION::aliasonly', 'skip instances, use this for alias only');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '39', '1', 'ACTION::delay1s', 'causes a 1 second pause');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '40', '1', '${Parse[0,!${Group.Members}]}', 'cannot be in a group');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '41', '1', 'ACTION::dropdisc', 'drops any running active discs');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
+  | dot
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '28', '1', '${Parse[0,!${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '31', '1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be used in a safe zone');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '35', '1', '${Parse[0,${Target.ID}]}', 'you must have a target');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '36', '1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}', 'target must be undead');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '37', '1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}', 'target must be humanoid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '38', '1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must be a plant');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '34', '1', 'ACTION::aliasonly', 'skip instances, use this for alias only');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '39', '1', 'ACTION::delay1s', 'causes a 1 second pause');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '40', '1', '${Parse[0,!${Group.Members}]}', 'cannot be in a group');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '41', '1', 'ACTION::dropdisc', 'drops any running active discs');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
 
-	| song
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '31', '1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be used in a safe zone');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '35', '1', '${Parse[0,${Target.ID}]}', 'you must have a target');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '36', '1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}', 'target must be undead');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '37', '1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}', 'target must be humanoid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '38', '1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must be a plant');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '34', '1', 'ACTION::aliasonly', 'skip instances, use this for alias only');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '39', '1', 'ACTION::delay1s', 'causes a 1 second pause');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '40', '1', '${Parse[0,!${Group.Members}]}', 'cannot be in a group');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '41', '1', 'ACTION::dropdisc', 'drops any running active discs');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '1005', '1', 'CONTROL::MARKER', 'marker for songs to pulse out of combat');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '1003', '1', 'CONTROL::MARKER', 'marker for songs to pulse while in combat');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '1004', '1', 'CONTROL::MARKER', 'marker for songs to pulse while resting');
+  | song
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '31', '1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be used in a safe zone');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '35', '1', '${Parse[0,${Target.ID}]}', 'you must have a target');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '36', '1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}', 'target must be undead');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '37', '1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}', 'target must be humanoid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '38', '1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must be a plant');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '34', '1', 'ACTION::aliasonly', 'skip instances, use this for alias only');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '39', '1', 'ACTION::delay1s', 'causes a 1 second pause');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '40', '1', '${Parse[0,!${Group.Members}]}', 'cannot be in a group');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '41', '1', 'ACTION::dropdisc', 'drops any running active discs');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '1005', '1', 'CONTROL::MARKER', 'marker for songs to pulse out of combat');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '1003', '1', 'CONTROL::MARKER', 'marker for songs to pulse while in combat');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '1004', '1', 'CONTROL::MARKER', 'marker for songs to pulse while resting');
 
-	| defense
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '31', '1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be used in a safe zone');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '35', '1', '${Parse[0,${Target.ID}]}', 'you must have a target');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '36', '1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}', 'target must be undead');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '37', '1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}', 'target must be humanoid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '38', '1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must be a plant');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '34', '1', 'ACTION::aliasonly', 'skip instances, use this for alias only');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '39', '1', 'ACTION::delay1s', 'causes a 1 second pause');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '40', '1', '${Parse[0,!${Group.Members}]}', 'cannot be in a group');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '41', '1', 'ACTION::dropdisc', 'drops any running active discs');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
+  | defense
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '31', '1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be used in a safe zone');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '35', '1', '${Parse[0,${Target.ID}]}', 'you must have a target');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '36', '1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}', 'target must be undead');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '37', '1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}', 'target must be humanoid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '38', '1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must be a plant');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '34', '1', 'ACTION::aliasonly', 'skip instances, use this for alias only');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '39', '1', 'ACTION::delay1s', 'causes a 1 second pause');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '40', '1', '${Parse[0,!${Group.Members}]}', 'cannot be in a group');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '41', '1', 'ACTION::dropdisc', 'drops any running active discs');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
 
 
-	| buffs
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '49', '1', 'CONTROL::MARKER', 'marker /buff self');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '48', '1', 'CONTROL::MARKER', 'marker /buff minion');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '56', '1', 'CONTROL::MARKER', 'marker /buff crew (dannet peoples)');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '44', '1', 'CONTROL::MARKER', 'marker /buff group (not dannet, outsiders and mercs)');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '58', '1', 'CONTROL::MARKER', 'marker /buff now 24/7 buffs, always have them');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '59', '1', 'CONTROL::MARKER', 'marker /buff ps (power source)');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '60', '1', 'CONTROL::MARKER', 'marker /buff aura');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '61', '1', 'CONTROL::MARKER', 'marker /buff raid (not dannet)');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '62', '1', 'CONTROL::MARKER', 'marker ranged summoning, like arrows, or daggers');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '63', '1', 'CONTROL::MARKER', 'marker pants poison summoning for rogues');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '64', '1', 'CONTROL::MARKER', 'marker weapon summoning for mages');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '65', '1', 'CONTROL::MARKER', 'marker item sommoning from spells');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '66', '1', 'CONTROL::MARKER', 'marker axe summoning for zerkers');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '1', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WAR]}]}', 'buff is for a warrior');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '2', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[PAL]}]}', 'buff is for a paladin');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '3', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHD]}]}', 'buff is for a snowflake');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '4', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BRD]}]}', 'buff is for a bard');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '5', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[RNG]}]}', 'buff is for a ranger');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '6', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BST]}]}', 'buff is for a beastlord');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '7', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BER]}]}', 'buff is for a berserker');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '8', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MNK]}]}', 'buff is for a monk');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '9', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ROG]}]}', 'buff is for a rogue');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '10', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WIZ]}]}', 'buff is for a wizard');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '11', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MAG]}]}', 'buff is for a magician');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '12', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ENC]}]}', 'buff is for a enchanter');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '13', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[NEC]}]}', 'buff is for a necromancer');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '14', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[CLR]}]}', 'buff is for a cleric');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '15', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[DRU]}]}', 'buff is for a druid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '16', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHM]}]}', 'buff is for a shaman');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '31', '1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be used in a safe zone');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '35', '1', '${Parse[0,${Target.ID}]}', 'you must have a target');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '36', '1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}', 'target must be undead');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '37', '1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}', 'target must be humanoid');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '38', '1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must be a plant');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '22', '1', 'ACTION::drop', 'removes illusion and mount buffs');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '32', '1', 'ACTION::autoinventory', 'forces your hands emptied');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '33', '1', 'SUB::tag_epic', 'fires your epic');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '34', '1', 'ACTION::aliasonly', 'skip instances, use this for alias only');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '39', '1', 'ACTION::delay1s', 'causes a 1 second pause');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '40', '1', '${Parse[0,!${Group.Members}]}', 'cannot be in a group');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '41', '1', 'ACTION::dropdisc', 'drops any running active discs');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
-	/sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
+  | buffs
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '49', '1', 'CONTROL::MARKER', 'marker /buff self');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '48', '1', 'CONTROL::MARKER', 'marker /buff minion');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '56', '1', 'CONTROL::MARKER', 'marker /buff crew (dannet peoples)');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '44', '1', 'CONTROL::MARKER', 'marker /buff group (not dannet, outsiders and mercs)');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '58', '1', 'CONTROL::MARKER', 'marker /buff now 24/7 buffs, always have them');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '59', '1', 'CONTROL::MARKER', 'marker /buff ps (power source)');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '60', '1', 'CONTROL::MARKER', 'marker /buff aura');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '61', '1', 'CONTROL::MARKER', 'marker /buff raid (not dannet)');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '62', '1', 'CONTROL::MARKER', 'marker ranged summoning, like arrows, or daggers');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '63', '1', 'CONTROL::MARKER', 'marker pants poison summoning for rogues');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '64', '1', 'CONTROL::MARKER', 'marker weapon summoning for mages');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '65', '1', 'CONTROL::MARKER', 'marker item sommoning from spells');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '66', '1', 'CONTROL::MARKER', 'marker axe summoning for zerkers');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '1', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WAR]}]}', 'buff is for a warrior');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '2', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[PAL]}]}', 'buff is for a paladin');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '3', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHD]}]}', 'buff is for a snowflake');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '4', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BRD]}]}', 'buff is for a bard');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '5', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[RNG]}]}', 'buff is for a ranger');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '6', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BST]}]}', 'buff is for a beastlord');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '7', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[BER]}]}', 'buff is for a berserker');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '8', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MNK]}]}', 'buff is for a monk');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '9', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ROG]}]}', 'buff is for a rogue');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '10', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WIZ]}]}', 'buff is for a wizard');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '11', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[MAG]}]}', 'buff is for a magician');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '12', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[ENC]}]}', 'buff is for a enchanter');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '13', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[NEC]}]}', 'buff is for a necromancer');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '14', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[CLR]}]}', 'buff is for a cleric');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '15', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[DRU]}]}', 'buff is for a druid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '16', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[SHM]}]}', 'buff is for a shaman');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '20', '1', '${Parse[0,!${Me.ActiveDisc.ID}]}', 'cannot have an active disc');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '21', '1', '${Parse[0,!${Zone.Indoor}]}', 'must be outdoor');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '24', '1', '${Parse[0,${maAgro.Find[swAgro].Value}]}', 'must have agro enabled');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '25', '1', '${Parse[0,!${maAgro.Find[swAgro].Value}]}', 'cannot have agro enabled');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '31', '1', '${Parse[0,!${maEnv.Find[swZoneSafe].Value}]}', 'cannot be used in a safe zone');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '35', '1', '${Parse[0,${Target.ID}]}', 'you must have a target');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '36', '1', '${Parse[0,${Target.Body.Name.Equal[undead]}]}', 'target must be undead');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '37', '1', '${Parse[0,${Target.Body.Name.Equal[humanoid]}]}', 'target must be humanoid');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '38', '1', '${Parse[0,${Target.Body.Name.Equal[plant]}]}', 'target must be a plant');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '22', '1', 'ACTION::drop', 'removes illusion and mount buffs');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '32', '1', 'ACTION::autoinventory', 'forces your hands emptied');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '33', '1', 'SUB::tag_epic', 'fires your epic');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '34', '1', 'ACTION::aliasonly', 'skip instances, use this for alias only');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '39', '1', 'ACTION::delay1s', 'causes a 1 second pause');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '40', '1', '${Parse[0,!${Group.Members}]}', 'cannot be in a group');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '41', '1', 'ACTION::dropdisc', 'drops any running active discs');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
 /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '17', '1', '${Parse[0,${Select[${_name},${Group.MainAssist.DisplayName},${maCC.Find[stManualAssist1].Value},${maCC.Find[stManualAssist2].Value}]}]}', 'my assist');
 
 /return TRUE
@@ -2960,77 +2958,77 @@ sub data_schema_tag_validation
  ***|
 sub sql_schema_update(bool _debug, string _type)
 
-	/if (${sqlite.Status[schemanumber].NotEqual[success]}) {
-		/return FALSE
-	}
+  /if (${sqlite.Status[schemanumber].NotEqual[success]}) {
+    /return FALSE
+  }
 
-	| character database
-	/if (${_type.Equal[character]}) {
+  | character database
+  /if (${_type.Equal[character]}) {
 
-		/if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
-			| drop build table character
-			/sqlite query ${maData.Find[DBcharacter].Value} dummy DROP TABLE IF EXISTS build
-		}
-
-
-	| loot database
-	} else /if (${_type.Equal[loot]}) {
-
-		/if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
-			| drop build table
-			/sqlite query ${maData.Find[DBloot].Value} dummy DROP TABLE IF EXISTS build
-		}
+    /if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
+      | drop build table character
+      /sqlite query ${maData.Find[DBcharacter].Value} dummy DROP TABLE IF EXISTS build
+    }
 
 
+  | loot database
+  } else /if (${_type.Equal[loot]}) {
 
-	| nav database
-	} else /if (${_type.Equal[nav]}) {
-
-		/if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
-			| drop build table
-			/sqlite query ${maData.Find[DBnav].Value} dummy DROP TABLE IF EXISTS build
-		}
-
-
-	| shared database
-	} else /if (${_type.Equal[shared]}) {
+    /if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
+      | drop build table
+      /sqlite query ${maData.Find[DBloot].Value} dummy DROP TABLE IF EXISTS build
+    }
 
 
-		| agro map change
-		/if (${sqlite.Result[schemanumber 1 version]} >= 1.06) {
-			| 7
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='7' AND tag='24';
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='7' AND tag='25';
+
+  | nav database
+  } else /if (${_type.Equal[nav]}) {
+
+    /if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
+      | drop build table
+      /sqlite query ${maData.Find[DBnav].Value} dummy DROP TABLE IF EXISTS build
+    }
+
+
+  | shared database
+  } else /if (${_type.Equal[shared]}) {
+
+
+    | agro map change
+    /if (${sqlite.Result[schemanumber 1 version]} >= 1.06) {
+      | 7
+      /sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='7' AND tag='24';
+      /sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='7' AND tag='25';
       | 6
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='6' AND tag='24';
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='6' AND tag='25';
-			| 5
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='5' AND tag='24';
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='5' AND tag='25';
-			| 3
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='3' AND tag='24';
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='3' AND tag='25';
-			| 2
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='2' AND tag='24';
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='2' AND tag='25';
-			| 1
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='1' AND tag='24';
-			/sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='1' AND tag='25';
+      /sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='6' AND tag='24';
+      /sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='6' AND tag='25';
+      | 5
+      /sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='5' AND tag='24';
+      /sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='5' AND tag='25';
+      | 3
+      /sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='3' AND tag='24';
+      /sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='3' AND tag='25';
+      | 2
+      /sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='2' AND tag='24';
+      /sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='2' AND tag='25';
+      | 1
+      /sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,${maAgro.Find[swAgro].Value}]}' WHERE grouping='1' AND tag='24';
+      /sqlite query ${maData.Find[DBshared].Value} dummy UPDATE tag_validate set eval='${Parse[0,!${maAgro.Find[swAgro].Value}]}' WHERE grouping='1' AND tag='25';
 
-		}
+    }
 
-		/if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
-			| drop build table
-			/sqlite query ${maData.Find[DBshared].Value} dummy DROP TABLE IF EXISTS build;
-		}
+    /if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
+      | drop build table
+      /sqlite query ${maData.Find[DBshared].Value} dummy DROP TABLE IF EXISTS build;
+    }
 
-	| zone database
-	} else /if (${_type.Equal[zone]}) {
+  | zone database
+  } else /if (${_type.Equal[zone]}) {
 
-		/if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
-			| drop build table
-			/sqlite query ${maData.Find[DBzone].Value} dummy DROP TABLE IF EXISTS build;
-		}
+    /if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
+      | drop build table
+      /sqlite query ${maData.Find[DBzone].Value} dummy DROP TABLE IF EXISTS build;
+    }
 
  }
 
@@ -3042,7 +3040,7 @@ sub sql_schema_update(bool _debug, string _type)
  * note: database data updates
  * use: called on every macro increment
  ***|
-sub sql_db_update(bool _debug, string _type)
+sub sql_db_update(bool _debug, string _type, string _verbage)
 
  /declare _tmpMap map local
  /declare _mi mapiterator local
@@ -3051,244 +3049,272 @@ sub sql_db_update(bool _debug, string _type)
  /declare _li listiterator local
 
  | character database
- /if (${_type.Equal[character]}) {
+ /if (${_type.Equal[character]} || ${_verbage.Equal[force]}) {
+  /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-w${maData.Find[chrID].Value}.sqlite\ax
 
 
 
-	| pulling changes
-	/if (${maEnv.Find[build].Value} >= 200927.01) {
-		/invoke ${_tmpMap.Add[swPull,character]}
-		/invoke ${_tmpMap.Add[stPullRadius,character]}
-		/invoke ${_tmpMap.Add[swPullSetHome,character]}
-		/invoke ${_tmpMap.Add[stPullNavStopDistance,character]}
-		/invoke ${_tmpMap.Add[stPullMode,character]}
-		/invoke ${_tmpMap.Add[stPullWith,character]}
-		/invoke ${_tmpMap.Add[stRangeOther,character]}
-		/invoke ${_tmpMap.Add[stRangeBandolier,character]}
-		/invoke ${_tmpMap.Add[stPctHardStop,character]}
-		/invoke ${_tmpMap.Add[stHardStopDuration,character]}
-		/invoke ${_tmpMap.Add[stPullZRadius,character]}
-	}
+  | pulling changes
+  /if (${maEnv.Find[build].Value} >= 200927.01 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200927.01\ax
+    /invoke ${_tmpMap.Add[swPull,character]}
+    /invoke ${_tmpMap.Add[stPullRadius,character]}
+    /invoke ${_tmpMap.Add[swPullSetHome,character]}
+    /invoke ${_tmpMap.Add[stPullNavStopDistance,character]}
+    /invoke ${_tmpMap.Add[stPullMode,character]}
+    /invoke ${_tmpMap.Add[stPullWith,character]}
+    /invoke ${_tmpMap.Add[stRangeOther,character]}
+    /invoke ${_tmpMap.Add[stRangeBandolier,character]}
+    /invoke ${_tmpMap.Add[stPctHardStop,character]}
+    /invoke ${_tmpMap.Add[stHardStopDuration,character]}
+    /invoke ${_tmpMap.Add[stPullZRadius,character]}
+  }
 
 
-	| predictive changes
-	/if (${maEnv.Find[build].Value} >= 200903.01) {
-		/invoke ${_tmpMap.Add[swPredPrepBurn,character]}
-		/invoke ${_tmpMap.Add[swPredPrepClass,character]}
-	}
+  | predictive changes
+  /if (${maEnv.Find[build].Value} >= 200903.01 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200903.01\ax
+    /invoke ${_tmpMap.Add[swPredPrepBurn,character]}
+    /invoke ${_tmpMap.Add[swPredPrepClass,character]}
+  }
 
 
-	| removal of pet type option in minion
-	/if (${maEnv.Find[build].Value} >= 200826.01) {
-		/invoke ${_tmpMap.Add[stPetType,minion]}
-	}
+  | removal of pet type option in minion
+  /if (${maEnv.Find[build].Value} >= 200826.01 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200826.01\ax
+    /invoke ${_tmpMap.Add[stPetType,minion]}
+  }
 
 
-	| ranger summer change
-	/if (${maEnv.Find[build].Value} >= 200824.01) {
-		/invoke ${_tmpMap.Add[swSummer,character]}
-	}
+  | ranger summer change
+  /if (${maEnv.Find[build].Value} >= 200824.01 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200824.01\ax
+    /invoke ${_tmpMap.Add[swSummer,character]}
+  }
 
-	| more rez redesign
-	/if (${maEnv.Find[build].Value} >= 200813.01) {
-		/invoke ${_tmpMap.Add[stRezPriority1,rez]}
-		/invoke ${_tmpMap.Add[stRezPriority2,rez]}
-		/invoke ${_tmpMap.Add[stRezPriority3,rez]}
-		/invoke ${_tmpMap.Add[stRezPriority4,rez]}
-		/invoke ${_tmpMap.Add[stRezPriority5,rez]}
-		/invoke ${_tmpMap.Add[stRezPriority6,rez]}
-		/invoke ${_tmpMap.Add[stRezPriority7,rez]}
-		/invoke ${_tmpMap.Add[stRezPriority8,rez]}
-	}
+  | more rez redesign
+  /if (${maEnv.Find[build].Value} >= 200813.01 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200813.01\ax
+    /invoke ${_tmpMap.Add[stRezPriority1,rez]}
+    /invoke ${_tmpMap.Add[stRezPriority2,rez]}
+    /invoke ${_tmpMap.Add[stRezPriority3,rez]}
+    /invoke ${_tmpMap.Add[stRezPriority4,rez]}
+    /invoke ${_tmpMap.Add[stRezPriority5,rez]}
+    /invoke ${_tmpMap.Add[stRezPriority6,rez]}
+    /invoke ${_tmpMap.Add[stRezPriority7,rez]}
+    /invoke ${_tmpMap.Add[stRezPriority8,rez]}
+  }
 
-	/if (${maEnv.Find[build].Value} >= 200810.01) {
-		/if (${Select[${Me.Class.ShortName},RNG,PAL,SHD,WAR]}) {
-			/invoke ${_tmpMap.Add[swTaunt,character]}
-			/invoke ${_tmpMap.Add[stPctTaunt,character]}
-		}
-		/invoke ${_tmpMap.Add[swAgro,character]}
-	}
-
-
- 	| rez redesign
-		/if (${maEnv.Find[build].Value} >= 200724.01) {
-
-			/invoke ${_tmpMap.Add[lsRezTokenToon,character]}
-			/invoke ${_tmpMap.Add[swRezGive,character]}
-			/invoke ${_tmpMap.Add[swRezTake,character]}
-			/invoke ${_tmpMap.Add[swRezCombat,character]}
-			/invoke ${_tmpMap.Add[swRezEveryone,character]}
-			/invoke ${_tmpMap.Add[swRezToken,character]}
-			/invoke ${_tmpMap.Add[stPctMinRez,character]}
-			/invoke ${_tmpMap.Add[stMaxRezRange,character]}
-			/invoke ${_tmpMap.Add[stResurrection,character]}
-			/invoke ${_tmpMap.Add[swDivineCleric,character]}
-		}
+  /if (${maEnv.Find[build].Value} >= 200810.01 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200810.01\ax
+    /if (${Select[${Me.Class.ShortName},RNG,PAL,SHD,WAR]}) {
+      /invoke ${_tmpMap.Add[swTaunt,character]}
+      /invoke ${_tmpMap.Add[stPctTaunt,character]}
+    }
+    /invoke ${_tmpMap.Add[swAgro,character]}
+  }
 
 
+  | rez redesign
+    /if (${maEnv.Find[build].Value} >= 200724.01 || ${_verbage.Equal[force]}) {
+      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200724.01\ax
+
+      /invoke ${_tmpMap.Add[lsRezTokenToon,character]}
+      /invoke ${_tmpMap.Add[swRezGive,character]}
+      /invoke ${_tmpMap.Add[swRezTake,character]}
+      /invoke ${_tmpMap.Add[swRezCombat,character]}
+      /invoke ${_tmpMap.Add[swRezEveryone,character]}
+      /invoke ${_tmpMap.Add[swRezToken,character]}
+      /invoke ${_tmpMap.Add[stPctMinRez,character]}
+      /invoke ${_tmpMap.Add[stMaxRezRange,character]}
+      /invoke ${_tmpMap.Add[stResurrection,character]}
+      /invoke ${_tmpMap.Add[swDivineCleric,character]}
+    }
 
 
-		/if (${maEnv.Find[build].Value} >= 200704.01) {
-			| remove all conditions (condition table, do that later)
-			/invoke ${_tmpList.Append[buff,character,item,defense,heal,song,nuke,dot,agro,miscdps,burn,sash]}
-			/vardata _li _tmpList.First.Clone
-			/while (!${_li.IsEnd}) {
-				/sqlite	query	${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_li.Value} WHERE env_var  LIKE "%Con";
-				/invoke ${_li.Advance}
-			}
-
-			| older variables that need to be removed
-			/invoke ${_tmpMap.Add[stRangeItemCount,character]}
-			/invoke ${_tmpMap.Add[lsRangeItemSummon,character]}
-			/invoke ${_tmpMap.Add[lsRangeItem,character]}
-			/invoke ${_tmpMap.Add[lsHealRemedy,character]}
-			/invoke ${_tmpMap.Add[lsHealRenewal,character]}
-			/invoke ${_tmpMap.Add[lsHealIntervention,character]}
-			/invoke ${_tmpMap.Add[lsHealLight,character]}
-			/invoke ${_tmpMap.Add[lsHealBaseLine,character]}
-			/invoke ${_tmpMap.Add[lsNuke,character]}
-			/invoke ${_tmpMap.Add[lsDoT,character]}
-			/invoke ${_tmpMap.Add[lsLineTank,character]}
-			/invoke ${_tmpMap.Add[lsLineCaster,character]}
-			/invoke ${_tmpMap.Add[lsLineMelee,character]}
-			/invoke ${_tmpMap.Add[lsLineMix,character]}
-			/invoke ${_tmpMap.Add[lsLineOther,character]}
-			/invoke ${_tmpMap.Add[lsHealPetLine,character]}
-			/invoke ${_tmpMap.Add[lsNukeFire,character]}
-			/invoke ${_tmpMap.Add[lsNukeMagic,character]}
-			/invoke ${_tmpMap.Add[lsNukeBase,character]}
-			/invoke ${_tmpMap.Add[stHealPanic,character]}
-			/invoke ${_tmpMap.Add[lsHealAdrenaline,character]}
-			/invoke ${_tmpMap.Add[lsHealPuravida,character]}
-			/invoke ${_tmpMap.Add[lsHealTouch,character]}
-			/invoke ${_tmpMap.Add[lsHealBurst,character]}
-			/invoke ${_tmpMap.Add[stCountDefensive,character]}
-			/invoke ${_tmpMap.Add[lsMitigationCycle,character]}
-			/invoke ${_tmpMap.Add[lsMitigationCyclecheck,character]}
-			/invoke ${_tmpMap.Add[lsNoHealToon,character]}
-			/invoke ${_tmpMap.Add[lsNoCureDeBuff,character]}
-			/invoke ${_tmpMap.Add[stHealMode,character]}
-			/invoke ${_tmpMap.Add[lsProtectOutsideGroup,character]}
-			/invoke ${_tmpMap.Add[lsProtectInsideRaid,character]}
-			/invoke ${_tmpMap.Add[lsProtectNPCList,character]}
-			/invoke ${_tmpMap.Add[stHealAdjust,character]}
-			/invoke ${_tmpMap.Add[swHealSelf,character]}
-			/invoke ${_tmpMap.Add[swHealToT,character]}
-			/invoke ${_tmpMap.Add[swHealGroup,character]}
-			/invoke ${_tmpMap.Add[swHealXTarget,character]}
-			/invoke ${_tmpMap.Add[swHealPet,character]}
-			/invoke ${_tmpMap.Add[swHealCure,character]}
-			/invoke ${_tmpMap.Add[stCureCurseItem,character]}
-			/invoke ${_tmpMap.Add[stCurePoisonItem,character]}
-			/invoke ${_tmpMap.Add[stCureDiseaseItem,character]}
-			/invoke ${_tmpMap.Add[stCureCorruptionItem,character]}
-			/invoke ${_tmpMap.Add[lsNoCureDeBuff,character]}
-			/invoke ${_tmpMap.Add[lsHealXTClass,character]}
-			/invoke ${_tmpMap.Add[lsNoHealToon,character]}
-			/invoke ${_tmpMap.Add[swArbitratetoHealGroup,character]}
-			/invoke ${_tmpMap.Add[stVerb,character]}
-			/invoke ${_tmpMap.Add[stSwapBandolier,character]}
-			/invoke ${_tmpMap.Add[lsLine,character]}
-			/invoke ${_tmpMap.Add[lsLineSong,dot]}
-			/invoke ${_tmpMap.Add[stCurrent,character]}
-			/invoke ${_tmpMap.Add[lsSafeListToon,character]}
-			/invoke ${_tmpMap.Add[swBurnForce,character]}
-			/invoke ${_tmpMap.Add[swBurnAuto,character]}
-			/invoke ${_tmpMap.Add[stPctBurnEngage,character]}
-			/invoke ${_tmpMap.Add[stBurnCount,character]}
-			/invoke ${_tmpMap.Add[swBurnRaid,character]}
-			/invoke ${_tmpMap.Add[stAbsorbingAgent,character]}
-			/invoke ${_tmpMap.Add[lsaLineBurn,burn]}
-			/invoke ${_tmpMap.Add[lsHealMending,character]}
-			/invoke ${_tmpMap.Add[lsHealIntervention,character]}
-			/invoke ${_tmpMap.Add[lsHealReckless,character]}
-			/invoke ${_tmpMap.Add[swProc,character]}
-			/invoke ${_tmpMap.Add[stProcBandolier,character]}
-			/invoke ${_tmpMap.Add[swBandolier,character]}
-			/invoke ${_tmpMap.Add[tiCheck_Proc_Bandolier,timer]}
-			/invoke ${_tmpMap.Add[stPctShieldFlash,character]}
-			/invoke ${_tmpMap.Add[stCountShieldFlash,character]}
-			/invoke ${_tmpMap.Add[stWolfSpirit,character]}
-			/invoke ${_tmpMap.Add[lsHealRejuvilation,character]}
-			/invoke ${_tmpMap.Add[swHealOverTime,character]}
-			/invoke ${_tmpMap.Add[stHealOverTime,character]}
-			/invoke ${_tmpMap.Add[stCountHealGroup,character]}
-			/invoke ${_tmpMap.Add[stHealGroup,character]}
-			/invoke ${_tmpMap.Add[swHealGroupOverTime,character]}
-			/invoke ${_tmpMap.Add[stCountSplash,character]}
-			/invoke ${_tmpMap.Add[stSplash,character]}
-			/invoke ${_tmpMap.Add[stHealLight,character]}
-			/invoke ${_tmpMap.Add[stSplashPanic,character]}
-			/invoke ${_tmpMap.Add[stSplashCure,character]}
-			/invoke ${_tmpMap.Add[stCountDef,character]}
-			/invoke ${_tmpMap.Add[stPctDef,character]}
-			/invoke ${_tmpMap.Add[lsLineDefense,character]}
-			/invoke ${_tmpMap.Add[lsHealToT,character]}
-			/invoke ${_tmpMap.Add[stSplash,heal]}
-			| /invoke ${_tmpMap.Add[stHealOverTime,heal]}
-			| /invoke ${_tmpMap.Add[stHealGroupOverTime,heal]}
-			/invoke ${_tmpMap.Add[stHealGroup,heal]}
-			/invoke ${_tmpMap.Add[stHealDesperate,character]}
-			/invoke ${_tmpMap.Add[stHealFont,character]}
-			/invoke ${_tmpMap.Add[stHealDesperate,character]}
-			/invoke ${_tmpMap.Add[stHealFont,character]}
-			/invoke ${_tmpMap.Add[swHealCure,heal]}
-			/invoke ${_tmpMap.Add[stAura1,character]}
-			/invoke ${_tmpMap.Add[stAura1Check,character]}
-			/invoke ${_tmpMap.Add[lsAura1Tag,character]}
-			/invoke ${_tmpMap.Add[stAura2,character]}
-			/invoke ${_tmpMap.Add[stAura2Check,character]}
-			/invoke ${_tmpMap.Add[lsAura2Tag,character]}
-			/invoke ${_tmpMap.Add[swPet,character]}
-			/invoke ${_tmpMap.Add[stPetType,character]}
-			/invoke ${_tmpMap.Add[stPetIllusion,character]}
-			/invoke ${_tmpMap.Add[stPctPetEngage,character]}
-			/invoke ${_tmpMap.Add[swSwarm,character]}
-			/invoke ${_tmpMap.Add[stPctSwarmEngage,character]}
-			/invoke ${_tmpMap.Add[swNoSwarmonDS,character]}
-			/invoke ${_tmpMap.Add[swonForce,character]}
-			/invoke ${_tmpMap.Add[swUsePetGear,character]}
-			/invoke ${_tmpMap.Add[stPetWeapon,character]}
-			/invoke ${_tmpMap.Add[swPetShrink,character]}
-			/invoke ${_tmpMap.Add[stPetShrink,character]}
-			/invoke ${_tmpMap.Add[swPetBuff,character]}
-			/invoke ${_tmpMap.Add[swSteel,character]}
-			/invoke ${_tmpMap.Add[swStance,character]}
-			/invoke ${_tmpMap.Add[tCheck_Stance,timer]}
-			/invoke ${_tmpMap.Add[swSkin,character]}
-			/invoke ${_tmpMap.Add[tCheck_Skin,timer]}
-			/invoke ${_tmpMap.Add[lsHealPanic,character]}
-			/invoke ${_tmpMap.Add[stTwistedShankcharacter]}
-			/invoke ${_tmpMap.Add[swSurge,character]}
-			/invoke ${_tmpMap.Add[stHealSurge,character]}
-		}
 
 
-		| remove the items we've collected
-		/vardata _mi _tmpMap.First.Clone
-		/while (!${_mi.IsEnd}) {
-			/call sql_drop ${_mi.Value} ${_mi.Key} ${maDebug.Find[sql].Value}
-			/invoke ${_mi.Advance}
-		}
+    /if (${maEnv.Find[build].Value} >= 200704.01 || ${_verbage.Equal[force]}) {
+      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200704.01\ax
+
+      | remove all conditions (condition table, do that later)
+      /invoke ${_tmpList.Append[buff,character,item,defense,heal,song,nuke,dot,agro,miscdps,burn,sash]}
+      /vardata _li _tmpList.First.Clone
+      /while (!${_li.IsEnd}) {
+        /sqlite query ${maData.Find[DBcharacter].Value} dummy DELETE FROM environment_${_li.Value} WHERE env_var  LIKE "%Con";
+        /invoke ${_li.Advance}
+      }
+
+      | older variables that need to be removed
+      /invoke ${_tmpMap.Add[stRangeItemCount,character]}
+      /invoke ${_tmpMap.Add[lsRangeItemSummon,character]}
+      /invoke ${_tmpMap.Add[lsRangeItem,character]}
+      /invoke ${_tmpMap.Add[lsHealRemedy,character]}
+      /invoke ${_tmpMap.Add[lsHealRenewal,character]}
+      /invoke ${_tmpMap.Add[lsHealIntervention,character]}
+      /invoke ${_tmpMap.Add[lsHealLight,character]}
+      /invoke ${_tmpMap.Add[lsHealBaseLine,character]}
+      /invoke ${_tmpMap.Add[lsNuke,character]}
+      /invoke ${_tmpMap.Add[lsDoT,character]}
+      /invoke ${_tmpMap.Add[lsLineTank,character]}
+      /invoke ${_tmpMap.Add[lsLineCaster,character]}
+      /invoke ${_tmpMap.Add[lsLineMelee,character]}
+      /invoke ${_tmpMap.Add[lsLineMix,character]}
+      /invoke ${_tmpMap.Add[lsLineOther,character]}
+      /invoke ${_tmpMap.Add[lsHealPetLine,character]}
+      /invoke ${_tmpMap.Add[lsNukeFire,character]}
+      /invoke ${_tmpMap.Add[lsNukeMagic,character]}
+      /invoke ${_tmpMap.Add[lsNukeBase,character]}
+      /invoke ${_tmpMap.Add[stHealPanic,character]}
+      /invoke ${_tmpMap.Add[lsHealAdrenaline,character]}
+      /invoke ${_tmpMap.Add[lsHealPuravida,character]}
+      /invoke ${_tmpMap.Add[lsHealTouch,character]}
+      /invoke ${_tmpMap.Add[lsHealBurst,character]}
+      /invoke ${_tmpMap.Add[stCountDefensive,character]}
+      /invoke ${_tmpMap.Add[lsMitigationCycle,character]}
+      /invoke ${_tmpMap.Add[lsMitigationCyclecheck,character]}
+      /invoke ${_tmpMap.Add[lsNoHealToon,character]}
+      /invoke ${_tmpMap.Add[lsNoCureDeBuff,character]}
+      /invoke ${_tmpMap.Add[stHealMode,character]}
+      /invoke ${_tmpMap.Add[lsProtectOutsideGroup,character]}
+      /invoke ${_tmpMap.Add[lsProtectInsideRaid,character]}
+      /invoke ${_tmpMap.Add[lsProtectNPCList,character]}
+      /invoke ${_tmpMap.Add[stHealAdjust,character]}
+      /invoke ${_tmpMap.Add[swHealSelf,character]}
+      /invoke ${_tmpMap.Add[swHealToT,character]}
+      /invoke ${_tmpMap.Add[swHealGroup,character]}
+      /invoke ${_tmpMap.Add[swHealXTarget,character]}
+      /invoke ${_tmpMap.Add[swHealPet,character]}
+      /invoke ${_tmpMap.Add[swHealCure,character]}
+      /invoke ${_tmpMap.Add[stCureCurseItem,character]}
+      /invoke ${_tmpMap.Add[stCurePoisonItem,character]}
+      /invoke ${_tmpMap.Add[stCureDiseaseItem,character]}
+      /invoke ${_tmpMap.Add[stCureCorruptionItem,character]}
+      /invoke ${_tmpMap.Add[lsNoCureDeBuff,character]}
+      /invoke ${_tmpMap.Add[lsHealXTClass,character]}
+      /invoke ${_tmpMap.Add[lsNoHealToon,character]}
+      /invoke ${_tmpMap.Add[swArbitratetoHealGroup,character]}
+      /invoke ${_tmpMap.Add[stVerb,character]}
+      /invoke ${_tmpMap.Add[stSwapBandolier,character]}
+      /invoke ${_tmpMap.Add[lsLine,character]}
+      /invoke ${_tmpMap.Add[lsLineSong,dot]}
+      /invoke ${_tmpMap.Add[stCurrent,character]}
+      /invoke ${_tmpMap.Add[lsSafeListToon,character]}
+      /invoke ${_tmpMap.Add[swBurnForce,character]}
+      /invoke ${_tmpMap.Add[swBurnAuto,character]}
+      /invoke ${_tmpMap.Add[stPctBurnEngage,character]}
+      /invoke ${_tmpMap.Add[stBurnCount,character]}
+      /invoke ${_tmpMap.Add[swBurnRaid,character]}
+      /invoke ${_tmpMap.Add[stAbsorbingAgent,character]}
+      /invoke ${_tmpMap.Add[lsaLineBurn,burn]}
+      /invoke ${_tmpMap.Add[lsHealMending,character]}
+      /invoke ${_tmpMap.Add[lsHealIntervention,character]}
+      /invoke ${_tmpMap.Add[lsHealReckless,character]}
+      /invoke ${_tmpMap.Add[swProc,character]}
+      /invoke ${_tmpMap.Add[stProcBandolier,character]}
+      /invoke ${_tmpMap.Add[swBandolier,character]}
+      /invoke ${_tmpMap.Add[tiCheck_Proc_Bandolier,timer]}
+      /invoke ${_tmpMap.Add[stPctShieldFlash,character]}
+      /invoke ${_tmpMap.Add[stCountShieldFlash,character]}
+      /invoke ${_tmpMap.Add[stWolfSpirit,character]}
+      /invoke ${_tmpMap.Add[lsHealRejuvilation,character]}
+      /invoke ${_tmpMap.Add[swHealOverTime,character]}
+      /invoke ${_tmpMap.Add[stHealOverTime,character]}
+      /invoke ${_tmpMap.Add[stCountHealGroup,character]}
+      /invoke ${_tmpMap.Add[stHealGroup,character]}
+      /invoke ${_tmpMap.Add[swHealGroupOverTime,character]}
+      /invoke ${_tmpMap.Add[stCountSplash,character]}
+      /invoke ${_tmpMap.Add[stSplash,character]}
+      /invoke ${_tmpMap.Add[stHealLight,character]}
+      /invoke ${_tmpMap.Add[stSplashPanic,character]}
+      /invoke ${_tmpMap.Add[stSplashCure,character]}
+      /invoke ${_tmpMap.Add[stCountDef,character]}
+      /invoke ${_tmpMap.Add[stPctDef,character]}
+      /invoke ${_tmpMap.Add[lsLineDefense,character]}
+      /invoke ${_tmpMap.Add[lsHealToT,character]}
+      /invoke ${_tmpMap.Add[stSplash,heal]}
+      | /invoke ${_tmpMap.Add[stHealOverTime,heal]}
+      | /invoke ${_tmpMap.Add[stHealGroupOverTime,heal]}
+      /invoke ${_tmpMap.Add[stHealGroup,heal]}
+      /invoke ${_tmpMap.Add[stHealDesperate,character]}
+      /invoke ${_tmpMap.Add[stHealFont,character]}
+      /invoke ${_tmpMap.Add[stHealDesperate,character]}
+      /invoke ${_tmpMap.Add[stHealFont,character]}
+      /invoke ${_tmpMap.Add[swHealCure,heal]}
+      /invoke ${_tmpMap.Add[stAura1,character]}
+      /invoke ${_tmpMap.Add[stAura1Check,character]}
+      /invoke ${_tmpMap.Add[lsAura1Tag,character]}
+      /invoke ${_tmpMap.Add[stAura2,character]}
+      /invoke ${_tmpMap.Add[stAura2Check,character]}
+      /invoke ${_tmpMap.Add[lsAura2Tag,character]}
+      /invoke ${_tmpMap.Add[swPet,character]}
+      /invoke ${_tmpMap.Add[stPetType,character]}
+      /invoke ${_tmpMap.Add[stPetIllusion,character]}
+      /invoke ${_tmpMap.Add[stPctPetEngage,character]}
+      /invoke ${_tmpMap.Add[swSwarm,character]}
+      /invoke ${_tmpMap.Add[stPctSwarmEngage,character]}
+      /invoke ${_tmpMap.Add[swNoSwarmonDS,character]}
+      /invoke ${_tmpMap.Add[swonForce,character]}
+      /invoke ${_tmpMap.Add[swUsePetGear,character]}
+      /invoke ${_tmpMap.Add[stPetWeapon,character]}
+      /invoke ${_tmpMap.Add[swPetShrink,character]}
+      /invoke ${_tmpMap.Add[stPetShrink,character]}
+      /invoke ${_tmpMap.Add[swPetBuff,character]}
+      /invoke ${_tmpMap.Add[swSteel,character]}
+      /invoke ${_tmpMap.Add[swStance,character]}
+      /invoke ${_tmpMap.Add[tCheck_Stance,timer]}
+      /invoke ${_tmpMap.Add[swSkin,character]}
+      /invoke ${_tmpMap.Add[tCheck_Skin,timer]}
+      /invoke ${_tmpMap.Add[lsHealPanic,character]}
+      /invoke ${_tmpMap.Add[stTwistedShankcharacter]}
+      /invoke ${_tmpMap.Add[swSurge,character]}
+      /invoke ${_tmpMap.Add[stHealSurge,character]}
+    }
 
 
-	| loot database
-	} else /if (${_type.Equal[loot]}) {
+    | remove the items we've collected
+    /vardata _mi _tmpMap.First.Clone
+    /while (!${_mi.IsEnd}) {
+      /call sql_drop ${_mi.Value} ${_mi.Key} ${maDebug.Find[sql].Value}
+      /invoke ${_mi.Advance}
+    }
+  }
 
 
-	| nav database
-	} else /if (${_type.Equal[nav]}) {
+  | loot database
+  /if (${_type.Equal[loot]} || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-wloot.sqlite\ax
+    
+    
+  }
 
 
-	| shared database
-	} else /if (${_type.Equal[shared]}) {
+  | nav database
+  /if (${_type.Equal[nav]} || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-wnav.sqlite\ax
+  
+  
+  }
+  
 
 
-	| zone database
-	} else /if (${_type.Equal[zone]}) {
+  | shared database
+  /if (${_type.Equal[shared]} || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-wshared.sqlite\ax
+    
+    
+  }
 
 
-	}
+  | zone database
+  /if (${_type.Equal[zone]} || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-wzone.sqlite\ax
+
+
+  }
+
+
+  }
 
 /return
 
@@ -3319,6 +3345,6 @@ sub sql(bool _debug, string _verb, string _db, string _query, string _action, st
 
 
               verb     db                        query action  table
-			/sqlite query ${maData.Find[DBzone].Value} QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe';
+      /sqlite query ${maData.Find[DBzone].Value} QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe';
 
 

@@ -10,55 +10,55 @@
  * use:
  ***|
 sub class_init(bool _debug)
-	DEBUG \atclass_init\ax()
+  DEBUG \atclass_init\ax()
 
-	/if (${maDebug.Find[init].Value}) {
-		/declare _boottimestart int local ${MacroQuest.Running}
-	}
+  /if (${maDebug.Find[init].Value}) {
+    /declare _boottimestart int local ${MacroQuest.Running}
+  }
 
-	/call set_data FALSE maData stSpire																	map outer "Spire of Nature"
-	/call set_data FALSE maData stSynergy																map outer "Preserver's Synergy"
-	/call set_data FALSE maData stFade																	map outer "Veil of the Underbrush"
-	/call set_data_map FALSE maChr stAAUnity														"Wildtender's Unity"					"${auxna} class aa unity buff"
+  /call set_data FALSE maData stSpire                                 map outer "Spire of Nature"
+  /call set_data FALSE maData stSynergy                               map outer "Preserver's Synergy"
+  /call set_data FALSE maData stFade                                  map outer "Veil of the Underbrush"
+  /call set_data_map FALSE maChr stAAUnity                            "Wildtender's Unity"          "${auxna} class aa unity buff"
 
- 	/call set_data_map FALSE maChr stAlliance														PREGEN|1											"${auxna} alliance spell"
+  /call set_data_map FALSE maChr stAlliance                           PREGEN|1                      "${auxna} alliance spell"
 
- 	/call set_data_map FALSE maChr swWolfSpirit													FALSE													"${auxsw} enable spirit of the great wolf aa (self/group)"
+  /call set_data_map FALSE maChr swWolfSpirit                         FALSE                         "${auxsw} enable spirit of the great wolf aa (self/group)"
 
-	| temp buff: growth family
-  /call set_data_list FALSE maChr lsGrowthToon	 											EMPTY													"${auxli} list of toons to use ward temp hp growth on"
-	/call set_data_map FALSE maChr stGrowth			 												PREGEN|1											"${auxna} temp hp growth spell"
+  | temp buff: growth family
+  /call set_data_list FALSE maChr lsGrowthToon                        EMPTY                         "${auxli} list of toons to use ward temp hp growth on"
+  /call set_data_map FALSE maChr stGrowth                             PREGEN|1                      "${auxna} temp hp growth spell"
 
-	| temp buff
-  /call set_data_list ${_debug} maChr lsTempBuffToon									EMPTY													"${auxli} list of toons to use your temp buff on"
-	/call set_data_map ${_debug} maChr stTempBuff		 										FALSE													"${auxna} temp buff spell"
+  | temp buff
+  /call set_data_list ${_debug} maChr lsTempBuffToon                  EMPTY                         "${auxli} list of toons to use your temp buff on"
+  /call set_data_map ${_debug} maChr stTempBuff                       FALSE                         "${auxna} temp buff spell"
 
-  /call set_data_map FALSE maChr stTwincast														PREGEN|1											"${auxna} twincast spell"
-
-
-	| AAs
-	/call set_data_map ${_debug} maChr stAASeasonsWrath									PREGEN|1											"${auxna} Season's Wrath AA"
-	/call set_data_map ${_debug} maChr stAAStormStrike									PREGEN|1											"${auxna} Storm Strike AA"
-	/call set_data_map ${_debug} maChr stAASpiritoftheGreatWolf					PREGEN|1											"${auxna} Spirit of the Great Wolf AA"
-	/call set_data_map ${_debug} maChr stAAGroupSpiritoftheGreatWolf		PREGEN|1											"${auxna} Group Spirit of the Great Wolf AA"
-	/call set_data_map ${_debug} maChr stAASwarmofFireflies							PREGEN|1											"${auxna} Swarm of Fireflies AA"
-	/call set_data_map ${_debug} maChr stAAConvergenceofSpirits					PREGEN|1											"${auxna} Convergence of Spirits AA"
-	/call set_data_map ${_debug} maChr stAAWildtendersSurvival					PREGEN|1											"${auxna} Wildtender's Survival AA"
-	/call set_data_map ${_debug} maChr stAAPeacefulSpiritoftheWood			PREGEN|1											"${auxna} Peaceful Spirit of the Wood AA"
-	/call set_data_map ${_debug} maChr stAABlessingofTunare							PREGEN|1											"${auxna} Blessing of Tunare AA"
-	/call set_data_map ${_debug} maChr stAANaturesGuardian							PREGEN|1											"${auxna} Nature's Guardian AA"
-	/call set_data_map ${_debug} maChr stAAProtectionofDirewood					PREGEN|1											"${auxna} Protection of Direwood AA"
-	/call set_data_map ${_debug} maChr stAASilentCasting								PREGEN|1											"${auxna} Silent Casting AA"
-	/call set_data_map ${_debug} maChr stAADistructiveVortex						PREGEN|1											"${auxna} Distructive Vortex AA"
-	/call set_data_map ${_debug} maChr stAANaturesFury									PREGEN|1											"${auxna} Natures Fury AA"
-	/call set_data_map ${_debug} maChr stAANaturesBlessing							PREGEN|1											"${auxna} Nature's Blessing AA"
-	/call set_data_map ${_debug} maChr stAANaturesBoon									PREGEN|1											"${auxna} Nature's Boon AA"
+  /call set_data_map FALSE maChr stTwincast                           PREGEN|1                      "${auxna} twincast spell"
 
 
-	/if (${maDebug.Find[init].Value}) {
-		OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
-		/mqp
-	}
+  | AAs
+  /call set_data_map ${_debug} maChr stAASeasonsWrath                 PREGEN|1                      "${auxna} Season's Wrath AA"
+  /call set_data_map ${_debug} maChr stAAStormStrike                  PREGEN|1                      "${auxna} Storm Strike AA"
+  /call set_data_map ${_debug} maChr stAASpiritoftheGreatWolf         PREGEN|1                      "${auxna} Spirit of the Great Wolf AA"
+  /call set_data_map ${_debug} maChr stAAGroupSpiritoftheGreatWolf    PREGEN|1                      "${auxna} Group Spirit of the Great Wolf AA"
+  /call set_data_map ${_debug} maChr stAASwarmofFireflies             PREGEN|1                      "${auxna} Swarm of Fireflies AA"
+  /call set_data_map ${_debug} maChr stAAConvergenceofSpirits         PREGEN|1                      "${auxna} Convergence of Spirits AA"
+  /call set_data_map ${_debug} maChr stAAWildtendersSurvival          PREGEN|1                      "${auxna} Wildtender's Survival AA"
+  /call set_data_map ${_debug} maChr stAAPeacefulSpiritoftheWood      PREGEN|1                      "${auxna} Peaceful Spirit of the Wood AA"
+  /call set_data_map ${_debug} maChr stAABlessingofTunare             PREGEN|1                      "${auxna} Blessing of Tunare AA"
+  /call set_data_map ${_debug} maChr stAANaturesGuardian              PREGEN|1                      "${auxna} Nature's Guardian AA"
+  /call set_data_map ${_debug} maChr stAAProtectionofDirewood         PREGEN|1                      "${auxna} Protection of Direwood AA"
+  /call set_data_map ${_debug} maChr stAASilentCasting                PREGEN|1                      "${auxna} Silent Casting AA"
+  /call set_data_map ${_debug} maChr stAADistructiveVortex            PREGEN|1                      "${auxna} Distructive Vortex AA"
+  /call set_data_map ${_debug} maChr stAANaturesFury                  PREGEN|1                      "${auxna} Natures Fury AA"
+  /call set_data_map ${_debug} maChr stAANaturesBlessing              PREGEN|1                      "${auxna} Nature's Blessing AA"
+  /call set_data_map ${_debug} maChr stAANaturesBoon                  PREGEN|1                      "${auxna} Nature's Boon AA"
+
+
+  /if (${maDebug.Find[init].Value}) {
+    OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+    /mqp
+  }
 
 /return
 
@@ -69,67 +69,67 @@ sub class_init(bool _debug)
  * use:
  ***|
 sub class_main(bool _debug)
-	DEBUG \atclass_main\ax()
+  DEBUG \atclass_main\ax()
 
-	GETINPUT
-	ISMEDEAD
-	CHECKTIE
+  GETINPUT
+  ISMEDEAD
+  CHECKTIE
 
 
-	| correct any and all XTarget healing spots
-	/if (AUTO && !ENGINE3) {
-	  /if (${maHeal.Find[swHealXTarget].Value} && !${timer_Check_Xtarget_Build}) {
-	    /call check_xtarget_build FALSE
-		}
-	} else /if (AUTO && ENGINE3) {
-		/if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
-			/call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
-		}
-	}
+  | correct any and all XTarget healing spots
+  /if (AUTO && !ENGINE3) {
+    /if (${maHeal.Find[swHealXTarget].Value} && !${timer_Check_Xtarget_Build}) {
+      /call check_xtarget_build FALSE
+    }
+  } else /if (AUTO && ENGINE3) {
+    /if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
+      /call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+    }
+  }
 
-	/while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-		GETINPUT
-		CHECKREZ
-		/call check_heal_routines
-		CHECKDEFENSE
-		CHECKFADE
+  /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
+    GETINPUT
+    CHECKREZ
+    /call check_heal_routines
+    CHECKDEFENSE
+    CHECKFADE
 
-		/if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stGrowth lsGrowthToon
-			/call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
-		}
-		/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-		/if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
-		/if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
+    /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
+      /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stGrowth lsGrowthToon
+      /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
+    }
+    /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
+    /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
+    /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
-		/if (VALID && !ENGINE3) {
-			CHECKREZ
-			/call set_combat_control ${maDebug.Find[decision].Value} TARGET
-			/if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
-			/call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-			/call misc_combat ${maDebug.Find[misc].Value} TARGET
-			/if (!${timer_Check_deBuffs}) {
-				/call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-			}
-			/if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
-			/if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
-			/call check_item_cycle ${maDebug.Find[item].Value} TARGET
-		} else /if (VALID && ENGINE3) {
-			/if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
-				/call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
-			}
-		}
+    /if (VALID && !ENGINE3) {
+      CHECKREZ
+      /call set_combat_control ${maDebug.Find[decision].Value} TARGET
+      /if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
+      /call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
+      /call misc_combat ${maDebug.Find[misc].Value} TARGET
+      /if (!${timer_Check_deBuffs}) {
+        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+      }
+      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
+      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
+      /call check_item_cycle ${maDebug.Find[item].Value} TARGET
+    } else /if (VALID && ENGINE3) {
+      /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
+        /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+      }
+    }
 
-		/if (AUTO && !ENGINE3) {
-			/if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-			CHECKFADE
-		} else /if (AUTO && !ENGINE3) {
-			/if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
-				/call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
-			}
-		}
+    /if (AUTO && !ENGINE3) {
+      /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
+      CHECKFADE
+    } else /if (AUTO && !ENGINE3) {
+      /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
+        /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
+      }
+    }
 
-	}
+  }
 
 /return TRUE
 
@@ -140,54 +140,54 @@ sub class_main(bool _debug)
  * use: pushmorebuttons!!
  ***|
 sub misc_combat(bool _debug, int _tmpID)
-	DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-	FLOW misc_combat
+  DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+  FLOW misc_combat
 
-	ISMEDEAD
-	/if (${target[isdead, ${_tmpID}]}) {
-		/return FALSE
-	}
-	CHECKEXIT
-	GETINPUT
-	CHECKTIE
-	CHECKDEFENSE
-	/if (!PULL) {
-		/call get_assist_target ${maDebug.Find[target].Value}
-		/if (TARGET != ${_tmpID}) /varset _tmpID TARGET
-	}
+  ISMEDEAD
+  /if (${target[isdead, ${_tmpID}]}) {
+    /return FALSE
+  }
+  CHECKEXIT
+  GETINPUT
+  CHECKTIE
+  CHECKDEFENSE
+  /if (!PULL) {
+    /call get_assist_target ${maDebug.Find[target].Value}
+    /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
+  }
 
-	/if (SWARM || PET) {
-		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
-	}
-	/if (AUTO && MELEE) {
-		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
-	}
+  /if (SWARM || PET) {
+    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+  }
+  /if (AUTO && MELEE) {
+    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+  }
 
-	/if (ENGINE2) {
-		/call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
-		/return TRUE
-	}
+  /if (ENGINE2) {
+    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+    /return TRUE
+  }
 
-	/if (${is_ready[${_debug}, "${maChr.Find[stAASeasonsWrath].Value}"]} && ${madeBuff.Find[malo].Value}) {
-		/call voodoo ${_debug} "${maChr.Find[stAASeasonsWrath].Value}" ${_tmpID} FALSE
-	}
+  /if (${is_ready[${_debug}, "${maChr.Find[stAASeasonsWrath].Value}"]} && ${madeBuff.Find[malo].Value}) {
+    /call voodoo ${_debug} "${maChr.Find[stAASeasonsWrath].Value}" ${_tmpID} FALSE
+  }
 
-	/if (${is_ready[${_debug}, "${maChr.Find[stAAStormStrike].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stAAStormStrike].Value}" ${_tmpID} FALSE
-	}
+  /if (${is_ready[${_debug}, "${maChr.Find[stAAStormStrike].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAAStormStrike].Value}" ${_tmpID} FALSE
+  }
 
-	| great wolf self/group aa
-	/if (${maChr.Find[swWolfSpirit].Value}) {
-		/if (${Me.AltAbilityReady[${maChr.Find[stAASpiritoftheGreatWolf].Value}]} && !${Me.Buff[${maChr.Find[stAASpiritoftheGreatWolf].Value}].ID} && !${Me.Buff[${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}].ID}) {
-			/if (${is_ready[${_debug}, "${maChr.Find[stAASpiritoftheGreatWolf].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stAASpiritoftheGreatWolf].Value}" 0 FALSE
-			}
-		} else /if (${Me.AltAbilityReady[${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}]} && !${Me.AltAbilityReady[${maChr.Find[stAASpiritoftheGreatWolf].Value}]} && !${Me.Buff[${maChr.Find[stAASpiritoftheGreatWolf].Value}].ID} && !${Me.Buff[Group Spirit of the Great Wolf].ID}) {
-			/if (${is_ready[${_debug}, "${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}" 0 FALSE
-			}
-		}
-	}
+  | great wolf self/group aa
+  /if (${maChr.Find[swWolfSpirit].Value}) {
+    /if (${Me.AltAbilityReady[${maChr.Find[stAASpiritoftheGreatWolf].Value}]} && !${Me.Buff[${maChr.Find[stAASpiritoftheGreatWolf].Value}].ID} && !${Me.Buff[${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}].ID}) {
+      /if (${is_ready[${_debug}, "${maChr.Find[stAASpiritoftheGreatWolf].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAASpiritoftheGreatWolf].Value}" 0 FALSE
+      }
+    } else /if (${Me.AltAbilityReady[${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}]} && !${Me.AltAbilityReady[${maChr.Find[stAASpiritoftheGreatWolf].Value}]} && !${Me.Buff[${maChr.Find[stAASpiritoftheGreatWolf].Value}].ID} && !${Me.Buff[Group Spirit of the Great Wolf].ID}) {
+      /if (${is_ready[${_debug}, "${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}" 0 FALSE
+      }
+    }
+  }
 
 
 /return TRUE
@@ -199,91 +199,91 @@ sub misc_combat(bool _debug, int _tmpID)
  * use: fuckers...
  ***|
 sub check_heal(bool _debug, string _type)
-	DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-	FLOW check_heal ${_type}
+  DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
+  FLOW check_heal ${_type}
 
-	CHECKTIE
-	ISMEDEAD
-	CHECKEXIT
-	CHECKREZ
-	CHECKFADE
+  CHECKTIE
+  ISMEDEAD
+  CHECKEXIT
+  CHECKREZ
+  CHECKFADE
 
-	SETHUD "heal ${_type}"
+  SETHUD "heal ${_type}"
 
-	/call get_hurt ${_debug} ${_type}
+  /call get_hurt ${_debug} ${_type}
 
-	/if (!${hurtCount}) {
-		SETHUD EMPTY
-		/return
-	}
+  /if (!${hurtCount}) {
+    SETHUD EMPTY
+    /return
+  }
 
-	/if (!SAFEZONE) {
+  /if (!SAFEZONE) {
 
-		/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-			/if (${is_ready[${_debug}, "${maChr.Find[stAASwarmofFireflies].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stAASwarmofFireflies].Value}" ${hurtID} FALSE
-			}
-		}
+    /if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+      /if (${is_ready[${_debug}, "${maChr.Find[stAASwarmofFireflies].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAASwarmofFireflies].Value}" ${hurtID} FALSE
+      }
+    }
 
-		/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-			/if (${is_ready[${_debug}, "${maChr.Find[stAAConvergenceofSpirits].Value}"]}) {
-				/call voodoo ${_debug} "${maChr.Find[stAAConvergenceofSpirits].Value}" ${hurtID} FALSE
-			}
-		}
+    /if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+      /if (${is_ready[${_debug}, "${maChr.Find[stAAConvergenceofSpirits].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAAConvergenceofSpirits].Value}" ${hurtID} FALSE
+      }
+    }
 
-	}
+  }
 
-	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+  /if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 
   | Group Heal
   /if (${Select[${_type},group]} && ${maHeal.Find[stCountHealGroup].Value}) {
-	  /if (${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+    /if (${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
 
-			/if (!SAFEZONE) {
+      /if (!SAFEZONE) {
 
-			/if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-				/if (${is_ready[${_debug}, "${maChr.Find[stAAWildtendersSurvival].Value}"]}) {
-					/call voodoo ${_debug} "${maChr.Find[stAAWildtendersSurvival].Value}" 0 FALSE
-				}
-			}
+      /if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+        /if (${is_ready[${_debug}, "${maChr.Find[stAAWildtendersSurvival].Value}"]}) {
+          /call voodoo ${_debug} "${maChr.Find[stAAWildtendersSurvival].Value}" 0 FALSE
+        }
+      }
 
-		  	/if (${is_ready[${_debug}, "${maChr.Find[stAAPeacefulSpiritoftheWood].Value}"]}) {
-		  		/call voodoo ${_debug} "${maChr.Find[stAAPeacefulSpiritoftheWood].Value}" ${Me.ID} FALSE
-		  		/return
-		  	}
+        /if (${is_ready[${_debug}, "${maChr.Find[stAAPeacefulSpiritoftheWood].Value}"]}) {
+          /call voodoo ${_debug} "${maChr.Find[stAAPeacefulSpiritoftheWood].Value}" ${Me.ID} FALSE
+          /return
+        }
 
-		  	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+        /if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 
-			 	/if (${is_ready[${_debug}, "${maChr.Find[stAABlessingofTunare].Value}"]}) {
-			 		/call voodoo ${_debug} "${maChr.Find[stAABlessingofTunare].Value}" 0 FALSE
-			 		/return
-			 	}
-			}
+        /if (${is_ready[${_debug}, "${maChr.Find[stAABlessingofTunare].Value}"]}) {
+          /call voodoo ${_debug} "${maChr.Find[stAABlessingofTunare].Value}" 0 FALSE
+          /return
+        }
+      }
 
-		 	/if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+      /if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 
-		  | group heal?
-			/if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
-				/call cast_cycle_heal ${_debug} 0 group
- 			}
+      | group heal?
+      /if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+        /call cast_cycle_heal ${_debug} 0 group
+      }
 
-	  }
-	}
+    }
+  }
 
- 	/if (!${get_hurt[${_debug}, ${_type}]}) {
- 		/return FALSE
- 	}
+  /if (!${get_hurt[${_debug}, ${_type}]}) {
+    /return FALSE
+  }
 
-	CHECKTIE
-	ISMEDEAD
-	CHECKEXIT
-	CHECKREZ
-	CHECKFADE
-	GETINPUT dru_heal_end type|${_type}
+  CHECKTIE
+  ISMEDEAD
+  CHECKEXIT
+  CHECKREZ
+  CHECKFADE
+  GETINPUT dru_heal_end type|${_type}
 
-	/call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtID} single
 
-	SETHUD EMPTY
+  SETHUD EMPTY
 
 /return TRUE
 
@@ -294,75 +294,75 @@ sub check_heal(bool _debug, string _type)
  * use: dpsing the things
  ***|
 sub burn(bool _debug, int _tmpID)
-	DEBUG \atburn\ax()
-	FLOW burn
+  DEBUG \atburn\ax()
+  FLOW burn
 
-	ISMEDEAD
-	/if (${target[isdead, ${_tmpID}]}) {
-		/return FALSE
-	}
+  ISMEDEAD
+  /if (${target[isdead, ${_tmpID}]}) {
+    /return FALSE
+  }
 
-	CHECKEXIT
-	GETINPUT
-	CHECKTIE
-	CHECKDEFENSE
-	/if (!PULL) {
-		/call get_assist_target ${maDebug.Find[target].Value}
-		/if (TARGET != ${_tmpID}) /varset _tmpID TARGET
-	}
+  CHECKEXIT
+  GETINPUT
+  CHECKTIE
+  CHECKDEFENSE
+  /if (!PULL) {
+    /call get_assist_target ${maDebug.Find[target].Value}
+    /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
+  }
 
-	/if (SWARM || PET) {
-		/call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
-	}
-	/if (AUTO && MELEE) {
-		/call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
-	}
+  /if (SWARM || PET) {
+    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+  }
+  /if (AUTO && MELEE) {
+    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+  }
 
-	/if (ENGINE2) {
-		/call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
-		/return TRUE
-	}
+  /if (ENGINE2) {
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /return TRUE
+  }
 
-	| swarm pets
-	/if (SWARM) {
-		/if (${is_ready[${_debug}, "${maChr.Find[stAANaturesGuardian].Value}"]})) {
-			/call voodoo ${_debug} "${maChr.Find[stAANaturesGuardian].Value}" ${_tmpID} FALSE
-		}
-	}
+  | swarm pets
+  /if (SWARM) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stAANaturesGuardian].Value}"]})) {
+      /call voodoo ${_debug} "${maChr.Find[stAANaturesGuardian].Value}" ${_tmpID} FALSE
+    }
+  }
 
-	| defense
-	/if (${is_ready[${_debug}, "${maChr.Find[stAAProtectionofDirewood].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stAAProtectionofDirewood].Value}" 0 FALSE
-	}
+  | defense
+  /if (${is_ready[${_debug}, "${maChr.Find[stAAProtectionofDirewood].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAAProtectionofDirewood].Value}" 0 FALSE
+  }
 
-	/if (${is_ready[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stAASilentCasting].Value}" 0 FALSE
-	}
+  /if (${is_ready[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAASilentCasting].Value}" 0 FALSE
+  }
 
-	| damage boost
-	/if (${is_ready[${_debug}, "${maChr.Find[stAADistructiveVortex].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stAADistructiveVortex].Value}" 0 FALSE
-	}
+  | damage boost
+  /if (${is_ready[${_debug}, "${maChr.Find[stAADistructiveVortex].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAADistructiveVortex].Value}" 0 FALSE
+  }
 
-	/if (${is_ready[${_debug}, "${maChr.Find[stAANaturesFury].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stAANaturesFury].Value}" 0 FALSE
-	}
+  /if (${is_ready[${_debug}, "${maChr.Find[stAANaturesFury].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAANaturesFury].Value}" 0 FALSE
+  }
 
-	| heal boost
-	/if (${is_ready[${_debug}, "${maChr.Find[stAANaturesBlessing].Value}"]}) {
-		/call voodoo ${_debug} "${maChr.Find[stAANaturesBlessing].Value}" 0 FALSE
-	}
+  | heal boost
+  /if (${is_ready[${_debug}, "${maChr.Find[stAANaturesBlessing].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAANaturesBlessing].Value}" 0 FALSE
+  }
 
-	/call cast_AA_spire ${maDebug.Find[spire].Value}
+  /call cast_AA_spire ${maDebug.Find[spire].Value}
 
-	| AA AE heal
-	/if (!${Raid.Members}) {
-		/if (${is_ready[${_debug}, "${maChr.Find[stAANaturesBoon].Value}"]}) {
-			/call voodoo ${_debug} "${maChr.Find[stAANaturesBoon].Value}" 0 FALSE
-		}
-	}
+  | AA AE heal
+  /if (!${Raid.Members}) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stAANaturesBoon].Value}"]}) {
+      /call voodoo ${_debug} "${maChr.Find[stAANaturesBoon].Value}" 0 FALSE
+    }
+  }
 
-	/call cast_glyph ${maDebug.Find[glyph].Value}
+  /call cast_glyph ${maDebug.Find[glyph].Value}
 
   | Intensity of the Resolute AA 4 hour reuse
   /call cast_AA_intensity ${maDebug.Find[intensity].Value}
@@ -376,23 +376,23 @@ sub burn(bool _debug, int _tmpID)
  * use: /chr
  ***|
 sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
-	DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_verbage2}\ax)
+  DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_verbage2}\ax)
 
-	| set group Heals
-	/if (${_type.Equal[groupheal]}) {
-		/if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return FALSE
+  | set group Heals
+  /if (${_type.Equal[groupheal]}) {
+    /if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return FALSE
 
-	| wolf spirit AAs
-	} else /if (${_type.Equal[wolf]}) {
-		/invoke ${set_switch_env[${_debug}, swWolfSpirit, TRUE, ${_verbage}]}
+  | wolf spirit AAs
+  } else /if (${_type.Equal[wolf]}) {
+    /invoke ${set_switch_env[${_debug}, swWolfSpirit, TRUE, ${_verbage}]}
 
-	}
+  }
 
-	/call set_control_shared ${_type} "${_verbage}" "${_verbage2}" ${_debug}
-	/if (${Macro.Return.Equal[SKIP]}) /return FALSE
+  /call set_control_shared ${_type} "${_verbage}" "${_verbage2}" ${_debug}
+  /if (${Macro.Return.Equal[SKIP]}) /return FALSE
 
-	/if (${_verbage2.Equal[SILENT]}) /return
-	/invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
+  /if (${_verbage2.Equal[SILENT]}) /return
+  /invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
 /return TRUE
 

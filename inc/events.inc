@@ -16,23 +16,23 @@
  * use:
  ***|
 sub Event_SPEAKLINE(string _target, string _verbage)
-	/if (!${maEntropy.Find[swEventsInc].Value}) {
-		/return FALSE
-	}
+  /if (!${maEntropy.Find[swEventsInc].Value}) {
+    /return FALSE
+  }
 
-	/if (${Spawn[${_target}].Distance} > 50) /echo I need to Move Closer To ${_target}
+  /if (${Spawn[${_target}].Distance} > 50) /echo I need to Move Closer To ${_target}
 
-	/invoke ${target[clear]}
-	/stick off
+  /invoke ${target[clear]}
+  /stick off
 
-	/target ${_target}
-	/delay 1s ${Target.DisplayName.Equal[${_target}]}
+  /target ${_target}
+  /delay 1s ${Target.DisplayName.Equal[${_target}]}
 
-	/navto "${_target}"
-	/delay 10s !${Navigation.Active}
-	/delay 1s
+  /navto "${_target}"
+  /delay 10s !${Navigation.Active}
+  /delay 1s
 
-	/say ${_verbage}
+  /say ${_verbage}
 
 /return
 
@@ -43,30 +43,30 @@ sub Event_SPEAKLINE(string _target, string _verbage)
  * use : auto
  ***|
 
-#event AP_IN_PROGRESS								"You are stunned!"
-#event AP_IN_PROGRESS								"You have been summoned!"
+#event AP_IN_PROGRESS               "You are stunned!"
+#event AP_IN_PROGRESS               "You have been summoned!"
 sub Event_AP_IN_PROGRESS(string _line)
-	/if (!AUTO) /return
-	/if (HOME && PULL) {
-		| /if (${Me.Stunned}) {
-		| 	/delay 3s !${Me.Stunned}
-		| }
-		/if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} < ${maHome.Find[stHomeVariance].Value}) /return
-		/nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=off
-		/delay 5s !${Me.Moving}
-	}
+  /if (!AUTO) /return
+  /if (HOME && PULL) {
+    | /if (${Me.Stunned}) {
+    |   /delay 3s !${Me.Stunned}
+    | }
+    /if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} < ${maHome.Find[stHomeVariance].Value}) /return
+    /nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=off
+    /delay 5s !${Me.Moving}
+  }
 
 /return
 
 
 | rez accept marker clear
-#event REZ_ACCEPT									"You regain some experience from resurrection#.#"
+#event REZ_ACCEPT                 "You regain some experience from resurrection#.#"
 sub REZ_ACCEPT(string _line, bool _debug)
-	EDEBUG REZ_ACCEPT
-	/varset swIsMeDead FALSE
+  EDEBUG REZ_ACCEPT
+  /varset swIsMeDead FALSE
 /return
 
-#event BIND_RETURN 								"Returning to Bind Location. Please Wait#.#"
+#event BIND_RETURN                "Returning to Bind Location. Please Wait#.#"
 
 
 
@@ -80,33 +80,33 @@ sub REZ_ACCEPT(string _line, bool _debug)
 #event CAST_BEGIN                  "Your #1# begins to glow.#*#"
 #event CAST_BEGIN                  "Your summon#*#"
 sub Event_CAST_BEGIN(string _line, bool _debug)
-	EDEBUG SUCCESS
-	/invoke ${maData.Add[stCastReturn,SUCCESS]}
+  EDEBUG SUCCESS
+  /invoke ${maData.Add[stCastReturn,SUCCESS]}
 /return
 
-#event CAST_OVERWRITTEN						 "Your#*#has been overwritten#*#"
+#event CAST_OVERWRITTEN            "Your#*#has been overwritten#*#"
 sub Event_CAST_OVERWRITTEN(string _line, bool _debug)
-	EDEBUG OVERWRITTEN
-	/invoke ${maData.Add[stCastReturn,OVERWRITTEN]}
+  EDEBUG OVERWRITTEN
+  /invoke ${maData.Add[stCastReturn,OVERWRITTEN]}
 /return
 
 #event CAST_CANNOTSEE              "You cannot see your target#*#"
 sub Event_CAST_CANNOTSEE(string _line, bool _debug)
-	EDEBUG CANNOTSEE
-	/invoke ${maData.Add[stCastReturn,CANNOTSEE]}
+  EDEBUG CANNOTSEE
+  /invoke ${maData.Add[stCastReturn,CANNOTSEE]}
 /return
 
 #event CAST_COLLAPSE               "Your gate is too unstable, and collapses#*#"
 sub Event_CAST_COLLAPSE(string _line, bool _debug)
-	EDEBUG COLLAPSE
-	/invoke ${maData.Add[stCastReturn,COLLAPSE]}
+  EDEBUG COLLAPSE
+  /invoke ${maData.Add[stCastReturn,COLLAPSE]}
 /return
 
 #event CAST_COMPONENTS             "You are missing some required components#*#"
 #event CAST_COMPONENTS             "Your ability to use this item has been disabled because you do not have at least a gold membership#*#"
 sub Event_CAST_COMPONENTS(string _line, bool _debug)
-	EDEBUG COMPONENT
-	/invoke ${maData.Add[stCastReturn,COMPONENT]}
+  EDEBUG COMPONENT
+  /invoke ${maData.Add[stCastReturn,COMPONENT]}
 /return
 
 #event CAST_DISTRACTED             "You need to play a#*#instrument for this song#*#"
@@ -115,27 +115,27 @@ sub Event_CAST_COMPONENTS(string _line, bool _debug)
 #event CAST_DISTRACTED             "You *CANNOT* cast spells, you have been silenced#*#"
 #event CAST_DISTRACTED             "You do not have sufficient focus to maintain that ability."
 sub Event_CAST_DISTRACTED(string _line, bool _debug)
-	EDEBUG DISTRACTED
-	/invoke ${maData.Add[stCastReturn,DISTRACTED]}
+  EDEBUG DISTRACTED
+  /invoke ${maData.Add[stCastReturn,DISTRACTED]}
 /return
 
 #event CAST_FDFAIL                 "#1# has fallen to the ground.#*#"
 sub Event_CAST_FDFAIL(string _line, string _name, bool _debug)
-	EDEBUG FDFAIL
-	/invoke ${maData.Add[stCastReturn,FDFAIL]}
+  EDEBUG FDFAIL
+  /invoke ${maData.Add[stCastReturn,FDFAIL]}
 /return
 
 #event CAST_FIZZLE                 "Your spell fizzles#*#"
 #event CAST_FIZZLE                 "You miss a note, bringing your song to a close#*#"
 sub Event_CAST_FIZZLE(string _line, bool _debug)
-	EDEBUG FIZZLE
-	/invoke ${maData.Add[stCastReturn,FIZZLE]}
+  EDEBUG FIZZLE
+  /invoke ${maData.Add[stCastReturn,FIZZLE]}
 /return
 
-#event CAST_BLOCKED								"Your #*# did not take hold on #*#. (Blocked by #*#.)"
+#event CAST_BLOCKED               "Your #*# did not take hold on #*#. (Blocked by #*#.)"
 sub Event_CAST_BLOCKED(string _line, bool _debug)
-	EDEBUG BLOCKED
-	/invoke ${maData.Add[stCastReturn,BLOCKED]}
+  EDEBUG BLOCKED
+  /invoke ${maData.Add[stCastReturn,BLOCKED]}
 /return
 
 #event CAST_IMMUNE                 "Your target has no mana to affect#*#"
@@ -146,16 +146,16 @@ sub Event_CAST_BLOCKED(string _line, bool _debug)
 #event CAST_IMMUNE                 "Your target cannot be mesmerized#*#"
 #event CAST_IMMUNE                 "Your target looks unaffected#*#"
 sub Event_CAST_IMMUNE(string _line, bool _debug)
-	EDEBUG IMMUNE
-	/invoke ${maData.Add[stCastReturn,IMMUNE]}
+  EDEBUG IMMUNE
+  /invoke ${maData.Add[stCastReturn,IMMUNE]}
 /return
 
 #event CAST_INTERRUPTED            "Your spell is interrupted#*#"
 #event CAST_INTERRUPTED            "Your #*# spell is interrupted#*#"
 #event CAST_INTERRUPTED            "Your casting has been interrupted#*#"
 sub Event_CAST_INTERRUPTED(string _line, bool _debug)
-	EDEBUG INTERRUPTED
-	/invoke ${maData.Add[stCastReturn,INTERRUPTED]}
+  EDEBUG INTERRUPTED
+  /invoke ${maData.Add[stCastReturn,INTERRUPTED]}
 /return
 
 #event CAST_NOMOUNT                "You can only summon a mount on dry land#*#"
@@ -163,75 +163,75 @@ sub Event_CAST_INTERRUPTED(string _line, bool _debug)
 #event CAST_NOMOUNT                "You can not summon a mount here#*#"
 #event CAST_NOMOUNT                "You must have both the Horse Models and your current Luclin Character Model enabled to summon a mount#*#"
 sub Event_CAST_NOMOUNT(string _line, bool _debug)
-	EDEBUG NOMOUNT
-	/invoke ${maData.Add[stCastReturn,NOMOUNT]}
+  EDEBUG NOMOUNT
+  /invoke ${maData.Add[stCastReturn,NOMOUNT]}
 /return
 
 #event CAST_NOTARGET               "You must first select a target for this spell#*#"
 #event CAST_NOTARGET               "This spell only works on#*#"
 #event CAST_NOTARGET               "You must first target a group member#*#"
 sub Event_CAST_NOTARGET(string _line, bool _debug)
-	EDEBUG NOTARGET
-	/invoke ${maData.Add[stCastReturn,NOTARGET]}
+  EDEBUG NOTARGET
+  /invoke ${maData.Add[stCastReturn,NOTARGET]}
 /return
 
 #event CAST_NOTREADY               "Spell recast time not yet met#*#"
 sub Event_CAST_NOTREADY(string _line, bool _debug)
-	EDEBUG NOTREADY
-	/invoke ${maData.Add[stCastReturn,NOTREADY]}
+  EDEBUG NOTREADY
+  /invoke ${maData.Add[stCastReturn,NOTREADY]}
 /return
 
 #event CAST_OUTDOORS               "This spell does not work here#*#"
 #event CAST_OUTDOORS               "You can only cast this spell in the outdoors#*#"
 sub Event_CAST_OUTDOORS(string _line, bool _debug)
-	EDEBUG NOTOUTDOORS
-	/invoke ${maData.Add[stCastReturn,NOTOUTDOORS]}
+  EDEBUG NOTOUTDOORS
+  /invoke ${maData.Add[stCastReturn,NOTOUTDOORS]}
 /return
 
 #event CAST_OUTOFMANA              "Insufficient Mana to cast this spell#*#"
 sub Event_CAST_OUTOFMANA(string _line, bool _debug)
-	EDEBUG OUTOFMANA
-	/invoke ${maData.Add[stCastReturn,OUTOFMANA]}
+  EDEBUG OUTOFMANA
+  /invoke ${maData.Add[stCastReturn,OUTOFMANA]}
 /return
 
 #event CAST_OUTOFRANGE             "Your target is out of range, get closer#*#"
 sub Event_CAST_OUTOFRANGE(string _line, bool _debug)
-	EDEBUG OUTOFRANGE
-	/invoke ${maData.Add[stCastReturn,OUTOFRANGE]}
+  EDEBUG OUTOFRANGE
+  /invoke ${maData.Add[stCastReturn,OUTOFRANGE]}
 /return
 
 #event CAST_RECOVER                "You haven't recovered yet#*#"
 #event CAST_RECOVER                "Spell recovery time not yet met#*#"
 sub Event_CAST_RECOVER(string _line, bool _debug)
-	EDEBUG RECOVER
-	/invoke ${maData.Add[stCastReturn,RECOVER]}
+  EDEBUG RECOVER
+  /invoke ${maData.Add[stCastReturn,RECOVER]}
 /return
 
 #event CAST_RESISTED               "Your target resisted the #1# spell#*#"
 #event CAST_RESISTED               "#*# resisted your #1#!"
 sub Event_CAST_RESISTED(string _line, string _name, bool _debug)
-	EDEBUG RESISTED
-	/invoke ${maData.Add[stCastReturn,RESISTED]}
+  EDEBUG RESISTED
+  /invoke ${maData.Add[stCastReturn,RESISTED]}
 /return
 
 #event CAST_RESISTEDYOU            "You resist the #1# spell#*#"
 #event CAST_RESISTEDYOU            "You resist #*#"
 sub Event_CAST_RESISTEDYOU(string _line, bool _debug)
-	EDEBUG RESISTEDYOU
-	/invoke ${maData.Add[stCastReturn,RESISTEDYOU]}
+  EDEBUG RESISTEDYOU
+  /invoke ${maData.Add[stCastReturn,RESISTEDYOU]}
 /return
 
 #event CAST_STANDING               "You must be standing to cast a spell#*#"
 sub Event_CAST_STANDING(string _line, bool _debug)
-	EDEBUG RESTART
-	/invoke ${maData.Add[stCastReturn,RESTART]}
+  EDEBUG RESTART
+  /invoke ${maData.Add[stCastReturn,RESTART]}
 /return
 
 #event CAST_STUNNED                "You can't cast spells while stunned#*#"
 #event CAST_STUNNED                "You are stunned#*#"
 sub Event_CAST_STUNNED(string _line, bool _debug)
-	EDEBUG STUNNED
-	/invoke ${maData.Add[stCastReturn,STUNNED]}
+  EDEBUG STUNNED
+  /invoke ${maData.Add[stCastReturn,STUNNED]}
 /return
 
 #event CAST_TAKEHOLD               "Your spell did not take hold#*#"
@@ -239,20 +239,20 @@ sub Event_CAST_STUNNED(string _line, bool _debug)
 #event CAST_TAKEHOLD               "Your spell is too powerfull for your intended target#*#"
 | #event CAST_TAKEHOLD               "This pet may not be made invisible#*#"
 sub Event_CAST_TAKEHOLD(string _line, bool _debug)
-	EDEBUG TAKEHOLD
-	/invoke ${maData.Add[stCastReturn,TAKEHOLD]}
+  EDEBUG TAKEHOLD
+  /invoke ${maData.Add[stCastReturn,TAKEHOLD]}
 /return
 
 #event CAST_REZFAIL               "You were unable to restore the corpse to life, but you may have success with a later attempt#*#"
 sub Event_CAST_REZFAIL(string _line, bool _debug)
-	EDEBUG REZFAIL
-	/invoke ${maData.Add[stCastReturn,REZFAIL]}
+  EDEBUG REZFAIL
+  /invoke ${maData.Add[stCastReturn,REZFAIL]}
 /return
 
 #event CAST_RESET               "Your ability failed. Timer has been reset#*#"
 sub Event_CAST_RESET(string _line, bool _debug)
-	EDEBUG RESET
-	/invoke ${maData.Add[stCastReturn,RESET]}
+  EDEBUG RESET
+  /invoke ${maData.Add[stCastReturn,RESET]}
 /return
 
 
@@ -263,13 +263,13 @@ sub Event_CAST_RESET(string _line, bool _debug)
 |***
  * use: correct range distance when too close
  ***|
-| #event COMBAT_DISTANCE									"Your Target is too close to use a ranged weapon#*#"
+| #event COMBAT_DISTANCE                  "Your Target is too close to use a ranged weapon#*#"
 sub Event_COMBAT_DISTANCE(string _line)
-	/doevents flush COMBAT_DISTANCE
-	/if (PULL || AGRO) {
-		/return
-	}
-	/call set_combat FALSE
+  /doevents flush COMBAT_DISTANCE
+  /if (PULL || AGRO) {
+    /return
+  }
+  /call set_combat FALSE
 /return
 
 
@@ -280,12 +280,12 @@ sub Event_COMBAT_DISTANCE(string _line)
 | #event Zone "|${Me.DisplayName}| creates a mistic portal."
 | #event Zone "LOADING, PLEASE WAIT..."
 sub Event_Zone(string _line)
-	EDEBUG zoning
-	/call check_mode FALSE RESET
-	/call check_zone_id ${maDebug.Find[zone].Value}
-	/if (${maHome.Find[swHomeMarker].Value}) {
-		/call Bind_control_home clear
-	}
+  EDEBUG zoning
+  /call check_mode FALSE RESET
+  /call check_zone_id ${maDebug.Find[zone].Value}
+  /if (${maHome.Find[swHomeMarker].Value}) {
+    /call Bind_control_home clear
+  }
 /return FALSE
 
 
@@ -294,8 +294,8 @@ sub Event_Zone(string _line)
  ***|
 #event Camp "It will take you about 30 seconds to prepare your camp."
 sub Event_Camp(string _line)
-	EDEBUG camping
-	/endmacro
+  EDEBUG camping
+  /endmacro
 /return
 
 
@@ -305,38 +305,38 @@ sub Event_Camp(string _line)
  ***|
 #event Join "#1# invites you to join a #2#.#*#"
 sub Event_Join(string _line, string _sender, string _groupraid)
-	| DEBUG \atEvent_Join\ax(\a-w${_sender}, ${_groupraid}\ax)
+  | DEBUG \atEvent_Join\ax(\a-w${_sender}, ${_groupraid}\ax)
 
-	/if (!${is_lsSafeNames[FALSE, ${_sender}]}) /return FALSE
+  /if (!${is_lsSafeNames[FALSE, ${_sender}]}) /return FALSE
 
-	| group invites
-	/if (${_groupraid.Equal[group]}) {
-		/if (!${maEnv.Find[swTakeGroupInvite].Value}) {
-			/return
-		} else /if (${maEnv.Find[swTakeGroupInvite].Value}) {
-			OUT Accepting ${_groupraid} invite${sep}\a-w${_sender}\ax
-			/invite
-		}
-	}
+  | group invites
+  /if (${_groupraid.Equal[group]}) {
+    /if (!${maEnv.Find[swTakeGroupInvite].Value}) {
+      /return
+    } else /if (${maEnv.Find[swTakeGroupInvite].Value}) {
+      OUT Accepting ${_groupraid} invite${sep}\a-w${_sender}\ax
+      /invite
+    }
+  }
 
-	| raid invites
-	/if (${_groupraid.Equal[raid]}) {
-		/delay 1s
-		/if (!${maEnv.Find[swTakeRaidInvite].Value}) {
-			/if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["join a raid"]}) {
-				/nomodkey /notify ConfirmationDialogBox No_Button leftmouseup
-				/return
-			}
-			/raiddecline
-		} else /if (${maEnv.Find[swTakeRaidInvite].Value}) {
-			OUT Accepting ${_groupraid} invite${sep}\a-w${_sender}\ax
-			/if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["join a raid"]}) {
-				/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
-				/return
-			}
-			/raidaccept
-		}
-	}
+  | raid invites
+  /if (${_groupraid.Equal[raid]}) {
+    /delay 1s
+    /if (!${maEnv.Find[swTakeRaidInvite].Value}) {
+      /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["join a raid"]}) {
+        /nomodkey /notify ConfirmationDialogBox No_Button leftmouseup
+        /return
+      }
+      /raiddecline
+    } else /if (${maEnv.Find[swTakeRaidInvite].Value}) {
+      OUT Accepting ${_groupraid} invite${sep}\a-w${_sender}\ax
+      /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["join a raid"]}) {
+        /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+        /return
+      }
+      /raidaccept
+    }
+  }
 
 /return
 
@@ -356,18 +356,18 @@ sub Event_Join(string _line, string _sender, string _groupraid)
 #event TTLstart "|${Me}|`s pet #1# #2# for #3# points of damage.#*#"
 #event TTLstart "|${Me}|`s pet #1# #2# for #3# points of #4# damage by #5#.#*#"
 sub Event_TTLstart(string Line, string YHType, string _mob, int YHDamage, string YHSpellDamageType, string YHSpellName)
-	/if (${maTTL.Find[swTTL].Value}) {
-		/call control_ttl ${maDebug.Find[ttl].Value} start "${_mob.Lower}"
-	}
+  /if (${maTTL.Find[swTTL].Value}) {
+    /call control_ttl ${maDebug.Find[ttl].Value} start "${_mob.Lower}"
+  }
 /return
 
 
 #event TTLend "You have slain #1#!"
 #event TTLend "#1# has been slain by #*#"
 sub Event_TTLend(string _line, string _mob)
-	/if (${maTTL.Find[swTTL].Value}) {
-		/call control_ttl ${maDebug.Find[ttl].Value} end "${_mob.Lower}"
-	}
+  /if (${maTTL.Find[swTTL].Value}) {
+    /call control_ttl ${maDebug.Find[ttl].Value} end "${_mob.Lower}"
+  }
 /return
 
 
@@ -379,25 +379,25 @@ sub Event_TTLend(string _line, string _mob)
 
 
 |***
- *	DES: preps the queue with target toon
- *	USE: /call cast_buffs_queue [toon name] [buff word]
- *	NOTE:
+ *  DES: preps the queue with target toon
+ *  USE: /call cast_buffs_queue [toon name] [buff word]
+ *  NOTE:
  ***|
 sub cast_buffs_queue(string _sender, string _verbage, bool _debug)
-	DEBUG cast_buffs_queue(${_sender}, ${_verbage})
+  DEBUG cast_buffs_queue(${_sender}, ${_verbage})
 
-	CHECKINPUTS
+  CHECKINPUTS
 
-	/declare _a int local 0
-	/declare _i int local 0
+  /declare _a int local 0
+  /declare _i int local 0
 
-	/for _i 1 to ${setMaxBuffCount}
-		/for _a 1 to ${Buff${_i}Alias.Count[|]}
-			/if (${_verbage.Find["${Buff${_i}Alias.Arg[${_a},|]}"]}) {
-				/call queue_buff_add ${Spawn[pc ${_sender}].ID} ${_i}
-			}
-		/next _a
-	/next _i
+  /for _i 1 to ${setMaxBuffCount}
+    /for _a 1 to ${Buff${_i}Alias.Count[|]}
+      /if (${_verbage.Find["${Buff${_i}Alias.Arg[${_a},|]}"]}) {
+        /call queue_buff_add ${Spawn[pc ${_sender}].ID} ${_i}
+      }
+    /next _a
+  /next _i
 
 /return
 
@@ -413,28 +413,28 @@ sub cast_buffs_queue(string _sender, string _verbage, bool _debug)
 
 sub Event_Talk(string line, string _sender, string _chatText)
 
-	| tell realys
-	/if (${maEntropy.Find[swRelayTell].Value} && !${_sender.Find[Banker]} && !${_sender.Find[${Me}]} && !${_sender.Find[${maTie.Find[stTieToon].Value}]} && !${_sender.Find[${Me.Pet.DisplayName}]} && ${lsGrain.Contains[25]}) {
-		| relay to tie toon if its opne of your toons
-		/if (${DanNet.Peers[all].Find[${_sender}]}) {
-			/tell ${maTie.Find[stTieToon].Value} ->[${_sender}] told me::${_chatText}
-		}
-		| relay to dannet
-		/dgtell all RELAY to ${maTie.Find[stTieToon].Value} :: ${_chatText}
+  | tell realys
+  /if (${maEntropy.Find[swRelayTell].Value} && !${_sender.Find[Banker]} && !${_sender.Find[${Me}]} && !${_sender.Find[${maTie.Find[stTieToon].Value}]} && !${_sender.Find[${Me.Pet.DisplayName}]} && ${lsGrain.Contains[25]}) {
+    | relay to tie toon if its opne of your toons
+    /if (${DanNet.Peers[all].Find[${_sender}]}) {
+      /tell ${maTie.Find[stTieToon].Value} ->[${_sender}] told me::${_chatText}
+    }
+    | relay to dannet
+    /dgtell all RELAY to ${maTie.Find[stTieToon].Value} :: ${_chatText}
 
-		| is beep set?
-		/if (${maEntropy.Find[swRelayTellBeep].Value}) {
-			/beep
-		}
-	}
+    | is beep set?
+    /if (${maEntropy.Find[swRelayTellBeep].Value}) {
+      /beep
+    }
+  }
 
-	/return
+  /return
 
-	CHECKSAFELIST
+  CHECKSAFELIST
 
 
-	| Tells for buffs.
-	/if (${swBuffTell} && ${Spawn[${_sender}].ID} && ${_sender.NotEqual[${Me.DisplayName}]}) {
+  | Tells for buffs.
+  /if (${swBuffTell} && ${Spawn[${_sender}].ID} && ${_sender.NotEqual[${Me.DisplayName}]}) {
     /call cast_buffs_queue "${_sender}" "${_chatText}"
     /return
   }
@@ -465,15 +465,15 @@ sub Event_Talk(string line, string _sender, string _chatText)
 |***
 #event 16anniStein "#*# Visigothe says, #1#"
 sub Event_16anniStein(string line, string _verbage)
-	/if (!${Spawn[npc Galdorin].ID}) /return
-	/if (${Spawn[npc Galdorin].ID} && ${Target.DisplayName.NotEqual[Galdorin Visigothe]} && ${Spawn[npc Galdorin].Distance} <= 30) {
-		/target ID ${Spawn[npc Galdorin].ID}
-		/delay 3 ${Target.ID} == ${Spawn[npc Galdorin].ID}
-	} else /if (${Spawn[npc Galdorin].Distance} > 30) {
-		VOUT ${onotice} ${sep} Must be next to Galdorin Visigothe in Abysmal Sea.
-		/return
-	}
-	/say ${_verbage}
+  /if (!${Spawn[npc Galdorin].ID}) /return
+  /if (${Spawn[npc Galdorin].ID} && ${Target.DisplayName.NotEqual[Galdorin Visigothe]} && ${Spawn[npc Galdorin].Distance} <= 30) {
+    /target ID ${Spawn[npc Galdorin].ID}
+    /delay 3 ${Target.ID} == ${Spawn[npc Galdorin].ID}
+  } else /if (${Spawn[npc Galdorin].Distance} > 30) {
+    VOUT ${onotice} ${sep} Must be next to Galdorin Visigothe in Abysmal Sea.
+    /return
+  }
+  /say ${_verbage}
 /return
 **|
 
@@ -486,27 +486,27 @@ sub Event_16anniStein(string line, string _verbage)
 #event 16stein6 "Galdorin Visigothe says, 'reminds me of my lovely Brasse.'"
 
 sub Event_16stein1(string line)
-	/say My stinky stein has rough dirty lips,
+  /say My stinky stein has rough dirty lips,
 /return
 
 sub Event_16stein2(string line)
-	/say but she loves a deep carouse.
+  /say but she loves a deep carouse.
 /return
 
 sub Event_16stein3(string line)
-	/say Beer or ale are her great trips.
+  /say Beer or ale are her great trips.
 /return
 
 sub Event_16stein4(string line)
-	/say No matter how many vows
+  /say No matter how many vows
 /return
 
 sub Event_16stein5(string line)
-	/say I make or break, my drinking glass
+  /say I make or break, my drinking glass
 /return
 
 sub Event_16stein6(string line)
-	/say reminds me of my lovely Brasse.
+  /say reminds me of my lovely Brasse.
 /return
 
 ****|
@@ -566,16 +566,16 @@ sub Event_16stein6(string line)
 sub Event_hatchet1
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /echo I NEED TO RUN AWAY
-  /declare running 						it 		local
-  /declare distanceNow 				float 	local
-  /declare distanceBefore 		float 	local
-  /declare distanceModifier 	int 		local
-  /declare MoveToID						int			local ${Spawn[Hatchet].ID}
-  /declare StopDistance				int			local 200
-  /declare distanceTimer 			timer 15
-  /varset distanceBefore 			${Spawn[${MoveToID}].Distance}
-  /varset distanceModifier 		1
-  /varset running 						0
+  /declare running            it    local
+  /declare distanceNow        float   local
+  /declare distanceBefore     float   local
+  /declare distanceModifier   int     local
+  /declare MoveToID           int     local ${Spawn[Hatchet].ID}
+  /declare StopDistance       int     local 200
+  /declare distanceTimer      timer 15
+  /varset distanceBefore      ${Spawn[${MoveToID}].Distance}
+  /varset distanceModifier    1
+  /varset running             0
   /stick off
   :moveAway
    /squelch /face fast away id ${MoveToID}
@@ -627,14 +627,14 @@ sub Event_hatchet1
 sub Event_hatchet2
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /echo I NEED TO RUN BETWEEN HIS LEGS
-  /declare running							int local
-  /declare distanceNow					float local
-  /declare distanceBefore				float local
-  /declare distanceModifier			int local
-  /declare MoveToID							int local ${Spawn[Hatchet].ID}
-  /declare StopDistance					int	local 6
-  /declare distanceTimer				timer 15
-  /varset distanceBefore 				${Spawn[${MoveToID}].Distance}
+  /declare running              int local
+  /declare distanceNow          float local
+  /declare distanceBefore       float local
+  /declare distanceModifier     int local
+  /declare MoveToID             int local ${Spawn[Hatchet].ID}
+  /declare StopDistance         int local 6
+  /declare distanceTimer        timer 15
+  /varset distanceBefore        ${Spawn[${MoveToID}].Distance}
   /varset distanceModifier 1
   /varset running 0
 
@@ -878,7 +878,7 @@ sub Event_Sleeper
 /return
 
 
-#Event UnstableCharge	"#*#An unstable charge courses through you.#*#"
+#Event UnstableCharge "#*#An unstable charge courses through you.#*#"
 sub Event_UnstableCharge
   /echo CHARGE ON ME...CURE!!!
 /return
@@ -903,7 +903,7 @@ sub Event_Back
  ** Seeds of Destruction (October 2008)
 
 
-#Event QueenAE 	"#*#Queen Malarian anchors her feet to the ground and prepares to unleash a wave of burning acid#*#"
+#Event QueenAE  "#*#Queen Malarian anchors her feet to the ground and prepares to unleash a wave of burning acid#*#"
 sub Event_QueenAE
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /echo Getting away from Queen
@@ -1017,7 +1017,7 @@ sub Event_mindshear
  ** Underfoot (December 2009)
 
 
-#Event CV2Corrupt	"#*#Seething Corruption BURNS within you, #1#!#*#"
+#Event CV2Corrupt "#*#Seething Corruption BURNS within you, #1#!#*#"
 sub Event_CV2Corrupt(string Line, string Name)
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /if (!${Name.Find[${Me.Name}]}) /return
@@ -1190,12 +1190,12 @@ sub Event_RTSludge
 
 
 | ** Kael Raid
-#Event DainBanish	"#*#Dain Frostreaver IV shouts 'You will be banished, #1#, #2#, and #3#!#*#"
+#Event DainBanish "#*#Dain Frostreaver IV shouts 'You will be banished, #1#, #2#, and #3#!#*#"
 sub Event_DainBanish(string Line, string PersonOne, string PersonTwo, string PersonThree)
    /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-  /declare sPersonOne 		string local ${PersonOne}
-  /declare sPersonTwo 		string local ${PersonTwo}
-  /declare sPersonThree 	string local ${PersonThree}
+  /declare sPersonOne     string local ${PersonOne}
+  /declare sPersonTwo     string local ${PersonTwo}
+  /declare sPersonThree   string local ${PersonThree}
 
   /if (${sPersonOne.Equal[${Me.CleanName}]} || ${sPersonTwo.Equal[${Me.CleanName}]} || ${sPersonThree.Equal[${Me.CleanName}]}) {
     /echo Running out of arena
@@ -1227,7 +1227,7 @@ sub Event_danela(string Line, string Person, string Person2)
 | ** Chapterhouse Raid .. fuck this place
 |#Event chapterhouse "Your bones are burning#*#"
 sub Event_chapterhouse()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /echo I NEED to RUN AWAY!
   /target clear
   /echo running to pool
@@ -1248,7 +1248,7 @@ sub Event_chapterhouse()
 /return
 
 
-#Event ChaptDoT		"#*##1# begins to burn!#*#"
+#Event ChaptDoT   "#*##1# begins to burn!#*#"
 sub Event_ChaptDot(string line, string Name)
   /if (!${swEventsInc}) /echo ${Name} got the DoT!
 /return
@@ -1257,7 +1257,7 @@ sub Event_ChaptDot(string line, string Name)
 | ** Breeding Grounds Raid Events
 #Event zalikor "#*#You have been corrupted by the fear crystal#*#"
 sub Event_Zalikor()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /if (!${Zone.ShortName.Equal[breedinggrounds_raid]}) /return
   /echo I need to RUN!!!
   /if (${Me.Casting.ID}) /call Interrupt
@@ -1273,16 +1273,16 @@ sub Event_Zalikor()
 #Event AuraNuke "#*#Zalikor directs his fiery breath toward the aura of #1#."
 sub Event_AuraNuke((string line, string AuraName)
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	/echo ${AuraName}
-	/declare RunAway string local FALSE
-	/if (${AuraName.Equal[fire]} && ${Math.Distance[1109,-570]}<=50) {
-		/echo I have to run!!
-		/varset RunAway TRUE
-	} else /if (${AuraName.Equal[power]} && ${Math.Distance[619,-391]}<=50) {
-		/varset RunAway TRUE
-	} else /if (${AuraName.Equal[magic]} && ${Math.Distance[633,-558]}<=50) {
-			/varset RunAway TRUE
-	}
+  /echo ${AuraName}
+  /declare RunAway string local FALSE
+  /if (${AuraName.Equal[fire]} && ${Math.Distance[1109,-570]}<=50) {
+    /echo I have to run!!
+    /varset RunAway TRUE
+  } else /if (${AuraName.Equal[power]} && ${Math.Distance[619,-391]}<=50) {
+    /varset RunAway TRUE
+  } else /if (${AuraName.Equal[magic]} && ${Math.Distance[633,-558]}<=50) {
+      /varset RunAway TRUE
+  }
   /if (${RunAway.Equal[TRUE]}) {
     /play ${AuraName} smart slow
     /delay 1s ${Me.Moving}
@@ -1305,8 +1305,8 @@ sub Event_eggs()
    /play eggs smart slow normal
    /delay 1s ${Me.Moving}
    :stillmoving
-   	/delay 5 ${AdvPath.NextWaypoint}
-   	/if (${AdvPath.State}==3 || ${AdvPath.NextWaypoint}) /goto :stillmoving
+    /delay 5 ${AdvPath.NextWaypoint}
+    /if (${AdvPath.State}==3 || ${AdvPath.NextWaypoint}) /goto :stillmoving
 /return
 
 
@@ -1348,7 +1348,7 @@ sub Event_FindleFireBall1()
 /return
 
 
-#Event FindleFireBall2	"#*#Findlewill begins casting a fireball #1##*#"
+#Event FindleFireBall2  "#*#Findlewill begins casting a fireball #1##*#"
 sub Event_FindleFireBall2(string Line, string Name)
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /if (${Spawn[Findlewill].Distance}>40) /return
@@ -1402,7 +1402,7 @@ sub Event_Xorbb3()
 
 
 | ** Chelsith Raid
-#Event SlaveCourage	"#*#a frightened slave looks courageous#*#"
+#Event SlaveCourage "#*#a frightened slave looks courageous#*#"
 sub Event_SlaveCourage()
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
 /return
@@ -1415,9 +1415,9 @@ sub Event_ChelsMove(string Line, string Area)
 /return
 
 
-#Event KilsevRage	"#*#Kilsev begins to focus his rage at #1##*#"
+#Event KilsevRage "#*#Kilsev begins to focus his rage at #1##*#"
 sub Event_KilsevRage(string Line, string Person)
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
  /if (${Person.Equal[${Me.CleanName}]}) {
     /echo I HAVE TO KITE!!!
     /if (!${Defined[KilsevRaged]}) {
@@ -1437,7 +1437,7 @@ sub Event_KilsevRage(string Line, string Person)
 
 #Event KilsevRageOff "#*#Kilsev's rage subsides#*#"
 sub Event_KilsevRageOff()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /if (!${Defined[KilsevRaged]}) {
     /declare KilsevRaged int outer 0
   } else {
@@ -1447,7 +1447,7 @@ sub Event_KilsevRageOff()
 /return
 
 
-#Event VyzhAE		"#*#Vyzh`dra draws power from the crowd's energy#*#"
+#Event VyzhAE   "#*#Vyzh`dra draws power from the crowd's energy#*#"
 sub Event_VyzhAE()
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /if (!${Defined[VyzhClose]}) {
@@ -1467,9 +1467,9 @@ sub Event_VyzhAE()
 /return
 
 
-#Event VyzhGetClose	"#*#Vyzh`dra commands his tigers to attack#*#"
+#Event VyzhGetClose "#*#Vyzh`dra commands his tigers to attack#*#"
 sub Event_VyzhGetClose()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /echo Oh shit move back!1
   /moveto loc ${Spawn[Vyzh`dra the Godslayer].Y} ${Spawn[Vyzh`dra the Godslayer].X}
   /if (!${Defined[VyzhClose]}) {
@@ -1481,9 +1481,9 @@ sub Event_VyzhGetClose()
 /return
 
 
-#Event ChelsStopDPS	"#*#The crowd boos. They think the fight is going too fast#*#"
+#Event ChelsStopDPS "#*#The crowd boos. They think the fight is going too fast#*#"
 sub Event_ChelsStopDPS()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /echo Stop DPS ${CureList.Find[${Me.Class}]} ${Me.Class}
   /if (!${CureList.Find[${Me.Class}]}) {
     /target myself
@@ -1494,9 +1494,9 @@ sub Event_ChelsStopDPS()
 
 | ** Temple of Veeshan Raid
 
-#Event AaryonarGaze	"Aaryonar turns a dreadful gaze upon YOU!"
+#Event AaryonarGaze "Aaryonar turns a dreadful gaze upon YOU!"
 sub Event_AaryonarGaze()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /declare CasterClasses string local "|DRU|CLR|SHM|ENC|NEC|MAG|WIZ|"
   /echo OH SHIT HE BE LOOKIN AT ME
   /if (${Target.CleanName.Equal[Aaryonar]}) {
@@ -1522,16 +1522,16 @@ sub Event_AaryonarGaze()
 
 
 
-#Event AaryonarGaze	"Aaryonar turns a dreadful gaze upon YOU!"
+#Event AaryonarGaze "Aaryonar turns a dreadful gaze upon YOU!"
 sub Event_AaryonarGaze()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	/call set_stop NOECHO
-	/call clear_combat
-	/face away "Aaryonar" fast nolook
-	/delay 3s
-	/while (${Me.Buff[Dreadgaze].ID}) {
-		/delay 1s
-	}
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /call set_stop NOECHO
+  /call clear_combat
+  /face away "Aaryonar" fast nolook
+  /delay 3s
+  /while (${Me.Buff[Dreadgaze].ID}) {
+    /delay 1s
+  }
 /return
 
 
@@ -1539,7 +1539,7 @@ sub Event_AaryonarGaze()
 
 #Event AaryonarGazeOff "Aaryonar turns his gaze away from you."
 sub Event_AaryonarGazeOff()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /echo He cant handle looking at my junk!
   /if (${Target.CleanName.Equal[Aaryonar]}) /target clear
 /return
@@ -1548,7 +1548,7 @@ sub Event_AaryonarGazeOff()
 #Event ZlaAE "Zlexak has spotted you!#*#"
 #Event ZlaAE "You are covered in filth#*#"
 sub Event_ZlaAE()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /echo I NEED to RUN AWAY!
   /target clear
   /echo running away
@@ -1590,9 +1590,9 @@ sub Event_Naggy()
 
 
 | ** Dead Hills 1 Raid
-|#Event PrimeCloud	"#*#cloud of disease begins to form around #1##*#"
+|#Event PrimeCloud  "#*#cloud of disease begins to form around #1##*#"
 sub Event_PrimeCloud(string Line, string Person)
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /echo ${Line.Arg[1]} - ${Line.Arg[2]} - ${Line.Arg[3]} - ${Line.Arg[4]} - ${Line.Arg[5]} - ${Line.Arg[6]} - ${Line.Arg[7]} - ${Line.Arg[8]} - ${Line.Arg[9]}
   /echo ${Line}
   /if (${Line.Find[${Me.CleanName}]}) {
@@ -1617,16 +1617,16 @@ sub Event_PrimeCloud(string Line, string Person)
 
 #Event PrimeDoT "#*#Your flesh begins to bubble and ooze#*#"
 sub Event_PrimeDoT()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /echo I NEED A CURE!!
 /return
 
 
 |#Event Prime1 "#*#Your flesh begins to bubble and ooze.#*#"
 
-|#Event CurePrime 	"#1# #*#xulous prime#*#"
+|#Event CurePrime   "#1# #*#xulous prime#*#"
 sub Event_CurePrime(string Line string Person)
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /if (!${Person.Find[You]} && (${Me.Class.Name.Equal[Ranger]} || ${Me.Class.Name.Equal[BeastLord]}) ) {
     /delay 3s ${Me.SpellReady[${DiseaseSpell}]}
     /squelch /stick off
@@ -1637,10 +1637,10 @@ sub Event_CurePrime(string Line string Person)
 
 
 | ** West Karna Raid
-#Event BurningPrison	"#*#You are frozen in place#*#"
-#Event BurningPrison	"#*#You are chilled to the bone#*#"
+#Event BurningPrison  "#*#You are frozen in place#*#"
+#Event BurningPrison  "#*#You are chilled to the bone#*#"
 sub Event_BurningPrison()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /if (${Me.Buff[Burning Prison].ID}) {
     /if (${Me.AltAbilityReady[Battle Leap]}) {
       /alt activate ${Me.AltAbility[Battle Leap].ID}
@@ -1659,7 +1659,7 @@ sub Event_BurningPrison()
 | Neriak Raids
 #Event NeriakShock "#*#The golem glows and begins to hum, turning its head toward you.#*#"
 sub Event_NeriakShock()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /echo I need to run away from the raid shock emote
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /if (${DoLeash}) /leash off
@@ -1673,7 +1673,7 @@ sub Event_NeriakShock()
 
 #Event NeriakChill "#*#Take that one's essence, my pet!#*#"
 sub Event_NeriakChill(string line)
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /if (${line.Find[${Me}]}) {
     /echo I need to run away from the raid got essense emote
     /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
@@ -1689,7 +1689,7 @@ sub Event_NeriakChill(string line)
 
 #Event NeriakCold "#*#Sooo cooooold#*#"
 sub Event_NeriakCold()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /if (${lstClassMelee.Find[${Me.Class.Name}]}) {
     /echo moving back!
     /squelch /stick 120 moveback
@@ -1701,7 +1701,7 @@ sub Event_NeriakCold()
 
 #Event NeriakPulse "#*#An energy pulse moves toward you.#*#"
 sub Event_NeriakPulse()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /echo I need to run away from the raid from pulse!
   /if (${DoLeash}) /leash off
   /play pulse smart
@@ -1735,7 +1735,7 @@ sub Event_NeriakSpear()
 | ** Bixie Raids
 #Event Bixie2Red "#*#red cloud forms above#*#"
 sub Event_Bixie2Red(string line)
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /if (${line.Find[${Me}]}) {
     /declare tempx float local ${Me.X}
     /declare tempy float local ${Me.Y}
@@ -1746,13 +1746,13 @@ sub Event_Bixie2Red(string line)
     /moveto loc ${tempy} ${tempx}
     /delay 1s
     /delay 6s !${Me.Moving}
-	}
+  }
 /return
 
 
 #Event Bixie2Yellow "#*#yellow cloud forms above#*#"
 sub Event_Bixie2Yellow(string line)
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /if (${line.Find[${Me}]}) {
     /declare tempx float local ${Me.X}
     /declare tempy float local ${Me.Y}
@@ -1763,35 +1763,35 @@ sub Event_Bixie2Yellow(string line)
     /moveto loc ${tempy} ${tempx}
     /delay 2s
     /delay 6s !${Me.Moving}
-	}
+  }
 /return
 
 
 #Event Bixie2Safe "#*#spines rains down around#*#"
 sub Event_Bixie2Safe(string line)
- 	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
  /if (${line.Find[${Me}]}) /return Safe
 /return
 
 
 #Event SlaveThokWhip "#*#Slave Driver Thokk coils up his whip and aims for your head#*#"
 sub Event_SlaveThokWhip()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	/echo I NEED TO DUCK
-	/if (${Me.Class.Name.Equal[BARD]}) /twist off
-	:TopDuck
-		/if (${Me.State.NotEqual[DUCK]}) /keypress DUCK
-	  /doevents
-	  /delay 10 ${Me.State.Equal[DUCK]}
-	/if (${Me.State.Equal[DUCK]}) /goto :TopDuck
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /echo I NEED TO DUCK
+  /if (${Me.Class.Name.Equal[BARD]}) /twist off
+  :TopDuck
+    /if (${Me.State.NotEqual[DUCK]}) /keypress DUCK
+    /doevents
+    /delay 10 ${Me.State.Equal[DUCK]}
+  /if (${Me.State.Equal[DUCK]}) /goto :TopDuck
   /if (${Me.Class.Name.Equal[BARD]}) /twist
 /return
 
 
-#Event SlaveThokStand	"#*#Slave Driver Thokk's whip passes harmlessly overhead#*#"
+#Event SlaveThokStand "#*#Slave Driver Thokk's whip passes harmlessly overhead#*#"
 sub Event_SlaveThokStand()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	/echo Danger Gone!
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /echo Danger Gone!
   /if (${Me.State.Equal[DUCK]}) /keypress DUCK
 /return
 
@@ -1799,25 +1799,25 @@ sub Event_SlaveThokStand()
 #Event DSOn "#*#The mark of Nife flashes before your eyes#*#"
 #Event DSOn "#*#Warchanter Neezzee begins to cast a spell. <Chaotic Rune>#*#"
 sub Event_DSOn()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	/echo I have DS on
-	/if (${lstClassMelee.Find[${Me.Class.Name}]} || ${lstClassMelee.Find[${Me.Class.ShortName}]}) {
-		/target myself
-		/delay 1s ${Target.ID}==${Me.ID}
-		:TopDS
-	  	/doevents
-	  	/delay 10 ${Target.ID}!=${Me.ID}
-		/if (${Target.ID}==${Me.ID}) /goto :TopDS
-	}
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /echo I have DS on
+  /if (${lstClassMelee.Find[${Me.Class.Name}]} || ${lstClassMelee.Find[${Me.Class.ShortName}]}) {
+    /target myself
+    /delay 1s ${Target.ID}==${Me.ID}
+    :TopDS
+      /doevents
+      /delay 10 ${Target.ID}!=${Me.ID}
+    /if (${Target.ID}==${Me.ID}) /goto :TopDS
+  }
 /return
 
 
 #Event DSOff "#*#beats on the drum#*#"
 #Event DSOff "#*#The mystic symbol fades#*#"
 sub Event_DSOff()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	/echo DS Gone!
-	/if (${lstClassMelee.Find[${Me.Class.Name}]} || ${lstClassMelee.Find[${Me.Class.ShortName}]}) /target clear
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /echo DS Gone!
+  /if (${lstClassMelee.Find[${Me.Class.Name}]} || ${lstClassMelee.Find[${Me.Class.ShortName}]}) /target clear
 /return
 
 
@@ -1826,28 +1826,28 @@ sub Event_DSOff()
 sub Event_ToRClay()
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
 
-	/if (${lstClassMelee.Find[${Me.Class.Name}]} || ${lstClassMelee.Find[${Me.Class.ShortName}]}) {
-		/target myself
-		/delay 1s ${Target.ID}==${Me.ID}
-		:TopClay
-	  	/doevents
-	  	/call Leash
-	  	/delay 10 ${Target.ID}!=${Me.ID}
-		/if (${Target.ID}==${Me.ID}) /goto :TopClay
-	}
+  /if (${lstClassMelee.Find[${Me.Class.Name}]} || ${lstClassMelee.Find[${Me.Class.ShortName}]}) {
+    /target myself
+    /delay 1s ${Target.ID}==${Me.ID}
+    :TopClay
+      /doevents
+      /call Leash
+      /delay 10 ${Target.ID}!=${Me.ID}
+    /if (${Target.ID}==${Me.ID}) /goto :TopClay
+  }
 /return
 
 
 #Event ToRClaySafe "#*#Lord Kyle Bayle swings his ancient claymore with frightening force#*#"
 sub Event_ToRClaySafe()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	/if (${lstClassMelee.Find[${Me.Class.Name}]} || ${lstClassMelee.Find[${Me.Class.ShortName}]}) /target clear
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (${lstClassMelee.Find[${Me.Class.Name}]} || ${lstClassMelee.Find[${Me.Class.ShortName}]}) /target clear
 /return
 
 
 #Event ToRSplashAcid "#*#A splash of acid strikes you in the face#*#"
 sub Event_ToRSplashAcid()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /echo I got splash emote!
   /target myself
   /if (${Me.Class.Name.Equal[BARD]}) /twist off
@@ -1861,8 +1861,8 @@ sub Event_ToRSplashAcid()
 
 #Event ToRWither "#*#Poison withers your body, you become weak and vulnerable#*#"
 sub Event_ToRWither()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	/gsay I need WITHER cure!
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /gsay I need WITHER cure!
 /return
 
 
@@ -1877,44 +1877,44 @@ sub Event_ToRWither()
 
 #Event AM4 "#*#Electricity begins to form all around your body#*#"
 sub Event_AM4()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	/if (!${Zone.ShortName.Equal[arxmentis_raid]}) /return
-	| /echo I have to run away from raid!!!
-	/declare tempx float local ${Me.X}
-	/declare tempy float local ${Me.Y}
-	| =/moveto loc 104 1.06
-	/moveto loc -151 284
-	/delay 1s ${Me.Moving}
-	/call create_timer AM4Timer 13s
-	:loop
-		/doevents AM1Safe
-		/if (!${AM4Timer}) /goto :endtimer
-	/if (!${Macro.Return.Find[safe]}) /goto :loop
-	:EndTimer
-		/moveto loc ${tempy} ${tempx}
-		/delay 1s ${Me.Moving}
-		/delay 6s !${Me.Moving}
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${Zone.ShortName.Equal[arxmentis_raid]}) /return
+  | /echo I have to run away from raid!!!
+  /declare tempx float local ${Me.X}
+  /declare tempy float local ${Me.Y}
+  | =/moveto loc 104 1.06
+  /moveto loc -151 284
+  /delay 1s ${Me.Moving}
+  /call create_timer AM4Timer 13s
+  :loop
+    /doevents AM1Safe
+    /if (!${AM4Timer}) /goto :endtimer
+  /if (!${Macro.Return.Find[safe]}) /goto :loop
+  :EndTimer
+    /moveto loc ${tempy} ${tempx}
+    /delay 1s ${Me.Moving}
+    /delay 6s !${Me.Moving}
 /return
 
 
 #Event AM1 "#*#You feel faint claws scratching#*#"
 #Event AM1 "#*#Fire begins to form around your feet."
 sub Event_AM1()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	/if (!${Zone.ShortName.Equal[arxmentis_raid]}) /return
-	/declare tempx float local ${Me.X}
-	/declare tempy float local ${Me.Y}
-	/moveto loc 104 1.06
-	/delay 1s ${Me.Moving}
-	/call create_timer AM1Timer 13s
-	:loop
-	 /doevents AM1Safe
-	 /if (!${AM1Timer}) /goto :endtimer
-	 /if (!${Macro.Return.Find[safe]}) /goto :loop
-	:EndTimer
-	/moveto loc ${tempy} ${tempx}
-	/delay 1s ${Me.Moving}
-	/delay 6s !${Me.Moving}
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${Zone.ShortName.Equal[arxmentis_raid]}) /return
+  /declare tempx float local ${Me.X}
+  /declare tempy float local ${Me.Y}
+  /moveto loc 104 1.06
+  /delay 1s ${Me.Moving}
+  /call create_timer AM1Timer 13s
+  :loop
+   /doevents AM1Safe
+   /if (!${AM1Timer}) /goto :endtimer
+   /if (!${Macro.Return.Find[safe]}) /goto :loop
+  :EndTimer
+  /moveto loc ${tempy} ${tempx}
+  /delay 1s ${Me.Moving}
+  /delay 6s !${Me.Moving}
 /return
 
 
@@ -1926,37 +1926,37 @@ sub Event_AM1Safe()
 #Event VitioWeapon "#*#weapons out to his sides#*#"
 sub Event_VitioWeapon()
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	/declare tempx float local ${Me.X}
-	/declare tempy float local ${Me.Y}
-	/call create_timer VitioWeaponTimer 15s
-	/moveto loc 252.65 -36.91
-	/delay 1s ${Me.Moving}
-	/delay 10s !${VitioWeaponTimer}
-	/moveto loc ${tempy} ${tempx}
-	/delay 1s ${Me.Moving}
-	/delay 6s !${Me.Moving}
+  /declare tempx float local ${Me.X}
+  /declare tempy float local ${Me.Y}
+  /call create_timer VitioWeaponTimer 15s
+  /moveto loc 252.65 -36.91
+  /delay 1s ${Me.Moving}
+  /delay 10s !${VitioWeaponTimer}
+  /moveto loc ${tempy} ${tempx}
+  /delay 1s ${Me.Moving}
+  /delay 6s !${Me.Moving}
 /return
 
 
-#Event VitioClose		"#*#begins to focus the power of the citadel#*#"
+#Event VitioClose   "#*#begins to focus the power of the citadel#*#"
 sub Event_VitioClose()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   | /echo Get close to him!
-	/declare tempx float local ${Me.X}
-	/declare tempy float local ${Me.Y}
-	/call create_timer VitioWeaponTimer 10s
-	/moveto loc ${Spawn[Praetor Vitio].Y} ${Spawn[Praetor Vitio].X}
-	/delay 1s ${Me.Moving}
-	/delay 10s !${VitioWeaponTimer}
-	/moveto loc ${tempy} ${tempx}
-	/delay 1s ${Me.Moving}
-	/delay 6s !${Me.Moving}
+  /declare tempx float local ${Me.X}
+  /declare tempy float local ${Me.Y}
+  /call create_timer VitioWeaponTimer 10s
+  /moveto loc ${Spawn[Praetor Vitio].Y} ${Spawn[Praetor Vitio].X}
+  /delay 1s ${Me.Moving}
+  /delay 10s !${VitioWeaponTimer}
+  /moveto loc ${tempy} ${tempx}
+  /delay 1s ${Me.Moving}
+  /delay 6s !${Me.Moving}
 /return
 
 
 #Event AMGolemLT "#*#a mortuis vifens gains health as he drains the life force from those standing nearby#*#"
 sub Event_AMGolemLT()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   | /echo need to get away from golem!
 /return
 
@@ -1964,8 +1964,8 @@ sub Event_AMGolemLT()
 #Event AMRunAwayBlob "#*#|${Me.CleanName}| has attracted the attention of the frigium letum#*#"
 #Event AMRunAwayBlob "#*#a phasma frigasia points a bony finger at you!#*#"
 sub Event_AMRunAwayBlob()
- 	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	| /echo Got Blob emote!
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  | /echo Got Blob emote!
   /if (${Spawn[Principal Ex-Vicarum Nomia].Distance}>150) /return
   /target clear
   /play runfromboss3 smart
@@ -1978,7 +1978,7 @@ sub Event_AMRunAwayBlob()
 
 #Event AMRunAwayFive "#*#Heads up, |${Me.CleanName}|!#*#"
 sub Event_AMRunAwayFive()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   | /echo Got Heads up Emote!!
   /declare tempx float local ${Me.X}
   /declare tempy float local ${Me.Y}
@@ -1993,7 +1993,7 @@ sub Event_AMRunAwayFive()
 
 #Event AMRunAwayFiveOne "#*#You feel energy gathering. Only motion can set if free#*#"
 sub Event_AMRunAwayFiveOne()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   | /echo Got Gathering Emote!!
   /declare tempx float local ${Me.X}
   /declare tempy float local ${Me.Y}
@@ -2017,23 +2017,23 @@ sub Event_AMRunAwayFiveOne()
 sub Event_CureAkkapanDot()
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /declare _rnd int local 0
- 	/declare _tempTie bool local ${swSetTie}
+  /declare _tempTie bool local ${swSetTie}
 
   /if (${swSetTie}) {
-  	/varset _tempTie TRUE
-  	/varset swSetTie FALSE
+    /varset _tempTie TRUE
+    /varset swSetTie FALSE
   }
 
   /varset _rnd ${Int[${Math.Calc[${Math.Rand[5]}+1]}]}
- 	:loopmovetospot
-	 	/if (${_rnd} == 1) /moveto loc 2570 1007
-		/if (${_rnd} == 2) /moveto loc 2557 1185
-		/if (${_rnd} == 3) /moveto loc 2785 1127
-		/if (${_rnd} == 4) /moveto loc 2752 1003
-		/if (${_rnd} == 5) /moveto loc 2645 961
-		/delay 2s ${Me.Moving}
-  	/delay 6s !${Me.Moving}
-		/if (${Me.Buff[Pulsing Fumes].ID}) /goto :loopmovetospot
+  :loopmovetospot
+    /if (${_rnd} == 1) /moveto loc 2570 1007
+    /if (${_rnd} == 2) /moveto loc 2557 1185
+    /if (${_rnd} == 3) /moveto loc 2785 1127
+    /if (${_rnd} == 4) /moveto loc 2752 1003
+    /if (${_rnd} == 5) /moveto loc 2645 961
+    /delay 2s ${Me.Moving}
+    /delay 6s !${Me.Moving}
+    /if (${Me.Buff[Pulsing Fumes].ID}) /goto :loopmovetospot
 
   /if (${_tempTie}) /varset swSetTie TRUE
 /return
@@ -2046,27 +2046,27 @@ sub Event_CureAkkapanDot()
 sub Event_CurePyroignitionDot()
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /declare _rnd int local 0
- 	/declare _tempTie bool local ${swSetTie}
+  /declare _tempTie bool local ${swSetTie}
 
   /if (${swSetTie}) {
-  	/varset _tempTie ${swSetTie}
-  	/call Event_SetVar NA swSetTie Movement FALSE
+    /varset _tempTie ${swSetTie}
+    /call Event_SetVar NA swSetTie Movement FALSE
   }
 
   /varset _rnd ${Int[${Math.Calc[${Math.Rand[3]}+1]}]}
   :loopmovetospot
-	 	/if (${_rnd} == 1) /moveto loc 1321 -1337
-		/if (${_rnd} == 2) /moveto loc 1464 -1349
-		/if (${_rnd} == 3) /moveto loc 1690 -1494
-		/delay 2s ${Me.Moving}
-		/delay 12s !${Me.Moving}
-		/if (${Me.Buff[Pyroignition].ID}) {
-			/delay 1s
-			/goto :loopmovetospot
-		}
+    /if (${_rnd} == 1) /moveto loc 1321 -1337
+    /if (${_rnd} == 2) /moveto loc 1464 -1349
+    /if (${_rnd} == 3) /moveto loc 1690 -1494
+    /delay 2s ${Me.Moving}
+    /delay 12s !${Me.Moving}
+    /if (${Me.Buff[Pyroignition].ID}) {
+      /delay 1s
+      /goto :loopmovetospot
+    }
 
   /if (${_tempTie}) {
-  	/call Event_SetVar NA swSetTie Movement TRUE
+    /call Event_SetVar NA swSetTie Movement TRUE
   }
 /return
 
@@ -2075,15 +2075,15 @@ sub Event_CurePyroignitionDot()
 #Event DecayRaid "#*#Decay spews a pile of living vomit in |${Me.CleanName}|'s direction.#*#"
 sub Event_DecayRaid()
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	/declare tempx float local ${Me.X}
-	/declare tempy float local ${Me.Y}
-	/moveto loc -84.35 -88.09
-	/delay 1s ${Me.Moving}
-	/delay 10s !${Me.Moving}
-	/delay 15s ${Spawn[Living Vomit].Height} == 2.92
-	/moveto loc ${tempy} ${tempx}
-	/delay 1s ${Me.Moving}
-	/delay 10s !${Me.Moving}
+  /declare tempx float local ${Me.X}
+  /declare tempy float local ${Me.Y}
+  /moveto loc -84.35 -88.09
+  /delay 1s ${Me.Moving}
+  /delay 10s !${Me.Moving}
+  /delay 15s ${Spawn[Living Vomit].Height} == 2.92
+  /moveto loc ${tempy} ${tempx}
+  /delay 1s ${Me.Moving}
+  /delay 10s !${Me.Moving}
 /return
 
 
@@ -2122,8 +2122,8 @@ sub Event_InnyDT()
 | ** Anashti Raid
 | ** ONE OFF
 sub cure_Anashti_DT()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	/if (${lstClassMelee.Find[${Me.Class.ShortName}]} && ${Me.Buff[Holistic Health].Duration.TotalSeconds} > 15) /return
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (${lstClassMelee.Find[${Me.Class.ShortName}]} && ${Me.Buff[Holistic Health].Duration.TotalSeconds} > 15) /return
   /call set_stop
   /declare tempx float local ${Me.X}
   /declare tempy float local ${Me.Y}
@@ -2199,33 +2199,33 @@ sub MoveToSpot()
 
 
 |***
- *	DES: cure debufs for Damsel of Decay
- *	USE: auto
- *	DPS classes if they get Withering Physicality XIII they need to use Distillate of Immunization XV (64 Counters to cycle it twice)
- *	DPS classes if they get Withering Limbs XIII they need to use a Distillate of Immunization XIII (56 Counters to Cycle once) I was Lazy but this could be Level VII through XIII, and not cycle it twice.
- *	Healer classes If they get Withering Physicality XIII they need to use Distillate of Immunization XIII
- *	Healer classes If they get Withering Faith XIII they need to use Distillate of Immunization XV
- *	Tank classes If they get Withering Physicality XIII they need to use Distillate of Immunization XIII
+ *  DES: cure debufs for Damsel of Decay
+ *  USE: auto
+ *  DPS classes if they get Withering Physicality XIII they need to use Distillate of Immunization XV (64 Counters to cycle it twice)
+ *  DPS classes if they get Withering Limbs XIII they need to use a Distillate of Immunization XIII (56 Counters to Cycle once) I was Lazy but this could be Level VII through XIII, and not cycle it twice.
+ *  Healer classes If they get Withering Physicality XIII they need to use Distillate of Immunization XIII
+ *  Healer classes If they get Withering Faith XIII they need to use Distillate of Immunization XV
+ *  Tank classes If they get Withering Physicality XIII they need to use Distillate of Immunization XIII
 
 sub CureDamselofDecay()
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   ISMEDEAD
-	| DPS classes BST,RNG,MON,ROG,ENC,WIZ,MAG,NEC,SHD,PAL,BRD,BST
-	/if (${Select[${Me.Class.ShortName},BST,RNG,MON,ROG,ENC,WIZ,MAG,NEC,SHD,PAL,BRD,BST]} && (${Me.Buff[Withering Physicality XIII].ID} || ${Me.Buff[Withering Limbs XIII].ID})) {
-		/if (${Me.Buff[Withering Physicality XIII].ID} && ${Me.ItemReady[Distillate of Immunization XIII]}) /call core_cast2 "Distillate of Immunization XIII" item 0 FALSE
-		/if (${Me.Buff[Withering Limbs XIII].ID} && ${Me.ItemReady[Distillate of Immunization XIII]}) /call core_cast2 "Distillate of Immunization XIII" item 0 FALSE
-	}
+  | DPS classes BST,RNG,MON,ROG,ENC,WIZ,MAG,NEC,SHD,PAL,BRD,BST
+  /if (${Select[${Me.Class.ShortName},BST,RNG,MON,ROG,ENC,WIZ,MAG,NEC,SHD,PAL,BRD,BST]} && (${Me.Buff[Withering Physicality XIII].ID} || ${Me.Buff[Withering Limbs XIII].ID})) {
+    /if (${Me.Buff[Withering Physicality XIII].ID} && ${Me.ItemReady[Distillate of Immunization XIII]}) /call core_cast2 "Distillate of Immunization XIII" item 0 FALSE
+    /if (${Me.Buff[Withering Limbs XIII].ID} && ${Me.ItemReady[Distillate of Immunization XIII]}) /call core_cast2 "Distillate of Immunization XIII" item 0 FALSE
+  }
 
-	| healers CLR,SHM,DRU
-	/if (${Select[${Me.Class.ShortName},CLR,SHM,DRU]} && (${Me.Buff[Withering Physicality XIII].ID} || ${Me.Buff[Withering Faith XIII].ID})) {
-		/if (${Me.Buff[Withering Physicality XIII].ID} && ${Me.ItemReady[Distillate of Immunization XIII]}) /call core_cast2 "Distillate of Immunization XIII" item 0 FALSE
-		/if (${Me.Buff[Withering Faith XIII].ID} && ${Me.ItemReady[Distillate of Immunization XV]}) /call core_cast2 "Distillate of Immunization XV" item 0 FALSE
-	}
+  | healers CLR,SHM,DRU
+  /if (${Select[${Me.Class.ShortName},CLR,SHM,DRU]} && (${Me.Buff[Withering Physicality XIII].ID} || ${Me.Buff[Withering Faith XIII].ID})) {
+    /if (${Me.Buff[Withering Physicality XIII].ID} && ${Me.ItemReady[Distillate of Immunization XIII]}) /call core_cast2 "Distillate of Immunization XIII" item 0 FALSE
+    /if (${Me.Buff[Withering Faith XIII].ID} && ${Me.ItemReady[Distillate of Immunization XV]}) /call core_cast2 "Distillate of Immunization XV" item 0 FALSE
+  }
 
-	| TANKS WAR,SHD,PAL
-	/if (${Select[${Me.Class.ShortName},WAR,SHD,PAL]} && ${Me.Buff[Withering Physicality XIII].ID}) {
-		/if (${Me.Buff[Withering Physicality XIII].ID} && ${Me.ItemReady[Distillate of Immunization XIII]}) /call core_cast2 "Distillate of Immunization XIII" item 0 FALSE
-	}
+  | TANKS WAR,SHD,PAL
+  /if (${Select[${Me.Class.ShortName},WAR,SHD,PAL]} && ${Me.Buff[Withering Physicality XIII].ID}) {
+    /if (${Me.Buff[Withering Physicality XIII].ID} && ${Me.ItemReady[Distillate of Immunization XIII]}) /call core_cast2 "Distillate of Immunization XIII" item 0 FALSE
+  }
 /return
  ***|
 
@@ -2282,17 +2282,17 @@ sub setAkkapanCamp()
 #Event Nexona "#*#tiny dark flame on #*#, |${Me.DisplayName}|#*#"
 #Event Nexona "#*#tiny dark flame on #*#, #*#, and |${Me.DisplayName}|#*#"
 sub Event_Nexona()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-	ISMEDEAD
-	/echo Got SILENCE Emote!!
-	/declare tempx float local ${Me.X}
-	/declare tempy float local ${Me.Y}
-	/target clear
-	/moveto loc 229.40 -956.84
-	/delay 2s ${Me.Moving}
-	/delay 15s
-	/moveto loc ${tempy} ${tempx}
-	/delay 1s
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  ISMEDEAD
+  /echo Got SILENCE Emote!!
+  /declare tempx float local ${Me.X}
+  /declare tempy float local ${Me.Y}
+  /target clear
+  /moveto loc 229.40 -956.84
+  /delay 2s ${Me.Moving}
+  /delay 15s
+  /moveto loc ${tempy} ${tempx}
+  /delay 1s
 /return
 
 
@@ -2317,33 +2317,55 @@ sub Event_Nexona()
 
 
 
+| Griklor the Restless roars and points at Name.
+| is the trigger emote to stick
+| there are two success messages to end stick and return to where you started would be perfect
+| Griklor the Restless tries to control his mount as shards of deadly ice strike it.
+| Griklor's griffon's wings are shredded by deadly ice and Griklor falls to the ground.
+| are the two success messages
+
+
+sub Event_Griklor()
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  OUT GRIKLOR EMOTE
+  /nav recordwaypoint tmpcamp "tmp camp"
+  /delay 1s
+  /declare x int local 0
+  /for x 1 to 26
+    /if (${Me.Dead}) /return
+    OUT FOLLOWING GRIKLOR
+    /if (!${Navigation.Active} && ${Spawn[Griklor the Restless].Distance} > 5) {
+      /nav id ${Spawn[Griklor the Restless].ID} |log=${maEntropy.Find[swNavLogSpew].Value}
+    }
+    /delay 4
+    /doevents Grik_Success
+  /next x
+  OUT RETURNING TO CAMP
+  /nav waypoint tmpcamp
+  /return
+  
+sub Event_Grik_Success
+/return
+
+
+
+
 | Icebound Avatar mission
 #Event IceAoW "#*#The ice encrusted Avatar of War shouts that |${Me.DisplayName}| must bend the knee#*#"
 sub Event_IceAoW()
-	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
 
-	/if (${Me.State.NotEqual[duck]}) {
-		/keypress DUCK
-	}
+  /if (${Me.State.NotEqual[duck]}) {
+    /keypress DUCK
+  }
 
-	/delay 11s
+  /delay 11s
 
-	/if (${Me.State.Equal[duck]}) {
-		/keypress DUCK
-	}
+  /if (${Me.State.Equal[duck]}) {
+    /keypress DUCK
+  }
 
 /return TRUE
-
-
-
-
-
-Griklor the Restless roars and points at Name.
-is the trigger emote to stick
-there are two success messages to end stick and return to where you started would be perfect
-Griklor the Restless tries to control his mount as shards of deadly ice strike it.
-Griklor's griffon's wings are shredded by deadly ice and Griklor falls to the ground.
-are the two success messages
 
 
 
@@ -2355,10 +2377,10 @@ are the two success messages
 sub Event_IceAoWUnduck()
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
 
-	/if (!${Defined[AoW_Event_Acceptance]}) {
-		/declare bool AoW_Event_Acceptance outer
-	}
-	/varsaet AoW_Event_Acceptance TRUE
+  /if (!${Defined[AoW_Event_Acceptance]}) {
+    /declare bool AoW_Event_Acceptance outer
+  }
+  /varsaet AoW_Event_Acceptance TRUE
 }
 
 
@@ -2368,7 +2390,7 @@ sub Event_IceAoW()
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
 
 
-	/call clear_combat
+  /call clear_combat
   /call set_stop ${maDebug.Find[stop].Value} SILENT
 
   /echo ${Me.Animation} ?? 24)
@@ -2376,16 +2398,16 @@ sub Event_IceAoW()
     /keypress DUCK
     /delay 1s
     /if (${Select[${Me.Animation},24]} || ${Me.Ducking}) {
-    	/break
+      /break
     }
   }
 
-	/delay 10s
-	/doevents IceAoWUnduck
+  /delay 10s
+  /doevents IceAoWUnduck
 
-	/if (!${Me.Dead} && ${AoW_Event_Acceptance}) {
-		/varset AoW_Event_Acceptance FALSE
-		/if (${Select[${Me.Animation},24]} || ${Me.Ducking}) {
+  /if (!${Me.Dead} && ${AoW_Event_Acceptance}) {
+    /varset AoW_Event_Acceptance FALSE
+    /if (${Select[${Me.Animation},24]} || ${Me.Ducking}) {
      /keypress DUCK
     }
   }
@@ -2399,7 +2421,7 @@ sub Event_IceAoW()
 | #Event Tofs2 "#*#Honored guest. I require your presence.#*#"
 sub Event_Tofs2(string Line)
   /if (!${maEntropy.Find[swEventsInc].Value}) {
-  	/return FALSE
+    /return FALSE
   }
 
   /if (!${Line.Find[${Me.CleanName}]}) {
@@ -2412,7 +2434,7 @@ sub Event_Tofs2(string Line)
 
   OUT ive been picked
   /if (!${Spawn[npc a golem usher].ID}) {
-  	/return FALSE
+    /return FALSE
   }
 
   /nav id ${Spawn[npc a golem usher].ID} |log=off distance=20
