@@ -140,7 +140,7 @@ sub do_sneak_attack(bool _debug, int _tmpID)
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
   }
-  FLOW do_sneak_attack
+  | FLOW do_sneak_attack
 
   /if (!${Me.Sneaking} || ${Me.ActiveDisc.ID}) {
     /return FALSE
@@ -164,7 +164,7 @@ sub do_sneak_attack(bool _debug, int _tmpID)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  FLOW misc_combat
+  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -175,6 +175,7 @@ sub misc_combat(bool _debug, int _tmpID)
   GETINPUT
   CHECKTIE
   CHECKDEFENSE
+  BUFFNOW
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
@@ -283,7 +284,7 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  FLOW check_heal ${_type}
+  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -340,7 +341,7 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub set_sos(bool _debug)
   DEBUG \atset_sos\ax()
-  FLOW set_sos
+  | FLOW set_sos
 
   /if (!${maEnv.Find[swSoS].Value}) /return FALSE
   /if (${Me.Combat} || ${Me.Stunned} || ${Me.State.Equal[FEIGN]}) /return FALSE
@@ -380,7 +381,7 @@ sub set_sos(bool _debug)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  FLOW burn
+  | FLOW burn
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {

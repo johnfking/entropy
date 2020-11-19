@@ -136,7 +136,7 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  FLOW misc_combat
+  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -147,6 +147,7 @@ sub misc_combat(bool _debug, int _tmpID)
   GETINPUT
   CHECKTIE
   CHECKDEFENSE
+  BUFFNOW
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
@@ -176,7 +177,7 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  FLOW check_heal ${_type}
+  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -267,7 +268,7 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub cast_cycle_heal_surge(bool _debug)
   DEBUG \atcast_cycle_heal_surge\ax()
-  FLOW cast_cycle_heal_surge
+  | FLOW cast_cycle_heal_surge
 
   CHECKEXIT
   ISMEDEAD
@@ -309,7 +310,7 @@ sub cast_cycle_heal_surge(bool _debug)
     GETINPUT cast_cycle_heal_surge NA|NA
     ISMEDEAD
     CHECKEXIT cast_cycle_heal_surge
-    FLOW cast_cycle_heal_surge ${_tmpID} (1)
+    | FLOW cast_cycle_heal_surge ${_tmpID} (1)
 
     | check the switch
     /if (!${Bool[${maHeal.Find[swHeal${_liHeal.Value}].Value}]}) {
@@ -367,7 +368,7 @@ sub cast_cycle_heal_surge(bool _debug)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  FLOW burn_SHM
+  | FLOW burn_SHM
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -439,7 +440,7 @@ sub burn(bool _debug, int _tmpID)
  ***|
 sub cast_talisman(bool _debug)
   DEBUG \atcast_talisman\ax()
-  FLOW cast_talisman
+  | FLOW cast_talisman
 
   /invoke ${set_data_timer[${_debug}, Check_Talisman, RESTART]}
 
@@ -465,7 +466,7 @@ sub cast_talisman(bool _debug)
  ***|
 sub check_cani(bool _debug)
   DEBUG \atcheck_cani\ax()
-  FLOW check_cani
+  | FLOW check_cani
 
   /if (!${maChr.Find[stPctCanniManna].Value}) {
     DEBUG ${break}canni disabled
@@ -536,7 +537,7 @@ sub check_cani(bool _debug)
  ***|
 sub cast_alliance(bool _debug)
   DEBUG \atcast_alliance\ax()
-  FLOW cast_alliance
+  | FLOW cast_alliance
 
   CHECKEXIT
   GETINPUT

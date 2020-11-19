@@ -143,7 +143,7 @@ sub class_main(bool _debug)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  FLOW check_heal ${_type}
+  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -208,7 +208,7 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  FLOW misc_combat
+  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -219,6 +219,7 @@ sub misc_combat(bool _debug, int _tmpID)
   GETINPUT
   CHECKTIE
   CHECKDEFENSE
+  BUFFNOW
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
@@ -268,7 +269,7 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  FLOW burn=
+  | FLOW burn=
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -348,7 +349,7 @@ sub burn(bool _debug, int _tmpID)
  ***|
 sub cast_blood(bool _debug, int _tmpID)
   DEBUG \atcast_blood\ax(\a-w${_tmpID}\ax)
-  FLOW cast_blood
+  | FLOW cast_blood
 
   ISMEDEAD
   CHECKEXIT
@@ -376,7 +377,7 @@ sub cast_blood(bool _debug, int _tmpID)
  ***|
 sub cast_bloom(bool _debug)
   DEBUG \atcast_bloom\ax()
-  FLOW cast_bloom
+  | FLOW cast_bloom
 
   /if (${Zone.ID} == ${Me.BoundLocation[0].ID} || SAFEZONE) {
     /return FALSE

@@ -143,7 +143,7 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  FLOW misc_combat
+  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -154,6 +154,7 @@ sub misc_combat(bool _debug, int _tmpID)
   GETINPUT
   CHECKTIE
   CHECKDEFENSE
+  BUFFNOW
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
@@ -198,7 +199,7 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub check_harvest(bool _debug)
   DEBUG \atcheck_harvest\ax()
-  FLOW check_harvest
+  | FLOW check_harvest
 
   CHECKEXIT
   GETINPUT
@@ -239,7 +240,7 @@ sub check_harvest(bool _debug)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  FLOW check_heal ${_type}
+  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -389,7 +390,7 @@ sub burn(bool _debug, int _tmpID)
  ***|
 sub force_twincast(bool _debug, int _tmpID)
   DEBUG \atforce_twincast\ax(\a-w${_tmpID}\ax)
-  FLOW force_twincast
+  | FLOW force_twincast
 
   ISMEDEAD
   CHECKEXIT

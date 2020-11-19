@@ -2307,6 +2307,37 @@ sub Event_Nexona()
  **|
 
 
+| POFIRE
+| Guardian of Doomfire
+#Event Guardian_of_Doomfire "#*#Guardian of Doomfire shouts, 'I doom both you, #1# and you, #2#!'#*#"
+sub Event_Guardian_of_Doomfire(string Line, string PersonOne, string PersonTwo)
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  OUT GUARDIAN EMOTE
+  /nav recordwaypoint tmpcamp "tmp camp"
+  /delay 1s
+  OUT RUNNING AWAY
+  /if (${PersonOne.Equal[${Me.DisplayName}]}) /nav loc -1195 -266 -198
+  /if (${PersonTwo.Equal[${Me.DisplayName}]}) /nav loc -1043 -180 -190
+  /delay 25s
+  OUT RETURNING TO CAMP
+  /nav waypoint tmpcamp
+  /return
+
+
+| General Reparm
+#Event Reparm "|${Me.DisplayName}| is engulfed in expanding flames."
+sub Event_Reparm()
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  OUT REPARM EMOTE
+  /nav recordwaypoint tmpcamp "tmp camp"
+  /delay 1s
+  OUT RUNNING AWAY
+  /nav loc -920 -1500 -185
+  /delay 25s
+  OUT RETURNING TO CAMP
+  /nav waypoint tmpcamp
+  /return
+
 
 
 
@@ -2324,7 +2355,7 @@ sub Event_Nexona()
 | Griklor's griffon's wings are shredded by deadly ice and Griklor falls to the ground.
 | are the two success messages
 
-
+#Event Griklor "#*#Griklor the Restless roars and points at |${Me.DisplayName}|.#*#"
 sub Event_Griklor()
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   OUT GRIKLOR EMOTE
@@ -2344,10 +2375,9 @@ sub Event_Griklor()
   /nav waypoint tmpcamp
   /return
   
+#Event Grik_Success "#*#Griklor the Restless tries to control his mount as shards of deadly ice strike it.#*#"
 sub Event_Grik_Success
 /return
-
-
 
 
 | Icebound Avatar mission
@@ -2368,11 +2398,7 @@ sub Event_IceAoW()
 /return TRUE
 
 
-
-
-
 | Icebound Avatar mission
-
 #Event IceAoWUnduck "#*#The Avatar of War nods, accepting the subservience of those that gave it#*#"
 sub Event_IceAoWUnduck()
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
@@ -2388,8 +2414,6 @@ sub Event_IceAoWUnduck()
 sub Event_IceAoW()
 
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
-
-
   /call clear_combat
   /call set_stop ${maDebug.Find[stop].Value} SILENT
 
@@ -2454,13 +2478,38 @@ sub Event_Tofs2(string Line)
 
   /if (${Me.Song[Groom's Side].ID}) {
     OUT You are heading to the Bride's camp
-    /nav locyxz 420 -110 ${Me.Z} |log=off distance=10
+    /nav locyxz 420 -110 ${Me.Z} |log=${maEntropy.Find[swNavLogSpew].Value} distance=10
   } else /if (${Me.Song[Bride's Side].ID}) {
     OUT You are heading to the Groom's camp
-    /nav locyxz 411 -211 ${Me.Z} |log=off distance=10
+    /nav locyxz 411 -211 ${Me.Z} |log=${maEntropy.Find[swNavLogSpew].Value} distance=10
   }
 
 /return TRUE
 
 
 
+
+
+
+|********************************************************************************************
+ ** Claws of Veeshan ()
+ **|
+ 
+ 
+ 
+ 
+ 
+| Aaryonar
+| yxz
+
+| purple
+| 1931, -1614, 160
+
+| brown
+| 1708, -1718, 159
+
+| fire
+| 1656, -1926, 158
+
+| white
+| 1812, -1838, 155

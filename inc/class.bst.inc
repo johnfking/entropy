@@ -82,7 +82,7 @@ sub class_init(bool _debug)
  ***|
 sub class_main(bool _debug)
   DEBUG \atclass_main\ax()
-  FLOW class_main
+  | FLOW class_main
 
   /if (AUTO && !ENGINE3) {
     /call check_mana
@@ -148,7 +148,7 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  FLOW misc_combat
+  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -159,6 +159,7 @@ sub misc_combat(bool _debug, int _tmpID)
   GETINPUT
   CHECKTIE
   CHECKDEFENSE
+  BUFFNOW
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
@@ -239,7 +240,7 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub check_mana(bool _debug)
   DEBUG \atcheck_mana\ax()
-  FLOW check_mana
+  | FLOW check_mana
 
   /invoke ${set_data_timer[${_debug}, Check_Para, RESTART]}
 
@@ -334,7 +335,7 @@ sub check_mana(bool _debug)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  FLOW check_heal ${_type}
+  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -413,7 +414,7 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  FLOW burn_BST
+  | FLOW burn_BST
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {

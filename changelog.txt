@@ -22,6 +22,18 @@ on the to do list
 --------------------
 
 
+
+
+201119.01
+- /buff now
+  added an additional check for now taged buffs in the misc_combat routine for all classes
+  i advise you keep now buffs very limited. abuse them and they will slow down the toon
+- FLOW (routine markers) markers have been commented out
+- aux - should be no more fuckery 
+- /chr invis delay ##
+  add in whatever delay you like to help for your lag to the /invis command. this is in 10ths of a second
+
+
 201116.01
 - all tabs converted to spaces
 - /debug other invis added
@@ -56,7 +68,6 @@ on the to do list
     they will be a blue color to stand out a little, and my daughter picked it so suck it up..
   - changing the `use` options in the controls to `active` so they follow the same pattern
   - /cc ass has been changed a little. to change smart assists its now /cc ass smart g|1|2|3
-  
 
 
 201106.01

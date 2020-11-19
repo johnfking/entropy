@@ -851,7 +851,12 @@ sub Bind_to_chr(string _type, string _verbage, string _silent, bool _debug)
 #bind command_cb /cb
 sub Bind_command_cb(string _verbage)
 
-  /if (${Bool[${_verbage}]}) {
+  /if (${_verbage.Equal[aux]}) {
+    /call Bind_command_aux cb
+    /return TRUE
+  }
+
+  /if (${Bool[${_verbage}]} && ${Select[${_verbage},u,s,a,c,g,r,b,t]}) {
     /call check_buff_cycle ${maDebug.Find[cb].Value} TRUE ${_verbage}
     /return TRUE
   }
@@ -860,6 +865,10 @@ sub Bind_command_cb(string _verbage)
   /invoke ${maControl.Add[u,option]}
   /invoke ${maControl.Add[s,option]}
   /invoke ${maControl.Add[a,option]}
+  /invoke ${maControl.Add[c,option]}
+  /invoke ${maControl.Add[g,option]}
+  /invoke ${maControl.Add[t,option]}
+  /invoke ${maControl.Add[b,option]}
   /invoke ${set_control_output[FALSE, maBuff, cb, maControl]} 
 
 /return TRUE
@@ -3310,7 +3319,7 @@ sub Bind_command_aux(string _type, bool _debug)
   /declare _list3 string local on,override,repeat,see,splash,take,tag,rez,tag,entropy
   /declare _list4 string local agro,miscdps,song,line,area,sash,pred,mercenary,tie,tc
   /declare _list5 string local coh,farm,ttl,defense,dot,nuke,clickitem,env,grab,grain
-  /declare _list6 string local gtfo,pull
+  /declare _list6 string local gtfo,pull,cb
 
   /for _count 1 to 6
     /declare _lsout${_count} list local
@@ -3722,7 +3731,7 @@ sub Bind_command_enter(string _type, bool _debug)
  * use: /invis
  ***|
 #bind command_invis /invis
-sub Bind_command_invis(bool _debug)
+sub Bind_command_invis(string _verbage)
   /dgexecute ${maComm.Find[stEntropyGroup_all].Value} /AA_invis ${maDebug.Find[invis].Value}
   /call Bind_command_invis_cast ${maDebug.Find[invis].Value}
 /return TRUE
@@ -3732,78 +3741,76 @@ sub Bind_command_invis(bool _debug)
  * use: /invis
  ***|
 #bind command_invis_cast /AA_invis
-sub Bind_command_invis_cast(bool _debug)
+sub Bind_command_invis_cast(string _verbage)
 
-  | fucking bards
-  /if (${Select[${Me.Class.ShortName},BRD]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroup].Value}"]}) {
-      /call pulse_stop
-      /call voodoo ${_debug} "${maChr.Find[stInvisGroup].Value}" 0 ignoreall
-      /return TRUE
-    }
+  /declare _debug bool local FALSE
+  /if (${maDebug.Find[invis].Value}) {
+    /varset _debug TRUE
   }
 
-  | Invis vs Normies casters
-  /if (${Select[${Me.Class.ShortName},WIZ,MAG,ENC,SHM,RNG,DRU]}) {
-    ECHO invis
-    /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroup].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stInvisGroup].Value}" 0 ignoreall
-      /return TRUE
-    }
-  }
+  | stack invis
+  /if (!${Bool[${_verbage}]} || ${_verbage.Equal[stack]}) {
 
-  | Invis Vs undead casters
-  /if (${Select[${Me.Class.ShortName},CLR,SHD,NEC,PAL]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroupIVU].Value}"]} ) {
-      | /delay 3
-      /call voodoo ${_debug} "${maChr.Find[stInvisGroupIVU].Value}" 0 ignoreall
-      /return TRUE
+    | fucking bards
+    /if (${Select[${Me.Class.ShortName},BRD]}) {
+      /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroup].Value}"]}) {
+        /call pulse_stop
+        /delay ${maChr.Find[stInvisDelay].Value}
+        /call voodoo ${_debug} "${maChr.Find[stInvisGroup].Value}" 0 ignoreall
+        /return TRUE
+      }
     }
-  }
 
+    | Invis vs Normies casters
+    /if (${Select[${Me.Class.ShortName},WIZ,MAG,ENC,SHM,RNG,DRU]}) {
+      ECHO invis
+      /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroup].Value}"]}) {
+        /delay ${maChr.Find[stInvisDelay].Value}
+        /call voodoo ${_debug} "${maChr.Find[stInvisGroup].Value}" 0 ignoreall
+        /return TRUE
+      }
+    }
+
+    | Invis Vs undead casters
+    /if (${Select[${Me.Class.ShortName},CLR,SHD,NEC,PAL]}) {
+      /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroupIVU].Value}"]} ) {
+        /delay ${maChr.Find[stInvisDelay].Value}
+        /call voodoo ${_debug} "${maChr.Find[stInvisGroupIVU].Value}" 0 ignoreall
+        /return TRUE
+      }
+    }
+    
+  | normal invis  
+  } else /if (${_verbage.Equal[iv]}) {
+
+
+    /if (${Bool[]}) {
+      /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroupIVU].Value}"]} ) {
+        /call voodoo ${_debug} "${maChr.Find[stInvisGroupIVU].Value}" 0 ignoreall
+        /return TRUE
+      }
+    } else /if (${Bool[]}) {
+      
+    }
+
+  | invis vs undead
+  } else /if (${_verbage.Equal[ivu]}) {
+
+
+    /if (${Bool[${maChr.Find[stInvisGroupIVU].Value}]}) {
+      /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroupIVU].Value}"]} ) {
+        /call voodoo ${_debug} "${maChr.Find[stInvisGroupIVU].Value}" 0 ignoreall
+        /return TRUE
+      }
+    } else /if (${Bool[]}) {
+      
+    }
+
+
+
+  }
+  
 /return TRUE
-
-
-
-|***
- * note: control to cast invis AAs
- * use: /invis
-
-#bind command_invis_cast /AA_invis
-sub Bind_command_invis_cast(bool _debug)
-
-  | fucking bards
-  /if (${Me.AltAbilityReady[Shauri's Sonorous Clouding]} && ${Select[${Me.Class.ShortName},BRD]}) {
-    /call pulse_stop
-    /call voodoo ${_debug} "Shauri's Sonorous Clouding" 0 ignoreall
-    /return TRUE
-
-  | Invis vs Normies casters
-  } else /if (${Me.AltAbilityReady[Group Perfected Invisibility]} && ${Select[${Me.Class.ShortName},WIZ,MAG,ENC]}) {
-    /call voodoo ${_debug} "Group Perfected Invisibility" 0 ignoreall
-    /return TRUE
-
-  | Invis Vs undead casters
-  } else /if (${Me.AltAbilityReady[Group Perfected Invisibility to Undead]} && ${Select[${Me.Class.ShortName},CLR,SHD,NEC,PAL]}) {
-    /delay 3
-    /call voodoo ${_debug} "Group Perfected Invisibility to Undead" 0 ignoreall
-    /return TRUE
-
-  | shaman
-  } else /if (${Me.AltAbilityReady[Group Silent Presence]} && ${Select[${Me.Class.ShortName},SHM]}) {
-    /delay 5
-    /call voodoo ${_debug} "Group Silent Presence" ${Me.ID} ignoreall
-    /return TRUE
-
-  | rangers and druids
-  } else /if (${Me.AltAbilityReady[Shared Camouflage]} && ${Select[${Me.Class.ShortName},RNG,DRU]}) {
-    /delay 5
-    /call voodoo ${_debug} "Shared Camouflage" 0 ignoreall
-    /return
-  }
-
-/return TRUE
- ***|
 
 
 
@@ -3813,7 +3820,6 @@ sub Bind_command_invis_cast(bool _debug)
  ***|
 #bind control_port /port
 sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
-  /varset _debug TRUE
   DEBUG \atBind_control_port\ax(\a-w${_type}, ${_nick1}, ${_nick2}\ax)
 
   /declare _count int local 0
@@ -3821,17 +3827,14 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
   /declare _list list local
   /declare _out string local
 
-
   /if (${_type.Equal[see]}) {
     /if (!${Bool[${_nick1}]}) {
-      OUT Port categories${sep}\a-wwiz, dru, guild, item, vendor\ax
+      OUT Port categories${sep}\a-wwiz, dru, guild, item, vendor, aa\ax
       OUT \a-w/port see item\ax
       /return FALSE
     }
-    
-    
-    
-    /if (${Select[${_nick1},wiz,dru,guild,item,vendor]}) {
+       
+    /if (${Select[${_nick1},wiz,dru,guild,item,vendor,aa]}) {
       /sqlite query ${maData.Find[DBstatic].Value} dummycount SELECT Count(*) as data FROM port WHERE type='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]};
       DEBUG Count(${sqlite.Result[dummycount 1 data]})
       
@@ -3858,6 +3861,10 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
           }
         } else /if (${Select[${_nick1},wiz,dru]}) {
         } else /if (${Select[${_nick1},vendor]}) {
+        } else /if (${Select[${_nick1},aa]}) {
+          /if (!${Me.AltAbilityReady[${sqlite.Result[dummy ${_count} name1]}]}) {
+            /continue
+          }
           
         }     
 
@@ -4094,52 +4101,6 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
     
     
     
@@ -4167,28 +4128,8 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
   }
 
 
-  |**
-  /if (${_silent.Equal[SILENT]}) /return
-  /invoke ${maControl.Clear}
-  /invoke ${maControl.Add[self,swHealCureSelf]}
-  /invoke ${maControl.Add[group,swHealCureGroup]}
-  /invoke ${maControl.Add[crew,swHealCureCrew]}
-  /invoke ${maControl.Add[item,submenu]}
-  /invoke ${maControl.Add[spell,submenu]}
-  /invoke ${set_control_output[${_debug}, maHeal, cure, maControl]}
-  **|
 
-
-
-
-/return
-
-
-
-
-
-
-
+/return TRUE
 
 
 
@@ -4850,10 +4791,12 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
       /call do_raw_edit ${_debug} SILENT stBegAlias "${_silent}"
     }
 
-    OUT /minion gear${sep}
-    OUT ${dot} ${info}use\ax:${If[${maMinion.Find[swUsePetGear].Value},${on},${off}]}
-    OUT ${dot} ${info}weapon\ax:[${If[${Bool[${maMinion.Find[stPetWeapon].Value}]},${num}${maMinion.Find[stPetWeapon].Value}\ax,${off}]}]
-    OUT ${dot} ${info}begalias\ax:[${If[${Bool[${maMinion.Find[stBegAlias].Value}]},${num}${maMinion.Find[stBegAlias].Value}\ax,${off}]}]
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[active,swUsePetGear]}
+    /invoke ${maControl.Add[weapon,stPetWeapon|br]}
+    /invoke ${maControl.Add[begalias,stBegAlias|br]}
+    /invoke ${set_control_output[${_debug}, maMinion, "minion gear", maControl]}    
+    
     /return TRUE
 
 
@@ -4877,7 +4820,7 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
     /invoke ${maControl.Add[active,swPetShrink]}
     /invoke ${maControl.Add[item,stPetShrink|br]}
     /invoke ${set_control_output[${_debug}, maMinion, "minion shrink", maControl]}
-    /return
+    /return TRUE
 
   }
 
@@ -5703,7 +5646,7 @@ sub Bind_control_pred(string _type, string _verbage, string _verbage2, string _s
  ***|
 sub control_pred(bool _debug)
   DEBUG \atcontrol_pred\ax()
-  FLOW control_pred (1)
+  | FLOW control_pred (1)
 
   | nothing to check
   /if (!${Bool[${maPred.Find[stPredID].Value}]}) {

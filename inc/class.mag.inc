@@ -143,7 +143,7 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  FLOW misc_combat
+  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) /return FALSE
@@ -152,6 +152,7 @@ sub misc_combat(bool _debug, int _tmpID)
   GETINPUT
   CHECKTIE
   CHECKDEFENSE
+  BUFFNOW
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
@@ -184,7 +185,7 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  FLOW check_heal ${_type}
+  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -239,7 +240,7 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  FLOW burn
+  | FLOW burn
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) /return FALSE
@@ -329,7 +330,7 @@ sub burn(bool _debug, int _tmpID)
 
 sub force_twincast_MAG(bool _debug)
   DEBUG \atforce_twincast_MAG\ax()
-  FLOW force_twincast_MAG
+  | FLOW force_twincast_MAG
 
   /if (!${maChr.Find[swForceTC].Value} || ${timer_Force_TC}) /return
   /if (${target[isdead, TARGET]}) /return FALSE
@@ -363,7 +364,7 @@ sub force_twincast_MAG(bool _debug)
  ***|
 sub check_gather(bool _debug)
   DEBUG \atcheck_gather\ax()
-  FLOW check_gather (1)
+  | FLOW check_gather (1)
 
   /invoke ${set_data_timer[${_debug}, Check_Gather, RESTART]}
 
@@ -428,7 +429,7 @@ sub check_gather(bool _debug)
 #bind control_mag_coh /call_of_the_hero
 sub Bind_control_mag_coh(string _sender, string _verbage, bool _debug)
   DEBUG \atBind_control_mag_coh\ax(\a-w${_sender}, ${_verbage}\ax)
-  FLOW Bind_control_mag_coh
+  | FLOW Bind_control_mag_coh
 
   | output control map
   /if (${_sender.Equal[aux]}) {
@@ -460,7 +461,7 @@ sub Bind_control_mag_coh(string _sender, string _verbage, bool _debug)
  ***|
 sub check_cauldron(bool _debug)
   DEBUG \atcheck_cauldron\ax()
-  FLOW check_cauldron
+  | FLOW check_cauldron
 
   /if (!${Bool[${maChr.Find[stCauldron].Value}]}) {
     OUT You need to set up your cauldron if you want to use it.

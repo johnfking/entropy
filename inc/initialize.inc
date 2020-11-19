@@ -14,7 +14,7 @@
 sub set_debug(string _verbage)
 
   | generate DEBUGS
-  /declare flow string outer FALSE
+  /declare | FLOW string outer FALSE
   /declare lsDebuglist list outer
   /invoke ${lsDebuglist.Append[buff,heal,move,debuff,cast,loot,mode,combat,other,minion,class,admin,schema,zone]}
 
@@ -47,7 +47,7 @@ sub set_debug(string _verbage)
   | other
   /invoke ${lsDebugother.Append[rest,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch,staminarecover,inventoryscan,invis]}
   | admin
-  /invoke ${lsDebugadmin.Append[build,observe,house,flow,exit,sql,edit,e3]}
+  /invoke ${lsDebugadmin.Append[build,observe,house,| FLOW,exit,sql,edit,e3]}
   | schema (database creation/modification)
   /invoke ${lsDebugschema.Append[init,s_zone,s_character,s_loot,s_nav,s_shared]}
   | area
@@ -913,6 +913,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHard stPullMobFindStep                   5                             "${auxnum} number of increments your pull radius is broken into to look for mobs"   hard
 
 
+
 |** control: chr (shared) **|
 
   | invs
@@ -920,6 +921,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maChr stInvisGroup                         FALSE                         "${auxsw} group invisibility"
   /call set_data_map ${_debug} maChr stInvisSingleIVU                     FALSE                         "${auxsw} self invis vs undead"
   /call set_data_map ${_debug} maChr stInvisGroupIVU                      FALSE                         "${auxsw} group invis vs undead"
+  /call set_data_map ${_debug} maChr stInvisDelay                         0                             "${auxnum} delay to cast (10ths of a second)"
 
 
 
@@ -2069,7 +2071,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
     /ini ${_path} dev HL2               "3,3,96,247,152,10,________________________________________________________"
 
   | row 110
-    /ini ${_path} dev devflow           ${Parse[0, "19,5,110,100,149,237,${flow}"]}
+    /ini ${_path} dev dev| FLOW           ${Parse[0, "19,5,110,100,149,237,${| FLOW}"]}
     /ini ${_path} dev BG110             3,3,110,0,0,0,██████████████████████████████████████████
 
 
@@ -2691,6 +2693,7 @@ sub data_schema_tag()
  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1003', 'pulseincombat', '1');
  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1004', 'pulserest', '1');
  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1005', 'pulseooc', '1');
+ /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('999', 'pbaenuke', '1');
 
  | /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag(id, name, created_by) VALUES('1001', 'myassist', '1');
 
@@ -2809,6 +2812,7 @@ sub data_schema_tag_validation
   /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
   /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '1000', '1', 'CONTROL::MARKER', 'marker twincast nukes');
   /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '1001', '1', 'CONTROL::MARKER', 'marker for totem type cast results');
+  /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '999', '1', 'CONTROL::MARKER', 'marker for point blank ae nukes');
 
   | dot
   /sqlite query ${maData.Find[DBshared].Value} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');

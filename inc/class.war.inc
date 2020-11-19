@@ -157,7 +157,7 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  FLOW misc_combat
+  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -168,6 +168,7 @@ sub misc_combat(bool _debug, int _tmpID)
   GETINPUT
   CHECKTIE
   CHECKDEFENSE
+  BUFFNOW
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
@@ -303,7 +304,7 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub get_agro(bool _debug, int _tmpID)
   DEBUG \atget_agro\ax(\a-w${_tmpID}\ax)
-  FLOW get_agro
+  | FLOW get_agro
 
   ISMEDEAD
   GETINPUT
@@ -384,7 +385,7 @@ sub get_agro(bool _debug, int _tmpID)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  FLOW check_heal ${_type}
+  | FLOW check_heal ${_type}
 
   /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
     /call cast_shield_flash ${_debug} disc
@@ -438,7 +439,7 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\x(\a-w${_tmpID}\ax)
-  FLOW burn_WAR
+  | FLOW burn_WAR
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {

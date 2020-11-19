@@ -1604,7 +1604,7 @@ sub petfarm_route(string _route, int _start)
  ***|
 sub task_mob_move_to(bool _debug, int _tmpID, int _dist)
   DEBUG \attask_mob_move_to\ax(\a-w${_tmpID}, ${_dist}\ax)
-  FLOW task_pull_mob_move_to ${_tmpID}|${_dist} (1)
+  | FLOW task_pull_mob_move_to ${_tmpID}|${_dist} (1)
 
   /nav id ${_tmpID} | distance=${_dist} log=${maEntropy.Find[swNavLogSpew].Value}
   /delay 1s ${Navigation.Active}
@@ -1663,7 +1663,7 @@ sub task_mob_move_to(bool _debug, int _tmpID, int _dist)
  ***|
 sub task_mob_find(bool _debug, int _spCount, string _tag)
   DEBUG \attask_mob_find\ax(\a-w${_spCount}\ax)
-  FLOW pull_mob_find ${_spCount}
+  | FLOW pull_mob_find ${_spCount}
 
   /if (!${Bool[${_spCount}]}) {
     /varset _spCount 0

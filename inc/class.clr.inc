@@ -205,7 +205,7 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  FLOW misc_combat
+  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -215,6 +215,7 @@ sub misc_combat(bool _debug, int _tmpID)
   GETINPUT misc_combat_CLR NA|NA
   CHECKTIE
   CHECKDEFENSE
+  BUFFNOW
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
@@ -264,7 +265,7 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub cast_nut_smasher(bool _debug)
   DEBUG \atcast_nut_smasher\ax()
-  FLOW cast_nut_smasher
+  | FLOW cast_nut_smasher
 
   CHECKTIE
   ISMEDEAD
@@ -291,7 +292,7 @@ sub cast_nut_smasher(bool _debug)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  FLOW check_heal ${_type}
+  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -445,7 +446,7 @@ sub check_heal(bool _debug, string _type)
 #bind command_issuance /issuance
 sub Bind_command_issuance(bool _debug)
   DEBUG \atBind_command_issuance\ax()
-  FLOW command_issuance
+  | FLOW command_issuance
 
   /if (!${check_class[FALSE, |CLR]}) /return FALSE
   ISMEDEAD
@@ -495,7 +496,7 @@ sub Bind_command_issuance(bool _debug)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  FLOW burn
+  | FLOW burn
 
   ISMEDEAD
 
@@ -607,7 +608,7 @@ sub burn(bool _debug, int _tmpID)
  ***|
 sub cast_arbitration(bool _debug)
   DEBUG \atcast_arbitration\ax()
-  FLOW cast_arbitration
+  | FLOW cast_arbitration
 
   /if (${timer_arbitration_pause}) {
     /return FALSE
@@ -666,7 +667,7 @@ sub prediction(bool _debug)
  ***|
 sub check_alliance(bool _debug)
   DEBUG \atcheck_alliance\ax()
-  FLOW check_alliance (1)
+  | FLOW check_alliance (1)
 
   CHECKEXIT
   GETINPUT

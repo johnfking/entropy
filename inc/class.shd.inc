@@ -114,14 +114,14 @@ sub class_main(bool _debug)
         /call cast_shield_flash ${_debug} aa
       }
       /if (AGRO) /call get_agro ${maDebug.Find[agro].Value} TARGET
+      /if (!${timer_Check_deBuffs}) {
+        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+      }
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
       /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
       /call misc_combat ${maDebug.Find[misc].Value} TARGET
       /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
       /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
-      /if (!${timer_Check_deBuffs}) {
-        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-      }
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET
       | /if (${swAlliance}) /call cast_alliance_${Me.Class.ShortName} TARGET
       /if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) {
@@ -160,7 +160,7 @@ sub class_main(bool _debug)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  FLOW check_heal ${_type}
+  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -227,7 +227,7 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  FLOW misc_combat
+  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -238,6 +238,7 @@ sub misc_combat(bool _debug, int _tmpID)
   GETINPUT misc_combat_SHD _tmpID|${_tmpID}
   CHECKTIE
   CHECKDEFENSE
+  BUFFNOW
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
@@ -314,7 +315,7 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub get_agro(bool _debug, int _tmpID)
   DEBUG \atget_agro\ax()
-  FLOW get_agro
+  | FLOW get_agro
 
   ISMEDEAD
   CHECKEXIT
@@ -415,7 +416,7 @@ sub get_agro(bool _debug, int _tmpID)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax()
-  FLOW burn
+  | FLOW burn
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {

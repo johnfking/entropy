@@ -150,7 +150,7 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax()
-  FLOW misc_combat
+  | FLOW misc_combat
 
   ISMEDEAD
 
@@ -164,6 +164,7 @@ sub misc_combat(bool _debug, int _tmpID)
   GETINPUT
   CHECKTIE
   CHECKDEFENSE
+  BUFFNOW
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
@@ -226,7 +227,7 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  FLOW check_heal ${_type}
+  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -275,7 +276,7 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub cast_servant_swarm(bool _debug, int _tmpID)
   DEBUG \atcast_servant_swarm\ax(\a-w${_tmpID}\ax)
-  FLOW cast_servant_swarm
+  | FLOW cast_servant_swarm
 
   ISMEDEAD
   CHECKEXIT
@@ -315,7 +316,7 @@ sub cast_servant_swarm(bool _debug, int _tmpID)
  ***|
 sub pulse_cycle(bool _debug, _tmpID, string _tag)
   DEBUG \atpulse_cycle\ax(\a-w${_tmpID}, ${_tag}\ax)
-  FLOW pulse_cycle
+  | FLOW pulse_cycle
 
   SETHUD "pulse"
 
@@ -412,7 +413,7 @@ sub pulse_cycle(bool _debug, _tmpID, string _tag)
  ***|
 sub pulse_stop(string _marker, bool _debug)
   DEBUG \atpulse_stop\ax(marker:\aw${_marker}\aw)
-  FLOW pulse_stop
+  | FLOW pulse_stop
 
   /while (${Me.Casting.ID} || ${Me.BardSongPlaying}) {
     /invoke ${maData.Add[stCastReturn,FALSE]}
@@ -434,7 +435,7 @@ sub pulse_stop(string _marker, bool _debug)
  ***|
 sub cast_AA_rallying(bool _debug)
   DEBUG \atcast_AA_rallying\ax()
-  FLOW cast_AA_rallying
+  | FLOW cast_AA_rallying
 
   /if (SAFEZONE || !${Me.AltAbilityReady[${maChr.Find[stAARallyingSolo].Value}]}) {
     /return FALSE
@@ -464,7 +465,7 @@ sub cast_AA_rallying(bool _debug)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  FLOW burn
+  | FLOW burn
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -533,7 +534,7 @@ sub burn(bool _debug, int _tmpID)
 #bind command_brd_travel /travel
 sub Bind_command_brd_travel(bool _debug)
   DEBUG \atBind_command_brd_travel\ax
-  FLOW Bind_command_brd_travel
+  | FLOW Bind_command_brd_travel
 
   /if (${is_ready[${_debug}, "${maChr.Find[stAASelosSonata].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stAASelosSonata].Value}" 0 FALSE
