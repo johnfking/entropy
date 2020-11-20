@@ -517,7 +517,7 @@ sub check_cani(bool _debug)
     /return FALSE
   }
   
-  | /sqlite query ${maData.Find[DBstatic].Value} dummy SELECT * FROM mana_recovery WHERE env_var="${maChr.Find[stCannibalization].Value}";
+  | /sqlite query ${DBstatic} dummy SELECT * FROM mana_recovery WHERE env_var="${maChr.Find[stCannibalization].Value}";
   | /if (${Me.CurrentHPs} < ${sqlite.Result[dummy 1 value]}) {
   |   DEBUG ${break}canni usage would kill us${sep}\a-w${Me.CurrentHPs} < ${sqlite.Result[dummy 1 value]}\ax
   |   /return FALSE

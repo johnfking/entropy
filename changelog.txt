@@ -22,7 +22,30 @@ on the to do list
 --------------------
 
 
+201120.01
+** WARNING ** MACRO BREAKING UPDATE !
+  I have changed the paths are stored for database locations inside the macro.
+  I have also changed the macro file path structure.
+  It was macros\exspes it is now macros\entropy
+  Rename exspes to Entropy and you should be right as rain for the pathing
+  The file to start entropy is now start.mac. so change any of your hotkeys
+  (no complaining, there is a reason for all of this)
+  we now return you to your regularly scheduled program
 
+- some corrections to the PBAE nuke section
+- tag
+  nuke::pbae::marker for point blank ae nukes
+- several control cosmetic updates
+- more work on mq2mybuttons 
+- auras
+  lot of work on them, hopefully to help them stop trying to recast whats already there
+- /crew #
+  made it a bit faster
+- rest
+  i have reverted a portion of the rest routine. toons will return to standing when a hostile mob is
+  within their /env rad ##
+- many, many! many!! edits to the wiki  
+  
 
 201119.01
 - /buff now
