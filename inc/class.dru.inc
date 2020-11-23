@@ -25,14 +25,6 @@ sub class_init(bool _debug)
 
   /call set_data_map FALSE maChr swWolfSpirit                         FALSE                         "${auxsw} enable spirit of the great wolf aa (self/group)"
 
-  | temp buff: growth family
-  /call set_data_list FALSE maChr lsGrowthToon                        EMPTY                         "${auxli} list of toons to use ward temp hp growth on"
-  /call set_data_map FALSE maChr stGrowth                             PREGEN|1                      "${auxna} temp hp growth spell"
-
-  | temp buff
-  /call set_data_list ${_debug} maChr lsTempBuffToon                  EMPTY                         "${auxli} list of toons to use your temp buff on"
-  /call set_data_map ${_debug} maChr stTempBuff                       FALSE                         "${auxna} temp buff spell"
-
   /call set_data_map FALSE maChr stTwincast                           PREGEN|1                      "${auxna} twincast spell"
 
 
@@ -94,10 +86,6 @@ sub class_main(bool _debug)
     CHECKDEFENSE
     CHECKFADE
 
-    /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-      /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stGrowth lsGrowthToon
-      /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
-    }
     /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
     /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
@@ -152,6 +140,7 @@ sub misc_combat(bool _debug, int _tmpID)
   CHECKTIE
   CHECKDEFENSE
   BUFFNOW
+  BUFFTEMP
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET

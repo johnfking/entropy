@@ -63,18 +63,6 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr swYaulp                          FALSE                         "${auxsw} use yaulp (\a-win combat\ax)"
   /call set_data_map ${_debug} maChr stYaulp                          PREGEN|1                      "${auxna} name of yaulp spell/aa/item"
 
-  | temp buff: ward family
-  /call set_data_list ${_debug} maChr lsWardToon                      EMPTY                         "${auxli} list of toons to use ward temp hp buff on"
-  /call set_data_map ${_debug} maChr stWard                           PREGEN|1                      "${auxna} use ward temp buff"
-
-  | temp buff: retort family
-  /call set_data_list ${_debug} maChr lsRetortToon                    EMPTY                         "${auxli} list of toons to use retort temp line on"
-  /call set_data_map ${_debug} maChr stRetort                         PREGEN|1                      "${auxna} use retort temp buff"
-
-  | temp buff
-  /call set_data_list ${_debug} maChr lsTempBuffToon                  EMPTY                         "${auxli} list of toons to use your temp buff on"
-  /call set_data_map ${_debug} maChr stTempBuff                       FALSE                         "${auxna} temp buff spell"
-
   | primary weapon
   /call set_data_map ${_debug} maChr swSummonPrimary                  FALSE                         "${auxsw} use summoned primary hammer"
   /call set_data_map ${_debug} maChr stSummonPrimary                  PREGEN|1                      "${auxna} name of primary hammer spell"
@@ -157,11 +145,8 @@ sub class_main(bool _debug)
     CHECKFADE
     /if (${maCC.Find[swAlliance].Value} && !${timer_Check_Alliance}) /call check_alliance ${maDebug.Find[alliance].Value}
     /if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp ${maDebug.Find[yaulp].Value}
-    /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-      /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stWard lsWardToon
-      /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stRetort lsRetortToon
-      /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
-    }
+    BUFFTEMP
+
     /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
     /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
@@ -205,7 +190,6 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -216,6 +200,7 @@ sub misc_combat(bool _debug, int _tmpID)
   CHECKTIE
   CHECKDEFENSE
   BUFFNOW
+  BUFFTEMP
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
@@ -265,7 +250,6 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub cast_nut_smasher(bool _debug)
   DEBUG \atcast_nut_smasher\ax()
-  | FLOW cast_nut_smasher
 
   CHECKTIE
   ISMEDEAD
@@ -292,7 +276,6 @@ sub cast_nut_smasher(bool _debug)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -446,7 +429,6 @@ sub check_heal(bool _debug, string _type)
 #bind command_issuance /issuance
 sub Bind_command_issuance(bool _debug)
   DEBUG \atBind_command_issuance\ax()
-  | FLOW command_issuance
 
   /if (!${check_class[FALSE, |CLR]}) /return FALSE
   ISMEDEAD
@@ -496,7 +478,6 @@ sub Bind_command_issuance(bool _debug)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  | FLOW burn
 
   ISMEDEAD
 
@@ -595,7 +576,6 @@ sub burn(bool _debug, int _tmpID)
   | Intensity of the Resolute AA 4 hour reuse
   /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 
-
   CHECKREZ
 
 /return TRUE
@@ -608,7 +588,6 @@ sub burn(bool _debug, int _tmpID)
  ***|
 sub cast_arbitration(bool _debug)
   DEBUG \atcast_arbitration\ax()
-  | FLOW cast_arbitration
 
   /if (${timer_arbitration_pause}) {
     /return FALSE
@@ -667,7 +646,6 @@ sub prediction(bool _debug)
  ***|
 sub check_alliance(bool _debug)
   DEBUG \atcheck_alliance\ax()
-  | FLOW check_alliance (1)
 
   CHECKEXIT
   GETINPUT

@@ -42,10 +42,6 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stNukeTCMagic                    PREGEN|1                      "${auxna} magic line twincast spell"
   /call set_data_map ${_debug} maChr stNukeTCBase                     FALSE                         "${auxna} base line twincast spell"
 
-  | temp buff
-  /call set_data_list ${_debug} maChr lsTempBuffToon                  EMPTY                         "${auxli} list of toons to use your temp buff on"
-  /call set_data_map ${_debug} maChr stTempBuff                       FALSE                         "${auxna} temp buff spell"
-
   | AAs
   /call set_data_map ${_debug} maChr stAAUnity                        PREGEN|1                      "${auxna} Class Unity aa"
   /call set_data_map ${_debug} maChr stAAArcaneWhisper                PREGEN|1                      "${auxna} Arcane Whisper aa"
@@ -90,9 +86,6 @@ sub class_main(bool _debug)
     GETINPUT
     CHECKREZ
     /call check_heal_routines
-    /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-      /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
-    }
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
@@ -155,6 +148,7 @@ sub misc_combat(bool _debug, int _tmpID)
   CHECKTIE
   CHECKDEFENSE
   BUFFNOW
+  BUFFTEMP
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET

@@ -69,6 +69,7 @@
 #define MQCLEAR "/if (${Bool[${Plugin[MQ2ChatWnd]}]}) /mqclear"
 #define NEXT ${MacroQuest.InternalName.Equal[Next]}
 #define BUFFNOW "/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) /call check_buff_cycle_now ${maDebug.Find[now].Value}"
+#define BUFFTEMP "/if (${maBuff.Find[swBuffTemp].Value} && !${timer_Check_Buff_Temp}) /call check_buff_cycle_temp ${maDebug.Find[temp].Value}"
 
 
 #include entropy\inc\initialize.inc
@@ -107,12 +108,9 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 201120.01
-  /call set_data FALSE maEnv schema                         map outer 1.18
+  /call set_data FALSE maEnv build                          map outer 201123.03
+  /call set_data FALSE maEnv schema                         map outer 1.20
   /call set_data FALSE maEnv repo                           map outer 201104.01
-
-  | using this as a marker for live vs Next
-  /declare _next                                            bool outer ${MacroQuest.InternalName.Equal[Next]}
 
   | prep macro
   /call prepare_the_end FALSE
@@ -128,7 +126,6 @@ sub main(string _var1, string _var2, string _var3, string _var4)
       }
     }
   /next _countVar
-
 
   | environment notices
   /if (${maEntropy.Find[swMaintenance].Value}) {
@@ -415,6 +412,12 @@ sub prepare_the_end(bool _debug)
   /if (${check_plugin[FALSE, FALSE, |mq2rez]}) {
     /plugin mq2rez unload noauto
   }
+
+  | causing conflicts. will readdress it again later
+  /if (${check_plugin[FALSE, FALSE, |mq2ice]}) {
+    /plugin mq2ice unload noauto
+  }
+
 
   | set all initial variables
   /call set_initialize FALSE

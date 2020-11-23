@@ -45,10 +45,6 @@ sub class_init(bool _debug)
   /invoke ${set_data_timer[${_debug}, Check_Marrs_Gift, 10s]}
   /call set_data_map ${_debug} maChr stPctMG                          0                             "${auxnum} % of mana to use mars gift aa"
 
-  | temp buff
-  /call set_data_list ${_debug} maChr lsTempBuffToon                  EMPTY                         "${auxli} list of toons to use your temp buff on"
-  /call set_data_map ${_debug} maChr stTempBuff                       FALSE                         "${auxna} temp buff spell"
-
   /call set_data_map ${_debug} maChr stTempRune                       PREGEN|1                      "${auxna} fast reuse disc rune"
   /call set_data_map ${_debug} maChr stChallenge                      PREGEN|1                      "${auxna} challenge spell for agro"
   /call set_data_map ${_debug} maChr stValiant                        PREGEN|1                      "${auxna} vlaiant spell for defensive"
@@ -139,9 +135,6 @@ sub class_main(bool _debug)
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
     /call check_heal_routines
     /if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
-    /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-      /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
-    }
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
@@ -212,6 +205,7 @@ sub misc_combat(bool _debug, int _tmpID)
   CHECKTIE
   CHECKDEFENSE
   BUFFNOW
+  BUFFTEMP
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET

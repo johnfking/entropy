@@ -35,10 +35,6 @@ sub class_init(bool _debug)
 
   /call set_data_map ${_debug} maChr stNukeServant                    PREGEN|1                      "${auxna} the little spam pets mages love to use so much."
 
-  | temp buff
-  /call set_data_list ${_debug} maChr lsTempBuffToon                  EMPTY                         "${auxli} list of toons to use your temp buff on"
-  /call set_data_map ${_debug} maChr stTempBuff                       FALSE                         "${auxna} temp buff spell"
-
   /call set_data_map ${_debug} maChr swCauldron                       FALSE                         "${auxsw} click cauldron to get prizes or not?"
   /call set_data_map ${_debug} maChr stCauldron                       FALSE                         "${auxna} name of the cauldron item you wish to use"
 
@@ -93,9 +89,6 @@ sub class_main(bool _debug)
     GETINPUT
     CHECKREZ
     /if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
-    /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-      /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
-    }
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
@@ -153,6 +146,7 @@ sub misc_combat(bool _debug, int _tmpID)
   CHECKTIE
   CHECKDEFENSE
   BUFFNOW
+  BUFFTEMP
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET

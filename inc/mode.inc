@@ -321,7 +321,8 @@ sub mode_petfarm(bool _debug)
   DEBUG \atmode_petfarm\ax()
 
   /if (!${lsClassPet.Contains[${Me.Class.ShortName}]} || SAFEZONE) {
-    /invoke ${maMode.Add[${_mimode.Key},FALSE]}
+    /invoke ${maMode.Add[petfarm,FALSE]}
+    OUT WTF makes you think you are a pet class. Turning off /mode petfarm.
     /return FALSE
   }
 

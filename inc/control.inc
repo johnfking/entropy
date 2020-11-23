@@ -2932,8 +2932,8 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
     }
     /invoke ${maControl.Clear}
     /invoke ${maControl.Add[active,swTash]}
-    /invoke ${maControl.Add[single,stMalo|br]}
-    /invoke ${maControl.Add[ae,stAEMalo|br]}
+    /invoke ${maControl.Add[single,stTash|br]}
+    /invoke ${maControl.Add[ae,stAETash|br]}
     /invoke ${set_control_output[${_debug}, madeBuff, "debuff tash", maControl]}
     /return TRUE    
 
@@ -3791,7 +3791,6 @@ sub Bind_command_invis_cast(string _verbage)
 
     | Invis vs Normies casters
     /if (${Select[${Me.Class.ShortName},WIZ,MAG,ENC,SHM,RNG,DRU]}) {
-      ECHO invis
       /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroup].Value}"]}) {
         /delay ${maChr.Find[stInvisDelay].Value}
         /call voodoo ${_debug} "${maChr.Find[stInvisGroup].Value}" 0 ignoreall
@@ -3812,29 +3811,32 @@ sub Bind_command_invis_cast(string _verbage)
   } else /if (${_verbage.Equal[iv]}) {
 
 
-    /if (${Bool[]}) {
+    /if (${Bool[${maChr.Find[stInvisGroupIVU].Value}]}) {
       /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroupIVU].Value}"]} ) {
         /call voodoo ${_debug} "${maChr.Find[stInvisGroupIVU].Value}" 0 ignoreall
         /return TRUE
       }
-    } else /if (${Bool[]}) {
-      
+    } else /if (•${Bool[${maChr.Find[stInvisSingle].Value}]}) {
+      /if (${is_ready[${_debug}, "${maChr.Find[stInvisSingle].Value}"]} ) {
+        /call voodoo ${_debug} "${maChr.Find[stInvisSingle].Value}" 0 ignoreall
+        /return TRUE
+      }
     }
 
   | invis vs undead
   } else /if (${_verbage.Equal[ivu]}) {
-
 
     /if (${Bool[${maChr.Find[stInvisGroupIVU].Value}]}) {
       /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroupIVU].Value}"]} ) {
         /call voodoo ${_debug} "${maChr.Find[stInvisGroupIVU].Value}" 0 ignoreall
         /return TRUE
       }
-    } else /if (${Bool[]}) {
-      
+    } else /if (${Bool[${maChr.Find[stInvisSingleIVU].Value}]}) {
+      /if (${is_ready[${_debug}, "${maChr.Find[stInvisSingleIVU].Value}"]} ) {
+        /call voodoo ${_debug} "${maChr.Find[stInvisSingleIVU].Value}" 0 ignoreall
+        /return TRUE
+      }      
     }
-
-
 
   }
   
@@ -3855,7 +3857,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
   /declare _list list local
   /declare _out string local
 
-  /if (${_type.Equal[see]}) {
+  /if (${_type.Equal[see]} || !${Bool[${_type}]}) {
     /if (!${Bool[${_nick1}]}) {
       OUT Port categories${sep}\a-wwiz, dru, guild, item, vendor, aa\ax
       OUT \a-w/port see item\ax
@@ -3895,8 +3897,6 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
           }
           
         }     
-
-        
         
         | build string
         | nickname1
@@ -3926,8 +3926,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
     /return TRUE
 
   } else /if (${_type.Equal[aux]}) {
-
-
+    /call Bind_command_aux port
     /return TRUE
   }
 
@@ -3944,9 +3943,6 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
 
   | druid ports
   } else /if (${Select[${_type},dru]}) {
-
-
-
 
 
   | guild placable ports
@@ -3990,13 +3986,6 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
     /delay 5
     | select the menu to port
     /invoke ${Menu.Select[${sqlite.Result[dummy 1 menu]}]}
-
-
-
-
-
-
-
 
 
   | item ports
@@ -4126,16 +4115,6 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
     /squelch /target clear
 
 
-
-
-
-    
-    
-    
-
-
-
-
   | aa ports
   } else /if (${Select[${_type},aa]}) {
     /sqlite query ${DBstatic} dummy SELECT * FROM port WHERE type='aa'
@@ -4152,15 +4131,11 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
       /invoke ${out[0, "not a valid AA port"]}
     }
 
-
+    /return TRUE
   }
 
 
-
 /return TRUE
-
-
-
 
 
 
@@ -4476,12 +4451,13 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
   /declare _fn string local build_${Me.Class.ShortName.Lower}_${_nickname}.ini
 
   | set fully qualified MQ name
-  /declare _fqn string local ${MacroQuest.Path}\\macros\\exspes\\data\\${_fn}
+  /declare _fqn string local ${MacroQuest.Path}\\macros\\entropy\\data\\${_fn}
 
   | set stuff to not export/import
   /declare _skipMap list local
   /invoke ${_skipMap.Append[maDebug,maTimer,Gems,maCrew,maMode,maDeez,maPREGEN,maRezControl,maWatchspawn]}
   /invoke ${_skipMap.Append[maBuffRequest,maHook,maData,maManaRecovery,maDeez,maTTL,Header,Evals,maPred]}
+
   /declare _skipKey list local
   /invoke ${_skipKey.Append[swBuffMaster,swIsMeDead,swSetCombat,swValidAssTarID,swSnapStuck,swHomeMarker,verbosity,swZoneSafe,swAuto]}
   /invoke ${_skipKey.Append[stCurrentZoneID,stCastReturn,build,swSetTie,swBurnConditionMet,swBurnSpinUp,repo,schema,stPredID]}
@@ -4533,6 +4509,12 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
               /continue
             }
           }
+          
+          | character name protection
+          /if (${_mi.Value.Find[temp]}) {
+            /invoke ${_mi.Advance}
+            /continue
+          }
 
           | OUTPUT TO THE INI
           /ini "${_fqn}" ${_limaps.Value} "${_mi.Key}" "${Parse[1,${_mi.Value}]}"
@@ -4553,14 +4535,14 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
     ECHO \at...\ax\a-weval\ax
     /sqlite query ${DBshared} dummy SELECT tag_group.grouping, tag.name, tag_validate.created_by, tag_validate.eval, tag_validate.aux FROM tag_validate LEFT JOIN tag ON tag_validate.tag = tag.id LEFT JOIN tag_group ON tag_validate.grouping = tag_group.id ORDER BY tag_group.grouping, tag.name
     /for _count 1 to ${sqlite.Rows[dummy]}
-      /if (${sqlite.Result[dummy ${_count} created_by].Equal[2]}) {
+      /if (${sqlite.Result[dummy ${_count} created_by].Equal[2]} && ${sqlite.Result[dummy ${_count} eval].NotEqual[marker name]}) {
         /ini "${_fqn}" "Evals" "${sqlite.Result[dummy ${_count} grouping]}::${sqlite.Result[dummy ${_count} name]}" "${Parse[2,${sqlite.Result[dummy ${_count} eval]}]}"
       }
     /next _count
 
     | output md5
     ECHO \at...\ax\a-wmd5\ax
-    /squelch /exec powershell "(get-content ${MacroQuest.Path}\macros\exspes\data\${_fn}).Replace('MD5',(Get-FileHash ${MacroQuest.Path}\macros\exspes\data\${_fn} -Algorithm MD5).Hash) | Set-Content ${MacroQuest.Path}\macros\exspes\data\${_fn}" bg
+    /squelch /exec powershell "(get-content ${MacroQuest.Path}\macros\entropy\data\${_fn}).Replace('MD5',(Get-FileHash ${MacroQuest.Path}\macros\entropy\data\${_fn} -Algorithm MD5).Hash) | Set-Content ${MacroQuest.Path}\macros\entropy\data\${_fn}" bg
     /invoke ${out[18, 0, 33]}
     ECHO
     /return TRUE

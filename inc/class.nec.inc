@@ -33,11 +33,6 @@ sub class_init(bool _debug)
 
   /call set_data_map ${_debug} maChr stPctBloom                       0                             "${auxnum} % of manna you want to use bloom at"
 
-  | temp buff
-  /call set_data_list ${_debug} maChr lsTempBuffToon                  EMPTY                         "${auxli} list of toons to use your temp buff on"
-  /call set_data_map ${_debug} maChr stTempBuff                       FALSE                         "${auxna} temp buff spell"
-
-
   | AAs
   /call set_data_map ${_debug} maChr stAAUnity                        PREGEN|1                    "${auxna} class aa unity buff"
   /call set_data_map ${_debug} maChr stAADyingGrasp                   PREGEN|1                    "${auxna} Dying Grasp AA"
@@ -88,9 +83,6 @@ sub class_main(bool _debug)
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
     GETINPUT
     CHECKREZ
-    /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-      /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
-    }
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
@@ -220,6 +212,7 @@ sub misc_combat(bool _debug, int _tmpID)
   CHECKTIE
   CHECKDEFENSE
   BUFFNOW
+  BUFFTEMP
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET

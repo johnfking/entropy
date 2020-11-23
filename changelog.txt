@@ -17,10 +17,40 @@ on the to do list
 - ranger silent shot ambush spell
 - break out triggers for minion buffs
 - look at a way to split coordination for assists across more then one mob in a raid
-- buffing system by name
 - pet gear handing for damn TLP feeders..
 --------------------
 
+
+201123.03
+- /mode petfarm - some small fixes
+- /debuff tash
+  corected the display output for the control
+- temp buffing
+  (might wanna sit down for this)
+  all class temp buff references have been removed from their character databases
+  (this does not include knight rune line)  
+  a marker tag has been added for temp buffs
+  tag::buff::temp
+  temp buffing follows the same tag rules an any other buff
+  temp buffs are by default on a 30 second timer
+  only one (1) temp buff will be cast per 30 seconds. this is intentional
+  they are only cast while in combat (cleric is the 1 exception to this)
+  temp buffing is only for people you box, in your dannet, not your next door neighbor
+  this does not work on pets. no, i'm not gonna make it work on pets
+  temp buffing does not split apart spell SPAs, if you need that, stick with normal buffing
+- tags
+  added - pull - category for pull tags
+  added - tag::buff::temp for temp buff marker
+  tags will now accept character names
+  READ THIS! if you fuck it up, its on you..
+  to create a tag for a toon it MUST follow this pattern:
+  /tag buff Toonname "marker name"
+  e.g. /tag buff Fred "marker name"
+  DO NOT deviate from that pattern. if you do, the tag will not work, and the 
+  filters for /build save will not catch it causing you to share your character names with others
+- /build save
+  will filter out (read as; completely remove) all tags with the eval set to "marker name"
+  
 
 201120.01
 ** WARNING ** MACRO BREAKING UPDATE !

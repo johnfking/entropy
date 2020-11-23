@@ -3236,7 +3236,6 @@ sub get_target_wait(bool _debug, int _tmpID, string _waittime)
  ***|
 sub pull_mob_prep(bool _debug, int _tmpID)
   DEBUG \atpull_mob_prep\ax(\a-w${_tmpID}\ax)
-  | FLOW pull_mob_prep ${_tmpID}
 
   /declare _count int local 0
   /declare _los string local los
@@ -3257,7 +3256,6 @@ sub pull_mob_prep(bool _debug, int _tmpID)
   | get the mob to us for non pet classes..
   DEBUG ${sep}pull_mob_prep${sep}\awLoop.Start\ax${sep}${_tmpID}
   /if (!${target[isdead, ${_tmpID}]} && !${Select[${Me.Class.ShortName},MAG,NEC,BST,ENC]}) {
-    | FLOW pull_mob_prep ${_tmpID}
 
     /if (!AUTO) {
       /invoke ${target[clear]}
@@ -3267,7 +3265,6 @@ sub pull_mob_prep(bool _debug, int _tmpID)
     | keep tabs on targets range if they are the puller. advanced pullers fetching we do not care about yet
     /if (${Spawn[${_tmpID}].Distance} > PULLENV) {
       /invoke ${target[clear]}
-      | FLOW pull_mob_prep ${_tmpID}
       /return FALSE
     }
 
@@ -3291,7 +3288,6 @@ sub pull_mob_prep(bool _debug, int _tmpID)
 
     | /delay 2
     /if (${target[isdead, ${_tmpID}]}) {
-      | FLOW pull_mob_prep ${_tmpID}
       /return FALSE
     }
 
@@ -3651,7 +3647,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
         }
       }
 
-      | return the brevious gear for the swap
+      | return the previous gear for the swap
       /if (${Bool[${maPull.Find[stRangeBandolier].Value}]} && ${Me.Bandolier[${maPull.Find[stRangeBandolier].Value}].Active}) {
         /if (${Bool[${maData.Find[stMainhand].Value}]}) {
           /call Bind_command_swap "${maData.Find[stMainhand].Value}" 13 ${_debug}
@@ -6235,7 +6231,7 @@ sub check_buff_cycle_crew(bool _debug)
       /if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) {
         DEBUG ${sep}crew member${sep}\a-w${_toonName}\ax (\a-rvalid target\ax)
         /varset _target TRUE
-        }
+      }
 
       /varset _spell ${set_rank[${_debug}, "${maData.Find[tmpName].Value}"]}
       DEBUG ${sep}\aw${_count}\ax${sep}\a-w${_spell}\ax${sep}\at${Spell[${_spell}].NumEffects}\ax
@@ -6565,16 +6561,13 @@ sub is_lsSafeNames(bool _debug, string _name)
  ***|
 sub check_buff_cycle_temp_self(bool _debug, string _spell)
   DEBUG \atcheck_buff_cycle_temp_self\ax(\a-w${_spell}\ax)
-  | FLOW check_buff_cycle_temp_self ${_spell} (1)
 
   /if (${target[isdead, TARGET]}) {
-    | FLOW check_buff_cycle_temp_self
     /return FALSE
   }
 
   ISMEDEAD
   CHECKEXIT check_buff_cycle_temp_self
-  | FLOW check_buff_cycle_temp_self ${_spell} (2)
   GETINPUT check_buff_cycle_temp_self _spell|${_spell}
   CHECKTIE
 
@@ -11111,7 +11104,7 @@ sub cast_cycle_defense(bool _debug, int _tmpID)
     DEBUG ${sep}_liC20.Value${sep}\a-w${_liC20.Value}\ax${sep}passed tags
 
     | seff targetable defnsive "things"
-    /if (${lsDefense${_liC20.Value}Tag.Contains[buffself]}) {
+    /if (${lsDefense${_liC20.Value}Tag.Contains[self]}) {
       /varset _tmpID ${Me.ID}
     } else {
       /varset _tmpID 0
@@ -11218,7 +11211,7 @@ sub check_item_cycle(bool _debug, int _tmpID, string _tag)
 
     DEBUG ${sep}_liC20.Value${sep}\a-w${_liC20.Value}\ax${sep}passed tags
     /delay 1
-    /if (${lsItem${_liC20.Value}Tag.Contains[buffself]}) {
+    /if (${lsItem${_liC20.Value}Tag.Contains[self]}) {
       /if (!${Me.Buff[${_tmpName}].ID}]}) {
         /varset _tmpID ${Me.ID}
       }
@@ -13289,13 +13282,6 @@ sub check_buff_cycle_self(bool _debug)
  ***|
 sub tag_evaluation(bool _debug, string _type, int _num, string _name, string _spell, string _sub)
   DEBUG \attag_evaluation\ax(\a-w${_type}, ${_num}, ${_name}, ${_spell}, ${_sub}\ax)
-  | FLOW tag_evaluation
-
-  | is the master switch off?
-  /if (!${maBuff.Find[swBuffMaster].Value}) {
-    DEBUG ${break}tag${sep}\a-wswBuffMaster\ax
-    /return FALSE
-  }
 
   | obey no tags. only use the aliase for this .. thing..
   /if (${ls${_type}${_num}Tag.Contains[aliasonly]}) {
@@ -13343,12 +13329,19 @@ sub tag_evaluation(bool _debug, string _type, int _num, string _name, string _sp
         DEBUG ${skip}evaluation${sep}
         | do jack all here... just ignore the shit
 
+      | name marker
+      } else /if (${Parse[99,${sqlite.Result[q${_type}_${_litag.Value} 1 eval].Equal[marker name]}]}) {
+        /if (${_name.NotEqual[${_litag.Value}]}) {
+          /invoke ${_litag.Advance}
+          /continue
+        }
+
       | execute sub here
-      } else /if (${Parse[99,${sqlite.Result[q${_type}_${_litag.Value}  1 eval].Find[SUB::]}]}) {
+      } else /if (${Parse[99,${sqlite.Result[q${_type}_${_litag.Value} 1 eval].Find[SUB::]}]}) {
         DEBUG ${sep}releasing to sub${sep}
 
       | action tags here
-      } else /if (${Parse[99,${sqlite.Result[q${_type}_${_litag.Value}  1 eval].Find[ACTION::]}]}) {
+      } else /if (${Parse[99,${sqlite.Result[q${_type}_${_litag.Value} 1 eval].Find[ACTION::]}]}) {
         DEBUG ${sep}doing a thing for tag${sep}
 
         | delay1s
@@ -13365,7 +13358,7 @@ sub tag_evaluation(bool _debug, string _type, int _num, string _name, string _sp
             /delay 5
           }
         }
-
+        
         | dropinvis
         | this is a very specific use tag.
 
@@ -14088,7 +14081,6 @@ sub check_gtfo(bool _debug)
  ***|
 sub pull_get_other_type(bool _debug, int _tmpID)
   DEBUG \atpull_get_other_type\ax(\a-w${_tmpID}\ax)
-  | FLOW pull_get_other_type ${_tmpID} (1)
 
   | if the user has not set the line order, set it to a default for now
   /if (${lsLinePull.Contains[EMPTY]} && ${lsLinePull.Count} == 1) {
@@ -14102,7 +14094,6 @@ sub pull_get_other_type(bool _debug, int _tmpID)
   /while (!${_liC12.IsEnd}) {
 
     /if (${target[isdead, ${_tmpID}]}) {
-      | FLOW pull_get_other_type ${_tmpID}
       DEBUG ${break}target dead
       /return FALSE
     }
@@ -14113,7 +14104,6 @@ sub pull_get_other_type(bool _debug, int _tmpID)
     | FLOW cast_cycle_agro ${_tmpID} (2)
 
     /invoke ${target[set, ${_tmpID}]}
-    | FLOW pull_get_other_type ${_tmpID}
 
     DEBUG ${sep}${_liC12}${sep}\a-w${maPull.Find[stPull${_liC12}].Value}\ax
 
@@ -14429,7 +14419,174 @@ sub control_hotbar(bool _debug, string _action, int _bar, int _page, int _button
 
 
 
+|***
+ * note: temp buffs for toon
+ * use: part of standard buff cycle if enabled
+ ***|
+sub check_buff_cycle_temp(bool _debug)
+  DEBUG \atcheck_buff_cycle_temp\ax()
+
+  /if (AUTO) {
+    /invoke ${set_data_timer[${_debug}, Check_Buff_Temp, RESTART]}
+    /if (!${maBuff.Find[swBuffMaster].Value}) {
+      /return FALSE
+    }
+  }
+
+  SETHUD "buff temp"
+
+  CHECKTIE
+  ISMEDEAD
+  CHECKEXIT check_buff_cycle_temp
+  GETINPUT check_buff_cycle_temp NA|NA
+
+  /declare _spell string local FALSE
+  /declare _spellRank string local FALSE
+  /declare _count int local 0
+  /declare _countToon int local 1
+  /declare _target bool local FALSE
+  /declare _toonName string local FALSE
+  /declare _found bool TRUE
+  /declare _i int local 0
+  /declare _tmpBuff string local FALSE
+
+  DEBUG ${sep}Buff${sep}\a-wTemp\ax
+
+  | each toon
+  /while (${_countToon} <= ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) {
+    DEBUG ${sep}${_countToon} <= ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
+
+    | get the name to something usable and proper case
+    /varset _toonName ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|].Left[1].Upper}${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|].Right[-1].Lower}
+    DEBUG ${sep}_toonName${sep}\ay${_toonName}\ax
+
+    | skip this person?
+    /if (!${Spawn[pc ${_toonName}].ID} || ${Spawn[pc ${_toonName}].Dead}) {
+      DEBUG ${sep}skipping${sep}\a-w${_toonName}\ax
+      /varcalc _countToon ${_countToon}+1
+      /continue
+    }
+
+    | any buff slots available?
+    /dquery ${_toonName} -q "Me.FreeBuffSlots" -o DNQReturn -t 5
+    /if (${DNQReturn.Equal[0]}) {
+      /varcalc _countToon ${_countToon}+1
+      /continue
+    }
+
+    | each buff
+    /for _count 1 to 50
+    
+      /varset _tmpBuff 
+
+      | buff has no name
+      /if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) {
+        /continue
+      | buff is turned off
+      } else /if (!${maBuff.Find[swBuff${_count}].Value}) {
+        /continue
+      | not a temp tag buff
+      } else /if (!${lsBuff${_count}Tag.Contains[temp]}) {
+        /continue
+      | bitch isnt on the list
+      } else /if (!${lsBuff${_count}Tag.Contains[${_toonName}]}) {
+        /continue
+      }
+      
+      | buffs with SDPA parsing to be done
+      /if (${maBuff.Find[stBuff${_count}].Value.Count[|]} == 3) {
+        /call get_best_in_spell ${_debug} "${maBuff.Find[stBuff${_count}].Value.Arg[1,|]}" "${maBuff.Find[stBuff${_count}].Value.Arg[2,|]}" "${maBuff.Find[stBuff${_count}].Value.Arg[3,|]}"
+        /invoke ${maData.Add[tmpName,${Macro.Return}]}
+
+      | get item clickie spells
+      } else /if (${FindItem[=${maBuff.Find[stBuff${_count}].Value}].ID}) {
+        DEBUG ${sep}item${sep}${maBuff.Find[stBuff${_count}].Value}${sep}\a-w${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Clicky.SpellID}].Name}\ax
+        /invoke ${maData.Add[tmpName,${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Clicky.SpellID}].Name}]}
+    
+      | just the spell/aa/whatever
+      } else {
+        DEBUG ${sep}spell${sep}${maBuff.Find[stBuff${_count}].Value}
+        /invoke ${maData.Add[tmpName,${maBuff.Find[stBuff${_count}].Value}]}
+      }
+
+      | cycle the tags
+      /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_toonName} "${maData.Find[tmpName].Value}" check_buff_cycle_temp
+      /if (!${Macro.Return}) {
+        DEBUG ${sep}skip${sep}failed tag cycle check
+        /continue
+      }
+
+      DEBUG ${sep}\agBUFF TEMP\ax#${sep}\a-w${_count}\ax \a-p---------------------\ax
+
+      | pretend they are not a target until they qualify
+      /varset _target FALSE
+
+      | is this an acceptable target for casting
+      /if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) {
+        DEBUG ${sep}target${sep}\a-w${_toonName}\ax (\a-rvalid\ax)
+        /varset _target TRUE
+      }
+
+      /varset _spell ${set_rank[${_debug}, "${maData.Find[tmpName].Value}"]}
+      DEBUG ${sep}\aw${_count}\ax${sep}\a-w${_spell}\ax${sep}\at${Spell[${_spell}].NumEffects}\ax
+
+      | distance check
+      /if (${Select[${Spell[${_spell}].TargetType},Group v2]}) {
+        DEBUG ${sep}distance check${sep}\a-wGroup v2\ax
+        /if (${Spawn[pc ${_toonName}].Distance} > ${Spell[${_spell}].AERange}) /continue
+      } else {
+        DEBUG ${sep}distance check${sep}\a-wtargeted ?? ${Spell[${_spell}].MyRange}\ax
+        /if (${Spell[${_spell}].MyRange}) {
+          /if (${Spawn[pc ${_toonName}].Distance} > ${Spell[${_spell}].MyRange} && !${Select[${Spell[${_spell}].TargetType},self]}) /continue
+        }
+      }
+
+      /varset _spellRank ${Spell[${maData.Find[tmpName].Value}].RankName}
+      DEBUG ${sep}\awTrigger\ax${sep}\a-w${_spellRank}\ax ID:${Spell[${_spellRank}].ID}
+
+      | does it stack
+      /dquery ${_toonName} -q "Spell[${_spellRank}].Stacks" -o DNQReturn -t 5
+      DEBUG ${sep}${sep}STACKS: .Buff.Stacks \at${DNQReturn}\ax ${dot} ${_spellRank}
+      /if (${DNQReturn.Equal[FALSE]}) {
+        /continue
+      }
+
+      | do they have the buff?
+      /dquery ${_toonName} -q "Me.Buff[${maData.Find[tmpName].Value}].ID" -o DNQReturn -t 5
+      DEBUG ${sep}${sep}HAVE: .Buff.ID \at${DNQReturn}\ax ${dot} ${maData.Find[tmpName].Value}
+      /if (${Bool[${DNQReturn}]}) {
+        /continue
+      }
+
+      DEBUG ${sep}${sep}HAVE: .Trigger.ID \at${DNQReturn}\ax ${dot} ${maData.Find[tmpName].Value}
+
+      /if (${_target}) {
+        
+        | self only redirect
+        /if (!${Spell[${_spell}].TargetType.Equal[self]}) {
+          /varset _tmpID ${Spawn[nopet ${_toonName}].ID}
+        } else {
+          /varset _tmpID 0
+        }
+        
+        /call voodoo ${_debug} "${maData.Find[tmpName].Value}" ${_tmpID} FALSE
+        /return TRUE
+      }
+
+    /next _count
+    /varcalc _countToon ${_countToon}+1
+
+  }
+
+  SETHUD EMPTY
+
+/return TRUE
 
 
+ 
+ 
+ 
+ 
+ 
 
 

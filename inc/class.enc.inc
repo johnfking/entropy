@@ -46,10 +46,6 @@ sub class_init(bool _debug)
   | PBAE stun
   /call set_data_map ${_debug} maChr stAEStun                         PREGEN|1                      "${auxna} name of your point blank ae stun"
 
-  | temp buff
-  /call set_data_list ${_debug} maChr lsTempBuffToon                  EMPTY                         "${auxli} list of toons to use your temp buff on"
-  /call set_data_map ${_debug} maChr stTempBuff                       FALSE                         "${auxna} temp buff spell"
-
   | AAs
   /call set_data_map ${_debug} maChr stAABeamofSlumber                PREGEN|1                      "${auxna} Beam of Slumber AA"
   /call set_data_map ${_debug} maChr stAAPhantasmalOpponent           PREGEN|1                      "${auxna} Phantasmal Opponent AA"
@@ -107,9 +103,6 @@ sub class_main(bool _debug)
     CHECKREZ
     /if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
     /call control_routine ${maDebug.Find[mez].Value}
-    /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-      /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTempBuff lsTempBuffToon
-    }
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
@@ -179,7 +172,7 @@ sub misc_combat(bool _debug, int _tmpID)
   | FLOW misc_combat ${_tmpID} (1)
 
   ISMEDEAD
-  /invoke ${target[assist, ${_tmpID}]}
+  /call target assist ${_tmpID}
 
   CHECKEXIT misc_combat
   | FLOW misc_combat_ENC ${_tmpID} (2)
@@ -187,6 +180,7 @@ sub misc_combat(bool _debug, int _tmpID)
   CHECKTIE
   CHECKDEFENSE
   BUFFNOW
+  BUFFTEMP
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET

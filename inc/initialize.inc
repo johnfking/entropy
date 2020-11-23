@@ -2706,6 +2706,7 @@ sub data_schema_tag()
  /sqlite query ${DBshared} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1004', 'pulserest', '1');
  /sqlite query ${DBshared} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1005', 'pulseooc', '1');
  /sqlite query ${DBshared} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('999', 'pbaenuke', '1');
+ /sqlite query ${DBshared} dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('998', 'temp', '1');
 
  | /sqlite query ${DBshared} dummy INSERT OR REPLACE INTO tag(id, name, created_by) VALUES('1001', 'myassist', '1');
 
@@ -2729,6 +2730,7 @@ sub data_schema_tag_group()
  /sqlite query ${DBshared} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('7', 'buff');
  /sqlite query ${DBshared} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('8', 'miscdps');
  /sqlite query ${DBshared} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('9', 'item');
+ /sqlite query ${DBshared} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'pull');
  | /sqlite query ${DBshared} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'engine2');
  | /sqlite query ${DBshared} dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('11', 'engine3');
 
@@ -2961,7 +2963,8 @@ sub data_schema_tag_validation
   /sqlite query ${DBshared} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '41', '1', 'ACTION::dropdisc', 'drops any running active discs');
   /sqlite query ${DBshared} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
   /sqlite query ${DBshared} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
-/sqlite query ${DBshared} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '17', '1', '${Parse[0,${Select[${_name},${Group.MainAssist.DisplayName},${maCC.Find[stManualAssist1].Value},${maCC.Find[stManualAssist2].Value}]}]}', 'my assist');
+  /sqlite query ${DBshared} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '17', '1', '${Parse[0,${Select[${_name},${Group.MainAssist.DisplayName},${maCC.Find[stManualAssist1].Value},${maCC.Find[stManualAssist2].Value}]}]}', 'my assist');
+  /sqlite query ${DBshared} dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '998', '1', 'CONTROL::MARKER', 'marker /buff temp');
 
 /return TRUE
 
@@ -3069,6 +3072,20 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
   /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-w${maData.Find[chrID].Value}.sqlite\ax
 
 
+  | temp buff changes
+  /if (${maEnv.Find[build].Value} >= 201123.01 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w201123.01\ax
+    /invoke ${_tmpMap.Add[lsWardToon,character]}
+    /invoke ${_tmpMap.Add[stWard,character]}
+    /invoke ${_tmpMap.Add[lsRetortToon,character]}
+    /invoke ${_tmpMap.Add[stRetort,character]}
+    /invoke ${_tmpMap.Add[lsTempBuffToon,character]}
+    /invoke ${_tmpMap.Add[stTempBuff,character]}
+    /invoke ${_tmpMap.Add[lsGrowthToon,character]}
+    /invoke ${_tmpMap.Add[stGrowth,character]}
+  }  
+
+
 
   | pulling changes
   /if (${maEnv.Find[build].Value} >= 200927.01 || ${_verbage.Equal[force]}) {
@@ -3134,7 +3151,6 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
   | rez redesign
     /if (${maEnv.Find[build].Value} >= 200724.01 || ${_verbage.Equal[force]}) {
       /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200724.01\ax
-
       /invoke ${_tmpMap.Add[lsRezTokenToon,character]}
       /invoke ${_tmpMap.Add[swRezGive,character]}
       /invoke ${_tmpMap.Add[swRezTake,character]}
@@ -3146,8 +3162,6 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
       /invoke ${_tmpMap.Add[stResurrection,character]}
       /invoke ${_tmpMap.Add[swDivineCleric,character]}
     }
-
-
 
 
     /if (${maEnv.Find[build].Value} >= 200704.01 || ${_verbage.Equal[force]}) {
@@ -3334,33 +3348,5 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
 
 /return
 
-
-
-
-
-
-
-|***
- * note: sqlite wrapper
- * use:
- ***|
-sub sql(bool _debug, string _verb, string _db, string _query, string _action, string _table, )
-
-
-
-/sqlite ${_verb} ${maData.Find[${_db}].Value} ${_query} ${_action} ${_table};
-
-
-
-
-
-
-
-/return TRUE
-
-
-
-              verb     db                        query action  table
-      /sqlite query ${DBzone} QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe';
 
 
