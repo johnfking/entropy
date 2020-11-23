@@ -21,6 +21,11 @@ on the to do list
 --------------------
 
 
+
+201123.04
+- corrected a targeting issue for self only buffs on the new temp buff routine.
+
+
 201123.03
 - /mode petfarm - some small fixes
 - /debuff tash

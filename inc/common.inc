@@ -14449,6 +14449,7 @@ sub check_buff_cycle_temp(bool _debug)
   /declare _found bool TRUE
   /declare _i int local 0
   /declare _tmpBuff string local FALSE
+  /declare _tmpID int local 0
 
   DEBUG ${sep}Buff${sep}\a-wTemp\ax
 
