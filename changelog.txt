@@ -21,6 +21,20 @@ on the to do list
 --------------------
 
 
+201126.01
+- controls that have list additions will not show [list] in the options
+- override splashhurt
+  allows a cleric to ignore the hurt counters and maintain a constant splash routine
+- magician
+  cosmetic changes to the class controls to match the last set of changes
+- cleric
+  cosmetic changes to the class controls to match the last set of changes
+- moved all dannet query delay times to the DB.
+- corrected DB pathings to account for spaces
+- corrected INI pathings to account for spaces
+- small change to loot auto delete
+
+
 
 201123.04
 - corrected a targeting issue for self only buffs on the new temp buff routine.

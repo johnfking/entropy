@@ -402,12 +402,12 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 
     /if (${_verbage.Equal[name]}) {
       /invoke ${do_raw_edit[${_debug}, SILENT, stBlood, "${_verbage2}"]}
-    } else /if (${_verbage.Equal[use]}) {
+    } else /if (${_verbage.Equal[active]}) {
       /invoke ${set_switch_env[${_debug}, swblood, TRUE, ${_verbage2}]}
     }
     /invoke ${maChrControl.Clear}
     /invoke ${maChrControl.Add[name,stBlood|br]}
-    /invoke ${maChrControl.Add[use,swblood]}
+    /invoke ${maChrControl.Add[active,swblood]}
     /invoke ${set_control_output[${_debug}, maHeal, "chr blood", maChrControl]}
     /return TRUE
 

@@ -289,8 +289,15 @@ sub check_heal(bool _debug, string _type)
   /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
     /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 grouphot
   }
-
+  
   /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+
+  | forcing of splash  
+  /if (!${hurtCount} && ${maOver.Find[swOverSplashHurt].Value} && ${maHeal.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
+    /if (${SpawnCount[npc radius ENV]} >= ${maHeal.Find[stCountSplash].Value}) {
+      /call Bind_command_splash ${maDebug.Find[splash].Value}
+    }
+  }
 
   /if (!${hurtCount} && ${maHeal.Find[swHealPromise].Value}) {
     /call cast_cycle_heal_promise ${_debug}
@@ -680,7 +687,6 @@ sub check_alliance(bool _debug)
 
 
 
-
 |***
  * note: class control
  * use: /chr
@@ -729,14 +735,14 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   } else /if (${_type.Equal[primary]}) {
 
     | use the weapon.. seriously.. go camp something. put some effort into the class
-    /if (${_verbage.Equal[use]}) {
+    /if (${_verbage.Equal[active]}) {
       /invoke ${set_switch_env[${_debug}, swSummonPrimary, TRUE]}
     | spell to summon
     } else /if (${_verbage.Equal[spell]}) {
       /invoke ${do_raw_edit[${_debug}, SILENT, stSummonPrimary, "${_verbage2}"]}
     }
     /invoke ${maControl.Clear}
-    /invoke ${maControl.Add[use,swSummonPrimary]}
+    /invoke ${maControl.Add[active,swSummonPrimary]}
     /invoke ${maControl.Add[spell,stSummonPrimary|br]}
     /invoke ${set_control_output[${_debug}, maChr, "chr primary", maControl]}
     /return TRUE

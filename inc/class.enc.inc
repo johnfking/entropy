@@ -169,13 +169,11 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  | FLOW misc_combat ${_tmpID} (1)
 
   ISMEDEAD
   /call target assist ${_tmpID}
 
   CHECKEXIT misc_combat
-  | FLOW misc_combat_ENC ${_tmpID} (2)
   GETINPUT
   CHECKTIE
   CHECKDEFENSE
@@ -239,7 +237,6 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub check_crystals(bool _debug)
   DEBUG \atcheck_crystals\ax()
-  | FLOW check_crystals
 
   /invoke ${set_data_timer[FALSE, Check_Crystals, RESTART]}
 
@@ -276,13 +273,11 @@ sub check_crystals(bool _debug)
  ***|
 sub check_gather(bool _debug)
   DEBUG \atcheck_gather\ax()
-  | FLOW check_gather (1)
 
   /if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
 
   ISMEDEAD
   CHECKEXIT check_gather_ENC
-  | FLOW check_gather (2)
   GETINPUT
   CHECKTIE
 
@@ -310,7 +305,6 @@ sub check_gather(bool _debug)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  | FLOW check_heal ${_type} (1)
 
   /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
@@ -379,7 +373,6 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  | FLOW burn (1)
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -387,7 +380,6 @@ sub burn(bool _debug, int _tmpID)
   }
 
   CHECKEXIT
-  | FLOW burn (2)
   GETINPUT
   CHECKTIE
   CHECKDEFENSE

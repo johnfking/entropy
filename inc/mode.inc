@@ -959,12 +959,12 @@ sub tov_ew_ada(bool _debug)
   /call Bind_control_cc agro on
 
   | how big is the quest?
-  /sqlite query ${DBstatic} farmcount SELECT count(*) as data from farm where task="${_quest}"
+  /sqlite query "${DBstatic}" farmcount SELECT count(*) as data from farm where task="${_quest}"
   DEBUG ${sep}count${sep}\a-w${sqlite.Result[farmcount 1 data]}\ax
 
   | get the data we need for this step
   /for _count 0 to ${Math.Calc[${sqlite.Result[farmcount 1 data]} -1]}
-    /sqlite query ${DBstatic} farmquery${_count} SELECT * FROM farm WHERE task="${_quest}" AND stepn="${_count}"
+    /sqlite query "${DBstatic}" farmquery${_count} SELECT * FROM farm WHERE task="${_quest}" AND stepn="${_count}"
     /if (!${_count}) /continue
     OUT ${dot}loading${sep}\aw${_count}\ax${sep}\a-w${sqlite.Result[farmquery${_count} 1 step]}\ax
   /next _count
@@ -1120,7 +1120,7 @@ sub task_get(bool _debug, string _verbage)
   DEBUG \attask_get\ax(\a-w${_verbage}\ax)
 
   | get the dat a we need to get quest started
-  /sqlite query ${DBstatic} farmquery SELECT * FROM farm WHERE step="start" AND task="${_verbage}"
+  /sqlite query "${DBstatic}" farmquery SELECT * FROM farm WHERE step="start" AND task="${_verbage}"
 
   | are we in the right zone?
   /if (${Zone.ShortName.NotEqual[${sqlite.Result[farmquery 1 zonesn]}]}) {
@@ -1325,12 +1325,12 @@ sub rof_shard_bodhe(string _opt, bool _debug)
 
 
   | how big is the quest?
-  /sqlite query ${DBstatic} farmcount SELECT count(*) AS data FROM farm WHERE task="${_quest}"
+  /sqlite query "${DBstatic}" farmcount SELECT count(*) AS data FROM farm WHERE task="${_quest}"
   DEBUG ${sep}count${sep}\a-w${sqlite.Result[farmcount 1 data]}\ax
 
   | get the data we need for this step
   /for _count 0 to ${Math.Calc[${sqlite.Result[farmcount 1 data]} -1]}
-    /sqlite query ${DBstatic} farmquery${_count} SELECT * FROM farm WHERE task="${_quest}" AND stepn="${_count}"
+    /sqlite query "${DBstatic}" farmquery${_count} SELECT * FROM farm WHERE task="${_quest}" AND stepn="${_count}"
     /if (!${_count}) /continue
     OUT ${dot}loading${sep}\aw${_count}\ax${sep}\a-w${sqlite.Result[farmquery${_count} 1 step]}\ax
   /next _count
@@ -1525,12 +1525,12 @@ sub petfarm_route(string _route, int _start)
     CHECKDEAD
     GETINPUT
 
-    /for _count ${If[${_start},${_start},1]} to ${Ini[${INIfarmroute},${_route},stops]}
-      DEBUG ${sep}_count${sep}${_count}${sep}${Ini[${INIfarmroute},${_route},stops]} stops
-      DEBUG ${sep}navto ${dot} ${Ini[${INIfarmroute},${_route},loc${_count}]}
-      /call Bind_command_navto loc "${Ini[${INIfarmroute},${_route},loc${_count}]}" ${_debug}
-      /invoke ${set_timer[FALSE, _timerWait, ${Ini[${INIfarmroute},${_route},loc${_count}wait]}]}
-      OUT Location${sep}\a-w${_count}\ax/\a-w${Ini[${INIfarmroute},${_route},stops]}\ax (\a-r${Ini[${INIfarmroute},${_route},loc${_count}wait]}\ax)
+    /for _count ${If[${_start},${_start},1]} to ${Ini["${INIfarmroute}",${_route},stops]}
+      DEBUG ${sep}_count${sep}${_count}${sep}${Ini["${INIfarmroute}",${_route},stops]} stops
+      DEBUG ${sep}navto ${dot} ${Ini["${INIfarmroute}",${_route},loc${_count}]}
+      /call Bind_command_navto loc "${Ini["${INIfarmroute}",${_route},loc${_count}]}" ${_debug}
+      /invoke ${set_timer[FALSE, _timerWait, ${Ini["${INIfarmroute}",${_route},loc${_count}wait]}]}
+      OUT Location${sep}\a-w${_count}\ax/\a-w${Ini["${INIfarmroute}",${_route},stops]}\ax (\a-r${Ini["${INIfarmroute}",${_route},loc${_count}wait]}\ax)
       /while (${_timerWait}) {
         /if (!${timer_Check_Mode}) {
           /call check_mode ${maDebug.Find[mode].Value}
@@ -1573,12 +1573,12 @@ sub petfarm_route(string _route, int _start)
     CHECKDEAD
     GETINPUT
 
-    /for _count ${If[${_start},${_start},1]} to ${Ini[${INIfarmroute},${_route},stops]}
-      DEBUG ${sep}_count${sep}${_count}${sep}${Ini[${INIfarmroute},${_route},stops]}
-      DEBUG ${sep}navto ${dot} ${Ini[${INIfarmroute},${_route},loc${_count}]}
-      /call Bind_command_navto loc "${Ini[${INIfarmroute},${_route},loc${_count}]}" ${_debug}
-      /invoke ${set_timer[FALSE, _timerWait, ${Ini[${INIfarmroute},${_route},loc${_count}wait]}]}
-      OUT Location${sep}\a-w${_count}\ax (\a-r${Ini[${INIfarmroute},${_route},loc${_count}wait]}\ax)
+    /for _count ${If[${_start},${_start},1]} to ${Ini["${INIfarmroute}",${_route},stops]}
+      DEBUG ${sep}_count${sep}${_count}${sep}${Ini["${INIfarmroute}",${_route},stops]}
+      DEBUG ${sep}navto ${dot} ${Ini["${INIfarmroute}",${_route},loc${_count}]}
+      /call Bind_command_navto loc "${Ini["${INIfarmroute}",${_route},loc${_count}]}" ${_debug}
+      /invoke ${set_timer[FALSE, _timerWait, ${Ini["${INIfarmroute}",${_route},loc${_count}wait]}]}
+      OUT Location${sep}\a-w${_count}\ax (\a-r${Ini["${INIfarmroute}",${_route},loc${_count}wait]}\ax)
       /while (${_timerWait}) {
         /if (!${timer_Check_Mode}) {
           /call check_mode ${maDebug.Find[mode].Value}

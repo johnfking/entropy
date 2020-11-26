@@ -506,7 +506,7 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
         /varset _out ${_out} ${If[${lsElementType.First.Value.Equal[${_lipt.Value}]},,${dot}]} ${If[${maChr.Find[stMinionElementType].Value.Equal[${_lipt.Value}]},${good}${_lipt.Value}\ax,${info}${_lipt.Value}\ax]}
         /invoke ${_lipt.Advance}
       }
-      OUT /chr pettype ${_out}
+      OUT /chr pettype ${dot} ${_out}
       /return FALSE
     } else {
       /invoke ${do_raw_edit[${_debug}, SILENT, stMinionElementType, "${_verbage.Left[1].Upper}${_verbage.Right[-1].Lower}"]}
@@ -514,17 +514,17 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 
   | set ae on/off / count
   } else /if (${_type.Equal[cauldron]}) {
-    /if (${_verbage.Equal[use]}) {
+    /if (${_verbage.Equal[active]}) {
       /invoke ${set_switch_env[${_debug}, swCauldron, TRUE, ${_verbage2}]}
     } else /if (${_verbage.Equal[item]}) {
       /invoke ${do_raw_edit[${_debug}, SILENT, stCauldron, "${_verbage2}"]}
     }
 
-    /declare _out string local
-    /varset _out ${info}use\ax:${If[${maChr.Find[swCauldron].Value},${on},${off}]}
-    /varset _out ${_out} ${dot} ${info}item\ax:[${If[${Bool[${maChr.Find[stCauldron].Value}]},${num}${maChr.Find[stCauldron].Value}\ax,${off}]}]
-    /invoke ${out[12, "/chr cauldron ${_out}"]}
-    /return
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[active,swCauldron]}
+    /invoke ${maControl.Add[item,stCauldron|br]}
+    /invoke ${set_control_output[${_debug}, maChr, "chr cauldron", maControl]}
+    /return TRUE
 
   | set gather use %
   } else /if (${_type.Equal[gather]}) {

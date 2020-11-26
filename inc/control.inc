@@ -25,30 +25,6 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
     /call Bind_command_aux debug
     /return
 
-  } else /if (${_type.Equal[spawns]}) {
-    OUT Nearest \aw5\ax spawns
-    /declare _tmpID int local
-    /declare _animationresult string local UNKNOWN ANIMATION
-
-    /for _count 1 to 5
-      /varset _tmpID ${NearestSpawn[${_count}].ID}
-      OUT #\ag${_count}\ax${sep}name:\a-w${Spawn[id ${_tmpID}].Name}\ax${sep}${con_color[${_debug}, ${_tmpID}]}
-      OUT ${sep}Dis(\a-r${Spawn[${_tmpID}].Distance}\ax) ${dot} Y(\a-r${Spawn[id ${_tmpID}].Y}\ax)X(\a-r${Spawn[id ${_tmpID}].X}\ax)
-
-      /sqlite query ${DBstatic} dummy SELECT value FROM animation WHERE env_var='${Spawn[id ${_tmpID}].Animation}'
-      /if (!${sql_check[${_debug}, dummy, control_debug, "SELECT (value)"]}) /endmacro
-      /varset _animationresult string local UNKNOWN ANIMATION
-      /if (${sqlite.Rows[dummy]}) {
-        /varset _animationresult ${sqlite.Result[dummy 1 value]}
-      }
-      OUT ${sep}Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax${sep}\a-w${_animationresult}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax) ${dot} ID(\a-r${Spawn[id ${_tmpID}].ID}\ax)
-      OUT ${sep}Master(\a-r${Spawn[id ${_tmpID}].Master}\ax) ${dot} Owner(\a-r${Spawn[id ${_tmpID}].Owner}\ax)
-      ECHO
-
-    /next _count
-    /invoke ${out[18, 0, 33]}
-    /return FALSE
-
   } else /if (${_type.Equal[stop]}) {
     /declare _ligdeb listiterator local
     /vardata _ligdeb lsDebuglist.First.Clone
@@ -291,9 +267,9 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
   } else /if (${_type.Equal[out]}) {
     OUT Listing stored output strings.
     /declare _count int local 0 
-    /sqlite query ${DBstatic} dummycount SELECT Count(*) as data FROM string;
+    /sqlite query "${DBstatic}" dummycount SELECT Count(*) as data FROM string;
     /for _count 1 to ${sqlite.Result[dummycount 1 data]}
-      /sqlite query ${DBstatic} dummy SELECT * FROM string WHERE ROWID=${_count};
+      /sqlite query "${DBstatic}" dummy SELECT * FROM string WHERE ROWID=${_count};
       OUT ${_count}${sep}${Parse[1,${sqlite.Result[dummy 1 value]}]}
     /next _count
     /invoke ${out[18, 0, 33]}
@@ -303,14 +279,14 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
   } else /if (${_type.Equal[sqlcol]}) {
 
     | testing afor a known column first
-    /sqlite query ${DBzone} dummy SELECT 1 FROM PRAGMA_TABLE_INFO('zone_control') WHERE name='element'
+    /sqlite query "${DBzone}" dummy SELECT 1 FROM PRAGMA_TABLE_INFO('zone_control') WHERE name='element'
     /if (!${sql_check[${_debug}, dummy, Bind_control_admin, "SELECT 1 (PRAGMA_TABLE_INFO)"]}) /endmacro
     DEBUG SELECT 1 FROM PRAGMA_TABLE_INFO 'zone_control' \ay${sqlite.Status[dummy]}\ax
     DEBUG Rows${sep}\ap${sqlite.Rows[dummy]}\ax
 
 
     | testing unknown
-    /sqlite query ${DBzone} dummy SELECT 1 FROM PRAGMA_TABLE_INFO('zone_control') WHERE name='wp_name'
+    /sqlite query "${DBzone}" dummy SELECT 1 FROM PRAGMA_TABLE_INFO('zone_control') WHERE name='wp_name'
     DEBUG SELECT 1 FROM PRAGMA_TABLE_INFO 'zone_control' \ay${sqlite.Status[dummy]}\ax
 
     DEBUG Rows${sep}\ap${sqlite.Rows[dummy]}\ax
@@ -358,7 +334,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     /for _count 1 to ${Spell[${_spell}].NumEffects}
       OUT #\ay${_count}\ax
       /if (${Select[${Spell[${_spell}].Attrib[${_count}]},10]}) /continue
-      /sqlite query ${DBstatic} dummy SELECT * FROM eq_spa WHERE env_var='${Spell[${_spell}].Attrib[${_count}]}'
+      /sqlite query "${DBstatic}" dummy SELECT * FROM eq_spa WHERE env_var='${Spell[${_spell}].Attrib[${_count}]}'
       OUT ${dot} .Attrib \a-w${Spell[${_spell}].Attrib[${_count}]}\ax ${dot} \a-g${sqlite.Result[dummy 1 value]}\ax
       OUT ${dot} .Trigger \a-w${Spell[${_spell}].Trigger[${_count}].Name}\ax ${dot} ID:\a-w${Spell[${_spell}].Base2[${_count}]}\ax\ax ()
       OUT ${dot} .Base \a-w${Spell[${_spell}].Base[${_count}]}\ax
@@ -431,7 +407,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
             }
 
             | add key->value to DB and delete
-            /sqlite query ${DBloot} dummy INSERT INTO loot_control VALUES ("${_key}", "${_value}", 0, 0)
+            /sqlite query "${DBloot}" dummy INSERT INTO loot_control VALUES ("${_key}", "${_value}", 0, 0)
             /ini "${_lootini}" "${_section}" "${_key}" NULL
 
           }
@@ -525,7 +501,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
           /for _countV 1 to ${Ini[${_ini},${_section},${_key}].Count[|]}
             /varset _value ${Ini[${_ini},${_section},${_key}].Arg[${_countV},|]}
             /invoke ${out[12, "\at...\ax\a-w${_value}\ax"]}
-            /sqlite query ${DBzone} dummy INSERT OR IGNORE INTO zone_control VALUES ("${_section}", "${_key}", "${_value}")
+            /sqlite query "${DBzone}" dummy INSERT OR IGNORE INTO zone_control VALUES ("${_section}", "${_key}", "${_value}")
           /next _countV
         /next _countK
       /next _countS
@@ -788,7 +764,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 
   | shortcut for the build set routine
   } else /if (${_type.Equal[SET]}) {
-    /if (${Select[${_verbage},FALSE,off]} || !${Ini[${INIset}].Find[${_verbage}]}) {
+    /if (${Select[${_verbage},FALSE,off]} || !${Ini["${INIset}"].Find[${_verbage}]}) {
       /invoke ${do_raw_edit[${_debug}, SILENT, stBuildSetCurrent, FALSE]}
     } else {
       /call Bind_control_build set ${_verbage}
@@ -1000,7 +976,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
     /nomodkey /notify FellowshipWnd FP_CreateCampsite leftmouseup
     /delay 5s ${Me.Fellowship.Campfire}
     /if (${Window[FellowshipWnd].Open}) /invoke ${Window[FellowshipWnd].DoClose}
-    /return
+    /return TRUE
 
   | gather your crew
   } else /if (${_type.Equal[gather]}) {
@@ -1014,7 +990,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
     /invoke ${out[12, "Gathering${sep}\a-w${_clist}\ax"]}
     /dgexecute ${_clist} /squelch /target clear
     /dgexecute ${_clist} /navto ${Me.ID}
-    /return
+    /return TRUE
 
   } else /if (${_type.Equal[switch]}) {
     /invoke ${maHome.Add[swSetTie,FALSE]}
@@ -1141,6 +1117,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Add[deathclear,swMoveDeathClear]}
   /invoke ${maControl.Add[onauto,swonAuto]}
   /invoke ${maControl.Add[incombat,swinCombat]}
+  /invoke ${maControl.Add[campfire,option]}
   /invoke ${set_control_output[${_debug}, maHome, home, maControl]}
 
 /return TRUE
@@ -1279,7 +1256,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 
 
   | get the zone data
-  | /sqlite query ${DBzone} curZoneData SELECT * FROM zone WHERE ShortName="${Zone.ShortName.Lower}"
+  | /sqlite query "${DBzone}" curZoneData SELECT * FROM zone WHERE ShortName="${Zone.ShortName.Lower}"
   | /if (!${sql_check[${_debug}, curZoneData, Bind_control_area, SELECT]}) /endmacro
 
   /declare _element string local FALSE
@@ -1335,21 +1312,21 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
     /if (${maEnv.Find[swZoneSafe].Value} || ${_verbage.Equal[FALSE]}) {
       DEBUG FALSE
       DEBUG ${sep}sqlite query DBzone QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
-      /sqlite query ${DBzone} QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
+      /sqlite query "${DBzone}" QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
       /if (!${sql_check[${_debug}, QZone, Bind_control_area, "UPDATE (zone_control)"]}) /endmacro
       /invoke ${maEnv.Add[swZoneSafe,FALSE]}
 
     } else /if (!${maEnv.Find[swZoneSafe].Value} || ${_verbage.Equal[TRUE]}) {
       DEBUG TRUE
       DEBUG ${sep}sqlite query DBzone QZone UPDATE zone_control SET value='TRUE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
-      /sqlite query ${DBzone} QZone UPDATE zone_control SET value='TRUE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
+      /sqlite query "${DBzone}" QZone UPDATE zone_control SET value='TRUE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
       /if (!${sql_check[${_debug}, QZone, Bind_control_area, "UPDATE (zone_control)"]}) /endmacro
       /invoke ${maEnv.Add[swZoneSafe,TRUE]}
     }
 
   | remove a mob from the current zone
   } else /if (${_type.Equal[delete]}) {
-    /sqlite query ${DBzone} QZone DELETE FROM zone_control WHERE zone_shortname='${Zone.ShortName}' AND value='${Target.DisplayName}'
+    /sqlite query "${DBzone}" QZone DELETE FROM zone_control WHERE zone_shortname='${Zone.ShortName}' AND value='${Target.DisplayName}'
     /if (!${sql_check[${_debug}, QZone, Bind_control_area, "DELETE FROM (zone_control)"]}) /endmacro
     /if (${lsGrain.Contains[12]}) {
       OUT /area delete ${dot} ${num}${Zone.ShortName}\ax${sep}\a-w${Target.DisplayName}\ax
@@ -1360,7 +1337,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
     DEBUG ${sep}target${sep}\a-w${Target.DisplayName}\ax
     /if (!${${_element}.Contains[${Target.DisplayName}]}) {
       | Add a property to a mob
-      /sqlite query ${DBzone} QZone INSERT OR IGNORE INTO zone_control VALUES ("${Zone.ShortName}", "${_element}", "${Target.DisplayName}")
+      /sqlite query "${DBzone}" QZone INSERT OR IGNORE INTO zone_control VALUES ("${Zone.ShortName}", "${_element}", "${Target.DisplayName}")
       /if (!${sql_check[${_debug}, QZone, Bind_control_area, "INSERT INTO (zone_control)"]}) /endmacro
       /if (${lsGrain.Contains[12]}) {
         OUT /area ${_type} ${dot} ${num}${_element}\ax${sep}\a-w${Target.DisplayName}\ax
@@ -1618,6 +1595,7 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
     /invoke ${maControl.Add[splash,stCountSplash]}
   }
 
+  /invoke ${maControl.Add[list,list]}
   /invoke ${maControl.Add[rampage,stRampageTank|br]}
   /invoke ${set_control_output[${_debug}, maHeal, heal, maControl]}
 
@@ -1790,6 +1768,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[autolist,swAutoList]}
   /invoke ${maControl.Add[concolor,swUseConColor]}
+  /invoke ${maControl.Add[buttons,option]}
   /invoke ${maControl.Add[engine,stEngine]}
   /invoke ${maControl.Add[castloops,stCastLoop]}
   /invoke ${maControl.Add[events,swEventsInc]}
@@ -1816,9 +1795,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 sub Bind_control_rez(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atcontrol_rez\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-
-
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+  /if (${Select[${_verbage},clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]} && !${Select[${_verbage},see,tag]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} Rez 8 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
 
     /if (${Select[${_type},list]}) {
@@ -1827,7 +1804,6 @@ sub Bind_control_rez(string _type, string _verbage, string _verbage2, string _ad
     }
     /return TRUE
   }
-
 
   | output control map
   /if (${_type.Equal[see]}) {
@@ -1907,6 +1883,7 @@ sub Bind_control_rez(string _type, string _verbage, string _verbage2, string _ad
   /if (${Select[${Me.Class.ShortName},CLR]}) {
     /invoke ${maControl.Add[divine,swDivineCleric]}
   }
+  /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[${_debug}, maRez, rez, maControl, maControl]}
 
 /return TRUE
@@ -1958,8 +1935,6 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
     /return
   }
 
-  
-
 
   /if (${_type.Equal[sort]}) {
     ECHO string of numbers 56,282,900,991,8,67,23,62,76,023,001,5.05,.01,-1
@@ -1983,7 +1958,7 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
     /declare _countNumEff     int local 0
     /declare _countSPA        int local 0
 
-    /sqlite query ${DBstatic} dummy SELECT * FROM eq_spa WHERE value="${_findAttrib}";
+    /sqlite query "${DBstatic}" dummy SELECT * FROM eq_spa WHERE value="${_findAttrib}";
 
     ECHO SQLITE${sep}\a-w${sqlite.Result[dummy 1 env_var]}\ax
 
@@ -2335,7 +2310,7 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 
   | database pull test for a mana click item
   /if (${_type.Equal[dbtest]}) {
-    /sqlite query ${DBstatic} dummy SELECT * FROM mana_recovery WHERE env_var="Wand of Arcronite Modulation"
+    /sqlite query "${DBstatic}" dummy SELECT * FROM mana_recovery WHERE env_var="Wand of Arcronite Modulation"
     OUT ${sqlite.Result[dummy 1 value]}
   }
 
@@ -2414,8 +2389,6 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
     /call check_facing ${maDebug.Find[face].Value} ${Target.ID} FORCE
   }
 
-
-
   | Mock testing of the weighted system for whos hurt
   /if (${_type.Equal[hurttest]}) {
 
@@ -2423,7 +2396,6 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
     /invoke ${lsNames.Append[James,Mary,John,Patricia,Robert,Jennifer,Michael,Linda,William,Elizabeth,David,Barbara]}
     /invoke ${lsNames.Append[Richard,Susan,Edward,Heather,Aaron,Virginia,Larry,Anna,Ethan,Olivia,Christian,Hannah]}
     /invoke ${lsNames.Append[Gerald,Megan,Terry,Jacqueline,Lawrence,Alice,Joe,Gloria]}
-
 
     | random classes
     /declare _cls string local
@@ -2509,7 +2481,6 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atBind_control_buff\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-
   /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} Buff 50 "${_type}" "${_verbage}" "${_verbage2}" "${_add_delete}"
     /return TRUE
@@ -2520,7 +2491,7 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
     /invoke ${set_switch_env[${_debug}, swBuffMaster, FALSE, ${_verbage}]}
 
   } else /if (${_type.Equal[ps]}) {
-    /invoke ${set_switch_env[${_debug}, swBuffPowersource, TRUE, ${_verbage}]}
+    | /invoke ${set_switch_env[${_debug}, swBuffPowersource, TRUE, ${_verbage}]}
 
   } else /if (${_type.Equal[self]}) {
     /invoke ${set_switch_env[${_debug}, swBuffSelf, TRUE, ${_verbage}]}
@@ -2592,6 +2563,7 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
   /invoke ${maControl.Add[shrink,submenu]}
   /invoke ${maControl.Add[temp,swBuffTemp]}
   /invoke ${maControl.Add[unity,swBuffUnity]}
+  /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[${_debug}, maBuff, buff, maControl]}
 
 /return TRUE
@@ -2632,6 +2604,8 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
     /invoke ${set_switch_env[${_debug}, swOverNavCheck, TRUE, ${_verbage}]}
   } else /if (${_type.Equal[groupass]}) {
     /invoke ${set_switch_env[${_debug}, swOverGroupAss, TRUE, ${_verbage}]}
+  } else /if (${_type.Equal[splashhurt]}) {
+    /invoke ${set_switch_env[${_debug}, swOverSplashHurt, TRUE, ${_verbage}]}
 
   }
 
@@ -2646,6 +2620,7 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Add[envauto,swOverEnvAuto]}
   /invoke ${maControl.Add[navcheck,swOverNavCheck]}
   /invoke ${maControl.Add[groupass,swOverGroupAss]}
+  /invoke ${maControl.Add[splashhurt,swOverSplashHurt]}
   /invoke ${set_control_output[${_debug}, maOver, override, maControl]}
 
 /return TRUE
@@ -2679,7 +2654,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
   /if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
     /call Bind_command_aux see
     /return FALSE
-  } else /if (!${Defined[${_variable}]} && !${Select[${_variable},${lsControls}]}) {
+  } else /if (!${Defined[${_variable}]} && !${Select[${_variable},${lsControls},spawns]}) {
     /invoke ${out[0, "Crack says your input sucks${sep}\a-w${_variable}\ax"]}
     /return FALSE
   }
@@ -2701,7 +2676,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
     OUT lvl${sep}\a-w${Target.Level}\ax
     OUT named${sep}\a-w\ax
 
-    /sqlite query ${DBstatic} dummy SELECT value FROM animation WHERE env_var='${Target.Animation}'
+    /sqlite query "${DBstatic}" dummy SELECT value FROM animation WHERE env_var='${Target.Animation}'
     /if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
     /declare _animationresult string local UNKNOWN ANIMATION
     /if (${sqlite.Rows[dummy]}) {
@@ -2717,6 +2692,31 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 
     /invoke ${out[18, 0, 33]}
     /return
+    
+  } else /if (${_variable.Equal[spawns]}) {
+    MQCLEAR
+    OUT Nearest \aw5\ax spawns
+    /declare _tmpID int local
+    /declare _animationresult string local UNKNOWN ANIMATION
+
+    /for _count 1 to 5
+      /varset _tmpID ${NearestSpawn[${_count}].ID}
+      OUT #\ag${_count}\ax${sep}name:\a-w${Spawn[id ${_tmpID}].Name}\ax${sep}${con_color[${_debug}, ${_tmpID}]}
+      OUT ${sep}Dis(\a-r${Spawn[${_tmpID}].Distance}\ax) ${dot} Y(\a-r${Spawn[id ${_tmpID}].Y}\ax)X(\a-r${Spawn[id ${_tmpID}].X}\ax)
+
+      /sqlite query "${DBstatic}" dummy SELECT value FROM animation WHERE env_var='${Spawn[id ${_tmpID}].Animation}'
+      /if (!${sql_check[${_debug}, dummy, control_debug, "SELECT (value)"]}) /endmacro
+      /varset _animationresult string local UNKNOWN ANIMATION
+      /if (${sqlite.Rows[dummy]}) {
+        /varset _animationresult ${sqlite.Result[dummy 1 value]}
+      }
+      OUT ${sep}Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax${sep}\a-w${_animationresult}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax) ${dot} ID(\a-r${Spawn[id ${_tmpID}].ID}\ax)
+      OUT ${sep}Master(\a-r${Spawn[id ${_tmpID}].Master}\ax) ${dot} Owner(\a-r${Spawn[id ${_tmpID}].Owner}\ax)
+      ECHO
+
+    /next _count
+    /invoke ${out[18, 0, 33]}
+    /return FALSE
 
   | see what we are observing
   } else /if (${_variable.Equal[observed]}) {
@@ -2751,7 +2751,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
     /while (!${_misee.IsEnd}) {
       /if (${_verbage.Equal[aux]}) {
         /varset _DBLOC ${get_key_DBLOC[${_debug}, ${_misee.Key}]}
-        /sqlite query ${DBcharacter} dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var='${_misee.Key}'
+        /sqlite query "${DBcharacter}" dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var='${_misee.Key}'
         | /if (!${sql_check[${_debug}, dummy, environment_condition, SELECT]}) /endmacro
         /if (${sqlite.Status[dummy].Equal[SUCCESS]} && ${sqlite.Result[dummy 1 aux].Length} > 6) {
           /varset _tmpAux ${dot} ${sqlite.Result[dummy 1 aux]}
@@ -2860,7 +2860,7 @@ sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _a
   /invoke ${maControl.Add[force,swBurnForce]}
   /invoke ${maControl.Add[raid,swBurnRaid]}
   /invoke ${maControl.Add[spinup,option]}
-
+  /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[${_debug}, maBurn, burn, maControl]}
 
 /return TRUE
@@ -3231,22 +3231,6 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
     /invoke ${out[12, "/cc melee ${dot} ${_out}"]}
     /return TRUE
 
-  |**
-  } else /if (${_type.Equal[ma1]}) {
-    /if (${Bool[${_verbage}]} || ${_verbage.Equal[FALSE]}) {
-      /invoke ${do_raw_edit[FALSE, SILENT, stManualAssist1, "${_verbage}"]}
-    } else {
-      /invoke ${do_raw_edit[FALSE, SILENT, stManualAssist1, FALSE]}
-    }
-
-  } else /if (${_type.Equal[ma2]}) {
-    /if (${Bool[${_verbage}]} || ${_verbage.Equal[FALSE]}) {
-      /invoke ${do_raw_edit[FALSE, SILENT, stManualAssist2, "${_verbage}"]}
-    } else {
-      /invoke ${do_raw_edit[FALSE, SILENT, stManualAssist2, FALSE]}
-    }
-  **|
-
   | mob engage %
   } else /if (${_type.Equal[engage]}) {
     /if (!${set_control_num_range[${_debug}, stPctEngage, "${_verbage}", 0, 100]}) /return
@@ -3356,7 +3340,7 @@ sub Bind_command_aux(string _type, bool _debug)
   /next _count    
 
   /if (${_lsCompleteAux.Contains[${_type}]}) {
-    /sqlite query ${DBstatic} dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY ROWID
+    /sqlite query "${DBstatic}" dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY ROWID
     /if (!${sql_check[${_debug}, dummy, Bind_command_aux, SELECT]}) /endmacro
     DEBUG dummy SELECT * FROM help WHERE help_cat='${_type}' ORDER BY help_var
     MQCLEAR
@@ -3370,7 +3354,7 @@ sub Bind_command_aux(string _type, bool _debug)
   }
 
   ECHO
-  /sqlite query ${DBstatic} dummy SELECT value FROM online WHERE env_var='discord'
+  /sqlite query "${DBstatic}" dummy SELECT value FROM online WHERE env_var='discord'
   /if (!${sql_check[${_debug}, dummy, Bind_command_aux, SELECT]}) /endmacro
   /invoke ${out[0, "Discord${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
   /invoke ${out[0, "Available Control Information${sep}"]}
@@ -3518,13 +3502,13 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 
   | add/update a waypoint
   /if (${_verbage.Equal[wpadd]}) {
-    /sqlite query ${DBnav} dummy SELECT * FROM waypoint WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
+    /sqlite query "${DBnav}" dummy SELECT * FROM waypoint WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
     /if (!${sqlite.Rows[dummy]}) {
       /invoke ${out[19, "Waypoint add${sep}\a-w${_loc}\ax ${dot} Y:${num}${Me.Y}\ax X:${num}${Me.X}\ax Z:${num}${Me.Z}\ax"]}
-      /sqlite query ${DBnav} dummy INSERT INTO waypoint VALUES ("${Zone.ShortName}", "${_loc}", "${Me.Y}", "${Me.X}", "${Me.Z}")
+      /sqlite query "${DBnav}" dummy INSERT INTO waypoint VALUES ("${Zone.ShortName}", "${_loc}", "${Me.Y}", "${Me.X}", "${Me.Z}")
     } else /if (${sqlite.Rows[dummy]}) {
       /invoke ${out[19, "Waypoint update${sep}\a-w${_loc}\ax ${dot} Y:${num}${Me.Y}\ax X:${num}${Me.X}\ax Z:${num}${Me.Z}\ax"]}
-      /sqlite query ${DBnav} dummy UPDATE waypoint SET locY="${Me.Y}", locX="${Me.X}", locZ="${Me.Z}" WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
+      /sqlite query "${DBnav}" dummy UPDATE waypoint SET locY="${Me.Y}", locX="${Me.X}", locZ="${Me.Z}" WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
     }
 
     /return
@@ -3535,7 +3519,7 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
   | list the waypoints
   } else /if (${_verbage.Equal[wplist]}) {
 
-    /sqlite query ${DBnav} wpdummy SELECT COUNT(*) as data FROM waypoint WHERE zone_shortname='${Zone.ShortName}'
+    /sqlite query "${DBnav}" wpdummy SELECT COUNT(*) as data FROM waypoint WHERE zone_shortname='${Zone.ShortName}'
     DEBUG ${sep}wpdummy SELECT count(*) as data from zone_control where zone_shortname  \ay${sqlite.Status[dummy]}\ax resutl:${sqlite.Result[wpdummy 1 data]}
     /if (${sqlite.Status[wpdummy].Find[no such table:]}) {
       ECHO fail
@@ -3549,7 +3533,7 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 
   | moveto a waypoint
   } else /if (${_verbage.Equal[wp]}) {
-    /sqlite query ${DBnav} dummy SELECT * FROM waypoint WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
+    /sqlite query "${DBnav}" dummy SELECT * FROM waypoint WHERE zone_shortname="${Zone.ShortName}" AND nickname="${_loc}"
     /if (!${sqlite.Rows[dummy]}) {
       /invoke ${out[1, shade, 0]}
       /return FALSE
@@ -3678,7 +3662,6 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
   }
 
 /return TRUE
-
 
 
 
@@ -3865,13 +3848,13 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
     }
        
     /if (${Select[${_nick1},wiz,dru,guild,item,vendor,aa]}) {
-      /sqlite query ${DBstatic} dummycount SELECT Count(*) as data FROM port WHERE type='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]};
+      /sqlite query "${DBstatic}" dummycount SELECT Count(*) as data FROM port WHERE type='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]};
       DEBUG Count(${sqlite.Result[dummycount 1 data]})
       
       /declare _itemReady bool local TRUE
 
       /for _count 1 to ${sqlite.Result[dummycount 1 data]}
-        /sqlite query ${DBstatic} dummy SELECT * FROM port WHERE type='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]};
+        /sqlite query "${DBstatic}" dummy SELECT * FROM port WHERE type='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]};
         /varset _itemReady TRUE
         
         | have it, or the components??
@@ -3915,7 +3898,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
       /next _count    
     
 
-      | /sqlite query ${DBstatic} dummy SELECT * FROM port WHERE type='${_nick1}' ${If[${Bool[${_nick1}]},AND nick1='${_nick2}',]}
+      | /sqlite query "${DBstatic}" dummy SELECT * FROM port WHERE type='${_nick1}' ${If[${Bool[${_nick1}]},AND nick1='${_nick2}',]}
 
       | ECHO \awList\ax${sep}\a-w${sqlite.Rows[dummy]}\ax
       | /for _count 1 to ${sqlite.Rows[dummy]}
@@ -3934,7 +3917,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
 
   | /if (${Select[${_type},wiz,dru,guild,item,vendor,aa]}) {
   |   SDEBUG SELECT * FROM port WHERE type='${_type}' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',AND nick2='FALSE']} LIMIT 1
-  |   /sqlite query ${DBstatic} portreturn SELECT * FROM port WHERE type='${_type}' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',AND nick2='FALSE']} LIMIT 1
+  |   /sqlite query "${DBstatic}" portreturn SELECT * FROM port WHERE type='${_type}' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',AND nick2='FALSE']} LIMIT 1
   |   /varset _portName ${sqlite.Result[portreturn 1 name1]}
   | }
 
@@ -3959,7 +3942,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
       /return FALSE
     }
     
-    /sqlite query ${DBstatic} dummy SELECT * FROM port WHERE type='guild' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]} LIMIT 1;
+    /sqlite query "${DBstatic}" dummy SELECT * FROM port WHERE type='guild' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]} LIMIT 1;
 
     /invoke ${Ground.Search[${sqlite.Result[dummy 1 name1]}]}
     /declare _item ground local
@@ -3990,7 +3973,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
 
   | item ports
   } else /if (${Select[${_type},item]}) {
-    /sqlite query ${DBstatic} dummy SELECT * FROM port WHERE type='item';
+    /sqlite query "${DBstatic}" dummy SELECT * FROM port WHERE type='item';
     /for _count 1 to ${sqlite.Rows[dummy]}
       /invoke ${_list.Append[${sqlite.Result[dummy ${_count} nick1]}]}
     /next _count
@@ -4031,7 +4014,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
       }
 
     } else /if (${_list.Contains[${_nick1}]}) {
-      /sqlite query ${DBstatic} dummy SELECT * FROM port WHERE type='item' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]};
+      /sqlite query "${DBstatic}" dummy SELECT * FROM port WHERE type='item' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]};
       /varset _portName ${sqlite.Result[dummy 1 name1]}
 
     } else {
@@ -4060,7 +4043,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
       /return FALSE
     }
     
-    /sqlite query ${DBstatic} dummy SELECT * FROM port WHERE type='vendor' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]} LIMIT 1;
+    /sqlite query "${DBstatic}" dummy SELECT * FROM port WHERE type='vendor' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]} LIMIT 1;
     
     :start
     /if (!${FindItemCount[=${sqlite.Result[dummy 1 component]}]}) {
@@ -4117,14 +4100,14 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
 
   | aa ports
   } else /if (${Select[${_type},aa]}) {
-    /sqlite query ${DBstatic} dummy SELECT * FROM port WHERE type='aa'
+    /sqlite query "${DBstatic}" dummy SELECT * FROM port WHERE type='aa'
     /for _count 1 to ${sqlite.Rows[dummy]}
       /invoke ${_list.Append[${sqlite.Result[dummy ${_count} nick1]}]}
     /next _count
 
     /if (${_list.Contains[${_nick1}]}) {
       DEBUG ${sep}AA
-      /sqlite query ${DBstatic} dummy SELECT * FROM port WHERE type='aa' AND nick1="${_nick1}"
+      /sqlite query "${DBstatic}" dummy SELECT * FROM port WHERE type='aa' AND nick1="${_nick1}"
       /varset _portName ${sqlite.Result[dummy 1 name1]}
 
     } else {
@@ -4464,8 +4447,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
   /invoke ${_skipKey.Append[swWatch,stWatchCount,swSetForced]}
 
   | obfuscation
-  /invoke ${_skipKey.Append[lsProtectInsideRaid,lsProtectOutsideGroup,stTieToon,lsRetortToon,lsWardToon,stManualAssist1,stManualAssist2]}
-  /invoke ${_skipKey.Append[lsGrowthToon,lsTempBuffToon]}
+  /invoke ${_skipKey.Append[lsProtectInsideRaid,lsProtectOutsideGroup,stTieToon,stManualAssist1,stManualAssist2]}
 
   | export to INI routine
   /if (${_build.Equal[save]}) {
@@ -4533,7 +4515,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 
     | output tag/eval
     ECHO \at...\ax\a-weval\ax
-    /sqlite query ${DBshared} dummy SELECT tag_group.grouping, tag.name, tag_validate.created_by, tag_validate.eval, tag_validate.aux FROM tag_validate LEFT JOIN tag ON tag_validate.tag = tag.id LEFT JOIN tag_group ON tag_validate.grouping = tag_group.id ORDER BY tag_group.grouping, tag.name
+    /sqlite query "${DBshared}" dummy SELECT tag_group.grouping, tag.name, tag_validate.created_by, tag_validate.eval, tag_validate.aux FROM tag_validate LEFT JOIN tag ON tag_validate.tag = tag.id LEFT JOIN tag_group ON tag_validate.grouping = tag_group.id ORDER BY tag_group.grouping, tag.name
     /for _count 1 to ${sqlite.Rows[dummy]}
       /if (${sqlite.Result[dummy ${_count} created_by].Equal[2]} && ${sqlite.Result[dummy ${_count} eval].NotEqual[marker name]}) {
         /ini "${_fqn}" "Evals" "${sqlite.Result[dummy ${_count} grouping]}::${sqlite.Result[dummy ${_count} name]}" "${Parse[2,${sqlite.Result[dummy ${_count} eval]}]}"
@@ -4594,7 +4576,6 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 
     /next _countK
 
-
     /invoke ${out[18, 0, 33]}
     ECHO
     /return TRUE
@@ -4605,7 +4586,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
     /declare _loadtimestart int local ${MacroQuest.Running}
     /declare _lsset list local
     /invoke ${_lsset.Delimiter["|"]}
-    /invoke ${_lsset.Append[${Ini[${INIset},${_nickname}]}]}
+    /invoke ${_lsset.Append[${Ini["${INIset}",${_nickname}]}]}
     /declare _liset listiterator local
     /vardata _liset _lsset.First.Clone
     /invoke ${do_raw_edit[${_debug}, SILENT, stBuildSetCurrent, "${_nickname}"]}
@@ -4613,16 +4594,16 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
       /if (${Bool[${_liset.Value}]}) {
         /if (${lsBuildSet.Contains[${_liset.Value}]}) {
           /if (${_liset.Value.Equal[primary]}) {
-            /call Bind_command_swap "${Ini[${INIset},${_nickname},${_liset.Value}]}" 13 FALSE
+            /call Bind_command_swap "${Ini["${INIset}",${_nickname},${_liset.Value}]}" 13 FALSE
           } else /if (${_liset.Value.Equal[secondary]}) {
-            /call Bind_command_swap "${Ini[${INIset},${_nickname},${_liset.Value}]}" 14 FALSE
+            /call Bind_command_swap "${Ini["${INIset}",${_nickname},${_liset.Value}]}" 14 FALSE
           } else /if (${_liset.Value.Equal[range]}) {
-            /call Bind_command_swap "${Ini[${INIset},${_nickname},${_liset.Value}]}" 11 FALSE
+            /call Bind_command_swap "${Ini["${INIset}",${_nickname},${_liset.Value}]}" 11 FALSE
           } else /if (${_liset.Value.Equal[spellset]}) {
-            /squelch /memspellset ${Ini[${INIset},${_nickname},${_liset.Value}]}
+            /squelch /memspellset ${Ini["${INIset}",${_nickname},${_liset.Value}]}
           }
         } else {
-          /call do_raw_edit ${_debug} SILENT ${_liset.Value} ${Ini[${INIset},${_nickname},${_liset.Value}]}
+          /call do_raw_edit ${_debug} SILENT ${_liset.Value} ${Ini["${INIset}",${_nickname},${_liset.Value}]}
         }
       }
       /invoke ${_liset.Advance}
@@ -4649,7 +4630,7 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
     /if (!${Cursor.ID} && !${Bool[${_verbage}]}) {
       /invoke ${out[1, shade, 0]}
     } else {
-      /sqlite query ${DBloot} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
+      /sqlite query "${DBloot}" lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
       /if (!${sqlite.Rows[lootquery]}) {
         /invoke ${out[0, "DB settings for item${sep}\a-w${Cursor.Name}\ax"]}
         /invoke ${out[0, "${notice}${sep}\a-wnot in loot database\ax"]}
@@ -4671,12 +4652,12 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 
 
   | see if item is in the DB first?
-  /sqlite query ${DBloot} lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
+  /sqlite query "${DBloot}" lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
   /if (${sqlite.Status[lootquery].NotEqual[Success]} || !${sqlite.Rows[lootquery]}) {
     /if (${FindItem[=${Cursor.Name}].NoDrop} || ${FindItem[=${Cursor.Name}].Lore} || ${FindItemBank[${Cursor.Name}].Lore}) {
-      /sqlite query ${DBloot} lootquery INSERT INTO loot_control(item,action)  VALUES("${Cursor.Name}", "leave")
+      /sqlite query "${DBloot}" lootquery INSERT INTO loot_control(item,action)  VALUES("${Cursor.Name}", "leave")
     } else {
-      /sqlite query ${DBloot} lootquery INSERT INTO loot_control(item,action) VALUES("${Cursor.Name}", "keep")
+      /sqlite query "${DBloot}" lootquery INSERT INTO loot_control(item,action) VALUES("${Cursor.Name}", "keep")
     }
   }
 
@@ -4691,13 +4672,13 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
       /invoke ${out[1, shade, 0]}
     }
 
-    /sqlite query ${DBloot} lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${_item}"
+    /sqlite query "${DBloot}" lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${_item}"
     DEBUG ${sep}lootquery UPDATE loot_control SET action="${_type.Lower}" WHERE item="${_item}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
     OUT Cursor${sep}\aw${_item}\ax${sep}\a-w${_type.Lower}\ax
     /return TRUE
 
   } else /if (${_type.Equal[pass]}) {
-    /sqlite query ${DBloot} lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}"
+    /sqlite query "${DBloot}" lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}"
     DEBUG ${sep}lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
     OUT Cursor${sep}\aw${_verbage}\ax${sep}\a-wpass\ax
     /return TRUE
@@ -4748,10 +4729,6 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 
   } else /if (${_type.Equal[engage]}) {
     /if (!${set_control_num_range[${_debug}, stPctPetEngage, "${_verbage}", 0, 99]}) /return
-
-  | spell for pet
-  | } else /if (${_type.Equal[type]}) {
-  |   /invoke ${do_raw_edit[FALSE, SILENT, stPetType, "${_verbage}"]}
 
   | illusion for pet
   } else /if (${_type.Equal[illusion]}) {
@@ -4874,7 +4851,7 @@ sub Bind_command_entcast(string _name, string _target, bool _debug)
 
 |***
  * note: builds your group
- * use: /crew [1-12|kill]
+ * use: /crew
  *
  *  /grouproles set [NAME] [#]
  *   1=MainTank
@@ -4884,137 +4861,201 @@ sub Bind_command_entcast(string _name, string _target, bool _debug)
  *   5=MasterLooter         ${maCrew.Find[stCrew${_crew}Looter].Value}
  *  /makeleader [NAME] ..   ${maCrew.Find[stCrew${_crew}Leader].Value}
  ***|
-#bind command_crew /crew
-sub Bind_command_crew(string _type, bool _debug)
+#bind control_crew /crew
+sub Bind_control_crew(string _type, string _verbage, string _verbage2, string _adddelete, bool _debug)
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-    /call Bind_command_see maCrew
-    /return TRUE
-  } else /if (${_type.Equal[aux]}) {
+  | halop meh!
+  /if (${_type.Equal[aux]}) {
     /call Bind_command_aux crew
     /return TRUE
   }
 
+  | crew # design output
+  /if (${Range.Between[1,12:${Int[${_type}]}]} && ${_verbage.Equal[see]}) {
+    OUT Crew${sep}\a-w${_type}\ax
+    OUT \awstCrew${_type}Leader\ax${sep}\a-w${maCrew.Find[stCrew${_type}Leader].Value}\ax
+    OUT \awstCrew${_type}Assist\ax${sep}\a-w${maCrew.Find[stCrew${_type}Assist].Value}\ax
+    OUT \awstCrew${_type}Looter\ax${sep}\a-w${maCrew.Find[stCrew${_type}Looter].Value}\ax
+    /call Bind_command_see lsCrew${_type}
+    /return TRUE
+
+  | add/delete toons by name from the crew list
+  } else /if (${Range.Between[1,12:${Int[${_type}]}]} && ${_verbage.Equal[toon]}) {
+    
+    | population control
+    /if (${_adddelete.Equal[add]} && ${lsCrew${_type}.Count} >= 6) {
+      OUT Too damn many people in crew \a-w${_type}\ax, delete some..
+      /return FALSE
+    }
+
+    /call do_raw_edit ${_debug} FALSE lsCrew${_type} "${_verbage2}" ${_adddelete}
+
+    | clear any additional group rolls assigned to the removed person
+    /if (${_adddelete.Equal[delete]}) {
+      /if (${maCrew.Find[stCrew${_type}Leader].Value.Equal[${_verbage2}]}) {
+        /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Leader, FALSE]}
+      } 
+      /if (${maCrew.Find[stCrew${_type}Assist].Value.Equal[${_verbage2}]}) { 
+        /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Assist, FALSE]}
+      }
+      /if (${maCrew.Find[stCrew${_type}Looter].Value.Equal[${_verbage2}]}) {
+        /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Looter, FALSE]}
+      } 
+    }
+    
+    /return TRUE
+
+  | reset a crew to defaults
+  } else /if (${Range.Between[1,12:${Int[${_type}]}]} && ${_verbage.Equal[clear]}) {
+    /call do_raw_edit ${_debug} FALSE lsCrew${_type} clear
+    /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Leader, FALSE]}
+    /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Assist, FALSE]}
+    /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Looter, FALSE]}
+    
+    OUT Crew${_type}${sep}\a-wReset\ax
+    /return TRUE 
+
+  | build crew from current design
+  } else /if (${Range.Between[1,12:${Int[${_type}]}]} && ${_verbage.Equal[buildfrom]}) {
+    
+    OUT Building crew ${_type} from this group design.
+
+    /declare _count int local 0
+    
+    /for _count 0 to 5
+      /if (${Group.Member[${_count}].ID}) {
+        /call do_raw_edit ${_debug} TRUE lsCrew${_type} "${Group.Member[${_count}].DisplayName}" add
+      }
+    /next _count
+
+    /if (${Group.Leader.ID}) {
+      /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Leader, ${Group.Leader}]}
+    }
+    /if (${Group.MainAssist.ID}) {
+      /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Assist, ${Group.MainAssist}]}
+    }
+    /if (${Group.Leader.ID}) {
+      /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Looter, ${Group.MasterLooter}]}
+    }
+    /return TRUE
+
   | kill the crew
-  /if (${stCurrentCrew.NotEqual[empty]} && ${_type.Equal[kill]}) {
+  } else /if (${_type.Equal[kill]}) {
     /squelch /dgaexecute ${stCurrentCrew} /disband
     /delay 2
     /dgaexecute ${stCurrentCrew} /dleave ${stCurrentCrew}
     /delay 2
     /dgaexecute ${stCurrentCrew} /varset stCurrentCrew EMPTY
     /return TRUE
-  }
 
+  | form the group
+  } else /if (${Range.Between[1,12:${Int[${_type}]}]} && ${_verbage.Equal[form]}) {
 
-  | bail if no crew type listed
-  /if (!${Range.Between[1,12:${Int[${_type}]}]}) {
-    /invoke ${out[12, "/crew [\a-w1\ax-\a-w12\ax]"]}
-    /return FALSE
-  }
+    /invoke ${out[12, "\agForming\ax${sep}Crew\aw${_type}\ax"]}
+    /declare _licrew listiterator local
+    /vardata _licrew lsCrew${_type}.First.Clone
+    /while (!${_licrew.IsEnd}) {
 
-  | crew # empty?
-  /if (${lsCrew${_type}.Count} == 1 && ${lsCrew${_type}.First.Value.Equal[EMPTY]}) {
-    /invoke ${out[12, "${notice}${sep}lsCrew\a-w${_type}\ax is empty"]}
-    /return FALSE
-  }
-
-  /invoke ${out[12, "\agForming\ax${sep}Crew\aw${_type}\ax"]}
-  /declare _licrew listiterator local
-  /vardata _licrew lsCrew${_type}.First.Clone
-  /while (!${_licrew.IsEnd}) {
-
-    | skip me
-    /if (${_licrew.Value.Equal[${Me.DisplayName}]}) {
-      /djoin crew${_type}
-      /varset stCurrentCrew crew${_type}
-      /invoke ${_licrew.Advance}
-      /continue
-    }
-
-    | are they part of our comm group?
-    /if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_licrew.Value}]}) {
-
-      | do they exist?
-      /dquery ${_licrew.Value} -q "Me.Height" -o DNQReturn -t 5
-
-      /if (!${Bool[${DNQReturn}]}) {
+      | skip me
+      /if (${_licrew.Value.Equal[${Me.DisplayName}]}) {
+        /djoin crew${_type}
+        /varset stCurrentCrew crew${_type}
         /invoke ${_licrew.Advance}
         /continue
       }
-      /if (!${Group.Leader.Name.Equal[${Me.DisplayName}]}) {
-        /disband
-        /delay 5
-        /raiddisband
-        /delay 5
-      }
 
-      | are they in the group already?
-      /if (${Group.Member[${_licrew.Value}].Index}) {
+      | are they part of our comm group?
+      /if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_licrew.Value}]}) {
+
+        | do they exist?
+        /dquery ${_licrew.Value} -q "Me.Height" -o DNQReturn -t 5
+
+        /if (!${Bool[${DNQReturn}]}) {
+          /invoke ${_licrew.Advance}
+          /continue
+        }
+        /if (!${Group.Leader.Name.Equal[${Me.DisplayName}]}) {
+          /disband
+          /delay 5
+          /raiddisband
+          /delay 5
+        }
+
+        | are they in the group already?
+        /if (${Group.Member[${_licrew.Value}].Index}) {
+          /dexecute ${_licrew.Value} /varset stCurrentCrew crew${_type}
+          /invoke ${_licrew.Advance}
+          /continue
+        }
+
+        | not part of our group
+        | drop what they are doing!
+        /dexecute ${_licrew.Value} /disband
+        /delay 5
+        /dexecute ${_licrew.Value} /raiddisband
+        /delay 5
+
+        | have the  invitee clear their target
+        /dexecute ${_licrew.Value} /squelch /target clear
+
+        | send invite
+        /invoke ${out[12, "Inviting${sep}\a-w${_licrew.Value}\ax"]}
+        /invite ${_licrew.Value}
+
+        | execute invite accept command
+        /dexecute ${_licrew.Value} /invite
+
+        | join needed crew channel
+        /dexecute ${_licrew.Value} /djoin crew${_type}
+
+        | set crew marker
         /dexecute ${_licrew.Value} /varset stCurrentCrew crew${_type}
-        /invoke ${_licrew.Advance}
-        /continue
       }
 
-      | not part of our group
-      | drop what they are doing!
-      /dexecute ${_licrew.Value} /disband
-      /delay 5
-      /dexecute ${_licrew.Value} /raiddisband
-      /delay 5
-
-      | have the  invitee clear their target
-      /dexecute ${_licrew.Value} /squelch /target clear
-
-      | send invite
-      /invoke ${out[12, "Inviting${sep}\a-w${_licrew.Value}\ax"]}
-      /invite ${_licrew.Value}
-
-      | execute invite accept command
-      /dexecute ${_licrew.Value} /invite
-
-      | join needed crew channel
-      /dexecute ${_licrew.Value} /djoin crew${_type}
-
-      | set crew marker
-      /dexecute ${_licrew.Value} /varset stCurrentCrew crew${_type}
+      /invoke ${_licrew.Advance}
     }
 
-    /invoke ${_licrew.Advance}
+    | lag control
+    /delay 5
+
+    | dont try to make changes if you're not the boss
+    /if (${Group.Leader.Name.NotEqual[${Me.DisplayName}]}) {
+      /goto :notmyresponsibilitybitch
+    }
+
+    | set group looter
+    /delay 5
+    /if (${Bool[${maCrew.Find[stCrew${_type}Looter].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_type}Looter].Value}].Index}) {
+      /grouproles set ${maCrew.Find[stCrew${_type}Looter].Value} 5
+    }
+
+    | set group assist
+    /delay 5
+    DEBUG ${sep}${maCrew.Find[stCrew${_type}Assist].Value}
+    DEBUG ${sep}${Bool[${maCrew.Find[stCrew${_type}Assist].Value}]} && (${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} || ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} == 0)
+    /if (${Bool[${maCrew.Find[stCrew${_type}Assist].Value}]} && (${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} || ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} == 0)) {
+      /grouproles set ${maCrew.Find[stCrew${_type}Assist].Value} 2
+    }
+
+    | set group leader
+    /delay 5
+    DEBUG ${sep}${Bool[${maCrew.Find[stCrew${_type}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_type}Leader].Value}].Index}
+    /if (${Bool[${maCrew.Find[stCrew${_type}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_type}Leader].Value}].Index}) {
+      /makeleader ${maCrew.Find[stCrew${_type}Leader].Value}
+    }
+    /delay 5s
+    :notmyresponsibilitybitch
+    /invoke ${out[12, "\awLeader\ax${sep}\a-w${Group.Leader}\ax ${dot} \awMA\ax${sep}\a-w${Group.MainAssist}\ax ${dot} \awLooter\ax${sep}\a-w${Group.MasterLooter}\ax"]}
+    /invoke ${out[12, "\agCompleted\ax${sep}Crew\aw${_type}\ax"]}
   }
 
-  | lag control
-  /delay 5
-
-  | dont try to make changes if you're not the boss
-  /if (${Group.Leader.Name.NotEqual[${Me.DisplayName}]}) {
-    /goto :notmyresponsibilitybitch
-  }
-
-  | set group looter
-  /delay 5
-  /if (${Bool[${maCrew.Find[stCrew${_type}Looter].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_type}Looter].Value}].Index}) {
-    /grouproles set ${maCrew.Find[stCrew${_type}Looter].Value} 5
-  }
-
-  | set group assist
-  /delay 5
-  DEBUG ${sep}${maCrew.Find[stCrew${_type}Assist].Value}
-  DEBUG ${sep}${Bool[${maCrew.Find[stCrew${_type}Assist].Value}]} && (${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} || ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} == 0)
-  /if (${Bool[${maCrew.Find[stCrew${_type}Assist].Value}]} && (${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} || ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} == 0)) {
-    /grouproles set ${maCrew.Find[stCrew${_type}Assist].Value} 2
-  }
-
-  | set group leader
-  /delay 5
-  DEBUG ${sep}${Bool[${maCrew.Find[stCrew${_type}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_type}Leader].Value}].Index}
-  /if (${Bool[${maCrew.Find[stCrew${_type}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_type}Leader].Value}].Index}) {
-    /makeleader ${maCrew.Find[stCrew${_type}Leader].Value}
-  }
-  /delay 5s
-  :notmyresponsibilitybitch
-  /invoke ${out[12, "\awLeader\ax${sep}\a-w${Group.Leader}\ax ${dot} \awMA\ax${sep}\a-w${Group.MainAssist}\ax ${dot} \awLooter\ax${sep}\a-w${Group.MasterLooter}\ax"]}
-  /invoke ${out[12, "\agCompleted\ax${sep}Crew\aw${_type}\ax"]}
+  /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[list,list]}
+  /invoke ${maControl.Add[kill,option]}
+  /invoke ${maControl.Add[buildfrom,out]}
+  /invoke ${maControl.Add[form,out]}
+  
+  /invoke ${set_control_output[${_debug}, maCrew, crew, maControl]}
 
 /return TRUE
 
@@ -5183,7 +5224,7 @@ sub Bind_command_condition()
   ECHO
   /invoke ${out[12, "\awCondition List\ax${sep}"]}
   /for _count 1 to 50
-    /sqlite query ${DBcharacter} condition SELECT value FROM environment_condition WHERE env_var="c${_count}"
+    /sqlite query "${DBcharacter}" condition SELECT value FROM environment_condition WHERE env_var="c${_count}"
     /if (!${sql_check[FALSE, condition, Bind_command_see, SELECT]}) /endmacro
     /if (${Parse[1,${sqlite.Result[condition 1 value].Equal[FALSE]}]}) /continue
     OUT \awc${_count}\ax${sep}\a-w${Parse[1,${sqlite.Result[condition 1 value]}]}\ax
@@ -5207,6 +5248,10 @@ sub Bind_control_clickitem(string _type, string _verbage, string _verbage2, stri
     /call control_base_edit ${maDebug.Find[edit].Value} Item 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
     /return TRUE
   }
+
+  /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[list,list]}
+  /invoke ${set_control_output[${_debug}, maItem, clickitem, maControl]}
 
 /return TRUE
 
@@ -5237,6 +5282,7 @@ sub Bind_control_defense(string _type, string _verbage, string _verbage2, string
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[count,stCountDef]}
   /invoke ${maControl.Add[pct,stPctDef]}
+  /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[${_debug}, maDefense, defense, maControl]}
 
 /return TRUE
@@ -5266,7 +5312,7 @@ sub Bind_control_TTL(string _type, string _verbage, string _silent, bool _debug)
 
   | clear the TTL statiestics
   } else /if (${_type.Equal[clear]}) {
-    /sqlite query ${DBcharacter} dummy SELECT swTTL FROM environment_character
+    /sqlite query "${DBcharacter}" dummy SELECT swTTL FROM environment_character
     /invoke ${maTTL.Clear}
     /invoke ${maTTL.Add[swTTL,${sqlite.Result[dummy 1 swTTL]}]}
     /invoke ${maTTL.Add[stTTLTimeStart,0]}
@@ -5308,6 +5354,7 @@ sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _a
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[pctstop,stPctStopNuke]}
   /invoke ${maControl.Add[delay,stNukeDelay]}
+  /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[${_debug}, maNuke, nuke, maControl]}
 
 /return TRUE
@@ -5340,6 +5387,7 @@ sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _ad
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[pctstop,stPctStopDoT]}
   /invoke ${maControl.Add[refresh,stDotRefresh]}
+  /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[${_debug}, maDoT, dot, maControl]}
 
 /return TRUE
@@ -5353,6 +5401,11 @@ sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _ad
 #Bind control_agro /agro
 sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atcontrol_agro\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
+
+  /if (ENGINE1 && ${Select[${_type},list]}) {
+    /invoke ${out[0, "/agro list is only available with engine 2/3 enabled."]}
+    /return FALSE
+  }
 
   /if (ENGINE2 || ENGINE3) {
     /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
@@ -5380,6 +5433,7 @@ sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _a
     /invoke ${maControl.Add[taunt,stPctTaunt]}
     /invoke ${maControl.Add[hold,stPctAgroHold]}
   }
+  /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[${_debug}, maAgro, agro, maControl]}
 
 /return TRUE
@@ -5404,6 +5458,9 @@ sub Bind_control_miscdps(string _type, string _verbage, string _verbage2, string
     /return TRUE
   }
 
+  /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[list,list]}
+  /invoke ${set_control_output[${_debug}, maMiscDPS, "miscdps", maControl]}
 
 /return TRUE
 
@@ -5426,6 +5483,10 @@ sub Bind_control_song(string _type, string _verbage, string _verbage2, string _a
     /call control_base_edit ${maDebug.Find[edit].Value} Song 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
     /return TRUE
   }
+
+  /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[list,list]}
+  /invoke ${set_control_output[${_debug}, maSong, "song", maControl]}
 
 /return TRUE
 
@@ -5486,6 +5547,7 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _a
     /invoke ${maControl.Add[flash,submenu]}
   }
 
+  /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[${_debug}, maSash, sash, maControl]}
 
 /return TRUE
@@ -5502,10 +5564,6 @@ sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _s
 
   | output control map
   /if (${_type.Equal[see]}) {
-
-
-
-
 
 
 
@@ -5656,7 +5714,6 @@ sub Bind_control_pred(string _type, string _verbage, string _verbage2, string _s
  ***|
 sub control_pred(bool _debug)
   DEBUG \atcontrol_pred\ax()
-  | FLOW control_pred (1)
 
   | nothing to check
   /if (!${Bool[${maPred.Find[stPredID].Value}]}) {
@@ -5764,7 +5821,7 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
       DEBUG ${sep}delete tag_validate${sep}\a-w${_grouping}, ${_tagname}\ax
 
       | see if it is even there?
-      /sqlite query ${DBshared} dummy SELECT * FROM tag_validate LEFT JOIN tag ON tag_validate.tag = tag.id LEFT JOIN tag_group ON tag_validate.grouping = tag_group.id WHERE tag_group.grouping = "${_grouping}" AND tag.name = "${_tagname}" AND tag_validate.created_by <> 1;
+      /sqlite query "${DBshared}" dummy SELECT * FROM tag_validate LEFT JOIN tag ON tag_validate.tag = tag.id LEFT JOIN tag_group ON tag_validate.grouping = tag_group.id WHERE tag_group.grouping = "${_grouping}" AND tag.name = "${_tagname}" AND tag_validate.created_by <> 1;
 
       /if (!${sqlite.Rows[dummy]}) {
         OUT Something is invalid${sep}\a-r${_grouping}\ax, \a-r${_tagname}\ax
@@ -5772,7 +5829,7 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
       }
 
       | delete the bastard
-      /sqlite query ${DBshared} dummy DELETE FROM tag_validate WHERE tag IN (SELECT tag.id FROM tag WHERE tag.name = "${_tagname}") AND grouping = (SELECT tag_group.id FROM tag_group WHERE tag_group.grouping = "${_grouping}") AND created_by <> 1;
+      /sqlite query "${DBshared}" dummy DELETE FROM tag_validate WHERE tag IN (SELECT tag.id FROM tag WHERE tag.name = "${_tagname}") AND grouping = (SELECT tag_group.id FROM tag_group WHERE tag_group.grouping = "${_grouping}") AND created_by <> 1;
       OUT Evaluation Deleted${sep}\aw${_grouping}\ax${sep}\a-t${_tagname}\ax
       /return TRUE
 
@@ -5783,14 +5840,14 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
       DEBUG ${sep}delete tag${sep}\a-t${_grouping}\ax
 
       | see if the tag is there
-      /sqlite query ${DBshared} dummy SELECT * FROM tag WHERE tag.name = "${_grouping}" AND created_by <> 1;
+      /sqlite query "${DBshared}" dummy SELECT * FROM tag WHERE tag.name = "${_grouping}" AND created_by <> 1;
       /if (!${sqlite.Rows[dummy]}) {
         OUT Something is invalid${sep}\a-w${_grouping}\ax
         /return FALSE
       }
 
       | make sure the tag isn't being used somewhere?!
-      /sqlite query ${DBshared} dummy SELECT created_by FROM tag_validate WHERE tag=(SELECT id FROM tag WHERE name="${_grouping}") AND created_by <> 1;
+      /sqlite query "${DBshared}" dummy SELECT created_by FROM tag_validate WHERE tag=(SELECT id FROM tag WHERE name="${_grouping}") AND created_by <> 1;
 
       /if (${sqlite.Rows[dummy]}) {
         OUT Tag is currently attached to an evaluation${sep}\a-w${_grouping}\ax
@@ -5799,7 +5856,7 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
       }
 
       | delete it, now that we are passed the checks
-      /sqlite query ${DBshared} dummy DELETE FROM tag WHERE tag.name = "${_grouping}" AND created_by <> 1;
+      /sqlite query "${DBshared}" dummy DELETE FROM tag WHERE tag.name = "${_grouping}" AND created_by <> 1;
       OUT Tag Deleted${sep}\a-t${_grouping}\ax
 
       /return TRUE
@@ -5807,7 +5864,7 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
   }
 
   | help / lists
-  /sqlite query ${DBshared} dummy SELECT grouping FROM tag_group WHERE grouping="${_grouping}";
+  /sqlite query "${DBshared}" dummy SELECT grouping FROM tag_group WHERE grouping="${_grouping}";
 
   /if (!${sqlite.Rows[dummy]} && !${Select[${_grouping},list,see]}) {
     ECHO
@@ -5816,7 +5873,7 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
     OUT To delete an evaluation${sep}\a-w/tag groupname tagname delete\ax
     OUT To delete a tag${sep}\a-w/tag tagname delete\ax
     /declare _out string local
-    /sqlite query ${DBshared} dummy SELECT grouping FROM tag_group;
+    /sqlite query "${DBshared}" dummy SELECT grouping FROM tag_group;
     /for _count 1 to ${sqlite.Rows[dummy]}
       /varset _out ${_out} ${dot} \a-w${sqlite.Result[dummy ${_count} grouping]}\ax
     /next _count
@@ -5826,7 +5883,7 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
 
 
   /if (!${sqlite.Rows[dummy]} || ${Select[${_grouping},list,see]}) {
-    /sqlite query ${DBshared} dummy SELECT tag_group.grouping, tag.name, tag_validate.created_by, tag_validate.eval, tag_validate.aux FROM tag_validate LEFT JOIN tag ON tag_validate.tag = tag.id LEFT JOIN tag_group ON tag_validate.grouping = tag_group.id ORDER BY tag_group.grouping, tag.name
+    /sqlite query "${DBshared}" dummy SELECT tag_group.grouping, tag.name, tag_validate.created_by, tag_validate.eval, tag_validate.aux FROM tag_validate LEFT JOIN tag ON tag_validate.tag = tag.id LEFT JOIN tag_group ON tag_validate.grouping = tag_group.id ORDER BY tag_group.grouping, tag.name
     /if (${Select[${_grouping},list,see]} && !${Bool[${_tagname}]}) {
       /for _count 1 to ${sqlite.Rows[dummy]}
         /if (${Parse[99,${sqlite.Result[dummy ${_count} eval].Find[::]}]}) {
@@ -5873,7 +5930,7 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
   }
 
   | check the tag first. do not let them make tags that already exist
-  /sqlite query ${DBshared} dummy SELECT name, created_by FROM tag WHERE created_by = '1' AND name = '${_tagname}';
+  /sqlite query "${DBshared}" dummy SELECT name, created_by FROM tag WHERE created_by = '1' AND name = '${_tagname}';
   |**
 
   /if (${sqlite.Rows[dummy]}) {
@@ -5885,10 +5942,10 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
   **|
 
   | create the tag if it does not exist
-  /sqlite query ${DBshared} dummy INSERT INTO tag (name, created_by) VALUES ("${_tagname}", 2);
+  /sqlite query "${DBshared}" dummy INSERT INTO tag (name, created_by) VALUES ("${_tagname}", 2);
 
   | check if what they want to do is trying to overwrite the defaults?
-  /sqlite query ${DBshared} dummy SELECT created_by, eval FROM tag_validate WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}') AND created_by = '1';
+  /sqlite query "${DBshared}" dummy SELECT created_by, eval FROM tag_validate WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}') AND created_by = '1';
   /if (!${sql_check[FALSE, dummy, Bind_noparse_tag, "SELECT (created_by)"]}) /endmacro
 
   /if (${sqlite.Rows[dummy]}) {
@@ -5899,15 +5956,15 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
   }
 
   | see if what we are trying to make is there?
-  /sqlite query ${DBshared} dummy SELECT created_by, eval FROM tag_validate WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}') AND created_by = '2';
+  /sqlite query "${DBshared}" dummy SELECT created_by, eval FROM tag_validate WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}') AND created_by = '2';
 
   | if it is there, we update the current one
   /if (${sqlite.Rows[dummy]}) {
     | tag exists, update
-    /sqlite query ${DBshared} dummy UPDATE tag_validate SET eval="${Parse[1,${_eval}]}" WHERE grouping=(SELECT id FROM tag_group WHERE grouping="${_grouping}") AND tag=(SELECT id FROM tag WHERE name="${_tagname}");
+    /sqlite query "${DBshared}" dummy UPDATE tag_validate SET eval="${Parse[1,${_eval}]}" WHERE grouping=(SELECT id FROM tag_group WHERE grouping="${_grouping}") AND tag=(SELECT id FROM tag WHERE name="${_tagname}");
     /if (!${sql_check[${_debug}, dummy, Bind_noparse_tag, "UPDATE (tag_validate)"]}) /endmacro
 
-    /sqlite query ${DBshared} dummy SELECT created_by, eval FROM tag_validate WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}') AND created_by = '2';
+    /sqlite query "${DBshared}" dummy SELECT created_by, eval FROM tag_validate WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}') AND created_by = '2';
     /if (!${_silent}) {
       OUT Evaluation Updated${sep}\aw${_grouping}\ax${sep}${If[${sqlite.Result[dummy 1 created_by].Equal[1]},\aw${_tagname}\ax,\at${_tagname}\ax]}${sep}\a-w${Parse[1,${_eval}]}\ax
       DEBUG ${sep}clear q${_grouping.Left[1].Upper}${_grouping.Right[-1].Lower}_${_tagname}
@@ -5918,10 +5975,10 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
   | if its not there, we create/insert a new on
   } else /if (!${sqlite.Rows[dummy]}) {
     | insert
-    /sqlite query ${DBshared} dummy INSERT INTO tag_validate (tag, grouping, eval, created_by) SELECT tag.id, tag_group.id, "${Parse[1,${_eval}]}", 2 FROM tag CROSS JOIN tag_group WHERE tag.name="${_tagname}" AND tag_group.grouping="${_grouping}" LIMIT 1;
+    /sqlite query "${DBshared}" dummy INSERT INTO tag_validate (tag, grouping, eval, created_by) SELECT tag.id, tag_group.id, "${Parse[1,${_eval}]}", 2 FROM tag CROSS JOIN tag_group WHERE tag.name="${_tagname}" AND tag_group.grouping="${_grouping}" LIMIT 1;
     /if (!${sql_check[${_debug}, dummy, Bind_noparse_tag, "INSERT INTO (tag_validate)"]}) /endmacro
     | check it
-    /sqlite query ${DBshared} dummy SELECT created_by, eval FROM tag_validate WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}') AND created_by = '2';
+    /sqlite query "${DBshared}" dummy SELECT created_by, eval FROM tag_validate WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}') AND created_by = '2';
     /if (${sqlite.Rows[dummy]} && !${_silent})  {
       OUT Tag and Evaluation Created${sep}\aw${_grouping}\ax${sep}\aw${If[${sqlite.Result[dummy 1 created_by].Equal[2]},\at${_tagname}\ax,\aw${_tagname}\ax]}\ax${sep}\a-w${Parse[1,${_eval}]}\ax
     }
@@ -5969,6 +6026,7 @@ sub Bind_control_gtfo(string _type, string _verbage, string _verbage2, string _a
   /invoke ${maControl.Add[active,swGTFOActive]}
   /invoke ${maControl.Add[dead,stCountGTFODead]}
   /invoke ${maControl.Add[spawns,stCountGTFOSpawns]}
+  /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[${_debug}, maGTFO, gtfo, maControl]}
 
 /return TRUE
@@ -6149,6 +6207,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   /invoke ${maControl.Add[with,submenu]}
   /invoke ${maControl.Add[sethome,swPullSetHome]}
   /invoke ${maControl.Add[navstop,stPullNavStopDistance]}
+  /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[FALSE, maPull, "pull", maControl]}
 
 /return TRUE

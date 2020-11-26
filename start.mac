@@ -61,7 +61,6 @@
 #define CHECKCURSOR "/if (${Cursor.ID} && !${timer_Check_Cursor} && ((AUTO && ${maEnv.Find[swAutoInv].Value}) || ${maEntropy.Find[swAutoInvManual].Value})) /call check_cursor ${maDebug.Find[loot].Value}"
 #define SETHUD "/call set_hud_data"
 #define CHECKDEFENSE  "/call cast_cycle_defense ${maDebug.Find[def].Value}"
-| #define FLOW "/if (${maDebug.Find[flow].Value}) /varset flow ${stAssTarID} ::"
 #define ENGINE1 ${maEntropy.Find[stEngine].Value.Equal[1]}
 #define ENGINE2 ${maEntropy.Find[stEngine].Value.Equal[2]}
 #define ENGINE3 ${maEntropy.Find[stEngine].Value.Equal[3]}
@@ -108,7 +107,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 201123.04
+  /call set_data FALSE maEnv build                          map outer 201126.01
   /call set_data FALSE maEnv schema                         map outer 1.20
   /call set_data FALSE maEnv repo                           map outer 201104.01
 
@@ -375,28 +374,28 @@ sub prepare_the_end(bool _debug)
   /declare _pathINI string local Macros
 
   /if (NEXT) {
-    /varset _pathDB ${MacroQuest.Path[macros]}
-    /varset _pathINI ${MacroQuest.Path[macros]}\entropy
+    /varset _pathDB "${MacroQuest.Path[macros]}"
+    /varset _pathINI "${MacroQuest.Path[macros]}\entropy"
   }
 
   | character database
   /call set_data FALSE FALSE chrID                                   string outer ${MacroQuest.Server.Replace[ ,_].Lower}_${Me.Class.ShortName}_${Me.DisplayName}
   | character database
-  /call set_data FALSE FALSE DBcharacter                             string outer ${_pathDB}\entropy\data\${chrID}.sqlite
+  /call set_data FALSE FALSE DBcharacter                             string outer "${_pathDB}\entropy\data\${chrID}.sqlite"
   | set raw data database
-  /call set_data FALSE FALSE DBstatic                                string outer ${_pathDB}\entropy\entropy.sqlite
+  /call set_data FALSE FALSE DBstatic                                string outer "${_pathDB}\entropy\entropy.sqlite"
   | set loot database
-  /call set_data FALSE FALSE DBloot                                  string outer ${_pathDB}\entropy\data\loot.sqlite
+  /call set_data FALSE FALSE DBloot                                  string outer "${_pathDB}\entropy\data\loot.sqlite"
   | set loot database
-  /call set_data FALSE FALSE DBnav                                   string outer ${_pathDB}\entropy\data\nav.sqlite
+  /call set_data FALSE FALSE DBnav                                   string outer "${_pathDB}\entropy\data\nav.sqlite"
   | set zone database
-  /call set_data FALSE FALSE DBzone                                  string outer ${_pathDB}\entropy\data\zone.sqlite
+  /call set_data FALSE FALSE DBzone                                  string outer "${_pathDB}\entropy\data\zone.sqlite"
   | set ini set location
-  /call set_data FALSE FALSE INIset                                  string outer ${_pathINI}\data\sets.ini
+  /call set_data FALSE FALSE INIset                                  string outer "${_pathINI}\data\sets.ini"
   | shared crew database
-  /call set_data FALSE FALSE DBshared                                string outer ${_pathDB}\entropy\data\shared.sqlite
+  /call set_data FALSE FALSE DBshared                                string outer "${_pathDB}\entropy\data\shared.sqlite"
   | farmroute location ini
-  /call set_data FALSE FALSE INIfarmroute                            string outer ${_pathINI}\data\farmroute.ini
+  /call set_data FALSE FALSE INIfarmroute                            string outer "${_pathINI}\data\farmroute.ini"
 
   | fuck MQ2Melee
   /if (${check_plugin[FALSE, FALSE, |mq2melee]}) {
