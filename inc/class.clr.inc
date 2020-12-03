@@ -283,7 +283,6 @@ sub check_heal(bool _debug, string _type)
   CHECKFADE
   GETINPUT clr_heal_start type|${_type}
 
-  SETHUD "heal ${_type.Lower}"
 
   | Group Regen Heal
   /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
@@ -310,6 +309,10 @@ sub check_heal(bool _debug, string _type)
     /delay 1
     /return
   }
+
+  SETHUD "heal ${_type.Lower}"
+
+
 
   /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
@@ -487,11 +490,6 @@ sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
 
   ISMEDEAD
-
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
-
   CHECKEXIT
   GETINPUT clr_burn NA|NA
   CHECKTIE

@@ -21,6 +21,70 @@ on the to do list
 --------------------
 
 
+201203.01
+- /env nukeloop has been moved out of env
+  it is now /nuke loop
+- some DB moves; the following variables have moved tables
+  character::stPctStopNuke -> nuke::stPctStopNuke
+  character::stNukeDelay -> nuke::stNukeDelay
+  character::swNukeLoop -> nuke::swNukeLoop
+  character::stDotRefresh -> dot::stDotRefresh
+  character::stPctStopDoT -> dot::stPctStopDoT
+  You will need to reset thes variables if  you were using them
+- small adjustment to DB pathing for MQ2Next. why are people putting spaces everywhere?
+- some updates to mybuttons
+- bard
+  corrected a couple unprotected defines for PREGEN
+- cleric
+  will hold its target a little more so it doesnt look so mechanical
+- xtarget
+  added in additional checks for the protect list to prevent duplication in the xtarget build
+- mana class check added for nuking mana % stop
+- all overrides that are enabled will be displayed at the macro start
+- pull
+  added a los check for additional pullers to engage
+  some small changes to how pullers wait for mobs get back to camp on a pull
+  disabled arc pulling till i can figure out why my math sucks
+- buffing
+  group and raid are now adapted to use SPA to get best spell in book
+- CC shouldnt lock targets while invis anymore
+- /entropy dannet
+  nettimeout ## - will adjust observer delay (10ths/second)
+  querydelay ## - will adjust the max time to wait for a response from a query (10ths/second)
+- corrected a collections crash in single/no entry commands
+
+- there has been a complete rewrite of the /crew command and EVERYTHING associated with it
+  - channel communication
+  - group formation
+  - available roles
+  - shared data
+  the following is a summary of the new commands
+  i suggest you read the wiki for a full description
+  
+  /crew add character - creates character in db (this is also done auto on login for that toon)
+  /crew add crewname - adds a crewname to the database
+  /crew add member - adds a character to a crewname
+  /crew add role - adds a character to a role ( leader, assist, so on)
+  /crew list - NA|crewname
+  /crew delete crewname - deletes a crewname and all associated roles
+  /crew delete role - deletes a character role from a crewname
+  /crew form name - forms a crewname and assigns roles
+
+- commands: /here /take /enter /on /off
+  now have the following options
+  all - covers all toons in your entropyall dannet channel
+  group - covers your group members
+  zone - all dannet members in your zone
+  raid - all dannet members in your raid
+  the commands /here /on /off are not executed by the issuer as usual
+  you can set a default channel for each of these commands as well
+  a command issued w/o an option will execute the default option
+  eg. /here broadcast [group|raid|zone|all]
+  
+
+
+
+
 201126.01
 - controls that have list additions will not show [list] in the options
 - override splashhurt
@@ -28,12 +92,12 @@ on the to do list
 - magician
   cosmetic changes to the class controls to match the last set of changes
 - cleric
+
   cosmetic changes to the class controls to match the last set of changes
 - moved all dannet query delay times to the DB.
 - corrected DB pathings to account for spaces
 - corrected INI pathings to account for spaces
 - small change to loot auto delete
-
 
 
 201123.04

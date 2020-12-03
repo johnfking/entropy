@@ -34,8 +34,8 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr swCharm                          FALSE                         "${auxsw} enable using charm"
 
   | nights endless terror
-  /call set_data_map ${_debug} maChr stTerror                         PREGEN|1                      "${auxna} name of terror spell"
-  /call set_data_list ${_debug} maChr lsTerrorToon                    EMPTY                         "${auxli} list of toons you want to keep terror buff on"
+  | /call set_data_map ${_debug} maChr stTerror                         PREGEN|1                      "${auxna} name of terror spell"
+  | /call set_data_list ${_debug} maChr lsTerrorToon                    EMPTY                         "${auxli} list of toons you want to keep terror buff on"
 
   /call set_data_map ${_debug} maChr stPctGather                      0                             "${auxnum} % of manna you want to use gather at"
 
@@ -123,9 +123,9 @@ sub class_main(bool _debug)
       /call control_routine ${maDebug.Find[mez].Value}
       /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
       /call control_routine ${maDebug.Find[mez].Value}
-      /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-        /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTerror lsTerrorToon
-      }
+      | /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
+      |   /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTerror lsTerrorToon
+      | }
       /call control_routine ${maDebug.Find[mez].Value}
       | /if (${swAlliance}) /call trigger_alliance TARGET
 

@@ -239,7 +239,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     /return TRUE
 
   } else /if (${_type.Equal[pregen]}) {
-    /invoke ${out[0, "Checking \aw${MacroQuest.Server}_${Me.Class.ShortName}_${Me.DisplayName}\ax${sep}\awenvironment_character\ax table for updated skills/spells/AAs${sep}"]}
+    /invoke ${out[0, "Checking \aw${MacroQuest.Server.Replace[ ,_].Lower}_${Me.Class.ShortName}_${Me.DisplayName}\ax${sep}\awenvironment_character\ax table for updated skills/spells/AAs${sep}"]}
     /varset pregenUpdate TRUE
     /call class_init ${maDebug.Find[init].Value}
     /varset pregenUpdate FALSE
@@ -267,7 +267,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
   } else /if (${_type.Equal[out]}) {
     OUT Listing stored output strings.
     /declare _count int local 0 
-    /sqlite query "${DBstatic}" dummycount SELECT Count(*) as data FROM string;
+    /sqlite query "${DBstatic}" dummycount SELECT Count(*) AS data FROM string;
     /for _count 1 to ${sqlite.Result[dummycount 1 data]}
       /sqlite query "${DBstatic}" dummy SELECT * FROM string WHERE ROWID=${_count};
       OUT ${_count}${sep}${Parse[1,${sqlite.Result[dummy 1 value]}]}
@@ -295,17 +295,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
   | delete entropy aliases
   } else /if (${_type.Equal[whitewash]}) {
-    
-    OUT deleting all /aliase commands created by entropy
-    /declare _lidel listiterator local
-    /vardata _lidel liAlias.First.Clone
-    /while (!${_lidel.IsEnd}) {
-      /invoke ${out[12, "Deleting Alias${sep}\a-w${_lidel.Value}\ax"]}
-      /squelch /alias /${_lidel.Value} delete
-      /invoke ${_lidel.Advance}
-    }
-    /invoke ${out[12, "Current Build ${info}${maEnv.Find[build].Value}\ax ${dot} ${bad}Ended\ax"]}
-    /endmacro
+    /call set_alias delete ${maDebug.Find[init].Value}
     /return TRUE
 
   | parse SPA data
@@ -514,15 +504,15 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
   /if (${_silent.Equal[SILENT]}) /return
   /invoke ${out[12, "PID${sep}\a-w${EverQuest.PID}\ax"]}
   /invoke ${maControl.Clear}
-  /invoke ${maControl.Add[checkvar,option]}
-  /invoke ${maControl.Add[spa,option]}
+  /invoke ${maControl.Add[checkvar,out]}
+  /invoke ${maControl.Add[spa,out]}
   /invoke ${maControl.Add[whitewash,option]}
-  /invoke ${maControl.Add[import,option]}
-  /invoke ${maControl.Add[keymap,option]}
-  /invoke ${maControl.Add[see,option]}
+  | /invoke ${maControl.Add[import,out]}
+  /invoke ${maControl.Add[keymap,out]}
+  /invoke ${maControl.Add[see,out]}
   /invoke ${maControl.Add[sqlcheck,option]}
-  /invoke ${maControl.Add[sqldrop,option]}
-  /invoke ${maControl.Add[out,option]}
+  /invoke ${maControl.Add[sqldrop,out]}
+  /invoke ${maControl.Add[out,out]}
   /invoke ${maControl.Add[zonerefresh,option]}
   /invoke ${maControl.Add[doloot,option]}
   /invoke ${set_control_output[${_debug}, maEnv, "admin", maControl]}
@@ -565,7 +555,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
         }
       }
     }
-    /invoke ${popup["/env auto ${maEnv.Find[swAuto].Value}"]}
+    /invoke ${out_popup["/env auto ${maEnv.Find[swAuto].Value}"]}
     /return TRUE
 
   | enable wasiting fireworks for those bastards with too much AA on their hands
@@ -666,10 +656,6 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
   } else /if (${_type.Equal[moblvlmax]}) {
     /if (!${set_control_num_range[${_debug}, stMobLvlMax, "${_verbage}", 1, 500]}) /return
 
-  | force a nuke loop till all are casted before exiting
-  } else /if (${_type.Equal[nukeloop]}) {
-    /invoke ${set_switch_env[FALSE, swNukeLoop, TRUE, ${_verbage}]}
-
   | loot modes
   } else /if (${_type.Equal[loot]}) {
     /if (${_verbage.Equal[off]}) {
@@ -763,13 +749,17 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
     }
 
   | shortcut for the build set routine
-  } else /if (${_type.Equal[SET]}) {
+  } else /if (${_type.Equal[set]}) {
     /if (${Select[${_verbage},FALSE,off]} || !${Ini["${INIset}"].Find[${_verbage}]}) {
       /invoke ${do_raw_edit[${_debug}, SILENT, stBuildSetCurrent, FALSE]}
     } else {
       /call Bind_control_build set ${_verbage}
       /return TRUE
     }
+
+
+
+
 
   }
 
@@ -780,12 +770,12 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
   /invoke ${maControl.Add[rest,submenu]}
   /invoke ${maControl.Add[meal,submenu]}
   /invoke ${maControl.Add[exp,submenu]}
+  /invoke ${maControl.Add[incharge,option]}
   | /invoke ${maControl.Add[advloot,swADVLoot]}
   /invoke ${maControl.Add[loot,submenu]}
   /invoke ${maControl.Add[autoinv,swAutoInv]}
   /invoke ${maControl.Add[buffgem,stBuffGem]}
   /invoke ${maControl.Add[buffgemhold,swHoldBuffGem]}
-  /invoke ${maControl.Add[nukeloop,swNukeLoop]}
   /invoke ${maControl.Add[safelistguild,swSafeListGuild]}
   /invoke ${maControl.Add[moblvlmax,stMobLvlMax]}
   /invoke ${maControl.Add[moblvlmin,stMobLvlMin]}
@@ -795,6 +785,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
   /invoke ${maControl.Add[takegi,swTakeGroupInvite]}
   /invoke ${maControl.Add[saferadius,stEnvSafeRadius]}
   /invoke ${maControl.Add[tribute,swCheckTribute]}
+  /invoke ${maControl.Add[broadcast,stDefaultBroadcast]}
 
   /if (${Select[${Me.Class.ShortName},ROG]}) {
     /invoke ${maControl.Add[sos,swSoS]}
@@ -982,14 +973,14 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   } else /if (${_type.Equal[gather]}) {
 
     /if (${_verbage.Equal[all]}) {
-      /declare _clist string local all
+      /invoke ${out[12, "Gathering${sep}\a-wall\ax"]}
+      /dgexecute all /squelch /target clear
+      /dgexecute all /navto ${Me.ID}
     } else {
-      /declare _clist string local ${set_dnet_group[FALSE]}
+      /invoke ${out[12, "Gathering${sep}\a-wgroup\ax"]}
+      /dggexecute /squelch /target clear
+      /dggexecute /navto ${Me.ID}
     }
-
-    /invoke ${out[12, "Gathering${sep}\a-w${_clist}\ax"]}
-    /dgexecute ${_clist} /squelch /target clear
-    /dgexecute ${_clist} /navto ${Me.ID}
     /return TRUE
 
   } else /if (${_type.Equal[switch]}) {
@@ -1488,7 +1479,7 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
   | set rampage tank toon
   } else /if (${_type.Equal[rampage]}) {
     /if (${Bool[${_verbage}]} && ${_verbage.NotEqual[TRUE]} && ${_verbage.NotEqual[ON]} && ${_verbage.NotEqual[OFF]}) {
-      /call do_raw_edit ${_debug} SILENT stRampageTank "${_verbage.Left[1].Upper}${_verbage.Right[-1].Lower}"
+      /call do_raw_edit ${_debug} SILENT stRampageTank ${proper_case[name, "${_verbage}"]}
     } else /if (!${Bool[${_verbage}]} || ${_verbage.Equal[OFF]}) {
       /invoke ${set_switch_env[${_debug}, stRampageTank, TRUE, FALSE]}
     }
@@ -1608,8 +1599,8 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
  * use:
  ***|
 #Bind control_entropy /entropy
-sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _debug)
-  DEBUG \atcontrol_entropy\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
+sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
+  DEBUG \atcontrol_entropy\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
 
   /declare _lsout list local
   /declare _out string local
@@ -1659,10 +1650,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
   } else /if (${_type.Equal[loopdelay]}) {
     /if (!${set_control_num_range[${_debug}, stMainLoopDelay, "${_verbage}", 0, 9]}) /return
 
-  } else /if (${_type.Equal[nettimeout]}) {
-    /if (!${set_control_num_range[${_debug}, stNetworkTimeout, "${_verbage}", 0, 30]}) /return
-
-  } else /if (${_type.Equal[buffrefresh]}) {
+   } else /if (${_type.Equal[buffrefresh]}) {
     /if (!${set_control_num_range[${_debug}, stBuffRefresh, "${_verbage}", 0, 36]}) /return
 
   | verbosity level
@@ -1712,15 +1700,15 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 
     | reset the MQhud ini file
     } else /if (${_verbage.Equal[update]}) {
-      /call set_initialize_hud FALSE ${_silent}
-      /squelch /loadhud ${_silent}
+      /call set_initialize_hud FALSE ${_verbage2}
+      /squelch /loadhud ${_verbage2}
       /return TRUE
 
     | delete the hud
     } else /if (${_verbage.Equal[delete]}) {
-      /ini ${_path} "${_silent}" NULL NULL
-      /invoke ${out[12, "Deleting MQ2HUD.INI${sep}\a-w${_silent}\ax"]}
-      /squelch /unloadhud ${_silent}
+      /ini ${_path} "${_verbage2}" NULL NULL
+      /invoke ${out[12, "Deleting MQ2HUD.INI${sep}\a-w${_verbage2}\ax"]}
+      /squelch /unloadhud ${_verbage2}
       /return TRUE
     }
 
@@ -1744,15 +1732,15 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
 
     | reload mybuttons
     /if (${_verbage.Equal[update]}) {
-      /call set_initialize_buttons FALSE ${_silent}
+      /call set_initialize_buttons FALSE ${_verbage2}
       /squelch /mybutton reload
       /squelch /mybutton on
       /return TRUE
 
     | delete mybuttons
     } else /if (${_verbage.Equal[delete]}) {
-      /ini ${_path} "${_silent}" NULL NULL
-      /invoke ${out[12, "Deleting MQ2MyButtons.INI${sep}\a-w${_silent}\ax"]}
+      /ini ${_path} "${_verbage2}" NULL NULL
+      /invoke ${out[12, "Deleting MQ2MyButtons.INI${sep}\a-w${_verbage2}\ax"]}
       /squelch /mybutton off
       /return TRUE
     }
@@ -1762,9 +1750,39 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
     /invoke ${maControl.Add[delete,option]}
     /invoke ${set_control_output[${_debug}, maEntropy, "entropy buttons", maControl]}
     /return TRUE
+
+
+  | change broadcast type
+  } else /if (${_type.Equal[broadcast]}) {
+
+    /if (${lsBroadcastTypes.Contains[${_verbage}]}) {
+      /call do_raw_edit ${_debug} SILENT stDefaultBroadcast "${_verbage.Lower}"
+    } else /if (!${lsBroadcastTypes.Contains[${_verbage}]}) {
+      OUT Options${sep}\a-w/entropy broadcast\ax
+      /call out_list lsBroadcastTypes
+      /return TRUE
+    }
+
+
+  | dannet stuff
+  } else /if (${_type.Equal[dannet]}) {
+
+    /if (${_verbage.Equal[nettimeout]}) {
+      /if (!${set_control_num_range[${_debug}, stNetworkTimeout, "${_verbage2}", 0, 50]}) /return
+
+    } else /if (${_verbage.Equal[querydelay]}) {
+      /if (!${set_control_num_range[${_debug}, stDanNetQueryDelay, "${_verbage2}", 0, 50]}) /return
+    }
+
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[nettimeout,stNetworkTimeout]}
+    /invoke ${maControl.Add[querydelay,stDanNetQueryDelay]}
+    /invoke ${set_control_output[${_debug}, maEntropy, "entropy dannet", maControl]}
+    /return TRUE
+
+
   }
 
-  /if (${_silent.Equal[SILENT]}) /return
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[autolist,swAutoList]}
   /invoke ${maControl.Add[concolor,swUseConColor]}
@@ -1774,13 +1792,15 @@ sub Bind_control_entropy(string _type, string _verbage, string _silent, bool _de
   /invoke ${maControl.Add[events,swEventsInc]}
   /invoke ${maControl.Add[hook,swHookSub]}
   /invoke ${maControl.Add[hud,submenu]}
+  /invoke ${maControl.Add[dannet,submenu]}
   /invoke ${maControl.Add[loopdelay,stMainLoopDelay]}
   /invoke ${maControl.Add[manautoinv,swAutoInvManual]}
   /invoke ${maControl.Add[maintenance,swMaintenance]}
-  /invoke ${maControl.Add[nettimeout,stNetworkTimeout]}
   /invoke ${maControl.Add[rememberset,swBuildSetRemember]}
   /invoke ${maControl.Add[buffcooldownwait,swBuffCooldownWait]}
   /invoke ${maControl.Add[relaytell,swRelayTell]}
+  /invoke ${maControl.Add[broadcast,stDefaultBroadcast]}
+
   /invoke ${set_control_output[${_debug}, maEntropy, entropy, maControl]}
 
 /return TRUE
@@ -2585,7 +2605,31 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
   } else /if (${_type.Equal[aux]}) {
     /call Bind_command_aux override ${_verbage}
     /return TRUE
+    
+  } else /if (${_type.Equal[startcheck]}) {
+    /declare _overmap map local
+    /invoke ${_overmap.Add[los,swOverLOS]}
+    /invoke ${_overmap.Add[engage,swOverPctEngage]}
+    /invoke ${_overmap.Add[loot,swOverLoot]}
+    /invoke ${_overmap.Add[safenames,swOverSafeNames]}
+    /invoke ${_overmap.Add[trainspell,swOverTrainSpell]}
+    /invoke ${_overmap.Add[dscheck,swOverDSCheck]}
+    /invoke ${_overmap.Add[envauto,swOverEnvAuto]}
+    /invoke ${_overmap.Add[navcheck,swOverNavCheck]}
+    /invoke ${_overmap.Add[groupass,swOverGroupAss]}
+    /invoke ${_overmap.Add[splashhurt,swOverSplashHurt]}
 
+    /declare _mios mapiterator local
+    /vardata _mios _overmap.First.Clone
+    /while (!${_mios.IsEnd}) {
+      /if (${maOver.Find[${_mios.Value}].Value}) {
+        OUT \a-tOverride Enabled\ax${sep}\a-w${_mios.Key}\ax
+      }
+      /invoke ${_mios.Advance}
+    }  
+   
+    
+    /return TRUE
   } else /if (${_type.Equal[los]}) {
     /invoke ${set_switch_env[${_debug}, swOverLOS, TRUE, ${_verbage}]}
   } else /if (${_type.Equal[engage]}) {
@@ -3275,26 +3319,11 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
   | shortcut to broadcast opverride engage pct to force instant engage
   } else /if (${_type.Equal[kill]}) {
 
-    /declare _count int local 0
-    /declare _toon string local FALSE
-
     /if (${_type.Equal[all]}) {
-      /declare _group string local all
+      /dgexecute all /invoke ${maOver.Add[swOverPctEngage,TRUE]}
     } else {
-      /declare _group string local ${set_dnet_group[FALSE]}
+      /dggexecute /invoke ${maOver.Add[swOverPctEngage,TRUE]}
     }
-
-    /for _count 1 to ${DanNet.PeerCount[${_group}]}
-      /varset _toon ${DanNet.Peers[${_group}].Arg[${_count},|]}
-      /if (${_toon.Equal[${Me.DisplayName}]}) /continue
-      /if (!${Spawn[pc ${_toon}].ID}) /continue
-
-      /if (${_verbage.Equal[off]}) {
-        /dexecute ${_toon} /invoke ${maOver.Add[swOverPctEngage,FALSE]}
-      } else /if (${_verbage.Equal[on]}) {
-        /dexecute ${_toon} /invoke ${maOver.Add[swOverPctEngage,TRUE]}
-      }
-    /next _count
 
   }
 
@@ -3303,6 +3332,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[ass,submenu]}
   /invoke ${maControl.Add[force,option]}
+  /invoke ${maControl.Add[kill,option]}
   /invoke ${maControl.Add[mode,submenu]}
   /invoke ${maControl.Add[melee,submenu]}
   /invoke ${maControl.Add[glyph,submenu]}
@@ -3331,7 +3361,7 @@ sub Bind_command_aux(string _type, bool _debug)
   /declare _list3 string local on,override,repeat,see,splash,take,tag,rez,tag,entropy
   /declare _list4 string local agro,miscdps,song,line,area,sash,pred,mercenary,tie,tc
   /declare _list5 string local coh,farm,ttl,defense,dot,nuke,clickitem,env,grab,grain
-  /declare _list6 string local gtfo,pull,cb
+  /declare _list6 string local gtfo,pull,cb,here
 
   /for _count 1 to 6
     /declare _lsout${_count} list local
@@ -3519,7 +3549,7 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
   | list the waypoints
   } else /if (${_verbage.Equal[wplist]}) {
 
-    /sqlite query "${DBnav}" wpdummy SELECT COUNT(*) as data FROM waypoint WHERE zone_shortname='${Zone.ShortName}'
+    /sqlite query "${DBnav}" wpdummy SELECT COUNT(*) AS data FROM waypoint WHERE zone_shortname='${Zone.ShortName}'
     DEBUG ${sep}wpdummy SELECT count(*) as data from zone_control where zone_shortname  \ay${sqlite.Status[dummy]}\ax resutl:${sqlite.Result[wpdummy 1 data]}
     /if (${sqlite.Status[wpdummy].Find[no such table:]}) {
       ECHO fail
@@ -3698,35 +3728,25 @@ sub Bind_command_splash(bool _debug)
  * use: /enter
  ***|
 #bind command_enter /enter
-sub Bind_command_enter(string _type, bool _debug)
+sub Bind_command_enter(string _type, string _verbage, bool _debug)
   DEBUG \atBind_command_enter\ax()
 
-  /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux enter
-    /return TRUE
-  }
+  /call control_broadcast_command enter ${_type} ${_verbage}
+  /if (${Macro.Return.Equal[break]}) /return TRUE
 
-  /if (${_type.Equal[all]}) {
-    /declare _group string local all
-  } else {
-    /declare _group string local ${set_dnet_group[FALSE]}
-  }
+  ISMEDEAD
 
-  /if (!${Bool[${_type}]} && ${DanNet.PeerCount[${_group}]} > 1) {
-    /dgexecute ${_group} /enter TRUE
-    /invoke ${out[21, "${broadcast}${sep}\a-w/enter\ax (\a-r${_group}\ax)"]}
-  }
-
-  /invoke ${set_data_timer[FALSE, Try_Door, RESTART]}
+  /invoke ${set_data_timer[${_debug}, Try_Door, RESTART]}
   /squelch /target /clear
 
-  :retrydoortarget
-  /if (!${timer_Try_Door}) /return
-  /squelch /doortarget
-  /delay 1
-  /if (!${Switch.ID}) /goto :retrydoortarget
+  /while (TRUE) {
+    /if (!${timer_Try_Door}) /return FALSE
+    /squelch /doortarget
+    /delay 1
+    /if (${Switch.ID}) /break
+  }
 
-  /if (!${timer_Try_Door}) /return
+  /if (!${timer_Try_Door}) /return FALSE
 
   /if (!${Switch.Open}) {
     /squelch /click left door
@@ -3848,7 +3868,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
     }
        
     /if (${Select[${_nick1},wiz,dru,guild,item,vendor,aa]}) {
-      /sqlite query "${DBstatic}" dummycount SELECT Count(*) as data FROM port WHERE type='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]};
+      /sqlite query "${DBstatic}" dummycount SELECT Count(*) AS data FROM port WHERE type='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]};
       DEBUG Count(${sqlite.Result[dummycount 1 data]})
       
       /declare _itemReady bool local TRUE
@@ -4127,31 +4147,52 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
  * use: /off
  ***|
 #bind command_off /command_off
-sub Bind_command_off(string _type, bool _debug)
+sub Bind_command_off(string _type, string _verbage, bool _debug)
+
+
+  /call control_broadcast_command off ${_type} ${_verbage}
+  /if (${Macro.Return.Equal[break]}) /return TRUE
+  /return TRUE
 
   /if (${_type.Equal[aux]}) {
     /call Bind_command_aux off
     /return TRUE
-  }
+  } else /if (${_type.Equal[-h]}) {
+    OUT /off [group (default none)|zone|raid|all]
+    /return TRUE
+    
+  } else /if (!${Bool[${_type}]} || ${Select[${_type},all,zone,group,raid]}) {
+    /if (!${Bool[${_type}]} || ${_type.Equal[group]}) {
+      /if (!${Bool[${_type}]}) {
+        /invoke ${out[21, "${broadcast}${sep}\a-w/off\ax (\a-rdefault group\ax)"]}
+      } else /if (${_type.Equal[group]}) {
+        /if (!${Group.Members}) {
+          /invoke ${out[21, "${broadcast}${sep}\a-w/off\ax (\a-rgroup\ax) (\a-rFail: not in a group\ax)"]}
+          /return FALSE
+        } else {
+          /invoke ${out[21, "${broadcast}${sep}\a-w/off\ax (\a-rgroup\ax)"]}
+        }
+      }
+      /dggexecute /env auto off
 
-  DEBUG \atBind_command_off\ax()
+    } else /if (${_type.Equal[zone]}) {
+      /invoke ${out[21, "${broadcast}${sep}\a-w/off\ax (\a-rzone\ax)"]}
+      /dgzexecute /env auto off
 
-  /declare _count int local 0
-  /declare _toon string local FALSE
+    } else /if (${_type.Equal[all]}) {
+      /invoke ${out[21, "${broadcast}${sep}\a-w/on\ax (\a-rall\ax)"]}
+      /dgexecute ${maComm.Find[stEntropyGroup_all].Value} /env auto off
 
-  /if (${_type.Equal[all]}) {
-    /declare _group string local all
-  } else {
-    /declare _group string local ${set_dnet_group[FALSE]}
-  }
-
-  /for _count 1 to ${DanNet.PeerCount[${_group}]}
-    /varset _toon ${DanNet.Peers[${_group}].Arg[${_count},|]}
-    /if (${_toon.Equal[${Me.DisplayName}]}) /continue
-    /if (!${Spawn[pc ${_toon}].ID}) /continue
-    /dexecute ${_toon} /env auto off
-    /dexecute ${_toon} /squelch /target clear
-  /next _count
+    } else /if (${_type.Equal[raid]}) {
+      /if (!${Raid.Members}) {
+        /invoke ${out[21, "${broadcast}${sep}\a-w/off\ax (\a-rraid\ax) (\a-rFail: not in a raid\ax)"]}
+        /return FALSE
+      }
+      /invoke ${out[21, "${broadcast}${sep}\a-w/off\ax (\a-rraid\ax)"]}
+      /dgrexecute /env auto off
+    }
+    /return FALSE
+  } 
 
 /return TRUE
 
@@ -4162,30 +4203,52 @@ sub Bind_command_off(string _type, bool _debug)
  * use: /on
  ***|
 #bind command_on /command_on
-sub Bind_command_on(string _type, bool _debug)
+sub Bind_command_on(string _type, string _verbage, bool _debug)
+
+
+  /call control_broadcast_command on ${_type} ${_verbage}
+  /if (${Macro.Return.Equal[break]}) /return TRUE
+  /return TRUE
 
   /if (${_type.Equal[aux]}) {
     /call Bind_command_aux on
     /return TRUE
-  }
+  } else /if (${_type.Equal[-h]}) {
+    OUT /on [group (default none)|zone|raid|all]
+    /return TRUE
+    
+  } else /if (!${Bool[${_type}]} || ${Select[${_type},all,zone,group,raid]}) {
+    /if (!${Bool[${_type}]} || ${_type.Equal[group]}) {
+      /if (!${Bool[${_type}]}) {
+        /invoke ${out[21, "${broadcast}${sep}\a-w/on\ax (\a-rdefault group\ax)"]}
+      } else /if (${_type.Equal[group]}) {
+        /if (!${Group.Members}) {
+          /invoke ${out[21, "${broadcast}${sep}\a-w/on\ax (\a-rgroup\ax) (\a-rFail: not in a group\ax)"]}
+          /return FALSE
+        } else {
+          /invoke ${out[21, "${broadcast}${sep}\a-w/on\ax (\a-rgroup\ax)"]}
+        }
+      }
+      /dggexecute /env auto on
 
-  DEBUG \atBind_command_on\ax()
+    } else /if (${_type.Equal[zone]}) {
+      /invoke ${out[21, "${broadcast}${sep}\a-w/on\ax (\a-rzone\ax)"]}
+      /dgzexecute /env auto on
 
-  /declare _count int local 0
-  /declare _toon string local FALSE
+    } else /if (${_type.Equal[all]}) {
+      /invoke ${out[21, "${broadcast}${sep}\a-w/on\ax (\a-rall\ax)"]}
+      /dgexecute ${maComm.Find[stEntropyGroup_all].Value} /env auto on
 
-  /if (${_type.Equal[all]}) {
-    /declare _group string local all
-  } else {
-    /declare _group string local ${set_dnet_group[FALSE]}
-  }
-
-  /for _count 1 to ${DanNet.PeerCount[${_group}]}
-    /varset _toon ${DanNet.Peers[${_group}].Arg[${_count},|]}
-    /if (${_toon.Equal[${Me.DisplayName}]}) /continue
-    /if (!${Spawn[pc ${_toon}].ID}) /continue
-    /dexecute ${_toon} /env auto on
-  /next _count
+    } else /if (${_type.Equal[raid]}) {
+      /if (!${Raid.Members}) {
+        /invoke ${out[21, "${broadcast}${sep}\a-w/on\ax (\a-rraid\ax) (\a-rFail: not in a raid\ax)"]}
+        /return FALSE
+      }
+      /invoke ${out[21, "${broadcast}${sep}\a-w/on\ax (\a-rraid\ax)"]}
+      /dgrexecute /env auto on
+    }
+    /return FALSE
+  } 
 
 /return TRUE
 
@@ -4211,27 +4274,13 @@ sub Bind_command_cls(bool _debug, string _sender)
 
 |***
  * note: fuck, what did the bard do this time?
- * use: /here [all]
+ * use: /here
  ***|
 #bind command_here /here
-sub Bind_command_here(string _type, bool _debug)
+sub Bind_command_here(string _type, string _verbage, bool _debug)
 
-  /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux here
-    /return TRUE
-  }
-
-  /if (${_type.Equal[all]}) {
-    /declare _group string local all
-  } else {
-    /declare _group string local ${set_dnet_group[FALSE]}
-  }
-
-  /if (!${Bool[${_type}]} && ${DanNet.PeerCount[${_group}]} > 1) {
-    /invoke ${out[21, "${broadcast}${sep}\a-w/here\ax (\a-r${_group}\ax)"]}
-    /dgexecute ${_group} /here TRUE
-    /return
-  }
+  /call control_broadcast_command here ${_type} ${_verbage}
+  /if (${Macro.Return.Equal[break]}) /return TRUE
 
   ISMEDEAD
 
@@ -4287,28 +4336,18 @@ sub Bind_command_here(string _type, bool _debug)
 
 
 |***
- * note: clicks yes on a window option for some form of travel
- * use: /take [debug] <SENDER>
+ * note: clicks yes on a window option for some form of travel or trade
+ * use: /take 
  ***|
 #bind command_take /take
-sub Bind_command_take(string _type, string _debug)
+sub Bind_command_take(string _type, string _verbage, bool _debug)
 
-  /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux take
-    /return
-  }
+  /call control_broadcast_command take ${_type} ${_verbage}
+  /if (${Macro.Return.Equal[break]}) /return TRUE
 
-  /if (${_type.Equal[all]}) {
-    /declare _group string local all
-  } else {
-    /declare _group string local ${set_dnet_group[FALSE]}
-  }
-
-  /if (!${Bool[${_type}]} && ${DanNet.PeerCount[${_group}]} > 1) {
-    /invoke ${out[21, "${broadcast}${sep}\a-w/take\ax (\a-r${_group}\ax)"]}
-    /dgexecute ${_group} /take ${Me.DisplayName} FALSE
-  }
-
+  ISMEDEAD
+  
+ 
   | take ports
   /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find[${Spawn[${Me}].Guild}]} || ${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["Guild Hall"]}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
   /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["be translocated by"]}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
@@ -4438,7 +4477,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 
   | set stuff to not export/import
   /declare _skipMap list local
-  /invoke ${_skipMap.Append[maDebug,maTimer,Gems,maCrew,maMode,maDeez,maPREGEN,maRezControl,maWatchspawn]}
+  /invoke ${_skipMap.Append[maDebug,maTimer,Gems,maMode,maDeez,maPREGEN,maRezControl,maWatchspawn]}
   /invoke ${_skipMap.Append[maBuffRequest,maHook,maData,maManaRecovery,maDeez,maTTL,Header,Evals,maPred]}
 
   /declare _skipKey list local
@@ -4849,215 +4888,6 @@ sub Bind_command_entcast(string _name, string _target, bool _debug)
 
 
 
-|***
- * note: builds your group
- * use: /crew
- *
- *  /grouproles set [NAME] [#]
- *   1=MainTank
- *   2=MainAssist           ${maCrew.Find[stCrew${_crew}Assist].Value}
- *   3=Puller
- *   4=MarkNpc
- *   5=MasterLooter         ${maCrew.Find[stCrew${_crew}Looter].Value}
- *  /makeleader [NAME] ..   ${maCrew.Find[stCrew${_crew}Leader].Value}
- ***|
-#bind control_crew /crew
-sub Bind_control_crew(string _type, string _verbage, string _verbage2, string _adddelete, bool _debug)
-
-  | halop meh!
-  /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux crew
-    /return TRUE
-  }
-
-  | crew # design output
-  /if (${Range.Between[1,12:${Int[${_type}]}]} && ${_verbage.Equal[see]}) {
-    OUT Crew${sep}\a-w${_type}\ax
-    OUT \awstCrew${_type}Leader\ax${sep}\a-w${maCrew.Find[stCrew${_type}Leader].Value}\ax
-    OUT \awstCrew${_type}Assist\ax${sep}\a-w${maCrew.Find[stCrew${_type}Assist].Value}\ax
-    OUT \awstCrew${_type}Looter\ax${sep}\a-w${maCrew.Find[stCrew${_type}Looter].Value}\ax
-    /call Bind_command_see lsCrew${_type}
-    /return TRUE
-
-  | add/delete toons by name from the crew list
-  } else /if (${Range.Between[1,12:${Int[${_type}]}]} && ${_verbage.Equal[toon]}) {
-    
-    | population control
-    /if (${_adddelete.Equal[add]} && ${lsCrew${_type}.Count} >= 6) {
-      OUT Too damn many people in crew \a-w${_type}\ax, delete some..
-      /return FALSE
-    }
-
-    /call do_raw_edit ${_debug} FALSE lsCrew${_type} "${_verbage2}" ${_adddelete}
-
-    | clear any additional group rolls assigned to the removed person
-    /if (${_adddelete.Equal[delete]}) {
-      /if (${maCrew.Find[stCrew${_type}Leader].Value.Equal[${_verbage2}]}) {
-        /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Leader, FALSE]}
-      } 
-      /if (${maCrew.Find[stCrew${_type}Assist].Value.Equal[${_verbage2}]}) { 
-        /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Assist, FALSE]}
-      }
-      /if (${maCrew.Find[stCrew${_type}Looter].Value.Equal[${_verbage2}]}) {
-        /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Looter, FALSE]}
-      } 
-    }
-    
-    /return TRUE
-
-  | reset a crew to defaults
-  } else /if (${Range.Between[1,12:${Int[${_type}]}]} && ${_verbage.Equal[clear]}) {
-    /call do_raw_edit ${_debug} FALSE lsCrew${_type} clear
-    /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Leader, FALSE]}
-    /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Assist, FALSE]}
-    /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Looter, FALSE]}
-    
-    OUT Crew${_type}${sep}\a-wReset\ax
-    /return TRUE 
-
-  | build crew from current design
-  } else /if (${Range.Between[1,12:${Int[${_type}]}]} && ${_verbage.Equal[buildfrom]}) {
-    
-    OUT Building crew ${_type} from this group design.
-
-    /declare _count int local 0
-    
-    /for _count 0 to 5
-      /if (${Group.Member[${_count}].ID}) {
-        /call do_raw_edit ${_debug} TRUE lsCrew${_type} "${Group.Member[${_count}].DisplayName}" add
-      }
-    /next _count
-
-    /if (${Group.Leader.ID}) {
-      /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Leader, ${Group.Leader}]}
-    }
-    /if (${Group.MainAssist.ID}) {
-      /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Assist, ${Group.MainAssist}]}
-    }
-    /if (${Group.Leader.ID}) {
-      /invoke ${do_raw_edit[${maDebug.Find[edit].Value}, SILENT, stCrew${_type}Looter, ${Group.MasterLooter}]}
-    }
-    /return TRUE
-
-  | kill the crew
-  } else /if (${_type.Equal[kill]}) {
-    /squelch /dgaexecute ${stCurrentCrew} /disband
-    /delay 2
-    /dgaexecute ${stCurrentCrew} /dleave ${stCurrentCrew}
-    /delay 2
-    /dgaexecute ${stCurrentCrew} /varset stCurrentCrew EMPTY
-    /return TRUE
-
-  | form the group
-  } else /if (${Range.Between[1,12:${Int[${_type}]}]} && ${_verbage.Equal[form]}) {
-
-    /invoke ${out[12, "\agForming\ax${sep}Crew\aw${_type}\ax"]}
-    /declare _licrew listiterator local
-    /vardata _licrew lsCrew${_type}.First.Clone
-    /while (!${_licrew.IsEnd}) {
-
-      | skip me
-      /if (${_licrew.Value.Equal[${Me.DisplayName}]}) {
-        /djoin crew${_type}
-        /varset stCurrentCrew crew${_type}
-        /invoke ${_licrew.Advance}
-        /continue
-      }
-
-      | are they part of our comm group?
-      /if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_licrew.Value}]}) {
-
-        | do they exist?
-        /dquery ${_licrew.Value} -q "Me.Height" -o DNQReturn -t 5
-
-        /if (!${Bool[${DNQReturn}]}) {
-          /invoke ${_licrew.Advance}
-          /continue
-        }
-        /if (!${Group.Leader.Name.Equal[${Me.DisplayName}]}) {
-          /disband
-          /delay 5
-          /raiddisband
-          /delay 5
-        }
-
-        | are they in the group already?
-        /if (${Group.Member[${_licrew.Value}].Index}) {
-          /dexecute ${_licrew.Value} /varset stCurrentCrew crew${_type}
-          /invoke ${_licrew.Advance}
-          /continue
-        }
-
-        | not part of our group
-        | drop what they are doing!
-        /dexecute ${_licrew.Value} /disband
-        /delay 5
-        /dexecute ${_licrew.Value} /raiddisband
-        /delay 5
-
-        | have the  invitee clear their target
-        /dexecute ${_licrew.Value} /squelch /target clear
-
-        | send invite
-        /invoke ${out[12, "Inviting${sep}\a-w${_licrew.Value}\ax"]}
-        /invite ${_licrew.Value}
-
-        | execute invite accept command
-        /dexecute ${_licrew.Value} /invite
-
-        | join needed crew channel
-        /dexecute ${_licrew.Value} /djoin crew${_type}
-
-        | set crew marker
-        /dexecute ${_licrew.Value} /varset stCurrentCrew crew${_type}
-      }
-
-      /invoke ${_licrew.Advance}
-    }
-
-    | lag control
-    /delay 5
-
-    | dont try to make changes if you're not the boss
-    /if (${Group.Leader.Name.NotEqual[${Me.DisplayName}]}) {
-      /goto :notmyresponsibilitybitch
-    }
-
-    | set group looter
-    /delay 5
-    /if (${Bool[${maCrew.Find[stCrew${_type}Looter].Value}]} && ${Group.Member[${maCrew.Find[stCrew${_type}Looter].Value}].Index}) {
-      /grouproles set ${maCrew.Find[stCrew${_type}Looter].Value} 5
-    }
-
-    | set group assist
-    /delay 5
-    DEBUG ${sep}${maCrew.Find[stCrew${_type}Assist].Value}
-    DEBUG ${sep}${Bool[${maCrew.Find[stCrew${_type}Assist].Value}]} && (${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} || ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} == 0)
-    /if (${Bool[${maCrew.Find[stCrew${_type}Assist].Value}]} && (${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} || ${Group.Member[${maCrew.Find[stCrew${_type}Assist].Value}].Index} == 0)) {
-      /grouproles set ${maCrew.Find[stCrew${_type}Assist].Value} 2
-    }
-
-    | set group leader
-    /delay 5
-    DEBUG ${sep}${Bool[${maCrew.Find[stCrew${_type}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_type}Leader].Value}].Index}
-    /if (${Bool[${maCrew.Find[stCrew${_type}Leader].Value}]} && ${Group.Member[${Group.Leader}].Index} != ${Group.Member[${maCrew.Find[stCrew${_type}Leader].Value}].Index}) {
-      /makeleader ${maCrew.Find[stCrew${_type}Leader].Value}
-    }
-    /delay 5s
-    :notmyresponsibilitybitch
-    /invoke ${out[12, "\awLeader\ax${sep}\a-w${Group.Leader}\ax ${dot} \awMA\ax${sep}\a-w${Group.MainAssist}\ax ${dot} \awLooter\ax${sep}\a-w${Group.MasterLooter}\ax"]}
-    /invoke ${out[12, "\agCompleted\ax${sep}Crew\aw${_type}\ax"]}
-  }
-
-  /invoke ${maControl.Clear}
-  /invoke ${maControl.Add[list,list]}
-  /invoke ${maControl.Add[kill,option]}
-  /invoke ${maControl.Add[buildfrom,out]}
-  /invoke ${maControl.Add[form,out]}
-  
-  /invoke ${set_control_output[${_debug}, maCrew, crew, maControl]}
-
-/return TRUE
 
 
 
@@ -5289,7 +5119,6 @@ sub Bind_control_defense(string _type, string _verbage, string _verbage2, string
 
 
 
-
 |***
  * note: control for /ttl
  * use:
@@ -5328,7 +5157,6 @@ sub Bind_control_TTL(string _type, string _verbage, string _silent, bool _debug)
 
 
 
-
 |***
  * note:control for /nuke
  * use:
@@ -5346,6 +5174,10 @@ sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _a
   /if (${_type.Equal[pctstop]}) {
     /if (!${set_control_num_range[${_debug}, stPctStopNuke, "${_verbage}", 0, 99]}) /return
 
+  | force a nuke loop till all are casted before exiting
+  } else /if (${_type.Equal[loop]}) {
+    /invoke ${set_switch_env[FALSE, swNukeLoop, TRUE, ${_verbage}]}
+
   | delay in nuking
   } else /if (${_type.Equal[delay]}) {
     /if (!${set_control_num_range[${_debug}, stNukeDelay, "${_verbage}", 0, 100]}) /return
@@ -5355,6 +5187,7 @@ sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _a
   /invoke ${maControl.Add[pctstop,stPctStopNuke]}
   /invoke ${maControl.Add[delay,stNukeDelay]}
   /invoke ${maControl.Add[list,list]}
+  /invoke ${maControl.Add[loop,swNukeLoop]}
   /invoke ${set_control_output[${_debug}, maNuke, nuke, maControl]}
 
 /return TRUE
@@ -5887,7 +5720,7 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
     /if (${Select[${_grouping},list,see]} && !${Bool[${_tagname}]}) {
       /for _count 1 to ${sqlite.Rows[dummy]}
         /if (${Parse[99,${sqlite.Result[dummy ${_count} eval].Find[::]}]}) {
-          OUT \aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}\a-o${sqlite.Result[dummy ${_count} name]}\ax${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} aux]}]}\ax
+          OUT \aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}\a-o${sqlite.Result[dummy ${_count} name]\ax${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} aux]}]}\ax
         } else {
           OUT \aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}${If[${sqlite.Result[dummy ${_count} created_by].Equal[1]},\a-g${sqlite.Result[dummy ${_count} name]}\ax,\at${sqlite.Result[dummy ${_count} name]}\ax]}${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} eval]}]}\ax
         }
@@ -5918,7 +5751,7 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
         /if (${sqlite.Result[dummy ${_count} grouping].NotEqual[${_tagname}]}) /continue
 
         /if (${Parse[99,${sqlite.Result[dummy ${_count} eval].Find[::]}]}) {
-          OUT \aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}\a-o${sqlite.Result[dummy ${_count} name]}\ax${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} aux]}]}\ax
+          OUT \aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}\a-o${Parse[2,${sqlite.Result[dummy ${_count} name]}]}\ax${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} aux]}]}\ax
         } else {
           OUT \aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}${If[${sqlite.Result[dummy ${_count} created_by].Equal[1]},\a-g${sqlite.Result[dummy ${_count} name]}\ax,\at${sqlite.Result[dummy ${_count} name]}\ax]}${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} eval]}]}\ax
         }
@@ -6099,6 +5932,10 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   } else /if (${_type.Equal[navstop]}) {
     /if (!${set_control_num_range[${_debug}, stPullNavStopDistance, "${_verbage}", 31, 250]}) /return
 
+  | chain pull #
+  } else /if (${_type.Equal[chain]}) {
+    /if (!${set_control_num_range[${_debug}, stCountChainPull, "${_verbage}", 0, 99]}) /return
+
   | enable/disable setting home marker when pulling
   } else /if (${_type.Equal[sethome]}) {
     /invoke ${set_switch_env[${_debug}, swPullSetHome, TRUE, ${_verbage}]}
@@ -6198,7 +6035,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[active,swPull]}
-  /invoke ${maControl.Add[arc,stPullArcWidth|pr]}
+  | /invoke ${maControl.Add[arc,stPullArcWidth|pr]}
   /invoke ${maControl.Add[rad,stPullRadius]}
   /invoke ${maControl.Add[zrad,stPullZRadius]}
   /invoke ${maControl.Add[pathlogic,swNavPathLogic]}
@@ -6207,8 +6044,503 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   /invoke ${maControl.Add[with,submenu]}
   /invoke ${maControl.Add[sethome,swPullSetHome]}
   /invoke ${maControl.Add[navstop,stPullNavStopDistance]}
+  /invoke ${maControl.Add[chain,stCountChainPull]}
   /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[FALSE, maPull, "pull", maControl]}
+
+/return TRUE
+
+
+
+
+
+
+|***
+ * note: crew controls
+ * use: /crew
+ ***|
+#bind control_crew /crew
+sub Bind_control_crew(string _type, string _verbage, string _verbage2, string _verbage3, string _verbage4, bool _debug)
+
+  | output control map
+  /if (${_type.Equal[see]}) {
+    OUT Move along. this is not a map, nothing to see here.
+    /return FALSE
+  } else /if (${_type.Equal[aux]}) {
+    /call Bind_command_aux crew
+    /return FALSE
+  }
+
+  /declare _count int local 0
+
+  /varset _debug FALSE
+  DEBUG ${sep}_type${sep}\a-w${_type}\ax
+  DEBUG ${sep}_verbage${sep}\a-w${_verbage}\ax
+  DEBUG ${sep}_verbage2${sep}\a-w${_verbage2}\ax
+  DEBUG ${sep}_verbage3${sep}\a-w${_verbage3}\ax
+  DEBUG ${sep}_verbage4${sep}\a-w${_verbage4}\ax
+
+  /if (${_type.Equal[add]}) {
+    
+    | add a character
+    /if (${_verbage.Equal[character]} && ${Bool[${_verbage2}]}) {
+  
+      | fix the character name case
+      /varset _verbage2 ${proper_case[name, "${_verbage2}"]}
+      
+      | add default current server it not added
+      /if (!${Bool[${_verbage3}]}) {
+        /varset _verbage3 ${MacroQuest.Server.Replace[ ,_].Lower}
+      }
+      
+      /sqlite query "${DBshared}" dummy SELECT * FROM characters WHERE charactername='${_verbage2}' AND server='${_verbage3}';
+      /if (!${sqlite.Rows[dummy]}) {
+        /sqlite query "${DBshared}" dummy INSERT INTO characters(charactername, server) VALUES ("${_verbage2}", "${_verbage3}");
+
+        /if (${sqlite.Resultcode[dummy]} == 0) {  
+          OUT /crew add character${sep}\a-w${_verbage3} ${_verbage2}\ax (\a-r${sqlite.Status[dummy]}\ax)
+          /return TRUE
+        } else {
+          OUT /crew add character${sep}\a-w${_verbage3} ${_verbage2}\ax (\a-rFail\ax)
+          /return FALSE
+        }
+  
+      } else {
+        OUT /crew add character${sep}\a-w${_verbage3} ${_verbage2}\ax (\a-rExists\ax)
+        /return TRUE
+      }
+    
+    | add a crew name
+    } else /if (${_verbage.Equal[crewname]} && ${Bool[${_verbage2}]}) {
+      /sqlite query "${DBshared}" dummy SELECT * FROM crews WHERE crewname='${_verbage2}';
+      /if (!${sqlite.Rows[dummy]}) {
+        /sqlite query "${DBshared}" dummy INSERT INTO crews(crewname) VALUES ("${_verbage2}")
+      
+        /if (${sqlite.Resultcode[dummy]} == 0) {  
+          OUT /crew add crewname${sep}\a-w${_verbage2}\ax (\a-r${sqlite.Status[dummy]}\ax)
+          /return TRUE
+        } else {
+          OUT /crew add crewname${sep}\a-w${_verbage2}\ax (\a-rFail\ax)
+          /return FALSE
+        }
+      } else {
+        OUT /crew add crewname${sep}\a-w${_verbage2}\ax (\a-rExists\ax)
+        /return TRUE
+      }
+      
+    | add toon to crew  
+    } else /if (${_verbage.Equal[member]} && ${Bool[${_verbage2}]} && ${Bool[${_verbage3}]}) {
+
+      | fix the character name case
+      /varset _verbage2 ${proper_case[name, "${_verbage2}"]}
+
+      | character exist in DB?
+      /if (!${crew_check_character[${_debug}, "${_verbage2}", FALSE, "add member"]}) {
+        /return FALSE
+      }
+
+      | crew exist?
+      /sqlite query "${DBshared}" qcrewname SELECT id FROM crews WHERE crewname='${_verbage3}';
+      /if (!${sqlite.Rows[qcrewname]}) {
+        OUT /crew add member${sep}\a-w${_verbage2} ${_verbage3}\ax (\a-rFail\ax) (\a-rInvalid Crewname\ax)
+        /return FALSE
+      }
+ 
+      | member in the crew already?
+      /sqlite query "${DBshared}" increw SELECT crewmembers.id FROM crewmembers LEFT JOIN characters ON characters.id = crewmembers.characterid LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE characters.charactername = '${_verbage2}' AND crews.crewname = '${_verbage3}';
+      DEBUG ${sep}.Rows (\a-rincrew\ax)${sep}\a-w${sqlite.Rows[increw]}\ax
+
+      /if (${sqlite.Rows[increw]}) {
+        OUT /crew add member${sep}\a-w${_verbage2} ${_verbage3}\ax (\a-rExists\ax)
+        /return FALSE
+      } 
+
+      | get group count
+      /sqlite query "${DBshared}" qmembercount SELECT COUNT(crewmembers.id) AS data FROM crewmembers LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE crews.crewname = '${_verbage3}';
+      DEBUG ${sep}COUNT(crewmembers.id)${sep}\a-w${sqlite.Result[qmembercount 1 data]}\ax
+      /if (${sqlite.Result[qmembercount 1 data]} >= 6) {
+        OUT /crew add member${sep}\a-w${_verbage2} ${_verbage3}\ax (\a-rFail\ax) (\a-r${sqlite.Result[qmembercount 1 data]}\ax/\a-r6\ax)
+        /return FALSE
+      } 
+      
+      | passed all error checking; add the toon to the crew
+      /sqlite query "${DBshared}" qcrewname INSERT INTO crewmembers(crewid, characterid) VALUES (${sqlite.Result[qcrewname 1 id]}, ${sqlite.Result[qucheckcharacter 1 id]});
+      /if (${sqlite.Resultcode[qcrewname]} == 0) {  
+        OUT /crew add member${sep}\a-w${_verbage2} ${_verbage3}\ax (\a-r${sqlite.Status[qcrewname]}\ax)
+        /sqlite clear qcrewname
+        /return TRUE
+      } else {
+        OUT /crew add member${sep}\a-w${_verbage2} ${_verbage3}\ax (\a-rFail\ax)
+        /return FALSE
+      }  
+      /return TRUE
+      
+    | add toon to a roll (with butter for knightly)
+    } else /if (${_verbage.Equal[role]} && ${Bool[${_verbage2}]} && ${Bool[${_verbage3}]} && ${Bool[${_verbage4}]}) {
+      /varset _verbage2 ${proper_case[name, "${_verbage2}"]}
+
+      | character exist in DB?
+      /if (!${crew_check_character[${_debug}, "${_verbage2}", FALSE, "add role"]}) {
+        /return FALSE
+      } 
+      
+      | fix the role case
+      /varset _verbage3 ${proper_case[role, "${_verbage3}"]}
+      
+      /sqlite query "${DBshared}" dummy SELECT name FROM roles WHERE name = '${_verbage3}'
+      /if (!${sqlite.Rows[dummy]}) {
+        /sqlite query "${DBshared}" dummy SELECT name FROM roles;
+        OUT Valid roles${sep}
+        /for _count 1 to ${sqlite.Rows[dummy]}
+          OUT ${sep}\a-w${sqlite.Result[dummy ${_count} name]}\ax
+        /next _count 
+        /invoke ${out[18, 0, 33]}
+        /sqlite clear temp
+        /return FALSE
+      }
+
+
+      | crew exist?
+      /sqlite query "${DBshared}" qucrewname SELECT id FROM crews WHERE crewname='${_verbage4}';
+      /if (!${sqlite.Rows[qucrewname]}) {
+        OUT Crewname not in DB${sep}\a-w${_verbage4}\ax
+      }
+
+      | check if toon has that role for that crew
+      /sqlite query "${DBshared}" quhasrole SELECT crewmemberroles.id FROM crewmemberroles WHERE crewmemberroles.role = '${_verbage3}' AND crewmemberroles.crewmemberid IN (SELECT crewmembers.id FROM crewmembers LEFT JOIN characters on characters.id = crewmembers.characterid WHERE characters.charactername = '${_verbage2}');
+      DEBUG ${sep}.Rows (\a-rquhasrole\ax)${sep}\a-w${sqlite.Rows[quhasrole]}\ax
+      /if (${sqlite.Rows[quhasrole]}) {
+        OUT Character${sep}\a-w${_verbage2}\ax has role${sep}\a-w${_verbage3}\ax for crew${sep}\a-w${_verbage4}\ax
+        /return FALSE
+      }
+
+      | find the id of the toon in its crew
+      /sqlite query "${DBshared}" qucrewmemberid SELECT crewmembers.id FROM crewmembers LEFT JOIN characters ON characters.id = crewmembers.characterid LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE characters.charactername = '${_verbage2}' AND characters.server = '${MacroQuest.Server.Replace[ ,_].Lower}' AND crews.crewname = '${_verbage4}';
+      DEBUG ${sep}.Result (\a-rqucrewmemberid\ax)${sep}\a-w${sqlite.Result[qucrewmemberid 1 id]}\ax
+      
+      | add the toon as that role in crewmemberroles
+      /sqlite query "${DBshared}" dummy INSERT INTO crewmemberroles(crewmemberid, role) VALUES (${sqlite.Result[qucrewmemberid 1 id]}, '${_verbage3}');
+      DEBUG ${sep}.Result (\a-rqdummy\ax)${sep}\a-w${sqlite.Rows[dummy]}\ax
+      
+      /if (${sqlite.Resultcode[dummy]} == 0) {
+        OUT /crew add role${sep}\a-w${_verbage2} ${_verbage3} ${_verbage4}\ax (\a-r${sqlite.Status[dummy]}\ax)
+        /sqlite clear qcrewname
+        /return TRUE
+      } else {
+        OUT Character${sep}\a-w${_verbage2}\ax NOT added as role${sep}\a-w${_verbage3}\aax. Something bad happened.
+      }
+
+    }
+
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[character,out]}
+    /invoke ${maControl.Add[crewname,out]}
+    /invoke ${maControl.Add[member,out]}
+    /invoke ${maControl.Add[role,out]}
+    /invoke ${set_control_output[FALSE, maChr, "crew add", maControl]}
+    /return FALSE
+
+  | list some stuff
+  } else /if (${_type.Equal[list]}) {
+    
+    | list members in a crew
+    /if (${Bool[${_verbage}]}) {
+  
+      /sqlite query "${DBshared}" increw SELECT characters.charactername FROM crewmembers LEFT JOIN characters ON characters.id = crewmembers.characterid LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE crews.crewname = '${_verbage}'
+      /sqlite query "${DBshared}" iscrew SELECT id FROM crews WHERE crewname = '${_verbage}'
+      /sqlite query "${DBshared}" dummy SELECT COUNT(crewmembers.id) AS data FROM crewmembers LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE crews.crewname = '${_verbage}';
+      ECHO
+      OUT Crewname List${sep}\a-w${_verbage}\ax ${If[${sqlite.Rows[iscrew]},(\a-r${sqlite.Result[dummy 1 data]}\ax/\a-r6\ax),(\a-rFail\ax) (\a-rInvalid Crewname\ax)]}   
+      /if (!${sqlite.Rows[increw]}) {
+        /return FALSE
+      }
+      OUT Members${sep}
+      /if (${sqlite.Rows[increw]}) {
+        /for _count 1 to ${sqlite.Rows[increw]}
+          OUT ${sep}${sqlite.Result[increw ${_count} charactername]}
+        /next _count
+      }
+
+      OUT Roles${sep}
+      /sqlite query "${DBshared}" dummy SELECT characters.charactername, crewmemberroles.role FROM crewmemberroles LEFT JOIN crewmembers ON crewmemberroles.crewmemberid = crewmembers.id LEFT JOIN characters ON characters.id = crewmembers.characterid LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE crews.crewname = '${_verbage}'
+      /if (${sqlite.Rows[dummy]}) {
+        /for _count 1 to ${sqlite.Rows[dummy]}
+          OUT ${sep}${sqlite.Result[dummy ${_count} role]}${sep}\a-w${sqlite.Result[dummy ${_count} charactername]}\ax
+        /next _count
+      }
+
+      
+      /invoke ${out[18, 0, 33]}
+      /sqlite clear increw
+      /return FALSE     
+    
+    | list crews
+    } else /if (!${Bool[${_verbage}]}) {
+
+      ECHO
+      OUT Crewname List${sep}\a-wall\ax
+      
+       /sqlite query "${DBshared}" crewlist SELECT crewname FROM crews
+       /if (!${sqlite.Rows[crewlist]}) {
+        /invoke ${out[18, 0, 33]}
+        /sqlite clear increw
+        /return FALSE
+      }
+      
+      /for _count 1 to ${sqlite.Rows[crewlist]}
+      /sqlite query "${DBshared}" dummy SELECT COUNT(crewmembers.id) AS data FROM crewmembers LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE crews.crewname = '${sqlite.Result[crewlist ${_count} crewname]}';
+      OUT ${sqlite.Result[crewlist ${_count} crewname]} (\a-r${sqlite.Result[dummy 1 data]}\ax/\a-r6\ax)
+      /next _count
+      /invoke ${out[18, 0, 33]}
+      /sqlite clear increw
+      /sqlite clear iscrew
+      /return FALSE
+
+    }
+    
+    
+  | build your current group design
+  } else /if (${_type.Equal[buildas]}) {
+    OUT ${notice}${sep}/crew buildas  - will only build a NEW group from your current group design.
+    
+    /if (!${Group.Members}) { 
+      OUT Try being in a group for fucks sake.
+      /return FALSE
+    }
+
+    | crew exist?
+    /sqlite query "${DBshared}" qcrewname SELECT id FROM crews WHERE crewname='${_verbage}';
+    /if (${sqlite.Rows[qcrewname]}) {
+      OUT /crew buildas${sep}\a-w${_verbage}\ax (\a-rFail\ax) (\a-rCrewname Exists\ax)
+      /sqlite clear qcrewname
+      /return FALSE
+    }
+ 
+    /declare _count2 int local 0
+ 
+    | make the crewname
+    /sqlite query "${DBshared}" dummy INSERT INTO crews(crewname) VALUES ("${_verbage}")
+    OUT /crew buildas${sep}\a-w${_verbage}\ax (\a-r${sqlite.Status[dummy]}\ax)
+ 
+    /for _count 0 to ${Group.Members}
+      DEBUG _count${sep}${_count}${sep}\a-w${Group.Member[${_count}]}\ax
+      
+      | add to character
+      /sqlite query "${DBshared}" dummy SELECT * FROM characters WHERE charactername='${Group.Member[${_count}]}' AND server='${MacroQuest.Server.Replace[ ,_].Lower}';
+      /if (!${sqlite.Rows[dummy]}) {
+        /sqlite query "${DBshared}" dummy INSERT INTO characters(charactername, server) VALUES ("${Group.Member[${_count}]}", "${MacroQuest.Server.Replace[ ,_].Lower}");
+        /if (${sqlite.Resultcode[dummy]} == 0) {  
+          OUT /crew buildas${sep}\a-w${MacroQuest.Server.Replace[ ,_].Lower} ${Group.Member[${_count}]}\ax (\a-r${sqlite.Status[dummy]}\ax)
+        }
+      }
+      
+      | character exist in DB?
+      /sqlite query "${DBshared}" qucheckcharacter SELECT id FROM characters WHERE charactername='${Group.Member[${_count}]}';
+      /sqlite query "${DBshared}" qucrewname SELECT id FROM crews WHERE crewname='${_verbage}';
+
+      | passed all error checking; add the toon to the crew
+      /sqlite query "${DBshared}" qcrewname INSERT INTO crewmembers(crewid, characterid) VALUES (${sqlite.Result[qucrewname 1 id]}, ${sqlite.Result[qucheckcharacter 1 id]});
+      OUT /crew buildas${sep}\a-w${Group.Member[${_count}]} ${_verbage}\ax (\a-r${sqlite.Status[qcrewname]}\ax)
+   
+      | add roles
+      /sqlite query "${DBshared}" qucrewmemberid SELECT crewmembers.id FROM crewmembers LEFT JOIN characters ON characters.id = crewmembers.characterid LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE characters.charactername = '${Group.Member[${_count}]}' AND characters.server = '${MacroQuest.Server.Replace[ ,_].Lower}' AND crews.crewname = '${_verbage}';
+      DEBUG ${sep}.Result (\a-rqucrewmemberid\ax)${sep}\a-w${sqlite.Result[qucrewmemberid 1 id]}\ax
+
+      | set roles
+      /sqlite query "${DBshared}" temp SELECT name FROM roles;
+      /for _count2 1 to ${sqlite.Rows[temp]}
+        DEBUG ${sep}checking${sep}\a-w.${sqlite.Result[temp ${_count2} name]}\ax${sep}${Group.${sqlite.Result[temp ${_count2} name]}}
+        /if (${Group.${sqlite.Result[temp ${_count2} name]}.Name.Equal[${Group.Member[${_count}]}]}) {
+          /sqlite query "${DBshared}" dummy INSERT INTO crewmemberroles(crewmemberid, role) VALUES (${sqlite.Result[qucrewmemberid 1 id]}, '${sqlite.Result[temp ${_count2} name]}');
+          OUT /crew buildas${sep}\a-w${Group.Member[${_count}]} ${_verbage} ${sqlite.Result[temp ${_count2} name]}\ax (\a-r${sqlite.Status[dummy]}\ax)
+        }
+      /next _count2 
+      /sqlite clear temp
+
+    /next _count 
+    /invoke ${out[18, 0, 33]}
+    /sqlite clear qucrewmemberid
+    /sqlite clear qucheckcharacter
+    /sqlite clear qucrewname
+    /return TRUE
+
+
+  | delete crews
+  } else /if (${_type.Equal[delete]}) {
+    
+    | delete a role
+    /if (${_verbage.Equal[role]} && ${Bool[${_verbage2}]} && ${Bool[${_verbage3}]} && ${Bool[${_verbage4}]}) {
+     
+      | fix the name case
+      /varset _verbage2 ${proper_case[name, "${_verbage2}"]}
+
+      | fix the role case
+      /varset _verbage3 ${proper_case[role, "${_verbage3}"]}
+
+      | /cecho /sqlite query "${DBshared}" qucrewmemberid SELECT crewmembers.id FROM crewmembers LEFT JOIN characters ON characters.id = crewmembers.characterid LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE characters.charactername = '${_verbage2}' AND characters.server = '${MacroQuest.Server.Replace[ ,_].Lower}' AND crews.crewname = '${_verbage4}';
+      /sqlite query "${DBshared}" qucrewmemberid SELECT crewmembers.id FROM crewmembers LEFT JOIN characters ON characters.id = crewmembers.characterid LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE characters.charactername = '${_verbage2}' AND characters.server = '${MacroQuest.Server.Replace[ ,_].Lower}' AND crews.crewname = '${_verbage4}';
+      DEBUG ${sep}.Result (\a-rqucrewmemberid\ax)${sep}\a-w${sqlite.Result[qucrewmemberid 1 id]}\ax
+      
+      | add the toon as that role in crewmemberroles
+      /sqlite query "${DBshared}" dummy DELETE FROM crewmemberroles WHERE crewmemberid = '${sqlite.Result[qucrewmemberid 1 id]}' AND role = '${_verbage3}';
+      DEBUG ${sep}DELETE (\a-rqdummy\ax)${sep}\a-w${sqlite.Rows[dummy]}\ax
+      OUT /crew delete role${sep}\a-w${_verbage2} ${_verbage3} ${_verbage4}\ax
+      /return TRUE
+
+
+    | delete a crewname
+    } else /if (${_verbage.Equal[crewname]} && ${Bool[${_verbage2}]}) {
+
+      /sqlite query "${DBshared}" dummy SELECT * FROM crews WHERE crewname='${_verbage2}';
+      /if (!${sqlite.Rows[dummy]}) {
+        OUT /crew delete crewname${sep}\a-w${_verbage2}\ax (\a-rDoes Not Exist\ax)
+        /return FALSE
+      }
+
+      /sqlite query "${DBshared}" dummy SELECT characters.charactername, crewmemberroles.role FROM crewmemberroles LEFT JOIN crewmembers ON crewmemberroles.crewmemberid = crewmembers.id LEFT JOIN characters ON characters.id = crewmembers.characterid LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE crews.crewname = '${_verbage2}';
+      /if (${sqlite.Rows[dummy]}) {
+        /for _count 1 to ${sqlite.Rows[dummy]}
+          | get role id info        
+          /sqlite query "${DBshared}" qucrewmemberid SELECT crewmembers.id FROM crewmembers LEFT JOIN characters ON characters.id = crewmembers.characterid LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE characters.charactername = '${sqlite.Result[dummy ${_count} charactername]}' AND characters.server = '${MacroQuest.Server.Replace[ ,_].Lower}' AND crews.crewname = '${_verbage2}';
+          | delete roles
+          /sqlite query "${DBshared}" tempdelete DELETE FROM crewmemberroles WHERE crewmemberid = '${sqlite.Result[qucrewmemberid 1 id]}' AND role = '${sqlite.Result[dummy ${_count} role]}';
+          /sqlite clear tempdelete
+          /sqlite clear qucrewmemberid
+        /next _count
+
+      }
+
+      | get data for crewmembers
+      /sqlite query "${DBshared}" qcrewname SELECT id FROM crews WHERE crewname='${_verbage2}';
+      | delete crewmember relation to crews
+      /sqlite query "${DBshared}" tempdelete DELETE FROM crewmembers WHERE crewid = '${sqlite.Result[qcrewname 1 id]}';
+      
+      /sqlite query "${DBshared}" dummy DELETE FROM crews WHERE crewname="${_verbage2}";
+      /if (${sqlite.Resultcode[dummy]} == 0) {
+        OUT /crew delete crewname${sep}\a-w${_verbage2}\ax (\a-r${sqlite.Status[dummy]}\ax)
+        /return TRUE
+      } else {
+        OUT /crew delete crewname${sep}\a-w${_verbage2}\ax (\a-rDoes Not Exists\ax)
+        /return TRUE
+      }
+
+    }
+
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[crewname,out]}
+    /invoke ${maControl.Add[role,out]}
+    /invoke ${set_control_output[FALSE, maChr, "crew delete", maControl]}
+    /return FALSE   
+
+
+  | form a crew
+  } else /if (${_type.Equal[form]}) {
+
+    | find the peoples and invite them
+    /sqlite query "${DBshared}" increw SELECT characters.charactername FROM crewmembers LEFT JOIN characters ON characters.id = crewmembers.characterid LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE crews.crewname = '${_verbage}'
+    /sqlite query "${DBshared}" iscrew SELECT id FROM crews WHERE crewname = '${_verbage}'
+    /sqlite query "${DBshared}" dummy SELECT COUNT(crewmembers.id) AS data FROM crewmembers LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE crews.crewname = '${_verbage}';
+    OUT /crew form${sep}\a-w${_verbage}\ax ${If[${sqlite.Rows[iscrew]},(\a-r${sqlite.Result[dummy 1 data]}\ax/\a-r6\ax),(\a-rFail\ax) (\a-rInvalid Crewname\ax)]}   
+    /if (!${sqlite.Rows[increw]}) {
+      /return FALSE
+    }
+
+    /if (${sqlite.Rows[increw]}) {
+      /for _count 1 to ${sqlite.Rows[increw]}
+        /if (${Group.Member[${sqlite.Result[increw ${_count} charactername]}].ID} || ${Spawn[pc ${sqlite.Result[increw ${_count} charactername]}].ID} == ${Me.ID}) {
+          /continue
+        }
+        /invite ${sqlite.Result[increw ${_count} charactername]}
+        /delay 4s ${Group.Member[${sqlite.Result[increw ${_count} charactername]}].ID}
+        OUT ${sep}${sqlite.Result[increw ${_count} charactername]} (\a-r${Group.Member[${sqlite.Result[increw ${_count} charactername]}].ID}\ax)
+      /next _count
+    }
+
+    | /grouproles set [NAME] [#]
+    | 1=MainTank
+    | 2=MainAssist           
+    | 3=Puller
+    | 4=MarkNpc
+    | 5=MasterLooter         
+    | /makeleader [NAME]
+
+    | find the roles and set them
+    /declare _leader sring local FALSE
+    /sqlite query "${DBshared}" dummy SELECT characters.charactername, crewmemberroles.role FROM crewmemberroles LEFT JOIN crewmembers ON crewmemberroles.crewmemberid = crewmembers.id LEFT JOIN characters ON characters.id = crewmembers.characterid LEFT JOIN crews ON crews.id = crewmembers.crewid WHERE crews.crewname = '${_verbage}'
+    /if (${sqlite.Rows[dummy]}) {
+      /for _count 1 to ${sqlite.Rows[dummy]}
+        
+        | pull out leader
+        /if (${sqlite.Result[dummy ${_count} role].Equal[Leader]}) {
+          /varset _leader ${sqlite.Result[dummy ${_count} charactername]}
+          /continue
+        } else /if (${sqlite.Result[dummy ${_count} role].Equal[MainTank]}) {
+          /grouproles set ${sqlite.Result[dummy ${_count} charactername]} 1
+        } else /if (${sqlite.Result[dummy ${_count} role].Equal[MainAssist]}) {
+          /grouproles set ${sqlite.Result[dummy ${_count} charactername]} 2
+        } else /if (${sqlite.Result[dummy ${_count} role].Equal[Puller]}) {
+          /grouproles set ${sqlite.Result[dummy ${_count} charactername]} 3
+        } else /if (${sqlite.Result[dummy ${_count} role].Equal[MarkNpc]}) {
+          /grouproles set ${sqlite.Result[dummy ${_count} charactername]} 4
+        } else /if (${sqlite.Result[dummy ${_count} role].Equal[MasterLooter]}) {
+          /grouproles set ${sqlite.Result[dummy ${_count} charactername]} 5
+        }
+        OUT ${sep}${sqlite.Result[dummy ${_count} role]}${sep}\a-w${sqlite.Result[dummy ${_count} charactername]}\ax
+        /delay 1
+      /next _count
+    }
+      
+    /if (${Bool[${_leader}]}) {
+      /makeleader ${_leader}        
+      OUT ${sep}Leader${sep}\a-w${_leader}\ax
+    }
+      
+    /invoke ${out[18, 0, 33]}
+    /sqlite clear increw
+    /sqlite clear iscrew
+    /return TRUE
+  }
+
+  /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[add,submenu]}
+  /invoke ${maControl.Add[delete,submenu]}
+  /invoke ${maControl.Add[buildas,out]}
+  /invoke ${maControl.Add[form,out]}
+  /invoke ${maControl.Add[list,list]}  
+  /invoke ${set_control_output[FALSE, maChr, "crew", maControl]}
+
+/return TRUE
+
+
+
+
+
+
+
+
+|***
+ * note: check if a character exists in the crew shared DB
+ * use: 
+ ***|
+sub crew_check_character(bool _debug, string _verbage, bool _forceadd, string _verbage2)
+  DEBUG \atcrew_check_character\ax(\a-w${_verbage}\ax)
+  
+  | fix the character name case
+  /varset _verbage ${proper_case[name, "${_verbage}"]}
+
+  /sqlite query "${DBshared}" qucheckcharacter SELECT id FROM characters WHERE charactername='${_verbage}';
+  DEBUG ${sep}.Rows (\a-rqucheckcharacter\ax)${sep}\a-w${sqlite.Rows[qucheckcharacter]}\ax
+
+  /if (!${sqlite.Rows[qucheckcharacter]} && !${_forceadd}) {
+    OUT /crew ${_verbage2}${sep}\a-w${_verbage}\ax (\a-rFail\ax)
+    /sqlite clear qucheckcharacter
+    /return FALSE
+  }    
+
+  /if (!${sqlite.Rows[qucheckcharacter]} && ${_forceadd}) {
+    /sqlite query "${DBshared}" dummy INSERT INTO characters(charactername, server) VALUES ("${_verbage}", "${MacroQuest.Server.Replace[ ,_].Lower}")
+    /return FALSE
+  } 
 
 /return TRUE
 

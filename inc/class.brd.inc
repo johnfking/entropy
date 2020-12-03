@@ -24,7 +24,9 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stNukeServant                    PREGEN|1                      "${auxna} spam pet song"
 
   | map for mob control
-  /declare maMobControl map outer
+  /if (!${Defined[maMobControl]}) {
+    /declare maMobControl map outer
+  }
 
   /call set_data_map ${_debug} maChr swSongRest                       FALSE                         "${auxna} enable song while resting"
   /call set_data_map ${_debug} maChr stSongRest                       FALSE                         "${auxna} song to use while group resting"
@@ -62,7 +64,9 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAAShaurisSonorousClouding      PREGEN|1                      "${auxna} Shauri's Sonorous Clouding aa"
 
   | set base instrument focuses
-  /declare maBardFocus map outer
+  /if (!${Defined[maBardFocus]}) {
+    /declare maBardFocus map outer
+  }
   /call scan_focus FALSE ${maDebug.Find[scan].Value}
 
   /if (${maDebug.Find[init].Value}) {

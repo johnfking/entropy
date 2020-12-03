@@ -127,7 +127,10 @@ sub set_initialize(bool _debug)
 
   | hook map
   /declare maHook map outer
-
+  
+  | entropy main map
+  | /declare maEntropy map outer
+ 
   | buff beg map
   /declare maBuffRequest map outer
 
@@ -153,7 +156,7 @@ sub set_initialize(bool _debug)
   | list of all maps used with usable data
   /declare lsMaps list outer
   /invoke ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maBuff,maBurn,maPred]}
-  /invoke ${lsMaps.Append[maEntropy,maTimer,madeBuff,maTie,maMinion,maCrew]}
+  /invoke ${lsMaps.Append[maEntropy,maTimer,madeBuff,maTie,maMinion]}
   /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard]}
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro,maMercenary]}
   /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
@@ -206,7 +209,7 @@ sub set_initialize(bool _debug)
   /invoke ${maDBTables.Add[environment_character,env_var]}
   /invoke ${maDBTables.Add[environment_timer,env_timer]}
   /invoke ${maDBTables.Add[environment_item,env_var]}
-  /invoke ${maDBTables.Add[environment_crew,env_var]}
+  | /invoke ${maDBTables.Add[environment_crew,env_var]}
   /invoke ${maDBTables.Add[environment_defense,env_var]}
   /invoke ${maDBTables.Add[environment_heal,env_var]}
   /invoke ${maDBTables.Add[environment_song,env_var]}
@@ -262,12 +265,12 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} FALSE lsClassHealPet                           list outer CLR|SHM|PAL|DRU|NEC|MAG|BST|SHM|RNG
   /call set_data ${_debug} FALSE lsClassHealCure                          list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
 
-
   /call set_data ${_debug} FALSE lsIVU                                    list outer "Group Perfected Invisibility to Undead"|"Perfected Invisibility to Undead"|"Invisibility to Undead"|"Invisibility versus Undead"|"Shauri's Sonorous Clouding"
   /call set_data ${_debug} FALSE lsIV                                     list outer "Shared Perfected Camouflage"|"Shared Camouflage"|"Camouflage"|"Group Perfected Invisibility"|"Invisibility"|"Perfected Invisibility"|"Phase March"|"Nethervoid March"|"Perfected Silent Presence"|"Cloak of Shadows"|"Gather Umbra"|"Invisibility Cloak"|"Perfected Natural Invisibility"|"Perfected Spirit Walk Invisibility"|"Perfected Group Spirit Walk Invisibility"|"Shauri's Sonorous Clouding"|"Selo's Song of Travel"
   /call set_data ${_debug} FALSE lsAssistTypes                            list outer g|ma1|ma2|1|2|3
   /call set_data ${_debug} FALSE lsPullTypes                              list outer base|pet|int|nav|multi
   /call set_data ${_debug} FALSE lsRezBuffTriggers                        list outer "Revival Sickness"|"Resurrection Sickness"
+  /call set_data ${_debug} FALSE lsBroadcastTypes                         list outer group|raid|zone|all
 
 
   | things we dont want pullers attacking
@@ -460,17 +463,17 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} maComm stFullNames                               map outer FALSE             "dannet fullnames"
 
   | set DanNet groups
-  /declare lsEntropyGroup list outer
-  /invoke ${lsEntropyGroup.Delimiter["|"]}
+  | /declare lsEntropyGroup list outer
+  | /invoke ${lsEntropyGroup.Delimiter["|"]}
 
-  /invoke ${lsEntropyGroup.Append[all|1|2|3|4|5|6|7|8|9|10|11]}
+  | /invoke ${lsEntropyGroup.Append[all|1|2|3|4|5|6|7|8|9|10|11]}
 
-  /declare _lidn listiterator local
-  /vardata _lidn lsEntropyGroup.First
-  /while (!${_lidn.IsEnd}) {
-    /invoke ${maComm.Add[stEntropyGroup_${_lidn.Value},entropy${_lidn.Value}]}
-    /invoke ${_lidn.Advance}
-  }
+  | /declare _lidn listiterator local
+  | /vardata _lidn lsEntropyGroup.First
+  | /while (!${_lidn.IsEnd}) {
+  |   /invoke ${maComm.Add[stEntropyGroup_${_lidn.Value},entropy${_lidn.Value}]}
+  |   /invoke ${_lidn.Advance}
+  | }
 
   | join the group
   /djoin ${maComm.Find[stEntropyGroup_all].Value}
@@ -910,7 +913,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHard stFoodMaintain                      3000                          "${auxnum} level of, i'm full, to maintain for food"                                hard
   /call set_data_map ${_debug} maHard stDrinkMaintain                     3000                          "${auxnum} level of, i'm not thirsty, to maintain for drink"                        hard
   /call set_data_map ${_debug} maHard stPullMobFindStep                   5                             "${auxnum} number of increments your pull radius is broken into to look for mobs"   hard
-  /call set_data_map ${_debug} maHard stDanNetReturnDelay                 10                            "${auxnum} delays for dannet query returns"                                         hard
 
 
 
@@ -933,7 +935,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /invoke ${set_data_timer[${_debug}, Check_EXP_Adjust, 5m]}
   /call set_data_map ${_debug} maEnv stMobLvlMin                          1                             "${auxnum} lowest level mob you will attack"
   /call set_data_map ${_debug} maEnv stMobLvlMax                          500                           "${auxnum} highest level mob you will attack"
-  /call set_data_map ${_debug} maEnv swNukeLoop                           FALSE                         "${auxsw} force a nuke loop to complete before releasing"
 
   /call set_data_map ${_debug} maEnv swADVLoot                            FALSE                         "${auxsw} use advanced loot functions"
   /call set_data_map ${_debug} maEnv swAutoInv                            FALSE                         "${auxsw} use autoinventory loot control on cursor items"
@@ -1182,7 +1183,8 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maPull stHardStopDuration                  0                             "${auxnum} duration to stop pulling for crew to recover"                        pull
   /call set_data_map ${_debug} maPull swHardStopRez                       FALSE                         "${auxsw} stop pulling when someone has rez effects"                            pull
   /call set_data_map ${_debug} maPull stPullZRadius                       60                            "${auxnum} the z distance of your pulling environment"                          pull
-  /call set_data_map ${_debug} maPull swNavPathLogic                      TRUE                          "${auxnum} use nav path lenght logic for finding targets to pull"               pull
+  /call set_data_map ${_debug} maPull swNavPathLogic                      TRUE                          "${auxsw} use nav path lenght logic for finding targets to pull"                pull
+  /call set_data_map ${_debug} maPull stCountChainPull                    0                             "${auxnum} # of mobs left in area to go pull more"                              pull
 
   | arc controls
   | /call set_data_map ${_debug} maPull stPullArcCardinal                   FALSE                         "${auxna} cardinal direction to pull from camp"                                 pull
@@ -1314,16 +1316,17 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** control: dot **|
-  /call set_data_map ${_debug} maDoT stDotRefresh                         3                             "${auxnum} time left on a dot to refresh it, in seconds"
-  /call set_data_map ${_debug} maDoT stPctStopDoT                         0                             "${auxnum} % of mob health to stop dotting it at"
+  /call set_data_map ${_debug} maDoT stDotRefresh                         3                             "${auxnum} time left on a dot to refresh it, in seconds"          dot
+  /call set_data_map ${_debug} maDoT stPctStopDoT                         0                             "${auxnum} % of mob health to stop dotting it at"                 dot
   /call set_data_list ${_debug} maDoT lsLineDoT                           EMPTY                         "${auxli} alternate cast order for dots"                          dot
 
 
 
 |** control: nuke **|
-  /call set_data_map ${_debug} maNuke stPctStopNuke                       0                             "${auxnum} % of mob health to stop nuking it at"
-  /call set_data_map ${_debug} maNuke stNukeDelay                         0                             "${auxnum} time to force between using nukes or dots"
+  /call set_data_map ${_debug} maNuke stPctStopNuke                       0                             "${auxnum} % of mob health to stop nuking it at"                  nuke
+  /call set_data_map ${_debug} maNuke stNukeDelay                         0                             "${auxnum} time to force between using nukes or dots"             nuke
   /call set_data_list ${_debug} maNuke lsLineNuke                         EMPTY                         "${auxli} alternate cast order for nukes"                         nuke
+  /call set_data_map ${_debug} maNuke swNukeLoop                          FALSE                         "${auxsw} force a nuke loop to complete before releasing"         nuke
 
 
 
@@ -1422,7 +1425,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy swEventsInc                      FALSE                         "${auxsw} use events from events.inc file"
   /call set_data_map ${_debug} maEntropy swDPSMeter                       FALSE                         "${auxsw} use dps meeter"
   /call set_data_map ${_debug} maEntropy swHookSub                        FALSE                         "${auxsw} use hook functions"
-  /call set_data_map ${_debug} maEntropy stNetworkTimeOUT                 1                             "${auxnum} dannet timeOUT for network lag. ignore this if at all possible"
+  /call set_data_map ${_debug} maEntropy stNetworkTimeout                 1                             "${auxnum} dannet timeout for network lag. ignore this if at all possible"
   /call set_data_list ${_debug} maEntropy lsSafeNames                     EMPTY                         "${auxli} list of people you trust (\a-wDanNet connections trusted by default\ax)"
   /call set_data_map ${_debug} maEntropy swAutoList                       FALSE                         "${auxsw} autopopulate zone listsnames for some mob types"
   /call set_data_map ${_debug} maEntropy stBuffRefresh                    0                             "${auxnum} time in seconds to refrsh a buff before it fades. 0=wait till it fades"
@@ -1436,6 +1439,15 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy swUseConColor                    FALSE                         "${auxsw} Use ConColors for targets"
   /call set_data_map ${_debug} maEntropy swNavLogSpew                     off                           "${auxsw} (on/off) Show mq2nav log spew in mq2 chat window"
   /call set_data_map ${_debug} maEntropy stMainLoopDelay                  1                             "${auxnum} this is the main delay for the master macro loops. USE CAUTION when changing!"
+
+  | broadcast defaults
+  /call set_data_map ${_debug} maEntropy stBroadcastHere                 group                         "${auxna} change the default broadcast for /here [group|raid|zone|all]."
+  /call set_data_map ${_debug} maEntropy stBroadcastEnter                group                         "${auxna} change the default broadcast for /enter [group|raid|zone|all]."
+  /call set_data_map ${_debug} maEntropy stBroadcastOn                   group                         "${auxna} change the default broadcast for /on [group|raid|zone|all]."
+  /call set_data_map ${_debug} maEntropy stBroadcastOff                  group                         "${auxna} change the default broadcast for /off [group|raid|zone|all]."
+  /call set_data_map ${_debug} maEntropy stBroadcastTake                 group                         "${auxna} change the default broadcast for /take [group|raid|zone|all]."
+  /call set_data_map ${_debug} maEntropy stDanNetQueryDelay              10                            "${auxnum} delays for dannet query returns"
+
 
   | GoM list
   /call set_data_list ${_debug} maChr lsGoM                               EMPTY                         "${auxli} things to use on a gift of mana aa proc"
@@ -1533,38 +1545,6 @@ sub set_initialize_class_epic(bool _debug)
 
 
 
-
-|***
- * note: set/build crew lists/rolls
- * use:
- ***|
-sub set_initialize_crew(bool _debug)
-  DEBUG \atset_initialize_crew\ax()
-
-  /if (${maDebug.Find[init].Value}) {
-    /declare _boottimestart int local ${MacroQuest.Running}
-  }
-
-  /declare _count int local 0
-
-  /for _count 1 to 12
-    /call set_data_list ${_debug} maCrew lsCrew${_count}              EMPTY                         "${auxli} list for crew #${_count}" crew
-    /call set_data_map ${_debug} maCrew stCrew${_count}Leader         FALSE                         "${auxna} crew #${_count} leader" crew
-    /call set_data_map ${_debug} maCrew stCrew${_count}Looter         FALSE                         "${auxna} crew #${_count} looter" crew
-    /call set_data_map ${_debug} maCrew stCrew${_count}Assist         FALSE                         "${auxna} crew #${_count} assist" crew
-  /next _count
-
-  /call set_data ${_debug} FALSE stCurrentCrew                        string outer EMPTY
-
-  /if (${maDebug.Find[init].Value}) {
-    OUT \agset_initialize_crew\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
-    /mqp
-  }
-
-/return TRUE
-
-
-
 |***
  * note: set/build buffs
  * use:
@@ -1578,10 +1558,10 @@ sub set_initialize_map_buffs(bool _debug)
 
   /declare _count int local 0
   /for _count 1 to 50
-    /call set_data_map ${_debug} maBuff swBuff${_count} FALSE "${auxsw} buff ${_count} switch"  buff
-    /call set_data_map ${_debug} maBuff stBuff${_count} FALSE "${auxna} buff ${_count} name"  buff
-    /call set_data_map ${_debug} maBuff stBuff${_count}Alias FALSE "${auxna} buff ${_count} alias"  buff
-    /call set_data_list ${_debug} maBuff lsBuff${_count}Tag EMPTY "${auxli} buff ${_count} tag list"  buff
+    /call set_data_map ${_debug} maBuff swBuff${_count} FALSE "${auxsw} buff ${_count} switch"          buff
+    /call set_data_map ${_debug} maBuff stBuff${_count} FALSE "${auxna} buff ${_count} name"            buff
+    /call set_data_map ${_debug} maBuff stBuff${_count}Alias FALSE "${auxna} buff ${_count} alias"      buff
+    /call set_data_list ${_debug} maBuff lsBuff${_count}Tag EMPTY "${auxli} buff ${_count} tag list"    buff
   /next _count
 
   /if (${maDebug.Find[init].Value}) {
@@ -1759,10 +1739,10 @@ sub set_initialize_static_map(bool _debug)
 
 |***
  * note: sets any aliases
- * use: /call set_alias DEBUG [add|delete]
+ * use: /call set_alias [add|delete] DEBUG 
  ***|
-sub set_alias(bool _debug, string _action)
-  DEBUG \atset_alias\ax()
+sub set_alias(string _action, bool _debug)
+  DEBUG \atset_alias\ax(\a-w${_action}\ax)
 
   /if (${maDebug.Find[init].Value}) {
     /declare _boottimestart int local ${MacroQuest.Running}
@@ -1777,9 +1757,7 @@ sub set_alias(bool _debug, string _action)
   /if (${_action.Equal[add]}) {
     /vardata _maal maAlias.First.Clone
     /while (!${_maal.IsEnd}) {
-      | /if (!${Alias[${mi.Key}]}) {
-        /squelch /alias ${_maal.Key} ${_maal.Value}
-      | }
+      /squelch /alias ${_maal.Key} ${_maal.Value}
       /invoke ${_maal.Advance}
     }
 
@@ -2222,36 +2200,36 @@ sub set_initialize_buttons(bool _debug, string _verbage)
     | window label
     /ini ${_path} "UISettings" "WindowTitle" "Entropy"
 
-    | here command
-    /ini ${_path} "Button1" "Label" "Combat Now"
-    /ini ${_path} "Button1" "Command" "/here"
+    | start self
+    /ini ${_path} "Button1" "Label" "Start (Me)"
+    /ini ${_path} "Button1" "Command" "/mac entropy\start.mac"
     /ini ${_path} "Button1" "Red" "255"
     /ini ${_path} "Button1" "Green" "255"
-    /ini ${_path} "Button1" "Blue" "153"
+    /ini ${_path} "Button1" "Blue" "255"
 
-    | auto/manual
-    /ini ${_path} "Button2" "Label" "/env auto ${If[${maEnv.Find[swAuto].Value},On,OFF]}"
-    /ini ${_path} "Button2" "Command" "/env auto"
+    | start everyone
+    /ini ${_path} "Button2" "Label" "Start (All)"
+    /ini ${_path} "Button2" "Command" "/dga all /mac entropy\start.mac"
     /ini ${_path} "Button2" "Red" "255"
     /ini ${_path} "Button2" "Green" "255"
-    /ini ${_path} "Button2" "Blue" "153"
+    /ini ${_path} "Button2" "Blue" "255"
 
     | pull switch
-    /ini ${_path} "Button3" "Label" "Puller On/Off"
-    /ini ${_path} "Button3" "Command" "/cc pull"
+    /ini ${_path} "Button3" "Label" "Pull"
+    /ini ${_path} "Button3" "Command" "/pull active"
     /ini ${_path} "Button3" "Red" "255"
     /ini ${_path} "Button3" "Green" "255"
-    /ini ${_path} "Button3" "Blue" "153"
+    /ini ${_path} "Button3" "Blue" "255"
 
     | agro switch
-    /ini ${_path} "Button4" "Label" "Agro On/Off"
-    /ini ${_path} "Button4" "Command" "/cc agro"
-    /ini ${_path} "Button4" "Red" "255"
-    /ini ${_path} "Button4" "Green" "255"
-    /ini ${_path} "Button4" "Blue" "153"
+    /ini ${_path} "Button4" "Label" "Agro"
+    /ini ${_path} "Button4" "Command" "/agro active"
+    /ini ${_path} "Button4" "Red" "204"
+    /ini ${_path} "Button4" "Green" "0"
+    /ini ${_path} "Button4" "Blue" "0"
 
     | tie all switch
-    /ini ${_path} "Button5" "Label" " Tie (All)"
+    /ini ${_path} "Button5" "Label" " Tie"
     /ini ${_path} "Button5" "Command" "/dga /tie"
     /ini ${_path} "Button5" "Red" "255"
     /ini ${_path} "Button5" "Green" "255"
@@ -2260,27 +2238,27 @@ sub set_initialize_buttons(bool _debug, string _verbage)
     | in charege command
     /ini ${_path} "Button6" "Label" "In Charge"
     /ini ${_path} "Button6" "Command" "/env incharge"
-    /ini ${_path} "Button6" "Red" "100"
-    /ini ${_path} "Button6" "Green" "100"
-    /ini ${_path} "Button6" "Blue" "255"
+    /ini ${_path} "Button6" "Red" "255"
+    /ini ${_path} "Button6" "Green" "255"
+    /ini ${_path} "Button6" "Blue" "0"
 
     |
-    /ini ${_path} "Button7" "Label" ""
+    /ini ${_path} "Button7" "Label" " "
     /ini ${_path} "Button7" "Command" ""
     /ini ${_path} "Button7" "Red" "255"
     /ini ${_path} "Button7" "Green" "255"
     /ini ${_path} "Button7" "Blue" "153"
 
     | set toons home camp
-    /ini ${_path} "Button8" "Label" "Home Camp"
-    /ini ${_path} "Button8" "Command" "/movement home"
+    /ini ${_path} "Button8" "Label" "Home"
+    /ini ${_path} "Button8" "Command" "/home set"
     /ini ${_path} "Button8" "Red" "255"
     /ini ${_path} "Button8" "Green" "255"
-    /ini ${_path} "Button8" "Blue" "153"
+    /ini ${_path} "Button8" "Blue" "255"
 
     | builds crew 1
-    /ini ${_path} "Button9" "Label" "Build Crew"
-    /ini ${_path} "Button9" "Command" "/crew 1"
+    /ini ${_path} "Button9" "Label" " "
+    /ini ${_path} "Button9" "Command" ""
     /ini ${_path} "Button9" "Red" "255"
     /ini ${_path} "Button9" "Green" "255"
     /ini ${_path} "Button9" "Blue" "153"
@@ -2290,21 +2268,27 @@ sub set_initialize_buttons(bool _debug, string _verbage)
     /ini ${_path} "Button10" "Command" "/home gather"
     /ini ${_path} "Button10" "Red" "255"
     /ini ${_path} "Button10" "Green" "255"
-    /ini ${_path} "Button10" "Blue" "153"
+    /ini ${_path} "Button10" "Blue" "255"
 
-    | start self
-    /ini ${_path} "Button11" "Label" "Start (Me)"
-    /ini ${_path} "Button11" "Command" "/mac entropy\start.mac"
-    /ini ${_path} "Button11" "Red" "255"
+
+    | auto/manual
+    /ini ${_path} "Button11" "Label" "Auto"
+    /ini ${_path} "Button11" "Command" "/env auto"
+    /ini ${_path} "Button11" "Red" "0"
     /ini ${_path} "Button11" "Green" "255"
-    /ini ${_path} "Button11" "Blue" "153"
+    /ini ${_path} "Button11" "Blue" "0"
 
-    | start everyone
-    /ini ${_path} "Button12" "Label" "Start (All)"
-    /ini ${_path} "Button12" "Command" "/dga all /mac entropy\start.mac"
+
+
+
+    | here command
+    /ini ${_path} "Button12" "Label" "Here"
+    /ini ${_path} "Button12" "Command" "/here"
     /ini ${_path} "Button12" "Red" "255"
     /ini ${_path} "Button12" "Green" "255"
-    /ini ${_path} "Button12" "Blue" "153"
+    /ini ${_path} "Button12" "Blue" "255"
+
+
 
 
     /squelch /mybutton reload
@@ -2478,6 +2462,13 @@ sub sql_check(bool _debug, string _query, string _subname, string _action)
 sub sql_schema_shared(bool _debug)
   DEBUG \atsql_schema_shared\ax()
 
+
+  | /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS crewmemberroles(id INTEGER PRIMARY KEY autoincrement, crewmemberid INTEGER, role TEXT NOT NULL, FOREIGN KEY (crewmemberid) REFERENCES character(id), FOREIGN KEY (role) REFERENCES roles(name), UNIQUE (crewmemberid, role));
+  | /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS crews(id INTEGER PRIMARY KEY, crewname TEXT NOT NULL);
+  | /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS crewmembers(id INTEGER PRIMARY KEY autoincrement, crewid INTEGER, characterid INTEGER, FOREIGN KEY (crewid) REFERENCES crews(id), FOREIGN KEY (characterid) REFERENCES characters(id), UNIQUE (crewid,characterid));
+  | /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS characters(id INTEGER PRIMARY KEY autoincrement, charactername TEXT NOT NULL, server TEXT NOT NULL);
+
+
   /if (${maDebug.Find[init].Value}) {
     /declare _boottimestart int local ${MacroQuest.Running}
   }
@@ -2522,13 +2513,13 @@ sub sql_schema_shared(bool _debug)
       /sqlite query "${DBshared}" build INSERT OR IGNORE INTO metadata VALUES('schema_number', '${maEnv.Find[schema].Value}');
       /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
 
-      | -------------------- rolls for crews
+      | -------------------- crews
       | create the characters
       /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS characters(id INTEGER PRIMARY KEY autoincrement, charactername TEXT NOT NULL, server TEXT NOT NULL);
       /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (characters)"]}) /endmacro
 
       | create the rolls.. move to entropy.sqlite???
-      /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS roles(name);
+      /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS roles(name TEXT NOT NULL, UNIQUE (name));
       /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (roles)"]}) /endmacro
       /call data_schema_roles
 
@@ -2542,6 +2533,10 @@ sub sql_schema_shared(bool _debug)
       /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS crewmemberroles(id INTEGER PRIMARY KEY autoincrement, crewmemberid INTEGER, role TEXT NOT NULL, FOREIGN KEY (crewmemberid) REFERENCES character(id), FOREIGN KEY (role) REFERENCES roles(name), UNIQUE (crewmemberid, role));
       /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (crewmemberroles)"]}) /endmacro
 
+
+      | -------------------- names for binds
+      | /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS binds(id INTEGER PRIMARY KEY, name TEXT, UNIQUE (name));
+      | /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (binds)"]}) /endmacro
 
 
       | -------------------- tags n'stuff
@@ -2591,10 +2586,12 @@ sub sql_schema_shared(bool _debug)
       /if (!${sql_check[${_debug}, updateschemanum, sql_schema_shared, "UPDATE (value)"]}) /endmacro
 
       | call schema update by version here!
+      | /call data_schema_bind_name
       /call data_schema_tag
       /call data_schema_tag_group
       /call data_schema_tag_validation
       /call sql_schema_update ${_debug} shared
+      
 
       /if (${sqlite.Resultcode[updateschemanum]} != 0) /delay 1
       /if (${sqlite.Resultcode[updateschemanum]} == 0) /break
@@ -2619,12 +2616,12 @@ sub sql_schema_shared(bool _debug)
  * use: generate data for schema_roles
  ***|
 sub data_schema_roles()
-  /sqlite query "${DBshared}" build INSERT INTO roles(name) VALUES('Leader');
-  /sqlite query "${DBshared}" build INSERT INTO roles(name) VALUES('MainTank');
-  /sqlite query "${DBshared}" build INSERT INTO roles(name) VALUES('MainAssist');
-  /sqlite query "${DBshared}" build INSERT INTO roles(name) VALUES('MasterLooter');
-  /sqlite query "${DBshared}" build INSERT INTO roles(name) VALUES('MarkNPC');
-  /sqlite query "${DBshared}" build INSERT INTO roles(name) VALUES('Puller');
+  /sqlite query "${DBshared}" build INSERT OR IGNORE INTO roles(name) VALUES('Leader');
+  /sqlite query "${DBshared}" build INSERT OR IGNORE INTO roles(name) VALUES('MainTank');
+  /sqlite query "${DBshared}" build INSERT OR IGNORE INTO roles(name) VALUES('MainAssist');
+  /sqlite query "${DBshared}" build INSERT OR IGNORE INTO roles(name) VALUES('MasterLooter');
+  /sqlite query "${DBshared}" build INSERT OR IGNORE INTO roles(name) VALUES('MarkNpc');
+  /sqlite query "${DBshared}" build INSERT OR IGNORE INTO roles(name) VALUES('Puller');
 /return TRUE
 
 
@@ -2660,53 +2657,53 @@ sub data_schema_tag()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('23', 'puller', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('24', 'agro', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('25', 'noagro', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('26', 'noraid', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('26', 'noraid', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('27', 'inraid', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('28', 'burn', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('29', 'swarm', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('30', 'ingroup', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('31', 'nosafezone', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('32', 'autoinventory', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('32', 'autoinventory', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('33', 'epic', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('34', 'aliasonly', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('34', 'aliasonly', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('35', 'target', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('36', 'targetundead', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('37', 'targethumanoid', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('38', 'targetplant', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('38', 'targetplant', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('39', 'delay1s', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('40', 'nogroup', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('41', 'dropdisc', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('42', 'dropinvis', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('40', 'nogroup', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('41', 'dropdisc', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('42', 'dropinvis', '1');
 
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('43', 'single', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('44', 'group', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('45', 'hot', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('46', 'grouphot', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('47', 'tot', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('48', 'minion', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('49', 'self', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('50', 'splash', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('51', 'complete', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('52', 'promise', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('53', 'surge', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('56', 'crew', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('58', 'now', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('59', 'ps', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('60', 'aura', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('61', 'raid', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('62', 'summonrange', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('63', 'summonpoison', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('64', 'summonweapons', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('65', 'summonitem', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('66', 'summonaxe', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('67', 'outofwater', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1000', 'twincast', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1001', 'totem', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1003', 'pulseincombat', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1004', 'pulserest', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1005', 'pulseooc', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('999', 'pbaenuke', '1');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('998', 'temp', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('43', 'single', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('44', 'group', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('45', 'hot', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('46', 'grouphot', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('47', 'tot', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('48', 'minion', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('49', 'self', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('50', 'splash', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('51', 'complete', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('52', 'promise', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('53', 'surge', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('56', 'crew', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('58', 'now', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('59', 'ps', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('60', 'aura', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('61', 'raid', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('62', 'summonrange', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('63', 'summonpoison', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('64', 'summonweapons', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('65', 'summonitem', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('66', 'summonaxe', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('67', 'outofwater', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1000', 'twincast', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1001', 'totem', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1003', 'pulseincombat', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1004', 'pulserest', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1005', 'pulseooc', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('999', 'pbaenuke', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('998', 'temp', '1');
 
  | /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag(id, name, created_by) VALUES('1001', 'myassist', '1');
 
@@ -2721,18 +2718,18 @@ sub data_schema_tag()
  * use: generate data for schema_tag_group
  ***|
 sub data_schema_tag_group()
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('1', 'heal');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('2', 'nuke');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('3', 'dot');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('4', 'burn');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('5', 'song');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('6', 'defense');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('7', 'buff');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('8', 'miscdps');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('9', 'item');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'pull');
- | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'engine2');
- | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('11', 'engine3');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('1', 'heal');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('2', 'nuke');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('3', 'dot');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('4', 'burn');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('5', 'song');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('6', 'defense');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('7', 'buff');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('8', 'miscdps');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('9', 'item');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'pull');
+  | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'engine2');
+  | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('11', 'engine3');
 
 /return TRUE
 
@@ -2970,6 +2967,20 @@ sub data_schema_tag_validation
 
 
 
+|***
+ * note:
+ * use: generate data for schema_bind_name
+
+sub data_schema_bind_name()
+ /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO binds(id, name) VALUES('1', 'tc');
+ /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO binds(id, name) VALUES('2', 'tie');
+
+/return TRUE
+ ***|
+
+
+
+
 
 |***
  * note: schema data updates
@@ -2987,6 +2998,8 @@ sub sql_schema_update(bool _debug, string _type)
     /if (${sqlite.Result[schemanumber 1 version]} >= 1.01) {
       | drop build table character
       /sqlite query "${DBcharacter}" dummy DROP TABLE IF EXISTS build
+      | drop old comm table
+      
     }
 
 
@@ -3066,12 +3079,32 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
 
  /declare _tmpList list local
  /declare _li listiterator local
+ /declare _count int local 0
+
 
  | character database
  /if (${_type.Equal[character]} || ${_verbage.Equal[force]}) {
   /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-w${maData.Find[chrID].Value}.sqlite\ax
 
+  /if (${maEnv.Find[build].Value} >= 201201.1 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w201201.1\ax
+    | remove crew table from character DB
+    /sqlite query "${DBcharacter}" dummy DROP TABLE IF EXISTS environment_crew;
+    /invoke ${_tmpMap.Add[stDanNetReturnDelay,hard]}
 
+  }
+  
+
+  | nuke/dot changes
+  /if (${maEnv.Find[build].Value} >= 201126.02 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w201126.02\ax
+    /invoke ${_tmpMap.Add[stPctStopNuke,character]}
+    /invoke ${_tmpMap.Add[stNukeDelay,character]}
+    /invoke ${_tmpMap.Add[swNukeLoop,character]}
+    /invoke ${_tmpMap.Add[stDotRefresh,character]}
+    /invoke ${_tmpMap.Add[stPctStopDoT,character]}
+  }  
+  
   | temp buff changes
   /if (${maEnv.Find[build].Value} >= 201123.01 || ${_verbage.Equal[force]}) {
     /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w201123.01\ax
@@ -3331,8 +3364,22 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
   | shared database
   /if (${_type.Equal[shared]} || ${_verbage.Equal[force]}) {
     /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-wshared.sqlite\ax
-    
-    
+    /declare _tmpShare map local
+    /declare _mis mapiterator local
+
+
+    | nuke/dot changes
+    /if (${maEnv.Find[build].Value} >= 201128.01 || ${_verbage.Equal[force]}) {
+      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w201128.01 \ax
+      | remove the role  MarkNPC, bad spelling case
+      /sqlite query "${DBshared}" dummy DELETE FROM roles WHERE name = 'MarkNPC'
+
+
+
+    }
+
+
+
   }
 
 
@@ -3347,6 +3394,5 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
   }
 
 /return
-
 
 
