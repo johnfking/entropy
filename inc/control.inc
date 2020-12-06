@@ -1233,10 +1233,10 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
     /declare _liseez listiterator local
     /vardata _liseez lsZoneProperty.First.Clone
     /while (!${_liseez.IsEnd}) {
-      OUT ${dot}${_liseez.Value}
+      OUT ${_liseez.Value}
         /vardata _liwtf ${_liseez}.First.Clone
         /while (!${_liwtf.IsEnd}) {
-          OUT ${dot}${dot}${dot}${dot}\a-w${_liwtf.Value}\ax
+          OUT ${sep}\a-w${_liwtf.Value}\ax
           /invoke ${_liwtf.Advance}
         }
       /invoke ${_liseez.Advance}
@@ -1473,7 +1473,9 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
 
   | set the XTarget class to heal
   } else /if (${_type.Equal[xtclass]}) {
-    /call set_control_chr_xtclass FALSE ${_verbage}
+    /call set_control_shortname ${_debug} lsHealXTClass ${_verbage}
+    | /call set_control_chr_xtclass FALSE ${_verbage}
+    /invoke ${out[12, "/heal xtclass ${dot} ${Macro.Return}"]}
     /return
 
   | set rampage tank toon
@@ -2894,6 +2896,7 @@ sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _a
     /call burn ${maDebug.Find[burn].Value} 0
     /delay 5
     /invoke ${maBurn.Add[swBurnSpinUp,FALSE]}
+    /return TRUE
 
   }
 
@@ -3056,7 +3059,7 @@ sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _deb
 
 /return TRUE
 
-
+/echo ${Target.Maloed}
 
 |***
  * note: control for /cc
@@ -5007,36 +5010,50 @@ sub Bind_command_pull_pet(int _tmpID, bool _debug)
 #bind control_grain /grain
 sub Bind_control_grain(string _num, bool _debug)
 
+  /declare _count int local 0
+  
+  /sqlite query "${DBstatic}" dummy SELECT COUNT(env_var) AS data FROM output
+  /declare _shadeCount int local ${sqlite.Result[dummy 1 data]}
+
   | output control map
   /if (${_num.Equal[see]}) {
     /call Bind_command_see lsGrain
-    /return
+    /return TRUE
   } else /if (${_num.Equal[aux]}) {
     /call Bind_command_aux grain
-    /return
+    /return TRUE
+  } else /if (${_num.Equal[list]}) {
+    /sqlite query "${DBstatic}" grainout SELECT value FROM output
+    /for _count 1 to ${_shadeCount}
+      OUT ${sep} \aw${_count}\ax:${If[${lsGrain.Contains[${_count}]},${on},${off}]}${sep}\a-w${sqlite.Result[grainout ${_count} value]}
+    /next _count
+    /sqlite clear grainout
+    /invoke ${out[18, 0, 33]}
+    /return TRUE
   }
 
   | remove a grain if it exists
-  /if (${lsGrain.Contains[${_num}]} && ${Range.Between[1,30:${_num}]}) {
+  /if (${lsGrain.Contains[${_num}]} && ${Range.Between[1,${_shadeCount}:${_num}]}) {
     /call do_raw_edit ${_debug} silent lsGrain ${_num} delete
 
   | add a grain if it oes not exist
-  } else /if (!${lsGrain.Contains[${_num}]} && ${Range.Between[1,30:${_num}]}) {
+  } else /if (!${lsGrain.Contains[${_num}]} && ${Range.Between[1,${_shadeCount}:${_num}]}) {
     /call do_raw_edit ${_debug} silent lsGrain ${_num} add
 
   | idiot proofing
-  } else /if (${Bool[${_num}]} && !${Range.Between[1,30:${_num}]}) {
+  } else /if (${Bool[${_num}]} && !${Range.Between[1,${_shadeCount}:${_num}]}) {
     /invoke ${out[1, shade, 0]}
   }
 
-  /declare _count int local 0
   /declare _out string local
+  
+  /varset _out ${dot} ${out_list}
 
-  /for _count 1 to 30
+  /for _count 1 to ${_shadeCount}
     /varset _out ${_out} ${dot} \aw${_count}\ax:${If[${lsGrain.Contains[${_count}]},${on},${off}]}
   /next _count
 
-  /invoke ${out[12, "/grain ${dot} ${_out}"]}
+  /invoke ${out[12, "/grain ${_out}"]}
 
 /return FALSE
 
@@ -5537,6 +5554,9 @@ sub Bind_control_pred(string _type, string _verbage, string _verbage2, string _s
   /invoke ${maControl.Add[state,stPredPlayerstate|show]}
 
   /invoke ${set_control_output[${_debug}, maPred, pred, maControl]}
+
+  /call out_list lsPredPullers
+
 
 /return TRUE
 

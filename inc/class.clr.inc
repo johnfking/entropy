@@ -26,8 +26,13 @@ sub class_init(bool _debug)
   | beacon/burst timer slowdown
   /invoke ${set_timer[${_debug}, timer_ofLife_pause, 3s]}
 
+  /invoke ${set_timer[${_debug}, timer_Check_Mana, 18s]}
   | Veturika's Preserverance
   /call set_data_map ${_debug} maChr stPctVP                          0                             "${auxnum} % of manna to use veturikas perseverance"
+  | Quiet Prayer
+  /call set_data_map ${_debug} maChr stPctQP                          0                             "${auxnum} % of group members mana to use QP on them"
+  /call set_data_list ${_debug} maChr lsQPClass                       EMPTY                         "${auxli} classes you will use QP on"
+
 
   /call set_data_map ${_debug} maHeal swHealGroupOverTime             FALSE                         "${auxsw} use group heal over time spells/aas"              heal
   /call set_data_map ${_debug} maChr swCelestialRegen                 FALSE                         "${auxsw} use celestial regen aa"
@@ -93,6 +98,9 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAATurnUndead                   PREGEN|1                      "${auxna} turn undead aa"
   /call set_data_map ${_debug} maChr stAACelestialHammer              PREGEN|1                      "${auxna} celestial hammer aa"
   /call set_data_map ${_debug} maChr stAAVeturikasPerseverance        PREGEN|1                      "${auxna} Veturika's Perseverance AA"
+  /call set_data_map ${_debug} maChr stAAQuietPrayer                  PREGEN|1                      "${auxna} Quiet Prayer AA"
+  /call set_data_map ${_debug} maChr stAASanctuary                    PREGEN|1                      "${auxna} Sanctuary AA"
+
 
   /if (${maDebug.Find[init].Value}) {
     OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -122,6 +130,8 @@ sub class_main(bool _debug)
         /if (!${FindItemCount[${Spell[${maChr.Find[stSummonPrimary].Value}].Base[1]}]} && ${InvSlot[mainhand].Item.Name.NotEqual[${FindItem[${Spell[${Me.Gem[13]}].Base[1]}]}]}) /call cast_nut_smasher FALSE
         CHECKCURSOR
       }
+      /if (!${timer_Check_Mana}) /call check_mana ${maDebug.Find[checkmana].Value}
+      |**
       /if (!${check_exit[FALSE]} && !SAFEZONE && !${Me.Buff[Revival Sickness].ID} && ${maChr.Find[stPctVP].Value}) {
         /if (${Me.PctMana} < ${maChr.Find[stPctVP].Value}*.PCTHO) {
           /if (${is_ready[${_debug}, "${maChr.Find[stAAVeturikasPerseverance].Value}"]}) {
@@ -129,6 +139,7 @@ sub class_main(bool _debug)
           }
         }
       }
+      **|
     }
     BUFFNOW
   } else /if (AUTO && ENGINE3) {
@@ -311,8 +322,6 @@ sub check_heal(bool _debug, string _type)
   }
 
   SETHUD "heal ${_type.Lower}"
-
-
 
   /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
@@ -745,6 +754,22 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
     /invoke ${set_control_output[${_debug}, maChr, "chr primary", maControl]}
     /return TRUE
 
+  | cleric summoned weapon
+  } else /if (${_type.Equal[qp]}) {
+    /if (${_verbage.Equal[pct]}) {
+      /if (!${set_control_num_range[${_debug}, stPctQP, "${_verbage2}", 0, 99]}) /return FALSE
+    } else /if (${_verbage.Equal[class]}) {
+      /call set_control_shortname ${_debug} lsQPClass ${_verbage2}
+      /invoke ${out[12, "/chr qp class ${dot} ${Macro.Return}"]}
+      /return TRUE
+    }
+
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[pct,stPctQP]}
+    /invoke ${maControl.Add[class,submenu]}
+    /invoke ${set_control_output[${_debug}, maChr, "chr qp", maControl]}
+    /return TRUE
+
   }
 
   /call set_control_shared ${_type} "${_verbage}" "${_verbage2}" ${_debug}
@@ -837,7 +862,78 @@ sub Bind_setCHeal(string _type, string _verbage, bool _silent, bool _debug)
 
 
 
+sub check_mana(bool _debug)
+  DEBUG \atcheck_mana\ax()
 
+  /invoke ${set_data_timer[${_debug}, Check_Mana, RESTART]}
+
+  CHECKEXIT check_mana NA|NA
+  ISMEDEAD
+  /if (SAFEZONE) {
+    /return FALSE
+  }
+
+  | check self for VP first
+  /if (${maChr.Find[stPctVP].Value}) {
+    /if (${Me.PctMana} < ${maChr.Find[stPctVP].Value}*.PCTHO) {
+      /if (${is_ready[${_debug}, "${maChr.Find[stAAVeturikasPerseverance].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAAVeturikasPerseverance].Value}" 0 FALSE
+        /return TRUE
+      }
+    }
+  }
+
+  | check group for QP
+  /if (!${Group}) {
+    /return FALSE
+  }
+
+  /if (!${maChr.Find[stPctVP].Value} || !${is_ready[${_debug}, "${maChr.Find[stAAQuietPrayer].Value}"]}) {
+    /return FALSE
+  }
+
+  | cycle the group. skipping yourself
+  /declare _found bool local FALSE
+  /declare _count int local 0
+  /for _count 0 to ${Group}
+
+    /if (${Group.Member[${_count}].ID} == ${Me.ID}) {
+      /continue
+    }
+    
+    /if (!${Spawn[${Group.Member[${_count}].ID}]}) {
+      DEBUG ${break}notinzone
+    }
+    
+    /if (!${lsQPClass.Contains[${Group.Member[${_count}].Class.ShortName}]}) {
+      DEBUG ${break}Bad Class${sep}${Group.Member[${_count}].Class.ShortName}
+      /continue
+    }
+
+    /if (${Group.Member[${_count}].Type.NotEqual[CORPSE]}) {
+      DEBUG ${break}dead
+     /continue
+    }
+
+    /if (${Group.Member[${_count}].Distance} > ${Spell[${maChr.Find[stAAQuietPrayer].Value}].MyRange}) {
+      DEBUG ${break} > ${Spell[${maChr.Find[stAAQuietPrayer].Value}].MyRange} range
+      /continue
+    }
+
+    /if (${Group.Member[${_count}].PctMana} <=  ${maChr.Find[stPctVP].Value}*.PCTHO) {
+      DEBUG ${sep} mana || stamina <= ${maChr.Find[stPctVP].Value}*.PCTHO
+      /varset _vound TRUE
+    }
+
+    /if (${_found}) {  
+      /call voodoo ${_debug} "${maChr.Find[stAAQuietPrayer].Value}" ${Group.Member[${_count}].ID} FALSE
+      /return TRUE
+    }
+
+  /next _count
+  
+
+/return TRUE
 
 
 

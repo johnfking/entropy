@@ -10354,7 +10354,7 @@ sub set_control_output(bool _debug, string _map, string _outname, string _contro
   
   | start the control with the list option if there is one.
   /if (${${_control}.Contains[list]}) {
-    /varset _out ${_out} \a#1E90FF[\ax\awlist\ax\a#1E90FF]\ax
+    /varset _out ${_out} ${out_list}
     /if (${${_control}.Count} > 1) {
       /varset _out ${_out} ${dot}
     }
@@ -13406,7 +13406,7 @@ sub set_control_shared(string _type, string _verbage, string _verbage2, bool _de
   | set intensity AA
   } else /if (${_type.Equal[intensity]}) {
     /call set_control_chr_intensity ${_debug} ${_verbage} ${_verbage2}
-    /return
+    /return SKIP
 
   | set AA fade use %
   } else /if (${_type.Equal[fade]}) {
@@ -13666,7 +13666,7 @@ sub get_prediction(bool _debug)
   DEBUG SpawnCount[npc loc ${Spawn[id ${_tmpID}].X} ${Spawn[id ${_tmpID}].Y} ${Spawn[id ${_tmpID}].Z} radius ${maPred.Find[stPredRad].Value} PS4]${sep}\a-w${SpawnCount[npc loc ${Spawn[id ${_tmpID}].X} ${Spawn[id ${_tmpID}].Y} ${Spawn[id ${_tmpID}].Z} radius ${maPred.Find[stPredRad].Value} playerstate ${maPred.Find[stPredPlayerstate].Value}]}\ax
   /declare _countMob ${SpawnCount[npc loc ${Spawn[id ${_tmpID}].X} ${Spawn[id ${_tmpID}].Y} ${Spawn[id ${_tmpID}].Z} radius ${maPred.Find[stPredRad].Value} playerstate ${maPred.Find[stPredPlayerstate].Value}]}
 
-  | no mobs
+  | no mo bs
   /if (!${_countMob}) {
     /invoke ${set_data_timer[${_debug}, Check_Prediction, 12s]}
     DEBUG ${break}NO mob count
@@ -14408,6 +14408,96 @@ sub control_broadcast_command(string _command, string _option, string _verbage)
   }
   
 /return TRUE
+
+
+
+|***
+ * note: sets the needed observers for non pullers to know what the pullers are on whte way back with
+ * use: /call set_observer_prediction DEBUG [not used option]
+ ***|
+sub set_observer_prediction(bool _debug, string _verbage)
+  DEBUG \atset_observer_prediction\ax(${_verbage})
+
+
+ | maPull.Find[swPull].Value
+ | maPull.Find[stPullRadius].Value
+ | stPullMode == no base
+
+
+  /declare _assist string local FALSE
+  /call setDeclare MainAssistAgro string outer
+  /call setDeclare MainAssistCombat string outer
+  /call setDeclare MainAssistMacro string outer
+
+
+  | check the toons running macro
+  /if (!${DanNet[${_assist}].ObserveSet["Macro.Name"]}) /dobserve ${_assist} -q "Macro.Name" -o MainAssistMacro
+  DEBUG ${sep}MainAssistMacro set:\a-w${MainAssistMacro}\ax
+
+  | no ma or forced delete
+  /if (${_verbage.Equal[kill]}) {
+    /dobserve ${_assist} -q "setMobAgro" -drop
+    /dobserve ${_assist} -q "combat" -drop
+    /dobserve ${_assist} -q "Macro.Name" -drop
+    /deletevar MainAssistAgro
+    /deletevar MainAssistCombat
+    /deletevar MainAssistMacro
+    /return FALSE
+  }
+
+  | set MA agro range
+  /if (!${DanNet[${_assist}].ObserveSet["setMobAgro"]}) /dobserve ${_assist} -q "setMobAgro" -o MainAssistAgro
+  DEBUG ${sep}MainAssistAgro set:\a-w${MainAssistAgro}\ax
+
+  | set MA combat status
+  /if (!${DanNet[${_assist}].ObserveSet["combat"]}) /dobserve ${_assist} -q "combat" -o MainAssistCombat
+  DEBUG ${sep}MainAssistCombat set:\a-w${MainAssistCombat}\ax
+
+/return TRUE
+
+
+
+
+
+
+
+
+
+|***
+ * note: sets a class shortname on or off for varioius controls
+ * use: /call set_control_shorntame DEBUG LIST CLASSSHORTNAME
+ ***|
+sub set_control_shortname(bool _debug, string _list, string _cls)
+  DEBUG \atset_control_shortname\ax(\a-w${_list}, ${_cls}\ax)
+  
+  /if (!${Bool[${_cls}]} && ${lsClassAll.Contains[${Target.Class.ShortName}]}) {
+    /varset _cls ${Target.Class.ShortName}
+  } else /if (${Bool[${_cls}]} && ${lsClassAll.Contains[${_cls.Upper}]}) {
+    /varset _cls ${_cls.Upper}
+  } 
+
+  /if (${lsClassAll.Contains[${_cls}]}) {
+    /if (${${_list}.Contains[${_cls}]}) {
+      /call do_raw_edit ${_debug} SILENT ${_list} "${_cls}" delete
+    } else /if (!${${_list}.Contains[${_cls}]}) {
+      /call do_raw_edit ${_debug} SILENT ${_list} "${_cls}" add
+    }
+  }
+
+  /declare _out string local
+  /declare _lisccsn listiterator local
+  /vardata _lisccsn lsClassAll.First.Clone
+  /while (!${_lisccsn.IsEnd}) {
+    /varset _out ${_out} ${If[${_lisccsn.Value.Equal[${lsClassAll.First}]},,${dot}]} ${info}${_lisccsn.Value}\ax
+    /if (${${_list}.Contains[${_lisccsn.Value}]}) /varset _out ${_out}:${on}
+    /if (!${${_list}.Contains[${_lisccsn.Value}]}) /varset _out ${_out}:${off}
+    /invoke ${_lisccsn.Advance}
+  }
+
+/return ${_out}
+
+
+
 
 
 

@@ -107,8 +107,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 201203.01
-  /call set_data FALSE maEnv schema                         map outer 1.25
+  /call set_data FALSE maEnv build                          map outer 201206.01
+  /call set_data FALSE maEnv schema                         map outer 1.26
   /call set_data FALSE maEnv repo                           map outer 201104.01
 
   | prep macro
@@ -174,6 +174,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     ISMEDEAD
     CHECKCURSOR
     SETHUD EMPTY
+    
 
     | check GTFO conditions
     /if (${maGTFO.Find[swGTFOActive].Value} && !${timer_Check_GTFO}) {
@@ -272,6 +273,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
         /call do_loot ${maDebug.Find[loot].Value}
         | /if (AUTO && (${Group.Members} && ${Group.MasterLooter.ID} == ${Me.ID}) && ${Me.UseAdvancedLooting} && !${AdvLoot.LootInProgress} && !${Stick.Active}) /call do_loot ${maDebug.Find[loot].Value}
       }
+      
+      SETHUD EMPTY
 
       | do we pull or assist
       /if (!SAFEZONE) {

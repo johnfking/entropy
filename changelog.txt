@@ -21,6 +21,20 @@ on the to do list
 --------------------
 
 
+201206.01
+- /grain
+  added a list option to see what all the #'s do.
+- undeleted the main Entropy dannet channel. oops..
+- turned off the debug for /cc ass
+- beastlord
+  fixed (i think) the paragon % controls
+  /chr para class - set the classes you want to use group/focused paragon on
+  focused paragon will now cycle your group and not just the bst. bst is still first tho
+- cleric
+  /chr qp pct ## - sets the mana% to use QP on another toon in your group
+  /chr qp class - clas control for qp in your group
+    
+
 201203.01
 - /env nukeloop has been moved out of env
   it is now /nuke loop
@@ -81,9 +95,6 @@ on the to do list
   a command issued w/o an option will execute the default option
   eg. /here broadcast [group|raid|zone|all]
   
-
-
-
 
 201126.01
 - controls that have list additions will not show [list] in the options

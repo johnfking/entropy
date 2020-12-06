@@ -60,7 +60,7 @@ sub set_debug(string _verbage)
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
     /invoke ${lsDebugclass.Append[para]}
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
-    /invoke ${lsDebugclass.Append[arb,splash,regen,yaulp]}
+    /invoke ${lsDebugclass.Append[arb,splash,regen,yaulp,checkmana]}
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
     /invoke ${lsDebugclass.Append[crystal,gather,charm]}
@@ -198,6 +198,7 @@ sub set_initialize(bool _debug)
   /call set_data ${_debug} FALSE eol                                      string outer "\a#4183D7................\ax"
   /call set_data ${_debug} FALSE break                                    string outer "${sep}\a#FF06BBbreak\ax${sep}"
   /call set_data ${_debug} FALSE skip                                     string outer "${sep}\a#FF06BBskip\ax${sep}"
+  /call set_data ${_debug} FALSE out_list                                 string outer "\a#1E90FF[\ax\awlist\ax\a#1E90FF]\ax"
 
 
   /call set_data ${_debug} FALSE enabled                                  string outer "\agenabled\ax"
@@ -317,32 +318,31 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} FALSE lsGroupRegens                            list outer "Spectre of Renewal|Talisman of the Enduring|Cloud of Renewal|Shear of Renewal|Wisp of Renewal|Phantom of Renewal|Penumbra of Renewal|Shadow of Renewal|Shade of Renewal|Specter of Renewal|Ghost of Renewal"
 
   | timers  for everyone
-  /invoke ${set_data_timer[FALSE, Try_Door, 4s]}
-  /invoke ${set_data_timer[FALSE, Check_Ammo, 5s]}
-  /invoke ${set_data_timer[FALSE, Nuke_Delay, 1]}
-  /invoke ${set_data_timer[FALSE, Check_Cursor, 1s]}
-  /invoke ${set_data_timer[FALSE, Check_Zone_ID, 10s]}
-  /invoke ${set_data_timer[FALSE, Check_Observers, 1m]}
-  /invoke ${set_data_timer[FALSE, Check_Poison, 1m]}
-  /invoke ${set_data_timer[FALSE, Check_deBuffs, 6s]}
-  /invoke ${set_data_timer[FALSE, Check_Behind, 5s]}
-  /invoke ${set_data_timer[FALSE, Check_Tribute, 1m]}
-  /invoke ${set_data_timer[FALSE, Check_Loot, 1s]}
-  /invoke ${set_data_timer[FALSE, Check_Mode, 5]}
-  /invoke ${set_data_timer[FALSE, Check_LoS_Timeout, 10s]}
-  /invoke ${set_data_timer[FALSE, Check_Housekeeping, 1m]}
-  /invoke ${set_data_timer[FALSE, Check_Home, 1]}
-  /invoke ${set_data_timer[FALSE, Check_Target, 5s]}
-  /invoke ${set_data_timer[FALSE, Check_Watch, 5s]}
-  /invoke ${set_data_timer[FALSE, Check_Alliance, 6s]}
-  /invoke ${set_data_timer[FALSE, Check_Mercenary, 1s]}
-  /invoke ${set_data_timer[FALSE, Check_Pull_Hardstop, 1]}
-  /invoke ${set_data_timer[FALSE, Check_Pull_Hardstop_Delay, 1]}
-  /invoke ${set_data_timer[FALSE, Check_Prediction, 1]}
-  /invoke ${set_data_timer[FALSE, Check_Inventory_ManaClick, 1m]}
+  /invoke ${set_data_timer[${_debug}, Try_Door, 4s]}
+  /invoke ${set_data_timer[${_debug}, Check_Ammo, 5s]}
+  /invoke ${set_data_timer[${_debug}, Nuke_Delay, 1]}
+  /invoke ${set_data_timer[${_debug}, Check_Cursor, 1s]}
+  /invoke ${set_data_timer[${_debug}, Check_Zone_ID, 10s]}
+  /invoke ${set_data_timer[${_debug}, Check_Observers, 1m]}
+  /invoke ${set_data_timer[${_debug}, Check_Poison, 1m]}
+  /invoke ${set_data_timer[${_debug}, Check_deBuffs, 6s]}
+  /invoke ${set_data_timer[${_debug}, Check_Behind, 5s]}
+  /invoke ${set_data_timer[${_debug}, Check_Tribute, 1m]}
+  /invoke ${set_data_timer[${_debug}, Check_Loot, 1s]}
+  /invoke ${set_data_timer[${_debug}, Check_Mode, 5]}
+  /invoke ${set_data_timer[${_debug}, Check_LoS_Timeout, 10s]}
+  /invoke ${set_data_timer[${_debug}, Check_Housekeeping, 1m]}
+  /invoke ${set_data_timer[${_debug}, Check_Home, 1]}
+  /invoke ${set_data_timer[${_debug}, Check_Target, 5s]}
+  /invoke ${set_data_timer[${_debug}, Check_Watch, 5s]}
+  /invoke ${set_data_timer[${_debug}, Check_Alliance, 6s]}
+  /invoke ${set_data_timer[${_debug}, Check_Mercenary, 1s]}
+  /invoke ${set_data_timer[${_debug}, Check_Pull_Hardstop, 1]}
+  /invoke ${set_data_timer[${_debug}, Check_Pull_Hardstop_Delay, 1]}
+  /invoke ${set_data_timer[${_debug}, Check_Inventory_ManaClick, 1m]}
 
   | wait time for pulling
-  /invoke ${set_timer[FALSE, wait_for_mob, 0]}
+  /invoke ${set_timer[${_debug}, wait_for_mob, 0]}
 
   | get the stick timer started
   /invoke ${set_timer[${_debug}, timer_check_stick, 1s]}
@@ -390,6 +390,7 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[primary,submenu]}
     /invoke ${maChrControl.Add[vp,stPctVP]}
     /invoke ${maChrControl.Add[yaulp,swYaulp]}
+    /invoke ${maChrControl.Add[qp,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
     /invoke ${maChrControl.Add[wolf,swWolfSpirit]}
@@ -457,10 +458,11 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} maEnv stCurrentZoneID                            map outer FALSE
 
   | Comm
-  /call set_data ${_debug} maComm stLocalEcho                               map outer FALSE             "dannet local echo"
-  /call set_data ${_debug} maComm stCommandEcho                             map outer FALSE             "dannet local command echo"
-  /call set_data ${_debug} maComm stFrontDelim                              map outer ON                "dannet lead from delimiters"
-  /call set_data ${_debug} maComm stFullNames                               map outer FALSE             "dannet fullnames"
+  /call set_data ${_debug} maComm stLocalEcho                               map outer FALSE                 "dannet local echo"
+  /call set_data ${_debug} maComm stCommandEcho                             map outer FALSE                 "dannet local command echo"
+  /call set_data ${_debug} maComm stFrontDelim                              map outer ON                    "dannet lead from delimiters"
+  /call set_data ${_debug} maComm stFullNames                               map outer FALSE                 "dannet fullnames"
+  /call set_data ${_debug} maComm stEntropyGroup_all                        map outer Entropy               "dannet main entropy group"
 
   | set DanNet groups
   | /declare lsEntropyGroup list outer
@@ -876,6 +878,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** control: predictive **|
+  /invoke ${set_data_timer[${_debug}, Check_Prediction, 1]}
   /call set_data_map ${_debug} maPred swPred                              FALSE                         "${auxsw} use predictive combat logic"
   /call set_data_map ${_debug} maPred stPredRad                           40                            "${auxnum} radius around predicted pull target"
   /call set_data_map ${_debug} maPred stPredCountPrepBurn                 0                             "${auxnum} prep burn routines on number of mobs"
@@ -883,6 +886,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maPred stPredPlayerstate                   4                             "${auxnum} playerstate of the type of mobs you are looking for"
   /call set_data_map ${_debug} maPred stPredDelay                         60                            "${auxnum} seconds to delay next check once activated"
   /call set_data ${_debug} maPred stPredID                                map outer FALSE
+  /call set_data ${_debug} FALSE lsPredPullers                            list outer EMPTY
 
 
 
