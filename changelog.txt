@@ -21,6 +21,10 @@ on the to do list
 --------------------
 
 
+201206.02
+- corrected a map error for the changes in dannet delays
+
+
 201206.01
 - /grain
   added a list option to see what all the #'s do.

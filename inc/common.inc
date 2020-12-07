@@ -3314,7 +3314,7 @@ sub pull_hardstop(bool _debug)
     | check mana and stamina
     /if (${Bool[${maPull.Find[stPctHardStop].Value}]}) {
       /if (${Select[${Spawn[pc ${_toonName}].Class.ShortName},PAL,SHD,RNG,BST,WIZ,MAG,ENC,NEC,CLR,DRU,SHM]}) {
-        /dquery ${_toonName} -q "Me.PctMana" -o DNQHardStop -t ${maChr.Find[stDanNetQueryDelay].Value}
+        /dquery ${_toonName} -q "Me.PctMana" -o DNQHardStop -t ${maEntropy.Find[stDanNetQueryDelay].Value}
         DEBUG ${sep}${sep}.PctMana \at${DNQHardStop}\ax
         /if (${Range.Between[1,101:${DNQHardStop}]}) {
           /if (${DNQHardStop} < ${maPull.Find[stPctHardStop].Value}) {
@@ -3325,7 +3325,7 @@ sub pull_hardstop(bool _debug)
 
       | stamina
       /if (${Select[${Spawn[pc ${_toonName}].Class.ShortName},WAR,PAL,SHD,BRD,RNG,BST,BER,MNK,ROG]}) {
-        /dquery ${_toonName} -q "Me.PctEndurance" -o DNQHardStop -t ${maChr.Find[stDanNetQueryDelay].Value}
+        /dquery ${_toonName} -q "Me.PctEndurance" -o DNQHardStop -t ${maEntropy.Find[stDanNetQueryDelay].Value}
         DEBUG ${sep}${sep}.PctEndurance \at${DNQHardStop}\ax
         /if (${Range.Between[1,101:${DNQHardStop}]}) {
           /if (${DNQHardStop} < ${maPull.Find[stPctHardStop].Value}) {
@@ -3337,13 +3337,13 @@ sub pull_hardstop(bool _debug)
 
     | rez efects
     /if (${Bool[${maPull.Find[swHardStopRez].Value}]}) {
-    /dquery ${_toonName} -q "Me.Buff[Revival Sickness].ID" -o DNQHardStop -t ${maChr.Find[stDanNetQueryDelay].Value}
+    /dquery ${_toonName} -q "Me.Buff[Revival Sickness].ID" -o DNQHardStop -t ${maEntropy.Find[stDanNetQueryDelay].Value}
       DEBUG ${sep}${sep}Revival Sickness \at${DNQHardStop}\ax
       /if (${Bool[${DNQHardStop}]}) {
         /varset _found TRUE
       }
 
-      /dquery ${_toonName} -q "Me.Buff[Resurrection Sickness].ID" -o DNQHardStop -t ${maChr.Find[stDanNetQueryDelay].Value}
+      /dquery ${_toonName} -q "Me.Buff[Resurrection Sickness].ID" -o DNQHardStop -t ${maEntropy.Find[stDanNetQueryDelay].Value}
       DEBUG ${sep}${sep}Resurrection Sickness \at${DNQHardStop}\ax
       /if (${Bool[${DNQHardStop}]}) {
         /varset _found TRUE
@@ -6042,7 +6042,7 @@ sub check_buff_cycle_crew(bool _debug)
     }
 
     | any buff slots available?
-    /dquery ${_toonName} -q "Me.FreeBuffSlots" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+    /dquery ${_toonName} -q "Me.FreeBuffSlots" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
     /if (${DNQReturn.Equal[0]}) {
       /varcalc _countToon ${_countToon}+1
       /continue
@@ -6151,21 +6151,21 @@ sub check_buff_cycle_crew(bool _debug)
           DEBUG ${sep}${sep}\awTrigger\ax${sep}\a-w${_spellTrigger}\ax ID:\aw${Spell[${_spellTrigger}].ID}\ax
 
           | is it buff blocked
-          /dquery ${_toonName} -q "lsBlockedBuffsMe.Find[${Spell[${_spellTrigger}].ID}]" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+          /dquery ${_toonName} -q "lsBlockedBuffsMe.Find[${Spell[${_spellTrigger}].ID}]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
           DEBUG ${sep}${sep}BLOCKED .Trigger.Blocked Buff \at${Bool[${DNQReturn}]}\ax ${dot} ${_spellTrigger}
           /if (${Bool[${DNQReturn}]}) {
             /continue
           }
 
           | does it stack
-          /dquery ${_toonName} -q "Spell[${_spellTrigger}].Stacks" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+          /dquery ${_toonName} -q "Spell[${_spellTrigger}].Stacks" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
           DEBUG ${sep}${sep}STACKS: .Trigger.Stacks \at${DNQReturn}\ax ${dot} ${_spellTrigger}
           /if (!${Bool[${DNQReturn}]}) {
             /continue
           }
 
           | do we have the triggered buff?
-          /dquery ${_toonName} -q "Me.Buff[${_spellTrigger}].ID" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+          /dquery ${_toonName} -q "Me.Buff[${_spellTrigger}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
           DEBUG ${sep}trigger${sep}\ay${_spellTrigger}\ax
           DEBUG ${sep}${sep}HAVE: .Trigger.ID \at${DNQReturn}\ax ${dot} ${_spellTrigger}
           /if (!${Bool[${DNQReturn}]}) {
@@ -6189,19 +6189,19 @@ sub check_buff_cycle_crew(bool _debug)
         DEBUG ${sep}\awTrigger\ax${sep}\a-w${_spellTrigger}\ax ID:${Spell[${_spellTrigger}].ID}
 
         | does it stack
-        /dquery ${_toonName} -q "Spell[${_spellTrigger}].Stacks" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+        /dquery ${_toonName} -q "Spell[${_spellTrigger}].Stacks" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
         DEBUG ${sep}${sep}STACKS: .Buff.Stacks \at${DNQReturn}\ax ${dot} ${_spellTrigger}
         /if (${DNQReturn.Equal[FALSE]}) {
           /continue
         }
 
         | is it buff blocked
-        /dquery ${_toonName} -q "lsBlockedBuffsMe.Find[${Spell[${_spellTrigger}].ID}]" -o DNQReturn -t 1s
+        /dquery ${_toonName} -q "lsBlockedBuffsMe.Find[${Spell[${_spellTrigger}].ID}]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
         DEBUG ${sep}${sep}BLOCKED .Buff.Blocked \at${DNQReturn}\ax ${dot} ${_spellTrigger}
         /if (${Bool[${DNQReturn}]}) /continue
 
         | do we have the triggered buff?
-        /dquery ${_toonName} -q "Me.Buff[${_spellTrigger}].ID" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+        /dquery ${_toonName} -q "Me.Buff[${_spellTrigger}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
         DEBUG ${sep}${sep}HAVE: .Buff.ID \at${DNQReturn}\ax ${dot} ${_spellTrigger}
         /if (${Bool[${DNQReturn}]}) {
           /continue
@@ -6533,11 +6533,11 @@ sub check_buff_cycle_temp_list(bool _debug, string _spell, string _toonList)
         /continue
       }
 
-      /dquery ${_libt.Value} -q "Spell[${maChr.Find[${_spell}].Value}].Stacks" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+      /dquery ${_libt.Value} -q "Spell[${maChr.Find[${_spell}].Value}].Stacks" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
       DEBUG ${DNQReturn}
       /if (${Bool[${DNQReturn}]}) /varset _castSpell TRUE
 
-      /dquery ${_libt.Value} -q "Me.Buff[${maChr.Find[${_spell}].Value}].ID" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+      /dquery ${_libt.Value} -q "Me.Buff[${maChr.Find[${_spell}].Value}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
       DEBUG ${DNQReturn}
       /if (${Bool[${DNQReturn}]}) /varset _castSpell FALSE
 
@@ -12262,9 +12262,9 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
       /return FALSE
     }
 
-    /dquery ${Spawn[id ${hurtID}].DisplayName} -q "Spell[${Spell[${_myHoT}].RankName}].Stacks" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+    /dquery ${Spawn[id ${hurtID}].DisplayName} -q "Spell[${Spell[${_myHoT}].RankName}].Stacks" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
     DEBUG DNQReturn.Stacks${sep}\a-w${DNQReturn}\ax (\a-r${Spawn[id ${hurtID}].DisplayName}\ax)
-    /dquery ${Spawn[id ${hurtID}].DisplayName} -q "Me.Song[${Spell[${_myHoT}].RankName}].Duration" -o DNQReturn2 -t ${maChr.Find[stDanNetQueryDelay].Value}
+    /dquery ${Spawn[id ${hurtID}].DisplayName} -q "Me.Song[${Spell[${_myHoT}].RankName}].Duration" -o DNQReturn2 -t ${maEntropy.Find[stDanNetQueryDelay].Value}
     DEBUG DNQReturn2.Duration${sep}\a-w${DNQReturn2}\ax (\a-r${Spawn[id ${hurtID}].DisplayName}\ax)
     /if (${DNQReturn} && !${DNQReturn2}) {
       /call voodoo ${_debug} "${_myHoT}" ${hurtID} FALSE
@@ -12421,19 +12421,19 @@ sub cast_cycle_heal_promise(bool _debug)
     DEBUG ${sep}\awSpell\ax${sep}\a-w${_spell}\ax ID:${Spell[${_spell}].ID}
 
     | does it stack
-    /dquery ${_tmpName} -q "Spell[${_spell}].Stacks" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+    /dquery ${_tmpName} -q "Spell[${_spell}].Stacks" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
     DEBUG ${sep}${sep}STACKS: .Stacks \at${DNQReturn}\ax ${dot} ${_spell}
     /if (${DNQReturn.Equal[FALSE]}) /continue
 
     | is it buff blocked
-    /dquery ${_tmpName} -q "lsBlockedBuffsMe.Find[${Spell[${_spell}].ID}]" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+    /dquery ${_tmpName} -q "lsBlockedBuffsMe.Find[${Spell[${_spell}].ID}]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
     DEBUG ${sep}${sep}BLOCKED .Buff.Blocked \at${DNQReturn}\ax ${dot} ${_spell}
     /if (${Bool[${DNQReturn}]}) {
       /continue
     }
 
     | do we have the triggered buff?
-    /dquery ${_tmpName} -q "Me.Buff[${_spell}].ID" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+    /dquery ${_tmpName} -q "Me.Buff[${_spell}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
     DEBUG ${sep}${sep}HAVE: .Buff.ID \at${DNQReturn}\ax ${dot} ${_spell}
     /if (${Bool[${DNQReturn}]}) {
       /continue
@@ -14152,7 +14152,7 @@ sub check_buff_cycle_temp(bool _debug)
     }
 
     | any buff slots available?
-    /dquery ${_toonName} -q "Me.FreeBuffSlots" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+    /dquery ${_toonName} -q "Me.FreeBuffSlots" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
     /if (${DNQReturn.Equal[0]}) {
       /varcalc _countToon ${_countToon}+1
       /continue
@@ -14229,14 +14229,14 @@ sub check_buff_cycle_temp(bool _debug)
       DEBUG ${sep}\awTrigger\ax${sep}\a-w${_spellRank}\ax ID:${Spell[${_spellRank}].ID}
 
       | does it stack
-      /dquery ${_toonName} -q "Spell[${_spellRank}].Stacks" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+      /dquery ${_toonName} -q "Spell[${_spellRank}].Stacks" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
       DEBUG ${sep}${sep}STACKS: .Buff.Stacks \at${DNQReturn}\ax ${dot} ${_spellRank}
       /if (${DNQReturn.Equal[FALSE]}) {
         /continue
       }
 
       | do they have the buff?
-      /dquery ${_toonName} -q "Me.Buff[${maData.Find[tmpName].Value}].ID" -o DNQReturn -t ${maChr.Find[stDanNetQueryDelay].Value}
+      /dquery ${_toonName} -q "Me.Buff[${maData.Find[tmpName].Value}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
       DEBUG ${sep}${sep}HAVE: .Buff.ID \at${DNQReturn}\ax ${dot} ${maData.Find[tmpName].Value}
       /if (${Bool[${DNQReturn}]}) {
         /continue
