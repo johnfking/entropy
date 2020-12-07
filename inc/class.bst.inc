@@ -263,7 +263,7 @@ sub check_mana(bool _debug)
       DEBUG ${sep}${_count}${sep}\a-w${Group.Member[${_count}].DisplayName}\ax
       ISMEDEAD
       CHECKEXIT check_mana_BST2
-      /if (!${Spawn[${Group.Member[${_count}].ID}]}) {
+      /if (!${Spawn[${Group.Member[${_count}].ID}].ID}) {
         DEBUG ${break}notinzone
       }
 

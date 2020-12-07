@@ -888,7 +888,7 @@ sub check_mana(bool _debug)
     /return FALSE
   }
 
-  /if (!${maChr.Find[stPctVP].Value} || !${is_ready[${_debug}, "${maChr.Find[stAAQuietPrayer].Value}"]}) {
+  /if (!${maChr.Find[stPctQP].Value} || !${is_ready[${_debug}, "${maChr.Find[stAAQuietPrayer].Value}"]}) {
     /return FALSE
   }
 
@@ -901,7 +901,7 @@ sub check_mana(bool _debug)
       /continue
     }
     
-    /if (!${Spawn[${Group.Member[${_count}].ID}]}) {
+    /if (!${Spawn[${Group.Member[${_count}].ID}].ID}) {
       DEBUG ${break}notinzone
     }
     

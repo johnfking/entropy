@@ -21,6 +21,11 @@ on the to do list
 --------------------
 
 
+
+201207.01
+- corrected a spawn ID issue for the check_mana subs in BST and CLR
+
+
 201206.02
 - corrected a map error for the changes in dannet delays
 
