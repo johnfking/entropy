@@ -1450,6 +1450,9 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy stBroadcastOn                   group                         "${auxna} change the default broadcast for /on [group|raid|zone|all]."
   /call set_data_map ${_debug} maEntropy stBroadcastOff                  group                         "${auxna} change the default broadcast for /off [group|raid|zone|all]."
   /call set_data_map ${_debug} maEntropy stBroadcastTake                 group                         "${auxna} change the default broadcast for /take [group|raid|zone|all]."
+  /call set_data_map ${_debug} maEntropy stBroadcastState                group                         "${auxna} change the default broadcast for /state [group|raid|zone|all]."
+  /call set_data_map ${_debug} maEntropy stBroadcastInvis                group                         "${auxna} change the default broadcast for /invis [group|raid|zone|all]."
+
   /call set_data_map ${_debug} maEntropy stDanNetQueryDelay              10                            "${auxnum} delays for dannet query returns"
 
 

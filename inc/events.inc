@@ -281,6 +281,9 @@ sub Event_COMBAT_DISTANCE(string _line)
 | #event Zone "LOADING, PLEASE WAIT..."
 sub Event_Zone(string _line)
   EDEBUG zoning
+  /if (${_line.Find[Drunken Monkey]}) {
+    /return FALSE
+  }
   /call check_mode FALSE RESET
   /call check_zone_id ${maDebug.Find[zone].Value}
   /if (${maHome.Find[swHomeMarker].Value}) {

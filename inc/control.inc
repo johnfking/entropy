@@ -3765,15 +3765,48 @@ sub Bind_command_enter(string _type, string _verbage, bool _debug)
  * use: /invis
  ***|
 #bind command_invis /invis
-sub Bind_command_invis(string _verbage)
-  /dgexecute ${maComm.Find[stEntropyGroup_all].Value} /AA_invis ${maDebug.Find[invis].Value}
-  /call Bind_command_invis_cast ${maDebug.Find[invis].Value}
+sub Bind_command_invis(string _type, string _verbage, bool _debug)
+
+  /call control_broadcast_command invis ${_type} ${_verbage}
+  /if (${Macro.Return.Equal[break]}) /return TRUE
+
+  | /dgexecute ${maComm.Find[stEntropyGroup_all].Value} /AA_invis ${maDebug.Find[invis].Value}
+  | /call Bind_command_invis_cast ${maDebug.Find[invis].Value}
+
+  | fucking bards
+  /if (${Select[${Me.Class.ShortName},BRD]}) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroup].Value}"]}) {
+      /call pulse_stop
+      /delay ${maChr.Find[stInvisDelay].Value}
+      /call voodoo ${_debug} "${maChr.Find[stInvisGroup].Value}" 0 ignoreall
+      /return TRUE
+    }
+  }
+
+  | Invis vs Normies casters
+  /if (${Select[${Me.Class.ShortName},WIZ,MAG,ENC,SHM,RNG,DRU]}) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroup].Value}"]}) {
+      /delay ${maChr.Find[stInvisDelay].Value}
+      /call voodoo ${_debug} "${maChr.Find[stInvisGroup].Value}" 0 ignoreall
+      /return TRUE
+    }
+  }
+
+  | Invis Vs undead casters
+  /if (${Select[${Me.Class.ShortName},CLR,SHD,NEC,PAL]}) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroupIVU].Value}"]} ) {
+      /delay ${maChr.Find[stInvisDelay].Value}
+      /call voodoo ${_debug} "${maChr.Find[stInvisGroupIVU].Value}" 0 ignoreall
+      /return TRUE
+    }
+  }
+
 /return TRUE
 
 |***
  * note: control to cast invis AAs
  * use: /invis
- ***|
+
 #bind command_invis_cast /AA_invis
 sub Bind_command_invis_cast(string _verbage)
 
@@ -3847,7 +3880,7 @@ sub Bind_command_invis_cast(string _verbage)
   }
   
 /return TRUE
-
+ ***|
 
 
 |***
@@ -4207,7 +4240,6 @@ sub Bind_command_off(string _type, string _verbage, bool _debug)
  ***|
 #bind command_on /command_on
 sub Bind_command_on(string _type, string _verbage, bool _debug)
-
 
   /call control_broadcast_command on ${_type} ${_verbage}
   /if (${Macro.Return.Equal[break]}) /return TRUE
@@ -6533,35 +6565,164 @@ sub Bind_control_crew(string _type, string _verbage, string _verbage2, string _v
 
 
 
-
-
-
-
-
 |***
- * note: check if a character exists in the crew shared DB
- * use: 
+ * note: gets various states of other toons you are boxing
+ * use: /state
  ***|
-sub crew_check_character(bool _debug, string _verbage, bool _forceadd, string _verbage2)
-  DEBUG \atcrew_check_character\ax(\a-w${_verbage}\ax)
-  
-  | fix the character name case
-  /varset _verbage ${proper_case[name, "${_verbage}"]}
+#bind command_state /state
+sub Bind_command_state(string _verbage, bool _debug)
+  DEBUG \atBind_command_state\ax(\a-w${_verbage}\ax)
 
-  /sqlite query "${DBshared}" qucheckcharacter SELECT id FROM characters WHERE charactername='${_verbage}';
-  DEBUG ${sep}.Rows (\a-rqucheckcharacter\ax)${sep}\a-w${sqlite.Rows[qucheckcharacter]}\ax
+  /if (${_verbage.Equal[aux]}) {
+    /call Bind_command_aux state
+    /return TRUE
+  } else /if (${_verbage.Equal[-h]}) {
+    OUT /state [group|zone|raid|all]
+    /return TRUE
+  } else /if (${Select[${_verbage},-o,broadcast]}) {
 
-  /if (!${sqlite.Rows[qucheckcharacter]} && !${_forceadd}) {
-    OUT /crew ${_verbage2}${sep}\a-w${_verbage}\ax (\a-rFail\ax)
-    /sqlite clear qucheckcharacter
-    /return FALSE
-  }    
+    /if (${lsBroadcastTypes.Contains[${_verbage}]}) {
+      /call do_raw_edit FALSE SILENT stBroadcastState "${_verbage.Lower}"
+    } else /if (${Bool[${_verbage}]} && !${lsBroadcastTypes.Contains[${_verbage}]}) {
+      OUT Options${sep}\a-w/state broadcast\ax
+      /call out_list lsBroadcastTypes
+    }
 
-  /if (!${sqlite.Rows[qucheckcharacter]} && ${_forceadd}) {
-    /sqlite query "${DBshared}" dummy INSERT INTO characters(charactername, server) VALUES ("${_verbage}", "${MacroQuest.Server.Replace[ ,_].Lower}")
-    /return FALSE
-  } 
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[broadcast,stBroadcastState]}
+    /invoke ${set_control_output[FALSE, maEntropy, state, maControl]}
+    /return TRUE
+  }
+
+  ISMEDEAD
+
+  /declare maState map local
+  /invoke ${maState.Add[auto,maEnv|swAuto|bool]}
+  /invoke ${maState.Add[agro,maAgro|swAgro|bool]}
+  /invoke ${maState.Add[home,maHome|swHomeMarker|bool]}
+  /invoke ${maState.Add[pull,maPull|swPull|bool]}
+  /invoke ${maState.Add[env,maEnv|stEnvRadius|int]}
+  /invoke ${maState.Add[tie,maTie|swSetTie|bool]}
+
+  /declare _mist mapiterator local
+  /declare _count int local 0
+  /declare _out string local
+  /declare _final string local
+  /declare _toon string local
+
+  | all group broadcast
+  /if (${_verbage.Equal[group]} || !${Bool[${_verbage}]} && ${maEntropy.Find[stBroadcastState].Value.Equal[group]}) {
+    /if (!${Group.Members}) {
+      /invoke ${out[21, "${broadcast}${sep}\a-w/state\ax (\a-rgroup\ax) (\a-rFail: not in a group\ax)"]}
+      /return FALSE
+    } 
+    /invoke ${out[21, "${broadcast}${sep}\a-w/state\ax (\a-rgroup\ax)"]}
+    /for _count 0 to ${Group.Members}    
+      /if (${Group.Member[${_count}].ID} == ${Me.ID}) {
+        /continue
+      }
+      /vardata _mist maState.First.Clone
+      /while (!${_mist.IsEnd}) {
+        /if (!${Defined[_${_mist.Key}]}) /declare _${_mist.Key} string local
+        /dquery ${Group.Member[${_count}]} -q "${_mist.Value.Arg[1,|]}.Find[${_mist.Value.Arg[2,|]}].Value" -o _${_mist.Key} -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+        /if (${_mist.Value.Arg[3,|].Equal[bool]}) {
+          /varset _final ${If[${_${_mist.Key}},${on},${off}]}
+        } else {
+          /varset _final ${_${_mist.Key}}
+        }
+        /varset _out ${_out} ${dot} \aw${_mist.Key}\ax:${_final}
+        /invoke ${_mist.Advance}
+      }
+      OUT ${sep}${Group.Member[${_count}]} ${_out}
+      /varset _out
+    /next _count
+
+  | zone broadcasts
+  } else /if (${_verbage.Equal[zone]} || !${Bool[${_verbage}]} && ${maEntropy.Find[stBroadcastState].Value.Equal[zone]}) {
+    /invoke ${out[21, "${broadcast}${sep}\a-w/state\ax (\a-rzone\ax)"]}
+
+    /for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
+      /varset _toon ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}  
+      /if (${_toon.Equal[${Me.DisplayName}]} || !${Spawn[${_toon}].ID}) {
+        /continue
+      }
+      /vardata _mist maState.First.Clone
+      /while (!${_mist.IsEnd}) {
+        /if (!${Defined[_${_mist.Key}]}) /declare _${_mist.Key} string local
+        /dquery ${_toon} -q "${_mist.Value.Arg[1,|]}.Find[${_mist.Value.Arg[2,|]}].Value" -o _${_mist.Key} -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+        /if (${_mist.Value.Arg[3,|].Equal[bool]}) {
+          /varset _final ${If[${_${_mist.Key}},${on},${off}]}
+        } else {
+          /varset _final ${_${_mist.Key}}
+        }
+        /deletevar _${_mist.Key}
+
+        /varset _out ${_out} ${dot} \aw${_mist.Key}\ax:${_final}
+        /invoke ${_mist.Advance}
+      }
+      OUT ${sep}${_toon} ${_out}
+      /varset _out
+    /next _count
+
+
+  | all entropy broadcasts
+  } else /if (${_verbage.Equal[all]} || !${Bool[${_verbage}]} && ${maEntropy.Find[stBroadcastState].Value.Equal[all]}) {
+    /invoke ${out[21, "${broadcast}${sep}\a-w/state\ax (\a-rall\ax)"]}
+    /for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
+      /varset _toon ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}  
+      /if (${_toon.Equal[${Me.DisplayName}]}) {
+        /continue
+      }
+      /vardata _mist maState.First.Clone
+      /while (!${_mist.IsEnd}) {
+        /if (!${Defined[_${_mist.Key}]}) /declare _${_mist.Key} string local
+        /dquery ${_toon} -q "${_mist.Value.Arg[1,|]}.Find[${_mist.Value.Arg[2,|]}].Value" -o _${_mist.Key} -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+        /if (${_mist.Value.Arg[3,|].Equal[bool]}) {
+          /varset _final ${If[${_${_mist.Key}},${on},${off}]}
+        } else {
+          /varset _final ${_${_mist.Key}}
+        }
+        /varset _out ${_out} ${dot} \aw${_mist.Key}\ax:${_final}
+        /invoke ${_mist.Advance}
+      }
+      OUT ${sep}${_toon} ${_out}
+      /varset _out
+    /next _count
+
+
+  | all raid broadcast
+  } else /if (${_verbage.Equal[raid]} || !${Bool[${_verbage}]} && ${maEntropy.Find[stBroadcastState].Value.Equal[raid]}) {
+    /if (!${Raid.Members}) {
+      /invoke ${out[21, "${broadcast}${sep}\a-w/state\ax (\a-rraid\ax) (\a-rFail: not in a raid\ax)"]}
+      /return break
+    }
+    /invoke ${out[21, "${broadcast}${sep}\a-w/state\ax (\a-rraid\ax)"]}
+
+    /for _count 0 to ${Raid.Members}    
+      /if (${Raid.Member[${_count}].ID} == ${Me.ID} || !${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${Raid.Member[${_count}]}]} ) {
+        /continue
+      }
+      /vardata _mist maState.First.Clone
+      /while (!${_mist.IsEnd}) {
+        /if (!${Defined[_${_mist.Key}]}) /declare _${_mist.Key} string local
+        /dquery ${Raid.Member[${_count}]} -q "${_mist.Value.Arg[1,|]}.Find[${_mist.Value.Arg[2,|]}].Value" -o _${_mist.Key} -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+        /if (${_mist.Value.Arg[3,|].Equal[bool]}) {
+          /varset _final ${If[${_${_mist.Key}},${on},${off}]}
+        } else {
+          /varset _final ${_${_mist.Key}}
+        }
+        /varset _out ${_out} ${dot} \aw${_mist.Key}\ax:${_final}
+        /invoke ${_mist.Advance}
+      }
+      OUT ${sep}${Raid.Member[${_count}]} ${_out}
+      /varset _out
+    /next _count
+
+  }
+  /invoke ${out[18, 0, 33]}
 
 /return TRUE
+
+
 
 

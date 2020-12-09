@@ -22,6 +22,24 @@ on the to do list
 
 
 
+201209.01
+- magician
+  change to the output for /chr pettype command
+- monks (ffs)
+  added in an exception to the zoning event for Drunken Monkey stance
+- /state [all|group|raid|zone]
+  will tell you the states of several variables for toons you box.
+- /state broadcast - sets the debault option.
+- /invis
+  now obeys the broadcast options all|group|raid|zone
+  the default is group
+- character and guild port items updated for CoV
+- cleric
+  corrected an ID in check_mana
+- beastlord
+  corrected an ID in check_mana
+
+
 201207.01
 - corrected a spawn ID issue for the check_mana subs in BST and CLR
 

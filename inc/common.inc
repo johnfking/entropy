@@ -6683,8 +6683,6 @@ sub do_melee(bool _debug, int _tmpID)
   CHECKEXIT do_melee
   GETINPUT do_melee NA|NA
 
-  | /if (${is_target_dead[${maDebug.Find[target].Value}, ${_tmpID}]}) /return
-
   /if (${target[isdead, ${_tmpID}]}) {
     /return FALSE
   }
@@ -6696,7 +6694,6 @@ sub do_melee(bool _debug, int _tmpID)
   /invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
 
   /if (AUTO || ${swModeToken}) {
-    | /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
     /if (!${timer_check_stick}) {
       /call set_combat_control ${maDebug.Find[decision].Value} ${_tmpID}
     }
@@ -14315,32 +14312,32 @@ sub out_list(string _list)
  * note: shared / command control
  * use: 
  ***|
-sub control_broadcast_command(string _command, string _option, string _verbage)
-  | SDEBUG command:${_command} option:${_option} v:${_verbage}
+sub control_broadcast_command(string _command, string _option, string _verbage, bool _debug)
+  DEBUG \atcontrol_broadcast_command\ax(\a-wc:${_command} o:${_option} v:${_verbage}\ax)
 
-    /varset _command ${proper_case[name, ${_command}]}
+  /varset _command ${proper_case[name, ${_command}]}
 
-    /if (${_option.Equal[aux]}) {
-      /call Bind_command_aux ${_command}
-      /return break
-    } else /if (${_option.Equal[-h]}) {
-      OUT /${_command.Lower} [self|group|zone|raid|all]
-      /return break
-    } else /if (${Select[${_option},-o,broadcast]}) {
-
-      /if (${lsBroadcastTypes.Contains[${_verbage}]}) {
-        /call do_raw_edit FALSE SILENT stBroadcast${_command} "${_verbage.Lower}"
-      } else /if (${Bool[${_verbage}]} && !${lsBroadcastTypes.Contains[${_verbage}]}) {
-        OUT Options${sep}\a-w/${_command.Lower} broadcast\ax
-        /call out_list lsBroadcastTypes
-      }
-
-      /invoke ${maControl.Clear}
-      /invoke ${maControl.Add[broadcast,stBroadcast${_command}]}
-      /invoke ${set_control_output[FALSE, maEntropy, here, maControl]}
+  /if (${_option.Equal[aux]}) {
+    /call Bind_command_aux ${_command}
+    /return break
+  } else /if (${_option.Equal[-h]}) {
+    OUT /${_command.Lower} [self|group|zone|raid|all]
+    /return break
+  } else /if (${Select[${_option},-o,broadcast]}) {
+    /if (${lsBroadcastTypes.Contains[${_verbage}]}) {
+      /call do_raw_edit FALSE SILENT stBroadcast${_command} "${_verbage.Lower}"
+    } else /if (${Bool[${_verbage}]} && !${lsBroadcastTypes.Contains[${_verbage}]}) {
+      OUT Options${sep}\a-w/${_command.Lower} broadcast\ax
+      /call out_list lsBroadcastTypes
       /return break
     }
-    
+
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[broadcast,stBroadcast${_command}]}
+    /invoke ${set_control_output[FALSE, maEntropy, ${_command.Lower}, maControl]}
+    /return break
+  }
+   
   
   | self only command 
   /if (${_option.Equal[self]}) {   
@@ -14457,12 +14454,6 @@ sub set_observer_prediction(bool _debug, string _verbage)
 
 
 
-
-
-
-
-
-
 |***
  * note: sets a class shortname on or off for varioius controls
  * use: /call set_control_shorntame DEBUG LIST CLASSSHORTNAME
@@ -14498,6 +14489,29 @@ sub set_control_shortname(bool _debug, string _list, string _cls)
 
 
 
+|***
+ * note: check if a character exists in the crew shared DB
+ * use: 
+ ***|
+sub crew_check_character(bool _debug, string _verbage, bool _forceadd, string _verbage2)
+  DEBUG \atcrew_check_character\ax(\a-w${_verbage}\ax)
+  
+  | fix the character name case
+  /varset _verbage ${proper_case[name, "${_verbage}"]}
 
+  /sqlite query "${DBshared}" qucheckcharacter SELECT id FROM characters WHERE charactername='${_verbage}';
+  DEBUG ${sep}.Rows (\a-rqucheckcharacter\ax)${sep}\a-w${sqlite.Rows[qucheckcharacter]}\ax
 
+  /if (!${sqlite.Rows[qucheckcharacter]} && !${_forceadd}) {
+    OUT /crew ${_verbage2}${sep}\a-w${_verbage}\ax (\a-rFail\ax)
+    /sqlite clear qucheckcharacter
+    /return FALSE
+  }    
+
+  /if (!${sqlite.Rows[qucheckcharacter]} && ${_forceadd}) {
+    /sqlite query "${DBshared}" dummy INSERT INTO characters(charactername, server) VALUES ("${_verbage}", "${MacroQuest.Server.Replace[ ,_].Lower}")
+    /return FALSE
+  } 
+
+/return TRUE
 

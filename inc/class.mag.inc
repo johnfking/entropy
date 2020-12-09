@@ -498,7 +498,7 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   | minion type
   } else /if (${_type.Equal[pettype]}) {
 
-    /if (!${lsElementType.Contains[${_verbage.Left[1].Upper}${_verbage.Right[-1].Lower}]}) {
+    /if (!${Bool[${_verbage}]} || !${lsElementType.Contains[${_verbage.Left[1].Upper}${_verbage.Right[-1].Lower}]}) {
       /declare _out string local
       /declare _lipt listiterator local
       /vardata _lipt lsElementType.First.Clone
