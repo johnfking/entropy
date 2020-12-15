@@ -805,6 +805,11 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 sub Bind_to_chr(string _type, string _verbage, string _silent, bool _debug)
   | DEBUG /call set_control _type:${_type} _verbage:${_verbage} _silent:${_silent} _debug:${_debug}
 
+  /if (${_type.Equal[aux]}) {
+    | /call Bind_command_aux cb
+    | /return TRUE
+  }
+
   /call set_control ${_type} "${_verbage}" "${_silent}" "${_debug}"
 
 /return TRUE
@@ -2560,10 +2565,13 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
       /call do_raw_edit ${_debug} SILENT stShrinkItem "${_verbage2}"
     } else /if (${_verbage.Equal[active]}) {
       /invoke ${set_switch_env[${_debug}, swBuffShrink, TRUE, ${_verbage2}]}
+    } else /if (${_verbage.Equal[height]}) {
+      /call do_raw_edit ${_debug} SILENT stShrinkHeight "${_verbage2}"      
     }
 
     /invoke ${maControl.Clear}
     /invoke ${maControl.Add[active,swBuffShrink]}
+    /invoke ${maControl.Add[height,stShrinkHeight]}
     /invoke ${maControl.Add[item,stShrinkItem|br]}
     /invoke ${set_control_output[${_debug}, maBuff, "buff shrink", maControl]}
     /return
@@ -4294,11 +4302,16 @@ sub Bind_command_on(string _type, string _verbage, bool _debug)
  * use: /cls
  ***|
 #bind command_cls /cls
-sub Bind_command_cls(bool _debug, string _sender)
+sub Bind_command_cls(string _type, string _verbage, bool _debug)
 
-  /if (!${Bool[${_sender}]}) {
-    /dgexecute /cls FALSE ${Me.DisplayName}
-  }
+
+  /call control_broadcast_command cls ${_type} ${_verbage}
+  /if (${Macro.Return.Equal[break]}) /return TRUE
+
+
+  | /if (!${Bool[${_sender}]}) {
+  |   /dgexecute /cls FALSE ${Me.DisplayName}
+  | }
 
   /hidecorpse NPC
   /hidecorpse LOOTED
@@ -6104,9 +6117,6 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 
 
 
-
-
-
 |***
  * note: crew controls
  * use: /crew
@@ -6353,6 +6363,12 @@ sub Bind_control_crew(string _type, string _verbage, string _verbage2, string _v
     
   | build your current group design
   } else /if (${_type.Equal[buildas]}) {
+    
+    /if (!${Bool[${_verbage}]}) {
+      /invoke ${out[1, shade, 0]}
+      /return FALSE
+    }
+    
     OUT ${notice}${sep}/crew buildas  - will only build a NEW group from your current group design.
     
     /if (!${Group.Members}) { 
@@ -6725,4 +6741,24 @@ sub Bind_command_state(string _verbage, bool _debug)
 
 
 
+
+|***
+ * note: melee control
+ * use: /melee
+ ***|
+#bind control_melee /melee
+sub Bind_control_melee(string _type, string _verbage, string _verbage2, string _silent)
+  /declare _debug bool local FALSE
+  DEBUG \atBind_control_melee\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,see,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
+    /call control_base_edit ${maDebug.Find[edit].Value} Melee 12 "${_type}" "${_verbage}" "${_verbage2}" ${_silent}
+    /return TRUE
+  }
+ 
+  /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[list,list]}
+  /invoke ${set_control_output[FALSE, maMelee, "melee", maControl]}
+
+/return TRUE
 

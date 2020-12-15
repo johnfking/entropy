@@ -107,8 +107,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 201209.01
-  /call set_data FALSE maEnv schema                         map outer 1.26
+  /call set_data FALSE maEnv build                          map outer 201215.01
+  /call set_data FALSE maEnv schema                         map outer 1.27
   /call set_data FALSE maEnv repo                           map outer 201104.01
 
   | prep macro
@@ -174,6 +174,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     ISMEDEAD
     CHECKCURSOR
     SETHUD EMPTY
+    CHECKTIE
     
 
     | check GTFO conditions
@@ -208,6 +209,12 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     }
 
     /if (AUTO) {
+      SETHUD EMPTY
+      ISMEDEAD
+      GETINPUT
+      CHECKREZ
+      CHECKTIE
+
 
       | check observers
       /if (!${timer_Check_Observers} ) {
@@ -258,90 +265,34 @@ sub main(string _var1, string _var2, string _var3, string _var4)
       }
 
       | some sweeet lovin....
-      /if (!${timer_Check_Buff_Cycle}) {
+      /if (!${timer_Check_Buff_Cycle} && !${SpawnCount[npc radius SAFEENV PS4]}) {
         /call check_buff_cycle ${maDebug.Find[buff].Value}
       }
-
-      /if (${Me.PctEndurance} < 32) {
-        /if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) {
+            
+      /if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) {
+        /if (${Me.PctEndurance} < 32) {
           /call cast_stamina_recovery
         }
       }
-
+      
       | check loot
       /if (AUTO && ${maEnv.Find[stLootMode].Value.NotEqual[off]} && !${timer_Check_Loot} && !${Stick.Active}) {
         /call do_loot ${maDebug.Find[loot].Value}
         | /if (AUTO && (${Group.Members} && ${Group.MasterLooter.ID} == ${Me.ID}) && ${Me.UseAdvancedLooting} && !${AdvLoot.LootInProgress} && !${Stick.Active}) /call do_loot ${maDebug.Find[loot].Value}
       }
-      
-      SETHUD EMPTY
 
       | do we pull or assist
       /if (!SAFEZONE) {
         /if (!${Me.Invis} || (${Select[${Me.Class.ShortName},ROG]} && ${maEnv.Find[swSoS].Value})) {
-
-          | prediction
-          /if (${maPred.Find[swPred].Value} && !${timer_Check_Prediction}) {
-            /call get_prediction ${maDebug.Find[prediction].Value}
-          }
-
-          /if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rentering assist/pull check\ax)
-
-          /if ((!PULL && ${SpawnCount[NPC radius ENV PS4]}) || (PULL && ${Group.MainAssist.ID} != ${Me.ID} && ${Group.Members} && (TARGET || ${SpawnCount[NPC radius ENV PS4 targetable]}))) {
-            
-            /if (PULL && ${maPull.Find[stCountChainPull].Value}) {
-              /if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rentering chain pull\ax)
-              /if (${SpawnCount[NPC los radius SAFEENV PS4 targetable]} <= ${maPull.Find[stCountChainPull].Value}) {
-                OUT I should be chain pulling!! ------------------------
-              }
-            }
-            
-            /if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rpullstate get assist\ax)
-            /call get_assist_target ${maDebug.Find[assist].Value}
-
-          } else /if (PULL && !TARGET) {
-            /if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rpullstate: pull check\ax)
-
-            | hardstop check
-            /if (!${SpawnCount[NPC radius ENV PS4 targetable]}) {
-              /if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rstate hardstop: check\ax)
-              /if (!${timer_Check_Pull_Hardstop}) {
-                /call pull_hardstop ${maDebug.Find[hardstop].Value}
-                /if (${Macro.Return}) {
-                  /continue
-                }
-              } else /if (${timer_Check_Pull_Hardstop}) {
-                /if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rHardstop Timer${sep}${timer_Check_Pull_Hardstop}\ax)
-                /delay 1
-                /continue
-              }
-            }
-
-            /if (${maPull.Find[stPullMode].Value.Equal[base]}) {
-              /if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rpullstate: base\ax)
-              /call get_target_basepull ${maDebug.Find[pull].Value}
-            } else {
-              /if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rpullstate advanced: prep\ax)
-              /call pull_prep_advanced ${maDebug.Find[pull].Value}
-              /if (${maDebug.Find[pull].Value}) ECHO pullstate (\a-rpullstate advanced: ${maPull.Find[stPullMode].Value}\ax)
-              /call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
-            }
-          }
+          /call pull_assist_decision ${maDebug.Find[pull].Value}
         }
       }
-      /delay ${maEntropy.Find[stMainLoopDelay].Value}
+      | /delay ${maEntropy.Find[stMainLoopDelay].Value}
     }
-
-    ISMEDEAD
-    GETINPUT main_loop_class_call NA|NA
-    CHECKREZ
-    CHECKTIE
 
     /call class_main FALSE
-    /if (!AUTO) {
-      /delay ${maEntropy.Find[stMainLoopDelay].Value}
-    }
-
+    /delay ${maEntropy.Find[stMainLoopDelay].Value}
+    
   }
 
 
@@ -503,68 +454,6 @@ sub prepare_the_end(bool _debug)
 
   | correct the map click spam.
   /squelch /mapclick left alt /nav locyx %y %x |log=off
-
-/return TRUE
-
-
-
-|***
- * note: macro and dannet integrity check routine
- * use:
- ***|
-sub check_housekeeping(bool _debug)
-  DEBUG \atcheck_housekeeping\ax()
-
-  /invoke ${set_data_timer[${_debug}, Check_Housekeeping, RESTART]}
-
-  /if (${Select[${Me.CombatState},combat]}) {
-    /return FALSE
-  }
-
-  | correct assist vs puller issues for group MA
-  /if (PULL && (${Group.MainAssist.ID} == ${Me.ID}) && ${Bool[${maCC.Find[stAssistMode].Value}]}) {
-    /call do_raw_edit ${_debug} SILENT stAssistMode FALSE
-  }
-
-  | set blocked buffs
-  /call set_buffs_blocked FALSE SILENT
-
-  | make sure we are not in the core_communications group. does not play well with others
-  /if (${DanNet.Peers[core_communications].Find[${Me.DisplayName}]}) {
-    /squelch /dleave core_communications
-  }
-
-  | error control
-  /if (${maCC.Find[swCombatHeal].Value} && !${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
-    /invoke ${set_switch_env[${_debug}, swCombatHeal, TRUE, FALSE]}
-  }
-  /if (${maCC.Find[swCombatControl].Value} && !${Select[${Me.Class.ShortName},ENC,BRD,NEC,MAG]}) {
-    /invoke ${set_switch_env[${_debug}, swCombatControl, TRUE, FALSE]}
-  }
-
-  DEBUG ${sep}housekeeping${sep}\a-wDONE\ax
-
-/return TRUE
-
-
-
-|***
- * note: delete any conflicting aliases
- * use: see the note....
- ***|
-sub delete_conflict_alias(bool _debug)
-
-  /declare lsControls string outer buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song,burn,sash,out,rez,pred
-
-  /declare _liAlias list local
-  /invoke ${_liAlias.Append[debug,${lsControls}]}
-
-  /declare _lial listiterator local
-  /vardata _lial _liAlias.First.Clone
-  /while (!${_lial.IsEnd}) {
-    /squelch /alias /${_lial.Value} delete
-    /invoke ${_lial.Advance}
-  }
 
 /return TRUE
 

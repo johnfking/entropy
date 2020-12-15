@@ -2407,9 +2407,9 @@ sub Event_IceAoWUnduck()
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
 
   /if (!${Defined[AoW_Event_Acceptance]}) {
-    /declare bool AoW_Event_Acceptance outer
+    /declare  AoW_Event_Acceptance bool outer
   }
-  /varsaet AoW_Event_Acceptance TRUE
+  /varset AoW_Event_Acceptance TRUE
 }
 
 

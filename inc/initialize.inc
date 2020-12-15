@@ -160,7 +160,7 @@ sub set_initialize(bool _debug)
   /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard]}
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro,maMercenary]}
   /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
-  /invoke ${lsMaps.Append[maGTFO,maPull]}
+  /invoke ${lsMaps.Append[maGTFO,maPull,maMelee]}
 
   | set all output shortcuts
   /call set_data ${_debug} FALSE num                                      string outer "\a-t"
@@ -210,7 +210,6 @@ sub set_initialize(bool _debug)
   /invoke ${maDBTables.Add[environment_character,env_var]}
   /invoke ${maDBTables.Add[environment_timer,env_timer]}
   /invoke ${maDBTables.Add[environment_item,env_var]}
-  | /invoke ${maDBTables.Add[environment_crew,env_var]}
   /invoke ${maDBTables.Add[environment_defense,env_var]}
   /invoke ${maDBTables.Add[environment_heal,env_var]}
   /invoke ${maDBTables.Add[environment_song,env_var]}
@@ -226,6 +225,7 @@ sub set_initialize(bool _debug)
   /invoke ${maDBTables.Add[environment_rez,env_var]}
   /invoke ${maDBTables.Add[environment_gtfo,env_var]}
   /invoke ${maDBTables.Add[environment_pull,env_var]}
+  /invoke ${maDBTables.Add[environment_melee,env_var]}
 
 /return TRUE
 
@@ -297,7 +297,7 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} FALSE lsFreePassSpells                         list outer Beneficial|Pet
 
   | control lines
-  /call set_data ${_debug} FALSE lsControlLine                            list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez|gtfo|pull
+  /call set_data ${_debug} FALSE lsControlLine                            list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez|gtfo|pull|melee
 
   | increment lists
   /call set_data ${_debug} FALSE stCount6                                 string outer "0|1|2|3|4|5"
@@ -1109,6 +1109,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maBuff swBuffTemp                          FALSE                         "${auxsw} buff short term combat buffs"
   /call set_data_map ${_debug} maBuff swBuffShrink                        FALSE                         "${auxsw} buff shring"
   /call set_data_map ${_debug} maBuff stShrinkItem                        FALSE                         "${auxna} buff shrink item/spell"
+  /call set_data_map ${_debug} maBuff stShrinkHeight                      2.04                          "${auxna} shrink min height"
   /call set_data_map ${_debug} maBuff swBuffNow                           FALSE                         "${auxsw} buff the now things"
   /call set_data_map ${_debug} maBuff swBuffAmmo                          FALSE                         "${auxsw} summons ammo"
 
@@ -1116,6 +1117,8 @@ sub set_initialize_map_character_environment(bool _debug)
   /invoke ${set_data_timer[${_debug}, Check_Buff_Aura, 3m]}
   /call set_data_map ${_debug} maBuff swBuffAura                          FALSE                         "${auxsw} use auras or not. i dont care"
 
+|** control: melee **|
+  /call set_data_list ${_debug} maMelee lsLineMelee                       EMPTY                         "${auxli} alternate defense activation order" melee
 
 
 |** control: defense **|
@@ -1452,6 +1455,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy stBroadcastTake                 group                         "${auxna} change the default broadcast for /take [group|raid|zone|all]."
   /call set_data_map ${_debug} maEntropy stBroadcastState                group                         "${auxna} change the default broadcast for /state [group|raid|zone|all]."
   /call set_data_map ${_debug} maEntropy stBroadcastInvis                group                         "${auxna} change the default broadcast for /invis [group|raid|zone|all]."
+  /call set_data_map ${_debug} maEntropy stBroadcastCls                  group                         "${auxna} change the default broadcast for /cls [group|raid|zone|all]."
 
   /call set_data_map ${_debug} maEntropy stDanNetQueryDelay              10                            "${auxnum} delays for dannet query returns"
 
@@ -1598,6 +1602,7 @@ sub set_initialize_map_12(bool _debug)
   /invoke ${_tmpMap.Add[Sash,sash]}
   /invoke ${_tmpMap.Add[GTFO,gtfo]}
   /invoke ${_tmpMap.Add[Pull,pull]}
+  /invoke ${_tmpMap.Add[Melee,melee]}
 
   /vardata _tmi _tmpMap.First.Clone
   /while (!${_tmi.IsEnd}) {

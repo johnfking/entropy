@@ -1200,9 +1200,10 @@ sub check_buff_cycle_shrink(bool _debug)
   /declare _count int local 0
 
   | me shrinks
-  /while (${Me.Height} > 2.04 && ${_count} < 2) {
+  /while (${Me.Height} > ${maBuff.Find[stShrinkHeight].Value} && ${_count} < 3) {
     /call voodoo ${_debug} "${maBuff.Find[stShrinkItem].Value}" ${Me.ID} FALSE
     /varcalc _count ${_count}+1
+    /delay 5
   }
 
   SETHUD EMPTY
@@ -1235,14 +1236,14 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
     /return FALSE
   }
 
-
-  /if (AUTO && ${swIsMeDead}) {
-    /return FALSE
-  } else /if (!AUTO && ${swIsMeDead}) {
+  | /if (AUTO && ${swIsMeDead}) {
+  |   /return FALSE
+  | } else 
+  /if (!AUTO && ${swIsMeDead}) {
     /varset swIsMeDead FALSE
+    DEBUG ${sep}passed swIsMeDead
   }
 
-  DEBUG ${sep}passed swIsMeDead
 
   | are we moving? and not a bard?
   /if (!${Select[${Me.Class.ShortName},BRD]} && ${Me.Moving} && ${_sub.NotEqual[ignoremovement]}) {
@@ -3448,6 +3449,12 @@ sub pull_mob_tag(bool _debug, int _tmpID)
         |   DEBUG ${break}pull_mob_tag${sep}I'm hurt wtf?
         |   /break
         | }
+        
+        /if (${NearestSpawn[1, npc radius SAFEENV PS4].ID} != ${_tmpID}) {
+          DEBUG ${break}/while \a-ghostile mob in safeenv rad, breaking (\a-rpull_mob_tag(${_tmpID})\ax) to alter target\ax
+          /invoke ${target[clear]}
+          /break
+        }        
 
         /varcalc _loopbreak ${_loopbreak}+1
         /if (${_loopbreak} > ${maHard.Find[stPullMobTagTry].Value}) {
@@ -5019,7 +5026,7 @@ sub check_zone_id(bool _debug, bool _force)
     }
 
     /call set_zone_lists ${maDebug.Find[area].Value}
-    | /varset swIsMeDead FALSE
+    /varset swIsMeDead FALSE
     /varset _zoned TRUE
     /doevents flush
 
@@ -5091,15 +5098,15 @@ sub check_last_supper(bool _debug)
 
 
 
- |***
+|***
  * note: will loosly tie to a specific toon. will move close to the toon when it moves. set to timer [Timers] -> CheckTieTime
  * use: /tie [on/off toggle] requires /tc name [NAME] and /tc variance ##
  **|
 sub set_tie(bool _debug)
-  DEBUG \atset_tie\ax()
+  SDEBUG \atset_tie\ax()
 
   /if (AUTO) {
-    /invoke ${set_data_timer[FALSE, Check_Tie, RESTART]}
+    /invoke ${set_data_timer[${_debug}, Check_Tie, RESTART]}
   }
 
   /if (!${Bool[${maTie.Find[stTieToon].Value}]}) {
@@ -9051,18 +9058,24 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
       /break
     }
 
-    | are we there yet???
-    | /if (${Spawn[${_tmpID}].Distance} > ${_dist} && !${Spawn[${_tmpID}].LineOfSight}) {
-    |   DEBUG ${sep}dis check${sep}\a-w${Spawn[${_tmpID}].Distance} > ${_dist} && !\arLOS\ax
-    |   /delay 5
-    | }
-
-    | hell yah.. were here
-    /if (${Spawn[${_tmpID}].Distance} <= ${_dist} && ${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} > ENV) {
-      DEBUG ${sep}dis \arHALT\ax${sep}\a-w${Spawn[${_tmpID}].Distance} <= \ag${_dist}\ax && \agLOS\a-w (\a-r${_tmpID}\ax)
-      /delay 2
-      /nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
-      /return TRUE
+    | are we there yet??? (no los required)
+    /if (!${Bool[${_LoS}]}) {
+      /if (${Spawn[${_tmpID}].Distance} <= ${_dist} && !${Spawn[${_tmpID}].LineOfSight}) {
+        DEBUG ${sep}dis check${sep}\a-w${Spawn[${_tmpID}].Distance} <= ${_dist} && !\arLOS\ax
+        /delay 2
+        /nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
+        /return TRUE
+      }
+      
+    | LOS required
+    } else /if (${Bool[${_LoS}]}) {
+      /if (${Spawn[${_tmpID}].Distance} <= ${_dist} && ${Spawn[${_tmpID}].LineOfSight}) {
+      | /if (${Spawn[${_tmpID}].Distance} <= ${_dist} && ${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} > ENV) {
+        DEBUG ${sep}dis \arHALT\ax${sep}\a-w${Spawn[${_tmpID}].Distance} <= \ag${_dist}\ax && \agLOS\a-w (\a-r${_tmpID}\ax)
+        /delay 2
+        /nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
+        /return TRUE
+      }
     }
 
     | range from camp check
@@ -9176,8 +9189,9 @@ sub get_target_petpull(bool _debug, int _tmpID)
       /break
     }
 
-    | /if (${SpawnCount[npc radius SAFEENV PS4 targetable]} || ${NearestSpawn[1, npc radius ENV].ID} != ${_tmpID}) {
-    /if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
+    | break if more then 1 mob is near you
+    /if (${NearestSpawn[2, npc radius SAFEENV PS4].ID}) {
+    | /if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
       /invoke ${out[9, 0, 29]}
       /break
     }
@@ -12131,6 +12145,9 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
     | find my hot
     /while (!${_liHoT.IsEnd}) {
 
+      CHECKEXIT
+      CHECKDEAD
+      
       | check the switch
       /if (!${maHeal.Find[swHeal${_liHoT.Value}].Value}) {
         /invoke ${_liHoT.Advance}
@@ -12762,6 +12779,9 @@ sub validate_input(bool _debug, string _type, string _verbage)
     } else /if (${_verbage.Find[epic]}) {
       /return TRUE
 
+    | skill ready
+    } else /if (${Me.Ability[${_verbage}]}) {
+      /return TRUE
     }
 
     OUT ${notice} this is not a thing${sep}\a-w${_verbage}\ax
@@ -13177,7 +13197,7 @@ sub control_base_edit(bool _debug, string _chk, int _loopnum, string _type, stri
           /call get_best_in_spell ${_debug} "${ma${_chk}.Find[st${_chk}${_count}].Value.Arg[1,|]}" "${ma${_chk}.Find[st${_chk}${_count}].Value.Arg[2,|]}" "${ma${_chk}.Find[st${_chk}${_count}].Value.Arg[3,|]}"
           /varset _tmpName "${Macro.Return}"
         }
-        /invoke ${out[12, "\awst${_chk}${_count}\ax${sep}${If[${ma${_chk}.Find[sw${_chk}${_count}].Value},${on},${off}]}${sep}\a-w${ma${_chk}.Find[st${_chk}${_count}].Value}\ax${If[${Bool[${_tmpName}]}, ${dot} (\a-r${_tmpName}\ax),]}"]}
+        /invoke ${out[12, "\awst${_chk}${_count}\ax${sep}${If[${Skill[${maMelee.Find[st${_chk}${_count}].Value}].Auto},\apauto\ax,${If[${maMelee.Find[sw${_chk}${_count}].Value},${on},${off}]}]}${sep}\a-w${ma${_chk}.Find[st${_chk}${_count}].Value}\ax${If[${Bool[${_tmpName}]}, ${dot} (\a-r${_tmpName}\ax),]}"]}
         /varset _tmpName FALSE
 
       }
@@ -14254,6 +14274,7 @@ sub check_buff_cycle_temp(bool _debug)
         /return TRUE
       }
 
+
     /next _count
     /varcalc _countToon ${_countToon}+1
 
@@ -14515,3 +14536,229 @@ sub crew_check_character(bool _debug, string _verbage, bool _forceadd, string _v
 
 /return TRUE
 
+
+
+|***
+ * note: decide on pull or assist
+ * use: 
+ ***|
+sub pull_assist_decision(bool _debug)
+  DEBUG \atpull_assist_decision\ax
+
+  DEBUG ${submenu}pullstate (\a-rassist/pull check\ax)
+
+  /if (!PULL) {
+
+    | prediction
+    /if (${maPred.Find[swPred].Value} && !${timer_Check_Prediction}) {
+      /call get_prediction ${maDebug.Find[prediction].Value}
+    }
+
+    DEBUG ${submenu}pullstate (\a-rget assist\ax)
+    /call get_assist_target ${maDebug.Find[assist].Value}
+
+  } else /if (PULL) {
+    
+    | alternate pullers
+    /if (${Group.MainAssist.ID} != ${Me.ID} && ${Group.Members}) {
+      DEBUG ${submenu}pullstate (\a-ralternate puller\ax)
+
+      | chain pulling
+      /if (${maPull.Find[stCountChainPull].Value}) {
+        DEBUG ${submenu}pullstate (\a-rchain pull\ax)
+        /if (${SpawnCount[NPC los radius SAFEENV PS4 targetable]} <= ${maPull.Find[stCountChainPull].Value}) {
+          OUT I should be chain pulling!! ------------------------ ( not implemented yet )
+        }
+      }
+      
+      | break pulling if a mob is in ENV and go back to assist
+      /if (!${maPull.Find[stCountChainPull].Value} && ${SpawnCount[npc radius ENV PS4]}) {
+        DEBUG ${submenu}pullstate (\a-rswapping to assist for proximity agro\ax)
+        /call get_assist_target ${maDebug.Find[assist].Value}
+        /return FALSE
+      }
+    }
+   
+
+    | pulling when there is no established target    
+    /if (!TARGET) {
+      DEBUG ${submenu}pullstate (\a-rpull check\ax)
+
+      | hardstop check
+      /if (!${SpawnCount[NPC radius ENV PS4 targetable]}) {
+        DEBUG ${submenu}pullstate (\a-rhardstop: no mobs\ax)
+        /if (!${timer_Check_Pull_Hardstop}) {
+          /call pull_hardstop ${maDebug.Find[hardstop].Value}
+          /if (${Macro.Return}) {
+            /return FALSE
+          }
+        } else /if (${timer_Check_Pull_Hardstop}) {
+          DEBUG ${submenu}pullstate (\a-rhardstop Timer${sep}${timer_Check_Pull_Hardstop}\ax)
+          /delay 1
+          /return FALSE
+        }
+      }
+
+      /if (${maPull.Find[stPullMode].Value.Equal[base]}) {
+        DEBUG ${submenu}pullstate (\a-rbase\ax)
+        /call get_target_basepull ${maDebug.Find[pull].Value}
+      } else {
+        DEBUG ${submenu}pullstate (\a-radvanced: prep\ax)
+        /call pull_prep_advanced ${maDebug.Find[pull].Value}
+        DEBUG ${submenu}pullstate (\a-radvanced: ${maPull.Find[stPullMode].Value}\ax)
+        /call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
+      }
+    }
+    
+    
+  }
+
+/return TRUE
+
+
+
+|***
+ * note: cucles melee skills from maMelee
+ * use: /call cast_cycle_melee DEBUG [TARGETID] [TAG]
+ ***|
+sub cast_cycle_melee(bool _debug, int _tmpID, string _tag)
+  DEBUG \atcast_cycle_melee\ax(\a-w${_tmpID}, ${_tag}\ax)
+
+  | if the user has not set the line order, set it to a default for now
+  /if (${lsLineMelee.Contains[EMPTY]} && ${lsLineMelee.Count} == 1) {
+    DEBUG ${sep}resetting the empty melee line
+    /invoke ${lsLineMelee.Clear}
+    /invoke ${lsLineMelee.Append[${stCount12}]}
+  }
+
+  /invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
+  
+  /declare _count int local 0
+  /declare _match bool local FALSE
+  /declare _liMelee listiterator local
+  /vardata _liMelee lsLineMelee.First.Clone
+  /while (!${_liMelee.IsEnd}) {
+
+    
+    GETINPUT cast_cycle_melee NA|NA
+    ISMEDEAD
+    CHECKEXIT cast_cycle_melee
+
+    /if (${target[isdead, ${_tmpID}]}) {
+      /return FALSE
+    }
+
+    /invoke ${target[set, ${_tmpID}]}
+
+    | check the switch
+    /if (!${Bool[${maMelee.Find[swMelee${_liMelee.Value}].Value}]}) {
+      /invoke ${_liMelee.Advance}
+      /continue
+    }
+
+    | check the name
+    /if (!${Bool[${maMelee.Find[stMelee${_liMelee.Value}].Value}]}) {
+      /invoke ${_liMelee.Advance}
+      /continue
+    }
+
+    | skip autoskills
+    /if (${Skill[${maMelee.Find[stMelee${_liMelee.Value}].Auto}) {
+      /invoke ${_liMelee.Advance}
+      /continue
+    }
+    
+    | check matching tag for failure
+    /if (${Bool[${_tag}]}) {
+      /if (!${lsMelee${_liMelee.Value}Tag.Contains[${_tag}]}) {
+        /invoke ${_liMelee.Advance}
+        /continue
+      }
+    }
+
+    /if (!${is_ready[${_debug}, "${maMelee.Find[stMelee${_liMelee.Value}].Value}"]}) {
+      /invoke ${_liMelee.Advance}
+      /continue
+    }
+    
+    | minimum range
+    /if (${Spawn[${_tmpID}].Distance} > ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
+      /invoke ${_liMelee.Advance}
+      /continue
+    }
+
+    | cycle the tags
+    /call tag_evaluation ${maDebug.Find[tag].Value} Melee ${_liMelee.Value} ${Me.DisplayName} "${maMelee.Find[stMelee${_liMelee.Value}].Value}" cast_cycle_melee
+    /if (!${Macro.Return}) {
+      /invoke ${_liMelee.Advance}
+      /continue
+    }
+
+    /invoke ${out[8, "Melee${sep}${sp}${maMelee.Find[stMelee${_liMelee.Value}].Value}\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
+    /doability ${maMelee.Find[stMelee${_liMelee.Value}].Value}
+    /invoke ${_liMelee.Advance}
+  }
+
+/return TRUE
+
+
+
+|***
+ * note: delete any conflicting aliases
+ * use: see the note....
+ ***|
+sub delete_conflict_alias(bool _debug)
+
+  /declare lsControls string outer buff,list,condition,aux,item,target,defense,heal,dot,nuke,agro,miscdps,song,burn,sash,out,rez,pred
+
+  /declare _liAlias list local
+  /invoke ${_liAlias.Append[debug,${lsControls}]}
+
+  /declare _lial listiterator local
+  /vardata _lial _liAlias.First.Clone
+  /while (!${_lial.IsEnd}) {
+    /squelch /alias /${_lial.Value} delete
+    /invoke ${_lial.Advance}
+  }
+
+/return TRUE
+
+
+
+|***
+ * note: macro and dannet integrity check routine
+ * use:
+ ***|
+sub check_housekeeping(bool _debug)
+  DEBUG \atcheck_housekeeping\ax()
+
+  /invoke ${set_data_timer[${_debug}, Check_Housekeeping, RESTART]}
+
+  /if (${Select[${Me.CombatState},combat]}) {
+    /return FALSE
+  }
+
+  | correct assist vs puller issues for group MA
+  /if (PULL && (${Group.MainAssist.ID} == ${Me.ID}) && ${Bool[${maCC.Find[stAssistMode].Value}]}) {
+    /call do_raw_edit ${_debug} SILENT stAssistMode FALSE
+  }
+
+  | set blocked buffs
+  /call set_buffs_blocked FALSE SILENT
+
+  | make sure we are not in the core_communications group. does not play well with others
+  /if (${DanNet.Peers[core_communications].Find[${Me.DisplayName}]}) {
+    /squelch /dleave core_communications
+  }
+
+  | error control
+  /if (${maCC.Find[swCombatHeal].Value} && !${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
+    /invoke ${set_switch_env[${_debug}, swCombatHeal, TRUE, FALSE]}
+  }
+  /if (${maCC.Find[swCombatControl].Value} && !${Select[${Me.Class.ShortName},ENC,BRD,NEC,MAG]}) {
+    /invoke ${set_switch_env[${_debug}, swCombatControl, TRUE, FALSE]}
+  }
+
+  DEBUG ${sep}housekeeping${sep}\a-wDONE\ax
+
+/return TRUE

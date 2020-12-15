@@ -239,17 +239,19 @@ sub check_mana(bool _debug)
 
   ISMEDEAD
   CHECKEXIT check_mana_BST
+  /declare _count int local 0
 
   | consumption of Spirits AA
   /if (${maChr.Find[stPctConsume].Value} && ${Pet.ID} && !SAFEZONE) {
     /if (${Me.PctMana} < ${maChr.Find[stPctConsume].Value}*.PCTHO) {
       /if (${is_ready[${_debug}, "${maChr.Find[atAAConsumptionofSpirit].Value}"]}) {
         /call voodoo ${_debug} "${maChr.Find[atAAConsumptionofSpirit].Value}" 0 FALSE
+        /return TUE
       }
     }
   }
   
-   /if (${Me.Song[${maChr.Find[stAAParagonofSpirit].Value}].ID}) {
+  /if (${Me.Song[${maChr.Find[stAAParagonofSpirit].Value}].ID}) {
     DEBUG ${break}have${sep}${maChr.Find[stAAParagonofSpirit].Value} (1)
     /return FALSE
   } 
@@ -257,7 +259,6 @@ sub check_mana(bool _debug)
   /if (${is_ready[${_debug}, "${maChr.Find[stAAParagonofSpirit].Value}"]}) {
     DEBUG ${sep}checking${sep}\a-wparagon for group\ax
     /declare _below int local 0
-    /declare _count int local 0
 
     /for _count 0 to ${Group}
       DEBUG ${sep}${_count}${sep}\a-w${Group.Member[${_count}].DisplayName}\ax
@@ -337,7 +338,7 @@ sub check_mana(bool _debug)
         /continue
       }
       
-      /if (!${Spawn[${Group.Member[${_count}].ID}]}) {
+      /if (!${Spawn[${Group.Member[${_count}].ID}].ID}) {
         DEBUG ${break}notinzone
       }
       

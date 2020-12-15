@@ -130,16 +130,9 @@ sub class_main(bool _debug)
         /if (!${FindItemCount[${Spell[${maChr.Find[stSummonPrimary].Value}].Base[1]}]} && ${InvSlot[mainhand].Item.Name.NotEqual[${FindItem[${Spell[${Me.Gem[13]}].Base[1]}]}]}) /call cast_nut_smasher FALSE
         CHECKCURSOR
       }
-      /if (!${timer_Check_Mana}) /call check_mana ${maDebug.Find[checkmana].Value}
-      |**
-      /if (!${check_exit[FALSE]} && !SAFEZONE && !${Me.Buff[Revival Sickness].ID} && ${maChr.Find[stPctVP].Value}) {
-        /if (${Me.PctMana} < ${maChr.Find[stPctVP].Value}*.PCTHO) {
-          /if (${is_ready[${_debug}, "${maChr.Find[stAAVeturikasPerseverance].Value}"]}) {
-            /call voodoo ${_debug} "${maChr.Find[stAAVeturikasPerseverance].Value}" 0 FALSE
-          }
-        }
+      /if (!${timer_Check_Mana}) {
+        /call check_mana ${maDebug.Find[checkmana].Value}
       }
-      **|
     }
     BUFFNOW
   } else /if (AUTO && ENGINE3) {
@@ -157,7 +150,6 @@ sub class_main(bool _debug)
     /if (${maCC.Find[swAlliance].Value} && !${timer_Check_Alliance}) /call check_alliance ${maDebug.Find[alliance].Value}
     /if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp ${maDebug.Find[yaulp].Value}
     BUFFTEMP
-
     /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
     /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
@@ -165,7 +157,7 @@ sub class_main(bool _debug)
     /if (VALID && !ENGINE3) {
       CHECKREZ
       /call set_combat_control ${maDebug.Find[decision].Value} TARGET
-      /if (MELEE) /call do_melee FALSE TARGET
+      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
       /call misc_combat ${maDebug.Find[misc].Value} TARGET
       /if (!${timer_Check_deBuffs}) {
         /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
@@ -294,12 +286,11 @@ sub check_heal(bool _debug, string _type)
   CHECKFADE
   GETINPUT clr_heal_start type|${_type}
 
-
   | Group Regen Heal
-  /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
-    /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 grouphot
-  }
-  
+  | /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
+  |   /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 grouphot
+  | }
+
   /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   | forcing of splash  
@@ -326,7 +317,7 @@ sub check_heal(bool _debug, string _type)
   /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
-
+  
   /if (!SAFEZONE) {
 
     | Complete Heal

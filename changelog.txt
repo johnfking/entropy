@@ -22,6 +22,25 @@ on the to do list
 
 
 
+
+201215.01
+- beastlord
+  corrected the loops for mana feeding
+- cleric
+  corrected an infinite loop in the groupregen routine  
+- pulling
+  made some changes to the los requirements for pet pulling, should help pet pullers stop more reliably before they get to the target 
+- all automated buffing will be skipped if a hostile mob is within a toons safe env radius
+- /cls
+  now obeys the broadcast options all|group|raid|zone 
+  the default is group
+- /crew buildas - with no name will now format your hard drive and kill your gold fish
+- /edit adjusted to allow abilities to be passed like bash or kick  
+- /buff shrink height ## - for the max height you would like to be. default is 2.04
+- rez
+  removed the isdead check froma death/rez from the casting check
+  
+
 201209.01
 - magician
   change to the output for /chr pettype command
