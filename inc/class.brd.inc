@@ -107,7 +107,7 @@ sub class_main(bool _debug)
     /if (VALID && !ENGINE3) {
       /call control_routine FALSE
       /call set_combat_control ${maDebug.Find[decision].Value} TARGET
-      /if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
+      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
       CHECKDEFENSE
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
       /if (!${timer_Check_deBuffs}) {

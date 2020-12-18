@@ -85,7 +85,7 @@ sub class_main(bool _debug)
     /if (VALID && !ENGINE3) {
       CHECKREZ
       /call set_combat_control ${maDebug.Find[decision].Value} TARGET
-      /if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
+      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
       /if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
       /call misc_combat ${maDebug.Find[misc].Value} TARGET

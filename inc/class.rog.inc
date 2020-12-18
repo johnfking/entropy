@@ -100,7 +100,7 @@ sub class_main(bool _debug)
     /if (VALID && !ENGINE3) {
       /call do_sneak_attack ${maDebug.Find[class].Value} TARGET
       /call set_combat_control ${maDebug.Find[decision].Value} TARGET
-      /if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
+      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
       CHECKDEFENSE
       /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
       /call misc_combat ${maDebug.Find[misc].Value} TARGET
@@ -140,7 +140,6 @@ sub do_sneak_attack(bool _debug, int _tmpID)
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
   }
-  | FLOW do_sneak_attack
 
   /if (!${Me.Sneaking} || ${Me.ActiveDisc.ID}) {
     /return FALSE

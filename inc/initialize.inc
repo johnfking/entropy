@@ -464,19 +464,6 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} maComm stFullNames                               map outer FALSE                 "dannet fullnames"
   /call set_data ${_debug} maComm stEntropyGroup_all                        map outer Entropy               "dannet main entropy group"
 
-  | set DanNet groups
-  | /declare lsEntropyGroup list outer
-  | /invoke ${lsEntropyGroup.Delimiter["|"]}
-
-  | /invoke ${lsEntropyGroup.Append[all|1|2|3|4|5|6|7|8|9|10|11]}
-
-  | /declare _lidn listiterator local
-  | /vardata _lidn lsEntropyGroup.First
-  | /while (!${_lidn.IsEnd}) {
-  |   /invoke ${maComm.Add[stEntropyGroup_${_lidn.Value},entropy${_lidn.Value}]}
-  |   /invoke ${_lidn.Advance}
-  | }
-
   | join the group
   /djoin ${maComm.Find[stEntropyGroup_all].Value}
 
@@ -1192,6 +1179,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maPull stPullZRadius                       60                            "${auxnum} the z distance of your pulling environment"                          pull
   /call set_data_map ${_debug} maPull swNavPathLogic                      TRUE                          "${auxsw} use nav path lenght logic for finding targets to pull"                pull
   /call set_data_map ${_debug} maPull stCountChainPull                    0                             "${auxnum} # of mobs left in area to go pull more"                              pull
+  /call set_data_map ${_debug} maPull stPullOutrunRange                   0                             "${auxnum} slowdown range when pulling a mob back to camp so you dont outrun them" pull
 
   | arc controls
   | /call set_data_map ${_debug} maPull stPullArcCardinal                   FALSE                         "${auxna} cardinal direction to pull from camp"                                 pull
@@ -1237,29 +1225,12 @@ sub set_initialize_map_character_environment(bool _debug)
 
   | specific lists by class
   /if (${Select[${Me.Class.ShortName},BER]}) {
-    /invoke ${lsMeleeSkill.Append[frenzy,intimidation,disarm]}
-    /call set_data_map ${_debug} maCC swFrenzy                            FALSE                         "${auxsw} some odd form of ocd for zerkers.. who knows."
-    /call set_data_map ${_debug} maCC swIntimidation                      FALSE                         "${auxsw} you think you're all that.. you aint nothing.."
-    /call set_data_map ${_debug} maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
 
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
-    /invoke ${lsMeleeSkill.Append[kick,intimidation,disarm]}
-    /call set_data_map ${_debug} maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
-    /call set_data_map ${_debug} maCC swIntimidation                      FALSE                         "${auxsw} you think you're all that.. you aint nothing.."
-    /call set_data_map ${_debug} maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
 
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
-    /invoke ${lsMeleeSkill.Append[dragonpunch,eaglestrike,tigerclaw,flyingkick,roundkick,kick]}
-    /call set_data_map ${_debug} maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
-    /call set_data_map ${_debug} maCC swDragonpunch                       FALSE                         "${auxsw} use dragon punch"
-    /call set_data_map ${_debug} maCC swEaglestrike                       FALSE                         "${auxsw} use eagle strike"
-    /call set_data_map ${_debug} maCC swTigerclaw                         FALSE                         "${auxsw} use tiger claw"
-    /call set_data_map ${_debug} maCC swFlyingkick                        FALSE                         "${auxsw} use flying kick"
-    /call set_data_map ${_debug} maCC swRoundkick                         FALSE                         "${auxsw} use round kick"
 
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
-    /invoke ${lsMeleeSkill.Append[bash]}
-    /call set_data_map ${_debug} maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit OUT of things"
 
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
 
@@ -1268,53 +1239,32 @@ sub set_initialize_map_character_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
 
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
-    /invoke ${lsMeleeSkill.Append[kick,dragonpunch,eaglestrike,tigerclaw,flyingkick,roundkick,intimidation]}
-    /call set_data_map ${_debug} maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
-    /call set_data_map ${_debug} maCC swDragonpunch                       FALSE                         "${auxsw} use dragon punch"
-    /call set_data_map ${_debug} maCC swEaglestrike                       FALSE                         "${auxsw} use eagle strike"
-    /call set_data_map ${_debug} maCC swTigerclaw                         FALSE                         "${auxsw} use tiger claw"
-    /call set_data_map ${_debug} maCC swFlyingkick                        FALSE                         "${auxsw} use flying kick"
-    /call set_data_map ${_debug} maCC swRoundkick                         FALSE                         "${auxsw} use round kick"
-    /call set_data_map ${_debug} maCC swIntimidation                      FALSE                         "${auxsw} you think you're all that.. you aint nothing.."
 
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
 
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
     /invoke ${lsMeleeSkill.Append[bash,taunt,disarm]}
-    /call set_data_map ${_debug} maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit OUT of things"
     /call set_data_map ${_debug} maAgro stPctTaunt                        FALSE                         "${auxnum} Agro Pct to spam the taunt key like a noob!"           agro
     /call set_data_map ${_debug} maAgro stPctAgroHold                     FALSE                         "${auxnum} Minimum Agro Pct you want to maintain"                 agro
-    /call set_data_map ${_debug} maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
 
   } else /if (${Select[${Me.Class.ShortName},RNG]}) {
     /invoke ${lsMeleeSkill.Append[taunt,kick,disarm]}
     /call set_data_map ${_debug} maAgro stPctTaunt                        FALSE                         "${auxnum} Agro Pct to spam the taunt key like a noob!"           agro
     /call set_data_map ${_debug} maAgro stPctAgroHold                     FALSE                         "${auxnum} Minimum Agro Pct you want to maintain"                 agro
-    /call set_data_map ${_debug} maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
-    /call set_data_map ${_debug} maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
 
   } else /if (${Select[${Me.Class.ShortName},ROG]}) {
-    /invoke ${lsMeleeSkill.Append[backstab,intimidation,disarm]}
-    /call set_data_map ${_debug} maCC swBackstab                          FALSE                         "${auxsw} surprise butt sekx!"
-    /call set_data_map ${_debug} maCC swIntimidation                      FALSE                         "${auxsw} you think you're all that.. you aint nothing.."
-    /call set_data_map ${_debug} maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
 
   } else /if (${Select[${Me.Class.ShortName},SHD]}) {
     /invoke ${lsMeleeSkill.Append[taunt,disarm,bash]}
     /call set_data_map ${_debug} maAgro stPctTaunt                        FALSE                         "${auxnum} Agro Pct to spam the taunt key like a noob!"           agro
     /call set_data_map ${_debug} maAgro stPctAgroHold                     FALSE                         "${auxnum} Minimum Agro Pct you want to maintain"                 agro
-    /call set_data_map ${_debug} maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
-    /call set_data_map ${_debug} maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit OUT of things"
 
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
 
   } else /if (${Select[${Me.Class.ShortName},WAR]}) {
     /invoke ${lsMeleeSkill.Append[bash,taunt,kick,disarm]}
-    /call set_data_map ${_debug} maCC swBash                              FALSE                         "${auxsw} switch for bashing the shit OUT of things"
     /call set_data_map ${_debug} maAgro stPctTaunt                        FALSE                         "${auxnum} Agro Pct to spam the taunt key like a noob!"           agro
     /call set_data_map ${_debug} maAgro stPctAgroHold                     FALSE                         "${auxnum} Minimum Agro Pct you want to maintain"                 agro
-    /call set_data_map ${_debug} maCC swKick                              FALSE                         "${auxsw} raise foot, impact nuts.."
-    /call set_data_map ${_debug} maCC swDisarm                            FALSE                         "${auxsw} dodge, parry, thrust.."
 
   } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
 
@@ -2740,6 +2690,7 @@ sub data_schema_tag_group()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('8', 'miscdps');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('9', 'item');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'pull');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('11', 'melee');
   | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'engine2');
   | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('11', 'engine3');
 
@@ -3104,6 +3055,31 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
     /sqlite query "${DBcharacter}" dummy DROP TABLE IF EXISTS environment_crew;
     /invoke ${_tmpMap.Add[stDanNetReturnDelay,hard]}
 
+  }
+
+  | random stuffs
+  /if (${maEnv.Find[build].Value} >= 201218.01 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w201218.01\ax
+    
+    | melee skill changes
+    /invoke ${_tmpMap.Add[swDisarm,character]}
+    /invoke ${_tmpMap.Add[swBash,character]}
+    /invoke ${_tmpMap.Add[swBackstab,character]}
+    /invoke ${_tmpMap.Add[swIntimidation,character]}
+    /invoke ${_tmpMap.Add[swKick,character]}
+    /invoke ${_tmpMap.Add[swDragonpunch,character]}
+    /invoke ${_tmpMap.Add[swEaglestrike,character]}
+    /invoke ${_tmpMap.Add[swTigerclaw,character]}
+    /invoke ${_tmpMap.Add[swFlyingkick,character]}
+    /invoke ${_tmpMap.Add[swRoundkick,character]}
+    /invoke ${_tmpMap.Add[swFrenzy,character]}
+    
+    | druid changes
+    /invoke ${_tmpMap.Add[stAADistructiveVortex,character]}
+    /invoke ${_tmpMap.Add[stAAPeacefulSpiritoftheWood,character]}
+    /invoke ${_tmpMap.Add[stAAStormStrike,character]}
+    
+    
   }
   
 

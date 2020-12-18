@@ -185,11 +185,17 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
       DEBUG \agPREGEN DATA\ax
       /declare _count int local 1
       /declare _tmpValue string local FALSE
+      /declare _previousValue string local
 
       /sqlite query "${DBstatic}" dummy SELECT * FROM env_${Me.Class.ShortName.Lower} WHERE env_var="${_env_var}";
       /if (!${sql_check[${_debug}, dummy, set_data_map, "SELECT (*)"]}) /endmacro
 
       DEBUG .... ${sqlite.Result[dummy 1 value].Count[|]} ..${sqlite.Result[dummy 1 value]}
+      
+      | get current data for output change notice
+      | /if (${pregenUpdate}) {
+        /varset _previousValue ${${_map}.Find[${_env_var}].Value}
+      | }
 
       | how many do we want to find?
       /if (${sqlite.Result[dummy 1 value].Count[|]}) {
@@ -212,11 +218,21 @@ sub set_data_map(bool _debug, string _map, string _env_var, string _value, _aux,
       | adjust our running value for the database entry
       /varset _value ${_tmpValue}
       DEBUG ${sep}_value${sep}\a-w${_tmpValue}\ax
+      
+    /if (${pregenUpdate}) {
+      OUT ${_env_var}${sep}\a-w${_previousValue}\ax ${submenu} \a-w${_value}\ax
+    }
+  
+      
+      
     }
 
     /sqlite query "${DBcharacter}" dummy INSERT OR IGNORE INTO environment_${_table}(env_var,value,aux) VALUES("${_env_var}", "${_value}", "${_aux}");
     /if (!${sql_check[${_debug}, dummy, set_data_map, "INSERT OR IGNORE INTO (environment_${_table})"]}) /endmacro
     /invoke ${${_map}.Add[${_env_var},"${_value}"]}
+    
+   
+    
 
   }
 
@@ -778,6 +794,11 @@ sub is_ready(bool _debug, string _verbage)
   | disc
   } else /if (${Me.CombatAbilityReady[${Me.CombatAbility[${Spell[${_verbage}].RankName}]}]}) {
     DEBUG ${sep}\a-yDISC READY\ax${sep}\a-w${Spell[${_verbage}].RankName}\ax
+    /return TRUE
+
+  | ability
+  } else /if (${Me.AbilityReady[${_verbage}]}) {
+    DEBUG ${sep}\a-ABILITY READY\ax${sep}\a-w${_verbage}\ax
     /return TRUE
 
   | item
@@ -3558,20 +3579,12 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 
         }
 
-      | other pull thingie is not ready?
-      | } else {
-      |   DEBUG ${break}pull_mob_tag${sep}\a-wother\ax\arFAIL\ax
-      |   /delay 1s
-      |   /return tagfailure
-      | }
-
       /return TRUE
     }
 
     | range tag
     | there are some base limitations to combat range tagging. we are going to limit to 250 for range/thrown items
     | yes i know some classes can go a lot farther..
-    | /if (${Spawn[id ${_tmpID}].Distance} > ${maHard.Find[stMinBowDist].Value} && ${Spawn[id ${_tmpID}].Distance} > ENV && ${Spawn[id ${_tmpID}].Distance} < ${maHard.Find[stMaxBowDist].Value} && RANGE) {
     /if (${maPull.Find[stPullWith].Value.Equal[range]} && ${Spawn[id ${_tmpID}].Distance} > ${maHard.Find[stMinBowDist].Value} && ${Spawn[id ${_tmpID}].Distance} < ${maHard.Find[stMaxBowDist].Value}) {
       DEBUG ${sep}Tag${sep}Range${sep}${tar}${Spawn[id ${_tmpID}].DisplayName}\ax${sep}\a-w${Spawn[id ${_tmpID}].Distance}\ax
       GETINPUT pull_mob_tag_range NA|NA
@@ -3992,7 +4005,7 @@ sub get_gem_id(bool _debug, string _spellGem)
  * use: ${check_exit[DEBUG]}
  ***|
 sub check_exit(bool _debug, string _call)
-  DEBUG \atcheck_exit\ax()
+  DEBUG \atcheck_exit\ax(\a-w${_call}\ax)
 
   | invis
   /if (${Me.Invis} && !${Select[${Me.Class.ShortName},ROG]}) /return TRUE
@@ -4106,7 +4119,6 @@ sub do_rest(bool _debug)
   DEBUG ${sep}loop${sep}\a-wloopneedmorerest\ax start
   /varset _needrest FALSE
   CHECKREZ
-  | /if (((!${maEnv.Find[swRestCombat].Value} || ${Me.CombatState.Equal[combat]}) && ${SpawnCount[npc OVERLOS radius ${maEnv.Find[stRestRadius].Value} PS4]}) || !AUTO) {
   /if (((!${maEnv.Find[swRestCombat].Value} || ${Me.CombatState.Equal[combat]}) && ${SpawnCount[npc OVERLOS radius ENV PS4]}) || !AUTO) {
     /varset _needrest FALSE
     /if (${Me.State.NotEqual[STAND]}) /stand
@@ -5103,7 +5115,7 @@ sub check_last_supper(bool _debug)
  * use: /tie [on/off toggle] requires /tc name [NAME] and /tc variance ##
  **|
 sub set_tie(bool _debug)
-  SDEBUG \atset_tie\ax()
+  DEBUG \atset_tie\ax()
 
   /if (AUTO) {
     /invoke ${set_data_timer[${_debug}, Check_Tie, RESTART]}
@@ -5261,21 +5273,21 @@ sub check_buff_cycle_now(bool _debug)
 
     | alwaysup tag needed
     /if (!${lsBuff${_licountself.Value}Tag.Contains[now]}) {
-      | DEBUG ${break} no alwaysup tag
+      DEBUG ${break} no alwaysup tag
       /invoke ${_licountself.Advance}
       /continue
     }
 
     | no name set?
     /if (!${Bool[${maBuff.Find[stBuff${_licountself.Value}].Value}]}) {
-      | DEBUG ${break}no name set:${_licountself.Value}
+      DEBUG ${break}no name set:${_licountself.Value}
       /invoke ${_licountself.Advance}
       /continue
     }
 
     | buff on/off switch
     /if (!${maBuff.Find[swBuff${_licountself.Value}].Value}) {
-      | DEBUG ${break}switched off:${_licountself.Value}
+      DEBUG ${break}switched off:${_licountself.Value}
       /invoke ${_licountself.Advance}
       /continue
     }
@@ -7597,7 +7609,14 @@ sub check_cursor(bool _debug, string _verbage)
     /invoke ${out[14, "Cursor${sep}\ayleave\ax${sep}\a-w${Cursor.Name}\ax"]}
     /nomodkey /drop
   } else /if (${Select[${sqlite.Result[lootquery 1 action]},ignore]}) {
+    
+    | force auto inventroy if we have too
+    /if (${_verbage.Equal[clear]}) {
+      /nomodkey /autoinventory
+    }
+    
     | do nothing.. seriously.. what do you think ignore means?
+  
   }
 
   | /delay 1
@@ -9225,7 +9244,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
     /call where_the_fuck_is_my_pet ${maDebug.Find[lost].Value} TRUE
     SETHUD EMPTY
     /if (HOME) {
-      /call Bind_control_home return FALSE silent ${maDebug.Find[home].Value}
+      /call pull_home_move_to ${_debug} ${_tmpID}
     }
     /return FALSE
   }
@@ -9233,7 +9252,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
   /call where_the_fuck_is_my_pet ${maDebug.Find[lost].Value} FALSE
 
   /if (HOME) {
-    /call Bind_control_home return FALSE silent ${maDebug.Find[home].Value}
+    /call pull_home_move_to ${_debug} ${_tmpID}
   }
 
   | wait for mob to get to camp
@@ -9355,11 +9374,18 @@ sub get_target_navpull(bool _debug, int _tmpID)
   /if (${Macro.Return.Equal[tagfailure]}) {
     DEBUG ${sep}\arNAVpull FAILURE\ax${sep}resetting/returning to camp
     /invoke ${target[clear]}
+    /call pull_home_move_to ${_debug} ${Me.ID}    
     /call Bind_control_home return FALSE silent ${maDebug.Find[home].Value}
     /return FALSE
   }
 
   | move home
+  
+  /if (HOME) {
+    /call pull_home_move_to ${_debug} ${_tmpID}
+  }
+  
+  |**  
   /if (${maPull.Find[swPullSetHome].Value} && ${maPull.Find[swPullSetHome].Value} && HOME) {
     /if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} > SAFEENV && PULL) {
       /call Bind_control_home return FALSE silent ${maDebug.Find[home].Value}
@@ -9371,6 +9397,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
     CHECKDEAD
     /delay 5
   }
+  **|
 
   /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FALSE
 
@@ -12136,14 +12163,19 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
   /if (${_tag.Equal[grouphot]}) {
     DEBUG ${sep}tag.Found
 
-    | break on no mobs in area
-    /if (AE# && ${SpawnCount[npc radius ENV PS4 targetable]} < AE#) {
-      DEBUG ${break}not enough mobs in env rad
-      /return FALSE
-    }
-
     | find my hot
     /while (!${_liHoT.IsEnd}) {
+
+      | break on no mobs in area
+      /if (AE# && ${SpawnCount[npc radius ENV PS4 targetable]} < AE#) {
+        DEBUG ${break}not enough mobs in env rad
+        /return FALSE
+      }
+      
+      /if (TIE) {
+        DEBUG ${break}tie called
+        /return FALSE        
+      }
 
       CHECKEXIT
       CHECKDEAD
@@ -13197,9 +13229,8 @@ sub control_base_edit(bool _debug, string _chk, int _loopnum, string _type, stri
           /call get_best_in_spell ${_debug} "${ma${_chk}.Find[st${_chk}${_count}].Value.Arg[1,|]}" "${ma${_chk}.Find[st${_chk}${_count}].Value.Arg[2,|]}" "${ma${_chk}.Find[st${_chk}${_count}].Value.Arg[3,|]}"
           /varset _tmpName "${Macro.Return}"
         }
-        /invoke ${out[12, "\awst${_chk}${_count}\ax${sep}${If[${Skill[${maMelee.Find[st${_chk}${_count}].Value}].Auto},\apauto\ax,${If[${maMelee.Find[sw${_chk}${_count}].Value},${on},${off}]}]}${sep}\a-w${ma${_chk}.Find[st${_chk}${_count}].Value}\ax${If[${Bool[${_tmpName}]}, ${dot} (\a-r${_tmpName}\ax),]}"]}
+        /invoke ${out[12, "\awst${_chk}${_count}\ax${sep}${If[${Skill[${ma${_chk}.Find[st${_chk}${_count}].Value}].Auto},\apauto\ax,${If[${ma${_chk}.Find[sw${_chk}${_count}].Value},${on},${off}]}]}${sep}\a-w${ma${_chk}.Find[st${_chk}${_count}].Value}\ax${If[${Bool[${_tmpName}]}, ${dot} (\a-r${_tmpName}\ax),]}"]}
         /varset _tmpName FALSE
-
       }
     /next _count
     /invoke ${out[18, 0, 33]}
@@ -13228,12 +13259,11 @@ sub control_base_edit(bool _debug, string _chk, int _loopnum, string _type, stri
 
     | output map
     } else /if (${_verbage.Equal[see]}) {
-      /invoke ${out[12, "\aw${_chk} #${_type}\ax${sep}${If[${ma${_chk}.Find[sw${_chk}${_type}].Value},${on},${off}]}"]}
-
-        /if (${ma${_chk}.Find[st${_chk}${_type}].Value.Count[|]}) {
-          /call get_best_in_spell ${_debug} "${ma${_chk}.Find[st${_chk}${_type}].Value.Arg[1,|]}" "${ma${_chk}.Find[st${_chk}${_type}].Value.Arg[2,|]}" "${ma${_chk}.Find[st${_chk}${_type}].Value.Arg[3,|]}"
-          /varset _tmpName "${Macro.Return}"
-        }
+      /invoke ${out[12, "\aw${_chk} #${_type}\ax${sep}${If[${Skill[${ma${_chk}.Find[st${_chk}${_type}].Value}].Auto},\apauto\ax,${If[${ma${_chk}.Find[sw${_chk}${_type}].Value},${on},${off}]}]}"]}
+      /if (${ma${_chk}.Find[st${_chk}${_type}].Value.Count[|]}) {
+        /call get_best_in_spell ${_debug} "${ma${_chk}.Find[st${_chk}${_type}].Value.Arg[1,|]}" "${ma${_chk}.Find[st${_chk}${_type}].Value.Arg[2,|]}" "${ma${_chk}.Find[st${_chk}${_type}].Value.Arg[3,|]}"
+        /varset _tmpName "${Macro.Return}"
+      }
 
       /invoke ${out[12, "st${_chk}\aw${_type}\ax${sep}\a-w${ma${_chk}.Find[st${_chk}${_type}].Value}\ax${If[${Bool[${_tmpName}]}, ${dot} (\a-r${_tmpName}\ax),]}"]}
       /if (${Select[${_chk},buff]}) {
@@ -13823,10 +13853,7 @@ sub check_gtfo(bool _debug)
     ISMEDEAD
 
     /call voodoo ${_debug} "${maGTFO.Find[stGTFO${_liC12.Value}].Value}" 0 FALSE
-
-    /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
-      /return TRUE
-    }
+    /return TRUE
 
     /invoke ${_liC12.Advance}
   }
@@ -14571,9 +14598,9 @@ sub pull_assist_decision(bool _debug)
         }
       }
       
-      | break pulling if a mob is in ENV and go back to assist
-      /if (!${maPull.Find[stCountChainPull].Value} && ${SpawnCount[npc radius ENV PS4]}) {
-        DEBUG ${submenu}pullstate (\a-rswapping to assist for proximity agro\ax)
+      | break pulling if a mob is in ENV AND LOS and go back to assist
+      /if (!${maPull.Find[stCountChainPull].Value} && ${SpawnCount[npc los radius ENV PS4]}) {
+        DEBUG ${submenu}pullstate (\a-rswapping to assist for los proximity agro\ax)
         /call get_assist_target ${maDebug.Find[assist].Value}
         /return FALSE
       }
@@ -14610,7 +14637,7 @@ sub pull_assist_decision(bool _debug)
       }
     }
     
-    
+    /delay 1
   }
 
 /return TRUE
@@ -14618,11 +14645,32 @@ sub pull_assist_decision(bool _debug)
 
 
 |***
- * note: cucles melee skills from maMelee
+ * note: cycles melee skills from maMelee
  * use: /call cast_cycle_melee DEBUG [TARGETID] [TAG]
  ***|
 sub cast_cycle_melee(bool _debug, int _tmpID, string _tag)
   DEBUG \atcast_cycle_melee\ax(\a-w${_tmpID}, ${_tag}\ax)
+
+  /if (${target[isdead, ${_tmpID}]}) {
+    /return FALSE
+  }
+
+  CHECKDEFENSE
+
+  /invoke ${target[set, ${_tmpID}]}
+
+  /invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
+
+  /if (AUTO || ${swModeToken}) {
+    /if (!${timer_check_stick}) {
+      /call set_combat_control ${maDebug.Find[decision].Value} ${_tmpID}
+    }
+  }
+
+  | melee bandolier swap for proc weapons
+  /if (${maSash.Find[swSashProc].Value} && !${timer_Check_Proc_Sash}) {
+    /call check_sash_proc ${_debug}
+  }
 
   | if the user has not set the line order, set it to a default for now
   /if (${lsLineMelee.Contains[EMPTY]} && ${lsLineMelee.Count} == 1) {
@@ -14630,8 +14678,6 @@ sub cast_cycle_melee(bool _debug, int _tmpID, string _tag)
     /invoke ${lsLineMelee.Clear}
     /invoke ${lsLineMelee.Append[${stCount12}]}
   }
-
-  /invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
   
   /declare _count int local 0
   /declare _match bool local FALSE
@@ -14639,7 +14685,6 @@ sub cast_cycle_melee(bool _debug, int _tmpID, string _tag)
   /vardata _liMelee lsLineMelee.First.Clone
   /while (!${_liMelee.IsEnd}) {
 
-    
     GETINPUT cast_cycle_melee NA|NA
     ISMEDEAD
     CHECKEXIT cast_cycle_melee
@@ -14663,7 +14708,7 @@ sub cast_cycle_melee(bool _debug, int _tmpID, string _tag)
     }
 
     | skip autoskills
-    /if (${Skill[${maMelee.Find[stMelee${_liMelee.Value}].Auto}) {
+    /if (${Skill[${maMelee.Find[stMelee${_liMelee.Value}].Value}].Auto}) {
       /invoke ${_liMelee.Advance}
       /continue
     }
@@ -14680,7 +14725,7 @@ sub cast_cycle_melee(bool _debug, int _tmpID, string _tag)
       /invoke ${_liMelee.Advance}
       /continue
     }
-    
+
     | minimum range
     /if (${Spawn[${_tmpID}].Distance} > ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
       /invoke ${_liMelee.Advance}
@@ -14695,7 +14740,7 @@ sub cast_cycle_melee(bool _debug, int _tmpID, string _tag)
     }
 
     /invoke ${out[8, "Melee${sep}${sp}${maMelee.Find[stMelee${_liMelee.Value}].Value}\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
-    /doability ${maMelee.Find[stMelee${_liMelee.Value}].Value}
+    /doability "${maMelee.Find[stMelee${_liMelee.Value}].Value}"
     /invoke ${_liMelee.Advance}
   }
 
@@ -14762,3 +14807,74 @@ sub check_housekeeping(bool _debug)
   DEBUG ${sep}housekeeping${sep}\a-wDONE\ax
 
 /return TRUE
+
+
+
+|***
+ * note: return home from a mob pull
+ * use:
+ ***|
+sub pull_home_move_to(bool _debug, int _tmpID)
+  DEBUG \atpull_home_move_to\ax(\a-w${_tmpID}\ax)
+
+  /if (!AUTO && !${swModeToken}) {
+    /return FALSE
+  }
+ 
+  /declare _curVarDis float local ${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]}
+
+  | check variance for home position
+  /if (${_curVarDis} < ${maHome.Find[stHomeVariance].Value}) {
+    DEBUG ${sep}within home${sep}\a-w${_curVarDis} < ${maHome.Find[stHomeVariance].Value}\ax
+    /return TRUE
+  }
+
+  SETHUD "'goin home"
+
+  /doevents flush
+  /delay 2
+
+  /if (${_curVarDis} > ${maHome.Find[stHomeVariance].Value} && ${_curVarDis} < SAFEENV && PULL) {
+    DEBUG ${sep}move backwords${sep}\a-w${_curVarDis} > ${maHome.Find[stHomeVariance].Value}*2 && ${_curVarDis} < SAFEENV && PULL\ax
+    /nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=${maEntropy.Find[swNavLogSpew].Value} facing=backward
+  } else {
+    DEBUG ${sep}move normal
+    /nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=${maEntropy.Find[swNavLogSpew].Value}
+  }
+
+  /delay 5 ${Navigation.Active}
+  /while (${Navigation.Active}) {
+    CHECKDEAD
+
+    | do we slow down if we start to outrun a mob?
+    /if (${maPull.Find[stPullOutrunRange].Value} && !${Me.Mount.ID}) {
+      DEBUG ${sep}stPullOutrunRange${sep}\a-w${maPull.Find[stPullOutrunRange].Value}\ax  ..  ${Spawn[${_tmpID}].Distance}
+      | set walk
+      /if (${Spawn[${_tmpID}].Distance} > ${maPull.Find[stPullOutrunRange].Value} && ${Me.Running}) {
+        DEBUG ${sep}set walk
+        /keypress RUN_WALK
+      }
+      /delay 1 ${Spawn[${_tmpID}].Distance} <= ${maPull.Find[stPullOutrunRange].Value}
+      | return to run
+      /if (${Spawn[${_tmpID}].Distance} <= ${maPull.Find[stPullOutrunRange].Value} && !${Me.Running}) {
+        DEBUG ${sep}set run
+        /keypress RUN_WALK
+      }     
+      
+    }
+    /delay 2
+
+  }
+
+  | make sure run is set back...
+  /if (!${Me.Running}) {
+    DEBUG ${sep}set run
+    /keypress RUN_WALK
+  }
+
+/return TRUE
+
+
+
+
+

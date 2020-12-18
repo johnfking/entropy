@@ -39,7 +39,7 @@ sub class_init(bool _debug)
 
   /call set_data_list ${_debug} maChr lsHealToT                       PREGEN|3                      "${auxli} targets target healing line of spells"
 
-  /invoke ${set_data_timer[FALSE, Check_Para, 2s]}
+  /invoke ${set_data_timer[${_debug}, Check_Para, 2s]}
   /call set_data_map ${_debug} maChr stPctParagonG                    0                             "${auxnum} pct mana to use group paragon aa"
   /call set_data_map ${_debug} maChr stPctParagonF                    0                             "${auxnum} pct mana to use focused paragon aa on you"
   /call set_data_map ${_debug} maChr stPctParagonFO                   0                             "${auxnum} pct mana to use focused paragon aa on someone else"
@@ -99,7 +99,7 @@ sub class_main(bool _debug)
 
     /if (VALID && !ENGINE3) {
       /call set_combat_control ${maDebug.Find[decision].Value} TARGET
-      /if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
+      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
       /call check_heal_routines
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
       /if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
@@ -358,7 +358,7 @@ sub check_mana(bool _debug)
 
       /if ((${Group.Member[${_count}].PctMana} || ${Group.Member[${_count}].PctEndurance}) <=  ${maChr.Find[stPctParagonFO].Value}*.PCTHO) {
         DEBUG ${sep} mana || stamina <= ${maChr.Find[stPctParagonFO].Value}*.PCTHO
-        /varset _vound TRUE
+        /varset _found TRUE
       }
 
       /if (${_found}) {  
@@ -549,7 +549,7 @@ sub burn(bool _debug, int _tmpID)
 
     /call cast_AA_spire ${maDebug.Find[spire].Value}
 
-    /if (${is_ready[${_debug}, "${maChr.Find[stSavage].Value}"]} && !${Me.Song[${maChr.Find[stAABestialAlignment].Value}].ID}) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stSavage].Value}"]}) {
       /call voodoo ${_debug} "${maChr.Find[stSavage].Value}" 0 FALSE
     }
     /if (${is_ready[${_debug}, "${maChr.Find[stAAGroupBestialAlignment].Value}"]} && !${Me.Buff[Ferociousness].ID}) {

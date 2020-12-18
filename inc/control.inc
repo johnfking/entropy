@@ -1067,7 +1067,6 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
       /delay 2
     }
     SETHUD EMPTY
-    | /if (${swActivePull}) /varset swActivePull FALSE
     /return
 
   } else /if (${_type.Equal[arc]}) {
@@ -3237,8 +3236,9 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
     /invoke ${set_control_output[${_debug}, maCC, "cc mode", maControl]}
     /return TRUE
 
-  | set melee things to do
+  |** set melee things to do
   } else /if (${_type.Equal[melee]}) {
+    /return TRUE
 
     /if (${_verbage.Equal[bash]} && ${lsMeleeSkill.Contains[bash]}) {
       /invoke ${set_switch_env[${_debug}, swBash, TRUE, ${_verbage2}]}
@@ -3285,6 +3285,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
     }
     /invoke ${out[12, "/cc melee ${dot} ${_out}"]}
     /return TRUE
+    **|
 
   | mob engage %
   } else /if (${_type.Equal[engage]}) {
@@ -3345,7 +3346,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
   /invoke ${maControl.Add[force,option]}
   /invoke ${maControl.Add[kill,option]}
   /invoke ${maControl.Add[mode,submenu]}
-  /invoke ${maControl.Add[melee,submenu]}
+  | /invoke ${maControl.Add[melee,submenu]}
   /invoke ${maControl.Add[glyph,submenu]}
   /invoke ${maControl.Add[engage,stPctEngage]}
   /invoke ${maControl.Add[zradius,stZRadius]}
@@ -6001,6 +6002,10 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   } else /if (${_type.Equal[chain]}) {
     /if (!${set_control_num_range[${_debug}, stCountChainPull, "${_verbage}", 0, 99]}) /return
 
+  | outrun range
+  } else /if (${_type.Equal[outrun]}) {
+    /if (!${set_control_num_range[${_debug}, stPullOutrunRange, "${_verbage}", 0, 1000]}) /return
+
   | enable/disable setting home marker when pulling
   } else /if (${_type.Equal[sethome]}) {
     /invoke ${set_switch_env[${_debug}, swPullSetHome, TRUE, ${_verbage}]}
@@ -6107,6 +6112,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   /invoke ${maControl.Add[stop,submenu]}
   /invoke ${maControl.Add[mode,submenu]}
   /invoke ${maControl.Add[with,submenu]}
+  /invoke ${maControl.Add[outrun,stPullOutrunRange]}
   /invoke ${maControl.Add[sethome,swPullSetHome]}
   /invoke ${maControl.Add[navstop,stPullNavStopDistance]}
   /invoke ${maControl.Add[chain,stCountChainPull]}

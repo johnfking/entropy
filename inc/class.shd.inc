@@ -102,7 +102,7 @@ sub class_main(bool _debug)
     /if (VALID && !ENGINE3) {
       /call set_combat_control ${maDebug.Find[decision].Value} TARGET
       /invoke ${do_taunt[${_debug}, TARGET]}
-      /if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
+      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
       /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
         /call cast_shield_flash ${_debug} aa
       }

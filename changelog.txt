@@ -23,6 +23,26 @@ on the to do list
 
 
 
+201218.01
+- druid
+  removed an extra ) in the burn routine
+  removed a couple old AAs no longer being used
+- corrected the misleading off display from the various / commands
+- /melee
+  this is available to all classes
+  functions just like the other / skills; nuke, dot, defense, so on
+  12 slots to use
+  tags can be applied
+  DO NOT use the melee skill taunt here. well you can, but its just dumb and will do nothing for you
+  taunt is used in /agro, so leave it be
+  /cc melee is no more (all the old variables should be gone)
+  if you add a skill to /melle and also have it set as /autoskill, it will be marked auto and skipped in the rotation (EQ will control it)
+- auto gem swapping will double check cursor items
+- /admin pregen will now echo as it iterated through the lists
+- /pull outrun ## - sets range from your pulled target, that when exceeded, will set the character to walk
+  allowing the pulled mob to catch up. once the mob is in range, the puller will reset to running
+
+
 201215.01
 - beastlord
   corrected the loops for mana feeding

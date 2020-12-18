@@ -30,18 +30,17 @@ sub class_init(bool _debug)
 
   | AAs
   /call set_data_map ${_debug} maChr stAASeasonsWrath                 PREGEN|1                      "${auxna} Season's Wrath AA"
-  /call set_data_map ${_debug} maChr stAAStormStrike                  PREGEN|1                      "${auxna} Storm Strike AA"
   /call set_data_map ${_debug} maChr stAASpiritoftheGreatWolf         PREGEN|1                      "${auxna} Spirit of the Great Wolf AA"
   /call set_data_map ${_debug} maChr stAAGroupSpiritoftheGreatWolf    PREGEN|1                      "${auxna} Group Spirit of the Great Wolf AA"
   /call set_data_map ${_debug} maChr stAASwarmofFireflies             PREGEN|1                      "${auxna} Swarm of Fireflies AA"
   /call set_data_map ${_debug} maChr stAAConvergenceofSpirits         PREGEN|1                      "${auxna} Convergence of Spirits AA"
   /call set_data_map ${_debug} maChr stAAWildtendersSurvival          PREGEN|1                      "${auxna} Wildtender's Survival AA"
-  /call set_data_map ${_debug} maChr stAAPeacefulSpiritoftheWood      PREGEN|1                      "${auxna} Peaceful Spirit of the Wood AA"
+  /call set_data_map ${_debug} maChr stAASpiritoftheWood              PREGEN|1                      "${auxna} Spirit of the Wood AA"
   /call set_data_map ${_debug} maChr stAABlessingofTunare             PREGEN|1                      "${auxna} Blessing of Tunare AA"
   /call set_data_map ${_debug} maChr stAANaturesGuardian              PREGEN|1                      "${auxna} Nature's Guardian AA"
   /call set_data_map ${_debug} maChr stAAProtectionofDirewood         PREGEN|1                      "${auxna} Protection of Direwood AA"
   /call set_data_map ${_debug} maChr stAASilentCasting                PREGEN|1                      "${auxna} Silent Casting AA"
-  /call set_data_map ${_debug} maChr stAADistructiveVortex            PREGEN|1                      "${auxna} Distructive Vortex AA"
+  /call set_data_map ${_debug} maChr stAADestructiveVortex            PREGEN|1                      "${auxna} Destructive Vortex AA"
   /call set_data_map ${_debug} maChr stAANaturesFury                  PREGEN|1                      "${auxna} Natures Fury AA"
   /call set_data_map ${_debug} maChr stAANaturesBlessing              PREGEN|1                      "${auxna} Nature's Blessing AA"
   /call set_data_map ${_debug} maChr stAANaturesBoon                  PREGEN|1                      "${auxna} Nature's Boon AA"
@@ -93,7 +92,7 @@ sub class_main(bool _debug)
     /if (VALID && !ENGINE3) {
       CHECKREZ
       /call set_combat_control ${maDebug.Find[decision].Value} TARGET
-      /if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
+      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
       /call misc_combat ${maDebug.Find[misc].Value} TARGET
       /if (!${timer_Check_deBuffs}) {
@@ -315,7 +314,7 @@ sub burn(bool _debug, int _tmpID)
 
   | swarm pets
   /if (SWARM) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAANaturesGuardian].Value}"]})) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stAANaturesGuardian].Value}"]}) {
       /call voodoo ${_debug} "${maChr.Find[stAANaturesGuardian].Value}" ${_tmpID} FALSE
     }
   }

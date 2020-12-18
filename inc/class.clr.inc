@@ -287,9 +287,9 @@ sub check_heal(bool _debug, string _type)
   GETINPUT clr_heal_start type|${_type}
 
   | Group Regen Heal
-  | /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
-  |   /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 grouphot
-  | }
+  /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
+    /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 grouphot
+  }
 
   /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
@@ -309,7 +309,7 @@ sub check_heal(bool _debug, string _type)
     CHECKREZ
     SETHUD EMPTY
     /delay 1
-    /return
+    /return FALSE
   }
 
   SETHUD "heal ${_type.Lower}"

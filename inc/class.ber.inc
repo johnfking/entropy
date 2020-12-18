@@ -110,7 +110,7 @@ sub class_main(bool _debug)
       /call do_sneak_attack ${maDebug.Find[class].Value} TARGET
       /call set_combat_control ${maDebug.Find[decision].Value} TARGET
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-      /if (MELEE) /call do_melee ${maDebug.Find[melee].Value} TARGET
+      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
       CHECKDEFENSE
       /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
       /call misc_combat ${maDebug.Find[misc].Value} TARGET
@@ -149,7 +149,7 @@ sub do_sneak_attack(bool _debug, int _tmpID)
   DEBUG \atdo_sneak_attack\ax(\a-w${_tmpID}\ax)
   | FLOW do_sneak_attack
 
-  /if (${Select[${Me.CombatState},active,debuffed]}) {
+  /if (${Select[${Me.CombatState},combat,active,debuffed]}) {
     /return FALSE
   }
 
