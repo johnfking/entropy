@@ -2666,12 +2666,12 @@ sub data_schema_tag()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('1005', 'pulseooc', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('999', 'pbaenuke', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('998', 'temp', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('997', 'interventionpull', '1');
 
  | /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag(id, name, created_by) VALUES('1001', 'myassist', '1');
 
 
 /return TRUE
-
 
 
 
@@ -2695,9 +2695,6 @@ sub data_schema_tag_group()
   | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('11', 'engine3');
 
 /return TRUE
-
-
-
 
 
 
@@ -2759,6 +2756,7 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '17', '1', '${Parse[0,${Select[${_name},${Group.MainAssist.DisplayName},${maCC.Find[stManualAssist1].Value},${maCC.Find[stManualAssist2].Value}]}]}', 'my assist');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '997', '1', 'CONTROL::MARKER', 'intervention pulling for clerics and shaman');
 
   | nuke
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');

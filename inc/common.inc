@@ -1199,6 +1199,11 @@ sub check_for_rezbox(bool _debug)
 sub check_buff_cycle_shrink(bool _debug)
   DEBUG \atcheck_buff_cycle_shrink\ax()
 
+  /if (!${maBuff.Find[swBuffShrink].Value}) {
+    /return FALSE
+  }
+
+
   SETHUD "buff shrink"
 
   /if (AUTO) {
@@ -1239,7 +1244,7 @@ sub check_buff_cycle_shrink(bool _debug)
  * note:
  * note: best to wrap or prep the cast in an ${is_ready[]}
  * note:
- * use: /call voodoo DEBUG ["name of voodoo to do"] [TARGETID] [sub to check on the way] [ENV override]
+ * use: /call voodoo DEBUG r [TARGETID] [sub to check on the way] [ENV override]
  ***|
 sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOverride)
   DEBUG \atvoodoo\ax(\a-w"${_verbage}", ${_tmpID}, ${_sub}, ${_rangeOverride}\ax)
@@ -2383,35 +2388,6 @@ sub clear_timer(bool _debug, int _tmpID)
   }
 
 /return
-
-
-
-|***
- * note: returns a valid resident toon name .. if there is one
- * use : ${get_resident_class[DEBUG, DANNET GROUP(class), max distance to search]}
- ***|
-sub get_resident_class(bool _debug, string _class, int _distance)
-  DEBUG \atget_resident_class\ax(\a-w${_class}, ${_distance}\ax)
-
-  | none of that class here
-  /if (!${DanNet.PeerCount[${_class}]}) /return FALSE
-
-  /varset _class ${_class.Upper}
-  /declare _name string local FALSE
-  /declare _count int local 0
-
-  /for _count 1 to ${DanNet.PeerCount[${_class}]}
-    /varset _name ${DanNet.Peers[${_class}].Arg[${_count},|]}
-
-    /if (!${Bool[pc ${_name}]}) /continue
-    /if (!${Spawn[pc ${_name}].ID}) /continue
-    /if (${Spawn[pc ${_name}].Dead}) /continue
-    /if (${Spawn[pc ${_name}].Distance} > ${_distance}) /continue
-
-    /if (${Bool[${_name}]}) /break
-  /next _count
-
-/return ${_name}
 
 
 
@@ -6635,8 +6611,8 @@ sub cast_challenge(bool _debug, int _tmpID)
 |***
  * note: cast nukes lists
  * use: /call cast_nuke DEBUG [line] [targetid]
- ***|
- sub cast_nuke(bool _debug, string _line, int _tmpID)
+
+sub cast_nuke(bool _debug, string _line, int _tmpID)
   DEBUG \atcast_nuke\ax(\a-w${_line}, ${_tmpID}\ax)
 
   /declare _linuke listiterator local
@@ -6688,7 +6664,7 @@ sub cast_challenge(bool _debug, int _tmpID)
   }
 
 /return TRUE
-
+ ***|
 
 
 |***
@@ -6823,6 +6799,7 @@ sub cast_stamina_recovery(bool _debug)
   /if (SAFEZONE) {
     /return FALSE
   }
+  
   ISMEDEAD
   GETINPUT cast_stamina_recovery NA|NA
 
@@ -9023,7 +9000,7 @@ sub get_target_intpull(bool _debug, int _tmpID)
   /invoke ${target[set, TARGET]}
 
   /delay 1s
-  /dex ${get_resident_class[${_debug}, CLR, 60]} /advancedpullint ${Me.ID} ${_debug}
+  /dex ${get_resident[${_debug}, |clr, 60]} /advancedpullint ${Me.ID} ${_debug}
   /delay 1s
 
   /call pull_mob_prep ${_debug} TARGET
@@ -9044,7 +9021,7 @@ sub get_target_intpull(bool _debug, int _tmpID)
  * use: /call pull_mob_move_to DEBUG [TARGETID] [distance to stop at] [Line Of Sight on|off]
  ***|
 sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
-  DEBUG \atpull_mob_move_to\ax(\a-w${_tmpID}, ${_dist}, ${_LoS}\ax)
+  DEBUG \atpull_mob_move_to\ax(\a-wID:${_tmpID}, Dis:${_dist}, LoS:${_LoS}\ax)
 
   /if (!AUTO && !${swModeToken}) {
     /return FALSE
@@ -9089,9 +9066,7 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
     | LOS required
     } else /if (${Bool[${_LoS}]}) {
       /if (${Spawn[${_tmpID}].Distance} <= ${_dist} && ${Spawn[${_tmpID}].LineOfSight}) {
-      | /if (${Spawn[${_tmpID}].Distance} <= ${_dist} && ${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} > ENV) {
         DEBUG ${sep}dis \arHALT\ax${sep}\a-w${Spawn[${_tmpID}].Distance} <= \ag${_dist}\ax && \agLOS\a-w (\a-r${_tmpID}\ax)
-        /delay 2
         /nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
         /return TRUE
       }
@@ -9105,7 +9080,7 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
     }
 
     | mobs in our personal space. fuck those things. no respect
-    | /if (${SpawnCount[npc radius SAFEENV PS4 targetable]} & ${NearestSpawn[1, npc radius SAFEENV PS4 targetable].ID} != ${_tmpID}) {
+    |** /if (${SpawnCount[npc radius SAFEENV PS4 targetable]} & ${NearestSpawn[1, npc radius SAFEENV PS4 targetable].ID} != ${_tmpID}) {
     /if (${SpawnCount[npc radius ENV PS4 targetable]} & ${NearestSpawn[1, npc radius ENV PS4 targetable].ID} != ${_tmpID}) {
       DEBUG ${break}mob in environment space
       /invoke ${out[9, 0, 26]}
@@ -9113,6 +9088,7 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
       /varset _tmpID ${NearestSpawn[1, npc radius ENV PS4 targetable].ID}
       /return TRUE
     }
+    **|
 
     /delay 1
   }
@@ -9123,26 +9099,42 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 
 |***
  * note: uses a pet class to get mobs to camp
- * use: /call get_target_petpull DEBUG [targetID]
+ * use: /call get_target_petpull DEBUG [targetID] [adjusted find counter]
  ***|
-sub get_target_petpull(bool _debug, int _tmpID)
-  DEBUG \atget_target_petpull\ax(\a-w${_tmpID}\ax)
+sub get_target_petpull(bool _debug, int _tmpID, int _spCount)
+  DEBUG \atget_target_petpull\ax(\a-w${_tmpID}, ${_spCount}\ax)
 
   ISMEDEAD
   GETINPUT get_target_petpull _tmpID|${_tmpID}
   CHECKTIE
 
+  | fix the pet
   /if (!${Pet.ID} && PET) {
     /call cast_cooldown_wait ${_debug}
     /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
   }
 
+  | give it treats and hope it behaves
+  /if (!${Me.Pet.ReGroup}) /pet regroup
+  /if (!${Me.Pet.Hold}) /pet hold on
+  /pet back off
+
+
+
   /if (!PULL) {
     /call set_pull_observer ${_debug}
   } else {
-    /call pull_mob_find ${_debug}
+
+    | if we pass an increment adjustment, set it, otherwise, 0
+    /if (!${Bool[${_spCount}]}) {
+      /varset _spCount 0
+    }
+    
+    | find us a mob
+    /call pull_mob_find ${_debug} ${_spCount}
   }
 
+  | if we dont find a mob, restart the cycke
   /if (PULL && !TARGET) {
     DEBUG ${sep}\arNO\ax stAssTarID
     SETHUD EMPTY
@@ -9153,12 +9145,13 @@ sub get_target_petpull(bool _debug, int _tmpID)
     }
   }
 
+  | target the mob
   /invoke ${target[set, ${_tmpID}]}
 
-  | if the target is mezed, we need to look again
+  | if the target is mezed, we need to look again, increment the spawncount
   /if (${Target.Mezzed.ID}) {
     /invoke ${target[clear]}
-    /call pull_mob_find ${_debug} 1
+    /call pull_mob_find ${_debug} ${Int[${Math.Calc[${_spCount} + 1]}]}
   }
 
   DEBUG ${sep}target${sep}\ay${_tmpID}\ax${sep}\aw${Spawn[${_tmpID}].DisplayName}\ax ${sep} dist:\a-w${Spawn[${_tmpID}].Distance}\ax
@@ -9184,6 +9177,13 @@ sub get_target_petpull(bool _debug, int _tmpID)
   /if (${Spawn[${_tmpID}].Distance} > ${maHard.Find[stMaxRadPet].Value}) {
     /call pull_mob_move_to ${_debug} ${_tmpID} ${maPull.Find[stPullNavStopDistance].Value} off
   }
+  
+  /while (${Me.Moving}) {
+    /delay 1
+  }
+
+  | target the mob
+  /invoke ${target[set, ${_tmpID}]}
 
   | we set the pet to mob timer based off total distance you have to run to the mob + a buffer good good measure.
   | pet pathing is shit and for longer pulls need the longer wait time
@@ -9195,7 +9195,7 @@ sub get_target_petpull(bool _debug, int _tmpID)
   /while (TRUE) {
 
     CHECKDEAD
-    GETINPUT get_target_petpull_range _targetmelee|${_targetmelee}
+    GETINPUT get_target_petpull_range NA|NA
 
     /if (!${Spawn[id ${_tmpID}].ID} || ${Spawn[id ${_tmpID}].Dead}) {
       /invoke ${out[9, 0, 27]}
@@ -9208,15 +9208,14 @@ sub get_target_petpull(bool _debug, int _tmpID)
       /break
     }
 
-    | break if more then 1 mob is near you
-    /if (${NearestSpawn[2, npc radius SAFEENV PS4].ID}) {
-    | /if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
+    | break if more then 1 mob is near you or you have agro
+    /if (${NearestSpawn[2, npc radius SAFEENV PS4].ID} || ${Me.PctAggro} > 90) {
       /invoke ${out[9, 0, 29]}
       /break
     }
-
+    
     | wait for pet to get to meele range of the mob
-    /delay 5 ${Math.Distance[${Me.Pet.Y}, ${Me.Pet.X}, ${Me.Pet.Z} : ${Spawn[${_tmpID}].Y}, ${Spawn[${_tmpID}].X}, ${Spawn[${_tmpID}].Z}]} < ${_targetmelee}
+    /delay 5 ${Math.Distance[${Me.Pet.Y}, ${Me.Pet.X}, ${Me.Pet.Z} : ${Spawn[${_tmpID}].Y}, ${Spawn[${_tmpID}].X}, ${Spawn[${_tmpID}].Z}]} < ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
     DEBUG ${sep}waiting on pet to get to target${sep}\a-w${Math.Distance[${Me.Pet.Y},${Me.Pet.X}:${Spawn[${_tmpID}].Y},${Spawn[${_tmpID}].X}]} range\ax
     /delay 5
 
@@ -9226,7 +9225,6 @@ sub get_target_petpull(bool _debug, int _tmpID)
       /break
     }
 
-    |
     /if (${Me.XTHaterCount} && ${Target.AggroHolder.Name.NotEqual[${Me.Pet.Name}]}) {
       /invoke ${out[9, 0, 31]}
       /break
@@ -9673,72 +9671,6 @@ sub set_pull_observer(bool _debug, string _verbage)
   DEBUG ${sep}MainAssistCombat set:\a-w${MainAssistCombat}\ax
 
 /return TRUE
-
-
-
-|***
- * note: returns a valid resident toon name if there is one
- * note: use ${Macro.Return}
- * use: /call get_name_multipull DEBUG [DANNET GROUPs]
- ***|
-sub get_name_multipull(bool _debug, string _groupList)
-  DEBUG \atget_name_multipull\ax(\a-w${_groupList}\ax)
-
-  /declare _countGroup int local 0
-  /declare _countName int local 0
-  /declare _group string local FALSE
-  /declare _name string local FALSE
-
-  /for _countGroup 1 to ${_groupList.Count[|]}
-    /varset _group ${_groupList.Arg[${_countGroup},|]}
-
-    | group empty / does not exist
-    /if (!${DanNet.PeerCount[${_group}]}) {
-      /continue
-    }
-
-    | check each name in the group. bail on FIRST good match
-    /for _countName 1 to ${DanNet.Peers[${_group}].Count[|]}
-      /varset _name ${DanNet.Peers[${_group}].Arg[${_countName},|]}
-
-      | never use the MA
-      /if (${Group.MainAssist.Name.Equal[${_name}]}) {
-        DEBUG ${break}i dont pull. send someone else
-        /continue
-      }
-
-      | no name.. wtf?
-      /if (!${Bool[pc ${_name}]}) {
-        DEBUG ${break}bad name?
-        /continue
-      }
-
-      | pc not here?
-      /if (!${Spawn[pc ${_name}].ID}) {
-        DEBUG ${break}pc NOT here
-        /continue
-      }
-
-      | bitches are dead
-      /if (${Spawn[pc ${_name}].Dead}) {
-        DEBUG ${break}dead
-        /continue
-      }
-
-      | too far away to be of any damn use
-      /if (${Spawn[pc ${_name}].Distance} > ENV) {
-        DEBUG ${break}pc.distance > ENV
-        /continue
-      }
-
-      | we made it this far give em a name
-      DEBUG ${sep}get_name_multipull ${sep} ${_name}
-      /return ${_name}
-
-    /next _countName
-  /next _countGroup
-
-/return FALSE
 
 
 
@@ -14566,85 +14498,6 @@ sub crew_check_character(bool _debug, string _verbage, bool _forceadd, string _v
 
 
 |***
- * note: decide on pull or assist
- * use: 
- ***|
-sub pull_assist_decision(bool _debug)
-  DEBUG \atpull_assist_decision\ax
-
-  DEBUG ${submenu}pullstate (\a-rassist/pull check\ax)
-
-  /if (!PULL) {
-
-    | prediction
-    /if (${maPred.Find[swPred].Value} && !${timer_Check_Prediction}) {
-      /call get_prediction ${maDebug.Find[prediction].Value}
-    }
-
-    DEBUG ${submenu}pullstate (\a-rget assist\ax)
-    /call get_assist_target ${maDebug.Find[assist].Value}
-
-  } else /if (PULL) {
-    
-    | alternate pullers
-    /if (${Group.MainAssist.ID} != ${Me.ID} && ${Group.Members}) {
-      DEBUG ${submenu}pullstate (\a-ralternate puller\ax)
-
-      | chain pulling
-      /if (${maPull.Find[stCountChainPull].Value}) {
-        DEBUG ${submenu}pullstate (\a-rchain pull\ax)
-        /if (${SpawnCount[NPC los radius SAFEENV PS4 targetable]} <= ${maPull.Find[stCountChainPull].Value}) {
-          OUT I should be chain pulling!! ------------------------ ( not implemented yet )
-        }
-      }
-      
-      | break pulling if a mob is in ENV AND LOS and go back to assist
-      /if (!${maPull.Find[stCountChainPull].Value} && ${SpawnCount[npc los radius ENV PS4]}) {
-        DEBUG ${submenu}pullstate (\a-rswapping to assist for los proximity agro\ax)
-        /call get_assist_target ${maDebug.Find[assist].Value}
-        /return FALSE
-      }
-    }
-   
-
-    | pulling when there is no established target    
-    /if (!TARGET) {
-      DEBUG ${submenu}pullstate (\a-rpull check\ax)
-
-      | hardstop check
-      /if (!${SpawnCount[NPC radius ENV PS4 targetable]}) {
-        DEBUG ${submenu}pullstate (\a-rhardstop: no mobs\ax)
-        /if (!${timer_Check_Pull_Hardstop}) {
-          /call pull_hardstop ${maDebug.Find[hardstop].Value}
-          /if (${Macro.Return}) {
-            /return FALSE
-          }
-        } else /if (${timer_Check_Pull_Hardstop}) {
-          DEBUG ${submenu}pullstate (\a-rhardstop Timer${sep}${timer_Check_Pull_Hardstop}\ax)
-          /delay 1
-          /return FALSE
-        }
-      }
-
-      /if (${maPull.Find[stPullMode].Value.Equal[base]}) {
-        DEBUG ${submenu}pullstate (\a-rbase\ax)
-        /call get_target_basepull ${maDebug.Find[pull].Value}
-      } else {
-        DEBUG ${submenu}pullstate (\a-radvanced: prep\ax)
-        /call pull_prep_advanced ${maDebug.Find[pull].Value}
-        DEBUG ${submenu}pullstate (\a-radvanced: ${maPull.Find[stPullMode].Value}\ax)
-        /call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
-      }
-    }
-    
-    /delay 1
-  }
-
-/return TRUE
-
-
-
-|***
  * note: cycles melee skills from maMelee
  * use: /call cast_cycle_melee DEBUG [TARGETID] [TAG]
  ***|
@@ -14851,13 +14704,13 @@ sub pull_home_move_to(bool _debug, int _tmpID)
       DEBUG ${sep}stPullOutrunRange${sep}\a-w${maPull.Find[stPullOutrunRange].Value}\ax  ..  ${Spawn[${_tmpID}].Distance}
       | set walk
       /if (${Spawn[${_tmpID}].Distance} > ${maPull.Find[stPullOutrunRange].Value} && ${Me.Running}) {
-        DEBUG ${sep}set walk
+        DEBUG ${sep}movement${sep}walk
         /keypress RUN_WALK
       }
       /delay 1 ${Spawn[${_tmpID}].Distance} <= ${maPull.Find[stPullOutrunRange].Value}
       | return to run
       /if (${Spawn[${_tmpID}].Distance} <= ${maPull.Find[stPullOutrunRange].Value} && !${Me.Running}) {
-        DEBUG ${sep}set run
+        DEBUG ${sep}movement${sep}run
         /keypress RUN_WALK
       }     
       
@@ -14868,7 +14721,7 @@ sub pull_home_move_to(bool _debug, int _tmpID)
 
   | make sure run is set back...
   /if (!${Me.Running}) {
-    DEBUG ${sep}set run
+    DEBUG ${sep}movement${sep}run
     /keypress RUN_WALK
   }
 
@@ -14877,4 +14730,190 @@ sub pull_home_move_to(bool _debug, int _tmpID)
 
 
 
+
+|***
+ * note: decide on pull or assist
+ * use: 
+ ***|
+sub pull_assist_decision(bool _debug)
+  DEBUG \atpull_assist_decision\ax
+
+  DEBUG ${submenu}pullstate (\a-rassist/pull check\ax)
+
+  /if (!PULL) {
+
+    | prediction
+    /if (${maPred.Find[swPred].Value} && !${timer_Check_Prediction}) {
+      /call get_prediction ${maDebug.Find[prediction].Value}
+    }
+
+    DEBUG ${submenu}pullstate (\a-rget assist\ax)
+    /call get_assist_target ${maDebug.Find[assist].Value}
+
+  } else /if (PULL) {
+    
+    | alternate pullers
+    /if (${Group.MainAssist.ID} != ${Me.ID} && ${Group.Members}) {
+      DEBUG ${submenu}pullstate (\a-ralternate puller\ax)
+
+      | chain pulling
+      /if (${maPull.Find[stCountChainPull].Value} && ${maPull.Find[stPullMode].Value.NotEqual[base]} && ${SpawnCount[NPC los radius SAFEENV PS4 targetable]} <= ${maPull.Find[stCountChainPull].Value}) {
+        DEBUG ${submenu}pullstate (\a-rchain pull\ax)
+          
+          | hardstop check
+          /if (!${SpawnCount[NPC radius ENV PS4 targetable]}) {
+            DEBUG ${submenu}pullstate (\a-rhardstop: no mobs\ax)
+            /if (!${timer_Check_Pull_Hardstop}) {
+              /call pull_hardstop ${maDebug.Find[hardstop].Value}
+              /if (${Macro.Return}) {
+                /return FALSE
+              }
+            } else /if (${timer_Check_Pull_Hardstop}) {
+              DEBUG ${submenu}pullstate (\a-rhardstop Timer${sep}${timer_Check_Pull_Hardstop}\ax)
+              /delay 1
+              /return FALSE
+            }
+          }
+
+          DEBUG ${submenu}pullstate (\a-radvanced: prep chain\ax)
+          /call pull_prep_advanced ${maDebug.Find[pull].Value}
+          DEBUG ${submenu}pullstate (\a-radvanced: ${maPull.Find[stPullMode].Value} chain\ax)
+          /call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value} 0 ${Int[${Math.Calc[${maPull.Find[stCountChainPull].Value} + 1]}]}
+   
+      }
+      
+      | break pulling if a mob is in ENV AND LOS and go back to assist
+      /if (${SpawnCount[npc los radius ENV PS4]}) {
+        DEBUG ${submenu}pullstate (\a-rswapping to assist for los proximity agro\ax)
+        /call get_assist_target ${maDebug.Find[assist].Value}
+        /return FALSE
+      }
+    }
+   
+
+    | pulling when there is no established target    
+    /if (!TARGET) {
+      DEBUG ${submenu}pullstate (\a-rpull check\ax)
+
+      | hardstop check
+      /if (!${SpawnCount[NPC radius ENV PS4 targetable]}) {
+        DEBUG ${submenu}pullstate (\a-rhardstop: no mobs\ax)
+        /if (!${timer_Check_Pull_Hardstop}) {
+          /call pull_hardstop ${maDebug.Find[hardstop].Value}
+          /if (${Macro.Return}) {
+            /return FALSE
+          }
+        } else /if (${timer_Check_Pull_Hardstop}) {
+          DEBUG ${submenu}pullstate (\a-rhardstop Timer${sep}${timer_Check_Pull_Hardstop}\ax)
+          /delay 1
+          /return FALSE
+        }
+      }
+
+      /if (${maPull.Find[stPullMode].Value.Equal[base]}) {
+        DEBUG ${submenu}pullstate (\a-rbase\ax)
+        /call get_target_basepull ${maDebug.Find[pull].Value}
+      } else {
+        DEBUG ${submenu}pullstate (\a-radvanced: prep\ax)
+        /call pull_prep_advanced ${maDebug.Find[pull].Value}
+        DEBUG ${submenu}pullstate (\a-radvanced: ${maPull.Find[stPullMode].Value}\ax)
+        /call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
+      }
+    }
+    
+    /delay 1
+  }
+
+/return TRUE
+
+
+
+
+
+
+
+
+|***
+ * note: pulling a mob with an intervention pull
+ * use:
+ ***|
+sub pull_mob_intervention(bool _debug, int _tmpID)
+  DEBUG \atpull_mob_intervention\ax(\a-w${_tmpID}\ax)
+
+
+
+
+    /call cast_cycle_heal ${_debug} ${_tmpID} interventionpull
+
+
+
+
+/return TRUE
+
+
+
+
+
+|***
+ * note: returns a valid resident toon name if there is one from a list of dannet groups
+ * use: /call get_resident DEBUG [DANNET GROUPs] || ${get_resident[DEBUG, |CLS|CLS|CLS, distance, [notme]]}
+ ***|
+sub get_resident(bool _debug, string _groupList, int _distance, string _verbage)
+  DEBUG \atget_resident\ax(\a-w${_groupList}, ${_distance}, ${_verbage}\ax)
+
+  /declare _countGroup int local 0
+  /declare _countName int local 0
+  /declare _group string local FALSE
+  /declare _name string local FALSE
+  
+  /for _countGroup 1 to ${_groupList.Count[|]}
+    /varset _group ${_groupList.Arg[${_countGroup},|]}
+
+    | group empty / does not exist
+    /if (!${DanNet.PeerCount[${_group}]}) {
+      /continue
+    }
+
+    | check each name in the group. bail on FIRST good match
+    /for _countName 1 to ${DanNet.Peers[${_group}].Count[|]}
+      /varset _name ${DanNet.Peers[${_group}].Arg[${_countName},|]}
+
+      | never use the MA
+      /if (${Group.MainAssist.Name.Equal[${_name}]} || ${_verbage.Equal[notme]}) {
+        DEBUG ${break}dont use me, use someone else
+        /continue
+      }
+
+      | no name.. wtf?
+      /if (!${Bool[pc ${_name}]}) {
+        DEBUG ${break}bad name?
+        /continue
+      }
+
+      | pc not here?
+      /if (!${Spawn[pc ${_name}].ID}) {
+        DEBUG ${break}pc NOT here
+        /continue
+      }
+
+      | bitches are dead
+      /if (${Spawn[pc ${_name}].Dead}) {
+        DEBUG ${break}dead
+        /continue
+      }
+
+      | too far away to be of any damn use
+      /if (${Spawn[pc ${_name}].Distance} > ${_distance}) {
+        DEBUG ${break}pc.distance > ${_distance}
+        /continue
+      }
+
+      | we made it this far give em a name
+      DEBUG ${sep}get_name_multipull ${sep} ${_name}
+      /return ${_name}
+
+    /next _countName
+  /next _countGroup
+
+/return FALSE
 

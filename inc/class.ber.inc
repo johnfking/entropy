@@ -37,7 +37,6 @@ sub class_init(bool _debug)
   /call set_data_map FALSE maChr stKickintheShins                     PREGEN|1                      "${auxna} "
   /call set_data_map FALSE maChr stAxeofRalos                         PREGEN|1                      "${auxna} "
   /call set_data_map FALSE maChr stVengefulFlurry                     PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stVengefulFlurry                     PREGEN|1                      "${auxna} "
   /call set_data_map FALSE maChr stViciousSpiral                      PREGEN|1                      "${auxna} "
   /call set_data_map FALSE maChr stCryHavoc                           PREGEN|1                      "${auxna} "
   /call set_data_map FALSE maChr stAugmentedFrenzy                    PREGEN|1                      "${auxna} "

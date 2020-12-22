@@ -22,6 +22,22 @@ on the to do list
 
 
 
+201222.01
+- warrior
+  corrected a typo in stAAWarsSheolsHeroicBlade (amazing i ever got it right)
+- berserker
+  removed the extra stVengefulFlurry in class init
+- pulling
+  for people that are just as impatient as all fuck
+  /pull chain # - is the count of mobs in camp; to start pulling again
+  some notes:
+  - this is only good for secondary pullers
+  - if the secondary  puller is actively engagegd with a mob, its not gonna stop, even if theres only 1 in camp
+  - mob count check to pull more is only done inbetween kills
+  intervention pulling - a cleric or shaman must have an intervention heal in their /heal list
+  it must be tagged interventionpull
+- /cb s will not force shrink you if shrink is turned off
+
 
 201218.01
 - druid
@@ -30,7 +46,7 @@ on the to do list
 - corrected the misleading off display from the various / commands
 - /melee
   this is available to all classes
-  functions just like the other / skills; nuke, dot, defense, so on
+  functions just like other / commands; nuke, dot, defense, so on
   12 slots to use
   tags can be applied
   DO NOT use the melee skill taunt here. well you can, but its just dumb and will do nothing for you

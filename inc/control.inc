@@ -4488,14 +4488,14 @@ sub Bind_command_coh(string _verbage, bool _debug)
   DEBUG Bind_command_coh(${_verbage})
 
   /if (${_verbage.Equal[group]}) {
-    /dex ${get_resident_class[FALSE, MAG, 99999]} /call_of_the_hero "${Me.DisplayName}" "${_verbage}"
-    /return
+    /dex ${get_resident[${_debug}, |mag, 99999]} /call_of_the_hero "${Me.DisplayName}" "${_verbage}"
+    /return TRUE
   } else {
-    /dex ${get_resident_class[FALSE, MAG, 99999]} /call_of_the_hero "${Me.DisplayName}"
-    /return
+    /dex ${get_resident[${_debug}, |mag, 99999]} /call_of_the_hero "${Me.DisplayName}"
+    /return TRUE
   }
 
-/return TRUE
+/return FALSE
 
 
 
@@ -4942,11 +4942,11 @@ sub Bind_command_entcast(string _name, string _target, bool _debug)
 
 |***
  * note: lets you initiate a single advanced pull routine
- * use: /pull.. i mean wtf do you want?
-
-#bind command_pull /pull
-sub Bind_command_pull(string _type, int _tmpID, bool _debug)
-  DEBUG \atBind_advancedPulling\ax(\a-w${_type}, ${_tmpID}\ax)
+ * use: /onepull.. i mean wtf do you want?
+ ***|
+#bind command_onepull /onepull
+sub Bind_command_onepull(string _type, int _tmpID, bool _debug)
+  DEBUG \atBind_command_onepull\ax(\a-w${_type}, ${_tmpID}\ax)
 
   | get us a target
   /if (${_tmpID}) {
@@ -4960,13 +4960,18 @@ sub Bind_command_pull(string _type, int _tmpID, bool _debug)
       /return
     }
   }
+  
+  /if (!${Bool[${_type}]}) {
+    OUT /onepull [int|pet|nav]
+    /return FALSE
+  }
 
   DEBUG ${sep}stAssTarID${sep}\a-wTARGET\ax
   DEBUG ${sep}Bind_advancedPulling${sep}\a-w${_type}\ax
 
   | intervention pulling
   /if (${_type.Equal[int]}) {
-    /call get_name_multipull FALSE |CLR|SHM
+    /call get_resident ${_debug} |clr|shm ENV notme
     /if (${Bool[${Macro.Return}]}) {
       /dex ${Macro.Return} /advancedpullint ${Me.ID}
     } else {
@@ -4975,7 +4980,7 @@ sub Bind_command_pull(string _type, int _tmpID, bool _debug)
 
   | pet pulling
   } else /if (${_type.Equal[pet]}) {
-    /call get_name_multipull FALSE |MAG|BST|NEC|ENC|SHM|DRU
+    /call get_resident ${_debug} |mag|bst|nec|enc|shm|dru ENV notme
     /if (${Bool[${Macro.Return}]}) {
       /dex ${Macro.Return} /advancedpullnpet TARGET
     } else {
@@ -4984,7 +4989,7 @@ sub Bind_command_pull(string _type, int _tmpID, bool _debug)
 
   | nav pulling
   } else /if (${_type.Equal[nav]}) {
-    /call get_name_multipull FALSE |tank|melee
+    /call get_resident ${_debug} |tank|melee ENV notme
     /if (${Bool[${Macro.Return}]}) {
       /dex ${Macro.Return} /advancedpullnav TARGET
     } else {
@@ -4997,7 +5002,7 @@ sub Bind_command_pull(string _type, int _tmpID, bool _debug)
   }
 
 /return TRUE
- ***|
+
 
 
 |***
@@ -5008,14 +5013,16 @@ sub Bind_command_pull(string _type, int _tmpID, bool _debug)
 sub Bind_command_pull_int(int _tmpID, bool _debug)
   DEBUG \atBind_command_pull_int\ax(\a-w${_tmpID}\ax)
 
-  /if (!AUTO) /return FALSE
+  /if (!AUTO) {
+    /return FALSE
+  }
 
   /if (!${Bool[${_tmpID}]}) {
     /invoke ${out[9, "${notice}${sep}target required"]}
     /return FALSE
   }
 
-  /call cast_list ${_debug} "lsHealIntervention" ${_tmpID}
+  /call cast_cycle_heal ${_debug} ${_tmpID} interventionpull
 
 /return FALSE
 
@@ -6767,4 +6774,40 @@ sub Bind_control_melee(string _type, string _verbage, string _verbage2, string _
   /invoke ${set_control_output[FALSE, maMelee, "melee", maControl]}
 
 /return TRUE
+
+
+
+
+|***
+ * note: remove a buff type
+ * use: /nomore [levi|invis|]
+ ***|
+#bind control_nomore /nomore
+sub Bind_control_nomore(string _type, string _verbage, string _verbage2, string _silent)
+
+/declare _count int local 0
+
+
+
+/for _count 1 to 42
+  
+  /if (${Me.Buff[${_count}].HasSPA[57]}) {
+    /removebuff ${Me.Buff[${_count}]}
+  }
+  
+  
+/next _count
+
+
+
+
+/for _count 1 to 30
+
+
+/next _count
+
+
+/return TRUE
+
+
 

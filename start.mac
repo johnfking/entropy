@@ -107,8 +107,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 201218.01
-  /call set_data FALSE maEnv schema                         map outer 1.30
+  /call set_data FALSE maEnv build                          map outer 201222.01
+  /call set_data FALSE maEnv schema                         map outer 1.31
   /call set_data FALSE maEnv repo                           map outer 201104.01
 
   | prep macro
@@ -133,6 +133,10 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /if (${maEntropy.Find[swEventsInc].Value}) {
     /invoke ${out[0, 0, 2]}
   }
+  
+ 	/if (${maOver.Find[swOverEnvAuto].Value}) {
+ 		/invoke ${maEnv.Add[swAuto,TRUE]}
+ 	}  
 
   /if (!${timer_Check_Zone_ID}) {
     /call check_zone_id ${maDebug.Find[zone].Value} FALSE
@@ -175,7 +179,6 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     CHECKCURSOR
     SETHUD EMPTY
     CHECKTIE
-    
 
     | check GTFO conditions
     /if (${maGTFO.Find[swGTFOActive].Value} && !${timer_Check_GTFO}) {
@@ -287,7 +290,6 @@ sub main(string _var1, string _var2, string _var3, string _var4)
           /call pull_assist_decision ${maDebug.Find[pull].Value}
         }
       }
-      | /delay ${maEntropy.Find[stMainLoopDelay].Value}
     }
 
     /call class_main FALSE
