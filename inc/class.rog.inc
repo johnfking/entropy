@@ -198,9 +198,12 @@ sub misc_combat(bool _debug, int _tmpID)
     /call voodoo ${_debug} "${maChr.Find[stAssault].Value}" ${_tmpID} FALSE
   }
 
+  /if (${target[isdead, ${_tmpID}]}) {
+    /return FALSE
+  }
+  
   /if (${is_ready[${_debug}, "${maChr.Find[stAAShadowsFlanking].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stAAShadowsFlanking].Value}" 0 FALSE
-
   }
   /if (${is_ready[${_debug}, "${maChr.Find[stVision].Value}"]} && !${Me.Song[${maChr.Find[stVision].Value}].ID}) {
     /call voodoo ${_debug} "${maChr.Find[stVision].Value}" 0 FALSE

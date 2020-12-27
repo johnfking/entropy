@@ -34,6 +34,7 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stVindication                    PREGEN|1                      "${auxna} vindication disc"
   /call set_data_map ${_debug} maChr stRake                           PREGEN|1                      "${auxna} rake disc"
   /call set_data_map ${_debug} maChr stClaws                          PREGEN|1                      "${auxna} claws disc"
+  /call set_data_map ${_debug} maChr stAEClaws                        PREGEN|1                      "${auxna} ae claws disc"
   /call set_data_map ${_debug} maChr stFury                           PREGEN|1                      "${auxna} furry disc (ruaabri)"
   /call set_data_map ${_debug} maChr stSavage                         PREGEN|1                      "${auxna} savagery disc"
 
@@ -200,6 +201,10 @@ sub misc_combat(bool _debug, int _tmpID)
     /if (${is_ready[${_debug}, "${maChr.Find[stClaws].Value}"]}) {
       /call voodoo ${_debug} "${maChr.Find[stClaws].Value}" ${_tmpID} FALSE
     }
+  } else /if (AE#) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stAEClaws].Value}"]}) {
+      /call voodoo ${_debug} "${maChr.Find[stAEClaws].Value}" ${_tmpID} FALSE
+    }
   }
 
   /if (${is_ready[${_debug}, "Enduring Frenzy"]} && !${Target.Buff[Enduring Frenzy].ID}) {
@@ -264,6 +269,7 @@ sub check_mana(bool _debug)
       DEBUG ${sep}${_count}${sep}\a-w${Group.Member[${_count}].DisplayName}\ax
       ISMEDEAD
       CHECKEXIT check_mana_BST2
+      
       /if (!${Spawn[${Group.Member[${_count}].ID}].ID}) {
         DEBUG ${break}notinzone
       }

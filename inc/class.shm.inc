@@ -6,7 +6,7 @@
 
 
 |***
- * note: primary initilization of all cleric non shared data
+ * note: primary initilization of all shaman non shared data
  * use: not for you
  ***|
 sub class_init(bool _debug)
@@ -124,7 +124,6 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -191,7 +190,6 @@ sub check_heal(bool _debug, string _type)
         /call cast_cycle_heal_surge ${maDebug.Find[surge].Value}
       }
     }
-
 
     | group healing
     /if (${Select[${_type},group]} && ${Group}) {
@@ -277,10 +275,10 @@ sub cast_cycle_heal_surge(bool _debug)
     /call cast_cycle_nuke ${_debug} ${_tmpID} twincast
   }
 
-  /if (!${Me.Song[Healing Twincast].ID}) {
-    DEBUG ${break}no twincast song
-    /return FALSE
-  }
+  | /if (!${Me.Song[Healing Twincast].ID}) {
+  |   DEBUG ${break}no twincast song
+  |   /return FALSE
+  | }
 
   | get our surge spell
 
@@ -299,7 +297,6 @@ sub cast_cycle_heal_surge(bool _debug)
     GETINPUT cast_cycle_heal_surge NA|NA
     ISMEDEAD
     CHECKEXIT cast_cycle_heal_surge
-    | FLOW cast_cycle_heal_surge ${_tmpID} (1)
 
     | check the switch
     /if (!${Bool[${maHeal.Find[swHeal${_liHeal.Value}].Value}]}) {
@@ -357,7 +354,6 @@ sub cast_cycle_heal_surge(bool _debug)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  | FLOW burn_SHM
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -382,7 +378,7 @@ sub burn(bool _debug, int _tmpID)
   }
 
   | swarm aa pet
-  /if (SWARM) {
+  /if (SWARM && ${Target.ID}) {
     /if (${is_ready[${_debug}, "${maChr.Find[stAASpiritCall].Value}"]}) {
       /call voodoo ${_debug} "${maChr.Find[stAASpiritCall].Value}" ${_tmpID} FALSE
     }
@@ -429,11 +425,14 @@ sub burn(bool _debug, int _tmpID)
  ***|
 sub cast_talisman(bool _debug)
   DEBUG \atcast_talisman\ax()
-  | FLOW cast_talisman
 
   /invoke ${set_data_timer[${_debug}, Check_Talisman, RESTART]}
 
   /if (${Me.Buff[${maChr.Find[stTalisman].Value}].ID}) {
+    /return FALSE
+  }
+
+  /if (${Me.Buff[${maChr.Find[stDichotomic].Value}].ID}) {
     /return FALSE
   }
 
@@ -455,7 +454,6 @@ sub cast_talisman(bool _debug)
  ***|
 sub check_cani(bool _debug)
   DEBUG \atcheck_cani\ax()
-  | FLOW check_cani
 
   /if (!${maChr.Find[stPctCanniManna].Value}) {
     DEBUG ${break}canni disabled
@@ -482,7 +480,6 @@ sub check_cani(bool _debug)
       /call voodoo ${_debug} "${maChr.Find[stAACannibalization].Value}" 0 FALSE
     }
   } 
-  
 
   | if canni spell is not ready bail..
   /if (!${is_ready[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) {
@@ -505,12 +502,6 @@ sub check_cani(bool _debug)
     DEBUG ${break}bad time to cani!!
     /return FALSE
   }
-  
-  | /sqlite query "${DBstatic}" dummy SELECT * FROM mana_recovery WHERE env_var="${maChr.Find[stCannibalization].Value}";
-  | /if (${Me.CurrentHPs} < ${sqlite.Result[dummy 1 value]}) {
-  |   DEBUG ${break}canni usage would kill us${sep}\a-w${Me.CurrentHPs} < ${sqlite.Result[dummy 1 value]}\ax
-  |   /return FALSE
-  | }
 
   /if (${is_ready[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stCannibalization].Value}" 0 FALSE
@@ -526,7 +517,6 @@ sub check_cani(bool _debug)
  ***|
 sub cast_alliance(bool _debug)
   DEBUG \atcast_alliance\ax()
-  | FLOW cast_alliance
 
   CHECKEXIT
   GETINPUT
@@ -585,7 +575,6 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
     /invoke ${maControl.Add[spell,stCannibalization|br]}
     /invoke ${set_control_output[${_debug}, maChr, "chr canni", maControl]}
     /return TRUE
-
 
   }
 

@@ -107,7 +107,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 201222.01
+  /call set_data FALSE maEnv build                          map outer 201226.01
   /call set_data FALSE maEnv schema                         map outer 1.31
   /call set_data FALSE maEnv repo                           map outer 201104.01
 
@@ -187,13 +187,15 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 
     | check food / drink
     /if (!${timer_Check_FoodDrink}) {
-      /call check_last_supper FALSE
+      /call check_last_supper ${maDebug.Find[meal].Value}
     }
 
     | watchspawn
-    | /if (${maWatch.Find[swWatch].Value} && !${timer_Check_Watch}) {
-    |   /if (${lsWatch.Count}) /call check_watch_spawn ${maDebug.Find[watch].Value}
-    | }
+    /if (${maWatch.Find[swWatch].Value} && !${timer_Check_Watch}) {
+      /if (${lsWatch.Count}) {
+        /call check_watch_spawn ${maDebug.Find[watch].Value}
+      }
+    }
 
     | check do now things
     /if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) {
@@ -204,7 +206,6 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     /if (${maBuff.Find[swDropBuffs].Value} && !${timer_Check_Drop_Buffs}) {
       /call check_drop_buffs ${maDebug.Find[drop].Value}
     }
-
 
     | mode check
     /if (!${timer_Check_Mode}) {
@@ -268,7 +269,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
       }
 
       | some sweeet lovin....
-      /if (!${timer_Check_Buff_Cycle} && !${SpawnCount[npc radius SAFEENV PS4]}) {
+      /if (!${timer_Check_Buff_Cycle}) {
         /call check_buff_cycle ${maDebug.Find[buff].Value}
       }
             
@@ -458,6 +459,4 @@ sub prepare_the_end(bool _debug)
   /squelch /mapclick left alt /nav locyx %y %x |log=off
 
 /return TRUE
-
-
 

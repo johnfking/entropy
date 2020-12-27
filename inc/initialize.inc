@@ -44,7 +44,7 @@ sub set_debug(string _verbage)
   | combat
   /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait,hardstop,prediction]}
   | other
-  /invoke ${lsDebugother.Append[rest,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch,staminarecover,inventoryscan,invis]}
+  /invoke ${lsDebugother.Append[rest,meal,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch,staminarecover,inventoryscan,invis]}
   | admin
   /invoke ${lsDebugadmin.Append[build,observe,house,exit,sql,edit,e3]}
   | schema (database creation/modification)
@@ -135,7 +135,7 @@ sub set_initialize(bool _debug)
   /declare maBuffRequest map outer
 
   | watchspawn map
-  | /declare maWatchspawn map outer
+  /declare maWatchspawn map outer
 
   | rez control map
   /declare maControlRez map outer
@@ -334,7 +334,6 @@ sub set_initial_environment(bool _debug)
   /invoke ${set_data_timer[${_debug}, Check_Housekeeping, 1m]}
   /invoke ${set_data_timer[${_debug}, Check_Home, 1]}
   /invoke ${set_data_timer[${_debug}, Check_Target, 5s]}
-  /invoke ${set_data_timer[${_debug}, Check_Watch, 5s]}
   /invoke ${set_data_timer[${_debug}, Check_Alliance, 6s]}
   /invoke ${set_data_timer[${_debug}, Check_Mercenary, 1s]}
   /invoke ${set_data_timer[${_debug}, Check_Pull_Hardstop, 1]}
@@ -1155,10 +1154,11 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** control: watch **|
-  /call set_data ${_debug} maWatch swWatch                                map outer FALSE
-  /call set_data ${_debug} maWatch stWatchCount                           map outer 0
+  /invoke ${set_data_timer[${_debug}, Check_Watch, 5s]}
+  /call set_data_map ${_debug} maWatch swWatch                            FALSE                         "${auxsw} watch for spawns"   
+  | /call set_data_map ${_debug} maWatch stWatchRadius                      300                           "${auxnum} radius to watch for spawns"   
+  /call set_data ${_debug} FALSE stWatchCount                             int outer 0
   /call set_data_list ${_debug} maWatch lsWatch                           EMPTY                         "${auxli} list of mobs to watch for"
-
 
 
 
@@ -1210,7 +1210,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maCC stGlyph                               FALSE                         "${auxna} name of the glyph you want to use"
 
   | agro on or off and current agro mode (g,1,2,3,ma1,ma2)
-  /call set_data_map ${_debug} maCC stAssistMode                          FALSE                         "${auxna} [\axg,1,2,3,ma1,ma2\ax] your current assist mode"
+  /call set_data_map ${_debug} maCC stAssistMode                          FALSE                         "${auxna} [\axg,1,2,3\ax] your current smart assist mode"
   /call set_data_map ${_debug} maCC stManualAssist1                       FALSE                         "${auxna} name of manual assist 1 toon"
   /call set_data_map ${_debug} maCC stManualAssist2                       FALSE                         "${auxna} name of manual assist 2 toon"
   /call set_data_map ${_debug} maCC stPctEngage                           98                            "${auxnum} mobs % health to engage it"
@@ -1763,7 +1763,7 @@ sub set_initialize_hud_variables()
   /invoke ${lsHUD.Append[buauto,bupct,bucount,buraid]}
   /invoke ${lsHUD.Append[rpct,rfull,rrod,rbuff,rcombat]}
   /invoke ${lsHUD.Append[zooc,ztake,zic,zeveryone,ztoken,zdan,zrad]}
-  /invoke ${lsHUD.Append[eset]}
+  /invoke ${lsHUD.Append[eset,watch]}
 
   | dev hud variables
   /invoke ${lsHUD.Append[dcombat,dburn,denv,dpull,dsafe,dcaststatus]}
@@ -1820,7 +1820,17 @@ sub set_initialize_hud(bool _debug, string _verbage)
     /ini ${_path} entropy ANI1    ${Parse[0, "3,154,0,0,255,0,${If[${Me.SPA[316]},A,]}"]}
     /ini ${_path} entropy ANI2    ${Parse[0, "3,154,0,255,0,0,${If[${Me.SPA[316]},,A]}"]}
 
+
+   | watch
+    /ini ${_path} entropy waM1    ${Parse[0, "19,255,0,0,255,0,${If[${h_watch},wa,]}"]}
+    /ini ${_path} entropy waM2    ${Parse[0, "19,255,0,25,25,25,${If[${h_watch},,wa]}"]}
+    /ini ${_path} entropy waW1    ${Parse[0, "19,275,0,25,25,25,${If[${stWatchCount},,0]}"]}
+    /ini ${_path} entropy waW2    ${Parse[0, "19,275,0,255,255,255,${If[${stWatchCount},${stWatchCount},]}"]}
+
+
     /ini ${_path} entropy BG0     3,131,0,0,0,0,██████████████████████████
+
+ 
 
     | conbat controls
     /ini ${_path} entropy ccA1    ${Parse[0, "19,134,14,255,255,0,${If[${h_auto},A,]}"]}

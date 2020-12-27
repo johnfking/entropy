@@ -22,6 +22,56 @@ on the to do list
 
 
 
+
+
+- hud update
+- k since removelevi works for crap, i made my own
+  /nomore [levi|invis|SPA type|list|all]
+  levi - will remove all levitaion buffs
+  invis - will remove all invis buffs
+  SPA type - will let you type in any known spa type and have it removed
+  list - will give you a list of all SPA types (long list, like 500ish, grab you ankles)
+  removeall - removes all buffs. you tried it, not me..
+  this is not a broadcasted command
+  the levi and invis are shortcuts for full SPA types, more can be added if found useful
+  turn off grain 28 if you dont want to see the notifications
+- broadcasted commands like cls, enter, lesson, will default to self when
+  set as broadcast to group and you are not in a group. same for raid broadcast
+- druid
+  corrected a typo in destructive vortex
+- beastlord
+  added in stAEClaws line for AE stuffs
+- corrected a SPA error for best in class casting
+- /build set
+  small adjustment to the timing and hud update
+- shaman
+  talisman cast will now check for dicho line spells
+- /cc ass
+  corrected a bug when setting ma1/2 would also set smart as ma1/2
+  i honestly have no idea what i was thinking when i did that
+- /admin spa - 
+  gem## - the spell in gem #
+  buff## - the spell in buff slot #
+  song## - the spell in song slot #
+  pregen - bug corrected for DB updates
+- /watch - watches for spawns in a zone
+  list - shows all the current mobs being watched for
+  active - on/off switch to use the system
+  add - adds the current target to the watch list
+  delete - deletes the current target from the list
+  reset - resets all of /watch to default settings
+- buffing and healing
+  corrected some target clearing issues
+- /area
+  cosmetic changes to the control list  
+- mez
+  additional check for exempt mobs
+  
+
+
+
+
+
 201222.01
 - warrior
   corrected a typo in stAAWarsSheolsHeroicBlade (amazing i ever got it right)

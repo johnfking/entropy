@@ -329,8 +329,8 @@ sub burn(bool _debug, int _tmpID)
   }
 
   | damage boost
-  /if (${is_ready[${_debug}, "${maChr.Find[stAADistructiveVortex].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAADistructiveVortex].Value}" 0 FALSE
+  /if (${is_ready[${_debug}, "${maChr.Find[stAADestructiveVortex].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAADestructiveVortex].Value}" 0 FALSE
   }
 
   /if (${is_ready[${_debug}, "${maChr.Find[stAANaturesFury].Value}"]}) {
