@@ -355,7 +355,7 @@ sub burn(bool _debug, int _tmpID)
 
   | aww baby
   /if (${maChr.Find[swManaBurn].Value}) {
-    /invoke ${set_target[TARGET]}
+    /call target set ${_tmpID}
     /if (!${Target.Buff[Mana Burn].ID}) {
       /if (${is_ready[${_debug}, "${maChr.Find[stAAManaBurn].Value}"]}) {
         /call voodoo ${_debug} "${maChr.Find[stAAManaBurn].Value}" ${_tmpID} FALSE

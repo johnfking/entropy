@@ -1129,6 +1129,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Add[onauto,swonAuto]}
   /invoke ${maControl.Add[incombat,swinCombat]}
   /invoke ${maControl.Add[campfire,option]}
+  /invoke ${maControl.Add[gather,option]}
   /invoke ${set_control_output[${_debug}, maHome, home, maControl]}
 
 /return TRUE
@@ -1176,6 +1177,11 @@ sub Bind_control_tc(string _type, string _verbage, string _silent, bool _debug)
   } else /if (${_type.Equal[toon]}) {
     /invoke ${do_raw_edit[FALSE, SILENT, stTieToon, "${_verbage}"]}
 
+  | heal self
+  } else /if (${_type.Equal[break]}) {
+    /invoke ${set_switch_env[${_debug}, swTieBreak, TRUE, ${_verbage}]}
+
+
   } else /if (${_type.Equal[variance]}) {
     /if (!${set_control_num_range[TRUE, stTieVariance, "${_verbage}", 0, 15]}) /return
 
@@ -1187,6 +1193,7 @@ sub Bind_control_tc(string _type, string _verbage, string _silent, bool _debug)
   /invoke ${maControl.Add[toon,stTieToon|br]}
   /invoke ${maControl.Add[variance,stTieVariance]}
   /invoke ${maControl.Add[mode,submenu]}
+  /invoke ${maControl.Add[break,swTieBreak]}
   /invoke ${set_control_output[${_debug}, maTie, tc, maControl]}
 
 /return TRUE
@@ -1208,12 +1215,32 @@ sub Bind_command_tie(string _type, bool _debug)
 
   | tie toon not in zone?
   /if (!${Bool[${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}]}) {
-    DEBUG ${sep}tietoon is \arNOT\ax in zone
+    DEBUG ${sep}not in zone${sep}\a-w${maTie.Find[stTieToon].Value}\ax
     /invoke ${maTie.Add[swSetTie, FALSE]}
     /return FALSE
   }
 
-  /if (${_type.Equal[on]}) {
+  | set tie on and force to nav
+  /if (${_type.Equal[nav]}) {
+    DEBUG ${sep}setting tie${sep}${on} (\a-rnav\ax)
+     /if (${maTie.Find[stTieMode].Value.NotEqual[nav]}) {
+      /invoke ${do_raw_edit[${_debug}, SILENT, stTieMode, "nav"]}
+      OUT /tc mode \a-w${maTie.Find[stTieMode].Value}\ax
+    }
+    /if (${maTie.Find[swSetTie].Value}) /return
+    /invoke ${maTie.Add[swSetTie, TRUE]}
+  
+  | set tie on and force to stick
+  } else /if (${_type.Equal[stick]}) {
+    DEBUG ${sep}setting tie${sep}${on} (\a-rstick\ax)
+    /if (${maTie.Find[stTieMode].Value.NotEqual[stick]}) {
+      /invoke ${do_raw_edit[${_debug}, SILENT, stTieMode, "stick"]}
+      OUT /tc mode \a-w${maTie.Find[stTieMode].Value}\ax
+    }
+    /if (${maTie.Find[swSetTie].Value}) /return
+    /invoke ${maTie.Add[swSetTie, TRUE]}
+    
+  } else /if (${_type.Equal[on]}) {
     DEBUG ${sep}setting tie${sep}${on}
     /if (${maTie.Find[swSetTie].Value}) /return
     /if (${Bool[${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}]}) /invoke ${maTie.Add[swSetTie, TRUE]}
@@ -1221,9 +1248,14 @@ sub Bind_command_tie(string _type, bool _debug)
     DEBUG ${sep}setting tie${sep}${off}
     /if (!${maTie.Find[swSetTie].Value}) /return
     /if (${Bool[${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}]}) /invoke ${maTie.Add[swSetTie, FALSE]}
+
   } else {
     DEBUG ${sep}setting tie${sep}[\a-yswap\ax]
     /if (${Bool[${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}]}) /invoke ${maTie.Add[swSetTie,${If[${maTie.Find[swSetTie].Value},FALSE,TRUE]}]}
+  }
+  
+  /if (!${maTie.Find[swSetTie].Value}) {
+    /invoke ${maData.Add[swGetOverHere,FALSE]}
   }
 
   /invoke ${out[12, "/tie ${maTie.Find[stTieToon].Value}${sep}${If[${maTie.Find[swSetTie].Value},${on},${off}]}"]}
@@ -1374,7 +1406,6 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
   }
 
 
-
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[list,list]}
   /invoke ${maControl.Add[safe,swZoneSafe]}
@@ -1392,79 +1423,8 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Add[nocold,option]}
   /invoke ${maControl.Add[nodisease,option]}
   /invoke ${set_control_output[${_debug}, maEnv, area, maControl]}
-
-
-
-  |**
-  /if (${_silent.Equal[SILENT]}) /return
-  /declare _out string local
-  /declare _lizone listiterator local
-  /vardata _lizone lsZoneProperty.First.Clone
-  /varset _out ${info}safe\ax:${If[${maEnv.Find[swZoneSafe].Value},${on},${off}]}
-  /while (!${_lizone.IsEnd}) {
-    /varset _out ${_out} ${If[${_lizone.Value.Equal[${lsZoneProperty.First}]},,${dot}]} ${info}${_lizone.Value.Right[-6].Lower}\ax
-    /invoke ${_lizone.Advance}
-  }
-  /invoke ${out[12, "/area ${dot} ${_out}"]}
-
-  **| 
   
 /return TRUE
-
-
-
-
-
-
-
-
-  /invoke ${maControl.Clear}
-  /invoke ${maControl.Add[list,list]}
-  /invoke ${maControl.Add[safe,swZoneSafe]}
-  /invoke ${maControl.Add[named,option]}
-  /invoke ${maControl.Add[exclude,option]}
-  /invoke ${maControl.Add[charm,option]}
-  /invoke ${maControl.Add[range,option]}
-  /invoke ${maControl.Add[nomez,option]}
-  /invoke ${maControl.Add[nocast,option]}
-  /invoke ${maControl.Add[nomelee,option]}
-  /invoke ${maControl.Add[nofire,option]}
-  /invoke ${maControl.Add[nopoison,option]}
-  /invoke ${maControl.Add[nomagic,option]}
-  /invoke ${maControl.Add[nocorruption,option]}
-  /invoke ${maControl.Add[nocold,option]}
-  /invoke ${maControl.Add[nodisease,option]}
-  /invoke ${set_control_output[${_debug}, maEnv, area, maControl]}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1779,6 +1739,10 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
   } else /if (${_type.Equal[relaytell]}) {
     /invoke ${set_switch_env[${_debug}, swRelayTell, TRUE, ${_verbage}]}
 
+  | use lua
+  } else /if (${_type.Equal[lua]}) {
+    /invoke ${set_switch_env[${_debug}, swLua, TRUE, ${_verbage}]}
+
   | hud adjustments
   } else /if (${_type.Equal[hud]}) {
 
@@ -1892,6 +1856,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
   /invoke ${maControl.Add[engine,stEngine]}
   /invoke ${maControl.Add[castloops,stCastLoop]}
   /invoke ${maControl.Add[events,swEventsInc]}
+  /invoke ${maControl.Add[lua,swLua]}
   /invoke ${maControl.Add[hook,swHookSub]}
   /invoke ${maControl.Add[hud,submenu]}
   /invoke ${maControl.Add[dannet,submenu]}
@@ -2034,6 +1999,14 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
 
   /if (!${Defined[lsDeez]}) {
     /declare lsDeez list outer
+  }
+
+  /if (${_type.Equal[lua]}) {
+    | /lua healthreturn
+    /invoke ${out[1, shade, 0]}
+    | /echo ${Lua.Script.Return[1]}
+    
+    
   }
 
   /if (${_type.Equal[kodtaz]}) {
@@ -2468,7 +2441,7 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 
     OUT Closest mob${sep}\awTARGET\ax${sep}${con_color[${_debug}, ${_tmpID}]}
     OUT Setting Target
-    /invoke ${set_target[TARGET]}
+    /call target set TARGET
     /varset stAssTarID 0
 
   }
@@ -3573,6 +3546,7 @@ sub Bind_command_alto(string _debug)
   }
 
   /call set_stop ${maDebug.Find[stop].Value}
+  /invoke ${maData.Add[swGetOverHere,FALSE]}
   /invoke ${target[clear]}
 
 /return TRUE
@@ -6796,7 +6770,6 @@ sub Bind_command_state(string _verbage, bool _debug)
 
 
 
-
 |***
  * note: melee control
  * use: /melee
@@ -6816,7 +6789,6 @@ sub Bind_control_melee(string _type, string _verbage, string _verbage2, string _
   /invoke ${set_control_output[FALSE, maMelee, "melee", maControl]}
 
 /return TRUE
-
 
 
 
@@ -6846,14 +6818,23 @@ sub Bind_control_nomore(string _type, bool _debug)
   
   | remove invis
   } else /if (${Select[${_type},invis]}) {
-    | /makemevisible
-    | OUT Removing (\a-r*\ax)${sep}Invisibility
     /call remove_spa ${_debug} 12
     /call remove_spa ${_debug} 28
     /call remove_spa ${_debug} 29
     /call remove_spa ${_debug} 314
     /call remove_spa ${_debug} 315
     /call remove_spa ${_debug} 316
+    /if (${maEnv.Find[swSoS].Value}) {
+      /if (!${Me.AbilityReady[sneak]}) {
+        OUT Removing${sep}\a-wSneak\ax
+        /doability sneak
+      }
+      /if (!${Me.AbilityReady[hide]}) {
+        OUT Removing${sep}\a-wHide\ax
+        /doability hide
+      }
+    }
+    
     /return TRUE
 
   | remove invis
@@ -6889,6 +6870,31 @@ sub Bind_control_nomore(string _type, bool _debug)
   /invoke ${set_control_output[FALSE, maMelee, "nomore", maControl]}  
 
 /return TRUE
+
+
+
+|***
+ * note: break all actions and force a movement (not that kind of movement)
+ * use: /getoverhere
+ ***|
+#bind command_getoverhere /getoverhere
+sub Bind_command_getoverhere(string _type, string _verbage, bool _debug)
+
+  /call control_broadcast_command getoverhere ${_type} ${_verbage}
+  /if (${Macro.Return.Equal[break]}) /return TRUE
+
+  /if (!${maTie.Find[swTieBreak].Value}) {
+    /return FALSE
+  }
+
+  /call set_stop ${_debug} SILENT
+  /call target clear
+  /invoke ${set_data_timer[${_debug}, Check_Tie, 0]}
+  /invoke ${maTie.Add[swSetTie,TRUE]}
+  /invoke ${maData.Add[swGetOverHere,TRUE]}
+  
+/return TRUE
+
 
 
 

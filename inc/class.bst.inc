@@ -270,8 +270,9 @@ sub check_mana(bool _debug)
       ISMEDEAD
       CHECKEXIT check_mana_BST2
       
-      /if (!${Spawn[${Group.Member[${_count}].ID}].ID}) {
+      /if (!${Spawn[${Group.Member[${_count}].ID}].ID} || !${Group.Member[${_count}].Present}) {
         DEBUG ${break}notinzone
+        /continue
       }
 
       /if (${Group.Member[${_count}].Type.Equal[corpse]}) {
@@ -344,12 +345,14 @@ sub check_mana(bool _debug)
         /continue
       }
       
-      /if (!${Spawn[${Group.Member[${_count}].ID}].ID}) {
+      /if (!${Spawn[${Group.Member[${_count}].ID}].ID} || !${Group.Member[${_count}].Present}) {
         DEBUG ${break}notinzone
+        /continue
       }
       
       /if (!${lsParagonClass.Contains[${Group.Member[${_count}].Class.ShortName}]}) {
         DEBUG ${break}Bad Class${sep}${Group.Member[${_count}].Class.ShortName}
+        /continue
       }
 
       /if (${Group.Member[${_count}].Type.NotEqual[CORPSE]}) {
@@ -362,12 +365,13 @@ sub check_mana(bool _debug)
         /continue
       }
 
-      /if ((${Group.Member[${_count}].PctMana} || ${Group.Member[${_count}].PctEndurance}) <=  ${maChr.Find[stPctParagonFO].Value}*.PCTHO) {
+      /if ((${Group.Member[${_count}].PctMana} <=  ${maChr.Find[stPctParagonFO].Value}*.PCTHO) || (${Group.Member[${_count}].PctEndurance} <= ${maChr.Find[stPctParagonFO].Value}*.PCTHO)) {
         DEBUG ${sep} mana || stamina <= ${maChr.Find[stPctParagonFO].Value}*.PCTHO
         /varset _found TRUE
       }
 
-      /if (${_found}) {  
+      /if (${_found}) {
+        OUT ${maChr.Find[stAAFocusedParagonofSpirits].Value}${sep}\a-w${Group.Member[${_count}].DisplayName}\ax
         /call voodoo ${_debug} "${maChr.Find[stAAFocusedParagonofSpirits].Value}" ${Group.Member[${_count}].ID} FALSE
         /varset _found FALSE
         /return TRUE

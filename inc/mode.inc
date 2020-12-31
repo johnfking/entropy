@@ -112,7 +112,7 @@ sub mode_trainskill(bool _debug)
   /if (${Me.AbilityReady[Bind Wound]} && ${FindItem[=Bandages].ID}) {
     /if (${Me.Skill[Bind Wound]} < ${Skill[Bind Wound].SkillCap} && ${Me.PctHPs} < 99*.PCTHO) {
       DEBUG ${sep}bind
-      /invoke ${set_target[${Me.ID}]}
+      /call target set ${Me.ID}
       /doability "Bind Wound"
       /delay 14s
     }
@@ -364,7 +364,7 @@ sub mode_petfarm(bool _debug)
 
   CHECKTIE
   /doevents
-  /invoke ${set_target[TARGET]}
+  /call target set TARGET
 
   /pet attack
 
@@ -901,7 +901,7 @@ sub mode_hunt(bool _debug)
 
 
   /invoke ${maCC.Add[swSetCombat,TRUE]}
-  /invoke ${set_target[TARGET]}
+  /call target set TARGET
 
   | /call check_facing ${_debug} TARGET FORCE
 
@@ -1076,8 +1076,7 @@ sub tov_ew_ada(bool _debug)
     } else /if (${Spawn[npc radius 45 ${_tmpMob}].ID}) {
       /dismount
       SDEBUG ${dot}found${sep}\a-w${_tmpMob}\ax
-      /invoke ${set_target[${Spawn[${_tmpMob}].ID}]}
-      /target ID ${set_target[${Spawn[${_tmpMob}].ID}]}
+      /call target set ${Spawn[${_tmpMob}].ID}
       /delay 1s ${Target.ID} == ${Spawn[${_tmpMob}].ID}
     }
 
@@ -1146,7 +1145,7 @@ sub task_get(bool _debug, string _verbage)
     /delay 5
   }
 
-  /invoke ${set_target[${Spawn[${sqlite.Result[farmquery 1 questmob]}].ID}]}
+  /call target set ${Spawn[${sqlite.Result[farmquery 1 questmob]}].ID}
 
   /makemevisible
   /delay 5
@@ -1424,7 +1423,7 @@ sub rof_shard_bodhe(string _opt, bool _debug)
             /goto :rof_shard_bodhe_step2
           }
 
-          /invoke ${target[set, TARGET]}
+          /call target set TARGET
           SETHUD "navto target"
           /call task_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
           /call task_combatloop TARGET

@@ -21,9 +21,24 @@ on the to do list
 --------------------
 
 
+201230.01
+- adjusted the relay tells do it doesnt try to relay from the drive toon
+- /nomore invis
+  will clear rogue SoS
+- target setting
+  a literal shittonne of changes to setting a target. keep an eye out and 
+  lemme know if you see any shenanigans 
+- /tag dropinvis
+  adjusted to use the new spa method
+- corrected a flaw in the assist logic when the assist was either not there, spelled wrong or no assist were set at all
+  in this case, targeting should remain clear
+- some controls added in for MQ2Lua
+  my toys, not yours
+- beastlord
+  some more adjustments to the single target paragon routine
 
 
-
+201226.01
 - hud update
 - k since removelevi works for crap, i made my own
   /nomore [levi|invis|SPA type|list|all]
@@ -67,10 +82,6 @@ on the to do list
 - mez
   additional check for exempt mobs
   
-
-
-
-
 
 201222.01
 - warrior

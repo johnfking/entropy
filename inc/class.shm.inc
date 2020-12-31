@@ -526,7 +526,7 @@ sub cast_alliance(bool _debug)
   /declare _name string local ${get_assist_info[${_debug}, name]}
   /declare _tmpID int local ${get_assist_info[${_debug}, id]}
 
-  /invoke ${set_target[${_name}]}
+  /call target set ${_tmpID}
 
   /delay 5 ${Target.BuffsPopulated}
   /if (${Target.BuffsPopulated} && !${Target.Buff[${maChr.Find[stAlliance].Value}].ID}) {

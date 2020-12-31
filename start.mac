@@ -10,6 +10,8 @@
  *
  * plugins Required: MQ2Collections, MQ2Nav, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
  *
+ * plugins optional: MQ2Lua
+ *
  * Donations: paypal.me/exspes
  ***|
 
@@ -57,7 +59,8 @@
 #define NUKE ${maCC.Find[swCombatNuke].Value}
 #define DOT ${maCC.Find[swCombatDoT].Value}
 #define HEAL ${maCC.Find[swCombatHeal].Value}
-#define CHECKTIE "/if (${maTie.Find[swSetTie].Value} && !${timer_Check_Tie}) /call set_tie ${maDebug.Find[tie].Value}"
+#define CHECKTIE "/if (${maTie.Find[swSetTie].Value} && !${timer_Check_Tie} || ${maTie.Find[swTieBreak].Value} && ${maData.Find[swGetOverHere].Value}) /call set_tie ${maDebug.Find[tie].Value}"
+#define GETOVERHERE "/if (${maTie.Find[swTieBreak].Value} && ${maData.Find[swGetOverHere].Value}) /call set_tie ${maDebug.Find[tie].Value}"
 #define CHECKCURSOR "/if (${Cursor.ID} && !${timer_Check_Cursor} && ((AUTO && ${maEnv.Find[swAutoInv].Value}) || ${maEntropy.Find[swAutoInvManual].Value})) /call check_cursor ${maDebug.Find[loot].Value}"
 #define SETHUD "/call set_hud_data"
 #define CHECKDEFENSE  "/call cast_cycle_defense ${maDebug.Find[def].Value}"
@@ -69,7 +72,7 @@
 #define NEXT ${MacroQuest.InternalName.Equal[Next]}
 #define BUFFNOW "/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) /call check_buff_cycle_now ${maDebug.Find[now].Value}"
 #define BUFFTEMP "/if (${maBuff.Find[swBuffTemp].Value} && !${timer_Check_Buff_Temp}) /call check_buff_cycle_temp ${maDebug.Find[temp].Value}"
-
+#define LUA ${maEntropy.Find[swLua].Value}
 
 #include entropy\inc\initialize.inc
 #include entropy\inc\common.inc
@@ -107,7 +110,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 201226.01
+  /call set_data FALSE maEnv build                          map outer 201230.01
   /call set_data FALSE maEnv schema                         map outer 1.31
   /call set_data FALSE maEnv repo                           map outer 201104.01
 

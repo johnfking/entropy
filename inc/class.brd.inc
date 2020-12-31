@@ -393,7 +393,7 @@ sub pulse_cycle(bool _debug, _tmpID, string _tag)
     }
 
     /if (MELEE && ${_tmpID}) {
-      /call do_melee FALSE TARGET
+       /call set_combat_control ${maDebug.Find[decision].Value} TARGET
     }
 
     /call voodoo ${_debug} "${maSong.Find[stSong${_lipl.Value}].Value}" 0 ignoremovement

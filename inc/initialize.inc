@@ -269,7 +269,7 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} FALSE lsIVU                                    list outer "Group Perfected Invisibility to Undead"|"Perfected Invisibility to Undead"|"Invisibility to Undead"|"Invisibility versus Undead"|"Shauri's Sonorous Clouding"
   /call set_data ${_debug} FALSE lsIV                                     list outer "Shared Perfected Camouflage"|"Shared Camouflage"|"Camouflage"|"Group Perfected Invisibility"|"Invisibility"|"Perfected Invisibility"|"Phase March"|"Nethervoid March"|"Perfected Silent Presence"|"Cloak of Shadows"|"Gather Umbra"|"Invisibility Cloak"|"Perfected Natural Invisibility"|"Perfected Spirit Walk Invisibility"|"Perfected Group Spirit Walk Invisibility"|"Shauri's Sonorous Clouding"|"Selo's Song of Travel"
   /call set_data ${_debug} FALSE lsAssistTypes                            list outer g|ma1|ma2|1|2|3
-  /call set_data ${_debug} FALSE lsPullTypes                              list outer base|pet|int|nav|multi
+  /call set_data ${_debug} FALSE lsPullTypes                              list outer base|pet|int|nav|multi|watch
   /call set_data ${_debug} FALSE lsRezBuffTriggers                        list outer "Revival Sickness"|"Resurrection Sickness"
   /call set_data ${_debug} FALSE lsBroadcastTypes                         list outer group|raid|zone|all
 
@@ -1131,6 +1131,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: tie **|
   /invoke ${set_data_timer[${_debug}, Check_Tie, 5]}
   /call set_data ${_debug} maTie swSetTie                                 map outer FALSE
@@ -1138,6 +1139,11 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maTie stTieMode                            nav                           "${auxna} [\a-wstick-nav\ax] the mode you want to use for tie movements"
   /call set_data_map ${_debug} maTie stTieVariance                        5                             "${auxnum} acceptabe distances to be away from the tiem toon before moving to it"
   /call set_data_map ${_debug} maTie swTieCombat                          FALSE                         "${auxsw} enable tie while in active combat"
+
+  | force break movement command
+  /call set_data_map ${_debug} maTie swTieBreak                           FALSE                         "${auxsw} breaks the fucking world to tie"
+  /call set_data ${_debug} maData swGetOverHere                           map outer FALSE
+
 
 
 
@@ -1396,6 +1402,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy swUseConColor                    FALSE                         "${auxsw} Use ConColors for targets"
   /call set_data_map ${_debug} maEntropy swNavLogSpew                     off                           "${auxsw} (on/off) Show mq2nav log spew in mq2 chat window"
   /call set_data_map ${_debug} maEntropy stMainLoopDelay                  1                             "${auxnum} this is the main delay for the master macro loops. USE CAUTION when changing!"
+  /call set_data_map ${_debug} maEntropy swLua                            FALSE                         "${auxsw} use mq2lua plugin"
 
   | broadcast defaults
   /call set_data_map ${_debug} maEntropy stBroadcastHere                 group                         "${auxna} change the default broadcast for /here [group|raid|zone|all]."
@@ -1406,6 +1413,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy stBroadcastState                group                         "${auxna} change the default broadcast for /state [group|raid|zone|all]."
   /call set_data_map ${_debug} maEntropy stBroadcastInvis                group                         "${auxna} change the default broadcast for /invis [group|raid|zone|all]."
   /call set_data_map ${_debug} maEntropy stBroadcastCls                  group                         "${auxna} change the default broadcast for /cls [group|raid|zone|all]."
+  /call set_data_map ${_debug} maEntropy stBroadcastGetoverhere          group                         "${auxna} change the default broadcast for /getoverhere [group|raid|zone|all]."
 
   /call set_data_map ${_debug} maEntropy stDanNetQueryDelay              10                            "${auxnum} delays for dannet query returns"
 

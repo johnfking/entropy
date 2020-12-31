@@ -285,6 +285,7 @@ sub check_heal(bool _debug, string _type)
   CHECKEXIT
   CHECKFADE
   GETINPUT clr_heal_start type|${_type}
+  
 
   | Group Regen Heal
   /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
@@ -304,8 +305,19 @@ sub check_heal(bool _debug, string _type)
     /call cast_cycle_heal_promise ${_debug}
   }
 
-  | if no one is hurt. back to the start
+  |** if no one is hurt. back to the start
   /if (!${hurtCount}) {
+    CHECKREZ
+    SETHUD EMPTY
+    /delay 1
+    /return FALSE
+  }
+  **|
+
+
+
+  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+    | /invoke ${target[clear]}
     CHECKREZ
     SETHUD EMPTY
     /delay 1
@@ -314,10 +326,6 @@ sub check_heal(bool _debug, string _type)
 
   SETHUD "heal ${_type.Lower}"
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
-    /invoke ${target[clear]}
-    /return FALSE
-  }
   
   /if (!SAFEZONE) {
 
@@ -345,7 +353,7 @@ sub check_heal(bool _debug, string _type)
         /call cast_arbitration ${maDebug.Find[arb].Value}
         /if (${Macro.Return}) {
           /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}, TRUE]}) {
-            /invoke ${target[clear]}
+            | /invoke ${target[clear]}
             /return FALSE
           }
         }
@@ -418,7 +426,7 @@ sub check_heal(bool _debug, string _type)
   }
 
   /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
-    /invoke ${target[clear]}
+    | /invoke ${target[clear]}
     /return FALSE
   }
 
@@ -430,7 +438,7 @@ sub check_heal(bool _debug, string _type)
   GETINPUT clr_heal_end type|${_type}
 
   /call cast_cycle_heal ${_debug} ${hurtID} single
-  /invoke ${target[clear]}
+  | /invoke ${target[clear]}
 
 /return TRUE
 
@@ -454,11 +462,11 @@ sub Bind_command_issuance(bool _debug)
 
   /if (!${Target.ID} || ${Target.ID} == ${Me.ID} || ${Target.Distance} > 55) {
     /if (${NearestSpawn[2, pc radius 55].ID}) {
-      /invoke ${set_target[${NearestSpawn[2, pc radius 55].ID}]}
+      /call target set ${NearestSpawn[2, pc radius 55].ID}
     } else /if (${NearestSpawn[1, mercenary radius 55].ID}) {
-      /invoke ${set_target[${NearestSpawn[1, mercenary radius 55].ID}]}
+      /call target set ${NearestSpawn[1, mercenary radius 55].ID}
     } else /if (${NearestSpawn[1, npc radius 55].ID}) {
-      /invoke ${set_target[${NearestSpawn[1, npc radius 55].ID}]}
+      /call target set ${NearestSpawn[1, npc radius 55].ID}
     }
   }
 
@@ -676,7 +684,7 @@ sub check_alliance(bool _debug)
   }
 
   | set our target. we need to check buffs
-  /invoke ${target[set, ${_tmpID}]}
+  /call target set ${_tmpID}
 
   /delay 5 ${Target.BuffsPopulated}
 
@@ -917,7 +925,7 @@ sub check_mana(bool _debug)
 
     /if (${Group.Member[${_count}].PctMana} <=  ${maChr.Find[stPctVP].Value}*.PCTHO) {
       DEBUG ${sep} mana || stamina <= ${maChr.Find[stPctVP].Value}*.PCTHO
-      /varset _vound TRUE
+      /varset _found TRUE
     }
 
     /if (${_found}) {  
