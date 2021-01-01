@@ -123,7 +123,7 @@ sub class_main(bool _debug)
       }
     }
 
-    /if (!${timer_Check_Marrs_Gift} && ${maChr.Find[stPctMG].Value} && (${Me.PctMana} <= ${maChr.Find[stPctMG].Value} || ${Me.PctHPs} <= ${maChr.Find[stPctMG].Value})) {
+    /if (!${timer_Check_Marrs_Gift} && ${maChr.Find[stPctMG].Value} && ${Me.PctMana} <= ${maChr.Find[stPctMG].Value}) {
       /call cast_AA_marrs_gift
     }
   } else /if (AUTO && ENGINE3) {
@@ -192,7 +192,6 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  | FLOW misc_combat
 
   ISMEDEAD
 
@@ -277,7 +276,6 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub get_agro(bool _debug, int _tmpID)
   DEBUG \atget_agro\ax()
-  | FLOW get_agro
 
   ISMEDEAD
   CHECKEXIT
@@ -376,7 +374,6 @@ sub get_agro(bool _debug, int _tmpID)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal_group\ax(\a-w${_type}\ax)
-  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -509,11 +506,14 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub cast_AA_marrs_gift(bool _debug)
   DEBUG \atcast_AA_marrs_gift\ax()
-  | FLOW cast_AA_marrs_gift
 
   ISMEDEAD
   CHECKEXIT
   GETINPUT
+
+  /if (SAFEZONE) {
+    /return FALSE
+  }
 
   /invoke ${set_data_timer[FALSE, Check_Marrs_Gift, RESTART]}
 
@@ -521,13 +521,8 @@ sub cast_AA_marrs_gift(bool _debug)
     /return FALSE
   }
 
-  /if (SAFEZONE || !${maHeal.Find[swHealGroup].Value}) {
-    /return FALSE
-  }
+  /call voodoo ${_debug} "${maChr.Find[stAAMarrsGift].Value}" 0 FALSE
 
-  /if ((${Me.PctMana} < ${maChr.Find[stPctMG].Value}*.PCTHO) || (${Me.PctHPs} < ${maChr.Find[stPctMG].Value}*.PCTHO)) {
-    /call voodoo ${_debug} "${maChr.Find[stAAMarrsGift].Value}" 0 FALSE
-  }
 /return
 
 
@@ -538,7 +533,6 @@ sub cast_AA_marrs_gift(bool _debug)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  | FLOW burn
 
   ISMEDEAD
 

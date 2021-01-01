@@ -21,6 +21,32 @@ on the to do list
 --------------------
 
 
+
+210101.01
+- warrior
+  changed stCommanding call to require no target
+- paladin
+  marrs gift - lot less restrictive on its usage and is now only checking mana
+- mezing
+  targeting issue found/squashed
+  added in an attack off before single mez cast because bard
+- fix for spawn names in the assist error correction
+- observers
+  considerable changes to observer generation, a tad slower on the initial run
+  considerably faster from that point on and much less spammy 
+  dont really even need to turn grain 17 off anymore
+- dannet
+  you need to update the plugin
+- in macro help
+  i'm changing how the / commands work for help in the macro. so, if you find one thats not working, move on
+  i'll get them all soon enough, but its a fair bit of work
+- /heal dannet
+  back on the plate and from my testing, might even be fastter then group healing
+- /cure
+  works like a fucking champ
+
+  
+
 201230.01
 - adjusted the relay tells do it doesnt try to relay from the drive toon
 - /nomore invis

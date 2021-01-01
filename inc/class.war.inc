@@ -215,7 +215,7 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   /if (${is_ready[${_debug}, "${maChr.Find[stCommanding].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stCommanding].Value}" ${_tmpID} FALSE
+    /call voodoo ${_debug} "${maChr.Find[stCommanding].Value}" 0 FALSE
   }
 
   /if (${target[isdead, ${_tmpID}]}) {

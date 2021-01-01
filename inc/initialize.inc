@@ -1682,6 +1682,7 @@ sub set_initialize_static_map(bool _debug)
   /invoke ${maStaticMaps.Add[maCure,cure]}
   /invoke ${maStaticMaps.Add[maChrWatch,chrwatch]}
 
+
   | leave this out. only for design
   | /invoke ${maStaticMaps.Add[maSPA,eq_spa]}
 

@@ -305,19 +305,7 @@ sub check_heal(bool _debug, string _type)
     /call cast_cycle_heal_promise ${_debug}
   }
 
-  |** if no one is hurt. back to the start
-  /if (!${hurtCount}) {
-    CHECKREZ
-    SETHUD EMPTY
-    /delay 1
-    /return FALSE
-  }
-  **|
-
-
-
   /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
-    | /invoke ${target[clear]}
     CHECKREZ
     SETHUD EMPTY
     /delay 1
@@ -325,7 +313,6 @@ sub check_heal(bool _debug, string _type)
   }
 
   SETHUD "heal ${_type.Lower}"
-
   
   /if (!SAFEZONE) {
 
@@ -353,7 +340,6 @@ sub check_heal(bool _debug, string _type)
         /call cast_arbitration ${maDebug.Find[arb].Value}
         /if (${Macro.Return}) {
           /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}, TRUE]}) {
-            | /invoke ${target[clear]}
             /return FALSE
           }
         }
@@ -426,7 +412,6 @@ sub check_heal(bool _debug, string _type)
   }
 
   /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
-    | /invoke ${target[clear]}
     /return FALSE
   }
 
@@ -438,7 +423,6 @@ sub check_heal(bool _debug, string _type)
   GETINPUT clr_heal_end type|${_type}
 
   /call cast_cycle_heal ${_debug} ${hurtID} single
-  | /invoke ${target[clear]}
 
 /return TRUE
 

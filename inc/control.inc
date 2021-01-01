@@ -15,6 +15,12 @@
 sub Bind_control_debug(string _type, string _verbage, bool _debug)
   DEBUG \atBind_control_debug\ax(\a-w${_type}\ax)
 
+  /if (${_type.Left[1].Equal[-]}) {
+    /call get_help edebug ${_type.Right[1]}
+    /return TRUE
+  }
+
+
   /declare _count int local 0
 
   | output control map
@@ -161,6 +167,18 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     /invoke ${out[18, 0, 33]}
     /return TRUE
 
+  | check observer view
+  } else /if (${_type.Equal[obs]}) { 
+    OUT Observe${sep}\a-w${_verbage}\ax
+    /declare _count int local 0
+    /declare _obs string local
+    /for _count 1 to ${DanNet[${_verbage}].Observe.Count[|]}
+      /varset _obs ${DanNet[${_verbage}].Observe.Arg[${_count},|]}
+      OUT ${_count}${sep}\a-w${_obs}\ax
+    /next _count
+    /invoke ${out[18, 0, 33]}
+    /return TRUE
+    
   } else /if (${_type.Equal[doloot]}) {
     OUT Forcing 1 cycle of the loot routine.
     /call do_loot ${maDebug.Find[loot].Value}
@@ -515,6 +533,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[checkvar,out]}
   /invoke ${maControl.Add[spa,out]}
+  /invoke ${maControl.Add[obs,out]}
   /invoke ${maControl.Add[whitewash,option]}
   | /invoke ${maControl.Add[import,out]}
   /invoke ${maControl.Add[keymap,out]}
@@ -813,11 +832,6 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 sub Bind_to_chr(string _type, string _verbage, string _silent, bool _debug)
   | DEBUG /call set_control _type:${_type} _verbage:${_verbage} _silent:${_silent} _debug:${_debug}
 
-  /if (${_type.Equal[aux]}) {
-    | /call Bind_command_aux cb
-    | /return TRUE
-  }
-
   /call set_control ${_type} "${_verbage}" "${_silent}" "${_debug}"
 
 /return TRUE
@@ -834,6 +848,7 @@ sub Bind_command_cb(string _verbage)
   /if (${_verbage.Equal[aux]}) {
     /call Bind_command_aux cb
     /return TRUE
+  } else /if (${_verbage.Equal[-h]}) {
   }
 
   /if (${Bool[${_verbage}]} && ${Select[${_verbage},u,s,a,c,g,r,b,t]}) {
@@ -1211,6 +1226,9 @@ sub Bind_command_tie(string _type, bool _debug)
   /if (${_type.Equal[aux]}) {
     /call Bind_command_aux tie
     /return
+  } else /if (${_type.Equal[-h]}) {
+    OUT use${sep}\a-w/tie [on|off]\ax
+    /return TRUE
   }
 
   | tie toon not in zone?
@@ -3543,6 +3561,9 @@ sub Bind_command_alto(string _debug)
   /if (${_debug.Equal[aux]}) {
     /call Bind_command_aux alto
     /return TRUE
+  } else /if (${_debug.Equal[-h]}) {
+    OUT use${sep}\a-w/alto\ax
+    /return TRUE
   }
 
   /call set_stop ${maDebug.Find[stop].Value}
@@ -3560,6 +3581,12 @@ sub Bind_command_alto(string _debug)
 #bind command_navto /navto
 sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
   DEBUG \atBind_command_navto\ax(\a-w${_verbage}, "${_loc}"\ax)
+
+  /if (${_verbage.Equal[-h]}) {
+    OUT use${sep}\a-w/navto [name|target|locyxz|wp] [nickname|yxzloc]\ax 
+    /return TRUE
+  }
+
 
   | add/update a waypoint
   /if (${_verbage.Equal[wpadd]}) {
@@ -3693,6 +3720,9 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
   /if (${_verbage.Equal[aux]}) {
     /call Bind_command_aux repeat
     /return TRUE
+  } else /if (${_verbage.Equal[aux]}) {
+    OUT use${sep}\a-w/repeat "things to say"\ax 
+    /return TRUE
   }
 
   /call Bind_control_nomore invis ${_debug}
@@ -3798,9 +3828,6 @@ sub Bind_command_invis(string _type, string _verbage, bool _debug)
   /call control_broadcast_command invis ${_type} ${_verbage}
   /if (${Macro.Return.Equal[break]}) /return TRUE
 
-  | /dgexecute ${maComm.Find[stEntropyGroup_all].Value} /AA_invis ${maDebug.Find[invis].Value}
-  | /call Bind_command_invis_cast ${maDebug.Find[invis].Value}
-
   | fucking bards
   /if (${Select[${Me.Class.ShortName},BRD]}) {
     /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroup].Value}"]}) {
@@ -3831,84 +3858,6 @@ sub Bind_command_invis(string _type, string _verbage, bool _debug)
 
 /return TRUE
 
-|***
- * note: control to cast invis AAs
- * use: /invis
-
-#bind command_invis_cast /AA_invis
-sub Bind_command_invis_cast(string _verbage)
-
-  /declare _debug bool local FALSE
-  /if (${maDebug.Find[invis].Value}) {
-    /varset _debug TRUE
-  }
-
-  | stack invis
-  /if (!${Bool[${_verbage}]} || ${_verbage.Equal[stack]}) {
-
-    | fucking bards
-    /if (${Select[${Me.Class.ShortName},BRD]}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroup].Value}"]}) {
-        /call pulse_stop
-        /delay ${maChr.Find[stInvisDelay].Value}
-        /call voodoo ${_debug} "${maChr.Find[stInvisGroup].Value}" 0 ignoreall
-        /return TRUE
-      }
-    }
-
-    | Invis vs Normies casters
-    /if (${Select[${Me.Class.ShortName},WIZ,MAG,ENC,SHM,RNG,DRU]}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroup].Value}"]}) {
-        /delay ${maChr.Find[stInvisDelay].Value}
-        /call voodoo ${_debug} "${maChr.Find[stInvisGroup].Value}" 0 ignoreall
-        /return TRUE
-      }
-    }
-
-    | Invis Vs undead casters
-    /if (${Select[${Me.Class.ShortName},CLR,SHD,NEC,PAL]}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroupIVU].Value}"]} ) {
-        /delay ${maChr.Find[stInvisDelay].Value}
-        /call voodoo ${_debug} "${maChr.Find[stInvisGroupIVU].Value}" 0 ignoreall
-        /return TRUE
-      }
-    }
-    
-  | normal invis  
-  } else /if (${_verbage.Equal[iv]}) {
-
-
-    /if (${Bool[${maChr.Find[stInvisGroupIVU].Value}]}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroupIVU].Value}"]} ) {
-        /call voodoo ${_debug} "${maChr.Find[stInvisGroupIVU].Value}" 0 ignoreall
-        /return TRUE
-      }
-    } else /if (•${Bool[${maChr.Find[stInvisSingle].Value}]}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stInvisSingle].Value}"]} ) {
-        /call voodoo ${_debug} "${maChr.Find[stInvisSingle].Value}" 0 ignoreall
-        /return TRUE
-      }
-    }
-
-  | invis vs undead
-  } else /if (${_verbage.Equal[ivu]}) {
-
-    /if (${Bool[${maChr.Find[stInvisGroupIVU].Value}]}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroupIVU].Value}"]} ) {
-        /call voodoo ${_debug} "${maChr.Find[stInvisGroupIVU].Value}" 0 ignoreall
-        /return TRUE
-      }
-    } else /if (${Bool[${maChr.Find[stInvisSingleIVU].Value}]}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stInvisSingleIVU].Value}"]} ) {
-        /call voodoo ${_debug} "${maChr.Find[stInvisSingleIVU].Value}" 0 ignoreall
-        /return TRUE
-      }      
-    }
-
-  }
-  
-/return TRUE
- ***|
 
 
 |***
@@ -4222,7 +4171,7 @@ sub Bind_command_off(string _type, string _verbage, bool _debug)
     /call Bind_command_aux off
     /return TRUE
   } else /if (${_type.Equal[-h]}) {
-    OUT /off [group (default none)|zone|raid|all]
+    OUT use${sep}\a-w/off [group (default none)|zone|raid|all|broadcast]\ax
     /return TRUE
     
   } else /if (!${Bool[${_type}]} || ${Select[${_type},all,zone,group,raid]}) {
@@ -4277,7 +4226,7 @@ sub Bind_command_on(string _type, string _verbage, bool _debug)
     /call Bind_command_aux on
     /return TRUE
   } else /if (${_type.Equal[-h]}) {
-    OUT /on [group (default none)|zone|raid|all]
+    OUT use${sep}\a-w/on [group (default none)|zone|raid|all|broadcast]\ax
     /return TRUE
     
   } else /if (!${Bool[${_type}]} || ${Select[${_type},all,zone,group,raid]}) {
@@ -4483,6 +4432,14 @@ sub Bind_command_grab(string _name, string _silent, bool _debug)
 #bind command_lesson /lesson
 sub Bind_command_lesson(bool _debug)
 
+  /if (${_debug.Equal[aux]}) {
+    OUT Help? Really? ok.. Uses AA Lesson of the Devoted. Thats it. Not sure what you expected.
+    /return TRUE
+  } else /if (${_debug.Equal[-h]}) {
+    OUT use${sep}\a-w/lesson\ax
+    /return TRUE
+  }
+
   /if (!${is_ready[${_debug}, "Lesson of the Devoted"]}) {
     /return FALSE
   }
@@ -4500,6 +4457,11 @@ sub Bind_command_lesson(bool _debug)
 #bind command_coh /coh
 sub Bind_command_coh(string _verbage, bool _debug)
   DEBUG Bind_command_coh(${_verbage})
+
+  /if (${_verbage.Equal[-h]}) {
+    OUT use${sep}\a-w/coh [group]\ax
+    /return TRUE
+  }
 
   /if (${_verbage.Equal[group]}) {
     /dex ${get_resident[${_debug}, |mag, 99999]} /call_of_the_hero "${Me.DisplayName}" "${_verbage}"
@@ -5125,30 +5087,6 @@ sub Bind_control_grain(string _num, bool _debug)
   /invoke ${out[12, "/grain ${_out}"]}
 
 /return FALSE
-
-
-
-|***
- * note: condition LISTING (REMOVE THIS IN A MONTH OR TWO) 6/30/2020
- * use: /condition # "code"
- ***|
-#bind command_condition /condition
-sub Bind_command_condition()
-
-  /declare _count int local 0
-
-  ECHO
-  /invoke ${out[12, "\awCondition List\ax${sep}"]}
-  /for _count 1 to 50
-    /sqlite query "${DBcharacter}" condition SELECT value FROM environment_condition WHERE env_var="c${_count}"
-    /if (!${sql_check[FALSE, condition, Bind_command_see, SELECT]}) /endmacro
-    /if (${Parse[1,${sqlite.Result[condition 1 value].Equal[FALSE]}]}) /continue
-    OUT \awc${_count}\ax${sep}\a-w${Parse[1,${sqlite.Result[condition 1 value]}]}\ax
-  /next _count
-  /invoke ${out[18, 0, 33]}
-  /return
-
-/return TRUE
 
 
 
@@ -6615,30 +6553,12 @@ sub Bind_control_crew(string _type, string _verbage, string _verbage2, string _v
  * use: /state
  ***|
 #bind command_state /state
-sub Bind_command_state(string _verbage, bool _debug)
+sub Bind_command_state(string _type, string _verbage, bool _debug
   DEBUG \atBind_command_state\ax(\a-w${_verbage}\ax)
-
-  /if (${_verbage.Equal[aux]}) {
-    /call Bind_command_aux state
-    /return TRUE
-  } else /if (${_verbage.Equal[-h]}) {
-    OUT /state [group|zone|raid|all]
-    /return TRUE
-  } else /if (${Select[${_verbage},-o,broadcast]}) {
-
-    /if (${lsBroadcastTypes.Contains[${_verbage}]}) {
-      /call do_raw_edit FALSE SILENT stBroadcastState "${_verbage.Lower}"
-    } else /if (${Bool[${_verbage}]} && !${lsBroadcastTypes.Contains[${_verbage}]}) {
-      OUT Options${sep}\a-w/state broadcast\ax
-      /call out_list lsBroadcastTypes
-    }
-
-    /invoke ${maControl.Clear}
-    /invoke ${maControl.Add[broadcast,stBroadcastState]}
-    /invoke ${set_control_output[FALSE, maEntropy, state, maControl]}
-    /return TRUE
-  }
-
+ 
+  /call control_broadcast_command state ${_type} ${_verbage}
+  /if (${Macro.Return.Equal[break]}) /return TRUE
+  
   ISMEDEAD
 
   /declare maState map local
@@ -6656,12 +6576,11 @@ sub Bind_command_state(string _verbage, bool _debug)
   /declare _toon string local
 
   | all group broadcast
-  /if (${_verbage.Equal[group]} || !${Bool[${_verbage}]} && ${maEntropy.Find[stBroadcastState].Value.Equal[group]}) {
+  /if (${_type.Equal[group]} || !${Bool[${_type}]} && ${maEntropy.Find[stBroadcastState].Value.Equal[group]}) {
     /if (!${Group.Members}) {
       /invoke ${out[21, "${broadcast}${sep}\a-w/state\ax (\a-rgroup\ax) (\a-rFail: not in a group\ax)"]}
       /return FALSE
     } 
-    /invoke ${out[21, "${broadcast}${sep}\a-w/state\ax (\a-rgroup\ax)"]}
     /for _count 0 to ${Group.Members}    
       /if (${Group.Member[${_count}].ID} == ${Me.ID}) {
         /continue
@@ -6683,8 +6602,7 @@ sub Bind_command_state(string _verbage, bool _debug)
     /next _count
 
   | zone broadcasts
-  } else /if (${_verbage.Equal[zone]} || !${Bool[${_verbage}]} && ${maEntropy.Find[stBroadcastState].Value.Equal[zone]}) {
-    /invoke ${out[21, "${broadcast}${sep}\a-w/state\ax (\a-rzone\ax)"]}
+  } else /if (${_type.Equal[zone]} || !${Bool[${_type}]} && ${maEntropy.Find[stBroadcastState].Value.Equal[zone]}) {
 
     /for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
       /varset _toon ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}  
@@ -6711,8 +6629,7 @@ sub Bind_command_state(string _verbage, bool _debug)
 
 
   | all entropy broadcasts
-  } else /if (${_verbage.Equal[all]} || !${Bool[${_verbage}]} && ${maEntropy.Find[stBroadcastState].Value.Equal[all]}) {
-    /invoke ${out[21, "${broadcast}${sep}\a-w/state\ax (\a-rall\ax)"]}
+  } else /if (${_type.Equal[all]} || !${Bool[${_type}]} && ${maEntropy.Find[stBroadcastState].Value.Equal[all]}) {
     /for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
       /varset _toon ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}  
       /if (${_toon.Equal[${Me.DisplayName}]}) {
@@ -6736,12 +6653,11 @@ sub Bind_command_state(string _verbage, bool _debug)
 
 
   | all raid broadcast
-  } else /if (${_verbage.Equal[raid]} || !${Bool[${_verbage}]} && ${maEntropy.Find[stBroadcastState].Value.Equal[raid]}) {
+  } else /if (${_type.Equal[raid]} || !${Bool[${_type}]} && ${maEntropy.Find[stBroadcastState].Value.Equal[raid]}) {
     /if (!${Raid.Members}) {
       /invoke ${out[21, "${broadcast}${sep}\a-w/state\ax (\a-rraid\ax) (\a-rFail: not in a raid\ax)"]}
       /return break
     }
-    /invoke ${out[21, "${broadcast}${sep}\a-w/state\ax (\a-rraid\ax)"]}
 
     /for _count 0 to ${Raid.Members}    
       /if (${Raid.Member[${_count}].ID} == ${Me.ID} || !${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${Raid.Member[${_count}]}]} ) {
