@@ -110,7 +110,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210101.01
+  /call set_data FALSE maEnv build                          map outer 210102.01
   /call set_data FALSE maEnv schema                         map outer 1.31
   /call set_data FALSE maEnv repo                           map outer 201104.01
 
@@ -226,12 +226,11 @@ sub main(string _var1, string _var2, string _var3, string _var4)
       | check observers
       /if (!${timer_Check_Observers} ) {
         
-        | /state observers
-        /call set_observers ${maDebug.Find[chrwatch].Value} maChrWatch add TRUE
+        /call observer_build ${maDebug.Find[observe].Value} obs_chrwatch add TRUE
 
         | curing observers
         /if (${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value}) {
-          /call set_observers ${maDebug.Find[cure].Value} maCure add
+          /call observer_build ${maDebug.Find[observe].Value} obs_cure add
         }
              
       }
@@ -316,8 +315,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     /invoke ${out[0, 0, 6]}
     /mqlog ${maEnv.Find[build].Value} .. Clean Exit
   }
-  /if (${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) {
-    /dleave ${maComm.Find[stEntropyGroup_all].Value}
+  /if (${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}) {
+    /dleave ${maEntropy.Find[stEntropyGroup_all].Value}
   }
   /endmacro
 
@@ -415,10 +414,10 @@ sub prepare_the_end(bool _debug)
   /call set_initialize_map_character_environment ${maDebug.Find[init].Value}
 
   | set comm requirements
-  /if (${DanNet.LocalEcho}) /squelch /dnet localecho ${maComm.Find[stLocalEcho].Value}
-  /if (${DanNet.CommandEcho}) /squelch /dnet commandecho ${maComm.Find[stCommandEcho].Value}
-  /if (!${DanNet.FrontDelim}) /squelch /dnet frontdelim ${maComm.Find[stFrontDelim].Value}
-  /if (${DanNet.FullNames}) /squelch /dnet fullnames ${maComm.Find[stFullNames].Value}
+  /if (${DanNet.LocalEcho}) /squelch /dnet localecho ${maEntropy.Find[swLocalEcho].Value}
+  /if (${DanNet.CommandEcho}) /squelch /dnet commandecho ${maEntropy.Find[swCommandEcho].Value}
+  /if (!${DanNet.FrontDelim}) /squelch /dnet frontdelim ${maEntropy.Find[swFrontDelim].Value}
+  /if (${DanNet.FullNames}) /squelch /dnet fullnames ${maEntropy.Find[swFullNames].Value}
   /dnet timeout ${maEntropy.Find[stNetworkTimeout].Value}
 
   | get buffs

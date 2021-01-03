@@ -253,6 +253,7 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} FALSE lsClassMercenary                         list outer WAR|CLR|WIZ|ROG
   /call set_data ${_debug} FALSE lsClassMelee                             list outer WAR|ROG|BST|MNK|SHD|PAL|BER|BRD|RNG
   /call set_data ${_debug} FALSE lsClassCast                              list outer PAL|SHD|BRD|RNG|BST|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
+  /call set_data ${_debug} FALSE lsClassStamina                           list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG
   /call set_data ${_debug} FALSE lsClassPet                               list outer ENC|DRU|SHM|SHD|WIZ|BRD|BST|MAG|NEC
   /call set_data ${_debug} FALSE lsClassHeal                              list outer CLR|DRU|SHM|PAL|RNG|BST
   /call set_data ${_debug} FALSE lsClassRez                               list outer CLR|DRU|SHM|PAL|NEC
@@ -457,14 +458,14 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} maEnv stCurrentZoneID                            map outer FALSE
 
   | Comm
-  /call set_data ${_debug} maComm stLocalEcho                               map outer FALSE                 "dannet local echo"
-  /call set_data ${_debug} maComm stCommandEcho                             map outer FALSE                 "dannet local command echo"
-  /call set_data ${_debug} maComm stFrontDelim                              map outer ON                    "dannet lead from delimiters"
-  /call set_data ${_debug} maComm stFullNames                               map outer FALSE                 "dannet fullnames"
-  /call set_data ${_debug} maComm stEntropyGroup_all                        map outer Entropy               "dannet main entropy group"
+  | /call set_data ${_debug} maComm stLocalEcho                               map outer FALSE                 "dannet local echo"
+  | /call set_data ${_debug} maComm stCommandEcho                             map outer FALSE                 "dannet local command echo"
+  | /call set_data ${_debug} maComm stFrontDelim                              map outer ON                    "dannet lead from delimiters"
+  | /call set_data ${_debug} maComm stFullNames                               map outer FALSE                 "dannet fullnames"
+  | /call set_data ${_debug} maComm stEntropyGroup_all                        map outer Entropy               "dannet main entropy group"
 
   | join the group
-  /djoin ${maComm.Find[stEntropyGroup_all].Value}
+  | /djoin ${maEntropy.Find[stEntropyGroup_all].Value}
 
 
   | generate modes
@@ -1388,7 +1389,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy swEventsInc                      FALSE                         "${auxsw} use events from events.inc file"
   /call set_data_map ${_debug} maEntropy swDPSMeter                       FALSE                         "${auxsw} use dps meeter"
   /call set_data_map ${_debug} maEntropy swHookSub                        FALSE                         "${auxsw} use hook functions"
-  /call set_data_map ${_debug} maEntropy stNetworkTimeout                 1                             "${auxnum} dannet timeout for network lag. ignore this if at all possible"
   /call set_data_list ${_debug} maEntropy lsSafeNames                     EMPTY                         "${auxli} list of people you trust (\a-wDanNet connections trusted by default\ax)"
   /call set_data_map ${_debug} maEntropy swAutoList                       FALSE                         "${auxsw} autopopulate zone listsnames for some mob types"
   /call set_data_map ${_debug} maEntropy stBuffRefresh                    0                             "${auxnum} time in seconds to refrsh a buff before it fades. 0=wait till it fades"
@@ -1404,6 +1404,24 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy stMainLoopDelay                  1                             "${auxnum} this is the main delay for the master macro loops. USE CAUTION when changing!"
   /call set_data_map ${_debug} maEntropy swLua                            FALSE                         "${auxsw} use mq2lua plugin"
 
+  | dannet options
+  /call set_data_map ${_debug} maEntropy stNetworkTimeout                 1                             "${auxnum} dannet timeout for network lag. ignore this if at all possible"
+  /call set_data_map ${_debug} maEntropy stNetworkEvasive                 5000                          "${auxnum} dannet timeout client loss. set higher for laggy systems."
+  /call set_data_map ${_debug} maEntropy stNetworkExpired                 30000                         "${auxnum} dannet timeout to delete a peer"
+  /call set_data_map ${_debug} maEntropy stDanNetQueryDelay               10                            "${auxnum} delays for dannet query returns"
+  /call set_data_map ${_debug} maEntropy swLocalEcho                      FALSE                         "${auxsw} dannet local echo"
+  /call set_data_map ${_debug} maEntropy swCommandEcho                    FALSE                         "${auxsw} dannet local command echo"
+  /call set_data_map ${_debug} maEntropy swFrontDelim                     TRUE                          "${auxsw} dannet lead from delimiters"
+  /call set_data_map ${_debug} maEntropy swFullNames                      FALSE                         "${auxsw} dannet fullnames"
+  /call set_data_map ${_debug} maEntropy stEntropyGroup_all               entropy                       "${auxna} dannet main entropy group"
+  /call set_data_map ${_debug} maEntropy swEvasiveRefresh                 FALSE                         "${auxsw} refreshes observers if a client goes evasive"
+
+
+  | join the main channel
+  /djoin ${maEntropy.Find[stEntropyGroup_all].Value}
+  
+
+
   | broadcast defaults
   /call set_data_map ${_debug} maEntropy stBroadcastHere                 group                         "${auxna} change the default broadcast for /here [group|raid|zone|all]."
   /call set_data_map ${_debug} maEntropy stBroadcastEnter                group                         "${auxna} change the default broadcast for /enter [group|raid|zone|all]."
@@ -1415,7 +1433,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy stBroadcastCls                  group                         "${auxna} change the default broadcast for /cls [group|raid|zone|all]."
   /call set_data_map ${_debug} maEntropy stBroadcastGetoverhere          group                         "${auxna} change the default broadcast for /getoverhere [group|raid|zone|all]."
 
-  /call set_data_map ${_debug} maEntropy stDanNetQueryDelay              10                            "${auxnum} delays for dannet query returns"
 
 
   | GoM list
@@ -1681,7 +1698,7 @@ sub set_initialize_static_map(bool _debug)
   /invoke ${maStaticMaps.Add[maExpansion,env_xpac]}
   /invoke ${maStaticMaps.Add[maCure,cure]}
   /invoke ${maStaticMaps.Add[maChrWatch,chrwatch]}
-
+  | /invoke ${maStaticMaps.Add[maRezID,rezid]}
 
   | leave this out. only for design
   | /invoke ${maStaticMaps.Add[maSPA,eq_spa]}
@@ -1692,14 +1709,10 @@ sub set_initialize_static_map(bool _debug)
   /while (!${_mi.IsEnd}) {
     /sqlite query "${DBstatic}" dummycount SELECT Count(*) as data FROM ${_mi.Value};
     /for _count 1 to ${sqlite.Result[dummycount 1 data]}
-      | /while (TRUE) {
-        /sqlite query "${DBstatic}" dummy SELECT * FROM ${_mi.Value} WHERE ROWID=${_count};
-        /if (!${sql_check[${_debug}, dummy, set_initialize_static_map, "SELECT (${_mi.Value})"]}) /endmacro
-        | /if (${sqlite.Resultcode[dummy]} == 0) /break
-      | }
-
-    /call set_data ${_debug} "${_mi.Key}" "${sqlite.Result[dummy 1 env_var]}" map outer "${sqlite.Result[dummy 1 value]}"
-    | SDEBUG set_data ${_debug} "${_mi.Key}" "${sqlite.Result[dummy 1 env_var]}" map outer "${sqlite.Result[dummy 1 value]}"
+      /sqlite query "${DBstatic}" dummy SELECT * FROM ${_mi.Value} WHERE ROWID=${_count};
+      /if (!${sql_check[${_debug}, dummy, set_initialize_static_map, "SELECT (${_mi.Value})"]}) /endmacro
+      /call set_data ${_debug} "${_mi.Key}" "${sqlite.Result[dummy 1 env_var]}" map outer "${sqlite.Result[dummy 1 value]}"
+      | DEBUG set_data ${_debug} "${_mi.Key}" "${sqlite.Result[dummy 1 env_var]}" map outer "${sqlite.Result[dummy 1 value]}"
     /next _count
     /invoke ${_mi.Advance}
   }

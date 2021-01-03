@@ -21,6 +21,24 @@ on the to do list
 --------------------
 
 
+210102.01
+- /repeat - targeting issue fixed
+- curing
+  took it down to its base and rebuilt it. cross your fingers
+- observers
+  complete redesign of how observers are made and watched, for any given toon
+  i didnt like the slow bit
+- pull hardstop
+  has been changed to work off existing observers and not queries
+- /entropy dannet
+  all dannet settings are now visible and adjustable
+  however, its best you dont change them. the defaults are there for a reason
+- /admin obs [toonname] - will show you everything you can see on another toon
+  this information is usable in tags
+  or just to make sure its working
+- dannet
+  you will need to update again for the current fixes
+
 
 210101.01
 - warrior

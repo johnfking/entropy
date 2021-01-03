@@ -746,8 +746,8 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
     /declare _name string local FALSE
 
     | cycle all the toons you are boxing
-    /for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
-      /varset _name ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
+    /for _count 1 to ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}
+      /varset _name ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
 
       | if i'm issuing the command. turn off tie and move along
       /if (${_name.Equal[${Me.DisplayName}]}) {
@@ -1853,17 +1853,57 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
 
     /if (${_verbage.Equal[nettimeout]}) {
       /if (!${set_control_num_range[${_debug}, stNetworkTimeout, "${_verbage2}", 0, 50]}) /return
+      /dnet timeout ${_verbage2}
 
     } else /if (${_verbage.Equal[querydelay]}) {
       /if (!${set_control_num_range[${_debug}, stDanNetQueryDelay, "${_verbage2}", 0, 50]}) /return
+
+    } else /if (${_verbage.Equal[evasive]}) {
+      /if (!${set_control_num_range[${_debug}, stNetworkEvasive, "${_verbage2}", 1000, 30000]}) /return
+      /dnet evasive ${_verbage2}
+
+    } else /if (${_verbage.Equal[evasiverefresh]}) {
+      /invoke ${set_switch_env[${_debug}, swEvasiveRefresh, TRUE, ${_verbage2}]}
+      /dnet evasiverefresh ${_verbage2}
+
+    } else /if (${_verbage.Equal[expired]}) {
+      /if (!${set_control_num_range[${_debug}, stNetworkExpired, "${_verbage2}", 15000, 60000]}) /return
+      /dnet expired ${_verbage2}
+
+    } else /if (${_verbage.Equal[frontdelim]}) {
+      /invoke ${set_switch_env[${_debug}, swFrontDelim, TRUE, ${_verbage2}]}
+      /dnet frontdelim ${_verbage2}
+
+    } else /if (${_verbage.Equal[commandecho]}) {
+      /invoke ${set_switch_env[${_debug}, swCommandEcho, TRUE, ${_verbage2}]}
+      /dnet commandecho ${_verbage2}
+
+    } else /if (${_verbage.Equal[localecho]}) {
+      /invoke ${set_switch_env[${_debug}, swLocalEcho, TRUE, ${_verbage2}]}
+      /dnet localecho ${_verbage2}
+
+    } else /if (${_verbage.Equal[fullname]}) {
+      /invoke ${set_switch_env[${_debug}, swFullNames, TRUE, ${_verbage2}]}
+      /dnet fullnames ${_verbage2}
+
+    } else /if (${_verbage.Equal[maingroup]}) {
+      /call do_raw_edit ${_debug} SILENT stEntropyGroup_all "${_verbage2}"
+      /djoin ${_verbage2}
     }
 
     /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[frontdelim,swFrontDelim]}
+    /invoke ${maControl.Add[commandecho,swCommandEcho]}
+    /invoke ${maControl.Add[localecho,swLocalEcho]}
+    /invoke ${maControl.Add[fullname,swFullNames]}
+    /invoke ${maControl.Add[maingroup,stEntropyGroup_all|br]}
     /invoke ${maControl.Add[nettimeout,stNetworkTimeout]}
+    /invoke ${maControl.Add[evasive,stNetworkEvasive]}
+    /invoke ${maControl.Add[evasiverefresh,swEvasiveRefresh]}
+    /invoke ${maControl.Add[expired,stNetworkExpired]}
     /invoke ${maControl.Add[querydelay,stDanNetQueryDelay]}
     /invoke ${set_control_output[${_debug}, maEntropy, "entropy dannet", maControl]}
     /return TRUE
-
 
   }
 
@@ -2860,11 +2900,11 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 
   | see what we are observing
   } else /if (${_variable.Equal[observed]}) {
-    /for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
-      /if (!${Defined[lsObserved_${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}]}) /continue
-      /invoke ${out[12, "Observed on${sep}\at${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|].Upper}\ax"]}
+    /for _count 1 to ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}
+      /if (!${Defined[lsObserved_${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}]}) /continue
+      /invoke ${out[12, "Observed on${sep}\at${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_count},|].Upper}\ax"]}
       /declare _liob listiterator local
-      /vardata _liob lsObserved_${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}.First
+      /vardata _liob lsObserved_${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}.First
       /while (!${_liob.IsEnd}) {
         /invoke ${out[12, "${sep}\aw${_liob.Value}\ax"]}
         /invoke ${_liob.Advance}
@@ -3743,7 +3783,7 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
   | everyone else
   /if (${_sender.NotEqual[${Me.DisplayName}]}) {
     /if (${Bool[${Spawn[pc ${_sender} radius 60].ID}]}) {
-      /invoke ${set_Target[${_tmpID}]}
+      /call target set ${_tmpID}
       /if (${Target.ID} == ${_tmpID}) {
         /delay ${Int[${Math.Calc[${Math.Rand[20]}+10]}]}
         /say ${_verbage}
@@ -4194,7 +4234,7 @@ sub Bind_command_off(string _type, string _verbage, bool _debug)
 
     } else /if (${_type.Equal[all]}) {
       /invoke ${out[21, "${broadcast}${sep}\a-w/on\ax (\a-rall\ax)"]}
-      /dgexecute ${maComm.Find[stEntropyGroup_all].Value} /env auto off
+      /dgexecute ${maEntropy.Find[stEntropyGroup_all].Value} /env auto off
 
     } else /if (${_type.Equal[raid]}) {
       /if (!${Raid.Members}) {
@@ -4249,7 +4289,7 @@ sub Bind_command_on(string _type, string _verbage, bool _debug)
 
     } else /if (${_type.Equal[all]}) {
       /invoke ${out[21, "${broadcast}${sep}\a-w/on\ax (\a-rall\ax)"]}
-      /dgexecute ${maComm.Find[stEntropyGroup_all].Value} /env auto on
+      /dgexecute ${maEntropy.Find[stEntropyGroup_all].Value} /env auto on
 
     } else /if (${_type.Equal[raid]}) {
       /if (!${Raid.Members}) {
@@ -5423,9 +5463,6 @@ sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _s
   /if (${_type.Equal[see]}) {
 
 
-
-
-
   } else /if (${_type.Equal[aux]}) {
     /call Bind_command_aux cure ${_verbage}
     /return
@@ -5480,9 +5517,9 @@ sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _s
 
   | set observers
   /if (${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value}) {
-    /call set_observers FALSE maCure add FALSE
+    /call observer_build ${maDebug.Find[observe].Value} obs_cure add
   } else /if (!${maHeal.Find[swHealCureSelf].Value} && !${maHeal.Find[swHealCureGroup].Value} && !${maHeal.Find[swHealCureCrew].Value}) {
-    /call set_observers FALSE maCure drop FALSE
+    /call observer_build ${maDebug.Find[observe].Value} obs_cure drop
   }
 
   /if (${_silent.Equal[SILENT]}) /return
@@ -6604,8 +6641,8 @@ sub Bind_command_state(string _type, string _verbage, bool _debug
   | zone broadcasts
   } else /if (${_type.Equal[zone]} || !${Bool[${_type}]} && ${maEntropy.Find[stBroadcastState].Value.Equal[zone]}) {
 
-    /for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
-      /varset _toon ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}  
+    /for _count 1 to ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}
+      /varset _toon ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}  
       /if (${_toon.Equal[${Me.DisplayName}]} || !${Spawn[${_toon}].ID}) {
         /continue
       }
@@ -6630,8 +6667,8 @@ sub Bind_command_state(string _type, string _verbage, bool _debug
 
   | all entropy broadcasts
   } else /if (${_type.Equal[all]} || !${Bool[${_type}]} && ${maEntropy.Find[stBroadcastState].Value.Equal[all]}) {
-    /for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
-      /varset _toon ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}  
+    /for _count 1 to ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}
+      /varset _toon ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}  
       /if (${_toon.Equal[${Me.DisplayName}]}) {
         /continue
       }
@@ -6660,7 +6697,7 @@ sub Bind_command_state(string _type, string _verbage, bool _debug
     }
 
     /for _count 0 to ${Raid.Members}    
-      /if (${Raid.Member[${_count}].ID} == ${Me.ID} || !${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${Raid.Member[${_count}]}]} ) {
+      /if (${Raid.Member[${_count}].ID} == ${Me.ID} || !${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Find[${Raid.Member[${_count}]}]} ) {
         /continue
       }
       /vardata _mist maState.First.Clone
@@ -6740,6 +6777,8 @@ sub Bind_control_nomore(string _type, bool _debug)
     /call remove_spa ${_debug} 314
     /call remove_spa ${_debug} 315
     /call remove_spa ${_debug} 316
+    
+    |**
     /if (${maEnv.Find[swSoS].Value}) {
       /if (!${Me.AbilityReady[sneak]}) {
         OUT Removing${sep}\a-wSneak\ax
@@ -6750,6 +6789,7 @@ sub Bind_control_nomore(string _type, bool _debug)
         /doability hide
       }
     }
+    **|
     
     /return TRUE
 

@@ -669,61 +669,61 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
   | dannet healing
   } else /if (${_type.Equal[DanNet]}) {
     /varset _debug FALSE
-    /declare _toonName string local
+    /declare _toon string local
 
     | each toon
-    /for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
+    /for _count 1 to ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}
 
       | get the name to something usable
-      /varset _toonName ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
-      DEBUG ${sep}_toonName${sep}\ay${_toonName}\ax
+      /varset _toon ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
+      DEBUG ${sep}_toon${sep}\ay${_toon}\ax
 
       | is the observer set
-      /if (!${Defined[${_toonName}_PctHPs]} || !${DanNet[${_toonName}].Observe.Find[Me.PctHPs]} || !${DanNet[${_toonName}].Observe.Find[Me.Class.ShortName]} || !${DanNet[${_toonName}].Observe.Find[Me.Iß]}) {
-        DEBUG ${break}defined${sep}!\a-w${_toonName}_PctHPs\ax
+      /if (!${DanNet[${_toon}].Observe.Find[Me.PctHPs]} || !${DanNet[${_toon}].Observe.Find[Me.Class.ShortName]} || !${DanNet[${_toon}].Observe.Find[Me.ID]}) {
+        DEBUG ${break}defined${sep}!\a-w${_toon}_PctHPs\ax
         /continue
       }
 
-      DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}${Spawn[pc ${_toonName}].DisplayName}${sep}${Spawn[pc ${_toonName}].ID}\ax
+      DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}${Spawn[pc ${_toon}].DisplayName}${sep}${Spawn[pc ${_toon}].ID}\ax
 
-      /if (${DanNet[${_toonName}].Observe[Me.PctHPs]} > ${maHeal.Find[stHealPoint${DanNet[${_toonName}].Observe[Me.Class.ShortName]}].Value}*.PCTHO) {
+      /if (${DanNet[${_toon}].Observe["Me.PctHPs"]} > ${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}*.PCTHO) {
         DEBUG ${break} > HealPoint
         /continue
-      } else /if (${Spawn[pc ${_toonName}].Distance} > ENV) {
+      } else /if (${Spawn[pc ${_toon}].Distance} > ENV) {
         DEBUG ${break} > env radius
         /continue
-      } else /if (${Spawn[pc ${_toonName}].Dead}) {
+      } else /if (${Spawn[pc ${_toon}].Dead}) {
         DEBUG ${break} dead toon
         /varcalc hurtDead ${hurtDead} + 1
         /continue
-      } else /if (!${Spawn[pc ${_toonName}].ID}) {
+      } else /if (!${Spawn[pc ${_toon}].ID}) {
         DEBUG ${break} not in zone
         /continue
-      } else /if (${Spawn[pc ${_toonName}].DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}) {
+      } else /if (${Spawn[pc ${_toon}].DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}) {
         DEBUG ${brek} rampage tank
         /continue
       }
 
       | hurt running count
-      /if (${DanNet[${_toonName}].Observe[Me.PctHPs]} <= ${maHeal.Find[stHealPoint${DanNet[${_toonName}].Observe[Me.Class.ShortName]}].Value}*.PCTHO) {
+      /if (${DanNet[${_toon}].Observe["Me.PctHPs"]} <= ${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}*.PCTHO) {
         DEBUG ${sep}hurtCount +1
         /varcalc hurtCount ${hurtCount} + 1
       }
 
       /if (${maHeal.Find[swHealWeighted].Value}) {
-        DEBUG ${sep}_count${sep}\a-w${_toonName}\ax${sep}\a-o(${Spawn[pc ${_toonName}].PctHPs} / ${maHeal.Find[stHealPoint${DanNet[${_toonName}].Observe[Me.Class.ShortName]}].Value}) - .${maHeal.Find[stHealPoint${DanNet[${_toonName}].Observe[Me.Class.ShortName]}].Value}\ax
-        /varset _tmpWeight ${Float[${Math.Calc[(${DanNet[${_toonName}].Observe[Me.PctHPs]} / ${maHeal.Find[stHealPoint${DanNet[${_toonName}].Observe[Me.Class.ShortName]}].Value}) - .${maHeal.Find[stHealPoint${DanNet[${_toonName}].Observe[Me.Class.ShortName]}].Value}]}].Precision[5]}
+        DEBUG ${sep}_count${sep}\a-w${_toon}\ax${sep}\a-o(${Spawn[pc ${_toon}].PctHPs} / ${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}) - .${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}\ax
+        /varset _tmpWeight ${Float[${Math.Calc[(${DanNet[${_toon}].Observe["Me.PctHPs"]} / ${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}) - .${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}]}].Precision[5]}
         DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}_tmpWeight${sep}\a-w${_tmpWeight}\ax
         /if (${Float[${_tmpWeight}].Precision[5]} < ${Float[${_hurtWeight}].Precision[5]}) {
           /varset _hurtWeight ${Float[${_tmpWeight}].Precision[5]}
-          /varset hurtPctHP ${DanNet[${_toonName}].Observe[Me.PctHPs]}
-          /varset hurtID ${DanNet[${_toonName}].Observe[Me.ID]}
-          /varset hurtCLS ${DanNet[${_toonName}].Observe[Me.Class.ShortName]}
+          /varset hurtPctHP ${DanNet[${_toon}].Observe["Me.PctHPs"]}
+          /varset hurtID ${DanNet[${_toon}].Observe["Me.ID"]}
+          /varset hurtCLS ${DanNet[${_toon}].Observe["Me.Class.ShortName"]}
         }
       } else /if (!${maHeal.Find[swHealWeighted].Value}) {
-        /varset hurtPctHP ${DanNet[${_toonName}].Observe[Me.PctHPs]}
-        /varset hurtID ${DanNet[${_toonName}].Observe[Me.ID]}
-        /varset hurtCLS ${DanNet[${_toonName}].Observe[Me.Class.ShortName]}
+        /varset hurtPctHP ${DanNet[${_toon}].Observe["Me.PctHPs"]}
+        /varset hurtID ${DanNet[${_toon}].Observe["Me.ID"]}
+        /varset hurtCLS ${DanNet[${_toon}].Observe["Me.Class.ShortName"]}
       }
 
     /next _count
@@ -884,99 +884,6 @@ sub get_assist_info(bool _debug, string _type)
   }
 
 /return FALSE
-
-
-
-|***
- * note: creates observers
- * use: /call set_observers DEBUG [map of things to observe] [add|drop] [silent T/F]
- ***|
-sub set_observers(bool _debug, string _map, string _action, bool _silent)
-  DEBUG \atset_observers\ax(\a-w${_map}, ${_action}, ${_silent}\ax)
-
-  /declare _count           int     local 1
-  /declare _actionO         string  local FALSE
-  /declare _toon            string  local FALSE
-  /declare _timestart       int     local 0
-  /declare _timeend         int     local 0
-  /declare _tlo             string  local ${${_map}.Find[tlo].Value}
-  /declare _miso            mapiterator local
-  /declare _found           bool    local FALSE
-
-  /invoke ${set_data_timer[${_debug}, Check_Observers, RESTART]}
-
-  | correct/check the action variable
-  /if (${_action.Equal[drop]}) {
-    /varset _actionO -drop
-  } else /if (${_action.Equal[add]}) {
-    /varset _actionO
-  } 
-
-  | do all the peoples!
-  /while (${_count} <= ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) {
-    /varset _timestart ${MacroQuest.Running}
-    /varset _toon ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
-    DEBUG ${sep}_toon\aw ${_count}\ax::\at${_toon}\ax
-    /varset _found FALSE
-
-
-    | start our trip throught the map
-    /vardata _miso ${_map}.First.Clone
-    /while (!${_miso.IsEnd}) {
-      | we're skipping the TLO for monitoring
-      /if (${_miso.Key.Equal[tlo]}) {
-        /invoke ${_miso.Advance}
-        /continue
-      }
-
-      DEBUG ${sep}map(key,value)${sep}${_map}(\a-w${_miso.Key},${_miso.Value}\ax)
-
-      | define or delete the variables as we need
-      /if (${_action.Equal[drop]}) {
-
-        | dont drop what doesnt exist
-        /if (!${DanNet[${_toon}].OSet[${_tlo}.${_miso.Value}]}) {
-          /invoke ${_miso.Advance}
-          /continue
-        }
-
-      } else /if (${_action.Equal[add]}) {
-        
-        | skip adding if it exists
-        /if (${DanNet[${_toon}].OSet[${_tlo}.${_miso.Value}]}) {
-          /invoke ${_miso.Advance}
-          /continue
-        }
-        
-        | if the observer variable does not exist create it
-        /if (!${Defined[${_toon}_${_miso.Value}]}) {
-          /declare ${_toon}_${_miso.Value} string outer
-        }
-       
-      }
-
-      | set observer or drop it. depending on your choice
-      DEBUG ${sep}\a-t/dobserve\ax ${_toon} -q \a-w"${_tlo}.${_miso.Value}"\ax -o ${_toon}_${_miso.Value} ${_actionO}
-      /dobserve ${_toon} -q "${_tlo}.${_miso.Value}" -o ${_toon}_${_miso.Value} ${_actionO}
-      /varset _found TRUE
-
-      /delay 2s ${DanNet[${_toon}].OSet[${_tlo}.${_miso.Value}]}
-      /invoke ${_miso.Advance}
-
-    }
-    | set an end time for our test for that characer
-    /varset _timeend ${MacroQuest.Running}
-    | give us some response so we know that something is happening
-    /if (!${_silent} && ${_found}) {
-      /invoke ${out[17, "Observed(${If[${_action.Equal[add]},\agadd\ax,\ardrop\ax]})${sep}${_map}${sep}\aw${_toon}\ax${sep}\a-w${Math.Calc[((${_timeend}-${_timestart}) / 10) / 60]}s\ax"]}
-    }
-
-    | moving to the next toon in the dannet all default channel
-    /varcalc _count ${_count} + 1
-    /varset _found FALSE
-  }
-
-/return
 
 
 
@@ -3306,60 +3213,60 @@ sub pull_hardstop(bool _debug)
   }
 
   /declare _countToon int local 1
-  /declare _toonName string local FALSE
+  /declare _toon string local FALSE
   /declare _found bool local FALSE
 
   | each toon
-  /while (${_countToon} <= ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) {
+  /while (${_countToon} <= ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}) {
 
     | get the name to something usable
-    /varset _toonName ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}
-    DEBUG ${sep}_toonName${sep}\ay${_toonName}\ax
+    /varset _toon ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}
+    DEBUG ${sep}_toon${sep}\ay${_toon}\ax
+    
+    | set observer check
+    /if (${observer_validate[${_debug}, obs_chrwatch, ${_toon}]}) {
+      /varcalc _countToon ${_countToon} + 1
+      /continue
+    }
 
     | skip this person?
-    /if (!${Spawn[pc ${_toonName}].ID} || ${Spawn[pc ${_toonName}].Dead} || ${Spawn[pc ${_toonName}].Distance} > ENV) {
-      DEBUG ${sep}skipping${sep}\a-w${_toonName}\ax ${dot} dead or beyond ENV
-      /varcalc _countToon ${_countToon}+1
+    /if (!${Spawn[pc ${_toon}].ID} || ${DanNet[${_toon}].Observe["Me.Dead"]} || ${Spawn[pc ${_toon}].Distance} > ENV || ${_toon.Equal[${Me.DisplayName}]}) {
+      DEBUG ${sep}skipping${sep}\a-w${_toon}\ax ${dot} me, dead or beyond ENV
+      /varcalc _countToon ${_countToon} + 1
       /continue
     }
 
     | check mana and stamina
     /if (${Bool[${maPull.Find[stPctHardStop].Value}]}) {
-      /if (${Select[${Spawn[pc ${_toonName}].Class.ShortName},PAL,SHD,RNG,BST,WIZ,MAG,ENC,NEC,CLR,DRU,SHM]}) {
-        /dquery ${_toonName} -q "Me.PctMana" -o DNQHardStop -t ${maEntropy.Find[stDanNetQueryDelay].Value}
-        DEBUG ${sep}${sep}.PctMana \at${DNQHardStop}\ax
-        /if (${Range.Between[1,101:${DNQHardStop}]}) {
-          /if (${DNQHardStop} < ${maPull.Find[stPctHardStop].Value}) {
-            /varset _found TRUE
-          }
+  
+      | mana
+      /if (${lsClassCast.Contains[${DanNet[${_toon}].Observe["Me.Class.ShortName"]}]}) {
+        /if (${DanNet[${_toon}].Observe["Me.PctMana"]} < ${maPull.Find[stPctHardStop].Value}) {
+          /varset _found TRUE
         }
       }
-
-      | stamina
-      /if (${Select[${Spawn[pc ${_toonName}].Class.ShortName},WAR,PAL,SHD,BRD,RNG,BST,BER,MNK,ROG]}) {
-        /dquery ${_toonName} -q "Me.PctEndurance" -o DNQHardStop -t ${maEntropy.Find[stDanNetQueryDelay].Value}
-        DEBUG ${sep}${sep}.PctEndurance \at${DNQHardStop}\ax
-        /if (${Range.Between[1,101:${DNQHardStop}]}) {
-          /if (${DNQHardStop} < ${maPull.Find[stPctHardStop].Value}) {
-            /varset _found TRUE
-          }
+      
+      | stamina 
+      /if ((${lsClassStamina.Contains[${DanNet[${_toon}].Observe["Me.Class.ShortName"]}]}) {
+        /if (${DanNet[${_toon}].Observe["Me.PctEndurance"]} < ${maPull.Find[stPctHardStop].Value}) {
+          /varset _found TRUE
         }
       }
     }
 
     | rez efects
     /if (${Bool[${maPull.Find[swHardStopRez].Value}]}) {
-    /dquery ${_toonName} -q "Me.Buff[Revival Sickness].ID" -o DNQHardStop -t ${maEntropy.Find[stDanNetQueryDelay].Value}
-      DEBUG ${sep}${sep}Revival Sickness \at${DNQHardStop}\ax
-      /if (${Bool[${DNQHardStop}]}) {
+      
+      /if (${DanNet[${_toon}].Observe["Me.Buff[Revival Sickness].ID"]}) {
+        DEBUG ${sep}${sep}Revival Sickness
         /varset _found TRUE
       }
 
-      /dquery ${_toonName} -q "Me.Buff[Resurrection Sickness].ID" -o DNQHardStop -t ${maEntropy.Find[stDanNetQueryDelay].Value}
-      DEBUG ${sep}${sep}Resurrection Sickness \at${DNQHardStop}\ax
-      /if (${Bool[${DNQHardStop}]}) {
+      /if (${DanNet[${_toon}].Observe["Me.Buff[Resurrection Sickness].ID"]}) {
+        DEBUG ${sep}${sep}Resurrection Sickness
         /varset _found TRUE
       }
+
     }
 
     /if (${_found} && !${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
@@ -6020,10 +5927,10 @@ sub check_buff_cycle_crew(bool _debug)
   DEBUG ${sep}Buff${sep}\a-wCrew\ax
 
   | each toon
-  /while (${_countToon} <= ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) {
+  /while (${_countToon} <= ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}) {
 
     | get the name to something usable
-    /varset _toonName ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}
+    /varset _toonName ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}
     DEBUG ${sep}_toonName${sep}\ay${_toonName}\ax
 
     | skip this person?
@@ -6110,7 +6017,7 @@ sub check_buff_cycle_crew(bool _debug)
       /varset _target FALSE
 
       | is this an acceptable target for casting
-      /if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) {
+      /if (${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) {
         DEBUG ${sep}crew member${sep}\a-w${_toonName}\ax (\a-rvalid target\ax)
         /varset _target TRUE
       }
@@ -6287,7 +6194,7 @@ sub check_buff_cycle_others(bool _debug, string _type)
     DEBUG ${sep}_toonName${sep}\ay${_toonName}\ax
 
     | one of your crew
-    /if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) /continue
+    /if (${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) /continue
 
 
     | skip this person?
@@ -6421,7 +6328,7 @@ sub is_lsSafeNames(bool _debug, string _name)
   }
 
   | auto accept ${DanNetMacroChannel} channel toons
-  /if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_name.Lower}]}) {
+  /if (${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Find[${_name.Lower}]}) {
     DEBUG ${sep}safe${sep}\a-wstEntropyGroup_all\ax
     /return TRUE
   }
@@ -11517,13 +11424,13 @@ sub check_for_corpse(bool _debug)
   /if (${maRez.Find[swRezDanNet].Value}) {
     DEBUG ${sep}swRezDanNet rez
     /declare _countD int local 0
-    /for _countD 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
+    /for _countD 1 to ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}
 
-      /if (!${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].Dead}) {
-        DEBUG ${sep}${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} dead${sep}\a-w${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].Dead}\ax
+      /if (!${Spawn[${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].Dead}) {
+        DEBUG ${sep}${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} dead${sep}\a-w${Spawn[${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].Dead}\ax
         /continue
-      } else /if (${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].Dead}) {
-        /varset _tmpID ${Spawn[${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].ID}
+      } else /if (${Spawn[${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].Dead}) {
+        /varset _tmpID ${Spawn[${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].ID}
       }
 
       | mark the toon if it isnt already
@@ -13774,11 +13681,11 @@ sub check_buff_cycle_temp(bool _debug)
   DEBUG ${sep}Buff${sep}\a-wTemp\ax
 
   | each toon
-  /while (${_countToon} <= ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}) {
-    DEBUG ${sep}${_countToon} <= ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
+  /while (${_countToon} <= ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}) {
+    DEBUG ${sep}${_countToon} <= ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}
 
     | get the name to something usable and proper case
-    /varset _toonName ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|].Left[1].Upper}${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|].Right[-1].Lower}
+    /varset _toonName ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|].Left[1].Upper}${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|].Right[-1].Lower}
     DEBUG ${sep}_toonName${sep}\ay${_toonName}\ax
 
     | skip this person?
@@ -13847,7 +13754,7 @@ sub check_buff_cycle_temp(bool _debug)
       /varset _target FALSE
 
       | is this an acceptable target for casting
-      /if (${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) {
+      /if (${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) {
         DEBUG ${sep}target${sep}\a-w${_toonName}\ax (\a-rvalid\ax)
         /varset _target TRUE
       }
@@ -14035,9 +13942,9 @@ sub control_broadcast_command(string _command, string _option, string _verbage, 
     /invoke ${out[21, "${broadcast}${sep}\a-w/${_command.Lower}\ax (\a-rall\ax)"]}
  
     /if (${Select[${_command},on,off]}) {
-      /dgexecute ${maComm.Find[stEntropyGroup_all].Value} /command_${_command} self
+      /dgexecute ${maEntropy.Find[stEntropyGroup_all].Value} /command_${_command} self
     } else {
-      /dgexecute ${maComm.Find[stEntropyGroup_all].Value} /${_command} self
+      /dgexecute ${maEntropy.Find[stEntropyGroup_all].Value} /${_command} self
     }
 
   | all raid broadcast
@@ -14417,19 +14324,32 @@ sub pull_assist_decision(bool _debug)
 
   DEBUG ${submenu}pullstate (\a-rassist/pull check\ax)
   
+  
   | assist error corrections
   /if (!PULL && !${maPull.Find[stCountChainPull].Value}) {
+
+    /invoke ${target[release]}
+
     | no assist set at all
     /if (!${Bool[${maCC.Find[stAssistMode].Value}]} && !${Bool[${maCC.Find[stManualAssist1].Value}]} && !${Bool[${maCC.Find[stManualAssist2].Value}]}) {
       DEBUG ${submenu}pullstate (\a-rno assist set, releasing\ax)
       /invoke ${target[release]}
       /return FALSE
-    | no ma1/2 or not in zone
-    } else /if ((${Bool[${maCC.Find[stManualAssist1].Value}]} || ${Bool[${maCC.Find[stManualAssist2].Value}]}) && !${Spawn[${maCC.Find[stManualAssist1].Value}].ID} && !${Spawn[${maCC.Find[stManualAssist2].Value}].ID}) {
+    
+    | no ma1 or not in zone
+    } else /if (${Bool[${maCC.Find[stManualAssist1].Value}]} && !${Spawn[${maCC.Find[stManualAssist1].Value}].ID}) {
       DEBUG ${submenu}pullstate (\a-rno ma1, releasing\ax)
       /invoke ${target[release]}
       /return FALSE      
+
+    | no ma2 or not in zone
+    } else /if (${Bool[${maCC.Find[stManualAssist2].Value}]} && !${Spawn[${maCC.Find[stManualAssist2].Value}].ID}) {
+      DEBUG ${submenu}pullstate (\a-rno ma1, releasing\ax)
+      /invoke ${target[release]}
+      /return FALSE      
+ 
     } 
+    
   } 
 
   /if (!PULL) {
@@ -14512,8 +14432,6 @@ sub pull_assist_decision(bool _debug)
         /call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
       }
     }
-    
-    /delay 1
   }
 
 /return TRUE
@@ -14650,56 +14568,19 @@ sub remove_spa(bool _debug, int _spa)
 /return TRUE
 
 
-
-
-
-
-
-
-
-
-
-sub get_help(string _type, string _verbage)
-
-  /if (!LUA) {
-    OUT Help is in Lua only
-    /return FALSE
-  }
-  
-  |         subject   flag (-?)
-  /lua get_help ${_type} ${_verbage}
-  
-  
-/return TRUE
-
-
-
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   
 |***
  * note: Cures/removes debuffs, we hope...
  * use:
-**|
-
+ **|
 sub check_cure(bool _debug)
   DEBUG \atcheck_cure\ax()
 
   /invoke ${set_data_timer[${_debug}, Check_Cure, RESTART]}
 
-  /if (!AUTO) /return FALSE
+  /if (!AUTO) {
+    /return FALSE
+  }
 
   | dont take time from mobs attention
   /if ((PULL || AGRO) && ${Me.CombatState.Equal[combat]}) {
@@ -14720,43 +14601,41 @@ sub check_cure(bool _debug)
       /call voodooo ${_debug} "Purify Body" 0 FALSE
       /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
       /invoke ${set_data_timer[${_debug}, Check_Cure, 1]}
-      /return
+      /goto :end_cure
 
     | Paladin, Cleric, Shaman, Druid
     } else /if (${Select[${Me.Class.ShortName},PAL,CLR,SHM,DRU]} && ${Me.AltAbilityReady[Radiant Cure]} && (${Me.CountersCurse} || ${Me.CountersPoison} || ${Me.CountersDisease})) {
       /call voodoo ${_debug} "Radiant Cure" 0 FALSE
       /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
       /invoke ${set_data_timer[${_debug}, Check_Cure, 1]}
-      /return
+      /goto :end_cure
 
     | Necromancer
     } else /if (${Select[${Me.Class.ShortName},NEC]} && ${Me.AltAbilityReady[Embrace the Decay]} && (${Me.CountersCurse} || ${Me.CountersPoison} || ${Me.CountersDisease} || ${Me.CountersCorruption})) {
       /call voodoo ${_debug} "Embrace the Decay" 0 FALSE
       /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
       /invoke ${set_data_timer[${_debug}, Check_Cure, 1]}
-      /return
+      /goto :end_cure
     }
 
     | cure with items self only
     /if (${Me.CountersCurse} && ${Me.ItemReady[${maHeal.Find[stCureCurseItem].Value}]}) {
       /call voodoo ${_debug} "${maHeal.Find[stCureCurseItem].Value}" ${Me.ID} FALSE
       /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-    }
 
-    /if (${Me.CountersCorruption} && ${Me.ItemReady[${maHeal.Find[stCureCorruptionItem].Value}]}) {
+    } else /if (${Me.CountersCorruption} && ${Me.ItemReady[${maHeal.Find[stCureCorruptionItem].Value}]}) {
       /call voodoo ${_debug} "${maHeal.Find[stCureCorruptionItem].Value}" ${Me.ID} FALSE
       /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-    }
 
-    /if (${Me.CountersPoison} && ${Me.ItemReady[${maHeal.Find[stCurePoisonItem].Value}]}) {
+    } else /if (${Me.CountersPoison} && ${Me.ItemReady[${maHeal.Find[stCurePoisonItem].Value}]}) {
       /call voodoo ${_debug} "${maHeal.Find[stCurePoisonItem].Value}" ${Me.ID} FALSE
       /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-    }
 
-    /if (${Me.CountersDisease} && ${Me.ItemReady[${maHeal.Find[stCureDiseaseItem].Value}]}) {
+    } else /if (${Me.CountersDisease} && ${Me.ItemReady[${maHeal.Find[stCureDiseaseItem].Value}]}) {
       /call voodoo ${_debug} "${maHeal.Find[stCureDiseaseItem].Value}" ${Me.ID} FALSE
       /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
     }
+    
   } else /if (!${Me.TotalCounters} && ${maHeal.Find[swHealCureSelf].Value}) {
     DEBUG ${sep}\aw${Me.DisplayName.Lower}\ax is just fine
   }
@@ -14768,46 +14647,47 @@ sub check_cure(bool _debug)
 
   | time to check the others
   /declare _count int local 0
-  /declare _name string local
+  /declare _toon string local
 
   | each toon
-  /for _count 1 to ${DanNet.PeerCount[${maComm.Find[stEntropyGroup_all].Value}]}
+  /for _count 1 to ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}
 
     | get the name to something usable
-    /varset _name ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
-    DEBUG ${sep}checking${sep}\aw${_name}\ax (\a-r${maComm.Find[stEntropyGroup_all].Value}\ax)
-
-    | are they here?
-    /if (!${Spawn[pc ${DanNet.Peers[${maComm.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}].ID}) /continue
-
-
-    | group only
-    /if (${maHeal.Find[swHealCureGroup].Value} && !${maHeal.Find[swHealCureCrew].Value}) {
-      /if (!${Group.Member[${_name}].ID}) {
-        /continue
-      }
+    /varset _toon ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
+    DEBUG ${sep}${_count}${sep}checking${sep}\aw${_toon}\ax (\a-r${maEntropy.Find[stEntropyGroup_all].Value}\ax)
+    
+    /if (${_toon.Equal[${Me.DisplayName}]}) {
+      /continue
     }
-
-    | if the observer hasnt "observerd" the toon yet. go no further!
-    /if (!${Defined[${_name}_TotalCounters]} || !${DanNet[${_name}].OSet[Me.TotalCounters]}) {
-      DEBUG ${sep}\aw${_name}\ax is not being observerd.. \archeck observers\ax...
+      
+    | are they here?
+    /if (!${Spawn[pc ${_toon}].ID} || ${Spawn[pc ${_toon}].Dead}) {
       /continue
     }
 
-    | are they close?. if not. fuck'em
-    /if (${Spawn[pc ${_name}].Distance} > ${maHard.Find[stMaxCureRad].Value}) /continue
+    /if (!${observer_validate[${_debug}, obs_cure, ${_toon}]}) {
+      /continue
+    }   
 
-    | toon dead?
-    /if (${Spawn[pc ${_name}].Dead}) /continue
-
-    | are they debuffed at all?
-    /if (${Defined[${_name}_Snared]} && ${Defined[${_name}_Mezzed]}) {
-      /if (!${DanNet[${_name}].Observe[Me.TotalCounters]} && !${Bool[${${_name}_Snared}]} && !${Bool[${${_name}_Mezzed}]}) {
-        DEBUG ${sep}\aw${_name}\ax is just fine
+    | group only
+    /if (${maHeal.Find[swHealCureGroup].Value} && !${maHeal.Find[swHealCureCrew].Value}) {
+      /if (!${Group.Member[${_toon}].Present}) {
         /continue
-      } else /if (${DanNet[${_name}].Observe[Me.TotalCounters]}) {
-        OUT Medic${sep}\a-w${_name}\ax (\a-r${DanNet[${_name}].Observe[Me.TotalCounters]}\ax)
       }
+    }
+
+    | are they close?. if not. fuck'em
+    /if (${Spawn[pc ${_toon}].Distance} > ${maHard.Find[stMaxCureRad].Value}) {
+      /continue
+    }
+    
+    
+    | are they debuffed at all?
+    /if (!${DanNet[${_toon}].Observe["Me.TotalCounters"]} && !${Bool[${DanNet[${_toon}].Observe["Me.Snared"]}]} && !${Bool[${DanNet[${_toon}].Observe["Me.Mezzed"]}]}) {
+      DEBUG ${sep}\aw${_toon}\ax is just fine
+      /continue
+    } else /if (${DanNet[${_toon}].Observe["Me.TotalCounters"]}) {
+      OUT Medic${sep}\a-w${_toon}\ax (\a-r${DanNet[${_toon}].Observe["Me.TotalCounters"]}\ax)
     }
 
     ISMEDEAD
@@ -14817,51 +14697,36 @@ sub check_cure(bool _debug)
 
       | AA Purify Soul
       | 200' 5 min
-      /if (${Select[${Me.Class.ShortName},PAL,CLR,DRU]} && ${Me.AltAbilityReady[Purify Soul]} && ${Spawn[pc ${_name}].Distance} < 200) {
-        /call voodoo ${_debug} "Purify Soul" ${Spawn[pc ${_name}].ID} FALSE
-        /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-        /if (!${DanNet[${_name}].Observe[Me.TotalCounters]}) {
-          /invoke ${set_data_timer[FALSE, Check_Cure, 1s]}
-          /return
-        }
-      }
+      /if (${Select[${Me.Class.ShortName},PAL,CLR,DRU]} && ${Me.AltAbilityReady[Purify Soul]} && ${Spawn[pc ${_toon}].Distance} < 200) {
+        /call voodoo ${_debug} "Purify Soul" ${Spawn[pc ${_toon}].ID} FALSE
+        /invoke ${set_data_timer[FALSE, Check_Cure, 1s]}
+        /goto :end_cure
 
       | AA Radient Cure
       | 100' 1 min
-      /if (${Select[${Me.Class.ShortName},PAL,CLR,SHM,DRU]} && ${Me.AltAbilityReady[Radiant Cure]} && ${Spawn[pc ${_name}].Distance} < 100 && ${Group.Member[${_name}].ID}) {
+      } else /if (${Select[${Me.Class.ShortName},PAL,CLR,SHM,DRU]} && ${Me.AltAbilityReady[Radiant Cure]} && ${Spawn[pc ${_toon}].Distance} < 100 && ${Group.Member[${_toon}].ID}) {
         /call voodoo ${_debug} "Radiant Cure" 0 FALSE
-        /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-        /if (!${DanNet[${_name}].Observe[Me.TotalCounters]}) {
-          /invoke ${set_data_timer[FALSE, Check_Cure, 1s]}
-          /return
-        }
-      }
+        /invoke ${set_data_timer[FALSE, Check_Cure, 1s]}
+        /goto :end_cure
 
-      | AA Group Purify Soul . were in deep shit if we've gotten this far.
+      | AA Group Purify Soul
       | 0/100' 15 min
-      /if (${Select[${Me.Class.ShortName},CLR,DRU]} && ${Me.AltAbilityReady[Group Purify Soul]} && ${Spawn[pc ${_name}].Distance} < 100 && ${Group.Member[${_name}].ID}) {
+      } else /if (${Select[${Me.Class.ShortName},CLR,DRU]} && ${Me.AltAbilityReady[Group Purify Soul]} && ${Spawn[pc ${_toon}].Distance} < 100 && ${Group.Member[${_toon}].ID}) {
         /call voodoo ${_debug} "Group Purify Soul" 0 FALSE
-        /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-        /if (!${DanNet[${_name}].Observe[Me.TotalCounters]}) {
-          /invoke ${set_data_timer[FALSE, Check_Cure, 1s]}
-          /return
-        }
-      }
+        /invoke ${set_data_timer[FALSE, Check_Cure, 1s]}
+        /goto :end_cure
 
       | paladin splash 50' range
-      /if (${Select[${Me.Class.ShortName},PAL]} && ${Spawn[pc ${_name}].Distance} < 50) {
+      } else /if (${Select[${Me.Class.ShortName},PAL]} && ${Spawn[pc ${_toon}].Distance} < 50) {
         /call Bind_command_splash FALSE
-        /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-        /if (!${DanNet[${_name}].Observe[Me.TotalCounters]}) {
-          /invoke ${set_data_timer[FALSE, Check_Cure, 1s]}
-          /return
-        }
+        /invoke ${set_data_timer[FALSE, Check_Cure, 1s]}
+        /goto :end_cure
       }
     }
 
     | are they debuffed?
-    DEBUG ${sep}\aw${_name}\aw_TotalCounters${sep}\a-w${DanNet[${_name}].Observe[Me.TotalCounters]}\ax
-    /if (!${DanNet[${_name}].Observe[Me.TotalCounters]}) {
+    DEBUG ${sep}\aw${_toon}\aw_TotalCounters${sep}\a-w${DanNet[${_toon}].Observe["Me.TotalCounters"]}\ax
+    /if (!${DanNet[${_toon}].Observe["Me.TotalCounters"]}) {
       /continue
     }
 
@@ -14871,63 +14736,213 @@ sub check_cure(bool _debug)
     }
 
     | cure with spell
-    /if (${Bool[${maHeal.Find[stCureCurse].Value}]} && ${DanNet[${_name}].Observe[Me.CountersCurse]} && ${DanNet[${_name}].OSet[Me.CountersCurse]}) {
-      DEBUG ${sep}${_name} is CURSED
+    /if (${Bool[${maHeal.Find[stCureCurse].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersCurse"]} && ${DanNet[${_toon}].OSet["Me.CountersCurse"]}) {
+      DEBUG ${sep}${_toon} is CURSED
       /delay 3s !${Me.SpellInCooldown}
       /if (${is_ready[${_debug}, "${maHeal.Find[stCureCurse].Value}"]}) {
-        /call voodoo ${_debug} "${maHeal.Find[stCureCurse].Value}" ${Spawn[pc ${_name}].ID} FALSE
-        /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-        /if (!${DanNet[${_name}].Observe[Me.CountersCurse]}) {
-          /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
-          /return
-        }
+        /call voodoo ${_debug} "${maHeal.Find[stCureCurse].Value}" ${Spawn[pc ${_toon}].ID} FALSE
+        /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+        /goto :end_cure
       }
     }
 
-    /if (${Bool[${maHeal.Find[stCureCorruption].Value}]} && ${DanNet[${_name}].Observe[Me.CountersCorruption]} && ${DanNet[${_name}].OSet[Me.CountersCorruption]}) {
-      DEBUG ${sep}${_name} is CORRUPTED
+    /if (${Bool[${maHeal.Find[stCureCorruption].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersCorruption"]} && ${DanNet[${_toon}].OSet["Me.CountersCorruption"]}) {
+      DEBUG ${sep}${_toon} is CORRUPTED
       /delay 3s !${Me.SpellInCooldown}
       /if (${is_ready[${_debug}, "${maHeal.Find[stCureCorruption].Value}"]}) {
-        /call voodoo ${_debug} "${maHeal.Find[stCureCorruption].Value}" ${Spawn[pc ${_name}].ID} FALSE
-        /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-        /if (!${DanNet[${_name}].Observe[Me.CountersCorruption]}) {
-          /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
-          /return
-        }
+        /call voodoo ${_debug} "${maHeal.Find[stCureCorruption].Value}" ${Spawn[pc ${_toon}].ID} FALSE
+        /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+        /goto :end_cure
       }
     }
 
-    /if (${Bool[${maHeal.Find[stCurePoison].Value}]} && ${DanNet[${_name}].Observe[Me.CountersPoison]} && ${DanNet[${_name}].OSet[Me.CountersPoison]}) {
-      DEBUG ${sep}${_name} is POISONED... danger noodle~
+    /if (${Bool[${maHeal.Find[stCurePoison].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersPoison"]} && ${DanNet[${_toon}].OSet["Me.CountersPoison"]}) {
+      DEBUG ${sep}${_toon} is POISONED... danger noodle~
       /delay 3s !${Me.SpellInCooldown}
       /if (${is_ready[${_debug}, "${maHeal.Find[stCurePoison].Value}"]}) {
-        /call voodoo ${_debug} "${maHeal.Find[stCurePoison].Value}" ${Spawn[pc ${_name}].ID} FALSE
-        /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-        /if (!${DanNet[${_name}].Observe[Me.CountersPoison]}) {
-          /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
-          /return
-        }
+        /call voodoo ${_debug} "${maHeal.Find[stCurePoison].Value}" ${Spawn[pc ${_toon}].ID} FALSE
+        /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+        /goto :end_cure
       }
     }
 
-    /if (${Bool[${maHeal.Find[stCureDisease].Value}]} && ${DanNet[${_name}].Observe[Me.CountersDisease]} && ${DanNet[${_name}].OSet[Me.CountersDisease]}) {
-      DEBUG ${sep}${_name} is DISEASED...Burn'em with FIRE!!!
+    /if (${Bool[${maHeal.Find[stCureDisease].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersDisease"]} && ${DanNet[${_toon}].OSet["Me.CountersDisease"]}) {
+      DEBUG ${sep}${_toon} is DISEASED...Burn'em with FIRE!!!
       /delay 3s !${Me.SpellInCooldown}
       /if (${is_ready[${_debug}, "${maHeal.Find[stCureDisease].Value}"]}) {
-        /call voodoo ${_debug} "${maHeal.Find[stCureDisease].Value}" ${Spawn[pc ${_name}].ID} FALSE
-        /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-        /if (!${DanNet[${_name}].Observe[Me.CountersDisease]}) {
-          /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
-          /return
-        }
+        /call voodoo ${_debug} "${maHeal.Find[stCureDisease].Value}" ${Spawn[pc ${_toon}].ID} FALSE
+        /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+        /goto :end_cure
       }
     }
 
   /next _count
 
+  :end_cure
   SETHUD EMPTY
 
 /return TRUE
 
+
+
+|***
+ * note: cycles a map of tlos too make sure the observers have been set before usage
+ * use: /call observer_validate [mapname] [character to check]
+ **|
+sub observer_validate(bool _debug, string _table, string _toon)
+  DEBUG \a-tobserver_validate\ax(\a-w${_table}, ${_toon}\ax)
+
+  /declare _tmpVar          string  local FALSE
+  /declare _tmpObs          string  local FALSE
+  /declare _countObs        int     local 1
+
+  /while (${_countObs} <= ${sqlite.Rows[${_table}]}) {
+
+    /varset _tmpVar ${_toon}_${sqlite.Result[${_table} ${_countObs} env_var]}
+    /varset _tmpObs ${sqlite.Result[${_table} ${_countObs} value]}
+    DEBUG ${sep}{DanNet[${_toon}].OSet[${_tmpObs}]}${sep}\a-w${DanNet[${_toon}].OSet["${_tmpObs}"]}\ax
+
+    /if (!${DanNet[${_toon}].OSet["${_tmpObs}"]}) {
+      /return FALSE      
+    }
+
+    /varcalc _countObs ${_countObs} + 1
+  }
+
+/return TRUE
+
+
+
+|***
+ * note: creates observers
+ * use: /call observer_build DEBUG [db table of things to observe] [add|drop] [silent T/F]
+ ***|
+sub observer_build(bool _debug, string _table, string _action, bool _silent)
+  DEBUG \atset_observers\ax(\a-w${_table}, ${_action}, ${_silent}\ax)
+
+  /declare _count           int     local 1
+  /declare _countObs        int     local 1
+  /declare _actionO         string  local FALSE
+  /declare _toon            string  local FALSE
+  /declare _timestart       int     local 0
+  /declare _timeend         int     local 0
+  /declare _found           bool    local FALSE
+  /declare _tmpVar          string  local FALSE
+  /declare _tmpObs          string  local FALSE
+  /declare _countFail       int     local 0
+
+  /invoke ${set_data_timer[${_debug}, Check_Observers, RESTART]}
+
+  | correct/check the action variable
+  /if (${_action.Equal[drop]}) {
+    /varset _actionO -drop
+  } else /if (${_action.Equal[add]}) {
+    /varset _actionO
+  } 
+
+  | only reload if not there
+  /if (!${sqlite.Rows[${_table}]}) {
+    /sqlite query "${DBstatic}" ${_table} SELECT * FROM ${_table};
+  }
+   
+  | if we still dont have data, take the ball and go home
+  /if (!${sqlite.Rows[${_table}]}) {
+    /return FALSE
+  }
+  
+  | do all the peoples!
+  /while (${_count} <= ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}) {
+    /varset _timestart ${MacroQuest.Running}
+    /varset _toon ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
+    /varset _countFail 0
+    
+    | skip me
+    /if (${_toon.Equal[${Me.DisplayName}]}) {
+      /varcalc _count ${_count} + 1
+      /continue
+    }
+    
+    DEBUG ${sep}_toon\aw ${_count}\ax::\at${_toon}\ax
+    /varset _found FALSE
+    /varset _countObs 1
+
+    | start our trip throught the sql data
+    /while (${_countObs} <= ${sqlite.Rows[${_table}]}) {
+
+      /varset _tmpVar ${_toon}_${sqlite.Result[${_table} ${_countObs} env_var]}
+      /varset _tmpObs ${sqlite.Result[${_table} ${_countObs} value]}
+
+      | define or delete the variables as we need
+      /if (${_action.Equal[drop]}) {
+        /if (!${DanNet[${_toon}].OSet["${_tmpObs}"]}) {
+          /varcalc _countObs ${_countObs} + 1
+          /continue
+        }
+
+      } else /if (${_action.Equal[add]}) {
+        /if (${DanNet[${_toon}].OSet["${_tmpObs}"]}) {
+          /varcalc _countObs ${_countObs} + 1
+          /continue
+        }
+        
+        | if the observer variable does not exist create it
+        /if (!${Defined[${_tmpVar}]}) {
+          /declare ${_tmpVar} string outer
+        }
+      }
+       
+      | set observer or drop it
+      /dobserve ${_toon} -q "${_tmpObs}" -o ${_tmpVar} ${_actionO}
+      /delay 5 ${DanNet[${_toon}].OSet["${_tmpObs}"]}
+      /if (!${DanNet[${_toon}].OSet["${_tmpObs}"]}) {
+        /varcalc _countFail ${_countFail} + 1
+      }
+      DEBUG ${sep}\a-t/dobserve\ax ${_toon} -q \a-w"${_tmpObs}"\ax -o ${_tmpVar} ${_actionO} (\a-w${DanNet[${_toon}].OSet["${_tmpObs}"]}\ax)
+
+      
+      /varset _found TRUE
+      /varcalc _countObs ${_countObs} + 1
+    }
+    
+    
+    | set an end time for our test for that characer
+    /varset _timeend ${MacroQuest.Running}
+
+    | give us some response so we know that something is happening
+    /if ((!${_silent} || ${_debug}) && ${_found}) {
+      /invoke ${out[17, "Observe (${If[${_action.Equal[add]},\agadd\ax,\ardrop\ax]})${sep}${_table}(\a-r${_countFail}\ax)${sep}\aw${_toon}\ax${sep}\a-w${Math.Calc[((${_timeend}-${_timestart}) / 10) / 60]}s\ax"]}
+    }
+
+    | moving to the next toon in the dannet
+    /varcalc _count ${_count} + 1
+    /varset _found FALSE
+  }
+
+/return TRUE
+
+
+
+
+
+
+
+
+
+
+
+
+
+sub get_help(string _type, string _verbage)
+
+  /if (!LUA) {
+    OUT Help is in Lua only
+    /return FALSE
+  }
+  
+  |              subject   flag (-?)
+  /lua get_help ${_type} ${_verbage}
+  
+  
+/return TRUE
 
 
