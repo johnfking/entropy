@@ -21,6 +21,48 @@ on the to do list
 --------------------
 
 
+210109.01
+- /pull stop
+  removed an extra "(" in a hard stop check
+  corrected the observers check (all @dannuic)
+  puller will watch themselves now and not just the group
+  should break out a little faster as well
+  reduced the delay in between the pull stop checks form 30 seconds to 6
+- spell casting
+  added an auto fail for SPA 96 (silenced)
+- /debuff
+- /admin spa
+  fixed the gem#/song#/buff# options to return the correct name
+- /entropy fizzles ## - number of times to retry on a fizzle cast  
+- /debuff (complete rewrite)
+  now conforms to all other list choice controls like nuke/dot/defense/whatver
+  12 slots to use
+  available to all classes
+  tags added for debuffs:
+    debuff::eradicate::marker /debuff eradicate
+    debuff::malo::marker /debuff malo
+    debuff::mez::marker /debuff mez
+    debuff::mezae::marker /debuff mez ae
+    debuff::slow::marker /debuff slow
+    debuff::snare::marker /debuff snare
+    debuff::tash::marker /debuff tash
+  debuff cast order is:tash/malo/slow/eradicate/snare. mez it is on its own system
+  debuffs with multi casting effects will be split apart and all effects will be checked
+  all the old debuff variables have been removed
+  you will need to set up the ones you want to use
+- removed all the old FLOW variables
+- /buff raid and /buff group will work again
+- assisting.. yet another complete redesign
+  assist order: smart -> dannet -> ma1/2  
+  /cc ass list
+    output the contents of lsAssistDanNet
+    this is a list of people in your dannet you want to assist
+    it will find the first person in the list with a valid target and assist that person
+  /cc ass smart [1|2|3|g] all function on MQ2Next. i believe the live version of MQ is still buggy
+  an available xtarget is no longer a requirement for any assist method. xtarget is no longer used
+- /port aa NAME will actually cast the aa
+    
+
 210102.01
 - /repeat - targeting issue fixed
 - curing

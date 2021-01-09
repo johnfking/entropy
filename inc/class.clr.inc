@@ -78,6 +78,16 @@ sub class_init(bool _debug)
   | complete heal
   /call set_data_map ${_debug} maHeal stPctCH                         0                             "${auxnum} complete heal %"                                 heal
 
+  | chain complete heal 
+
+  /call set_data_map ${_debug} maHeal stPctChain                       0                            "${auxnum} % of tanks health to start the ch. 0=instantly"    heal                     
+  /call set_data_map ${_debug} maHeal swChain                          FALSE                        "${auxsw} actively listen for complete heal chain rotation"   heal
+  /call set_data_list ${_debug} maHeal lsChain                         EMPTY                        "${auxli} list of tanks to heal"                              heal
+  /call set_data ${_debug} maHeal swChainToken                         map outer FALSE
+  /call set_data_map ${_debug} maHeal stChainPause                     0                            "${auxnum}duration to pause (in seconds) once getting tolken to start casting"    heal                     
+
+
+
   | AAs
   /call set_data_map ${_debug} maRez stAADivineResurrection           PREGEN|1                      "${auxna} Divine Resurrection AA"                           rez
   /call set_data_map ${_debug} maChr stAABeaconofLife                 PREGEN|1                      "${auxna} Beacon of Life aa"
@@ -100,6 +110,9 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAAVeturikasPerseverance        PREGEN|1                      "${auxna} Veturika's Perseverance AA"
   /call set_data_map ${_debug} maChr stAAQuietPrayer                  PREGEN|1                      "${auxna} Quiet Prayer AA"
   /call set_data_map ${_debug} maChr stAASanctuary                    PREGEN|1                      "${auxna} Sanctuary AA"
+
+
+  |
 
 
   /if (${maDebug.Find[init].Value}) {
@@ -141,9 +154,11 @@ sub class_main(bool _debug)
     }
 
   }
-
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
     GETINPUT class_main_CLR NA|NA
+    /if (${maHeal.Find[swChain].Value} && ${maHeal.Find[swChainToken].Value}) {
+      /call completeheal_chain
+    }
     /call check_heal_routines
 
     CHECKFADE
@@ -159,9 +174,7 @@ sub class_main(bool _debug)
       /call set_combat_control ${maDebug.Find[decision].Value} TARGET
       /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
       /call misc_combat ${maDebug.Find[misc].Value} TARGET
-      /if (!${timer_Check_deBuffs}) {
-        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-      }
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines TARGET
       /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
       /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET
@@ -225,6 +238,10 @@ sub misc_combat(bool _debug, int _tmpID)
     /call cast_yaulp ${maDebug.Find[yaulp].Value}
   }
 
+  /if (${maHeal.Find[swChain].Value} && ${maHeal.Find[swChainToken].Value}) {
+    /call completeheal_chain
+  }  
+
   /if (SWARM) {
     /call cast_temp_pet ${maDebug.Find[temp].Value} ${_tmpID} "${maChr.Find[stTempPet].Value}"
   }
@@ -286,6 +303,11 @@ sub check_heal(bool _debug, string _type)
   CHECKFADE
   GETINPUT clr_heal_start type|${_type}
   
+
+
+  /if (${maHeal.Find[swChain].Value} && ${maHeal.Find[swChainToken].Value}) {
+    /call completeheal_chain
+  }
 
   | Group Regen Heal
   /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
@@ -506,6 +528,10 @@ sub burn(bool _debug, int _tmpID)
     /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
     /return TRUE
   }
+  
+  /if (${maHeal.Find[swChain].Value} && ${maHeal.Find[swChainToken].Value}) {
+    /call completeheal_chain
+  }  
 
   | Group AA Celestial Regeneration
   /if (${maHeal.Find[swHealGroupOverTime].Value} && ${Group.Members} && !${Raid.Members}) {
@@ -662,7 +688,7 @@ sub check_alliance(bool _debug)
   | find out who the hell we should be assisting
   /declare _tmpID int local ${get_assist_info[${_debug}, id]}
 
-  |
+  | bail if no assist set up
   /if (!${_tmpID}) {
     /return FALSE
   }
@@ -672,12 +698,202 @@ sub check_alliance(bool _debug)
 
   /delay 5 ${Target.BuffsPopulated}
 
-
   /if (${Target.BuffsPopulated} && !${Target.Buff[${maChr.Find[stAlliance].Value}].ID}) {
     /call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" ${_tmpID} FALSE
   }
 
 /return TRUE
+
+
+
+|***
+* note: Complete Heal Chain
+* use:
+***|
+sub completeheal_chain(bool _debug)
+  DEBUG \atcompleteheal_chain\ax()
+
+  /if (!AUTO) /return FALSE
+  /if (!${maHeal.Find[swChain].Value}) /return FALSE
+  /if (!${Me.Gem[Complete Heal]}) /return FALSE
+  /if (!${maHeal.Find[swChainToken]Value}) /return FALSE
+
+  DEBUG ${sep}swChainToken${sep}\a-w${maHeal.Find[swChainToken]Value}\ax
+
+  /declare _count int local 0
+  /declare _nexthasCH bool local FALSE
+  /declare _countMe int local 0
+  /declare _countNext int local 0
+
+  | get my position in the line
+  /for _count 1 to ${DanNet.PeerCount[clr]}
+    /if (${DanNet.Peers[CLR].Arg[${_count},|].Equal[${Me.DisplayName}]}) {
+      /varset _countMe ${_count}
+      /break
+    }
+  /next _count
+
+  DEBUG ${sep}_countMe position${sep}\a-w${_countMe}\ax
+
+  | set next cleric in the line. this is just a starting point from me, to move on
+  /if (${_countMe} == ${DanNet.PeerCount[clr]}) {
+    /varset _countNext 1
+  } else {
+    /varcalc _countNext ${_countMe} + 1
+  }
+
+  | does next cleric in the line have a CH memed?
+  | is the cleric in zone?
+  | if not, keep the line moving
+  /while (${_nexthasCH}) {
+    /dquery ${setCHPassedReqs.Arg[${_countNext},|]} -q "Me.Gem[Complete Heal]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+    /if (${Bool[${DNQReturn}]} && ${Spawn[PC ${DanNet.Peers[clr].Arg[${_countNext},|]}].ID}) {
+      /varset _nexthasCH TRUE
+      /break
+    } else {
+      | am i last cleric in the line?
+      /if (${_countNext} == ${DanNet.PeerCount[clr]}) {
+        /varset _countNext 1
+      | set to next cleric in the line
+      } else {
+        /varcalc _countNext ${_countNext} + 1
+      }
+    }
+
+  }
+
+  | find the bitch to heal
+  /declare _lich listiterator local
+  /vardata _lich lsChain.First.Clone
+  /while (!${_lich.IsEnd}) {	
+    /declare _tmpID string local ${Spawn[pc ${_lich.Value}].ID}
+
+    DEBUG ${sep}Tank${sep}\aw${_count}\ax${sep}\a-w${_tmpID}\ax
+    /if (!AUTO || !${maHeal.Find[swChain].Value}) {
+      /return FALSE
+    }
+
+    | does the tank have a corpse and is there a live version here. ass-u-me it has rez effects and move on
+    /if (${Spawn[corpse ${_tmpID}]} || ${Spawn[${_tmpID}].Dead} || !${Spawn[{_tmpID}].ID}) {
+      /invoke ${_lich.Advance}
+      /continue
+    }
+  }
+
+  | hold the script for whatever time is set in the pause
+  /if (${maHeal.Find[stChainPause].Value}) OUT HOLDING${sep}(${num}${maHeal.Find[stChainPause].Value}s\ax) to start casting.
+  /delay ${maHeal.Find[stChainPause].Value}s ${Spawn[${_tmpID}].PctHPs} >= ${maHeal.Find[stPctChain].Value}
+  
+  | emergency break to release to heal if HP drop below a specific point
+  | tell the next cleric to continue CH while you try and patch
+  /if (${Spawn[${_tmpID}].PctHPs} <= ${maHeal.Find[stPctChain].Value}) {
+    /invoke ${maHeal.Add[swChainToken,FALSE]}
+    /dexecute ${DanNet.Peers[clr].Arg[${_countNext},|]} /invoke ${maHeal.Add[swChainToken,TRUE]}
+    /call cast_cycle_heal ${_debug} ${_tmpID} single
+    /return FALSE
+  }
+  
+  CHECKINPUTS
+  CHECKEXIT
+  CHECKDEAD
+
+  | set the next cleric in the line to start their heal process
+  /dexecute ${DanNet.Peers[clr].Arg[${_countNext},|]} /invoke ${maHeal.Add[swChainToken,TRUE]}
+  DEBUG ${sep}\aw${DanNet.Peers[clr].Arg[${_countNext},|]}\ax has next
+
+  | do not want to leave a cleric locked in this any more then needed
+  /invoke ${maHeal.Add[swChainToken,FALSE]}
+
+  /if (${target[isdead, ${_tmpID}]}) {
+    /return FALSE
+  }
+
+  | cast the heal
+  /call cast_cycle_heal ${_debug} ${_tmpID} complete
+
+/return TRUE
+
+
+
+|***
+ * note: will VP the cleric or QP other people
+ * use: 
+ ***|
+sub check_mana(bool _debug)
+  DEBUG \atcheck_mana\ax()
+
+  /invoke ${set_data_timer[${_debug}, Check_Mana, RESTART]}
+
+  CHECKEXIT check_mana NA|NA
+  ISMEDEAD
+  /if (SAFEZONE) {
+    /return FALSE
+  }
+
+  | check self for VP first
+  /if (${maChr.Find[stPctVP].Value}) {
+    /if (${Me.PctMana} < ${maChr.Find[stPctVP].Value}*.PCTHO) {
+      /if (${is_ready[${_debug}, "${maChr.Find[stAAVeturikasPerseverance].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAAVeturikasPerseverance].Value}" 0 FALSE
+        /return TRUE
+      }
+    }
+  }
+
+  | check group for QP
+  /if (!${Group.Members}) {
+    /return FALSE
+  }
+
+  /if (!${maChr.Find[stPctQP].Value} || !${is_ready[${_debug}, "${maChr.Find[stAAQuietPrayer].Value}"]}) {
+    /return FALSE
+  }
+
+  | cycle the group. skipping yourself
+  /declare _found bool local FALSE
+  /declare _count int local 0
+  /for _count 0 to ${Group}
+
+    /if (${Group.Member[${_count}].ID} == ${Me.ID}) {
+      /continue
+    }
+    
+    /if (!${Group.Member[${_count}].Present}) {
+      DEBUG ${break}not present
+    }
+    
+    /if (!${lsQPClass.Contains[${Group.Member[${_count}].Class.ShortName}]}) {
+      DEBUG ${break}Bad Class${sep}${Group.Member[${_count}].Class.ShortName}
+      /continue
+    }
+
+    /if (${Group.Member[${_count}].Type.NotEqual[CORPSE]}) {
+      DEBUG ${break}dead
+      /continue
+    }
+
+    /if (${Group.Member[${_count}].Distance} > ${Spell[${maChr.Find[stAAQuietPrayer].Value}].MyRange}) {
+      DEBUG ${break} > ${Spell[${maChr.Find[stAAQuietPrayer].Value}].MyRange} range
+      /continue
+    }
+
+    /if (${Group.Member[${_count}].PctMana} <= ${maChr.Find[stPctVP].Value}*.PCTHO) {
+      DEBUG ${sep} mana <= ${maChr.Find[stPctVP].Value}*.PCTHO
+      /varset _found TRUE
+    }
+
+    /if (${_found}) {  
+      /call voodoo ${_debug} "${maChr.Find[stAAQuietPrayer].Value}" ${Group.Member[${_count}].ID} FALSE
+      /return TRUE
+    }
+
+  /next _count
+  
+
+/return TRUE
+
+
+
 
 
 
@@ -772,155 +988,51 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 
 
 
+#bind control_ch_chain /chain
+sub Bind_control_ch_chain(string _type, string _verbage, bool _silent, bool _debug)
+  DEBUG \atBind_control_ch_chain\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
-
-|**
-#bind setCHeal /cheal
-sub Bind_setCHeal(string _type, string _verbage, bool _silent, bool _debug)
-  DEBUG \a-p[Bind_setCHeal\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
-
-  /declare _sep bool local
-  /declare _listout string local
-  /declare _count int local 0
-  /declare _bind string local cheal
-  /declare _lstClass string local |chpct|heal|listen|pause|tank
+  /if (!${Select[${Me.Class.ShortName},CLR]}) {
+    OUT You are not a cleric. gtfo
+    /return FALSE
+  }
+  
+  /if (${_type.Equal[list]}) {
+    OUT Tank Lineup${sep}\a-wlsChain\ax
+    /call out_list lsChain
+    /return TRUE
+  }
 
   | listen for CH Chain rotation calls
-  /if (${_type.Equal[listen]}) {
-    /call set_switch ${chrID} swCHChainListen ${_verbage}
+  /if (${_type.Equal[active]}) {
+    /invoke ${set_switch_env[${_debug}, swChain, TRUE, ${_verbage}]}
 
-  | sets the CH rotation data
-  } else /if (${_type.Equal[chchain]}) {
-    OUT /clr chchain \aw|timeout|tank1|tank2|tank3|tank4\ax
-    /if (${Bool[${_verbage}]}) {
-      /varset setCHPassedReqs |${Me.DisplayName}${_verbage}
-    }
-    /return
+  | % to start the chain cast
+  } else /if (${_type.Equal[pct]}) {
+    /if (!${set_control_num_range[${_debug}, stPctChain, "${_verbage}", 0, 99]}) /return
 
-  | Complete Heal
-  } else /if (${_type.Equal[chpct]}) {
-    /if (${Range.Between[0,99:${Int[${_verbage}]}]}) {
-      /call sql_update FALSE ${chrID} CompleteHealpct ${_verbage}
-    } else /if (!${Range.Between[0,99:${Int[${_verbage}]}]}) {
-      VOUT /${_bind} ch(${cnum}${CompleteHealpct}\ax) allowable range ${sep} ${cinfo}0 - 99\ax
-      /return
-    }
-
-  | set the Heal to be used
-  } else /if (${_type.Equal[heal]}) {
-    /call sql_update FALSE ${chrID} setCompleteHeal ${_verbage}
-
-
-  | set the pause time to be used
+  | % to start the chain cast
   } else /if (${_type.Equal[pause]}) {
-    /if (${_silent}) {
-      /varset setCHPause ${_verbage}
-    } else {
-      /dgaexecute CLR /varset setCHPause ${_verbage}
-    }
-    /delay 5
-
-  | set the tank to be healed
-  } else /if (${_type.Equal[tank]}) {
-    /if (${_silent}) {
-      /varset setCHTank ${_verbage}
-    } else {
-      /dgaexecute CLR /varset setCHTank ${_verbage}
-    }
-    /delay 5
+    /if (!${set_control_num_range[${_debug}, stChainPause, "${_verbage}", 0, 15]}) /return
 
   }
 
-  /for _count 1 to ${_lstClass.Count[|]}
-    /varset _listout ${_listout} ${If[${_sep},${sep},]} ${info}${_lstClass.Arg[${_count},|]}\ax
-    /if (${_lstClass.Arg[${_count},|].Equal[chpct]}) /varset _listout ${_listout}:${If[${CompleteHealpct},${cnum}${CompleteHealpct}\ax,${off}]}
-    /if (${_lstClass.Arg[${_count},|].Equal[listen]}) /varset _listout ${_listout}:${If[${swCHChainListen},${oon},${ooff}]}
-    /if (${_lstClass.Arg[${_count},|].Equal[heal]}) /varset _listout ${_listout}:${num}${setCompleteHeal}\ax
-    /if (${_lstClass.Arg[${_count},|].Equal[pause]}) /varset _listout ${_listout}:${If[${Bool[${setCHPause}]},${cnum}${setCHPause}\ax,${off}]}
-    /if (${_lstClass.Arg[${_count},|].Equal[tank]}) /varset _listout ${_listout}:${If[${Bool[${setCHTank}]},${cnum}${setCHTank}\ax,${off}]}
-  /varset _sep TRUE
-  /next _count
-  VOUT /${_bind} ${_listout}
+
+  /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[list,list]}
+  /invoke ${maControl.Add[pct,stPctChain]}
+  /invoke ${maControl.Add[active,swChain]}
+  /invoke ${maControl.Add[pause,stChainPause]}
+  /invoke ${set_control_output[${_debug}, maHeal, chain, maControl]}
+
 /return
 
 
-**|
 
 
 
 
-sub check_mana(bool _debug)
-  DEBUG \atcheck_mana\ax()
 
-  /invoke ${set_data_timer[${_debug}, Check_Mana, RESTART]}
-
-  CHECKEXIT check_mana NA|NA
-  ISMEDEAD
-  /if (SAFEZONE) {
-    /return FALSE
-  }
-
-  | check self for VP first
-  /if (${maChr.Find[stPctVP].Value}) {
-    /if (${Me.PctMana} < ${maChr.Find[stPctVP].Value}*.PCTHO) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAVeturikasPerseverance].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAVeturikasPerseverance].Value}" 0 FALSE
-        /return TRUE
-      }
-    }
-  }
-
-  | check group for QP
-  /if (!${Group}) {
-    /return FALSE
-  }
-
-  /if (!${maChr.Find[stPctQP].Value} || !${is_ready[${_debug}, "${maChr.Find[stAAQuietPrayer].Value}"]}) {
-    /return FALSE
-  }
-
-  | cycle the group. skipping yourself
-  /declare _found bool local FALSE
-  /declare _count int local 0
-  /for _count 0 to ${Group}
-
-    /if (${Group.Member[${_count}].ID} == ${Me.ID}) {
-      /continue
-    }
-    
-    /if (!${Spawn[${Group.Member[${_count}].ID}].ID}) {
-      DEBUG ${break}notinzone
-    }
-    
-    /if (!${lsQPClass.Contains[${Group.Member[${_count}].Class.ShortName}]}) {
-      DEBUG ${break}Bad Class${sep}${Group.Member[${_count}].Class.ShortName}
-      /continue
-    }
-
-    /if (${Group.Member[${_count}].Type.NotEqual[CORPSE]}) {
-      DEBUG ${break}dead
-     /continue
-    }
-
-    /if (${Group.Member[${_count}].Distance} > ${Spell[${maChr.Find[stAAQuietPrayer].Value}].MyRange}) {
-      DEBUG ${break} > ${Spell[${maChr.Find[stAAQuietPrayer].Value}].MyRange} range
-      /continue
-    }
-
-    /if (${Group.Member[${_count}].PctMana} <=  ${maChr.Find[stPctVP].Value}*.PCTHO) {
-      DEBUG ${sep} mana || stamina <= ${maChr.Find[stPctVP].Value}*.PCTHO
-      /varset _found TRUE
-    }
-
-    /if (${_found}) {  
-      /call voodoo ${_debug} "${maChr.Find[stAAQuietPrayer].Value}" ${Group.Member[${_count}].ID} FALSE
-      /return TRUE
-    }
-
-  /next _count
-  
-
-/return TRUE
 
 
 

@@ -326,14 +326,15 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     }
 
     /declare _spell string local "${_verbage}"
+
     
     | reset gem as value if needed
     /if (${_verbage.Find[gem]} && ${_verbage.Length} < 6) {
-      /varset _spell ${Me.Gem[${_verbage.Left[-3]}]}
+      /varset _spell ${Me.Gem[${_verbage.Right[-3]}]}
     } else /if (${_verbage.Find[buff]} && ${_verbage.Length} < 7) {
-      /varset _spell ${Me.Buff[${_verbage.Left[-4]}]}
+      /varset _spell ${Me.Buff[${_verbage.Right[-4]}]}
     } else /if (${_verbage.Find[song]} && ${_verbage.Length} < 7) {
-      /varset _spell ${Me.Song[${_verbage.Left[-4]}]}
+      /varset _spell ${Me.Song[${_verbage.Right[-4]}]}
     }    
     
     /declare _list string local
@@ -366,16 +367,16 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     OUT \awSPA list\ax ${sep} \a-w${_list}\ax
 
     | OUT \aw/spellslotinfo\ax
-    | /spellslotinfo ${Spell[${_spell}].ID}
+    /spellslotinfo ${Spell[${_spell}].ID}
     /invoke ${out[18, 0, 33]}
     /return TRUE
 
   } else /if (${_type.Equal[import]}) {
-    
-    /if (${_verbage.Equal[loot]}) {
+
       OUT loot import is currently disabled
       /return TRUE
-
+    
+    /if (${_verbage.Equal[loot]}) {
   
       MQCLEAR
       | current core loot file
@@ -812,7 +813,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
   /invoke ${maControl.Add[takegi,swTakeGroupInvite]}
   /invoke ${maControl.Add[saferadius,stEnvSafeRadius]}
   /invoke ${maControl.Add[tribute,swCheckTribute]}
-  /invoke ${maControl.Add[broadcast,stDefaultBroadcast]}
+  | /invoke ${maControl.Add[broadcast,stDefaultBroadcast]}
 
   /if (${Select[${Me.Class.ShortName},ROG]}) {
     /invoke ${maControl.Add[sos,swSoS]}
@@ -1174,9 +1175,9 @@ sub Bind_control_tc(string _type, string _verbage, string _silent, bool _debug)
     /invoke ${_lsout.Append[nav,stick]}
     /if (${_lsout.Contains[${_verbage}]}) {
       /if (!${Navigation.MeshLoaded}) {
-        /invoke ${do_raw_edit[FALSE, SILENT, stTieMode, stick]}
+        /invoke ${do_raw_edit[${_debug}, SILENT, stTieMode, stick]}
       } else /if (${Navigation.MeshLoaded}) {
-        /invoke ${do_raw_edit[FALSE, SILENT, stTieMode, "${_verbage}"]}
+        /invoke ${do_raw_edit[${_debug}, SILENT, stTieMode, "${_verbage}"]}
       }
     }
 
@@ -1190,7 +1191,7 @@ sub Bind_control_tc(string _type, string _verbage, string _silent, bool _debug)
     /return
 
   } else /if (${_type.Equal[toon]}) {
-    /invoke ${do_raw_edit[FALSE, SILENT, stTieToon, "${_verbage}"]}
+    /invoke ${do_raw_edit[${_debug}, SILENT, stTieToon, "${_verbage}"]}
 
   | heal self
   } else /if (${_type.Equal[break]}) {
@@ -1198,7 +1199,7 @@ sub Bind_control_tc(string _type, string _verbage, string _silent, bool _debug)
 
 
   } else /if (${_type.Equal[variance]}) {
-    /if (!${set_control_num_range[TRUE, stTieVariance, "${_verbage}", 0, 15]}) /return
+    /if (!${set_control_num_range[${_debug}, stTieVariance, "${_verbage}", 0, 15]}) /return
 
   }
 
@@ -1626,6 +1627,44 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
     /invoke ${set_control_output[${_debug}, maHeal, "heal hot", maControl]}
     /return TRUE
 
+  | chain CH
+  } else /if (${_type.Equal[chain]}) {
+
+    /if (!${Select[${Me.Class.ShortName},CLR]}) {
+      OUT You are not a cleric. gtfo
+      /return FALSE
+    }
+
+    /if (${_verbage.Equal[list]}) {
+      OUT Tank Lineup${sep}\a-wlsChain\ax
+      /call out_list lsChain
+      /return TRUE
+    }
+
+    | listen for CH Chain rotation calls
+    /if (${_verbage.Equal[active]}) {
+      /invoke ${set_switch_env[${_debug}, swChain, TRUE, ${_verbage2}]}
+
+    | % to start the chain cast
+    } else /if (${_verbage.Equal[pct]}) {
+      /if (!${set_control_num_range[${_debug}, stPctChain, "${_verbage2}", 0, 99]}) /return
+
+    | % to start the chain cast
+    } else /if (${_verbage.Equal[pause]}) {
+      /if (!${set_control_num_range[${_debug}, stChainPause, "${_verbage2}", 0, 15]}) /return
+
+    }
+
+
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[list,list]}
+    /invoke ${maControl.Add[pct,stPctChain]}
+    /invoke ${maControl.Add[active,swChain]}
+    /invoke ${maControl.Add[pause,stChainPause]}
+    /invoke ${set_control_output[${_debug}, maHeal, "heal chain", maControl]}
+    /return TRUE
+    
+    
   }
 
   /invoke ${maControl.Clear}
@@ -1658,8 +1697,8 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
   /if (${Select[${Me.Class.ShortName},CLR]}) {
     /invoke ${maControl.Add[hot,submenu]}
     /invoke ${maControl.Add[ch,submenu]}
+    /invoke ${maControl.Add[chain,submenu]}
     /invoke ${maControl.Add[promise,swHealPromise]}
-    | /invoke ${maControl.Add[chpct,stPctCH]}
   }
 
   /if (${Select[${Me.Class.ShortName},CLR,PAL]}) {
@@ -1726,6 +1765,11 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
     /if (!${maHook.Find[swHookSub].Value}) {
       /invoke ${maHook.Clear}
     }
+
+  | number of fizzle retrys
+  } else /if (${_type.Equal[fizzles]}) {
+    /if (!${set_control_num_range[${_debug}, stCountFizzleRetry, "${_verbage}", 0, 999]}) /return
+
 
   } else /if (${_type.Equal[loopdelay]}) {
     /if (!${set_control_num_range[${_debug}, stMainLoopDelay, "${_verbage}", 0, 9]}) /return
@@ -1836,7 +1880,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
     /return TRUE
 
 
-  | change broadcast type
+  |** change broadcast type
   } else /if (${_type.Equal[broadcast]}) {
 
     /if (${lsBroadcastTypes.Contains[${_verbage}]}) {
@@ -1846,6 +1890,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
       /call out_list lsBroadcastTypes
       /return TRUE
     }
+  **|
 
 
   | dannet stuff
@@ -1909,6 +1954,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
 
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[autolist,swAutoList]}
+  /invoke ${maControl.Add[fizzles,stCountFizzleRetry]}
   /invoke ${maControl.Add[concolor,swUseConColor]}
   /invoke ${maControl.Add[buttons,option]}
   /invoke ${maControl.Add[engine,stEngine]}
@@ -1924,7 +1970,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
   /invoke ${maControl.Add[rememberset,swBuildSetRemember]}
   /invoke ${maControl.Add[buffcooldownwait,swBuffCooldownWait]}
   /invoke ${maControl.Add[relaytell,swRelayTell]}
-  /invoke ${maControl.Add[broadcast,stDefaultBroadcast]}
+  | /invoke ${maControl.Add[broadcast,stDefaultBroadcast]}
 
   /invoke ${set_control_output[${_debug}, maEntropy, entropy, maControl]}
 
@@ -2923,7 +2969,6 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 
   | map
   } else /if (${_variable.Left[2].Equal[ma]}) {
-    | /if (!${lsMaps.Contains[${_variable}]} && ${_verbage.NotEqual[force]}) /return
     /invoke ${out[12, "\aw${_variable}\ax ${dot} \a-g${${_variable}.Count}\ax ${If[${${_variable}} > 1 || ${${_variable}} == 0,items,item]}"]}
     /if (!${${_variable}.Count}) /return
     /declare _misee mapiterator local
@@ -3053,147 +3098,62 @@ sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _a
  * use: /debuff []
  ***|
 #bind control_debuff /debuff
-sub Bind_control_debuff(string _type, string _verbage, string _silent, bool _debug)
-  DEBUG \atBind_control_debuff\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
+sub Bind_control_debuff(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+  DEBUG \atBind_control_debuff\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-  /declare _lsoutS list local
-  /invoke ${_lsoutS.Append[active,single,ae]}
-  /declare _out string local
-  /declare _lideb listiterator local
-  /vardata _lideb _lsoutS.First.Clone
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-    /call Bind_command_see madeBuff ${_verbage}
-    /return
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux debuff ${_verbage}
-    /return
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
+    /call control_base_edit ${maDebug.Find[edit].Value} deBuff 12 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
+    /return TRUE
+  }
 
-  } else /if (${_type.Equal[mez]}) {
+  /if (${_type.Equal[mez]}) {
     /if (${_verbage.Equal[active]}) {
-      /invoke ${set_switch_env[${_debug}, swMez, TRUE, ${_silent}]}
-    } else /if (${_verbage.Equal[single]}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stMez, "${_silent}"]}
-    } else /if (${_verbage.Equal[ae]}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stAEMez, "${_silent}"]}
+      /invoke ${set_switch_env[${_debug}, swMez, TRUE, ${_verbage2}]}
     } else /if (${_verbage.Equal[resistcount]}) {
-      /if (!${set_control_num_range[${_debug}, stCountMezResist, "${_silent}", 0, 10]}) /return
+      /if (!${set_control_num_range[${_debug}, stCountMezResist, "${_verbage2}", 0, 10]}) /return
     }
     /invoke ${maControl.Clear}
     /invoke ${maControl.Add[active,swMez]}
-    /invoke ${maControl.Add[single,stMez|br]}
-    /invoke ${maControl.Add[ae,stAEMez|br]}
     /invoke ${maControl.Add[resistcount,stCountMezResist]}
     /invoke ${set_control_output[${_debug}, madeBuff, "debuff mez", maControl]}
     /return TRUE
 
   } else /if (${_type.Equal[malo]}) {
-    /if (${_verbage.Equal[active]}) {
-      /invoke ${set_switch_env[${_debug}, swMalo, TRUE, ${_silent}]}
-    } else /if (${_verbage.Equal[single]}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stMalo, "${_silent}"]}
-    } else /if (${_verbage.Equal[ae]}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stAEMalo, "${_silent}"]}
-    }
-    /invoke ${maControl.Clear}
-    /invoke ${maControl.Add[active,swMalo]}
-    /invoke ${maControl.Add[single,stMalo|br]}
-    /invoke ${maControl.Add[ae,stAEMalo|br]}
-    /invoke ${set_control_output[${_debug}, madeBuff, "debuff malo", maControl]}
-    /return TRUE    
+    /invoke ${set_switch_env[${_debug}, swMalo, TRUE, ${_verbage}]}
 
   } else /if (${_type.Equal[tash]}) {
-    /if (${_verbage.Equal[active]}) {
-      /invoke ${set_switch_env[${_debug}, swTash, TRUE, ${_silent}]}
-    } else /if (${_verbage.Equal[single]}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stTash, "${_silent}"]}
-    } else /if (${_verbage.Equal[ae]}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stAETash, "${_silent}"]}
-    }
-    /invoke ${maControl.Clear}
-    /invoke ${maControl.Add[active,swTash]}
-    /invoke ${maControl.Add[single,stTash|br]}
-    /invoke ${maControl.Add[ae,stAETash|br]}
-    /invoke ${set_control_output[${_debug}, madeBuff, "debuff tash", maControl]}
-    /return TRUE    
+    /invoke ${set_switch_env[${_debug}, swTash, TRUE, ${_verbage}]}
 
   } else /if (${_type.Equal[slow]}) {
-    /if (${_verbage.Equal[active]}) {
-      /invoke ${set_switch_env[${_debug}, swSlow, TRUE, ${_silent}]}
-    } else /if (${_verbage.Equal[single]}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stSlow, "${_silent}"]}
-    } else /if (${_verbage.Equal[ae]}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stAESlow, "${_silent}"]}
-    }
-    /invoke ${maControl.Clear}
-    /invoke ${maControl.Add[active,swSlow]}
-    /invoke ${maControl.Add[single,stSlow|br]}
-    /invoke ${maControl.Add[ae,stAESlow|br]}
-    /invoke ${set_control_output[${_debug}, madeBuff, "debuff slow", maControl]}
-    /return TRUE  
+    /invoke ${set_switch_env[${_debug}, swSlow, TRUE, ${_verbage}]}
 
   } else /if (${_type.Equal[snare]}) {
-    /if (${_verbage.Equal[active]}) {
-      /invoke ${set_switch_env[${_debug}, swSnare, TRUE, ${_silent}]}
-    } else /if (${_verbage.Equal[single]}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stSnare, "${_silent}"]}
-    } else /if (${_verbage.Equal[ae]}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stAESnare, "${_silent}"]}
-    }
-    /invoke ${maControl.Clear}
-    /invoke ${maControl.Add[active,swSnare]}
-    /invoke ${maControl.Add[single,stSnare|br]}
-    /invoke ${maControl.Add[ae,stAESnare|br]}
-    /invoke ${set_control_output[${_debug}, madeBuff, "debuff snare", maControl]}
-    /return TRUE
+    /invoke ${set_switch_env[${_debug}, swSnare, TRUE, ${_verbage}]}
 
   } else /if (${_type.Equal[eradicate]}) {
-    /if (${_verbage.Equal[active]}) {
-      /invoke ${set_switch_env[${_debug}, swEradicate, TRUE, ${_silent}]}
-    } else /if (${_verbage.Equal[single]}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stEradicate, "${_silent}"]}
-    } else /if (${_verbage.Equal[ae]}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stAEEradicate, "${_silent}"]}
-    }
-    /invoke ${maControl.Clear}
-    /invoke ${maControl.Add[active,swEradicate]}
-    /invoke ${maControl.Add[single,stEradicate|br]}
-    /invoke ${maControl.Add[ae,stAEEradicate|br]}
-    /invoke ${set_control_output[${_debug}, madeBuff, "debuff eradicate", maControl]}
-    /return TRUE
+    /invoke ${set_switch_env[${_debug}, swEradicate, TRUE, ${_verbage}]}
+
 
   } else /if (${_type.Equal[cripple]}) {
-    /if (${_verbage.Equal[active]}) {
-      /invoke ${set_switch_env[${_debug}, swCripple, TRUE, ${_silent}]}
-    } else /if (${_verbage.Equal[single]}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stCripple, "${_silent}"]}
-    } else /if (${_verbage.Equal[ae]}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stAECripple, "${_silent}"]}
-    }
-    /invoke ${maControl.Clear}
-    /invoke ${maControl.Add[active,swCripple]}
-    /invoke ${maControl.Add[single,stCripple|br]}
-    /invoke ${maControl.Add[ae,stAECripple|br]}
-    /invoke ${set_control_output[${_debug}, madeBuff, "debuff cripple", maControl]}   
-    /return TRUE
+    /invoke ${set_switch_env[${_debug}, swCripple, TRUE, ${_verbage}]}
 
   }
 
-  /if (${_silent.Equal[SILENT]}) /return
   /invoke ${maControl.Clear}
-  /invoke ${maControl.Add[cripple,swCripple|sm]}
-  /invoke ${maControl.Add[eradicate,swEradicate|sm]}
-  /invoke ${maControl.Add[malo,swMalo|sm]}
+  /invoke ${maControl.Add[cripple,swCripple]}
+  /invoke ${maControl.Add[eradicate,swEradicate]}
+  /invoke ${maControl.Add[malo,swMalo]}
   /invoke ${maControl.Add[mez,swMez|sm]}
-  /invoke ${maControl.Add[slow,swSlow|sm]}
-  /invoke ${maControl.Add[snare,swSnare|sm]}
-  /invoke ${maControl.Add[tash,swTash|sm]}
+  /invoke ${maControl.Add[slow,swSlow]}
+  /invoke ${maControl.Add[snare,swSnare]}
+  /invoke ${maControl.Add[tash,swTash]}
+  /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[${_debug}, madeBuff, debuff, maControl]}
 
 /return TRUE
 
-/echo ${Target.Maloed}
+
 
 |***
  * note: control for /cc
@@ -3215,8 +3175,13 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 
   | set assist
   } else /if (${_type.Equal[ass]}) {
+    
+    /if (${_verbage.Equal[list]}) {
+      OUT DanNet Assist List${sep}\a-wlsAssistDanNet\ax
+      /call out_list lsAssistDanNet
+      /return TRUE
 
-    /if (${_verbage.Equal[ma1]}) {
+    } else /if (${_verbage.Equal[ma1]}) {
       /call do_raw_edit ${_debug} SILENT stAssistMode FALSE
       /call do_raw_edit ${_debug} SILENT stManualAssist1 "${_verbage2}"
 
@@ -3241,60 +3206,16 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
       
     }
     
-    
-    
-    |**   
-    /if (${_verbage.Equal[g]}) {
-      /call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[g]},g,FALSE]}
-    } else /if (${_verbage.Equal[ma1]}) {
-      /call do_raw_edit ${_debug} SILENT stAssistMode "ma1"
-      | /if (${Bool[${_verbage2}]} && ${_silent.NotEqual[SILENT]}) {
-        /call do_raw_edit ${_debug} SILENT stManualAssist1 "${_verbage2}"
-      | }
-    } else /if (${_verbage.Equal[ma2]}) {
-      /call do_raw_edit ${_debug} SILENT stAssistMode "ma2"
-      | /if (${Bool[${_silent}]} && ${_silent.NotEqual[SILENT]}) {
-        /call do_raw_edit ${_debug} SILENT stManualAssist2 "${_verbage2}"
-      | }
-    } else /if (${_verbage.Equal[1]}) {
-      /call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[1]},1,FALSE]}
-    } else /if (${_verbage.Equal[2]}) {
-      /call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[2]},2,FALSE]}
-    } else /if (${_verbage.Equal[3]}) {
-      /call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[3]},3,FALSE]}
-    }
-
-    /if (${_silent.Equal[SILENT]}) /return
-    /declare _lsAssistTypes list local
-    /invoke ${_lsAssistTypes.Append[g,1,2,3,ma1,ma2]}
-    /declare _liass listiterator local
-    /vardata _liass _lsAssistTypes.First.Clone
-    /while (!${_liass.IsEnd}) {
-      /varset _out ${_out} ${If[${_liass.Value.Equal[${lsAssistTypes.First}]},,${dot}]} ${info}${_liass.Value}\ax
-      /if (${_liass.Value.Equal[g]}) /varset _out ${_out}:${If[${maCC.Find[stAssistMode].Value.Equal[g]},${on},${off}]}
-      /if (${_liass.Value.Equal[1]}) /varset _out ${_out}:${If[${maCC.Find[stAssistMode].Value.Equal[1]},${on},${off}]}
-      /if (${_liass.Value.Equal[2]}) /varset _out ${_out}:${If[${maCC.Find[stAssistMode].Value.Equal[2]},${on},${off}]}
-      /if (${_liass.Value.Equal[3]}) /varset _out ${_out}:${If[${maCC.Find[stAssistMode].Value.Equal[3]},${on},${off}]}
-      /if (${_liass.Value.Equal[ma1]}) /varset _out ${_out}:[${If[${Bool[${maCC.Find[stManualAssist1].Value}]},${num}${maCC.Find[stManualAssist1].Value}\ax,${off}]}]
-      /if (${_liass.Value.Equal[ma2]}) /varset _out ${_out}:[${If[${Bool[${maCC.Find[stManualAssist2].Value}]},${num}${maCC.Find[stManualAssist2].Value}\ax,${off}]}]
-      /invoke ${_liass.Advance}
-    }
-    /invoke ${out[12, "/cc ass ${dot} ${_out}"]}
-    **|
-    
-    
 
   /if (${_silent.Equal[SILENT]}) /return
   /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[list,list]}
   /invoke ${maControl.Add[smart,stAssistMode|br]}
-  | /invoke ${maControl.Add[1,stAssistMode]}
-  | /invoke ${maControl.Add[2,stAssistMode]}
-  | /invoke ${maControl.Add[3,stAssistMode]}
   /invoke ${maControl.Add[ma1,stManualAssist1|br]}
   /invoke ${maControl.Add[ma2,stManualAssist2|br]}
   /invoke ${set_control_output[${_debug}, maCC, "cc ass", maControl]}   
     
-    /return TRUE
+  /return TRUE
 
   | glyphs
   } else /if (${_type.Equal[glyph]}) {
@@ -3400,6 +3321,13 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
     }
     /if (${maMinion.Find[swonForce].Value}) {
       /pet attack
+    }
+
+    /if (FALSE) {
+      /echo swValidAssTarID${sep}\a-w${maCC.Find[swValidAssTarID].Value}\ax
+      /echo swSetCombat${sep}\a-w${maCC.Find[swSetCombat].Value}\ax
+      /echo swSetForced${sep}\a-w${maCC.Find[swSetForced].Value}\ax
+      /echo stAssTarID${sep}\a-w${stAssTarID}\ax
     }
 
     /return TRUE
@@ -3804,7 +3732,7 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
 sub Bind_command_splash(bool _debug)
   DEBUG \atBind_command_splash\ax()
 
-  /if (!${check_class[TRUE, |PAL|CLR]}) {
+  /if (!${check_class[${_debug}, |PAL|CLR]}) {
     /return FALSE
   }
 
@@ -4186,8 +4114,15 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
     } else {
       /invoke ${out[0, "not a valid AA port"]}
     }
-
-    /return TRUE
+    
+    /if (${Bool[${_portName}]}) {
+      /call Bind_control_nomore invis ${_debug}
+      /if (${is_ready[${_debug}, "${_portName}"]}) {
+        /call voodoo ${_debug} "${_portName}" 0 skiptargetcheck
+        /return TRUE
+      }
+    }    
+    
   }
 
 
@@ -5423,7 +5358,7 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _a
     /if (${_verbage.Equal[pct]}) {
       /if (!${set_control_num_range[${_debug}, stPctShieldFlash, "${_verbage2}", 0, 99]}) /return
     } else /if (${_verbage.Equal[count]}) {
-      /if (!${set_control_num_range[TRUE, stCountShieldFlash, "${_verbage2}", 0, 99]}) /return
+      /if (!${set_control_num_range[${_debug}, stCountShieldFlash, "${_verbage2}", 0, 99]}) /return
     } else /if (${_verbage.Equal[name]}) {
       /invoke ${do_raw_edit[${_debug}, SILENT, stSashShieldFlash, "${_verbage2}"]}
     }
@@ -5828,15 +5763,6 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
 
   | check the tag first. do not let them make tags that already exist
   /sqlite query "${DBshared}" dummy SELECT name, created_by FROM tag WHERE created_by = '1' AND name = '${_tagname}';
-  |**
-
-  /if (${sqlite.Rows[dummy]}) {
-    /if (${sqlite.Result[dummy 1 created_by].Equal[1]}) {
-      OUT Tag Exists${sep}\ag${_tagname}\ax (\arDo not edit default tags\ax)
-      /return FALSE
-    }
-  }
-  **|
 
   | create the tag if it does not exist
   /sqlite query "${DBshared}" dummy INSERT INTO tag (name, created_by) VALUES ("${_tagname}", 2);
@@ -6139,7 +6065,6 @@ sub Bind_control_crew(string _type, string _verbage, string _verbage2, string _v
 
   /declare _count int local 0
 
-  /varset _debug FALSE
   DEBUG ${sep}_type${sep}\a-w${_type}\ax
   DEBUG ${sep}_verbage${sep}\a-w${_verbage}\ax
   DEBUG ${sep}_verbage2${sep}\a-w${_verbage2}\ax
@@ -6747,7 +6672,7 @@ sub Bind_control_melee(string _type, string _verbage, string _verbage2, string _
 
 |***
  * note: remove a buff type
- * use: /nomore [levi|invis|SPA type|list] DEBUG
+ * use: /nomore [levi|invis|SPA type|list|sos] DEBUG
  ***|
 #bind control_nomore /nomore
 sub Bind_control_nomore(string _type, bool _debug)
@@ -6777,20 +6702,24 @@ sub Bind_control_nomore(string _type, bool _debug)
     /call remove_spa ${_debug} 314
     /call remove_spa ${_debug} 315
     /call remove_spa ${_debug} 316
+    /return TRUE
     
+
+  | remove invis
+  } else /if (${Select[${_type},sos]}) {
     |**
-    /if (${maEnv.Find[swSoS].Value}) {
-      /if (!${Me.AbilityReady[sneak]}) {
-        OUT Removing${sep}\a-wSneak\ax
-        /doability sneak
-      }
-      /if (!${Me.AbilityReady[hide]}) {
-        OUT Removing${sep}\a-wHide\ax
-        /doability hide
-      }
+    /if (!${Me.AbilityReady[sneak]}) {
+      /delay ${Me.AbilityReady[sneak]}
+      OUT Removing${sep}\a-wSneak\ax
+      /doability sneak
+    }
+    /if (!${Me.AbilityReady[hide]}) {
+      /delay ${Me.AbilityReady[hide]}
+      OUT Removing${sep}\a-wHide\ax
+      /doability hide
     }
     **|
-    
+    /makemevisible 
     /return TRUE
 
   | remove invis

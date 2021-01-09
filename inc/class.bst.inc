@@ -104,9 +104,7 @@ sub class_main(bool _debug)
       /call check_heal_routines
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
       /if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
-      /if (!${timer_Check_deBuffs}) {
-        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-      }
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines TARGET
       /call misc_combat ${maDebug.Find[misc].Value} TARGET
       /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
       /if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stNukeServant].Value}"

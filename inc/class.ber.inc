@@ -113,9 +113,7 @@ sub class_main(bool _debug)
       CHECKDEFENSE
       /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
       /call misc_combat ${maDebug.Find[misc].Value} TARGET
-      /if (!${timer_Check_deBuffs}) {
-        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-      }
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines TARGET
       /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
       /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET
@@ -146,7 +144,6 @@ sub class_main(bool _debug)
  ***|
 sub do_sneak_attack(bool _debug, int _tmpID)
   DEBUG \atdo_sneak_attack\ax(\a-w${_tmpID}\ax)
-  | FLOW do_sneak_attack
 
   /if (${Select[${Me.CombatState},combat,active,debuffed]}) {
     /return FALSE
@@ -172,7 +169,6 @@ sub do_sneak_attack(bool _debug, int _tmpID)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -343,7 +339,6 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -380,7 +375,6 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\aw${_tmpID}\ax)
-  | FLOW burn
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {

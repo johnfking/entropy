@@ -53,7 +53,7 @@ sub Event_AP_IN_PROGRESS(string _line)
     | }
     /if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} < ${maHome.Find[stHomeVariance].Value}) /return
     /nav locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value} |dist=${maHome.Find[stHomeVariance].Value} log=off
-    /delay 5s !${Me.Moving}
+    | /delay 5s !${Me.Moving}
   }
 
 /return

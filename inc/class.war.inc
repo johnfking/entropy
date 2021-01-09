@@ -129,9 +129,7 @@ sub class_main(bool _debug)
       /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
       /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET
-      /if (!${timer_Check_deBuffs}) {
-        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-      }
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines TARGET
       | /if (${swAlliance}) /call cast_alliance_${Me.Class.ShortName} TARGET
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
@@ -157,7 +155,6 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -305,7 +302,6 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub get_agro(bool _debug, int _tmpID)
   DEBUG \atget_agro\ax(\a-w${_tmpID}\ax)
-  | FLOW get_agro
 
   ISMEDEAD
   GETINPUT
@@ -386,7 +382,6 @@ sub get_agro(bool _debug, int _tmpID)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  | FLOW check_heal ${_type}
 
   /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
     /call cast_shield_flash ${_debug} disc
@@ -440,7 +435,6 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\x(\a-w${_tmpID}\ax)
-  | FLOW burn_WAR
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {

@@ -103,9 +103,7 @@ sub class_main(bool _debug)
       /call check_fd ${_debug}
       /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
       /call misc_combat ${maDebug.Find[misc].Value} TARGET
-      /if (!${timer_Check_deBuffs}) {
-        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-      }
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines TARGET
       /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
       /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET
@@ -136,7 +134,6 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -237,7 +234,6 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -299,7 +295,6 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  | FLOW burn
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -417,7 +412,6 @@ sub burn(bool _debug, int _tmpID)
  ***|
 sub melee_train_MNK(bool _debug)
   DEBUG \atmelee_train_MNK\ax()
-  | FLOW melee_train_MNK
 
 | This code catches the call in the skillup sub and returns out using most efficient skills if not training melee
   /if (!${maChr.Find[swTrainMelee].Value}) {
@@ -493,7 +487,6 @@ sub Event_MNKfdcheck(string line, string _verbage)
  ***|
 sub check_fd(bool _debug)
   DEBUG \atcheck_fd\ax()
-  | FLOW check_fd
 
   ISMEDEAD
 
@@ -543,7 +536,6 @@ sub check_fd(bool _debug)
  ***|
 sub check_fists_of_steel(bool _debug)
   DEBUG \atcheck_fists_of_steel\ax()
-  | FLOW fists_of_steel
 
   | make sure the settings we need are there
   /if (!${maChr.Find[swFistofSteel].Value}) {

@@ -73,6 +73,9 @@
 #define BUFFNOW "/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) /call check_buff_cycle_now ${maDebug.Find[now].Value}"
 #define BUFFTEMP "/if (${maBuff.Find[swBuffTemp].Value} && !${timer_Check_Buff_Temp}) /call check_buff_cycle_temp ${maDebug.Find[temp].Value}"
 #define LUA ${maEntropy.Find[swLua].Value}
+#define STACKS ${If[${MacroQuest.InternalName.Equal[Next]},WillLand,Stacks]}
+#define GETASSIST "${get_assist_target[${maDebug.Find[assist].Value}]}"
+
 
 #include entropy\inc\initialize.inc
 #include entropy\inc\common.inc
@@ -110,9 +113,9 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210102.01
-  /call set_data FALSE maEnv schema                         map outer 1.31
-  /call set_data FALSE maEnv repo                           map outer 201104.01
+  /call set_data FALSE maEnv build                          map outer 210109.01
+  /call set_data FALSE maEnv schema                         map outer 1.33
+  /call set_data FALSE maEnv repo                           map outer 210107.01
 
   | prep macro
   /call prepare_the_end FALSE
@@ -413,12 +416,31 @@ sub prepare_the_end(bool _debug)
   | set all character maps
   /call set_initialize_map_character_environment ${maDebug.Find[init].Value}
 
-  | set comm requirements
-  /if (${DanNet.LocalEcho}) /squelch /dnet localecho ${maEntropy.Find[swLocalEcho].Value}
-  /if (${DanNet.CommandEcho}) /squelch /dnet commandecho ${maEntropy.Find[swCommandEcho].Value}
-  /if (!${DanNet.FrontDelim}) /squelch /dnet frontdelim ${maEntropy.Find[swFrontDelim].Value}
-  /if (${DanNet.FullNames}) /squelch /dnet fullnames ${maEntropy.Find[swFullNames].Value}
-  /dnet timeout ${maEntropy.Find[stNetworkTimeout].Value}
+  | set dannet requirements
+    /if (${DanNet.LocalEcho}) {
+      /squelch /dnet localecho ${maEntropy.Find[swLocalEcho].Value}
+    }
+    /if (${DanNet.CommandEcho}) {
+      /squelch /dnet commandecho ${maEntropy.Find[swCommandEcho].Value}
+    }
+    /if (!${DanNet.FrontDelim}) {
+      /squelch /dnet frontdelim ${maEntropy.Find[swFrontDelim].Value}
+    }
+    /if (${DanNet.FullNames}) {
+      /squelch /dnet fullnames ${maEntropy.Find[swFullNames].Value}
+    }
+    /if (${DanNet.Timeout} != ${maEntropy.Find[stNetworkTimeout].Value}) {
+      /squelch /dnet timeout ${maEntropy.Find[stNetworkTimeout].Value}
+    }
+    /if (${DanNet.Evasive} != ${maEntropy.Find[stNetworkEvasive].Value}) {
+      /squelch /dnet evasive ${maEntropy.Find[stNetworkEvasive].Value}
+    }
+    | /if (${DanNet.EvasiveRefresh} != ${maEntropy.Find[swEvasiveRefresh].Value}) {
+      /squelch /dnet evasiverefresh ${maEntropy.Find[swEvasiveRefresh].Value}
+    | }
+    /if (${DanNet.Expired} != ${maEntropy.Find[stNetworkExpired].Value}) {
+      /squelch /dnet expired ${maEntropy.Find[stNetworkExpired].Value}
+    }
 
   | get buffs
   /call set_initialize_map_buffs ${maDebug.Find[init].Value}

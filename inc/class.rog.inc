@@ -98,17 +98,17 @@ sub class_main(bool _debug)
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      /call do_sneak_attack ${maDebug.Find[class].Value} TARGET
-      /call set_combat_control ${maDebug.Find[decision].Value} TARGET
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
-      CHECKDEFENSE
-      /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
-      /call misc_combat ${maDebug.Find[misc].Value} TARGET
-      /if (!${timer_Check_deBuffs}) {
-        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
+      /call do_sneak_attack ${maDebug.Find[class].Value} GETASSIST
+      /if (${Select[${Me.Class.ShortName},ROG]} && ${maEnv.Find[swSoS].Value}) {
+        /call Bind_control_nomore sos ${_debug}
       }
-      /call check_item_cycle ${maDebug.Find[item].Value} TARGET
-
+      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
+      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
+      CHECKDEFENSE
+      /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
+      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
+      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -136,10 +136,6 @@ sub class_main(bool _debug)
 sub do_sneak_attack(bool _debug, int _tmpID)
   DEBUG \atdo_sneak_attack\ax(\a-w${_tmpID}\ax)
   ISMEDEAD
-  /if (!PULL) {
-    /call get_assist_target ${maDebug.Find[target].Value}
-    /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
-  }
 
   /if (!${Me.Sneaking} || ${Me.ActiveDisc.ID}) {
     /return FALSE
@@ -163,7 +159,6 @@ sub do_sneak_attack(bool _debug, int _tmpID)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -176,10 +171,6 @@ sub misc_combat(bool _debug, int _tmpID)
   CHECKDEFENSE
   BUFFNOW
   BUFFTEMP
-  /if (!PULL) {
-    /call get_assist_target ${maDebug.Find[target].Value}
-    /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
-  }
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
@@ -192,8 +183,7 @@ sub misc_combat(bool _debug, int _tmpID)
     /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
     /return TRUE
   }
-
-
+  
   /if (${is_ready[${_debug}, "${maChr.Find[stAssault].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stAssault].Value}" ${_tmpID} FALSE
   }
@@ -201,6 +191,7 @@ sub misc_combat(bool _debug, int _tmpID)
   /if (${target[isdead, ${_tmpID}]}) {
     /return FALSE
   }
+  /call set_combat_melee ${_debug} ${_tmpID}
   
   /if (${is_ready[${_debug}, "${maChr.Find[stAAShadowsFlanking].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stAAShadowsFlanking].Value}" 0 FALSE
@@ -212,9 +203,9 @@ sub misc_combat(bool _debug, int _tmpID)
     /call voodoo ${_debug} "${maChr.Find[stAATwistedShank].Value}" ${_tmpID} FALSE
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  | /if (${target[isdead, ${_tmpID}]}) {
+  |   /return FALSE
+  | }
 
   /if (${is_ready[${_debug}, "${maChr.Find[stShadowHunter].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stShadowHunter].Value}" ${_tmpID} FALSE
@@ -287,7 +278,6 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -344,7 +334,6 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub set_sos(bool _debug)
   DEBUG \atset_sos\ax()
-  | FLOW set_sos
 
   /if (!${maEnv.Find[swSoS].Value}) /return FALSE
   /if (${Me.Combat} || ${Me.Stunned} || ${Me.State.Equal[FEIGN]}) /return FALSE
@@ -384,7 +373,6 @@ sub set_sos(bool _debug)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  | FLOW burn
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -395,10 +383,6 @@ sub burn(bool _debug, int _tmpID)
   GETINPUT
   CHECKTIE
   CHECKDEFENSE
-  /if (!PULL) {
-    /call get_assist_target ${maDebug.Find[target].Value}
-    /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
-  }
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
@@ -427,7 +411,7 @@ sub burn(bool _debug, int _tmpID)
   /if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" 0 FALSE
   }
-
+  
   /if (!AE#) {
     /if (${is_ready[${_debug}, "${maChr.Find[stAAFocusedRakesRampage].Value}"]}) {
       /call voodoo ${_debug} "${maChr.Find[stAAFocusedRakesRampage].Value}" 0 FALSE
@@ -451,7 +435,7 @@ sub burn(bool _debug, int _tmpID)
   /if (${target[isdead, ${_tmpID}]}) {
     /return FALSE
   }
-
+  
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
 
@@ -474,7 +458,7 @@ sub burn(bool _debug, int _tmpID)
   /if (${target[isdead, ${_tmpID}]}) {
     /return FALSE
   }
-
+  
   /if (${is_ready[${_debug}, "${maChr.Find[stAspBleeder].Value}"]} && !${Me.ActiveDisc.ID}) {
     /call voodoo ${_debug} "${maChr.Find[stAspBleeder].Value}" 0 FALSE
   }

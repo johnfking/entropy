@@ -614,6 +614,8 @@ sub mode_trainspell(string _type, bool _debug)
   | figure out what we want to cast
   /for _count 1 to ${Me.NumGems}
 
+    /call do_rest ${maDebug.Find[rest].Value}
+
     | validate skill caps and spell. if cap is maxed, move on
     | /if (!${maOver.Find[swOverTrainSpell].Value}) {
     |   /if (${Me.Skill[${If[${swModeTrainspellSPC},specialize ,]}${_skill.Arg[${_count},|]}]} == ${Me.SkillCap[${If[${swModeTrainspellSPC},specialize ,]}${_skill.Arg[${_count},|]}]}) /continue

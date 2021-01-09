@@ -32,7 +32,7 @@ sub set_debug(string _verbage)
   | move
   /invoke ${lsDebugmove.Append[face,tie,stick,stop,home,gtfo]}
   | debuff
-  /invoke ${lsDebugdebuff.Append[debuff,mez]}
+  /invoke ${lsDebugdebuff.Append[tash,malo,mez,slow,eradicate,snare]}
   | minion
   /invoke ${lsDebugminion.Append[petbuild,lost,sic,temp,heal]}
   | cast
@@ -60,7 +60,7 @@ sub set_debug(string _verbage)
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
     /invoke ${lsDebugclass.Append[para]}
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
-    /invoke ${lsDebugclass.Append[arb,splash,regen,yaulp,checkmana]}
+    /invoke ${lsDebugclass.Append[arb,splash,regen,yaulp,checkmana,chain]}
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
     /invoke ${lsDebugclass.Append[crystal,gather,charm]}
@@ -123,14 +123,11 @@ sub set_initialize(bool _debug)
   | control map dumps
   /declare maControl map outer
   /declare maChrControl map outer
-  /declare cmi mapiterator outer
+  | /declare cmi mapiterator outer
 
   | hook map
   /declare maHook map outer
   
-  | entropy main map
-  | /declare maEntropy map outer
- 
   | buff beg map
   /declare maBuffRequest map outer
 
@@ -160,7 +157,7 @@ sub set_initialize(bool _debug)
   /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard]}
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro,maMercenary]}
   /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
-  /invoke ${lsMaps.Append[maGTFO,maPull,maMelee]}
+  /invoke ${lsMaps.Append[maGTFO,maPull,maMelee,madeBuff]}
 
   | set all output shortcuts
   /call set_data ${_debug} FALSE num                                      string outer "\a-t"
@@ -226,7 +223,8 @@ sub set_initialize(bool _debug)
   /invoke ${maDBTables.Add[environment_gtfo,env_var]}
   /invoke ${maDBTables.Add[environment_pull,env_var]}
   /invoke ${maDBTables.Add[environment_melee,env_var]}
-
+  /invoke ${maDBTables.Add[environment_debuff,env_var]}
+ 
 /return TRUE
 
 
@@ -298,7 +296,7 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} FALSE lsFreePassSpells                         list outer Beneficial|Pet
 
   | control lines
-  /call set_data ${_debug} FALSE lsControlLine                            list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez|gtfo|pull|melee
+  /call set_data ${_debug} FALSE lsControlLine                            list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez|gtfo|pull|melee|debuff
 
   | increment lists
   /call set_data ${_debug} FALSE stCount6                                 string outer "0|1|2|3|4|5"
@@ -722,7 +720,6 @@ sub sql_schema_loot(bool _debug)
  ***|
 sub sql_schema_character(bool _debug)
   DEBUG \atsql_schema_character\ax()
-  | /varset _debug TRUE
 
   /if (${maDebug.Find[init].Value}) {
     /declare _boottimestart int local ${MacroQuest.Running}
@@ -1221,6 +1218,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maCC stManualAssist1                       FALSE                         "${auxna} name of manual assist 1 toon"
   /call set_data_map ${_debug} maCC stManualAssist2                       FALSE                         "${auxna} name of manual assist 2 toon"
   /call set_data_map ${_debug} maCC stPctEngage                           98                            "${auxnum} mobs % health to engage it"
+  /call set_data_list ${_debug} maCC lsAssistDanNet                       EMPTY                         "${auxli} list of dannet names to assist"
 
   /call set_data_map ${_debug} maCC stZRadius                             60                            "${auxnum} the z distance of your environment"
 
@@ -1307,41 +1305,45 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** control: debuff **|
-  /call set_data_map ${_debug} madeBuff swCripple                         FALSE                         "${auxsw} use cripples"
-  /call set_data_map ${_debug} madeBuff stCripple                         FALSE                         "${auxna} single target cripple"
-  /call set_data_map ${_debug} madeBuff stAECripple                       FALSE                         "${auxna} ae cripple to use"
-  /declare lsdeBuffCripple list outer
+  /call set_data_list ${_debug} madeBuff lsLinedeBuff                     EMPTY                         "${auxli} alternate order for debuffing"                          debuff
 
-  /call set_data_map ${_debug} madeBuff swMez                             FALSE                         "${auxsw} use mez"
-  /call set_data_map ${_debug} madeBuff stMez                             FALSE                         "${auxna} single target mez"
-  /call set_data_map ${_debug} madeBuff stCountMezResist                  3                             "${auxnum} number of times to retry single mez with resists"
-  /call set_data_map ${_debug} madeBuff stAEMez                           FALSE                         "${auxna} ae mez for when shit gets deep"
+  /call set_data_map ${_debug} madeBuff swCripple                         FALSE                         "${auxsw} use cripples"                                           debuff
 
-  /call set_data_map ${_debug} madeBuff swMalo                            FALSE                         "${auxsw} use malo"
-  /call set_data_map ${_debug} madeBuff stMalo                            FALSE                         "${auxna} single target malo"
-  /call set_data_map ${_debug} madeBuff stAEMalo                          FALSE                         "${auxna} ae malo"
-  /declare lsdeBuffMalo list outer
 
-  /call set_data_map ${_debug} madeBuff swTash                            FALSE                         "${auxsw} use tash"
-  /call set_data_map ${_debug} madeBuff stTash                            FALSE                         "${auxna} single target tash"
-  /call set_data_map ${_debug} madeBuff stAETash                          FALSE                         "${auxna} ae tash cause fuck all the mobs"
-  /declare lsdeBuffTash list outer
+  | /call set_data_map ${_debug} madeBuff stCripple                         FALSE                         "${auxna} single target cripple"
+  | /call set_data_map ${_debug} madeBuff stAECripple                       FALSE                         "${auxna} ae cripple to use"
+  | /declare lsdeBuffCripple list outer
 
-  /call set_data_map ${_debug} madeBuff swSlow                            FALSE                         "${auxsw} use slow"
-  /call set_data_map ${_debug} madeBuff stSlow                            FALSE                         "${auxna} single target slow"
-  /call set_data_map ${_debug} madeBuff stAESlow                          FALSE                         "${auxna} ae slow"
-  /declare lsdeBuffSlow list outer
+  /call set_data_map ${_debug} madeBuff swMez                             FALSE                         "${auxsw} use mez"                                                debuff
+  | /call set_data_map ${_debug} madeBuff stMez                             FALSE                         "${auxna} single target mez"
+  /call set_data_map ${_debug} madeBuff stCountMezResist                  3                             "${auxnum} number of times to retry single mez with resists"      debuff
+  | /call set_data_map ${_debug} madeBuff stAEMez                           FALSE                         "${auxna} ae mez for when shit gets deep"
 
-  /call set_data_map ${_debug} madeBuff swEradicate                       FALSE                         "${auxsw} use eradicate"
-  /call set_data_map ${_debug} madeBuff stEradicate                       FALSE                         "${auxna} single target eradicate"
-  /call set_data_map ${_debug} madeBuff stAEEradicate                     FALSE                         "${auxna} ae eradicate"
-  /call set_data_map ${_debug} madeBuff stTimerEradicate                  30s                           "${auxnum} time to retry an eradicate on a target"
-  /declare lsdeBuffEradicate list outer
+  /call set_data_map ${_debug} madeBuff swMalo                            FALSE                         "${auxsw} use malo"                                               debuff
+  | /call set_data_map ${_debug} madeBuff stMalo                            FALSE                         "${auxna} single target malo"
+  | /call set_data_map ${_debug} madeBuff stAEMalo                          FALSE                         "${auxna} ae malo"
+  | /declare lsdeBuffMalo list outer
 
-  /call set_data_map ${_debug} madeBuff swSnare                           FALSE                         "${auxsw} use snare"
-  /call set_data_map ${_debug} madeBuff stSnare                           FALSE                         "${auxna} single target snare"
-  /call set_data_map ${_debug} madeBuff stAESnare                         FALSE                         "${auxna} ae snare"
-  /declare lsdeBuffSnare list outer
+  /call set_data_map ${_debug} madeBuff swTash                            FALSE                         "${auxsw} use tash"                                               debuff
+  | /call set_data_map ${_debug} madeBuff stTash                            FALSE                         "${auxna} single target tash"
+  | /call set_data_map ${_debug} madeBuff stAETash                          FALSE                         "${auxna} ae tash cause fuck all the mobs"
+  | /declare lsdeBuffTash list outer
+
+  /call set_data_map ${_debug} madeBuff swSlow                            FALSE                         "${auxsw} use slow"                                               debuff
+  | /call set_data_map ${_debug} madeBuff stSlow                            FALSE                         "${auxna} single target slow"
+  | /call set_data_map ${_debug} madeBuff stAESlow                          FALSE                         "${auxna} ae slow"
+  | /declare lsdeBuffSlow list outer
+
+  /call set_data_map ${_debug} madeBuff swEradicate                       FALSE                         "${auxsw} use eradicate"                                          debuff
+  | /call set_data_map ${_debug} madeBuff stEradicate                       FALSE                         "${auxna} single target eradicate"
+  | /call set_data_map ${_debug} madeBuff stAEEradicate                     FALSE                         "${auxna} ae eradicate"
+  /call set_data_map ${_debug} madeBuff stTimerEradicate                  30s                           "${auxnum} time to retry an eradicate on a target"                debuff
+  | /declare lsdeBuffEradicate list outer
+
+  /call set_data_map ${_debug} madeBuff swSnare                           FALSE                         "${auxsw} use snare"                                              debuff
+  | /call set_data_map ${_debug} madeBuff stSnare                           FALSE                         "${auxna} single target snare"
+  | /call set_data_map ${_debug} madeBuff stAESnare                         FALSE                         "${auxna} ae snare"
+  | /declare lsdeBuffSnare list outer
 
 
 
@@ -1415,6 +1417,8 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy swFullNames                      FALSE                         "${auxsw} dannet fullnames"
   /call set_data_map ${_debug} maEntropy stEntropyGroup_all               entropy                       "${auxna} dannet main entropy group"
   /call set_data_map ${_debug} maEntropy swEvasiveRefresh                 FALSE                         "${auxsw} refreshes observers if a client goes evasive"
+  /call set_data_map ${_debug} maEntropy stCountFizzleRetry               0                             "${auxnum} number of cast retrys on a fizzle"
+
 
 
   | join the main channel
@@ -1578,6 +1582,7 @@ sub set_initialize_map_12(bool _debug)
   /invoke ${_tmpMap.Add[GTFO,gtfo]}
   /invoke ${_tmpMap.Add[Pull,pull]}
   /invoke ${_tmpMap.Add[Melee,melee]}
+  /invoke ${_tmpMap.Add[deBuff,debuff]}
 
   /vardata _tmi _tmpMap.First.Clone
   /while (!${_tmi.IsEnd}) {
@@ -2700,6 +2705,23 @@ sub data_schema_tag()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('998', 'temp', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('997', 'interventionpull', '1');
 
+
+  | debuff stuff
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('996', 'mez', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('995', 'eradicate', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('994', 'tash', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('993', 'malo', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('992', 'snare', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('991', 'slow', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('990', 'mezae', '1');
+
+
+  | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('996', 'ae', '1');
+  | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('996', 'single', '1');
+
+
+
+
  | /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag(id, name, created_by) VALUES('1001', 'myassist', '1');
 
 
@@ -2723,6 +2745,7 @@ sub data_schema_tag_group()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('9', 'item');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'pull');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('11', 'melee');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('12', 'debuff');
   | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'engine2');
   | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('11', 'engine3');
 
@@ -2956,6 +2979,18 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '17', '1', '${Parse[0,${Select[${_name},${Group.MainAssist.DisplayName},${maCC.Find[stManualAssist1].Value},${maCC.Find[stManualAssist2].Value}]}]}', 'my assist');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '998', '1', 'CONTROL::MARKER', 'marker /buff temp');
 
+
+  | debuff
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('12', '996', '1', 'CONTROL::MARKER', 'marker /debuff mez');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('12', '995', '1', 'CONTROL::MARKER', 'marker /debuff eradicate');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('12', '994', '1', 'CONTROL::MARKER', 'marker /debuff tash');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('12', '993', '1', 'CONTROL::MARKER', 'marker /debuff malo');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('12', '992', '1', 'CONTROL::MARKER', 'marker /debuff snare');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('12', '991', '1', 'CONTROL::MARKER', 'marker /debuff slow');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('12', '990', '1', 'CONTROL::MARKER', 'marker /debuff mez ae');
+
+
+
 /return TRUE
 
 
@@ -3084,6 +3119,37 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
     | remove crew table from character DB
     /sqlite query "${DBcharacter}" dummy DROP TABLE IF EXISTS environment_crew;
     /invoke ${_tmpMap.Add[stDanNetReturnDelay,hard]}
+
+  }
+
+
+  | debuff changes
+  /if (${maEnv.Find[build].Value} >= 210103.02 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210103.02\ax
+
+    /invoke ${_tmpMap.Add[swCripple,character]}
+    /invoke ${_tmpMap.Add[stCripple,character]}
+    /invoke ${_tmpMap.Add[stAECripple,character]}
+    /invoke ${_tmpMap.Add[swMez,character]}
+    /invoke ${_tmpMap.Add[stMez,character]}
+    /invoke ${_tmpMap.Add[stCountMezResist,character]}
+    /invoke ${_tmpMap.Add[stAEMez,character]}
+    /invoke ${_tmpMap.Add[swMalo,character]}
+    /invoke ${_tmpMap.Add[stMalo,character]}
+    /invoke ${_tmpMap.Add[stAEMalo,character]}
+    /invoke ${_tmpMap.Add[swTash,character]}
+    /invoke ${_tmpMap.Add[stTash,character]}
+    /invoke ${_tmpMap.Add[stAETash,character]}
+    /invoke ${_tmpMap.Add[swSlow,character]}
+    /invoke ${_tmpMap.Add[stSlow,character]}
+    /invoke ${_tmpMap.Add[stAESlow,character]}
+    /invoke ${_tmpMap.Add[swEradicate,character]}
+    /invoke ${_tmpMap.Add[stEradicate,character]}
+    /invoke ${_tmpMap.Add[stAEEradicate,character]}
+    /invoke ${_tmpMap.Add[stTimerEradicate,character]}
+    /invoke ${_tmpMap.Add[swSnare,character]}
+    /invoke ${_tmpMap.Add[stSnare,character]}
+    /invoke ${_tmpMap.Add[stAESnare,character]}
 
   }
 

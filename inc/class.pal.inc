@@ -152,9 +152,7 @@ sub class_main(bool _debug)
       /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
       /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET
-      /if (!${timer_Check_deBuffs}) {
-        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-      }
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines TARGET
       | /if (${swAlliance}) /call cast_alliance_${Me.Class.ShortName} TARGET
       /if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) {
         /call check_harmonious ${maDebug.Find[harmonious].Value}

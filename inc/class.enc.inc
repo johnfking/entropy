@@ -110,9 +110,7 @@ sub class_main(bool _debug)
       /call set_combat_control ${maDebug.Find[decision].Value} TARGET
       /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
       CHECKDEFENSE
-      /if (!${timer_Check_deBuffs}) {
-        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-      }
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines TARGET
       /call control_routine ${maDebug.Find[mez].Value}
       | /if (${maMinion.Find[swPetCharm].Value}) /call find_mob_to_charm ${maDebug.Find[charm].Value}
       /call check_heal_routines
@@ -123,9 +121,6 @@ sub class_main(bool _debug)
       /call control_routine ${maDebug.Find[mez].Value}
       /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
       /call control_routine ${maDebug.Find[mez].Value}
-      | /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-      |   /call check_buff_cycle_temp_list ${maDebug.Find[temp].Value} stTerror lsTerrorToon
-      | }
       /call control_routine ${maDebug.Find[mez].Value}
       | /if (${swAlliance}) /call trigger_alliance TARGET
 

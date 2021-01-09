@@ -107,9 +107,7 @@ sub class_main(bool _debug)
         /call cast_shield_flash ${_debug} aa
       }
       /if (AGRO) /call get_agro ${maDebug.Find[agro].Value} TARGET
-      /if (!${timer_Check_deBuffs}) {
-        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-      }
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines TARGET
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
       /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
       /call misc_combat ${maDebug.Find[misc].Value} TARGET
@@ -153,7 +151,6 @@ sub class_main(bool _debug)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -220,7 +217,6 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -308,7 +304,6 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub get_agro(bool _debug, int _tmpID)
   DEBUG \atget_agro\ax()
-  | FLOW get_agro
 
   ISMEDEAD
   CHECKEXIT
@@ -409,7 +404,6 @@ sub get_agro(bool _debug, int _tmpID)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax()
-  | FLOW burn
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {

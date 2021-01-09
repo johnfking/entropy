@@ -91,9 +91,7 @@ sub class_main(bool _debug)
       /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
       CHECKDEFENSE
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
-      /if (!${timer_Check_deBuffs}) {
-        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-      }
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines TARGET
       /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
       /call check_heal_routines
       /if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} TARGET "${maChr.Find[stNukeServant].Value}"
@@ -135,7 +133,6 @@ sub class_main(bool _debug)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -200,7 +197,6 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
-  | FLOW misc_combat
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -262,7 +258,6 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  | FLOW burn=
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {
@@ -342,7 +337,6 @@ sub burn(bool _debug, int _tmpID)
  ***|
 sub cast_blood(bool _debug, int _tmpID)
   DEBUG \atcast_blood\ax(\a-w${_tmpID}\ax)
-  | FLOW cast_blood
 
   ISMEDEAD
   CHECKEXIT
@@ -370,7 +364,6 @@ sub cast_blood(bool _debug, int _tmpID)
  ***|
 sub cast_bloom(bool _debug)
   DEBUG \atcast_bloom\ax()
-  | FLOW cast_bloom
 
   /if (${Zone.ID} == ${Me.BoundLocation[0].ID} || SAFEZONE) {
     /return FALSE

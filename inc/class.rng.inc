@@ -107,9 +107,7 @@ sub class_main(bool _debug)
       /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
       /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
       /if (${maChr.Find[stCountSummer].Value} && !${timer_Summer_Nuke}) /call cast_nuke_summer ${maDebug.Find[summer].Value} TARGET
-      /if (!${timer_Check_deBuffs}) {
-        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-      }
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines TARGET
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET
       | /if (${swAlliance}) /call trigger_alliance TARGET
     } else /if (VALID && ENGINE3) {
@@ -141,7 +139,6 @@ sub class_main(bool _debug)
  ***|
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax()
-  | FLOW misc_combat
 
   ISMEDEAD
   CHECKEXIT
@@ -222,7 +219,6 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub cast_AA_auspice(bool _debug)
   DEBUG \atcast_AA_auspice\ax()
-  | FLOW cast_AA_auspice
 
   ISMEDEAD
   CHECKEXIT
@@ -247,7 +243,6 @@ sub cast_AA_auspice(bool _debug)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -322,7 +317,6 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub cast_nuke_summer(bool _debug, int _tmpID)
   DEBUG \atcast_nuke_summer\ax(\a-w${_tmpID}\ax)
-  | FLOW cast_nuke_summer
 
   /if (${target[isdead, ${_tmpID}]}) {
     /return FALSE
@@ -354,7 +348,6 @@ sub cast_nuke_summer(bool _debug, int _tmpID)
  ***|
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
-  | FLOW burn
 
   ISMEDEAD
   /if (${target[isdead, ${_tmpID}]}) {

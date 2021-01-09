@@ -89,9 +89,7 @@ sub class_main(bool _debug)
       /call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
       /if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
       /call misc_combat ${maDebug.Find[misc].Value} TARGET
-      /if (!${timer_Check_deBuffs}) {
-        /call check_deBuffs ${maDebug.Find[debuff].Value} TARGET
-      }
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines TARGET
       /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
       /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
       /if (${maChr.Find[swTalisman].Value}) /call cast_talisman ${maDebug.Find[talisman].Value}
@@ -165,7 +163,6 @@ sub misc_combat(bool _debug, int _tmpID)
  ***|
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
-  | FLOW check_heal ${_type}
 
   CHECKTIE
   ISMEDEAD
@@ -255,7 +252,6 @@ sub check_heal(bool _debug, string _type)
  ***|
 sub cast_cycle_heal_surge(bool _debug)
   DEBUG \atcast_cycle_heal_surge\ax()
-  | FLOW cast_cycle_heal_surge
 
   CHECKEXIT
   ISMEDEAD
