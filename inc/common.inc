@@ -1248,6 +1248,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
   /declare _castLoop int local ${maEntropy.Find[stCastLoop].Value}
   /declare _tiCastTime timer local 0
   /declare _castTime int local 0
+  /invoke ${maData.Add[stCastReturn,FALSE]}
 
   | alt abilities
   /if (${_type.Equal[ALT]}) {
@@ -1634,7 +1635,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
       /invoke ${out[4, "Disc${sep}${sp}${_verbage}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
     }
     
-    | CHECKDEAD
+    CHECKDEAD
     /disc ${Spell[${_verbage}].ID}
 
     /delay 5
@@ -1683,7 +1684,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
     }
 
     /while (${_castLoop}) {
-      | CHECKDEAD
+      CHECKDEAD
       /useitem "${_verbage}"
       /delay 2
 
@@ -1767,7 +1768,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
     }
 
     /while (${_castLoop}) {
-      | CHECKDEAD
+      CHECKDEAD
       /cast ${Me.Gem[${_verbage}]}
       /delay 1
 
@@ -2338,24 +2339,17 @@ sub is_target_valid(bool _debug, int _tmpID)
   /if (SAFEZONE) /return FALSE
 
   | check smart assists
-  | /if (${Target.ID}) {
-    | /if (${Select[${maCC.Find[stAssistMode].Value},1,2,3]} && ${Spawn[${_tmpID}].ID} != ${Me.XTarget[1].ID}) {
-    /if (${_tmpID} != ${Target.ID}) {
-      /invoke ${target[clear]}
-      /return FALSE
-    }
-    | } else /if (${Select[${maCC.Find[stAssistMode].Value},g]} && ${Group.MainAssist.ID} && !${Bool[${Spawn[${Group.MainAssist}].Dead}]} && ${Spawn[${_tmpID}].ID} != ${Me.XTarget[1].ID}) {
-    |   /invoke ${target[clear]}
-    |   /return FALSE
-    | }
-  | }
-
-  /if (!${maOver.Find[swOverPctEngage].Value} && !PULL) {
-    /if (${Spawn[${_tmpID}].PctHPs} > ${maCC.Find[stPctEngage].Value}) {
-      | /delay 1
-      /return FALSE
-    }
+  /if (${_tmpID} != ${Target.ID}) {
+    /invoke ${target[clear]}
+    /return FALSE
   }
+
+
+  | /if (!${maOver.Find[swOverPctEngage].Value} && !PULL) {
+  |   /if (${Spawn[${_tmpID}].PctHPs} > ${maCC.Find[stPctEngage].Value}) {
+  |      /return FALSE
+  |   }
+  | }
 
   | shit we really shouldn't be attacking
   /if (${lsNoAttackBodyType.Contains[${Spawn[${_tmpID}].Type}]}) /return FALSE
@@ -3379,7 +3373,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 
         /delay 5
         GETINPUT
-        | CHECKDEAD
+        CHECKDEAD
 
         | have the targets attention. can go back
         /if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
@@ -4254,10 +4248,15 @@ sub get_assist_target(bool _debug)
   DEBUG \atget_assist_target\ax()
 
   /if (!AUTO || PULL) {
+
+    /if (${maCC.Find[swSetForced].Value} && ${Target.ID}) {
+      /return ${Target.ID}
+    }
+
     /return
   }
 
-  | CHECKDEAD
+  CHECKDEAD
   GETINPUT get_assist_target NA|NA
 
   | if were not assisting.. don't assist
@@ -4267,36 +4266,7 @@ sub get_assist_target(bool _debug)
     /return 0
   }
 
-
-  |**
-  | cannnot assist yourself
-    /if (${Group.MainAssist.ID} == ${Me.ID} && !${maOver.Find[swOverGroupAss].Value}) {
-      DEBUG ${break}cannot assist self
-      /return 0
-    }
-
-    /if (${Spawn[MA1].ID} == ${Me.ID} || ${Spawn[${Raid.MainAssist.ID}].ID} == ${Me.ID}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stManualAssist1, FALSE]}
-    }
-    /if (${Spawn[MA2].ID} == ${Me.ID} || ${Spawn[${Raid.MainAssist.ID}].ID} == ${Me.ID}) {
-      /invoke ${do_raw_edit[${_debug}, TRUE, stManualAssist2, FALSE]}
-    }
-    
-    /if (${Raid.Members}) {
-      /declare _count int local 1
-      /for _count 1 to 3
-        /if (${Raid.MainAssist[${_count}].ID} == ${Me.ID}) {
-          /invoke ${do_raw_edit[${_debug}, TRUE, stAssistMode, FALSE]}
-        }
-      
-      /next _count
-    }
-    
-    /if (${lsAssistDanNet.Count} >= 1 && ${lsAssistDanNet.Contains[${Me.DisplayName}]}) {
-      /call do_raw_edit ${_debug} SILENT lsAssistDanNet "${Me.DisplayName}" delete
-    }
-    **|
-  
+ 
   | tar acquisition when using smart assist. set XTarget positions.
   /if (${Select[${maCC.Find[stAssistMode].Value},g,1,2,3]}) {
     DEBUG ${sep}Assisting${sep}\agsmart\ax
@@ -4359,7 +4329,6 @@ sub get_assist_target(bool _debug)
       | is toon here and within range
       /if (${Spawn[${_liass.Value}].Distance} >= ENV) {
         DEBUG ${break}not here/out of range${sep}\a-w${_liass.Value}\ax
-        | /delay 1
         /invoke ${_liass.Advance}    
         /continue        
       }
@@ -4369,7 +4338,6 @@ sub get_assist_target(bool _debug)
         /if (TARGET) {
           /invoke ${target[clear]}
         }
-        | /delay 1    
         /invoke ${_liass.Advance}    
         /continue        
       
@@ -4378,14 +4346,22 @@ sub get_assist_target(bool _debug)
         /varset stAssTarID ${DanNet[${_liass.Value}].Observe["Target.ID"]}
         DEBUG ${sep}stAssTarID${sep}\a-wTARGET\ax
 
-        /if (MELEE || RANGE || NUKE || DOT) {
-          /if (${Spawn[TARGET].PctHPs} <= ${maCC.Find[stPctEngage].Value} || ${maOver.Find[swOverPctEngage].Value}) {
-            DEBUG ${sep}${_liass.Value}${sep}targeting${sep}\a-wTARGET\ax
-            /if (${Target.ID} != TARGET && !${Spawn[TARGET].Dead}) {
-              /squelch /target id TARGET
-              | /delay 1s ${Target.ID} == TARGET
-            }
-          }
+        /if ((MELEE || RANGE || NUKE || DOT) && ${Spawn[TARGET].Distance} <= ENV) {
+          /if (${Target.ID} != TARGET && !${Spawn[TARGET].Dead}) {
+            /squelch /target id TARGET
+          } 
+          
+                
+          | /if (!${maOver.Find[swOverPctEngage].Value}) {
+          |   /delay 1s ${Spawn[TARGET].PctHPs} <= ${maCC.Find[stPctEngage].Value}
+          | }
+          
+          | /if (${Spawn[TARGET].PctHPs} <= ${maCC.Find[stPctEngage].Value} || ${maOver.Find[swOverPctEngage].Value}) {
+          |   DEBUG ${sep}${_liass.Value}${sep}targeting${sep}\a-wTARGET\ax
+          |   /if (${Target.ID} != TARGET && !${Spawn[TARGET].Dead}) {
+          |     /squelch /target id TARGET
+          |   }
+          | }
         }
         /return TARGET
       }
@@ -5774,7 +5750,7 @@ sub check_buff_cycle_ammo(bool _debug)
 
   SETHUD "buff ammo"
 
-  /if (AUTO) {
+  /if (AUTO || MODE) {
     /invoke ${set_data_timer[${_debug}, Check_Ammo, RESTART]}
     /if (!${maBuff.Find[swBuffMaster].Value}) {
       /return FALSE
@@ -5851,7 +5827,7 @@ sub check_buff_cycle_leg_poison(bool _debug)
 
   SETHUD "buff leg poison"
 
-  /if (AUTO) {
+  /if (AUTO || MODE) {
     /invoke ${set_data_timer[${_debug}, Check_Poison, RESTART]}
     /if (!${maBuff.Find[swBuffMaster].Value}) {
       /return FALSE
@@ -6863,7 +6839,7 @@ sub do_loot(bool _debug)
 
       /while (${AdvLoot.SCount}) {
         GETOVERHERE
-        | CHECKDEAD
+        CHECKDEAD
 
         /if (${AdvLoot.SList[1].Name.Equal[NULL]}) {
           /continue
@@ -6982,7 +6958,7 @@ sub do_loot(bool _debug)
 
       /while (${AdvLoot.PCount}) {
         GETOVERHERE
-        | CHECKDEAD
+        CHECKDEAD
 
         | advloot window checkboxes will override
         /delay 1s !${AdvLoot.LootInProgress}
@@ -7091,7 +7067,7 @@ sub do_loot(bool _debug)
 
   | I'M SERIOUSLY SICK OF FIXING THIS delete code.
               /while (${FindItem[="${_tmpName}"].ID}) {
-                | CHECKDEAD
+                CHECKDEAD
                 /delay 5
                 /nomodkey /shift /itemnotify in Pack${Math.Calc[${FindItem[=${_tmpName}].ItemSlot}-22]} ${Math.Calc[${FindItem[=${_tmpName}].ItemSlot2}+1]} leftmouseup
 
@@ -7327,326 +7303,6 @@ sub send_pet(bool _debug, int _tmpID)
 
 
 |***
- * note: cycles all debuff routines. (NOT mezing).. look at eradicate for walkthrough cause your dumb ass will forget
- * use: /call check_deBuffs DEBUG [TARGETID]
- ***|
-sub check_deBuffs(bool _debug, int _tmpID)
-  DEBUG \atcheck_deBuffs\ax(\a-w${_tmpID}\ax)
-
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
-
-  | check distance or bail early
-  /if (${Spawn[${_tmpID}].Distance} > ENV) {
-    /invoke ${set_data_timer[FALSE, Check_deBuffs, RESTART]}
-    /return FALSE
-  }
-
-  ISMEDEAD
-  CHECKEXIT check_deBuffs
-  CHECKTIE
-  GETINPUT check_deBuffs _tmpID|${_tmpID}
-
-  /call target set ${_tmpID}
-
-  /declare _count int local 0
-  /declare _mobCount int local 0
-  /declare _tmpMobID int local
-  /declare _tmpSpell string local
-  /declare _lideb listiterator local
-
-  | eradicate (dispell thingies)
-  /if (${madeBuff.Find[swEradicate].Value}) {
-    DEBUG ${sep}{madeBuff.Find[swEradicate].Value}${sep}\a-w${madeBuff.Find[swEradicate].Value}\ax
-
-    | does this mob have a timer associated with it?
-    | if there is no timer, create one with 1/10 second
-    /if (!${Defined[timer_eradicate_ID${_tmpID}]}) {
-      /invoke ${set_timer[${_debug}, timer_eradicate_ID${_tmpID}, 1]}
-    }
-
-    | if there is not timer left on the target, get to work
-    | first check if there is an ae component for this debuff, if there is
-    | and the character has an ae count that is = < then mobs around the target
-    | fire the AE and add all those in that AE range into the list
-    | otherwise just do singles
-    /if (!${timer_eradicate_ID${_tmpID}} || !${lsdeBuffEradicate.Contains[${_tmpID}]}) {
-      DEBUG NO timer or not in list
-
-      /if (${Bool[${madeBuff.Find[stAEEradicate].Value}]} && AE#) {
-        /varset _mobCount ${SpawnCount[npc loc ${Spawn[id ${_tmpID}].X} ${Spawn[id ${_tmpID}].Y} radius ${Spell[${madeBuff.Find[stAEEradicate].Value}].AERange}]}
-      } else {
-        /varset _mobCount 0
-      }
-
-      DEBUG _mobCount${sep}\a-w${_mobCount}\ax
-
-      | single mob debuff
-      /if ((!AE# || (AE# && !${is_ready[${_debug}, "${madeBuff.Find[stAEEradicate].Value}"]})) && ${is_ready[${_debug}, "${madeBuff.Find[stEradicate].Value}"]}) {
-        DEBUG ${sep}{madeBuff.Find[swEradicate].Value}${sep}\a-wSINGLE\ax
-
-        | try to eradicate it
-        /call voodoo ${_debug} "${madeBuff.Find[stEradicate].Value}" ${_tmpID} FALSE
-
-        | was the debuff cast successful?
-        /if (${maData.Find[stCastReturn].Value.Equal[SUCCESS]}) {
-          | throw it in out list if not there
-          /if (!${lsdeBuffEradicate.Contains[${_tmpID}]}) {
-            /invoke ${lsdeBuffEradicate.Append[${_tmpID}]}
-          }
-
-          | set the re-check timer
-          /invoke ${set_timer[${_debug}, timer_eradicate_ID${_tmpID}, ${madeBuff.Find[stTimerEradicate].Value}]}
-
-        | cast failure we try again in one tick
-        } else /if (${maData.Find[stCastReturn].Value.NotEqual[SUCCESS]}) {
-          /invoke ${set_timer[FALSE, timer_eradicate_ID${_tmpID}, 6s]}
-        }
-
-        /while (${Me.SpellInCooldown}) {
-          CHECKEXIT
-          ISMEDEAD
-          /if (!${Me.SpellInCooldown}) /break
-          /delay 5
-        }
-
-      }
-
-      | multi mob debuff
-
-      /if (AE# && (${_mobCount} >= AE#)) {
-        /if (${is_ready[${_debug}, "${madeBuff.Find[stAEEradicate].Value}"]}) {
-          DEBUG ${sep}{madeBuff.Find[swEradicate].Value}${sep}\a-wMULTI\ax
-
-          | try to eradicate it
-          /call voodoo ${_debug} "${madeBuff.Find[stAEEradicate].Value}" ${_tmpID} FALSE
-
-          | was the debuff cast successful?
-          /if (${maData.Find[stCastReturn].Value.Equal[SUCCESS]}) {
-
-            | throw it in out list if not there
-            /if (!${lsdeBuffEradicate.Contains[${_tmpID}]}) {
-              /invoke ${lsdeBuffEradicate.Append[${_tmpID}]}
-            }
-
-            | set the re-check timer
-            /invoke ${set_timer[${_debug}, timer_eradicate_ID${_tmpID}, ${madeBuff.Find[stTimerEradicate].Value}]}
-
-            | get all his fucking friends too
-            /for _count 1 to ${_mobCount}
-              /varset _tmpMobID ${Spawn[${_tmpID}].NearestSpawn[${_count} ,npc radius ${Spell[${madeBuff.Find[stAEEradicate].Value}].AERange}].ID}
-              /if (${_tmpMobID} == 0) /break
-
-              /if (!${lsdeBuffEradicate.Contains[${_tmpMobID}]}) {
-                /invoke ${lsdeBuffEradicate.Append[${_tmpMobID}]}
-              }
-
-              | bitches need timers
-              /invoke ${set_timer[${_debug}, timer_eradicate_ID${_tmpMobID}, ${madeBuff.Find[stTimerEradicate].Value}]}
-
-            /next _count
-
-          | cast failure we try again in one tick
-          } else /if (${maData.Find[stCastReturn].Value.NotEqual[SUCCESS]}) {
-            /invoke ${set_timer[FALSE, timer_eradicate_ID${_tmpID}, 6s]}
-          }
-
-          /while (${Me.SpellInCooldown}) {
-            CHECKEXIT
-            ISMEDEAD
-            /if (!${Me.SpellInCooldown}) /break
-            /delay 5
-          }
-        }
-      }
-
-    }
-  | end of eradicate debuff checks
-  }
-
-  |**
-    documenting this for my fucking sanity
-    debuff cycle:
-    loop through: Tash,Malo,Slow,Snare,Cripple
-    for each cycle a mob id list is maintained in the form of: lsdeBuff[TYPE]
-    a timer is maintained for each IT in the list in the form of: timer_[TYPE]_ID[MOBID]
-    the timer is based off the debuf duration less 6 seconds.
-
-    if a timer exists and the ID is in the list, we ignore the mob.
-    if a timer does not exist and it is debuffed, it is added to that list, a timer remaining is created and it is added to the list
-    if a timer does exist and it is not in hte list, add to the list and move on (should not happen)
-    if no debuff, no timer, and no id in list. debuff the shit
-
-    this code does not check spells or sub procs of spells/ass/items. it works only off target debuff member checking.
-    what this means: you may not get the best slow or cripple. the code accepts whatever is there as a valid debuff and moves on.
-  **|
-
-  /declare _lsout list local
-  /invoke ${_lsout.Append[Tash,Malo,Slow,Snare,Cripple]}
-  /vardata _lideb _lsout.First.Clone
-  /declare _tmpTLO string local
-
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
-
-  | make sure we have a target and the buff list is current
-  /call target set ${_tmpID}
-  /delay 1s ${Target.BuffsPopulated}
-
-  | start the debuff cycle
-  /while (!${_lideb.IsEnd}) {
-    DEBUG ${sep}checking${sep}\a-w${_lideb.Value}\ax (${If[${madeBuff.Find[sw${_lideb.Value}].Value},${on},${off}]})
-    
-    GETOVERHERE
-    CHECKDEAD
-
-    /if (${_lideb.Value.Equal[Slow]}) {
-      /varset _tmpTLO Slowed
-    } else /if (${_lideb.Value.Equal[Snare]}) {
-      /varset _tmpTLO Snared
-    } else /if (${_lideb.Value.Equal[Tash]}) {
-      /varset _tmpTLO Tashed
-    } else /if (${_lideb.Value.Equal[Cripple]}) {
-      /varset _tmpTLO Crippled
-    } else /if (${_lideb.Value.Equal[Malo]}) {
-      /varset _tmpTLO Maloed
-    }
-
-    | is the debuf turned on
-    /if (${madeBuff.Find[sw${_lideb.Value}].Value}) {
-
-      | check if there is a debff timer for this debuff/mob. if not, create it
-      /if (!${Defined[timer_${_lideb.Value.Lower}_ID${_tmpID}]}) {
-        /invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, 0]}
-      }
-
-        /if (${_tmpTLO.Equal[Slowed]} && ${Select[${Target.Slowed},Tendon Slice,Helix of the Undying,Crippling Snare]}) {
-          /goto :ignorecrapslow
-        }
-
-      | add if already there?
-      DEBUG ${sep}checking:
-      DEBUG \ar....\ax ${_tmpTLO}${sep}\a-w${Target.${_tmpTLO}}\ax(\a-r${Target.${_tmpTLO}.ID}\ax)
-      | DEBUG \ar....\ax single debuff${sep}\a-w${Target.Buff[${madeBuff.Find[st${_lideb.Value}].Value}].ID}\ax
-      | DEBUG \ar....\ax ae debuff${sep}\a-w${Target.Buff[${madeBuff.Find[stAE${_lideb.Value}].Value}].ID}\ax
-      DEBUG \ar....\ax timer set${sep}\a-w${timer_${_lideb.Value.Lower}_ID${_tmpID}}\ax
-      DEBUG \ar....\ax in list${sep}\a-w${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}\ax
-      | /if ((${Target.${_tmpTLO}.ID} || ${Target.Buff[${madeBuff.Find[st${_lideb.Value}].Value}].ID} || ${Target.Buff[${madeBuff.Find[stAE${_lideb.Value}].Value}].ID}) && (!${timer_${_lideb.Value.Lower}_ID${_tmpID}} || !${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]})) {
-
-      | our target is debuffed for this cycle. make sure it is marked and move on to next check
-      /if (${Target.${_tmpTLO}.ID} || ${Target.Buff[${madeBuff.Find[st${_lideb.Value}].Value}].ID} || ${Target.Buff[${madeBuff.Find[stAE${_lideb.Value}].Value}].ID}) {
-
-        | in the list
-        /if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
-          DEBUG ${sep}adding ID:\a-r${_tmpID}\ax to \a-wlsdeBuff${_lideb.Value}\ax
-          /invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpID}]}
-        }
-
-        | timer set?
-        /if (${Target.${_tmpTLO}.Duration.TotalSeconds}) {
-          DEBUG ${sep}adjusting${sep}\a-wtimer_${_lideb.Value.Lower}_ID${_tmpID}\ax
-          /invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, ${Math.Calc[${Target.${_tmpTLO}.Duration.TotalSeconds}-6]}]}
-        }
-
-        | it is now marked and in the debuf list
-        /invoke ${_lideb.Advance}
-        /continue
-      }
-
-      :ignorecrapslow
-      | if we've made it this far, cause shits not dealt with
-      /if (!${timer_${_lideb.Value.Lower}_ID${_tmpID}} || !${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
-        DEBUG ${sep}\arNO\ax timer or not in list${sep}\a-wlsdeBuff${_lideb.Value}\ax
-        /if (${Bool[${madeBuff.Find[stAE${_lideb.Value}].Value}]} && AE#) {
-          /varset _mobCount ${SpawnCount[npc loc ${Spawn[id ${_tmpID}].X} ${Spawn[id ${_tmpID}].Y} radius ${Spell[${madeBuff.Find[stAE${_lideb.Value}].Value}].AERange}]}
-        } else {
-          /varset _mobCount 0
-        }
-        DEBUG ${sep}_mobCount${sep}\a-w${_mobCount}\ax
-
-        | /if (${is_ready[${_debug}, "${madeBuff.Find[st${_lideb.Value}].Value}"]}) {
-        /if (!AE# || (AE# && ${_mobCount} < 2 && ${is_ready[${_debug}, "${madeBuff.Find[st${_lideb.Value}].Value}"]}) || (AE# && !${is_ready[${_debug}, "${madeBuff.Find[stAE${_lideb.Value}].Value}"]})) {
-          DEBUG ${sep}sw${_lideb.Value}${sep}\a-wSINGLE\ax
-
-          | cast the damn thing already
-          /call voodoo ${_debug} "${madeBuff.Find[st${_lideb.Value}].Value}" ${_tmpID} FALSE
-
-          | sort our returns and act
-          /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
-            /if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
-              /invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpID}]}
-            }
-            /invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[st${_lideb.Value}].Value}].Duration.TotalSeconds}s]}
-
-          | fizzle, we try again shortly
-          } else /if (${Select[${maData.Find[stCastReturn].Value},RESISTED,NOTREADY,FIZZLE,DISTRACTED]}) {
-            /invoke ${set_timer[FALSE, timer_${_lideb.Value.Lower}_ID${_tmpID}, 6s]}
-
-          | immune, mark the mob as no touch. (long timer)
-          } else /if (${Select[${maData.Find[stCastReturn].Value},IMMUNE,TAKEHOLD]}) {
-            /if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
-              /invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpID}]}
-            }
-            /invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, 10m]}
-          }
-
-          /while (${Me.SpellInCooldown}) {
-            CHECKEXIT
-            ISMEDEAD
-            /if (!${Me.SpellInCooldown}) /break
-            /delay 5
-          }
-        }
-
-        /if (AE# && ${_mobCount} >= AE#) {
-          /if (${is_ready[${_debug}, "${madeBuff.Find[stAE${_lideb.Value}].Value}"]}) {
-            DEBUG ${sep}sw${_lideb.Value}${sep}\a-wMULTI\ax
-            /call voodoo ${_debug} "${madeBuff.Find[stAE${_lideb.Value}].Value}" ${_tmpID} FALSE
-            /if (${maData.Find[stCastReturn].Value.Equal[SUCCESS]}) {
-              /if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
-                /invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpID}]}
-              }
-              /invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, ${Spell[${madeBuff.Find[stAE${_lideb.Value}].Value}].Duration.TotalSeconds}s]}
-              /for _count 1 to ${_mobCount}
-                /varset _tmpMobID ${Spawn[${_tmpID}].NearestSpawn[${_count} ,npc radius ${Spell[${madeBuff.Find[stAE${_lideb.Value}].Value}].AERange}].ID}
-                /if (${_tmpMobID} == 0) /break
-                /if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpMobID}]}) {
-                  /invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpMobID}]}
-                }
-                /invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpMobID}, ${madeBuff.Find[stTimerSnare].Value}]}
-              /next _count
-            } else /if (${Select[${maData.Find[stCastReturn].Value},RESISTED,NOTREADY,FIZZLE,DISTRACTED]}) {
-              /invoke ${set_timer[FALSE, timer_${_lideb.Value.Lower}_ID${_tmpID}, 6s]}
-            } else /if (${Select[${maData.Find[stCastReturn].Value},IMMUNE,TAKEHOLD]}) {
-              /if (!${lsdeBuff${_lideb.Value}.Contains[${_tmpID}]}) {
-                /invoke ${lsdeBuff${_lideb.Value}.Append[${_tmpID}]}
-              }
-              /invoke ${set_timer[${_debug}, timer_${_lideb.Value.Lower}_ID${_tmpID}, 10m]}
-            }
-
-            /while (${Me.SpellInCooldown}) {
-              CHECKEXIT
-              ISMEDEAD
-              /if (!${Me.SpellInCooldown}) /break
-              /delay 5
-            }
-
-          }
-        }
-
-      }
-    }
-
-    /invoke ${_lideb.Advance}
-  }
-
-/return TRUE
-
-
-
-|***
  * note: pets all sorts of fucked up again..
  * use: /call check_minion_cycle DEBUG <FORCE T/F>
  ***|
@@ -7752,7 +7408,7 @@ sub check_minion_cycle_shrink(bool _debug)
 sub check_minion_cycle_buff(bool _debug)
   DEBUG \atcheck_minion_cycle_buff\ax()
 
-  /if (AUTO) {
+  /if (AUTO || MODE) {
     /invoke ${set_data_timer[${_debug}, Check_Minion_Buff, RESTART]}
   }
 
@@ -7817,7 +7473,7 @@ sub check_minion_cycle_summon(bool _debug)
   CHECKEXIT check_minion_cycle_summon
   GETINPUT check_minion_cycle_summon NA|NA
 
-  /if (PET && AUTO && !${Pet.ID}) {
+  /if (PET && (AUTO || MODE) && !${Pet.ID}) {
     /if (${is_ready[${_debug}, "Companion's Suspension"]}) {
       /call voodoo ${_debug} "Companion's Suspension" 0 FALSE
     }
@@ -7851,7 +7507,7 @@ sub check_minion_cycle_summon(bool _debug)
   /pet hold on
   /pet ghold on
 
-  /if (AUTO) {
+  /if (AUTO || MODE) {
     /invoke ${set_data_timer[${_debug}, Check_Minion_Buff, 1]}
   }
 
@@ -8204,7 +7860,7 @@ sub get_MAG_folded_pack(bool _debug)
   /declare _ligmfp listiterator local
   /vardata _ligmfp _lsout.First.Clone
   /while (!${_ligmfp.IsEnd}) {
-    | CHECKDEAD
+    CHECKDEAD
     /if (${FindItemCount[Folded Pack of ${_ligmfp.Value} Armaments]}) {
       DEBUG ${sep}found mage pack${sep}\a-wFolded Pack of ${_ligmfp.Value} Armaments\ax
       /return Folded Pack of ${_ligmfp.Value} Armaments
@@ -8225,7 +7881,7 @@ sub get_MAG_folded_pack(bool _debug)
 sub cast_shield_flash(bool _debug, string _type)
   DEBUG \atcast_shield_flash\ax(\a-w${_type}\ax)
 
-  /if (!AUTO) {
+  /if (!AUTO && !MODE) {
     /return FALSE
   }
 
@@ -8255,7 +7911,7 @@ sub cast_shield_flash(bool _debug, string _type)
     /declare _count int local 0
 
     /for _count 1 to 12
-      | CHECKDEAD
+      CHECKDEAD
       /if (${Me.Bandolier[${_count}].Active}) {
         /varset _Bandolier ${Me.Bandolier[${_count}]}
         /break
@@ -8655,7 +8311,7 @@ sub get_target_intpull(bool _debug, int _tmpID)
 sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
   DEBUG \atpull_mob_move_to\ax(\a-wID:${_tmpID}, Dis:${_dist}, LoS:${_LoS}\ax)
 
-  /if (!AUTO && !${swModeToken}) {
+  /if (!AUTO && !MODE) {
     /return FALSE
   }
 
@@ -8667,7 +8323,7 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
     CHECKDEAD
     GETOVERHERE
 
-    /if (!AUTO) {
+    /if (!AUTO && !MODE) {
       DEBUG ${sep}/while \a-gmanual\ax
       /invoke ${target[clear]}
       /return FALSE
@@ -9156,7 +8812,7 @@ sub get_target_multipull(bool _debug)
     /invoke ${out[9, "Waiting on ${dot} ${con_color[${_debug}, ${_tmpID}]}${sep}\a-w30s\ax"]}
     /while (TARGET && ${Spawn[TARGET].Distance} > ${maHard.Find[stMinBowDist].Value}) {
       GETINPUT get_target_multipull_wait NA|NA
-      | CHECKDEAD
+      CHECKDEAD
       /delay 2
 
       | target gone.. wtf?
@@ -10060,7 +9716,7 @@ sub set_control_output(bool _debug, string _map, string _outname, string _contro
 sub check_heal_routines()
 
   | heal: curing
-  /if (!${timer_Check_Cure} && (${maHeal.Find[swHealCureSelf].Value} || ${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value})) {
+  /if (!${timer_Check_Cure} && (${maCure.Find[swCureSelf].Value} || ${maCure.Find[swCureGroup].Value} || ${maCure.Find[swCureCrew].Value})) {
     /call check_cure ${maDebug.Find[cure].Value}
   }
 
@@ -10081,7 +9737,7 @@ sub check_heal_routines()
 
   | heal: ch (CLERIC ONLY)
   /if (${Select[${Me.Class.ShortName},CLR]} && ${maHeal.Find[stPctCH].Value} && ${Group.Members}) {
-    /call check_heal ${maDebug.Find[group].Value} ch
+    /call check_heal ${maDebug.Find[ch].Value} ch
   }
 
   | heal: group
@@ -10100,7 +9756,6 @@ sub check_heal_routines()
   }
 
 
-  GETINPUT check_heal_routines_end NA|NA
   CHECKREZ
 
 /return TRUE
@@ -11991,7 +11646,7 @@ sub cast_cycle_heal(bool _debug, int _tmpID, string _tag)
       /continue
     }
 
-    | CHECKDEAD
+    CHECKDEAD
     /call voodoo ${_debug} "${maHeal.Find[stHeal${_liHeal.Value}].Value}" ${_tmpID} breakonhealpct
 
     /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]}) {
@@ -13127,7 +12782,7 @@ sub con_color(bool _debug, int _tmpID)
 sub do_taunt(bool _debug, int _tmpID)
   DEBUG \atdo_taunt\ax(\a-w${_tmpID}\ax)
 
-  | CHECKDEAD
+  CHECKDEAD
   CHECKEXIT
 
   /if (!${maAgro.Find[stPctTaunt].Value} || !AGRO) {
@@ -14207,7 +13862,7 @@ sub cast_cycle_melee(bool _debug, int _tmpID, string _tag)
     /return FALSE
   }
 
-  | CHECKDEAD
+  CHECKDEAD
   CHECKDEFENSE
 
   /call target set ${_tmpID}
@@ -14293,7 +13948,7 @@ sub cast_cycle_melee(bool _debug, int _tmpID, string _tag)
       /continue
     }
 
-    | CHECKDEAD
+    CHECKDEAD
     
     /invoke ${out[8, "Melee${sep}${sp}${maMelee.Find[stMelee${_liMelee.Value}].Value}\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
     /doability "${maMelee.Find[stMelee${_liMelee.Value}].Value}"
@@ -14433,22 +14088,20 @@ sub pull_home_move_to(bool _debug, int _tmpID)
 
 
 
-
-
 |***
  * note: decide on pull or assist
  * use: 
  ***|
 sub pull_assist_decision(bool _debug)
   DEBUG \atpull_assist_decision\ax
-
   DEBUG ${submenu}pullstate (\a-rassist/pull check\ax)
-  
   
   | assist error corrections
   /if (!PULL && !${maPull.Find[stCountChainPull].Value}) {
 
-    /invoke ${target[release]}
+    /if ((!TARGET || ${Spawn[TARGET].Distance} > ENV) || HEAL) {
+      /invoke ${target[release]}
+    }
 
     | no assist set at all
     /if (!${Bool[${maCC.Find[stAssistMode].Value}]} && !${Bool[${maCC.Find[stManualAssist1].Value}]} && !${Bool[${maCC.Find[stManualAssist2].Value}]} && (${lsAssistDanNet.Contains[EMPTY]} && ${lsAssistDanNet.Count} == 1)) {
@@ -14481,6 +14134,9 @@ sub pull_assist_decision(bool _debug)
 
     DEBUG ${submenu}pullstate (\a-rget assist\ax)
     /call get_assist_target ${maDebug.Find[assist].Value}
+    /if (!${Macro.Return}) {
+      /invoke ${target[release]}
+    }
 
   } else /if (PULL) {
     
@@ -14584,7 +14240,7 @@ sub get_resident(bool _debug, string _groupList, int _distance, string _verbage)
   /for _countGroup 1 to ${_groupList.Count[|]}
     /varset _group ${_groupList.Arg[${_countGroup},|]}
     
-    | CHECKDEAD
+    CHECKDEAD
 
     | group empty / does not exist
     /if (!${DanNet.PeerCount[${_group}]}) {
@@ -14595,7 +14251,7 @@ sub get_resident(bool _debug, string _groupList, int _distance, string _verbage)
     /for _countName 1 to ${DanNet.Peers[${_group}].Count[|]}
       /varset _name ${DanNet.Peers[${_group}].Arg[${_countName},|]}
       
-      | CHECKDEAD
+      CHECKDEAD
 
       | never use the MA
       /if (${Group.MainAssist.Name.Equal[${_name}]} || ${_verbage.Equal[notme]}) {
@@ -14713,55 +14369,35 @@ sub check_cure(bool _debug)
   GETINPUT check_cure NA|NA
 
   | My daughter said you have issues.. She's usually right.
-  /if (${Me.TotalCounters} && ${maHeal.Find[swHealCureSelf].Value}) {
+  /if (${Me.TotalCounters} && ${maCure.Find[swCureSelf].Value}) {
     DEBUG ${sep}\aw${Me.DisplayName.Lower}\ax needs a medic!
 
-    | Monk
-    /if (${Select[${Me.Class.ShortName},MNK]} && ${Me.AltAbilityReady[Purify Body]}) {
-      /call voodooo ${_debug} "Purify Body" 0 FALSE
-      /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-      /invoke ${set_data_timer[${_debug}, Check_Cure, 1]}
-      /goto :end_cure
-
-    | Paladin, Cleric, Shaman, Druid
-    } else /if (${Select[${Me.Class.ShortName},PAL,CLR,SHM,DRU]} && ${Me.AltAbilityReady[Radiant Cure]} && (${Me.CountersCurse} || ${Me.CountersPoison} || ${Me.CountersDisease})) {
-      /call voodoo ${_debug} "Radiant Cure" 0 FALSE
-      /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-      /invoke ${set_data_timer[${_debug}, Check_Cure, 1]}
-      /goto :end_cure
-
-    | Necromancer
-    } else /if (${Select[${Me.Class.ShortName},NEC]} && ${Me.AltAbilityReady[Embrace the Decay]} && (${Me.CountersCurse} || ${Me.CountersPoison} || ${Me.CountersDisease} || ${Me.CountersCorruption})) {
-      /call voodoo ${_debug} "Embrace the Decay" 0 FALSE
-      /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-      /invoke ${set_data_timer[${_debug}, Check_Cure, 1]}
-      /goto :end_cure
-    }
-
-    | cure with items self only
-    /if (${Me.CountersCurse} && ${Me.ItemReady[${maHeal.Find[stCureCurseItem].Value}]}) {
-      /call voodoo ${_debug} "${maHeal.Find[stCureCurseItem].Value}" ${Me.ID} FALSE
-      /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-
-    } else /if (${Me.CountersCorruption} && ${Me.ItemReady[${maHeal.Find[stCureCorruptionItem].Value}]}) {
-      /call voodoo ${_debug} "${maHeal.Find[stCureCorruptionItem].Value}" ${Me.ID} FALSE
-      /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-
-    } else /if (${Me.CountersPoison} && ${Me.ItemReady[${maHeal.Find[stCurePoisonItem].Value}]}) {
-      /call voodoo ${_debug} "${maHeal.Find[stCurePoisonItem].Value}" ${Me.ID} FALSE
-      /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-
-    } else /if (${Me.CountersDisease} && ${Me.ItemReady[${maHeal.Find[stCureDiseaseItem].Value}]}) {
-      /call voodoo ${_debug} "${maHeal.Find[stCureDiseaseItem].Value}" ${Me.ID} FALSE
-      /delay ${maEntropy.Find[stDanNetQueryDelay].Value}
-    }
-    
-  } else /if (!${Me.TotalCounters} && ${maHeal.Find[swHealCureSelf].Value}) {
+  } else /if (!${Me.TotalCounters} && ${maCure.Find[swCureSelf].Value}) {
     DEBUG ${sep}\aw${Me.DisplayName.Lower}\ax is just fine
   }
+  
+  
+  /if (${Me.CountersCurse}) {
+    /call cast_cycle_cure ${_debug} ${Me.ID} curse  
+    /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+    /goto :end_cure
+  } else /if (${Me.CountersCorruption}) {
+    /call cast_cycle_cure ${_debug} ${Me.ID} corruption  
+    /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+    /goto :end_cure
+  } else /if (${Me.CountersPoison}) {
+    /call cast_cycle_cure ${_debug} ${Me.ID} poison  
+    /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+    /goto :end_cure
+  } else /if (${Me.CountersDisease}) {
+    /call cast_cycle_cure ${_debug} ${Me.ID} disease  
+    /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+    /goto :end_cure
+  }
+
 
   | bail now if only self curing
-  /if (!${maHeal.Find[swHealCureGroup].Value} && !${maHeal.Find[swHealCureCrew].Value}) {
+  /if (!${maCure.Find[swCureGroup].Value} && !${maCure.Find[swCureCrew].Value}) {
     /return TRUE
   }
 
@@ -14790,7 +14426,7 @@ sub check_cure(bool _debug)
     }   
 
     | group only
-    /if (${maHeal.Find[swHealCureGroup].Value} && !${maHeal.Find[swHealCureCrew].Value}) {
+    /if (${maCure.Find[swCureGroup].Value} && !${maCure.Find[swCureCrew].Value}) {
       /if (!${Group.Member[${_toon}].Present}) {
         /continue
       }
@@ -14801,96 +14437,62 @@ sub check_cure(bool _debug)
       /continue
     }
     
+    | Put cure stuff here.... like the next line..
+  
+
+    /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+    /goto :end_cure
+    
     
     | are they debuffed at all?
-    /if (!${DanNet[${_toon}].Observe["Me.TotalCounters"]} && !${Bool[${DanNet[${_toon}].Observe["Me.Snared"]}]} && !${Bool[${DanNet[${_toon}].Observe["Me.Mezzed"]}]}) {
+    /if (!${DanNet[${_toon}].Observe["Me.TotalCounters"]} && !${Spell[${DanNet[${_toon}].Observe["Me.Snared"]}].ID} && !${Spell[${DanNet[${_toon}].Observe["Me.Mezzed"]}].ID}) {
       DEBUG ${sep}\aw${_toon}\ax is just fine
       /continue
     } else /if (${DanNet[${_toon}].Observe["Me.TotalCounters"]}) {
       OUT Medic${sep}\a-w${_toon}\ax (\a-r${DanNet[${_toon}].Observe["Me.TotalCounters"]}\ax)
     }
 
+
+
     ISMEDEAD
-
-    | healer class AA curing
-    /if (${Select[${Me.Class.ShortName},PAL,CLR,SHM,DRU]}) {
-
-      | AA Purify Soul
-      | 200' 5 min
-      /if (${Select[${Me.Class.ShortName},PAL,CLR,DRU]} && ${Me.AltAbilityReady[Purify Soul]} && ${Spawn[pc ${_toon}].Distance} < 200) {
-        /call voodoo ${_debug} "Purify Soul" ${Spawn[pc ${_toon}].ID} FALSE
-        /invoke ${set_data_timer[FALSE, Check_Cure, 1s]}
-        /goto :end_cure
-
-      | AA Radient Cure
-      | 100' 1 min
-      } else /if (${Select[${Me.Class.ShortName},PAL,CLR,SHM,DRU]} && ${Me.AltAbilityReady[Radiant Cure]} && ${Spawn[pc ${_toon}].Distance} < 100 && ${Group.Member[${_toon}].ID}) {
-        /call voodoo ${_debug} "Radiant Cure" 0 FALSE
-        /invoke ${set_data_timer[FALSE, Check_Cure, 1s]}
-        /goto :end_cure
-
-      | AA Group Purify Soul
-      | 0/100' 15 min
-      } else /if (${Select[${Me.Class.ShortName},CLR,DRU]} && ${Me.AltAbilityReady[Group Purify Soul]} && ${Spawn[pc ${_toon}].Distance} < 100 && ${Group.Member[${_toon}].ID}) {
-        /call voodoo ${_debug} "Group Purify Soul" 0 FALSE
-        /invoke ${set_data_timer[FALSE, Check_Cure, 1s]}
-        /goto :end_cure
-
-      | paladin splash 50' range
-      } else /if (${Select[${Me.Class.ShortName},PAL]} && ${Spawn[pc ${_toon}].Distance} < 50) {
-        /call Bind_command_splash FALSE
-        /invoke ${set_data_timer[FALSE, Check_Cure, 1s]}
-        /goto :end_cure
-      }
-    }
-
-    | are they debuffed?
-    DEBUG ${sep}\aw${_toon}\aw_TotalCounters${sep}\a-w${DanNet[${_toon}].Observe["Me.TotalCounters"]}\ax
-    /if (!${DanNet[${_toon}].Observe["Me.TotalCounters"]}) {
-      /continue
-    }
-
-    | is the DB set with the following cures to continue?
-    /if (!${Bool[${maHeal.Find[stCureCurse].Value}]} && !${Bool[${maHeal.Find[stCureCorruption].Value}]} && !${Bool[${maHeal.Find[stCurePoison].Value}]} && !${Bool[${maHeal.Find[stCureDisease].Value}]}) {
-      /continue
-    }
+    CHECKEXIT
 
     | cure with spell
-    /if (${Bool[${maHeal.Find[stCureCurse].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersCurse"]} && ${DanNet[${_toon}].OSet["Me.CountersCurse"]}) {
+    /if (${Bool[${maCure.Find[stCureCurse].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersCurse"]}) {
       DEBUG ${sep}${_toon} is CURSED
       /delay 3s !${Me.SpellInCooldown}
-      /if (${is_ready[${_debug}, "${maHeal.Find[stCureCurse].Value}"]}) {
-        /call voodoo ${_debug} "${maHeal.Find[stCureCurse].Value}" ${Spawn[pc ${_toon}].ID} FALSE
-        /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
-        /goto :end_cure
-      }
+
+      /call voodoo ${_debug} "${maCure.Find[stCureCurse].Value}" ${Spawn[pc ${_toon}].ID} FALSE
+
+     /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+      /goto :end_cure
     }
 
-    /if (${Bool[${maHeal.Find[stCureCorruption].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersCorruption"]} && ${DanNet[${_toon}].OSet["Me.CountersCorruption"]}) {
+    /if (${Bool[${maCure.Find[stCureCorruption].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersCorruption"]}) {
       DEBUG ${sep}${_toon} is CORRUPTED
       /delay 3s !${Me.SpellInCooldown}
-      /if (${is_ready[${_debug}, "${maHeal.Find[stCureCorruption].Value}"]}) {
-        /call voodoo ${_debug} "${maHeal.Find[stCureCorruption].Value}" ${Spawn[pc ${_toon}].ID} FALSE
+      /if (${is_ready[${_debug}, "${maCure.Find[stCureCorruption].Value}"]}) {
+        /call voodoo ${_debug} "${maCure.Find[stCureCorruption].Value}" ${Spawn[pc ${_toon}].ID} FALSE
         /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
         /goto :end_cure
       }
     }
 
-    /if (${Bool[${maHeal.Find[stCurePoison].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersPoison"]} && ${DanNet[${_toon}].OSet["Me.CountersPoison"]}) {
+    /if (${Bool[${maCure.Find[stCurePoison].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersPoison"]}) {
       DEBUG ${sep}${_toon} is POISONED... danger noodle~
       /delay 3s !${Me.SpellInCooldown}
-      /if (${is_ready[${_debug}, "${maHeal.Find[stCurePoison].Value}"]}) {
-        /call voodoo ${_debug} "${maHeal.Find[stCurePoison].Value}" ${Spawn[pc ${_toon}].ID} FALSE
+      /if (${is_ready[${_debug}, "${maCure.Find[stCurePoison].Value}"]}) {
+        /call voodoo ${_debug} "${maCure.Find[stCurePoison].Value}" ${Spawn[pc ${_toon}].ID} FALSE
         /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
         /goto :end_cure
       }
     }
 
-    /if (${Bool[${maHeal.Find[stCureDisease].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersDisease"]} && ${DanNet[${_toon}].OSet["Me.CountersDisease"]}) {
+    /if (${Bool[${maCure.Find[stCureDisease].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersDisease"]}) {
       DEBUG ${sep}${_toon} is DISEASED...Burn'em with FIRE!!!
       /delay 3s !${Me.SpellInCooldown}
-      /if (${is_ready[${_debug}, "${maHeal.Find[stCureDisease].Value}"]}) {
-        /call voodoo ${_debug} "${maHeal.Find[stCureDisease].Value}" ${Spawn[pc ${_toon}].ID} FALSE
+      /if (${is_ready[${_debug}, "${maCure.Find[stCureDisease].Value}"]}) {
+        /call voodoo ${_debug} "${maCure.Find[stCureDisease].Value}" ${Spawn[pc ${_toon}].ID} FALSE
         /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
         /goto :end_cure
       }
@@ -15065,8 +14667,8 @@ sub get_help(string _type, string _verbage)
  * note: cycles debuffs on a target
  * use: /call cast_cycle_debuff DEBUG [TARGETID] [TAG]
  ***|
-sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag)
-  DEBUG \atcast_cycle_debuff\ax(\a-wID:${_tmpID}, tag:${_tag}\ax)
+sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
+  DEBUG \atcast_cycle_debuff\ax(\a-wID:${_tmpID}, tag:${_tag}, ${_return}\ax)
 
   CHECKDEAD
   CHECKDEFENSE
@@ -15080,17 +14682,14 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag)
     /invoke ${lsLinedeBuff.Append[${stCount12}]}
   }
 
- 
   /declare _spell string local FALSE
   /declare _count int local 0
   /declare _found bool local TRUE
   /declare _type string local FALSE
 
-
   /declare _lidebuff listiterator local
   /vardata _lidebuff lsLinedeBuff.First.Clone
   /while (!${_lidebuff.IsEnd}) {
-
 
     GETINPUT cast_cycle_debuff NA|NA
     ISMEDEAD
@@ -15100,7 +14699,6 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag)
     /if (${target[isdead, ${_tmpID}]}) {
       /return FALSE
     }
-    | DEBUG here${sep}\a-w${_tag}\ax
 
     | check the switch
     /if (!${Bool[${madeBuff.Find[swdeBuff${_lidebuff.Value}].Value}]}) {
@@ -15180,6 +14778,9 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag)
       /next _count
 
       /if (!${_found}) {
+        /if (${_return}) {
+          /return ${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}
+        }
         /call voodoo ${_debug} "${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}" ${_tmpID} FALSE
         /call cast_cooldown_wait ${_debug}
         /continue
@@ -15209,6 +14810,11 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag)
         /continue
       }
 
+
+      /if (${_return}) {
+        /return ${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}
+      }
+
       /call voodoo ${_debug} "${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}" ${_tmpID} FALSE
       /call cast_cooldown_wait ${_debug}
       /invoke ${_lidebuff.Advance}
@@ -15224,10 +14830,7 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag)
 
 
 
-|***
- * note: see what debuffs to cast?
- * use: /call check_debuff_routines
- ***|
+|**
 sub check_debuff_routines(int _tmpID)
 
   | tash
@@ -15255,6 +14858,99 @@ sub check_debuff_routines(int _tmpID)
     /call cast_cycle_debuff ${maDebug.Find[snare].Value} ${_tmpID} snare
   }
 
+
+/return TRUE
+**|
+
+
+|***
+ * note: see what debuffs to cast?
+ * use: /call check_debuff_routines
+ ***|
+sub check_debuff_routines(int _tmpID, bool _debug)
+  DEBUG \atcheck_debuff_routines\ax(\aw${_tmpID}\ax)
+  
+  /declare _variable string local FALSE
+  /declare _member string local
+  /declare _tmpTLO string local FALSE
+  /declare _lideorder listiterator local
+  /vardata _lideorder lsdeBuffOrder.First.Clone
+  /while (!${_lideorder.IsEnd}) {
+
+    GETOVERHERE
+    CHECKEXIT
+    CHECKDEAD    
+ 
+    /varset _debug ${If[${maDebug.Find[${_lideorder.Value}].Value},TRUE,FALSE]}
+    
+    /varset _variable ${proper_case[name, ${_lideorder.Value}]}
+
+    | is the debuff turned on
+    /if (!${madeBuff.Find[sw${_variable}].Value}) {
+      DEBUG ${break}off
+      /invoke ${_lideorder.Advance}
+      /continue
+    }
+    
+    /delay 1s ${Target.BuffsPopulated}
+
+    /if (${Target.ID} == ${_tmpID} && ${Target.BuffsPopulated}) {
+      DEBUG ${sep}.BuffsPopulated
+
+      | check current debuffs
+      | we really dont want to do shit more then once
+      /if (${_lideorder.Value.Equal[slow]}) {
+        DEBUG ${sep}${_lideorder.Value}
+        /if (${Target.Slowed.ID}) {
+          /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value} TRUE
+          DEBUG ${sep}returning${sep}\a-w${Macro.Return}\ax
+          /if (${Bool[${Macro.Return}]}) {
+            DEBUG compare${sep} ${Target.Slowed.Name}${sep}\a-r${Spell[${Target.Slowed}].Base[2]}\ax <= ${Macro.Return}${sep}\a-r${Spell[${Macro.Return}].Base[2]}\ax
+            /if (${Spell[${Target.Slowed}].Base[2]} <= ${Spell[${Macro.Return}].Base[2]}) {
+              /invoke ${_lideorder.Advance}
+              /continue 
+            }
+          }         
+        }
+
+      | tash / cripple / malo
+      } else /if (${Select[${_lideorder.Value},tash,cripple]}) {
+        
+        /if (${_lideorder.Value.Equal[tash]}) {
+          /varset _member Tashed
+        } else /if (${_lideorder.Value.Equal[cripple]}) {
+          /varset _member Crippled
+        } else /if (${_lideorder.Value.Equal[malo]}) {
+          /varset _member Maloed
+        }
+        
+        DEBUG ${sep}${_lideorder.Value}
+        /if (${Target.${_member}.ID}) {
+          /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value} TRUE          
+          DEBUG ${sep}returning${sep}\a-w${Macro.Return}\ax
+          /if (${Bool[${Macro.Return}]}) {
+            /if (${Spell[${Target.${_member}}].Base[2]} <= ${Spell[${Macro.Return}].Base[2]}) {
+              /invoke ${_lideorder.Advance}
+              /continue 
+            }          
+          }
+        }
+
+      | snare
+      } else /if (${_lideorder.Value.Equal[snare]}) {
+        /if (${Target.Snared.ID}) {
+          /invoke ${_lideorder.Advance}
+          /continue          
+        }
+        
+      }
+    }
+
+    | debuff time
+    /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value}
+
+    /invoke ${_lideorder.Advance}
+  }
 
 /return TRUE
 
@@ -15299,6 +14995,93 @@ DEBUG \atget_type\aw(\a-w${_type}\ax)
   DEBUG ${sep}get_type${sep}\arFAIL\ax${sep}${_type}${sep}\a-wnot found or not ready\ax
 
 /return FALSE    
+
+
+
+
+
+
+
+|***
+ * note: https://www.imdb.com/title/tt2490326
+ * use: /call check_cycle_cure [DEBUG] [TARGETID] [tag] [return t/f]
+ ***|
+sub cast_cycle_cure(bool _debug, int _tmpID, string _tag, bool _return)
+  DEBUG \atcast_cycle_cure\ax(\a-wID:${_tmpID}, tag:${_tag}, ${_return}\ax)
+
+  | if the user has not set the line order, set it to a default for now
+  /if (${lsLineCure.Contains[EMPTY]} && ${lsLineCure.Count} == 1) {
+    DEBUG ${sep}resetting the empty cure line
+    /invoke ${lsLineCure.Clear}
+    /invoke ${lsLineCure.Append[${stCount12}]}
+  }
+
+  /declare _liC12 listiterator local
+  /vardata _liC12 lsCount12.First.Clone
+  /while (!${_liC12.IsEnd}) {
+
+    GETINPUT cast_cycle_defense NA|NA
+    ISMEDEAD
+    GETOVERHERE
+
+    | check the switch
+    /if (!${maCure.Find[swCure${_liC12.Value}].Value}) {
+      /invoke ${_liC12.Advance}
+      /continue
+    }
+
+    | check the name
+    /if (!${Bool[${maCure.Find[stCure${_liC12.Value}].Value}]}) {
+      /invoke ${_liC12.Advance}
+      /continue
+    }
+
+    | is ready?
+    /if (!${is_ready[${_debug}, "${maCure.Find[stCure${_liC12.Value}].Value}"]}) {
+      /invoke ${_liC12.Advance}
+      /continue
+    }
+     
+    | check matching tag for failure
+    /if (${Bool[${_tag}]}) {
+      /if (!${lsCure${_liC12.Value}Tag.Contains[${_tag}]}) {
+        DEBUG ${break}${_liC12.Value} bad tag${sep}\a-w${_tag}\ax
+        /invoke ${_liC12.Advance}
+        /continue
+      }
+    }   
+
+    | cycle the tags
+    /call tag_evaluation ${maDebug.Find[tag].Value} Defense ${_liC12.Value} ${Me.DisplayName} "${maCure.Find[stCure${_liC12.Value}].Value}" cast_cycle_cure
+    /if (!${Macro.Return}) {
+      /invoke ${_liC12.Advance}
+      /continue
+    }
+
+    DEBUG ${sep}_liC12.Value${sep}\a-w${_liC12.Value}\ax${sep}passed tags
+    
+    /if (${_return}) {
+      /return ${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}
+    }    
+
+    ISMEDEAD
+
+    /call voodoo ${_debug} "${maCure.Find[stCure${_liC12.Value}].Value}" ${_tmpID} FALSE
+
+    | good cast, get out...
+    /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
+      DEBUG ${break}good cast${sep}\a-w${maCure.Find[stCure${_liC12}].Value}\ax
+      /return TRUE
+    }
+
+    /invoke ${_liC12.Advance}
+  }
+
+/return TRUE
+
+
+
+
 
 
 

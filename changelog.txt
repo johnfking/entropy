@@ -13,12 +13,40 @@
 
 on the to do list
 --------------------
-- find a way to grade debuffs and overwrite if needed
 - ranger silent shot ambush spell
 - break out triggers for minion buffs
-- look at a way to split coordination for assists across more then one mob in a raid
 - pet gear handing for damn TLP feeders..
 --------------------
+
+
+
+
+210114.01
+- tags
+  debuff::cripple::marker /debuff cripple
+- assisting
+  lot of changes to dannet initial assisting, it should no longer flash targets
+  once a mob is in env radius and the assist has it targeted, the assister should hold the target
+- /debuff
+  added in a list control for the debuff order.
+  lsdeBuffOrder::tash|malo|slow|cripple|eradicate|snare
+  you can rearrange, or remove from the list as you like
+  you cannot make up debuff types and put them in there, these are the only types that are used
+  - debuff comparisons::slow,cripple,tash,malo
+    will now detect the debuff on the target vs what you are casting and go with the best
+- /mode hunt will work again
+- /mode farm rof_shard_bodhe 
+  will now use full classs combat routines
+  threw in an extra rest check after step 1
+  resting/buffing will will be done at the start of step 2 only
+- events
+  ToV AoW event shouldnt crash anmymore
+- /cb 
+  added in an 'm' option for buffing minions
+  any cb command will now break invis when used
+- /cm command has been removed
+- corrected a targeting error while in manual for the new assist system
+- many WIKI updates
 
 
 210109.01

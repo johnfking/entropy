@@ -2412,6 +2412,7 @@ sub Event_IceAoWUnduck()
   }
   /varset AoW_Event_Acceptance TRUE
 }
+/return TRUE
 
 
 #Event IceAoW "#*#The ice encrusted Avatar of War shouts that |${Me.DisplayName}| must bend the knee#*#"

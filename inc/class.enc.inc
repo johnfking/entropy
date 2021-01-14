@@ -106,25 +106,25 @@ sub class_main(bool _debug)
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      /if (PET || SWARM || ${maMinion.Find[swPetCharm].Value}) /call send_pet ${maDebug.Find[sic].Value} TARGET
-      /call set_combat_control ${maDebug.Find[decision].Value} TARGET
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
+      /if (PET || SWARM || ${maMinion.Find[swPetCharm].Value}) /call send_pet ${maDebug.Find[sic].Value} GETASSIST
+      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
+      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
       CHECKDEFENSE
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines TARGET
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
       /call control_routine ${maDebug.Find[mez].Value}
       | /if (${maMinion.Find[swPetCharm].Value}) /call find_mob_to_charm ${maDebug.Find[charm].Value}
       /call check_heal_routines
-      /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
-      /call misc_combat ${maDebug.Find[misc].Value} TARGET
+      /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
+      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
       /call control_routine ${maDebug.Find[mez].Value}
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
+      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
       /call control_routine ${maDebug.Find[mez].Value}
-      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
+      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
       /call control_routine ${maDebug.Find[mez].Value}
       /call control_routine ${maDebug.Find[mez].Value}
-      | /if (${swAlliance}) /call trigger_alliance TARGET
+      | /if (${swAlliance}) /call trigger_alliance GETASSIST
 
-      /call check_item_cycle ${maDebug.Find[item].Value} TARGET
+      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -174,10 +174,6 @@ sub misc_combat(bool _debug, int _tmpID)
   CHECKDEFENSE
   BUFFNOW
   BUFFTEMP
-  /if (!PULL) {
-    /call get_assist_target ${maDebug.Find[target].Value}
-    /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
-  }
 
   /if (SWARM || PET || ${maMinion.Find[swPetCharm].Value}) {
     /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
@@ -378,10 +374,6 @@ sub burn(bool _debug, int _tmpID)
   GETINPUT
   CHECKTIE
   CHECKDEFENSE
-  /if (!PULL) {
-    /call get_assist_target ${maDebug.Find[target].Value}
-    /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
-  }
 
   /if (SWARM || PET || ${maMinion.Find[swPetCharm].Value}) {
     /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}

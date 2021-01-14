@@ -237,79 +237,6 @@ sub mode_drag(bool _debug)
 
 
 
-|***
- * note: turns the toon into a hunter of things.
- *  USE: /mode hunt
- ***|
-sub mode_hunt2(bool _debug)
-  DEBUG \atmode_hunt2\ax()
-
-  GETINPUT
-  ISMEDEAD
-
-  SETHUD "mode hunt"
-
-  /declare _lsHunt list local
-  /invoke ${_lsHunt.Delimiter[|]}
-  /invoke ${_lsHunt.Append[${stModeData}]}
-  /declare _lihunt listiterator local
-  /vardata _lihunt _lsHunt.First.Clone
-  /while (!${_lihunt.IsEnd}) {
-    /if (${Spawn[npc ${_lihunt.Value} radius 999999 targetable].ID}) {
-      /varset stAssTarID ${NearestSpawn[npc ${_lihunt.Value}].ID}
-      /break
-    }
-    /invoke ${_lihunt.Advance}
-  }
-
-  /if (${Spawn[id TARGET].ID}) {
-    /call get_target_navpull ${_debug} TARGET
-  } else /if (!${Spawn[id TARGET].ID}) {
-    /call clear_combat ${_debug}
-    SETHUD EMPTY
-    /return FALSE
-  }
-
-  /call set_combat ${_debug}
-  /delay 1s
-  SETHUD EMPTY
-
-/return TRUE
-
-
-
-
-
-  CLEARCURSOR TRUE
-  /varset swModeToken TRUE
-
-  /for _count 1 to ${HuntMobList.Count[|]}
-    /if (${Spawn[npc ${HuntMobList.Arg[${_count},|]} radius PULLENV targetable].ID}) {
-      /varset Target2Kill ${NearestSpawn[npc ${HuntMobList.Arg[${_count},|]}].ID}
-      /break
-    }
-  /next _count
-
-  /if (!TARGET) {
-    /call timer_set timer_wait_for_mob_to_kill ${tHunt_delay}
-    /call check_buff_routines TRUE
-  }
-
-  /if (!${Bool[${FindItemCount[${lstRangeItemSummon}]}]} && ${Bool[${lstRangeItemSummon}]}) /call check_ammo
-  /if (${swADVL}) {
-    /if ((AUTO || ${swOverrideLoot}) && !${SafeZone} && !${swOverrideSafeZone}) /call do_loot
-  }
-  /if (${Spawn[TARGET].ID}) {
-    /call mode_get_mob
-  } else /if (${Spawn[TARGET].Dead} || !${Spawn[TARGET].ID} || !${timer_scorched_earth_fail}) {
-    /if (!${timer_scorched_earth_fail}) /call timer_set timer_scorched_earth_ignore_$TARGET ${tScorchedEarth_ignore}
-    /call set_stop NOECHO
-    /call clear_combat
-  }
-
-  /varset swModeToken FALSE
-  SETHUD EMPTY
-/return
 
 
 
@@ -1203,7 +1130,7 @@ sub task_combatloop(int _tmpID, bool _debug)
     /call check_heal_routines
     /call set_combat_control ${maDebug.Find[decision].Value} ${_tmpID}
 
-    /if (MELEE) /call do_melee ${maDebug.Find[melee].Value} ${_tmpID}
+    /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} ${_tmpID}
 
     /if (${maChr.Find[swYaulp].Value}) {
       /if (!${timer_Check_Yaulp}) /call cast_yaulp FALSE
@@ -1217,7 +1144,7 @@ sub task_combatloop(int _tmpID, bool _debug)
     /call check_item_cycle ${maDebug.Find[item].Value} ${_tmpID} epic
     /call misc_combat ${maDebug.Find[misc].Value} ${_tmpID}
     /if (BURN) /call burn ${maDebug.Find[burn].Value} ${_tmpID}
-    /if (MELEE) /call do_melee FALSE ${_tmpID}
+    /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} ${_tmpID}
     /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} ${_tmpID}
     /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} ${_tmpID}
     /call check_item_cycle ${maDebug.Find[item].Value} ${_tmpID}
@@ -1275,6 +1202,7 @@ sub rof_shard_bodhe(string _opt, bool _debug)
   | /varset _debug TRUE
   DEBUG \atrof_shard_bodhe\ax(\a-w${_opt}\ax)
   /declare _timestart int local 0
+  /varset swModeToken TRUE
 
   /declare _quest string local Fear Begins at Home
   /declare _count int local 0
@@ -1359,6 +1287,8 @@ sub rof_shard_bodhe(string _opt, bool _debug)
     /if (${Task[${_quest}].Objective[${sqlite.Result[farmquery1 1 step]}].Status.NotEqual[done]}) {
       /goto :rof_shard_bodhe_step1
     }
+    
+    /call do_rest ${maDebug.Find[rest].Value}
 
   | step 2
     /invoke ${out[23, "\agSTEP 2\ax${sep}\a-w${sqlite.Result[farmquery2 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status}\ax)"]}
@@ -1399,10 +1329,10 @@ sub rof_shard_bodhe(string _opt, bool _debug)
               /if (${_curpos} == 1) {
                 /call check_buff_cycle ${maDebug.Find[cb].Value} TRUE a
                 /call check_buff_cycle ${maDebug.Find[cb].Value} TRUE s
-
-                /if (PCTREST && !${SpawnCount[npc radius ${maEnv.Find[stRestRadius].Value} PS4]}) {
-                  /call do_rest ${maDebug.Find[rest].Value}
-                }
+                /call check_buff_cycle ${maDebug.Find[cb].Value} TRUE u
+                /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
+                /if (${SubDefined[check_mana]}) /call check_mana
+                /call do_rest ${maDebug.Find[rest].Value}
 
               }
               /call check_cursor ${_debug} clear
@@ -1428,8 +1358,14 @@ sub rof_shard_bodhe(string _opt, bool _debug)
           /call target set TARGET
           SETHUD "navto target"
           /call task_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
-          /call task_combatloop TARGET
-          /delay 1s
+ 
+          /if (${maMinion.Find[swonForce].Value}) /pet attack
+          /invoke ${maCC.Add[swValidAssTarID,TRUE]}
+          /invoke ${maCC.Add[swSetCombat,TRUE]}
+          /invoke ${maCC.Add[swSetForced,TRUE]}   
+          /call check_facing ${_debug} TARGET FORCE    
+          /call stick_to_target ${_debug} TARGET  
+          /call class_main
           /if (${SpawnCount[npc PS4 radius SAFEENV]}) /goto :kill_rof_shard_bodhe
 
           | finished.. go kill more
@@ -1476,7 +1412,7 @@ sub rof_shard_bodhe(string _opt, bool _debug)
     }
 
     /if (${Spawn[npc ${sqlite.Result[farmquery3 1 questmob]}].Distance} <= 20) {
-      /invoke ${target[set, ${Spawn[npc ${sqlite.Result[farmquery3 1 questmob]}].ID}]}]}
+      /call target set ${Spawn[npc ${sqlite.Result[farmquery3 1 questmob]}].ID}
       /delay 5
       /makemevisible
       /delay 5
@@ -1606,13 +1542,14 @@ sub petfarm_route(string _route, int _start)
  ***|
 sub task_mob_move_to(bool _debug, int _tmpID, int _dist)
   DEBUG \attask_mob_move_to\ax(\a-w${_tmpID}, ${_dist}\ax)
-  | FLOW task_pull_mob_move_to ${_tmpID}|${_dist} (1)
 
   /nav id ${_tmpID} | distance=${_dist} log=${maEntropy.Find[swNavLogSpew].Value}
   /delay 1s ${Navigation.Active}
 
   DEBUG ${sep}moving to${sep}\a-w${_tmpID}\ax
   /while (${Navigation.Active}) {
+    
+    GETINPUT
 
     | am I dead on the move
     /if (${is_me_dead[${maDebug.Find[rez].Value}]}) {
@@ -1665,7 +1602,6 @@ sub task_mob_move_to(bool _debug, int _tmpID, int _dist)
  ***|
 sub task_mob_find(bool _debug, int _spCount, string _tag)
   DEBUG \attask_mob_find\ax(\a-w${_spCount}\ax)
-  | FLOW pull_mob_find ${_spCount}
 
   /if (!${Bool[${_spCount}]}) {
     /varset _spCount 0

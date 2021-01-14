@@ -79,13 +79,11 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maHeal stPctCH                         0                             "${auxnum} complete heal %"                                 heal
 
   | chain complete heal 
-
   /call set_data_map ${_debug} maHeal stPctChain                       0                            "${auxnum} % of tanks health to start the ch. 0=instantly"    heal                     
   /call set_data_map ${_debug} maHeal swChain                          FALSE                        "${auxsw} actively listen for complete heal chain rotation"   heal
   /call set_data_list ${_debug} maHeal lsChain                         EMPTY                        "${auxli} list of tanks to heal"                              heal
   /call set_data ${_debug} maHeal swChainToken                         map outer FALSE
   /call set_data_map ${_debug} maHeal stChainPause                     0                            "${auxnum}duration to pause (in seconds) once getting tolken to start casting"    heal                     
-
 
 
   | AAs
@@ -107,13 +105,9 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAACelestialRapidity            PREGEN|1                      "${auxna} celestial rapidity aa"
   /call set_data_map ${_debug} maChr stAATurnUndead                   PREGEN|1                      "${auxna} turn undead aa"
   /call set_data_map ${_debug} maChr stAACelestialHammer              PREGEN|1                      "${auxna} celestial hammer aa"
-  /call set_data_map ${_debug} maChr stAAVeturikasPerseverance        PREGEN|1                      "${auxna} Veturika's Perseverance AA"
-  /call set_data_map ${_debug} maChr stAAQuietPrayer                  PREGEN|1                      "${auxna} Quiet Prayer AA"
-  /call set_data_map ${_debug} maChr stAASanctuary                    PREGEN|1                      "${auxna} Sanctuary AA"
-
-
-  |
-
+  /call set_data_map ${_debug} maChr stAAVeturikasPerseverance        PREGEN|1                      "${auxna} veturika's verseverance AA"
+  /call set_data_map ${_debug} maChr stAAQuietPrayer                  PREGEN|1                      "${auxna} quiet vrayer AA"
+  /call set_data_map ${_debug} maChr stAASanctuary                    PREGEN|1                      "${auxna} sanctuary AA"
 
   /if (${maDebug.Find[init].Value}) {
     OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -156,9 +150,13 @@ sub class_main(bool _debug)
   }
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
     GETINPUT class_main_CLR NA|NA
-    /if (${maHeal.Find[swChain].Value} && ${maHeal.Find[swChainToken].Value}) {
-      /call completeheal_chain
+    /if (${maHeal.Find[swChain].Value}) {
+      /call find_chain_token
+      /if (${maHeal.Find[swChainToken].Value}) {
+        /call completeheal_chain ${maDebug.Find[chain].Value}
+      }
     }
+    
     /call check_heal_routines
 
     CHECKFADE
@@ -166,18 +164,18 @@ sub class_main(bool _debug)
     /if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp ${maDebug.Find[yaulp].Value}
     BUFFTEMP
     /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-    /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
+    /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
       CHECKREZ
-      /call set_combat_control ${maDebug.Find[decision].Value} TARGET
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
-      /call misc_combat ${maDebug.Find[misc].Value} TARGET
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines TARGET
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
-      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
-      /call check_item_cycle ${maDebug.Find[item].Value} TARGET
+      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
+      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
+      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
+      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
+      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
+      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -239,7 +237,7 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   /if (${maHeal.Find[swChain].Value} && ${maHeal.Find[swChainToken].Value}) {
-    /call completeheal_chain
+    /call completeheal_chain ${maDebug.Find[chain].Value}
   }  
 
   /if (SWARM) {
@@ -306,7 +304,7 @@ sub check_heal(bool _debug, string _type)
 
 
   /if (${maHeal.Find[swChain].Value} && ${maHeal.Find[swChainToken].Value}) {
-    /call completeheal_chain
+    /call completeheal_chain ${maDebug.Find[chain].Value}
   }
 
   | Group Regen Heal
@@ -530,7 +528,7 @@ sub burn(bool _debug, int _tmpID)
   }
   
   /if (${maHeal.Find[swChain].Value} && ${maHeal.Find[swChainToken].Value}) {
-    /call completeheal_chain
+    /call completeheal_chain ${maDebug.Find[chain].Value}
   }  
 
   | Group AA Celestial Regeneration
@@ -716,9 +714,9 @@ sub completeheal_chain(bool _debug)
   /if (!AUTO) /return FALSE
   /if (!${maHeal.Find[swChain].Value}) /return FALSE
   /if (!${Me.Gem[Complete Heal]}) /return FALSE
-  /if (!${maHeal.Find[swChainToken]Value}) /return FALSE
+  /if (!${maHeal.Find[swChainToken].Value}) /return FALSE
 
-  DEBUG ${sep}swChainToken${sep}\a-w${maHeal.Find[swChainToken]Value}\ax
+  DEBUG ${sep}swChainToken${sep}\a-w${maHeal.Find[swChainToken].Value}\ax
 
   /declare _count int local 0
   /declare _nexthasCH bool local FALSE
@@ -766,7 +764,7 @@ sub completeheal_chain(bool _debug)
   /declare _lich listiterator local
   /vardata _lich lsChain.First.Clone
   /while (!${_lich.IsEnd}) {	
-    /declare _tmpID string local ${Spawn[pc ${_lich.Value}].ID}
+    /varset _tmpID ${Spawn[pc ${_lich.Value}].ID}
 
     DEBUG ${sep}Tank${sep}\aw${_count}\ax${sep}\a-w${_tmpID}\ax
     /if (!AUTO || !${maHeal.Find[swChain].Value}) {
@@ -774,7 +772,7 @@ sub completeheal_chain(bool _debug)
     }
 
     | does the tank have a corpse and is there a live version here. ass-u-me it has rez effects and move on
-    /if (${Spawn[corpse ${_tmpID}]} || ${Spawn[${_tmpID}].Dead} || !${Spawn[{_tmpID}].ID}) {
+    /if (${Spawn[corpse ${_tmpID}]} || ${Spawn[${_tmpID}].Dead} || !${Spawn[${_tmpID}].ID}) {
       /invoke ${_lich.Advance}
       /continue
     }
@@ -1027,6 +1025,45 @@ sub Bind_control_ch_chain(string _type, string _verbage, bool _silent, bool _deb
 
 /return
 
+
+
+
+
+|***
+ * note: the goal here is to find out who has the fucking token for complete heal
+ *   so, if we have it, we should be starting our ch rot if the rest of the conditions 
+ *   are met, if not, we are possibly free to do other things.
+ * use: dont beat a dead horses...
+ ***|
+sub find_chain_token()
+
+  /declare _count int local 0
+  /declare _toon string local FALSE
+
+  /for _count 1 to ${DanNet.PeerCount[clr]}
+    /varset _toon ${DanNet.Peers[CLR].Arg[${_count},|]}
+    /if (${_toon.Equal[${Me.DisplayName}]}) {
+      
+      | if i have the token, we are done here
+      /if (${maHeal.Find[swChainToken].Value}) {
+        /return ${Me.DisplayName}
+      }
+    }
+    /if (!{Spawn[${_toon}].ID}) {
+      /continue
+    }
+
+    /dquery ${_toon} -q "maHeal.Find[swChainToken].Value" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+    /if (${Bool[${DNQReturn}]}) {
+      /return ${_toon}
+    }
+
+  /next _count
+  
+  | no one has it, settin it true
+  /invoke ${maHeal.Add[swChainToken,TRUE]}
+
+/return ${Me.DisplayName}
 
 
 

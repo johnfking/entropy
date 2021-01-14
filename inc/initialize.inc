@@ -28,7 +28,7 @@ sub set_debug(string _verbage)
   | buff
   /invoke ${lsDebugbuff.Append[cb,ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp,bocked,buffgroup,buffraid,drop]}
   | heal
-  /invoke ${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot,dannet,rez]}
+  /invoke ${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot,dannet,rez,chain,ch]}
   | move
   /invoke ${lsDebugmove.Append[face,tie,stick,stop,home,gtfo]}
   | debuff
@@ -157,7 +157,7 @@ sub set_initialize(bool _debug)
   /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard]}
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro,maMercenary]}
   /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
-  /invoke ${lsMaps.Append[maGTFO,maPull,maMelee,madeBuff]}
+  /invoke ${lsMaps.Append[maGTFO,maPull,maMelee,madeBuff,maCure]}
 
   | set all output shortcuts
   /call set_data ${_debug} FALSE num                                      string outer "\a-t"
@@ -224,6 +224,7 @@ sub set_initialize(bool _debug)
   /invoke ${maDBTables.Add[environment_pull,env_var]}
   /invoke ${maDBTables.Add[environment_melee,env_var]}
   /invoke ${maDBTables.Add[environment_debuff,env_var]}
+  /invoke ${maDBTables.Add[environment_cure,env_var]}
  
 /return TRUE
 
@@ -296,7 +297,7 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} FALSE lsFreePassSpells                         list outer Beneficial|Pet
 
   | control lines
-  /call set_data ${_debug} FALSE lsControlLine                            list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez|gtfo|pull|melee|debuff
+  /call set_data ${_debug} FALSE lsControlLine                            list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez|gtfo|pull|melee|debuff|cure
 
   | increment lists
   /call set_data ${_debug} FALSE stCount6                                 string outer "0|1|2|3|4|5"
@@ -1003,22 +1004,6 @@ sub set_initialize_map_character_environment(bool _debug)
     /invoke ${_lishp.Advance}
   }
 
-  | curing shit
-  /invoke ${set_data_timer[FALSE, Check_Cure, 6s]}
-  /if (${lsClassCastCure.Contains[${Me.Class.ShortName}]}) {
-    /call set_data_map ${_debug} maHeal stCureCurse                       FALSE                         "${auxna} name of cure curse spell"                       heal
-    /call set_data_map ${_debug} maHeal stCurePoison                      FALSE                         "${auxna} name of cure poison spell"                      heal
-    /call set_data_map ${_debug} maHeal stCureDisease                     FALSE                         "${auxna} name of cure disease spell"                     heal
-    /call set_data_map ${_debug} maHeal stCureCorruption                  FALSE                         "${auxna} name of corruption cure spell"                  heal
-  }
-  /call set_data_list ${_debug} maHeal lsNoCureDeBuff                     EMPTY                         "${auxli} list of debuffs you DO NOT want to cure"        heal
-  /call set_data_map ${_debug} maHeal stCureCurseItem                     FALSE                         "${auxna} name of item to cure self curses"               heal
-  /call set_data_map ${_debug} maHeal stCurePoisonItem                    FALSE                         "${auxna} name of item to cure self poisons"              heal
-  /call set_data_map ${_debug} maHeal stCureDiseaseItem                   FALSE                         "${auxna} name of item to cure self diseases"             heal
-  /call set_data_map ${_debug} maHeal stCureCorruptionItem                FALSE                         "${auxna} name of item to cure self corruption"           heal
-  /call set_data_map ${_debug} maHeal swHealCureSelf                      FALSE                         "${auxsw} enable self curing"                             heal
-  /call set_data_map ${_debug} maHeal swHealCureGroup                     FALSE                         "${auxsw} enable group curing"                            heal
-  /call set_data_map ${_debug} maHeal swHealCureCrew                      FALSE                         "${auxsw} enable crew curing (everyone)"                  heal
 
 
   /call set_data_list ${_debug} maHeal lsProtectOutsideGroup              EMPTY                         "${auxli} names outside of your group to add to xtarget for healing" heal
@@ -1029,6 +1014,33 @@ sub set_initialize_map_character_environment(bool _debug)
     /declare lsXTargetClass list outer
     /invoke ${set_data_timer[${_debug}, Check_Xtarget_Build, 10m]}
   }
+
+
+
+|** control: cure  **|
+  |**
+  /if (${lsClassCastCure.Contains[${Me.Class.ShortName}]}) {
+    /call set_data_map ${_debug} maHeal stCureCurse                       FALSE                         "${auxna} name of cure curse spell"                       heal
+    /call set_data_map ${_debug} maHeal stCurePoison                      FALSE                         "${auxna} name of cure poison spell"                      heal
+    /call set_data_map ${_debug} maHeal stCureDisease                     FALSE                         "${auxna} name of cure disease spell"                     heal
+    /call set_data_map ${_debug} maHeal stCureCorruption                  FALSE                         "${auxna} name of corruption cure spell"                  heal
+  }
+  /call set_data_list ${_debug} maCure lsNoCureDeBuff                     EMPTY                         "${auxli} list of debuffs you DO NOT want to cure"        cure
+  /call set_data_map ${_debug} maHeal stCureCurseItem                     FALSE                         "${auxna} name of item to cure self curses"               heal
+  /call set_data_map ${_debug} maHeal stCurePoisonItem                    FALSE                         "${auxna} name of item to cure self poisons"              heal
+  /call set_data_map ${_debug} maHeal stCureDiseaseItem                   FALSE                         "${auxna} name of item to cure self diseases"             heal
+  /call set_data_map ${_debug} maHeal stCureCorruptionItem                FALSE                         "${auxna} name of item to cure self corruption"           heal
+  /call set_data_map ${_debug} maCure swHealCureSelf                      FALSE                         "${auxsw} enable self curing"                             cure
+  /call set_data_map ${_debug} maCure swHealCureGroup                     FALSE                         "${auxsw} enable group curing"                            cure
+  /call set_data_map ${_debug} maCure swHealCureCrew                      FALSE                         "${auxsw} enable crew curing (everyone)"                  cure
+  **|
+
+  /invoke ${set_data_timer[FALSE, Check_Cure, 6s]}
+  /call set_data_list ${_debug} maCure lsLineCure                         EMPTY                         "${auxli} alternate cast order for cures"                 cure
+  /call set_data_list ${_debug} maCure lsNoCure                           EMPTY                         "${auxli} list of debuffs you DO NOT want to cure"        cure
+  /call set_data_map ${_debug} maCure swCureSelf                          FALSE                         "${auxsw} enable self curing"                             cure
+  /call set_data_map ${_debug} maCure swCureGroup                         FALSE                         "${auxsw} enable group curing"                            cure
+  /call set_data_map ${_debug} maCure swCureCrew                          FALSE                         "${auxsw} enable crew curing (everyone)"                  cure
 
 
 
@@ -1300,50 +1312,24 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maBurn stPctBurnEngage                     99                            "${auxnum} % of mobs health to start burns"                       burn
   /call set_data_map ${_debug} maBurn stBurnCount                         0                             "${auxnum} number of mobs in your area to auto engage burns"      burn
   /call set_data_map ${_debug} maBurn swBurnRaid                          FALSE                         "${auxsw} use burns on raids"                                     burn
-  /call set_data_list ${_debug} maBurn lsLineBurn                         FALSE                         "${auxli} alternate burn line order (engine 2 only)"              burn
+  /call set_data_list ${_debug} maBurn lsLineBurn                         EMPTY                         "${auxli} alternate burn line order (engine 2 only)"              burn
 
 
 
 |** control: debuff **|
-  /call set_data_list ${_debug} madeBuff lsLinedeBuff                     EMPTY                         "${auxli} alternate order for debuffing"                          debuff
+  /call set_data_list ${_debug} madeBuff lsdeBuffOrder                    tash|malo|slow|cripple|eradicate|snare      "${auxli} debuff type order"                              debuff
+  /call set_data_list ${_debug} madeBuff lsLinedeBuff                     EMPTY                               "${auxli} alternate order for debuffing"                          debuff
+  /call set_data_map ${_debug} madeBuff swMez                             FALSE                               "${auxsw} use mez"                                                debuff
+  /call set_data_map ${_debug} madeBuff stCountMezResist                  3                                   "${auxnum} number of times to retry single mez with resists"      debuff
+  /call set_data_map ${_debug} madeBuff swMalo                            FALSE                               "${auxsw} use malo"                                               debuff
+  /call set_data_map ${_debug} madeBuff swTash                            FALSE                               "${auxsw} use tash"                                               debuff
+  /call set_data_map ${_debug} madeBuff swSlow                            FALSE                               "${auxsw} use slow"                                               debuff
+  /call set_data_map ${_debug} madeBuff swCripple                         FALSE                               "${auxsw} use cripple"                                            debuff
+  /call set_data_map ${_debug} madeBuff swEradicate                       FALSE                               "${auxsw} use eradicate"                                          debuff
+  /call set_data_map ${_debug} madeBuff stTimerEradicate                  30s                                 "${auxnum} time to retry an eradicate on a target"                debuff
+  /call set_data_map ${_debug} madeBuff swSnare                           FALSE                               "${auxsw} use snare"                                              debuff
+  /call set_data ${_debug} FALSE lsSlowIgnore                             list outer "Tendon Slice"|"Helix of the Undying"|"Crippling Snare"
 
-  /call set_data_map ${_debug} madeBuff swCripple                         FALSE                         "${auxsw} use cripples"                                           debuff
-
-
-  | /call set_data_map ${_debug} madeBuff stCripple                         FALSE                         "${auxna} single target cripple"
-  | /call set_data_map ${_debug} madeBuff stAECripple                       FALSE                         "${auxna} ae cripple to use"
-  | /declare lsdeBuffCripple list outer
-
-  /call set_data_map ${_debug} madeBuff swMez                             FALSE                         "${auxsw} use mez"                                                debuff
-  | /call set_data_map ${_debug} madeBuff stMez                             FALSE                         "${auxna} single target mez"
-  /call set_data_map ${_debug} madeBuff stCountMezResist                  3                             "${auxnum} number of times to retry single mez with resists"      debuff
-  | /call set_data_map ${_debug} madeBuff stAEMez                           FALSE                         "${auxna} ae mez for when shit gets deep"
-
-  /call set_data_map ${_debug} madeBuff swMalo                            FALSE                         "${auxsw} use malo"                                               debuff
-  | /call set_data_map ${_debug} madeBuff stMalo                            FALSE                         "${auxna} single target malo"
-  | /call set_data_map ${_debug} madeBuff stAEMalo                          FALSE                         "${auxna} ae malo"
-  | /declare lsdeBuffMalo list outer
-
-  /call set_data_map ${_debug} madeBuff swTash                            FALSE                         "${auxsw} use tash"                                               debuff
-  | /call set_data_map ${_debug} madeBuff stTash                            FALSE                         "${auxna} single target tash"
-  | /call set_data_map ${_debug} madeBuff stAETash                          FALSE                         "${auxna} ae tash cause fuck all the mobs"
-  | /declare lsdeBuffTash list outer
-
-  /call set_data_map ${_debug} madeBuff swSlow                            FALSE                         "${auxsw} use slow"                                               debuff
-  | /call set_data_map ${_debug} madeBuff stSlow                            FALSE                         "${auxna} single target slow"
-  | /call set_data_map ${_debug} madeBuff stAESlow                          FALSE                         "${auxna} ae slow"
-  | /declare lsdeBuffSlow list outer
-
-  /call set_data_map ${_debug} madeBuff swEradicate                       FALSE                         "${auxsw} use eradicate"                                          debuff
-  | /call set_data_map ${_debug} madeBuff stEradicate                       FALSE                         "${auxna} single target eradicate"
-  | /call set_data_map ${_debug} madeBuff stAEEradicate                     FALSE                         "${auxna} ae eradicate"
-  /call set_data_map ${_debug} madeBuff stTimerEradicate                  30s                           "${auxnum} time to retry an eradicate on a target"                debuff
-  | /declare lsdeBuffEradicate list outer
-
-  /call set_data_map ${_debug} madeBuff swSnare                           FALSE                         "${auxsw} use snare"                                              debuff
-  | /call set_data_map ${_debug} madeBuff stSnare                           FALSE                         "${auxna} single target snare"
-  | /call set_data_map ${_debug} madeBuff stAESnare                         FALSE                         "${auxna} ae snare"
-  | /declare lsdeBuffSnare list outer
 
 
 
@@ -1583,6 +1569,7 @@ sub set_initialize_map_12(bool _debug)
   /invoke ${_tmpMap.Add[Pull,pull]}
   /invoke ${_tmpMap.Add[Melee,melee]}
   /invoke ${_tmpMap.Add[deBuff,debuff]}
+  /invoke ${_tmpMap.Add[Cure,cure]}
 
   /vardata _tmi _tmpMap.First.Clone
   /while (!${_tmi.IsEnd}) {
@@ -2714,15 +2701,22 @@ sub data_schema_tag()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('992', 'snare', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('991', 'slow', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('990', 'mezae', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('989', 'cripple', '1');
+
+
+  | cure stuff
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('979', 'corruption', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('978', 'curse', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('977', 'disease', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('976', 'poison', '1');
+
+
 
 
   | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('996', 'ae', '1');
   | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('996', 'single', '1');
 
-
-
-
- | /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag(id, name, created_by) VALUES('1001', 'myassist', '1');
+  | /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag(id, name, created_by) VALUES('1001', 'myassist', '1');
 
 
 /return TRUE
@@ -2746,8 +2740,8 @@ sub data_schema_tag_group()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'pull');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('11', 'melee');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('12', 'debuff');
-  | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'engine2');
-  | /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('11', 'engine3');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('13', 'cure');
+
 
 /return TRUE
 
@@ -2988,8 +2982,16 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('12', '992', '1', 'CONTROL::MARKER', 'marker /debuff snare');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('12', '991', '1', 'CONTROL::MARKER', 'marker /debuff slow');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('12', '990', '1', 'CONTROL::MARKER', 'marker /debuff mez ae');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('12', '989', '1', 'CONTROL::MARKER', 'marker /debuff cripple');
 
-
+  | cure
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '979', '1', 'CONTROL::MARKER', 'marker /cure corruption');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '978', '1', 'CONTROL::MARKER', 'marker /cure curse');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '977', '1', 'CONTROL::MARKER', 'marker /cure disease');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '976', '1', 'CONTROL::MARKER', 'marker /cure poison');
+  
+ 
+  
 
 /return TRUE
 
@@ -3121,7 +3123,7 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
     /invoke ${_tmpMap.Add[stDanNetReturnDelay,hard]}
 
   }
-
+  
 
   | debuff changes
   /if (${maEnv.Find[build].Value} >= 210103.02 || ${_verbage.Equal[force]}) {

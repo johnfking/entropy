@@ -75,6 +75,7 @@
 #define LUA ${maEntropy.Find[swLua].Value}
 #define STACKS ${If[${MacroQuest.InternalName.Equal[Next]},WillLand,Stacks]}
 #define GETASSIST "${get_assist_target[${maDebug.Find[assist].Value}]}"
+#define MODE ${swModeToken}
 
 
 #include entropy\inc\initialize.inc
@@ -113,8 +114,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210109.01
-  /call set_data FALSE maEnv schema                         map outer 1.33
+  /call set_data FALSE maEnv build                          map outer 210114.01
+  /call set_data FALSE maEnv schema                         map outer 1.36
   /call set_data FALSE maEnv repo                           map outer 210107.01
 
   | prep macro
@@ -289,7 +290,6 @@ sub main(string _var1, string _var2, string _var3, string _var4)
       | check loot
       /if (AUTO && ${maEnv.Find[stLootMode].Value.NotEqual[off]} && !${timer_Check_Loot} && !${Stick.Active}) {
         /call do_loot ${maDebug.Find[loot].Value}
-        | /if (AUTO && (${Group.Members} && ${Group.MasterLooter.ID} == ${Me.ID}) && ${Me.UseAdvancedLooting} && !${AdvLoot.LootInProgress} && !${Stick.Active}) /call do_loot ${maDebug.Find[loot].Value}
       }
 
       | do we pull or assist

@@ -138,22 +138,22 @@ sub class_main(bool _debug)
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      /call set_combat_control ${maDebug.Find[decision].Value} TARGET
-      /invoke ${do_taunt[${_debug}, TARGET]}
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} TARGET
+      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
+      /invoke ${do_taunt[${_debug}, GETASSIST]}
+      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
       /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
         /call cast_shield_flash FALSE aa
       }
-      /if (AGRO) /call get_agro ${maDebug.Find[agro].Value} TARGET
-      /call check_item_cycle ${maDebug.Find[item].Value} TARGET epic
+      /if (AGRO) /call get_agro ${maDebug.Find[agro].Value} GETASSIST
+      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST epic
       /call check_heal_routines
-      /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
-      /call misc_combat ${maDebug.Find[misc].Value} TARGET
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
-      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
-      /call check_item_cycle ${maDebug.Find[item].Value} TARGET
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines TARGET
-      | /if (${swAlliance}) /call cast_alliance_${Me.Class.ShortName} TARGET
+      /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
+      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
+      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
+      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
+      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
+      | /if (${swAlliance}) /call cast_alliance_${Me.Class.ShortName} GETASSIST
       /if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) {
         /call check_harmonious ${maDebug.Find[harmonious].Value}
       }
@@ -203,10 +203,6 @@ sub misc_combat(bool _debug, int _tmpID)
   CHECKDEFENSE
   BUFFNOW
   BUFFTEMP
-  /if (!PULL) {
-    /call get_assist_target ${maDebug.Find[target].Value}
-    /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
-  }
 
   /call check_heal_routines
   /if (SWARM || PET) {
@@ -542,10 +538,6 @@ sub burn(bool _debug, int _tmpID)
   GETINPUT
   CHECKTIE
   CHECKDEFENSE
-  /if (!PULL) {
-    /call get_assist_target ${maDebug.Find[target].Value}
-    /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
-  }
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} TARGET

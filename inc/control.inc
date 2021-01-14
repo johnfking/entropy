@@ -853,8 +853,13 @@ sub Bind_command_cb(string _verbage)
   }
 
   /if (${Bool[${_verbage}]} && ${Select[${_verbage},u,s,a,c,g,r,b,t]}) {
+    /call Bind_control_nomore invis
     /call check_buff_cycle ${maDebug.Find[cb].Value} TRUE ${_verbage}
     /return TRUE
+  } else /if (${Bool[${_verbage}]} && ${Select[${_verbage},m]}) {
+    /call Bind_control_nomore invis
+     /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
+     /return TRUE
   }
   
   /invoke ${maControl.Clear}
@@ -865,22 +870,8 @@ sub Bind_command_cb(string _verbage)
   /invoke ${maControl.Add[g,option]}
   /invoke ${maControl.Add[t,option]}
   /invoke ${maControl.Add[b,option]}
+  /invoke ${maControl.Add[m,option]}
   /invoke ${set_control_output[FALSE, maBuff, cb, maControl]} 
-
-/return TRUE
-
-
-
-|***
- * note: force minion check routine
- * use: /cm
- ***|
-#bind command_cm /cm
-sub Bind_command_cm(string _verbage)
-
-  /if (!${Bool[${_verbage}]}) {
-    /call check_Minion_cycle ${maDebug.Find[minion].Value} TRUE
-  }
 
 /return TRUE
 
@@ -1095,7 +1086,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 
     /delay 2 ${Navigation.Active}
     /while (${Navigation.Active}) {
-      | CHECKDEAD
+      CHECKDEAD
       /delay 2
     }
     SETHUD EMPTY
@@ -3101,9 +3092,13 @@ sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _a
 sub Bind_control_debuff(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atBind_control_debuff\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-
   /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} deBuff 12 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
+    
+    /if (${_type.Equal[list]}) {
+      OUT \awdeBuff Order\aw${sep}\a-wlsdeBuffOrder\ax
+      /call out_list lsdeBuffOrder
+    }
     /return TRUE
   }
 
@@ -3131,21 +3126,20 @@ sub Bind_control_debuff(string _type, string _verbage, string _verbage2, string 
   } else /if (${_type.Equal[snare]}) {
     /invoke ${set_switch_env[${_debug}, swSnare, TRUE, ${_verbage}]}
 
-  } else /if (${_type.Equal[eradicate]}) {
-    /invoke ${set_switch_env[${_debug}, swEradicate, TRUE, ${_verbage}]}
-
-
   } else /if (${_type.Equal[cripple]}) {
     /invoke ${set_switch_env[${_debug}, swCripple, TRUE, ${_verbage}]}
+
+  } else /if (${_type.Equal[eradicate]}) {
+    /invoke ${set_switch_env[${_debug}, swEradicate, TRUE, ${_verbage}]}
 
   }
 
   /invoke ${maControl.Clear}
-  /invoke ${maControl.Add[cripple,swCripple]}
   /invoke ${maControl.Add[eradicate,swEradicate]}
   /invoke ${maControl.Add[malo,swMalo]}
   /invoke ${maControl.Add[mez,swMez|sm]}
   /invoke ${maControl.Add[slow,swSlow]}
+  /invoke ${maControl.Add[cripple,swCripple]}
   /invoke ${maControl.Add[snare,swSnare]}
   /invoke ${maControl.Add[tash,swTash]}
   /invoke ${maControl.Add[list,list]}
@@ -4486,7 +4480,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
   /invoke ${_skipKey.Append[swWatch,stWatchCount,swSetForced]}
 
   | obfuscation
-  /invoke ${_skipKey.Append[lsProtectInsideRaid,lsProtectOutsideGroup,stTieToon,stManualAssist1,stManualAssist2]}
+  /invoke ${_skipKey.Append[lsProtectOutside,stTieToon,lsChain]}
 
   | export to INI routine
   /if (${_build.Equal[save]}) {
@@ -5391,80 +5385,35 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _a
  * use: /cure control
  ***|
 #Bind control_cure /cure
-sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
-  DEBUG \atcontrol_cure\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+  DEBUG \atcontrol_cure\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-  | output control map
-  /if (${_type.Equal[see]}) {
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
+    /call control_base_edit ${maDebug.Find[edit].Value} Cure 12 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
+    /return TRUE
+  }
 
-
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux cure ${_verbage}
-    /return
-
-  } else /if (${_type.Equal[self]}) {
-    /invoke ${set_switch_env[${_debug}, swHealCureSelf, TRUE, ${_verbage}]}
+  /if (${_type.Equal[self]}) {
+    /invoke ${set_switch_env[${_debug}, swCureSelf, TRUE, ${_verbage}]}
   } else /if (${_type.Equal[group]}) {
-    /invoke ${set_switch_env[${_debug}, swHealCureGroup, TRUE, ${_verbage}]}
+    /invoke ${set_switch_env[${_debug}, swCureGroup, TRUE, ${_verbage}]}
   } else /if (${_type.Equal[crew]}) {
-    /invoke ${set_switch_env[${_debug}, swHealCureCrew, TRUE, ${_verbage}]}
-
-  } else /if (${_type.Equal[item]}) {
-    /if (${_verbage.Equal[curse]}) {
-      /invoke ${do_raw_edit[FALSE, SILENT, stCureCurseItem, "${_verbage2}"]}
-    } else /if (${_verbage.Equal[poison]}) {
-      /invoke ${do_raw_edit[FALSE, SILENT, stCurePoisonItem, "${_verbage2}"]}
-    } else /if (${_verbage.Equal[disease]}) {
-      /invoke ${do_raw_edit[FALSE, SILENT, stCureDiseaseItem, "${_verbage2}"]}
-    } else /if (${_verbage.Equal[corruption]}) {
-      /invoke ${do_raw_edit[FALSE, SILENT, stCureCorruptionItem, "${_verbage2}"]}
-    }
-
-    /if (${_silent.Equal[SILENT]}) /return
-    /invoke ${maControl.Clear}
-    /invoke ${maControl.Add[curse,stCureCurseItem|br]}
-    /invoke ${maControl.Add[poison,stCurePoisonItem|br]}
-    /invoke ${maControl.Add[disease,stCureDiseaseItem|br]}
-    /invoke ${maControl.Add[corruption,stCureCorruptionItem|br]}
-    /invoke ${set_control_output[${_debug}, maHeal, "cure item", maControl]}
-    /return TRUE
-
-  } else /if (${_type.Equal[spell]}) {
-    /if (${_verbage.Equal[curse]}) {
-      /invoke ${do_raw_edit[FALSE, SILENT, stCureCurse, "${_verbage2}"]}
-    } else /if (${_verbage.Equal[poison]}) {
-      /invoke ${do_raw_edit[FALSE, SILENT, stCurePoison, "${_verbage2}"]}
-    } else /if (${_verbage.Equal[disease]}) {
-      /invoke ${do_raw_edit[FALSE, SILENT, stCureDisease, "${_verbage2}"]}
-    } else /if (${_verbage.Equal[corruption]}) {
-      /invoke ${do_raw_edit[FALSE, SILENT, stCureCorruption, "${_verbage2}"]}
-    }
-
-    /if (${_silent.Equal[SILENT]}) /return
-    /invoke ${maControl.Clear}
-    /invoke ${maControl.Add[curse,stCureCurse|br]}
-    /invoke ${maControl.Add[poison,stCurePoison|br]}
-    /invoke ${maControl.Add[disease,stCureDisease|br]}
-    /invoke ${maControl.Add[corruption,stCureCorruption|br]}
-    /invoke ${set_control_output[${_debug}, maHeal, "cure spell", maControl]}
-    /return TRUE
+    /invoke ${set_switch_env[${_debug}, swCureCrew, TRUE, ${_verbage}]}
   }
 
   | set observers
-  /if (${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value}) {
+  /if (${maCure.Find[swCureGroup].Value} || ${maCure.Find[swCureCrew].Value}) {
     /call observer_build ${maDebug.Find[observe].Value} obs_cure add
-  } else /if (!${maHeal.Find[swHealCureSelf].Value} && !${maHeal.Find[swHealCureGroup].Value} && !${maHeal.Find[swHealCureCrew].Value}) {
+  } else /if (!${maCure.Find[swCureSelf].Value} && !${maCure.Find[swCureGroup].Value} && !${maCure.Find[swCureCrew].Value}) {
     /call observer_build ${maDebug.Find[observe].Value} obs_cure drop
   }
 
-  /if (${_silent.Equal[SILENT]}) /return
   /invoke ${maControl.Clear}
-  /invoke ${maControl.Add[self,swHealCureSelf]}
-  /invoke ${maControl.Add[group,swHealCureGroup]}
-  /invoke ${maControl.Add[crew,swHealCureCrew]}
-  /invoke ${maControl.Add[item,submenu]}
-  /invoke ${maControl.Add[spell,submenu]}
-  /invoke ${set_control_output[${_debug}, maHeal, cure, maControl]}
+  /invoke ${maControl.Add[self,swCureSelf]}
+  /invoke ${maControl.Add[group,swCureGroup]}
+  /invoke ${maControl.Add[crew,swCureCrew]}
+  /invoke ${maControl.Add[list,list]}
+  /invoke ${set_control_output[${_debug}, maCure, cure, maControl]}
 
 /return TRUE
 
