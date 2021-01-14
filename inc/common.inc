@@ -4247,13 +4247,11 @@ sub do_rest(bool _debug)
 sub get_assist_target(bool _debug)
   DEBUG \atget_assist_target\ax()
 
-  /if (!AUTO || PULL) {
-
-    /if (${maCC.Find[swSetForced].Value} && ${Target.ID}) {
-      /return ${Target.ID}
-    }
-
-    /return
+  /if (!AUTO || PULL || ${maCC.Find[swSetForced].Value}) {
+    | /if (${maCC.Find[swSetForced].Value} && ${Target.ID}) {
+    |   /return ${Target.ID}
+    | }
+    /return ${Target.ID}
   }
 
   CHECKDEAD
@@ -4262,7 +4260,6 @@ sub get_assist_target(bool _debug)
   | if were not assisting.. don't assist
   /if (!${Bool[MA1]} && !${Bool[MA2]} && !${Select[${maCC.Find[stAssistMode].Value},g,1,2,3]} && (${lsAssistDanNet.Contains[EMPTY]} && ${lsAssistDanNet.Count} == 1)) {
     DEBUG ${break}\arNO\ax assist
-    /delay 1
     /return 0
   }
 
@@ -4293,8 +4290,6 @@ sub get_assist_target(bool _debug)
       /return TARGET
     }
 
-    | /delay 1
-
     | set actual pc target
     /if (${Spawn[id ${stAssTarID}].Distance} <= ENV && ${stAssTarID}) {
       /if (MELEE || RANGE || NUKE || DOT) {
@@ -4302,7 +4297,6 @@ sub get_assist_target(bool _debug)
            DEBUG ${sep}targeting${sep}\a-wTARGET\ax
           /if (${Target.ID} != TARGET && !${Spawn[${stAssTarID}].Dead}) {
             /squelch /target id TARGET
-            | /delay 1s ${Target.ID} == TARGET
           }
         }
       }
@@ -4350,18 +4344,6 @@ sub get_assist_target(bool _debug)
           /if (${Target.ID} != TARGET && !${Spawn[TARGET].Dead}) {
             /squelch /target id TARGET
           } 
-          
-                
-          | /if (!${maOver.Find[swOverPctEngage].Value}) {
-          |   /delay 1s ${Spawn[TARGET].PctHPs} <= ${maCC.Find[stPctEngage].Value}
-          | }
-          
-          | /if (${Spawn[TARGET].PctHPs} <= ${maCC.Find[stPctEngage].Value} || ${maOver.Find[swOverPctEngage].Value}) {
-          |   DEBUG ${sep}${_liass.Value}${sep}targeting${sep}\a-wTARGET\ax
-          |   /if (${Target.ID} != TARGET && !${Spawn[TARGET].Dead}) {
-          |     /squelch /target id TARGET
-          |   }
-          | }
         }
         /return TARGET
       }
@@ -4370,18 +4352,10 @@ sub get_assist_target(bool _debug)
     
   }
 
-        
-        
-
-
-
-
-
   | target acquisition when using manual assist.
   :skippingtoMAtarget
   /if (${Bool[MA1]} || ${Bool[MA2]}) {
     DEBUG ${sep}Assisting${sep}\amanual\ax
-
 
     | assist ma1
     /if (${Spawn[MA1].ID} && !${Spawn[MA1].Dead}) {
@@ -4398,12 +4372,12 @@ sub get_assist_target(bool _debug)
       }
     }
 
-    /delay 2 ${Me.AssistComplete}
+    | /delay 2 ${Me.AssistComplete}
     /if (!TARGET && ${Target.ID}) {
       /varset stAssTarID ${Target.ID}
       DEBUG  ${sep}stAssTarID${sep}\a-wTARGET\ax
     } else /if (TARGET != ${Target.ID} && ${Spawn[${Target}].Type.Equal[npc]}) {
-      /delay 1
+      | /delay 1
       /if (TARGET == 0) {
         /squelch /target clear
       }
@@ -4413,12 +4387,11 @@ sub get_assist_target(bool _debug)
 
   }
 
-
   CHECKDEAD
   GETINPUT
   /if (TARGET == ${Target.ID}) {
     /if (${Target.PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
-      /delay 2
+      | /delay 2
       /varset stAssTarID 0
       DEBUG ${sep}:skippingtoMAtarget
       /goto :skippingtoMAtarget
