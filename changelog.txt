@@ -19,6 +19,34 @@ on the to do list
 --------------------
 
 
+210116.04
+- /mode
+  couple small refinements to the combat orders
+- corrected a stacking check in /buff crew
+- assisting
+  MA1/MA2 are gone. no more. deleted.
+  lsAssistDanNet has bee renamed to simply lsAss (will need to rebuild your list)
+  lsAss is used by both dannet and manual assisting
+  - the list is in order
+  - assist must be within your env rad to assist
+  assisting will not lock PCs, only NPCs
+  smart and dannet assisting will follow assist target changes
+  added -
+  /cc ass ma [on/off] to override smart and dannnet assisting in favor of manual assisting
+  manual assist will not follow assist target changes
+
+- some shortcuts
+  you can edit the list for assiting like so
+  /cc ass list - will display the list of toons
+  /cc ass list ToonName add - will add that toon to the bottom of the list
+  /cc ass list ToonName delete - will remove that toon from the list and no one else
+  /cc ass list clear - will reset the list to its default of EMPTY
+  - you can add multiple names at once like so
+    /cc ass list ToonName|Fred|Mike add
+    you cannot delete names like this
+
+  
+
 210114.02
 - missed a Target.ID return in the new assist
 

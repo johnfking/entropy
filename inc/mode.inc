@@ -798,6 +798,10 @@ sub mode_hunt(bool _debug)
     /while (!${_lihunt.IsEnd}) {
       /if (${Spawn[npc ${_lihunt.Value} radius PULLENV targetable].ID}) {
         /varset stAssTarID ${NearestSpawn[npc ${_lihunt.Value}].ID}
+        /if (${lsZoneExclude.Contains[${Spawn[${stAssTarID}].DisplayName}]}) {
+          /invoke ${_lihunt.Advance}
+          /continue
+        }
         /break
       }
       /invoke ${_lihunt.Advance}
@@ -1343,7 +1347,7 @@ sub rof_shard_bodhe(string _opt, bool _debug)
           /delay 2
           SETHUD EMPTY
         }
-
+        /call where_the_fuck_is_my_pet DEBUG TRUE
         :kill_rof_shard_bodhe
         /while (${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius ${_pullrad}]}) {
           DEBUG ${sep}spawncount loc${_curpos}${sep}\a-w${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius ${_pullrad}]}\ax
@@ -1366,7 +1370,7 @@ sub rof_shard_bodhe(string _opt, bool _debug)
           /call check_facing ${_debug} TARGET FORCE    
           /call stick_to_target ${_debug} TARGET  
           /call class_main
-          /if (${SpawnCount[npc PS4 radius SAFEENV]}) /goto :kill_rof_shard_bodhe
+          /if (${SpawnCount[npc PS4 radius SAFEENV]} && ${Me.XTarget}) /goto :kill_rof_shard_bodhe
 
           | finished.. go kill more
           /if (${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status.Equal[done]}) {

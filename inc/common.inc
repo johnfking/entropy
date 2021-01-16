@@ -893,7 +893,7 @@ sub get_assist_info(bool _debug, string _type)
  * use: /call set_switch_env DEBUG [switchname] [SQL] [value] || ${set_switch_env[DEBUG, switchname, SQL T/F, value]}
  ***|
 sub set_switch_env(bool _debug, string _switch, bool _sql, string _verbage)
-  DEBUG \atset_switch_env\ax(\a-w${_switch}, ${_sql}, ${_verbage}\ax)
+  DEBUG \atset_switch_env\ax(\a-wsw:${_switch}, sql:${_sql}, v:${_verbage}\ax)
 
   /declare _map string local ${get_key_map[${_debug}, ${_switch}]}
 
@@ -4241,168 +4241,6 @@ sub do_rest(bool _debug)
 
 
 |***
- * note: Acquire target, get bitches. This will establish ${stAssTarID}
- * use: /call get_assist_target DEBUG
- ***|
-sub get_assist_target(bool _debug)
-  DEBUG \atget_assist_target\ax()
-
-  /if (!AUTO || PULL || ${maCC.Find[swSetForced].Value}) {
-    | /if (${maCC.Find[swSetForced].Value} && ${Target.ID}) {
-    |   /return ${Target.ID}
-    | }
-    /return ${Target.ID}
-  }
-
-  CHECKDEAD
-  GETINPUT get_assist_target NA|NA
-
-  | if were not assisting.. don't assist
-  /if (!${Bool[MA1]} && !${Bool[MA2]} && !${Select[${maCC.Find[stAssistMode].Value},g,1,2,3]} && (${lsAssistDanNet.Contains[EMPTY]} && ${lsAssistDanNet.Count} == 1)) {
-    DEBUG ${break}\arNO\ax assist
-    /return 0
-  }
-
- 
-  | tar acquisition when using smart assist. set XTarget positions.
-  /if (${Select[${maCC.Find[stAssistMode].Value},g,1,2,3]}) {
-    DEBUG ${sep}Assisting${sep}\agsmart\ax
-
-    | set the 1st xtarget slot to the assists target
-    /if (${Select[${maCC.Find[stAssistMode].Value},g]} && ${Spawn[${Group.MainAssist.ID}].ID} && !${Spawn[${Group.MainAssist.ID}].Dead}) {
-      DEBUG ${sep}set smart-g${sep}\a-wg\ax
-      /varset stAssTarID ${Me.GroupAssistTarget.ID}
-    } else /if (${Select[${maCC.Find[stAssistMode].Value},1]} && ${Spawn[${Raid.MainAssist[1].ID}].ID} && !${Spawn[${Raid.MainAssist[1].ID}].Dead}) {
-      DEBUG ${sep}set smart-1${sep}\a-w1\ax
-      /varset stAssTarID ${Me.RaidAssistTarget[1].ID}
-    } else /if (${Select[${maCC.Find[stAssistMode].Value},2]} && ${Spawn[${Raid.MainAssist[2].ID}].ID} && !${Spawn[${Raid.MainAssist[2].ID}].Dead}) {
-      DEBUG ${sep}set smart-1${sep}\a-w2\ax
-      /varset stAssTarID ${Me.RaidAssistTarget[2].ID}
-    } else /if (${Select[${maCC.Find[stAssistMode].Value},3]} && ${Spawn[${Raid.MainAssist[3].ID}].ID} && !${Spawn[${Raid.MainAssist[3].ID}].Dead}) {
-      DEBUG ${sep}set smart-3${sep}\a-w3\ax
-      /varset stAssTarID ${Me.RaidAssistTarget[3].ID}
-    }
-
-    | skip corpses and me
-    /if (${Spawn[id TARGET].Dead} || TARGET == ${Me.ID}) {
-      DEBUG ${break} bad target${sep}\a-wcorpse or self\ax
-      /varset stAssTarID 0
-      /return TARGET
-    }
-
-    | set actual pc target
-    /if (${Spawn[id ${stAssTarID}].Distance} <= ENV && ${stAssTarID}) {
-      /if (MELEE || RANGE || NUKE || DOT) {
-        /if (${Spawn[TARGET].PctHPs} <= ${maCC.Find[stPctEngage].Value} || ${maOver.Find[swOverPctEngage].Value}) {
-           DEBUG ${sep}targeting${sep}\a-wTARGET\ax
-          /if (${Target.ID} != TARGET && !${Spawn[${stAssTarID}].Dead}) {
-            /squelch /target id TARGET
-          }
-        }
-      }
-    }
-    /return TARGET
-  }
-  
-
-  | dannet assisting
-  /if (!${lsAssistDanNet.Contains[EMPTY]} && ${lsAssistDanNet.Count} >= 1) {
-    DEBUG ${sep}Assisting${sep}\agdannet\ax
-    
-    /declare _liass listiterator local
-    /vardata _liass lsAssistDanNet.First.Clone
-    /while (!${_liass.IsEnd}) {
-
-      | make sure target is being watched
-      /if (!${DanNet[${_liass.Value}].OSet["Target.ID"]}) {
-        DEBUG ${break}not observerd${sep}\a-w${_liass.Value} .. Target.ID\ax
-        /invoke ${_liass.Advance}    
-        /continue        
-      }
-
-      | is toon here and within range
-      /if (${Spawn[${_liass.Value}].Distance} >= ENV) {
-        DEBUG ${break}not here/out of range${sep}\a-w${_liass.Value}\ax
-        /invoke ${_liass.Advance}    
-        /continue        
-      }
-
-      /if (!${DanNet[${_liass.Value}].Observe["Target.ID"]}) {
-        DEBUG ${break}${_liass.Value}${sep}\a-wNo Target.ID\ax
-        /if (TARGET) {
-          /invoke ${target[clear]}
-        }
-        /invoke ${_liass.Advance}    
-        /continue        
-      
-      | set our target
-      } else /if (${DanNet[${_liass.Value}].Observe["Target.ID"]}) {
-        /varset stAssTarID ${DanNet[${_liass.Value}].Observe["Target.ID"]}
-        DEBUG ${sep}stAssTarID${sep}\a-wTARGET\ax
-
-        /if ((MELEE || RANGE || NUKE || DOT) && ${Spawn[TARGET].Distance} <= ENV) {
-          /if (${Target.ID} != TARGET && !${Spawn[TARGET].Dead}) {
-            /squelch /target id TARGET
-          } 
-        }
-        /return TARGET
-      }
-      /invoke ${_liass.Advance}    
-    }
-    
-  }
-
-  | target acquisition when using manual assist.
-  :skippingtoMAtarget
-  /if (${Bool[MA1]} || ${Bool[MA2]}) {
-    DEBUG ${sep}Assisting${sep}\amanual\ax
-
-    | assist ma1
-    /if (${Spawn[MA1].ID} && !${Spawn[MA1].Dead}) {
-      DEBUG ${sep}assisting${sep}\a-wMA1\ax
-      /if ((MELEE || RANGE || NUKE || DOT)) {
-        /invoke ${Spawn[MA1].DoAssist}
-      }
-
-    | assist ma2
-    } else /if (${Spawn[MA2].ID} && !${Spawn[MA2].Dead} && (!${Spawn[MA1].ID} || ${Spawn[MA1].Dead})) {
-      DEBUG ${sep}assisting${sep}\a-wMA2\ax
-      /if ((MELEE || RANGE || NUKE || DOT)) {
-        /invoke ${Spawn[MA1].DoAssist}
-      }
-    }
-
-    | /delay 2 ${Me.AssistComplete}
-    /if (!TARGET && ${Target.ID}) {
-      /varset stAssTarID ${Target.ID}
-      DEBUG  ${sep}stAssTarID${sep}\a-wTARGET\ax
-    } else /if (TARGET != ${Target.ID} && ${Spawn[${Target}].Type.Equal[npc]}) {
-      | /delay 1
-      /if (TARGET == 0) {
-        /squelch /target clear
-      }
-      /varset stAssTarID 0
-      /return ${stAssTarID}
-    }
-
-  }
-
-  CHECKDEAD
-  GETINPUT
-  /if (TARGET == ${Target.ID}) {
-    /if (${Target.PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
-      | /delay 2
-      /varset stAssTarID 0
-      DEBUG ${sep}:skippingtoMAtarget
-      /goto :skippingtoMAtarget
-    }
-  }
-
-/return
-
-
-
-|***
  * note: creates hooks for data\custom.inc
  * use: GETINPUT [sub] [variable]
  ***|
@@ -6135,7 +5973,7 @@ sub check_buff_cycle_crew(bool _debug)
         | does it stack
         /dquery ${_toonName} -q "Spell[${_spellTrigger}].STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
         DEBUG ${sep}${sep}STACKS: .Buff.STACKS \at${DNQReturn}\ax ${dot} ${_spellTrigger}
-        /if (${DNQReturn.Equal[FALSE]}) {
+        /if (!${DNQReturn}) {
           /continue
         }
 
@@ -7121,8 +6959,6 @@ sub check_cursor(bool _debug, string _verbage)
   }
 
   /invoke ${set_data_timer[${_debug}, Check_Cursor, 5s]}
-
-  | /delay 2
 
   /if (!${Cursor.ID}) {
     /return FALSE
@@ -9283,7 +9119,7 @@ sub control_routine(bool _debug)
 
 
   /if (!PULL) {
-    /call get_assist_target ${maDebug.Find[target].Value}
+    /call get_assist_target ${maDebug.Find[assist].Value}
   }
 
 /return TRUE
@@ -10709,7 +10545,7 @@ sub cast_cycle_miscdps(bool _debug, int _tmpID)
 
     | reset _tmpID
     /if (${_flagtmpID}) {
-      /call get_assist_target
+      /call get_assist_target ${maDebug.Find[assist].Value}
       /varset _tmpID TARGET
       /varset _flagtmpID FALSE
     }
@@ -11361,6 +11197,16 @@ sub check_watch_spawn(bool _debug)
     /varcalc stWatchCount ${stWatchCount} + ${SpawnCount[${_liwa.Value}]}
     /invoke ${_liwa.Advance}
   }
+  
+  /if (${stWatchCount} <= ${stWatchCountChange}) {
+    /varset stWatchCountChange ${stWatchCount}
+  } else /if (${stWatchCount} > ${stWatchCountChange}) {
+    /varset stWatchCountChange ${stWatchCount}
+    /if (${maWatch.Find[swWatchBeep].Value}) {
+      /beep
+    }
+  }
+  
 
   /invoke ${set_data_timer[${_debug}, Check_Watch, RESTART]}
 
@@ -14077,23 +13923,11 @@ sub pull_assist_decision(bool _debug)
     }
 
     | no assist set at all
-    /if (!${Bool[${maCC.Find[stAssistMode].Value}]} && !${Bool[${maCC.Find[stManualAssist1].Value}]} && !${Bool[${maCC.Find[stManualAssist2].Value}]} && (${lsAssistDanNet.Contains[EMPTY]} && ${lsAssistDanNet.Count} == 1)) {
+    /if (!${Bool[${maCC.Find[stAssistMode].Value}]} && !${maCC.Find[swManualAssist].Value} && (${lsAss.Contains[EMPTY]} && ${lsAss.Count} == 1)) {
       DEBUG ${submenu}pullstate (\a-rno assist set, releasing\ax)
       /invoke ${target[release]}
       /return FALSE
     
-    | no ma1 or not in zone
-    } else /if (${Bool[${maCC.Find[stManualAssist1].Value}]} && !${Spawn[${maCC.Find[stManualAssist1].Value}].ID}) {
-      DEBUG ${submenu}pullstate (\a-rno ma1, releasing\ax)
-      /invoke ${target[release]}
-      /return FALSE      
-
-    | no ma2 or not in zone
-    } else /if (${Bool[${maCC.Find[stManualAssist2].Value}]} && !${Spawn[${maCC.Find[stManualAssist2].Value}].ID}) {
-      DEBUG ${submenu}pullstate (\a-rno ma1, releasing\ax)
-      /invoke ${target[release]}
-      /return FALSE      
- 
     } 
     
   } 
@@ -15055,6 +14889,193 @@ sub cast_cycle_cure(bool _debug, int _tmpID, string _tag, bool _return)
 
 
 
+
+
+
+|***
+ * note: Acquire target, get bitches. This will establish ${stAssTarID}
+ * use: /call get_assist_target DEBUG
+ ***|
+sub get_assist_target(bool _debug, string _call)
+  DEBUG \atget_assist_target\ax(\a-w${_call}\ax)
+
+  /if (!AUTO || PULL || ${maCC.Find[swSetForced].Value}) {
+    DEBUG ${sep}returning manual targeting
+    /return ${Target.ID}
+  }
+
+  CHECKDEAD
+  GETINPUT get_assist_target NA|NA
+
+  | if were not assisting.. don't assist
+  /if (!${Bool[${maCC.Find[stAssistMode].Value}]} && !${maCC.Find[swManualAssist].Value} && (${lsAss.Contains[EMPTY]} && ${lsAss.Count} == 1)) {
+    DEBUG ${break}\arNO\ax assist
+    /return 0
+  }
+  
+  | smart / DanNet Assisting
+  /if (!${maCC.Find[swManualAssist].Value}) {
+ 
+    | tar acquisition when using smart assist. set XTarget positions.
+    /if (${Select[${maCC.Find[stAssistMode].Value},g,1,2,3]}) {
+      DEBUG ${sep}Assisting${sep}\agsmart\ax
+
+      | set the 1st xtarget slot to the assists target
+      /if (${Select[${maCC.Find[stAssistMode].Value},g]} && ${Spawn[${Group.MainAssist.ID}].ID} && !${Spawn[${Group.MainAssist.ID}].Dead}) {
+        DEBUG ${sep}set smart-g${sep}\a-wg\ax
+        /varset stAssTarID ${Me.GroupAssistTarget.ID}
+      } else /if (${Select[${maCC.Find[stAssistMode].Value},1]} && ${Spawn[${Raid.MainAssist[1].ID}].ID} && !${Spawn[${Raid.MainAssist[1].ID}].Dead}) {
+        DEBUG ${sep}set smart-1${sep}\a-w1\ax
+        /varset stAssTarID ${Me.RaidAssistTarget[1].ID}
+      } else /if (${Select[${maCC.Find[stAssistMode].Value},2]} && ${Spawn[${Raid.MainAssist[2].ID}].ID} && !${Spawn[${Raid.MainAssist[2].ID}].Dead}) {
+        DEBUG ${sep}set smart-1${sep}\a-w2\ax
+        /varset stAssTarID ${Me.RaidAssistTarget[2].ID}
+      } else /if (${Select[${maCC.Find[stAssistMode].Value},3]} && ${Spawn[${Raid.MainAssist[3].ID}].ID} && !${Spawn[${Raid.MainAssist[3].ID}].Dead}) {
+        DEBUG ${sep}set smart-3${sep}\a-w3\ax
+        /varset stAssTarID ${Me.RaidAssistTarget[3].ID}
+      }
+
+      | skip corpses and me
+      /if (${Spawn[id TARGET].Dead} || TARGET == ${Me.ID} || !${Select[${Spawn[TARGET].Type},npc]}) {
+        DEBUG ${break} bad target${sep}\a-wcorpse or self\ax
+        /varset stAssTarID 0
+        /return TARGET
+      }
+
+      | set actual pc target
+      /if (${Spawn[id TARGET].Distance} <= ENV && TARGET) {
+        /if (MELEE || RANGE || NUKE || DOT) {
+          /if (${Spawn[TARGET].PctHPs} <= ${maCC.Find[stPctEngage].Value} || ${maOver.Find[swOverPctEngage].Value}) {
+             DEBUG ${sep}targeting${sep}\a-wTARGET\ax
+            /if (${Target.ID} != TARGET && !${Spawn[TARGET].Dead}) {
+              /squelch /target id TARGET
+            }
+          }
+        }
+      }
+      /return TARGET
+    }
+    
+
+    | dannet assisting
+    /if (!${lsAss.Contains[EMPTY]} && ${lsAss.Count} >= 1) {
+      DEBUG ${sep}Assisting${sep}\agdannet\ax
+      
+      /declare _liass listiterator local
+      /vardata _liass lsAss.First.Clone
+      /while (!${_liass.IsEnd}) {
+
+        | make sure target is being watched
+        /if (!${DanNet[${_liass.Value}].OSet["Target.ID"]}) {
+          DEBUG ${break}not observerd${sep}\a-w${_liass.Value} .. Target.ID\ax
+          /invoke ${_liass.Advance}    
+          /continue        
+        }
+
+        | is toon here and within range
+        /if (${Spawn[${_liass.Value}].Distance} >= ENV) {
+          DEBUG ${break}not here/out of range${sep}\a-w${_liass.Value}\ax
+          /invoke ${_liass.Advance}    
+          /continue        
+        }
+
+        | no target or invalid target type
+        /if (!${DanNet[${_liass.Value}].Observe["Target.ID"]} || !${Select[${Spawn[${DanNet[${_liass.Value}].Observe["Target.ID"]}].Type},npc]}) {
+          DEBUG ${break}${_liass.Value}${sep}\a-wNo/bad Target.ID\ax
+          /if (TARGET) {
+            /invoke ${target[clear]}
+          }
+          /invoke ${_liass.Advance}    
+          /continue        
+        
+        | set our target
+        } else /if (${DanNet[${_liass.Value}].Observe["Target.ID"]}) {
+          /varset stAssTarID ${DanNet[${_liass.Value}].Observe["Target.ID"]}
+          DEBUG ${sep}stAssTarID${sep}\a-wTARGET\ax
+
+          /if ((MELEE || RANGE || NUKE || DOT) && ${Spawn[TARGET].Distance} <= ENV) {
+            /if (${Target.ID} != TARGET && !${Spawn[TARGET].Dead}) {
+              /squelch /target id TARGET
+            } 
+          }
+          /return TARGET
+        }
+        /invoke ${_liass.Advance}    
+      }
+      
+    }
+
+
+  | manual assisting
+  } else /if (${maCC.Find[swManualAssist].Value} && ${_call.NotEqual[inline]}) {
+
+    /if (!${lsAss.Contains[EMPTY]} && ${lsAss.Count} >= 1) {
+      DEBUG ${sep}Assisting${sep}\agmanual\ax
+      
+      | no mobs in env
+      /if (!${SpawnCount[npc radius ENV PS4 targetable]} || SAFEZONE) {
+        DEBUG ${break}no mobs in env rad || safezone
+        /squelch /target clear
+        /varset stAssTarID 0
+        /return 0      
+      }
+      
+      /declare _liass listiterator local
+      /vardata _liass lsAss.First.Clone
+      /while (!${_liass.IsEnd}) {
+        
+
+        | spawn dead or gone?
+        /if (${Spawn[${_liass.Value}].Dead} || !${Spawn[${_liass.Value}].ID}) {
+          DEBUG ${break}dead or not here${sep}\a-w${_liass.Value}\ax
+          /invoke ${_liass.Advance}    
+          /continue 
+        }       
+        
+        | is toon here and within range
+        /if (${Spawn[${_liass.Value}].Distance} >= ENV) {
+          DEBUG ${break}out of range${sep}\a-w${_liass.Value}\ax
+          /invoke ${_liass.Advance}    
+          /continue        
+        }
+        
+        /squelch /assist ${_liass.Value}
+        /delay 2 ${Me.AssistComplete} 
+        
+        /if (${Target.ID} && ${Select[${Target.Type},npc]} || ${Target.ID} != TARGET) {
+          DEBUG ${sep}Assisting${sep}\a-w${_liass.Value}\ax
+          /varset stAssTarID ${Target.ID}  
+          /call target set TARGET
+          
+          /return ${stAssTarID}
+        
+        } else /if (${Target.ID} && ${Select[${Target.Type},npc]}) {
+          DEBUG ${break}bad target type
+          /squelch /target clear
+          /varset stAssTarID 0
+          /return 0      
+        }
+        
+        /invoke ${_liass.Advance}    
+      }
+      
+    }
+  }
+
+/return TARGET
+
+  CHECKDEAD
+  GETINPUT
+  /if (TARGET == ${Target.ID}) {
+    /if (${Target.PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
+      | /delay 2
+      /varset stAssTarID 0
+      DEBUG ${sep}:skippingtoMAtarget
+      /goto :skippingtoMAtarget
+    }
+  }
+
+/return
 
 
 

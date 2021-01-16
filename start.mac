@@ -41,8 +41,8 @@
 #define TARGET ${stAssTarID}
 #define TIE ${maTie.Find[swSetTie].Value}
 #define HOME ${maHome.Find[swHomeMarker].Value}
-#define MA1 ${maCC.Find[stManualAssist1].Value}
-#define MA2 ${maCC.Find[stManualAssist2].Value}
+| #define MA1 ${maCC.Find[stManualAssist1].Value}
+| #define MA2 ${maCC.Find[stManualAssist2].Value}
 #define VALID ${maCC.Find[swValidAssTarID].Value}
 #define COMBAT ${maCC.Find[swSetCombat].Value}
 #define SAFEZONE ${maEnv.Find[swZoneSafe].Value}
@@ -74,7 +74,7 @@
 #define BUFFTEMP "/if (${maBuff.Find[swBuffTemp].Value} && !${timer_Check_Buff_Temp}) /call check_buff_cycle_temp ${maDebug.Find[temp].Value}"
 #define LUA ${maEntropy.Find[swLua].Value}
 #define STACKS ${If[${MacroQuest.InternalName.Equal[Next]},WillLand,Stacks]}
-#define GETASSIST "${get_assist_target[${maDebug.Find[assist].Value}]}"
+#define GETASSIST "${get_assist_target[${maDebug.Find[assist].Value}, inline]}"
 #define MODE ${swModeToken}
 
 
@@ -114,8 +114,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210114.02
-  /call set_data FALSE maEnv schema                         map outer 1.36
+  /call set_data FALSE maEnv build                          map outer 210116.04
+  /call set_data FALSE maEnv schema                         map outer 1.37
   /call set_data FALSE maEnv repo                           map outer 210107.01
 
   | prep macro

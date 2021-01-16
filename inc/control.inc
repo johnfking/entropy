@@ -16,8 +16,8 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
   DEBUG \atBind_control_debug\ax(\a-w${_type}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /call get_help edebug ${_type.Right[1]}
-    /return TRUE
+   |  /lua get_help edebug ${_type.Right[1]}
+    | /return TRUE
   }
 
 
@@ -897,7 +897,12 @@ sub Bind_control_watch(string _verbage, string _verbage2, bool _debug)
   } else /if (${_verbage.Equal[active]}) {
     /invoke ${set_switch_env[${_debug}, swWatch, TRUE, ${_verbage2}]}
 
+
+  } else /if (${_verbage.Equal[beep]}) {
+    /invoke ${set_switch_env[${_debug}, swWatchBeep, TRUE, ${_verbage2}]}
+
   } else /if (${_verbage.Equal[list]}) {
+    OUT \awlsWatch\ax${sep}
     /call out_list lsWatch
     /return TRUE
 
@@ -909,9 +914,6 @@ sub Bind_control_watch(string _verbage, string _verbage2, bool _debug)
       /return FALSE
     }
 
-  } else /if (${_verbage.Equal[rad]}) {
-    /call do_raw_edit ${_debug} FALSE stWatchRadius "${_verbage2}"
-
   } else /if (${_verbage.Equal[delete]}) {
     /if (${Target.ID}) {
       /call do_raw_edit ${_debug} FALSE lsWatch "${Target.DisplayName}" delete
@@ -920,19 +922,19 @@ sub Bind_control_watch(string _verbage, string _verbage2, bool _debug)
       /return FALSE
     }
 
-  } else /if (${_verbage.Equal[reset]}) {
-    /invoke ${set_switch_env[${_debug}, swWatch, TRUE, FALSE]}
+  } else /if (${_verbage.Equal[clear]}) {
     /call do_raw_edit ${_debug} TRUE lsWatch clear
 
   }
 
   /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[list,list]}
   /invoke ${maControl.Add[active,swWatch]}
   /invoke ${maControl.Add[add,option]}
+  /invoke ${maControl.Add[beep,swWatchBeep]}
+  /invoke ${maControl.Add[clear,option]}
   /invoke ${maControl.Add[delete,option]}
-  /invoke ${maControl.Add[reset,option]}
-  /invoke ${maControl.Add[list,list]}
-  | /invoke ${maControl.Add[rad,stWatchRadius]}
+  
   /invoke ${set_control_output[${_debug}, maWatch, watch, maControl]}
 
 /return TRUE
@@ -3154,8 +3156,8 @@ sub Bind_control_debuff(string _type, string _verbage, string _verbage2, string 
  * use:
  ***|
 #Bind control_cc /cc
-sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
-  DEBUG \atBind_control_cc\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
+sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _verbage3, bool _debug)
+  DEBUG \atBind_control_cc\ax(\a-wt:${_type}, v:${_verbage}, v2:${_verbage2}, v3:${_verbage3}\ax)
 
   /declare _out string local
 
@@ -3171,22 +3173,24 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
   } else /if (${_type.Equal[ass]}) {
     
     /if (${_verbage.Equal[list]}) {
-      OUT DanNet Assist List${sep}\a-wlsAssistDanNet\ax
-      /call out_list lsAssistDanNet
+      
+      /if (${Select[${_verbage2},clear]}) {
+        /call do_raw_edit ${_debug} SILENT lsAss clear
+      } else /if (${Select[${_verbage3},add,delete]}) {
+        /call do_raw_edit ${_debug} SILENT lsAss "${_verbage2}" ${_verbage3}
+      }
+      
+      OUT Assist List${sep}\a-wlsAss\ax
+      /call out_list lsAss
       /return TRUE
 
-    } else /if (${_verbage.Equal[ma1]}) {
-      /call do_raw_edit ${_debug} SILENT stAssistMode FALSE
-      /call do_raw_edit ${_debug} SILENT stManualAssist1 "${_verbage2}"
-
-    } else /if (${_verbage.Equal[ma2]}) {
-      /call do_raw_edit ${_debug} SILENT stAssistMode FALSE
-      /call do_raw_edit ${_debug} SILENT stManualAssist2 "${_verbage2}"
+    } else /if (${_verbage.Equal[ma]}) {
+      /invoke ${set_switch_env[${_debug}, swManualAssist, TRUE, ${_verbage2}]}
 
     } else /if (${_verbage.Equal[smart]}) {
-
       /if (${Select[${_verbage2},1,2,3,g]}) {
         /call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[${_verbage2}]},${_verbage2},FALSE]}
+
       } else  /if (${Select[${_verbage2},off]}) {
         /call do_raw_edit ${_debug} SILENT stAssistMode FALSE
       } else {
@@ -3199,14 +3203,11 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
       }
       
     }
-    
 
-  /if (${_silent.Equal[SILENT]}) /return
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[list,list]}
   /invoke ${maControl.Add[smart,stAssistMode|br]}
-  /invoke ${maControl.Add[ma1,stManualAssist1|br]}
-  /invoke ${maControl.Add[ma2,stManualAssist2|br]}
+  /invoke ${maControl.Add[ma,swManualAssist]}
   /invoke ${set_control_output[${_debug}, maCC, "cc ass", maControl]}   
     
   /return TRUE
@@ -3337,7 +3338,6 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _sil
 
   }
 
-  /if (${_silent.Equal[SILENT]}) /return TRUE
 
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[ass,submenu]}

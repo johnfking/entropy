@@ -268,9 +268,9 @@ sub set_initial_environment(bool _debug)
 
   /call set_data ${_debug} FALSE lsIVU                                    list outer "Group Perfected Invisibility to Undead"|"Perfected Invisibility to Undead"|"Invisibility to Undead"|"Invisibility versus Undead"|"Shauri's Sonorous Clouding"
   /call set_data ${_debug} FALSE lsIV                                     list outer "Shared Perfected Camouflage"|"Shared Camouflage"|"Camouflage"|"Group Perfected Invisibility"|"Invisibility"|"Perfected Invisibility"|"Phase March"|"Nethervoid March"|"Perfected Silent Presence"|"Cloak of Shadows"|"Gather Umbra"|"Invisibility Cloak"|"Perfected Natural Invisibility"|"Perfected Spirit Walk Invisibility"|"Perfected Group Spirit Walk Invisibility"|"Shauri's Sonorous Clouding"|"Selo's Song of Travel"
-  /call set_data ${_debug} FALSE lsAssistTypes                            list outer g|ma1|ma2|1|2|3
+  | /call set_data ${_debug} FALSE lsAssistTypes                            list outer g|ma1|ma2|1|2|3
   /call set_data ${_debug} FALSE lsPullTypes                              list outer base|pet|int|nav|multi|watch
-  /call set_data ${_debug} FALSE lsRezBuffTriggers                        list outer "Revival Sickness"|"Resurrection Sickness"
+  | /call set_data ${_debug} FALSE lsRezBuffTriggers                        list outer "Revival Sickness"|"Resurrection Sickness"
   /call set_data ${_debug} FALSE lsBroadcastTypes                         list outer group|raid|zone|all
 
 
@@ -906,7 +906,6 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** control: chr (shared) **|
-
   | invs
   /call set_data_map ${_debug} maChr stInvisSingle                        FALSE                         "${auxsw} self invisibility"
   /call set_data_map ${_debug} maChr stInvisGroup                         FALSE                         "${auxsw} group invisibility"
@@ -1004,8 +1003,6 @@ sub set_initialize_map_character_environment(bool _debug)
     /invoke ${_lishp.Advance}
   }
 
-
-
   /call set_data_list ${_debug} maHeal lsProtectOutsideGroup              EMPTY                         "${auxli} names outside of your group to add to xtarget for healing" heal
   /call set_data_list ${_debug} maHeal lsLineHeal                         EMPTY                         "${auxli} alternate cast order for heals"                            heal
 
@@ -1018,23 +1015,6 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** control: cure  **|
-  |**
-  /if (${lsClassCastCure.Contains[${Me.Class.ShortName}]}) {
-    /call set_data_map ${_debug} maHeal stCureCurse                       FALSE                         "${auxna} name of cure curse spell"                       heal
-    /call set_data_map ${_debug} maHeal stCurePoison                      FALSE                         "${auxna} name of cure poison spell"                      heal
-    /call set_data_map ${_debug} maHeal stCureDisease                     FALSE                         "${auxna} name of cure disease spell"                     heal
-    /call set_data_map ${_debug} maHeal stCureCorruption                  FALSE                         "${auxna} name of corruption cure spell"                  heal
-  }
-  /call set_data_list ${_debug} maCure lsNoCureDeBuff                     EMPTY                         "${auxli} list of debuffs you DO NOT want to cure"        cure
-  /call set_data_map ${_debug} maHeal stCureCurseItem                     FALSE                         "${auxna} name of item to cure self curses"               heal
-  /call set_data_map ${_debug} maHeal stCurePoisonItem                    FALSE                         "${auxna} name of item to cure self poisons"              heal
-  /call set_data_map ${_debug} maHeal stCureDiseaseItem                   FALSE                         "${auxna} name of item to cure self diseases"             heal
-  /call set_data_map ${_debug} maHeal stCureCorruptionItem                FALSE                         "${auxna} name of item to cure self corruption"           heal
-  /call set_data_map ${_debug} maCure swHealCureSelf                      FALSE                         "${auxsw} enable self curing"                             cure
-  /call set_data_map ${_debug} maCure swHealCureGroup                     FALSE                         "${auxsw} enable group curing"                            cure
-  /call set_data_map ${_debug} maCure swHealCureCrew                      FALSE                         "${auxsw} enable crew curing (everyone)"                  cure
-  **|
-
   /invoke ${set_data_timer[FALSE, Check_Cure, 6s]}
   /call set_data_list ${_debug} maCure lsLineCure                         EMPTY                         "${auxli} alternate cast order for cures"                 cure
   /call set_data_list ${_debug} maCure lsNoCure                           EMPTY                         "${auxli} list of debuffs you DO NOT want to cure"        cure
@@ -1113,8 +1093,11 @@ sub set_initialize_map_character_environment(bool _debug)
   /invoke ${set_data_timer[${_debug}, Check_Buff_Aura, 3m]}
   /call set_data_map ${_debug} maBuff swBuffAura                          FALSE                         "${auxsw} use auras or not. i dont care"
 
+
+
 |** control: melee **|
   /call set_data_list ${_debug} maMelee lsLineMelee                       EMPTY                         "${auxli} alternate defense activation order" melee
+
 
 
 |** control: defense **|
@@ -1141,7 +1124,6 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
-
 |** control: tie **|
   /invoke ${set_data_timer[${_debug}, Check_Tie, 5]}
   /call set_data ${_debug} maTie swSetTie                                 map outer FALSE
@@ -1153,7 +1135,6 @@ sub set_initialize_map_character_environment(bool _debug)
   | force break movement command
   /call set_data_map ${_debug} maTie swTieBreak                           FALSE                         "${auxsw} breaks the fucking world to tie"
   /call set_data ${_debug} maData swGetOverHere                           map outer FALSE
-
 
 
 
@@ -1172,8 +1153,9 @@ sub set_initialize_map_character_environment(bool _debug)
 |** control: watch **|
   /invoke ${set_data_timer[${_debug}, Check_Watch, 5s]}
   /call set_data_map ${_debug} maWatch swWatch                            FALSE                         "${auxsw} watch for spawns"   
-  | /call set_data_map ${_debug} maWatch stWatchRadius                      300                           "${auxnum} radius to watch for spawns"   
+  /call set_data_map ${_debug} maWatch swWatchBeep                        FALSE                         "${auxsw} beep when a watched mob spawns"   
   /call set_data ${_debug} FALSE stWatchCount                             int outer 0
+  /call set_data ${_debug} FALSE stWatchCountChange                       int outer 0
   /call set_data_list ${_debug} maWatch lsWatch                           EMPTY                         "${auxli} list of mobs to watch for"
 
 
@@ -1227,10 +1209,12 @@ sub set_initialize_map_character_environment(bool _debug)
 
   | agro on or off and current agro mode (g,1,2,3,ma1,ma2)
   /call set_data_map ${_debug} maCC stAssistMode                          FALSE                         "${auxna} [\axg,1,2,3\ax] your current smart assist mode"
-  /call set_data_map ${_debug} maCC stManualAssist1                       FALSE                         "${auxna} name of manual assist 1 toon"
-  /call set_data_map ${_debug} maCC stManualAssist2                       FALSE                         "${auxna} name of manual assist 2 toon"
+  | /call set_data_map ${_debug} maCC stManualAssist1                       FALSE                         "${auxna} name of manual assist 1 toon"
+  | /call set_data_map ${_debug} maCC stManualAssist2                       FALSE                         "${auxna} name of manual assist 2 toon"
+  /call set_data_map ${_debug} maCC swManualAssist                       FALSE                          "${auxna} use manual assisting"
   /call set_data_map ${_debug} maCC stPctEngage                           98                            "${auxnum} mobs % health to engage it"
-  /call set_data_list ${_debug} maCC lsAssistDanNet                       EMPTY                         "${auxli} list of dannet names to assist"
+  | /call set_data_list ${_debug} maCC lsAssistDanNet                       EMPTY                         "${auxli} list of dannet names to assist"
+  /call set_data_list ${_debug} maCC lsAss                                EMPTY                         "${auxli} list of names to assist"
 
   /call set_data_map ${_debug} maCC stZRadius                             60                            "${auxnum} the z distance of your environment"
 
@@ -1405,13 +1389,9 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy swEvasiveRefresh                 FALSE                         "${auxsw} refreshes observers if a client goes evasive"
   /call set_data_map ${_debug} maEntropy stCountFizzleRetry               0                             "${auxnum} number of cast retrys on a fizzle"
 
-
-
   | join the main channel
   /djoin ${maEntropy.Find[stEntropyGroup_all].Value}
   
-
-
   | broadcast defaults
   /call set_data_map ${_debug} maEntropy stBroadcastHere                 group                         "${auxna} change the default broadcast for /here [group|raid|zone|all]."
   /call set_data_map ${_debug} maEntropy stBroadcastEnter                group                         "${auxna} change the default broadcast for /enter [group|raid|zone|all]."
@@ -1437,12 +1417,10 @@ sub set_initialize_map_character_environment(bool _debug)
   | spire AA
   /call set_data_map ${_debug} maChr swSpireRaid                          FALSE                         "${auxsw} use while in group for burns"
   /call set_data_map ${_debug} maChr swSpireGroup                         FALSE                         "${auxsw} use while in a raid for burns"
-  | /call set_data_map ${_debug} maChr stSpireCon                           0                             "${auxnum} number of the condition to use for spires"
 
   | intensity of the resolute AA
   /call set_data_map ${_debug} maChr swIntensityRaid                      FALSE                         "${auxsw} use while in a raid for burns"
   /call set_data_map ${_debug} maChr swIntensityGroup                     FALSE                         "${auxsw} use while in group for burns"
-  | /call set_data_map ${_debug} maChr stIntensityCon                       0                             "${auxnum} number of the condition to use for spires"
   /call set_data_map ${_debug} maChr stAAIntensity                        "Intensity of the Resolute"   "${auxna} Intensity of the Resolute AA"
 
   | can cast?
@@ -3115,6 +3093,22 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
  | character database
  /if (${_type.Equal[character]} || ${_verbage.Equal[force]}) {
   /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-w${maData.Find[chrID].Value}.sqlite\ax
+
+
+
+
+  | assisting redesign
+  /if (${maEnv.Find[build].Value} >= 210116.01 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210116.01\ax
+    /invoke ${_tmpMap.Add[lsAssistDanNet,character]}
+    /invoke ${_tmpMap.Add[stManualAssist1,character]}
+    /invoke ${_tmpMap.Add[stManualAssist2,character]}
+
+
+  }
+
+
+
 
   /if (${maEnv.Find[build].Value} >= 201201.1 || ${_verbage.Equal[force]}) {
     /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w201201.1\ax
