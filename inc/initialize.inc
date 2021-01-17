@@ -1791,14 +1791,6 @@ sub set_initialize_hud(bool _debug, string _verbage)
   /if (${_verbage.Equal[entropy]}) {
     OUT Updating MQ2HUD.INI${sep}\a-w${_verbage}\ax
 
-|**
-    home
-    behind
-    fast
-    assist
-    ma1
-    ma2
-**|
 
   | row 0
 
@@ -3095,7 +3087,11 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
   /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-w${maData.Find[chrID].Value}.sqlite\ax
 
 
-
+  /if (${maEnv.Find[build].Value} >= 210116.05 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210116.05\ax
+    /invoke ${_tmpMap.Add[stAAReflexiveRetort,character]}
+    /invoke ${_tmpMap.Add[stAARelfexiveRejoinder,character]}
+  }
 
   | assisting redesign
   /if (${maEnv.Find[build].Value} >= 210116.01 || ${_verbage.Equal[force]}) {
@@ -3103,12 +3099,7 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
     /invoke ${_tmpMap.Add[lsAssistDanNet,character]}
     /invoke ${_tmpMap.Add[stManualAssist1,character]}
     /invoke ${_tmpMap.Add[stManualAssist2,character]}
-
-
   }
-
-
-
 
   /if (${maEnv.Find[build].Value} >= 201201.1 || ${_verbage.Equal[force]}) {
     /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w201201.1\ax

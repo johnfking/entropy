@@ -19,6 +19,17 @@ on the to do list
 --------------------
 
 
+
+210116.05
+- bard
+  will not cast boastful below until the current cast has faded from the target
+  corrected reflexive from an aa to a disc for pregen
+- /buff group
+  corrected the tag checks
+- /debuff
+  malo comparison corrected
+
+
 210116.04
 - /mode
   couple small refinements to the combat orders

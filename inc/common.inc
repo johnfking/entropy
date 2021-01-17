@@ -6184,6 +6184,12 @@ sub check_buff_cycle_others(bool _debug, string _type)
               /varset _found FALSE
             }
 
+            | cycle the tags
+            /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_toon} "${_spellTrigger}" check_buff_cycle_others
+            /if (!${Macro.Return}) {
+              /continue
+            }
+
             /if (!${_found}) /break
 
           /next _i
@@ -6206,6 +6212,12 @@ sub check_buff_cycle_others(bool _debug, string _type)
         /if (!${Spell[${_spellTrigger}].STACKS}) {
           DEBUG ${break}.STACKS
           /continue          
+        }
+
+        | cycle the tags
+        /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_toon} "${_spellTrigger}" check_buff_cycle_others
+        /if (!${Macro.Return}) {
+          /continue
         }
 
         | target has the buff?
@@ -8717,6 +8729,7 @@ sub where_the_fuck_is_my_pet(bool _debug, bool _force)
   /if (${Me.Pet.PctHPs} < 50 || ${_force}) {
     /if (${is_ready[${_debug}, "Summon Companion"]}) {
       /call voodoo ${_debug} "Summon Companion" 0 FALSE
+      /delay 5s
     }
   }
 
@@ -14636,40 +14649,6 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
 /return TRUE
 
 
-
-|**
-sub check_debuff_routines(int _tmpID)
-
-  | tash
-  /if (${madeBuff.Find[swTash].Value}) {
-    /call cast_cycle_debuff ${maDebug.Find[tash].Value} ${_tmpID} tash
-  }
-
-  | malo
-  /if (${madeBuff.Find[swMalo].Value}) {
-    /call cast_cycle_debuff ${maDebug.Find[malo].Value} ${_tmpID} malo
-  }
-
-  | slow
-  /if (${madeBuff.Find[swSlow].Value}) {
-    /call cast_cycle_debuff ${maDebug.Find[slow].Value} ${_tmpID} slow
-  }
-
-  | eradicate
-  /if (${madeBuff.Find[swEradicate].Value}) {
-    /call cast_cycle_debuff ${maDebug.Find[eradicate].Value} ${_tmpID} eradicate
-  }
-
-  | snare
-  /if (${madeBuff.Find[swSnare].Value}) {
-    /call cast_cycle_debuff ${maDebug.Find[snare].Value} ${_tmpID} snare
-  }
-
-
-/return TRUE
-**|
-
-
 |***
  * note: see what debuffs to cast?
  * use: /call check_debuff_routines
@@ -14721,7 +14700,7 @@ sub check_debuff_routines(int _tmpID, bool _debug)
         }
 
       | tash / cripple / malo
-      } else /if (${Select[${_lideorder.Value},tash,cripple]}) {
+      } else /if (${Select[${_lideorder.Value},tash,cripple,malo]}) {
         
         /if (${_lideorder.Value.Equal[tash]}) {
           /varset _member Tashed
@@ -14761,6 +14740,7 @@ sub check_debuff_routines(int _tmpID, bool _debug)
 
 /return TRUE
 
+| /echo compare${sep} ${Target.Maloed.Name}${sep}\a-r${Spell[${Target.Maloed}].Base[2]}\ax <= Malo${sep}\a-r${Spell[Malo].Base[2]}\ax
 
 
 |***

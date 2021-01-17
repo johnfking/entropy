@@ -46,10 +46,11 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stInstrumentSecondary            FALSE                         "${auxna} name of secondary weapon to return from swap"
   /call set_data_map ${_debug} maChr stInstrumentPrimary              FALSE                         "${auxna} name of primary weapon to return from swap"
 
+  | reflexive
+  /call set_data_map ${_debug} maChr stReflexive                      PREGEN|1                      "${auxna} Reflexive disc line"
+
   | AAs
   /call set_data_map ${_debug} maChr stAAFierceEye                    PREGEN|1                      "${auxna} Fierce Eye aa"
-  /call set_data_map ${_debug} maChr stAAReflexiveRetort              PREGEN|1                      "${auxna} Reflexive Retort aa"
-  /call set_data_map ${_debug} maChr stAARelfexiveRejoinder           PREGEN|1                      "${auxna} Relfexive Rejoinder aa"
   /call set_data_map ${_debug} maChr stAABladedSong                   PREGEN|1                      "${auxna} Bladed Song aa"
   /call set_data_map ${_debug} maChr stAACacophony                    PREGEN|1                      "${auxna} Cacophony aa"
   /call set_data_map ${_debug} maChr stAABoastfulBellow               PREGEN|1                      "${auxna} Boastful Bellow aa"
@@ -189,12 +190,8 @@ sub misc_combat(bool _debug, int _tmpID)
     /call voodoo ${_debug} "${maChr.Find[stAAFierceEye].Value}" 0 FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAReflexiveRetort].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAReflexiveRetort].Value}" ${_tmpID} FALSE
-  }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stAARelfexiveRejoinder].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAARelfexiveRejoinder].Value}" ${_tmpID} FALSE
+  /if (${is_ready[${_debug}, "${maChr.Find[stReflexive].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stReflexive].Value}" ${_tmpID} FALSE
   }
 
   /if (${is_ready[${_debug}, "${maChr.Find[stAABladedSong].Value}"]}) {
@@ -204,7 +201,7 @@ sub misc_combat(bool _debug, int _tmpID)
   /if (${is_ready[${_debug}, "${maChr.Find[stAACacophony].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stAACacophony].Value}" ${_tmpID} FALSE
   }
-  /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${maChr.Find[swAABellow].Value} && ${Me.PctEndurance} > 30) {
+  /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${maChr.Find[swAABellow].Value} && ${Me.PctEndurance} > 30 && !${Target.Buff[Boastful Bellow].ID}) {
     /if (${is_ready[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
       /call voodoo ${_debug} "${maChr.Find[stAABoastfulBellow].Value}" ${_tmpID} FALSE
     }
