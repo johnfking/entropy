@@ -4385,7 +4385,16 @@ sub get_key_DBLOC(bool _debug, string _key)
  * use: /call do_raw_edit DEBUG [silent T/F] [variable to change] [value to change it too|gem#|cursor] [add|delete|clear (for lists)] [not used yet]
  ***|
 sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, string _add_delete, string _verbage)
-  DEBUG \atdo_raw_edit\ax(\aw${_silent}, ${_variable}, ${Parse[1,"${_value}"]}, ${_add_delete}, ${_verbage}\ax)
+
+  /if (${maDebug.Find[edit].Value}) {
+    /varset _debug TRUE
+    DEBUG \atdo_raw_edit\ax
+    DEBUG ${sep}_silent${sep}\a-w${_silent}\ax
+    DEBUG ${sep}_variable${sep}\a-w${_variable}\ax
+    DEBUG ${sep}_value${sep}\a-w${Parse[1,"${_value}"]}\ax
+    DEBUG ${sep}_add_delete${sep}\a-w${_add_delete}\ax
+    DEBUG ${sep}_verbage${sep}\a-w${_verbage}\ax
+  }
 
   | ** error control ** |
 
@@ -4457,7 +4466,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
     /declare _tmpList string local
 
     DEBUG GET PREGEN DATA
-    /sqlite query "${DBstatic}" dummy SELECT * FROM env_${Me.Class.ShortName.Lower} WHERE env_var='${_env_var}';
+    /sqlite query "${DBstatic}" dummy SELECT * FROM env_${Me.Class.ShortName.Lower} WHERE env_var='${_variable}';
     /if (!${sql_check[${_debug}, dummy, do_raw_edit, SELECT]}) /endmacro
 
     | how many do we want to find?
@@ -9131,9 +9140,9 @@ sub control_routine(bool _debug)
   }
 
 
-  /if (!PULL) {
-    /call get_assist_target ${maDebug.Find[assist].Value}
-  }
+  | /if (!PULL) {
+  |   /call get_assist_target ${maDebug.Find[assist].Value}
+  | }
 
 /return TRUE
 
@@ -14697,7 +14706,7 @@ sub check_debuff_routines(int _tmpID, bool _debug)
               /continue 
             }
           }         
-        }
+        } 
 
       | tash / cripple / malo
       } else /if (${Select[${_lideorder.Value},tash,cripple,malo]}) {
@@ -14785,10 +14794,6 @@ DEBUG \atget_type\aw(\a-w${_type}\ax)
 
 
 
-
-
-
-
 |***
  * note: https://www.imdb.com/title/tt2490326
  * use: /call check_cycle_cure [DEBUG] [TARGETID] [tag] [return t/f]
@@ -14868,10 +14873,6 @@ sub cast_cycle_cure(bool _debug, int _tmpID, string _tag, bool _return)
 
 
 
-
-
-
-
 |***
  * note: Acquire target, get bitches. This will establish ${stAssTarID}
  * use: /call get_assist_target DEBUG
@@ -14879,9 +14880,14 @@ sub cast_cycle_cure(bool _debug, int _tmpID, string _tag, bool _return)
 sub get_assist_target(bool _debug, string _call)
   DEBUG \atget_assist_target\ax(\a-w${_call}\ax)
 
-  /if (!AUTO || PULL || ${maCC.Find[swSetForced].Value}) {
-    DEBUG ${sep}returning manual targeting
+  /if (!AUTO || ${maCC.Find[swSetForced].Value}) {
+    DEBUG ${sep}assisting${sep}\a-wmanual target\ax
     /return ${Target.ID}
+  }
+  
+  /if (PULL && AUTO && !${maPull.Find[stCountChainPull].Value}) {
+    DEBUG ${sep}assisting${sep}\a-wpullers target\ax
+    /return TARGET
   }
 
   CHECKDEAD
@@ -14898,7 +14904,7 @@ sub get_assist_target(bool _debug, string _call)
  
     | tar acquisition when using smart assist. set XTarget positions.
     /if (${Select[${maCC.Find[stAssistMode].Value},g,1,2,3]}) {
-      DEBUG ${sep}Assisting${sep}\agsmart\ax
+      DEBUG ${sep}Returning${sep}\a-wsmart assist\ax
 
       | set the 1st xtarget slot to the assists target
       /if (${Select[${maCC.Find[stAssistMode].Value},g]} && ${Spawn[${Group.MainAssist.ID}].ID} && !${Spawn[${Group.MainAssist.ID}].Dead}) {
@@ -14939,7 +14945,7 @@ sub get_assist_target(bool _debug, string _call)
 
     | dannet assisting
     /if (!${lsAss.Contains[EMPTY]} && ${lsAss.Count} >= 1) {
-      DEBUG ${sep}Assisting${sep}\agdannet\ax
+      DEBUG ${sep}assisting${sep}\a-wdannet\ax
       
       /declare _liass listiterator local
       /vardata _liass lsAss.First.Clone
@@ -14996,7 +15002,7 @@ sub get_assist_target(bool _debug, string _call)
   } else /if (${maCC.Find[swManualAssist].Value} && ${_call.NotEqual[inline]}) {
 
     /if (!${lsAss.Contains[EMPTY]} && ${lsAss.Count} >= 1) {
-      DEBUG ${sep}Assisting${sep}\agmanual\ax
+      DEBUG ${sep}assisting${sep}\a-wmanual\ax
       
       | no mobs in env
       /if (!${SpawnCount[npc radius ENV PS4 targetable]} || SAFEZONE) {
@@ -15067,6 +15073,4 @@ sub get_assist_target(bool _debug, string _call)
   }
 
 /return
-
-
 

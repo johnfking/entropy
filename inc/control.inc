@@ -3530,6 +3530,7 @@ sub Bind_command_alto(string _debug)
 
   /call set_stop ${maDebug.Find[stop].Value}
   /invoke ${maData.Add[swGetOverHere,FALSE]}
+  /invoke ${maData.Add[stCastReturn,RESET]}
   /invoke ${target[clear]}
 
 /return TRUE
@@ -4400,6 +4401,8 @@ sub Bind_command_grab(string _name, string _silent, bool _debug)
  ***|
 #bind command_lesson /lesson
 sub Bind_command_lesson(bool _debug)
+
+  /if (!${Bool[${_debug}]}) /varset _debug FALSE
 
   /if (${_debug.Equal[aux]}) {
     OUT Help? Really? ok.. Uses AA Lesson of the Devoted. Thats it. Not sure what you expected.

@@ -530,7 +530,7 @@ sub cast_alliance(bool _debug)
  * use: /chr
  ***|
 sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
-  DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_verbage2}\ax)
+  SDEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_verbage2}\ax)
 
   | % of HP to canni at
   /if (${_type.Equal[cannihps]}) {
