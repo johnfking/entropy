@@ -20,6 +20,14 @@ on the to do list
 
 
 
+
+
+210116.06
+- assisting
+  cant assist yourself anymore
+  corrected a bug with the absence of people check -@Xeniaz
+  
+
 210116.05
 - bard
   will not cast boastful below until the current cast has faded from the target

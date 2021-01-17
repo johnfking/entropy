@@ -14944,6 +14944,12 @@ sub get_assist_target(bool _debug, string _call)
       /declare _liass listiterator local
       /vardata _liass lsAss.First.Clone
       /while (!${_liass.IsEnd}) {
+        
+        | dont assist yourself
+        /if (${_liass.Value.Equal[${Me.DisplayName}]}) {
+          /invoke ${_liass.Advance}
+          /continue
+        }
 
         | make sure target is being watched
         /if (!${DanNet[${_liass.Value}].OSet["Target.ID"]}) {
@@ -14953,7 +14959,7 @@ sub get_assist_target(bool _debug, string _call)
         }
 
         | is toon here and within range
-        /if (${Spawn[${_liass.Value}].Distance} >= ENV) {
+        /if (!${Spawn[${_liass.Value}].ID} || ${Spawn[${_liass.Value}].Distance} >= ENV) {
           DEBUG ${break}not here/out of range${sep}\a-w${_liass.Value}\ax
           /invoke ${_liass.Advance}    
           /continue        
@@ -15004,6 +15010,11 @@ sub get_assist_target(bool _debug, string _call)
       /vardata _liass lsAss.First.Clone
       /while (!${_liass.IsEnd}) {
         
+        | dont assist yourself
+        /if (${_liass.Value.Equal[${Me.DisplayName}]}) {
+          /invoke ${_liass.Advance}
+          /continue
+        }
 
         | spawn dead or gone?
         /if (${Spawn[${_liass.Value}].Dead} || !${Spawn[${_liass.Value}].ID}) {
@@ -15013,8 +15024,8 @@ sub get_assist_target(bool _debug, string _call)
         }       
         
         | is toon here and within range
-        /if (${Spawn[${_liass.Value}].Distance} >= ENV) {
-          DEBUG ${break}out of range${sep}\a-w${_liass.Value}\ax
+        /if (!${Spawn[${_liass.Value}].ID} || ${Spawn[${_liass.Value}].Distance} >= ENV) {
+          DEBUG ${break}not here/out of range${sep}\a-w${_liass.Value}\ax
           /invoke ${_liass.Advance}    
           /continue        
         }
