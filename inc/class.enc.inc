@@ -20,9 +20,6 @@ sub class_init(bool _debug)
   /call set_data ${_debug} maData stSynergy                           map outer "Begulier's Synergy"
   /call set_data ${_debug} maData stFade                              map outer "Self Stasis"
 
-  | map for mob control
-  /declare maMobControl map outer
-
   /call set_data_map ${_debug} maChr stPctGather                      0                             "${auxnum} % of your mana to usin gather mana AA and crystal if enabled"
 
   /call set_data_map ${_debug} maChr stAlliance                       PREGEN|1                      "${auxna} alliance spell"

@@ -1157,7 +1157,7 @@ sub check_buff_cycle_shrink(bool _debug)
  * use: /call voodoo DEBUG r [TARGETID] [sub to check on the way] [ENV override]
  ***|
 sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOverride)
-  DEBUG \atvoodoo\ax(\a-w"${_verbage}", ${_tmpID}, ${_sub}, ${_rangeOverride}\ax)
+  DEBUG \atvoodoo\ax(\a-w"${_verbage}", tID:${_tmpID}, sub:${_sub}, rngOver:${_rangeOverride}\ax)
   ISMEDEAD
   GETOVERHERE
 
@@ -3028,7 +3028,7 @@ sub get_target_wait(bool _debug, int _tmpID, string _waittime)
     /while (${wait_for_mob}) {
  
       /if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
-        DEBUG ${break}/while \a-ghostile mob in safeenv rada\ax
+        DEBUG ${break}/while \a-ghostile mob in safeenv raidus\ax
         /invoke ${target[clear]}
         /break
       }
@@ -3704,32 +3704,32 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
           /continue
         }
 
-        | can i come into the out now?
-        /if (${Spawn[id ${_tmpID}].Type.Equal[NPC]}) {
-          /if (${lsNoTargetNPC.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
-            DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetNPC\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
-            /varset _spCount 1
-            /continue
-          }
-        }
+        | body types to consider.. is this fat shaming?
 
-        | PCs to not consider
-        /if (${Spawn[id ${_tmpID}].Type.Equal[PC]}) {
-          /if (${lsNoTargetPC.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
-            DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetPC\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
-            /varset _spCount 1
-            /continue
-          }
-        }
+          | can i come into the out now?
+          /if (${Spawn[id ${_tmpID}].Type.Equal[NPC]}) {
+            /if (${lsNoTargetNPC.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
+              DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetNPC\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
+              /varset _spCount 1
+              /continue
+            }
 
-        | magic creatures to not consider
-        /if (${Spawn[id ${_tmpID}].Type.Equal[Magic]}) {
-          /if (${lsNoTargetMagic.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
-            DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetMagic\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
-            /varset _spCount 1
-            /continue
+          | PCs to not consider
+          } else /if (${Spawn[id ${_tmpID}].Type.Equal[PC]}) {
+            /if (${lsNoTargetPC.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
+              DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetPC\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
+              /varset _spCount 1
+              /continue
+            }
+
+          | magic creatures to not consider
+          } else /if (${Spawn[id ${_tmpID}].Type.Equal[Magic]}) {
+            /if (${lsNoTargetMagic.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
+              DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetMagic\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
+              /varset _spCount 1
+              /continue
+            }
           }
-        }
 
         /if (${_tmpID} == ${Me.Pet.ID}) {
           /continue
@@ -3812,10 +3812,10 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
         /if (${lsZoneNoMez.Contains[${Spawn[id ${_tmpID}].DisplayName}]} || ${lsZoneNamed.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
           DEBUG ${sep}Priority Mob${sep}\a-w${Spawn[id ${_tmpID}].DisplayName}\ax
           | off tanks have to sort by a different position
-          /if (TARGET && ${Me.XTarget[1].ID} == ${_tmpID}) {
-            DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wMe.XTarget[1].ID != _tmpID\ax
-            /continue
-          }
+          | /if (TARGET && ${Me.XTarget[1].ID} == ${_tmpID}) {
+          |   DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wMe.XTarget[1].ID != _tmpID\ax
+          |   /continue
+          | }
           /return TARGET
         }
 
@@ -7303,12 +7303,6 @@ sub check_minion_cycle_summon(bool _debug)
   CHECKEXIT check_minion_cycle_summon
   GETINPUT check_minion_cycle_summon NA|NA
 
-  /if (PET && (AUTO || MODE) && !${Pet.ID}) {
-    /if (${is_ready[${_debug}, "Companion's Suspension"]}) {
-      /call voodoo ${_debug} "Companion's Suspension" 0 FALSE
-    }
-  }
-
   | component check. cause `yo ho needs an allowance
   /if (PET && !${Pet.ID} && !${Select[${Me.Class.ShortName},BST]}) {
     DEBUG ${sep}checking pet components
@@ -9058,10 +9052,11 @@ sub control_routine(bool _debug)
   /if (!AUTO || SAFEZONE) /return FALSE
   /if (!${madeBuff.Find[swMez].Value}) /return FALSE
   /if (!${maCC.Find[swCombatControl].Value}) /return FALSE
+  /delay 1
 
   GETINPUT control_routine NA|NA
   CHECKEXIT
-
+  
   | slow this shit down so we can read it...
   /if (${_debug}) {
     /delay 1s
@@ -9076,14 +9071,10 @@ sub control_routine(bool _debug)
   /declare _aeMezDone bool local FALSE
 
   /declare _count int local 0
-
-  /if (!${Defined[maMobControl]}) {
-    /declare maMobControl map outer
-  }
-
+  
   | check control map for any mobs dead or gone
   /invoke ${control_map[${_debug}, dead]}
-
+  
   | find unaccounted mobs in my area
   | returns the # of mobs that do not have a current mez timer associated
   /varset _countArea ${control_area[${_debug}]}
@@ -9092,6 +9083,7 @@ sub control_routine(bool _debug)
   | if no mobs are returned we bail
   /if (!${_countArea}) {
     DEBUG ${break}\arNo\ax mez targets${sep}\a-w${_countArea}\ax
+    /delay 1
     /return TRUE
   }
 
@@ -9110,7 +9102,7 @@ sub control_routine(bool _debug)
     /declare _mzcheck mapiterator local
     /vardata _mzcheck maMobControl.First.Clone
     /while (!${_mzcheck.IsEnd}) {
-
+      
       | skip assists target
       /if (${_mzcheck.Key} == TARGET) {
         /invoke ${_mzcheck.Advance}
@@ -9138,12 +9130,10 @@ sub control_routine(bool _debug)
     /varset _aeMezDone FALSE
     /delay 1
   }
-
-
-  | /if (!PULL) {
-  |   /call get_assist_target ${maDebug.Find[assist].Value}
-  | }
-
+  
+  DEBUG ${sep}control_routine${sep}\arexit\ax
+  /delay 1
+  
 /return TRUE
 
 
@@ -9170,7 +9160,7 @@ sub control_area(bool _debug)
     | if this mob is the current assists target, remove it from our need to control
     /if (${_tmpID} == TARGET) {
       /if (${maMobControl.Contains[${_tmpID}]}) {
-        DEBUG ${sep}removing ma target from maMobControl map${sep}\a-w${_tmpID}\ax
+        DEBUG ${sep}removing assist target from maMobControl map${sep}\a-w${_tmpID}\ax
         /invoke ${maMobControl.Remove[${_tmpID}]}
 
         | delete the existing mez timer if any?
@@ -9184,7 +9174,7 @@ sub control_area(bool _debug)
     }
 
     | build our counter to return
-    DEBUG ${sep}incrent aecounter${sep}\a-w${_agroCount} + 1\ax
+    DEBUG ${sep}increment aecounter${sep}\a-w${_agroCount} + 1\ax
     /varcalc _agroCount ${_agroCount} + 1
 
     | do we have the mob in the mez list ??
@@ -9254,7 +9244,7 @@ sub control_map(bool _debug, string _type)
     /while (!${_mirem.IsEnd}) {
       GETINPUT
       DEBUG ${sep}_mirem.Key--.Value${sep}\a-w${_mirem.Key} -- ${_mirem.Value}\ax${sep}${If[!${Spawn[${_mirem.Key}].ID} || ${Spawn[${_mirem.Key}].Dead},\ardead\ax,\agalive\ax]}
-      /if (!${Spawn[${_mirem.Key}].ID} || ${Spawn[${_mirem.Key}].Dead}) {
+      /if (!${Spawn[${_mirem.Key}].ID} || ${Spawn[${_mirem.Key}].Dead} || ${Spawn[${_mirem.Key}].ID} == TARGET) {
         DEBUG ${sep}removing${sep}\a-w${_mirem.Key}\ax
 
         | delete the existing mez timer if any?
@@ -9285,7 +9275,9 @@ sub control_map(bool _debug, string _type)
       DEBUG ${sep}_mimez.Key--.Value${sep}\a-w${_mimez.Key} -- ${_mimez.Value}\ax
       CHECKDEAD
       GETOVERHERE
-      /if (${Bool[${maCC.Find[stAssistMode].Value}]} && ${_mimez.Key} == ${Me.XTarget[1].ID}) {
+      
+      
+      /if (${Bool[${maCC.Find[stAssistMode].Value}]} && ${_mimez.Key} == TARGET) {
         /invoke ${_mimez.Advance}
         /continue
       }
@@ -9384,12 +9376,16 @@ sub control_mez(bool _debug, int _tmpID)
 
   | try to mez more then once if there is a fail
   /while (${_resistCount} < ${madeBuff.Find[stCountMezResist].Value}) {
+    
+    /delay 1
 
     | turning attak off. bards are stupid.
     /if (${Me.Combat}) {
       /squelch /attack off
     }   
 
+    /invoke ${get_assist_target[${maDebug.Find[assist].Value}, return]}
+    
     /if (${_tmpID} == TARGET) {
       /invoke ${set_timer[${_debug}, timer_mez_ID${_tmpID}, 30s]}
       /return FALSE
@@ -9411,7 +9407,8 @@ sub control_mez(bool _debug, int _tmpID)
     }
 
     | mez ready?
-    /delay 2.25s !${Me.SpellInCooldown}
+
+    /delay 2.25s !${Me.SpellInCooldown}    
     /call cast_cycle_debuff ${maDebug.Find[mez].Value} ${_tmpID} mez
 
     /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,IMMUNE,TAKEHOLD]}) {
@@ -14497,12 +14494,12 @@ sub get_help(string _type, string _verbage)
  * use: /call cast_cycle_debuff DEBUG [TARGETID] [TAG]
  ***|
 sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
-  DEBUG \atcast_cycle_debuff\ax(\a-wID:${_tmpID}, tag:${_tag}, ${_return}\ax)
+  DEBUG \atcast_cycle_debuff\ax(\a-wtID:${_tmpID}, tag:${_tag}, return:${_return}\ax)
 
   CHECKDEAD
   CHECKDEFENSE
   
-   /invoke ${set_data_timer[FALSE, Check_deBuffs, RESTART]}
+   /invoke ${set_data_timer[${_debug}, Check_deBuffs, RESTART]}
 
   | if the user has not set the line order, set it to a default for now
   /if (${lsLinedeBuff.Contains[EMPTY]} && ${lsLinedeBuff.Count} == 1) {
@@ -14524,10 +14521,12 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
     ISMEDEAD
     GETOVERHERE
     CHECKEXIT cast_cycle_debuff
-
-    /if (${target[isdead, ${_tmpID}]}) {
-      /return FALSE
-    }
+    
+    | /if (${target[isdead, ${_tmpID}]}) {
+    |   /return FALSE
+    | }
+    
+    /delay 1
 
     | check the switch
     /if (!${Bool[${madeBuff.Find[swdeBuff${_lidebuff.Value}].Value}]}) {
@@ -14551,7 +14550,7 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
         /continue
       }
     }
-    
+   
     /if (!${is_ready[${_debug}, "${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}"]}) {
       DEBUG ${break}${_lidebuff.Value} not ready
       /invoke ${_lidebuff.Advance}
@@ -14568,10 +14567,11 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
     | cycle the tags
     /call tag_evaluation ${maDebug.Find[tag].Value} Melee ${_lidebuff.Value} ${Me.DisplayName} "${_spell}" cast_cycle_debuff
     /if (!${Macro.Return}) {
+      DEBUG ${break}tag fail
       /invoke ${_lidebuff.Advance}
       /continue
     }
-    
+
     /varset _type ${get_type[${_debug}, "${_spell}"]}
 
     /if (${Select[${_type},SPELL,DISC,PULSE]}) {
@@ -14579,6 +14579,9 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
     } else /if (${Select[${_type},ITEM]}) {
       /varset _spell ${FindItem[=${_spell}].Spell}
     }
+    
+    /call target set ${_tmpID}
+
 
     /if (${Spell[${_spell}].HasSPA[470]} || ${Spell[${_spell}].HasSPA[374]}) {
       DEBUG ${sep}multiple landing
@@ -14610,7 +14613,19 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
         /if (${_return}) {
           /return ${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}
         }
-        /call voodoo ${_debug} "${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}" ${_tmpID} FALSE
+        
+        
+      | /call target set ${_tmpID}
+
+      /call voodoo ${_debug} "${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}" ${_tmpID} FALSE
+
+      | good cast, get out...
+      /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
+        DEBUG ${break}good cast${sep}\a-w${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}\ax
+        /return TRUE
+      }
+
+
         /call cast_cooldown_wait ${_debug}
         /continue
       }
@@ -14643,8 +14658,18 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
       /if (${_return}) {
         /return ${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}
       }
+      
+      | /call target set ${_tmpID}
 
       /call voodoo ${_debug} "${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}" ${_tmpID} FALSE
+
+      | good cast, get out...
+      /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
+        DEBUG ${break}good cast${sep}\a-w${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}\ax
+        /return TRUE
+      }
+
+
       /call cast_cooldown_wait ${_debug}
       /invoke ${_lidebuff.Advance}
       /continue
@@ -14876,28 +14901,45 @@ sub cast_cycle_cure(bool _debug, int _tmpID, string _tag, bool _return)
 |***
  * note: Acquire target, get bitches. This will establish ${stAssTarID}
  * use: /call get_assist_target DEBUG
+ * option: inline - is for inline calling of assisting onlky. cannit be used with the manual switch on
+ * option: return - does not targeting and simply updates ${stAssTarID} cannot be used with the manual switch
  ***|
 sub get_assist_target(bool _debug, string _call)
   DEBUG \atget_assist_target\ax(\a-w${_call}\ax)
-
-  /if (!AUTO || ${maCC.Find[swSetForced].Value}) {
+  
+  /if (!AUTO || ${maCC.Find[swSetForced].Value} || MODE) {
     DEBUG ${sep}assisting${sep}\a-wmanual target\ax
     /return ${Target.ID}
-  }
-  
-  /if (PULL && AUTO && !${maPull.Find[stCountChainPull].Value}) {
-    DEBUG ${sep}assisting${sep}\a-wpullers target\ax
-    /return TARGET
-  }
 
-  CHECKDEAD
-  GETINPUT get_assist_target NA|NA
 
   | if were not assisting.. don't assist
-  /if (!${Bool[${maCC.Find[stAssistMode].Value}]} && !${maCC.Find[swManualAssist].Value} && (${lsAss.Contains[EMPTY]} && ${lsAss.Count} == 1)) {
+  } else /if (!${Bool[${maCC.Find[stAssistMode].Value}]} && !${maCC.Find[swManualAssist].Value} && (${lsAss.Contains[EMPTY]} && ${lsAss.Count} == 1) && !PULL) {
     DEBUG ${break}\arNO\ax assist
     /return 0
+
+
+
+  | normal puller bypass for assisting
+  } else /if (PULL && AUTO) {
+    /if (${Group.MainAssist.ID} == ${Me.ID} || ${Raid.MainAssist[1].ID} == ${Me.ID} || ${Raid.MainAssist[2].ID} == ${Me.ID} || ${Raid.MainAssist[3].ID} == ${Me.ID}) {
+      DEBUG ${break}i'm the assist/puller
+      /return TARGET
+    } else /if (${maPull.Find[stCountChainPull].Value} && TARGET) {
+      DEBUG ${sep}assisting${sep}\a-wpullers target\ax
+      | do nothing. we want this to do an assist
+    } 
   }
+
+
+
+
+  
+  | /if (${timer_Check_Assist_Delay}) {
+  |   /return TARGET
+  | }
+
+  | /invoke ${set_data_timer[${_debug}, Check_Assist_Delay, RESTART]}  
+  
   
   | smart / DanNet Assisting
   /if (!${maCC.Find[swManualAssist].Value}) {
@@ -14910,15 +14952,19 @@ sub get_assist_target(bool _debug, string _call)
       /if (${Select[${maCC.Find[stAssistMode].Value},g]} && ${Spawn[${Group.MainAssist.ID}].ID} && !${Spawn[${Group.MainAssist.ID}].Dead}) {
         DEBUG ${sep}set smart-g${sep}\a-wg\ax
         /varset stAssTarID ${Me.GroupAssistTarget.ID}
+        /if (${_call.Equal[return]}) /return TARGET
       } else /if (${Select[${maCC.Find[stAssistMode].Value},1]} && ${Spawn[${Raid.MainAssist[1].ID}].ID} && !${Spawn[${Raid.MainAssist[1].ID}].Dead}) {
         DEBUG ${sep}set smart-1${sep}\a-w1\ax
         /varset stAssTarID ${Me.RaidAssistTarget[1].ID}
+        /if (${_call.Equal[return]}) /return TARGET
       } else /if (${Select[${maCC.Find[stAssistMode].Value},2]} && ${Spawn[${Raid.MainAssist[2].ID}].ID} && !${Spawn[${Raid.MainAssist[2].ID}].Dead}) {
         DEBUG ${sep}set smart-1${sep}\a-w2\ax
         /varset stAssTarID ${Me.RaidAssistTarget[2].ID}
+        /if (${_call.Equal[return]}) /return TARGET
       } else /if (${Select[${maCC.Find[stAssistMode].Value},3]} && ${Spawn[${Raid.MainAssist[3].ID}].ID} && !${Spawn[${Raid.MainAssist[3].ID}].Dead}) {
         DEBUG ${sep}set smart-3${sep}\a-w3\ax
         /varset stAssTarID ${Me.RaidAssistTarget[3].ID}
+        /if (${_call.Equal[return]}) /return TARGET
       }
 
       | skip corpses and me
@@ -14984,7 +15030,8 @@ sub get_assist_target(bool _debug, string _call)
         } else /if (${DanNet[${_liass.Value}].Observe["Target.ID"]}) {
           /varset stAssTarID ${DanNet[${_liass.Value}].Observe["Target.ID"]}
           DEBUG ${sep}stAssTarID${sep}\a-wTARGET\ax
-
+          /if (${_call.Equal[return]}) /return TARGET
+          
           /if ((MELEE || RANGE || NUKE || DOT) && ${Spawn[TARGET].Distance} <= ENV) {
             /if (${Target.ID} != TARGET && !${Spawn[TARGET].Dead}) {
               /squelch /target id TARGET

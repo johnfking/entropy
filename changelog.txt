@@ -20,6 +20,18 @@ on the to do list
 
 
 
+
+210118.01
+- mezing
+  corrected a targeting issues that made the mezer appear to lock up
+  slowed down the control rtoutine for mezing a tiny bit
+  NOTE: mezers need to use smart assist till i sort out the dannet assist for them
+- pets
+  removed the suspend companion controls
+- pulling
+  secondary pullers will re-engage after the main assist has picked up the mob
+
+
 210117.01
 - assisting
   some adjustments to assisting for pullers/secondary pullers

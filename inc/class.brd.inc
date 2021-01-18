@@ -608,8 +608,8 @@ sub scan_focus(string _type, bool _debug)
       /if (${FindItem[${_tmpItemID}].WornSlot[offhand]} || ${FindItem[${_tmpItemID}].WornSlot[mainhand]}) {
         /varset _tmpUsable 1
       }
-      DEBUG ${sep}${sep}${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]} > ${maBardFocus.Find[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]}].Value.Arg[2,|]}
-      /if (${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]} > ${maBardFocus.Find[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]}].Value.Arg[2,|]}) {
+      DEBUG ${sep}${sep}${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]} >= ${maBardFocus.Find[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]}].Value.Arg[2,|]}
+      /if (${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]} >= ${maBardFocus.Find[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]}].Value.Arg[2,|]}) {
         DEBUG ${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},|${_tmpItemID}|${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]}|${_tmpUsable}
         /invoke ${maBardFocus.Add[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},|${_tmpItemID}|${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]}|${_tmpUsable}]}
       }
@@ -622,9 +622,6 @@ sub scan_focus(string _type, bool _debug)
   }
 
 /return TRUE
-
-
-${FindItem[${maBardFocus.Find[70].Value.Arg[1,|]}].Name}
 
 
 

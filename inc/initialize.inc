@@ -123,7 +123,8 @@ sub set_initialize(bool _debug)
   | control map dumps
   /declare maControl map outer
   /declare maChrControl map outer
-  | /declare cmi mapiterator outer
+  /declare maMobControl map outer
+
 
   | hook map
   /declare maHook map outer
@@ -1207,13 +1208,10 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maCC swGlyphRaid                           FALSE                         "${auxsw} use glyph in a raid"
   /call set_data_map ${_debug} maCC stGlyph                               FALSE                         "${auxna} name of the glyph you want to use"
 
-  | agro on or off and current agro mode (g,1,2,3,ma1,ma2)
+  /invoke ${set_data_timer[${_debug}, Check_Assist_Delay, 5]}
   /call set_data_map ${_debug} maCC stAssistMode                          FALSE                         "${auxna} [\axg,1,2,3\ax] your current smart assist mode"
-  | /call set_data_map ${_debug} maCC stManualAssist1                       FALSE                         "${auxna} name of manual assist 1 toon"
-  | /call set_data_map ${_debug} maCC stManualAssist2                       FALSE                         "${auxna} name of manual assist 2 toon"
   /call set_data_map ${_debug} maCC swManualAssist                       FALSE                          "${auxna} use manual assisting"
   /call set_data_map ${_debug} maCC stPctEngage                           98                            "${auxnum} mobs % health to engage it"
-  | /call set_data_list ${_debug} maCC lsAssistDanNet                       EMPTY                         "${auxli} list of dannet names to assist"
   /call set_data_list ${_debug} maCC lsAss                                EMPTY                         "${auxli} list of names to assist"
 
   /call set_data_map ${_debug} maCC stZRadius                             60                            "${auxnum} the z distance of your environment"
