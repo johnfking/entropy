@@ -1285,7 +1285,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
         /break
       }
       
-      CHECKDEAD
+      ISMEDEAD
       /alt act ${Me.AltAbility[${_verbage}].ID}
       /delay 5 ${Me.Casting.ID}
 
@@ -1294,7 +1294,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
       /varset _tiCastTime ${Math.Calc[${Spell[${_verbage}].MyCastTime}]}
 
       /while (${_tiCastTime} > 0) {
-        CHECKDEAD
+        ISMEDEAD
         /if (${_tmpID} != 0 && ${_sub.NotEqual[skiptargetcheck]}) {
           /if (${Spawn[id ${_tmpID}].Dead} || !${Spawn[id ${_tmpID}].ID}) {
             DEBUG ${sep}spell.target dead.break
@@ -1504,7 +1504,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
       }
 
       /while (${_castLoop} > 0) {
-        CHECKDEAD
+        ISMEDEAD
 
         /if (${Me.Invis} && ${_sub.NotEqual[ignoreall]}) {
           DEBUG ${sep}spell.cr:DISTRACTED(invis).break
@@ -1635,7 +1635,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
       /invoke ${out[4, "Disc${sep}${sp}${_verbage}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
     }
     
-    CHECKDEAD
+    ISMEDEAD
     /disc ${Spell[${_verbage}].ID}
 
     /delay 5
@@ -1684,7 +1684,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
     }
 
     /while (${_castLoop}) {
-      CHECKDEAD
+      ISMEDEAD
       /useitem "${_verbage}"
       /delay 2
 
@@ -1768,7 +1768,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
     }
 
     /while (${_castLoop}) {
-      CHECKDEAD
+      ISMEDEAD
       /cast ${Me.Gem[${_verbage}]}
       /delay 1
 
@@ -3373,7 +3373,7 @@ sub pull_mob_tag(bool _debug, int _tmpID)
 
         /delay 5
         GETINPUT
-        CHECKDEAD
+        ISMEDEAD
 
         | have the targets attention. can go back
         /if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
@@ -6671,7 +6671,7 @@ sub do_loot(bool _debug)
 
       /while (${AdvLoot.SCount}) {
         GETOVERHERE
-        CHECKDEAD
+        ISMEDEAD
 
         /if (${AdvLoot.SList[1].Name.Equal[NULL]}) {
           /continue
@@ -6790,7 +6790,7 @@ sub do_loot(bool _debug)
 
       /while (${AdvLoot.PCount}) {
         GETOVERHERE
-        CHECKDEAD
+        ISMEDEAD
 
         | advloot window checkboxes will override
         /delay 1s !${AdvLoot.LootInProgress}
@@ -6899,7 +6899,7 @@ sub do_loot(bool _debug)
 
   | I'M SERIOUSLY SICK OF FIXING THIS delete code.
               /while (${FindItem[="${_tmpName}"].ID}) {
-                CHECKDEAD
+                ISMEDEAD
                 /delay 5
                 /nomodkey /shift /itemnotify in Pack${Math.Calc[${FindItem[=${_tmpName}].ItemSlot}-22]} ${Math.Calc[${FindItem[=${_tmpName}].ItemSlot2}+1]} leftmouseup
 
@@ -6954,7 +6954,7 @@ sub check_cursor(bool _debug, string _verbage)
   /if (${_verbage.Equal[getoffthedamncursor]} && ${Cursor.ID}) {
     /declare _cursorbail int local 1
     /while (${Cursor.ID} && ${_cursorbail} < 31 && ${Me.FreeInventory}) {
-      CHECKDEAD
+      ISMEDEAD
       GETOVERHERE
       /autoinventory
       /delay 2
@@ -7222,7 +7222,7 @@ sub check_minion_cycle_shrink(bool _debug)
 
   | me shrinks
   /while (${Pet.Height} > 2 && ${_count} < 2) {
-    CHECKDEAD
+    ISMEDEAD
     /call voodoo ${_debug} "${maMinion.Find[stPetShrink].Value}" ${Pet.ID} FALSE
     /varcalc _count ${_count}+1
   }
@@ -7684,7 +7684,7 @@ sub get_MAG_folded_pack(bool _debug)
   /declare _ligmfp listiterator local
   /vardata _ligmfp _lsout.First.Clone
   /while (!${_ligmfp.IsEnd}) {
-    CHECKDEAD
+    ISMEDEAD
     /if (${FindItemCount[Folded Pack of ${_ligmfp.Value} Armaments]}) {
       DEBUG ${sep}found mage pack${sep}\a-wFolded Pack of ${_ligmfp.Value} Armaments\ax
       /return Folded Pack of ${_ligmfp.Value} Armaments
@@ -7735,7 +7735,7 @@ sub cast_shield_flash(bool _debug, string _type)
     /declare _count int local 0
 
     /for _count 1 to 12
-      CHECKDEAD
+      ISMEDEAD
       /if (${Me.Bandolier[${_count}].Active}) {
         /varset _Bandolier ${Me.Bandolier[${_count}]}
         /break
@@ -8144,7 +8144,7 @@ sub pull_mob_move_to(bool _debug, int _tmpID, int _dist, string _LoS)
 
   DEBUG ${sep}moving to${sep}\a-w${_tmpID}\ax
   /while (${Navigation.Active}) {
-    CHECKDEAD
+    ISMEDEAD
     GETOVERHERE
 
     /if (!AUTO && !MODE) {
@@ -8307,7 +8307,7 @@ sub get_target_petpull(bool _debug, int _tmpID, int _spCount)
 
   /while (TRUE) {
 
-    CHECKDEAD
+    ISMEDEAD
     GETOVERHERE
     GETINPUT get_target_petpull_range NA|NA
 
@@ -8461,7 +8461,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
     }
 
     /while (${Me.Moving}) {
-      CHECKDEAD
+      ISMEDEAD
       GETOVERHERE
       /if (${Spawn[${_tmpID}].LineOfSight} && ${Spawn[${_tmpID}].Distance} < ${maPull.Find[stPullNavStopDistance].Value}) {
         /break
@@ -8507,7 +8507,7 @@ sub get_target_navpull(bool _debug, int _tmpID)
 
   /while (${Me.Moving}) {
     GETINPUT get_target_navpull_moving _tmpID|${_tmpID}
-    CHECKDEAD
+    ISMEDEAD
     /delay 5
   }
   **|
@@ -8636,7 +8636,7 @@ sub get_target_multipull(bool _debug)
     /invoke ${out[9, "Waiting on ${dot} ${con_color[${_debug}, ${_tmpID}]}${sep}\a-w30s\ax"]}
     /while (TARGET && ${Spawn[TARGET].Distance} > ${maHard.Find[stMinBowDist].Value}) {
       GETINPUT get_target_multipull_wait NA|NA
-      CHECKDEAD
+      ISMEDEAD
       /delay 2
 
       | target gone.. wtf?
@@ -8896,7 +8896,7 @@ sub check_mode(bool _debug, string _verbage)
   | reset used for zoning, and other stuffs
   /if (${_verbage.Equal[reset]}) {
     /while (!${_mimode.IsEnd}) {
-      CHECKDEAD
+      ISMEDEAD
       GETOVERHERE
       /if (${_mimode.Value}) {
         /invoke ${maMode.Add[${_mimode.Key},FALSE]}
@@ -8908,7 +8908,7 @@ sub check_mode(bool _debug, string _verbage)
 
   | normal check routine
   /while (!${_mimode.IsEnd}) {
-    CHECKDEAD
+    ISMEDEAD
     GETOVERHERE
     /if (${_mimode.Value}) {
       DEBUG mode_${_mimode.Key}
@@ -9121,7 +9121,7 @@ sub control_routine(bool _debug)
         /continue
       }
 
-      CHECKDEAD
+      ISMEDEAD
       GETOVERHERE
       CHECKEXIT
       /call control_mez ${_debug} ${_mzcheck.Key}
@@ -9273,7 +9273,7 @@ sub control_map(bool _debug, string _type)
     /vardata _mimez maMobControl.First.Clone
     /while (!${_mimez.IsEnd}) {
       DEBUG ${sep}_mimez.Key--.Value${sep}\a-w${_mimez.Key} -- ${_mimez.Value}\ax
-      CHECKDEAD
+      ISMEDEAD
       GETOVERHERE
       
       
@@ -11272,7 +11272,7 @@ sub cast_cycle_heal_regen(bool _debug, int _tmpID, string _tag)
       }
 
       CHECKEXIT
-      CHECKDEAD
+      ISMEDEAD
       GETOVERHERE
       
       | check the switch
@@ -11484,7 +11484,7 @@ sub cast_cycle_heal(bool _debug, int _tmpID, string _tag)
       /continue
     }
 
-    CHECKDEAD
+    ISMEDEAD
     /call voodoo ${_debug} "${maHeal.Find[stHeal${_liHeal.Value}].Value}" ${_tmpID} breakonhealpct
 
     /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]}) {
@@ -12620,7 +12620,7 @@ sub con_color(bool _debug, int _tmpID)
 sub do_taunt(bool _debug, int _tmpID)
   DEBUG \atdo_taunt\ax(\a-w${_tmpID}\ax)
 
-  CHECKDEAD
+  ISMEDEAD
   CHECKEXIT
 
   /if (!${maAgro.Find[stPctTaunt].Value} || !AGRO) {
@@ -13700,7 +13700,7 @@ sub cast_cycle_melee(bool _debug, int _tmpID, string _tag)
     /return FALSE
   }
 
-  CHECKDEAD
+  ISMEDEAD
   CHECKDEFENSE
 
   /call target set ${_tmpID}
@@ -13786,7 +13786,7 @@ sub cast_cycle_melee(bool _debug, int _tmpID, string _tag)
       /continue
     }
 
-    CHECKDEAD
+    ISMEDEAD
     
     /invoke ${out[8, "Melee${sep}${sp}${maMelee.Find[stMelee${_liMelee.Value}].Value}\ax ${dot} ${con_color[${_debug}, ${_tmpID}]}\ax"]}
     /doability "${maMelee.Find[stMelee${_liMelee.Value}].Value}"
@@ -13893,7 +13893,7 @@ sub pull_home_move_to(bool _debug, int _tmpID)
 
   /delay 5 ${Navigation.Active}
   /while (${Navigation.Active}) {
-    CHECKDEAD
+    ISMEDEAD
     GETOVERHERE
 
     | do we slow down if we start to outrun a mob?
@@ -14066,7 +14066,7 @@ sub get_resident(bool _debug, string _groupList, int _distance, string _verbage)
   /for _countGroup 1 to ${_groupList.Count[|]}
     /varset _group ${_groupList.Arg[${_countGroup},|]}
     
-    CHECKDEAD
+    ISMEDEAD
 
     | group empty / does not exist
     /if (!${DanNet.PeerCount[${_group}]}) {
@@ -14077,7 +14077,7 @@ sub get_resident(bool _debug, string _groupList, int _distance, string _verbage)
     /for _countName 1 to ${DanNet.Peers[${_group}].Count[|]}
       /varset _name ${DanNet.Peers[${_group}].Arg[${_countName},|]}
       
-      CHECKDEAD
+      ISMEDEAD
 
       | never use the MA
       /if (${Group.MainAssist.Name.Equal[${_name}]} || ${_verbage.Equal[notme]}) {
@@ -14496,7 +14496,7 @@ sub get_help(string _type, string _verbage)
 sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
   DEBUG \atcast_cycle_debuff\ax(\a-wtID:${_tmpID}, tag:${_tag}, return:${_return}\ax)
 
-  CHECKDEAD
+  ISMEDEAD
   CHECKDEFENSE
   
    /invoke ${set_data_timer[${_debug}, Check_deBuffs, RESTART]}
@@ -14527,6 +14527,8 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
     | }
     
     /delay 1
+    
+    DEBUG ${sep}checking ${_lidebuff.Value}${sep}\a-w${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}\ax
 
     | check the switch
     /if (!${Bool[${madeBuff.Find[swdeBuff${_lidebuff.Value}].Value}]}) {
@@ -14556,10 +14558,15 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
       /invoke ${_lidebuff.Advance}
       /continue
     }
-
+    
+    | found us a spell, set it and return
+    /if (${_return}) {
+      /invoke ${maData.Add[returnCast,${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}]}
+      /return TRUE
+    }
+ 
     | get some workable variables
     /varset _spell ${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}
-    DEBUG ${sep}_spell${sep}\a-w${_spell}\ax
     /call target set ${_tmpID}
     /delay 1s ${Target.BuffsPopulated}
     /varset _found TRUE
@@ -14573,65 +14580,55 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
     }
 
     /varset _type ${get_type[${_debug}, "${_spell}"]}
-
-    /if (${Select[${_type},SPELL,DISC,PULSE]}) {
-      /varset _spell ${_spell}
-    } else /if (${Select[${_type},ITEM]}) {
+    /if (${Select[${_type},ITEM]}) {
       /varset _spell ${FindItem[=${_spell}].Spell}
     }
+
+    DEBUG ${sep}_spell ${dot}${dot} \aw${_spell}\ax
     
-    /call target set ${_tmpID}
-
-
     /if (${Spell[${_spell}].HasSPA[470]} || ${Spell[${_spell}].HasSPA[374]}) {
-      DEBUG ${sep}multiple landing
+      DEBUG ${sep}multiple landing ${dot}${dot} \aw${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}\ax
 
       /for _count 1 to ${Spell[${_spell}].NumEffects}
-        DEBUG ${sep}_count${sep}\a-w${_count}\ax
+        DEBUG ${sep}_count ${dot}${dot} \aw${_count}\ax
         /varset _found TRUE
 
         | skip any secondary procs with no duration
         /if (${Spell[${_spell}].Trigger[${_count}].Duration} < 3) {
+          DEBUG ${break} Duration < 3 ticks
           /continue
         }
 
         | stacks
         /if (!${Spell[${_spell}].Trigger[${_count}].STACKS}) {
+          DEBUG ${break}stack failure ${dot}${dot} \aw${_spell}\ax
           /continue
         }
 
         | target has debuff
         /if (!${Target.Buff[${Spell[${_spell}].Trigger[${_count}]}].ID}) {
-         /varset _found FALSE
+          DEBUG ${sep}NOT FOUND ${dot}${dot} \aw${_spell}\ax
+          /varset _found FALSE
+          /break
         }
-
-        /if (!${_found}) /break
 
       /next _count
 
       /if (!${_found}) {
-        /if (${_return}) {
-          /return ${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}
+        /call voodoo ${_debug} "${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}" ${_tmpID} FALSE
+
+        | good cast, get out...
+        /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
+          DEBUG ${break}good cast ${dot}${dot} \aw${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}\ax
+          /return TRUE
         }
-        
-        
-      | /call target set ${_tmpID}
-
-      /call voodoo ${_debug} "${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}" ${_tmpID} FALSE
-
-      | good cast, get out...
-      /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
-        DEBUG ${break}good cast${sep}\a-w${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}\ax
-        /return TRUE
-      }
-
 
         /call cast_cooldown_wait ${_debug}
         /continue
       }
 
     } else {
-      DEBUG ${sep}single landing      
+      DEBUG ${sep}single landing ${dot}${dot} \aw${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}\ax      
 
       | skip any secondary procs with no duration
       /if (${Spell[${_spell}].Duration} < 3) {
@@ -14654,21 +14651,13 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
         /continue
       }
 
-
-      /if (${_return}) {
-        /return ${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}
-      }
-      
-      | /call target set ${_tmpID}
-
       /call voodoo ${_debug} "${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}" ${_tmpID} FALSE
 
       | good cast, get out...
       /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
-        DEBUG ${break}good cast${sep}\a-w${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}\ax
+        DEBUG ${break}good cast$ ${dot}${dot} \aw${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}\ax
         /return TRUE
       }
-
 
       /call cast_cooldown_wait ${_debug}
       /invoke ${_lidebuff.Advance}
@@ -14683,6 +14672,7 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
 /return TRUE
 
 
+
 |***
  * note: see what debuffs to cast?
  * use: /call check_debuff_routines
@@ -14690,16 +14680,20 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
 sub check_debuff_routines(int _tmpID, bool _debug)
   DEBUG \atcheck_debuff_routines\ax(\aw${_tmpID}\ax)
   
+  /declare _spell string local FALSE
+  /declare _count int local 0
+  /declare _found bool local FALSE
   /declare _variable string local FALSE
   /declare _member string local
   /declare _tmpTLO string local FALSE
+
   /declare _lideorder listiterator local
   /vardata _lideorder lsdeBuffOrder.First.Clone
   /while (!${_lideorder.IsEnd}) {
 
     GETOVERHERE
     CHECKEXIT
-    CHECKDEAD    
+    ISMEDEAD    
  
     /varset _debug ${If[${maDebug.Find[${_lideorder.Value}].Value},TRUE,FALSE]}
     
@@ -14717,24 +14711,8 @@ sub check_debuff_routines(int _tmpID, bool _debug)
     /if (${Target.ID} == ${_tmpID} && ${Target.BuffsPopulated}) {
       DEBUG ${sep}.BuffsPopulated
 
-      | check current debuffs
-      | we really dont want to do shit more then once
-      /if (${_lideorder.Value.Equal[slow]}) {
-        DEBUG ${sep}${_lideorder.Value}
-        /if (${Target.Slowed.ID}) {
-          /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value} TRUE
-          DEBUG ${sep}returning${sep}\a-w${Macro.Return}\ax
-          /if (${Bool[${Macro.Return}]}) {
-            DEBUG compare${sep} ${Target.Slowed.Name}${sep}\a-r${Spell[${Target.Slowed}].Base[2]}\ax <= ${Macro.Return}${sep}\a-r${Spell[${Macro.Return}].Base[2]}\ax
-            /if (${Spell[${Target.Slowed}].Base[2]} <= ${Spell[${Macro.Return}].Base[2]}) {
-              /invoke ${_lideorder.Advance}
-              /continue 
-            }
-          }         
-        } 
-
-      | tash / cripple / malo
-      } else /if (${Select[${_lideorder.Value},tash,cripple,malo]}) {
+      | tash / cripple / malo / slow
+      /if (${Select[${_lideorder.Value},tash,cripple,malo,slow]}) {
         
         /if (${_lideorder.Value.Equal[tash]}) {
           /varset _member Tashed
@@ -14742,22 +14720,49 @@ sub check_debuff_routines(int _tmpID, bool _debug)
           /varset _member Crippled
         } else /if (${_lideorder.Value.Equal[malo]}) {
           /varset _member Maloed
-        }
+        } else /if (${_lideorder.Value.Equal[slow]}) {
+          /varset _member Slowed
+        } 
+        DEBUG ${sep}debuff${sep}\ay${_lideorder.Value}\ax
         
-        DEBUG ${sep}${_lideorder.Value}
         /if (${Target.${_member}.ID}) {
+          DEBUG ${sep}target is${sep}\a-w${_lideorder.Value}\ax (\a-r${Target.${_member}}\ax)
           /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value} TRUE          
-          DEBUG ${sep}returning${sep}\a-w${Macro.Return}\ax
-          /if (${Bool[${Macro.Return}]}) {
-            /if (${Spell[${Target.${_member}}].Base[2]} <= ${Spell[${Macro.Return}].Base[2]}) {
-              /invoke ${_lideorder.Advance}
-              /continue 
-            }          
+          DEBUG ${sep}returning spell${sep}\a-r${maData.Find[returnCast].Value}\ax
+          /if (${Bool[${maData.Find[returnCast].Value}]}) {
+            /varset _spell ${maData.Find[returnCast].Value}
+
+            /if (${Spell[${_spell}].HasSPA[470]} || ${Spell[${_spell}].HasSPA[374]}) {
+              DEBUG ${sep}multi landing debff${sep}\ay${_spell}\ax
+              /varset _found FALSE
+              /for _count 1 to ${Spell[${_spell}].NumEffects}
+                      
+                /if (${Spell[${Target.${_member}}].Base[2]} <= ${Spell[${_spell}].Trigger[${_count}].Base[2]}) {
+                  DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Spell[${Target.${_member}}].Base[2]}\ax <= ${_spell}${sep}\a-r${Spell[${_spell}].Trigger[${_count}].Base[2]}\ax
+                  /varset _found TRUE
+                  /break
+                }
+                
+              /next _count
+
+              /if (${_found}) {
+                /invoke ${_lideorder.Advance}
+                /continue 
+              }
+
+            } else {
+              DEBUG ${sep}single landing debff${sep}\a-w${_spell}\ax
+              /if (${Spell[${Target.${_member}}].Base[2]} <= ${Spell[${_spell}].Base[2]}) {
+                DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Spell[${Target.${_member}}].Base[2]}\ax <= ${_spell}${sep}\a-r${Spell[${_spell}].Base[2]}\ax
+                /invoke ${_lideorder.Advance}
+                /continue 
+              }             
+            }
           }
         }
-
+        
       | snare
-      } else /if (${_lideorder.Value.Equal[snare]}) {
+      } else /if (${Select[${_lideorder.Value},snare]}) {
         /if (${Target.Snared.ID}) {
           /invoke ${_lideorder.Advance}
           /continue          
@@ -14766,15 +14771,24 @@ sub check_debuff_routines(int _tmpID, bool _debug)
       }
     }
 
+    DEBUG ${sep}debuffing....
     | debuff time
-    /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value}
-
+    /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value} FALSE
+    /invoke ${maData.Add[returnCast,FALSE]}
     /invoke ${_lideorder.Advance}
   }
-
+  
 /return TRUE
 
-| /echo compare${sep} ${Target.Maloed.Name}${sep}\a-r${Spell[${Target.Maloed}].Base[2]}\ax <= Malo${sep}\a-r${Spell[Malo].Base[2]}\ax
+
+
+
+/echo compare${sep} ${Target.Maloed.Name}${sep}\a-r${Spell[${Target.Maloed}].Base[2]}\ax <= Malo${sep}\a-r${Spell[Malo].Base[2]}\ax
+/echo compare${sep} Turgur's Insects${sep}\a-r${Spell[Turgur's Insects].Base[2]}\ax -- Crippling Snare${sep}\a-r${Spell[Crippling Snare].Base[2]}\ax
+Crippling Snare
+
+
+
 
 
 |***
@@ -14859,10 +14873,10 @@ sub cast_cycle_cure(bool _debug, int _tmpID, string _tag, bool _return)
       /continue
     }
      
-    | check matching tag for failure
+    | check matching passed tag for failure
     /if (${Bool[${_tag}]}) {
       /if (!${lsCure${_liC12.Value}Tag.Contains[${_tag}]}) {
-        DEBUG ${break}${_liC12.Value} bad tag${sep}\a-w${_tag}\ax
+        DEBUG ${break}${_liC12.Value} bad passed tag${sep}\a-w${_tag}\ax
         /invoke ${_liC12.Advance}
         /continue
       }
@@ -14875,14 +14889,15 @@ sub cast_cycle_cure(bool _debug, int _tmpID, string _tag, bool _return)
       /continue
     }
 
+    /if (${_return}) {
+      /invoke ${maData.Add[returnCast,${maCure.Find[stCure${_liC12.Value}].Value}].Value}]}
+      /return TRUE
+    }
+
     DEBUG ${sep}_liC12.Value${sep}\a-w${_liC12.Value}\ax${sep}passed tags
     
-    /if (${_return}) {
-      /return ${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}
-    }    
-
     ISMEDEAD
-
+        
     /call voodoo ${_debug} "${maCure.Find[stCure${_liC12.Value}].Value}" ${_tmpID} FALSE
 
     | good cast, get out...
@@ -15108,7 +15123,7 @@ sub get_assist_target(bool _debug, string _call)
 
 /return TARGET
 
-  CHECKDEAD
+  ISMEDEAD
   GETINPUT
   /if (TARGET == ${Target.ID}) {
     /if (${Target.PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
