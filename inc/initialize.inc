@@ -383,6 +383,7 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[para,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
+    | /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[arb,submenu]}
     /invoke ${maChrControl.Add[beacon,stCountBeaconofLife]}
     /invoke ${maChrControl.Add[divinerez,swDivineCleric]}
@@ -423,6 +424,7 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[stun,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},RNG]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[summer,stCountSummer]}
 
   } else /if (${Select[${Me.Class.ShortName},ROG]}) {
@@ -457,17 +459,6 @@ sub set_initial_environment(bool _debug)
   | set current zone
   /call set_data ${_debug} maEnv stCurrentZoneID                            map outer FALSE
 
-  | Comm
-  | /call set_data ${_debug} maComm stLocalEcho                               map outer FALSE                 "dannet local echo"
-  | /call set_data ${_debug} maComm stCommandEcho                             map outer FALSE                 "dannet local command echo"
-  | /call set_data ${_debug} maComm stFrontDelim                              map outer ON                    "dannet lead from delimiters"
-  | /call set_data ${_debug} maComm stFullNames                               map outer FALSE                 "dannet fullnames"
-  | /call set_data ${_debug} maComm stEntropyGroup_all                        map outer Entropy               "dannet main entropy group"
-
-  | join the group
-  | /djoin ${maEntropy.Find[stEntropyGroup_all].Value}
-
-
   | generate modes
   /declare maMode map outer
   /declare lsMode list outer
@@ -498,8 +489,9 @@ sub sql_schema_zone(bool _debug)
   | zone fields
   /declare lsZoneProperty list outer
   /invoke ${lsZoneProperty.Delimiter["|"]}
-  /invoke ${lsZoneProperty.Append[lsZoneNamed|lsZoneExclude|lsZoneCharm|lsZoneRange|lsZoneNoMez|lsZoneNoCast|lsZoneNoMelee]}
+  /invoke ${lsZoneProperty.Append[lsZoneNamed|lsZoneExclude|lsZoneCharm|lsZoneRange|lsZoneNoCast|lsZoneNoMelee]}
   /invoke ${lsZoneProperty.Append[lsZoneNoFire|lsZoneNoPoison|lsZoneNoMagic|lsZoneNoCorruption|lsZoneNoCold|lsZoneNoDisease]}
+  /invoke ${lsZoneProperty.Append[lsZoneNoSnare|lsZoneNoTash|lsZoneNoMalo|lsZoneNoEradicate|lsZoneNoCripple|lsZoneNoMez|lsZoneNoSlow]}
 
   /declare _lisszs listiterator local
   /vardata _lisszs lsZoneProperty.First

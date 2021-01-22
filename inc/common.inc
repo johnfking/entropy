@@ -1362,8 +1362,11 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
     | /if (${check_no_cast_buff[FALSE]}) /return FALSE
     
     | i'm not sure what you are thinking...
-    /if (${Me.PctMana} < 1) {
-      /return FALSE
+    
+    /if (${lsClassCast.Contains[${Me.Class.ShortName}]}) {
+      /if (${Me.PctMana} < 1) {
+        /return FALSE
+      }
     }
     
     | silence SPA
@@ -14644,7 +14647,7 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
 
       | good cast, get out...
       /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
-        DEBUG ${break}good cast$ ${dot}${dot} \aw${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}\ax
+        DEBUG ${break}good cast ${dot}${dot} \aw${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}\ax
         /return TRUE
       }
 
@@ -14668,7 +14671,13 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
  ***|
 sub check_debuff_routines(int _tmpID, bool _debug)
   DEBUG \atcheck_debuff_routines\ax(\aw${_tmpID}\ax)
-  
+ 
+  | kill this routine if there is no valid target
+  /if (!${Bool[${_tmpID}]}) {
+    DEBUG ${break}no target passed
+    /return FALSE
+  }
+ 
   /declare _spell string local FALSE
   /declare _count int local 0
   /declare _found bool local FALSE
@@ -14687,6 +14696,12 @@ sub check_debuff_routines(int _tmpID, bool _debug)
     /varset _debug ${If[${maDebug.Find[${_lideorder.Value}].Value},TRUE,FALSE]}
     
     /varset _variable ${proper_case[name, ${_lideorder.Value}]}
+    
+    | in an exclude list
+    /if (${lsZoneNo${_variable}.Contains[${Spawn[${_tmpID}].DisplayName}]}) {
+      DEBUG ${break} on exclude list${sep}\a-wlsZoneNo${_variable}\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
+      /return FALSE
+    }
 
     | is the debuff turned on
     /if (!${madeBuff.Find[sw${_variable}].Value}) {
@@ -14702,7 +14717,7 @@ sub check_debuff_routines(int _tmpID, bool _debug)
 
       | tash / cripple / malo / slow
       /if (${Select[${_lideorder.Value},tash,cripple,malo,slow]}) {
-        
+                
         /if (${_lideorder.Value.Equal[tash]}) {
           /varset _member Tashed
         } else /if (${_lideorder.Value.Equal[cripple]}) {
@@ -14718,7 +14733,7 @@ sub check_debuff_routines(int _tmpID, bool _debug)
           DEBUG ${sep}target is${sep}\a-w${_lideorder.Value}\ax (\a-r${Target.${_member}}\ax)
           /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value} TRUE          
           DEBUG ${sep}returning spell${sep}\a-r${maData.Find[returnCast].Value}\ax
-          /if (${Bool[${maData.Find[returnCast].Value}]}) {
+          /if (${Bool[${maData.Find[returnCast].Value}]} && ${_tmpID}) {
             /varset _spell ${maData.Find[returnCast].Value}
 
             /if (${Spell[${_spell}].HasSPA[470]} || ${Spell[${_spell}].HasSPA[374]}) {
@@ -14726,7 +14741,7 @@ sub check_debuff_routines(int _tmpID, bool _debug)
               /varset _found FALSE
               /for _count 1 to ${Spell[${_spell}].NumEffects}
                       
-                /if (${Spell[${Target.${_member}}].Base[2]} <= ${Spell[${_spell}].Trigger[${_count}].Base[2]}) {
+                /if (${Spell[${Target.${_member}}].Base[2]} <= ${Spell[${_spell}].Trigger[${_count}].Base[2]} || !${Spell[${_spell}].StacksTarget}) {
                   DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Spell[${Target.${_member}}].Base[2]}\ax <= ${_spell}${sep}\a-r${Spell[${_spell}].Trigger[${_count}].Base[2]}\ax
                   /varset _found TRUE
                   /break
@@ -14747,24 +14762,67 @@ sub check_debuff_routines(int _tmpID, bool _debug)
                 /continue 
               }             
             }
+          } else /if (!${Bool[${maData.Find[returnCast].Value}]} || !${_tmpID}) {
+            /return FALSE
           }
         }
-        
+ 
       | snare
       } else /if (${Select[${_lideorder.Value},snare]}) {
-        /if (${Target.Snared.ID}) {
-          /invoke ${_lideorder.Advance}
-          /continue          
-        }
+
+        /if (${_lideorder.Value.Equal[snare]}) {
+          /varset _member Snared
+        } 
+        DEBUG ${sep}debuff${sep}\ay${_lideorder.Value}\ax
         
+       /if (${Target.${_member}.ID}) {
+          DEBUG ${sep}target is${sep}\a-w${_lideorder.Value}\ax (\a-r${Target.${_member}}\ax)
+          /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value} TRUE          
+          DEBUG ${sep}returning spell${sep}\a-r${maData.Find[returnCast].Value}\ax
+          /if (${Bool[${maData.Find[returnCast].Value}]} && ${_tmpID}) {
+            /varset _spell ${maData.Find[returnCast].Value}
+
+            /if (${Spell[${_spell}].HasSPA[470]} || ${Spell[${_spell}].HasSPA[374]}) {
+              DEBUG ${sep}multi landing debff${sep}\ay${_spell}\ax
+              /varset _found FALSE
+              /for _count 1 to ${Spell[${_spell}].NumEffects}
+                      
+                /if (${Spell[${Target.${_member}}].Base[2]} >= ${Spell[${_spell}].Trigger[${_count}].Base[2]} || !${Spell[${_spell}].StacksTarget}) {
+                  DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Spell[${Target.${_member}}].Base[2]}\ax >= ${_spell}${sep}\a-r${Spell[${_spell}].Trigger[${_count}].Base[2]}\ax
+                  /varset _found TRUE
+                  /break
+                }
+                
+              /next _count
+
+              /if (${_found}) {
+                /invoke ${_lideorder.Advance}
+                /continue 
+              }
+
+            } else {
+              DEBUG ${sep}single landing debff${sep}\a-w${_spell}\ax
+              /if (${Spell[${Target.${_member}}].Base[2]} <= ${Spell[${_spell}].Base[2]}) {
+                DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Spell[${Target.${_member}}].Base[2]}\ax >= ${_spell}${sep}\a-r${Spell[${_spell}].Base[2]}\ax
+                /invoke ${_lideorder.Advance}
+                /continue 
+              }             
+            }
+          } else /if (!${Bool[${maData.Find[returnCast].Value}]} || !${_tmpID}) {
+            /return FALSE
+          }
+        }
+
       }
+
+      DEBUG ${sep}debuffing....
+      | debuff time
+      /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value} FALSE
+      /invoke ${maData.Add[returnCast,FALSE]}
+      /invoke ${_lideorder.Advance}
+
     }
 
-    DEBUG ${sep}debuffing....
-    | debuff time
-    /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value} FALSE
-    /invoke ${maData.Add[returnCast,FALSE]}
-    /invoke ${_lideorder.Advance}
   }
   
 /return TRUE
@@ -14775,7 +14833,8 @@ sub check_debuff_routines(int _tmpID, bool _debug)
 /echo compare${sep} ${Target.Maloed.Name}${sep}\a-r${Spell[${Target.Maloed}].Base[2]}\ax <= Malo${sep}\a-r${Spell[Malo].Base[2]}\ax
 /echo compare${sep} Turgur's Insects${sep}\a-r${Spell[Turgur's Insects].Base[2]}\ax -- Crippling Snare${sep}\a-r${Spell[Crippling Snare].Base[2]}\ax
 Crippling Snare
-
+${Spell[Crippling Snare].Base[2]}
+${Spell[Entrap].Base[2]}
 
 
 
@@ -15112,16 +15171,67 @@ sub get_assist_target(bool _debug, string _call)
 
 /return TARGET
 
-  ISMEDEAD
-  GETINPUT
-  /if (TARGET == ${Target.ID}) {
-    /if (${Target.PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
-      | /delay 2
-      /varset stAssTarID 0
-      DEBUG ${sep}:skippingtoMAtarget
-      /goto :skippingtoMAtarget
+
+
+
+
+
+
+
+|***
+ * note: class combat routine order
+ * use: /call class_combat_cycle
+ ***|
+sub class_combat_cycle(bool _debug)
+
+  /declare _lico listiterator local
+  /vardata _lico lsClassOrder.First.Clone
+    /while (!${_lico.IsEnd}) {
+      
+    CHECKEXIT
+    ISMEDEAD
+    CHECKREZ
+
+    | set combat.. reqired first
+    /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
+
+    /if (${_lico.Value.Equal[melee]} && MELEE) {
+      /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
+
+    } else /if (${_lico.Value.Equal[heal]}) {
+      /call check_heal_routines
+
+    } else /if (${_lico.Value.Equal[epic]}) {
+      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST epic
+
+    } else /if (${_lico.Value.Equal[burn]} && BURN) {
+      /call burn ${maDebug.Find[burn].Value} GETASSIST
+
+    } else /if (${_lico.Value.Equal[misc]}) {
+      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
+
+    } else /if (${_lico.Value.Equal[dot]} && DOT) {
+      /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
+
+    } else /if (${_lico.Value.Equal[nuke]} && NUKE) {
+      /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
+
+    } else /if (${_lico.Value.Equal[debuff]} && !${timer_Check_deBuffs}) {
+      /call check_debuff_routines GETASSIST
+
+    } else /if (${_lico.Value.Equal[item]}) {
+      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
+
     }
+
+
+
+
+    
+    /invoke ${_lico.Advance}
   }
 
-/return
+
+
+/return TRUE
 

@@ -19,6 +19,20 @@ on the to do list
 --------------------
 
 
+210122.01
+- correction for /tell controls
+- extended /area no???? to include debuffs
+  /area nosnare target
+  /area nocripple target
+  /area nomalo target
+  and so on
+- /debuff
+  some more comparison and stack checking
+  protection against a null target ID passed
+- /debuff snare
+  is now set to split out triggers
+  
+
 210121.01
 - buff begging
   have added /t TOONAME ALIAS to the /beg buff system

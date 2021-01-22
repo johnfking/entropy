@@ -440,7 +440,9 @@ sub Event_Talk(string line, string _sender, string _chatText)
   /if (${_chatText.Equal[makemetaskleader]}) /taskmakeleader ${_sender}
 
   | misc stuff
-  /if (${_chatText.Equal[taketask]})
+  /if (${_chatText.Equal[taketask]}) {
+    | ????
+  }
 
 
 /return

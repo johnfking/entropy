@@ -48,6 +48,12 @@ sub class_init(bool _debug)
   /call set_data_list ${_debug} maChr lsParagonClass                  EMPTY                         "${auxli} classes you will use single paragon on"
 
 
+  | class order lists
+  | /call set_data_list ${_debug} maChr lsClassOrderPre                 melee|heal|debuff|epic|item|burn|misc|dot|nuke      "${auxli} class pre combat"
+  | /call set_data_list ${_debug} maChr lsClassOrder                    melee|heal|debuff|epic|item|burn|misc|dot|nuke      "${auxli} class activecombat order"
+  | /call set_data_list ${_debug} maChr lsClassOrderPost                melee|heal|debuff|epic|item|burn|misc|dot|nuke      "${auxli} class post combat "
+
+
   | AAs
   /call set_data_map ${_debug} maChr stAAUnity                        PREGEN|1                      "${auxna} class aa unity buff"
   /call set_data_map ${_debug} maChr stAARoaringStrike                PREGEN|1                      "${auxna} Roaring Strike aa"

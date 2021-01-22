@@ -1323,8 +1323,6 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
     /varset _element lsZoneRanged
   } else /if (${_type.Equal[hunt]}) {
     /varset _element lsZoneHunt
-  } else /if (${_type.Equal[nomez]}) {
-    /varset _element lsZoneNoMez
   } else /if (${_type.Equal[nocast]}) {
     /varset _element lsZoneNoCast
   } else /if (${_type.Equal[nomelee]}) {
@@ -1341,6 +1339,24 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
     /varset _element lsZoneNoCold
   } else /if (${_type.Equal[nocorruption]}) {
     /varset _element lsZoneNoCorruption
+
+
+  | debuffs
+  } else /if (${_type.Equal[nomez]}) {
+    /varset _element lsZoneNoMez
+  } else /if (${_type.Equal[nocripple]}) {
+    /varset _element lsZoneNoCripple
+  } else /if (${_type.Equal[noeradicate]}) {
+    /varset _element lsZoneNoEradicate
+  } else /if (${_type.Equal[nomalo]}) {
+    /varset _element lsZoneNoMalo
+  } else /if (${_type.Equal[noslow]}) {
+    /varset _element lsZoneNoSlow
+  } else /if (${_type.Equal[nosnare]}) {
+    /varset _element lsZoneNoSnare
+  } else /if (${_type.Equal[notash]}) {
+    /varset _element lsZoneNoTash
+
   }
 
   DEBUG ${sep}_element${sep}\a-w${_element}\ax
@@ -1388,7 +1404,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
     }
 
   | remaining list adjustments
-  } else /if (${Select[${_type},exclude,named,ranged,hunt,nomez,nocast,nomelee,nomagic,nodisease,nofire,nopoision,nocold,nocorruption]} && ${Target.ID}) {
+  } else /if (${Select[${_type},exclude,named,ranged,hunt,nomez,nocast,nomelee,nomagic,nodisease,nofire,nopoision,nocold,nocorruption,nosnare,nocripple,notash,nomalo,noeradicate]} && ${Target.ID}) {
     DEBUG ${sep}target${sep}\a-w${Target.DisplayName}\ax
     /if (!${${_element}.Contains[${Target.DisplayName}]}) {
       | Add a property to a mob
@@ -4506,7 +4522,7 @@ sub Bind_command_grab(string _name, string _silent, bool _debug)
  * use: /lesson
  ***|
 #bind command_lesson /lesson
-sub Bind_command_lesson(bool _debug)
+sub Bind_command_lesson(string _type, string _verbage, bool _debug)
 
   /if (!${Bool[${_debug}]}) /varset _debug FALSE
 

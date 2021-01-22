@@ -17,41 +17,46 @@ sub class_init(bool _debug)
     /declare _boottimestart int local ${MacroQuest.Running}
   }
 
-  /call set_data FALSE maData stSpire                                 map outer "Spire of the Pathfinders"
-  /call set_data FALSE maData stSynergy                               map outer "Outrider's Synergy"
-  /call set_data FALSE maData stFade                                  map outer "Cover Tracks"
-  /call set_data_map FALSE maChr stAAUnity                            "Wildstalker's Unity (Azia)"  "${auxna} class aa unity buff"
+  /call set_data ${_debug} maData stSpire                             map outer "Spire of the Pathfinders"
+  /call set_data ${_debug} maData stSynergy                            map outer "Outrider's Synergy"
+  /call set_data ${_debug} maData stFade                              map outer "Cover Tracks"
+  /call set_data_map ${_debug} maChr stAAUnity                        "Wildstalker's Unity (Azia)"  "${auxna} class aa unity buff"
 
-  /call set_data_map FALSE maChr stAlliance                           PREGEN|1                      "${auxna} alliance spell"
+  /call set_data_map ${_debug} maChr stAlliance                       PREGEN|1                      "${auxna} alliance spell"
 
   | spam summer nuke
-  /invoke ${set_data_timer[FALSE, Summer_Nuke, 1s]}
-  /call set_data_map FALSE maChr stSummer                             PREGEN|1                      "${auxna} summer line nuke spell"
-  /call set_data_map FALSE maChr stCountSummer                        0                             "${auxnum} number of mobs in environment to start using summer nuke line"
+  /invoke ${set_data_timer[${_debug}, Summer_Nuke, 1s]}
+  /call set_data_map ${_debug} maChr stSummer                         PREGEN|1                      "${auxna} summer line nuke spell"
+  /call set_data_map ${_debug} maChr stCountSummer                    0                             "${auxnum} number of mobs in environment to start using summer nuke line"
 
   | rest disc
-  /call set_data_map FALSE maChr stRest                               PREGEN|1                      "${auxna} name of stamina rest disc"
-  /call set_data_map FALSE maChr stHiatus                             PREGEN|1                      "${auxna} name of hiatus stamina recovery disc"
-  /call set_data_map FALSE maChr swHiatus                             FALSE                         "${auxsw} use hiatus rest disc"
+  /call set_data_map ${_debug} maChr stRest                           PREGEN|1                      "${auxna} name of stamina rest disc"
+  /call set_data_map ${_debug} maChr stHiatus                         PREGEN|1                      "${auxna} name of hiatus stamina recovery disc"
+  /call set_data_map ${_debug} maChr swHiatus                         FALSE                         "${auxsw} use hiatus rest disc"
 
   | heals
-  /call set_data_map FALSE maChr stDiscHeal                           PREGEN|1                      "${auxna} group heal disc"
+  /call set_data_map ${_debug} maChr stDiscHeal                       PREGEN|1                      "${auxna} group heal disc"
 
   | bow disc
-  /call set_data_map FALSE maChr stDiscRange                          PREGEN|1                      "${auxna} ranged DPS disc"
+  /call set_data_map ${_debug} maChr stDiscRange                      PREGEN|1                      "${auxna} ranged DPS disc"
 
   | melee disc
-  /call set_data_map FALSE maChr stDiscMelee                          PREGEN|1                      "${auxna} melee DPS disc"
+  /call set_data_map ${_debug} maChr stDiscMelee                      PREGEN|1                      "${auxna} melee DPS disc"
 
   | agro/anti agro kicks
-  /call set_data_map FALSE maChr stDiscJolt                           PREGEN|1                      "${auxna} hate reduction disc"
-  /call set_data_map FALSE maChr stDiscEnrage                         PREGEN|1                      "${auxna} hate increase disc"
+  /call set_data_map ${_debug} maChr stDiscJolt                       PREGEN|1                      "${auxna} hate reduction disc"
+  /call set_data_map ${_debug} maChr stDiscEnrage                     PREGEN|1                      "${auxna} hate increase disc"
 
   | ae melee disc
-  /call set_data_map FALSE maChr stDiscMeleeAE                        PREGEN|1                      "${auxna} ae melee disc"
+  /call set_data_map ${_debug} maChr stDiscMeleeAE                    PREGEN|1                      "${auxna} ae melee disc"
 
   | focused melee disc
-  /call set_data_map FALSE maChr stDiscMeleeSingle                    PREGEN|1                      "${auxna} single melee disc"
+  /call set_data_map ${_debug} maChr stDiscMeleeSingle                PREGEN|1                      "${auxna} single melee disc"
+
+  | class order lists
+  | /call set_data_list ${_debug} maChr lsClassOrderPre                 melee|heal|debuff|epic|item|burn|misc|dot|nuke      "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsClassOrder                    melee|heal|debuff|epic|item|burn|misc|dot|nuke      "${auxli} class activecombat order"
+  | /call set_data_list ${_debug} maChr lsClassOrderPost                melee|heal|debuff|epic|item|burn|misc|dot|nuke      "${auxli} class post combat "
 
   | AAs
   /call set_data_map ${_debug} maChr stAAImbuedFerocity               PREGEN|1                      "${auxna} Imbued Ferocity aa"
@@ -95,26 +100,13 @@ sub class_main(bool _debug)
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
     /call check_heal_routines
-    /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE FALSE
-
+    /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
     /if (VALID && !ENGINE3) {
-      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
-      /call check_heal_routines
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST epic
-      /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
-      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
-      /if (${maChr.Find[stCountSummer].Value} && !${timer_Summer_Nuke}) /call cast_nuke_summer ${maDebug.Find[summer].Value} TARGET
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
-      | /if (${swAlliance}) /call trigger_alliance GETASSIST
+      /call class_combat_cycle
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
       }
-
     }
 
     /if (AUTO && !ENGINE3) {
@@ -164,6 +156,10 @@ sub misc_combat(bool _debug, int _tmpID)
   /if (ENGINE2) {
     /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
     /return TRUE
+  }
+
+  /if (${maChr.Find[stCountSummer].Value} && !${timer_Summer_Nuke}) {
+    /call cast_nuke_summer ${maDebug.Find[summer].Value} ${_tmpID}
   }
 
   | agro control
@@ -462,8 +458,13 @@ sub burn(bool _debug, int _tmpID)
 sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_verbage2}\ax)
 
+  /if (${_type.Equal[list]}) {
+    OUT Combat Order${sep}\a-wlsClassOrder\ax
+    /call out_list lsClassOrder    
+    /return TRUE
+    
   | summer switch
-  /if (${_type.Equal[summer]}) {
+  } else /if (${_type.Equal[summer]}) {
     /if (!${set_control_num_range[${_debug}, stCountSummer, "${_verbage}", 0, 100]}) /return
   }
 
