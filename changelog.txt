@@ -19,6 +19,14 @@ on the to do list
 --------------------
 
 
+210121.01
+- buff begging
+  have added /t TOONAME ALIAS to the /beg buff system
+  i'm not sure why anyone needs both methods. but its there now.
+- uncommented a lot of the dead checks. hopefully wont spam spell casting after deaths
+- some minor changes to /mode summon
+
+
 210119.01
 - whole'lota changes to debuffing
  

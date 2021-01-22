@@ -1180,9 +1180,9 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
   }
 
   | are we moving? and not a bard?
-  /if (!${Select[${Me.Class.ShortName},BRD]} && ${Me.Moving} && ${_sub.NotEqual[ignoremovement]}) {
+  /if (!BARD && ${Me.Moving} && ${_sub.NotEqual[ignoremovement]}) {
     DEBUG ${sep}break voodoo.moving
-    /if (${Me.Moving}) /return FALSE
+    /return FALSE
   }
 
   | correct the range if needed
@@ -1213,7 +1213,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
         /varset _type ALT
 
       | bard song
-      } else /if (${Select[${Me.Class.ShortName},BRD]} && ${Me.Book[${Spell[${_verbage}].RankName}]}) {
+      } else /if (BARD && ${Me.Book[${Spell[${_verbage}].RankName}]}) {
         DEBUG _type${sep}\a-wPULSE\ax
         /varset _type PULSE
 
@@ -1264,8 +1264,6 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
     /if (${Me.Song[${_verbage}].ID} && ${_sub.NotEqual[ignoreall]}) {
       /return FALSE
     }
-
-    | /delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
 
     | make sure we have our target if one is passed. 0 is assumed no target required
     /if (${_tmpID}) {
@@ -1334,7 +1332,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
       /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,TAKEHOLD,DISTRACTED,RESISTED,FALSE]}) {
         /varset _castLoop 0
-        /if (${Select[${Me.Class.ShortName},BRD]}) {
+        /if (BARD) {
           /call pulse_stop
         }
         /break
@@ -1342,7 +1340,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
       /if (${Select[${maData.Find[stCastReturn].Value},OVERWRITTEN]}) {
         /varset _castLoop 0
-        /if (${Select[${Me.Class.ShortName},BRD]}) {
+        /if (BARD) {
           /call pulse_stop
         }
         /break
@@ -1362,6 +1360,11 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
     | buff on me i shouldnt cast with?
     | /if (${check_no_cast_buff[FALSE]}) /return FALSE
+    
+    | i'm not sure what you are thinking...
+    /if (${Me.PctMana} < 1) {
+      /return FALSE
+    }
     
     | silence SPA
     /if (${Me.SPA[96]}) {
@@ -1462,6 +1465,8 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
         /return TURE
       }
     }
+    
+    ISMEDEAD
 
     | if a gom procs and a spell is ready, we hijack the existing cast and use the GOM spell in its place
     /if (${_tmpID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]} && COMBAT) {
@@ -1525,6 +1530,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
         /varset _tiCastTime ${_castTime}
 
         /while (${_castTime} > 0) {
+          ISMEDEAD
           /if (${_tmpID} != 0 && ${_sub.NotEqual[skiptargetcheck]}) {
             /if (${Spawn[id ${_tmpID}].Dead} || !${Spawn[id ${_tmpID}].ID}) {
               DEBUG ${sep}spell.target dead.break
@@ -1569,7 +1575,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
         /if (${Select[${maData.Find[stCastReturn].Value},DISTRACTED,NOTREADY,CANNOTSEE,OUTOFMANA,INTERRUPTED]}) {
           DEBUG ${sep}spell.cr:DISTRACTED,NOTREADY,CANNOTSEEOUTOFMANA,INTERRUPTED.\arbreak\ax
           /varset _castLoop 0
-          /if (${Select[${Me.Class.ShortName},BRD]}) {
+          /if (BARD) {
             /call pulse_stop
           }
           /break
@@ -1583,7 +1589,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
             /if (${_castLoop} >= ${maEntropy.Find[stCountFizzleRetry].Value}){
               /varset _castLoop 0
-              /if (${Select[${Me.Class.ShortName},BRD]}) {
+              /if (BARD) {
                 /call pulse_stop
               }
               /break
@@ -1595,7 +1601,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
         } else /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,BLOCKED,RESISTED,IMMUNE,FALSE]}) {
           DEBUG ${sep}spell.cr:SUCCESS,BLOCKED,RESISTED,IMMUNE.\agbreak\ax
           /varset _castLoop 0
-          /if (${Select[${Me.Class.ShortName},BRD]}) {
+          /if (BARD) {
             /call pulse_stop
           }
           /break
@@ -1643,7 +1649,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
       /delay 5
     }
 
-    /if (${Select[${Me.Class.ShortName},BRD]}) {
+    /if (BARD) {
       /call pulse_stop
     }
     /return TRUE
@@ -1712,7 +1718,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
       | get out if its a no cast click item
       /if (!${FindItem[=${_verbage}].CastTime}) {
         | DEBUG NO CAST TIME
-        /if (${Select[${Me.Class.ShortName},BRD]}) /call pulse_stop
+        /if (BARD) /call pulse_stop
         /invoke ${maData.Add[stCastReturn,SUCCESS]}
         /return
 
@@ -1731,7 +1737,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
         GETINPUT voodoo_item NA|NA
         /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,RESISTED]}) {
           /varset _castLoop 0
-          /if (${Select[${Me.Class.ShortName},BRD]}) /call pulse_stop
+          /if (BARD) /call pulse_stop
           /break
         }
         /if (${Select[${maData.Find[stCastReturn].Value},NOTREADY]}) {
@@ -2565,7 +2571,7 @@ sub check_combat_status(bool _debug)
       /return FALSE
     }
 
-    /if (${Me.Class.ShortName.Equal[BRD]}) {
+    /if (BARD) {
       /if (${Me.Song[Rallying Solo].ID}) /return FALSE
     }
 
@@ -3313,7 +3319,6 @@ sub pull_hardstop(bool _debug)
     /return TRUE
   }
 
-
 /return FALSE
 
 
@@ -3427,38 +3432,6 @@ sub pull_mob_tag(bool _debug, int _tmpID)
     /if (${maPull.Find[stPullWith].Value.Equal[other]}) {
       | /if (${is_ready[${_debug}, "${maCC.Find[swRangeOther].Value}"]}) {
         DEBUG ${sep}Tag${sep}Other${sep}${tar}${Spawn[id ${_tmpID}].DisplayName}\ax
-
-|**
-        | get the range for whatever it is we are using
-        /declare _range int local
-
-        /if (${Me.AltAbilityReady[${maCC.Find[swRangeOther].Value}]}) {
-          DEBUG ${sep}\a-wALT\ax
-          /varset _range ${Spell[${maCC.Find[swRangeOther].Value}].MyRange}
-
-        | spell/song
-        } else /if (${Me.Book[${Spell[${maCC.Find[swRangeOther].Value}].RankName}]}) {
-          DEBUG ${sep}SPELL
-          /varset _range ${Spell[${maCC.Find[swRangeOther].Value}].MyRange}
-
-        | disc
-        } else /if (${Me.CombatAbilityReady[${Me.CombatAbility[${Spell[${maCC.Find[swRangeOther].Value}].RankName}]}]}) {
-          DEBUG ${sep}DISC
-          /varset _range ${Spell[${maCC.Find[swRangeOther].Value}].MyRange}
-
-        | item
-        } else /if (${Me.ItemReady[=${maCC.Find[swRangeOther].Value}]}) {
-          DEBUG ${sep}ITEM${sep}\a-w${Spell[${FindItem[=${maCC.Find[swRangeOther].Value}].Spell}].MyRange}\ax
-          /varset _range ${Spell[${FindItem[=${maCC.Find[swRangeOther].Value}].Spell}].MyRange}
-
-        | we have no idea what this is!
-        } else {
-          /invoke ${out[0, 0, 8]}
-          /invoke ${out[0, 0, 9]}
-
-          /varset _range 0
-        }
-**|
 
         | make sure we are stopped
         /if (!${Select[${Me.Class.ShortName},BRD]}) {
@@ -3951,7 +3924,7 @@ sub check_exit(bool _debug, string _call)
   /if (${Me.Invis} && !${Select[${Me.Class.ShortName},ROG]}) /return TRUE
 
   | movement
-  /if (${Me.Moving} && !${Select[${Me.Class.ShortName},BRD]}) /return TRUE
+  /if (${Me.Moving} && !BARD) /return TRUE
 
   | charm
   /if (${Me.SPA[22]}) /return TRUE
@@ -4000,7 +3973,7 @@ sub check_engaged(bool _debug)
   }
 
   | movement
-  /if (${Me.Moving} && !${Select[${Me.Class.ShortName},BRD]}) {
+  /if (${Me.Moving} && !BARD) {
     /return TRUE
   }
 
@@ -4064,7 +4037,7 @@ sub do_rest(bool _debug)
   /if (((!${maEnv.Find[swRestCombat].Value} || ${Me.CombatState.Equal[combat]}) && ${SpawnCount[npc OVERLOS radius ENV PS4]}) || !AUTO) {
     /varset _needrest FALSE
     /if (${Me.State.NotEqual[STAND]}) /stand
-    /if (${Select[${Me.Class.ShortName},BRD]} && ${Me.BardSongPlaying}) {
+    /if (BARD && ${Me.BardSongPlaying}) {
       /call set_stop ${maDebug.Find[stop].Value} SILENT
     } else /if (${Me.Casting.ID} || ${Window[CastingWindow].Open}) {
       /stopcast
@@ -4089,7 +4062,7 @@ sub do_rest(bool _debug)
   }
 
   | bard rest song
-  /if (${Me.Class.ShortName.Equal[BRD]} && !${Me.Invis}) {
+  /if (BARD && !${Me.Invis}) {
     /if (${maChr.Find[swSongRest].Value} && !${Me.Song[${maChr.Find[stSongRest].Value}].ID}) {
       /invoke ${out[5, 0, 64]}
       /call set_spell_to FALSE FALSE "${Spell[${maChr.Find[stSongRest].Value}].RankName}" ${maEnv.Find[stBuffGem].Value} TRUE
@@ -4112,7 +4085,7 @@ sub do_rest(bool _debug)
   /if (PCTREST && !${Me.Moving} && ((${maEnv.Find[swRestCombat].Value} && ${Me.CombatState.NotEqual[combat]}) || !${SpawnCount[npc OVERLOS radius ${maEnv.Find[stRestRadius].Value} PS4]})) {
 
     | Hybrid: RNG,SHD,BST,PAL,BRD
-    /if ((${lsClassMelee.CountOf[${Me.Class.ShortName}]} && ${lsClassCast.CountOf[${Me.Class.ShortName}]}) || ${Me.Class.ShortName.Equal[BRD]}) {
+    /if ((${lsClassMelee.CountOf[${Me.Class.ShortName}]} && ${lsClassCast.CountOf[${Me.Class.ShortName}]}) || BARD) {
 
       | rest to full requirement
       /if (${maEnv.Find[swRestFull].Value} && ${_resting}) {
@@ -4126,7 +4099,7 @@ sub do_rest(bool _debug)
       DEBUG ${sep}swRestFull${sep}\a-w${_needrest}\ax
 
       | bards suck...
-      /if (${Me.Class.ShortName.Equal[BRD]}) {
+      /if (BARD) {
         /call cast_AA_rallying FALSE
         /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
         /if (${Me.PctEndurance} < PCTREST*.PCTHO) /varset _needrest TRUE
@@ -5727,7 +5700,7 @@ sub check_buff_cycle_beg(bool _debug)
 
   /declare _mibb mapiterator local
   /vardata _mibb maBuffRequest.First.Clone
-  /declare _licountbeg listiterator local
+  /declare _libb listiterator local
   /while (!${_mibb.IsEnd}) {
 
     CHECKTIE
@@ -5740,32 +5713,48 @@ sub check_buff_cycle_beg(bool _debug)
       /return FALSE
     }
 
-    /vardata _licountbeg lsCount50.First.Clone
-    /while (!${_licountbeg.IsEnd}) {
+    /vardata _libb lsCount50.First.Clone
+    /while (!${_libb.IsEnd}) {
 
-      /if (!${maBuff.Find[swBuff${_licountbeg.Value}].Value}) {
-        /invoke ${_licountbeg.Advance}
+      /if (!${maBuff.Find[swBuff${_libb.Value}].Value}) {
+        /invoke ${_libb.Advance}
         /continue
       }
-      /if (!${Bool[${maBuff.Find[stBuff${_licountbeg.Value}].Value}]}) {
-        /invoke ${_licountbeg.Advance}
+      /if (!${Bool[${maBuff.Find[stBuff${_libb.Value}].Value}]}) {
+        /invoke ${_libb.Advance}
         /continue
       }
-      /if (!${Bool[${maBuff.Find[stBuff${_licountbeg.Value}Alias].Value}]}) {
-        /invoke ${_licountbeg.Advance}
+      /if (!${Bool[${maBuff.Find[stBuff${_libb.Value}Alias].Value}]}) {
+        /invoke ${_libb.Advance}
         /continue
+      }
+      
+      | buffs with SDPA parsing to be done
+      /if (${maBuff.Find[stBuff${_libb.Value}].Value.Count[|]} == 3) {
+        /call get_best_in_spell ${_debug} "${maBuff.Find[stBuff${_libb.Value}].Value.Arg[1,|]}" "${maBuff.Find[stBuff${_libb.Value}].Value.Arg[2,|]}" "${maBuff.Find[stBuff${_libb.Value}].Value.Arg[3,|]}"
+        /invoke ${maData.Add[tmpName,${Macro.Return}]}
+
+      | get item clickie spells
+      } else /if (${FindItem[=${maBuff.Find[stBuff${_libb.Value}].Value}].ID}) {
+        DEBUG ${sep}item${sep}${maBuff.Find[stBuff${_libb.Value}].Value}${sep}\a-w${Spell[${FindItem[=${maBuff.Find[stBuff${_libb.Value}].Value}].Clicky.SpellID}].Name}\ax
+        /invoke ${maData.Add[tmpName,${Spell[${FindItem[=${maBuff.Find[stBuff${_libb.Value}].Value}].Clicky.SpellID}].Name}]}
+  
+      | just the spell/aa/whatever
+      } else {
+        DEBUG ${sep}spell${sep}${maBuff.Find[stBuff${_libb.Value}].Value}
+        /invoke ${maData.Add[tmpName,${maBuff.Find[stBuff${_libb.Value}].Value}]}
       }
 
-      /if (${maBuff.Find[stBuff${_licountbeg.Value}Alias].Value.Find[${_mibb.Value}]}) {
-        DEBUG ${sep}BEG \ap${_mibb.Value}\ax found${sep}\aw${_licountbeg.Value}\ax${sep}\a-w${maBuff.Find[stBuff${_licountbeg.Value}].Value}\ax for \a-y${_mibb.Key}\ax
-        /call voodoo ${_debug} "${maBuff.Find[stBuff${_licountbeg.Value}].Value}" ${Spawn[pc ${_mibb.Key}].ID} FALSE
+      /if (${maBuff.Find[stBuff${_libb.Value}Alias].Value.Find[${_mibb.Value}]}) {
+        DEBUG ${sep}BEG \ap${_mibb.Value}\ax found${sep}\aw${_libb.Value}\ax${sep}\a-w${maBuff.Find[stBuff${_libb.Value}].Value}\ax for \a-y${_mibb.Key}\ax
+        /call voodoo ${_debug} "${maData.Find[tmpName].Value}" ${Spawn[pc ${_mibb.Key}].ID} FALSE
         /delay 1s ${Me.Casting.ID}
         /delay 5s !${Me.Casting.ID}
         /varset _remove TRUE
         /break
       }
 
-      /invoke ${_licountbeg.Advance}
+      /invoke ${_libb.Advance}
     }
 
     /if (${_remove}) {
@@ -5850,7 +5839,7 @@ sub check_buff_cycle_crew(bool _debug)
       | buff is turned off
       } else /if (!${maBuff.Find[swBuff${_count}].Value}) {
         /continue
-      }
+      } 
       
       | not a crew tag buff
       /if (!${lsBuff${_count}Tag.Contains[crew]}) {
@@ -9728,7 +9717,7 @@ sub target(string _type, int _tmpID)
       /squelch /attack off
     }
 
-    /if (!${Select[${Me.Class.ShortName},BRD]}) {
+    /if (!BARD) {
       /if (AUTO && ${Me.Casting.ID}) {
         /if (!${Select[${Spell[${Me.Casting.ID}].Category},Transport,Heals]}) {
           /stopcast
@@ -14805,7 +14794,7 @@ DEBUG \atget_type\aw(\a-w${_type}\ax)
     /return ALT
 
   | bard song
-  } else /if (${Select[${Me.Class.ShortName},BRD]} && ${Me.Book[${Spell[${_type}].RankName}]}) {
+  } else /if (BARD && ${Me.Book[${Spell[${_type}].RankName}]}) {
     DEBUG ${sep}_type${sep}\a-wPULSE\ax
     /return PULSE
 

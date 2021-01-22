@@ -17,7 +17,7 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
 
   /if (${_type.Left[1].Equal[-]}) {
    |  /lua get_help edebug ${_type.Right[1]}
-    | /return TRUE
+   | /return TRUE
   }
 
 
@@ -2136,6 +2136,23 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
     ECHO ${_list.Head}
     ECHO ${_list.Tail}
   }
+  
+  | soul stone tester
+  /if (${_type.Equal[soul]}) {
+  	
+  	/sqlite query "${DBstatic}" dummy SELECT * FROM soulstone;
+		/declare _tmpstone string local FALSE
+		/for _count 1 to ${sqlite.Rows[dummy]}
+			
+    /echo ${sqlite.Result[dummy ${_count} env_var]} ${sqlite.Result[dummy ${_count} value]}
+		/if (${Me.Level} <= ${sqlite.Result[dummy ${_count} env_var]}) {
+		  /varset _tmpstone ${sqlite.Result[dummy ${_count} value]}
+		}
+		/next _count
+    OUT
+    OUT ${_tmpstone}
+  	
+  }
 
 
   /if (${_type.Equal[best]}) {
@@ -2660,6 +2677,95 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
     /return
 
   }
+  
+  | mock up of merchant buying (string _type, string _verbage, string _verbage2, string _verbage3)
+  /if (${_type.Equal[buy]}) {
+    /echo Buying ${_verbage}!
+  	/declare QTY int local
+  	/declare _current int local
+  	/declare _lagmonster int local
+  | ---SMALL delay to allow the MERCHANT Window to populate
+    /invoke ${Merchant.OpenWindow}
+  	/delay 10s ${Merchant.ItemsReceived}
+  | ----jump out if we have enough on us
+  	
+  	/if (${_verbage2} <= ${FindItemCount[=${_verbage}]}) {
+      /echo you have more than enough ${_verbage}
+      /return
+    }
+  	/varcalc _lagmonster ${Math.Calc[${MacroQuest.Ping} / 10]}
+    /echo ${_lagmonster}
+  	/if (${FindItemCount[=${_verbage}]}) {
+  		/varcalc QTY ${Int[${Math.Calc[${_verbage2}-${FindItemCount[=${_verbage}]}]}]}
+  	} else {
+  		/varset QTY ${_verbage2}
+  	}
+  	
+  	/varcalc _current ${Int[${Math.Calc[${_verbage2}+${FindItemCount[=${_verbage}]}]}]}
+  :Filling
+  	/delay 5s ${Merchant.ItemsReceived}
+
+  	/if (${FindItemCount[=${_verbage}]}>= ${_verbage2}) {
+  		/return
+  	}
+  	/if (${Merchant.Item[=${_verbage}].ID}) {
+  		/invoke ${Merchant.SelectItem[=${_verbage}]}
+  		/delay 2
+  		
+  	} else {
+  		/if (${Window[MerchantWnd].Child[MW_UsableButton].Checked}) {
+  			/notify MerchantWnd MW_UsableButton leftmouseup
+  			/goto :Filling
+  		}
+  		/echo Couldn't find ${_verbage} on this Merchant
+  		/end
+  	}
+  	/echo Buying ${_verbage} until I get ${_verbage2}
+
+  	/while (${QTY}>0) {
+  		/invoke ${Merchant.SelectItem[=${_verbage}]}
+  		/echo Testing only will remove later
+  		/delay 5
+  		/invoke ${Merchant.Buy[${QTY}]}
+  		/delay 5
+  		/delay 5
+  		/varcalc QTY ${Int[${Math.Calc[${_verbage2}-${FindItemCount[=${_verbage}]}]}]}
+  		/echo amount i have ${_current}==${FindItemCount[=${_verbage}]}
+  		/delay 10s ${_current}==${FindItemCount[=${_verbage}]}
+  		/echo I have ${FindItemCount[=${_verbage}]} ${_verbage}
+  		/if (${QTY} <= ${FindItemCount[=${_verbage}]}) {
+  			/popup Woot we did it!!
+  			/break
+  		}
+  		/popup Well lag is too bad so activating the lag monster
+  		/delay ${_lagmonster}
+  	}
+    
+  	/delay 5
+  	/varcalc QTY ${Int[${Math.Calc[${_verbage2}-${FindItemCount[=${_verbage}]}]}]}
+  	/if (${QTY}<=0) /return
+  	/return
+  }
+
+  | Mock up sell routine
+  /if (${_type.Equal[sell]}) {
+    /echo Selling ${_verbage2} ${_verbage}
+    /echo i have ${FindItemCount[=${_verbage}]} ${_verbage}
+    /invoke ${Merchant.OpenWindow}
+    /delay 10s ${Merchant.ItemsReceived}
+
+    /selectitem "${_verbage}"
+    /delay 5
+    /invoke ${Merchant.Sell[${_verbage2}]}
+    /delay 5
+    /echo i now have ${FindItemCount[=${_verbage}]} ${_verbage}
+
+    /return
+
+  }
+
+  
+  
 
 /return TRUE
 
@@ -6735,3 +6841,109 @@ sub Bind_command_getoverhere(string _type, string _verbage, bool _debug)
 
 
 
+|***
+ * note: merchant tools
+ * use: /merchant
+ ***|
+#bind control_merchant /merchant
+sub Bind_control_merchant(string _type, string _verbage, _verbage2, bool _debug)
+
+
+
+  | buy
+  /if (${_type.Equal[buy]}) {
+    OUT Buying${seo}\a-w${_verbage}\ax
+  	/declare _quantity int local
+  	/declare _current int local
+  	/declare _lagmonster int local
+ 
+    /invoke ${Merchant.OpenWindow}
+  	/delay 10s ${Merchant.ItemsReceived}
+ 
+  	/if (${_verbage2}) {
+    	/if (${_verbage2} <= ${FindItemCount[=${_verbage}]}) {
+        OUT you have more than enough ${_verbage}
+        /return TRUE
+      }
+    }
+  	
+  	/varcalc _lagmonster ${Math.Calc[${MacroQuest.Ping} / 10]}
+    
+  	/if (${FindItemCount[=${_verbage}]}) {
+  		/varcalc _quantity ${Int[${Math.Calc[${_verbage2}-${FindItemCount[=${_verbage}]}]}]}
+  	} else {
+  		/varset _quantity ${_verbage2}
+  	}
+  	
+  	/varcalc _current ${Int[${Math.Calc[${_verbage2}+${FindItemCount[=${_verbage}]}]}]}
+  :Filling
+  	/delay 5s ${Merchant.ItemsReceived}
+
+  	/if (${FindItemCount[=${_verbage}]}>= ${_verbage2}) {
+  		/return
+  	}
+  	/if (${Merchant.Item[=${_verbage}].ID}) {
+  		/invoke ${Merchant.SelectItem[=${_verbage}]}
+  		/delay 2
+  		
+  	} else {
+  		/if (${Window[MerchantWnd].Child[MW_UsableButton].Checked}) {
+  			/notify MerchantWnd MW_UsableButton leftmouseup
+  			/goto :Filling
+  		}
+  		OUT Couldn't find ${_verbage} on this Merchant
+  		/return FALSE
+  	}
+  	OUT Buying ${_verbage} until I get ${_verbage2}
+
+
+  	/while (${_quantity} > 0) {
+  		/invoke ${Merchant.SelectItem[=${_verbage}]}
+  		OUT Testing only will remove later
+  		/delay 5
+  		/invoke ${Merchant.Buy[${_quantity}]}
+  		/delay 5
+  		/delay 5
+  		/varcalc _quantity ${Int[${Math.Calc[${_verbage2}-${FindItemCount[=${_verbage}]}]}]}
+  		OUT amount i have ${_current}==${FindItemCount[=${_verbage}]}
+  		/delay 10s ${_current}==${FindItemCount[=${_verbage}]}
+  		OUT I have ${FindItemCount[=${_verbage}]} ${_verbage}
+  		/if (${_quantity} <= ${FindItemCount[=${_verbage}]}) {
+  			| /popup Woot we did it!!
+  			/break
+  		}
+  		| /popup Well lag is too bad so activating the lag monster
+  		| /delay ${_lagmonster}
+  	}
+    
+  	/delay 5
+  	/varcalc _quantity ${Int[${Math.Calc[${_verbage2}-${FindItemCount[=${_verbage}]}]}]}
+  	/if (${_quantity} <= 0) /return
+  	/return
+  }
+  
+  
+  
+
+  | Sell
+  /if (${_type.Equal[sell]}) {
+    OUT Selling ${_verbage2} ${_verbage}
+    OUT i have ${FindItemCount[=${_verbage}]} ${_verbage}
+    /invoke ${Merchant.OpenWindow}
+    /delay 10s ${Merchant.ItemsReceived}
+
+    /selectitem "${_verbage}"
+    /delay 5
+    /invoke ${Merchant.Sell[${_verbage2}]}
+    /delay 5
+    OUT i now have ${FindItemCount[=${_verbage}]} ${_verbage}
+
+    /return
+
+  }
+
+
+
+
+
+/return

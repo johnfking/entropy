@@ -690,23 +690,16 @@ sub mode_summon(bool _debug)
 
   | set stone to buy
   /declare _soulstone string local
-  /if (${Me.Level} <= 115) /varset _soulstone Velium Soulstone
-  /if (${Me.Level} <= 110) /varset _soulstone Draconic Soulstone
-  /if (${Me.Level} <= 105) /varset _soulstone Torrential Soulstone
-  /if (${Me.Level} <= 100) /varset _soulstone Coalescent Soulstone
-  /if (${Me.Level} <= 95) /varset _soulstone Luminous Soulstone
-  /if (${Me.Level} <= 90) /varset _soulstone Phantasmal Soulstone
-  /if (${Me.Level} <= 85) /varset _soulstone Iridescent Soulstone
-  /if (${Me.Level} <= 80) /varset _soulstone Prismatic Soulstone
-  /if (${Me.Level} <= 75) /varset _soulstone Glowing Soulstone
-  /if (${Me.Level} <= 70) /varset _soulstone Pristine Soulstone
-  /if (${Me.Level} <= 55) /varset _soulstone Faceted Soulstone
-  /if (${Me.Level} <= 50) /varset _soulstone Greater Soulstone
-  /if (${Me.Level} <= 40) /varset _soulstone Soulstone
-  /if (${Me.Level} <= 30) /varset _soulstone Lesser Soulstone
-  /if (${Me.Level} <= 20) /varset _soulstone Minor Soulstone
-
-  :start
+  /declare _count int local 0
+  /sqlite query "${DBstatic}" dummy SELECT * FROM soulstone;
+  /for _count 1 to ${sqlite.Rows[dummy]}
+    /if (${Me.Level} <= ${sqlite.Result[dummy ${_count} env_var]}) {
+      /varset _soulstone ${sqlite.Result[dummy ${_count} value]}
+      /break
+    }
+  /next _count
+  
+  :summonstart
   GETINPUT
   ISMEDEAD
 
@@ -730,7 +723,7 @@ sub mode_summon(bool _debug)
       /delay 10
       /if (${Window[MerchantWnd].Open}) /goto :closepriestinventory
   }
-  /if (!${FindItemCount[=${_soulstone}]}) /goto :start
+  /if (!${FindItemCount[=${_soulstone}]}) /goto :summonstart
 
   | move to rezer
   /nav spawn npc A Priest of Luclin |log=${maEntropy.Find[swNavLogSpew].Value} distance=6

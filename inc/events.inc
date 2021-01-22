@@ -375,39 +375,6 @@ sub Event_TTLend(string _line, string _mob)
 
 
 
-
-
-
-
-
-
-|***
- *  DES: preps the queue with target toon
- *  USE: /call cast_buffs_queue [toon name] [buff word]
- *  NOTE:
- ***|
-sub cast_buffs_queue(string _sender, string _verbage, bool _debug)
-  DEBUG cast_buffs_queue(${_sender}, ${_verbage})
-
-  CHECKINPUTS
-
-  /declare _a int local 0
-  /declare _i int local 0
-
-  /for _i 1 to ${setMaxBuffCount}
-    /for _a 1 to ${Buff${_i}Alias.Count[|]}
-      /if (${_verbage.Find["${Buff${_i}Alias.Arg[${_a},|]}"]}) {
-        /call queue_buff_add ${Spawn[pc ${_sender}].ID} ${_i}
-      }
-    /next _a
-  /next _i
-
-/return
-
-
-
-
-
 |***
  * note: Tells for specific things.. i guess?
  * use: /t uselesstoon IwantThisBuff
@@ -415,6 +382,7 @@ sub cast_buffs_queue(string _sender, string _verbage, bool _debug)
 #event Talk "#1# tells you,#*# '#2#'"
 
 sub Event_Talk(string line, string _sender, string _chatText)
+
 
   | tell realys
   /if (${maEntropy.Find[swRelayTell].Value} && !${_sender.Find[Banker]} && !${_sender.Find[${Me}]} && !${_sender.Find[${maTie.Find[stTieToon].Value}]} && !${_sender.Find[${Me.Pet.DisplayName}]} && ${lsGrain.Contains[25]}) {
@@ -432,15 +400,32 @@ sub Event_Talk(string line, string _sender, string _chatText)
     }
   }
 
-  /return
-
-  CHECKSAFELIST
-
 
   | Tells for buffs.
-  /if (${swBuffTell} && ${Spawn[${_sender}].ID} && ${_sender.NotEqual[${Me.DisplayName}]}) {
-    /call cast_buffs_queue "${_sender}" "${_chatText}"
-    /return
+  /if (${maBuff.Find[swBuffBeg].Value}) {
+   
+    /if (!${Spawn[${_sender}].ID} || ${_sender.Equal[${Me.DisplayName}]}) {
+      /return FALSE
+    }
+    
+    /declare _count int local 0
+    /for _count 1 to 50
+
+      | buff has no name
+      /if (!${Bool[${maBuff.Find[stBuff${_count}].Value}]}) {
+        /continue
+      | buff is turned off
+      } else /if (!${maBuff.Find[swBuff${_count}].Value}) {
+        /continue
+      } else /if (${maBuff.Find[stBuff${_count}Alias].Value.NotEqual[${_chatText}]}) {
+        /continue
+      }
+
+      /call Bind_command_requestbuff "${_sender}" Add "${_chatText}"
+      /return TRUE
+    /next _count
+
+    /return FALSE
   }
 
 

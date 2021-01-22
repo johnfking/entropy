@@ -74,6 +74,7 @@
 #define STACKS ${If[${MacroQuest.InternalName.Equal[Next]},WillLand,Stacks]}
 #define GETASSIST "${get_assist_target[${maDebug.Find[assist].Value}, inline]}"
 #define MODE ${swModeToken}
+#define BARD ${Select[${Me.Class.ShortName},BRD]}
 
 
 #include entropy\inc\initialize.inc
@@ -112,7 +113,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210119.01
+  /call set_data FALSE maEnv build                          map outer 210121.01
   /call set_data FALSE maEnv schema                         map outer 1.38
   /call set_data FALSE maEnv repo                           map outer 210107.01
 
