@@ -488,7 +488,7 @@ sub burn(bool _debug, int _tmpID)
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAFuneralDirge].Value}"]}) {
+  /if (${is_ready[${_debug}, "${maChr.Find[stAAFuneralDirge].Value}"]} && !${Target.Buff[Funeral Dirge].ID}) {
     /call voodoo ${_debug} "${maChr.Find[stAAFuneralDirge].Value}" 0 FALSE
   }
 

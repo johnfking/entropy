@@ -428,7 +428,8 @@ sub burn(bool _debug, int _tmpID)
   /if (${is_ready[${_debug}, "${maChr.Find[stAARoguesFury].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stAARoguesFury].Value}" ${_tmpID} FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15 && ${Spawn[id ${_tmpID}].Level} < ${Spell[${maChr.Find[stMark].Value}].Max[1]}) {
+  | /if (${is_ready[${_debug}, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15 && ${Spawn[id ${_tmpID}].Level} < ${Spell[${maChr.Find[stMark].Value}].Max[1]}) {
+  /if (${is_ready[${_debug}, "${maChr.Find[stMark].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stMark].Value}" ${_tmpID} FALSE
   }
 

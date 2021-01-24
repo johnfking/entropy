@@ -539,7 +539,7 @@ sub check_fists_of_steel(bool _debug)
 
   | set stuff back the way it was
   /if (${Me.Song[Fists of Fury].ID} && ${Me.Bandolier[${maChr.Find[stFistofSteelBandolier].Value}].Active}) {
-    DEBUG ${sep}buff found${sep}\a-w${_buff}\ax
+    | DEBUG ${sep}buff found${sep}\a-w${_buff}\ax
 
     | primary
     /if (${Bool[${maData.Find[stMainhand].Value}]}) {

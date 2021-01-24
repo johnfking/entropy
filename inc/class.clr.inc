@@ -76,7 +76,7 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stCountBeaconofLife              0                             "${auxnum} num of group hurt to use beacon of life aa"
 
   | complete heal
-  /call set_data_map ${_debug} maHeal stPctCH                         0                             "${auxnum} complete heal %"                                 heal
+  /call set_data_map ${_debug} maHeal stPctCH                         0                             "${auxnum} complete heal %"                                   heal
 
   | chain complete heal 
   /call set_data_map ${_debug} maHeal stPctChain                       0                            "${auxnum} % of tanks health to start the ch. 0=instantly"    heal                     
@@ -84,6 +84,13 @@ sub class_init(bool _debug)
   /call set_data_list ${_debug} maHeal lsChain                         EMPTY                        "${auxli} list of tanks to heal"                              heal
   /call set_data ${_debug} maHeal swChainToken                         map outer FALSE
   /call set_data_map ${_debug} maHeal stChainPause                     0                            "${auxnum}duration to pause (in seconds) once getting tolken to start casting"    heal                     
+
+
+  | class order lists
+  /call set_data_list ${_debug} maChr lsOrderClassBase                xtarget                                   "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 heal|alliance|manarecover|burn            "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    melee|heal|misc|debuff|dot|nuke|item      "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover                               "${auxli} class post combat "
 
 
   | AAs
@@ -127,9 +134,7 @@ sub class_main(bool _debug)
 
   | correct all XTarget healing spots
   /if (AUTO && !ENGINE3) {
-    /if (${maHeal.Find[swHealXTarget].Value} && !${timer_Check_Xtarget_Build}) {
-      /call check_xtarget_build FALSE
-    }
+    /call class_cycle lsOrderClassBase
 
     | sort the summoned cleric primary and any mana regen from VP if needed
     /if (!${Me.Invis}) {
@@ -141,41 +146,31 @@ sub class_main(bool _debug)
         /call check_mana ${maDebug.Find[checkmana].Value}
       }
     }
-    BUFFNOW
+
   } else /if (AUTO && ENGINE3) {
     /if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
       /call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
     }
 
   }
+  
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
     GETINPUT class_main_CLR NA|NA
+
     /if (${maHeal.Find[swChain].Value}) {
       /call find_chain_token
       /if (${maHeal.Find[swChainToken].Value}) {
         /call completeheal_chain ${maDebug.Find[chain].Value}
       }
     }
-    
-    /call check_heal_routines
-
-    CHECKFADE
-    /if (${maCC.Find[swAlliance].Value} && !${timer_Check_Alliance}) /call check_alliance ${maDebug.Find[alliance].Value}
+    /call class_cycle lsOrderClassPre
     /if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp ${maDebug.Find[yaulp].Value}
-    BUFFTEMP
-    /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-    /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
+
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      CHECKREZ
       /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
-      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
+      /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -183,9 +178,7 @@ sub class_main(bool _debug)
     }
 
     /if (AUTO && !ENGINE3) {
-      BUFFNOW
-      /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-      CHECKFADE
+      /call class_cycle lsOrderClassPost
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
         /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}

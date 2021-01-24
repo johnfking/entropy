@@ -569,7 +569,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 
   | macro auto/manual
   } else /if (${_type.Equal[auto]}) {
-    /invoke ${set_switch_env[FALSE, swAuto, FALSE, ${_verbage}]}
+    /invoke ${set_switch_env[${_debug}, swAuto, FALSE, ${_verbage}]}
     /invoke ${out[12, "/env ${If[${maEnv.Find[swAuto].Value},${good}auto\ax,${bad}auto\ax]}"]}
 
     /if (!${maEnv.Find[swAuto].Value}) {
@@ -589,19 +589,23 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 
   | enable wasiting fireworks for those bastards with too much AA on their hands
   } else /if (${_type.Equal[fireworks]}) {
-    /invoke ${set_switch_env[FALSE, swAAFireworks, TRUE, ${_verbage}]}
+    /invoke ${set_switch_env[${_debug}, swAAFireworks, TRUE, ${_verbage}]}
 
   | enable bagging from mages for rods and pet gear
   } else /if (${_type.Equal[begmage]}) {
-    /invoke ${set_switch_env[FALSE, swBegMAG, TRUE, ${_verbage}]}
+    /invoke ${set_switch_env[${_debug}, swBegMAG, TRUE, ${_verbage}]}
+
+  } else /if (${_type.Equal[dropinvis]}) {
+    /invoke ${set_switch_env[${_debug}, swAlwaysDropInvisCauseThePeopleIGroupWithAreAssHats, TRUE, ${_verbage}]}
+
 
   | take raid invites
   } else /if (${_type.Equal[takeri]}) {
-    /invoke ${set_switch_env[FALSE, swTakeRaidInvite, TRUE, ${_verbage}]}
+    /invoke ${set_switch_env[${_debug}, swTakeRaidInvite, TRUE, ${_verbage}]}
 
   | take group invites
   } else /if (${_type.Equal[takegi]}) {
-    /invoke ${set_switch_env[FALSE, swTakeGroupInvite, TRUE, ${_verbage}]}
+    /invoke ${set_switch_env[${_debug}, swTakeGroupInvite, TRUE, ${_verbage}]}
 
   | exp settings
   } else /if (${_type.Equal[exp]}) {
@@ -786,10 +790,6 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
       /return TRUE
     }
 
-
-
-
-
   }
 
   /if (${_silent.Equal[SILENT]}) /return
@@ -813,7 +813,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
   /invoke ${maControl.Add[takegi,swTakeGroupInvite]}
   /invoke ${maControl.Add[saferadius,stEnvSafeRadius]}
   /invoke ${maControl.Add[tribute,swCheckTribute]}
-  | /invoke ${maControl.Add[broadcast,stDefaultBroadcast]}
+  /invoke ${maControl.Add[dropinvis,swAlwaysDropInvisCauseThePeopleIGroupWithAreAssHats|pr]}
 
   /if (${Select[${Me.Class.ShortName},ROG]}) {
     /invoke ${maControl.Add[sos,swSoS]}

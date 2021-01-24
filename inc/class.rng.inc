@@ -54,9 +54,9 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stDiscMeleeSingle                PREGEN|1                      "${auxna} single melee disc"
 
   | class order lists
-  | /call set_data_list ${_debug} maChr lsClassOrderPre                 melee|heal|debuff|epic|item|burn|misc|dot|nuke      "${auxli} class pre combat"
-  /call set_data_list ${_debug} maChr lsClassOrder                    melee|heal|debuff|epic|item|burn|misc|dot|nuke      "${auxli} class activecombat order"
-  | /call set_data_list ${_debug} maChr lsClassOrderPost                melee|heal|debuff|epic|item|burn|misc|dot|nuke      "${auxli} class post combat "
+  | /call set_data_list ${_debug} maChr lsOrderClassPre                 melee|heal|debuff|item|burn|misc|dot|nuke      "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    melee|heal|debuff|item|burn|misc|dot|nuke      "${auxli} class active combat order"
+  | /call set_data_list ${_debug} maChr lsOrderClassPost                melee|heal|debuff|item|burn|misc|dot|nuke      "${auxli} class post combat "
 
   | AAs
   /call set_data_map ${_debug} maChr stAAImbuedFerocity               PREGEN|1                      "${auxna} Imbued Ferocity aa"
@@ -102,7 +102,8 @@ sub class_main(bool _debug)
     /call check_heal_routines
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
     /if (VALID && !ENGINE3) {
-      /call class_combat_cycle
+      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
+      /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -458,13 +459,8 @@ sub burn(bool _debug, int _tmpID)
 sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_verbage2}\ax)
 
-  /if (${_type.Equal[list]}) {
-    OUT Combat Order${sep}\a-wlsClassOrder\ax
-    /call out_list lsClassOrder    
-    /return TRUE
-    
   | summer switch
-  } else /if (${_type.Equal[summer]}) {
+  /if (${_type.Equal[summer]}) {
     /if (!${set_control_num_range[${_debug}, stCountSummer, "${_verbage}", 0, 100]}) /return
   }
 

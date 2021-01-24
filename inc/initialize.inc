@@ -379,11 +379,12 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[scan,option]}
 
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[consume,stPctConsume]}
     /invoke ${maChrControl.Add[para,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
-    | /invoke ${maChrControl.Add[list,list]}
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[arb,submenu]}
     /invoke ${maChrControl.Add[beacon,stCountBeaconofLife]}
     /invoke ${maChrControl.Add[divinerez,swDivineCleric]}
@@ -957,16 +958,20 @@ sub set_initialize_map_character_environment(bool _debug)
   /invoke ${set_data_timer[${_debug}, Check_Drop_Buffs, 6s]}
   /call set_data_map ${_debug} maBuff swDropBuffs                         FALSE                         "${auxsw} enable buff removal"
   /call set_data_list ${_debug} maEnv lsDropBuffs                         EMPTY                         "${auxli} list of buffs to drop that are smelly"
+  /call set_data ${_debug} maEnv swAlwaysDropInvisCauseThePeopleIGroupWithAreAssHats     map outer FALSE
 
 
 
 |** control: heal **|
+  /call set_data_list ${_debug} maHeal lsOrderHeal                        cure|tot|self|dannet|ch|group|xtarget|pet         "${auxli} heal cycle order"                               heal
+
   /call set_data_map ${_debug} maHeal stHealAdjust                        0                             "${auxnum} % to overide max health to"                                        heal
   /call set_data_map ${_debug} maHeal swHealSelf                          FALSE                         "${auxsw} enable self healing"                                                heal
   /call set_data_map ${_debug} maHeal swHealToT                           FALSE                         "${auxsw} enable healing your targets target"                                 heal
   /call set_data_map ${_debug} maHeal swHealXTarget                       FALSE                         "${auxsw} enable xtarget healing"                                             heal
   /call set_data_map ${_debug} maHeal swHealPet                           FALSE                         "${auxsw} enable pet healing"                                                 heal
   /call set_data_map ${_debug} maHeal swHealGroup                         FALSE                         "${auxsw} enable group healing"                                               heal
+  /call set_data_map ${_debug} maHeal swHealDanNet                        FALSE                         "${auxsw} enable use of DanNet for healing"                                   heal
 
   /call set_data_map ${_debug} maHeal stRampageTank                       FALSE                         "${auxna} rampage tank to not heal (\a-wcompletely ignore\ax)"                heal
   /call set_data_map ${_debug} maHeal swHealOverTime                      FALSE                         "${auxsw} enable to use heal over time"                                       heal
@@ -978,7 +983,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_list ${_debug} maHeal lsNoHealToon                       EMPTY                         "${auxli} fuck these people.. no heals for them.."                            heal
   /call set_data_map ${_debug} maHeal swHealWeighted                      FALSE                         "${auxsw} enable weighted HP check healing"                                   heal
   /call set_data_map ${_debug} maHeal swHealPromise                       FALSE                         "${auxsw} enable use of promised heal spells healing"                         heal
-  /call set_data_map ${_debug} maHeal swHealDanNet                        FALSE                         "${auxsw} enable use of DanNet for healing"                                   heal
 
   /call set_data ${_debug} FALSE tmpHealAdjust                            float outer 99.99
   /call set_data ${_debug} FALSE hurtID                                   int outer 0

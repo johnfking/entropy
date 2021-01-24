@@ -4993,13 +4993,15 @@ sub set_tie(bool _debug)
  * use: /call cast_AA_fade
  ***|
 sub cast_AA_fade(bool _debug)
-  DEBUG \a-tcast_AA_fade\as()
+  DEBUG \atcast_AA_fade\as()
 
   /if (!${Bool[${maChr.Find[stPctFade].Value}]}) {
     /return FALSE
   }
 
   ISMEDEAD
+  CHECKEXIT
+  
   /if (${Me.PctHPs} > ${maChr.Find[stPctFade].Value}) {
     /return FALSE
   }
@@ -9530,59 +9532,6 @@ sub set_control_output(bool _debug, string _map, string _outname, string _contro
 
 
 |***
- * note: checks heal routines by class
- * use: /call check_heal_routines
- ***|
-sub check_heal_routines()
-
-  | heal: curing
-  /if (!${timer_Check_Cure} && (${maCure.Find[swCureSelf].Value} || ${maCure.Find[swCureGroup].Value} || ${maCure.Find[swCureCrew].Value})) {
-    /call check_cure ${maDebug.Find[cure].Value}
-  }
-
-  | heal: target of target
-  /if (${lsClassHealToT.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealToT].Value}) {
-    /call check_heal ${maDebug.Find[tot].Value} ToT
-  }
-
-  | heal: self
-  /if (${maHeal.Find[swHealSelf].Value}) {
-    /call check_heal ${maDebug.Find[self].Value} Self
-  }
-
-  | heal: DanNet
-  /if (${maHeal.Find[swHealDanNet].Value}) {
-    /call check_heal ${maDebug.Find[dannet].Value} DanNet
-  }
-
-  | heal: ch (CLERIC ONLY)
-  /if (${Select[${Me.Class.ShortName},CLR]} && ${maHeal.Find[stPctCH].Value} && ${Group.Members}) {
-    /call check_heal ${maDebug.Find[ch].Value} ch
-  }
-
-  | heal: group
-  /if (${maHeal.Find[swHealGroup].Value} && ${Group.Members}) {
-    /call check_heal ${maDebug.Find[group].Value} Group
-  }
-
-  | heal: extended target lists
-  /if (${maHeal.Find[swHealXTarget].Value}) {
-    /call check_heal ${maDebug.Find[xt].Value} XTarget
-  }
-
-  | heal: pets
-  /if (${maHeal.Find[swHealPet].Value}) {
-    /call check_heal ${maDebug.Find[pet].Value} Pet
-  }
-
-
-  CHECKREZ
-
-/return TRUE
-
-
-
-|***
  * note: checks/corrects a/the a target
  * note: returns FALSE if a target is dead or does not exist, returns TRUE otherwise
  * use: /call target [isdead|clear|set|release] [TARGETID]
@@ -11869,7 +11818,7 @@ sub merc_control(bool _debug)
  * use: /call validate_input DEBUG [TYPE] [check]
  ***|
 sub validate_input(bool _debug, string _type, string _verbage)
-  DEBUG \a-t\ax(\a-w${_type}, ${_verbage}\ax)
+  DEBUG \at\ax(\a-w${_type}, ${_verbage}\ax)
 
   | default passes
   /if (${_verbage.Find[gem]} || ${_verbage.Count[|]} == 3) {
@@ -11926,6 +11875,10 @@ sub check_drop_buffs(bool _debug)
   DEBUG \atcheck_drop_buffs\ax(\a-w\ax)
 
   /invoke ${set_data_timer[${_debug}, Check_Drop_Buffs, RESTART]}
+  
+  /if (${maEnv.Find[swAlwaysDropInvisCauseThePeopleIGroupWithAreAssHats].Value}) {
+    /call Bind_control_nomore invis
+  }
 
   /if (${lsDropBuffs.Contains[EMPTY]} && ${lsDropBuffs.Count} == 1) {
     /return FALSE
@@ -12532,11 +12485,22 @@ sub check_invis_single(bool _debug)
  * use: /call set_control_shared ${_type} "${_verbage}" "${_verbage2}" ${_debug}
  ***|
 sub set_control_shared(string _type, string _verbage, string _verbage2, bool _debug)
-  DEBUG \atset_control_shared\ax(\a-wt:${_type}, v:"${_verbage}", s2:"${_verbage2}"\ax)
+  DEBUG \atset_control_shared\ax(\a-wt:${_type}, v:"${_verbage}", v2:"${_verbage2}"\ax)
 
   | output control map
   /if (${_type.Equal[see]}) {
     /call Bind_command_see maChr ${_verbage}
+    /return SKIP
+
+  } else /if (${_type.Equal[list]}) {
+    OUT Base Order${sep}\a-wlsOrderClassBase\ax
+    /call out_list lsOrderClassBase
+    OUT Pre Order${sep}\a-wlsOrderClassPre\ax
+    /call out_list lsOrderClassPre
+    OUT Main Order${sep}\a-wlsOrderClass\ax
+    /call out_list lsOrderClass
+    OUT Post Order${sep}\a-wlsOrderClassPost\ax
+    /call out_list lsOrderClassPost
     /return SKIP
 
   | set spire to be used
@@ -13692,6 +13656,7 @@ sub cast_cycle_melee(bool _debug, int _tmpID, string _tag)
     /return FALSE
   }
 
+  CHECKEXIT
   ISMEDEAD
   CHECKDEFENSE
 
@@ -14194,7 +14159,6 @@ sub check_cure(bool _debug)
     DEBUG ${sep}\aw${Me.DisplayName.Lower}\ax is just fine
   }
   
-  
   /if (${Me.CountersCurse}) {
     /call cast_cycle_cure ${_debug} ${Me.ID} curse  
     /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
@@ -14256,11 +14220,9 @@ sub check_cure(bool _debug)
     }
     
     | Put cure stuff here.... like the next line..
-  
 
     /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
     /goto :end_cure
-    
     
     | are they debuffed at all?
     /if (!${DanNet[${_toon}].Observe["Me.TotalCounters"]} && !${Spell[${DanNet[${_toon}].Observe["Me.Snared"]}].ID} && !${Spell[${DanNet[${_toon}].Observe["Me.Mezzed"]}].ID}) {
@@ -14269,8 +14231,6 @@ sub check_cure(bool _debug)
     } else /if (${DanNet[${_toon}].Observe["Me.TotalCounters"]}) {
       OUT Medic${sep}\a-w${_toon}\ax (\a-r${DanNet[${_toon}].Observe["Me.TotalCounters"]}\ax)
     }
-
-
 
     ISMEDEAD
     CHECKEXIT
@@ -14330,7 +14290,7 @@ sub check_cure(bool _debug)
  * use: /call observer_validate [mapname] [character to check]
  **|
 sub observer_validate(bool _debug, string _table, string _toon)
-  DEBUG \a-tobserver_validate\ax(\a-w${_table}, ${_toon}\ax)
+  DEBUG \atobserver_validate\ax(\a-w${_table}, ${_toon}\ax)
 
   /declare _tmpVar          string  local FALSE
   /declare _tmpObs          string  local FALSE
@@ -14741,8 +14701,8 @@ sub check_debuff_routines(int _tmpID, bool _debug)
               /varset _found FALSE
               /for _count 1 to ${Spell[${_spell}].NumEffects}
                       
-                /if (${Spell[${Target.${_member}}].Base[2]} <= ${Spell[${_spell}].Trigger[${_count}].Base[2]} || !${Spell[${_spell}].StacksTarget}) {
-                  DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Spell[${Target.${_member}}].Base[2]}\ax <= ${_spell}${sep}\a-r${Spell[${_spell}].Trigger[${_count}].Base[2]}\ax
+                /if (${Target.${_member}.Base[2]} <= ${Spell[${_spell}].Trigger[${_count}].Base[2]} || !${Spell[${_spell}].StacksTarget}) {
+                  DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax <= ${_spell}${sep}\a-r${Spell[${_spell}].Trigger[${_count}].Base[2]}\ax
                   /varset _found TRUE
                   /break
                 }
@@ -14757,7 +14717,7 @@ sub check_debuff_routines(int _tmpID, bool _debug)
             } else {
               DEBUG ${sep}single landing debff${sep}\a-w${_spell}\ax
               /if (${Spell[${Target.${_member}}].Base[2]} <= ${Spell[${_spell}].Base[2]}) {
-                DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Spell[${Target.${_member}}].Base[2]}\ax <= ${_spell}${sep}\a-r${Spell[${_spell}].Base[2]}\ax
+                DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax <= ${_spell}${sep}\a-r${Spell[${_spell}].Base[2]}\ax
                 /invoke ${_lideorder.Advance}
                 /continue 
               }             
@@ -14787,8 +14747,9 @@ sub check_debuff_routines(int _tmpID, bool _debug)
               /varset _found FALSE
               /for _count 1 to ${Spell[${_spell}].NumEffects}
                       
-                /if (${Spell[${Target.${_member}}].Base[2]} >= ${Spell[${_spell}].Trigger[${_count}].Base[2]} || !${Spell[${_spell}].StacksTarget}) {
-                  DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Spell[${Target.${_member}}].Base[2]}\ax >= ${_spell}${sep}\a-r${Spell[${_spell}].Trigger[${_count}].Base[2]}\ax
+                | /if (${Spell[${Target.${_member}}].Base[2]} >= ${Spell[${_spell}].Trigger[${_count}].Base[2]} || !${Spell[${_spell}].StacksTarget}) {
+                /if (${Target.${_member}.Base[2]} >= ${Spell[${_spell}].Trigger[${_count}].Base[2]} || !${Spell[${_spell}].StacksTarget}) {
+                  DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax >= ${_spell}${sep}\a-r${Spell[${_spell}].Trigger[${_count}].Base[2]}\ax
                   /varset _found TRUE
                   /break
                 }
@@ -14802,8 +14763,8 @@ sub check_debuff_routines(int _tmpID, bool _debug)
 
             } else {
               DEBUG ${sep}single landing debff${sep}\a-w${_spell}\ax
-              /if (${Spell[${Target.${_member}}].Base[2]} <= ${Spell[${_spell}].Base[2]}) {
-                DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Spell[${Target.${_member}}].Base[2]}\ax >= ${_spell}${sep}\a-r${Spell[${_spell}].Base[2]}\ax
+              /if (${Target.${_member}.Base[2]} <= ${Spell[${_spell}].Base[2]}) {
+                DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax >= ${_spell}${sep}\a-r${Spell[${_spell}].Base[2]}\ax
                 /invoke ${_lideorder.Advance}
                 /continue 
               }             
@@ -14834,9 +14795,9 @@ sub check_debuff_routines(int _tmpID, bool _debug)
 /echo compare${sep} Turgur's Insects${sep}\a-r${Spell[Turgur's Insects].Base[2]}\ax -- Crippling Snare${sep}\a-r${Spell[Crippling Snare].Base[2]}\ax
 Crippling Snare
 ${Spell[Crippling Snare].Base[2]}
-${Spell[Entrap].Base[2]}
+${Spell[Constraining Coil].Base[2]}
 
-
+${Target.Slowed.Base[2]}
 
 
 |***
@@ -15173,65 +15134,169 @@ sub get_assist_target(bool _debug, string _call)
 
 
 
+|***
+ * note: class  routine order
+ * use: /call class_cycle LIST
+ *  
+ *  melee - /melee
+ *  heal - /heal
+ *  burn - class burn() routine
+ *  misc - class misc_combet() routine
+ *  dot - /dot
+ *  nuke - /nuke
+ *  debuff - /debuff
+ *  item - /clickitem
+ *  pet - sends pets in and swarm for active combat
+ *  swarm - class specific sparm pets like bst and mage
+ *  heal - /heal
+ *  manarecover - shared mana_recover() routine
+ *  alliance - *borked atm*
+ *  staminarecover - shared stamina_recover() routine
+ *  checkminion - pet class pet checker thingie
+ *  xtarget - sorts/builds xtargets for healers
+ *  
+ *  
+ ***|
+sub class_cycle(string _order)
+ 
+  ISMEDEAD
+  CHECKFADE
+  CHECKREZ
+  BUFFTEMP
+ 
+  /declare _lico listiterator local
+  /vardata _lico ${_order}.First.Clone
+  /while (!${_lico.IsEnd}) {
+ 
+    | /melee
+    /if (${_lico.Value.Equal[melee]} && MELEE) {
+      /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
+    
+    | /heal
+    } else /if (${_lico.Value.Equal[heal]}) {
+      /call check_heal_routines
+
+    | class burn routine
+    } else /if (${_lico.Value.Equal[burn]} && BURN) {
+      /call burn ${maDebug.Find[burn].Value} GETASSIST
+
+    | class misc_combat routine
+    } else /if (${_lico.Value.Equal[misc]}) {
+      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
+
+    | /dot
+    } else /if (${_lico.Value.Equal[dot]} && DOT) {
+      /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
+
+    | /nuke
+    } else /if (${_lico.Value.Equal[nuke]} && NUKE) {
+      /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
+
+    | /debuff
+    } else /if (${_lico.Value.Equal[debuff]} && !${timer_Check_deBuffs}) {
+      /call check_debuff_routines GETASSIST
+
+    | /clickitems
+    } else /if (${_lico.Value.Equal[item]}) {
+      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
+
+    | pet and swarm (idiot) pets
+    } else /if (${_lico.Value.Equal[pet]} && (PET || SWARM)) {
+      /call send_pet ${maDebug.Find[sic].Value} GETASSIST
+
+    | class specific swarm pets like mage and beast
+    } else /if (${_lico.Value.Equal[swarm]} && SWARM) {
+      /call cast_temp_pet ${maDebug.Find[temp].Value} GETASSIST "${maChr.Find[stNukeServant].Value}"
+
+    | alliance
+    } else /if (${_lico.Value.Equal[alliance]}) {
+      | alliance stuff here
+
+    | shared mana_recovery routine
+    } else /if (${_lico.Value.Equal[manarecover]} && ${maChr.Find[stPctManaRecovery].Value}) {
+      /call do_mana_recovery ${maDebug.Find[manarecover].Value}
+ 
+    | shares stamina_recovery routine
+    } else /if (${_lico.Value.Equal[staminarecover]} && ${lsClassMelee.Contains[${Me.Class.ShortName}]}) {
+      /call cast_stamina_recovery ${maDebug.Find[rest].Value}
+
+    | minion checking for pet classes
+    } else /if (${_lico.Value.Equal[checkminion]} && PET && !${timer_Check_Minion_Cycle} && !${check_engaged[FALSE]}) {
+      /call check_minion_cycle ${maDebug.Find[petbuild].Value}
+  
+    | xtarget checking/building
+    } else /if (${_lico.Value.Equal[xtarget]} && !${timer_Check_Xtarget_Build} && ${maHeal.Find[swHealXTarget].Value}) {
+      /call check_xtarget_build FALSE
+      
+    }
 
 
+    /invoke ${_lico.Advance}
+  }
+ 
+/return TRUE
 
 
 
 |***
- * note: class combat routine order
- * use: /call class_combat_cycle
+ * note: checks heal routines by class
+ * use: /call check_heal_routines
  ***|
-sub class_combat_cycle(bool _debug)
+sub check_heal_routines()
 
-  /declare _lico listiterator local
-  /vardata _lico lsClassOrder.First.Clone
-    /while (!${_lico.IsEnd}) {
-      
-    CHECKEXIT
-    ISMEDEAD
-    CHECKREZ
+  /declare _liho listiterator local
+  /vardata _liho lsOrderHeal.First.Clone
+  /while (!${_liho.IsEnd}) {
 
-    | set combat.. reqired first
-    /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
+    | heal: curing
+    /if (${_liho.Value.Equal[cure]} && !${timer_Check_Cure} && (${maCure.Find[swCureSelf].Value} || ${maCure.Find[swCureGroup].Value} || ${maCure.Find[swCureCrew].Value})) { 
+      /call check_cure ${maDebug.Find[cure].Value}
 
-    /if (${_lico.Value.Equal[melee]} && MELEE) {
-      /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
 
-    } else /if (${_lico.Value.Equal[heal]}) {
-      /call check_heal_routines
+    | heal: target of target
+    } else /if (${_liho.Value.Equal[tot]} && ${lsClassHealToT.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealToT].Value}) { 
+      /call check_heal ${maDebug.Find[tot].Value} ToT
 
-    } else /if (${_lico.Value.Equal[epic]}) {
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST epic
 
-    } else /if (${_lico.Value.Equal[burn]} && BURN) {
-      /call burn ${maDebug.Find[burn].Value} GETASSIST
+    | heal: self
+    } else /if (${_liho.Value.Equal[self]} && ${maHeal.Find[swHealSelf].Value}) { 
+      /call check_heal ${maDebug.Find[self].Value} Self
 
-    } else /if (${_lico.Value.Equal[misc]}) {
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
 
-    } else /if (${_lico.Value.Equal[dot]} && DOT) {
-      /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
+    | heal: DanNet
+    } else /if (${_liho.Value.Equal[dannet]} && ${maHeal.Find[swHealDanNet].Value}) { 
+      /call check_heal ${maDebug.Find[dannet].Value} DanNet
 
-    } else /if (${_lico.Value.Equal[nuke]} && NUKE) {
-      /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
 
-    } else /if (${_lico.Value.Equal[debuff]} && !${timer_Check_deBuffs}) {
-      /call check_debuff_routines GETASSIST
+    | heal: ch (CLERIC ONLY)
+    } else /if (${_liho.Value.Equal[ch]} && ${Select[${Me.Class.ShortName},CLR]} && ${maHeal.Find[stPctCH].Value} && ${Group.Members}) { 
+      /call check_heal ${maDebug.Find[ch].Value} ch
 
-    } else /if (${_lico.Value.Equal[item]}) {
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
+
+    | heal: group
+    } else /if (${_liho.Value.Equal[group]} && ${maHeal.Find[swHealGroup].Value} && ${Group.Members}) { 
+      /call check_heal ${maDebug.Find[group].Value} Group
+
+
+    | heal: extended target lists
+    } else /if (${_liho.Value.Equal[xtarget]} && ${maHeal.Find[swHealXTarget].Value}) { 
+      /call check_heal ${maDebug.Find[xt].Value} XTarget
+
+
+    | heal: pets
+    } else /if (${_liho.Value.Equal[pet]} && ${maHeal.Find[swHealPet].Value}) { 
+      /call check_heal ${maDebug.Find[pet].Value} Pet
 
     }
-
-
-
-
-    
-    /invoke ${_lico.Advance}
+ 
+    /invoke ${_liho.Advance}
   }
 
 
+  CHECKREZ
 
 /return TRUE
+
+
+
 

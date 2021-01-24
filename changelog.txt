@@ -19,6 +19,23 @@ on the to do list
 --------------------
 
 
+
+210124.01
+- bard
+  Funeral Dirge will not overwrite anymore
+- rogue
+  remove level/endurance requirements for stMark
+- /env dropinvis
+  will auto remove an invis you have on you
+  requires /buff drop to be turned on as well
+- debuffing
+  small change to the debuff comparison check
+- healing
+  you can now control the order that healing is checked by what you have turned on
+  lsOrderHeal::cure|tot|self|dannet|ch|group|xtarget|pet
+  this is the default order for the healing cycle
+  
+
 210122.01
 - correction for /tell controls
 - extended /area no???? to include debuffs

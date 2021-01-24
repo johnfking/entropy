@@ -39,7 +39,7 @@ sub class_init(bool _debug)
   /call set_data_map FALSE maChr stVengefulFlurry                     PREGEN|1                      "${auxna} "
   /call set_data_map FALSE maChr stViciousSpiral                      PREGEN|1                      "${auxna} "
   /call set_data_map FALSE maChr stCryHavoc                           PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stAugmentedFrenzy                    PREGEN|1                      "${auxna} "
+  | /call set_data_map FALSE maChr stAugmentedFrenzy                    PREGEN|1                      "${auxna} "
   /call set_data_map FALSE maChr stFesteringRage                      PREGEN|1                      "${auxna} "
   /call set_data_map FALSE maChr stResolve                            PREGEN|1                      "${auxna} "
   /call set_data_map FALSE maChr stDichotomic                         PREGEN|1                      "${auxna} "
@@ -205,9 +205,9 @@ sub misc_combat(bool _debug, int _tmpID)
       /call voodoo ${_debug} "${maChr.Find[stBattleFrenzy].Value}" ${_tmpID} FALSE
     }
 
-    /if (${is_ready[${_debug}, "${maChr.Find[stAugmentedFrenzy].Value}"]} ) {
-      /call voodoo ${_debug} "${maChr.Find[stAugmentedFrenzy].Value}" 0 FALSE
-    }
+    | /if (${is_ready[${_debug}, "${maChr.Find[stAugmentedFrenzy].Value}"]} ) {
+    |   /call voodoo ${_debug} "${maChr.Find[stAugmentedFrenzy].Value}" 0 FALSE
+    | }
 
   }
 

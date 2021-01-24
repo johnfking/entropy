@@ -49,9 +49,10 @@ sub class_init(bool _debug)
 
 
   | class order lists
-  | /call set_data_list ${_debug} maChr lsClassOrderPre                 melee|heal|debuff|epic|item|burn|misc|dot|nuke      "${auxli} class pre combat"
-  | /call set_data_list ${_debug} maChr lsClassOrder                    melee|heal|debuff|epic|item|burn|misc|dot|nuke      "${auxli} class activecombat order"
-  | /call set_data_list ${_debug} maChr lsClassOrderPost                melee|heal|debuff|epic|item|burn|misc|dot|nuke      "${auxli} class post combat "
+  /call set_data_list ${_debug} maChr lsOrderClassBase                checkminion                                               "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 checkminion                                               "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    melee|heal|pet|debuff|misc|burn|swarm|dot|nuke|item       "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|staminarecover                                "${auxli} class post combat "
 
 
   | AAs
@@ -69,7 +70,7 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAABloodLust                    PREGEN|1                      "${auxna} BloodLust aa"
   /call set_data_map ${_debug} maChr stAARoarofThunder                PREGEN|1                      "${auxna} Roar of Thunder aa"
   /call set_data_map ${_debug} maChr atAAConsumptionofSpirit          PREGEN|1                      "${auxna} Consumption of Spirit aa"
-
+  /call set_data_map ${_debug} maChr atAAEnduringFrenzy               pregen|1                      "${auxna} Enduring Frenzy aa"
 
 
   /if (${maDebug.Find[init].Value}) {
@@ -89,8 +90,7 @@ sub class_main(bool _debug)
   DEBUG \atclass_main\ax()
 
   /if (AUTO && !ENGINE3) {
-    /call check_mana
-    /if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
+    /call class_cycle lsOrderClassBase
     /if (!${timer_Check_Para}) /call check_mana ${maDebug.Find[para].Value}
   } else /if (AUTO && ENGINE3) {
     /if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
@@ -101,24 +101,12 @@ sub class_main(bool _debug)
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
     GETINPUT
     CHECKREZ
-    /if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
+    /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
       /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
-      /call check_heal_routines
-      | /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST epic
-      /if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} GETASSIST
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
-      /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
-      /if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} GETASSIST "${maChr.Find[stNukeServant].Value}"
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
-      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
-      /if (${maCC.Find[swAlliance].Value}) /call cast_alliance_${Me.Class.ShortName} GETASSIST
-
+      /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -127,9 +115,8 @@ sub class_main(bool _debug)
 
     /if (AUTO && !ENGINE3) {
       CHECKFADE
+      /call class_cycle lsOrderClassPost
       /if (!${timer_Check_Para}) /call check_mana ${maDebug.Find[para].Value}
-      /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-      /if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[rest].Value}
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
         /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -203,8 +190,8 @@ sub misc_combat(bool _debug, int _tmpID)
     }
   }
 
-  /if (${is_ready[${_debug}, "Enduring Frenzy"]} && !${Target.Buff[Enduring Frenzy].ID}) {
-    /call voodoo ${_debug} "Enduring Frenzy" ${_tmpID} FALSE
+  /if (${is_ready[${_debug}, "${maChr.Find[atAAEnduringFrenzy].Value}"]} && !${Target.Buff[Enduring Frenzy].ID}) {
+    /call voodoo ${_debug} "${maChr.Find[atAAEnduringFrenzy].Value}" ${_tmpID} FALSE
   }
 
   /if (${is_ready[${_debug}, "${maChr.Find[stRake].Value}"]}) {
