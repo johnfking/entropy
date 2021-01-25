@@ -19,6 +19,12 @@ on the to do list
 --------------------
 
 
+210125.01
+- debuff
+  corrected a macro hang when the target would die in the middle of a debuff check
+- cleric/ranger/rogue
+  should no longer crash on mq2 live builds
+ 
 
 210124.01
 - bard

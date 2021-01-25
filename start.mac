@@ -113,7 +113,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210124.01
+  /call set_data FALSE maEnv build                          map outer 210125.01
   /call set_data FALSE maEnv schema                         map outer 1.39
   /call set_data FALSE maEnv repo                           map outer 210107.01
 
@@ -455,9 +455,6 @@ sub prepare_the_end(bool _debug)
 
   | set any aliases needs
   /call set_alias add ${maDebug.Find[init].Value}
-
-  | build crew data
-  | /call set_initialize_crew ${maDebug.Find[init].Value}
 
   | create the shared schema
   /call sql_schema_shared ${maDebug.Find[s_shared].Value}

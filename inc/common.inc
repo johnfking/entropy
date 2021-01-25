@@ -2305,7 +2305,8 @@ sub clear_combat(bool _debug)
   /if (${Stick.Active}) {
     /squelch /stick off
   }
-  /if (AUTO && ${Target.ID}) {
+  | /if (AUTO && ${Target.ID}) {
+  /if (AUTO) {
     /squelch /target clear
   }
 
@@ -9560,9 +9561,9 @@ sub target(string _type, int _tmpID)
     /invoke ${maCC.Add[swSetCombat,FALSE]}
     /invoke ${maCC.Add[swSetForced,FALSE]}
     /invoke ${set_data_timer[FALSE, Check_Behind, 0]}
-    /if (${Target.ID}) {
+    | /if (${Target.ID}) {
       /squelch /target clear
-    }
+    | }
     /return TRUE
   }
 
@@ -9682,9 +9683,9 @@ sub target(string _type, int _tmpID)
     | /if (${Stick.Active}) {
     |   /squelch /stick off
     | }
-    /if (${Target.ID}) {
+    | /if (${Target.ID}) {
       /squelch /target clear
-    }
+    | }
     /return TRUE
   }
 
@@ -13372,7 +13373,7 @@ sub check_buff_cycle_temp(bool _debug)
         
         /call voodoo ${_debug} "${maData.Find[tmpName].Value}" ${_tmpID} FALSE
         SETHUD EMPTY
-        /invoke ${target[release]}
+        /invoke ${target[clear]}
         /return TRUE
       }
 
@@ -13891,25 +13892,19 @@ sub pull_assist_decision(bool _debug)
   DEBUG \atpull_assist_decision\ax
   DEBUG ${submenu}pullstate (\a-rassist/pull check\ax)
   
-  | assist error corrections
   /if (!PULL && !${maPull.Find[stCountChainPull].Value}) {
-
-    /if ((!TARGET || ${Spawn[TARGET].Distance} > ENV) || HEAL) {
-      /invoke ${target[release]}
+    
+    /if (!TARGET || ${Spawn[TARGET].Distance} > ENV || HEAL) {
+      /invoke ${target[clear]}
     }
-
+    
     | no assist set at all
     /if (!${Bool[${maCC.Find[stAssistMode].Value}]} && !${maCC.Find[swManualAssist].Value} && (${lsAss.Contains[EMPTY]} && ${lsAss.Count} == 1)) {
       DEBUG ${submenu}pullstate (\a-rno assist set, releasing\ax)
-      /invoke ${target[release]}
+      /invoke ${target[clear]}
       /return FALSE
+    }     
     
-    } 
-    
-  } 
-
-  /if (!PULL) {
-
     | prediction
     /if (${maPred.Find[swPred].Value} && !${timer_Check_Prediction}) {
       /call get_prediction ${maDebug.Find[prediction].Value}
@@ -13918,7 +13913,7 @@ sub pull_assist_decision(bool _debug)
     DEBUG ${submenu}pullstate (\a-rget assist\ax)
     /call get_assist_target ${maDebug.Find[assist].Value}
     /if (!${Macro.Return}) {
-      /invoke ${target[release]}
+      /invoke ${target[clear]}
     }
 
   } else /if (PULL) {
@@ -14671,8 +14666,15 @@ sub check_debuff_routines(int _tmpID, bool _debug)
     }
     
     /delay 1s ${Target.BuffsPopulated}
+    
+    /if (${target[isdead, ${_tmpID}]}) {
+      /return FALSE
+    }      
 
-    /if (${Target.ID} == ${_tmpID} && ${Target.BuffsPopulated}) {
+    /if (!${Target.ID} || !${Target.BuffsPopulated} || ${Target.ID} != ${_tmpID}) {
+      /return FALSE
+
+    } else /if (${Target.ID} && ${Target.ID} == ${_tmpID} && ${Target.BuffsPopulated}) {
       DEBUG ${sep}.BuffsPopulated
 
       | tash / cripple / malo / slow
@@ -14747,7 +14749,6 @@ sub check_debuff_routines(int _tmpID, bool _debug)
               /varset _found FALSE
               /for _count 1 to ${Spell[${_spell}].NumEffects}
                       
-                | /if (${Spell[${Target.${_member}}].Base[2]} >= ${Spell[${_spell}].Trigger[${_count}].Base[2]} || !${Spell[${_spell}].StacksTarget}) {
                 /if (${Target.${_member}.Base[2]} >= ${Spell[${_spell}].Trigger[${_count}].Base[2]} || !${Spell[${_spell}].StacksTarget}) {
                   DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax >= ${_spell}${sep}\a-r${Spell[${_spell}].Trigger[${_count}].Base[2]}\ax
                   /varset _found TRUE
@@ -14798,6 +14799,10 @@ ${Spell[Crippling Snare].Base[2]}
 ${Spell[Constraining Coil].Base[2]}
 
 ${Target.Slowed.Base[2]}
+
+
+
+
 
 
 |***
@@ -15135,7 +15140,7 @@ sub get_assist_target(bool _debug, string _call)
 
 
 |***
- * note: class  routine order
+ * note: class routine order
  * use: /call class_cycle LIST
  *  
  *  melee - /melee
@@ -15158,7 +15163,7 @@ sub get_assist_target(bool _debug, string _call)
  *  
  ***|
 sub class_cycle(string _order)
- 
+
   ISMEDEAD
   CHECKFADE
   CHECKREZ
@@ -15221,7 +15226,7 @@ sub class_cycle(string _order)
       /call cast_stamina_recovery ${maDebug.Find[rest].Value}
 
     | minion checking for pet classes
-    } else /if (${_lico.Value.Equal[checkminion]} && PET && !${timer_Check_Minion_Cycle} && !${check_engaged[FALSE]}) {
+    } else /if (${_lico.Value.Equal[checkminion]} && PET && !${timer_Check_Minion_Cycle}) {
       /call check_minion_cycle ${maDebug.Find[petbuild].Value}
   
     | xtarget checking/building
@@ -15230,9 +15235,9 @@ sub class_cycle(string _order)
       
     }
 
-
     /invoke ${_lico.Advance}
   }
+
  
 /return TRUE
 
@@ -15252,36 +15257,29 @@ sub check_heal_routines()
     /if (${_liho.Value.Equal[cure]} && !${timer_Check_Cure} && (${maCure.Find[swCureSelf].Value} || ${maCure.Find[swCureGroup].Value} || ${maCure.Find[swCureCrew].Value})) { 
       /call check_cure ${maDebug.Find[cure].Value}
 
-
     | heal: target of target
     } else /if (${_liho.Value.Equal[tot]} && ${lsClassHealToT.Contains[${Me.Class.ShortName}]} && ${maHeal.Find[swHealToT].Value}) { 
       /call check_heal ${maDebug.Find[tot].Value} ToT
-
 
     | heal: self
     } else /if (${_liho.Value.Equal[self]} && ${maHeal.Find[swHealSelf].Value}) { 
       /call check_heal ${maDebug.Find[self].Value} Self
 
-
     | heal: DanNet
     } else /if (${_liho.Value.Equal[dannet]} && ${maHeal.Find[swHealDanNet].Value}) { 
       /call check_heal ${maDebug.Find[dannet].Value} DanNet
-
 
     | heal: ch (CLERIC ONLY)
     } else /if (${_liho.Value.Equal[ch]} && ${Select[${Me.Class.ShortName},CLR]} && ${maHeal.Find[stPctCH].Value} && ${Group.Members}) { 
       /call check_heal ${maDebug.Find[ch].Value} ch
 
-
     | heal: group
     } else /if (${_liho.Value.Equal[group]} && ${maHeal.Find[swHealGroup].Value} && ${Group.Members}) { 
       /call check_heal ${maDebug.Find[group].Value} Group
 
-
     | heal: extended target lists
     } else /if (${_liho.Value.Equal[xtarget]} && ${maHeal.Find[swHealXTarget].Value}) { 
       /call check_heal ${maDebug.Find[xt].Value} XTarget
-
 
     | heal: pets
     } else /if (${_liho.Value.Equal[pet]} && ${maHeal.Find[swHealPet].Value}) { 
@@ -15296,7 +15294,6 @@ sub check_heal_routines()
   CHECKREZ
 
 /return TRUE
-
 
 
 

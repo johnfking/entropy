@@ -163,14 +163,14 @@ sub class_main(bool _debug)
         /call completeheal_chain ${maDebug.Find[chain].Value}
       }
     }
-    /call class_cycle lsOrderClassPre
+    | /call class_cycle lsOrderClassPre
     /if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp ${maDebug.Find[yaulp].Value}
 
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
       /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /call class_cycle lsOrderClass
+      | /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -178,7 +178,7 @@ sub class_main(bool _debug)
     }
 
     /if (AUTO && !ENGINE3) {
-      /call class_cycle lsOrderClassPost
+      | /call class_cycle lsOrderClassPost
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
         /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
