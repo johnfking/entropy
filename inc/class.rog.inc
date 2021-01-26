@@ -54,6 +54,12 @@ sub class_init(bool _debug)
   | no sneak while tie is active?
   /call set_data_map ${_debug} maChr swNoSneakinTie                   FALSE                         "${auxsw} turn off sneaking while /tie is active"
 
+  | class order lists
+  /call set_data_list ${_debug} maChr lsOrderClassBase                EMPTY                                   "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 EMPTY                                   "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    melee|burn|misc|debuff|alliance|item|nuke|dot    "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                staminarecover                          "${auxli} class post combat"
+
   | AAs
   /call set_data_map ${_debug} maChr stAATwistedShank                 PREGEN|1                      "${auxna} Twisted Shank aa"
   /call set_data_map ${_debug} maChr stAAShadowsFlanking              PREGEN|1                      "${auxna} Shadow's Flanking AA"
@@ -85,6 +91,7 @@ sub class_main(bool _debug)
 
   /if (AUTO && !ENGINE3) {
     /if (${maEnv.Find[swSoS].Value}) /call set_sos FALSE
+    /call class_cycle lsOrderClassBase
   } else /if (AUTO && ENGINE3) {
     /if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
       /call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -92,9 +99,7 @@ sub class_main(bool _debug)
   }
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-    GETINPUT
-    /if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
-    CHECKDEFENSE
+    /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
@@ -103,12 +108,10 @@ sub class_main(bool _debug)
         /call Bind_control_nomore sos ${_debug}
       }
       /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
-      CHECKDEFENSE
-      /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
+      /call class_cycle lsOrderClass
+      
+
+    
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -116,8 +119,7 @@ sub class_main(bool _debug)
     }
 
     /if (AUTO && !ENGINE3) {
-      CHECKFADE
-      /if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[staminarecover].Value}
+      /call class_cycle lsOrderClassPost
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
         /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}

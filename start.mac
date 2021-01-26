@@ -113,7 +113,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210125.01
+  /call set_data FALSE maEnv build                          map outer 210126.01
   /call set_data FALSE maEnv schema                         map outer 1.39
   /call set_data FALSE maEnv repo                           map outer 210107.01
 
@@ -232,7 +232,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
         /call observer_build ${maDebug.Find[observe].Value} obs_chrwatch add TRUE
 
         | curing observers
-        /if (${maHeal.Find[swHealCureGroup].Value} || ${maHeal.Find[swHealCureCrew].Value}) {
+        /if (${maCure.Find[swCureGroup].Value} || ${maCure.Find[swCureCrew].Value}) {
           /call observer_build ${maDebug.Find[observe].Value} obs_cure add
         }
              

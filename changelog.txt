@@ -19,6 +19,38 @@ on the to do list
 --------------------
 
 
+210126.01
+- unfucked curing on mac start
+- cleric
+  wont waste battle frenzy aa anymore
+  
+- class orders
+  all the classes are set up 4 stages:
+    what they do all the time while in auto
+    what they do pre combat
+    what they do while in combat
+    what they do at the end of a combat loop
+
+  i have started to expose these routines so you can change the order of exectuion
+  following the same class routine order:
+    lsOrderClassBase
+    lsOrderClassPre
+    lsOrderClass
+    lsOrderClassPost
+
+  so, for a rogue, the combat order would be lsOrderClass::melee|burn|misc|debuff|alliance|item|nuke|dot
+  they will use whatever they have turned on in that list, skipping it otherwise
+  
+  as of this update, i have 6 classes converted: cleric, paladin, enchanter, rogue, ranger, beastlord
+  you can see the class order by doing: /chr list
+  for classes not converted yet, this is not an option
+  the initial default orders will follow how the class operates currently
+  
+  i will have a wiki update as to all the available options for class orders and their restrictions
+
+
+
+
 210125.01
 - debuff
   corrected a macro hang when the target would die in the middle of a debuff check

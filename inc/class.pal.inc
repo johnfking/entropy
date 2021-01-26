@@ -64,6 +64,12 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr swStun                           FALSE                         "${auxsw} use AA stun"
   /call set_data_map ${_debug} maChr stStun                           FALSE                         "${auxna} name of AA stun to use"
 
+  | class order lists
+  /call set_data_list ${_debug} maChr lsOrderClassBase                xtarget                                   "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 heal|manarecover                          "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    taunt|melee|agro|heal|burn|misc|dot|nuke|item|debuff|alliance|harmonious      "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover                               "${auxli} class post combat "
+
   | AAs
   /call set_data_map ${_debug} maChr stAAArmoroftheInquisitor         PREGEN|1                      "${auxna} Armor of the Inquisitor AA"
   /call set_data_map ${_debug} maChr stAAGroupArmoroftheInquisitor    PREGEN|1                      "${auxna} Group Armor of the Inquisitor AA"
@@ -80,8 +86,6 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAAInquisitorsJudgmen           PREGEN|1                      "${auxna} Inquisitor's Judgment AA"
   /call set_data_map ${_debug} maChr stAAUnity                        PREGEN|1                      "${auxna} Class Unity AA"
   /call set_data_map ${_debug} maChr stAAHandofPiety                  PREGEN|1                      "${auxna} Hand of Piety AA"
-
-
 
 
   /if (${maDebug.Find[init].Value}) {
@@ -106,9 +110,7 @@ sub class_main(bool _debug)
   CHECKREZ
 
   /if (AUTO && !ENGINE3) {
-    /if (${maHeal.Find[swHealXTarget].Value} && !${timer_Check_Xtarget_Build}) {
-      /call check_xtarget_build FALSE
-    }
+    /call class_cycle lsOrderClassBase
 
     /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
       /call cast_shield_flash FALSE aa
@@ -133,30 +135,13 @@ sub class_main(bool _debug)
   }
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-    /call check_heal_routines
+    /call class_cycle lsOrderClassPre
     /if (!${timer_Check_Yaulp} && ${maChr.Find[swYaulp].Value}) /call cast_yaulp FALSE
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
       /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /invoke ${do_taunt[${_debug}, GETASSIST]}
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
-      /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
-        /call cast_shield_flash FALSE aa
-      }
-      /if (AGRO) /call get_agro ${maDebug.Find[agro].Value} GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST epic
-      /call check_heal_routines
-      /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
-      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
-      | /if (${swAlliance}) /call cast_alliance_${Me.Class.ShortName} GETASSIST
-      /if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) {
-        /call check_harmonious ${maDebug.Find[harmonious].Value}
-      }
+      /call class_cycle lsOrderClass
 
       /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
         /call check_buff_cycle_temp_self ${maDebug.Find[temp].Value} stSteel
@@ -170,8 +155,7 @@ sub class_main(bool _debug)
     }
 
     /if (AUTO && !ENGINE3) {
-      /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-      CHECKFADE
+      /call class_cycle lsOrderClassPost
       /if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[rest].Value}
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {

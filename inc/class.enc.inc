@@ -43,6 +43,12 @@ sub class_init(bool _debug)
   | PBAE stun
   /call set_data_map ${_debug} maChr stAEStun                         PREGEN|1                      "${auxna} name of your point blank ae stun"
 
+  | class order lists
+  /call set_data_list ${_debug} maChr lsOrderClassBase                gather|checkminion                        "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 cc|manarecover                            "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    pet|cc|melee|debuff|cc|heal|burn|misc|cc|dot|cc|nuke|cc|alliance|item      "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|gather                        "${auxli} class post combat "
+
   | AAs
   /call set_data_map ${_debug} maChr stAABeamofSlumber                PREGEN|1                      "${auxna} Beam of Slumber AA"
   /call set_data_map ${_debug} maChr stAAPhantasmalOpponent           PREGEN|1                      "${auxna} Phantasmal Opponent AA"
@@ -79,6 +85,8 @@ sub class_main(bool _debug)
 
 
   /if (AUTO && !ENGINE3) {
+    /call class_cycle lsOrderClassBase
+    
     /if (${maChr.Find[swAACrystals].Value} && !${timer_Check_Crystals}) {
       /call check_crystals ${maDebug.Find[crystal].Value}
     }
@@ -94,56 +102,28 @@ sub class_main(bool _debug)
     }
   }
 
-
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
     GETINPUT
     CHECKREZ
-    /if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
-    /call control_routine ${maDebug.Find[mez].Value}
+    /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      /if (PET || SWARM || ${maMinion.Find[swPetCharm].Value}) /call send_pet ${maDebug.Find[sic].Value} GETASSIST
       /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
-      CHECKDEFENSE
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
-      /call control_routine ${maDebug.Find[mez].Value}
-      | /if (${maMinion.Find[swPetCharm].Value}) /call find_mob_to_charm ${maDebug.Find[charm].Value}
-      /call check_heal_routines
-      /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
-      /call control_routine ${maDebug.Find[mez].Value}
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
-      /call control_routine ${maDebug.Find[mez].Value}
-      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
-      /call control_routine ${maDebug.Find[mez].Value}
-      /call control_routine ${maDebug.Find[mez].Value}
-      | /if (${swAlliance}) /call trigger_alliance GETASSIST
-
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
+      /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
       }
-
     }
-
   }
 
   /if (AUTO && !ENGINE3) {
     /if (${maChr.Find[swAACrystals].Value} && !${timer_Check_Crystals}) {
       /call check_crystals ${maDebug.Find[crystal].Value}
     }
-    /if (${maChr.Find[stPctManaRecovery].Value}) {
-      /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-    }
-    /if (${maChr.Find[stPctGather].Value}) {
-      /call check_gather ${maDebug.Find[gather].Value}
-    }
-    | /if (${switchCharmPet} && ${swPet} && !${Me.Pet.ID}) {
-    |   /call find_mob_to_charm
-    | }
+    /call class_cycle lsOrderClassPost
+
   } else /if (AUTO && ENGINE3) {
     /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
       /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}

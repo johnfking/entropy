@@ -3957,7 +3957,7 @@ sub check_exit(bool _debug, string _call)
 
 |***
  * note: Check to see if toon is engaged in any way.
- * use: /call check_engaged DEBUG || ${check_engagedDEBUG}
+ * use: /call check_engaged DEBUG || ${check_engaged[DEBUG]}
  ***|
 sub check_engaged(bool _debug)
   DEBUG \atcheck_engaged\ax()
@@ -14190,34 +14190,39 @@ sub check_cure(bool _debug)
     DEBUG ${sep}${_count}${sep}checking${sep}\aw${_toon}\ax (\a-r${maEntropy.Find[stEntropyGroup_all].Value}\ax)
     
     /if (${_toon.Equal[${Me.DisplayName}]}) {
+      DEBUG ${sep}{_toon.Equal[${Me.DisplayName}]}
       /continue
     }
       
     | are they here?
     /if (!${Spawn[pc ${_toon}].ID} || ${Spawn[pc ${_toon}].Dead}) {
+      DEBUG ${sep} ! Spawn
       /continue
     }
 
     /if (!${observer_validate[${_debug}, obs_cure, ${_toon}]}) {
+      DEBUG ${sep}observer validate fail
       /continue
     }   
 
     | group only
     /if (${maCure.Find[swCureGroup].Value} && !${maCure.Find[swCureCrew].Value}) {
       /if (!${Group.Member[${_toon}].Present}) {
+      DEBUG ${sep}a switch is off
         /continue
       }
     }
 
     | are they close?. if not. fuck'em
     /if (${Spawn[pc ${_toon}].Distance} > ${maHard.Find[stMaxCureRad].Value}) {
+      DEBUG ${sep}out of range
       /continue
     }
     
     | Put cure stuff here.... like the next line..
 
     /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
-    /goto :end_cure
+    | /goto :end_cure
     
     | are they debuffed at all?
     /if (!${DanNet[${_toon}].Observe["Me.TotalCounters"]} && !${Spell[${DanNet[${_toon}].Observe["Me.Snared"]}].ID} && !${Spell[${DanNet[${_toon}].Observe["Me.Mezzed"]}].ID}) {
@@ -14231,44 +14236,36 @@ sub check_cure(bool _debug)
     CHECKEXIT
 
     | cure with spell
-    /if (${Bool[${maCure.Find[stCureCurse].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersCurse"]}) {
+    /if (${DanNet[${_toon}].Observe["Me.CountersCurse"]}) {
       DEBUG ${sep}${_toon} is CURSED
       /delay 3s !${Me.SpellInCooldown}
-
-      /call voodoo ${_debug} "${maCure.Find[stCureCurse].Value}" ${Spawn[pc ${_toon}].ID} FALSE
-
-     /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+      /call cast_cycle_cure ${_debug} ${Spawn[pc ${_toon}].ID} curse
+      /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
       /goto :end_cure
     }
 
-    /if (${Bool[${maCure.Find[stCureCorruption].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersCorruption"]}) {
+    /if (${DanNet[${_toon}].Observe["Me.CountersCorruption"]}) {
       DEBUG ${sep}${_toon} is CORRUPTED
       /delay 3s !${Me.SpellInCooldown}
-      /if (${is_ready[${_debug}, "${maCure.Find[stCureCorruption].Value}"]}) {
-        /call voodoo ${_debug} "${maCure.Find[stCureCorruption].Value}" ${Spawn[pc ${_toon}].ID} FALSE
-        /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
-        /goto :end_cure
-      }
+      /call cast_cycle_cure ${_debug} ${Spawn[pc ${_toon}].ID} corruption
+      /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+      /goto :end_cure
     }
 
-    /if (${Bool[${maCure.Find[stCurePoison].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersPoison"]}) {
+    /if (${DanNet[${_toon}].Observe["Me.CountersPoison"]}) {
       DEBUG ${sep}${_toon} is POISONED... danger noodle~
       /delay 3s !${Me.SpellInCooldown}
-      /if (${is_ready[${_debug}, "${maCure.Find[stCurePoison].Value}"]}) {
-        /call voodoo ${_debug} "${maCure.Find[stCurePoison].Value}" ${Spawn[pc ${_toon}].ID} FALSE
-        /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
-        /goto :end_cure
-      }
+      /call cast_cycle_cure ${_debug} ${Spawn[pc ${_toon}].ID} poison
+      /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+      /goto :end_cure
     }
 
-    /if (${Bool[${maCure.Find[stCureDisease].Value}]} && ${DanNet[${_toon}].Observe["Me.CountersDisease"]}) {
+    /if (${DanNet[${_toon}].Observe["Me.CountersDisease"]}) {
       DEBUG ${sep}${_toon} is DISEASED...Burn'em with FIRE!!!
       /delay 3s !${Me.SpellInCooldown}
-      /if (${is_ready[${_debug}, "${maCure.Find[stCureDisease].Value}"]}) {
-        /call voodoo ${_debug} "${maCure.Find[stCureDisease].Value}" ${Spawn[pc ${_toon}].ID} FALSE
-        /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
-        /goto :end_cure
-      }
+      /call cast_cycle_cure ${_debug} ${Spawn[pc ${_toon}].ID} disease
+      /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+      /goto :end_cure
     }
 
   /next _count
@@ -15159,7 +15156,11 @@ sub get_assist_target(bool _debug, string _call)
  *  staminarecover - shared stamina_recover() routine
  *  checkminion - pet class pet checker thingie
  *  xtarget - sorts/builds xtargets for healers
- *  
+ *  taunt - taunt stuff
+ *  agro - agro routines
+ *  harmonious - knight harmonious routine
+ *  cc - CC (mez) routine
+ *  gather - aa mana gather routine
  *  
  ***|
 sub class_cycle(string _order)
@@ -15168,6 +15169,7 @@ sub class_cycle(string _order)
   CHECKFADE
   CHECKREZ
   BUFFTEMP
+  CHECKDEFENSE
  
   /declare _lico listiterator local
   /vardata _lico ${_order}.First.Clone
@@ -15198,8 +15200,8 @@ sub class_cycle(string _order)
       /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
 
     | /debuff
-    } else /if (${_lico.Value.Equal[debuff]} && !${timer_Check_deBuffs}) {
-      /call check_debuff_routines GETASSIST
+    } else /if (${_lico.Value.Equal[debuff]}) {
+      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
 
     | /clickitems
     } else /if (${_lico.Value.Equal[item]}) {
@@ -15226,13 +15228,34 @@ sub class_cycle(string _order)
       /call cast_stamina_recovery ${maDebug.Find[rest].Value}
 
     | minion checking for pet classes
-    } else /if (${_lico.Value.Equal[checkminion]} && PET && !${timer_Check_Minion_Cycle}) {
-      /call check_minion_cycle ${maDebug.Find[petbuild].Value}
+    | } else /if (${_lico.Value.Equal[checkminion]} && PET && !${timer_Check_Minion_Cycle} && !${check_engaged[FALSE]}) {
+    } else /if (${_lico.Value.Equal[checkminion]} && PET) {
+      /if (!${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
   
     | xtarget checking/building
-    } else /if (${_lico.Value.Equal[xtarget]} && !${timer_Check_Xtarget_Build} && ${maHeal.Find[swHealXTarget].Value}) {
-      /call check_xtarget_build FALSE
+    } else /if (${_lico.Value.Equal[xtarget]} && ${maHeal.Find[swHealXTarget].Value}) {
+      /if (!${timer_Check_Xtarget_Build}) /call check_xtarget_build FALSE
       
+    | taunt classes
+    } else /if (${_lico.Value.Equal[taunt]}) {
+      /invoke ${do_taunt[${maDebug.Find[taunt].Value}, GETASSIST]}
+      
+    | agro routines
+    } else /if (${_lico.Value.Equal[taunt]} && AGRO) {
+      /call get_agro ${maDebug.Find[agro].Value} GETASSIST
+
+    | knight harmonious routine
+    } else /if (${_lico.Value.Equal[harmonious]} && ${maChr.Find[swHarmonious].Value}) {
+      /if (!${timer_Check_Harmonious}) /call check_harmonious ${maDebug.Find[harmonious].Value}
+
+    | cc routine
+    } else /if (${_lico.Value.Equal[cc]} && ${maCC.Find[swCombatControl].Value}) {
+      /call control_routine ${maDebug.Find[mez].Value}
+ 
+    | aa mana gather routine
+    } else /if (${_lico.Value.Equal[gather]} && ${maChr.Find[stPctGather].Value}) {
+      /call check_gather ${maDebug.Find[gather].Value}
+         
     }
 
     /invoke ${_lico.Advance}
@@ -15279,7 +15302,7 @@ sub check_heal_routines()
 
     | heal: extended target lists
     } else /if (${_liho.Value.Equal[xtarget]} && ${maHeal.Find[swHealXTarget].Value}) { 
-      /call check_heal ${maDebug.Find[xt].Value} XTarget
+      /call check_heal ${maDebug.Find[xt].xValue} XTarget
 
     | heal: pets
     } else /if (${_liho.Value.Equal[pet]} && ${maHeal.Find[swHealPet].Value}) { 

@@ -398,6 +398,7 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[wolf,swWolfSpirit]}
 
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[gather,stPctGather]}
     /invoke ${maChrControl.Add[bos,swAABoS]}
     /invoke ${maChrControl.Add[crystal,swAACrystals]}
@@ -429,6 +430,7 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[summer,stCountSummer]}
 
   } else /if (${Select[${Me.Class.ShortName},ROG]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[blind,swBlinding]}
     /invoke ${maChrControl.Add[poison,stLegPoison]}
     /invoke ${maChrControl.Add[nosneaktie,swNoSneakinTie]}
