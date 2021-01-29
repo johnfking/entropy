@@ -1184,7 +1184,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
     DEBUG ${sep}break voodoo.moving
     /return FALSE
   }
-
+  
   | correct the range if needed
   /declare _range int local
   /if (${Range.Between[1,9999999:${_rangeOverride}]}) {
@@ -1201,6 +1201,9 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
     /if (!${Spawn[${_tmpID}].ID} || ${Spawn[${_tmpID}].Dead}) /return FALSE
     /if (${Spawn[${_tmpID}].Distance} > ${_range}) /return FALSE
   }
+
+
+  /declare _spell spell local
 
   DEBUG ${sep}type select
 
@@ -1226,6 +1229,8 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
       } else /if (${Me.CombatAbilityReady[${Me.CombatAbility[${Spell[${_verbage}].RankName}]}]}) {
         DEBUG _type${sep}\a-wDISC\ax
         /varset _type DISC
+        /vardata _spell Me.CombatAbility[${Me.CombatAbility[${Spell[${_verbage}].RankName}]}]
+        /varset _verbage ${Me.CombatAbility[${Me.CombatAbility[${Spell[${_verbage}].RankName}]}].ID}
 
       | click item
       } else /if (${Me.ItemReady[=${_verbage}]}) {
@@ -1240,7 +1245,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
       DEBUG ${sep}found ready${sep}\ay${_type}\ax${sep}\aw${_verbage}\ax
 
-  /if (${Select[${_type},SPELL,DISC,PULSE]}) {
+  /if (${Select[${_type},SPELL,PULSE]}) {
     /varset _verbage ${Spell[${_verbage}].RankName}
   }
 
@@ -1254,8 +1259,10 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
   /if (${_type.Equal[ALT]}) {
     DEBUG ${sep}alt${sep}${_verbage}
 
-    /if (${Me.CurrentMana} < ${Spell[${_verbage}].Mana}) {
-      /return FALSE
+    /if (${Me.AltAbility[${_verbage}].Spell.Mana}) { 
+      /if (${Me.CurrentMana} < ${Me.AltAbility[${_verbage}].Spell.Mana}) {
+        /return FALSE
+      }
     }
 
     /if (${Me.Buff[${_verbage}].ID} && ${_sub.NotEqual[ignoreall]}) {
@@ -1282,7 +1289,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
       /if (${_tmpID} && ${Target.ID} != ${_tmpID}) {
         /break
       }
-      
+ 
       ISMEDEAD
       /alt act ${Me.AltAbility[${_verbage}].ID}
       /delay 5 ${Me.Casting.ID}
@@ -1619,11 +1626,54 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
   | discs
   } else /if (${_type.Equal[DISC]}) {
+
+    DEBUG ${sep}\agDISC\ax${sep}${Spell[${_verbage}]}${sep}${_spell.ID}
+    /delay 1
+
+    /if (${Me.CurrentEndurance} < ${_spell.EnduranceCost}) /return FALSE
+    /if (${Spawn[id ${_tmpID}].Distance} > ${_spell.MyRange}) /return FALSE
+    /if (${Bool[${Me.Song[${_verbage}].Duration}]}) /return FALSE
+    /if (${Bool[${Me.Buff[${_verbage}].Duration}]}) /return FALSE
+
+    | stacking
+    /if (!${Spell[${_verbage}].STACKS}) /return FALSE
+
+    | CHECK DISK DURATION VS ACTIVE DISC FOR STACKING ISSUES/ BLOCKED DISCS
+    /if (${Me.ActiveDisc.ID} == ${_spell.ID}) /return FALSE
+
+    | make sure we have our target if one is passed. 0 is assumed no target required
+    /if (${_tmpID}) {
+      /call target set ${_tmpID}
+    }
+
+    /if (${_tmpID} == 0) {
+      /invoke ${out[4, "Disc${sep}${sp}${Spell[${_verbage}]}\ax"]}
+    } else /if (${_tmpID} != 0 && ${Target.ID}) {
+      /invoke ${out[4, "Disc${sep}${sp}${Spell[${_verbage}]}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
+    }
+    
+    ISMEDEAD
+    /disc ${_spell.ID}
+
+    /delay 5
+    /while (${Me.Casting.ID} && ${Window[CastingWindow].Open}) {
+      /delay 5
+    }
+
+    /if (BARD) {
+      /call pulse_stop
+    }
+    /return TRUE
+
+
+
+
+    |**
     DEBUG ${sep}\agDISC\ax${sep}${_verbage}
     /delay 1
 
-    /if (${Me.CurrentEndurance} < ${Spell[${_verbage}].EnduranceCost}) /return FALSE
-    /if (${Spawn[id ${_tmpID}].Distance} > ${Spell[${_verbage}].MyRange}) /return FALSE
+    /if (${Me.CurrentEndurance} < ${Me.CombatAbility[${Me.CombatAbility[${_verbage}]}].EnduranceCost}) /return FALSE
+    /if (${Spawn[id ${_tmpID}].Distance} > ${Me.CombatAbility[${Me.CombatAbility[${_verbage}]}].EnduranceCost}) /return FALSE
     /if (${Bool[${Me.Song[${_verbage}].Duration}]}) /return FALSE
     /if (${Bool[${Me.Buff[${_verbage}].Duration}]}) /return FALSE
 
@@ -1639,13 +1689,14 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
     }
 
     /if (${_tmpID} == 0) {
-      /invoke ${out[4, "Disc${sep}${sp}${_verbage}\ax"]}
+      /invoke ${out[4, "Disc${sep}${sp}${Spell[${_verbage}]}\ax"]}
     } else /if (${_tmpID} != 0 && ${Target.ID}) {
-      /invoke ${out[4, "Disc${sep}${sp}${_verbage}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
+      /invoke ${out[4, "Disc${sep}${sp}${Spell[${_verbage}]}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
     }
     
     ISMEDEAD
-    /disc ${Spell[${_verbage}].ID}
+    | /disc ${Spell[${_verbage}].ID}
+    /disc ${Me.CombatAbility[${Me.CombatAbility[${_verbage}]}].ID}
 
     /delay 5
     /while (${Me.Casting.ID} && ${Window[CastingWindow].Open}) {
@@ -1656,6 +1707,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
       /call pulse_stop
     }
     /return TRUE
+    **|
 
 
   | items
@@ -15166,9 +15218,6 @@ sub get_assist_target(bool _debug, string _call)
 sub class_cycle(string _order)
 
   ISMEDEAD
-  CHECKFADE
-  CHECKREZ
-  BUFFTEMP
   CHECKDEFENSE
  
   /declare _lico listiterator local
@@ -15241,7 +15290,7 @@ sub class_cycle(string _order)
       /invoke ${do_taunt[${maDebug.Find[taunt].Value}, GETASSIST]}
       
     | agro routines
-    } else /if (${_lico.Value.Equal[taunt]} && AGRO) {
+    } else /if (${_lico.Value.Equal[agro]} && AGRO) {
       /call get_agro ${maDebug.Find[agro].Value} GETASSIST
 
     | knight harmonious routine
@@ -15261,6 +15310,9 @@ sub class_cycle(string _order)
     /invoke ${_lico.Advance}
   }
 
+  CHECKREZ
+  BUFFTEMP
+  CHECKFADE
  
 /return TRUE
 
@@ -15302,7 +15354,7 @@ sub check_heal_routines()
 
     | heal: extended target lists
     } else /if (${_liho.Value.Equal[xtarget]} && ${maHeal.Find[swHealXTarget].Value}) { 
-      /call check_heal ${maDebug.Find[xt].xValue} XTarget
+      /call check_heal ${maDebug.Find[xt].Value} XTarget
 
     | heal: pets
     } else /if (${_liho.Value.Equal[pet]} && ${maHeal.Find[swHealPet].Value}) { 

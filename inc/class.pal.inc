@@ -284,7 +284,6 @@ sub get_agro(bool _debug, int _tmpID)
     /call voodoo ${_debug} "${maChr.Find[stStun].Value}" ${_tmpID} FALSE
   }
 
-
   | AE Stuns
   /if (AE#) {
     /if (${SpawnCount[npc OVERLOS radius 60 PS4 targetable]} >= AE#) {

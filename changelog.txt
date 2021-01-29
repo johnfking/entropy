@@ -19,6 +19,19 @@ on the to do list
 --------------------
 
 
+
+
+
+210128.01
+- exposed class orders
+  zerker
+- agro routine should fire for tank classes again. wasnt my fault!
+- ranger
+  uncommnted the class order variables... oops..
+- change in the designs foro disc and AA casting
+  if this pans out, i'll apply it to items and spells too
+
+
 210126.01
 - unfucked curing on mac start
 - cleric
@@ -47,8 +60,6 @@ on the to do list
   the initial default orders will follow how the class operates currently
   
   i will have a wiki update as to all the available options for class orders and their restrictions
-
-
 
 
 210125.01

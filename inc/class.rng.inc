@@ -54,9 +54,10 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stDiscMeleeSingle                PREGEN|1                      "${auxna} single melee disc"
 
   | class order lists
-  | /call set_data_list ${_debug} maChr lsOrderClassPre                 melee|heal|debuff|item|burn|misc|dot|nuke      "${auxli} class pre combat"
-  /call set_data_list ${_debug} maChr lsOrderClass                    melee|heal|debuff|item|burn|misc|dot|nuke      "${auxli} class active combat order"
-  | /call set_data_list ${_debug} maChr lsOrderClassPost                melee|heal|debuff|item|burn|misc|dot|nuke      "${auxli} class post combat "
+  /call set_data_list ${_debug} maChr lsOrderClassBase                EMPTY                                     "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 EMPTY                                     "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    melee|heal|debuff|item|burn|misc|dot|nuke "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|staminarecover                "${auxli} class post combat"
 
   | AAs
   /call set_data_map ${_debug} maChr stAAImbuedFerocity               PREGEN|1                      "${auxna} Imbued Ferocity aa"
@@ -92,6 +93,7 @@ sub class_main(bool _debug)
   CHECKREZ
 
   /if (AUTO && !ENGINE3) {
+    /call class_cycle lsOrderClassBase
   } else /if (AUTO && ENGINE3) {
     /if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
       /call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -99,7 +101,7 @@ sub class_main(bool _debug)
   }
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-    /call check_heal_routines
+    /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
     /if (VALID && !ENGINE3) {
       /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
@@ -111,8 +113,7 @@ sub class_main(bool _debug)
     }
 
     /if (AUTO && !ENGINE3) {
-      CHECKFADE
-      /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
+      /call class_cycle lsOrderClassPost
       /if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[staminarecover].Value}
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
