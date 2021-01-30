@@ -1630,16 +1630,34 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
     DEBUG ${sep}\agDISC\ax${sep}${Spell[${_verbage}]}${sep}${_spell.ID}
     /delay 1
 
-    /if (${Me.CurrentEndurance} < ${_spell.EnduranceCost}) /return FALSE
-    /if (${Spawn[id ${_tmpID}].Distance} > ${_spell.MyRange}) /return FALSE
-    /if (${Bool[${Me.Song[${_verbage}].Duration}]}) /return FALSE
-    /if (${Bool[${Me.Buff[${_verbage}].Duration}]}) /return FALSE
+    /if (${Me.CurrentEndurance} < ${_spell.EnduranceCost}) {
+      DEBUG ${break}.CurrentEndurance
+      /return FALSE
+    }
+    /if (${Spawn[id ${_tmpID}].Distance} > ${_spell.MyRange}) {
+      DEBUG ${break}.MyRange
+      /return FALSE
+    }
+    /if (${Bool[${Me.Song[${_verbage}].Duration}]}) {
+      DEBUG ${break}Me.Song.Duration
+      /return FALSE
+    }
+    /if (${Bool[${Me.Buff[${_verbage}].Duration}]}) {
+      DEBUG ${break}Me.Song.Duration
+      /return FALSE
+    }
 
     | stacking
-    /if (!${Spell[${_verbage}].STACKS}) /return FALSE
+    /if (!${Spell[${_verbage}].STACKS}) {
+      DEBUG ${break}Spell[${_verbage}].STACKS
+      /return FALSE
+    }
 
     | CHECK DISK DURATION VS ACTIVE DISC FOR STACKING ISSUES/ BLOCKED DISCS
-    /if (${Me.ActiveDisc.ID} == ${_spell.ID}) /return FALSE
+    /if (${Me.ActiveDisc.ID} == ${_spell.ID}) {
+      DEBUG ${break}ActiveDisc.ID == _spell.ID
+      /return FALSE
+    }
 
     | make sure we have our target if one is passed. 0 is assumed no target required
     /if (${_tmpID}) {
@@ -5998,7 +6016,7 @@ sub check_buff_cycle_crew(bool _debug)
           | does it stack
           /dquery ${_toonName} -q "Spell[${_spellTrigger}].STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
           DEBUG ${sep}${sep}STACKS: .Trigger.STACKS \at${DNQReturn}\ax ${dot} ${_spellTrigger}
-          /if (!${Bool[${DNQReturn}]}) {
+          /if (!${DNQReturn}) {
             /continue
           }
 
@@ -11563,7 +11581,7 @@ sub cast_cycle_heal_promise(bool _debug)
     | does it stack
     /dquery ${_tmpName} -q "Spell[${_spell}].STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
     DEBUG ${sep}${sep}STACKS: .STACKS \at${DNQReturn}\ax ${dot} ${_spell}
-    /if (${DNQReturn.Equal[FALSE]}) /continue
+    /if (!${DNQReturn}) /continue
 
     | is it buff blocked
     /dquery ${_tmpName} -q "lsBlockedBuffsMe.Find[${Spell[${_spell}].ID}]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
@@ -13401,7 +13419,7 @@ sub check_buff_cycle_temp(bool _debug)
       | does it stack
       /dquery ${_toonName} -q "Spell[${_spellRank}].STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
       DEBUG ${sep}${sep}STACKS: .Buff.STACKS \at${DNQReturn}\ax ${dot} ${_spellRank}
-      /if (${DNQReturn.Equal[FALSE]}) {
+      /if (!${DNQReturn}) {
         /continue
       }
 
@@ -13944,7 +13962,8 @@ sub pull_assist_decision(bool _debug)
   DEBUG \atpull_assist_decision\ax
   DEBUG ${submenu}pullstate (\a-rassist/pull check\ax)
   
-  /if (!PULL && !${maPull.Find[stCountChainPull].Value}) {
+  | /if (!PULL && !${maPull.Find[stCountChainPull].Value}) {
+  /if (!PULL) {
     
     /if (!TARGET || ${Spawn[TARGET].Distance} > ENV || HEAL) {
       /invoke ${target[clear]}
@@ -15304,6 +15323,10 @@ sub class_cycle(string _order)
     | aa mana gather routine
     } else /if (${_lico.Value.Equal[gather]} && ${maChr.Find[stPctGather].Value}) {
       /call check_gather ${maDebug.Find[gather].Value}
+
+    | bard incombat singing
+    } else /if (${_lico.Value.Equal[pulseic]}) {
+      /call pulse_cycle ${maDebug.Find[pulse].Value} GETASSIST pulseincombat
          
     }
 

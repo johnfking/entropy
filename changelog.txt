@@ -19,8 +19,37 @@ on the to do list
 --------------------
 
 
-
-
+210130.01
+- corrected a pulling contradiction where /pull chain was set and pulling was inactive
+- exposed class orders
+  monk, bard
+- monk
+  Added support for all 3 precision strike (exspes to add list function for these: Icewalker's / Firewalker's / Doomwalker's precision strike)
+  Added stEarthwalk discipline line (for Earthforce)
+  Added stInnerflame discipline line (for IronFist)
+  Added stSpeed discipline line (for Speed Focus Discipline in Burn)
+  Added stAATonPoStance for using Ton Po's Stance together with stDichotomic
+  Added stAAVehementRage for spamming (confirm to not use with items it doesn't stack with)
+  Added stAADestructiveForce for monks who actually want to try and AE burn
+  Revamped Monk burn order
+  Revamped Monk ability spam order
+  Commented out hardcoded intimidation use
+  Moved poisonous alliance from burn to regular combat spam and commented out in preparation for alliance adjustments  
+- bard
+  Added support for stAAFlurryofNotes (Flurry of Notes to hit during burn)
+  Added support for stAADanceofBlades (Dance of Blades to hit during burn)
+  Changed stAAThousandBlades to stThousandBlades as it is a discipline for burns
+  Note: Intimidation must be configured in /melee if you ever want to use Frenzied Kicks
+- rogue
+  Remove level requirement from mark
+  Add appropriate swarm switch to phantom pet  
+- berserker
+  Added support for stConditionedRetaliation (defensive buff)
+  Added support for Savage Spirit AA during burns (removed hardcode)
+  Removed requirement to have shaman in group for hitting berserking
+  Revamped Berserker Burn Order
+  Revamped Berserker Spam Order  
+  
 
 210128.01
 - exposed class orders

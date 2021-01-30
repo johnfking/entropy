@@ -6776,6 +6776,22 @@ sub Bind_control_nomore(string _type, bool _debug)
     /call remove_spa ${_debug} 314
     /call remove_spa ${_debug} 315
     /call remove_spa ${_debug} 316
+    
+    
+    /if (${maEnv.Find[swSoS].Value}) {
+      /if (!${Me.AbilityReady[sneak]}) {
+        /delay ${Me.AbilityReady[sneak]}
+        OUT Removing${sep}\a-wSneak\ax
+        /doability sneak
+      }
+      /if (!${Me.AbilityReady[hide]}) {
+        /delay ${Me.AbilityReady[hide]}
+        OUT Removing${sep}\a-wHide\ax
+        /doability hide
+      }
+    }
+    
+    
     /return TRUE
     
 

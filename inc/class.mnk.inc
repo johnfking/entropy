@@ -6,7 +6,7 @@
 
 
 |***
- * note: primary initilization of all monk non shared data
+ * note: primary initilization of all non shared data
  * use: not for you
  ***|
 sub class_init(bool _debug)
@@ -39,16 +39,27 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stSynergy                        PREGEN|1                      "${auxna} Shadewalker's Synergy disc family"
   /call set_data_map ${_debug} maChr stElbow                          PREGEN|1                      "${auxna} Elbow Strike disc family"
   /call set_data_map ${_debug} maChr stCurse                          PREGEN|1                      "${auxna} Curse of the Thirteen Fingers disc family"
-  /call set_data_map ${_debug} maChr stPrecision                      PREGEN|1                      "${auxna} Doomwalker's Precision Strike disc family"
+  /call set_data_map ${_debug} maChr stPrecision                      PREGEN|1                      "${auxna} Set to Icewalker's Precision Strike"
+  /call set_data_map ${_debug} maChr stPrecisionTwo                   PREGEN|1                      "${auxna} Set to Firewalker's Precision Strike"
+  /call set_data_map ${_debug} maChr stPrecisionThree                 PREGEN|1                      "${auxna} Set to Doomwalker's Precision Strike"
   /call set_data_map ${_debug} maChr stShuriken                       PREGEN|1                      "${auxna} Vigorous Shuriken disc family"
   /call set_data_map ${_debug} maChr stStorm                          PREGEN|1                      "${auxna} Eye of the Storm disc family"
   /call set_data_map ${_debug} maChr stDeath                          PREGEN|1                      "${auxna} Delay Death disc family"
   /call set_data_map ${_debug} maChr stWu                             PREGEN|1                      "${auxna} Fists of Wu disc family"
+  /call set_data_map ${_debug} maChr stEarthwalk		      		        PREGEN|1			    		        "${auxna} Earthwalk Discipline family"
+  /call set_data_map ${_debug} maChr stSpeed			      		          PREGEN|1			    		        "${auxna} Speed Focus Disc"
+  /call set_data_map ${_debug} maChr stInnerflame		      		        PREGEN|1			    		        "${auxna} Hundred Fists Discipline family"
 
   | Fists of Steel
   /invoke ${set_data_timer[${_debug}, Check_Proc_Fist, 5s]}
   /call set_data_map ${_debug} maChr swFistofSteel                    FALSE                         "${auxsw} use Fist of Steel AA"
   /call set_data_map ${_debug} maChr stFistofSteelBandolier           FALSE                         "${auxna} name of bandolier to trigger Fist of steel aa"
+
+  | class order lists
+  /call set_data_list ${_debug} maChr lsOrderClassBase                EMPTY                                    "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 heal                                      "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    melee|burn|misc|debuff|dot|nuke|item      "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover                               "${auxli} class post combat"
 
   | AAs
   /call set_data_map ${_debug} maChr stAAUnity                        FALSE                         "${auxna} class aa unity buff"
@@ -57,9 +68,12 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAATwoFingerWaspTouch           PREGEN|1                      "${auxna} Two-Finger Wasp Touch AA"
   /call set_data_map ${_debug} maChr stAAInfusionofThunder            PREGEN|1                      "${auxna} Infusion of Thunder AA"
   /call set_data_map ${_debug} maChr stAAFocusedDestructiveForce      PREGEN|1                      "${auxna} Focused Destructive Force AA"
+  /call set_data_map ${_debug} maChr stAADestructiveForce			        PREGEN|1						          "${auxna} Destructive Force AA"
   /call set_data_map ${_debug} maChr stAAFivePointPalm                PREGEN|1                      "${auxna} Five Point Palm AA"
   /call set_data_map ${_debug} maChr stAASwiftTailsChant              PREGEN|1                      "${auxna} Swift Tail's Chant AA"
   /call set_data_map ${_debug} maChr stAAFeignDeath                   PREGEN|1                      "${auxna} Feign Death AA"
+  /call set_data_map ${_debug} maChr stAADestructiveForce			        PREGEN|1						          "${auxna} Destructive Force AA"
+  /call set_data_map ${_debug} maChr stAATonPoStance		              PREGEN|1			                "${auxna} Ton Po's Stance AA"
 
   /if (${maDebug.Find[init].Value}) {
     OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -84,6 +98,7 @@ sub class_main(bool _debug)
   CHECKREZ
 
   /if (AUTO && !ENGINE3) {
+    /call class_cycle lsOrderClassBase
   } else /if (AUTO && ENGINE3) {
     /if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
       /call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -91,32 +106,18 @@ sub class_main(bool _debug)
   }
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-    GETINPUT
-    /call check_heal_routines
+    /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
-
     /if (VALID && !ENGINE3) {
       /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
-      CHECKDEFENSE
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST epic
-      /call check_fd ${_debug}
-      /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
-      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
+      /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
       }
-
     }
-
     /if (AUTO && !ENGINE3) {
-      CHECKFADE
-      /if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[staminarecover].Value}
+      /call class_cycle lsOrderClassPost
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
         /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -158,6 +159,8 @@ sub misc_combat(bool _debug, int _tmpID)
     /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
     /return TRUE
   }
+  
+  /call check_fd ${_debug}
 
   | bandolier swap for AA Fist of Steel
   /if (${maChr.Find[swFistofSteel].Value} && !${timer_Check_Proc_Fist}) {
@@ -174,33 +177,22 @@ sub misc_combat(bool _debug, int _tmpID)
     /call voodoo ${_debug} "${maChr.Find[stWu].Value}" 0 FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAZanFisWhistle].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAZanFisWhistle].Value}" 0 FALSE
-  }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stMonkey].Value}"]}) {
-    | /call voodoo ${_debug} "${maChr.Find[stMonkey].Value}" ${_tmpID} FALSE
-  }
-
-  /if (${maCC.Find[swIntimidation].Value} && ${Me.AbilityReady["Intimidation"]}) {
-    /doability Intimidation
-  }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stAATwoFingerWaspTouch].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAATwoFingerWaspTouch].Value}" ${_tmpID} FALSE
-  }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stPunch].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stPunch].Value}" ${_tmpID} FALSE
-  }
-
   /if (${is_ready[${_debug}, "${maChr.Find[stSynergy].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stSynergy].Value}" ${_tmpID} FALSE
   }
-
+  
+  /if (${is_ready[${_debug}, "${maChr.Find[stPunch].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stPunch].Value}" ${_tmpID} FALSE
+  }
+														  
   /if (${is_ready[${_debug}, "${maChr.Find[stElbow].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stElbow].Value}" ${_tmpID} FALSE
   }
+  
+  | Comment this out - add to /melee
+  | /if (${maCC.Find[swIntimidation].Value} && ${Me.AbilityReady["Intimidation"]}) {
+  |  /doability Intimidation
+  | }
 
   /if (${is_ready[${_debug}, "${maChr.Find[stCurse].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stCurse].Value}" ${_tmpID} FALSE
@@ -209,14 +201,63 @@ sub misc_combat(bool _debug, int _tmpID)
   /if (${is_ready[${_debug}, "${maChr.Find[stPrecision].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stPrecision].Value}" ${_tmpID} FALSE
   }
+  
+  /if (${is_ready[${_debug}, "${maChr.Find[stPrecisionTwo].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stPrecisionTwo].Value}" ${_tmpID} FALSE
+  }
+  
+  /if (${is_ready[${_debug}, "${maChr.Find[stPrecisionThree].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stPrecisionThree].Value}" ${_tmpID} FALSE
+  }
 
   /if (${is_ready[${_debug}, "${maChr.Find[stShuriken].Value}"]} && ${Spawn[${_tmpID}].Distance} > 31) {
     /call voodoo ${_debug} "${maChr.Find[stShuriken].Value}" ${_tmpID} FALSE
   }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stStorm].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stStorm].Value}" 0 FALSE
+  
+  /if (${is_ready[${_debug}, "${maChr.Find[stMonkey].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stMonkey].Value}" 0 FALSE
   }
+
+  /if (!BURN || !${is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
+    /if (!BURN || !${is_ready[${_debug}, "${maChr.Find[stSpeed].Value}"]}) {
+      /if (!BURN || !${is_ready[${_debug}, "${maChr.Find[stInnerflame].Value}"]}) {
+        /if (${is_ready[${_debug}, "${maChr.Find[stStorm].Value}"]}) {
+          /call voodoo ${_debug} "${maChr.Find[stStorm].Value}" 0 FALSE
+        }
+      }
+    }
+  }
+  
+  /if (!BURN || !${is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
+    /if (!BURN || !${is_ready[${_debug}, "${maChr.Find[stSpeed].Value}"]}) {
+      /if (!BURN || !${is_ready[${_debug}, "${maChr.Find[stInnerflame].Value}"]}) {
+        /if (${is_ready[${_debug}, "${maChr.Find[stEarthwalk].Value}"]}) {
+          /call voodoo ${_debug} "${maChr.Find[stEarthwalk].Value}" 0 FALSE
+        }
+      }
+    }
+  }
+  
+  /if (${is_ready[${_debug}, "${maChr.Find[stAAZanFisWhistle].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAAZanFisWhistle].Value}" 0 FALSE
+  }
+
+  /if (${is_ready[${_debug}, "${maChr.Find[stAATwoFingerWaspTouch].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAATwoFingerWaspTouch].Value}" ${_tmpID} FALSE
+  }
+  
+  /if (${Me.ActiveDisc.ID} && !${Me.ActiveDisc.Name.Find[Heel]}) { 
+    /if (${Me.ActiveDisc.ID} && !${Me.ActiveDisc.Name.Find[Ironfist]}) { 
+      /if (${is_ready[${_debug}, "${maChr.Find[stAAVehementRage].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAAVehementRage].Value}" ${_tmpID} FALSE
+      }
+    }
+  }
+  
+  | Moved this alliance call from Burn, it's not traditionally in combat discs section?
+  | /if (${is_ready[${_debug}, "${maChr.Find[stAlliance].Value}"]}) {
+  |  /call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" ${_tmpID} FALSE
+  | }
 
   /call check_fd ${_debug}
 
@@ -314,85 +355,146 @@ sub burn(bool _debug, int _tmpID)
     /return TRUE
   }
 
+  | Check if we're using a disc, if not use Heel, if Heel is ready and we're using a different disc stop it and use Heel
+	| Also make sure we are maxing out our burns
+	| Primary burn: Heel + IoT + Dicho + Spire + Eagle's Poise + Ton Po + BP
+	
+  /if (${Me.ActiveDisc.ID} && !${Me.ActiveDisc.Name.Find[Heel]}) { 
+    /if (${is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
+      /stopdisc
+    }
+  } 
+  
+  /if (!${Me.ActiveDisc.ID}) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
+      /stopdisc
+      /call voodoo ${_debug} "${maChr.Find[stHeel].Value}" ${_tmpID} FALSE
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" 0 FALSE
+      | About to draw aggro, get silent strikes up and running
+      /if (${is_ready[${_debug}, "${maChr.Find[stAASilentStrikes].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAASilentStrikes].Value}" 0 FALSE
+      }
+
+      /if (${is_ready[${_debug}, "${maChr.Find[stAAInfusionofThunder].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAAInfusionofThunder].Value}" 0 FALSE
+      }
+
+      /call cast_AA_spire ${maDebug.Find[spire].Value}
+
+      /if (${is_ready[${_debug}, "${maChr.Find[stBalance].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stBalance].Value}" 0 FALSE
+      }
+      
+      | Five Point Palm once fully stacked 
+      /if (${is_ready[${_debug}, "${maChr.Find[stAAFivePointPalm].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAAFivePointPalm].Value}" ${_tmpID} FALSE
+      }
+
+      | Always use Dicho and Ton Po's together
+      /if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) {
+        /if (${is_ready[${_debug}, "${maChr.Find[stAATonPoStance].Value}"]}) {
+          /call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" 0 FALSE
+          /call voodoo ${_debug} "${maChr.Find[stAATonPoStance].Value}" 0 FALSE
+        }
+      }
+
+      /if (${is_ready[${_debug}, "${maChr.Find[stCrane].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stCrane].Value}" ${_tmpID} FALSE
+      }
+
+      /if (${is_ready[${_debug}, "${maChr.Find[stAASwiftTailsChant].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAASwiftTailsChant].Value}" 0 FALSE
+      }
+
+      /call cast_glyph ${maDebug.Find[glyph].Value}
+
+      | Intensity of the Resolute AA 4 hour reuse
+      /call cast_AA_intensity ${maDebug.Find[intensity].Value}
+    }
   }
+  
+  | If Heel has been used, use Speed Focus
+  | Secondary Burn: Speed + FDF + IoT + Composite + Spire
+  /if (!${Me.ActiveDisc.Name.Find[Heel]} && !${is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stSpeed].Value}"]}) {
+      /stopdisc
+      /call voodoo ${_debug} "${maChr.Find[stSpeed].Value}" 0 FALSE
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAlliance].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" ${_tmpID} FALSE
+      | About to draw aggro, get silent strikes up and running
+      /if (${is_ready[${_debug}, "${maChr.Find[stAASilentStrikes].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAASilentStrikes].Value}" 0 FALSE
+      }
+
+      /if (!AE#) {
+        /if (${is_ready[${_debug}, "${maChr.Find[stAAFocusedDestructiveForce].Value}"]}) {
+          /call voodoo ${_debug} "${maChr.Find[stAAFocusedDestructiveForce].Value}" 0 FALSE
+        }
+      }
+
+      /if (AE#) {
+        /if (${is_ready[${_debug}, "${maChr.Find[stAADestructiveForce].Value}"]}) {
+          /call voodoo ${_debug} "${maChr.Find[stAADestructiveForce].Value}" 0 FALSE
+        }
+      }
+
+      /if (${is_ready[${_debug}, "${maChr.Find[stAAInfusionofThunder].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAAInfusionofThunder].Value}" 0 FALSE
+      }
+
+      /call cast_AA_spire ${maDebug.Find[spire].Value}
+
+      | Five Point Palm once fully stacked
+      /if (${is_ready[${_debug}, "${maChr.Find[stAAFivePointPalm].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAAFivePointPalm].Value}" ${_tmpID} FALSE
+      }
+
+      /if (${is_ready[${_debug}, "${maChr.Find[stAASwiftTailsChant].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stAASwiftTailsChant].Value}" 0 FALSE
+      }
+    }
   }
+  
+  | If Heel and Speed Focus have been used, use Terror Palm
+  /if (!${Me.ActiveDisc.Name.Find[Heel]} && !${is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
+    /if (!${Me.ActiveDisc.Name.Find[Speed]} && !${is_ready[${_debug}, "${maChr.Find[stSpeed].Value}"]}) {
+      /if (${is_ready[${_debug}, "${maChr.Find[stInnerflame].Value}"]}) {
+        /stopdisc
+        /call voodoo ${_debug} "${maChr.Find[stInnerflame].Value}" 0 FALSE
+        /delay 1
+        /if (${is_ready[${_debug}, "${maChr.Find[stAAFivePointPalm].Value}"]}) {
+          /call voodoo ${_debug} "${maChr.Find[stAAFivePointPalm].Value}" ${_tmpID} FALSE
+        }
 
-  /call cast_AA_spire ${maDebug.Find[spire].Value}
+        | Always use Dicho and Ton Po's together
+        /if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) {
+          /if (${is_ready[${_debug}, "${maChr.Find[stAATonPoStance].Value}"]}) {
+            /call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" 0 FALSE
+            /call voodoo ${_debug} "${maChr.Find[stAATonPoStance].Value}" 0 FALSE
+          }
+        }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stBalance].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stBalance].Value}" 0 FALSE
+        /if (${is_ready[${_debug}, "${maChr.Find[stCrane].Value}"]}) {
+          /call voodoo ${_debug} "${maChr.Find[stCrane].Value}" ${_tmpID} FALSE
+        }
+      }
+    }
   }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAInfusionofThunder].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAInfusionofThunder].Value}" 0 FALSE
-  }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAFocusedDestructiveForce].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAFocusedDestructiveForce].Value}" ${_tmpID} FALSE
-  }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stMonkey].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stMonkey].Value}" 0 FALSE
-  }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stAASilentStrikes].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAASilentStrikes].Value}" 0 FALSE
+  
+  /if (${Me.ActiveDisc.ID} && !${Me.ActiveDisc.Name.Find[Heel]}) { 
+    /if (${Me.ActiveDisc.ID} && !${Me.ActiveDisc.Name.Find[Speed]}) { 
+      /if (${Me.ActiveDisc.ID} && !${Me.ActiveDisc.Name.Find[Terror]}) {
+        /if (${is_ready[${_debug}, "${maChr.Find[stDiscipline].Value}"]}) {
+          /stopdisc
+          /call voodoo ${_debug} "${maChr.Find[stDiscipline].Value}" 0 FALSE
+          /if (${is_ready[${_debug}, "${maChr.Find[stCrane].Value}"]}) {
+            /call voodoo ${_debug} "${maChr.Find[stCrane].Value}" ${_tmpID} FALSE
+          }
+        }	
+      }
+    }
   }
 
   /call check_fd ${_debug}
-
-  | Check if we're using a disc, if not use Heel, if another, cancel it and use Heel
-  /if (!${Me.ActiveDisc.ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
-    /if (!${maCC.Find[swFlyingkick].Value} || !${maCC.Find[swEaglestrike].Value}) {
-      /invoke ${maCC.Add[swKick,FALSE]}
-      /invoke ${maCC.Add[swFlyingkick,TRUE]}
-      /invoke ${maCC.Add[swRoundkick,FALSE]}
-      /invoke ${maCC.Add[swDragonpunch,FALSE]}
-      /invoke ${maCC.Add[swEaglestrike,TRUE]}
-      /invoke ${maCC.Add[swTigerclaw,FALSE]}
-    }
-    /call voodoo ${_debug} "${maChr.Find[stHeel].Value}" TARGET FALSE
-    }
-  } else /if (${Me.ActiveDisc.ID} && !${Me.ActiveDisc.Name.Find[Heel]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
-      /stopdisc
-      /if (!${maCC.Find[swFlyingkick].Value} || !${maCC.Find[swEaglestrike].Value}) {
-        /invoke ${maCC.Add[swKick,FALSE]}
-        /invoke ${maCC.Add[swFlyingkick,TRUE]}
-        /invoke ${maCC.Add[swRoundkick,FALSE]}
-        /invoke ${maCC.Add[swDragonpunch,FALSE]}
-        /invoke ${maCC.Add[swEaglestrike,TRUE]}
-        /invoke ${maCC.Add[swTigerclaw,FALSE]}
-      }
-      /call voodoo ${_debug} "${maChr.Find[stHeel].Value}" ${_tmpID} FALSE
-    }
-  }
-  /if (${is_ready[${_debug}, "${maChr.Find[stDiscipline].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stDiscipline].Value}" FALSE
-  }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stCrane].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stCrane].Value}" ${_tmpID} FALSE
-  }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAFivePointPalm].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAFivePointPalm].Value}" ${_tmpID} FALSE
-  }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stAASwiftTailsChant].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAASwiftTailsChant].Value}" 0 FALSE
-  }
-
-  /call cast_glyph ${maDebug.Find[glyph].Value}
-  | Intensity of the Resolute AA 4 hour reuse
-  /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 
 /return TRUE
 

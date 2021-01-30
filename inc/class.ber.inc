@@ -47,6 +47,7 @@ sub class_init(bool _debug)
   /call set_data_map FALSE maChr stSappingStrikes                     PREGEN|1                      "${auxna} "
   /call set_data_map FALSE maChr stPhantomAssailant                   PREGEN|1                      "${auxna} "
   /call set_data_map FALSE maChr stOpenWound                          PREGEN|1                      "${auxna} "
+  /call set_data_map FALSE maChr stConditionedRetaliation	          PREGEN|1			    		"${auxna} "
 
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                EMPTY                                     "${auxli} class base loop start"
@@ -189,35 +190,22 @@ sub misc_combat(bool _debug, int _tmpID)
     /return TRUE
   }
 
-  /if (!${Me.Song[${maChr.Find[stSharedBloodlust].Value}].ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stSharedBloodlust].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stSharedBloodlust].Value}" 0 FALSE
-    }
-  }
-  /if (${Me.PctHPs} < 90) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stBattleFrenzy].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stBattleFrenzy].Value}" ${_tmpID} FALSE
-    }
-
-    | /if (${is_ready[${_debug}, "${maChr.Find[stAugmentedFrenzy].Value}"]} ) {
-    |   /call voodoo ${_debug} "${maChr.Find[stAugmentedFrenzy].Value}" 0 FALSE
-    | }
-
-  }
-
+  |Self Buffs to keep up at all times (Sapping Strikes, up 2m of every 2.5m)
   /if (${is_ready[${_debug}, "${maChr.Find[stSappingStrikes].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stSappingStrikes].Value}" 0 FALSE
   }
 
+  |Use Drawn to Blood if Frenzied Resolve active
   /if (${Me.ActiveDisc[Frenzied Resolve].ID} && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.8 && ${Spawn[id ${_tmpID}].Distance} < 60) {
     /if (${is_ready[${_debug}, "${maChr.Find[stAADrawntoBlood].Value}"]}) {
       /call voodoo ${_debug} "${maChr.Find[stAADrawntoBlood].Value}" 0 FALSE
     }
   }
-
-  /if (!${Me.Song[${maChr.Find[stAABattleLeap].Value}].ID} && !${Me.Song[Group Bestial Alignment].ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAABattleLeap].Value}"]} && !${Me.Underwater}) {
-      /call voodoo ${_debug} "${maChr.Find[stAABattleLeap].Value}" 0 FALSE
+  
+  | Get under 90% with Bloodfury
+  /if (${Me.PctHPs} > 90 && !${Me.Song[${maChr.Find[stOpenWound].Value}].ID}) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stAABloodfury].Value}"]}) {
+      /call voodoo ${_debug} "${maChr.Find[stAABloodfury].Value}" 0 FALSE
     }
   }
 
@@ -230,35 +218,62 @@ sub misc_combat(bool _debug, int _tmpID)
     }
   }
 
+  | Vindicating Frenzy
+   /if (${Me.PctHPs} < 90) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stOverpoweringFrenzy].Value}"]}) {
+      /call voodoo ${_debug} "${maChr.Find[stOverpoweringFrenzy].Value}" 0 FALSE
+    }
+  }
+  
+  | Vindicating Volley
+  /if (${is_ready[${_debug}, "${maChr.Find[stRageVolley].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stRageVolley].Value}" ${_tmpID} FALSE
+  }
+
+  | Axe of Derakor
+  /if (${is_ready[${_debug}, "${maChr.Find[stAxeofRalos].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAxeofRalos].Value}" ${_tmpID} FALSE
+  }
+
+  | Vindicating Axe Throw
+  /if (${is_ready[${_debug}, "${maChr.Find[stAxeThrow].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAxeThrow].Value}" ${_tmpID} FALSE
+  }
+  
+  | Shared Atavism
+  /if (!${Me.Song[${maChr.Find[stSharedBloodlust].Value}].ID}) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stSharedBloodlust].Value}"]}) {
+      /call voodoo ${_debug} "${maChr.Find[stSharedBloodlust].Value}" 0 FALSE
+    }
+  }
+  
+  | Seething Rage
+  /if (${is_ready[${_debug}, "${maChr.Find[stFesteringRage].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stFesteringRage].Value}" 0 FALSE
+  }
+  
+  | swarm pet
+  /if (SWARM) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stPhantomAssailant].Value}"]}) {
+      /call voodoo ${_debug} "${maChr.Find[stPhantomAssailant].Value}" ${_tmpID} FALSE
+    }
+  }
+  
+  | Binding Axe
   /if (${is_ready[${_debug}, "${maChr.Find[stAABindingAxe].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stAABindingAxe].Value}" ${_tmpID} FALSE
   }
 
   /if (AE#) {
-    /if (${is_ready[TRUE, "${maChr.Find[stAARampage].Value}"]} && ${Me.Song[Strike of Savagery].ID}) {
-      /call voodoo TRUE "${maChr.Find[stAARampage].Value}" 0 FALSE
+    /if (${is_ready[${_debug}, "${maChr.Find[stAARampage].Value}"]} && ${Me.Song[Strike of Savagery].ID}) {
+      /call voodoo ${_debug} "${maChr.Find[stAARampage].Value}" 0 FALSE
     }
   }
-
+  
+  | Vehement Rage
   /if (!${Me.Song[${maChr.Find[stAARecklessAbandon].Value}].ID}) {
     /if (${is_ready[${_debug}, "${maChr.Find[stAAVehementRage].Value}"]}) {
       /call voodoo ${_debug} "${maChr.Find[stAAVehementRage].Value}" 0 FALSE
-    }
-  }
-
-  | to agro or not ?
-  /if (!AGRO) {
-    /if (${is_ready[${_debug}, "${maChr.Find[DistractionAttack].Value}"]} && ${Me.PctAggro} > 96) {
-      /call voodoo ${_debug} "${maChr.Find[DistractionAttack].Value}" 0 FALSE
-    }
-    /if (${is_ready[${_debug}, "${maChr.Find[stDivertiveStrike].Value}"]} && ${Me.PctAggro} > 80) {
-      /call voodoo ${_debug} "${maChr.Find[stDivertiveStrike].Value}" ${_tmpID} FALSE
-    }
-  }
-
-  /if (${Me.PctHPs} < 90) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stOverpoweringFrenzy].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stOverpoweringFrenzy].Value}" 0 FALSE
     }
   }
 
@@ -269,53 +284,35 @@ sub misc_combat(bool _debug, int _tmpID)
     }
   }
 
-  | this hits up to 8 targets and can cause fear.
+  | Braxi and Dicho
   /if (${is_ready[${_debug}, "${maChr.Find[stAABraxisHowl].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAABraxisHowl].Value}" 0 FALSE
+    | Zerker dicho
+    /if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]} && ${Me.CurrentEndurance} > ${Spell[${maChr.Find[stDichotomic].Value}].EnduranceCost}*2) {
+      /call voodoo ${_debug} "${maChr.Find[stAABraxisHowl].Value}" 0 FALSE
+      /call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" ${_tmpID} FALSE
+    }
   }
 
-  | serper dicho
-  /if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]} && ${Me.CurrentEndurance} > ${Spell[${maChr.Find[stDichotomic].Value}].EnduranceCost}*2) {
-    /call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" ${_tmpID} FALSE
-  }
-
+  | Vicious Revolution
   /if (AE#) {
     /if (${is_ready[${_debug}, "${maChr.Find[stViciousSpiral].Value}"]}) {
       /call voodoo ${_debug} "${maChr.Find[stViciousSpiral].Value}" 0 FALSE
     }
   }
-
-  /if (${Me.PctHPs} > 90 && !${Me.Song[${maChr.Find[stOpenWound].Value}].ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAABloodfury].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAABloodfury].Value}" 0 FALSE
+	
+  | Rabbit Punch
+  /if (${Target.Distance} <= 49 && ${Target.Distance} <= ENV) {
+    /call voodoo ${_debug} "${maChr.Find[stKickintheShins].Value}" ${_tmpID} FALSE
+  }
+  
+  | to agro or not ?
+  /if (!AGRO) {
+    /if (${is_ready[${_debug}, "${maChr.Find[DistractionAttack].Value}"]} && ${Me.PctAggro} > 96) {
+      /call voodoo ${_debug} "${maChr.Find[DistractionAttack].Value}" 0 FALSE
     }
-  }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stCryHavoc].Value}"]} && !${Me.Buff[${maChr.Find[stCryHavoc].Value}].ID}) {
-    /call voodoo ${_debug} "${maChr.Find[stCryHavoc].Value}" 0 FALSE
-  }
-  /if (${is_ready[${_debug}, "${maChr.Find[stFesteringRage].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stFesteringRage].Value}" 0 FALSE
-  }
-
-  | swarm pet
-  /if (SWARM) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stPhantomAssailant].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stPhantomAssailant].Value}" ${_tmpID} FALSE
+    /if (${is_ready[${_debug}, "${maChr.Find[stDivertiveStrike].Value}"]} && ${Me.PctAggro} > 80) {
+      /call voodoo ${_debug} "${maChr.Find[stDivertiveStrike].Value}" ${_tmpID} FALSE
     }
-  }
-
-  | axes
-  /if (${is_ready[${_debug}, "${maChr.Find[stRageVolley].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stRageVolley].Value}" ${_tmpID} FALSE
-  }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stAxeofRalos].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAxeofRalos].Value}" ${_tmpID} FALSE
-  }
-
-  /if (${is_ready[${_debug}, "${maChr.Find[stAxeThrow].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAxeThrow].Value}" ${_tmpID} FALSE
   }
 
 
@@ -388,7 +385,8 @@ sub burn(bool _debug, int _tmpID)
     /return TRUE
   }
 
-  /if (!${is_ready[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]} && !${is_ready[${_debug}, "${maChr.Find[stVengefulFlurry].Value}"]} && !${is_ready[${_debug}, "${maChr.Find[stCleavingRage].Value}"]} && !${is_ready[${_debug}, "${maChr.Find[stResolve].Value}"]} && !${Me.Buff[${maChr.Find[stResolve].Value}].ID}) {
+|**
+/if (!${is_ready[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]} && !${is_ready[${_debug}, "${maChr.Find[stVengefulFlurry].Value}"]} && !${is_ready[${_debug}, "${maChr.Find[stCleavingRage].Value}"]} && !${is_ready[${_debug}, "${maChr.Find[stResolve].Value}"]} && !${Me.Buff[${maChr.Find[stResolve].Value}].ID}) {
     /if (${is_ready[${_debug}, "${maChr.Find[stDisconcerting].Value}"]}) {
       /call voodoo ${_debug} "${maChr.Find[stDisconcerting].Value}" 0 FALSE
     }
@@ -401,6 +399,23 @@ sub burn(bool _debug, int _tmpID)
     /delay 5
     /if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stDisconcerting].Value}]}) /goto :loopmakestop
   }
+  **|
+  
+  
+  | Brutal/berserking and savage spirit
+  /if (!${Me.Buff[Savage Spirit].ID} && !${Me.ActiveDisc.ID}) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]}) {
+      /if (${Me.ActiveDisc.ID} && !${Me.ActiveDisc.Name.Find[Brutal]}) {
+        /stopdisc
+      }
+      /call voodoo ${_debug} "${maChr.Find[stInspiredAnger].Value}" 0 FALSE
+    }
+
+    /if (${Me.ActiveDisc.ID} && ${Me.AltAbilityReady[Savage Spirit]}) {
+      /call voodoo ${_debug} "${maChr.Find[stAASavageSpirit].Value}" 0 FALSE
+    }
+  }
+
 
   | Intensity of the Resolute AA 4 hour reuse
   /call cast_AA_intensity ${maDebug.Find[intensity].Value}
@@ -419,8 +434,26 @@ sub burn(bool _debug, int _tmpID)
     }
   }
 
+  | juggernaught surge
+  /if (${is_ready[${_debug}, "${maChr.Find[stAAJuggernautSurge].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAAJuggernautSurge].Value}" 0 FALSE
+  }
+  
+  | blood pact
+  /if (${is_ready[${_debug}, "${maChr.Find[stAABloodPact].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAABloodPact].Value}" 0 FALSE
+  }
+  
+  | Blinding
+  /if (${is_ready[${_debug}, "${maChr.Find[stAABlindingFury].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAABlindingFury].Value}" 0 FALSE
+  }
+
+  | Spire control
+  /call cast_AA_spire ${maDebug.Find[spire].Value}
+
   | AA rampage choice
-  /if (AE# && ${SpawnCount[npc group radius 50 PS4]} >= AE#) {
+  /if (AE# && ${SpawnCount[npc radius ENV PS4]} >= AE#) {
     /if (${is_ready[${_debug}, "${maChr.Find[stAAFuriousRampage].Value}"]}) {
       /call voodoo ${_debug} "${maChr.Find[stAAFuriousRampage].Value}" 0 FALSE
     }
@@ -436,37 +469,6 @@ sub burn(bool _debug, int _tmpID)
     }
   }
 
-  | Brutal/berserking and savage spirit
-  /if (${Spawn[group PC Shaman].ID}) {
-    /if (!${Me.Buff[Savage Spirit].ID} && !${Me.ActiveDisc.ID}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stInspiredAnger].Value}" 0 FALSE
-      }
-    }
-    /if (${Me.ActiveDisc.ID} && ${Me.AltAbilityReady[Savage Spirit]}) {
-     /alt act 465
-     /delay 5
-     /return
-    }
-  }
-
-  | juggernaught surge
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAJuggernautSurge].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAJuggernautSurge].Value}" 0 FALSE
-  }
-
-  | Spire control
-  /call cast_AA_spire ${maDebug.Find[spire].Value}
-
-  | Blinding
-  /if (${is_ready[${_debug}, "${maChr.Find[stAABlindingFury].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAABlindingFury].Value}" 0 FALSE
-  }
-
-  | blood pact
-  /if (${is_ready[${_debug}, "${maChr.Find[stAABloodPact].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAABloodPact].Value}" 0 FALSE
-  }
 
   /if (${is_ready[${_debug}, "${maChr.Find[stAADesperation].Value}"]} && !${Me.Song[${maChr.Find[stCryOfChaos].Value}].ID}) {
     /if (${Me.PctHPs} > 90 && !${Me.Song[${maChr.Find[stOpenWound].Value}].ID}) {
@@ -479,7 +481,7 @@ sub burn(bool _debug, int _tmpID)
     }
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAUntamedRage].Value}"]} && !${Spawn[group PC Bard].ID}) {
+  /if (${is_ready[${_debug}, "${maChr.Find[stAAUntamedRage].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stAAUntamedRage].Value}" 0 FALSE
   }
 
@@ -487,7 +489,7 @@ sub burn(bool _debug, int _tmpID)
     /call voodoo ${_debug} "${maChr.Find[stUnsettlingScream].Value}" ${_tmpID} FALSE
   }
 
-  |no berserking use cleaving anger and reckless abandon
+  | no berserking use cleaving anger and reckless abandon
   /if (${is_ready[${_debug}, "${maChr.Find[stCleavingRage].Value}"]} && !${Me.ActiveDisc.ID} && !${is_ready[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stCleavingRage].Value}" 0 FALSE
   }
@@ -500,14 +502,14 @@ sub burn(bool _debug, int _tmpID)
     /call voodoo ${_debug} "${maChr.Find[stAAVehementRage].Value}" 0 FALSE
   }
 
-  |no cleaving use vengful and glyph
+  | no cleaving use vengful and glyph
   /if (${is_ready[${_debug}, "${maChr.Find[stVengefulFlurry].Value}"]} && !${Me.ActiveDisc.ID} && ${is_ready[${_debug}, "${maChr.Find[stResolve].Value}"]} && !${is_ready[${_debug}, "${maChr.Find[stCleavingRage].Value}"]} && !${is_ready[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stVengefulFlurry].Value}" 0 FALSE
   }
 
   /call cast_glyph ${maDebug.Find[glyph].Value}
 
-  |no vengful use frenzied and drawn
+  | no vengful use frenzied and drawn
   /if (!${Me.ActiveDisc.ID} && !${is_ready[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]} && !${is_ready[${_debug}, "${maChr.Find[stVengefulFlurry].Value}"]} && !${is_ready[${_debug}, "${maChr.Find[stCleavingRage].Value}"]}) {
     /if (${Me.PctHPs} > 90 && !${Me.Song[${maChr.Find[stOpenWound].Value}].ID}) {
       /if (${is_ready[${_debug}, "${maChr.Find[stAABloodfury].Value}"]}) {

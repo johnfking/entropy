@@ -48,6 +48,14 @@ sub class_init(bool _debug)
 
   | reflexive
   /call set_data_map ${_debug} maChr stReflexive                      PREGEN|1                      "${auxna} Reflexive disc line"
+  /call set_data_map ${_debug} maChr stThousandBlades				          PREGEN|1						          "${auxna} Thousand Blades disc"
+
+  | class order lists
+  /call set_data_list ${_debug} maChr lsOrderClassBase                EMPTY                                    "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 cc                                       "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    cc|melee|debugg|cc|burn|misc|cc|pet|swarm|cc|alliance|dot|pulseic|cc|nuke|item      "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover                              "${auxli} class post combat "
+
 
   | AAs
   /call set_data_map ${_debug} maChr stAAFierceEye                    PREGEN|1                      "${auxna} Fierce Eye aa"
@@ -57,12 +65,14 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAALyricalPrankster             PREGEN|1                      "${auxna} Lyrical Prankster aa"
   /call set_data_map ${_debug} maChr stAASongofStone                  PREGEN|1                      "${auxna} Song of Stone aa"
   /call set_data_map ${_debug} maChr stAARallyingSolo                 PREGEN|1                      "${auxna} Rallying Solo aa"
-  /call set_data_map ${_debug} maChr stAAThousandBlades               PREGEN|1                      "${auxna} Thousand Blades aa"
+  | /call set_data_map ${_debug} maChr stAAThousandBlades               PREGEN|1                      "${auxna} Thousand Blades aa"
   /call set_data_map ${_debug} maChr stAAFuneralDirge                 PREGEN|1                      "${auxna} Funeral Dirge aa"
   /call set_data_map ${_debug} maChr stAAQuickTime                    PREGEN|1                      "${auxna} Quick Time aa"
   /call set_data_map ${_debug} maChr stAAFrenziedKicks                PREGEN|1                      "${auxna} Frenzied Kicks aa"
   /call set_data_map ${_debug} maChr stAASelosSonata                  PREGEN|1                      "${auxna} Selo's Sonata aa"
   /call set_data_map ${_debug} maChr stAAShaurisSonorousClouding      PREGEN|1                      "${auxna} Shauri's Sonorous Clouding aa"
+  /call set_data_map ${_debug} maChr stAAFlurryofNotes				        PREGEN|1						          "${auxna} Flurry of Notes aa"
+  /call set_data_map ${_debug} maChr stAADanceofBlades				        PREGEN|1						          "${auxna} Dance of Blades aa"
 
   | set base instrument focuses
   /if (!${Defined[maBardFocus]}) {
@@ -88,6 +98,7 @@ sub class_main(bool _debug)
   DEBUG \atclass_main\ax()
 
   /if (AUTO && !ENGINE3) {
+    /call class_cycle lsOrderClassBase
     /if (${maChr.Find[swPulseOOC].Value} && !${Select[${Me.CombatState},combat]}) {
       /call pulse_cycle ${maDebug.Find[pulse].Value} 0 pulseooc
     }
@@ -99,33 +110,14 @@ sub class_main(bool _debug)
 
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-    GETINPUT
-    CHECKREZ
-    /if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
-    /call control_routine FALSE
+    /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      /call control_routine FALSE
       /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
-      CHECKDEFENSE
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST epic
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
-      /call control_routine FALSE
-      /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
-      /call control_routine FALSE
-      /if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} GETASSIST
-      /if (SWARM) /call cast_servant_swarm FALSE GETASSIST
-      /call control_routine FALSE
-      | /if (${swAlliance}) /call trigger_alliance GETASSIST
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
-      /call pulse_cycle ${maDebug.Find[pulse].Value} GETASSIST pulseincombat
-      /call control_routine FALSE
-      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
-      /call control_routine FALSE
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
+      /call class_cycle lsOrderClass
+      cc|melee|debugg|cc|burn|misc|cc|pet|swarm|cc|alliance|dot|pulseic|cc|nuke|item
+
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -133,8 +125,7 @@ sub class_main(bool _debug)
     }
 
     /if (AUTO && !ENGINE3) {
-      /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-      CHECKFADE
+      /call class_cycle lsOrderClassPost
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
         /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -482,8 +473,12 @@ sub burn(bool _debug, int _tmpID)
 
   | /call control_routine FALSE
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAThousandBlades].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAThousandBlades].Value}" 0 FALSE
+  | /if (${is_ready[${_debug}, "${maChr.Find[stAAThousandBlades].Value}"]}) {
+  |  /call voodoo ${_debug} "${maChr.Find[stAAThousandBlades].Value}" 0 FALSE
+  | }
+
+  /if (${is_ready[${_debug}, "${maChr.Find[stThousandBlades].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stThousandBlades].Value}" 0 FALSE
   }
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
@@ -501,8 +496,19 @@ sub burn(bool _debug, int _tmpID)
   /if (${Target.Buff[Harbinger's Intimidation].ID} && ${is_ready[${_debug}, "${maChr.Find[stAAFrenziedKicks].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stAAFrenziedKicks].Value}" 0 FALSE
   }
+  
+   | Dance of Blades
+  /if (${is_ready[${_debug}, "${maChr.Find[stAADanceofBlades].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAADanceofBlades].Value}" 0 FALSE
+  }
+  
+    | Flurry of Notes
+  /if (${is_ready[${_debug}, "${maChr.Find[stAAFlurryofNotes].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stAAFlurryofNotes].Value}" 0 FALSE
+  }
 
   /call cast_glyph ${maDebug.Find[glyph].Value}
+
   | Intensity of the Resolute AA 4 hour reuse
   /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 

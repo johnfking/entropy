@@ -3083,6 +3083,11 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
   /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-w${maData.Find[chrID].Value}.sqlite\ax
 
 
+
+    /invoke ${_tmpMap.Add[stAAThousandBlades,character]}
+
+
+
   /if (${maEnv.Find[build].Value} >= 210116.05 || ${_verbage.Equal[force]}) {
     /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210116.05\ax
     /invoke ${_tmpMap.Add[stAAReflexiveRetort,character]}
