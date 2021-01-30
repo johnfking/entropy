@@ -399,7 +399,7 @@ sub burn(bool _debug, int _tmpID)
     /delay 5
     /if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stDisconcerting].Value}]}) /goto :loopmakestop
   }
-  **|
+**|
   
   
   | Brutal/berserking and savage spirit
@@ -485,9 +485,9 @@ sub burn(bool _debug, int _tmpID)
     /call voodoo ${_debug} "${maChr.Find[stAAUntamedRage].Value}" 0 FALSE
   }
 
-  /if (${is_ready[${_debug}, ${maChr.Find[stUnsettlingScream].Value}]} && ${Me.CurrentEndurance} > ${Spell[${maChr.Find[stUnsettlingScream].Value}].EnduranceCost}) {
-    /call voodoo ${_debug} "${maChr.Find[stUnsettlingScream].Value}" ${_tmpID} FALSE
-  }
+  | /if (${is_ready[${_debug}, ${maChr.Find[stUnsettlingScream].Value}]} && ${Me.CurrentEndurance} > ${Spell[${maChr.Find[stUnsettlingScream].Value}].EnduranceCost}) {
+  |   /call voodoo ${_debug} "${maChr.Find[stUnsettlingScream].Value}" ${_tmpID} FALSE
+  | }
 
   | no berserking use cleaving anger and reckless abandon
   /if (${is_ready[${_debug}, "${maChr.Find[stCleavingRage].Value}"]} && !${Me.ActiveDisc.ID} && !${is_ready[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]}) {

@@ -116,8 +116,6 @@ sub class_main(bool _debug)
     /if (VALID && !ENGINE3) {
       /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
       /call class_cycle lsOrderClass
-      cc|melee|debugg|cc|burn|misc|cc|pet|swarm|cc|alliance|dot|pulseic|cc|nuke|item
-
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}

@@ -19,6 +19,13 @@ on the to do list
 --------------------
 
 
+
+210130.02
+- bard
+  removed a bad line of notes.. its late..i'm tired
+  
+ 
+
 210130.01
 - corrected a pulling contradiction where /pull chain was set and pulling was inactive
 - exposed class orders

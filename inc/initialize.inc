@@ -371,6 +371,7 @@ sub set_initial_environment(bool _debug)
   /if (${Select[${Me.Class.ShortName},BER]}) {
 
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[rest,swSongRest]}
     /invoke ${maChrControl.Add[refresh,stSongRefresh]}
     /invoke ${maChrControl.Add[bellow,swAABellow]}
@@ -408,6 +409,7 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[cauldron,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[train,swTrainMelee]}
     /invoke ${maChrControl.Add[fdhp,stPctFDHP]}
     /invoke ${maChrControl.Add[fdaggro,stPctFDAggro]}
@@ -418,6 +420,7 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[bloom,stPctBloom]}
 
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[yaulp,swYaulp]}
     /invoke ${maChrControl.Add[attraction,swAttraction]}
     /invoke ${maChrControl.Add[harmonious,swHarmonious]}
