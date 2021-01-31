@@ -1013,6 +1013,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
     }
     /return TRUE
 
+
   } else /if (${_type.Equal[switch]}) {
     /invoke ${maHome.Add[swSetTie,FALSE]}
     /if (!${maHome.Find[swHomeMarker].Value}) {
@@ -1138,7 +1139,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Add[onauto,swonAuto]}
   /invoke ${maControl.Add[incombat,swinCombat]}
   /invoke ${maControl.Add[campfire,option]}
-  /invoke ${maControl.Add[gather,option]}
+  | /invoke ${maControl.Add[gather,option]}
   /invoke ${set_control_output[${_debug}, maHome, home, maControl]}
 
 /return TRUE
@@ -2176,8 +2177,8 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
     /declare _running         int local 0
     /declare _max             int local 0
     /declare _maxName         string local FALSE
-    /declare _findAttrib      string local Spell Guard
-    /declare _subcat          string local Sum: Warder
+    /declare _findAttrib      string local Spawn Interactive Object
+    /declare _subcat          string local Heals
     /declare _targettype      string local Self
 
     /declare _countNumEff     int local 0
@@ -2198,7 +2199,7 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
       /if (${Me.Book[${_count}].TargetType.NotEqual[${_targettype}]}) /continue
 
 
-      ECHO \ag${Me.Book[${_count}]}\ax ${dot} (\a-rSPA${sep}${Me.Book[${_count}].SPA}\ax)  ${dot}${dot} SPA ${sqlite.Result[dummy 1 env_var]}${sep}${Me.Book[${_count}].HasSPA[${sqlite.Result[dummy 1 env_var]}]}
+      ECHO \ag${Me.Book[${_count}]}::${Me.Book[${_count}].Level}\ax ${dot} (\a-rSPA${sep}${Me.Book[${_count}].SPA}\ax)  ${dot}${dot} SPA ${sqlite.Result[dummy 1 env_var]}${sep}${Me.Book[${_count}].HasSPA[${sqlite.Result[dummy 1 env_var]}]}
 
 
       | multiple landing non single target
@@ -3371,9 +3372,6 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
 
     | enable combat: Heal
     } else /if (${_verbage.Equal[heal]}) {
-      /if (!${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
-        /return FALSE
-      }
       /invoke ${set_switch_env[${_debug}, swCombatHeal, TRUE, ${_verbage2}]}
 
     | enable combat: Heal
@@ -3390,10 +3388,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
     /invoke ${maControl.Add[dot,swCombatDoT]}
     /invoke ${maControl.Add[melee,swCombatMelee]}
     /invoke ${maControl.Add[nuke,swCombatNuke]}
-
-    /if (${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
-      /invoke ${maControl.Add[heal,swCombatHeal]}
-    }
+    /invoke ${maControl.Add[heal,swCombatHeal]}
     /if (${Select[${Me.Class.ShortName},ENC,BRD]}) {
       /invoke ${maControl.Add[cc,swCombatControl]}
     }
@@ -6954,9 +6949,6 @@ sub Bind_control_merchant(string _type, string _verbage, _verbage2, bool _debug)
   	/return
   }
   
-  
-  
-
   | Sell
   /if (${_type.Equal[sell]}) {
     OUT Selling ${_verbage2} ${_verbage}
@@ -6975,7 +6967,48 @@ sub Bind_control_merchant(string _type, string _verbage, _verbage2, bool _debug)
   }
 
 
-
-
-
 /return
+
+
+
+|***
+ * note: you are the black hole of suck....
+ * use: /gather
+ ***|
+#bind command_gather /gather
+sub Bind_command_gather(string _type, string _verbage, bool _debug)
+  DEBUG \atBind_command_gather\ax()
+
+  /call control_broadcast_command gather ${_type} ${_verbage}
+  /if (${Macro.Return.Equal[break]}) /return TRUE
+
+  ISMEDEAD
+  
+  /if (!${Select[${_type},all,group,raid,zone]}) {
+    /varset _type ${maEntropy.Find[stBroadcastGather].Value}
+  } 
+
+  /invoke ${out[12, "Gathering${sep}\a-w${_type.Lower}\ax"]}
+
+  /if (${_type.Equal[group]} && ${Group.Member}) {
+    /dggexecute /squelch /target clear
+    /dggexecute /navto ${Me.ID}
+    
+  } else /if (${_type.Equal[raid]} && ${Raid.Member}) {
+    /dgrexecute /squelch /target clear
+    /dgrexecute /navto ${Me.ID}
+    
+  } else /if (${_type.Equal[zone]}) {
+    /dgzexecute /squelch /target clear
+    /dgzexecute /navto ${Me.ID}
+    
+  } else /if (${_type.Equal[all]}) {
+    /dgzexecute /squelch /target clear
+    /dgexecute all /navto ${Me.ID}
+    
+  }
+
+/return TRUE
+
+
+

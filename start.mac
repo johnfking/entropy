@@ -113,7 +113,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210130.02
+  /call set_data FALSE maEnv build                          map outer 210131.01
   /call set_data FALSE maEnv schema                         map outer 1.39
   /call set_data FALSE maEnv repo                           map outer 210107.01
 
@@ -428,7 +428,7 @@ sub prepare_the_end(bool _debug)
     /if (${DanNet.FullNames}) {
       /squelch /dnet fullnames ${maEntropy.Find[swFullNames].Value}
     }
-    /if (${DanNet.Timeout} != ${maEntropy.Find[stNetworkTimeout].Value}) {
+    /if (${DanNet.Timeout.NotEqual[${maEntropy.Find[stNetworkTimeout].Value}]}) {
       /squelch /dnet timeout ${maEntropy.Find[stNetworkTimeout].Value}
     }
     /if (${DanNet.Evasive} != ${maEntropy.Find[stNetworkEvasive].Value}) {

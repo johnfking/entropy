@@ -1401,6 +1401,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy stBroadcastInvis                group                         "${auxna} change the default broadcast for /invis [group|raid|zone|all]."
   /call set_data_map ${_debug} maEntropy stBroadcastCls                  group                         "${auxna} change the default broadcast for /cls [group|raid|zone|all]."
   /call set_data_map ${_debug} maEntropy stBroadcastGetoverhere          group                         "${auxna} change the default broadcast for /getoverhere [group|raid|zone|all]."
+  /call set_data_map ${_debug} maEntropy stBroadcastGather               group                         "${auxna} change the default broadcast for /gather [group|raid|zone|all]."
 
 
 
@@ -2220,7 +2221,7 @@ sub set_initialize_buttons(bool _debug, string _verbage)
 
     | gather your group
     /ini ${_path} "Button10" "Label" "Gather"
-    /ini ${_path} "Button10" "Command" "/home gather"
+    /ini ${_path} "Button10" "Command" "/gather"
     /ini ${_path} "Button10" "Red" "255"
     /ini ${_path} "Button10" "Green" "255"
     /ini ${_path} "Button10" "Blue" "255"

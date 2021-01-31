@@ -1353,7 +1353,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
         /break
       }
 
-      /if (${Select[${maData.Find[stCastReturn].Value},NOTREADY]}) {
+      /if (${Select[${maData.Find[stCastReturn].Value},NOTREADY,OUTOFMANA]}) {
         /varcalc _castLoop ${_castLoop}-1
         /delay 5
       }
@@ -1583,7 +1583,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
 
         | notready / cant cast
         /if (${Select[${maData.Find[stCastReturn].Value},DISTRACTED,NOTREADY,CANNOTSEE,OUTOFMANA,INTERRUPTED]}) {
-          DEBUG ${sep}spell.cr:DISTRACTED,NOTREADY,CANNOTSEEOUTOFMANA,INTERRUPTED.\arbreak\ax
+          DEBUG ${sep}spell.cr:DISTRACTED,NOTREADY,CANNOTSEE,OUTOFMANA,INTERRUPTED.\arbreak\ax
           /varset _castLoop 0
           /if (BARD) {
             /call pulse_stop
@@ -1808,7 +1808,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
         }       
         
         GETINPUT voodoo_item NA|NA
-        /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,RESISTED]}) {
+        /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,RESISTED,OUTOFMANA]}) {
           /varset _castLoop 0
           /if (BARD) /call pulse_stop
           /break
@@ -6232,7 +6232,7 @@ sub check_buff_cycle_others(bool _debug, string _type)
       /call target set ${${_type}.Member[${_toon}].ID}
 
       | give the game a second to populate the targets buffs
-      /delay 1s ${Target.BuffsPopulated}
+      /delay 2s ${Target.BuffsPopulated}
 
       /if (${Spell[${_spell}].HasSPA[470]} || ${Spell[${_spell}].HasSPA[374]} || ${Spell[${_spell}].HasSPA[340]}) {
         DEBUG ${sep}multiple landing spell
@@ -12685,6 +12685,8 @@ sub get_best_in_spell(bool _debug, string _targettype, string _subcat, string _a
   DEBUG \atget_best_in_spell\ax(\a-w${_targettype}, ${_subcat}, ${_attrib}\ax)
 
   /declare _running         int local 0
+  | /declare _runningLvl      int local 0
+  | /declare _maxLvl          int local 0
   /declare _max             int local 0
   /declare _maxName         string local FALSE
   /declare _countNumEff     int local 0
@@ -12699,9 +12701,11 @@ sub get_best_in_spell(bool _debug, string _targettype, string _subcat, string _a
   /if (!${sqlite.Rows[qBestSpell]}) /return FALSE
 
   /for _count 1 to ${maHard.Find[stSpellBookSize].Value}
+    
     /if (!${Me.Book[${_count}].ID}) /continue
     /if (${Me.Book[${_count}].Subcategory.NotEqual[${_subcat}]}) /continue
     /if (${Me.Book[${_count}].TargetType.NotEqual[${_targettype}]}) /continue
+    
     /if (${Me.Book[${_count}].HasSPA[470]} || ${Me.Book[${_count}].HasSPA[374]} || ${Me.Book[${_count}].HasSPA[340]}) {
       /for _countNumEff 1 to ${Me.Book[${_count}].NumEffects}
         /if (!${Me.Book[${_count}].Trigger[${_countNumEff}].HasSPA[${sqlite.Result[qBestSpell 1 env_var]}]}) /continue
@@ -12721,23 +12725,28 @@ sub get_best_in_spell(bool _debug, string _targettype, string _subcat, string _a
           }
         /next _countSPA
       /next _countNumEff
+      
     } else /if (${Me.Book[${_count}].SPA}) {
       /for _countSPA 1 to ${Me.Book[${_count}].NumEffects}
         /if (${Me.Book[${_count}].Attrib[${_countSPA}]} != ${sqlite.Result[qBestSpell 1 env_var]}) /continue
         /varset _running ${Me.Book[${_count}].Base[${_countSPA}]}
+        | /varset _runningLvl ${Me.Book[${_count}].Level}
         /if (${_running} < -1) {
           /if (${_running} <= ${_max}) {
             /varset _max ${_running}
             /varset _maxName ${Me.Book[${_count}]}
+            | /varset _maxLvl ${Me.Book[${_count}].Level}
           }
         } else {
           /if (${_running} >= ${_max}) {
             /varset _max ${_running}
             /varset _maxName ${Me.Book[${_count}]}
+            | /varset _maxLvl ${Me.Book[${_count}].Level}
           }
         }
       /next _countSPA
     }
+  
   /next _count
   DEBUG ${sep}Returning${sep}\a-w${_maxName}\ax
 
@@ -13520,6 +13529,7 @@ sub control_broadcast_command(string _command, string _option, string _verbage, 
   } else /if (${Select[${_option},-o,broadcast]}) {
     /if (${lsBroadcastTypes.Contains[${_verbage}]}) {
       /call do_raw_edit FALSE SILENT stBroadcast${_command} "${_verbage.Lower}"
+      | /varset _command ${_command.Lower}
     } else /if (${Bool[${_verbage}]} && !${lsBroadcastTypes.Contains[${_verbage}]}) {
       OUT Options${sep}\a-w/${_command.Lower} broadcast\ax
       /call out_list lsBroadcastTypes
@@ -13531,6 +13541,14 @@ sub control_broadcast_command(string _command, string _option, string _verbage, 
     /invoke ${set_control_output[FALSE, maEntropy, ${_command.Lower}, maControl]}
     /return break
   }
+  
+  /varset _command ${proper_case[name, ${_command}]}
+
+  | default return to let original sub do the work
+  /if (${Select[${_command},gather]}) {
+    /return FALSE
+  }
+
    
   | redirect command for solo use
   /if (${Select[${_command},cls,enter,lesson]}) {
@@ -13564,7 +13582,7 @@ sub control_broadcast_command(string _command, string _option, string _verbage, 
     /if (${Select[${_command},on,off]}) {
       /dggexecute /command_${_command} self
     } else {
-      /dggexecute /${_command} self
+      /dggexecute /${_command.Lower} self
     }
 
   | zone broadcasts
@@ -14703,7 +14721,7 @@ sub check_debuff_routines(int _tmpID, bool _debug)
  
   /declare _spell string local FALSE
   /declare _count int local 0
-  /declare _found bool local FALSE
+  /declare _found list local 
   /declare _variable string local FALSE
   /declare _member string local
   /declare _tmpTLO string local FALSE
@@ -14748,6 +14766,8 @@ sub check_debuff_routines(int _tmpID, bool _debug)
       | tash / cripple / malo / slow
       /if (${Select[${_lideorder.Value},tash,cripple,malo,slow]}) {
                 
+        
+        | set our tlo member name
         /if (${_lideorder.Value.Equal[tash]}) {
           /varset _member Tashed
         } else /if (${_lideorder.Value.Equal[cripple]}) {
@@ -14759,40 +14779,54 @@ sub check_debuff_routines(int _tmpID, bool _debug)
         } 
         DEBUG ${sep}debuff${sep}\ay${_lideorder.Value}\ax
         
+        | start our markers to show if the multi parts will land or not
+        /invoke ${_found.Clear}
+        
+        |  does the target have that debuf? if not!
         /if (${Target.${_member}.ID}) {
           DEBUG ${sep}target is${sep}\a-w${_lideorder.Value}\ax (\a-r${Target.${_member}}\ax)
+          | find the debuff we need to cast and hold it
           /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value} TRUE          
           DEBUG ${sep}returning spell${sep}\a-r${maData.Find[returnCast].Value}\ax
-          /if (${Bool[${maData.Find[returnCast].Value}]} && ${_tmpID}) {
+          
+          | did we find something that we can cast?
+          /if (${Bool[${maData.Find[returnCast].Value}]} && ${_tmpID} && ${Target.ID}) {
             /varset _spell ${maData.Find[returnCast].Value}
 
+            | is it a multi landing debuff?
             /if (${Spell[${_spell}].HasSPA[470]} || ${Spell[${_spell}].HasSPA[374]}) {
               DEBUG ${sep}multi landing debff${sep}\ay${_spell}\ax
-              /varset _found FALSE
+              
+              | cycle each trigger for the debuff
               /for _count 1 to ${Spell[${_spell}].NumEffects}
-                      
+                
+                | is the targets debuff better then the one we are casting      
                 /if (${Target.${_member}.Base[2]} <= ${Spell[${_spell}].Trigger[${_count}].Base[2]} || !${Spell[${_spell}].StacksTarget}) {
                   DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax <= ${_spell}${sep}\a-r${Spell[${_spell}].Trigger[${_count}].Base[2]}\ax
-                  /varset _found TRUE
-                  /break
+                  | if it is better, add a found marker and continue
+                  /invoke ${_found.Append[1]}
+                } else {
+                  | if its not better mark it missing anbd continue
+                  /invoke ${_found.Append[0]}
                 }
                 
               /next _count
 
-              /if (${_found}) {
-                /invoke ${_lideorder.Advance}
-                /continue 
-              }
 
             } else {
               DEBUG ${sep}single landing debff${sep}\a-w${_spell}\ax
               /if (${Spell[${Target.${_member}}].Base[2]} <= ${Spell[${_spell}].Base[2]}) {
                 DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax <= ${_spell}${sep}\a-r${Spell[${_spell}].Base[2]}\ax
-                /invoke ${_lideorder.Advance}
-                /continue 
-              }             
+                /invoke ${_found.Append[1]}
+              } else {
+                /invoke ${_found.Append[0]}
+              }
             }
-          } else /if (!${Bool[${maData.Find[returnCast].Value}]} || !${_tmpID}) {
+            
+          | we found no available debuff to cast on the target
+          } else /if (!${Bool[${maData.Find[returnCast].Value}]} || !${_tmpID} || !${Target.ID}) {
+            DEBUG ${sep}Something is wrong with our targeting or cast
+            DEBUG ${sep}returnCast:${maData.Find[returnCast].Value} / _tmpid:${_tmpID} / target.id:${Target.ID}
             /return FALSE
           }
         }
@@ -14805,6 +14839,8 @@ sub check_debuff_routines(int _tmpID, bool _debug)
         } 
         DEBUG ${sep}debuff${sep}\ay${_lideorder.Value}\ax
         
+        /invoke ${_found.Clear}
+        
        /if (${Target.${_member}.ID}) {
           DEBUG ${sep}target is${sep}\a-w${_lideorder.Value}\ax (\a-r${Target.${_member}}\ax)
           /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value} TRUE          
@@ -14814,43 +14850,46 @@ sub check_debuff_routines(int _tmpID, bool _debug)
 
             /if (${Spell[${_spell}].HasSPA[470]} || ${Spell[${_spell}].HasSPA[374]}) {
               DEBUG ${sep}multi landing debff${sep}\ay${_spell}\ax
-              /varset _found FALSE
               /for _count 1 to ${Spell[${_spell}].NumEffects}
                       
                 /if (${Target.${_member}.Base[2]} >= ${Spell[${_spell}].Trigger[${_count}].Base[2]} || !${Spell[${_spell}].StacksTarget}) {
                   DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax >= ${_spell}${sep}\a-r${Spell[${_spell}].Trigger[${_count}].Base[2]}\ax
-                  /varset _found TRUE
-                  /break
+                  /invoke ${_found.Append[1]}
+                } else {
+                  /invoke ${_found.Append[0]}
                 }
                 
               /next _count
-
-              /if (${_found}) {
-                /invoke ${_lideorder.Advance}
-                /continue 
-              }
 
             } else {
               DEBUG ${sep}single landing debff${sep}\a-w${_spell}\ax
               /if (${Target.${_member}.Base[2]} <= ${Spell[${_spell}].Base[2]}) {
                 DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax >= ${_spell}${sep}\a-r${Spell[${_spell}].Base[2]}\ax
-                /invoke ${_lideorder.Advance}
-                /continue 
-              }             
+                /invoke ${_found.Append[1]}
+              } else {
+                /invoke ${_found.Append[0]}
+              }            
             }
-          } else /if (!${Bool[${maData.Find[returnCast].Value}]} || !${_tmpID}) {
+          } else /if (!${Bool[${maData.Find[returnCast].Value}]} || !${_tmpID} || !${Target.ID}) {
+            DEBUG ${sep}Something is wrong with our targeting or cast
+            DEBUG ${sep}returnCast:${maData.Find[returnCast].Value} / _tmpid:${_tmpID} / target.id:${Target.ID}
             /return FALSE
           }
         }
 
       }
+      
+      | if we do not find any missing markers, we continue on our debuffing journey of: OMG can we just move on
+      /if (!${_found.Contains[0]}) {
+        DEBUG ${sep}debuffing....
+        | debuff time
+        /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value} FALSE
+      } else {
+        DEBUG ${sep}targets debuffs are better
+      }
 
-      DEBUG ${sep}debuffing....
-      | debuff time
-      /call cast_cycle_debuff ${maDebug.Find[${_lideorder.Value}].Value} ${_tmpID} ${_lideorder.Value} FALSE
       /invoke ${maData.Add[returnCast,FALSE]}
       /invoke ${_lideorder.Advance}
-
     }
 
   }
@@ -15392,6 +15431,8 @@ sub check_heal_routines()
   CHECKREZ
 
 /return TRUE
+
+
 
 
 

@@ -65,7 +65,6 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAALyricalPrankster             PREGEN|1                      "${auxna} Lyrical Prankster aa"
   /call set_data_map ${_debug} maChr stAASongofStone                  PREGEN|1                      "${auxna} Song of Stone aa"
   /call set_data_map ${_debug} maChr stAARallyingSolo                 PREGEN|1                      "${auxna} Rallying Solo aa"
-  | /call set_data_map ${_debug} maChr stAAThousandBlades               PREGEN|1                      "${auxna} Thousand Blades aa"
   /call set_data_map ${_debug} maChr stAAFuneralDirge                 PREGEN|1                      "${auxna} Funeral Dirge aa"
   /call set_data_map ${_debug} maChr stAAQuickTime                    PREGEN|1                      "${auxna} Quick Time aa"
   /call set_data_map ${_debug} maChr stAAFrenziedKicks                PREGEN|1                      "${auxna} Frenzied Kicks aa"
@@ -73,6 +72,7 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAAShaurisSonorousClouding      PREGEN|1                      "${auxna} Shauri's Sonorous Clouding aa"
   /call set_data_map ${_debug} maChr stAAFlurryofNotes				        PREGEN|1						          "${auxna} Flurry of Notes aa"
   /call set_data_map ${_debug} maChr stAADanceofBlades				        PREGEN|1						          "${auxna} Dance of Blades aa"
+  /call set_data_map ${_debug} maChr stAAVaingloriousShout  	        PREGEN|1						          "${auxna} Vainglorious Shout aa"
 
   | set base instrument focuses
   /if (!${Defined[maBardFocus]}) {
@@ -190,7 +190,9 @@ sub misc_combat(bool _debug, int _tmpID)
   /if (${is_ready[${_debug}, "${maChr.Find[stAACacophony].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stAACacophony].Value}" ${_tmpID} FALSE
   }
-  /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${maChr.Find[swAABellow].Value} && ${Me.PctEndurance} > 30 && !${Target.Buff[Boastful Bellow].ID}) {
+  
+  |**
+  /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${maChr.Find[swAABellow].Value} && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Boastful Bellow].ID}) {
     /if (${is_ready[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
       /call voodoo ${_debug} "${maChr.Find[stAABoastfulBellow].Value}" ${_tmpID} FALSE
     }
@@ -200,7 +202,50 @@ sub misc_combat(bool _debug, int _tmpID)
       /return FALSE
     }
   }
+  **|
+  
+  /if (${maChr.Find[swAABellow].Value} && ${Target.BuffsPopulated}) {
+    
+    /if (!AE#) {
+      /if (${Raid.Members}) {
+        /if (${Spawn[${_tmpID}].PctHPs} > 3 && ${Me.CurrentEndurance} > 3600 && !${Target.MyBuff[Boastful Bellow].ID}) {
+          /if (${is_ready[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
+            /call voodoo ${_debug} "${maChr.Find[stAABoastfulBellow].Value}" ${_tmpID} FALSE
+          }
+        }
+      } else /if (!${Raid.Members}) {
+        /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Boastful Bellow].ID}) {
+          /if (${is_ready[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
+            /call voodoo ${_debug} "${maChr.Find[stAABoastfulBellow].Value}" ${_tmpID} FALSE
+          }
+        }
+      }
+    } else /if (AE#) {
+      /if (${Raid.Members}) {
+        /if (${Spawn[${_tmpID}].PctHPs} > 3 && ${Me.CurrentEndurance} > 30000 && !${Target.MyBuff[Boastful Conclusion].ID}) {
+          /if (${is_ready[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
+            /call voodoo ${_debug} "${maChr.Find[stAAVaingloriousShout].Value}" ${_tmpID} FALSE
+          }
+        }
+      } else /if (!${Raid.Members}) {
+        /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Boastful Conclusion].ID}) {
+          /if (${is_ready[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
+            /call voodoo ${_debug} "${maChr.Find[stAAVaingloriousShout].Value}" ${_tmpID} FALSE
+          }
+        }
+      } 
+    }
+  }
+  
+  
+  maChr 
 
+  /if (${target[isdead, ${_tmpID}]}) {
+    /call pulse_stop
+    /call clear_combat
+    /return FALSE
+  }  
+  
 /return TRUE
 
 
@@ -468,12 +513,6 @@ sub burn(bool _debug, int _tmpID)
     /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
     /return TRUE
   }
-
-  | /call control_routine FALSE
-
-  | /if (${is_ready[${_debug}, "${maChr.Find[stAAThousandBlades].Value}"]}) {
-  |  /call voodoo ${_debug} "${maChr.Find[stAAThousandBlades].Value}" 0 FALSE
-  | }
 
   /if (${is_ready[${_debug}, "${maChr.Find[stThousandBlades].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stThousandBlades].Value}" 0 FALSE

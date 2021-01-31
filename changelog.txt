@@ -19,12 +19,37 @@ on the to do list
 --------------------
 
 
+210131.01
+- berserker
+  removed a variable that shouldn't be there
+  Added Blood Sustenance
+  Corrected: 
+    Savage Spirit
+    Untamed Rage
+  sorted burn priority again to better support Mangling Discipline
+  Re-did bloodfury spamming on spam abilities
+  re-hardcoded stAugmentedFrenzy
+- debuffing
+  changing the approach a little
+  when debuff values are checked for multi landing debuffs, if one of the landing debuffs is
+  missing or less it will still attempt to cast regardless if the other trigger debuffs are better
+  basically the same idea behind multi landing buffs
+- open /cc mode heal back up to all classes. if you wannd do bad things, thats on you
+- /gather - pulls all your people to you depending on options
+  /gather [all|group|zone|raid] - force a type of gather
+  /gather broadcast [all|group|zone|raid] - set the defaulkt gather type
+  this is being pulled from /home gather. decided i wanted it as it's own command
+  follows all the normal broadcast options for commands
+- increased the delay for group/other buffing to get the buffs populated
+- bard
+  small change to boastful bellow stacking check
+  added stAAVaingloriousShout - Vanglorious Shout AA
+  
 
 210130.02
 - bard
   removed a bad line of notes.. its late..i'm tired
   
- 
 
 210130.01
 - corrected a pulling contradiction where /pull chain was set and pulling was inactive
