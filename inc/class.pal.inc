@@ -33,8 +33,8 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maHeal stCountSplash                   0                             "${auxnum} number mobs in range to use a splash heal" heal
 
   | temp combat buffs
-  /call set_data_map ${_debug} maChr stStance                         PREGEN|1                      "${auxna} name of the self stance buff"
-  /call set_data_map ${_debug} maChr stSteel                          PREGEN|1                      "${auxna} name of the steel self buff"
+  | /call set_data_map ${_debug} maChr stStance                         PREGEN|1                      "${auxna} name of the self stance buff"
+  | /call set_data_map ${_debug} maChr stSteel                          PREGEN|1                      "${auxna} name of the steel self buff"
 
   | harmonions
   /invoke ${set_data_timer[${_debug}, Check_Harmonious, 1m]}
@@ -45,7 +45,7 @@ sub class_init(bool _debug)
   /invoke ${set_data_timer[${_debug}, Check_Marrs_Gift, 10s]}
   /call set_data_map ${_debug} maChr stPctMG                          0                             "${auxnum} % of mana to use mars gift aa"
 
-  /call set_data_map ${_debug} maChr stTempRune                       PREGEN|1                      "${auxna} fast reuse disc rune"
+  | /call set_data_map ${_debug} maChr stTempRune                       PREGEN|1                      "${auxna} fast reuse disc rune"
   /call set_data_map ${_debug} maChr stChallenge                      PREGEN|1                      "${auxna} challenge spell for agro"
   /call set_data_map ${_debug} maChr stValiant                        PREGEN|1                      "${auxna} vlaiant spell for defensive"
   /call set_data_map ${_debug} maChr stUnflinching                    PREGEN|1                      "${auxna} name of unflinching disc to use for agro help"
@@ -107,7 +107,7 @@ sub class_main(bool _debug)
   GETINPUT
   ISMEDEAD
   CHECKTIE
-  CHECKREZ
+  | CHECKREZ
 
   /if (AUTO && !ENGINE3) {
     /call class_cycle lsOrderClassBase
@@ -140,13 +140,13 @@ sub class_main(bool _debug)
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
+      | /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
       /call class_cycle lsOrderClass
 
-      /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-        /call check_buff_cycle_temp_self ${maDebug.Find[temp].Value} stSteel
-        /call check_buff_cycle_temp_self ${maDebug.Find[temp].Value} stStance
-      }
+      | /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
+      |   /call check_buff_cycle_temp_self ${maDebug.Find[temp].Value} stSteel
+      |   /call check_buff_cycle_temp_self ${maDebug.Find[temp].Value} stStance
+      | }
 
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
@@ -184,9 +184,7 @@ sub misc_combat(bool _debug, int _tmpID)
   CHECKEXIT
   GETINPUT
   CHECKTIE
-  CHECKDEFENSE
-  BUFFNOW
-  BUFFTEMP
+  | CHECKDEFENSE
 
   /call check_heal_routines
   /if (SWARM || PET) {
@@ -202,9 +200,9 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   | spam rune
-  /if (${is_ready[${_debug}, "${maChr.Find[stTempRune].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stTempRune].Value}" 0 FALSE
-  }
+  | /if (${is_ready[${_debug}, "${maChr.Find[stTempRune].Value}"]}) {
+  |   /call voodoo ${_debug} "${maChr.Find[stTempRune].Value}" 0 FALSE
+  | }
 
   /if (${target[isdead, ${_tmpID}]}) {
     /return FALSE
@@ -258,7 +256,7 @@ sub get_agro(bool _debug, int _tmpID)
   ISMEDEAD
   CHECKEXIT
   GETINPUT
-  CHECKDEFENSE
+  | CHECKDEFENSE
 
   /if (${target[isdead, ${_tmpID}]}) {
     /return FALSE
@@ -355,8 +353,8 @@ sub check_heal(bool _debug, string _type)
   CHECKTIE
   ISMEDEAD
   CHECKEXIT
-  CHECKREZ
-  CHECKDEFENSE
+  | CHECKREZ
+  | CHECKDEFENSE
 
   SETHUD "heal ${_type}"
 
@@ -466,8 +464,8 @@ sub check_heal(bool _debug, string _type)
     /return FALSE
   }
 
-  CHECKREZ
-  CHECKFADE
+  | CHECKREZ
+  | CHECKFADE
 
   /call cast_cycle_heal ${_debug} ${hurtID} single
 
@@ -520,7 +518,7 @@ sub burn(bool _debug, int _tmpID)
   CHECKEXIT
   GETINPUT
   CHECKTIE
-  CHECKDEFENSE
+  | CHECKDEFENSE
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} TARGET

@@ -19,6 +19,37 @@ on the to do list
 --------------------
 
 
+210205.01
+- bard
+  (yes.. even more corrections)
+  i better be getting some cookies for this
+- pladin
+  removed the automations of: 
+    thwart temp rune
+    steel buff
+    stance buff
+  use them as buffs with now and incombat tags
+- berserker
+  removed stKickintheShins from spam DPS 
+- events
+  added in events for tantor raid
+- dannet
+  corrected a startup check for settings
+- tags
+  added: delaycooldown to buff/debuff/dot/nuke/and somethign else i forget
+  delaycooldown::delays the macro till gems are not in cooldown
+  **
+  use with caution in buffs, excluding buff now, tags are typically checked 
+  before the check to see if you have the buff or not
+  **
+- /area
+  fixed a bug with safe duplicating the zone name  
+- dannet healing
+  fixed a HP/0 error
+- /chr intensity
+  redesigned the sub that fires aa intensity of the resolute. it had issues
+  
+
 210131.01
 - berserker
   removed a variable that shouldn't be there

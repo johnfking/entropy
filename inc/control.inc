@@ -174,7 +174,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     /declare _obs string local
     /for _count 1 to ${DanNet[${_verbage}].Observe.Count[|]}
       /varset _obs ${DanNet[${_verbage}].Observe.Arg[${_count},|]}
-      OUT ${_count}${sep}\a-w${_obs}\ax
+    OUT ${_count}${sep}\a-w${_obs}\ax (\a-r${DanNet[${_verbage}].Observe["${_obs}"]}\ax)
     /next _count
     /invoke ${out[18, 0, 33]}
     /return TRUE
@@ -850,9 +850,11 @@ sub Bind_command_cb(string _verbage)
     /call Bind_command_aux cb
     /return TRUE
   } else /if (${_verbage.Equal[-h]}) {
+    | help goes here
+    /return TRUE
   }
 
-  /if (${Bool[${_verbage}]} && ${Select[${_verbage},u,s,a,c,g,r,b,t]}) {
+  /if (${Bool[${_verbage}]} && ${Select[${_verbage},u,s,a,c,g,r,b,t,xx]}) {
     /call Bind_control_nomore invis
     /call check_buff_cycle ${maDebug.Find[cb].Value} TRUE ${_verbage}
     /return TRUE
@@ -1888,19 +1890,6 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
     /invoke ${maControl.Add[delete,option]}
     /invoke ${set_control_output[${_debug}, maEntropy, "entropy buttons", maControl]}
     /return TRUE
-
-
-  |** change broadcast type
-  } else /if (${_type.Equal[broadcast]}) {
-
-    /if (${lsBroadcastTypes.Contains[${_verbage}]}) {
-      /call do_raw_edit ${_debug} SILENT stDefaultBroadcast "${_verbage.Lower}"
-    } else /if (!${lsBroadcastTypes.Contains[${_verbage}]}) {
-      OUT Options${sep}\a-w/entropy broadcast\ax
-      /call out_list lsBroadcastTypes
-      /return TRUE
-    }
-  **|
 
 
   | dannet stuff

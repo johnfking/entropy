@@ -678,7 +678,7 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
       DEBUG ${sep}_toon${sep}\ay${_toon}\ax
 
       | is the observer set
-      /if (!${DanNet[${_toon}].Observe.Find[Me.PctHPs]} || !${DanNet[${_toon}].Observe.Find[Me.Class.ShortName]} || !${DanNet[${_toon}].Observe.Find[Me.ID]}) {
+      /if (!${DanNet[${_toon}].ObserveSet["Me.PctHPs"]} || !${DanNet[${_toon}].ObserveSet["Me.Class.ShortName"]} || !${DanNet[${_toon}].ObserveSet["Me.ID"]}) {
         DEBUG ${break}defined${sep}!\a-w${_toon}_PctHPs\ax
         /continue
       }
@@ -699,7 +699,7 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
         DEBUG ${break} not in zone
         /continue
       } else /if (${Spawn[pc ${_toon}].DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}) {
-        DEBUG ${brek} rampage tank
+        DEBUG ${break} rampage tank
         /continue
       }
 
@@ -710,8 +710,8 @@ sub get_hurt(bool _debug, string _type, bool _breakonGroup)
       }
 
       /if (${maHeal.Find[swHealWeighted].Value}) {
-        DEBUG ${sep}_count${sep}\a-w${_toon}\ax${sep}\a-o(${Spawn[pc ${_toon}].PctHPs} / ${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}) - .${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}\ax
-        /varset _tmpWeight ${Float[${Math.Calc[(${DanNet[${_toon}].Observe["Me.PctHPs"]} / ${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}) - .${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}]}].Precision[5]}
+        DEBUG ${sep}_count${sep}\a-w${_toon}\ax${sep}\a-o(${DanNet[${_toon}].Observe["Me.PctHPs"]} - .${maHeal.Find[${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}) / ${maHeal.Find[${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}\ax
+        /varset _tmpWeight ${Float[${Math.Calc[(${DanNet[${_toon}].Observe["Me.PctHPs"]} - .${maHeal.Find[${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}) / ${maHeal.Find[${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}].Precision[5]}]}
         DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}_tmpWeight${sep}\a-w${_tmpWeight}\ax
         /if (${Float[${_tmpWeight}].Precision[5]} < ${Float[${_hurtWeight}].Precision[5]}) {
           /varset _hurtWeight ${Float[${_tmpWeight}].Precision[5]}
@@ -4333,7 +4333,7 @@ sub set_zone_lists(bool _debug)
 
     | if it doesnt exist, make it
     /if (!${sqlite.Rows[QZone]}) {
-      /sqlite query "${DBzone}" QZone INSERT INTO zone_control VALUES ('${Zone.ShortName}', 'swZoneSafe', 'FALSE');
+      /sqlite query "${DBzone}" QZone INSERT OR IGNORE INTO zone_control VALUES ('${Zone.ShortName}', 'swZoneSafe', 'FALSE');
       | /if (!${sql_check[${_debug}, QZone, set_zone_lists, "INSERT INTO (zone_control)"]}) /endmacro
     }
     /if (${sqlite.Resultcode[QZone]} != 0) {
@@ -4347,7 +4347,7 @@ sub set_zone_lists(bool _debug)
   /sqlite query "${DBzone}" QZone SELECT value FROM zone_control WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe';
 
   /if (!${sqlite.Rows[QZone]}) {
-    /sqlite query "${DBzone}" QZone INSERT INTO zone_control VALUES ('${Zone.ShortName}', 'swZoneSafe', 'FALSE');
+    /sqlite query "${DBzone}" QZone INSERT OR IGNORE INTO zone_control VALUES ('${Zone.ShortName}', 'swZoneSafe', 'FALSE');
     /invoke ${maEnv.Add[swZoneSafe,FALSE]}
   } else {
     /invoke ${maEnv.Add[swZoneSafe,${sqlite.Result[QZone 1 value]}]}
@@ -5105,6 +5105,7 @@ sub check_buff_cycle_now(bool _debug)
   }
 
   CHECKTIE
+  SETHUD EMPTY
   ISMEDEAD
   CHECKEXIT check_buff_cycle_now
   GETINPUT check_buff_cycle_now NA|NA
@@ -5118,9 +5119,16 @@ sub check_buff_cycle_now(bool _debug)
     
     GETOVERHERE
 
-    | alwaysup tag needed
+    | buff on/off switch
+    /if (!${maBuff.Find[swBuff${_licountself.Value}].Value}) {
+      | DEBUG ${break}${_licountself.Value}${sep}\a-wswitched off\ax
+      /invoke ${_licountself.Advance}
+      /continue
+    }
+
+    | now tag needed
     /if (!${lsBuff${_licountself.Value}Tag.Contains[now]}) {
-      DEBUG ${break} no alwaysup tag
+      DEBUG ${break}${_licountself.Value}${sep}\a-wno now tag\ax
       /invoke ${_licountself.Advance}
       /continue
     }
@@ -5132,23 +5140,8 @@ sub check_buff_cycle_now(bool _debug)
       /continue
     }
 
-    | buff on/off switch
-    /if (!${maBuff.Find[swBuff${_licountself.Value}].Value}) {
-      DEBUG ${break}switched off:${_licountself.Value}
-      /invoke ${_licountself.Advance}
-      /continue
-    }
-
     | is it ready
     /if (!${is_ready[${_debug}, "${maBuff.Find[stBuff${_licountself.Value}].Value}"]}) {
-      /invoke ${_licountself.Advance}
-      /continue
-    }
-
-    | cycle the tags
-    /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_licountself.Value} ${Me.DisplayName} "${maBuff.Find[stBuff${_licountself.Value}].Value}" check_buff_cycle_now
-    /if (!${Macro.Return}) {
-      DEBUG ${break}condition${sep}Buff${_licountself.Value}
       /invoke ${_licountself.Advance}
       /continue
     }
@@ -5178,6 +5171,14 @@ sub check_buff_cycle_now(bool _debug)
     DEBUG (${Me.Buff[${_spell}].ID} || ${Me.Song[${_spell}].ID})
     /if (${Me.Buff[${_spell}].ID} || ${Me.Song[${_spell}].ID}) {
       DEBUG ${break}have buff/song
+      /invoke ${_licountself.Advance}
+      /continue
+    }
+
+    | cycle the tags
+    /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_licountself.Value} ${Me.DisplayName} "${maBuff.Find[stBuff${_licountself.Value}].Value}" check_buff_cycle_now
+    /if (!${Macro.Return}) {
+      DEBUG ${break}${_licountself.Value}${sep}\a-wcondition fail\ax
       /invoke ${_licountself.Advance}
       /continue
     }
@@ -5320,42 +5321,42 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
   }
 
   | unity
-  /if ((${maBuff.Find[swBuffUnity].Value} && AUTO && !${timer_Check_Buff_Unity}) || (${_verbage.Equal[u]} && ${_force})) {
+  /if ((${maBuff.Find[swBuffUnity].Value} && AUTO && !${timer_Check_Buff_Unity}) || (${Select[${_verbage},u,xx]} && ${_force})) {
     /call check_buff_cycle_unity ${If[${_force},${_debug},${maDebug.Find[unity].Value}]}
   }
 
   | aura
-  /if ((${maBuff.Find[swBuffAura].Value} && AUTO && !${timer_Check_Buff_Aura}) || (${_verbage.Equal[a]} && ${_force})) {
+  /if ((${maBuff.Find[swBuffAura].Value} && AUTO && !${timer_Check_Buff_Aura}) || (${Select[${_verbage},a,xx]} && ${_force})) {
     /call check_buff_cycle_aura ${If[${_force},${maDebug.Find[aura].Value},${maDebug.Find[aura].Value}]}
   }
 
   | shrink
-  /if ((${maBuff.Find[swBuffShrink].Value} && AUTO && !${timer_Check_Buff_Shrink}) || (${_verbage.Equal[s]} && ${_force})) {
+  /if ((${maBuff.Find[swBuffShrink].Value} && AUTO && !${timer_Check_Buff_Shrink}) || (${Select[${_verbage},s,xx]} && ${_force})) {
     /call check_buff_cycle_shrink ${If[${_force},${_debug},${maDebug.Find[shrink].Value}]}
   }
 
   | self
-  /if ((${maBuff.Find[swBuffSelf].Value} && AUTO && !${timer_Check_Buff_Self}) || (${_verbage.Equal[s]} && ${_force})) {
+  /if ((${maBuff.Find[swBuffSelf].Value} && AUTO && !${timer_Check_Buff_Self}) || (${Select[${_verbage},s,xx]} && ${_force})) {
     /call check_buff_cycle_self ${If[${_force},${_debug},${maDebug.Find[buffself].Value}]}
   }
 
   | crew
-  /if ((${maBuff.Find[swBuffCrew].Value} && AUTO && !${timer_Check_Buff_Crew}) || (${_verbage.Equal[c]} && ${_force})) {
+  /if ((${maBuff.Find[swBuffCrew].Value} && AUTO && !${timer_Check_Buff_Crew}) || (${Select[${_verbage},c]} && ${_force})) {
     /call check_buff_cycle_crew ${If[${_force},${_debug},${maDebug.Find[crew].Value}]}
   }
 
   | group
-  /if ((${maBuff.Find[swBuffGroup].Value} && AUTO && !${timer_Check_Buff_Group}) || (${_verbage.Equal[g]} && ${_force})) {
+  /if ((${maBuff.Find[swBuffGroup].Value} && AUTO && !${timer_Check_Buff_Group}) || (${Select[${_verbage},g]} && ${_force})) {
     /call check_buff_cycle_others ${If[${_force},${_debug},${maDebug.Find[buffgroup].Value}]} Group
   }
 
   | raid
-  /if ((${maBuff.Find[swBuffRaid].Value} && AUTO && !${timer_Check_Buff_Raid}) || (${_verbage.Equal[r]} && ${_force})) {
+  /if ((${maBuff.Find[swBuffRaid].Value} && AUTO && !${timer_Check_Buff_Raid}) || (${Select[${_verbage},r]} && ${_force})) {
     /call check_buff_cycle_others ${If[${_force},${_debug},${maDebug.Find[buffraid].Value}]} Raid
   }
 
   | beg
-  /if ((${maBuff.Find[swBuffBeg].Value} && AUTO && !${timer_Check_Buff_Beg}) || (${_verbage.Equal[b]} && ${_force})) {
+  /if ((${maBuff.Find[swBuffBeg].Value} && AUTO && !${timer_Check_Buff_Beg}) || (${Select[${_verbage},b]} && ${_force})) {
     /call check_buff_cycle_beg ${If[${_force},${_debug},${maDebug.Find[beg].Value}]}
   }
 
@@ -5365,7 +5366,7 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
   }
 
   | ranged ammo
-  /if ((${maBuff.Find[swBuffAmmo].Value} && AUTO && !${timer_Check_Ammo}) || (${_verbage.Equal[s]} && ${_force})) {
+  /if ((${maBuff.Find[swBuffAmmo].Value} && AUTO && !${timer_Check_Ammo}) || (${Select[${_verbage},s]} && ${_force})) {
     /call check_buff_cycle_ammo ${If[${_force},${_debug},${maDebug.Find[ammo].Value}]}
   }
 
@@ -7935,26 +7936,35 @@ sub cast_AA_intensity(bool _debug)
   CHECKEXIT cast_AA_intensity
   GETINPUT cast_AA_intensity NA|NA
   
+  | so not use with a glyph running
   /if (${Me.Buff[Glyph of Destruction].ID}) {
     /return FALSE
   }
+  
+  | have the buff
+  /if (${Me.Song[${maChr.Find[stAAIntensity].Value}].ID}) { 
+    DEBUG ${break}have buff
+    /return FALSE
+  } 
 
-  /if (${Raid.Members} && ${maChr.Find[swSpireRaid].Value}) {
-    DEBUG intensity${sep}\-wRaid\ax
-    /if (!${Me.Song[${maChr.Find[stSpire].Value}].ID} && ${Spell[${maChr.Find[stAAIntensity].Value}].STACKS}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAIntensity].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAIntensity].Value}" 0 FALSE
-        /return TRUE
-      }
-    }
-  } else /if (!${Raid.Members} && ${maChr.Find[swSpireGroup].Value}) {
+  | stacks?
+  /if (!${Spell[${maChr.Find[stAAIntensity].Value}].STACKS}) {
+    DEBUG ${break}does nnot stack
+    /return FALSE
+  }
+  
+  | is it ready?
+  /if (!${is_ready[${_debug}, "${maChr.Find[stAAIntensity].Value}"]}) {
+    /return FALSE
+  }
+
+  | well?
+  /if (${Raid.Members} && ${maChr.Find[swIntensityRaid].Value}) {
+    DEBUG intensity${sep}\a-wRaid\ax
+    /call voodoo ${_debug} "${maChr.Find[stAAIntensity].Value}" 0 FALSE
+  } else /if (!${Raid.Members} && ${Group.Members} && ${maChr.Find[swIntensityGroup].Value}) {
     DEBUG intensity${sep}\a-wGroup\ax
-    /if (!${Me.Song[${maChr.Find[stAAIntensity].Value}].ID} && ${Spell[${maChr.Find[stAAIntensity].Value}].STACKS}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAIntensity].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAIntensity].Value}" 0 FALSE
-        /return TRUE
-      }
-    }
+    /call voodoo ${_debug} "${maChr.Find[stAAIntensity].Value}" 0 FALSE
   }
 
 /return FALSE
@@ -12244,6 +12254,12 @@ sub tag_evaluation(bool _debug, string _type, int _num, string _name, string _sp
           /delay 1s
         }
 
+        | delay until gemms are not in cooldown
+        /if (${_litag.Value.Equal[delaycooldown]}) {
+          DEBUG ${sep}tag${sep}\a-wdelaycooldown\ax
+          /delay 2.5s !${Me.SpellInCooldown} 
+        }
+
         | dropdisc
         /if (${_litag.Value.Equal[dropdisc]}) {
           /if (${Me.ActiveDisc.ID} && ${Me.CombatAbilityReady[${Spell[${_spell}].RankName}]}) {
@@ -13309,7 +13325,7 @@ sub check_buff_cycle_temp(bool _debug)
     }
   }
 
-  SETHUD "buff temp"
+  SETHUD EMPTY
 
   CHECKTIE
   ISMEDEAD
@@ -13461,8 +13477,6 @@ sub check_buff_cycle_temp(bool _debug)
     /varcalc _countToon ${_countToon}+1
 
   }
-
-  SETHUD EMPTY
 
 /return TRUE
  
@@ -15275,52 +15289,62 @@ sub get_assist_target(bool _debug, string _call)
  ***|
 sub class_cycle(string _order)
 
-  ISMEDEAD
-  CHECKDEFENSE
+
+  /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
  
   /declare _lico listiterator local
   /vardata _lico ${_order}.First.Clone
   /while (!${_lico.IsEnd}) {
+
+    ISMEDEAD
  
     | /melee
     /if (${_lico.Value.Equal[melee]} && MELEE) {
       /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
+    }
+    
+    BUFFNOW
+    CHECKDEFENSE
     
     | /heal
-    } else /if (${_lico.Value.Equal[heal]}) {
+    /if (${_lico.Value.Equal[heal]}) {
       /call check_heal_routines
+    }
+
+    BUFFTEMP
+    /invoke GETASSIST
 
     | class burn routine
-    } else /if (${_lico.Value.Equal[burn]} && BURN) {
-      /call burn ${maDebug.Find[burn].Value} GETASSIST
+    /if (${_lico.Value.Equal[burn]} && BURN) {
+      /call burn ${maDebug.Find[burn].Value} TARGET
 
     | class misc_combat routine
     } else /if (${_lico.Value.Equal[misc]}) {
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
+      /call misc_combat ${maDebug.Find[misc].Value} TARGET
 
     | /dot
     } else /if (${_lico.Value.Equal[dot]} && DOT) {
-      /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
+      /call cast_cycle_dot ${maDebug.Find[dot].Value} TARGET
 
     | /nuke
     } else /if (${_lico.Value.Equal[nuke]} && NUKE) {
-      /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
+      /call cast_cycle_nuke ${maDebug.Find[nuke].Value} TARGET
 
     | /debuff
-    } else /if (${_lico.Value.Equal[debuff]}) {
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
+    } else /if (${_lico.Value.Equal[debuff]} && !${timer_Check_deBuffs}) {
+      /call check_debuff_routines TARGET
 
     | /clickitems
     } else /if (${_lico.Value.Equal[item]}) {
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
+      /call check_item_cycle ${maDebug.Find[item].Value} TARGET
 
     | pet and swarm (idiot) pets
     } else /if (${_lico.Value.Equal[pet]} && (PET || SWARM)) {
-      /call send_pet ${maDebug.Find[sic].Value} GETASSIST
+      /call send_pet ${maDebug.Find[sic].Value} TARGET
 
     | class specific swarm pets like mage and beast
     } else /if (${_lico.Value.Equal[swarm]} && SWARM) {
-      /call cast_temp_pet ${maDebug.Find[temp].Value} GETASSIST "${maChr.Find[stNukeServant].Value}"
+      /call cast_temp_pet ${maDebug.Find[temp].Value} TARGET "${maChr.Find[stNukeServant].Value}"
 
     | alliance
     } else /if (${_lico.Value.Equal[alliance]}) {
@@ -15335,9 +15359,8 @@ sub class_cycle(string _order)
       /call cast_stamina_recovery ${maDebug.Find[rest].Value}
 
     | minion checking for pet classes
-    | } else /if (${_lico.Value.Equal[checkminion]} && PET && !${timer_Check_Minion_Cycle} && !${check_engaged[FALSE]}) {
     } else /if (${_lico.Value.Equal[checkminion]} && PET) {
-      /if (!${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
+      /if (!${check_engaged[FALSE]} && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
   
     | xtarget checking/building
     } else /if (${_lico.Value.Equal[xtarget]} && ${maHeal.Find[swHealXTarget].Value}) {
@@ -15345,11 +15368,11 @@ sub class_cycle(string _order)
       
     | taunt classes
     } else /if (${_lico.Value.Equal[taunt]}) {
-      /invoke ${do_taunt[${maDebug.Find[taunt].Value}, GETASSIST]}
+      /invoke ${do_taunt[${maDebug.Find[taunt].Value}, TARGET]}
       
     | agro routines
     } else /if (${_lico.Value.Equal[agro]} && AGRO) {
-      /call get_agro ${maDebug.Find[agro].Value} GETASSIST
+      /call get_agro ${maDebug.Find[agro].Value} TARGET
 
     | knight harmonious routine
     } else /if (${_lico.Value.Equal[harmonious]} && ${maChr.Find[swHarmonious].Value}) {
@@ -15369,13 +15392,15 @@ sub class_cycle(string _order)
          
     }
 
+    CHECKFADE
+    CHECKREZ
+    CHECKTIE
+    GETOVERHERE
+    BUFFTEMP
+
     /invoke ${_lico.Advance}
   }
 
-  CHECKREZ
-  BUFFTEMP
-  CHECKFADE
- 
 /return TRUE
 
 

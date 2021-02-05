@@ -279,7 +279,7 @@ sub cast_nut_smasher(bool _debug)
 
 /return TRUE
 
-
+${SpawnCount[npc radius 270]}
 
 |***
  * note: heal sub
@@ -288,24 +288,25 @@ sub cast_nut_smasher(bool _debug)
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
 
-  CHECKTIE
+  | CHECKTIE
   ISMEDEAD
   CHECKEXIT
-  CHECKFADE
+  | CHECKFADE
   GETINPUT clr_heal_start type|${_type}
   
-
-
   /if (${maHeal.Find[swChain].Value} && ${maHeal.Find[swChainToken].Value}) {
     /call completeheal_chain ${maDebug.Find[chain].Value}
   }
 
-  | Group Regen Heal
-  /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
-    /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 grouphot
-  }
 
   /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+
+  | Group Regen Heal
+  /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
+    /if (AE# && ${SpawnCount[npc radius ENV]} >= AE#) {
+      /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 grouphot
+    }
+  }
 
   | forcing of splash  
   /if (!${hurtCount} && ${maOver.Find[swOverSplashHurt].Value} && ${maHeal.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
@@ -319,7 +320,7 @@ sub check_heal(bool _debug, string _type)
   }
 
   /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
-    CHECKREZ
+    | CHECKREZ
     SETHUD EMPTY
     /delay 1
     /return FALSE
@@ -392,8 +393,8 @@ sub check_heal(bool _debug, string _type)
     CHECKTIE
     ISMEDEAD
     CHECKEXIT
-    CHECKREZ
-    CHECKFADE
+    | CHECKREZ
+    | CHECKFADE
     GETINPUT clr_heal_mid type|${_type}
 
     | splash heal
@@ -431,8 +432,8 @@ sub check_heal(bool _debug, string _type)
   CHECKTIE
   ISMEDEAD
   CHECKEXIT
-  CHECKREZ
-  CHECKFADE
+  | CHECKREZ
+  | CHECKFADE
   GETINPUT clr_heal_end type|${_type}
 
   /call cast_cycle_heal ${_debug} ${hurtID} single
@@ -483,7 +484,7 @@ sub Bind_command_issuance(bool _debug)
     }
   }
 
-  CHECKREZ
+  | CHECKREZ
 
 /return TRUE
 
@@ -594,7 +595,7 @@ sub burn(bool _debug, int _tmpID)
   | Intensity of the Resolute AA 4 hour reuse
   /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 
-  CHECKREZ
+  | CHECKREZ
 
 /return TRUE
 
@@ -882,9 +883,6 @@ sub check_mana(bool _debug)
   
 
 /return TRUE
-
-
-
 
 
 

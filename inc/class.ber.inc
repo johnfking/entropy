@@ -16,38 +16,37 @@ sub class_init(bool _debug)
     /declare _boottimestart int local ${MacroQuest.Running}
   }
 
-  /call set_data FALSE maData stSpire                                 map outer "Spire of the Juggernaut"
-  /call set_data FALSE maData stSynergy                               map outer "Fury's Synergy"
-  /call set_data FALSE maData stFade                                  map outer "Self Preservation"
-  /call set_data_map FALSE maChr stAAUnity                            FALSE                         "${auxna} class aa unity buff"
+  /call set_data ${_debug} maData stSpire                             map outer "Spire of the Juggernaut"
+  /call set_data ${_debug} maData stSynergy                           map outer "Fury's Synergy"
+  /call set_data ${_debug} maData stFade                              map outer "Self Preservation"
 
-  /call set_data_map FALSE maChr stRest                               PREGEN|1                      "${auxna} name of stamina rest disc"
-  /call set_data_map FALSE maChr swHiatus                             FALSE                         "${auxsw} use hiatus rest disc"
+  /call set_data_map ${_debug} maChr stRest                           PREGEN|1                      "${auxna} name of stamina rest disc"
+  /call set_data_map ${_debug} maChr swHiatus                         FALSE                         "${auxsw} use hiatus rest disc"
 
-  /call set_data_map FALSE maChr stRageVolley                         PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stCryOfChaos                         PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stInspiredAnger                      PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stOverpoweringFrenzy                 PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stUnsettlingScream                   PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stAxeThrow                           PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stDivertiveStrike                    PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stSharedBloodlust                    PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stBattleFrenzy                       PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stCleavingRage                       PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stKickintheShins                     PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stAxeofRalos                         PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stVengefulFlurry                     PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stViciousSpiral                      PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stCryHavoc                           PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stAugmentedFrenzy                    PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stFesteringRage                      PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stResolve                            PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stDichotomic                         PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stDisconcerting                      PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stSappingStrikes                     PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stPhantomAssailant                   PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stOpenWound                          PREGEN|1                      "${auxna} "
-  /call set_data_map FALSE maChr stConditionedRetaliation	            PREGEN|1			    		        "${auxna} "
+  /call set_data_map ${_debug} maChr stRageVolley                     PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stCryOfChaos                     PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stInspiredAnger                  PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stOverpoweringFrenzy             PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stUnsettlingScream               PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stAxeThrow                       PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stDivertiveStrike                PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stSharedBloodlust                PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stBattleFrenzy                   PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stCleavingRage                   PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stKickintheShins                 PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stAxeofRalos                     PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stVengefulFlurry                 PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stViciousSpiral                  PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stCryHavoc                       PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stAugmentedFrenzy                PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stFesteringRage                  PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stResolve                        PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stDichotomic                     PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stDisconcerting                  PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stSappingStrikes                 PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stPhantomAssailant               PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stOpenWound                      PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr stConditionedRetaliation	        PREGEN|1			    		        "${auxna} "
 
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                EMPTY                                     "${auxli} class base loop start"
@@ -56,6 +55,7 @@ sub class_init(bool _debug)
   /call set_data_list ${_debug} maChr lsOrderClassPost                staminarecover                            "${auxli} class post combat"
 
   | AAs
+  /call set_data_map ${_debug} maChr stAAUnity                        FALSE                         "${auxna} class aa unity buff"
   /call set_data_map ${_debug} maChr stAADrawntoBlood                 PREGEN|1                      "${auxna} Drawn to Blood aa"
   /call set_data_map ${_debug} maChr stAABattleLeap                   PREGEN|1                      "${auxna} Battle Leap aa"
   /call set_data_map ${_debug} maChr stAARecklessAbandon              PREGEN|1                      "${auxna} Reckless Abandon aa"
@@ -192,12 +192,12 @@ sub misc_combat(bool _debug, int _tmpID)
     /return TRUE
   }
 
-  |Self Buffs to keep up at all times (Sapping Strikes, up 2m of every 2.5m)
+  | Self Buffs to keep up at all times (Sapping Strikes, up 2m of every 2.5m)
   /if (${is_ready[${_debug}, "${maChr.Find[stSappingStrikes].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stSappingStrikes].Value}" 0 FALSE
   }
   
-  |Self buffs to keep up at all times (Magnified Frenzy, requires target)
+  | Self buffs to keep up at all times (Magnified Frenzy, requires target)
   /if (${is_ready[${_debug}, "${maChr.Find[stAugmentedFrenzy].Value}"]} && !${Me.Buff[${maChr.Find[stAugmentedFrenzy].Value}].ID}) {
   	/if (${Me.PctHPs} > 90) {
       /call voodoo ${_debug} "${maChr.Find[stAABloodfury].Value}" 0 FALSE
@@ -211,7 +211,7 @@ sub misc_combat(bool _debug, int _tmpID)
 	}
 	
 
-  |Use Drawn to Blood if Frenzied Resolve active
+  | Use Drawn to Blood if Frenzied Resolve active
   /if (${Me.ActiveDisc[Frenzied Resolve].ID} && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.8 && ${Spawn[id ${_tmpID}].Distance} < 60) {
     /if (${is_ready[${_debug}, "${maChr.Find[stAADrawntoBlood].Value}"]}) {
       /call voodoo ${_debug} "${maChr.Find[stAADrawntoBlood].Value}" 0 FALSE
@@ -277,8 +277,8 @@ sub misc_combat(bool _debug, int _tmpID)
     /call voodoo ${_debug} "${maChr.Find[stAABindingAxe].Value}" ${_tmpID} FALSE
   }
 
-  /if (AE#) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAARampage].Value}"]} && ${Me.Song[Strike of Savagery].ID}) {
+  /if (AE# && ${Me.Song[Strike of Savagery].ID}) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stAARampage].Value}"]}) {
       /call voodoo ${_debug} "${maChr.Find[stAARampage].Value}" 0 FALSE
     }
   }
@@ -314,9 +314,9 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 	
   | Rabbit Punch
-  /if (${Target.Distance} <= 49 && ${Target.Distance} <= ENV) {
-    /call voodoo ${_debug} "${maChr.Find[stKickintheShins].Value}" ${_tmpID} FALSE
-  }
+  | /if (${Target.Distance} <= 49 && ${Target.Distance} <= ENV) {
+  |   /call voodoo ${_debug} "${maChr.Find[stKickintheShins].Value}" ${_tmpID} FALSE
+  | }
   
   | to agro or not ?
   /if (!AGRO) {

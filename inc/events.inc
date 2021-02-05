@@ -2488,9 +2488,6 @@ sub Event_Tofs2(string Line)
  **|
  
  
- 
- 
- 
 | Aaryonar
 | yxz
 
@@ -2505,3 +2502,68 @@ sub Event_Tofs2(string Line)
 
 | white
 | 1812, -1838, 155
+
+
+
+|Tantor
+
+#Event Tantor "Tantor roars, pointing its trunk at |${Me.DisplayName}|."
+Sub Event_Tantor()
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  OUT TANTOR EMOTE
+  /call chase_tail
+  OUT Returning to our camp
+  /nav waypoint tmpcamp
+/return
+
+
+sub chase_tail()
+  /nav recordwaypoint tmpcamp "tmp camp"
+  /delay 1s
+  OUT RUNNING AWAY FROM TANTOR
+  /nav loc -443 -1091 -43
+  /delay 2s
+  /while (${Me.Moving} && !${Me.Stunned}) {
+    /delay 1s
+  }
+  /declare _count int local 0
+  /face fast heading 270
+  /circle on 200
+  /delay 2s
+  /while (${Me.Moving} && ${_count} < 90) {
+    /delay 1s
+    /varcalc _count ${_count} + 1
+    /doevents Tantor_Success
+    /if (${Bool[${Macro.Return}]}) /break   
+  }
+/return
+  
+
+#Event Tantor_Success "Tantor gives up the chase." 
+Sub Event_Tantor_Success
+/return TRUE
+  
+
+#Event TrunkRock "Tantor grabs a rock with its trunk and turns toward |${Me.DisplayName}|."
+sub Event_TrunkRock()
+	/if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+	OUT ROCK EMOTE
+	/nav recordwaypoint tmpcamp "tmp camp"
+	/delay 1s
+	OUT RUNNING AWAY
+	/nav loc -824 -1079 -29
+	/delay 7s
+  /if (${Me.State.NotEqual[duck]}) {
+    OUT DUCK, DUCK, DUCK, GOOSE
+	  /keypress DUCK
+	}
+	/delay 18s
+	/if (${Me.State.Equal[duck]}) {
+    /keypress DUCK
+	  OUT UN-GOOSING
+	}
+	OUT RETURNING TO CAMP
+	/nav waypoint tmpcamp
+/return
+
+

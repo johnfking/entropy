@@ -222,13 +222,13 @@ sub misc_combat(bool _debug, int _tmpID)
       }
     } else /if (AE#) {
       /if (${Raid.Members}) {
-        /if (${Spawn[${_tmpID}].PctHPs} > 3 && ${Me.CurrentEndurance} > 30000 && !${Target.MyBuff[Boastful Conclusion].ID}) {
+        /if (${Spawn[${_tmpID}].PctHPs} > 3 && ${Me.CurrentEndurance} > 10500 && !${Target.MyBuff[Vainglorious Shout].ID}) {
           /if (${is_ready[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
             /call voodoo ${_debug} "${maChr.Find[stAAVaingloriousShout].Value}" ${_tmpID} FALSE
           }
         }
       } else /if (!${Raid.Members}) {
-        /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Boastful Conclusion].ID}) {
+        /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Vainglorious Shout].ID}) {
           /if (${is_ready[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
             /call voodoo ${_debug} "${maChr.Find[stAAVaingloriousShout].Value}" ${_tmpID} FALSE
           }
@@ -237,9 +237,6 @@ sub misc_combat(bool _debug, int _tmpID)
     }
   }
   
-  
-  maChr 
-
   /if (${target[isdead, ${_tmpID}]}) {
     /call pulse_stop
     /call clear_combat
