@@ -169,7 +169,6 @@ sub class_main(bool _debug)
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
       /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
@@ -199,9 +198,13 @@ sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  TMPIDDEAD
+  
+  | /if (${target[isdead, ${_tmpID}]}) {
+  |    /return FALSE
+  | }
+  
+  
   CHECKEXIT
   GETINPUT misc_combat_CLR NA|NA
   CHECKTIE
@@ -796,9 +799,11 @@ sub completeheal_chain(bool _debug)
   | do not want to leave a cleric locked in this any more then needed
   /invoke ${maHeal.Add[swChainToken,FALSE]}
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  TMPIDDEAD
+  
+  | /if (${target[isdead, ${_tmpID}]}) {
+  |   /return FALSE
+  | }
 
   | cast the heal
   /call cast_cycle_heal ${_debug} ${_tmpID} complete

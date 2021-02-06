@@ -6,7 +6,7 @@
 
 
 |***
- * note: primary initilization of all beastlord non shared data
+ * note: primary initilization of all non shared data
  * use: not for you
  ***|
 sub class_init(bool _debug)
@@ -47,13 +47,11 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stPctConsume                     0                             "${auxnum} pct mana to use consume aa"
   /call set_data_list ${_debug} maChr lsParagonClass                  EMPTY                         "${auxli} classes you will use single paragon on"
 
-
   | class order lists
-  /call set_data_list ${_debug} maChr lsOrderClassBase                checkminion                                               "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassBase                checkminion|manarecover|staminarecover                    "${auxli} class base loop start"
   /call set_data_list ${_debug} maChr lsOrderClassPre                 checkminion                                               "${auxli} class pre combat"
   /call set_data_list ${_debug} maChr lsOrderClass                    melee|heal|pet|debuff|misc|burn|swarm|dot|nuke|item       "${auxli} class active combat order"
   /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|staminarecover                                "${auxli} class post combat "
-
 
   | AAs
   /call set_data_map ${_debug} maChr stAAUnity                        PREGEN|1                      "${auxna} class aa unity buff"
@@ -99,13 +97,13 @@ sub class_main(bool _debug)
   }
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-    GETINPUT
-    CHECKREZ
+    | GETINPUT
+    | CHECKREZ
     /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
+      | /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
       /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
@@ -114,7 +112,7 @@ sub class_main(bool _debug)
     }
 
     /if (AUTO && !ENGINE3) {
-      CHECKFADE
+      | CHECKFADE
       /call class_cycle lsOrderClassPost
       /if (!${timer_Check_Para}) /call check_mana ${maDebug.Find[para].Value}
     } else /if (AUTO && !ENGINE3) {
@@ -135,17 +133,15 @@ sub class_main(bool _debug)
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
 
-  ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  | ISMEDEAD
+  TMPIDDEAD
 
   CHECKEXIT misc_combat
   GETINPUT
   CHECKTIE
-  CHECKDEFENSE
-  BUFFNOW
-  BUFFTEMP
+  | CHECKDEFENSE
+  | BUFFNOW
+  | BUFFTEMP
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
@@ -159,6 +155,8 @@ sub misc_combat(bool _debug, int _tmpID)
     /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
     /return TRUE
   }
+  
+  TMPIDDEAD
 
   | do we want the mobs attention?
   /if (AGRO) {
@@ -172,9 +170,7 @@ sub misc_combat(bool _debug, int _tmpID)
     }
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  TMPIDDEAD
 
   /if (${is_ready[${_debug}, "${maChr.Find[stBestial].Value}"]} && !${Me.Song[${maChr.Find[stBestial].Value}].ID}) {
     /call voodoo ${_debug} "${maChr.Find[stBestial].Value}" 0 FALSE
@@ -189,6 +185,8 @@ sub misc_combat(bool _debug, int _tmpID)
       /call voodoo ${_debug} "${maChr.Find[stAEClaws].Value}" ${_tmpID} FALSE
     }
   }
+  
+  TMPIDDEAD
 
   /if (${is_ready[${_debug}, "${maChr.Find[atAAEnduringFrenzy].Value}"]} && !${Target.Buff[Enduring Frenzy].ID}) {
     /call voodoo ${_debug} "${maChr.Find[atAAEnduringFrenzy].Value}" ${_tmpID} FALSE
@@ -202,9 +200,7 @@ sub misc_combat(bool _debug, int _tmpID)
     /call voodoo ${_debug} "${maChr.Find[stRending].Value}" ${_tmpID} FALSE
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  TMPIDDEAD
 
   /if (${Me.Pet.ID} && !${Me.Song[${maChr.Find[stGrowl].Value}].ID}) {
     /if (${is_ready[${_debug}, "${maChr.Find[stGrowl].Value}"]}) {
@@ -225,7 +221,7 @@ sub check_mana(bool _debug)
 
   /invoke ${set_data_timer[${_debug}, Check_Para, RESTART]}
 
-  ISMEDEAD
+  | ISMEDEAD
   CHECKEXIT check_mana_BST
   /declare _count int local 0
 
@@ -234,7 +230,7 @@ sub check_mana(bool _debug)
     /if (${Me.PctMana} < ${maChr.Find[stPctConsume].Value}*.PCTHO) {
       /if (${is_ready[${_debug}, "${maChr.Find[atAAConsumptionofSpirit].Value}"]}) {
         /call voodoo ${_debug} "${maChr.Find[atAAConsumptionofSpirit].Value}" 0 FALSE
-        /return TUE
+        /return TRUE
       }
     }
   }
@@ -376,10 +372,10 @@ sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
 
   CHECKTIE
-  ISMEDEAD
+  | ISMEDEAD
   CHECKEXIT
-  CHECKREZ
-  CHECKFADE
+  | CHECKREZ
+  | CHECKFADE
 
   /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
@@ -453,14 +449,13 @@ sub check_heal(bool _debug, string _type)
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
 
-  ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  | ISMEDEAD
+  TMPIDDEAD
+  
   CHECKEXIT burn_BST
   GETINPUT
   CHECKTIE
-  CHECKDEFENSE
+  | CHECKDEFENSE
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
@@ -490,9 +485,7 @@ sub burn(bool _debug, int _tmpID)
     /call voodoo ${_debug} "${maChr.Find[stAAFerociousness].Value}" 0 FALSE
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  TMPIDDEAD
 
   /if (SWARM) {
     /if (${is_ready[${_debug}, "${maChr.Find[stAAAttackoftheWarders].Value}"]}) {
@@ -512,9 +505,7 @@ sub burn(bool _debug, int _tmpID)
     }
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  TMPIDDEAD
 
   /call cast_glyph ${maDebug.Find[glyph].Value}
   | Intensity of the Resolute AA 4 hour reuse
@@ -533,9 +524,7 @@ sub burn(bool _debug, int _tmpID)
       /call voodoo ${_debug} "${maChr.Find[stAABloodLust].Value}" 0 FALSE
     }
 
-    /if (${target[isdead, ${_tmpID}]}) {
-      /return FALSE
-    }
+    TMPIDDEAD
 
     /call cast_AA_spire ${maDebug.Find[spire].Value}
 
@@ -584,7 +573,6 @@ sub set_control(string _type, string _verbage, string _verbage2, string _verbage
     /invoke ${maControl.Add[class,submenu]}
     /invoke ${set_control_output[${_debug}, maChr, "chr para", maControl]}
     /return TRUE
-
 
   }
 

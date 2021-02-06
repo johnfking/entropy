@@ -2375,9 +2375,11 @@ sub clear_combat(bool _debug)
   /if (${Stick.Active}) {
     /squelch /stick off
   }
-  | /if (AUTO && ${Target.ID}) {
+
   /if (AUTO) {
-    /squelch /target clear
+    /if (!${maOver.Find[swTargetClear].Value}) {
+      /squelch /target clear
+    }
   }
 
 /return TRUE
@@ -5006,7 +5008,9 @@ sub set_tie(bool _debug)
     /if (${Navigation.MeshLoaded}) {
       /if (!${Navigation.Active} && ${Spawn[id ${_tmpID}].Distance} > ${maTie.Find[stTieVariance].Value}) {
         DEBUG get closer
-        /if (${Target.ID}) /squelch /target clear
+        /if (${Target.ID}) {
+          /squelch /target clear
+        }
         /squelch /face id ${_tmpID} ${If[${maHome.Find[swFaceFast].Value},fast,]}
         /nav id ${_tmpID} |dist=${maTie.Find[stTieVariance].Value} log=${maEntropy.Find[swNavLogSpew].Value}
 
@@ -6309,9 +6313,6 @@ sub check_buff_cycle_others(bool _debug, string _type)
 
     /next _count
 
-    /if (${Target.ID}) {
-      /squelch /target clear
-    }
     /varcalc _countToon ${_countToon} + 1
   }
 
@@ -7350,10 +7351,6 @@ sub check_minion_cycle_buff(bool _debug)
 
   /next _count
 
-  /if (${Target.ID}) {
-    /squelch /target clear
-  }
-
 /return TRUE
 
 
@@ -7455,7 +7452,7 @@ sub check_minion_cycle_weapons(bool _debug)
       /next _count
     }
 
-  } else /if (!${Select[${Me.Class.ShortName},MAG]}) {
+  } else /if (!${Select[${Me.Class.ShortName},MAG]} && ${SpawnCount[mag]} && ${DanNet.PeerCount[mag]}) {
     /if (!${FindItemCount[=${get_MAG_folded_pack[${_debug}]}]} && !${FindItemCount[=${maMinion.Find[stPetWeapon].Value}]}) {
       /call Bind_command_beg ${maMinion.Find[stBegAlias].Value}
       /return TRUE
@@ -9641,9 +9638,7 @@ sub target(string _type, int _tmpID)
     /invoke ${maCC.Add[swSetCombat,FALSE]}
     /invoke ${maCC.Add[swSetForced,FALSE]}
     /invoke ${set_data_timer[FALSE, Check_Behind, 0]}
-    | /if (${Target.ID}) {
-      /squelch /target clear
-    | }
+    /squelch /target clear
     /return TRUE
   }
 
@@ -9757,15 +9752,10 @@ sub target(string _type, int _tmpID)
         }
       }
     }
-
-    | /invoke ${maBurn.Add[swBurnConditionMet,FALSE]}
-
-    | /if (${Stick.Active}) {
-    |   /squelch /stick off
-    | }
-    | /if (${Target.ID}) {
+    /if (!${maOver.Find[swTargetClear].Value}) {
       /squelch /target clear
-    | }
+    }
+
     /return TRUE
   }
 
@@ -10819,7 +10809,6 @@ sub is_me_dead(bool _debug)
       /call Bind_control_home clear FALSE silent ${maDebug.Find[home].Value}
     }
 
-    | /call set_stop ${maDebug.Find[stop].Value} SILENT
     /invoke ${target[clear]}
     /if (${Me.Casting.ID}) {
       /stopcast
@@ -13468,7 +13457,6 @@ sub check_buff_cycle_temp(bool _debug)
         
         /call voodoo ${_debug} "${maData.Find[tmpName].Value}" ${_tmpID} FALSE
         SETHUD EMPTY
-        /invoke ${target[clear]}
         /return TRUE
       }
 
@@ -13994,17 +13982,20 @@ sub pull_assist_decision(bool _debug)
   DEBUG \atpull_assist_decision\ax
   DEBUG ${submenu}pullstate (\a-rassist/pull check\ax)
   
-  | /if (!PULL && !${maPull.Find[stCountChainPull].Value}) {
   /if (!PULL) {
-    
+  
     /if (!TARGET || ${Spawn[TARGET].Distance} > ENV || HEAL) {
-      /invoke ${target[clear]}
+      /if (!${maOver.Find[swTargetClear].Value}) {
+        /invoke ${target[clear]}
+      }
     }
     
     | no assist set at all
     /if (!${Bool[${maCC.Find[stAssistMode].Value}]} && !${maCC.Find[swManualAssist].Value} && (${lsAss.Contains[EMPTY]} && ${lsAss.Count} == 1)) {
       DEBUG ${submenu}pullstate (\a-rno assist set, releasing\ax)
-      /invoke ${target[clear]}
+      /if (!${maOver.Find[swTargetClear].Value}) {
+        /invoke ${target[clear]}
+      }
       /return FALSE
     }     
     
@@ -14016,7 +14007,9 @@ sub pull_assist_decision(bool _debug)
     DEBUG ${submenu}pullstate (\a-rget assist\ax)
     /call get_assist_target ${maDebug.Find[assist].Value}
     /if (!${Macro.Return}) {
-      /invoke ${target[clear]}
+      /if (${maOver.Find[swTargetClear].Value}) {
+        /invoke ${target[clear]}
+      }
     }
 
   } else /if (PULL) {
@@ -15061,13 +15054,10 @@ sub get_assist_target(bool _debug, string _call)
     DEBUG ${sep}assisting${sep}\a-wmanual target\ax
     /return ${Target.ID}
 
-
   | if were not assisting.. don't assist
   } else /if (!${Bool[${maCC.Find[stAssistMode].Value}]} && !${maCC.Find[swManualAssist].Value} && (${lsAss.Contains[EMPTY]} && ${lsAss.Count} == 1) && !PULL) {
     DEBUG ${break}\arNO\ax assist
     /return 0
-
-
 
   | normal puller bypass for assisting
   } else /if (PULL && AUTO) {
@@ -15079,17 +15069,6 @@ sub get_assist_target(bool _debug, string _call)
       | do nothing. we want this to do an assist
     } 
   }
-
-
-
-
-  
-  | /if (${timer_Check_Assist_Delay}) {
-  |   /return TARGET
-  | }
-
-  | /invoke ${set_data_timer[${_debug}, Check_Assist_Delay, RESTART]}  
-  
   
   | smart / DanNet Assisting
   /if (!${maCC.Find[swManualAssist].Value}) {
@@ -15204,7 +15183,9 @@ sub get_assist_target(bool _debug, string _call)
       | no mobs in env
       /if (!${SpawnCount[npc radius ENV PS4 targetable]} || SAFEZONE) {
         DEBUG ${break}no mobs in env rad || safezone
-        /squelch /target clear
+        /if (!${maOver.Find[swTargetClear].Value}) {
+          /squelch /target clear
+        }
         /varset stAssTarID 0
         /return 0      
       }
@@ -15245,7 +15226,9 @@ sub get_assist_target(bool _debug, string _call)
         
         } else /if (${Target.ID} && ${Select[${Target.Type},npc]}) {
           DEBUG ${break}bad target type
-          /squelch /target clear
+          /if (!${maOver.Find[swTargetClear].Value}) {
+            /squelch /target clear
+          }
           /varset stAssTarID 0
           /return 0      
         }
@@ -15289,7 +15272,6 @@ sub get_assist_target(bool _debug, string _call)
  ***|
 sub class_cycle(string _order)
 
-
   /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
  
   /declare _lico listiterator local
@@ -15297,6 +15279,11 @@ sub class_cycle(string _order)
   /while (!${_lico.IsEnd}) {
 
     ISMEDEAD
+
+    | /heal
+    /if (${_lico.Value.Equal[heal]}) {
+      /call check_heal_routines
+    }
  
     | /melee
     /if (${_lico.Value.Equal[melee]} && MELEE) {
@@ -15306,19 +15293,14 @@ sub class_cycle(string _order)
     BUFFNOW
     CHECKDEFENSE
     
-    | /heal
-    /if (${_lico.Value.Equal[heal]}) {
-      /call check_heal_routines
-    }
-
     BUFFTEMP
     /invoke GETASSIST
 
-    | class burn routine
+    | class burn() routine
     /if (${_lico.Value.Equal[burn]} && BURN) {
       /call burn ${maDebug.Find[burn].Value} TARGET
 
-    | class misc_combat routine
+    | class misc_combat() routine
     } else /if (${_lico.Value.Equal[misc]}) {
       /call misc_combat ${maDebug.Find[misc].Value} TARGET
 

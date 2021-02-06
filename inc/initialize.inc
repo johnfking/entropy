@@ -1352,6 +1352,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maOver swOverNavCheck                      FALSE                         "${auxsw} bypass Nav PathExists checks"
   /call set_data_map ${_debug} maOver swOverGroupAss                      FALSE                         "${auxsw} override group assist rules and force manual"
   /call set_data_map ${_debug} maOver swOverSplashHurt                    FALSE                         "${auxsw} override hurt requirements for splashing (try to keep it in cooldown no matter what)"
+  /call set_data_map ${_debug} maOver swTargetClear                       FALSE                         "${auxsw} override clearing targets"
 
 
 

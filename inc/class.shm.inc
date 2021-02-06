@@ -161,24 +161,34 @@ sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
 
   CHECKTIE
-  ISMEDEAD
+  | ISMEDEAD
   CHECKEXIT
-  CHECKREZ
-  CHECKFADE
+  | CHECKREZ
+  | CHECKFADE
 
   SETHUD "heal ${_type}"
 
-  | Group Regen Heal
-  /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
-    /call cast_cycle_heal_regen ${_debug} 0 grouphot
-  }
-
-  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
-
   /if (!SAFEZONE) {
 
-      | check for surge
-    /if (${Select[${_type},group,xtarget]} && ${maHeal.Find[stCountSurge].Value}) {
+    | Group Regen Heal
+    /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen} && AE#) {
+      /if (${SpawnCount[npc radius ENV]} >= AE#) {
+        /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 grouphot
+      }
+    }
+
+    | forcing surge  
+    /if (${maOver.Find[swOverSplashHurt].Value} && ${maHeal.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
+      /if (${SpawnCount[npc radius ENV]} >= ${maHeal.Find[stCountSplash].Value}) {
+        /call cast_cycle_heal_surge ${maDebug.Find[surge].Value}
+      }
+    }
+
+    /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+
+
+    | check for surge
+    /if (${maHeal.Find[stCountSurge].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
       /if (${hurtCount} >= ${maHeal.Find[stCountSurge].Value}) {
         /call cast_cycle_heal_surge ${maDebug.Find[surge].Value}
       }
@@ -231,8 +241,8 @@ sub check_heal(bool _debug, string _type)
 
   ISMEDEAD
   CHECKEXIT
-  CHECKFADE
-  CHECKREZ
+  | CHECKFADE
+  | CHECKREZ
 
   /call cast_cycle_heal ${_debug} ${hurtID} single
 
@@ -530,7 +540,7 @@ sub cast_alliance(bool _debug)
  * use: /chr
  ***|
 sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
-  SDEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_verbage2}\ax)
+  DEBUG \atset_control\ax(\a-w${_type}, "${_verbage}", ${_verbage2}\ax)
 
   | % of HP to canni at
   /if (${_type.Equal[cannihps]}) {

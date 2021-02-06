@@ -2905,6 +2905,7 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
     /invoke ${_overmap.Add[navcheck,swOverNavCheck]}
     /invoke ${_overmap.Add[groupass,swOverGroupAss]}
     /invoke ${_overmap.Add[splashhurt,swOverSplashHurt]}
+    /invoke ${_overmap.Add[targetclear,swTargetClear]}
 
     /declare _mios mapiterator local
     /vardata _mios _overmap.First.Clone
@@ -2937,6 +2938,8 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
     /invoke ${set_switch_env[${_debug}, swOverGroupAss, TRUE, ${_verbage}]}
   } else /if (${_type.Equal[splashhurt]}) {
     /invoke ${set_switch_env[${_debug}, swOverSplashHurt, TRUE, ${_verbage}]}
+  } else /if (${_type.Equal[targetclear]}) {
+    /invoke ${set_switch_env[${_debug}, swTargetClear, TRUE, ${_verbage}]}
 
   }
 
@@ -2952,6 +2955,7 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Add[navcheck,swOverNavCheck]}
   /invoke ${maControl.Add[groupass,swOverGroupAss]}
   /invoke ${maControl.Add[splashhurt,swOverSplashHurt]}
+  /invoke ${maControl.Add[targetclear,swTargetClear]}
   /invoke ${set_control_output[${_debug}, maOver, override, maControl]}
 
 /return TRUE
@@ -3635,9 +3639,10 @@ sub Bind_command_alto(string _debug)
   }
 
   /call set_stop ${maDebug.Find[stop].Value}
+  /invoke ${target[release]}
   /invoke ${maData.Add[swGetOverHere,FALSE]}
   /invoke ${maData.Add[stCastReturn,RESET]}
-  /invoke ${target[clear]}
+  /nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
 
 /return TRUE
 
@@ -4589,7 +4594,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
   /invoke ${_skipKey.Append[swWatch,stWatchCount,swSetForced]}
 
   | obfuscation
-  /invoke ${_skipKey.Append[lsProtectOutside,stTieToon,lsChain]}
+  /invoke ${_skipKey.Append[lsProtectOutsideGroup,stTieToon,lsChain,lsAss]}
 
   | export to INI routine
   /if (${_build.Equal[save]}) {
@@ -6981,19 +6986,23 @@ sub Bind_command_gather(string _type, string _verbage, bool _debug)
 
   /if (${_type.Equal[group]} && ${Group.Member}) {
     /dggexecute /squelch /target clear
+    /dggexecute /delay 1s ${Parse[0,!${Target.ID}]}
     /dggexecute /navto ${Me.ID}
     
   } else /if (${_type.Equal[raid]} && ${Raid.Member}) {
     /dgrexecute /squelch /target clear
+    /dgrexecute /delay 1s ${Parse[0,!${Target.ID}]}
     /dgrexecute /navto ${Me.ID}
     
   } else /if (${_type.Equal[zone]}) {
     /dgzexecute /squelch /target clear
+    /dgzexecute /delay 1s ${Parse[0,!${Target.ID}]}
     /dgzexecute /navto ${Me.ID}
     
   } else /if (${_type.Equal[all]}) {
-    /dgzexecute /squelch /target clear
-    /dgexecute all /navto ${Me.ID}
+    /dgexecute ${maEntropy.Find[stEntropyGroup_all].Value} /squelch /target clear
+    /dgexecute ${maEntropy.Find[stEntropyGroup_all].Value} /delay 1s ${Parse[0,!${Target.ID}]}
+    /dgexecute ${maEntropy.Find[stEntropyGroup_all].Value} /navto ${Me.ID}
     
   }
 

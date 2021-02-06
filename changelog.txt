@@ -19,6 +19,19 @@ on the to do list
 --------------------
 
 
+
+210206.01
+- pet weapon begging
+  classes will not beg if you do not have a mage running or they are not in same zone
+- /override targetclear (on/off)
+  this will override the mechanics of keeping a target clear. more noticable with healers than other classes
+  on a personal note:
+    like all overrides. if you use this and it causes you issues, or you dont like it. dont use it
+    this is in direct conflit with a lot of the mechanics of how entropy operates
+- /gather
+  small adjustment to the broadcast options
+
+  
 210205.01
 - bard
   (yes.. even more corrections)
