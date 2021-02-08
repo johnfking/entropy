@@ -541,6 +541,39 @@ sub burn(bool _debug, int _tmpID)
 
 
 |***
+ * note: MGB if both AAs are ready
+ * use:
+ ***|
+sub cast_AA_paragon(bool _debug)
+  DEBUG \atcast_AA_paragon\ax()
+  
+  /if (${Me.Song[${maChr.Find[stAAParagonofSpirit].Value}].ID}) {
+    /return FALSE
+  }
+  
+  /if (${Me.Song[${maChr.Find[stAAFocusedParagonofSpirits].Value}].ID}) {
+    /return FALSE
+  }
+  
+  /if (!${Me.AltAbilityReady[Mass Group Buff]}) {
+    /return FALSE
+  }
+
+  /if (!${Me.AltAbilityReady[${maChr.Find[stAAParagonofSpirit].Value}]}) {
+    /return FALSE
+  }
+  
+  ISMEDEAD
+  CHECKEXIT
+  /call voodoo ${_debug} "Mass Group Buff" 0 FALSE
+  /delay 5
+  /call voodoo ${_debug} "${maChr.Find[stAAParagonofSpirit].Value}" 0 FALSE
+  
+/return TRUE
+
+
+
+|***
  * note: beastlord specific control
  * use: /chr
  ***|
@@ -550,6 +583,11 @@ sub set_control(string _type, string _verbage, string _verbage2, string _verbage
   | consume spirit
   /if (${_type.Equal[consume]}) {
     /if (!${set_control_num_range[${_debug}, stPctConsume, "${_verbage}", 0, 99]}) /return
+
+  | mgb
+  } else /if (${_type.Equal[mpara]}) {
+    /call cast_AA_paragon
+    /return TRUE
 
   | paragon aa, usages, class
   } else /if (${_type.Equal[para]}) {

@@ -44,6 +44,7 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAASpiritualBlessing            PREGEN|1                      "${auxna} Spiritual Blessing aa"
   /call set_data_map ${_debug} maChr stAARabidBear                    PREGEN|1                      "${auxna} Rabid Bear aa"
   /call set_data_map ${_debug} maChr stAACannibalization              PREGEN|1                      "${auxna} Cannibalization aa"
+  /call set_data_map ${_debug} maChr stAAAncestralAid                 PREGEN|1                      "${auxna} Ancestral Aid aa"
 
 /return
 
@@ -536,6 +537,35 @@ sub cast_alliance(bool _debug)
 
 
 |***
+ * note: MGB if both AAs are ready
+ * use:
+ ***|
+sub cast_AA_aid(bool _debug)
+  DEBUG \atcast_AA_aid\ax()
+  
+  /if (${Me.Song[${maChr.Find[stAAAncestralAid].Value}].ID}) {
+    /return FALSE
+  }
+  
+  /if (!${Me.AltAbilityReady[Mass Group Buff]}) {
+    /return FALSE
+  }
+
+  /if (!${Me.AltAbilityReady[${maChr.Find[stAAAncestralAid].Value}]}) {
+    /return FALSE
+  }
+  
+  ISMEDEAD
+  CHECKEXIT
+  /call voodoo ${_debug} "Mass Group Buff" 0 FALSE
+  /delay 5
+  /call voodoo ${_debug} "${maChr.Find[stAAAncestralAid].Value}" 0 FALSE
+  
+/return TRUE
+
+
+
+|***
  * note: class control
  * use: /chr
  ***|
@@ -546,7 +576,11 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   /if (${_type.Equal[cannihps]}) {
     /if (!${set_control_num_range[${_debug}, stPctCanniHP, "${_verbage}", 0, 99]}) /return FALSE
 
-  |
+  | mgb
+  } else /if (${_type.Equal[maid]}) {
+    /call cast_AA_aid
+    /return TRUE
+
   } else /if (${_type.Equal[cannimanna]}) {
     /if (!${set_control_num_range[${_debug}, stPctCanniManna, "${_verbage}", 0, 99]}) /return FALSE
 

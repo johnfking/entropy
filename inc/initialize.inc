@@ -383,6 +383,7 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[consume,stPctConsume]}
     /invoke ${maChrControl.Add[para,submenu]}
+    /invoke ${maChrControl.Add[mpara,mass]}
 
   } else /if (${Select[${Me.Class.ShortName},CLR]}) {
     /invoke ${maChrControl.Add[list,list]}
@@ -394,9 +395,11 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[vp,stPctVP]}
     /invoke ${maChrControl.Add[yaulp,swYaulp]}
     /invoke ${maChrControl.Add[qp,submenu]}
+    /invoke ${maChrControl.Add[mcr,mass]}
 
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
     /invoke ${maChrControl.Add[wolf,swWolfSpirit]}
+    /invoke ${maChrControl.Add[mwood,mass]}
 
   } else /if (${Select[${Me.Class.ShortName},ENC]}) {
     /invoke ${maChrControl.Add[list,list]}
@@ -431,6 +434,7 @@ sub set_initial_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},RNG]}) {
     /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[summer,stCountSummer]}
+    /invoke ${maChrControl.Add[mspice,mass]}
 
   } else /if (${Select[${Me.Class.ShortName},ROG]}) {
     /invoke ${maChrControl.Add[list,list]}
@@ -446,6 +450,7 @@ sub set_initial_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
     /invoke ${maChrControl.Add[talisman,swTalisman]}
     /invoke ${maChrControl.Add[canni,submenu]}
+    /invoke ${maChrControl.Add[maid,mass]}
 
   } else /if (${Select[${Me.Class.ShortName},WAR]}) {
     /invoke ${maChrControl.Add[attraction,swAttraction]}

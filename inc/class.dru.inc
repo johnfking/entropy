@@ -348,6 +348,35 @@ sub burn(bool _debug, int _tmpID)
 
 
 |***
+ * note: MGB if both AAs are ready
+ * use:
+ ***|
+sub cast_AA_wood(bool _debug)
+  DEBUG \atcast_AA_wood\ax()
+  
+  /if (${Me.Song[${maChr.Find[stAASpiritoftheWood].Value}].ID}) {
+    /return FALSE
+  }
+  
+  /if (!${Me.AltAbilityReady[Mass Group Buff]}) {
+    /return FALSE
+  }
+
+  /if (!${Me.AltAbilityReady[${maChr.Find[stAASpiritoftheWood].Value}]}) {
+    /return FALSE
+  }
+  
+  ISMEDEAD
+  CHECKEXIT
+  /call voodoo ${_debug} "Mass Group Buff" 0 FALSE
+  /delay 5
+  /call voodoo ${_debug} "${maChr.Find[stAASpiritoftheWood].Value}" 0 FALSE
+  
+/return TRUE
+
+
+
+|***
  * note: class specific control
  * use: /chr
  ***|
@@ -357,6 +386,11 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   | set group Heals
   /if (${_type.Equal[groupheal]}) {
     /if (!${set_control_num_range[${_debug}, stCountHealGroup, "${_verbage}", 0, 6]}) /return FALSE
+
+  | mgb
+  } else /if (${_type.Equal[mwood]}) {
+    /call cast_AA_wood
+    /return TRUE
 
   | wolf spirit AAs
   } else /if (${_type.Equal[wolf]}) {

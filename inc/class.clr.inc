@@ -197,20 +197,10 @@ sub class_main(bool _debug)
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
 
-  ISMEDEAD
   TMPIDDEAD
-  
-  | /if (${target[isdead, ${_tmpID}]}) {
-  |    /return FALSE
-  | }
-  
-  
   CHECKEXIT
   GETINPUT misc_combat_CLR NA|NA
-  CHECKTIE
-  CHECKDEFENSE
-  BUFFNOW
-  BUFFTEMP
+
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
@@ -291,16 +281,12 @@ ${SpawnCount[npc radius 270]}
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
 
-  | CHECKTIE
-  ISMEDEAD
   CHECKEXIT
-  | CHECKFADE
   GETINPUT clr_heal_start type|${_type}
   
   /if (${maHeal.Find[swChain].Value} && ${maHeal.Find[swChainToken].Value}) {
     /call completeheal_chain ${maDebug.Find[chain].Value}
   }
-
 
   /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
@@ -323,7 +309,6 @@ sub check_heal(bool _debug, string _type)
   }
 
   /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
-    | CHECKREZ
     SETHUD EMPTY
     /delay 1
     /return FALSE
@@ -393,11 +378,7 @@ sub check_heal(bool _debug, string _type)
 
     /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
-    CHECKTIE
-    ISMEDEAD
     CHECKEXIT
-    | CHECKREZ
-    | CHECKFADE
     GETINPUT clr_heal_mid type|${_type}
 
     | splash heal
@@ -432,11 +413,7 @@ sub check_heal(bool _debug, string _type)
     /return FALSE
   }
 
-  CHECKTIE
-  ISMEDEAD
   CHECKEXIT
-  | CHECKREZ
-  | CHECKFADE
   GETINPUT clr_heal_end type|${_type}
 
   /call cast_cycle_heal ${_debug} ${hurtID} single
@@ -502,11 +479,9 @@ sub Bind_command_issuance(bool _debug)
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
 
-  ISMEDEAD
   CHECKEXIT
   GETINPUT clr_burn NA|NA
-  CHECKTIE
-  CHECKDEFENSE
+
   /if (!PULL) {
     /call get_assist_target ${maDebug.Find[target].Value}
     /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
@@ -597,8 +572,6 @@ sub burn(bool _debug, int _tmpID)
   /call cast_glyph ${maDebug.Find[glyph].Value}
   | Intensity of the Resolute AA 4 hour reuse
   /call cast_AA_intensity ${maDebug.Find[intensity].Value}
-
-  | CHECKREZ
 
 /return TRUE
 
@@ -892,6 +865,39 @@ sub check_mana(bool _debug)
 
 
 |***
+ * note: MGB if both AAs are ready
+ * use:
+ ***|
+sub cast_AA_celestialregeneration(bool _debug)
+  DEBUG \atcast_AA_celestialregeneration\ax()
+ 
+  /if (${Me.Song[${maChr.Find[stAACelestialRegeneration].Value}].ID}) {
+    /return FALSE
+  }
+
+  /if (${Me.Song[${maChr.Find[stAAFocusedCelestialRegeneration].Value}].ID}) {
+    /return FALSE
+  }
+    
+  /if (!${Me.AltAbilityReady[Mass Group Buff]}) {
+    /return FALSE
+  }
+
+  /if (!${Me.AltAbilityReady[${maChr.Find[stAACelestialRegeneration].Value}]}) {
+    /return FALSE
+  }
+  
+  ISMEDEAD
+  CHECKEXIT
+  /call voodoo ${_debug} "Mass Group Buff" 0 FALSE
+  /delay 5
+  /call voodoo ${_debug} "${maChr.Find[stAACelestialRegeneration].Value}" 0 FALSE
+  
+/return TRUE
+
+
+
+|***
  * note: class control
  * use: /chr
  ***|
@@ -910,6 +916,11 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   } else /if (${_type.Equal[issuance]}) {
     /if (!${set_control_num_range[${_debug}, stCountIssuance, "${_verbage}", 0, 99]}) /return FALSE
 
+  | mgb
+  } else /if (${_type.Equal[mcr]}) {
+    /call cast_AA_celestialregeneration
+    /return TRUE
+  }
 
   | arbitration (sheild AND AA)
   } else /if (${_type.Equal[arb]}) {

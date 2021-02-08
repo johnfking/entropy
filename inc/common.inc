@@ -1529,11 +1529,12 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
         }
 
         /cast ${Me.Gem[${_verbage}]}
+        /delay 1
         /delay 1s ${Me.Casting.ID}
 
         | set delays for casting. GTFO out of this as fast as possible
         | /delay ${Math.Calc[${Spell[${_verbage}].MyCastTime.Float}+5]}s !${Me.Casting.ID}
-        /varset _castTime ${Math.Calc[${Spell[${_verbage}].MyCastTime}+50]}
+        /varset _castTime ${Math.Calc[${Spell[${_verbage}].MyCastTime}+60]}
         DEBUG ${sep}_castTime${sep}\a-w${_castTime}\ax
 
         | /invoke ${set_timer[${_debug}, _castTime, ${_castTime}]}
@@ -1571,6 +1572,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
           /if (!${Me.Casting.ID}) /break
           /if (!${Window[CastingWindow].Open}) /break
           /if (!${Me.SpellInCooldown}) /break
+          /if (!${Me.Moving}) /break
           /delay 3
         }
 
@@ -9528,6 +9530,7 @@ sub control_mez(bool _debug, int _tmpID)
  - br = square brackets surround the variable [variable]
  - sw - an ON/OFF green/red switch
  - pr - surround the on/off switch in a ( )
+ - mass - mass group buff execution option (spice, aid, cr, so on)
  ***|
 sub set_control_output(bool _debug, string _map, string _outname, string _control)
   DEBUG \atset_control_output\ax(\a-w${_map}, "${_outname}", ${_control}\ax)
@@ -9569,6 +9572,10 @@ sub set_control_output(bool _debug, string _map, string _outname, string _contro
     | no variables just one shot option
     } else /if (${_cmi.Value.Equal[option]}) {
       /varset _out ${_out} \a#1E90FF${_cmi.Key}\ax
+
+    | no variables just one shot mass group buff
+    } else /if (${_cmi.Value.Equal[mass]}) {
+      /varset _out ${_out} \a#FF00F3${_cmi.Key}\ax
 
     | no variables
     } else /if (${_cmi.Value.Equal[out]}) {
@@ -9729,7 +9736,7 @@ sub target(string _type, int _tmpID)
   | clear/reset all combat
   /if (${Select[${_type},clear]} || ${_isdead}) {
     DEBUG ${sep}\a-y${_type}\ax${sep}
-    GETINPUT target_clear NA|NA
+    | GETINPUT target_clear NA|NA
 
     /varset stAssTarID 0
     /invoke ${maCC.Add[swValidAssTarID,FALSE]}
@@ -10776,7 +10783,7 @@ sub is_me_dead(bool _debug)
     }
   }
 
-  GETINPUT is_me_dead swIsMeDead|${swIsMeDead}
+  | GETINPUT is_me_dead swIsMeDead|${swIsMeDead}
 
   | if we died, shut shit down
   /if (${swIsMeDead}) {
@@ -15043,9 +15050,9 @@ sub cast_cycle_cure(bool _debug, int _tmpID, string _tag, bool _return)
 
 |***
  * note: Acquire target, get bitches. This will establish ${stAssTarID}
- * use: /call get_assist_target DEBUG
- * option: inline - is for inline calling of assisting onlky. cannit be used with the manual switch on
- * option: return - does not targeting and simply updates ${stAssTarID} cannot be used with the manual switch
+ * use: /call get_assist_target DEBUG [call]
+ * option: inline - is for inline calling of assisting only. cannot be used with the manual switch on
+ * option: return - does no targeting and simply updates ${stAssTarID} cannot be used with the manual switch
  ***|
 sub get_assist_target(bool _debug, string _call)
   DEBUG \atget_assist_target\ax(\a-w${_call}\ax)
@@ -15158,6 +15165,12 @@ sub get_assist_target(bool _debug, string _call)
         | set our target
         } else /if (${DanNet[${_liass.Value}].Observe["Target.ID"]}) {
           /varset stAssTarID ${DanNet[${_liass.Value}].Observe["Target.ID"]}
+          /if (${Spawn[${stAssTarID}].PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
+            DEBUG ${break}above engage %
+            /invoke ${_liass.Advance}    
+            /continue        
+          }
+          
           DEBUG ${sep}stAssTarID${sep}\a-wTARGET\ax
           /if (${_call.Equal[return]}) /return TARGET
           

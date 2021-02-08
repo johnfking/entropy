@@ -204,30 +204,6 @@ sub misc_combat(bool _debug, int _tmpID)
 
 
 |***
- * note: MGB ranger Auspice if both AAs are ready
- * use:
- ***|
-sub cast_AA_auspice(bool _debug)
-  DEBUG \atcast_AA_auspice\ax()
-
-  ISMEDEAD
-  CHECKEXIT
-  GETINPUT
-  /if (${Me.AltAbilityReady[Mass Group Buff]} && ${Me.AltAbilityReady[${maChr.Find[stAAAuspiceoftheHunter].Value}]} && !${Bool[${Me.Song[${maChr.Find[stAAAuspiceoftheHunter].Value}]}]}) {
-    /if (${is_ready[${_debug}, "Mass Group Buff"]}) {
-      /call voodoo ${_debug} "Mass Group Buff" 0 FALSE
-    }
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAAuspiceoftheHunter].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAAuspiceoftheHunter].Value}" 0 FALSE
-    }
-  } else /if (${Me.Song[${maChr.Find[stAAAuspiceoftheHunter].Value}].ID}) {
-    OUT ${bad}QUIT\ax trying to cast ${sp}${maChr.Find[stAAAuspiceoftheHunter].Value}\ax while its running.
-  }
-/return TRUE
-
-
-
-|***
  * note: healing
  * use: /call check_heal
  ***|
@@ -454,6 +430,35 @@ sub burn(bool _debug, int _tmpID)
 
 
 |***
+ * note: MGB if both AAs are ready
+ * use:
+ ***|
+sub cast_AA_auspice(bool _debug)
+  DEBUG \atcast_AA_auspice\ax()
+ 
+  /if (${Me.Song[${maChr.Find[stAAAuspiceoftheHunter].Value}].ID}) {
+    /return FALSE
+  }
+  
+  /if (!${Me.AltAbilityReady[Mass Group Buff]}) {
+    /return FALSE
+  }
+
+  /if (!${Me.AltAbilityReady[${maChr.Find[stAAAuspiceoftheHunter].Value}]}) {
+    /return FALSE
+  }
+  
+  ISMEDEAD
+  CHECKEXIT
+  /call voodoo ${_debug} "Mass Group Buff" 0 FALSE
+  /delay 5
+  /call voodoo ${_debug} "${maChr.Find[stAAAuspiceoftheHunter].Value}" 0 FALSE
+  
+/return TRUE
+
+
+
+|***
  * note: class control
  * use: /chr
  ***|
@@ -463,6 +468,11 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   | summer switch
   /if (${_type.Equal[summer]}) {
     /if (!${set_control_num_range[${_debug}, stCountSummer, "${_verbage}", 0, 100]}) /return
+  
+  | mgb
+  } else /if (${_type.Equal[mspice]}) {
+    /call cast_AA_auspice
+    /return TRUE
   }
 
   /call set_control_shared ${_type} "${_verbage}" "${_verbage2}" ${_debug}
@@ -472,5 +482,4 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   /invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
 /return TRUE
-
 

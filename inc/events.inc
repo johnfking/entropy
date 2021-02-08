@@ -2312,7 +2312,7 @@ sub Event_Guardian_of_Doomfire(string Line, string PersonOne, string PersonTwo)
   /delay 25s
   OUT RETURNING TO CAMP
   /nav waypoint tmpcamp
-  /return
+/return
 
 
 | General Reparm
@@ -2327,7 +2327,7 @@ sub Event_Reparm()
   /delay 25s
   OUT RETURNING TO CAMP
   /nav waypoint tmpcamp
-  /return
+/return
 
 
 

@@ -1141,7 +1141,6 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Add[onauto,swonAuto]}
   /invoke ${maControl.Add[incombat,swinCombat]}
   /invoke ${maControl.Add[campfire,option]}
-  | /invoke ${maControl.Add[gather,option]}
   /invoke ${set_control_output[${_debug}, maHome, home, maControl]}
 
 /return TRUE
@@ -1383,20 +1382,38 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
   | safezone toggle
   /if (${_type.Equal[safe]}) {
     DEBUG ${sep}safezone toggle
+
+
     /if (${maEnv.Find[swZoneSafe].Value} || ${_verbage.Equal[FALSE]}) {
       DEBUG FALSE
       DEBUG ${sep}sqlite query DBzone QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
       /sqlite query "${DBzone}" QZone UPDATE zone_control SET value='FALSE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
+
+      | /if (${Select[${sqlite.Resultcode[QZone]},19]}) {
+      |   /sqlite query "${DBzone}" QZone REPLACE INTO zone_control(zone_shortname, element, value) VALUES("${Zone.ShortName}", "swZoneSafe", "FALSE");
+      | }
+
       /if (!${sql_check[${_debug}, QZone, Bind_control_area, "UPDATE (zone_control)"]}) /endmacro
       /invoke ${maEnv.Add[swZoneSafe,FALSE]}
+
+
 
     } else /if (!${maEnv.Find[swZoneSafe].Value} || ${_verbage.Equal[TRUE]}) {
       DEBUG TRUE
       DEBUG ${sep}sqlite query DBzone QZone UPDATE zone_control SET value='TRUE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
       /sqlite query "${DBzone}" QZone UPDATE zone_control SET value='TRUE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
+      
+      | /if (${Select[${sqlite.Resultcode[QZone]},19]}) {
+      | /sqlite query "${DBzone}" QZone INSERT OR REPLACE INTO zone_control(zone_shortname, element, value) VALUES("${Zone.ShortName}", "swZoneSafe", "TRUE");
+      | }
+
       /if (!${sql_check[${_debug}, QZone, Bind_control_area, "UPDATE (zone_control)"]}) /endmacro
       /invoke ${maEnv.Add[swZoneSafe,TRUE]}
     }
+
+
+
+
 
   | remove a mob from the current zone
   } else /if (${_type.Equal[delete]}) {
@@ -3767,7 +3784,6 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
     /if (${_opt.Equal[invis]} && !${Me.Invis}) {
       /call check_invis_single ${_debug}
     }
-    GETINPUT
     /delay 2
   }
 

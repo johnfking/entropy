@@ -19,6 +19,17 @@ on the to do list
 --------------------
 
 
+210208.01
+- added the following mass group buff commands
+  cleric: /chr mcr (celestial regeneration)
+  ranger: /chr mspice (auspice)
+  beast: /chr mpara (paragon)
+  shaman /chr maid (ancestral aid)
+  druid: /chr mwood (spirit of wood)
+- events
+  removed an event check from an inline target clearing
+  "should" prevent events from flying by
+
 
 210206.01
 - pet weapon begging
