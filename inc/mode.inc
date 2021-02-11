@@ -323,6 +323,59 @@ sub mode_petfarm(bool _debug)
 
 
 
+
+|***
+ * note: Pet Farm for temp pet casts [CLR|WIZ]
+ * use: /mode temppet
+ ***|
+sub mode_temppet(bool _debug)
+  DEBUG \atmode_temppet\ax()
+
+  /if (!${Select[${Me.Class.ShortName},CLR,WIZ]} || SAFEZONE) {
+    /invoke ${maMode.Add[temppet,FALSE]}
+    OUT This is for Clerics and Wizards ONLY. Turning off /mode temppet
+    /return FALSE
+  }
+
+  SETHUD "mode temppet"
+  
+  /if (${Pet.ID}) {
+    /delay 1s
+    /return TRUE
+  }
+
+  /declare _tmpPullRad int local 0
+  /if (PULLENV > 200) {
+    /varset _tmpPullRad 200
+  } else {
+    /varset _tmpPullRad PULLENV
+  }
+  
+  | check for things to torment
+  /if (!${SpawnCount[npc radius ${_tmpPullRad}]}) {
+    /delay 1s
+    SETHUD EMPTY
+    /return FALSE
+  }
+
+  | get our pet spell
+  /declare _petSpell string local ${get_best_in_spell[${_debug}, "Self", "Sum: Animation", "Spawn NPC"]}
+  
+  | get us a target•
+  /declare _tmpID int local ${NearestSpawn[1, npc radius ${_tmpPullRad}].ID}
+  /delay 5
+  /call target set ${_tmpID}
+    
+  | send in the clowns
+  /call voodoo ${_debug} "${_petSpell}" ${_tmpID} FALSE
+
+  SETHUD EMPTY
+
+
+/return TRUE
+
+
+
 |***
  *  DES: runs around and picks up shit
  *  USE: /mode harvest
@@ -1028,12 +1081,7 @@ sub tov_ew_ada(bool _debug)
 
   | step 8
 
-
-  /return TRUE
-
-
-
-
+/return TRUE
 
 
 

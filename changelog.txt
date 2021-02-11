@@ -16,8 +16,35 @@ on the to do list
 - ranger silent shot ambush spell
 - break out triggers for minion buffs
 - pet gear handing for damn TLP feeders..
+- exposed class oders: brd, bst, ber, clr, enc, dru, enc, mag, mnk, nec
 --------------------
 
+
+
+210210.01
+- buffing
+  corrected a confusion in crew/other buffing where an item would be converted to a spell
+  and the spell would be memed to be cast and not the item. repeat after me, TLP issues
+- class orders exposed
+  druid, magician, necromancer
+- necromancer
+  corrected swblood to swBlood
+  bloom % is now gather % 
+- cleric
+  unbroke their /chr control  
+- healing: dannet
+  i might have actually fixed the divide by 0 error.. maybe..
+- combat positioning
+  /home movebehind has been removed
+  /home position [free|left|right|face|rear]
+  free - simply sticks to the target during combat, doesnt care where
+  face - sticks to the front of the mob
+  rear - sticks to the rear of the mob
+  left - (currently broken) sticks you to the right side of the mob
+  right - (currently broken) sticks you to the left side of the mob
+  note: yes i know left and right are not doing what they are supposed to do. blame mq2moveutils
+  note2: you will need to reset your toons that used movebehind
+  
 
 210208.01
 - added the following mass group buff commands

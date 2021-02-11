@@ -19,7 +19,6 @@ sub class_init(bool _debug)
   /call set_data FALSE maData stSpire                                 map outer "Spire of Necromancy"
   /call set_data FALSE maData stSynergy                               map outer "Defiler's Synergy"
   /call set_data FALSE maData stFade                                  map outer "A Hole in Space"
-  /call set_data FALSE maData stCompleteHeal                          map outer "Complete Heal"
 
 
   /call set_data_map ${_debug} maChr stNukeServant                    PREGEN|1                      "${auxna} spam nuke pet spell"
@@ -28,10 +27,16 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stDichotomic                     PREGEN|1                      "${auxna} dichotomic spell"
 
   /invoke ${set_data_timer[${_debug}, Check_Blood, 8s]}
-  /call set_data_map ${_debug} maChr swblood                          FALSE                         "${auxsw} use  blood spell"
+  /call set_data_map ${_debug} maChr swBlood                          FALSE                         "${auxsw} use  blood spell"
   /call set_data_map ${_debug} maChr stBlood                          PREGEN|1                      "${auxna} name of current call for blood spell"
 
   /call set_data_map ${_debug} maChr stPctBloom                       0                             "${auxnum} % of manna you want to use bloom at"
+
+  | class order lists
+  /call set_data_list ${_debug} maChr lsOrderClassBase                checkminion|manarecover|gather                                                        "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 EMPTY                                                                                 "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    pet|melee|debuff|burn|swarm|dot|nuke|misc|item                                        "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|gather                                                                    "${auxli} class post combat "
 
   | AAs
   /call set_data_map ${_debug} maChr stAAUnity                        PREGEN|1                    "${auxna} class aa unity buff"
@@ -68,12 +73,7 @@ sub class_main(bool _debug)
   DEBUG \atclass_main\ax()
 
   /if (AUTO && !ENGINE3) {
-    /if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) {
-      /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
-    }
-    /if (PET || SWARM) {
-      /call send_pet ${maDebug.Find[sic].Value} TARGET
-    }
+    /call class_cycle lsOrderClassBase
   } else /if (AUTO && ENGINE3) {
     /if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
       /call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -81,27 +81,12 @@ sub class_main(bool _debug)
   }
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-    GETINPUT
-    CHECKREZ
+    /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      /if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} GETASSIST
-      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
-      CHECKDEFENSE
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST epic
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
-      /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
-      /call check_heal_routines
-      /if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} GETASSIST "${maChr.Find[stNukeServant].Value}"
-      | /if (${maCC.Find[swAlliance].Value}) /call trigger_alliance GETASSIST
-      /if (${maChr.Find[swblood].Value} && !${timer_Check_Blood}) /call cast_blood ${maDebug.Find[blood].Value} GETASSIST
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
-      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
-      /call check_item_cycle ${maDebug.Find[castitem].Value} GETASSIST
-
+      /call class_cycle lsOrderClassT
+      /if (${maChr.Find[swBlood].Value} && !${timer_Check_Blood}) /call cast_blood ${maDebug.Find[blood].Value} GETASSIST
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -109,13 +94,7 @@ sub class_main(bool _debug)
     }
 
     /if (AUTO && !ENGINE3) {
-      /if (${maChr.Find[stPctManaRecovery].Value}) {
-        /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-      }
-      /if (${Me.PctMana} <= ${maChr.Find[stPctBloom].Value}*.PCTHO) {
-        /call cast_bloom ${maDebug.Find[bloom].Value}
-      }
-      CHECKFADE
+      /call class_cycle lsOrderClassPost
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
         /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -134,11 +113,7 @@ sub class_main(bool _debug)
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
 
-  CHECKTIE
-  ISMEDEAD
   CHECKEXIT
-  CHECKREZ
-  CHECKFADE
 
   /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
@@ -181,8 +156,6 @@ sub check_heal(bool _debug, string _type)
     /return FALSE
   }
 
-  GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
-
   /call cast_cycle_heal ${_debug} ${hurtID} single
 
   SETHUD EMPTY
@@ -198,17 +171,9 @@ sub check_heal(bool _debug, string _type)
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
 
-  ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
-
+  TMPIDDEAD
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
-  BUFFNOW
-  BUFFTEMP
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
@@ -255,15 +220,10 @@ sub misc_combat(bool _debug, int _tmpID)
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
 
-  ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  TMPIDDEAD
 
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
@@ -330,7 +290,6 @@ sub burn(bool _debug, int _tmpID)
 sub cast_blood(bool _debug, int _tmpID)
   DEBUG \atcast_blood\ax(\a-w${_tmpID}\ax)
 
-  ISMEDEAD
   CHECKEXIT
   GETINPUT
 
@@ -352,19 +311,17 @@ sub cast_blood(bool _debug, int _tmpID)
 
 |***
  * note: We want Mana
- * use: /chr bloom #
+ * use: /chr gather %##
  ***|
-sub cast_bloom(bool _debug)
-  DEBUG \atcast_bloom\ax()
+sub check_gather(bool _debug)
+  DEBUG \atcheck_gather\ax()
 
   /if (${Zone.ID} == ${Me.BoundLocation[0].ID} || SAFEZONE) {
     /return FALSE
   }
 
-  ISMEDEAD
   CHECKEXIT
   GETINPUT
-  CHECKTIE
 
   /if (${is_ready[${_debug}, "Death Bloom"]}) {
     /call voodoo ${_debug} "Death Bloom" 0 FALSE
@@ -383,21 +340,21 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 
   | use blood nuke line
   /if (${_type.Equal[blood]}) {
-    /invoke ${set_switch_env[${_debug}, swblood, TRUE, ${_verbage}]}
+    /invoke ${set_switch_env[${_debug}, swBlood, TRUE, ${_verbage}]}
 
     /if (${_verbage.Equal[name]}) {
       /invoke ${do_raw_edit[${_debug}, SILENT, stBlood, "${_verbage2}"]}
     } else /if (${_verbage.Equal[active]}) {
-      /invoke ${set_switch_env[${_debug}, swblood, TRUE, ${_verbage2}]}
+      /invoke ${set_switch_env[${_debug}, swBlood, TRUE, ${_verbage2}]}
     }
     /invoke ${maChrControl.Clear}
     /invoke ${maChrControl.Add[name,stBlood|br]}
-    /invoke ${maChrControl.Add[active,swblood]}
+    /invoke ${maChrControl.Add[active,swBlood]}
     /invoke ${set_control_output[${_debug}, maHeal, "chr blood", maChrControl]}
     /return TRUE
 
   | use bloom mana recovery
-  } else /if (${_type.Equal[bloom]}) {
+  } else /if (${_type.Equal[gather]}) {
     /if (!${set_control_num_range[${_debug}, stPctBloom, "${_verbage}", 0, 99]}) /return FALSE
 
   }

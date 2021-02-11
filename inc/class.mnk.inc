@@ -92,11 +92,6 @@ sub class_init(bool _debug)
 sub class_main(bool _debug)
   DEBUG \atclass_main\ax()
 
-  GETINPUT
-  ISMEDEAD
-  CHECKTIE
-  CHECKREZ
-
   /if (AUTO && !ENGINE3) {
     /call class_cycle lsOrderClassBase
   } else /if (AUTO && ENGINE3) {
@@ -109,7 +104,6 @@ sub class_main(bool _debug)
     /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
     /if (VALID && !ENGINE3) {
-      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
       /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
@@ -136,17 +130,9 @@ sub class_main(bool _debug)
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
 
-  ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
-
+  TMPIDDEAD
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
-  BUFFNOW
-  BUFFTEMP
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
@@ -188,11 +174,6 @@ sub misc_combat(bool _debug, int _tmpID)
   /if (${is_ready[${_debug}, "${maChr.Find[stElbow].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stElbow].Value}" ${_tmpID} FALSE
   }
-  
-  | Comment this out - add to /melee
-  | /if (${maCC.Find[swIntimidation].Value} && ${Me.AbilityReady["Intimidation"]}) {
-  |  /doability Intimidation
-  | }
 
   /if (${is_ready[${_debug}, "${maChr.Find[stCurse].Value}"]}) {
     /call voodoo ${_debug} "${maChr.Find[stCurse].Value}" ${_tmpID} FALSE
@@ -254,11 +235,6 @@ sub misc_combat(bool _debug, int _tmpID)
     }
   }
   
-  | Moved this alliance call from Burn, it's not traditionally in combat discs section?
-  | /if (${is_ready[${_debug}, "${maChr.Find[stAlliance].Value}"]}) {
-  |  /call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" ${_tmpID} FALSE
-  | }
-
   /call check_fd ${_debug}
 
 /return TRUE
@@ -272,11 +248,7 @@ sub misc_combat(bool _debug, int _tmpID)
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
 
-  CHECKTIE
-  ISMEDEAD
   CHECKEXIT
-  CHECKREZ
-  CHECKFADE
 
   | mend training
   /if (${maChr.Find[swTrainMelee].Value}) {
@@ -316,8 +288,6 @@ sub check_heal(bool _debug, string _type)
     /return FALSE
   }
 
-  GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
-
   /call cast_cycle_heal ${_debug} ${hurtID} single
 
   SETHUD EMPTY
@@ -340,8 +310,6 @@ sub burn(bool _debug, int _tmpID)
 
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}

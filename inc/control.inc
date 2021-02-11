@@ -1016,6 +1016,42 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
     /return TRUE
 
 
+
+  | pull modes
+  } else /if (${_type.Equal[position]}) {
+
+    /if (!${lsCombatPosition.Contains[${_verbage}]} && ${Bool[${_verbage}]}) {
+      OUT /home position${sep}
+      /call out_list lsCombatPosition
+      /return FALSE
+    }
+
+    | stick wherever
+    /if (${_verbage.Equal[free]}) {
+      /call do_raw_edit ${_debug} SILENT stCombatPosition "free"
+    | rear
+    } else /if (${_verbage.Equal[rear]}) {
+      /call do_raw_edit ${_debug} SILENT stCombatPosition "rear"
+    | front
+    } else /if (${_verbage.Equal[face]}) {
+      /call do_raw_edit ${_debug} SILENT stCombatPosition "face"
+    | right side
+    } else /if (${_verbage.Equal[right]}) {
+      /call do_raw_edit ${_debug} SILENT stCombatPosition "right"
+    | left side
+    } else /if (${_verbage.Equal[left]}) {
+      /call do_raw_edit ${_debug} SILENT stCombatPosition "left"
+    }
+
+    /declare _liP listiterator local
+    /vardata _liP lsCombatPosition.First.Clone
+    /while (!${_liP.IsEnd}) {
+      /varset _out ${_out} ${If[${_liP.Value.Equal[${lsCombatPosition.First}]},,${dot}]} ${If[${_liP.Value.Equal[${maHome.Find[stCombatPosition].Value}]},${num}${_liP.Value}\ax,${info}${_liP.Value}\ax]}
+      /invoke ${_liP.Advance}
+    }
+    /invoke ${out[12, "/home position ${dot} ${_out}"]}
+    /return TRUE
+
   } else /if (${_type.Equal[switch]}) {
     /invoke ${maHome.Add[swSetTie,FALSE]}
     /if (!${maHome.Find[swHomeMarker].Value}) {
@@ -1103,8 +1139,8 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   } else /if (${_type.Equal[variance]}) {
     /if (!${set_control_num_range[FALSE, stHomeVariance, "${_verbage}", 0, 15]}) /return
 
-  } else /if (${_type.Equal[movebehind]}) {
-    /invoke ${set_switch_env[FALSE, swMoveBehind, TRUE, ${_verbage}]}
+  | } else /if (${_type.Equal[movebehind]}) {
+  |   /invoke ${set_switch_env[FALSE, swMoveBehind, TRUE, ${_verbage}]}
 
   } else /if (${_type.Equal[facefast]}) {
     /invoke ${set_switch_env[FALSE, swFaceFast, TRUE, ${_verbage}]}
@@ -1133,7 +1169,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[set,swHomeMarker|pr]}
   /invoke ${maControl.Add[variance,stHomeVariance]}
-  /invoke ${maControl.Add[movebehind,swMoveBehind]}
+  | /invoke ${maControl.Add[movebehind,swMoveBehind]}
   /invoke ${maControl.Add[facefast,swFaceFast]}
   /invoke ${maControl.Add[arc,stFaceArc]}
   /invoke ${maControl.Add[mount,stMount]}
@@ -1141,6 +1177,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Add[onauto,swonAuto]}
   /invoke ${maControl.Add[incombat,swinCombat]}
   /invoke ${maControl.Add[campfire,option]}
+  /invoke ${maControl.Add[position,submenu]}
   /invoke ${set_control_output[${_debug}, maHome, home, maControl]}
 
 /return TRUE
@@ -2183,8 +2220,8 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
     /declare _running         int local 0
     /declare _max             int local 0
     /declare _maxName         string local FALSE
-    /declare _findAttrib      string local Spawn Interactive Object
-    /declare _subcat          string local Heals
+    /declare _findAttrib      string local Spawn NPC
+    /declare _subcat          string local Sum: Animation
     /declare _targettype      string local Self
 
     /declare _countNumEff     int local 0

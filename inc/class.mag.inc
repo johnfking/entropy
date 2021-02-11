@@ -38,7 +38,14 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr swCauldron                       FALSE                         "${auxsw} click cauldron to get prizes or not?"
   /call set_data_map ${_debug} maChr stCauldron                       FALSE                         "${auxna} name of the cauldron item you wish to use"
 
-  | AAs
+ 
+   | class order lists
+  /call set_data_list ${_debug} maChr lsOrderClassBase                checkminion|manarecover|gather                                    "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 EMPTY                                                             "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    melee|debuff|pet|swarm|dot|nuke|misc|item                         "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|gather                                                "${auxli} class post combat "
+
+ | AAs
   /call set_data_map ${_debug} maChr stAAUnity                        PREGEN|1                      "${auxna} Thaumaturge's Unity AA"
   /call set_data_map ${_debug} maChr stAAForceofElements              PREGEN|1                      "${auxna} Force of Elements AA"
   /call set_data_map ${_debug} maChr stAAMendCompanion                PREGEN|1                      "${auxna} Mend Companion AA"
@@ -70,14 +77,9 @@ sub class_init(bool _debug)
  ***|
 sub class_main(bool _debug)
   DEBUG \atclass_main\ax()
-  GETINPUT
-  ISMEDEAD
-  CHECKTIE
 
   /if (AUTO && !ENGINE3) {
-    /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-    /if (${maChr.Find[stPctGather].Value} && !${timer_Check_Gather}) /call check_gather ${maDebug.Find[gather].Value}
-    /if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
+    /call class_cycle lsOrderClassBase
     /if (${maChr.Find[swCauldron].Value}) /call check_cauldron  ${maDebug.Find[cauldron].Value}
   } else /if (AUTO && ENGINE3) {
     /if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
@@ -86,38 +88,18 @@ sub class_main(bool _debug)
   }
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-    GETINPUT
-    CHECKREZ
-    /if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
+    /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
-      CHECKDEFENSE
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST epic
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
-      /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
-      /if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} GETASSIST
-      /if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} GETASSIST "${maChr.Find[stNukeServant].Value}"
-      | /if (${swAlliance}) /call trigger_alliance GETASSIST
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
-      /if (NUKE) {
-        /if (${maChr.Find[swForceTC].Value}) /call force_twincast_${Me.Class.ShortName} TRUE
-        /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
-      }
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
+      /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
       }
     }
-
     /if (AUTO && !ENGINE3) {
-      | /call Bind_setMAG rods
-      /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-      /if (${maChr.Find[stPctGather].Value} && !${timer_Check_Gather}) /call check_gather ${maDebug.Find[gather].Value}
+      /call class_cycle lsOrderClassPost
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
         /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -135,15 +117,9 @@ sub class_main(bool _debug)
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
 
-  ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) /return FALSE
-
+  TMPIDDEAD
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
-  BUFFNOW
-  BUFFTEMP
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
@@ -173,11 +149,7 @@ sub misc_combat(bool _debug, int _tmpID)
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
 
-  CHECKTIE
-  ISMEDEAD
   CHECKEXIT
-  CHECKREZ
-  CHECKFADE
 
   /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
@@ -212,7 +184,6 @@ sub check_heal(bool _debug, string _type)
     /return FALSE
   }
 
-  GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
   /call cast_cycle_heal ${_debug} ${hurtID} single
   SETHUD EMPTY
 
@@ -227,13 +198,9 @@ sub check_heal(bool _debug, string _type)
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
 
-  ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) /return FALSE
-
+  TMPIDDEAD
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
@@ -306,39 +273,6 @@ sub burn(bool _debug, int _tmpID)
 
 
 |***
- * note: Control for getting Twincast either spell or Proc
- * use: /call force_twincast_MAG
-
-sub force_twincast_MAG(bool _debug)
-  DEBUG \atforce_twincast_MAG\ax()
-
-  /if (!${maChr.Find[swForceTC].Value} || ${timer_Force_TC}) /return
-  /if (${target[isdead, TARGET]}) /return FALSE
-
-  ISMEDEAD
-  CHECKEXIT
-  GETINPUT
-
-  /invoke ${set_data_timer[FALSE, Force_TC, RESTART]}
-
-  /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[Twincast].ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stTC].Value}" 0 FALSE
-    }
-    /return
-  } else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[${maChr.Find[stTC].Value}].ID} && !${Me.Buff[Twincast].ID}) {
-    /if (${is_ready[${_debug}, "${stNukeTC${maChr.Find[stLine].Value}}"]}) {
-      /call voodoo ${_debug} "${stNukeTC${maChr.Find[stLine].Value}}" TARGET FALSE
-    }
-  }
-
-/return TRUE
- ***|
-
-
-
-
-|***
  * note: All that you buy, beg, borrow or steal.
  * use:
  ***|
@@ -354,7 +288,6 @@ sub check_gather(bool _debug)
 
   CHECKEXIT
   GETINPUT
-  CHECKTIE
 
   /if (${Me.Buff[Improved Twincast].ID} || ${Me.Buff[Twincast].ID}) {
     DEBUG ${sep}twincast running. get manna later
@@ -519,7 +452,6 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 
   /if (${Macro.Return.Equal[SKIP]}) /return FALSE
   /if (${_verbage2.Equal[SILENT]}) /return
-  /invoke ${maChrControl.Add[pettype,stMinionElementType|br]}
   /invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
 /return TRUE

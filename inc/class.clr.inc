@@ -132,7 +132,6 @@ sub class_init(bool _debug)
 sub class_main(bool _debug)
   DEBUG \atclass_main\ax()
 
-  | correct all XTarget healing spots
   /if (AUTO && !ENGINE3) {
     /call class_cycle lsOrderClassBase
 
@@ -920,7 +919,6 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   } else /if (${_type.Equal[mcr]}) {
     /call cast_AA_celestialregeneration
     /return TRUE
-  }
 
   | arbitration (sheild AND AA)
   } else /if (${_type.Equal[arb]}) {

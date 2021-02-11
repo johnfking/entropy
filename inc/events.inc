@@ -310,7 +310,9 @@ sub Event_Camp(string _line)
 sub Event_Join(string _line, string _sender, string _groupraid)
   | DEBUG \atEvent_Join\ax(\a-w${_sender}, ${_groupraid}\ax)
 
-  /if (!${is_lsSafeNames[FALSE, ${_sender}]}) /return FALSE
+  /if (!${is_lsSafeNames[FALSE, ${_sender}]}) {
+    /return FALSE
+  }
 
   | group invites
   /if (${_groupraid.Equal[group]}) {
@@ -326,18 +328,16 @@ sub Event_Join(string _line, string _sender, string _groupraid)
   /if (${_groupraid.Equal[raid]}) {
     /delay 1s
     /if (!${maEnv.Find[swTakeRaidInvite].Value}) {
+      /raiddecline
       /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["join a raid"]}) {
         /nomodkey /notify ConfirmationDialogBox No_Button leftmouseup
-        /return
       }
-      /raiddecline
     } else /if (${maEnv.Find[swTakeRaidInvite].Value}) {
       OUT Accepting ${_groupraid} invite${sep}\a-w${_sender}\ax
+      /raidaccept
       /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["join a raid"]}) {
         /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
-        /return
       }
-      /raidaccept
     }
   }
 

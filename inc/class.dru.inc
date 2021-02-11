@@ -27,6 +27,11 @@ sub class_init(bool _debug)
 
   /call set_data_map FALSE maChr stTwincast                           PREGEN|1                      "${auxna} twincast spell"
 
+  | class order lists
+  /call set_data_list ${_debug} maChr lsOrderClassBase                xtarget                                                                               "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 heal|alliance|manarecover|burn                                                        "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    melee|heal|misc|debuff|dot|nuke|item                                                  "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover                                                                           "${auxli} class post combat "
 
   | AAs
   /call set_data_map ${_debug} maChr stAASeasonsWrath                 PREGEN|1                      "${auxna} Season's Wrath AA"
@@ -62,16 +67,8 @@ sub class_init(bool _debug)
 sub class_main(bool _debug)
   DEBUG \atclass_main\ax()
 
-  GETINPUT
-  ISMEDEAD
-  CHECKTIE
-
-
-  | correct any and all XTarget healing spots
   /if (AUTO && !ENGINE3) {
-    /if (${maHeal.Find[swHealXTarget].Value} && !${timer_Check_Xtarget_Build}) {
-      /call check_xtarget_build FALSE
-    }
+    /call class_cycle lsOrderClassBase
   } else /if (AUTO && ENGINE3) {
     /if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
       /call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -79,26 +76,11 @@ sub class_main(bool _debug)
   }
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-    GETINPUT
-    CHECKREZ
-    /call check_heal_routines
-    CHECKDEFENSE
-    CHECKFADE
-
-    /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-    /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
+    /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      CHECKREZ
-      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST epic
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
-      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
+      /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -106,8 +88,7 @@ sub class_main(bool _debug)
     }
 
     /if (AUTO && !ENGINE3) {
-      /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-      CHECKFADE
+      /call class_cycle lsOrderClassPost
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
         /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -128,15 +109,8 @@ sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  TMPIDDEAD
   CHECKEXIT
-  GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
-  BUFFNOW
-  BUFFTEMP
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
@@ -183,11 +157,8 @@ sub misc_combat(bool _debug, int _tmpID)
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
 
-  CHECKTIE
   ISMEDEAD
   CHECKEXIT
-  CHECKREZ
-  CHECKFADE
 
   SETHUD "heal ${_type}"
 
@@ -284,8 +255,6 @@ sub burn(bool _debug, int _tmpID)
 
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}

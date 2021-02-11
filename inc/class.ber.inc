@@ -46,7 +46,7 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stSappingStrikes                 PREGEN|1                      "${auxna} "
   /call set_data_map ${_debug} maChr stPhantomAssailant               PREGEN|1                      "${auxna} "
   /call set_data_map ${_debug} maChr stOpenWound                      PREGEN|1                      "${auxna} "
-  /call set_data_map ${_debug} maChr stConditionedRetaliation	        PREGEN|1			    		        "${auxna} "
+  | /call set_data_map ${_debug} maChr stConditionedRetaliation	        PREGEN|1			    		        "${auxna} "
 
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                EMPTY                                     "${auxli} class base loop start"

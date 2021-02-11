@@ -65,10 +65,10 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stStun                           FALSE                         "${auxna} name of AA stun to use"
 
   | class order lists
-  /call set_data_list ${_debug} maChr lsOrderClassBase                xtarget                                   "${auxli} class base loop start"
-  /call set_data_list ${_debug} maChr lsOrderClassPre                 heal|manarecover                          "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClassBase                xtarget                                                                       "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 heal|manarecover|staminarecovery                                              "${auxli} class pre combat"
   /call set_data_list ${_debug} maChr lsOrderClass                    taunt|melee|agro|heal|burn|misc|dot|nuke|item|debuff|alliance|harmonious      "${auxli} class active combat order"
-  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover                               "${auxli} class post combat "
+  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|staminarecovery                                                   "${auxli} class post combat "
 
   | AAs
   /call set_data_map ${_debug} maChr stAAArmoroftheInquisitor         PREGEN|1                      "${auxna} Armor of the Inquisitor AA"
@@ -104,11 +104,6 @@ sub class_init(bool _debug)
 sub class_main(bool _debug)
   DEBUG \atclass_main\ax()
 
-  GETINPUT
-  ISMEDEAD
-  CHECKTIE
-  | CHECKREZ
-
   /if (AUTO && !ENGINE3) {
     /call class_cycle lsOrderClassBase
 
@@ -140,14 +135,7 @@ sub class_main(bool _debug)
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      | /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
       /call class_cycle lsOrderClass
-
-      | /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-      |   /call check_buff_cycle_temp_self ${maDebug.Find[temp].Value} stSteel
-      |   /call check_buff_cycle_temp_self ${maDebug.Find[temp].Value} stStance
-      | }
-
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -156,7 +144,6 @@ sub class_main(bool _debug)
 
     /if (AUTO && !ENGINE3) {
       /call class_cycle lsOrderClassPost
-      /if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[rest].Value}
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
         /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -175,16 +162,9 @@ sub class_main(bool _debug)
 sub misc_combat(bool _debug, int _tmpID)
   DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
 
-  ISMEDEAD
-
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
-
+  TMPIDDEAD
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  | CHECKDEFENSE
 
   /call check_heal_routines
   /if (SWARM || PET) {
@@ -199,14 +179,7 @@ sub misc_combat(bool _debug, int _tmpID)
     /return TRUE
   }
 
-  | spam rune
-  | /if (${is_ready[${_debug}, "${maChr.Find[stTempRune].Value}"]}) {
-  |   /call voodoo ${_debug} "${maChr.Find[stTempRune].Value}" 0 FALSE
-  | }
-
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  TMPIDDEAD
 
   /invoke ${do_taunt[${_debug}, ${_tmpID}]}
 
@@ -231,9 +204,7 @@ sub misc_combat(bool _debug, int _tmpID)
     }
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  TMPIDDEAD
 
   | undead cripple
   /if (${Target.Body.Name.Equal[Undead]}) {
@@ -253,14 +224,9 @@ sub misc_combat(bool _debug, int _tmpID)
 sub get_agro(bool _debug, int _tmpID)
   DEBUG \atget_agro\ax()
 
-  ISMEDEAD
   CHECKEXIT
   GETINPUT
-  | CHECKDEFENSE
-
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  TMPIDDEAD
 
   /if (ENGINE2) {
     /call cast_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
@@ -303,9 +269,7 @@ sub get_agro(bool _debug, int _tmpID)
     }
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  TMPIDDEAD
 
   /if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
     /return
@@ -351,10 +315,7 @@ sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal_group\ax(\a-w${_type}\ax)
 
   CHECKTIE
-  ISMEDEAD
   CHECKEXIT
-  | CHECKREZ
-  | CHECKDEFENSE
 
   SETHUD "heal ${_type}"
 
@@ -464,9 +425,6 @@ sub check_heal(bool _debug, string _type)
     /return FALSE
   }
 
-  | CHECKREZ
-  | CHECKFADE
-
   /call cast_cycle_heal ${_debug} ${hurtID} single
 
   SETHUD EMPTY
@@ -482,7 +440,6 @@ sub check_heal(bool _debug, string _type)
 sub cast_AA_marrs_gift(bool _debug)
   DEBUG \atcast_AA_marrs_gift\ax()
 
-  ISMEDEAD
   CHECKEXIT
   GETINPUT
 
@@ -509,16 +466,10 @@ sub cast_AA_marrs_gift(bool _debug)
 sub burn(bool _debug, int _tmpID)
   DEBUG \atburn\ax(\a-w${_tmpID}\ax)
 
-  ISMEDEAD
-
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  TMPIDDEAD
 
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  | CHECKDEFENSE
 
   /if (SWARM || PET) {
     /call send_pet ${maDebug.Find[sic].Value} TARGET
@@ -531,7 +482,6 @@ sub burn(bool _debug, int _tmpID)
     /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
     /return TRUE
   }
-
 
   | deflection
   /if (!${Bool[${Me.ActiveDisc}]} && ${Me.PctHPs} < 50*.PCTHO) {
@@ -556,9 +506,7 @@ sub burn(bool _debug, int _tmpID)
     }
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  TMPIDDEAD
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 

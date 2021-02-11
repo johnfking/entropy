@@ -40,7 +40,7 @@ sub set_debug(string _verbage)
   | loot
   /invoke ${lsDebugloot.Append[loot]}
   | mode
-  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell]}
+  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell,temppet]}
   | combat
   /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait,hardstop,prediction]}
   | other
@@ -398,6 +398,7 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[mcr,mass]}
 
   } else /if (${Select[${Me.Class.ShortName},DRU]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[wolf,swWolfSpirit]}
     /invoke ${maChrControl.Add[mwood,mass]}
 
@@ -408,8 +409,10 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[crystal,swAACrystals]}
 
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[gather,stPctGather]}
     /invoke ${maChrControl.Add[cauldron,submenu]}
+    /invoke ${maChrControl.Add[pettype,stMinionElementType|br]}
 
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
     /invoke ${maChrControl.Add[list,list]}
@@ -419,8 +422,9 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[fist,submenu]}
 
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[blood,submenu]}
-    /invoke ${maChrControl.Add[bloom,stPctBloom]}
+    /invoke ${maChrControl.Add[gather,stPctBloom]}
 
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
     /invoke ${maChrControl.Add[list,list]}
@@ -473,7 +477,7 @@ sub set_initial_environment(bool _debug)
   | generate modes
   /declare maMode map outer
   /declare lsMode list outer
-  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell]}
+  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell,temppet]}
 
   /declare _lisie listiterator local
   /vardata _lisie lsMode.First.Clone
@@ -1115,6 +1119,8 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** control: home **|
+  /call set_data ${_debug} FALSE lsCombatPosition                         list outer free|left|right|rear|face
+  /call set_data_map ${_debug} maHome stCombatPosition                    free                          "${auxnum} where you will stick to the mob"
   /call set_data ${_debug} maHome swHomeMarker                            map outer FALSE
   /call set_data_map ${_debug} maHome stHomeVariance                      6                             "${auxnum} acceptable buffer range for being home"
   /call set_data ${_debug} maData stCampX                                 map outer 999999999
@@ -1122,7 +1128,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data ${_debug} maData stCampZ                                 map outer 999999999
   /call set_data_map ${_debug} maHome stMount                             FALSE                         "${auxna} name of mount you wish to sit your fat ass on"
   /call set_data_map ${_debug} maHome swMoveDeathClear                    FALSE                         "${auxsw} on = clear home marker and movements on death"
-  /call set_data_map ${_debug} maHome swMoveBehind                        FALSE                         "${auxsw} move behind the target during combat"
+  | /call set_data_map ${_debug} maHome swMoveBehind                        FALSE                         "${auxsw} move behind the target during combat"
   /call set_data_map ${_debug} maHome swFaceFast                          FALSE                         "${auxsw} use fast facing movements"
   /call set_data_map ${_debug} maHome stFaceArc                           15                            "${auxnum} [\a-w1-45\az] acceptable range of facing and still be on target"
   /call set_data ${_debug} maHome swSnapStuck                             map outer FALSE
@@ -3094,6 +3100,11 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
  /if (${_type.Equal[character]} || ${_verbage.Equal[force]}) {
   /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-w${maData.Find[chrID].Value}.sqlite\ax
 
+  /if (${maEnv.Find[build].Value} >= 210210.01 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210210.01\ax
+    /invoke ${_tmpMap.Add[swblood,character]}
+    /invoke ${_tmpMap.Add[swMoveBehind,character]}
+  }
 
   /if (${maEnv.Find[build].Value} >= 210201.01 || ${_verbage.Equal[force]}) {
     /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210201.01\ax
