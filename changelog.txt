@@ -2,7 +2,7 @@
  * changelog.txt
  * exspes
  *
- * plugins: MQ2Collections, MQ2Nav, MQ2Map, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
+ * plugins: MQ2Collections, MQ2Nav, MQ2Map, MQ2SQLite, MQ2DanNet, MQ2MoveUtils, MQ2Lua
  *
  * wiki: https://entropy.exspes.com/wiki/index.php/Main_Page
  *
@@ -19,6 +19,37 @@ on the to do list
 - exposed class oders: brd, bst, ber, clr, enc, dru, enc, mag, mnk, nec
 --------------------
 
+
+
+
+210216.01
+- Next Users
+  make sure the plugin MQ2Lua is loaded
+  if its not, the macro is gonna yell at you...!
+- in macro help
+  a LOT (read almost all) in macro help has been migrated to MQ2Lua
+  Translation:
+    those running normal MQ2 will not be able to use in macro help
+    people running Next, need to load MQ2Lua plugin
+    help can be accessed in two ways.
+      /command -h - will give you basic help/summary for that command
+      /command -u - will let you see usage for that command
+      /command -s - will show you the map associated with that command (if there is one)
+    or
+      /-h will show you all the commands you can get help on
+      /-h command will show you usage and help for that command
+  NOTE: the ingame help is a summary of whats in the wiki. the wiki will remain 
+  the source for detailed documented help
+- necromancer
+  fixed a typo on the exposed class routine
+- berserker
+  /chr resolve (on/off) enable/disable using Frenzied Resolve Disc
+- /cursor
+  some corrections to the outputs
+- /area
+  fixed an error where mob names would not get addeded to poison,slow,ranged and charm
+- /cc ass
+  smart assist settings will no longer toggle
 
 
 210210.01

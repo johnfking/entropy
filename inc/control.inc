@@ -16,22 +16,13 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
   DEBUG \atBind_control_debug\ax(\a-w${_type}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-   |  /lua get_help edebug ${_type.Right[1]}
-   | /return TRUE
+   /lua run get_help debug ${_type.Right[1]}
+   /return TRUE
   }
-
 
   /declare _count int local 0
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-      /call Bind_command_see maDebug
-    /return
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux debug
-    /return
-
-  } else /if (${_type.Equal[stop]}) {
+  /if (${_type.Equal[stop]}) {
     /declare _ligdeb listiterator local
     /vardata _ligdeb lsDebuglist.First.Clone
     /declare _lideb listiterator local
@@ -81,6 +72,59 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
 
 
 |***
+ * note: help
+ * use: /-h option
+ ***|
+#Bind command_help /-h
+sub Bind_command_help(string _type, bool _debug)
+
+  /declare _lsHelp list local
+  /invoke ${_lsHelp.Append[alto,beg,buff,build,burn,cc,crew,cursor,debuff,debug]}
+  /invoke ${_lsHelp.Append[enter,cure,heal,home,invis,mode,minion,navto,off]}
+  /invoke ${_lsHelp.Append[on,override,repeat,see,splash,take,tag,rez,tag,entropy]}
+  /invoke ${_lsHelp.Append[agro,miscdps,song,area,sash,pred,mercenary,tie,tc]}
+  /invoke ${_lsHelp.Append[coh,farm,ttl,defense,dot,nuke,clickitem,env,grab,grain]}
+  /invoke ${_lsHelp.Append[gtfo,pull,cb,here,nomore,edit]}
+  
+  /if (${_lsHelp.Contains[${_type}]}) {
+    ECHO
+    /lua run get_help ${_type} u
+    /delay 1
+    /lua run get_help ${_type} h
+    /invoke ${out[18, 0, 33]}
+    /return TRUE
+  }
+  
+  ECHO
+  /sqlite query "${DBstatic}" dummy SELECT value FROM online WHERE env_var='discord'
+  /if (!${sql_check[${_debug}, dummy, Bind_command_aux, SELECT]}) /endmacro
+  /invoke ${out[0, "Discord${sep}\a-w${sqlite.Result[dummy 1 value]}\ax"]}
+  /declare _out string local
+  /declare _liaux listiterator local
+  /invoke ${out[0, "\aw/-h [\a-w option \ax]"]}
+  /varset _out
+  
+  /declare _count int local 0
+  /declare _liho listiterator local
+  /vardata _liho _lsHelp.First.Clone
+  /while (!${_liho.IsEnd}) {
+    /varcalc _count ${_count} +1
+    /varset _out ${_out} ${dot} ${info}${_liho.Value}\ax
+    /if (${_count} == 10) {
+      /invoke ${out[0, "${_out}"]}
+      /varset _out
+      /varset _count 0
+    }
+    /invoke ${_liho.Advance}
+  }
+  /invoke ${out[0, "${_out}"]}
+  /invoke ${out[18, 0, 33]}
+
+/return TRUE
+
+
+
+|***
  * note: mode control
  * use: /mode []
  ***|
@@ -88,15 +132,12 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
 sub Bind_control_mode(string _type, string _verbage, string _verbage2, bool _debug)
   DEBUG \atBind_control_mode\ax(\a-w${_type}\ax)
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-      /call Bind_command_see maMode
-    /return
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux mode
-    /return
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help mode ${_type.Right[1]}
+    /return TRUE
+  }
 
-  } else /if (${_type.Equal[stop]}) {
+  /if (${_type.Equal[stop]}) {
     /declare _lisie listiterator local
     /vardata _lisie lsMode.First.Clone
     /while (!${_lisie.IsEnd}) {
@@ -558,17 +599,13 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
   DEBUG \atBind_control_env\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-    /call Bind_command_see maEnv ${_verbage}
-    /return
-
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux env ${_verbage}
-    /return
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help env ${_type.Right[1]}
+    /return TRUE
+  }
 
   | macro auto/manual
-  } else /if (${_type.Equal[auto]}) {
+  /if (${_type.Equal[auto]}) {
     /invoke ${set_switch_env[${_debug}, swAuto, FALSE, ${_verbage}]}
     /invoke ${out[12, "/env ${If[${maEnv.Find[swAuto].Value},${good}auto\ax,${bad}auto\ax]}"]}
 
@@ -595,9 +632,9 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
   } else /if (${_type.Equal[begmage]}) {
     /invoke ${set_switch_env[${_debug}, swBegMAG, TRUE, ${_verbage}]}
 
+  | sometimes.. sometimes, i dont like people
   } else /if (${_type.Equal[dropinvis]}) {
     /invoke ${set_switch_env[${_debug}, swAlwaysDropInvisCauseThePeopleIGroupWithAreAssHats, TRUE, ${_verbage}]}
-
 
   | take raid invites
   } else /if (${_type.Equal[takeri]}) {
@@ -833,6 +870,11 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 sub Bind_to_chr(string _type, string _verbage, string _silent, bool _debug)
   | DEBUG /call set_control _type:${_type} _verbage:${_verbage} _silent:${_silent} _debug:${_debug}
 
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help chr ${_type.Right[1]}
+    /return TRUE
+  }
+  
   /call set_control ${_type} "${_verbage}" "${_silent}" "${_debug}"
 
 /return TRUE
@@ -844,21 +886,18 @@ sub Bind_to_chr(string _type, string _verbage, string _silent, bool _debug)
  * use: /cb
  ***|
 #bind command_cb /cb
-sub Bind_command_cb(string _verbage)
+sub Bind_command_cb(string _type)
 
-  /if (${_verbage.Equal[aux]}) {
-    /call Bind_command_aux cb
-    /return TRUE
-  } else /if (${_verbage.Equal[-h]}) {
-    | help goes here
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help cb ${_type.Right[1]}
     /return TRUE
   }
 
-  /if (${Bool[${_verbage}]} && ${Select[${_verbage},u,s,a,c,g,r,b,t,xx]}) {
+  /if (${Bool[${_type}]} && ${Select[${_type},u,s,a,c,g,r,b,t,xx]}) {
     /call Bind_control_nomore invis
-    /call check_buff_cycle ${maDebug.Find[cb].Value} TRUE ${_verbage}
+    /call check_buff_cycle ${maDebug.Find[cb].Value} TRUE ${_type}
     /return TRUE
-  } else /if (${Bool[${_verbage}]} && ${Select[${_verbage},m]}) {
+  } else /if (${Bool[${_type}]} && ${Select[${_type},m]}) {
     /call Bind_control_nomore invis
      /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
      /return TRUE
@@ -887,16 +926,12 @@ sub Bind_command_cb(string _verbage)
 sub Bind_control_watch(string _verbage, string _verbage2, bool _debug)
   DEBUG \atBind_control_watch\ax(\a-w${_verbage}, ${_verbage2}\ax)
 
-  /if (${_verbage.Equal[aux]}) {
-    /call Bind_command_aux watch
-    /mapshow reset
+  /if (${_verbage.Left[1].Equal[-]}) {
+    /lua run get_help watch ${_verbage.Right[1]}
     /return TRUE
+  }
 
-  } else /if (${_verbage.Equal[see]}) {
-    /call Bind_command_see maWatch
-    /return TRUE
-
-  } else /if (${_verbage.Equal[active]}) {
+  /if (${_verbage.Equal[active]}) {
     /invoke ${set_switch_env[${_debug}, swWatch, TRUE, ${_verbage2}]}
 
 
@@ -951,6 +986,11 @@ sub Bind_control_watch(string _verbage, string _verbage2, bool _debug)
 sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug)
   DEBUG \atBind_control_home\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help home ${_type.Right[1]}
+    /return TRUE
+  }
+
   /declare _lsout list local
   /declare _out string local
   /declare _count int local 0
@@ -962,14 +1002,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
     /return
   }
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-    /call Bind_command_see maHome ${_verbage}
-    /return
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux home ${_verbage}
-    /return
-  } else /if (${_type.Equal[campfire]}) {
+  /if (${_type.Equal[campfire]}) {
     /invoke ${out[12, "Sorting Campfire"]}
     | need 3 people close
     /if (${SpawnCount[fellowship radius 50]} < 3) /return FALSE
@@ -1191,19 +1224,17 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 #bind control_tc /tc
 sub Bind_control_tc(string _type, string _verbage, string _silent, bool _debug)
   DEBUG \atBind_control_tc\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
+
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help tc ${_type.Right[1]}
+    /return TRUE
+  }
+
   /declare _lsout list local
   /declare _out string local
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-    /call Bind_command_see maTie ${_verbage}
-    /return
 
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux tc ${_verbage}
-    /return
-
-  } else /if (${_type.Equal[mode]}) {
+  /if (${_type.Equal[mode]}) {
     /invoke ${_lsout.Append[nav,stick]}
     /if (${_lsout.Contains[${_verbage}]}) {
       /if (!${Navigation.MeshLoaded}) {
@@ -1256,11 +1287,8 @@ sub Bind_control_tc(string _type, string _verbage, string _silent, bool _debug)
 sub Bind_command_tie(string _type, bool _debug)
   DEBUG \atBind_command_tie\ax(\a-w${_type}\ax)
 
-  /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux tie
-    /return
-  } else /if (${_type.Equal[-h]}) {
-    OUT use${sep}\a-w/tie [on|off]\ax
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help tie ${_type.Right[1]}
     /return TRUE
   }
 
@@ -1325,8 +1353,12 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
   /if (${maDebug.Find[area].Value}) {
     /varset _debug TRUE
   }
-
   DEBUG \atBind_control_area\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
+
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help area ${_type.Right[1]}
+    /return TRUE
+  }
 
   /if (${_type.Equal[list]}) {
     ECHO
@@ -1360,6 +1392,8 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
     /varset _element lsZoneNamed
   } else /if (${_type.Equal[ranged]}) {
     /varset _element lsZoneRanged
+  } else /if (${_type.Equal[charm]}) {
+    /varset _element lsZoneCharm
   } else /if (${_type.Equal[hunt]}) {
     /varset _element lsZoneHunt
   } else /if (${_type.Equal[nocast]}) {
@@ -1372,7 +1406,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
     /varset _element lsZoneNoDisease
   } else /if (${_type.Equal[nofire]}) {
     /varset _element lsZoneNoFire
-  } else /if (${_type.Equal[nopoision]}) {
+  } else /if (${_type.Equal[nopoison]}) {
     /varset _element lsZoneNoPoison
   } else /if (${_type.Equal[nocold]}) {
     /varset _element lsZoneNoCold
@@ -1461,7 +1495,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
     }
 
   | remaining list adjustments
-  } else /if (${Select[${_type},exclude,named,ranged,hunt,nomez,nocast,nomelee,nomagic,nodisease,nofire,nopoision,nocold,nocorruption,nosnare,nocripple,notash,nomalo,noeradicate]} && ${Target.ID}) {
+  } else /if (${Select[${_type},exclude,named,charm,ranged,hunt,nomez,nocast,nomelee,nomagic,nodisease,nofire,nopoison,nocold,nocorruption,nosnare,nocripple,notash,nomalo,noeradicate,noslow]} && ${Target.ID}) {
     DEBUG ${sep}target${sep}\a-w${Target.DisplayName}\ax
     /if (!${${_element}.Contains[${Target.DisplayName}]}) {
       | Add a property to a mob
@@ -1497,7 +1531,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Add[named,option]}
   /invoke ${maControl.Add[exclude,option]}
   /invoke ${maControl.Add[charm,option]}
-  /invoke ${maControl.Add[range,option]}
+  /invoke ${maControl.Add[ranged,option]}
   /invoke ${maControl.Add[nomez,option]}
   /invoke ${maControl.Add[nocast,option]}
   /invoke ${maControl.Add[nomelee,option]}
@@ -1506,6 +1540,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Add[nomagic,option]}
   /invoke ${maControl.Add[nocorruption,option]}
   /invoke ${maControl.Add[nocold,option]}
+  /invoke ${maControl.Add[noslow,option]}
   /invoke ${maControl.Add[nodisease,option]}
   /invoke ${set_control_output[${_debug}, maEnv, area, maControl]}
   
@@ -1520,12 +1555,9 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 #Bind command_beg /beg
 sub Bind_command_beg(string _buff, string _operate)
 
-  /if (${_buff.Equal[see]}) {
-    /call Bind_command_see maBuffRequest
-    /return
-  } else /if (${_buff.Equal[aux]}) {
-      /call Bind_command_aux beg
-    /return
+  /if (${_buff.Left[1].Equal[-]}) {
+    /lua run get_help beg ${_buff.Right[1]}
+    /return TRUE
   }
 
   /if (!${Bool[${_operate}]}) /varset _operate Add
@@ -1565,11 +1597,15 @@ sub Bind_command_requestbuff(string _toon, string _operate, string _buff)
 sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atcontrol_heal\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help heal ${_type.Right[1]}
+    /return TRUE
+  }
+  
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} Heal 50 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
     /return TRUE
   }
-
 
   | set heal point
   /if (${_type.Equal[point]}) {
@@ -1787,18 +1823,12 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
 sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
   DEBUG \atcontrol_entropy\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
 
-  /declare _lsout list local
-  /declare _out string local
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help entropy ${_type.Right[1]}
+    /return TRUE
+  }
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-    /call Bind_command_see maEntropy ${_verbage}
-    /return
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux entropy ${_verbage}
-    /return
-
-  } else /if (${_type.Equal[maintenance]}) {
+  /if (${_type.Equal[maintenance]}) {
     /invoke ${set_switch_env[FALSE, swMaintenance, TRUE, ${_verbage}]}
     /invoke ${out[12, "/entropy ${If[${maEntropy.Find[swMaintenance].Value},${good}maintenance\ax,${bad}maintenance\ax]}"]}
     /invoke ${out[12, "${warning} ${dot} ENDING MACRO${dot}${dot}${dot}please restart"]}
@@ -1807,10 +1837,6 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
   | use concolors for targets
   } else /if (${_type.Equal[concolor]}) {
     /invoke ${set_switch_env[${_debug}, swUseConColor, TRUE, ${_verbage}]}
-
-  | enable the DPS meter
-  | } else /if (${_type.Equal[dpsmeter]}) {
-  |   /invoke ${set_switch_env[${_debug}, swDPSMeter, TRUE, ${_verbage}]}
 
   | enable/disable using events.inc file
   } else /if (${_type.Equal[events]}) {
@@ -2023,7 +2049,6 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
   /invoke ${maControl.Add[rememberset,swBuildSetRemember]}
   /invoke ${maControl.Add[buffcooldownwait,swBuffCooldownWait]}
   /invoke ${maControl.Add[relaytell,swRelayTell]}
-  | /invoke ${maControl.Add[broadcast,stDefaultBroadcast]}
 
   /invoke ${set_control_output[${_debug}, maEntropy, entropy, maControl]}
 
@@ -2039,7 +2064,12 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
 sub Bind_control_rez(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atcontrol_rez\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-  /if (${Select[${_verbage},clear]} || ${Select[${_type},list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]} && !${Select[${_verbage},see,tag]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help rez ${_type.Right[1]}
+    /return TRUE
+  }
+
+  /if (${Select[${_verbage},clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,20:${Int[${_type}]}]} && !${Select[${_verbage},see,tag]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} Rez 8 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
 
     /if (${Select[${_type},list]}) {
@@ -2049,17 +2079,8 @@ sub Bind_control_rez(string _type, string _verbage, string _verbage2, string _ad
     /return TRUE
   }
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-    /call Bind_command_see maRez ${_verbage}
-    /return TRUE
-
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux rez ${_verbage}
-    /return TRUE
-
   | take rez
-  } else /if (${_type.Equal[take]}) {
+  /if (${_type.Equal[take]}) {
     /invoke ${set_switch_env[${_debug}, swRezTake, TRUE, ${_verbage}]}
 
   | rez in combat
@@ -2824,9 +2845,6 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 
   }
 
-  
-  
-
 /return TRUE
 
 
@@ -2839,7 +2857,12 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
 sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atBind_control_buff\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help buff ${_type.Right[1]}
+    /return TRUE
+  }
+
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} Buff 50 "${_type}" "${_verbage}" "${_verbage2}" "${_add_delete}"
     /return TRUE
   }
@@ -2939,39 +2962,39 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
 sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug)
   DEBUG \atBind_control_over\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-    /call Bind_command_see maOver ${_verbage}
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help override ${_type.Right[1]}
     /return TRUE
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux override ${_verbage}
-    /return TRUE
-    
-  } else /if (${_type.Equal[startcheck]}) {
-    /declare _overmap map local
-    /invoke ${_overmap.Add[los,swOverLOS]}
-    /invoke ${_overmap.Add[engage,swOverPctEngage]}
-    /invoke ${_overmap.Add[loot,swOverLoot]}
-    /invoke ${_overmap.Add[safenames,swOverSafeNames]}
-    /invoke ${_overmap.Add[trainspell,swOverTrainSpell]}
-    /invoke ${_overmap.Add[dscheck,swOverDSCheck]}
-    /invoke ${_overmap.Add[envauto,swOverEnvAuto]}
-    /invoke ${_overmap.Add[navcheck,swOverNavCheck]}
-    /invoke ${_overmap.Add[groupass,swOverGroupAss]}
-    /invoke ${_overmap.Add[splashhurt,swOverSplashHurt]}
-    /invoke ${_overmap.Add[targetclear,swTargetClear]}
+  }
 
+  /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[los,swOverLOS]}
+  /invoke ${maControl.Add[engage,swOverPctEngage]}
+  /invoke ${maControl.Add[loot,swOverLoot]}
+  /invoke ${maControl.Add[safenames,swOverSafeNames]}
+  /invoke ${maControl.Add[trainspell,swOverTrainSpell]}
+  /invoke ${maControl.Add[dscheck,swOverDSCheck]}
+  /invoke ${maControl.Add[envauto,swOverEnvAuto]}
+  /invoke ${maControl.Add[navcheck,swOverNavCheck]}
+  /invoke ${maControl.Add[groupass,swOverGroupAss]}
+  /invoke ${maControl.Add[splashhurt,swOverSplashHurt]}
+  /invoke ${maControl.Add[targetclear,swTargetClear]}
+
+  /if (${_type.Equal[startcheck]}) {
+    /declare _out string local
+    /declare _count int local 0
     /declare _mios mapiterator local
-    /vardata _mios _overmap.First.Clone
+    /vardata _mios maControl.First.Clone
     /while (!${_mios.IsEnd}) {
       /if (${maOver.Find[${_mios.Value}].Value}) {
-        OUT \a-tOverride Enabled\ax${sep}\a-w${_mios.Key}\ax
+        /varset _out ${_out} ${If[!${_count},,${dot}]} ${_mios.Key}
+        /varcalc _count ${_count} + 1
       }
       /invoke ${_mios.Advance}
     }  
-   
-    
+    OUT \a-tOverrides Enabled\ax${sep}\a-w${_out}\ax
     /return TRUE
+
   } else /if (${_type.Equal[los]}) {
     /invoke ${set_switch_env[${_debug}, swOverLOS, TRUE, ${_verbage}]}
   } else /if (${_type.Equal[engage]}) {
@@ -2998,18 +3021,6 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
   }
 
   /if (${_silent.Equal[SILENT]}) /return
-  /invoke ${maControl.Clear}
-  /invoke ${maControl.Add[los,swOverLOS]}
-  /invoke ${maControl.Add[engage,swOverPctEngage]}
-  /invoke ${maControl.Add[loot,swOverLoot]}
-  /invoke ${maControl.Add[safenames,swOverSafeNames]}
-  /invoke ${maControl.Add[trainspell,swOverTrainSpell]}
-  /invoke ${maControl.Add[dscheck,swOverDSCheck]}
-  /invoke ${maControl.Add[envauto,swOverEnvAuto]}
-  /invoke ${maControl.Add[navcheck,swOverNavCheck]}
-  /invoke ${maControl.Add[groupass,swOverGroupAss]}
-  /invoke ${maControl.Add[splashhurt,swOverSplashHurt]}
-  /invoke ${maControl.Add[targetclear,swTargetClear]}
   /invoke ${set_control_output[${_debug}, maOver, override, maControl]}
 
 /return TRUE
@@ -3022,6 +3033,11 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
  ***|
 #bind_noparse raw_edit /edit
 sub Bind_noparse_raw_edit(string _variable, string _value, string _add_delete, string _verbage)
+
+  /if (${_variable.Left[1].Equal[-]}) {
+    /lua run get_help edit ${_variable.Right[1]}
+    /return TRUE
+  }
 
   /call do_raw_edit ${maDebug.Find[edit].Value} FALSE "${_variable}" "${Parse[1,${_value}]}" ${_add_delete} ${_verbage}
 
@@ -3039,11 +3055,12 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
   DEBUG \atBind_control_see\ax(\a-w${_variable}, ${_verbage}, ${_silent}\ax)
   DEBUG .Left[2]${sep}\a-w${_variable.Left[2]}\ax
 
-  | input validations
-  /if (!${_variable.Length} || ${_variable.Equal[NULL]} || ${_variable.Equal[aux]}) {
-    /call Bind_command_aux see
-    /return FALSE
-  } else /if (!${Defined[${_variable}]} && !${Select[${_variable},${lsControls},spawns]}) {
+  /if (${_variable.Left[1].Equal[-]}) {
+    /lua run get_help see ${_variable.Right[1]}
+    /return TRUE
+  }
+
+  /if (!${Defined[${_variable}]} && !${Select[${_variable},${lsControls},spawns,target]}) {
     /invoke ${out[0, "Crack says your input sucks${sep}\a-w${_variable}\ax"]}
     /return FALSE
   }
@@ -3080,15 +3097,19 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
     OUT NAV Length${sep}\a-w${Navigation.PathLength[id ${Target.ID}]}\ax
 
     /invoke ${out[18, 0, 33]}
-    /return
+    /return FALSE
     
   } else /if (${_variable.Equal[spawns]}) {
     MQCLEAR
     OUT Nearest \aw5\ax spawns
     /declare _tmpID int local
     /declare _animationresult string local UNKNOWN ANIMATION
+    
+    /if (!${Bool[${_verbage}]}) {
+      /varset _verbage 5      
+    }
 
-    /for _count 1 to 5
+    /for _count 1 to ${_verbage}
       /varset _tmpID ${NearestSpawn[${_count}].ID}
       OUT #\ag${_count}\ax${sep}name:\a-w${Spawn[id ${_tmpID}].Name}\ax${sep}${con_color[${_debug}, ${_tmpID}]}
       OUT ${sep}Dis(\a-r${Spawn[${_tmpID}].Distance}\ax) ${dot} Y(\a-r${Spawn[id ${_tmpID}].Y}\ax)X(\a-r${Spawn[id ${_tmpID}].X}\ax)
@@ -3137,20 +3158,16 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
     /declare _misee mapiterator local
     /vardata _misee ${_variable}.First.Clone
     /while (!${_misee.IsEnd}) {
-      /if (${_verbage.Equal[aux]}) {
+      /if (${_verbage.Equal[-h]}) {
         /varset _DBLOC ${get_key_DBLOC[${_debug}, ${_misee.Key}]}
         /sqlite query "${DBcharacter}" dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var='${_misee.Key}'
-        | /if (!${sql_check[${_debug}, dummy, environment_condition, SELECT]}) /endmacro
         /if (${sqlite.Status[dummy].Equal[SUCCESS]} && ${sqlite.Result[dummy 1 aux].Length} > 6) {
-          /varset _tmpAux ${dot} ${sqlite.Result[dummy 1 aux]}
+          /varset _tmpAux ${dot} \a-g${sqlite.Result[dummy 1 aux]}\ax
         } else {
           /varset _tmpAux
         }
       }
-      OUT ${_misee.Key}${sep}\aw${Parse[1,${_misee.Value}]}\ax
-      /if (${_verbage.Equal[aux]}) {
-        /invoke ${out[12, "\at..\ax\a-g${_tmpAux}\ax"]}
-      }
+      OUT ${_misee.Key}${sep}\aw${Parse[1,${_misee.Value}]}\ax ${If[${_verbage.Equal[-h]},${_tmpAux},]}
       /invoke ${_misee.Advance}
     }
 
@@ -3195,7 +3212,12 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
 sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atBind_control_burn\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\\ax)
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help burn ${_type.Right[1]}
+    /return TRUE
+  }
+
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
 
     /if (ENGINE1) {
       /invoke ${out[0, "/burn engine is only available with engine 2/3 enabled."]}
@@ -3264,7 +3286,12 @@ sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _a
 sub Bind_control_debuff(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atBind_control_debuff\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help debuff ${_type.Right[1]}
+    /return TRUE
+  }
+
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} deBuff 12 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
     
     /if (${_type.Equal[list]}) {
@@ -3331,16 +3358,13 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
 
   /declare _out string local
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-    /call Bind_command_see maCC ${_verbage}
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help cc ${_type.Right[1]}
     /return TRUE
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux cc ${_verbage}
-    /return TRUE
+  }
 
   | set assist
-  } else /if (${_type.Equal[ass]}) {
+  /if (${_type.Equal[ass]}) {
     
     /if (${_verbage.Equal[list]}) {
       
@@ -3359,28 +3383,25 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
 
     } else /if (${_verbage.Equal[smart]}) {
       /if (${Select[${_verbage2},1,2,3,g]}) {
-        /call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[${_verbage2}]},${_verbage2},FALSE]}
+        | /call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[${_verbage2}]},${_verbage2},FALSE]}
+        /call do_raw_edit ${_debug} SILENT stAssistMode ${_verbage2}
 
-      } else  /if (${Select[${_verbage2},off]}) {
+      } else  /if (${Select[${_verbage2},off,FALSE]}) {
         /call do_raw_edit ${_debug} SILENT stAssistMode FALSE
       } else {
-        OUT ${notice} Smart Assits are ${eol} 
-        OUT ${dot} \awg\ax = Group Roll${sep}\a-wGroup Main Assist\ax
-        OUT ${dot} \aw1\ax = Raid Assist${sep}\a-w1\ax
-        OUT ${dot} \aw2\ax = Raid Assist${sep}\a-w2\ax
-        OUT ${dot} \aw3\ax = Raid Assist${sep}\a-w3\ax
-        OUT ${dot} \awoff\ax = Turn off all Smart Assist
+        /lua run get_help cc ccasserror
+        /return FALSE
       }
       
     }
 
-  /invoke ${maControl.Clear}
-  /invoke ${maControl.Add[list,list]}
-  /invoke ${maControl.Add[smart,stAssistMode|br]}
-  /invoke ${maControl.Add[ma,swManualAssist]}
-  /invoke ${set_control_output[${_debug}, maCC, "cc ass", maControl]}   
-    
-  /return TRUE
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[list,list]}
+    /invoke ${maControl.Add[smart,stAssistMode|br]}
+    /invoke ${maControl.Add[ma,swManualAssist]}
+    /invoke ${set_control_output[${_debug}, maCC, "cc ass", maControl]}   
+      
+    /return TRUE
 
   | glyphs
   } else /if (${_type.Equal[glyph]}) {
@@ -3502,13 +3523,11 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
 
   }
 
-
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[ass,submenu]}
   /invoke ${maControl.Add[force,option]}
   /invoke ${maControl.Add[kill,option]}
   /invoke ${maControl.Add[mode,submenu]}
-  | /invoke ${maControl.Add[melee,submenu]}
   /invoke ${maControl.Add[glyph,submenu]}
   /invoke ${maControl.Add[engage,stPctEngage]}
   /invoke ${maControl.Add[zradius,stZRadius]}
@@ -3527,15 +3546,19 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
 #Bind command_aux /aux
 sub Bind_command_aux(string _type, bool _debug)
 
+
+  OUT IN Macro Help is currently Disabled /sadpanda
+  /return FALSE
+
   /declare _count int local 0
   /declare _lsCompleteAux list local
   
   /declare _list1 string local alto,beg,buff,build,burn,cc,crew,cursor,debuff,debug
-  /declare _list2 string local edit,enter,cure,heal,home,invis,mode,minion,navto,off
-  /declare _list3 string local on,override,repeat,see,splash,take,tag,rez,tag,entropy
-  /declare _list4 string local agro,miscdps,song,line,area,sash,pred,mercenary,tie,tc
-  /declare _list5 string local coh,farm,ttl,defense,dot,nuke,clickitem,env,grab,grain
-  /declare _list6 string local gtfo,pull,cb,here
+  /declare _list2 string local edit,enter,cure,heal,home,invis,mode,minion,
+  /declare _list3 string local override,see,splash,tag,rez,tag,entropy
+  /declare _list4 string local miscdps,song,line,area,sash,pred,mercenary,tie,tc
+  /declare _list5 string local coh,farm,env,grab,grain
+  /declare _list6 string local gtfo,pull
 
   /for _count 1 to 6
     /declare _lsout${_count} list local
@@ -3682,13 +3705,10 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
  * use: /alto
  ***|
 #bind command_alto /alto
-sub Bind_command_alto(string _debug)
+sub Bind_command_alto(string _type, string _debug)
 
-  /if (${_debug.Equal[aux]}) {
-    /call Bind_command_aux alto
-    /return TRUE
-  } else /if (${_debug.Equal[-h]}) {
-    OUT use${sep}\a-w/alto\ax
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help alto ${_type.Right[1]}
     /return TRUE
   }
 
@@ -3704,17 +3724,16 @@ sub Bind_command_alto(string _debug)
 
 |***
  * note: navigates to name/target/locyxz/wp
- * use: /navto [NAME|TARGET|locyxz|wp] [nickname|yxzloc]
+ * use: /navto [NAME|TARGET|locyxz|wp] [nickname]
  ***|
 #bind command_navto /navto
 sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
   DEBUG \atBind_command_navto\ax(\a-w${_verbage}, "${_loc}"\ax)
 
-  /if (${_verbage.Equal[-h]}) {
-    OUT use${sep}\a-w/navto [name|target|locyxz|wp] [nickname|yxzloc]\ax 
-    /return TRUE
+  /if (${_verbage.Left[1].Equal[-]}) {
+   /lua run get_help navto ${_verbage.Right[1]}
+   /return TRUE
   }
-
 
   | add/update a waypoint
   /if (${_verbage.Equal[wpadd]}) {
@@ -3844,13 +3863,17 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
 sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug)
   DEBUG \atBind_command_repeat\ax(\a-w${_verbage}, ${_sender}, ${_tmpID}\ax)
 
-  /if (${_verbage.Equal[aux]}) {
-    /call Bind_command_aux repeat
-    /return TRUE
-  } else /if (${_verbage.Equal[aux]}) {
-    OUT use${sep}\a-w/repeat "things to say"\ax 
+
+  /if (${_verbage.Left[1].Equal[-]}) {
+    /lua run get_help repeat ${_verbage.Right[1]}
     /return TRUE
   }
+
+
+
+  | /call control_broadcast_command repeat ${_verbage} ${_sender}
+  | /if (${Macro.Return.Equal[break]}) /return TRUE
+
 
   /call Bind_control_nomore invis ${_debug}
   /invoke ${out[21, "${broadcast}${sep}\a-w/repeat ${_verbage}\ax"]}
@@ -3952,6 +3975,11 @@ sub Bind_command_enter(string _type, string _verbage, bool _debug)
 #bind command_invis /invis
 sub Bind_command_invis(string _type, string _verbage, bool _debug)
 
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help invis ${_type.Right[1]}
+    /return TRUE
+  }
+
   /call control_broadcast_command invis ${_type} ${_verbage}
   /if (${Macro.Return.Equal[break]}) /return TRUE
 
@@ -3994,6 +4022,11 @@ sub Bind_command_invis(string _type, string _verbage, bool _debug)
 #bind control_port /port
 sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
   DEBUG \atBind_control_port\ax(\a-w${_type}, ${_nick1}, ${_nick2}\ax)
+
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help port ${_type.Right[1]}
+    /return TRUE
+  }
 
   /declare _count int local 0
   /declare _portName string local FALSE
@@ -4068,12 +4101,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
     }
     /return TRUE
 
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux port
-    /return TRUE
-  }
-
-
+  } 
 
   | /if (${Select[${_type},wiz,dru,guild,item,vendor,aa]}) {
   |   SDEBUG SELECT * FROM port WHERE type='${_type}' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',AND nick2='FALSE']} LIMIT 1
@@ -4296,19 +4324,16 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
 #bind command_off /command_off
 sub Bind_command_off(string _type, string _verbage, bool _debug)
 
-
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help off ${_type.Right[1]}
+    /return TRUE
+  }
+  
   /call control_broadcast_command off ${_type} ${_verbage}
   /if (${Macro.Return.Equal[break]}) /return TRUE
   /return TRUE
 
-  /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux off
-    /return TRUE
-  } else /if (${_type.Equal[-h]}) {
-    OUT use${sep}\a-w/off [group (default none)|zone|raid|all|broadcast]\ax
-    /return TRUE
-    
-  } else /if (!${Bool[${_type}]} || ${Select[${_type},all,zone,group,raid]}) {
+  /if (!${Bool[${_type}]} || ${Select[${_type},all,zone,group,raid]}) {
     /if (!${Bool[${_type}]} || ${_type.Equal[group]}) {
       /if (!${Bool[${_type}]}) {
         /invoke ${out[21, "${broadcast}${sep}\a-w/off\ax (\a-rdefault group\ax)"]}
@@ -4352,18 +4377,16 @@ sub Bind_command_off(string _type, string _verbage, bool _debug)
 #bind command_on /command_on
 sub Bind_command_on(string _type, string _verbage, bool _debug)
 
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help on ${_type.Right[1]}
+    /return TRUE
+  }
+
   /call control_broadcast_command on ${_type} ${_verbage}
   /if (${Macro.Return.Equal[break]}) /return TRUE
   /return TRUE
-
-  /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux on
-    /return TRUE
-  } else /if (${_type.Equal[-h]}) {
-    OUT use${sep}\a-w/on [group (default none)|zone|raid|all|broadcast]\ax
-    /return TRUE
     
-  } else /if (!${Bool[${_type}]} || ${Select[${_type},all,zone,group,raid]}) {
+  /if (!${Bool[${_type}]} || ${Select[${_type},all,zone,group,raid]}) {
     /if (!${Bool[${_type}]} || ${_type.Equal[group]}) {
       /if (!${Bool[${_type}]}) {
         /invoke ${out[21, "${broadcast}${sep}\a-w/on\ax (\a-rdefault group\ax)"]}
@@ -4407,7 +4430,11 @@ sub Bind_command_on(string _type, string _verbage, bool _debug)
 #bind command_cls /cls
 sub Bind_command_cls(string _type, string _verbage, bool _debug)
 
-
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help cls ${_type.Right[1]}
+    /return TRUE
+  }
+  
   /call control_broadcast_command cls ${_type} ${_verbage}
   /if (${Macro.Return.Equal[break]}) /return TRUE
 
@@ -4424,6 +4451,11 @@ sub Bind_command_cls(string _type, string _verbage, bool _debug)
  ***|
 #bind command_here /here
 sub Bind_command_here(string _type, string _verbage, bool _debug)
+
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help here ${_type.Right[1]}
+    /return TRUE
+  }
 
   /call control_broadcast_command here ${_type} ${_verbage}
   /if (${Macro.Return.Equal[break]}) /return TRUE
@@ -4488,6 +4520,11 @@ sub Bind_command_here(string _type, string _verbage, bool _debug)
 #bind command_take /take
 sub Bind_command_take(string _type, string _verbage, bool _debug)
 
+  /if (${_type.Left[1].Equal[-]}) {
+   /lua run get_help take ${_type.Right[1]}
+   /return TRUE
+  }
+
   /call control_broadcast_command take ${_type} ${_verbage}
   /if (${Macro.Return.Equal[break]}) /return TRUE
 
@@ -4529,13 +4566,14 @@ sub Bind_command_take(string _type, string _verbage, bool _debug)
 sub Bind_command_grab(string _name, string _silent, bool _debug)
   DEBUG Bind_command_grab(\a-w${_name}\ax)
 
-  /if (${_name.Equal[aux]}) {
-    /call Bind_command_aux grab
+  /if (${_name.Left[1].Equal[-]}) {
+    /lua run get_help grab ${_name.Right[1]}
     /return TRUE
   }
+  
   | typed something wrong
   /if (${_name.Equal[NULL]} || !${Bool[${_name}]} || ${_name.Equal[info]} ) {
-    OUT /grab ${info}NAME\ax of mapfilter spawn name you want to pick up.
+    /lua run get_help grab h
     /return
   }
 
@@ -4564,15 +4602,10 @@ sub Bind_command_grab(string _name, string _silent, bool _debug)
  * use: /lesson
  ***|
 #bind command_lesson /lesson
-sub Bind_command_lesson(string _type, string _verbage, bool _debug)
+sub Bind_command_lesson(string _type, bool _debug)
 
-  /if (!${Bool[${_debug}]}) /varset _debug FALSE
-
-  /if (${_debug.Equal[aux]}) {
-    OUT Help? Really? ok.. Uses AA Lesson of the Devoted. Thats it. Not sure what you expected.
-    /return TRUE
-  } else /if (${_debug.Equal[-h]}) {
-    OUT use${sep}\a-w/lesson\ax
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help lesson ${_type.Right[1]}
     /return TRUE
   }
 
@@ -4594,8 +4627,8 @@ sub Bind_command_lesson(string _type, string _verbage, bool _debug)
 sub Bind_command_coh(string _verbage, bool _debug)
   DEBUG Bind_command_coh(${_verbage})
 
-  /if (${_verbage.Equal[-h]}) {
-    OUT use${sep}\a-w/coh [group]\ax
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help coh ${_type.Right[1]}
     /return TRUE
   }
 
@@ -4618,17 +4651,19 @@ sub Bind_command_coh(string _verbage, bool _debug)
 #bind control_build /build
 sub Bind_control_build(string _build, string _nickname, string _verbage, bool _debug)
 
-  /declare _count int local 0
+  /if (${_build.Left[1].Equal[-]}) {
+    /lua run get_help build ${_build.Right[1]}
+    /return TRUE
+  }
 
-  | output control map
-  /if (${_build.Equal[aux]}) {
-    /call Bind_command_aux build
-    /return
-
-  } else /if (!${Bool[${_build}]} || !${Bool[${_nickname}]}) {
-    OUT Usage /build [\a-wsave\ax|\a-wload\ax|\a-wset\ax] "\a-wnick name\ax"
+  /if (!${Bool[${_build}]} || !${Bool[${_nickname}]}) {
+    /lua run get_help build u
+    /delay 1
+    /lua run get_help build h
     /return
   }
+
+  /declare _count int local 0
 
   | set file name
   /declare _fn string local build_${Me.Class.ShortName.Lower}_${_nickname}.ini
@@ -4827,31 +4862,35 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
 sub Bind_control_cursor(string _type, string _verbage, bool _debug)
   DEBUG \atBind_control_cursor\ax(\a-w${_type}, ${_verbage}\ax)
 
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help cursor ${_type.Right[1]}
+    /return TRUE
+  }
+
+
   | output control map
-  /if (${_type.Equal[see]}) {
+  /if (${_type.Equal[list]}) {
     /if (!${Cursor.ID} && !${Bool[${_verbage}]}) {
       /invoke ${out[1, shade, 0]}
     } else {
       /sqlite query "${DBloot}" lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
       /if (!${sqlite.Rows[lootquery]}) {
-        /invoke ${out[0, "DB settings for item${sep}\a-w${Cursor.Name}\ax"]}
+        /invoke ${out[0, "settings for${sep}\a-w${Cursor.Name}\ax"]}
         /invoke ${out[0, "${notice}${sep}\a-wnot in loot database\ax"]}
         /invoke ${out[18, 0, 33]}
         /return FALSE
       }
-      /invoke ${out[0, "DB settings for item${sep}\a-w${sqlite.Result[lootquery 1 item]}\ax"]}
+      /invoke ${out[0, "settings for${sep}\a-w${sqlite.Result[lootquery 1 item]}\ax"]}
       /invoke ${out[0, "action${sep}\a-w${sqlite.Result[lootquery 1 action]}\ax"]}
-      /invoke ${out[0, "pass${sep}\a-w${sqlite.Result[lootquery 1 pass]}\ax"]}
-      /invoke ${out[0, "count${sep}\a-w${sqlite.Result[lootquery 1 count]}\ax"]}
+      | /invoke ${out[0, "pass${sep}\a-w${sqlite.Result[lootquery 1 pass]}\ax"]}
+      /declare _count int local 0
+      /varcalc _count ${FindItemCount[${Cursor.ID}]} + ${FindItemBankCount[${Cursor.ID}]}
+      /invoke ${out[0, "count${sep}\a-w${_count}\ax"]}
       /invoke ${out[18, 0, 33]}
     }
     /return TRUE
 
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux cursor ${_verbage}
-    /return TRUE
-  }
-
+  } 
 
   | see if item is in the DB first?
   /sqlite query "${DBloot}" lootquery SELECT * FROM loot_control WHERE item="${Cursor.Name}"
@@ -4884,22 +4923,16 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
     DEBUG ${sep}lootquery UPDATE loot_control SET pass="${_verbage}" WHERE item="${Cursor.Name}" \ay${sqlite.Status[lootquery]}${sep}${sqlite.Rows[lootquery]}\ax
     OUT Cursor${sep}\aw${_verbage}\ax${sep}\a-wpass\ax
     /return TRUE
-  } else /if (${_type.Equal[count]}) {
+  } 
 
-
-  }
-
-  /declare _out string local
-  /declare _lsout list local
-  /invoke ${_lsout.Append[destroy,ignore,keep,leave,pass,count,see]}
-  /varset _out
-  /declare _licur listiterator local
-  /vardata _licur _lsout.First.Clone
-  /while (!${_licur.IsEnd}) {
-    /varset _out ${_out} ${If[${_licur.Value.Equal[${_lsout.First}]},,${dot}]} ${info}${_licur.Value}\ax
-    /invoke ${_licur.Advance}
-  }
-  /invoke ${out[12, "/cursor ${dot} ${_out}"]}
+  /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[destroy,out]}
+  /invoke ${maControl.Add[list,list]}
+  /invoke ${maControl.Add[ignore,out]}
+  /invoke ${maControl.Add[keep,out]}
+  /invoke ${maControl.Add[leave,out]}
+  | /invoke ${maControl.Add[pass,out]}
+  /invoke ${set_control_output[${_debug}, maData, cursor, maControl]}
 
 /return TRUE
 
@@ -4913,19 +4946,16 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
 sub Bind_control_minion(string _type, string _verbage, string _silent, bool _debug)
   DEBUG \atBind_control_minion\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help minion ${_type.Right[1]}
+    /return TRUE
+  }
+
   /declare _out string local
   /declare _lsout list local
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-    /call Bind_command_see maMinion ${_verbage}
-    /return
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux minion ${_verbage}
-    /return
-
   | force a minion build/check
-  } else /if (${_type.Equal[build]}) {
+  /if (${_type.Equal[build]}) {
     /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
     /return
 
@@ -5175,21 +5205,19 @@ sub Bind_command_pull_pet(int _tmpID, bool _debug)
  * use: /grain #
  ***|
 #bind control_grain /grain
-sub Bind_control_grain(string _num, bool _debug)
+sub Bind_control_grain(string _type, bool _debug)
+
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help grain ${_type.Right[1]}
+    /return TRUE
+  }
 
   /declare _count int local 0
   
   /sqlite query "${DBstatic}" dummy SELECT COUNT(env_var) AS data FROM output
   /declare _shadeCount int local ${sqlite.Result[dummy 1 data]}
-
-  | output control map
-  /if (${_num.Equal[see]}) {
-    /call Bind_command_see lsGrain
-    /return TRUE
-  } else /if (${_num.Equal[aux]}) {
-    /call Bind_command_aux grain
-    /return TRUE
-  } else /if (${_num.Equal[list]}) {
+  
+  /if (${_type.Equal[list]}) {
     /sqlite query "${DBstatic}" grainout SELECT value FROM output
     /for _count 1 to ${_shadeCount}
       OUT ${sep} \aw${_count}\ax:${If[${lsGrain.Contains[${_count}]},${on},${off}]}${sep}\a-w${sqlite.Result[grainout ${_count} value]}
@@ -5200,15 +5228,15 @@ sub Bind_control_grain(string _num, bool _debug)
   }
 
   | remove a grain if it exists
-  /if (${lsGrain.Contains[${_num}]} && ${Range.Between[1,${_shadeCount}:${_num}]}) {
-    /call do_raw_edit ${_debug} silent lsGrain ${_num} delete
+  /if (${lsGrain.Contains[${_type}]} && ${Range.Between[1,${_shadeCount}:${_type}]}) {
+    /call do_raw_edit ${_debug} silent lsGrain ${_type} delete
 
   | add a grain if it oes not exist
-  } else /if (!${lsGrain.Contains[${_num}]} && ${Range.Between[1,${_shadeCount}:${_num}]}) {
-    /call do_raw_edit ${_debug} silent lsGrain ${_num} add
+  } else /if (!${lsGrain.Contains[${_type}]} && ${Range.Between[1,${_shadeCount}:${_type}]}) {
+    /call do_raw_edit ${_debug} silent lsGrain ${_type} add
 
   | idiot proofing
-  } else /if (${Bool[${_num}]} && !${Range.Between[1,${_shadeCount}:${_num}]}) {
+  } else /if (${Bool[${_type}]} && !${Range.Between[1,${_shadeCount}:${_type}]}) {
     /invoke ${out[1, shade, 0]}
   }
 
@@ -5234,7 +5262,12 @@ sub Bind_control_grain(string _num, bool _debug)
 sub Bind_control_clickitem(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atBind_control_clickitem\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help clickitem ${_type.Right[1]}
+    /return TRUE
+  }
+
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} Item 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
     /return TRUE
   }
@@ -5255,7 +5288,12 @@ sub Bind_control_clickitem(string _type, string _verbage, string _verbage2, stri
 sub Bind_control_defense(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atcontrol_defense\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help defense ${_type.Right[1]}
+    /return TRUE
+  }
+
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} Defense 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
     /return TRUE
   }
@@ -5287,16 +5325,13 @@ sub Bind_control_defense(string _type, string _verbage, string _verbage2, string
 sub Bind_control_TTL(string _type, string _verbage, string _silent, bool _debug)
   DEBUG \atBind_control_TTL\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-    /call Bind_command_see maTTL
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help ttl ${_type.Right[1]}
     /return TRUE
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux ttl
-    /return TRUE
+  }
 
   | set the switch to use
-  } else /if (${_type.Equal[logic]}) {
+  /if (${_type.Equal[logic]}) {
     /invoke ${set_switch_env[${_debug}, swTTL, TRUE, ${_verbage}]}
 
   | clear the TTL statiestics
@@ -5307,10 +5342,10 @@ sub Bind_control_TTL(string _type, string _verbage, string _silent, bool _debug)
     /invoke ${maTTL.Add[stTTLTimeStart,0]}
   }
 
-
   /if (${_silent.Equal[SILENT]}) /return
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[logic,swTTL]}
+  /invoke ${maControl.Add[cleat,option]}
   /invoke ${set_control_output[${_debug}, maTTL, ttl, maControl]}
 
 /return TRUE
@@ -5325,7 +5360,12 @@ sub Bind_control_TTL(string _type, string _verbage, string _silent, bool _debug)
 sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atcontrol_nuke\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help nuke ${_type.Right[1]}
+    /return TRUE
+  }
+
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} Nuke 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
     /return TRUE
   }
@@ -5360,9 +5400,14 @@ sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _a
  ***|
 #Bind control_dot /dot
 sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
-  DEBUG \atcontrol_dor\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
+  DEBUG \atcontrol_dot\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help dot ${_type.Right[1]}
+    /return TRUE
+  }
+
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} DoT 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
     /return TRUE
   }
@@ -5395,13 +5440,18 @@ sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _ad
 sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atcontrol_agro\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help agro ${_type.Right[1]}
+    /return TRUE
+  }
+
   /if (ENGINE1 && ${Select[${_type},list]}) {
     /invoke ${out[0, "/agro list is only available with engine 2/3 enabled."]}
     /return FALSE
   }
 
   /if (ENGINE2 || ENGINE3) {
-    /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+    /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
       /call control_base_edit ${maDebug.Find[edit].Value} Agro 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
       /return TRUE
     }
@@ -5446,7 +5496,12 @@ sub Bind_control_miscdps(string _type, string _verbage, string _verbage2, string
     /return FALSE
   }
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help miscdps ${_type.Right[1]}
+    /return TRUE
+  }
+
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,50:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} MiscDPS 50 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
     /return TRUE
   }
@@ -5472,7 +5527,12 @@ sub Bind_control_song(string _type, string _verbage, string _verbage2, string _a
     /return FALSE
   }
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help song ${_type.Right[1]}
+    /return TRUE
+  }
+  
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} Song 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
     /return TRUE
   }
@@ -5493,7 +5553,12 @@ sub Bind_control_song(string _type, string _verbage, string _verbage2, string _a
 sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atcontrol_sash\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help sash ${_type.Right[1]}
+    /return TRUE
+  }
+
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} Sash 12 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
     /return TRUE
   }
@@ -5555,7 +5620,12 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _a
 sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atcontrol_cure\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help cure ${_type.Right[1]}
+    /return TRUE
+  }
+  
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} Cure 12 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
     /return TRUE
   }
@@ -5594,16 +5664,13 @@ sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _a
 sub Bind_control_pred(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
   DEBUG \atBind_control_TTL\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-    /call Bind_command_see maPred
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help pred ${_type.Right[1]}
     /return TRUE
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux pred
-    /return TRUE
+  }
 
   | set the switch to use
-  } else /if (${_type.Equal[active]}) {
+  /if (${_type.Equal[active]}) {
     /invoke ${set_switch_env[${_debug}, swPred, TRUE, ${_verbage}]}
 
   } else /if (${_type.Equal[class]}) {
@@ -5709,16 +5776,13 @@ sub control_pred(bool _debug)
 sub Bind_control_mercenary(string _type, string _verbage, string _silent, bool _debug)
   DEBUG \atBind_control_mercenary\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-    /call Bind_command_see maMercenary
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help mercenary ${_type.Right[1]}
     /return TRUE
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux mercenary
-    /return TRUE
+  }
 
   | set the switch to use
-  } else /if (${_type.Equal[active]}) {
+  /if (${_type.Equal[active]}) {
     /invoke ${set_switch_env[${_debug}, swMercenary, TRUE, ${_verbage}]}
 
   } else /if (${_type.Equal[class]}) {
@@ -5732,7 +5796,6 @@ sub Bind_control_mercenary(string _type, string _verbage, string _silent, bool _
       /invoke ${out[0, "\ayusage\ax /mercenary class [\a-wTarget\ax|\a-wWAR\ax|\a-wWIZ\ax|\a-wCLR\ax|\a-wROG\ax]"]}
       /return FALSE
     }
-
 
   }
 
@@ -5755,10 +5818,11 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
   /declare _debug bool local FALSE
   DEBUG \atBind_noparse_tag\ax(\a-w${_grouping}, ${_tagname}, ${Parse[1,${_eval}]}\ax)
 
-  /if (${_grouping.Equal[aux]}) {
-    /call Bind_command_aux tag
+  /if (${_grouping.Left[1].Equal[-]}) {
+    /lua run get_help tag ${_grouping.Right[1]}
+    /return TRUE
   }
-
+  
   /declare _count int local 0
 
   | delete a tag or a validate
@@ -5936,13 +6000,19 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
 sub Bind_control_gtfo(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
   DEBUG \atcontrol_gtfo\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
+
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help gtfo ${_type.Right[1]}
+    /return TRUE
+  }
+
   /if (${Select[${_type},force]}) {
     OUT Getting out of here.
     /call check_gtfo FALSE ${_debug}
     /return TRUE
   }
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} GTFO 12 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
     /return TRUE
   }
@@ -5981,7 +6051,12 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   /declare _debug bool local FALSE
   DEBUG \atBind_control_pulll\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},see,list,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help pull ${_type.Right[1]}
+    /return TRUE
+  }
+
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} Pull 12 "${_type}" "${_verbage}" "${_verbage2}" ${_silent}
     /return TRUE
   }
@@ -6076,6 +6151,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
     } else /if (${_verbage.Equal[calm]}) {
       OUT Non functional. go away...
       | /call do_raw_edit ${_debug} SILENT stPullMode "calm"
+      /return FALSE
     }
 
     /declare _liP listiterator local
@@ -6170,13 +6246,9 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 #bind control_crew /crew
 sub Bind_control_crew(string _type, string _verbage, string _verbage2, string _verbage3, string _verbage4, bool _debug)
 
-  | output control map
-  /if (${_type.Equal[see]}) {
-    OUT Move along. this is not a map, nothing to see here.
-    /return FALSE
-  } else /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux crew
-    /return FALSE
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help crew ${_type.Right[1]}
+    /return TRUE
   }
 
   /declare _count int local 0
@@ -6615,12 +6687,12 @@ sub Bind_control_crew(string _type, string _verbage, string _verbage2, string _v
   }
 
   /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[list,list]}  
   /invoke ${maControl.Add[add,submenu]}
   /invoke ${maControl.Add[delete,submenu]}
   /invoke ${maControl.Add[buildas,out]}
   /invoke ${maControl.Add[form,out]}
-  /invoke ${maControl.Add[list,list]}  
-  /invoke ${set_control_output[FALSE, maChr, "crew", maControl]}
+  /invoke ${set_control_output[FALSE, maChr, crew, maControl]}
 
 /return TRUE
 
@@ -6770,10 +6842,14 @@ sub Bind_command_state(string _type, string _verbage, bool _debug
  ***|
 #bind control_melee /melee
 sub Bind_control_melee(string _type, string _verbage, string _verbage2, string _silent)
-  /declare _debug bool local FALSE
   DEBUG \atBind_control_melee\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
 
-  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,see,aux,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help melee ${_type.Right[1]}
+    /return TRUE
+  }
+
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,12:${Int[${_type}]}]}) {
     /call control_base_edit ${maDebug.Find[edit].Value} Melee 12 "${_type}" "${_verbage}" "${_verbage2}" ${_silent}
     /return TRUE
   }
@@ -6792,6 +6868,11 @@ sub Bind_control_melee(string _type, string _verbage, string _verbage2, string _
  ***|
 #bind control_nomore /nomore
 sub Bind_control_nomore(string _type, bool _debug)
+
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help nomore ${_type.Right[1]}
+    /return TRUE
+  }
 
   | list spa types (long as list....)
   /if (${Select[${_type},list]}) {

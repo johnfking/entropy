@@ -85,7 +85,7 @@ sub class_main(bool _debug)
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      /call class_cycle lsOrderClassT
+      /call class_cycle lsOrderClass
       /if (${maChr.Find[swBlood].Value} && !${timer_Check_Blood}) /call cast_blood ${maDebug.Find[blood].Value} GETASSIST
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {

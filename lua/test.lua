@@ -11,7 +11,7 @@ testing file for learning Lua.. noting to see here but me breaking things.
 
 require "short"
 require "common"
-echo('\at...\ax \a-wtest.lua\ax')
+out('\at...\ax \a-wtest.lua\ax')
 
 local arg = {...}
 

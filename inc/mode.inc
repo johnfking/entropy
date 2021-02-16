@@ -855,7 +855,7 @@ sub mode_hunt(bool _debug)
 
   } else /if (!${Bool[${stModeData}]}) {
     /call pull_mob_find ${_debug} ${_count}
-    DEBUG pull_mob_find.return${sep}\a-w${Macro.Return}\ax
+    DEBUG ${sep}pull_mob_find.return${sep}\a-w${Macro.Return}\ax
   }
 
   /if (!TARGET) {
@@ -1111,7 +1111,6 @@ sub task_get(bool _debug, string _verbage)
   /while (${Spawn[${sqlite.Result[farmquery 1 questmob]}].Distance} > 60) {
     /if (${sqlite.Result[farmquery 1 invis]}) {
       /call check_invis_single ${_debug}
-      | /call voodoo ${_debug} "Cloudy Potion" 0 FALSE
     }
     /if (!${Me.Moving} || !${Navigation.Active}) {
       /call Bind_command_navto "${Spawn[${sqlite.Result[farmquery 1 questmob]}].ID}"
@@ -1155,8 +1154,6 @@ sub task_output(bool _debug, string _verbage)
   }
 
 /return TRUE
-
-
 
 
 
@@ -1239,7 +1236,7 @@ sub task_combatloop(int _tmpID, bool _debug)
  * use: /mode farm rof_shard_bodhe [wait]
  *  Adding the option wait to the command execution will cause this farm routine to pause outside the entrance
  *  to the Alarian temple. The toon will wait there until the 10/10 count for step 2 has been reached. It will then
- *  go claim the quest reqard, get it again, and return to wait.
+ *  go claim the quest reward, get it again, and return to wait.
  *  This is here so you can run many toons at once through this stupid leveling of the tear, and only need 1 or 2
  *  toons to actually do the killing.
  ***|

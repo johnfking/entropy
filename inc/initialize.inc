@@ -198,6 +198,10 @@ sub set_initialize(bool _debug)
   /call set_data ${_debug} FALSE skip                                     string outer "${sep}\a#FF06BBskip\ax${sep}"
   /call set_data ${_debug} FALSE out_list                                 string outer "\a#1E90FF[\ax\awlist\ax\a#1E90FF]\ax"
 
+  | lua
+  /call set_data ${_debug} FALSE lsep                                    string outer "\a#00FFFF :: \a#C0C0C0"
+  
+
 
   /call set_data ${_debug} FALSE enabled                                  string outer "\agenabled\ax"
   /call set_data ${_debug} FALSE disabled                                 string outer "\ardisabled\ax"
@@ -369,6 +373,7 @@ sub set_initial_environment(bool _debug)
 
   | controls by class
   /if (${Select[${Me.Class.ShortName},BER]}) {
+    /invoke ${maChrControl.Add[resolve,swResolve]}
 
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
     /invoke ${maChrControl.Add[list,list]}
@@ -504,7 +509,7 @@ sub sql_schema_zone(bool _debug)
   | zone fields
   /declare lsZoneProperty list outer
   /invoke ${lsZoneProperty.Delimiter["|"]}
-  /invoke ${lsZoneProperty.Append[lsZoneNamed|lsZoneExclude|lsZoneCharm|lsZoneRange|lsZoneNoCast|lsZoneNoMelee]}
+  /invoke ${lsZoneProperty.Append[lsZoneNamed|lsZoneExclude|lsZoneCharm|lsZoneRanged|lsZoneNoCast|lsZoneNoMelee]}
   /invoke ${lsZoneProperty.Append[lsZoneNoFire|lsZoneNoPoison|lsZoneNoMagic|lsZoneNoCorruption|lsZoneNoCold|lsZoneNoDisease]}
   /invoke ${lsZoneProperty.Append[lsZoneNoSnare|lsZoneNoTash|lsZoneNoMalo|lsZoneNoEradicate|lsZoneNoCripple|lsZoneNoMez|lsZoneNoSlow]}
 
@@ -1414,6 +1419,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy stBroadcastCls                  group                         "${auxna} change the default broadcast for /cls [group|raid|zone|all]."
   /call set_data_map ${_debug} maEntropy stBroadcastGetoverhere          group                         "${auxna} change the default broadcast for /getoverhere [group|raid|zone|all]."
   /call set_data_map ${_debug} maEntropy stBroadcastGather               group                         "${auxna} change the default broadcast for /gather [group|raid|zone|all]."
+  /call set_data_map ${_debug} maEntropy stBroadcastRepeat               group                         "${auxna} change the default broadcast for /repeat [group|raid|zone|all]."
 
 
 
@@ -2907,7 +2913,7 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '62', '1', 'CONTROL::MARKER', 'marker ranged summoning, like arrows, or daggers');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '63', '1', 'CONTROL::MARKER', 'marker pants poison summoning for rogues');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '64', '1', 'CONTROL::MARKER', 'marker weapon summoning for mages');
-  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '65', '1', 'CONTROL::MARKER', 'marker item sommoning from spells');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '65', '1', 'CONTROL::MARKER', 'marker item summoning from spells');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '66', '1', 'CONTROL::MARKER', 'marker axe summoning for zerkers');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '1', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[WAR]}]}', 'buff is for a warrior');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '2', '1', '${Parse[0,${Spawn[${_name}].Class.ShortName.Equal[PAL]}]}', 'buff is for a paladin');

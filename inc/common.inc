@@ -5838,7 +5838,7 @@ sub check_buff_cycle_crew(bool _debug)
   /declare _count int local 0
   /declare _countToon int local 1
   /declare _target bool local FALSE
-  /declare _toonName string local FALSE
+  /declare _name string local FALSE
   /declare _found bool TRUE
   /declare _i int local 0
   /declare _base2 string local\
@@ -5850,18 +5850,18 @@ sub check_buff_cycle_crew(bool _debug)
   /while (${_countToon} <= ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}) {
 
     | get the name to something usable
-    /varset _toonName ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}
-    DEBUG ${sep}_toonName${sep}\ay${_toonName}\ax
+    /varset _name ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}
+    DEBUG ${sep}_name${sep}\ay${_name}\ax
 
     | skip this person?
-    /if (${_toonName.Equal[${Me.DisplayName}]} || !${Spawn[pc ${_toonName}].ID} || ${Spawn[pc ${_toonName}].Dead}) {
-      DEBUG ${sep}skipping${sep}\a-w${_toonName}\ax
+    /if (${_name.Equal[${Me.DisplayName}]} || !${Spawn[pc ${_name}].ID} || ${Spawn[pc ${_name}].Dead}) {
+      DEBUG ${sep}skipping${sep}\a-w${_name}\ax
       /varcalc _countToon ${_countToon}+1
       /continue
     }
 
     | any buff slots available?
-    /dquery ${_toonName} -q "Me.FreeBuffSlots" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+    /dquery ${_name} -q "Me.FreeBuffSlots" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
     /if (${DNQReturn.Equal[0]}) {
       /varcalc _countToon ${_countToon}+1
       /continue
@@ -5928,7 +5928,7 @@ sub check_buff_cycle_crew(bool _debug)
       }
 
       | cycle the tags
-      /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_toonName} "${maData.Find[tmpName].Value}" check_buff_cycle_crew
+      /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_name} "${maData.Find[tmpName].Value}" check_buff_cycle_crew
       /if (!${Macro.Return}) {
         DEBUG ${sep}skip${sep}failed tag cycle check
         /continue
@@ -5940,8 +5940,8 @@ sub check_buff_cycle_crew(bool _debug)
       /varset _target FALSE
 
       | is this an acceptable target for casting
-      /if (${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) {
-        DEBUG ${sep}crew member${sep}\a-w${_toonName}\ax (\a-rvalid target\ax)
+      /if (${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Find[${_name}]}) {
+        DEBUG ${sep}crew member${sep}\a-w${_name}\ax (\a-rvalid target\ax)
         /varset _target TRUE
       }
 
@@ -5951,11 +5951,11 @@ sub check_buff_cycle_crew(bool _debug)
       | distance check
       /if (${Select[${Spell[${_spell}].TargetType},Group v2]}) {
         DEBUG ${sep}distance check${sep}\a-wGroup v2\ax
-        /if (${Spawn[pc ${_toonName}].Distance} > ${Spell[${_spell}].AERange}) /continue
+        /if (${Spawn[pc ${_name}].Distance} > ${Spell[${_spell}].AERange}) /continue
       } else {
         DEBUG ${sep}distance check${sep}\a-wtargeted ?? ${Spell[${_spell}].MyRange}\ax
         /if (${Spell[${_spell}].MyRange}) {
-          /if (${Spawn[pc ${_toonName}].Distance} > ${Spell[${_spell}].MyRange} && !${Select[${Spell[${_spell}].TargetType},self]}) /continue
+          /if (${Spawn[pc ${_name}].Distance} > ${Spell[${_spell}].MyRange} && !${Select[${Spell[${_spell}].TargetType},self]}) /continue
         }
       }
 
@@ -5975,21 +5975,21 @@ sub check_buff_cycle_crew(bool _debug)
           DEBUG ${sep}${sep}\awTrigger\ax${sep}\a-w${_spellTrigger}\ax ID:\aw${Spell[${_spellTrigger}].ID}\ax
 
           | is it buff blocked
-          /dquery ${_toonName} -q "lsBlockedBuffsMe.Find[${Spell[${_spellTrigger}].ID}]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+          /dquery ${_name} -q "lsBlockedBuffsMe.Find[${Spell[${_spellTrigger}].ID}]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
           DEBUG ${sep}${sep}BLOCKED .Trigger.Blocked Buff \at${Bool[${DNQReturn}]}\ax ${dot} ${_spellTrigger}
           /if (${Bool[${DNQReturn}]}) {
             /continue
           }
 
           | does it stack
-          /dquery ${_toonName} -q "Spell[${_spellTrigger}].STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+          /dquery ${_name} -q "Spell[${_spellTrigger}].STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
           DEBUG ${sep}${sep}STACKS: .Trigger.STACKS \at${DNQReturn}\ax ${dot} ${_spellTrigger}
           /if (!${DNQReturn}) {
             /continue
           }
 
           | do we have the triggered buff?
-          /dquery ${_toonName} -q "Me.Buff[${_spellTrigger}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+          /dquery ${_name} -q "Me.Buff[${_spellTrigger}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
           DEBUG ${sep}trigger${sep}\ay${_spellTrigger}\ax
           DEBUG ${sep}${sep}HAVE: .Trigger.ID \at${DNQReturn}\ax ${dot} ${_spellTrigger}
           /if (!${Bool[${DNQReturn}]}) {
@@ -6001,7 +6001,7 @@ sub check_buff_cycle_crew(bool _debug)
 
         DEBUG ${sep}${sep}\ay****\ax Found:${_found} .. Target:${_target}
         /if (!${_found} && ${_target}) {
-          /call voodoo ${_debug} "${maData.Find[tmpName].Value}" ${Spawn[pc ${_toonName}].ID} FALSE
+          /call voodoo ${_debug} "${maData.Find[tmpName].Value}" ${Spawn[pc ${_name}].ID} FALSE
           /call cast_cooldown_wait ${_debug}
           /continue
         }
@@ -6013,19 +6013,19 @@ sub check_buff_cycle_crew(bool _debug)
         DEBUG ${sep}\awTrigger\ax${sep}\a-w${_spellTrigger}\ax ID:${Spell[${_spellTrigger}].ID}
 
         | does it stack
-        /dquery ${_toonName} -q "Spell[${_spellTrigger}].STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+        /dquery ${_name} -q "Spell[${_spellTrigger}].STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
         DEBUG ${sep}${sep}STACKS: .Buff.STACKS \at${DNQReturn}\ax ${dot} ${_spellTrigger}
         /if (!${DNQReturn}) {
           /continue
         }
 
         | is it buff blocked
-        /dquery ${_toonName} -q "lsBlockedBuffsMe.Find[${Spell[${_spellTrigger}].ID}]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+        /dquery ${_name} -q "lsBlockedBuffsMe.Find[${Spell[${_spellTrigger}].ID}]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
         DEBUG ${sep}${sep}BLOCKED .Buff.Blocked \at${DNQReturn}\ax ${dot} ${_spellTrigger}
         /if (${Bool[${DNQReturn}]}) /continue
 
         | do we have the triggered buff?
-        /dquery ${_toonName} -q "Me.Buff[${_spellTrigger}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+        /dquery ${_name} -q "Me.Buff[${_spellTrigger}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
         DEBUG ${sep}${sep}HAVE: .Buff.ID \at${DNQReturn}\ax ${dot} ${_spellTrigger}
         /if (${Bool[${DNQReturn}]}) {
           /continue
@@ -6034,7 +6034,7 @@ sub check_buff_cycle_crew(bool _debug)
         DEBUG ${sep}${sep}HAVE: .Trigger.ID \at${DNQReturn}\ax ${dot} ${_spellTrigger} .. ${maData.Find[tmpName].Value}
 
         /if (${_target}) {
-          /call voodoo ${_debug} "${maData.Find[tmpCastName].Value}" ${Spawn[pc ${_toonName}].ID} FALSE
+          /call voodoo ${_debug} "${maData.Find[tmpCastName].Value}" ${Spawn[pc ${_name}].ID} FALSE
           /call cast_cooldown_wait ${_debug}
           /continue
         }
@@ -8735,24 +8735,24 @@ sub find_priest(bool _debug, int _distance)
   DEBUG \atfind_priest\ax()
 
   /declare _count int local 0
-  /declare _toonName string local
+  /declare _name string local
 
   /for _count 1 to ${DanNet.PeerCount[priest]}
-    /varset _toonName ${DanNet.Peers[priest].Arg[${_count},|]}
+    /varset _name ${DanNet.Peers[priest].Arg[${_count},|]}
 
-    /if (!${Bool[pc ${_toonName}]}) /continue
-    /if (!${Spawn[pc ${_toonName}].ID}) /continue
-    /if (${Spawn[pc ${_toonName}].Dead}) /continue
-    /if (${Spawn[pc ${_toonName}].Distance} > ${_distance}) /continue
+    /if (!${Bool[pc ${_name}]}) /continue
+    /if (!${Spawn[pc ${_name}].ID}) /continue
+    /if (${Spawn[pc ${_name}].Dead}) /continue
+    /if (${Spawn[pc ${_name}].Distance} > ${_distance}) /continue
     /break
 
     | /dex ECHO $\{Me.SpellReady[$\{Spell[$\{healIntervention${_count}}].RankName}]}}
-    | /dquery ${_toonName} -q "Me.SpellReady[$\{Spell[$\{healIntervention1}].RankName}]" -o DNQReturn -t 1
+    | /dquery ${_name} -q "Me.SpellReady[$\{Spell[$\{healIntervention1}].RankName}]" -o DNQReturn -t 1
     | /if (${Bool[${DNQReturn}]}) /break
 
   /next _count
 
-/return ${_toonName}
+/return ${_name}
 
 
 
@@ -13295,7 +13295,7 @@ sub check_buff_cycle_temp(bool _debug)
   /declare _count int local 0
   /declare _countToon int local 1
   /declare _target bool local FALSE
-  /declare _toonName string local FALSE
+  /declare _name string local FALSE
   /declare _found bool TRUE
   /declare _i int local 0
   /declare _tmpBuff string local FALSE
@@ -13308,18 +13308,18 @@ sub check_buff_cycle_temp(bool _debug)
     DEBUG ${sep}${_countToon} <= ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}
 
     | get the name to something usable and proper case
-    /varset _toonName ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|].Left[1].Upper}${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|].Right[-1].Lower}
-    DEBUG ${sep}_toonName${sep}\ay${_toonName}\ax
+    /varset _name ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|].Left[1].Upper}${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|].Right[-1].Lower}
+    DEBUG ${sep}_name${sep}\ay${_name}\ax
 
     | skip this person?
-    /if (!${Spawn[pc ${_toonName}].ID} || ${Spawn[pc ${_toonName}].Dead}) {
-      DEBUG ${sep}skipping${sep}\a-w${_toonName}\ax
+    /if (!${Spawn[pc ${_name}].ID} || ${Spawn[pc ${_name}].Dead}) {
+      DEBUG ${sep}skipping${sep}\a-w${_name}\ax
       /varcalc _countToon ${_countToon}+1
       /continue
     }
 
     | any buff slots available?
-    /dquery ${_toonName} -q "Me.FreeBuffSlots" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+    /dquery ${_name} -q "Me.FreeBuffSlots" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
     /if (${DNQReturn.Equal[0]}) {
       /varcalc _countToon ${_countToon}+1
       /continue
@@ -13344,7 +13344,7 @@ sub check_buff_cycle_temp(bool _debug)
       } else /if (!${lsBuff${_count}Tag.Contains[temp]}) {
         /continue
       | bitch isnt on the list
-      } else /if (!${lsBuff${_count}Tag.Contains[${_toonName}]}) {
+      } else /if (!${lsBuff${_count}Tag.Contains[${_name}]}) {
         /continue
       }
       
@@ -13365,7 +13365,7 @@ sub check_buff_cycle_temp(bool _debug)
       }
 
       | cycle the tags
-      /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_toonName} "${maData.Find[tmpName].Value}" check_buff_cycle_temp
+      /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_name} "${maData.Find[tmpName].Value}" check_buff_cycle_temp
       /if (!${Macro.Return}) {
         DEBUG ${sep}skip${sep}failed tag cycle check
         /continue
@@ -13377,8 +13377,8 @@ sub check_buff_cycle_temp(bool _debug)
       /varset _target FALSE
 
       | is this an acceptable target for casting
-      /if (${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Find[${_toonName}]}) {
-        DEBUG ${sep}target${sep}\a-w${_toonName}\ax (\a-rvalid\ax)
+      /if (${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Find[${_name}]}) {
+        DEBUG ${sep}target${sep}\a-w${_name}\ax (\a-rvalid\ax)
         /varset _target TRUE
       }
 
@@ -13388,11 +13388,11 @@ sub check_buff_cycle_temp(bool _debug)
       | distance check
       /if (${Select[${Spell[${_spell}].TargetType},Group v2]}) {
         DEBUG ${sep}distance check${sep}\a-wGroup v2\ax
-        /if (${Spawn[pc ${_toonName}].Distance} > ${Spell[${_spell}].AERange}) /continue
+        /if (${Spawn[pc ${_name}].Distance} > ${Spell[${_spell}].AERange}) /continue
       } else {
         DEBUG ${sep}distance check${sep}\a-wtargeted ?? ${Spell[${_spell}].MyRange}\ax
         /if (${Spell[${_spell}].MyRange}) {
-          /if (${Spawn[pc ${_toonName}].Distance} > ${Spell[${_spell}].MyRange} && !${Select[${Spell[${_spell}].TargetType},self]}) /continue
+          /if (${Spawn[pc ${_name}].Distance} > ${Spell[${_spell}].MyRange} && !${Select[${Spell[${_spell}].TargetType},self]}) /continue
         }
       }
 
@@ -13400,14 +13400,14 @@ sub check_buff_cycle_temp(bool _debug)
       DEBUG ${sep}\awTrigger\ax${sep}\a-w${_spellRank}\ax ID:${Spell[${_spellRank}].ID}
 
       | does it stack
-      /dquery ${_toonName} -q "Spell[${_spellRank}].STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+      /dquery ${_name} -q "Spell[${_spellRank}].STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
       DEBUG ${sep}${sep}STACKS: .Buff.STACKS \at${DNQReturn}\ax ${dot} ${_spellRank}
       /if (!${DNQReturn}) {
         /continue
       }
 
       | do they have the buff?
-      /dquery ${_toonName} -q "Me.Buff[${maData.Find[tmpName].Value}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+      /dquery ${_name} -q "Me.Buff[${maData.Find[tmpName].Value}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
       DEBUG ${sep}${sep}HAVE: .Buff.ID \at${DNQReturn}\ax ${dot} ${maData.Find[tmpName].Value}
       /if (${Bool[${DNQReturn}]}) {
         /continue
@@ -13419,7 +13419,7 @@ sub check_buff_cycle_temp(bool _debug)
         
         | self only redirect
         /if (!${Spell[${_spell}].TargetType.Equal[self]}) {
-          /varset _tmpID ${Spawn[nopet ${_toonName}].ID}
+          /varset _tmpID ${Spawn[nopet ${_name}].ID}
         } else {
           /varset _tmpID 0
         }
@@ -15416,5 +15416,20 @@ sub check_heal_routines()
 
 
 
+|***
+ * note: options/controls for plugin MQ2Grind
+ * use: not for you
+ ***|
+sub plugin_grind(string _option)
+
+  /if (${_option.Equal[combat]}) {
+    /invoke ${maCC.Add[swValidAssTarID,TRUE]}
+    /invoke ${maCC.Add[swSetCombat,TRUE]}
+    /invoke ${maCC.Add[swSetForced,TRUE]}   
+    /call class_main   
+    /return TRUE 
+  }
+
+/return FALSE
 
 

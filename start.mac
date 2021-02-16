@@ -99,9 +99,16 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   | Make sure plugins are loaded. kill macro if not
   /if (!${check_plugin[FALSE, TRUE, |MQ2SQLite|MQ2DanNet|Mq2Nav|MQ2MoveUtils|MQ2Collections]}) {
     ECHO Make sure the following plugins are loaded
-    ECHO I'm not going to auto load the damn things for you.
     ECHO \a-wMQ2SQLite, MQ2DanNet, Mq2Nav, MQ2MoveUtils, MQ2Collections\ax
     /endmacro
+  }
+
+  /if (NEXT) {
+    /if (!${check_plugin[FALSE, TRUE, |MQ2Lua]}) {
+      ECHO Make sure the following plugins are loaded when using Next
+      ECHO \a-wMQ2Lua\ax
+      /endmacro
+    }
   }
 
   | forced PREGEN updates
@@ -114,13 +121,13 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210210.01
+  /call set_data FALSE maEnv build                          map outer 210216.01
   /call set_data FALSE maEnv schema                         map outer 1.42
-  /call set_data FALSE maEnv repo                           map outer 210107.01
+  /call set_data FALSE maEnv repo                           map outer 210216.01
 
   | prep macro
   /call prepare_the_end FALSE
-
+  
   | check all mac start options
   /declare _countVar int local 0
   /for _countVar 1 to 4
@@ -345,47 +352,46 @@ sub prepare_the_end(bool _debug)
   }
 
   | character database
-  /call set_data FALSE FALSE chrID                                   string outer ${MacroQuest.Server.Replace[ ,_].Lower}_${Me.Class.ShortName}_${Me.DisplayName}
+  /call set_data ${_debug} FALSE chrID                                   string outer ${MacroQuest.Server.Replace[ ,_].Lower}_${Me.Class.ShortName}_${Me.DisplayName}
   | character database
-  /call set_data FALSE FALSE DBcharacter                             string outer "${_pathDB}\entropy\data\${chrID}.sqlite"
+  /call set_data ${_debug} FALSE DBcharacter                             string outer "${_pathDB}\entropy\data\${chrID}.sqlite"
   | set raw data database
-  /call set_data FALSE FALSE DBstatic                                string outer "${_pathDB}\entropy\entropy.sqlite"
+  /call set_data ${_debug} FALSE DBstatic                                string outer "${_pathDB}\entropy\entropy.sqlite"
   | set loot database
-  /call set_data FALSE FALSE DBloot                                  string outer "${_pathDB}\entropy\data\loot.sqlite"
+  /call set_data ${_debug} FALSE DBloot                                  string outer "${_pathDB}\entropy\data\loot.sqlite"
   | set loot database
-  /call set_data FALSE FALSE DBnav                                   string outer "${_pathDB}\entropy\data\nav.sqlite"
+  /call set_data ${_debug} FALSE DBnav                                   string outer "${_pathDB}\entropy\data\nav.sqlite"
   | set zone database
-  /call set_data FALSE FALSE DBzone                                  string outer "${_pathDB}\entropy\data\zone.sqlite"
+  /call set_data ${_debug} FALSE DBzone                                  string outer "${_pathDB}\entropy\data\zone.sqlite"
   | set ini set location
-  /call set_data FALSE FALSE INIset                                  string outer "${_pathINI}\data\sets.ini"
+  /call set_data ${_debug} FALSE INIset                                  string outer "${_pathINI}\data\sets.ini"
   | shared database
-  /call set_data FALSE FALSE DBshared                                string outer "${_pathDB}\entropy\data\shared.sqlite"
+  /call set_data ${_debug} FALSE DBshared                                string outer "${_pathDB}\entropy\data\shared.sqlite"
   | farmroute location ini
-  /call set_data FALSE FALSE INIfarmroute                            string outer "${_pathINI}\data\farmroute.ini"
+  /call set_data ${_debug} FALSE INIfarmroute                            string outer "${_pathINI}\data\farmroute.ini"
 
   | load all tag names
   /sqlite query "${DBshared}" qubind SELECT * FROM binds;  
 
   | fuck MQ2Melee
-  /if (${check_plugin[FALSE, FALSE, |mq2melee]}) {
+  /if (${check_plugin[${_debug}, FALSE, |mq2melee]}) {
     /plugin mq2melee unload noauto
   }
 
   | fuck MQ2Cast as well
-  /if (${check_plugin[FALSE, FALSE, |mq2cast]}) {
+  /if (${check_plugin[${_debug}, FALSE, |mq2cast]}) {
     /plugin mq2cast unload noauto
   }
 
   | and fuck MQ2 REZ most of all
-  /if (${check_plugin[FALSE, FALSE, |mq2rez]}) {
+  /if (${check_plugin[${_debug}, FALSE, |mq2rez]}) {
     /plugin mq2rez unload noauto
   }
 
   | causing conflicts. will readdress it again later
-  /if (${check_plugin[FALSE, FALSE, |mq2ice]}) {
+  /if (${check_plugin[${_debug}, FALSE, |mq2ice]}) {
     /plugin mq2ice unload noauto
   }
-
 
   | set all initial variables
   /call set_initialize FALSE
@@ -484,4 +490,5 @@ sub prepare_the_end(bool _debug)
   /squelch /mapclick left alt /nav locyx %y %x |log=off
 
 /return TRUE
+
 

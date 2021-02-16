@@ -41,6 +41,7 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAugmentedFrenzy                PREGEN|1                      "${auxna} "
   /call set_data_map ${_debug} maChr stFesteringRage                  PREGEN|1                      "${auxna} "
   /call set_data_map ${_debug} maChr stResolve                        PREGEN|1                      "${auxna} "
+  /call set_data_map ${_debug} maChr swResolve                        FALSE                         "${auxsw} enable/disable use of Frenzied Resolve Disc"
   /call set_data_map ${_debug} maChr stDichotomic                     PREGEN|1                      "${auxna} "
   /call set_data_map ${_debug} maChr stDisconcerting                  PREGEN|1                      "${auxna} "
   /call set_data_map ${_debug} maChr stSappingStrikes                 PREGEN|1                      "${auxna} "
@@ -551,8 +552,10 @@ sub burn(bool _debug, int _tmpID)
       		/delay 1
       }
     }
-    /if (${is_ready[${_debug}, "${maChr.Find[stResolve].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stResolve].Value}" 0 FALSE
+    /if (${maChr.Find[swResolve}].Value) {
+      /if (${is_ready[${_debug}, "${maChr.Find[stResolve].Value}"]}) {
+        /call voodoo ${_debug} "${maChr.Find[stResolve].Value}" 0 FALSE
+      }
     }
   }
 

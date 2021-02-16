@@ -2,7 +2,7 @@
 entropoy.mac
 list_spa.lua
 
-lsit of SPA and IDs
+list of SPA and IDs
 --]]
 
 
