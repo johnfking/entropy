@@ -22,6 +22,11 @@ on the to do list
 
 
 
+210219.01
+- corrected a ranged list issue with mob vs zone checking
+- corrected a debug error with /melee
+
+
 210216.01
 - Next Users
   make sure the plugin MQ2Lua is loaded

@@ -35,5 +35,29 @@ return arg[2]
   
 
 
+local debug_u = function () print('1') end
+local debug_h = function () print('2') end
+
+help = {
+  ['take'] = {
+    ['u'] = '\aw/take [\a-w broadcast|all|group|raid|zone \aw]'), 
+    ['h'] = '',
+    ['s'] = mq.cmd.call('Bind_command_see maDebug')
+  
+  }
+}
+
+help['debug']['u']()
 
 
+
+
+--[ /take --]
+elseif command == 'take' then
+  if option == 'u' then
+    echo(discord..'\aw/'..command..' [\a-w broadcast|all|group|raid|zone \aw]')
+  elseif option == 'h' then
+    echo(discord..'Accepts, according to broadcast${sep}')
+    echo(discord..'${dot}translocate, guild hall port, adventures, challenges, expeditions')
+    echo(discord..'${dot}resurrections, highlighted task, trade window, shared task')
+  end

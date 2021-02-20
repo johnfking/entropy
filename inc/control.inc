@@ -6841,8 +6841,8 @@ sub Bind_command_state(string _type, string _verbage, bool _debug
  * use: /melee
  ***|
 #bind control_melee /melee
-sub Bind_control_melee(string _type, string _verbage, string _verbage2, string _silent)
-  DEBUG \atBind_control_melee\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+sub Bind_control_melee(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
+  DEBUG \atBind_control_melee\ax(\a-w${_type}, ${_verbage}, ${_verbage2}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
     /lua run get_help melee ${_type.Right[1]}

@@ -2725,7 +2725,7 @@ sub set_combat(bool _debug)
         /squelch /stick off
       }
 
-      /if (${lsZoneRange.Contains[${Target.DisplayName}]}) {
+      /if (${lsZoneRanged.Contains[${Target.DisplayName}]}) {
         /if (${Me.AutoFire}) /squelch /autofire
       } else {
         /if (${Spawn[TARGET].LineOfSight} && !${Me.AutoFire}) {
@@ -2836,7 +2836,7 @@ sub set_combat_control(bool _debug, int _tmpID)
   /if (MELEE && RANGE) {
     DEBUG ${sep}\agmelee\ax${sep}\ayor\ax${sep}\agrange\ax
 
-    /if (${lsZoneRange.Contains[${Target.DisplayName}]} || ${lsZoneNoMelee.Contains[${Target.DisplayName}]} || (AUTO && ${Target.DSed.ID} && ${maCC.Find[swStoponDS].Value} && !AGRO)) {
+    /if (${lsZoneRanged.Contains[${Target.DisplayName}]} || ${lsZoneNoMelee.Contains[${Target.DisplayName}]} || (AUTO && ${Target.DSed.ID} && ${maCC.Find[swStoponDS].Value} && !AGRO)) {
       /call set_combat_range ${_debug} ${_tmpID}
       /return TRUE
     }
