@@ -1464,7 +1464,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
       |   /sqlite query "${DBzone}" QZone REPLACE INTO zone_control(zone_shortname, element, value) VALUES("${Zone.ShortName}", "swZoneSafe", "FALSE");
       | }
 
-      /if (!${sql_check[${_debug}, QZone, Bind_control_area, "UPDATE (zone_control)"]}) /endmacro
+      /if (!${sql_check[${_debug}, QZone, Bind_control_area, "UPDATE (zone_control:FALSE)"]}) /endmacro
       /invoke ${maEnv.Add[swZoneSafe,FALSE]}
 
 
@@ -1475,10 +1475,10 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
       /sqlite query "${DBzone}" QZone UPDATE zone_control SET value='TRUE' WHERE zone_shortname='${Zone.ShortName}' AND element='swZoneSafe'
       
       | /if (${Select[${sqlite.Resultcode[QZone]},19]}) {
-      | /sqlite query "${DBzone}" QZone INSERT OR REPLACE INTO zone_control(zone_shortname, element, value) VALUES("${Zone.ShortName}", "swZoneSafe", "TRUE");
+      |   /sqlite query "${DBzone}" QZone INSERT OR REPLACE INTO zone_control(zone_shortname, element, value) VALUES("${Zone.ShortName}", "swZoneSafe", "TRUE");
       | }
 
-      /if (!${sql_check[${_debug}, QZone, Bind_control_area, "UPDATE (zone_control)"]}) /endmacro
+      /if (!${sql_check[${_debug}, QZone, Bind_control_area, "UPDATE (zone_control:TRUE)"]}) /endmacro
       /invoke ${maEnv.Add[swZoneSafe,TRUE]}
     }
 
@@ -1500,7 +1500,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
     /if (!${${_element}.Contains[${Target.DisplayName}]}) {
       | Add a property to a mob
       /sqlite query "${DBzone}" QZone INSERT OR IGNORE INTO zone_control VALUES ("${Zone.ShortName}", "${_element}", "${Target.DisplayName}")
-      /if (!${sql_check[${_debug}, QZone, Bind_control_area, "INSERT INTO (zone_control)"]}) /endmacro
+      /if (!${sql_check[${_debug}, QZone, Bind_control_area, "INSERT INTO (zone_control:insert)"]}) /endmacro
       /if (${lsGrain.Contains[12]}) {
         OUT /area ${_type} ${dot} ${num}${_element}\ax${sep}\a-w${Target.DisplayName}\ax
       }
@@ -3500,6 +3500,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
       /invoke ${out[12, "/cc force ${dot} ${con_color[${_debug}, ${Target.ID}]}"]}
     }
     /if (${maMinion.Find[swonForce].Value}) {
+      /delay 1
       /pet attack
     }
 
@@ -5378,6 +5379,10 @@ sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _a
   } else /if (${_type.Equal[loop]}) {
     /invoke ${set_switch_env[FALSE, swNukeLoop, TRUE, ${_verbage}]}
 
+  | force a nuke loop till all are casted before exiting
+  } else /if (${_type.Equal[sit]}) {
+    /invoke ${set_switch_env[FALSE, swNukeWhackAMole, TRUE, ${_verbage}]}
+
   | delay in nuking
   } else /if (${_type.Equal[delay]}) {
     /if (!${set_control_num_range[${_debug}, stNukeDelay, "${_verbage}", 0, 100]}) /return
@@ -5388,6 +5393,7 @@ sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _a
   /invoke ${maControl.Add[delay,stNukeDelay]}
   /invoke ${maControl.Add[list,list]}
   /invoke ${maControl.Add[loop,swNukeLoop]}
+  /invoke ${maControl.Add[sit,swNukeWhackAMole]}
   /invoke ${set_control_output[${_debug}, maNuke, nuke, maControl]}
 
 /return TRUE

@@ -1090,7 +1090,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /invoke ${set_data_timer[${_debug}, Check_Buff_Now, 5s]}
   /invoke ${set_data_timer[${_debug}, Check_Buff_Powersource, 10m]}
   /call set_data ${_debug} maBuff swBuffMaster                            map outer TRUE
-  /call set_data_list ${_debug} maBuff lsBuffRemove                       EMPTY                         "${auxli} buffs you want auto removed from you"
   /call set_data_map ${_debug} maBuff swBuffSelf                          FALSE                         "${auxsw} buff yourself"
   /call set_data_map ${_debug} maBuff swBuffCrew                          FALSE                         "${auxsw} buff your crew (\aynot you\ax)"
   /call set_data_map ${_debug} maBuff swBuffRaid                          FALSE                         "${auxsw} buff raid members (not crew)"
@@ -1133,7 +1132,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data ${_debug} maData stCampZ                                 map outer 999999999
   /call set_data_map ${_debug} maHome stMount                             FALSE                         "${auxna} name of mount you wish to sit your fat ass on"
   /call set_data_map ${_debug} maHome swMoveDeathClear                    FALSE                         "${auxsw} on = clear home marker and movements on death"
-  | /call set_data_map ${_debug} maHome swMoveBehind                        FALSE                         "${auxsw} move behind the target during combat"
   /call set_data_map ${_debug} maHome swFaceFast                          FALSE                         "${auxsw} use fast facing movements"
   /call set_data_map ${_debug} maHome stFaceArc                           15                            "${auxnum} [\a-w1-45\az] acceptable range of facing and still be on target"
   /call set_data ${_debug} maHome swSnapStuck                             map outer FALSE
@@ -1297,9 +1295,10 @@ sub set_initialize_map_character_environment(bool _debug)
 
 |** control: nuke **|
   /call set_data_map ${_debug} maNuke stPctStopNuke                       0                             "${auxnum} % of mob health to stop nuking it at"                  nuke
-  /call set_data_map ${_debug} maNuke stNukeDelay                         0                             "${auxnum} time to force between using nukes or dots"             nuke
+  /call set_data_map ${_debug} maNuke stNukeDelay                         0                             "${auxnum} time to force between using nukes (1/10 second)"       nuke
   /call set_data_list ${_debug} maNuke lsLineNuke                         EMPTY                         "${auxli} alternate cast order for nukes"                         nuke
   /call set_data_map ${_debug} maNuke swNukeLoop                          FALSE                         "${auxsw} force a nuke loop to complete before releasing"         nuke
+  /call set_data_map ${_debug} maNuke swNukeWhackAMole                    FALSE                         "${auxsw} sit between nukes. REQUIRES /nuke delay"                nuke
 
 
 
@@ -3105,6 +3104,12 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
  | character database
  /if (${_type.Equal[character]} || ${_verbage.Equal[force]}) {
   /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-w${maData.Find[chrID].Value}.sqlite\ax
+
+
+  /if (${maEnv.Find[build].Value} >= 210222.01 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210222.01\ax
+    /invoke ${_tmpMap.Add[swMoveBehind,character]}
+  }
 
   /if (${maEnv.Find[build].Value} >= 210210.01 || ${_verbage.Equal[force]}) {
     /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210210.01\ax

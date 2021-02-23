@@ -10270,24 +10270,23 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
 
     /call voodoo ${_debug} "${maNuke.Find[stNuke${_liNuke.Value}].Value}" ${_tmpID} FALSE
 
-    /if (${Select[${maData.Find[stCastReturn].Value},OUTOFMANA,STUNNED]} && !${maNuke.Find[stNukeDelay].Value}) {
-      /break
-    }
-
-    /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED]} && !${maNuke.Find[stNukeDelay].Value}) {
+    /if (${Select[${maData.Find[stCastReturn].Value},OUTOFMANA]}) {
       /break
     }
 
     | forced delay
     /if (${maNuke.Find[stNukeDelay].Value}) {
+      /if (${maNuke.Find[swNukeWhackAMole].Value} && !${Me.Sitting} && !${Me.Mount.ID}) {
+        /sit
+      }
       /invoke ${set_data_timer[${_debug}, Nuke_Delay, RESTART]}
-    }
-
-    | maintain the loop of nukes till all are cycled.
-    /if (${maNuke.Find[stNukeDelay].Value}) {
       /delay 10s !${Me.Casting.ID}
       /delay 2.5s
       /delay ${timer_Nuke_Delay}
+    } else /if (!${maNuke.Find[stNukeDelay].Value}) {
+      /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,STUNNED]}) {
+        /break
+      }
     }
 
     /invoke ${_liNuke.Advance}
@@ -11929,9 +11928,9 @@ sub check_drop_buffs(bool _debug)
   /vardata _lidb lsDropBuffs.First.Clone
   /while (!${_lidb.IsEnd}) {
 
-    /if (${Me.Buff[="${_lidb.Value}"].ID} || ${Me.Song[="${_lidb.Value}"].ID})  {
+    /if (${Me.Buff[=${_lidb.Value}].ID} || ${Me.Song[=${_lidb.Value}].ID})  {
       OUT Drop${sep}${info}${_lidb.Value}\ax
-      /invoke ${Me.Buff[="${_lidb.Value}"].Remove}
+      /invoke ${Me.Buff[=${_lidb.Value}].Remove}
     }
     /invoke ${_lidb.Advance}
   }

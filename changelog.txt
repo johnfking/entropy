@@ -6,6 +6,8 @@
  *
  * wiki: https://entropy.exspes.com/wiki/index.php/Main_Page
  *
+ * Discord: 2pY6Byt
+ *
  * Donations: paypal.me/exspes
  *
  ***|
@@ -20,6 +22,15 @@ on the to do list
 --------------------
 
 
+210222.01
+- TLP slummers
+  added in a sit option for nuking
+  /nuke sit (on/off) will attempt to sit during the delay inbetween nukes
+  you MUST have /nuke delay set for this to function
+- warrior
+  added in a song check for Commanding Voice  
+- buff removal
+  removed the quotes areound the string matches
 
 
 210219.01

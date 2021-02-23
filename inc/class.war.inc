@@ -207,7 +207,7 @@ sub misc_combat(bool _debug, int _tmpID)
     /call voodoo ${_debug} "${maChr.Find[stProvoke].Value}" ${_tmpID} FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stCommanding].Value}"]}) {
+  /if (${is_ready[${_debug}, "${maChr.Find[stCommanding].Value}"]} && !${Me.Song[${maChr.Find[stCommanding].Value}].ID}) {
     /call voodoo ${_debug} "${maChr.Find[stCommanding].Value}" 0 FALSE
   }
 
