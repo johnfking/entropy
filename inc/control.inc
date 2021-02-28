@@ -380,35 +380,34 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     
     /declare _list string local
     /declare _count int local 0
-    /varset _spell ${Spell[${_spell}].RankName}
-    /declare _spellID ${Spell[${_spell}].ID}
-
+    /declare _spellID ${get_type[${_debug}, "${_spell}", id]}
+    
     MQCLEAR
-    OUT \aw${_spell}\ax ${sep} ID\a-w ${_spellID}\ax ${sep} Group \a-w${Spell[${_spellID}].SpellGroup}\ax ${sep} lvl \a-w${Spell[${_spellID}].Level}\ax
-    OUT \a-w${Spell[${Int[${Math.Calc[${_spellID} + ${If[${Spell[${_spellID}].SpellGroup},3,1]}]}]}].Name}\ax ${sep} ID \a-w${Spell[${Int[${Math.Calc[${_spellID} + ${If[${Spell[${_spellID}].SpellGroup},3,1]}]}]}].ID}\ax
+    OUT \aw${Spell[${_spellID}].Name}\ax ${sep} ID\a-w ${_spellID}\ax ${sep} Group \a-w${Spell[${_spellID}].SpellGroup}\ax ${sep} lvl \a-w${Spell[${_spellID}].Level}\ax
+    | OUT \a-w${Spell[${Int[${Math.Calc[${_spellID} + ${If[${Spell[${_spellID}].SpellGroup},3,1]}]}]}].Name}\ax ${sep} ID \a-w${Spell[${Int[${Math.Calc[${_spellID} + ${If[${Spell[${_spellID}].SpellGroup},3,1]}]}]}].ID}\ax
     OUT \awTarget Type ${sep} \a-w${Spell[${_spellID}].TargetType}\ax
     OUT \awSub Category ${sep} \a-w${Spell[${_spellID}].Subcategory}\ax
-    OUT \awSPA Count\ax ${sep} \a-w${Spell[${_spell}].NumEffects}\ax
+    OUT \awSPA Count\ax ${sep} \a-w${Spell[${_spellID}].NumEffects}\ax
 
-    /for _count 1 to ${Spell[${_spell}].NumEffects}
+    /for _count 1 to ${Spell[${_spellID}].NumEffects}
       OUT #\ay${_count}\ax
-      /if (${Select[${Spell[${_spell}].Attrib[${_count}]},10]}) /continue
-      /sqlite query "${DBstatic}" dummy SELECT * FROM eq_spa WHERE env_var='${Spell[${_spell}].Attrib[${_count}]}'
-      OUT ${dot} .Attrib \a-w${Spell[${_spell}].Attrib[${_count}]}\ax ${dot} \a-g${sqlite.Result[dummy 1 value]}\ax
-      OUT ${dot} .Trigger \a-w${Spell[${_spell}].Trigger[${_count}].Name}\ax ${dot} ID:\a-w${Spell[${_spell}].Base2[${_count}]}\ax\ax ()
-      OUT ${dot} .Base \a-w${Spell[${_spell}].Base[${_count}]}\ax
-      OUT ${dot} .Max \a-w${Spell[${_spell}].Max[${_count}]} \ax
-      OUT ${dot} .Calc \a-w${Spell[${_spell}].Calc[${_count}]} \ax
-      OUT ${dot} .Restrictions \a-w${Spell[${_spell}].Restrictions[${_count}]}\ax
-      OUT ${dot} .Extra \a-w${Spell[${_spell}].Extra}\ax
+      /if (${Select[${Spell[${_spellID}].Attrib[${_count}]},10]}) /continue
+      /sqlite query "${DBstatic}" dummy SELECT * FROM eq_spa WHERE env_var='${Spell[${_spellID}].Attrib[${_count}]}'
+      OUT ${dot} .Attrib \a-w${Spell[${_spellID}].Attrib[${_count}]}\ax ${dot} \a-g${sqlite.Result[dummy 1 value]}\ax
+      OUT ${dot} .Trigger \a-w${Spell[${_spellID}].Trigger[${_count}].Name}\ax ${dot} ID:\a-w${Spell[${_spellID}].Base2[${_count}]}\ax\ax ()
+      OUT ${dot} .Base \a-w${Spell[${_spellID}].Base[${_count}]}\ax
+      OUT ${dot} .Max \a-w${Spell[${_spellID}].Max[${_count}]} \ax
+      OUT ${dot} .Calc \a-w${Spell[${_spellID}].Calc[${_count}]} \ax
+      OUT ${dot} .Restrictions \a-w${Spell[${_spellID}].Restrictions[${_count}]}\ax
+      OUT ${dot} .Extra \a-w${Spell[${_spellID}].Extra}\ax
 
-      /varset _list ${_list} ${Spell[${_spell}].Attrib[${_count}]}
+      /varset _list ${_list} ${Spell[${_spellID}].Attrib[${_count}]}
     /next _count
     OUT ${dot} ${dot} ${dot} ${dot}
     OUT \awSPA list\ax ${sep} \a-w${_list}\ax
 
     | OUT \aw/spellslotinfo\ax
-    /spellslotinfo ${Spell[${_spell}].ID}
+    /spellslotinfo ${Spell[${_spellID}].ID}
     /invoke ${out[18, 0, 33]}
     /return TRUE
 
@@ -2183,9 +2182,7 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
     | /lua healthreturn
     /invoke ${out[1, shade, 0]}
     | /echo ${Lua.Script.Return[1]}
-    
-    
-  }
+   }
 
   /if (${_type.Equal[kodtaz]}) {
     /call farm_kodtaz
@@ -2668,9 +2665,11 @@ ${Spell[Unified Righteousness].Trigger[2].Description}
     }
   }
 
-
+  | test assist name/id check
   /if (${_type.Equal[getass]}) {
-    OUT ${get_assist_info[FALSE, name]}
+    OUT Name${sep}${get_assist_info[FALSE, name]}
+    OUT ID${sep}${get_assist_info[FALSE, id]}
+    OUT Both${sep}${get_assist_info[FALSE, both]}
   }
 
   /if (${_type.Equal[behind]}) {
@@ -6887,7 +6886,7 @@ sub Bind_control_nomore(string _type, bool _debug)
     /declare _count int local 0
     
     /for _count 1 to ${sqlite.Rows[dummy]}
-      OUT ${sep}\a-w${sqlite.Result[dummy ${_count} value]}\ax
+      OUT ${sep}\a-w${sqlite.Result[dummy ${_count} env_var]}\ax ${submenu} \a-w${sqlite.Result[dummy ${_count} value]}\ax
     /next _count
     /invoke ${out[18, 0, 33]}
     /return FALSE
@@ -6922,7 +6921,10 @@ sub Bind_control_nomore(string _type, bool _debug)
     
     
     /return TRUE
-    
+  | remove invis
+  } else /if (${Select[${_type},da]}) {
+    /call remove_spa ${_debug} 40
+    /return TRUE
 
   | remove invis
   } else /if (${Select[${_type},sos]}) {
@@ -6956,19 +6958,21 @@ sub Bind_control_nomore(string _type, bool _debug)
   | remove spa by type (name)   
   } else /if (${Range.Between[1,999:${Int[${_type}]}]}) {
     
-    /sqlite query "${DBstatic}" dummy SELECT * FROM eq_spa WHERE value='${_type}' ORDER BY value;
+    /sqlite query "${DBstatic}" dummy SELECT * FROM eq_spa WHERE env_var='${_type}';
     
     /if (!${sqlite.Rows[dummy]}) {
       OUT Not a valid SPA type${sep}\a-w${_type}\ax
       /return FALSE
     }
-    /call remove_spa ${_debug} ${sqlite.Result[dummy 1 env_var]}    
+    /call remove_spa ${_debug} ${sqlite.Result[dummy 1 env_var]}   
+    /return 
   }
   
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[list,list]}
   /invoke ${maControl.Add[invis,option]}
   /invoke ${maControl.Add[levi,option]}
+  /invoke ${maControl.Add[da,option]}
   /invoke ${maControl.Add[spa##,option]}
   /invoke ${maControl.Add[removeall,option]}
   /invoke ${set_control_output[FALSE, maMelee, "nomore", maControl]}  

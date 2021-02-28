@@ -36,6 +36,12 @@ sub class_init(bool _debug)
 
   /call set_data_map ${_debug} maHeal swHealGroupOverTime             FALSE                         "${auxsw} use group heal over time spells/aas"            heal
 
+  | class order lists
+  /call set_data_list ${_debug} maChr lsOrderClassBase                xtarget|checkminion                                                 "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 heal|manarecovery                                                   "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    melee|pet|misc|debuff|dot|nuke|alliance|swarm|item                  "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover                                                         "${auxli} class post combat "
+
   | AAs
   /call set_data_map ${_debug} maChr stAACalloftheAncients            PREGEN|1                      "${auxna} Call of the Ancients aa"
   /call set_data_map ${_debug} maChr stAASpiritCall                   PREGEN|1                      "${auxna} Spirit Call aa"
@@ -56,57 +62,29 @@ sub class_init(bool _debug)
  ***|
 sub class_main(bool _debug)
   DEBUG \atclass_main\ax()
-  GETINPUT
-  ISMEDEAD
-  CHECKTIE
 
-  | correct any and all XTarget healing spots
   /if (AUTO && !ENGINE3) {
-    /if (${maHeal.Find[swHealXTarget].Value} && !${timer_Check_Xtarget_Build}) {
-      /call check_xtarget_build FALSE
-    }
+    /call class_cycle lsOrderClassBase
     /call check_cani ${maDebug.Find[canni].Value}
-    /if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
-    /if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} TARGET
   } else /if (AUTO && ENGINE3) {
     /if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
       /call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
     }
-
   }
-
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-    /call check_heal_routines
-    CHECKFADE
-
-    /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-    /if (BURN) /call burn ${maDebug.Find[burn].Value} TARGET
+    /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
-
     /if (VALID && !ENGINE3) {
-      CHECKREZ
-      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST epic
-      /if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} GETASSIST
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
-      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
+      /call class_cycle lsOrderClass
       /if (${maChr.Find[swTalisman].Value}) /call cast_talisman ${maDebug.Find[talisman].Value}
-      /if (${maCC.Find[swAlliance].Value}) /call cast_alliance ${maDebug.Find[alliance].Value}
-      /if (SWARM) /call cast_temp_pet ${maDebug.Find[minion].Value} GETASSIST "${maChr.Find[stNukeServant].Value}"
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
       }
     }
-
     /if (AUTO && !ENGINE3) {
-      CHECKFADE
+      /call class_cycle lsOrderClassPost
       /call check_cani ${maDebug.Find[canni].Value}
-      /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
         /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}

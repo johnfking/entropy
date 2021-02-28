@@ -373,6 +373,7 @@ sub set_initial_environment(bool _debug)
 
   | controls by class
   /if (${Select[${Me.Class.ShortName},BER]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[resolve,swResolve]}
 
   } else /if (${Select[${Me.Class.ShortName},BRD]}) {
@@ -452,19 +453,23 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[nosneaktie,swNoSneakinTie]}
 
   } else /if (${Select[${Me.Class.ShortName},SHD]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[attraction,swAttraction]}
     /invoke ${maChrControl.Add[harmonious,swHarmonious]}
     /invoke ${maChrControl.Add[vot,swVoT]}
 
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[talisman,swTalisman]}
     /invoke ${maChrControl.Add[canni,submenu]}
     /invoke ${maChrControl.Add[maid,mass]}
 
   } else /if (${Select[${Me.Class.ShortName},WAR]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[attraction,swAttraction]}
 
   } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
+    /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[mb,swManaBurn]}
     /invoke ${maChrControl.Add[gather,stPctGather]}
     /invoke ${maChrControl.Add[concussion,stPctConcussion]}
@@ -870,6 +875,11 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+|** cast type search order **|
+  /call set_data_list ${_debug} maChr lsOrderCastType                    alt|pulse|spell|disc|item|ability     "${auxli} cast type order search"
+
+
+
 |** control: grain **|
   /call set_data_list ${_debug} maEnv lsGrain                             1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30        "${auxnum} visual outputs you wish to see. \aw/verb aux\ax for full list"
 
@@ -979,7 +989,9 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_list ${_debug} maEnv lsDropBuffs                         EMPTY                         "${auxli} list of buffs to drop that are smelly"
   /call set_data ${_debug} maEnv swAlwaysDropInvisCauseThePeopleIGroupWithAreAssHats     map outer FALSE
 
-
+  | no cast buff list??
+  /call set_data_list ${_debug} maChr lsNoCastBuff                        EMPTY                         "${auxli} buffs on you to stop casting"
+  
 
 |** control: heal **|
   /call set_data_list ${_debug} maHeal lsOrderHeal                        cure|tot|self|dannet|ch|group|xtarget|pet         "${auxli} heal cycle order"                               heal

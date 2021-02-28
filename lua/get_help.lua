@@ -413,7 +413,7 @@ elseif command == 'repeat' then
   if option == 'u' then
     echo(discord..'\aw/'..command..' "text to repeat"')
   elseif option == 'h' then
-    echo(discord..'tells everyone within 60 pases of you to:')
+    echo(discord..'tells everyone within 60 eq feet of you to:')
     echo(discord..'delay 1-3 seconds')
     echo(discord..'target the intended mob')
     echo(discord..'repeat what you say')

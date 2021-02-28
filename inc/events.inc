@@ -256,7 +256,13 @@ sub Event_CAST_RESET(string _line, bool _debug)
 /return
 
 
+|***
+ * use: macro ending events
+ ***|
+| #event End_Macro "You have entered #*#"
+sub Event_End_Macro(string _line)
 
+/return
 
 
 

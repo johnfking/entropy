@@ -248,6 +248,11 @@ sub get_agro(bool _debug, int _tmpID)
     /call voodoo ${_debug} "${maChr.Find[stStun].Value}" ${_tmpID} FALSE
   }
 
+  | Valiant Defense line. agro+heal
+  /if (${is_ready[${_debug}, "${maChr.Find[stValiant].Value}"]}) {
+    /call voodoo ${_debug} "${maChr.Find[stValiant].Value}" ${_tmpID} FALSE
+  }  
+
   | AE Stuns
   /if (AE#) {
     /if (${SpawnCount[npc OVERLOS radius 60 PS4 targetable]} >= AE#) {
@@ -268,7 +273,7 @@ sub get_agro(bool _debug, int _tmpID)
       }
     }
   }
-
+  
   TMPIDDEAD
 
   /if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
@@ -298,10 +303,6 @@ sub get_agro(bool _debug, int _tmpID)
     /call voodoo ${_debug} "${maChr.Find[stUnflinching].Value}" ${_tmpID} FALSE
   }
 
-  | Valiant Defense line. agro+heal
-  /if (${Me.PctAggro} < 98 && ${is_ready[${_debug}, "${maChr.Find[stValiant].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stValiant].Value}" ${_tmpID} FALSE
-  }
 
 /return TRUE
 

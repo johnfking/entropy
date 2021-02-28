@@ -897,6 +897,40 @@ sub cast_AA_celestialregeneration(bool _debug)
 
 
 |***
+ * note: alliance
+ * use:
+ ***|
+sub alliance(bool _debug)
+  DEBUG \atalliance\ax()
+
+  /invoke ${set_data_timer[${_debug}, Check_Alliance, RESTART]}
+  /if (!${is_ready[${_debug}, "${maChr.Find[stAlliance].Value}"]}) {
+    /return FALSE
+  }
+  
+  /declare _tmpID int local ${get_assist_info[${_debug}, id]}
+  
+  /if (!${_tmpID}) {
+    /return FALSE
+  }
+
+  /call target set ${_tmpID}
+
+  /delay 2s ${Target.BuffsPopulated}
+  /if (${Target.BuffsPopulated}) {
+    /if (${Target.Buff[${maChr.Find[stAlliance].Value}].ID}) /return FALSE
+  } else /if (!${Target.BuffsPopulated}) {
+    /return FALSE
+  }
+
+  /call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" ${_tmpID} FALSE
+
+/return TRUE
+
+
+
+
+|***
  * note: class control
  * use: /chr
  ***|

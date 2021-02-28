@@ -30,7 +30,7 @@ sub class_init(bool _debug)
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                xtarget                                                                               "${auxli} class base loop start"
   /call set_data_list ${_debug} maChr lsOrderClassPre                 heal|alliance|manarecover|burn                                                        "${auxli} class pre combat"
-  /call set_data_list ${_debug} maChr lsOrderClass                    melee|heal|misc|debuff|dot|nuke|item                                                  "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClass                    melee|heal|misc|debuff|dot|nuke|alliance|item                                         "${auxli} class active combat order"
   /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover                                                                           "${auxli} class post combat "
 
   | AAs
@@ -49,6 +49,7 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAANaturesFury                  PREGEN|1                      "${auxna} Natures Fury AA"
   /call set_data_map ${_debug} maChr stAANaturesBlessing              PREGEN|1                      "${auxna} Nature's Blessing AA"
   /call set_data_map ${_debug} maChr stAANaturesBoon                  PREGEN|1                      "${auxna} Nature's Boon AA"
+  /call set_data_map ${_debug} maChr stAAImprovedTwincast             PREGEN|1                      "${auxna} Improved Twincast AA"
 
 
   /if (${maDebug.Find[init].Value}) {
@@ -299,6 +300,17 @@ sub burn(bool _debug, int _tmpID)
   }
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
+
+  | alternate twincast
+  /if (!${Me.Buff[${maChr.Find[stTwincast].Value}].ID}) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stAAImprovedTwincast].Value}"]}) {
+      /call voodoo ${_debug} "${maChr.Find[stAAImprovedTwincast].Value}" 0 FALSE
+    }
+  } else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.AltAbilityReady[Improved Twincast]}) {
+    /if (${is_ready[${_debug}, "${maChr.Find[stTwincast].Value}"]}) {
+      /call voodoo ${_debug} "${maChr.Find[stTwincast].Value}" 0 FALSE
+    }
+  }
 
   | AA AE heal
   /if (!${Raid.Members}) {

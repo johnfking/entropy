@@ -49,6 +49,12 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stLeechcurse                     PREGEN|1                      "${auxna} leechcurse disc"
   /call set_data_map ${_debug} maChr stGougingBlade                   PREGEN|1                      "${auxna} gouging blade family disc"
 
+  | class order lists
+  /call set_data_list ${_debug} maChr lsOrderClassBase                checkminion                                                                   "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 manarecover|staminarecovery                                                   "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    taunt|melee|agro|heal|burn|misc|dot|nuke|item|debuff|alliance|harmonious      "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|staminarecovery                                                   "${auxli} class post combat "
+
   | AAs
   /call set_data_map ${_debug} maChr stAAUnity                        PREGEN|1                      "${auxna} class aa unity buff"
   /call set_data_map ${_debug} maChr stAAVoiceofThule                 PREGEN|1                      "${auxna} Voice of Thule AA"
@@ -84,7 +90,7 @@ sub class_main(bool _debug)
   DEBUG \atclass_main\ax()
 
   /if (AUTO && !ENGINE3) {
-    /if (!${check_engaged[FALSE]} && PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle FALSE
+    /call class_cycle lsOrderClassBase
   } else /if (AUTO && ENGINE3) {
     /if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
       /call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -96,44 +102,19 @@ sub class_main(bool _debug)
   }
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-    /if (!${timer_Check_Cure} && ${maChr.Find[swHealCure].Value}) /call check_cure ${maDebug.Find[cure].Value}
+    /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /invoke ${do_taunt[${_debug}, TARGET]}
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
-      /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
-        /call cast_shield_flash ${_debug} aa
-      }
-      /if (AGRO) /call get_agro ${maDebug.Find[agro].Value} GETASSIST
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST epic
-      /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
-      /if (NUKE) /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
-      | /if (${swAlliance}) /call cast_alliance_${Me.Class.ShortName} GETASSIST
-      /if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) {
-        /call check_harmonious ${maDebug.Find[harmonious].Value}
-      }
-
-      /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-        /call check_buff_cycle_temp_self FALSE stSkin
-        /call check_buff_cycle_temp_self FALSE stStance
-      }
+      /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
       }
-
     }
 
     /if (AUTO && !ENGINE3) {
-      /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-      CHECKFADE
-      /if (${lsClassMelee.Contains[${Me.Class.ShortName}]}) /call cast_stamina_recovery ${maDebug.Find[staminarecover].Value}
+      /call class_cycle lsOrderClassPost
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
         /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -155,8 +136,6 @@ sub check_heal(bool _debug, string _type)
   CHECKTIE
   ISMEDEAD
   CHECKEXIT
-  CHECKREZ
-  CHECKFADE
 
   /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
@@ -303,7 +282,7 @@ sub get_agro(bool _debug, int _tmpID)
 
   ISMEDEAD
   CHECKEXIT
-  GETINPUT get_agr _tmpID|${_tmpID}
+  GETINPUT get_agro _tmpID|${_tmpID}
 
   /if (${target[isdead, ${_tmpID}]}) {
     /return FALSE

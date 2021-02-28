@@ -42,6 +42,12 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stNukeTCMagic                    PREGEN|1                      "${auxna} magic line twincast spell"
   /call set_data_map ${_debug} maChr stNukeTCBase                     FALSE                         "${auxna} base line twincast spell"
 
+  | class order lists
+  /call set_data_list ${_debug} maChr lsOrderClassBase                EMPTY                                     "${auxli} class base loop start"
+  /call set_data_list ${_debug} maChr lsOrderClassPre                 EMPTY                                     "${auxli} class pre combat"
+  /call set_data_list ${_debug} maChr lsOrderClass                    melee|debuff|burn|pet|swarm|alliance|nuke|misc|item      "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|gather                        "${auxli} class post combat"
+
   | AAs
   /call set_data_map ${_debug} maChr stAAUnity                        PREGEN|1                      "${auxna} Class Unity aa"
   /call set_data_map ${_debug} maChr stAAArcaneWhisper                PREGEN|1                      "${auxna} Arcane Whisper aa"
@@ -76,6 +82,7 @@ sub class_main(bool _debug)
   DEBUG \atclass_main\ax()
 
   /if (AUTO && !ENGINE3) {
+    /call class_cycle lsOrderClassBase
   } else /if (AUTO && ENGINE3) {
     /if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
       /call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -83,29 +90,11 @@ sub class_main(bool _debug)
   }
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-    GETINPUT
-    CHECKREZ
-    /call check_heal_routines
+    /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
-      /if (MELEE) /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST epic
-      /if (!${timer_Check_deBuffs}) /call check_debuff_routines GETASSIST
-      /if (BURN) /call burn ${maDebug.Find[burn].Value} GETASSIST
-      /if (PET || SWARM) /call send_pet ${maDebug.Find[sic].Value} GETASSIST
-      /if (SWARM) /call cast_temp_pet ${maDebug.Find[temp].Value} GETASSIST "${maChr.Find[stTempPet].Value}"
-      /if (${maCC.Find[swAlliance].Value}) /call trigger_alliance GETASSIST
-      /if (DOT) /call cast_cycle_dot ${maDebug.Find[dot].Value} GETASSIST
-      /if (NUKE) {
-        /if (${maChr.Find[swForceTC].Value}) {
-          /call force_twincast ${maDebug.Find[twincast].Value} GETASSIST
-        }
-        /call cast_cycle_nuke ${maDebug.Find[nuke].Value} GETASSIST
-      }
-      /call misc_combat ${maDebug.Find[misc].Value} GETASSIST
-      /call check_item_cycle ${maDebug.Find[item].Value} GETASSIST
+      /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
         /call e3_combat_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -114,8 +103,7 @@ sub class_main(bool _debug)
     }
 
     /if (AUTO && !ENGINE3) {
-      /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
-      /if (${Me.PctMana} <= ${maChr.Find[stPctGather].Value}*.PCTHO) /call check_harvest ${maDebug.Find[mannarecover].Value}
+      /call class_cycle lsOrderClassPost
       CHECKFADE
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
@@ -184,8 +172,8 @@ sub misc_combat(bool _debug, int _tmpID)
  * note: But you say I'm a dog when I leave you fucked and deserted.
  * use: /call check_harvest DEBUG
  ***|
-sub check_harvest(bool _debug)
-  DEBUG \atcheck_harvest\ax()
+sub check_gather(bool _debug)
+  DEBUG \atcheck_gather\ax()
 
   CHECKEXIT
   GETINPUT

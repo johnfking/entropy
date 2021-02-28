@@ -53,7 +53,7 @@ sub class_init(bool _debug)
   /call set_data_list ${_debug} maChr lsOrderClassBase                EMPTY                                     "${auxli} class base loop start"
   /call set_data_list ${_debug} maChr lsOrderClassPre                 EMPTY                                     "${auxli} class pre combat"
   /call set_data_list ${_debug} maChr lsOrderClass                    item|melee|burn|misc|debuff|dot|nuke      "${auxli} class active combat order"
-  /call set_data_list ${_debug} maChr lsOrderClassPost                staminarecover                            "${auxli} class post combat"
+  /call set_data_list ${_debug} maChr lsOrderClassPost                staminarecovery                           "${auxli} class post combat"
 
   | AAs
   /call set_data_map ${_debug} maChr stAAUnity                        FALSE                         "${auxna} class aa unity buff"
@@ -115,7 +115,6 @@ sub class_main(bool _debug)
 
     /if (VALID && !ENGINE3) {
       /call do_sneak_attack ${maDebug.Find[class].Value} GETASSIST
-      /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
       /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
