@@ -5936,7 +5936,7 @@ sub check_buff_cycle_others(bool _debug, string _type)
   /declare _countToon int 1
   /declare _count int 1
   /declare _toon string local FALSE
-  /declare _spell string local FALSE
+  | /declare _spell string local FALSE
   /declare _found bool local TRUE
   /declare _i int local 1
   /declare _spellTrigger string local FALSE
@@ -15895,15 +15895,19 @@ sub cast(bool _debug, int _tmpID, string _sub, int _rangeOverride)
 
   | pulses
   } else /if (${Select[${maCD.Find[type].Value},PULSE]}) {
-    DEBUG ${sep}\agPULSE\ax${sep}${_verbage}
+    DEBUG ${sep}\agPULSE\ax${sep}
 
-    /if (${Me.CurrentMana} < ${_spell.Mana}) /return FALSE
+    /if (${Me.CurrentMana} < ${_spell.Mana}) {
+      /return FALSE
+    }
 
-    /if (${Window[SpellBookWnd].Open}) /invoke ${Window[SpellBookWnd].DoClose}
+    /if (${Window[SpellBookWnd].Open}) {
+      /invoke ${Window[SpellBookWnd].DoClose}
+    }
 
     | mem spell if needed??
-    /if (!${Me.Gem[${_spell}]}) {
-      /call set_spell_to ${_debug} TRUE "${_spell}" ${maEnv.Find[stBuffGem].Value} TRUE
+    /if (!${Me.Gem[${_spell.RankName}]}) {
+      /call set_spell_to ${_debug} TRUE "${_spell.RankName}" ${maEnv.Find[stBuffGem].Value} TRUE
     }
 
     | make sure we have our target if one is passed. 0 is assumed no target required
@@ -15912,25 +15916,25 @@ sub cast(bool _debug, int _tmpID, string _sub, int _rangeOverride)
     }
 
     /if (${_tmpID} == 0) {
-      /invoke ${out[5, "Play${sep}${sp}${_spell}\ax"]}
+      /invoke ${out[5, "Play${sep}${sp}${_spell.RankName}\ax"]}
     } else /if (${_tmpID} != 0 && ${Target.ID}) {
-      /invoke ${out[5, "Pulse${sep}${sp}${_spell}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
+      /invoke ${out[5, "Pulse${sep}${sp}${_spell.RankName}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
     }
 
     /while (${_castLoop}) {
       ISMEDEAD
-      /cast ${Me.Gem[${_spell}]}
+      /cast ${Me.Gem[${_spell.RankName}]}
       /delay 1
 
       | bard swap mechanics
       /while (${Window[CastingWindow].Open}) {
         /if (${maChr.Find[swInstrumentSwap].Value}) {
           /if (${Me.CastTimeLeft} < ${maHard.Find[stBardSwapRemain].Value}) {
-            /if (${maBardFocus.Find[${Skill[${Spell[${_verbage}].Skill}].ID}].Value.Arg[3,|]}) {
-              /if (${FindItem[${maBardFocus.Find[${Skill[${Spell[${_verbage}].Skill}].ID}].Value.Arg[1,|]}].WornSlot[offhand]}) {
-                /call Bind_command_swap "${FindItem[${maBardFocus.Find[${Skill[${Spell[${Spell[${_verbage}].ID}].Skill}].ID}].Value.Arg[1,|]}].Name}" 14 FALSE
-              } else /if (${FindItem[${maBardFocus.Find[${Skill[${Spell[${_verbage}].Skill}].ID}].Value.Arg[1,|]}].WornSlot[mainhand]}) {
-                /call Bind_command_swap "${FindItem[${maBardFocus.Find[${Skill[${Spell[${Spell[${_verbage}].ID}].Skill}].ID}].Value.Arg[1,|]}].Name}" 13 FALSE
+            /if (${maBardFocus.Find[${Skill[${_spell.Skill}].ID}].Value.Arg[3,|]}) {
+              /if (${FindItem[${maBardFocus.Find[${Skill[${_spell.Skill}].ID}].Value.Arg[1,|]}].WornSlot[offhand]}) {
+                /call Bind_command_swap "${FindItem[${maBardFocus.Find[${Skill[${Spell[${_spell.ID}].Skill}].ID}].Value.Arg[1,|]}].Name}" 14 FALSE
+              } else /if (${FindItem[${maBardFocus.Find[${Skill[${_spell.Skill}].ID}].Value.Arg[1,|]}].WornSlot[mainhand]}) {
+                /call Bind_command_swap "${FindItem[${maBardFocus.Find[${Skill[${Spell[${_spell.ID}].Skill}].ID}].Value.Arg[1,|]}].Name}" 13 FALSE
               }
             }
           }

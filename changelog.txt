@@ -25,6 +25,13 @@ REMINDER:
 
 
 
+
+210315.02
+- corrected several missed conversions
+- cast() 
+  forgot the ranknames in the bard casting portion. meh...
+
+
 210315.01
 - /home position random
   selects one of: free|left|right|rear for positioning on every new mob or combat reset
