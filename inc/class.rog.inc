@@ -143,8 +143,8 @@ sub do_sneak_attack(bool _debug, int _tmpID)
     /return FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stSneakAttack].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stSneakAttack].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stSneakAttack].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
 
     /if (${maCC.Find[swBackstab].Value} && !${Skill[Backstab].Auto}) {
       /doability backstab
@@ -186,8 +186,8 @@ sub misc_combat(bool _debug, int _tmpID)
     /return TRUE
   }
   
-  /if (${is_ready[${_debug}, "${maChr.Find[stAssault].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAssault].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAssault].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
   /if (${target[isdead, ${_tmpID}]}) {
@@ -195,45 +195,45 @@ sub misc_combat(bool _debug, int _tmpID)
   }
   /call set_combat_melee ${_debug} ${_tmpID}
   
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAShadowsFlanking].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAShadowsFlanking].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAShadowsFlanking].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stVision].Value}"]} && !${Me.Song[${maChr.Find[stVision].Value}].ID}) {
-    /call voodoo ${_debug} "${maChr.Find[stVision].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stVision].Value}"]} && !${Me.Song[${maChr.Find[stVision].Value}].ID}) {
+    /call cast ${_debug} 0 FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stAATwistedShank].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAATwistedShank].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAATwistedShank].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
   | /if (${target[isdead, ${_tmpID}]}) {
   |   /return FALSE
   | }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stShadowHunter].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stShadowHunter].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stShadowHunter].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stDisassociative].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stDisassociative].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stDisassociative].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stBleed].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stBleed].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stBleed].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
   /if (${target[isdead, ${_tmpID}]}) {
     /return FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stPlay].Value}"]}) {
-    /if (!${lsZoneNamed.Contains[${Spawn[${_tmpID}].DisplayName}]} || !${is_ready[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stPlay].Value}"]} && !${Bool[${Me.ActiveDisc}]}) {
-        /call voodoo ${_debug} "${maChr.Find[stPlay].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stPlay].Value}"]}) {
+    /if (!${lsZoneNamed.Contains[${Spawn[${_tmpID}].DisplayName}]} || !${cast_data[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) {
+      /if (${cast_data[${_debug}, "${maChr.Find[stPlay].Value}"]} && !${Bool[${Me.ActiveDisc}]}) {
+        /call cast ${_debug} 0 FALSE
       }
     }
   }
 
-  /if (!${lsZoneNamed.Contains[${Target.DisplayName}]} && !${is_ready[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stPlay].Value}"]} && !${Bool[${Me.ActiveDisc}]}) {
-      /call voodoo ${_debug} "${maChr.Find[stPlay].Value}" 0 FALSE
+  /if (!${lsZoneNamed.Contains[${Target.DisplayName}]} && !${cast_data[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) {
+    /if (${cast_data[${_debug}, "${maChr.Find[stPlay].Value}"]} && !${Bool[${Me.ActiveDisc}]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
@@ -241,17 +241,17 @@ sub misc_combat(bool _debug, int _tmpID)
     /return FALSE
   }
 
-  /if (${Target.ID} && ${is_ready[${_debug}, "${maChr.Find[stPhantom].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stPhantom].Value}" ${_tmpID} FALSE
+  /if (${Target.ID} && ${cast_data[${_debug}, "${maChr.Find[stPhantom].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stHiddenBlade].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stHiddenBlade].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stHiddenBlade].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stHack].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stHack].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stHack].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stBladePoison].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stBladePoison].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stBladePoison].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   /if (${target[isdead, ${_tmpID}]}) {
@@ -259,14 +259,14 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   /if (!AGRO) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAggro].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAggro].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAggro].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
   /if (${maChr.Find[swBlinding].Value} && ${Target.Level} <= ${Me.Level}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stBlinding].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stBlinding].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stBlinding].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
@@ -309,8 +309,8 @@ sub check_heal(bool _debug, string _type)
     }
 
     /if (${Select[${_type},self]} && ${hurtCount}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAATumble].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAATumble].Value}" 0 FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAATumble].Value}"]}) {
+        /call cast ${_debug} 0 FALSE
       }
     }
 
@@ -410,29 +410,29 @@ sub burn(bool _debug, int _tmpID)
     /return FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
   
   /if (!AE#) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAFocusedRakesRampage].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAFocusedRakesRampage].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAFocusedRakesRampage].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   } else /if (AE#) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAARakesRampage].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAARakesRampage].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAARakesRampage].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stPinPoint].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stPinPoint].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stPinPoint].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stAARoguesFury].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAARoguesFury].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAARoguesFury].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
-  | /if (${is_ready[${_debug}, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15 && ${Spawn[id ${_tmpID}].Level} < ${Spell[${maChr.Find[stMark].Value}].Max[1]}) {
-  /if (${is_ready[${_debug}, "${maChr.Find[stMark].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stMark].Value}" ${_tmpID} FALSE
+  | /if (${cast_data[${_debug}, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15 && ${Spawn[id ${_tmpID}].Level} < ${Spell[${maChr.Find[stMark].Value}].Max[1]}) {
+  /if (${cast_data[${_debug}, "${maChr.Find[stMark].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
   /if (${target[isdead, ${_tmpID}]}) {
@@ -443,27 +443,27 @@ sub burn(bool _debug, int _tmpID)
 
 
   /if (!${Me.ActiveDisc.ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stFrenzy].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
     /delay 2
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stTwistedChance].Value}"]} && !${Me.ActiveDisc.ID}) {
-    /call voodoo ${_debug} "${maChr.Find[stTwistedChance].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stTwistedChance].Value}"]} && !${Me.ActiveDisc.ID}) {
+    /call cast ${_debug} 0 FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stEradicator].Value}"]} && !${Me.ActiveDisc.ID}) {
-    /call voodoo ${_debug} "${maChr.Find[stEradicator].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stEradicator].Value}"]} && !${Me.ActiveDisc.ID}) {
+    /call cast ${_debug} 0 FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stRazor].Value}"]} && !${Me.ActiveDisc.ID}) {
-    /call voodoo ${_debug} "${maChr.Find[stRazor].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stRazor].Value}"]} && !${Me.ActiveDisc.ID}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   /if (${target[isdead, ${_tmpID}]}) {
     /return FALSE
   }
   
-  /if (${is_ready[${_debug}, "${maChr.Find[stAspBleeder].Value}"]} && !${Me.ActiveDisc.ID}) {
-    /call voodoo ${_debug} "${maChr.Find[stAspBleeder].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAspBleeder].Value}"]} && !${Me.ActiveDisc.ID}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   /call cast_glyph ${maDebug.Find[glyph].Value}

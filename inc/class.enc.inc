@@ -170,8 +170,8 @@ sub misc_combat(bool _debug, int _tmpID)
       /if (${Me.AltAbilityReady[${maChr.Find[stAABeamofSlumber].Value}]}) {
         /if (${Me.Casting.ID}) /stopcast
         /face ID ${_tmpID} ${If[${maHome.Find[swFaceFast].Value},fast,]}
-        /if (${is_ready[${_debug}, "${maChr.Find[stAABeamofSlumber].Value}"]}) {
-          /call voodoo ${_debug} "${maChr.Find[stAABeamofSlumber].Value}" 0 FALSE
+        /if (${cast_data[${_debug}, "${maChr.Find[stAABeamofSlumber].Value}"]}) {
+          /call cast ${_debug} 0 FALSE
         }
       }
     }
@@ -184,15 +184,15 @@ sub misc_combat(bool _debug, int _tmpID)
   | swarm pet
   /if (SWARM && AGRO) {
     /if (${Target.PctHPs} <= ${maMinion.Find[stPctSwarmEngage].Value}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAPhantasmalOpponent].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAPhantasmalOpponent].Value}" 0 FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAAPhantasmalOpponent].Value}"]}) {
+        /call cast ${_debug} 0 FALSE
       }
     }
   }
 
   | group DPS bonus
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAChromaticHaze].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAChromaticHaze].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAChromaticHaze].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
 /return TRUE
@@ -215,8 +215,8 @@ sub check_crystals(bool _debug)
 
   | mana crystal
   /if (!${FindItemCount[${Spell[${maChr.Find[stAAAzureMindCrystal].Value}].Base[1]}]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAAzureMindCrystal].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAAzureMindCrystal].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAAzureMindCrystal].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
     /autoinventory
     CHECKCURSOR FALSE clear
@@ -224,8 +224,8 @@ sub check_crystals(bool _debug)
 
   | hp crystal
   /if (!${FindItemCount[${Spell[${maChr.Find[stAASanguineMindCrystal].Value}].Base[1]}]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAASanguineMindCrystal].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAASanguineMindCrystal].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAASanguineMindCrystal].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
     /autoinventory
     CHECKCURSOR FALSE clear
@@ -251,16 +251,16 @@ sub check_gather(bool _debug)
 
   | AA manna crystal
   /if (${maChr.Find[swAACrystals].Value}) {
-    /if (${is_ready[${_debug}, "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}"]}) {
-      /call voodoo ${_debug} "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}" 0 FALSE
+    /if (${cast_data[${_debug}, "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
   /if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
 
   | aa Gather Mana
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAGatherMana].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAGatherMana].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAGatherMana].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
 /return TRUE
@@ -302,21 +302,16 @@ sub check_heal(bool _debug, string _type)
 
       | AA Sanguine mind crystal summoned item 5 min
       /if (${maChr.Find[swAACrystals].Value}) {
-        /if (${is_ready[${_debug}, "${maChr.Find[stAASanguineMindCrystal].Value}"]}) {
-          /call voodoo ${_debug} "${maChr.Find[stAASanguineMindCrystal].Value}" 0 FALSE
+        /if (${cast_data[${_debug}, "${maChr.Find[stAASanguineMindCrystal].Value}"]}) {
+          /call cast ${_debug} 0 FALSE
         }
       }
 
       | rune and anti hate 20 min
-      /if (${is_ready[${_debug}, "${maChr.Find[stAADimensionalShield].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAADimensionalShield].Value}" 0 FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAADimensionalShield].Value}"]}) {
+        /call cast ${_debug} 0 FALSE
         /return
       }
-
-      | 3 decoys 10 min
-      | /if (${is_ready[${_debug}, "${maChr.Find[stAADoppelganger].Value}"]}) {
-      |   /call voodoo ${_debug} "${maChr.Find[stAADoppelganger].Value}" ${Me.ID} FALSE
-      | }
 
     }
   }
@@ -364,45 +359,45 @@ sub burn(bool _debug, int _tmpID)
     /return TRUE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAIllusionsofGrandeur].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAIllusionsofGrandeur].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAIllusionsofGrandeur].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAMentalContortion].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAMentalContortion].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAMentalContortion].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
   /if (${target[isdead, ${_tmpID}]}) /return FALSE
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAImprovedTwincast].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAImprovedTwincast].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAImprovedTwincast].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | # DD spell damage bonus
-  /if (${is_ready[${_debug}, "${maChr.Find[stAACalculatedInsanity].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAACalculatedInsanity].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAACalculatedInsanity].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   /if (${target[isdead, ${_tmpID}]}) /return FALSE
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAASilentCasting].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
+    /call cast ${_debug}  0 FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAADimensionalShield].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAADimensionalShield].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAADimensionalShield].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | resist mod
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAFocusofArcanum].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAFocusofArcanum].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAFocusofArcanum].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | Group DD Bonus
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAChromaticHaze].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAChromaticHaze].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAChromaticHaze].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   /if (${target[isdead, ${_tmpID}]}) /return FALSE
@@ -415,13 +410,10 @@ sub burn(bool _debug, int _tmpID)
 
 
 
-
-
-
 |***
  * note: do people still really do this shit?
  * use: /call find_mob_to_charm()
- ***|
+ ***
 sub find_mob_to_charm(bool _debug)
   DEBUG \a-pfind_mob_to_charm\ax()
 
@@ -455,14 +447,14 @@ sub find_mob_to_charm(bool _debug)
             /delay 5
           }
 
-        | /if (${is_ready[${_debug}, spell, "${spellpbaeMez}", ${Me.ID}]}) /call voodoo ${_debug} "${spellpbaeMez}" 0 check_for_adds
+        | /if (${cast_data[${_debug}, spell, "${spellpbaeMez}", ${Me.ID}]}) /call voodoo ${_debug} "${spellpbaeMez}" 0 check_for_adds
 
         /if (${Target.Level} <= 46) {
-          /if (${is_ready[${_debug}, "Dire Charm"]}) {
+          /if (${cast_data[${_debug}, "Dire Charm"]}) {
             /call voodoo ${_debug} "Dire Charm" ${_tmpID} FALSE
           }
         } else {
-          /if (${is_ready[${_debug}, "${maChr.Find[stCharm].Value}"]}) {
+          /if (${cast_data[${_debug}, "${maChr.Find[stCharm].Value}"]}) {
             /call voodoo ${_debug} "${maChr.Find[stCharm].Value}" ${_tmpID} FALSE
           }
         }
@@ -472,7 +464,7 @@ sub find_mob_to_charm(bool _debug)
     /next _count
   }
 /return
-
+**|
 
 
 |***

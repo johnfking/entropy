@@ -24,6 +24,30 @@ REMINDER:
 --------------------
 
 
+
+210315.01
+- /home position random
+  selects one of: free|left|right|rear for positioning on every new mob or combat reset
+  the random choices are weighted to rear, then left/right equally and free least of all
+  you can alter the weights for the random by changing the list lsPosition
+- bard
+  focus scan will now validate bard usable
+  added swarm aa pets back to main class rotation
+- debuffs
+  should stop spamming.. i hope..
+- /nuke sitting
+  should obey the timer a little better  
+- /gather [group] will gather your group again
+- berserker
+  fixed a typo
+- druid
+  added in Focus of Arcanum aa to burns
+- data types and casting
+  complete redesign of the casting sort routine that finds if you are using an item, 
+  or an aa, or spell, whatever.
+- voodoo() has been rewritten into cast() to accomodate the spell data type changes
+      
+
 210228.01
 - druid
   added in twincast aa/spell rotation
@@ -60,10 +84,6 @@ REMINDER:
   complete rewrite in preperation for alliances (mostly healers)  
 - class alliance: cleric (in testing)
   
-  
-  
-  
-
 
 210222.01
 - TLP slummers

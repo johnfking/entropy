@@ -158,22 +158,22 @@ sub check_heal(bool _debug, string _type)
 
     /if (${Select[${_type},self]} && ${hurtCount}) {
 
-      /if (${is_ready[${_debug}, "${maChr.Find[stRancor].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
-        /call voodoo ${_debug} "${maChr.Find[stRancor].Value}" TARGET FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stRancor].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
+        /call cast ${_debug} TARGET FALSE
       }
 
-      /if (${is_ready[${_debug}, "${maChr.Find[stAALeechTouch].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
-        /call voodoo ${_debug} "${maChr.Find[stAALeechTouch].Value}" TARGET FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAALeechTouch].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
+        /call cast ${_debug} TARGET FALSE
       }
 
       /if (${SpawnCount[npc OVERLOS radius SAFEENV*2 targetable]} >= ${maChr.Find[stCountDefensive].Value}) {
-        /if (${is_ready[${_debug}, "${maChr.Find[stLeechcurs].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
-          /call voodoo ${_debug} "${maChr.Find[stLeechcurse].Value}" 0 FALSE
+        /if (${cast_data[${_debug}, "${maChr.Find[stLeechcurs].Value}"]} && ${Me.PctHPs} < ${maHeal.Find[stHealPointSHD].Value}*.PCTHO) {
+          /call cast ${_debug} 0 FALSE
         }
       }
 
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAViciousBiteofChaos].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAViciousBiteofChaos].Value}" TARGET FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAAViciousBiteofChaos].Value}"]}) {
+        /call cast ${_debug} TARGET FALSE
       }
     }
   }
@@ -229,8 +229,8 @@ sub misc_combat(bool _debug, int _tmpID)
   | AA Voice of Thule AA
   /if (AGRO && !${timer_Check_VoT} && ${maChr.Find[swVoT].Value}) {
     /if (!${Me.Buff[${maChr.Find[stAAVoiceofThule].Value}].ID}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAVoiceofThule].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAVoiceofThule].Value}" ${Me.ID} FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAAVoiceofThule].Value}"]}) {
+        /call cast ${_debug} ${Me.ID} FALSE
       }
       /invoke ${set_data_timer[FALSE, Check_VoT, RESTART]}
     }
@@ -244,14 +244,14 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   | quickspear proc
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAGiftoftheQuickSpear].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAGiftoftheQuickSpear].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAGiftoftheQuickSpear].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | swarm pets
   /if (SWARM) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAChatteringBones].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAChatteringBones].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAChatteringBones].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
@@ -259,14 +259,14 @@ sub misc_combat(bool _debug, int _tmpID)
     /return FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stTempRune].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stTempRune].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stTempRune].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAThoughtLeech].Value}"]} &&  ${Me.PctMana} <= 60*.PCTHO) {
-    /call voodoo ${_debug} "${maChr.Find[stAAThoughtLeech].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAThoughtLeech].Value}"]} &&  ${Me.PctMana} <= 60*.PCTHO) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stGougingBlade].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stGougingBlade].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stGougingBlade].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
 /return TRUE
@@ -311,8 +311,8 @@ sub get_agro(bool _debug, int _tmpID)
         /declare _liaeha listiterator local
         /vardata _liaeha lsAEHate.First.Clone
         /while (!${_liaeha.IsEnd}) {
-          /if (${is_ready[${_debug}, "${_liaeha.Value}"]}) {
-            /call voodoo ${_debug} "${_liaeha.Value}" 0 FALSE
+          /if (${cast_data[${_debug}, "${_liaeha.Value}"]}) {
+            /call cast ${_debug} 0 FALSE
             /break
           }
           /invoke ${_liaeha.Advance}
@@ -320,8 +320,8 @@ sub get_agro(bool _debug, int _tmpID)
 
       | AE lifetap
       /if (!${SpawnCount[pc enchanter radius SAFEENV*2]}) {
-        /if (${is_ready[${_debug}, "${maChr.Find[stAELifeTap].Value}"]}) {
-          /call voodoo ${_debug} "${maChr.Find[stAELifeTap].Value}" 0 FALSE
+        /if (${cast_data[${_debug}, "${maChr.Find[stAELifeTap].Value}"]}) {
+          /call cast ${_debug} 0 FALSE
         }
       }
     }
@@ -335,8 +335,8 @@ sub get_agro(bool _debug, int _tmpID)
   /declare _liha listiterator local
   /vardata _liha lsHate.First.Clone
   /while (!${_liha.IsEnd}) {
-    /if (${is_ready[${_debug}, "${_liha.Value}"]}) {
-      /call voodoo ${_debug} "${_liha.Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${_liha.Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
       /break
     }
     /invoke ${_liha.Advance}
@@ -352,20 +352,20 @@ sub get_agro(bool _debug, int _tmpID)
   }
 
   | AA pet hate
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAProjectionofDoom].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAProjectionofDoom].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAProjectionofDoom].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
 
   | fake hate
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAAgelessEnmity].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAAgelessEnmity].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAAgelessEnmity].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
   | named fake hate
   /if (${lsZoneNamed.Contains[${Target.DisplayName}]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAcrimony].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAcrimony].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAcrimony].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
@@ -399,8 +399,8 @@ sub burn(bool _debug, int _tmpID)
 
   | deflection
   /if (!${Me.ActiveDisc.ID} && ${Me.PctHPs} < 50*.PCTHO) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAADeflectionDiscipline].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAADeflectionDiscipline].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAADeflectionDiscipline].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
       /return TRUE
     }
   }
@@ -414,20 +414,20 @@ sub burn(bool _debug, int _tmpID)
     /call cast_shield_flash ${_debug} aa
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAATVylsResolve].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAATVylsResolve].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAATVylsResolve].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stCrimsonBlade].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stCrimsonBlade].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stCrimsonBlade].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAVeilofDarkness].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAVeilofDarkness].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAVeilofDarkness].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAHarmTouch].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAHarmTouch].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAHarmTouch].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
   /if (${target[isdead, ${_tmpID}]}) {
@@ -435,19 +435,19 @@ sub burn(bool _debug, int _tmpID)
   }
 
   /if (AGRO) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAScourgeSkin].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAScourgeSkin].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAScourgeSkin].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
   | AA Visage of Decay/Death stacking issues
   /if (!${Me.Buff[${maChr.Find[stAAVisageofDecay].Value}].ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAVisageofDeath].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAVisageofDeath].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAVisageofDeath].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   } else /if (!${Me.AltAbilityReady[${maChr.Find[stAAVisageofDeath].Value}]} && !${Me.Buff[${maChr.Find[stAAVisageofDeath].Value}].ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAVisageofDecay].Value}"]})  {
-      /call voodoo ${_debug} "${maChr.Find[stAAVisageofDecay].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAVisageofDecay].Value}"]})  {
+      /call cast ${_debug} 0 FALSE
     }
   }
 

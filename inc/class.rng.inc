@@ -170,32 +170,32 @@ sub misc_combat(bool _debug, int _tmpID)
     /invoke ${do_taunt[${_debug}, ${_tmpID}]}
 
     /if (${Me.PctAggro} < ${maAgro.Find[stPctAgroHold].Value}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stDiscEnrage].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stDiscEnrage].Value}" ${_tmpID} FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stDiscEnrage].Value}"]}) {
+        /call cast ${_debug} ${_tmpID} FALSE
       }
     }
   }
 
   /if (!AGRO) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stDiscJolt].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stDiscJolt].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stDiscJolt].Value}", ready]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
   | elemental arrows rotation
   /if (!${Target.Buff[Elemental Arrow].ID}) {
-    /if (${is_ready[${_debug}, "Elemental Arrow"]}) {
-      /call voodoo ${_debug} "Elemental Arrow" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "Elemental Arrow"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
   /if (!AE#) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stDiscMeleeSingle].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stDiscMeleeSingle].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stDiscMeleeSingle].Value}", ready]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   } else /if (${SpawnCount[npc OVERLOS radius 60 PS4 targetable]} >= ${maChr.Find[stCountAE].Value} && ${maChr.Find[stCountAE].Value}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stDiscMeleeAE].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stDiscMeleeAE].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stDiscMeleeAE].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
@@ -248,8 +248,8 @@ sub check_heal(bool _debug, string _type)
 
     | Reflexive Healing Disc
     /if (${hurtCount} && ${Select[${_type},self,group,tot]}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stDiscHeal].Value}"]} && !${Me.Song[Bladespur Reflection].ID}) {
-        /call voodoo ${_debug} "${maChr.Find[stDiscHeal].Value}" TARGET FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stDiscHeal].Value}"]} && !${Me.Song[Bladespur Reflection].ID}) {
+        /call cast ${_debug} TARGET FALSE
       }
     }
   }
@@ -300,8 +300,8 @@ sub cast_nuke_summer(bool _debug, int _tmpID)
   CHECKEXIT
   /invoke ${set_data_timer[${_debug}, Summer_Nuke, RESTART]}
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stSummer].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stSummer].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stSummer].Value}", ready]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
 /return TRUE
@@ -340,35 +340,35 @@ sub burn(bool _debug, int _tmpID)
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
   | cheeta
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAScarletCheetahsFang].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAScarletCheetahsFang].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAScarletCheetahsFang].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | auspice
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAAuspiceoftheHunter].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAAuspiceoftheHunter].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAAuspiceoftheHunter].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | MELEE
   /if (MELEE && !RANGE || MELEE && ${Spawn[${_tmpID}].Distance} <= ${Spawn[${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
 
     | weapon proc
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAImbuedFerocity].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAImbuedFerocity].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAImbuedFerocity].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
 
     /if (!${Me.ActiveDisc.ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAEmpoweredBlades].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAEmpoweredBlades].Value}" 0 FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAAEmpoweredBlades].Value}"]}) {
+        /call cast ${_debug} 0 FALSE
       }
 
     } else /if (!${Me.ActiveDisc.ID} && !${Me.Song[${maChr.Find[stAAEmpoweredBlades].Value}].ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stDiscMele].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stDiscMele].Value}" 0 FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stDiscMele].Value}"]}) {
+        /call cast ${_debug} 0 FALSE
       }
     }
 
-    /if (!${Me.ActiveDisc.ID} && !${is_ready[${_debug}, "${maChr.Find[stDiscMele].Value}"]} && !${Me.AltAbilityReady[${maChr.Find[stAAEmpoweredBlades].Value}]} && !${Me.Song[${maChr.Find[stAAEmpoweredBlades].Value}].ID}) {
+    /if (!${Me.ActiveDisc.ID} && !${cast_data[${_debug}, "${maChr.Find[stDiscMele].Value}"]} && !${Me.AltAbilityReady[${maChr.Find[stAAEmpoweredBlades].Value}]} && !${Me.Song[${maChr.Find[stAAEmpoweredBlades].Value}].ID}) {
       /call cast_glyph ${maDebug.Find[glyph].Value}
       | Intensity of the Resolute AA 4 hour reuse
       /call cast_AA_intensity ${maDebug.Find[intensity].Value}
@@ -380,12 +380,12 @@ sub burn(bool _debug, int _tmpID)
   | RANGE
   /if (RANGE && ${Target.Distance} >= ${maHard.Find[stMinBowDist].Value}) {
     /if (!${Me.ActiveDisc.ID} && !${Me.Buff[${maCC.Find[stGlyph].Value}].ID}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stDiscRange].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stDiscRange].Value}" 0 FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stDiscRange].Value}"]}) {
+        /call cast ${_debug} 0 FALSE
       }
     }
 
-    /if (!${Me.ActiveDisc.ID} && !${is_ready[${_debug}, "${maChr.Find[stDiscRange].Value}"]}) {
+    /if (!${Me.ActiveDisc.ID} && !${cast_data[${_debug}, "${maChr.Find[stDiscRange].Value}"]}) {
       /call cast_glyph ${maDebug.Find[glyph].Value}
       | Intensity of the Resolute AA 4 hour reuse
       /call cast_AA_intensity ${maDebug.Find[intensity].Value}
@@ -394,35 +394,35 @@ sub burn(bool _debug, int _tmpID)
 
 
   | attack / dmg AA
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAOutridersAccuracy].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAOutridersAccuracy].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAOutridersAccuracy].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAOutridersAttack].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAOutridersAttack].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAOutridersAttack].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | guardian buff (group first)
   /if (!${Me.Song[${maChr.Find[stAAGuardianoftheForest].Value}].ID} && ${Me.AltAbilityReady[${maChr.Find[stAAGroupGuardianoftheForest].Value}]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAGroupGuardianoftheForest].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAGroupGuardianoftheForest].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAGroupGuardianoftheForest].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
 
   } else /if (!${Me.Song[${maChr.Find[stAAGroupGuardianoftheForest].Value}].ID} && ${Me.AltAbilityReady[${maChr.Find[stAAGuardianoftheForest].Value}]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAGuardianoftheForest].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAGuardianoftheForest].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAGuardianoftheForest].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
   | swarm pets
   /if (SWARM) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAPackHunt].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAPackHunt].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAPackHunt].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
   | ae regen
-  /if (${is_ready[${_debug}, "${maChr.Find[stDiscHeal].Value}"]} && !${Me.Song[Bladespur Reflection].ID}) {
-    /call voodoo ${_debug} "${maChr.Find[stDiscHeal].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stDiscHeal].Value}"]} && !${Me.Song[Bladespur Reflection].ID}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
  /return TRUE
@@ -450,9 +450,11 @@ sub cast_AA_auspice(bool _debug)
   
   ISMEDEAD
   CHECKEXIT
-  /call voodoo ${_debug} "Mass Group Buff" 0 FALSE
+  /call cast_data ${_debug} "Mass Group Buff"
+  /call cast ${_debug} 0 FALSE
   /delay 5
-  /call voodoo ${_debug} "${maChr.Find[stAAAuspiceoftheHunter].Value}" 0 FALSE
+  /call cast_data ${_debug} "${maChr.Find[stAAAuspiceoftheHunter].Value}"
+  /call cast ${_debug} 0 FALSE
   
 /return TRUE
 

@@ -150,17 +150,17 @@ sub misc_combat(bool _debug, int _tmpID)
   | agro control
   /if (AGRO) {
   } else /if (!AGRO) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAArcaneWhisper].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAArcaneWhisper].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAArcaneWhisper].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAMindCrash].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value} && ${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAMindCrash].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAMindCrash].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value} && ${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAConcussiveIntuition].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) {
-      call voodoo ${_debug} "${maChr.Find[stAAConcussiveIntuition].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAConcussiveIntuition].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) {
+      call cast ${_debug} ${_tmpID} FALSE
     }
-    /if (${is_ready[${_debug}, "${maChr.Find[stConcussion].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctConcussion].Value}) {
-      /call voodoo ${_debug} "${maChr.Find[stConcussion].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stConcussion].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctConcussion].Value}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
@@ -187,20 +187,20 @@ sub check_gather(bool _debug)
     /return FALSE
   }
 
-  /if (!${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAForcefulRejuvenation].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAForcefulRejuvenation].Value}" 0 FALSE
+  /if (!${cast_data[${_debug}, "${maChr.Find[stGather].Value}"]}) {
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAForcefulRejuvenation].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
       /delay 5
     }
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stGather].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stGather].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
     /return TRUE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAHarvestofDruzzil].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAHarvestofDruzzil].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAHarvestofDruzzil].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
     /return TRUE
   }
 
@@ -286,61 +286,61 @@ sub burn(bool _debug, int _tmpID)
   }
 
   | shhhhh..
-  /if (${is_ready[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAASilentCasting].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | next 45 spells +51% crit rate
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAFrenziedDevastation].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAFrenziedDevastation].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAFrenziedDevastation].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
   | increase chance to land
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAFocusofArcanum].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAFocusofArcanum].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAFocusofArcanum].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
 
   | alternate twincast
   /if (!${Me.Buff[${maChr.Find[stTC].Value}].ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAImprovedTwincast].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAImprovedTwincast].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAImprovedTwincast].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   } else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.AltAbilityReady[Improved Twincast]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stTC].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stTC].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
   | boost spell type damage
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAFuryoftheGods].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAFuryoftheGods].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAFuryoftheGods].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAArcaneDestruction].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAArcaneDestruction].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAArcaneDestruction].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | increase damage
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAArcaneFury].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAArcaneFury].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAArcaneFury].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | aww baby
   /if (${maChr.Find[swManaBurn].Value}) {
     /call target set ${_tmpID}
     /if (!${Target.Buff[Mana Burn].ID}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAManaBurn].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAManaBurn].Value}" ${_tmpID} FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAAManaBurn].Value}"]}) {
+        /call cast ${_debug} ${_tmpID} FALSE
       }
     }
   }
 
   | swarm pet
   /if (SWARM) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAACallofXuzl].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAACallofXuzl].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAACallofXuzl].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
@@ -371,14 +371,14 @@ sub force_twincast(bool _debug, int _tmpID)
 
 
   /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[Twincast].ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stTC].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stTC].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stTC].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
     /return
 
   } else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[${maChr.Find[stTC].Value}].ID} && !${Me.Buff[Twincast].ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stNukeTC${stLine}].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stNukeTC${stLine}].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stNukeTC${stLine}].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 

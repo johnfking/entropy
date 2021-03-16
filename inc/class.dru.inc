@@ -50,7 +50,8 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAANaturesBlessing              PREGEN|1                      "${auxna} Nature's Blessing AA"
   /call set_data_map ${_debug} maChr stAANaturesBoon                  PREGEN|1                      "${auxna} Nature's Boon AA"
   /call set_data_map ${_debug} maChr stAAImprovedTwincast             PREGEN|1                      "${auxna} Improved Twincast AA"
-
+  /call set_data_map ${_debug} maChr stAAFocusofArcanum               PREGEN|1                      "${auxna} Focus of Arcanum aa"
+  
 
   /if (${maDebug.Find[init].Value}) {
     OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -125,23 +126,23 @@ sub misc_combat(bool _debug, int _tmpID)
     /return TRUE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAASeasonsWrath].Value}"]} && ${madeBuff.Find[malo].Value}) {
-    /call voodoo ${_debug} "${maChr.Find[stAASeasonsWrath].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAASeasonsWrath].Value}"]} && ${madeBuff.Find[malo].Value}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAStormStrike].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAStormStrike].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAStormStrike].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
   | great wolf self/group aa
   /if (${maChr.Find[swWolfSpirit].Value}) {
     /if (${Me.AltAbilityReady[${maChr.Find[stAASpiritoftheGreatWolf].Value}]} && !${Me.Buff[${maChr.Find[stAASpiritoftheGreatWolf].Value}].ID} && !${Me.Buff[${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}].ID}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAASpiritoftheGreatWolf].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAASpiritoftheGreatWolf].Value}" 0 FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAASpiritoftheGreatWolf].Value}"]}) {
+        /call cast ${_debug} 0 FALSE
       }
     } else /if (${Me.AltAbilityReady[${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}]} && !${Me.AltAbilityReady[${maChr.Find[stAASpiritoftheGreatWolf].Value}]} && !${Me.Buff[${maChr.Find[stAASpiritoftheGreatWolf].Value}].ID} && !${Me.Buff[Group Spirit of the Great Wolf].ID}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}" 0 FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAAGroupSpiritoftheGreatWolf].Value}"]}) {
+        /call cast ${_debug} 0 FALSE
       }
     }
   }
@@ -173,14 +174,14 @@ sub check_heal(bool _debug, string _type)
   /if (!SAFEZONE) {
 
     /if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAASwarmofFireflies].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAASwarmofFireflies].Value}" ${hurtID} FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAASwarmofFireflies].Value}"]}) {
+        /call cast ${_debug} ${hurtID} FALSE
       }
     }
 
     /if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAConvergenceofSpirits].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAConvergenceofSpirits].Value}" ${hurtID} FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAAConvergenceofSpirits].Value}"]}) {
+        /call cast ${_debug} ${hurtID} FALSE
       }
     }
 
@@ -195,20 +196,20 @@ sub check_heal(bool _debug, string _type)
       /if (!SAFEZONE) {
 
       /if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-        /if (${is_ready[${_debug}, "${maChr.Find[stAAWildtendersSurvival].Value}"]}) {
-          /call voodoo ${_debug} "${maChr.Find[stAAWildtendersSurvival].Value}" 0 FALSE
+        /if (${cast_data[${_debug}, "${maChr.Find[stAAWildtendersSurvival].Value}"]}) {
+          /call cast ${_debug} 0 FALSE
         }
       }
 
-        /if (${is_ready[${_debug}, "${maChr.Find[stAAPeacefulSpiritoftheWood].Value}"]}) {
-          /call voodoo ${_debug} "${maChr.Find[stAAPeacefulSpiritoftheWood].Value}" ${Me.ID} FALSE
+        /if (${cast_data[${_debug}, "${maChr.Find[stAAPeacefulSpiritoftheWood].Value}"]}) {
+          /call cast ${_debug} ${Me.ID} FALSE
           /return
         }
 
         /if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
 
-        /if (${is_ready[${_debug}, "${maChr.Find[stAABlessingofTunare].Value}"]}) {
-          /call voodoo ${_debug} "${maChr.Find[stAABlessingofTunare].Value}" 0 FALSE
+        /if (${cast_data[${_debug}, "${maChr.Find[stAABlessingofTunare].Value}"]}) {
+          /call cast ${_debug} 0 FALSE
           /return
         }
       }
@@ -271,51 +272,55 @@ sub burn(bool _debug, int _tmpID)
 
   | swarm pets
   /if (SWARM) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAANaturesGuardian].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAANaturesGuardian].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAANaturesGuardian].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
   | defense
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAProtectionofDirewood].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAProtectionofDirewood].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAProtectionofDirewood].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAASilentCasting].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
+  }
+
+  /if (${is_ready[${_debug}, "${maChr.Find[stAAFocusofArcanum].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | damage boost
-  /if (${is_ready[${_debug}, "${maChr.Find[stAADestructiveVortex].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAADestructiveVortex].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAADestructiveVortex].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAANaturesFury].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAANaturesFury].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAANaturesFury].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | heal boost
-  /if (${is_ready[${_debug}, "${maChr.Find[stAANaturesBlessing].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAANaturesBlessing].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAANaturesBlessing].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
   | alternate twincast
   /if (!${Me.Buff[${maChr.Find[stTwincast].Value}].ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAImprovedTwincast].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAImprovedTwincast].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAImprovedTwincast].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   } else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.AltAbilityReady[Improved Twincast]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stTwincast].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stTwincast].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stTwincast].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
   | AA AE heal
   /if (!${Raid.Members}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAANaturesBoon].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAANaturesBoon].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAANaturesBoon].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
@@ -349,9 +354,11 @@ sub cast_AA_wood(bool _debug)
   
   ISMEDEAD
   CHECKEXIT
-  /call voodoo ${_debug} "Mass Group Buff" 0 FALSE
+  /call cast_data ${_debug} "Mass Group Buff"
+  /call cast ${_debug} 0 FALSE
   /delay 5
-  /call voodoo ${_debug} "${maChr.Find[stAASpiritoftheWood].Value}" 0 FALSE
+  /call cast_data ${_debug} "${maChr.Find[stAASpiritoftheWood].Value}"
+  /call cast ${_debug} 0 FALSE
   
 /return TRUE
 

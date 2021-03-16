@@ -365,49 +365,50 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
       OUT \a-w/admin spa "EXACT SPELLNAME with ranks"\ax or gem#
       /return FALSE
     }
+  
 
-    /declare _spell string local "${_verbage}"
-
-    
     | reset gem as value if needed
     /if (${_verbage.Find[gem]} && ${_verbage.Length} < 6) {
-      /varset _spell ${Me.Gem[${_verbage.Right[-3]}]}
+      /varset _verbage ${Me.Gem[${_verbage.Right[-3]}]}
     } else /if (${_verbage.Find[buff]} && ${_verbage.Length} < 7) {
-      /varset _spell ${Me.Buff[${_verbage.Right[-4]}]}
+      /varset _verbage ${Me.Buff[${_verbage.Right[-4]}]}
     } else /if (${_verbage.Find[song]} && ${_verbage.Length} < 7) {
-      /varset _spell ${Me.Song[${_verbage.Right[-4]}]}
+      /varset _verbage ${Me.Song[${_verbage.Right[-4]}]}
     }    
+      
+    /call cast_data TRUE "${_verbage}"
+
+    /echo ${_spell.Name}
+
     
     /declare _list string local
     /declare _count int local 0
-    /declare _spellID ${get_type[${_debug}, "${_spell}", id]}
     
     MQCLEAR
-    OUT \aw${Spell[${_spellID}].Name}\ax ${sep} ID\a-w ${_spellID}\ax ${sep} Group \a-w${Spell[${_spellID}].SpellGroup}\ax ${sep} lvl \a-w${Spell[${_spellID}].Level}\ax
-    | OUT \a-w${Spell[${Int[${Math.Calc[${_spellID} + ${If[${Spell[${_spellID}].SpellGroup},3,1]}]}]}].Name}\ax ${sep} ID \a-w${Spell[${Int[${Math.Calc[${_spellID} + ${If[${Spell[${_spellID}].SpellGroup},3,1]}]}]}].ID}\ax
-    OUT \awTarget Type ${sep} \a-w${Spell[${_spellID}].TargetType}\ax
-    OUT \awSub Category ${sep} \a-w${Spell[${_spellID}].Subcategory}\ax
-    OUT \awSPA Count\ax ${sep} \a-w${Spell[${_spellID}].NumEffects}\ax
+    OUT \aw${_spell.Name}\ax ${sep} ID\a-w ${_spell}\ax ${sep} Group \a-w${_spell.SpellGroup}\ax ${sep} lvl \a-w${_spell.Level}\ax
+    OUT \awTarget Type ${sep} \a-w${_spell.TargetType}\ax
+    OUT \awSub Category ${sep} \a-w${_spell.Subcategory}\ax
+    OUT \awSPA Count\ax ${sep} \a-w${_spell.NumEffects}\ax
 
-    /for _count 1 to ${Spell[${_spellID}].NumEffects}
+    /for _count 1 to ${_spell.NumEffects}
       OUT #\ay${_count}\ax
-      /if (${Select[${Spell[${_spellID}].Attrib[${_count}]},10]}) /continue
-      /sqlite query "${DBstatic}" dummy SELECT * FROM eq_spa WHERE env_var='${Spell[${_spellID}].Attrib[${_count}]}'
-      OUT ${dot} .Attrib \a-w${Spell[${_spellID}].Attrib[${_count}]}\ax ${dot} \a-g${sqlite.Result[dummy 1 value]}\ax
-      OUT ${dot} .Trigger \a-w${Spell[${_spellID}].Trigger[${_count}].Name}\ax ${dot} ID:\a-w${Spell[${_spellID}].Base2[${_count}]}\ax\ax ()
-      OUT ${dot} .Base \a-w${Spell[${_spellID}].Base[${_count}]}\ax
-      OUT ${dot} .Max \a-w${Spell[${_spellID}].Max[${_count}]} \ax
-      OUT ${dot} .Calc \a-w${Spell[${_spellID}].Calc[${_count}]} \ax
-      OUT ${dot} .Restrictions \a-w${Spell[${_spellID}].Restrictions[${_count}]}\ax
-      OUT ${dot} .Extra \a-w${Spell[${_spellID}].Extra}\ax
+      /if (${Select[${_spell.Attrib[${_count}]},10]}) /continue
+      /sqlite query "${DBstatic}" dummy SELECT * FROM eq_spa WHERE env_var='${_spell.Attrib[${_count}]}'
+      OUT ${dot} .Attrib \a-w${_spell.Attrib[${_count}]}\ax ${dot} \a-g${sqlite.Result[dummy 1 value]}\ax
+      OUT ${dot} .Trigger \a-w${_spell.Trigger[${_count}].Name}\ax ${dot} ID:\a-w${_spell.Base2[${_count}]}\ax\ax ()
+      OUT ${dot} .Base \a-w${_spell.Base[${_count}]}\ax
+      OUT ${dot} .Max \a-w${_spell.Max[${_count}]} \ax
+      OUT ${dot} .Calc \a-w${_spell.Calc[${_count}]} \ax
+      OUT ${dot} .Restrictions \a-w${_spell.Restrictions[${_count}]}\ax
+      OUT ${dot} .Extra \a-w${_spell.Extra}\ax
 
-      /varset _list ${_list} ${Spell[${_spellID}].Attrib[${_count}]}
+      /varset _list ${_list} ${_spell.Attrib[${_count}]}
     /next _count
     OUT ${dot} ${dot} ${dot} ${dot}
     OUT \awSPA list\ax ${sep} \a-w${_list}\ax
 
     | OUT \aw/spellslotinfo\ax
-    /spellslotinfo ${Spell[${_spellID}].ID}
+    /spellslotinfo ${_spell.ID}
     /invoke ${out[18, 0, 33]}
     /return TRUE
 
@@ -1052,12 +1053,6 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   | pull modes
   } else /if (${_type.Equal[position]}) {
 
-    /if (!${lsCombatPosition.Contains[${_verbage}]} && ${Bool[${_verbage}]}) {
-      OUT /home position${sep}
-      /call out_list lsCombatPosition
-      /return FALSE
-    }
-
     | stick wherever
     /if (${_verbage.Equal[free]}) {
       /call do_raw_edit ${_debug} SILENT stCombatPosition "free"
@@ -1073,10 +1068,19 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
     | left side
     } else /if (${_verbage.Equal[left]}) {
       /call do_raw_edit ${_debug} SILENT stCombatPosition "left"
+    | random
+    } else /if (${_verbage.Equal[random]}) {
+      /call do_raw_edit ${_debug} SILENT stCombatPosition "random"
+    | see the list
+    } else /if (${_verbage.Equal[list]}) {
+      OUT Random Options${sep}\a-wlsPosition\ax
+      /call out_list lsPosition
+      /return FALSE
     }
 
     /declare _liP listiterator local
     /vardata _liP lsCombatPosition.First.Clone
+    /varset _out ${out_list} ${dot}
     /while (!${_liP.IsEnd}) {
       /varset _out ${_out} ${If[${_liP.Value.Equal[${lsCombatPosition.First}]},,${dot}]} ${If[${_liP.Value.Equal[${maHome.Find[stCombatPosition].Value}]},${num}${_liP.Value}\ax,${info}${_liP.Value}\ax]}
       /invoke ${_liP.Advance}
@@ -2184,8 +2188,9 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
     | /echo ${Lua.Script.Return[1]}
    }
 
-  /if (${_type.Equal[kodtaz]}) {
-    /call farm_kodtaz
+  /if (${_type.Equal[maCD]}) {
+    /call cast_data TRUE "Composite Blessing" type
+    /call Bind_command_see maCD
   }
 
   /if (${_type.Equal[concolor]}) {
@@ -2341,34 +2346,6 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
 | ${Spell[${Spell[${Me.Book[${_count}]}].Trigger[2]}].Base[2]}
 
 |**
-
-      | ECHO ${Me.Book[${_count}]}${sep} ${Spell[${Me.Book[${_count}]}].Trigger[2].Base[2]}
-      | ECHO ${Me.Book[${_count}]}${sep} ${Spell[${Me.Book[${_count}]}].Base[2]}
-
-
-    ECHO ${Spell[Unified Righteousness].ID} 588642
-    ECHO  ${Spell[Unified Righteousness].Trigger[2].TargetType}
-
-    ${Spell[${Spell[Unified Righteousness].Trigger[2]}].Base[4]}
-
-    ${Spell[${Spell[Unified Righteousness].Trigger[2]}].Base[2]}
-    ${Spell[${Spell[Unified Righteousness].Trigger[2]}].SPA[69]}
-
-
-
-
-${Spell[Unified Righteousness].Trigger[2].Description}
-
-
-
-
-
-
-
-
-
-
-
     Name,
     Level,
     Skill,
@@ -2991,7 +2968,9 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
       }
       /invoke ${_mios.Advance}
     }  
-    OUT \a-tOverrides Enabled\ax${sep}\a-w${_out}\ax
+    /if (${Bool[${_out}]}) {
+      OUT \a-tOverrides Enabled\ax${sep}\a-w${_out}\ax
+    }
     /return TRUE
 
   } else /if (${_type.Equal[los]}) {
@@ -3074,26 +3053,29 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
       /invoke ${out[0, shade, 0]}
       /return
     }
+    
+    /declare _spawn spawn local 
+    /vardata _spawn Target.ID
 
     ECHO
     OUT Target Info${sep}
-    OUT name:${con_color[${_debug}, ${Target.ID}]}${sep}\a-w${Target.Name}\ax${sep}\ay${Target.ID}\ax
-    OUT lvl${sep}\a-w${Target.Level}\ax
+    OUT name:${con_color[${_debug}, ${_spawn.ID}]}${sep}\a-w${_spawn.Name}\ax${sep}\ay${_spawn.ID}\ax
+    OUT lvl${sep}\a-w${_spawn.Level}\ax
     OUT named${sep}\a-w\ax
 
-    /sqlite query "${DBstatic}" dummy SELECT value FROM animation WHERE env_var='${Target.Animation}'
+    /sqlite query "${DBstatic}" dummy SELECT value FROM animation WHERE env_var='${_spawn.Animation}'
     /if (!${sql_check[${_debug}, dummy, Bind_command_see, SELECT]}) /endmacro
     /declare _animationresult string local UNKNOWN ANIMATION
     /if (${sqlite.Rows[dummy]}) {
       /varset _animationresult ${sqlite.Result[dummy 1 value]}
     }
-    OUT animation${sep}\a-w${Target.Animation}\ax${sep}${_animationresult}
-    OUT body${sep}\a-w${Target.Body}\ax
+    OUT animation${sep}\a-w${_spawn.Animation}\ax${sep}${_animationresult}
+    OUT body${sep}\a-w${_spawn.Body}\ax
 
-    OUT dis${sep}\a-w${Target.Distance}\ax
-    OUT LOC yxz Y${sep}\a-w${Target.Y}\ax X${sep}\a-w${Target.X}\ax Z${sep}\a-w${Target.Z}\ax
-    OUT NAV Path${sep}\a-w${Navigation.PathExists[id ${Target.ID}]}\ax
-    OUT NAV Length${sep}\a-w${Navigation.PathLength[id ${Target.ID}]}\ax
+    OUT dis${sep}\a-w${_spawn.Distance}\ax
+    OUT LOC yxz Y${sep}\a-w${_spawn.Y}\ax X${sep}\a-w${_spawn.X}\ax Z${sep}\a-w${_spawn.Z}\ax
+    OUT NAV Path${sep}\a-w${Navigation.PathExists[id ${_spawn.ID}]}\ax
+    OUT NAV Length${sep}\a-w${Navigation.PathLength[id ${_spawn.ID}]}\ax
 
     /invoke ${out[18, 0, 33]}
     /return FALSE
@@ -3382,7 +3364,6 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
 
     } else /if (${_verbage.Equal[smart]}) {
       /if (${Select[${_verbage2},1,2,3,g]}) {
-        | /call do_raw_edit ${_debug} SILENT stAssistMode ${If[${maCC.Find[stAssistMode].Value.NotEqual[${_verbage2}]},${_verbage2},FALSE]}
         /call do_raw_edit ${_debug} SILENT stAssistMode ${_verbage2}
 
       } else  /if (${Select[${_verbage2},off,FALSE]}) {
@@ -3985,28 +3966,28 @@ sub Bind_command_invis(string _type, string _verbage, bool _debug)
 
   | fucking bards
   /if (${Select[${Me.Class.ShortName},BRD]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroup].Value}"]}) {
+    /if (${cast_data[${_debug}, "${maChr.Find[stInvisGroup].Value}"]}) {
       /call pulse_stop
       /delay ${maChr.Find[stInvisDelay].Value}
-      /call voodoo ${_debug} "${maChr.Find[stInvisGroup].Value}" 0 ignoreall
+      /call cast ${_debug} 0 ignoreall
       /return TRUE
     }
   }
 
   | Invis vs Normies casters
   /if (${Select[${Me.Class.ShortName},WIZ,MAG,ENC,SHM,RNG,DRU]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroup].Value}"]}) {
+    /if (${cast_data[${_debug}, "${maChr.Find[stInvisGroup].Value}"]}) {
       /delay ${maChr.Find[stInvisDelay].Value}
-      /call voodoo ${_debug} "${maChr.Find[stInvisGroup].Value}" 0 ignoreall
+      /call cast ${_debug} 0 ignoreall
       /return TRUE
     }
   }
 
   | Invis Vs undead casters
   /if (${Select[${Me.Class.ShortName},CLR,SHD,NEC,PAL]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stInvisGroupIVU].Value}"]} ) {
+    /if (${cast_data[${_debug}, "${maChr.Find[stInvisGroupIVU].Value}"]} ) {
       /delay ${maChr.Find[stInvisDelay].Value}
-      /call voodoo ${_debug} "${maChr.Find[stInvisGroupIVU].Value}" 0 ignoreall
+      /call cast ${_debug} 0 ignoreall
       /return TRUE
     }
   }
@@ -4211,8 +4192,8 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
 
     /if (${Bool[${_portName}]}) {
       /call Bind_control_nomore invis ${_debug}
-      /if (${is_ready[${_debug}, "${_portName}"]}) {
-        /call voodoo ${_debug} "${_portName}" 0 FALSE
+      /if (${cast_data[${_debug}, "${_portName}"]}) {
+        /call cast ${_debug} 0 FALSE
       }
     }
 
@@ -4304,8 +4285,8 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
     
     /if (${Bool[${_portName}]}) {
       /call Bind_control_nomore invis ${_debug}
-      /if (${is_ready[${_debug}, "${_portName}"]}) {
-        /call voodoo ${_debug} "${_portName}" 0 skiptargetcheck
+      /if (${cast_data[${_debug}, "${_portName}"]}) {
+        /call cast ${_debug} 0 skiptargetcheck
         /return TRUE
       }
     }    
@@ -4609,11 +4590,11 @@ sub Bind_command_lesson(string _type, bool _debug)
     /return TRUE
   }
 
-  /if (!${is_ready[${_debug}, "Lesson of the Devoted"]}) {
+  /if (!${cast_data[${_debug}, "Lesson of the Devoted"]}) {
     /return FALSE
   }
 
-  /call voodoo ${_debug} "Lesson of the Devoted" 0 FALSE
+  /call cast ${_debug} 0 FALSE
 
 /return TRUE
 
@@ -5068,14 +5049,15 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 
 
 |***
- * note: shortcut to force sub voodoo in a manual instance
+ * note: shortcut to force sub cast in a manual instance
  * use: /entcast [NAME] [TARGET] DEBUG
  ***|
 #bind command_entcast /entcast
 sub Bind_command_entcast(string _name, string _target, bool _debug)
   DEBUG \atBind_command_entcast\ax(\a-w${_name}, ${_target}\ax)
 
-  /call voodoo ${_debug} "${_name}" ${_target} FALSE
+  /call cast_data ${_debug} "${_name}"
+  /call cast ${_debug} ${_target} FALSE
 
 /return TRUE
 
@@ -7128,7 +7110,7 @@ sub Bind_command_gather(string _type, string _verbage, bool _debug)
 
   /invoke ${out[12, "Gathering${sep}\a-w${_type.Lower}\ax"]}
 
-  /if (${_type.Equal[group]} && ${Group.Member}) {
+  /if (${_type.Equal[group]} && ${Group.Members}) {
     /dggexecute /squelch /target clear
     /dggexecute /delay 1s ${Parse[0,!${Target.ID}]}
     /dggexecute /navto ${Me.ID}

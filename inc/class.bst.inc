@@ -160,51 +160,51 @@ sub misc_combat(bool _debug, int _tmpID)
 
   | do we want the mobs attention?
   /if (AGRO) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAARoaringStrike].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAARoaringStrike].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAARoaringStrike].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
 
   } else /if (!AGRO) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAARoarofThunder].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAARoarofThunder].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAARoarofThunder].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
   TMPIDDEAD
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stBestial].Value}"]} && !${Me.Song[${maChr.Find[stBestial].Value}].ID}) {
-    /call voodoo ${_debug} "${maChr.Find[stBestial].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stBestial].Value}"]} && !${Me.Song[${maChr.Find[stBestial].Value}].ID}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   /if (!AE#) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stClaws].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stClaws].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stClaws].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   } else /if (AE#) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAEClaws].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAEClaws].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAEClaws].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
   
   TMPIDDEAD
 
-  /if (${is_ready[${_debug}, "${maChr.Find[atAAEnduringFrenzy].Value}"]} && !${Target.Buff[Enduring Frenzy].ID}) {
-    /call voodoo ${_debug} "${maChr.Find[atAAEnduringFrenzy].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[atAAEnduringFrenzy].Value}"]} && !${Target.Buff[Enduring Frenzy].ID}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stRake].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stRake].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stRake].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stRending].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stRending].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stRending].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
   TMPIDDEAD
 
   /if (${Me.Pet.ID} && !${Me.Song[${maChr.Find[stGrowl].Value}].ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stGrowl].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stGrowl].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stGrowl].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
@@ -228,8 +228,8 @@ sub check_mana(bool _debug)
   | consumption of Spirits AA
   /if (${maChr.Find[stPctConsume].Value} && ${Pet.ID} && !SAFEZONE) {
     /if (${Me.PctMana} < ${maChr.Find[stPctConsume].Value}*.PCTHO) {
-      /if (${is_ready[${_debug}, "${maChr.Find[atAAConsumptionofSpirit].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[atAAConsumptionofSpirit].Value}" 0 FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[atAAConsumptionofSpirit].Value}"]}) {
+        /call cast ${_debug} 0 FALSE
         /return TRUE
       }
     }
@@ -240,7 +240,7 @@ sub check_mana(bool _debug)
     /return FALSE
   } 
   
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAParagonofSpirit].Value}"]}) {
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAParagonofSpirit].Value}"]}) {
     DEBUG ${sep}checking${sep}\a-wparagon for group\ax
     /declare _below int local 0
 
@@ -292,13 +292,13 @@ sub check_mana(bool _debug)
     /next _count
 
     /if (${_below} && !SAFEZONE) {
-      /call voodoo ${_debug} "${maChr.Find[stAAParagonofSpirit].Value}" 0 FALSE
+      /call cast ${_debug} 0 FALSE
       /return TRUE
     }
   }
   
   | stop here if no focused is ready
-  /if (!${is_ready[${_debug}, "${maChr.Find[stAAFocusedParagonofSpirits].Value}"]}) {
+  /if (!${cast_data[${_debug}, "${maChr.Find[stAAFocusedParagonofSpirits].Value}"]}) {
     /return FALSE
   }
   
@@ -307,8 +307,8 @@ sub check_mana(bool _debug)
   DEBUG ${sep}checking self${sep}\a-wfocused paragon\ax
   /if (${maChr.Find[stPctParagonF].Value} && !SAFEZONE && !${Me.Song[${maChr.Find[stAAFocusedParagonofSpirits].Value}].ID}) {
     /if (${Me.PctMana} <= ${maChr.Find[stPctParagonF].Value}*.PCTHO || ${Me.PctEndurance} <= ${maChr.Find[stPctParagonF].Value}*.PCTHO) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAFocusedParagonofSpirits].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAFocusedParagonofSpirits].Value}" ${Me.ID} FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAAFocusedParagonofSpirits].Value}"]}) {
+        /call cast ${_debug} ${Me.ID} FALSE
         /return TRUE
       }
     }
@@ -351,7 +351,7 @@ sub check_mana(bool _debug)
 
       /if (${_found}) {
         OUT ${maChr.Find[stAAFocusedParagonofSpirits].Value}${sep}\a-w${Group.Member[${_count}].DisplayName}\ax
-        /call voodoo ${_debug} "${maChr.Find[stAAFocusedParagonofSpirits].Value}" ${Group.Member[${_count}].ID} FALSE
+        /call cast ${_debug} ${Group.Member[${_count}].ID} FALSE
         /varset _found FALSE
         /return TRUE
       }
@@ -407,8 +407,8 @@ sub check_heal(bool _debug, string _type)
     | PET HEALING
     /if (${Select[${_type},pet]} && ${hurtCount}) {
       /if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-        /if (${is_ready[${_debug}, "Mend Companion"]}) {
-          /call voodoo ${_debug} "Mend Companion" ${Pet.ID} FALSE
+        /if (${cast_data[${_debug}, "Mend Companion"]}) {
+          /call cast ${_debug} ${Pet.ID} FALSE
         }
       }
 
@@ -418,8 +418,8 @@ sub check_heal(bool _debug, string _type)
     | self healing
     /if (${Select[${_type},self]} && ${hurtCount}) {
       /if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-        /if (${is_ready[${_debug}, "Warder's Gift", ${hurtID}]}) {
-          /call voodoo ${_debug} "Warder's Gift" 0 FALSE
+        /if (${cast_data[${_debug}, "Warder's Gift", ${hurtID}]}) {
+          /call cast ${_debug} 0 FALSE
         }
       }
     }
@@ -471,37 +471,37 @@ sub burn(bool _debug, int _tmpID)
   }
 
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAABestialAlignment].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAABestialAlignment].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAABestialAlignment].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
 | Group ???
 
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAFrenziedSwipes].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAFrenziedSwipes].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAFrenziedSwipes].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAFerociousness].Value}"]} && !${Me.Song[${maChr.Find[stSavage].Value}].ID}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAFerociousness].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAFerociousness].Value}"]} && !${Me.Song[${maChr.Find[stSavage].Value}].ID}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   TMPIDDEAD
 
   /if (SWARM) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAAttackoftheWarders].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAAttackoftheWarders].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAAttackoftheWarders].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
   /if (${Me.Pet.ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAACompanionsFury].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAACompanionsFury].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAACompanionsFury].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
   /if (MELEE || DOT) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stVindication].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stVindication].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stVindication].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
@@ -512,27 +512,27 @@ sub burn(bool _debug, int _tmpID)
   /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 
   /if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stFury].Value}].RankName}]} && !${Me.Song[${maChr.Find[stAAFrenzyofSpirit].Value}].ID} && !${Me.Buff[${maChr.Find[stDichotomic].Value}].ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stFury].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stFury].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stFury].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   } else {
     /if (${Me.Song[${maChr.Find[stFury].Value}].ID}) /return
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAFrenzyofSpirit].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAFrenzyofSpirit].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAFrenzyofSpirit].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
-    /if (${is_ready[${_debug}, "${maChr.Find[stAABloodLust].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAABloodLust].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAABloodLust].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
 
     TMPIDDEAD
 
     /call cast_AA_spire ${maDebug.Find[spire].Value}
 
-    /if (${is_ready[${_debug}, "${maChr.Find[stSavage].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stSavage].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stSavage].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAGroupBestialAlignment].Value}"]} && !${Me.Buff[Ferociousness].ID}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAGroupBestialAlignment].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAGroupBestialAlignment].Value}"]} && !${Me.Buff[Ferociousness].ID}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
@@ -565,9 +565,11 @@ sub cast_AA_paragon(bool _debug)
   
   ISMEDEAD
   CHECKEXIT
-  /call voodoo ${_debug} "Mass Group Buff" 0 FALSE
+  /call cast_data ${_debug} "Mass Group Buff"
+  /call cast ${_debug} 0 FALSE
   /delay 5
-  /call voodoo ${_debug} "${maChr.Find[stAAParagonofSpirit].Value}" 0 FALSE
+  /call cast_data ${_debug} "${maChr.Find[stAAParagonofSpirit].Value}"
+  /call cast ${_debug} 0 FALSE
   
 /return TRUE
 

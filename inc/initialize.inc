@@ -125,7 +125,6 @@ sub set_initialize(bool _debug)
   /declare maChrControl map outer
   /declare maMobControl map outer
 
-
   | hook map
   /declare maHook map outer
   
@@ -143,6 +142,12 @@ sub set_initialize(bool _debug)
 
   | PREGEN recorder
   /declare maPREGEN map outer
+  
+  | cast data map
+  /declare maCD map outer
+  
+  | spawn data map
+  /declare maSD map outer
 
   | TTL stuff
   /declare maTTL map outer
@@ -278,6 +283,8 @@ sub set_initial_environment(bool _debug)
   | /call set_data ${_debug} FALSE lsRezBuffTriggers                        list outer "Revival Sickness"|"Resurrection Sickness"
   /call set_data ${_debug} FALSE lsBroadcastTypes                         list outer group|raid|zone|all
 
+  | multi proc spells
+  /call set_data ${_debug} FALSE lsHasSPA                                 list outer 470|374|340
 
   | things we dont want pullers attacking
   /call set_data ${_debug} FALSE lsNoAttackBodyType                       list outer aura|banner|campfire|corpse|chest|item|trigger|trap|timer|mount|mercenary|object
@@ -299,7 +306,7 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} FALSE lsBuildSet                               list outer primary|secondary|range|spellset
 
   | spell types we let through the checking/validation methods
-  /call set_data ${_debug} FALSE lsFreePassSpells                         list outer Beneficial|Pet
+  /call set_data ${_debug} FALSE lsFreePassSpells                         list outer Beneficial|Beneficial(Group)|Pet|Aura
 
   | control lines
   /call set_data ${_debug} FALSE lsControlLine                            list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez|gtfo|pull|melee|debuff|cure
@@ -1135,7 +1142,10 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** control: home **|
-  /call set_data ${_debug} FALSE lsCombatPosition                         list outer free|left|right|rear|face
+  | control list for facing
+  /call set_data ${_debug} FALSE lsCombatPosition                         list outer free|left|right|rear|face|random
+  | user list for preferences on facing
+  /call set_data ${_debug} FALSE lsPosition                               list outer free|left|left|right|right|rear|rear|rear
   /call set_data_map ${_debug} maHome stCombatPosition                    free                          "${auxnum} where you will stick to the mob"
   /call set_data ${_debug} maHome swHomeMarker                            map outer FALSE
   /call set_data_map ${_debug} maHome stHomeVariance                      6                             "${auxnum} acceptable buffer range for being home"
@@ -3515,5 +3525,6 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
   }
 
 /return
+
 
 

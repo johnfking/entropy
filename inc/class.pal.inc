@@ -32,10 +32,6 @@ sub class_init(bool _debug)
   | heals
   /call set_data_map ${_debug} maHeal stCountSplash                   0                             "${auxnum} number mobs in range to use a splash heal" heal
 
-  | temp combat buffs
-  | /call set_data_map ${_debug} maChr stStance                         PREGEN|1                      "${auxna} name of the self stance buff"
-  | /call set_data_map ${_debug} maChr stSteel                          PREGEN|1                      "${auxna} name of the steel self buff"
-
   | harmonions
   /invoke ${set_data_timer[${_debug}, Check_Harmonious, 1m]}
   /call set_data_map ${_debug} maChr swHarmonious                     FALSE                         "${auxsw} use harmonious"
@@ -114,8 +110,8 @@ sub class_main(bool _debug)
     | aa LoH
     /if (${maHeal.Find[swHealSelf].Value} && ${maChr.Find[stPctLoH].Value}) {
       /if (${Me.PctHPs} <= ${maChr.Find[stPctLoH].Value}*.PCTHO) {
-        /if (${is_ready[${_debug}, "${maChr.Find[stAALayonHands].Value}"]}) {
-          /call voodoo ${_debug} "${maChr.Find[stAALayonHands].Value}" ${Me.ID} FALSE
+        /if (${cast_data[${_debug}, "${maChr.Find[stAALayonHands].Value}"]}) {
+          /call cast ${_debug} ${Me.ID} FALSE
         }
       }
     }
@@ -192,14 +188,14 @@ sub misc_combat(bool _debug, int _tmpID)
   | AA inquisitors armor stacking control
   /if (${SpawnCount[npc OVERLOS radius 30 targetable]} >= ${maDefense.Find[stCountDef].Value} && ${maDefense.Find[stCountDef].Value}) {
     /if (!${Me.Song[${maChr.Find[stAAGroupArmoroftheInquisitor].Value}].ID}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAArmoroftheInquisitor].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAArmoroftheInquisitor].Value}" 0 FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAAArmoroftheInquisitor].Value}"]}) {
+        /call cast ${_debug} 0 FALSE
       }
 
     | dont use group armor in raids
     } else /if (!${Me.Song[${maChr.Find[stAAArmoroftheInquisitor].Value}].ID} && !${Raid.Members}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAGroupArmoroftheInquisitor].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAGroupArmoroftheInquisitor].Value}" 0 FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAAGroupArmoroftheInquisitor].Value}"]}) {
+        /call cast ${_debug} 0 FALSE
       }
     }
   }
@@ -208,8 +204,8 @@ sub misc_combat(bool _debug, int _tmpID)
 
   | undead cripple
   /if (${Target.Body.Name.Equal[Undead]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAVanquishtheFallen].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAVanquishtheFallen].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAVanquishtheFallen].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
@@ -244,13 +240,13 @@ sub get_agro(bool _debug, int _tmpID)
   /invoke ${do_taunt[${_debug}, ${_tmpID}]}
 
   | chain stun
-  /if (${is_ready[${_debug}, "${maChr.Find[stStun].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stStun].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stStun].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
   | Valiant Defense line. agro+heal
-  /if (${is_ready[${_debug}, "${maChr.Find[stValiant].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stValiant].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stValiant].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }  
 
   | AE Stuns
@@ -261,13 +257,13 @@ sub get_agro(bool _debug, int _tmpID)
 
       /if (!${Raid.Members} || ${Raid.Members} && ${Raid.MainAssist.Name.Equal[${Me.DisplayName}]}) {
         /if (${_coutAE} > 1) {
-          /if (${is_ready[${_debug}, "${maChr.Find[stAAHallowedLodestar].Value}"]}) {
-            /call voodoo ${_debug} "${maChr.Find[stAAHallowedLodestar].Value}" ${_tmpID} FALSE
+          /if (${cast_data[${_debug}, "${maChr.Find[stAAHallowedLodestar].Value}"]}) {
+            /call cast ${_debug} ${_tmpID} FALSE
           }
         }
         /if (${_coutAE} > 4) {
-          /if (${is_ready[${_debug}, "${maChr.Find[stAABeaconoftheRighteous].Value}"]}) {
-            /call voodoo ${_debug} "${maChr.Find[stAABeaconoftheRighteous].Value}" 0 ${_tmpID}
+          /if (${cast_data[${_debug}, "${maChr.Find[stAABeaconoftheRighteous].Value}"]}) {
+            /call cast ${_debug} 0 ${_tmpID}
           }
         }
       }
@@ -287,20 +283,20 @@ sub get_agro(bool _debug, int _tmpID)
   }
 
   | AA pet hate (the little sword thingie)
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAProjectionofPiety].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAProjectionofPiety].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAProjectionofPiety].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
   | snap hate
   /if (!${Raid.Members}) {
-    /if (${Me.PctAggro} < ${maAgro.Find[stPctAgroHold].Value} && ${is_ready[${_debug}, "${maChr.Find[stAAAgelessEnmity].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAAgelessEnmity].Value}" ${_tmpID} FALSE
+    /if (${Me.PctAggro} < ${maAgro.Find[stPctAgroHold].Value} && ${cast_data[${_debug}, "${maChr.Find[stAAAgelessEnmity].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
   | named fake hate
-  /if ((${Me.PctAggro} < ${maAgro.Find[stPctAgroHold].Value} || ${lsZoneNamed.Contains[${Target.DisplayName}]}) && ${is_ready[${_debug}, "${maChr.Find[stUnflinching].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stUnflinching].Value}" ${_tmpID} FALSE
+  /if ((${Me.PctAggro} < ${maAgro.Find[stPctAgroHold].Value} || ${lsZoneNamed.Contains[${Target.DisplayName}]}) && ${cast_data[${_debug}, "${maChr.Find[stUnflinching].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
 
@@ -344,8 +340,8 @@ sub check_heal(bool _debug, string _type)
       | aa LoH targets target
       /if (${maChr.Find[stPctLoH].Value}) {
         /if (${Me.TargetOfTarget.PctHPs} <= ${maChr.Find[stPctLoH].Value}*.PCTHO) {
-          /if (${is_ready[${maDebug.Find[tot].Value}, "${maChr.Find[stAALayonHands].Value}"]}) {
-            /call voodoo ${maDebug.Find[tot].Value} "${maChr.Find[stAALayonHands].Value}" ${Target.ID} FALSE
+          /if (${cast_data[${maDebug.Find[tot].Value}, "${maChr.Find[stAALayonHands].Value}"]}) {
+            /call cast ${maDebug.Find[tot].Value} ${Target.ID} FALSE
             /return TRUE
           }
         }
@@ -379,8 +375,8 @@ sub check_heal(bool _debug, string _type)
 
     | Hand of Piety AA Group heal
     /if (${hurtCount} >= 1 || BURN) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAHandofPiety].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAHandofPiety].Value}" 0 FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAAHandofPiety].Value}"]}) {
+        /call cast ${_debug} 0 FALSE
         /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
       }
     }
@@ -391,8 +387,8 @@ sub check_heal(bool _debug, string _type)
 
     | heal disc
     /if (${hurtCount} >= 1) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stReflexive].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stReflexive].Value}" TARGET FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stReflexive].Value}"]}) {
+        /call cast ${_debug} TARGET FALSE
         /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
       }
     }
@@ -404,8 +400,8 @@ sub check_heal(bool _debug, string _type)
     | aa LoH
     /if (${maChr.Find[stPctLoH].Value}) {
       /if (${Me.PctHPs} <= ${maChr.Find[stPctLoH].Value}*.PCTHO) {
-        /if (${is_ready[${_debug}, "${maChr.Find[stAALayonHands].Value}"]}) {
-          /call voodoo ${_debug} "${maChr.Find[stAALayonHands].Value}" ${Me.ID} FALSE
+        /if (${cast_data[${_debug}, "${maChr.Find[stAALayonHands].Value}"]}) {
+          /call cast ${_debug} ${Me.ID} FALSE
         }
       }
     }
@@ -417,8 +413,8 @@ sub check_heal(bool _debug, string _type)
 
   | AA Gift of Life -- not in raids
   /if (${Me.PctHPs} < ${maHeal.Find[stHealPointPAL].Value}*.30*.PCTHO && !${Raid.Members}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAGiftofLife].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAGiftofLife].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAGiftofLife].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
@@ -450,11 +446,11 @@ sub cast_AA_marrs_gift(bool _debug)
 
   /invoke ${set_data_timer[FALSE, Check_Marrs_Gift, RESTART]}
 
-  /if (!${is_ready[${_debug}, "${maChr.Find[stAAMarrsGift].Value}"]}) {
+  /if (!${cast_data[${_debug}, "${maChr.Find[stAAMarrsGift].Value}"]}) {
     /return FALSE
   }
 
-  /call voodoo ${_debug} "${maChr.Find[stAAMarrsGift].Value}" 0 FALSE
+  /call cast ${_debug} 0 FALSE
 
 /return
 
@@ -486,8 +482,8 @@ sub burn(bool _debug, int _tmpID)
 
   | deflection
   /if (!${Bool[${Me.ActiveDisc}]} && ${Me.PctHPs} < 50*.PCTHO) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAADeflectionDiscipline].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAADeflectionDiscipline].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAADeflectionDiscipline].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
       /return
     }
   }
@@ -501,8 +497,8 @@ sub burn(bool _debug, int _tmpID)
   | aa LoH
   /if (${maHeal.Find[swHealSelf].Value} && ${maChr.Find[stPctLoH].Value}) {
     /if (${Me.PctHPs} <= ${maChr.Find[stPctLoH].Value}*.PCTHO) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAALayonHands].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAALayonHands].Value}" ${Me.ID} FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAALayonHands].Value}"]}) {
+        /call cast ${_debug} ${Me.ID} FALSE
       }
     }
   }
@@ -511,11 +507,11 @@ sub burn(bool _debug, int _tmpID)
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAInquisitorsJudgemen].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAInquisitorsJudgemen].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAInquisitorsJudgemen].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAValorousRage].Value}"]]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAValorousRage].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAValorousRage].Value}"]]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   /call cast_glyph ${maDebug.Find[glyph].Value}

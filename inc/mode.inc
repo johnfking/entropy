@@ -141,8 +141,8 @@ sub mode_fish(bool _debug)
 
   /if (${Me.ItemReady[Fisherman's Companion]} && !${Me.ItemReady[Brell's Fishin' Pole]} && !${Me.Inventory[mainhand].ID}) {
     /if (${Me.Invis}) /docommand /makemevisable
-    /if (${is_ready[${_debug}, "Fisherman's Companion"]}) {
-      /call voodoo ${_debug} "Fisherman's Companion" ${Me.ID} FALSE
+    /if (${cast_data[${_debug}, "Fisherman's Companion"]}) {
+      /call cast ${_debug} ${Me.ID} FALSE
     }
   }
 
@@ -285,7 +285,9 @@ sub mode_petfarm(bool _debug)
     DEBUG \arNO\ax stAssTarID
     SETHUD EMPTY
     GETINPUT
-    /call where_the_fuck_is_my_pet ${_debug} FORCE
+    /if (${Pet.Distance3D} > 30) {
+      /call where_the_fuck_is_my_pet ${_debug} FORCE
+    }
     /return FALSE
   }
 
@@ -367,7 +369,8 @@ sub mode_temppet(bool _debug)
   /call target set ${_tmpID}
     
   | send in the clowns
-  /call voodoo ${_debug} "${_petSpell}" ${_tmpID} FALSE
+  /call cast_data ${_debug} "${_petSpell}"
+  /call cast ${_debug} ${_tmpID} FALSE
 
   SETHUD EMPTY
 
@@ -556,7 +559,8 @@ sub mode_lush(bool _debug)
   /while (${Me.Skill[Alcohol Tolerance]} < ${Skill[Alcohol Tolerance].SkillCap}) {
     /if (!${Me.ItemReady[=${stModeData}]}) /break
     /if (${Me.Drunk} < 200) {
-      /call voodoo ${_debug} "${stModeData}" 0 FALSE
+      /call cast_data ${_debug} "${stModeData}"
+      /call cast ${_debug} 0 FALSE
     }
     /delay 2
     /delay 2s ${Me.Drunk} <  190
@@ -626,8 +630,8 @@ sub mode_trainspell(string _type, bool _debug)
     }
 
     | cast the spell
-    /if (${is_ready[${_debug}, "${Me.Gem[${_count}].Name}"]}) {
-      /call voodoo ${_debug} "${Me.Gem[${_count}].Name}" 0 FALSE
+    /if (${cast_data[${_debug}, "${Me.Gem[${_count}].Name}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
     /delay 5s !${Me.Casting.ID}
 
@@ -687,7 +691,9 @@ ${Me.Gem[${_count}].Name}
   | start getting things done
   /for _count 1 to ${_skill.Count[|]}
     /if (!${_gem[${_count}]}) /continue
-    /if (${is_ready[${_debug}, "${${_skill.Arg[${_count},|]}}"]}) /call voodoo ${_debug} "${${_skill.Arg[${_count},|]}}" 0 0 FALSE
+    /if (${cast_ready[${_debug}, "${${_skill.Arg[${_count},|]}}"]}) {
+      /call cast ${_debug} 0 FALSE
+    }
     /call sort_cursor TRUE
   /next _count
 
@@ -958,8 +964,8 @@ sub tov_ew_ada(bool _debug)
       DEBUG ${sep}step${sep}${sqlite.Result[farmquery1 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery1 1 step]}].Status}\ax)
       GETINPUT
       ISMEDEAD
-      /if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery1 1 ivu]}]} && ${Me.AltAbilityReady[Group Perfected Invisibility to Undead]}) {
-        /call voodoo FALSE "Group Perfected Invisibility to Undead" 0 FALSE
+      /if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery1 1 ivu]}]} && ${cast_data[${_debug}, "Group Perfected Invisibility to Undead"]}) {
+        /call cast ${_debug} 0 FALSE
       }
       /call Bind_command_navto loc "${sqlite.Result[farmquery1 1 locyxz]}" FALSE
       /delay 2s
@@ -975,8 +981,8 @@ sub tov_ew_ada(bool _debug)
       DEBUG ${sep}step${sep}${sqlite.Result[farmquery2 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery2 1 step]}].Status}\ax)
       GETINPUT
       ISMEDEAD
-      /if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery2 1 ivu]}]} && ${Me.AltAbilityReady[Group Perfected Invisibility to Undead]}) {
-        /call voodoo FALSE "Group Perfected Invisibility to Undead" 0 FALSE
+      /if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery2 1 ivu]}]} && ${cast_data[${_debug}, "Group Perfected Invisibility to Undead"]}) {
+        /call cast ${_debug} 0 FALSE
       }
       /call Bind_command_navto loc "${sqlite.Result[farmquery2 1 locyxz]}" FALSE
       /delay 2s
@@ -992,8 +998,8 @@ sub tov_ew_ada(bool _debug)
       DEBUG ${sep}step${sep}${sqlite.Result[farmquery3 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery3 1 step]}].Status}\ax)
       GETINPUT
       ISMEDEAD
-      /if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery3 1 ivu]}]} && ${Me.AltAbilityReady[Group Perfected Invisibility to Undead]}) {
-        /call voodoo ${_debug} "Group Perfected Invisibility to Undead" 0 FALSE
+      /if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery3 1 ivu]}]} && ${cast_data[${_debug}, "Group Perfected Invisibility to Undead"]}) {
+        /call cast ${_debug} 0 FALSE
       }
       /call Bind_command_navto loc "${sqlite.Result[farmquery3 1 locyxz]}" FALSE
       /delay 2s
@@ -1009,8 +1015,8 @@ sub tov_ew_ada(bool _debug)
       DEBUG ${sep}step${sep}${sqlite.Result[farmquery4 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery4 1 step]}].Status}\ax)
       GETINPUT
       ISMEDEAD
-      /if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery4 1 ivu]}]} && ${Me.AltAbilityReady[Group Perfected Invisibility to Undead]}) {
-        /call voodoo ${_debug} "Group Perfected Invisibility to Undead" 0 FALSE
+      /if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery4 1 ivu]}]} && ${cast_data[${_debug}, "Group Perfected Invisibility to Undead"]}) {
+        /call cast ${_debug} 0 FALSE
       }
       /call Bind_command_navto loc "${sqlite.Result[farmquery4 1 locyxz]}" FALSE
       /delay 2s
@@ -1038,8 +1044,8 @@ sub tov_ew_ada(bool _debug)
       DEBUG ${sep}step${sep}${sqlite.Result[farmquery${_tmpStep} 1 step]}\ax (\a-r${Task[${_quest}].Objective[${sqlite.Result[farmquery${_tmpStep} 1 step]}].Status}\ax)
       GETINPUT
       ISMEDEAD
-      /if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery${_tmpStep} 1 ivu]}]} && ${Me.AltAbilityReady[Group Perfected Invisibility to Undead]}) {
-        /call voodoo ${_debug} "Group Perfected Invisibility to Undead" 0 FALSE
+      /if (!${Me.Invis} && ${Bool[${sqlite.Result[farmquery${_tmpStep} 1 ivu]}]} && ${cast_data[${_debug}, "Group Perfected Invisibility to Undead"]}) {
+        /call cast ${_debug} 0 FALSE
       }
       /call Bind_command_navto loc "${sqlite.Result[farmquery${_tmpStep} 1 locyxz]}" FALSE
 
@@ -1195,15 +1201,6 @@ sub task_combatloop(int _tmpID, bool _debug)
       /if (!${timer_Check_deBuffs}) {
         /call check_deBuffs ${maDebug.Find[debuff].Value} ${_tmpID}
       }
-
-    | class specific thingies
-    /if (${Select[${Me.Class.ShortName},PAL]}) {
-      /if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
-      /if (!${timer_Check_Buff_Temp} && ${maBuff.Find[swBuffTemp].Value}) {
-        /call check_buff_cycle_temp_self ${maDebug.Find[temp].Value} stSteel
-        /call check_buff_cycle_temp_self ${maDebug.Find[temp].Value} stStance
-      }
-    }
 
     | readjust if needed
     /if (!${Spawn[id ${_tmpID}].Dead}) {

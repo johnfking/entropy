@@ -134,8 +134,8 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   | Forece of Elements AA
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAForceofElements].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAForceofElements].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAForceofElements].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
 /return TRUE
@@ -172,8 +172,8 @@ sub check_heal(bool _debug, string _type)
 
     /if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value}) {
       /if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-        /if (${is_ready[${_debug}, "${maChr.Find[stAAMendCompanion].Value}"]}) {
-          /call voodoo ${_debug} "${maChr.Find[stAAMendCompanion].Value}" ${Pet.ID} FALSE
+        /if (${cast_data[${_debug}, "${maChr.Find[stAAMendCompanion].Value}"]}) {
+          /call cast ${_debug} ${Pet.ID} FALSE
         }
       }
       /call cast_cycle_heal ${_debug} ${Pet.ID} minion
@@ -215,20 +215,20 @@ sub burn(bool _debug, int _tmpID)
   }
 
   /if (${Target.PctHPs} > 20) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAFocusofArcanum].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAFocusofArcanum].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAFocusofArcanum].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
   | direct damage bonus
   /if (${Target.PctHPs} > 10) {
     /if (${Me.Buff[${maChr.Find[stAAThaumaturgesFocus].Value}].ID}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAHeartofSkyfire].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAHeartofSkyfire].Value}" 0 FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAAHeartofSkyfire].Value}"]}) {
+        /call cast ${_debug} 0 FALSE
       }
     } else /if (!${Me.Buff[${maChr.Find[stAAHeartofFlames].Value}].ID} && !${Me.AltAbilityReady[${maChr.Find[stAAHeartofSkyfire].Value}]}) {
-      /if (${is_ready[${_debug}, "${maChr.Find[stAAThaumaturgesFocus].Value}"]}) {
-        /call voodoo ${_debug} "${maChr.Find[stAAThaumaturgesFocus].Value}" 0 FALSE
+      /if (${cast_data[${_debug}, "${maChr.Find[stAAThaumaturgesFocus].Value}"]}) {
+        /call cast ${_debug} 0 FALSE
       }
     } else /if (!${Me.AltAbilityReady[${maChr.Find[stAAHeartofSkyfire].Value}]} && !${Me.Buff[${maChr.Find[stAAHeartofSkyfire].Value}].ID} && !${Me.AltAbilityReady[${maChr.Find[stAAThaumaturgesFocus].Value}]} && !${Me.Buff[${maChr.Find[stAAThaumaturgesFocus].Value}].ID}) {
       /call cast_glyph ${maDebug.Find[glyph].Value}
@@ -242,20 +242,20 @@ sub burn(bool _debug, int _tmpID)
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAASilentCasting].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | pet AAs
   /if (PET) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAServantofRo].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAServantofRo].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAServantofRo].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
-    /if (${is_ready[${_debug}, "${maChr.Find[stAACompanionsFury].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAACompanionsFury].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAACompanionsFury].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAHostintheShell].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAHostintheShell].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAHostintheShell].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
 
 
@@ -263,8 +263,8 @@ sub burn(bool _debug, int _tmpID)
 
   | swarm pets
   /if (SWARM) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAHostoftheElements].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAHostoftheElements].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAHostoftheElements].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
@@ -296,8 +296,8 @@ sub check_gather(bool _debug)
 
   | pet consumption for manna
   /if (${Pet.ID} && ${Me.PctMana} <= 10 ) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAElementalConversion].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAElementalConversion].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAElementalConversion].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
@@ -306,8 +306,8 @@ sub check_gather(bool _debug)
     /return FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stGather].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stGather].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
 
@@ -315,19 +315,19 @@ sub check_gather(bool _debug)
     /return FALSE
   }
 
-  /if (!${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]} && !${Me.AltAbilityReady[${maChr.Find[stAAForcefulRejuvenation].Value}]}) {
+  /if (!${cast_data[${_debug}, "${maChr.Find[stGather].Value}"]} && !${Me.AltAbilityReady[${maChr.Find[stAAForcefulRejuvenation].Value}]}) {
     /return FALSE
   }
 
   | force rejuv if we can proc gather spell again
-  /if (!${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAAForcefulRejuvenation].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAAForcefulRejuvenation].Value}" 0 FALSE
+  /if (!${cast_data[${_debug}, "${maChr.Find[stGather].Value}"]}) {
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAForcefulRejuvenation].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stGather].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stGather].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stGather].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
 /return TRUE
@@ -352,14 +352,14 @@ sub Bind_control_mag_coh(string _sender, string _verbage, bool _debug)
     /call set_spell_to ${_debug} TRUE "${maChr.Find[stCoHGroup].Value}" ${maEnv.Find[stBuffGem].Value} TRUE
     /makemevisible
 
-    /if (${is_ready[${_debug}, "${maChr.Find[stCoHGroup].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stCoHGroup].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stCoHGroup].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   } else {
     /delay 15s ${Me.AltAbilityReady[${maChr.Find[stCoH].Value}]}
     /makemevisible
-    /if (${is_ready[${_debug}, "${maChr.Find[stCoH].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stCoH].Value}" ${Spawn[pc ${_sender}].ID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stCoH].Value}"]}) {
+      /call cast ${_debug} ${Spawn[pc ${_sender}].ID} FALSE
     }
   }
 /return TRUE
@@ -379,7 +379,7 @@ sub check_cauldron(bool _debug)
     /return FALSE
   }
 
-  /if (!${is_ready[${_debug}, "${maChr.Find[stCauldron].Value}"]}) {
+  /if (!${cast_data[${_debug}, "${maChr.Find[stCauldron].Value}"]}) {
     /invoke ${set_timer[${_debug}, Check_Cauldron, ${Math.Calc[${FindItem[${maChr.Find[stCauldron].Value}].Timer.TotalMinutes}]}m]}
     /return FALSE
   }
@@ -387,7 +387,7 @@ sub check_cauldron(bool _debug)
   CHECKEXIT
   CHECKTIE
 
-  /call voodoo ${_debug} "${maChr.Find[stCauldron].Value}" 0 FALSE
+  /call cast ${_debug} 0 FALSE
 
   /while (${Cursor.ID}) {
     /call check_cursor ${_debug} CLEAR

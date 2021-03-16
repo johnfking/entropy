@@ -174,62 +174,49 @@ sub misc_combat(bool _debug, int _tmpID)
     /call stick_to_target FALSE ${_tmpID}
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAFierceEye].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAFierceEye].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAFierceEye].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stReflexive].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stReflexive].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stReflexive].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAABladedSong].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAABladedSong].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAABladedSong].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAACacophony].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAACacophony].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAACacophony].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
-  
-  |**
-  /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${maChr.Find[swAABellow].Value} && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Boastful Bellow].ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAABoastfulBellow].Value}" ${_tmpID} FALSE
-    }
-    /if (${target[isdead, ${_tmpID}]}) {
-      /call pulse_stop
-      /call clear_combat
-      /return FALSE
-    }
-  }
-  **|
   
   /if (${maChr.Find[swAABellow].Value} && ${Target.BuffsPopulated}) {
     
     /if (!AE#) {
       /if (${Raid.Members}) {
         /if (${Spawn[${_tmpID}].PctHPs} > 3 && ${Me.CurrentEndurance} > 3600 && !${Target.MyBuff[Boastful Bellow].ID}) {
-          /if (${is_ready[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
-            /call voodoo ${_debug} "${maChr.Find[stAABoastfulBellow].Value}" ${_tmpID} FALSE
+          /if (${cast_data[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
+            /call cast ${_debug} ${_tmpID} FALSE
           }
         }
       } else /if (!${Raid.Members}) {
         /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Boastful Bellow].ID}) {
-          /if (${is_ready[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
-            /call voodoo ${_debug} "${maChr.Find[stAABoastfulBellow].Value}" ${_tmpID} FALSE
+          /if (${cast_data[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
+            /call cast ${_debug} ${_tmpID} FALSE
           }
         }
       }
     } else /if (AE#) {
       /if (${Raid.Members}) {
         /if (${Spawn[${_tmpID}].PctHPs} > 3 && ${Me.CurrentEndurance} > 10500 && !${Target.MyBuff[Vainglorious Shout].ID}) {
-          /if (${is_ready[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
-            /call voodoo ${_debug} "${maChr.Find[stAAVaingloriousShout].Value}" ${_tmpID} FALSE
+          /if (${cast_data[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
+            /call cast ${_debug} ${_tmpID} FALSE
           }
         }
       } else /if (!${Raid.Members}) {
         /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Vainglorious Shout].ID}) {
-          /if (${is_ready[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
-            /call voodoo ${_debug} "${maChr.Find[stAAVaingloriousShout].Value}" ${_tmpID} FALSE
+          /if (${cast_data[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
+            /call cast ${_debug} ${_tmpID} FALSE
           }
         }
       } 
@@ -317,13 +304,13 @@ sub cast_servant_swarm(bool _debug, int _tmpID)
 
   /if (${Target.ID}) /pet swarm
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAALyricalPrankster].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAALyricalPrankster].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAALyricalPrankster].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
     /return
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAASongofStone].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAASongofStone].Value}" alt ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAASongofStone].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
     /return
   }
 
@@ -390,7 +377,7 @@ sub pulse_cycle(bool _debug, _tmpID, string _tag)
     }
 
     | ready
-    /if (!${is_ready[${_debug}, "${maSong.Find[stSong${_lipl.Value}].Value}"]}) {
+    /if (!${cast_data[${_debug}, "${maSong.Find[stSong${_lipl.Value}].Value}"]}) {
       DEBUG ${sep}not ready${sep}\a-w${maSong.Find[stSong${_lipl.Value}].Value}\ax
       /invoke ${_lipl.Advance}
       /continue
@@ -413,7 +400,7 @@ sub pulse_cycle(bool _debug, _tmpID, string _tag)
        /call set_combat_control ${maDebug.Find[decision].Value} TARGET
     }
 
-    /call voodoo ${_debug} "${maSong.Find[stSong${_lipl.Value}].Value}" 0 ignoremovement
+    /call cast ${_debug} 0 ignoremovement
 
     /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,RESISTED,IMMUNE]}) {
       /return TRUE
@@ -470,8 +457,8 @@ sub cast_AA_rallying(bool _debug)
   /declare _manaPoint int local 30
 
   /if (((${Me.PctEndurance} < ${_endurancePoint}) && (${Me.PctMana} < ${_manaPoint})) && ${Select[${Me.CombatState},resting]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAARallyingSolo].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAARallyingSolo].Value}" ${Me.ID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAARallyingSolo].Value}"]}) {
+      /call cast ${_debug} ${Me.ID} FALSE
     }
   }
 
@@ -510,34 +497,34 @@ sub burn(bool _debug, int _tmpID)
     /return TRUE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stThousandBlades].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stThousandBlades].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stThousandBlades].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAFuneralDirge].Value}"]} && !${Target.Buff[Funeral Dirge].ID}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAFuneralDirge].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAFuneralDirge].Value}"]} && !${Target.Buff[Funeral Dirge].ID}) {
+    /call cast ${_debug}  0 FALSE
   }
 
   | this is disabled until the stuck gem bug is fixed
-  | /if (${is_ready[${_debug}, "${maChr.Find[stAAQuickTime].Value}"]} && !${Me.Song[Ruaabri's Fury].ID}) {
-  |   /call voodoo ${_debug} "${maChr.Find[stAAQuickTime].Value}" 0 FALSE
+  | /if (${cast_data[${_debug}, "${maChr.Find[stAAQuickTime].Value}"]} && !${Me.Song[Ruaabri's Fury].ID}) {
+  |   /call cast ${_debug} 0 FALSE
   | }
 
   | trigger Frenzied kicks AA for bards if target is debuffed from intimidate
-  /if (${Target.Buff[Harbinger's Intimidation].ID} && ${is_ready[${_debug}, "${maChr.Find[stAAFrenziedKicks].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAFrenziedKicks].Value}" 0 FALSE
+  /if (${Target.Buff[Harbinger's Intimidation].ID} && ${cast_data[${_debug}, "${maChr.Find[stAAFrenziedKicks].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
   
    | Dance of Blades
-  /if (${is_ready[${_debug}, "${maChr.Find[stAADanceofBlades].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAADanceofBlades].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAADanceofBlades].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
   
     | Flurry of Notes
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAFlurryofNotes].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAFlurryofNotes].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAFlurryofNotes].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   /call cast_glyph ${maDebug.Find[glyph].Value}
@@ -559,14 +546,14 @@ sub burn(bool _debug, int _tmpID)
 sub Bind_command_brd_travel(bool _debug)
   DEBUG \atBind_command_brd_travel\ax
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAASelosSonata].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAASelosSonata].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAASelosSonata].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   /delay 1
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAShaurisSonorousClouding].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAShaurisSonorousClouding].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAShaurisSonorousClouding].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
 /return
@@ -584,6 +571,8 @@ sub scan_focus(string _type, bool _debug)
   /declare _containerItem   int local 0
   /declare _tmpItemID       int local 0
   /declare _tmpUsable       int local 0
+  /declare _count           int local 0
+  /declare _found           bool local FALSE
 
   | stringed
   /invoke ${maBardFocus.Add[49,|0|0|0]}
@@ -620,7 +609,7 @@ sub scan_focus(string _type, bool _debug)
 
         | is there a focus on it?
         /if (!${FindItem[${_tmpItemID}].Focus2.Spell.ID}) /continue
-
+        
         | can i use it?
         /if (${Me.Level} < ${FindItem[${_tmpItemID}].RequiredLevel}) /continue
 
@@ -629,11 +618,20 @@ sub scan_focus(string _type, bool _debug)
           /varset _tmpUsable 1
         }
 
+        | make sure its bard usable
+        /for _count 1 to ${FindItem[${_tmpItemID}].Classes}
+          /if (${Select[${FindItem[${_tmpItemID}].Class[${_count}]},Bard]}) {
+            /varset _found TRUE
+          }
+        /next _count
+        /if (!${_found}) /continue
+     
+
         | if the current iteration is > then the set one. replace it
         DEBUG ${sep}${sep}${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]} > ${maBardFocus.Find[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]}].Value.Arg[2,|]}
         /if (${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]} > ${maBardFocus.Find[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]}].Value.Arg[2,|]}) {
           DEBUG ${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},|${_tmpItemID}|${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]}|${_tmpUsable}
-          /invoke ${maBardFocus.Add[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},|${_tmpItemID}|${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]}|${_tmpUsable}]}
+          /invoke ${maBardFocus.Add[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},|${_tmpItemID}|${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]}|${_tmpUsable}]}
         }
 
       /next _containerItem

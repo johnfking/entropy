@@ -187,8 +187,8 @@ sub check_heal(bool _debug, string _type)
 
       | stationary ward heal
       /if (${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
-        /if (${is_ready[${_debug}, "${maChr.Find[stAACalloftheAncients].Value}"]}) {
-          /call voodoo ${_debug} "${maChr.Find[stAACalloftheAncients].Value}" ${Me.ID} FALSE
+        /if (${cast_data[${_debug}, "${maChr.Find[stAACalloftheAncients].Value}"]}) {
+          /call cast ${_debug} ${Me.ID} FALSE
         }
       }
 
@@ -303,7 +303,7 @@ sub cast_cycle_heal_surge(bool _debug)
     }
 
     | ready?.. or continue
-    /if (!${is_ready[${_debug}, "${_myHeal}"]}) {
+    /if (!${cast_data[${_debug}, "${_myHeal}"]}) {
       /varset _myHeal FALSE
       /invoke ${_liHeal.Advance}
       /continue
@@ -316,7 +316,7 @@ sub cast_cycle_heal_surge(bool _debug)
       /continue
     }
 
-    /call voodoo ${_debug} "${maHeal.Find[stHeal${_liHeal.Value}].Value}" ${_tmpID} FALSE
+    /call cast ${_debug} ${_tmpID} FALSE
 
     /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]}) {
       /return TRUE
@@ -356,8 +356,8 @@ sub burn(bool _debug, int _tmpID)
 
   | swarm aa pet
   /if (SWARM && ${Target.ID}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAASpiritCall].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAASpiritCall].Value}" ${_tmpID} FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAASpiritCall].Value}"]}) {
+      /call cast ${_debug} ${_tmpID} FALSE
     }
   }
 
@@ -367,23 +367,23 @@ sub burn(bool _debug, int _tmpID)
   }
 
   | Lower spell resists
-  /if (${is_ready[${_debug}, "${maChr.Find[stAADampenResistance].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAADampenResistance].Value}" ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAADampenResistance].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
   | Twincast next 6 DOTs/HOTs
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAFleetingSpirit].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAAFleetingSpirit].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAFleetingSpirit].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | Increase spell cost by 14% for 100% exceptional heals on instant heals for 18 seconds
-  /if (${is_ready[${_debug}, "${maChr.Find[stAASpiritualBlessing].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAASpiritualBlessing].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAASpiritualBlessing].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
   | Mega bear crap
-  /if (AUTO && MELEE && ${is_ready[${_debug}, "${maChr.Find[stAARabidBear].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stAARabidBear].Value}" ${_tmpID} FALSE
+  /if (AUTO && MELEE && ${cast_data[${_debug}, "${maChr.Find[stAARabidBear].Value}"]}) {
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
@@ -417,8 +417,8 @@ sub cast_talisman(bool _debug)
   CHECKEXIT
   GETINPUT
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stTalisman].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stTalisman].Value}" ${Me.ID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stTalisman].Value}"]}) {
+    /call cast ${_debug} ${Me.ID} FALSE
   }
 
 /return TRUE
@@ -453,13 +453,13 @@ sub check_cani(bool _debug)
 
   | use the aa cani
   /if (${AltAbility[${maChr.Find[stAACannibalization].Value}].Spell.Base[2]} < ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}].Int} && ${Me.CurrentMana} != ${Me.MaxMana} && ${Me.CurrentHPs} > ${AltAbility[${maChr.Find[stAACannibalization].Value}].Spell.Base[1]}) {
-    /if (${is_ready[${_debug}, "${maChr.Find[stAACannibalization].Value}"]}) {
-      /call voodoo ${_debug} "${maChr.Find[stAACannibalization].Value}" 0 FALSE
+    /if (${cast_data[${_debug}, "${maChr.Find[stAACannibalization].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
     }
   } 
 
   | if canni spell is not ready bail..
-  /if (!${is_ready[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) {
+  /if (!${cast_data[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) {
     DEBUG ${break}not ready${sep}\a-w${maChr.Find[stCannibalization].Value}\ax
     /return FALSE
   }
@@ -480,8 +480,8 @@ sub check_cani(bool _debug)
     /return FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) {
-    /call voodoo ${_debug} "${maChr.Find[stCannibalization].Value}" 0 FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
   }
 
 /return TRUE
@@ -498,7 +498,7 @@ sub cast_alliance(bool _debug)
   CHECKEXIT
   GETINPUT
 
-  /if (!${is_ready[${_debug}, "${maChr.Find[stAlliance].Value}"]}) /return FALSE
+  /if (!${cast_data[${_debug}, "${maChr.Find[stAlliance].Value}"]}) /return FALSE
 
   /declare _name string local ${get_assist_info[${_debug}, name]}
   /declare _tmpID int local ${get_assist_info[${_debug}, id]}
@@ -507,7 +507,7 @@ sub cast_alliance(bool _debug)
 
   /delay 5 ${Target.BuffsPopulated}
   /if (${Target.BuffsPopulated} && !${Target.Buff[${maChr.Find[stAlliance].Value}].ID}) {
-    /call voodoo ${_debug} "${maChr.Find[stAlliance].Value}" ${_tmpID} FALSE
+    /call cast ${_debug} ${_tmpID} FALSE
   }
 
 /return TRUE
@@ -535,9 +535,11 @@ sub cast_AA_aid(bool _debug)
   
   ISMEDEAD
   CHECKEXIT
-  /call voodoo ${_debug} "Mass Group Buff" 0 FALSE
+  /call cast_data ${_debug} "Mass Group Buff" 
+  /call cast ${_debug}0 FALSE
   /delay 5
-  /call voodoo ${_debug} "${maChr.Find[stAAAncestralAid].Value}" 0 FALSE
+  /call cast_data ${_debug} "${maChr.Find[stAAAncestralAid].Value}" 
+  /call cast ${_debug} 0 FALSE
   
 /return TRUE
 
