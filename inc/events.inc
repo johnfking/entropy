@@ -284,7 +284,7 @@ sub Event_COMBAT_DISTANCE(string _line)
  ***|
 #event Zone "You have entered #*#"
 | #event Zone "|${Me.DisplayName}| creates a mistic portal."
-| #event Zone "LOADING, PLEASE WAIT..."
+#event Zone "LOADING, PLEASE WAIT..."
 sub Event_Zone(string _line)
   EDEBUG zoning
   /if (${_line.Find[Drunken Monkey]}) {
@@ -292,9 +292,9 @@ sub Event_Zone(string _line)
   }
   /call check_mode FALSE RESET
   /call check_zone_id ${maDebug.Find[zone].Value}
-  /if (${maHome.Find[swHomeMarker].Value}) {
+  | /if (${maHome.Find[swHomeMarker].Value}) {
     /call Bind_control_home clear
-  }
+  | }
 /return FALSE
 
 

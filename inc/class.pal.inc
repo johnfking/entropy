@@ -63,7 +63,7 @@ sub class_init(bool _debug)
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                xtarget                                                                       "${auxli} class base loop start"
   /call set_data_list ${_debug} maChr lsOrderClassPre                 heal|manarecover|staminarecovery                                              "${auxli} class pre combat"
-  /call set_data_list ${_debug} maChr lsOrderClass                    taunt|melee|agro|heal|burn|misc|dot|nuke|item|debuff|alliance|harmonious      "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClass                    taunt|agro|melee|heal|burn|misc|dot|nuke|item|taunt|agro|debuff|alliance|harmonious      "${auxli} class active combat order"
   /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|staminarecovery                                                   "${auxli} class post combat "
 
   | AAs

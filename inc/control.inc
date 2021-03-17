@@ -2429,8 +2429,11 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
     MyDuration,
 **|
 
-  /if (${_type.Equal[best2]}) {
-    ECHO ${get_best_in_spell[FALSE, "Group V2", "Aegolism", "Max HP"]}
+  /if (${_type.Equal[spawn]}) {
+    /declare _spawn spawn local
+    /vardata _spawn Spawn[pc Airavas].ID
+    
+    /echo ${_spawn.Name}
   }
 
   /if (${_type.Equal[zone]}) {
@@ -3799,7 +3802,7 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
     /nav id ${Target.ID} |dist=${maHome.Find[stHomeVariance].Value} log=${maEntropy.Find[swNavLogSpew].Value}
 
   | nav to closest spawn matching name
-  } else /if (!${Target.ID} && ${Bool[${_verbage}]} && ${_verbage.NotEqual[loc]}) {
+  } else /if (${Target.ID} && ${Bool[${_verbage}]} && ${_verbage.NotEqual[loc]}) {
     /if (!${Spawn[${_verbage}].ID}) {
       /invoke ${out[22, "not in zone${sep}\a-w${_verbage}\ax"]}
       /return FALSE
@@ -4486,9 +4489,13 @@ sub Bind_command_here(string _type, string _verbage, bool _debug)
   }
 
   | clear the current target
-  /if (${Target.ID}) /squelch /target clear
+  /if (${Target.ID}) {
+    /squelch /target clear
+  }
 
-  /if (PET && ${Pet.ID} && ${Me.Pet.Target.ID}) /pet back off
+  /if (PET) {
+    /if (${Me.Pet.Target.ID} && ${Me.Pet.ID}) /pet back off
+  }
 
 /return TRUE
 
@@ -4513,24 +4520,49 @@ sub Bind_command_take(string _type, string _verbage, bool _debug)
   
  
   | take ports
-  /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find[${Spawn[${Me}].Guild}]} || ${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["Guild Hall"]}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
-  /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["be translocated by"]}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
-  /if (${Window[LargeDialogWindow].Child[LDW_TextBox].Text.Find["Would you like to travel"]}) /nomodkey /notify LargeDialogWindow LDW_YesButton leftmouseup
+  /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find[${Spawn[${Me}].Guild}]} || ${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["Guild Hall"]}) {
+    /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+  }
+  
+  /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["be translocated by"]}) {
+    /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+  }
+  
+  /if (${Window[LargeDialogWindow].Child[LDW_TextBox].Text.Find["Would you like to travel"]}) {
+    /nomodkey /notify LargeDialogWindow LDW_YesButton leftmouseup
+  }
 
   | take taskadds/missions/HA
-  /if (${Window[LargeDialogWindow].Child[LDW_TextBox].Text.Find["You have a heroic adventure"]}) /nomodkey /notify LargeDialogWindow LDW_YesButton leftmouseup
-  /if (${Window[LargeDialogWindow].Child[LDW_TextBox].Text.Find["Would you like to take on the challenge"]}) /nomodkey /notify LargeDialogWindow LDW_YesButton leftmouseup
-  /if (${Window[ConfirmationDialogBox].Child[CD_TextOutPut].Text.Find["Join the expedition"]}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
-  /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["has asked you to join the shared task"]}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+  /if (${Window[LargeDialogWindow].Child[LDW_TextBox].Text.Find["You have a heroic adventure"]}) {
+    /nomodkey /notify LargeDialogWindow LDW_YesButton leftmouseup
+  }
+  
+  /if (${Window[LargeDialogWindow].Child[LDW_TextBox].Text.Find["Would you like to take on the challenge"]}) {
+    /nomodkey /notify LargeDialogWindow LDW_YesButton leftmouseup
+  }
+  
+  /if (${Window[ConfirmationDialogBox].Child[CD_TextOutPut].Text.Find["Join the expedition"]}) {
+    /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+  }
+  
+  /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["has asked you to join the shared task"]}) {
+    /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+  }
 
   | accept highlighted task
-  /if (${Window[TaskSelectWnd]}) /nomodkey /notify TaskSelectWnd TSEL_AcceptButton leftmouseup
+  /if (${Window[TaskSelectWnd]}) {
+    /nomodkey /notify TaskSelectWnd TSEL_AcceptButton leftmouseup
+  }
 
   | rez
-  /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["Blessing of Resurrection"]}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+  /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["Blessing of Resurrection"]}) {
+    /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+  }
 
   | trade window
-  /if (${Window[Tradewnd]}) /nomodkey /notify Tradewnd TRDW_Trade_Button leftmouseup
+  /if (${Window[Tradewnd]}) {
+    /nomodkey /notify Tradewnd TRDW_Trade_Button leftmouseup
+  }
 
   | give trade (inc NPC)
   /if (${Window[GiveWnd]}) /squelch /notify GiveWnd GVW_Give_Button leftmouseup

@@ -24,6 +24,15 @@ REMINDER:
 --------------------
 
 
+210317.01
+- fixed a not found buff issue causing repeat casts
+- small adjustment to crowd control
+- /take
+  some adjustments
+- /here
+  wrapped a pet control a bit better
+- buffing
+  several corrections to stacking
 
 
 210315.02

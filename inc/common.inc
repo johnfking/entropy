@@ -775,7 +775,7 @@ sub check_facing(bool _debug, int _tmpID, string _adjust)
 sub get_assist_info(bool _debug, string _type)
   DEBUG \atget_assist_info\ax(\a-w${_type}\ax)
 
-  /declare _assist spawn local
+  | /declare _assist spawn local
 
   | healers that may not have an assst set
   /if (!${Select[${maCC.Find[stAssistMode].Value},1,2,3,g]} && ${lsAss.Contains[EMPTY]} && ${lsAss.Count} == 1 && ${maCC.Find[swCombatHeal].Value} && ${Raid} && ${Raid.MainAssist.ID} && !${maCC.Find[swManualAssist].Value}) {
@@ -800,6 +800,7 @@ sub get_assist_info(bool _debug, string _type)
   } else /if (${Select[${maCC.Find[stAssistMode].Value},2]} && ${Spawn[pc ${Raid.MainAssist[2].ID}].ID} && !${Spawn[${Raid.MainAssist[2].ID}].Dead} && ${Raid.Members} && !${maCC.Find[swManualAssist].Value}) {
     DEBUG ${sep}assist found${sep}\a-w${Spawn[${Raid.MainAssist[2].ID}].DisplayName}\ax
     /vardata _assist Spawn[pc ${Raid.MainAssist[2]}]
+    | /invoke ${maSD.Add[assist,${Spawn[pc ${Raid.MainAssist[2]}]}]}
     
   | raid assist 3
   } else /if (${Select[${maCC.Find[stAssistMode].Value},3]} && ${Spawn[pc ${Raid.MainAssist[2].ID}].ID} && !${Spawn[${Raid.MainAssist[3].ID}].Dead} && ${Raid.Members} && !${maCC.Find[swManualAssist].Value}) {
@@ -2714,7 +2715,7 @@ sub set_combat_control(bool _debug, int _tmpID)
     /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
   }
 
-  /invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
+  /invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}S
 
   | set the max range so we dont have to keep calculating it over and over
   | /declare _maxrange float local ${Math.Calc[${Spawn[id ${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
@@ -3025,7 +3026,7 @@ sub get_target_wait(bool _debug, int _tmpID, string _waittime)
       }
 
       | pet loss?
-      /if (${maPull.Find[stPullMode].Value.Equal[pet]} && !${Pet.ID} && PET) {
+      /if (${maPull.Find[stPullMode].Value.Equal[pet]} && !${Me.Pet.ID} && PET) {
         /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
       }
 
@@ -5847,6 +5848,7 @@ sub check_buff_cycle_crew(bool _debug)
         | does it stack
         /dquery ${_name} -q "_spell.STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
         DEBUG ${sep}${sep}STACKS: .Buff.STACKS \at${DNQReturn}\ax ${dot} ${_spell.RankName}
+  
         /if (!${DNQReturn}) {
           /continue
         }
@@ -5857,8 +5859,8 @@ sub check_buff_cycle_crew(bool _debug)
         /if (${Bool[${DNQReturn}]}) /continue
 
         | do we have the triggered buff?
-        /dquery ${_name} -q "Me.Buff[${_spell.ID}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
-        DEBUG ${sep}${sep}HAVE: .Buff.ID \at${DNQReturn}\ax ${dot} ${_spell.ID}
+        /dquery ${_name} -q "Me.Buff[${_spell}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+        DEBUG ${sep}${sep}HAVE: .Buff.ID \atslot ${DNQReturn}\ax ${dot} ${_spell.ID}
         /if (${Bool[${DNQReturn}]}) {
           /continue
         }
@@ -6918,7 +6920,7 @@ sub check_minion_cycle(bool _debug, bool _force)
 
   | summon minion
   DEBUG ${sep}minion cycle${sep}\a-wsummon minion\ax (\a-r\ax)
-  /if (!${Pet.ID}) {
+  /if (!${Me.Pet.ID}) {
     /call check_minion_cycle_summon ${_debug}
   }
 
@@ -6930,7 +6932,7 @@ sub check_minion_cycle(bool _debug, bool _force)
 
   | illusions
   DEBUG ${sep}minion cycle${sep}\a-willusions\ax
-  /if (${Pet.ID} && ${Bool[${maMinion.Find[stPetIllusion].Value}]}) {
+  /if (${Me.Pet.ID} && ${Bool[${maMinion.Find[stPetIllusion].Value}]}) {
     /call check_minion_cycle_Illusion ${_debug}
   }
 
@@ -6973,7 +6975,7 @@ sub check_minion_cycle_shrink(bool _debug)
 
   /invoke ${set_data_timer[FALSE, Check_Minion_Shrink, RESTART]}
 
-  /if (${Pet.Height} < 2) /return TRUE
+  /if (${Me.Pet.Height} < 2) /return TRUE
 
   /if (!${cast_data[${_debug}, "${maMinion.Find[stPetShrink].Value}"]}) {
     /return FALSE
@@ -6982,9 +6984,9 @@ sub check_minion_cycle_shrink(bool _debug)
   /declare _count int local 0
 
   | me shrinks
-  /while (${Pet.Height} > 2 && ${_count} < 2) {
+  /while (${Me.Pet.Height} > 2 && ${_count} < 2) {
     ISMEDEAD
-    /call cast ${_debug} ${Pet.ID} FALSE
+    /call cast ${_debug} ${Me.Pet.ID} FALSE
     /varcalc _count ${_count}+1
   }
 
@@ -7003,7 +7005,7 @@ sub check_minion_cycle_buff(bool _debug)
     /invoke ${set_data_timer[${_debug}, Check_Minion_Buff, RESTART]}
   }
 
-  /if (!${Pet.ID}) {
+  /if (!${Me.Pet.ID}) {
     /return FALSE
   }
 
@@ -7041,13 +7043,13 @@ sub check_minion_cycle_buff(bool _debug)
     }
 
     | have the buff?
-    /if (${Pet.Buff[${maData.Find[tmpName].Value}]}) {
+    /if (${Me.Pet.Buff[${maData.Find[tmpName].Value}]}) {
       /continue
     }
     
     /call cast_data ${_debug} "${maData.Find[tmpName].Value}"
 
-    /call cast ${_debug} ${Pet.ID} FALSE
+    /call cast ${_debug} ${Me.Pet.ID} FALSE
     /call cast_cooldown_wait ${_debug}
 
   /next _count
@@ -7068,7 +7070,7 @@ sub check_minion_cycle_summon(bool _debug)
   GETINPUT check_minion_cycle_summon NA|NA
 
   | component check. cause `yo ho needs an allowance
-  /if (PET && !${Pet.ID} && !${Select[${Me.Class.ShortName},BST]}) {
+  /if (PET && !${Me.Pet.ID} && !${Select[${Me.Class.ShortName},BST]}) {
     DEBUG ${sep}checking pet components
     /if (${Select[${Me.Class.ShortName},ENC]} && !${FindItemCount[=Tiny Dagger]}) {
       /invoke ${maData.Add[peterror,RUE]}
@@ -7113,7 +7115,7 @@ sub check_minion_cycle_weapons(bool _debug)
   DEBUG \atcheck_minion_cycle_weapons\ax()
 
   | no pets!!
-  /if (!PET || !${Pet.ID} || !${maMinion.Find[swUsePetGear].Value}) {
+  /if (!PET || !${Me.Pet.ID} || !${maMinion.Find[swUsePetGear].Value}) {
     DEBUG ${break}weapons are off
     /return FALSE
   }
@@ -7123,7 +7125,7 @@ sub check_minion_cycle_weapons(bool _debug)
   GETINPUT check_minion_cycle_weapons NA|NA
 
   | pet has weapons
-  /if ((${Pet.Equipment[primary]} && ${Me.Pet.Equipment[primary]} != 10855) && ${Pet.Equipment[offhand]}) {
+  /if ((${Me.Pet.Equipment[primary]} && ${Me.Pet.Equipment[primary]} != 10855) && ${Me.Pet.Equipment[offhand]}) {
     DEBUG ${break}pet has weapons
     /return TRUE
   }
@@ -7160,7 +7162,7 @@ sub check_minion_cycle_weapons(bool _debug)
     }
   }
 
-  /if (${Pet.ID}) {
+  /if (${Me.Pet.ID}) {
     /call get_minion_summon_weapons ${_debug}
   }
 
@@ -7180,13 +7182,13 @@ sub check_minion_cycle_Illusion(bool _debug)
   GETINPUT check_minion_cycle_Illusion NA|NA
 
   | pet has illusion
-  /if (${Pet.Buff[${Spell[${FindItem[${maMinion.Find[stPetIllusion].Value}].Clicky.SpellID}].Name}]}) {
+  /if (${Me.Pet.Buff[${Spell[${FindItem[${maMinion.Find[stPetIllusion].Value}].Clicky.SpellID}].Name}]}) {
     /return TRUE
   }
 
   | chekck for pet illusion
   /if (${cast_data[${_debug}, "${maMinion.Find[stPetIllusion].Value}"]}) {
-    /call cast ${_debug} ${Pet.ID} FALSE
+    /call cast ${_debug} ${Me.Pet.ID} FALSE
   }
 
 /return TRUE
@@ -7242,7 +7244,7 @@ sub get_openPackSlot(bool _debug, string _orFind)
 sub give_to_pet(string _item, bool _debug)
   DEBUG \atgive_to_pet\ax(\a-w${_item}\ax)
 
-  /call target set  ${Pet.ID}
+  /call target set ${Me.Pet.ID}
 
   ISMEDEAD
   GETINPUT give_to_pet NA|NA
@@ -7266,7 +7268,7 @@ sub give_to_pet(string _item, bool _debug)
 sub get_minion_summon_weapons(bool _debug)
   DEBUG \atget_minion_summon_weapons\ax()
 
-  /if (!PET || !${Pet.ID} || !${maMinion.Find[swUsePetGear].Value}) /return FALSE
+  /if (!PET || !${Me.Pet.ID} || !${maMinion.Find[swUsePetGear].Value}) /return FALSE
 
   /if (!${Me.FreeInventory}) {
     /invoke ${out[0, 0, 34]}
@@ -7997,7 +7999,7 @@ sub get_target_petpull(bool _debug, int _tmpID, int _spCount)
   CHECKTIE
 
   | fix the pet
-  /if (!${Pet.ID} && PET) {
+  /if (!${Me.Pet.ID} && PET) {
     /call cast_cooldown_wait ${_debug}
     /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
   }
@@ -8055,7 +8057,7 @@ sub get_target_petpull(bool _debug, int _tmpID, int _spCount)
 
   /invoke ${out[9, "Fetching${sep}${con_color[${_debug}, ${_tmpID}]}\ax (\a-r${Spawn[${_tmpID}].Distance}\ax)"]}
 
-  /if (!${Pet.ID} && PET) {
+  /if (!${Me.Pet.ID} && PET) {
     /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
   }
 
@@ -8938,7 +8940,7 @@ sub control_area(bool _debug)
     /declare _spawn spawn local
     /for _count 1 to ${SpawnCount[npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value} PS4]}
       | get the first mob in our discovery
-      /vardata _spawn NearestSpawn[${_count}, npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value} PS4]
+      /vardata _spawn NearestSpawn[${_count}, npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value} PS4].ID
       DEBUG ${sep}control _spawn${sep}\a-w${_spawn.ID}\ax
 
       | if this mob is the current assists target, remove it from our need to control
@@ -12281,7 +12283,9 @@ sub marker(string _verbage)
 sub cast_cooldown_wait(bool _debug)
   DEBUG \atcast_cooldown_wait\ax()
 
-  /if (!${Me.SpellInCooldown}) /return TRUE
+  /if (!${Me.SpellInCooldown}) {
+    /return TRUE
+  }
 
   /if (!${maEntropy.Find[swBuffCooldownWait].Value}) {
     /return TRUE
@@ -14372,7 +14376,7 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
       /continue
     }
     
-    | found us a spell, set it and return
+    | found us a spell, set it and return for calling routine
     /if (${_return}) {
       /invoke ${maCD.Add[returnCast,${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}]}
       /return TRUE
@@ -14447,9 +14451,9 @@ sub cast_cycle_debuff(bool _debug, int _tmpID, string _tag, bool _return)
       }
 
       | target has debuff
-      DEBUG target buff ${Target.Buff[${_spell.ID}].ID}
-      /if (${Target.Buff[${_spell.ID}].ID}) {
-        DEBUG ${break} Target.Buff[${_spell.ID}].ID
+      DEBUG ${sep}target deBuff ${Target.Buff[${_spell}].ID}
+      /if (${Target.Buff[${_spell}].ID}) {
+        DEBUG ${break} Target.Buff[${_spell}].ID
         /invoke ${_lidebuff.Advance}
         /continue
       }
@@ -15968,26 +15972,6 @@ sub cast(bool _debug, int _tmpID, string _sub, int _rangeOverride)
   }
 
 /return FALSE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

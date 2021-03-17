@@ -148,6 +148,9 @@ sub set_initialize(bool _debug)
   
   | spawn data map
   /declare maSD map outer
+  
+  | assist
+  /declare _assist spawn outer
 
   | TTL stuff
   /declare maTTL map outer
@@ -278,7 +281,6 @@ sub set_initial_environment(bool _debug)
 
   /call set_data ${_debug} FALSE lsIVU                                    list outer "Group Perfected Invisibility to Undead"|"Perfected Invisibility to Undead"|"Invisibility to Undead"|"Invisibility versus Undead"|"Shauri's Sonorous Clouding"
   /call set_data ${_debug} FALSE lsIV                                     list outer "Shared Perfected Camouflage"|"Shared Camouflage"|"Camouflage"|"Group Perfected Invisibility"|"Invisibility"|"Perfected Invisibility"|"Phase March"|"Nethervoid March"|"Perfected Silent Presence"|"Cloak of Shadows"|"Gather Umbra"|"Invisibility Cloak"|"Perfected Natural Invisibility"|"Perfected Spirit Walk Invisibility"|"Perfected Group Spirit Walk Invisibility"|"Shauri's Sonorous Clouding"|"Selo's Song of Travel"
-  | /call set_data ${_debug} FALSE lsAssistTypes                            list outer g|ma1|ma2|1|2|3
   /call set_data ${_debug} FALSE lsPullTypes                              list outer base|pet|int|nav|multi|watch
   | /call set_data ${_debug} FALSE lsRezBuffTriggers                        list outer "Revival Sickness"|"Resurrection Sickness"
   /call set_data ${_debug} FALSE lsBroadcastTypes                         list outer group|raid|zone|all
@@ -1533,7 +1535,7 @@ sub set_initialize_class_epic(bool _debug)
   /declare epic1 string outer ${sqlite.Result[epic${Me.Class.ShortName} 1 name]}
   /declare epic15 string outer ${sqlite.Result[epic${Me.Class.ShortName} 2 name]}
   /declare epic2 string outer ${sqlite.Result[epic${Me.Class.ShortName} 3 name]}
-
+  
 /return
 
 
