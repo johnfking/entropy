@@ -5679,7 +5679,7 @@ sub check_buff_cycle_crew(bool _debug)
   /declare _name string local FALSE
   /declare _found bool TRUE
   /declare _i int local 0
-  /declare _base2 string local\
+  /declare _base2 string local
   /declare _tmpBuff string local FALSE
 
   DEBUG ${sep}Buff${sep}\a-wCrew\ax
@@ -5816,7 +5816,7 @@ sub check_buff_cycle_crew(bool _debug)
           }
 
           | does it stack
-          /dquery ${_name} -q "_spell.Trigger[${_i}].STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+          /dquery ${_name} -q "Spell[${_spell}].Trigger[${_i}].STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
           DEBUG ${sep}${sep}STACKS: .Trigger.STACKS \at${DNQReturn}\ax ${dot} ${_spell.RankName}
           /if (!${DNQReturn}) {
             /continue
@@ -5846,7 +5846,7 @@ sub check_buff_cycle_crew(bool _debug)
         DEBUG ${sep}\awTrigger\ax${sep}\a-w${_spell.RankName}\ax ID:${_spell.ID}
 
         | does it stack
-        /dquery ${_name} -q "_spell.STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+        /dquery ${_name} -q "Spell[${_spell}].STACKS" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
         DEBUG ${sep}${sep}STACKS: .Buff.STACKS \at${DNQReturn}\ax ${dot} ${_spell.RankName}
   
         /if (!${DNQReturn}) {
@@ -8934,11 +8934,16 @@ sub control_area(bool _debug)
 
   /declare _agroCount int local 0
   /declare _count int local 0
-
+  /declare _spcount int local 0
 
   /if (NEXT) {
     /declare _spawn spawn local
-    /for _count 1 to ${SpawnCount[npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value} PS4]}
+    /varset _spcount ${SpawnCount[npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value} PS4]}
+    /if (!${_spcount}) {
+      /return ${_agroCount}
+    }
+    /for _count 1 to ${_spcount}
+
       | get the first mob in our discovery
       /vardata _spawn NearestSpawn[${_count}, npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value} PS4].ID
       DEBUG ${sep}control _spawn${sep}\a-w${_spawn.ID}\ax
@@ -10080,12 +10085,14 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
 
     | forced delay
     /if (${maNuke.Find[stNukeDelay].Value}) {
+      DEBUG ${sep} nuke delay
       /if (${maNuke.Find[swNukeWhackAMole].Value} && !${Me.Sitting} && !${Me.Mount.ID}) {
         /sit
       }
       /delay 10s !${Me.Casting.ID}
       /delay 2.5s
-      /invoke ${set_data_timer[${_debug}, Nuke_Delay, RESTART]}
+      /invoke ${set_data_timer[${_debug}, Nuke_Delay, ${maNuke.Find[stNukeDelay].Value}]}
+      DEBUG ${sep}delaying${sep}\a-w${timer_Nuke_Delay}\ax
       /delay ${timer_Nuke_Delay}
     } else /if (!${maNuke.Find[stNukeDelay].Value}) {
       /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,STUNNED]}) {

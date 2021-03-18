@@ -24,6 +24,16 @@ REMINDER:
 --------------------
 
 
+
+
+210318.01
+- area control adjustment for mezzing when there is nothing to control
+- beat another _spell variable into the ground
+- timer adjustment to the /nuke delay mechanics for TLP #deathofme
+
+
+
+
 210317.01
 - fixed a not found buff issue causing repeat casts
 - small adjustment to crowd control

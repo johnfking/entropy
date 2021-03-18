@@ -2209,6 +2209,15 @@ sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
     /call do_loot_corpse ${maDebug.Find[loot].Value}
     /return
   }
+  
+  /if (${_type.Equal[nearest]}) {
+    /declare _mycount spawn local
+    /vardata _mycount NearestSpawn[0, npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value}].ID
+    
+    /echo ${_mycount.ID}
+    
+    /return
+  }  
 
 
   /if (${_type.Equal[sort]}) {
