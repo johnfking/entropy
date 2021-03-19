@@ -24,14 +24,26 @@ REMINDER:
 --------------------
 
 
+210319.01
+- /nuke
+  whole-lot-of debugs added
+- mezing
+  several corrections to the spawn IDs being passed around
+  adjsuted the min ae count requirement
+  fixed a missing { on a timer check
+- cast_data()
+  added in melee abilities (bash, kick, so on) check
+- /gather (group) fixed it.. again..
+- gift of manna casting
+  redesigned due to the new spell type changes for casting
+- lsPosition is now editable and retains the settings
+- there was more. but i forgot what it was
 
 
 210318.01
 - area control adjustment for mezzing when there is nothing to control
 - beat another _spell variable into the ground
 - timer adjustment to the /nuke delay mechanics for TLP #deathofme
-
-
 
 
 210317.01

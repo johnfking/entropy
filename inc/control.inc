@@ -3811,7 +3811,7 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
     /nav id ${Target.ID} |dist=${maHome.Find[stHomeVariance].Value} log=${maEntropy.Find[swNavLogSpew].Value}
 
   | nav to closest spawn matching name
-  } else /if (${Target.ID} && ${Bool[${_verbage}]} && ${_verbage.NotEqual[loc]}) {
+  } else /if (${Bool[${_verbage}]} && ${_verbage.NotEqual[loc]}) {
     /if (!${Spawn[${_verbage}].ID}) {
       /invoke ${out[22, "not in zone${sep}\a-w${_verbage}\ax"]}
       /return FALSE

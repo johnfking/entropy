@@ -1146,8 +1146,8 @@ sub set_initialize_map_character_environment(bool _debug)
 |** control: home **|
   | control list for facing
   /call set_data ${_debug} FALSE lsCombatPosition                         list outer free|left|right|rear|face|random
-  | user list for preferences on facing
-  /call set_data ${_debug} FALSE lsPosition                               list outer free|left|left|right|right|rear|rear|rear
+  | user list for preferences on facing (what they can edit)
+  /call set_data_list ${_debug} maHome lsPosition                         free|left|left|right|right|rear|rear|rear
   /call set_data_map ${_debug} maHome stCombatPosition                    free                          "${auxnum} where you will stick to the mob"
   /call set_data ${_debug} maHome swHomeMarker                            map outer FALSE
   /call set_data_map ${_debug} maHome stHomeVariance                      6                             "${auxnum} acceptable buffer range for being home"

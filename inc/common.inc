@@ -8872,9 +8872,8 @@ sub control_routine(bool _debug)
     }
   }
 
-  | if we have more then one mob in camp,
-  /if (${_countArea} > 1) {
-  | /if (${_countArea} && ${_countArea} < AE# || ${_aeMezDone}) {
+  | if we have more then one mob in camp, Not including the assists target
+  /if (${_countArea}) {
     DEBUG ${sep}single target mez
 
     | mez something for christs sake...
@@ -8884,26 +8883,30 @@ sub control_routine(bool _debug)
       
       | skip assists target
       /if (${_mzcheck.Key} == TARGET) {
+        DEBUG ${sep}target${sep}\a-wcurrent assist target\ax
         /invoke ${_mzcheck.Advance}
         /continue
       }
       
       | skip mobs with timers
       /if (${Defined[timer_mez_ID${_mzcheck.Key}]}) {
-        | /if (${timer_mez_ID${_mzcheck.Key}})
+        /if (${timer_mez_ID${_mzcheck.Key}}) {
+          DEBUG ${sep}target timer${sep}\a-w${timer_mez_ID${_mzcheck.Key}}\ax
           /invoke ${_mzcheck.Advance}
           /continue
-        | }
+        }
       }      
       
       | skip exempt targets
       /if (${_mzcheck.Value.Equal[EXEMPT]}) {
+        DEBUG ${sep}target${sep}\a-wEXEMPT\ax
         /invoke ${_mzcheck.Advance}
         /continue
       }
 
       | skip charm targets
       /if (${_mzcheck.Value.Equal[CHARM]}) {
+        DEBUG ${sep}target${sep}\a-wCHARM\ax
         /invoke ${_mzcheck.Advance}
         /continue
       }
@@ -8911,7 +8914,7 @@ sub control_routine(bool _debug)
       ISMEDEAD
       GETOVERHERE
       CHECKEXIT
-      /call control_mez ${_debug} ${Spawn[npc ${_mzcheck.Key}]}
+      /call control_mez ${_debug} ${Spawn[${_mzcheck.Key}].ID}
       /invoke ${_mzcheck.Advance}
     }
     /varset _aeMezDone FALSE
@@ -9199,7 +9202,7 @@ sub control_mezae(bool _debug)
 sub control_mez(bool _debug, spawn _spawn)
   DEBUG \atcontrol_mez\ax(${_spawn.DisplayName})
 
-  /if (!${_tmpID}) {
+  /if (!${_spawn.ID}) {
     /return FALSE
   }
 
@@ -9238,12 +9241,12 @@ sub control_mez(bool _debug, spawn _spawn)
     GETOVERHERE
     GETINPUT
 
-    /if (!${Spawn[${_tmpID}].LineOfSight}) {
+    /if (!${Spawn[${_spawn.ID}].LineOfSight}) {
       /varcalc _resistCount ${_resistCount} + 1
       /continue
     }
 
-    | /call target set ${_tmpID}
+    | /call target set ${_spawn.ID}
     /if (${Target.Mezzed.Duration.TotalSeconds} > 18) {
       /invoke ${set_timer[${_debug}, timer_mez_ID${_spawn.ID}, ${Target.Mezzed.Duration.TotalSeconds}s]}
       /return TRUE
@@ -9252,7 +9255,7 @@ sub control_mez(bool _debug, spawn _spawn)
     | mez ready?
 
     /delay 2.25s !${Me.SpellInCooldown}    
-    /call cast_cycle_debuff ${maDebug.Find[mez].Value} ${_tmpID} mez
+    /call cast_cycle_debuff ${maDebug.Find[mez].Value} ${_spawn.ID} mez
 
     /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,IMMUNE,TAKEHOLD]}) {
 
@@ -9274,7 +9277,7 @@ sub control_mez(bool _debug, spawn _spawn)
 
       }
 
-      /invoke ${set_timer[${_debug}, timer_mez_ID${_tmpID}, ${Spell[${madeBuff.Find[stMez].Value}].Duration.Seconds}s]}
+      /invoke ${set_timer[${_debug}, timer_mez_ID${_spawn.ID}, ${Spell[${madeBuff.Find[stMez].Value}].Duration.Seconds}s]}
       /return TRUE
 
     } else /if (${Select[${maData.Find[stCastReturn].Value},RESISTED,RESISTEDYOU]}) {
@@ -9958,6 +9961,7 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
   | redirect to pb ae nukes if conditions met
   /if (AE#) {
     /if (${SpawnCount[npc radius ENV PS4]} >= AE#) {
+      DEBUG ${sep}doing ae things
       /declare _liae listiterator local
       /vardata _liae lsLineNuke.First.Clone
       /while (!${_liae.IsEnd}) {
@@ -9988,7 +9992,8 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
   /vardata _liNuke lsLineNuke.First.Clone
   /while (!${_liNuke.IsEnd}) {
 
-   /if (${Me.PctMana} < 2 && ${lsClassCast.Contains[${Me.Class.ShortName}]}) {
+    /if (${Me.PctMana} < 2 && ${lsClassCast.Contains[${Me.Class.ShortName}]}) {
+      DEBUG ${sep}manna < 2%
       /return FALSE
     }
     
@@ -9996,14 +10001,18 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
     ISMEDEAD
     GETOVERHERE
     CHECKEXIT cast_cycle_nuke
+    
+    DEBUG ${sep}passed base checks
 
     /if (${target[isdead, ${_tmpID}]}) {
+      DEBUG ${sep}Target dead
       /return FALSE
     }
 
     | stopnuke %
     /if (${maNuke.Find[stPctStopNuke].Value}) {
       /if (${Spawn[${_tmpID}].PctHPs} <= ${maNuke.Find[stPctStopNuke].Value}) {
+        DEBUG ${sep}mob %HP below ${maNuke.Find[stPctStopNuke].Value}
         /return FALSE
       }
     }
@@ -10012,12 +10021,14 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
 
     | check the switch
     /if (!${Bool[${maNuke.Find[swNuke${_liNuke.Value}].Value}]}) {
+      DEBUG ${sep}switched off${sep}\a-w${maNuke.Find[stNuke${_liNuke.Value}].Value}\ax
       /invoke ${_liNuke.Advance}
       /continue
     }
 
     | check the name
     /if (!${Bool[${maNuke.Find[stNuke${_liNuke.Value}].Value}]}) {
+      DEBUG ${sep}no name
       /invoke ${_liNuke.Advance}
       /continue
     }
@@ -10025,6 +10036,7 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
     | check matching tag for failure
     /if (${Bool[${_tag}]}) {
       /if (!${lsNuke${_liNuke.Value}Tag.Contains[${_tag}]}) {
+        DEBUG ${sep}invalid passed _tag
         /invoke ${_liNuke.Advance}
         /continue
       }
@@ -10086,11 +10098,12 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
     | forced delay
     /if (${maNuke.Find[stNukeDelay].Value}) {
       DEBUG ${sep} nuke delay
-      /if (${maNuke.Find[swNukeWhackAMole].Value} && !${Me.Sitting} && !${Me.Mount.ID}) {
-        /sit
-      }
       /delay 10s !${Me.Casting.ID}
       /delay 2.5s
+      /if (${maNuke.Find[swNukeWhackAMole].Value} && !${Me.Sitting} && !${Me.Mount.ID}) {
+        DEBUG ${sep}sitting
+        /sit
+      }
       /invoke ${set_data_timer[${_debug}, Nuke_Delay, ${maNuke.Find[stNukeDelay].Value}]}
       DEBUG ${sep}delaying${sep}\a-w${timer_Nuke_Delay}\ax
       /delay ${timer_Nuke_Delay}
@@ -13124,6 +13137,12 @@ sub check_buff_cycle_temp(bool _debug)
 
     | get the name to something usable and proper case
     /varset _name ${proper_case[name, "${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}"]}
+    /if (${Spawn[${_name}].Dead}) {
+      /varcalc _countToon ${_countToon}+1
+      /continue
+    }
+    
+    
     /vardata _spawn Spawn[pc ${_name}].ID
      
     DEBUG ${sep}_name${sep}\ay${_spawn.DisplayName}\ax
@@ -15261,9 +15280,9 @@ sub cast_data(bool _debug, string _type)
     } else /if (${Select[${_ligt.Value},spell]}) {
       /if (${Me.Book[${Spell[${_type}].RankName}]}) {
         DEBUG ${sep}_type${sep}\agSPELL\ax
-        /vardata _spell Spell[${_type}]
         /invoke ${maCD.Add[type,SPELL]}
         /invoke ${maCD.Add[id,${Me.Spell[${_type}].ID}]}
+        /vardata _spell Spell[${_type}]
         /if (${Me.SpellReady[${_spell.RankName}]}) {
           /invoke ${maCD.Add[ready,TRUE]}
         }
@@ -15284,12 +15303,11 @@ sub cast_data(bool _debug, string _type)
       }
 
   | Melee Discs
-    } else /if (${_ligt.Value.Equal[disc]}) {
+    } else /if (${Select[${_ligt.Value},disc]}) {
       /if (${Me.CombatAbility[${Spell[${_type}].RankName}]}) {
         DEBUG ${sep}_type${sep}\agDISC\ax
         /vardata _spell Me.CombatAbility[${Me.CombatAbility[${Spell[${_type}].RankName}]}]
         /invoke ${maCD.Add[type,DISC]}
-        | /invoke ${maCD.Add[id,${Me.CombatAbility[${_type}].ID}]}
         /if (${Me.CombatAbilityReady[${_spell}]}) {
           /invoke ${maCD.Add[ready,TRUE]}
         }
@@ -15297,7 +15315,7 @@ sub cast_data(bool _debug, string _type)
       }
 
   | Items
-    } else /if (${_ligt.Value.Equal[item]}) {
+    } else /if (${Select[${_ligt.Value},item]}) {
       /if (${FindItem[=${_type}].ID}) {
         DEBUG ${sep}_type${sep}\agITEM\ax
         /vardata _spell FindItem[=${_type}].Spell
@@ -15306,9 +15324,18 @@ sub cast_data(bool _debug, string _type)
          /if (${Me.ItemReady[=${_type}]}) {
           /invoke ${maCD.Add[ready,TRUE]}
         }
+        /break
       }
-      /break
-    }
+    
+  | Abilities (bash, kick, so on)
+    } else /if (${Select[${_ligt.Value},ability]}) {
+      DEBUG ${sep}_type${sep}\a-wABILITY\ax
+      /if (${Me.AbilityReady[${_type}]}) {
+        /invoke ${maCD.Add[ready,TRUE]}
+        /break
+      }  
+      
+    }  
 
     /invoke ${_ligt.Advance}
   }
@@ -15322,6 +15349,7 @@ sub cast_data(bool _debug, string _type)
     /invoke ${_lshs.Advance}
   }
 
+  DEBUG ${sep}returning${sep}\a-w${maCD.Find[ready].Value}\ax
 /return ${maCD.Find[ready].Value}
 
 
@@ -15606,12 +15634,16 @@ sub cast(bool _debug, int _tmpID, string _sub, int _rangeOverride)
     /if (${_tmpID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]} && COMBAT) {
 
       /declare _ligom listiterator local
+      /declare _tmpspell spell
+      /vardata _tmpspell _spell
       /vardata _ligom lsGoM.First.Clone
         /while (!${_ligom.IsEnd}) {
           /if (${Select[${_ligom.Value},empty]}) /break
           /if (${cast_data[${_debug}, "${_ligom.Value}"]}) {
             /vardata _spell Spell[${_ligom.Value}].RankName
             /break
+          } else {
+            /vardata _spell _tmpspell
           }
         /invoke ${_ligom.Advance}
       }
