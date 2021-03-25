@@ -76,6 +76,7 @@
 #define MODE ${swModeToken}
 #define BARD ${Select[${Me.Class.ShortName},BRD]}
 #define TMPIDDEAD "/if (${target[isdead, ${_tmpID}]}) /return FALSE"
+| #define TLP ${maEntropy.Find[swTLP].Value}
 
 
 #include entropy\inc\initialize.inc
@@ -121,7 +122,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210319.01
+  /call set_data FALSE maEnv build                          map outer 210325.01
   /call set_data FALSE maEnv schema                         map outer 1.43
   /call set_data FALSE maEnv repo                           map outer 210216.01
 
@@ -247,9 +248,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
       }
 
       /if (!${timer_Check_Target}) {
-        | /if (!${maOver.Find[swTargetClear].Value}) {
-          /invoke ${target[isdead, TARGET]}
-        | }
+        /invoke ${target[isdead, TARGET]}
         /invoke ${set_data_timer[FALSE, Check_Target, RESTART]}
       }
 

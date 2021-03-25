@@ -775,37 +775,34 @@ sub check_facing(bool _debug, int _tmpID, string _adjust)
 sub get_assist_info(bool _debug, string _type)
   DEBUG \atget_assist_info\ax(\a-w${_type}\ax)
 
-  | /declare _assist spawn local
-
   | healers that may not have an assst set
   /if (!${Select[${maCC.Find[stAssistMode].Value},1,2,3,g]} && ${lsAss.Contains[EMPTY]} && ${lsAss.Count} == 1 && ${maCC.Find[swCombatHeal].Value} && ${Raid} && ${Raid.MainAssist.ID} && !${maCC.Find[swManualAssist].Value}) {
     DEBUG ${sep}healer default raid main assist
-    /vardata _assist Spawn[pc ${Raid.MainAssist}]
+    /vardata assistData Spawn[${Raid.MainAssist.ID}].ID
 
   } else /if (!${Select[${maCC.Find[stAssistMode].Value},1,2,3,g]} && ${lsAss.Contains[EMPTY]} && ${lsAss.Count} == 1 && ${maCC.Find[swCombatHeal].Value} && !${Raid.Members} && ${Group.Members} && ${Group.MainAssist.ID} && !${maCC.Find[swManualAssist].Value}) {
     DEBUG ${sep}healer default group assist
-    /vardata _assist Spawn[pc ${Group.MainAssist}]
+    /vardata assistData Spawn[${Group.MainAssist.ID}].ID
 
   | other group assist
-  } else /if (${Select[${maCC.Find[stAssistMode].Value},g]} && ${Spawn[pc ${Group.MainAssist.ID}].ID} && !${Spawn[${Group.MainAssist.ID}].Dead} && ${Group.Members} && !${maCC.Find[swManualAssist].Value}) {
+  } else /if (${Select[${maCC.Find[stAssistMode].Value},g]} && ${Spawn[${Group.MainAssist.ID}].ID} && !${Spawn[${Group.MainAssist.ID}].Dead} && ${Group.Members} && !${maCC.Find[swManualAssist].Value}) {
     DEBUG ${sep}assist found${sep}\a-w${Spawn[${Group.MainAssist.ID}].DisplayName}\ax
-    /vardata _assist Spawn[pc ${Group.MainAssist}]
+    /vardata assistData Spawn[${Group.MainAssist.ID}].ID
     
   | raid assist 1
-  } else /if (${Select[${maCC.Find[stAssistMode].Value},1]} && ${Spawn[pc ${Raid.MainAssist[1].ID}].ID} && !${Spawn[${Raid.MainAssist[1].ID}].Dead} && ${Raid.Members} && !${maCC.Find[swManualAssist].Value}) {
+  } else /if (${Select[${maCC.Find[stAssistMode].Value},1]} && ${Spawn[${Raid.MainAssist[1].ID}].ID} && !${Spawn[${Raid.MainAssist[1].ID}].Dead} && ${Raid.Members} && !${maCC.Find[swManualAssist].Value}) {
     DEBUG ${sep}assist found${sep}\a-w${Spawn[${Raid.MainAssist[1].ID}].DisplayName}\ax
-    /vardata _assist Spawn[pc ${Raid.MainAssist[1]}]
+    /vardata assistData Spawn[${Raid.MainAssist[1].ID}].ID
     
   | raid assist 2
-  } else /if (${Select[${maCC.Find[stAssistMode].Value},2]} && ${Spawn[pc ${Raid.MainAssist[2].ID}].ID} && !${Spawn[${Raid.MainAssist[2].ID}].Dead} && ${Raid.Members} && !${maCC.Find[swManualAssist].Value}) {
+  } else /if (${Select[${maCC.Find[stAssistMode].Value},2]} && ${Spawn[${Raid.MainAssist[2].ID}].ID} && !${Spawn[${Raid.MainAssist[2].ID}].Dead} && ${Raid.Members} && !${maCC.Find[swManualAssist].Value}) {
     DEBUG ${sep}assist found${sep}\a-w${Spawn[${Raid.MainAssist[2].ID}].DisplayName}\ax
-    /vardata _assist Spawn[pc ${Raid.MainAssist[2]}]
-    | /invoke ${maSD.Add[assist,${Spawn[pc ${Raid.MainAssist[2]}]}]}
+    /vardata assistData Spawn[${Raid.MainAssist[2].ID}]
     
   | raid assist 3
-  } else /if (${Select[${maCC.Find[stAssistMode].Value},3]} && ${Spawn[pc ${Raid.MainAssist[2].ID}].ID} && !${Spawn[${Raid.MainAssist[3].ID}].Dead} && ${Raid.Members} && !${maCC.Find[swManualAssist].Value}) {
+  } else /if (${Select[${maCC.Find[stAssistMode].Value},3]} && ${Spawn[${Raid.MainAssist[2].ID}].ID} && !${Spawn[${Raid.MainAssist[3].ID}].Dead} && ${Raid.Members} && !${maCC.Find[swManualAssist].Value}) {
     DEBUG ${sep}assist found${sep}\a-w${Spawn[${Raid.MainAssist[3].ID}].DisplayName}\ax
-    /vardata _assist Spawn[pc ${Raid.MainAssist[3]}]
+    /vardata assistData Spawn[${Raid.MainAssist[3].ID}]
 
   } else /if (!${lsAss.Contains[EMPTY]} && ${lsAss.Count} >= 1 || ${maCC.Find[swManualAssist].Value}) {
     DEBUG list
@@ -822,7 +819,7 @@ sub get_assist_info(bool _debug, string _type)
           /invoke ${_ligai.Advance}
           /continue
         }
-        /vardata _assist Spawn[${_ligai.Value}]
+        /vardata assistData Spawn[${_ligai.Value}]
 
         /invoke ${_ligai.Advance}
       } 
@@ -831,21 +828,21 @@ sub get_assist_info(bool _debug, string _type)
 
   
   | no assist found?!
-  /if (!${_assist.ID})   {
+  /if (!${assistData.ID})   {
     DEBUG ${sep}\arNO\ax ASSIST FOUND
     /return FALSE
   }
 
   | return the assist info requested
   /if (${_type.Equal[name]}) {
-    DEBUG ${sep}returning assist${sep}\a-w${_assist}\ax
-    /return ${_assist.DisplayName}
+    DEBUG ${sep}returning assist${sep}\a-w${assistData}\ax
+    /return ${assistData.DisplayName}
   } else /if (${_type.Equal[id]}) {
-    DEBUG ${sep}returning assist${sep}\a-w${_assist.ID}\ax
-    /return ${_assist.ID}
+    DEBUG ${sep}returning assist${sep}\a-w${assistData.ID}\ax
+    /return ${assistData.ID}
   } else /if (${_type.Equal[both]}) {
-    DEBUG ${sep}returning assist${sep}\a-w|${_assist}|${_assist.ID}\ax
-    /return |${_assist.DisplayName}|${_assist.ID}
+    DEBUG ${sep}returning assist${sep}\a-w|${assistData}|${assistData.ID}\ax
+    /return |${assistData.DisplayName}|${assistData.ID}
   } else {
     DEBUG ${sep}returning assist${sep}\arFALSE\ax
     /invoke ${out[0, 0, 61]}
@@ -1340,7 +1337,7 @@ sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOver
       }
     }
     | check AE range
-    /if (${Select[${_spell.TargetType},Group V2]}) {
+    /if (${Select["${_spell.TargetType}",Group V2]}) {
       /if (${Spawn[${_tmpID}].Distance} > ${_spell.AERange}) {
         /return FALSE
       }
@@ -3177,7 +3174,7 @@ sub pull_hardstop(bool _debug)
   | each toon
   /while (${_countToon} <= ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}) {
     
-    /if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
+    /if (${SpawnCount[npc radius ENV PS4 targetable]}) {
       /return FALSE
     }
 
@@ -3238,7 +3235,7 @@ sub pull_hardstop(bool _debug)
     /varcalc _countToon ${_countToon}+1
   }
 
-  /if (${_found} && !${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
+  /if (${_found} && !${SpawnCount[npc radius ENV PS4 targetable]}) {
     /invoke ${set_data_timer[FALSE, Check_Pull_Hardstop, ${maPull.Find[stHardStopDuration].Value}s]}
     /return TRUE
   }
@@ -3677,23 +3674,20 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
           /varset _tmpHPAdj ${Spawn[id ${_tmpID}].PctHPs}
         }
 
+        | is this a priority mob?
+        /if (${lsZoneNoMez.Contains[${Spawn[id ${_tmpID}].DisplayName}]} || ${lsZoneNamed.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
+          DEBUG ${sep}Priority Mob${sep}\a-w${Spawn[id ${_tmpID}].DisplayName}\ax
+          /invoke ${maCC.Add[swSetCombat,TRUE]}
+          /return TARGET
+        }
+
+
         | get the lowest HP mob if we can
         /if (${_tmpHPAdj} <= ${_mobHP}) {
           /varset _mobHP ${Spawn[id ${_tmpID}].PctHPs}
           /varset stAssTarID ${_tmpID}
           /invoke ${maCC.Add[swSetCombat,TRUE]}
           DEBUG ${sep}T2K${sep}\awTARGET\aw${sep}\ay${Spawn[TARGET].DisplayName}\ay ${sep} ${If[${Spawn[TARGET].LineOfSight},\ag${Spawn[TARGET].Distance}\ax,\ar${Spawn[TARGET].Distance}\ax]}
-        }
-
-        | is this a priority mob?
-        /if (${lsZoneNoMez.Contains[${Spawn[id ${_tmpID}].DisplayName}]} || ${lsZoneNamed.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
-          DEBUG ${sep}Priority Mob${sep}\a-w${Spawn[id ${_tmpID}].DisplayName}\ax
-          | off tanks have to sort by a different position
-          | /if (TARGET && ${Me.XTarget[1].ID} == ${_tmpID}) {
-          |   DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wMe.XTarget[1].ID != _tmpID\ax
-          |   /continue
-          | }
-          /return TARGET
         }
 
       /next _count
@@ -3703,9 +3697,18 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
     /if (!AUTO && !${Select[${_tag},petfarm]}) {
       /return 0
     }
-
+    
     /if (TARGET) {
       /return TARGET
+    }    
+
+    | check for pets once everything else is dead    
+    /if (!TARGET && ${maPull.Find[stPullPetWatch].Value}) {
+      /if (${SpawnCount[npcpet radius ${maPull.Find[stPullPetWatch].Value} targetable]}) {
+        SWBUF ${sep}killing closest NPC pet
+        /varset _tmpID ${NearestSpawn[npcpet radius ${maPull.Find[stPullPetWatch].Value} targetable].ID}
+        /invoke ${maCC.Add[swSetCombat,TRUE]}
+      }
     }
 
     | no target, try next step
@@ -3938,8 +3941,7 @@ sub do_rest(bool _debug)
   DEBUG ${sep}loop${sep}\a-wloopneedmorerest\ax start
   /varset _needrest FALSE
   CHECKREZ
-
-
+  
   /if (((!${maEnv.Find[swRestCombat].Value} || ${Me.CombatState.Equal[combat]}) && ${SpawnCount[npc OVERLOS radius ENV PS4]}) || !AUTO) {
     /varset _needrest FALSE
     /if (${Me.State.NotEqual[STAND]}) /stand
@@ -4270,7 +4272,6 @@ sub get_key_DBLOC(bool _debug, string _key)
 sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, string _add_delete, string _verbage)
 
   /if (${maDebug.Find[edit].Value}) {
-    /varset _debug TRUE
     DEBUG \atdo_raw_edit\ax
     DEBUG ${sep}_silent${sep}\a-w${_silent}\ax
     DEBUG ${sep}_variable${sep}\a-w${_variable}\ax
@@ -4292,7 +4293,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
   }
 
   | error for add/delete
-  /if (${_variable.Left[2].Equal[ls]} && (!${Select[${_add_delete},add,delete,override]} && ${_value.NotEqual[clear]})) {
+  /if (${_variable.Left[2].Equal[ls]} && (!${Select[${_add_delete},add,delete,override,overwrite]} && ${_value.NotEqual[clear]})) {
     /invoke ${out[16, 0, 10]}
     /return FALSE
   }
@@ -4405,8 +4406,20 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
     }
 
   | add to an existig or default value
-  } else /if (${_add_delete.Equal[add]}) {
+  } else /if (${Select[${_add_delete},add,overwrite]}) {
     DEBUG ${sep}\ayadd\ax
+    
+    | FORCE A CLEAR BEFORE AN OVERWRITE
+    /if (${Select[${_add_delete},overwrite]}) {
+      /declare _tmpLst list local
+      /invoke ${_tmpLst.Delimiter["|"]}
+      /sqlite query "${DBcharacter}" dummy SELECT * FROM ${_DBLOC.Arg[1,|]} WHERE env_var='${_variable}';
+      /if (!${sql_check[${_debug}, dummy, do_raw_edit, SELECT]}) /endmacro
+      /invoke ${_tmpLst.Append[${sqlite.Result[dummy 1 value]}]}
+      DEBUG ${sep}DB current count${sep}\aw${_tmpLst.Count}\ax
+      /varset _list TRUE
+    }
+    
     /declare _tmpList list local
     /invoke ${_tmpList.Delimiter["|"]}
 
@@ -4978,14 +4991,13 @@ sub check_buff_cycle_now(bool _debug)
       /continue
     }
 
-    | DEBUG ${sep}${_spell.Name} :: ${Me.Buff[${_spell.Name}].ID} || ${Me.Song[${_spell.Name}].ID}
     | do we have it, now that we know what it is?
-    /if (${Me.Buff[${_spell.Name}].ID} || ${Me.Song[${_spell.Name}].ID}) {
-      DEBUG ${break}have buff/song
+    /if (${have_buff[${_debug}]}) {
+      DEBUG ${break}have_buff/song (\a-r${_spell.Name}\ax)
       /invoke ${_licountself.Advance}
-      /continue
+      /continue    
     }
-
+    
     | cycle the tags
     /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_licountself.Value} ${Me.DisplayName} "${maBuff.Find[stBuff${_licountself.Value}].Value}" check_buff_cycle_now
     /if (!${Macro.Return}) {
@@ -5786,7 +5798,7 @@ sub check_buff_cycle_crew(bool _debug)
       /call cast_data ${_debug} "${maCD.Find[tmpName].Value}"
 
       | distance check
-      /if (${Select[${_spell.TargetType},Group v2]}) {
+      /if (${Select["${_spell.TargetType}",Group v2]}) {
         DEBUG ${sep}distance check${sep}\a-wGroup v2\ax
         /if (${Spawn[pc ${_name}].Distance} > ${_spell.AERange}) /continue
       } else {
@@ -6019,7 +6031,7 @@ sub check_buff_cycle_others(bool _debug, string _type)
       /call cast_data ${_debug} "${maCD.Find[tmpName].Value}"
       
       | distance check
-      /if (${Select[${_spell.TargetType},Group v2]}) {
+      /if (${Select["${_spell.TargetType}",Group v2]}) {
         /if (${Spawn[pc ${_toon}].Distance} > ${_spell.AERange}) {
           DEBUG ${break}distance check${sep}\a-wGroup v2\ax
           /continue
@@ -8815,110 +8827,112 @@ sub vendor_buy( bool _debug, string _itemtoBuy, int _buyAmount)
 
 
 |***
- * note: this is used to cycle the control map and handle the IDs in it. final return will be an unmezzed mob ID, if any
- * use: /call check_control_routine DEBUG
+ * note: this is used to cycle the control type maps and handle the IDs in it. final return will be an uncounted for mob ID, if any
+ * use: /call check_control_routine DEBUG CONTROLTYPE
  ***|
-sub control_routine(bool _debug)
-  DEBUG \atcontrol_routine\ax()
+sub control_routine(bool _debug, string _type)
+  DEBUG \atcontrol_routine\ax(\a-w${_type}\ax)
 
-  /if (!AUTO || SAFEZONE) /return FALSE
-  /if (!${madeBuff.Find[swMez].Value}) /return FALSE
-  /if (!${maCC.Find[swCombatControl].Value}) /return FALSE
-  /delay 1
+  /if (!AUTO || SAFEZONE) {
+    /return FALSE
+  }
 
   GETINPUT control_routine NA|NA
   CHECKEXIT
-  
+
   | slow this shit down so we can read it...
   /if (${_debug}) {
     /delay 1s
   }
 
-  | ID for unmezzed/short mob
-  /declare _mezzID int local 0
+  /declare _count int local 0
+
+  | check control map for any mobs dead or gone
+  /invoke ${control_map[${_debug}, dead]}
   | count of uncontrolled mobs in area
   /declare _countArea int local 0
 
-  | ae mez marker
-  /declare _aeMezDone bool local FALSE
 
-  /declare _count int local 0
-  
-  | check control map for any mobs dead or gone
-  /invoke ${control_map[${_debug}, dead]}
-  
-  | find unaccounted mobs in my area
-  | returns the # of mobs that do not have a current mez timer associated
-  /varset _countArea ${control_area[${_debug}]}
-  DEBUG _countArea${sep}\ay${_countArea}\ax
-
-  | if no mobs are returned we bail
-  /if (!${_countArea}) {
-    DEBUG ${break}\arNo\ax mez targets${sep}\a-w${_countArea}\ax
+  /if (${Select[${_type},Mez]} && ${madeBuff.Find[swMez].Value}) {
+    /if (!${maCC.Find[swCombatControl].Value}) /return FALSE
     /delay 1
-    /return TRUE
-  }
 
-  | if ${control_area returns more then the toons AE setting, hit the AE routines
-  /if (AE#) {
-    /if (${_countArea} >= AE#) {
-      | do we have an ae mez spell
-      /call cast_cycle_debuff ${maDebug.Find[mez].Value} 0 mezae TRUE          
-      /if (${Bool[${maCD.Find[returnCast].Value}]}) {
-         DEBUG ${sep}ae mez
-        /call control_mezae ${_debug}
-        /varset _aeMezDone TRUE
+    | ID for unmezzed/short mob
+    /declare _mezzID int local 0
+
+    | ae mez marker
+    /declare _aeMezDone bool local FALSE
+
+    | find unaccounted mobs in my area
+    | returns the # of mobs that do not have a current mez timer associated
+    /varset _countArea ${control_area[${_debug}, Mez]}
+    DEBUG _countArea${sep}\ay${_countArea}\ax
+
+    | if no mobs are returned we bail
+    /if (!${_countArea}) {
+      DEBUG ${break}\arNo\ax mez targets${sep}\a-w${_countArea}\ax
+      /delay 1
+      /return TRUE
+    }
+
+    | if ${control_area returns more then the toons AE setting, hit the AE routines
+    /if (AE#) {
+      /if (${_countArea} >= AE#) {
+        | do we have an ae mez spell
+        /call cast_cycle_debuff ${maDebug.Find[mez].Value} 0 mezae TRUE          
+        /if (${Bool[${maCD.Find[returnCast].Value}]}) {
+           DEBUG ${sep}ae mez
+          /call control_mezae ${_debug}
+          /varset _aeMezDone TRUE
+        }
       }
     }
-  }
 
-  | if we have more then one mob in camp, Not including the assists target
-  /if (${_countArea}) {
-    DEBUG ${sep}single target mez
+    | if we have more then one mob in camp, Not including the assists target
+    /if (${_countArea}) {
+      DEBUG ${sep}single target mez
 
-    | mez something for christs sake...
-    /declare _mzcheck mapiterator local
-    /vardata _mzcheck maMobControl.First.Clone
-    /while (!${_mzcheck.IsEnd}) {
-      
-      | skip assists target
-      /if (${_mzcheck.Key} == TARGET) {
-        DEBUG ${sep}target${sep}\a-wcurrent assist target\ax
-        /invoke ${_mzcheck.Advance}
-        /continue
-      }
-      
-      | skip mobs with timers
-      /if (${Defined[timer_mez_ID${_mzcheck.Key}]}) {
-        /if (${timer_mez_ID${_mzcheck.Key}}) {
-          DEBUG ${sep}target timer${sep}\a-w${timer_mez_ID${_mzcheck.Key}}\ax
-          /invoke ${_mzcheck.Advance}
+      | mez something for christs sake...
+      /declare _mobcheck mapiterator local
+      /vardata _mobcheck maMobControl${_type}.First.Clone
+      /while (!${_mobcheck.IsEnd}) {
+        
+        | skip assists target
+        /if (${_mobcheck.Key} == TARGET) {
+          DEBUG ${sep}target${sep}\a-wcurrent assist target\ax
+          /invoke ${_mobcheck.Advance}
           /continue
         }
-      }      
-      
-      | skip exempt targets
-      /if (${_mzcheck.Value.Equal[EXEMPT]}) {
-        DEBUG ${sep}target${sep}\a-wEXEMPT\ax
-        /invoke ${_mzcheck.Advance}
-        /continue
-      }
+        
+        | skip mobs with timers
+        /if (${Defined[timer_mez_ID${_mobcheck.Key}]}) {
+          /if (${timer_mez_ID${_mobcheck.Key}}) {
+            DEBUG ${sep}target timer${sep}\a-w${timer_mez_ID${_mobcheck.Key}}\ax
+            /invoke ${_mobcheck.Advance}
+            /continue
+          }
+        }      
+        
+        | skip exempt targets
+        /if (${Select[${_mobcheck.Value},EXEMPT,CHARM]}) {
+          DEBUG ${sep}target${sep}\a-w${_mobcheck.Value}\ax
+          /invoke ${_mobcheck.Advance}
+          /continue
+        }
 
-      | skip charm targets
-      /if (${_mzcheck.Value.Equal[CHARM]}) {
-        DEBUG ${sep}target${sep}\a-wCHARM\ax
-        /invoke ${_mzcheck.Advance}
-        /continue
+        ISMEDEAD
+        GETOVERHERE
+        CHECKEXIT
+        /call control_mez ${_debug} ${Spawn[${_mobcheck.Key}].ID}
+        /invoke ${_mobcheck.Advance}
       }
-
-      ISMEDEAD
-      GETOVERHERE
-      CHECKEXIT
-      /call control_mez ${_debug} ${Spawn[${_mzcheck.Key}].ID}
-      /invoke ${_mzcheck.Advance}
+      /varset _aeMezDone FALSE
+      /delay 1
     }
-    /varset _aeMezDone FALSE
-    /delay 1
+  } else /if (${Select[${_type},Slow]} && ${madeBuff.Find[swSlow].Value}) {
+  } else /if (${Select[${_type},Charm]} && ${madeBuff.Find[swCharm].Value}) {
+  } else /if (${Select[${_type},Malo]} && ${madeBuff.Find[swMalo].Value}) {
+  } else /if (${Select[${_type},Tash]} && ${madeBuff.Find[swTash].Value}) {
   }
   
   DEBUG ${sep}control_routine${sep}\arexit\ax
@@ -8930,17 +8944,17 @@ sub control_routine(bool _debug)
 
 |***
  * note: this is used to check our current ENV and find mobs that we do not know about that are pissed at us
- * use: ${control_area[DEBUG]}
+ * use: ${control_area[DEBUG, type]}
  ***|
-sub control_area(bool _debug)
-  DEBUG \atcontrol_area\ax()
+sub control_area(bool _debug, string _type)
+  DEBUG \atcontrol_area\ax(\a-w${_type}\ax)
 
   /declare _agroCount int local 0
   /declare _count int local 0
   /declare _spcount int local 0
+  /declare _spawn spawn local
 
   /if (NEXT) {
-    /declare _spawn spawn local
     /varset _spcount ${SpawnCount[npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value} PS4]}
     /if (!${_spcount}) {
       /return ${_agroCount}
@@ -8953,17 +8967,28 @@ sub control_area(bool _debug)
 
       | if this mob is the current assists target, remove it from our need to control
       /if (${_spawn.ID} == TARGET) {
-        /if (${maMobControl.Contains[${_spawn.ID}]}) {
-          DEBUG ${sep}removing assist target from maMobControl map${sep}\a-w${_spawn.ID}\ax
-          /invoke ${maMobControl.Remove[${_spawn.ID}]}
-
-          | delete the existing mez timer if any?
-          /if (${Defined[timer_mez_ID${_spawn.ID}]}) {
-            DEBUG ${sep} deleting timer for${sep}\a-wtimer_mez_ID${_spawn.ID}\ax
-            /deletevar timer_mez_ID${_spawn.ID}
+        /if (${maMobControl${_type}.Contains[${_spawn.ID}]}) {
+ 
+          DEBUG ${sep}removing assist target from maMobControl${_type} map${sep}\a-w${_spawn.ID}\ax
+          /invoke ${maMobControl${_type}.Remove[${_spawn.ID}]}
+ 
+          | delete timers 
+          /declare _lsdeb list local
+          /invoke ${_lsdeb.Append[mez,malo,slow,charm,tash]}
+          /declare _lscadeb listiterator local
+          /vardata _lscadeb _lsdeb.First.Clone
+          /while (!${_lscadeb.IsEnd}) {
+            /if (${Defined[timer_${_ligmfp.Value}_ID${_spawn.ID}]}) {
+              DEBUG ${sep}deleting timer for${sep}\a-wtimer_${_ligmfp.Value}_ID${_spawn.ID}\ax
+              /deletevar timer_${_ligmfp.Value}_ID${_spawn.ID}
+            }
+            /invoke ${_ligmfp.Advance}
           }
-
         }
+        /continue
+      }
+      
+      /if (!${_spawn.ID}) {
         /continue
       }
 
@@ -8972,32 +8997,57 @@ sub control_area(bool _debug)
       /varcalc _agroCount ${_agroCount} + 1
 
       | do we have the mob in the mez list ??
-      /if (${maMobControl.Contains[${_spawn.ID}]}) {
-        DEBUG ${sep}mob already in maMobControl map${sep}\a-w${_spawn.ID}\ax
+      /if (${maMobControl${_type}.Contains[${_spawn.ID}]}) {
+        DEBUG ${sep}mob already in maMobControl${_type} map${sep}\a-w${_spawn.ID}\ax
         /continue
       }
-
-      | mob is not in mez list and not in agro list. fresh meat...
-      /if (!${maMobControl.Contains[${_spawn.ID}]}) {
-        DEBUG ${sep}mob \arNOT\ax in maMobControl map${sep}\a-w${_spawn.ID}\ax
+      
+      | mob is not in list and not in agro list. fresh meat...
+      /if (!${maMobControl${_type}.Contains[${_spawn.ID}]}) {
+        DEBUG ${sep}mob \arNOT\ax in maMobControl${_type} map${sep}\a-w${_spawn.ID}\ax
 
         | identify mobs we dont touch
-        /if (${lsZoneNoMez.Contains[${_spawn.DisplayName}]} || ${lsZoneExclude.Contains[${_spawn.DisplayName}]}) {
-          DEBUG ${sep}lsZoneNoMez${sep}\a-w${_spawn.DisplayName}\ax
-          /invoke ${maMobControl.Add[${_spawn.ID},EXEMPT]}
+        /if (${lsZoneExclude.Contains[${_spawn.DisplayName}]}) {
+          DEBUG ${sep}lsZoneExclude${sep}\a-w${_spawn.DisplayName}\ax
+          /invoke ${maMobControl${_type}.Add[${_spawn.ID},EXEMPT]}
 
-        | mobs that we are to charm
-        } else /if (${lsZoneCharm.Contains[${_spawn.DisplayName}]} && ${maChr.Find[swCharm].Value}) {
+        | charm
+        } else /if (${_type.Equal[charm]} && ${lsZoneCharm.Contains[${_spawn.DisplayName}]} && ${madeBuff.Find[swCharm].Value}) {
           DEBUG ${sep}lsZoneCharm${sep}\a-w${_spawn.DisplayName}\ax
-          /invoke ${maMobControl.Add[${_spawn.ID},CHARM]}
+          /invoke ${maMobControl${_type}.Add[${_spawn.ID},CHARM]}
 
-        | mobs that we are to mez
-        | create the mez timer with the ID
-        } else {
+        | mez
+        } else /if (${_type.Equal[mez]} && !${lsZoneNoMez.Contains[${_spawn.DisplayName}]} && ${madeBuff.Find[swMez].Value}) {
+          DEBUG ${sep}adding to control map${sep}\a-w${_type}\ax
           /if (!${Defined[timer_mez_ID${_spawn.ID}]}) {
             /invoke ${set_timer[${_debug}, timer_mez_ID${_spawn.ID}, 1]}
           }
-          /invoke ${maMobControl.Add[${_spawn.ID},MEZ]}
+          /invoke ${maMobControl${_type}.Add[${_spawn.ID},MEZ]}
+
+        | malo
+        } else /if (${_type.Equal[malo]} && ${madeBuff.Find[swMalo].Value}) {
+          DEBUG ${sep}adding to control map${sep}\a-w${_type}\ax
+          /if (!${Defined[timer_malo_ID${_spawn.ID}]}) {
+            /invoke ${set_timer[${_debug}, timer_malo_ID${_spawn.ID}, 1]}
+          }
+          /invoke ${maMobControl${_type}.Add[${_spawn.ID},MALO]}
+
+        | slow
+        } else /if (${_type.Equal[slow]} && ${madeBuff.Find[swSlow].Value}) {
+          DEBUG ${sep}adding to control map${sep}\a-w${_type}\ax
+          /if (!${Defined[timer_slow_ID${_spawn.ID}]}) {
+            /invoke ${set_timer[${_debug}, timer_slow_ID${_spawn.ID}, 1]}
+          }
+          /invoke ${maMobControl${_type}.Add[${_spawn.ID},SLOW]}
+
+        | tash
+        } else /if (${_type.Equal[tash]} && ${madeBuff.Find[swTash].Value}) {
+          DEBUG ${sep}adding to control map${sep}\a-w${_type}\ax
+          /if (!${Defined[timer_tash_ID${_spawn.ID}]}) {
+            /invoke ${set_timer[${_debug}, timer_tash_ID${_spawn.ID}, 1]}
+          }
+          /invoke ${maMobControl${_type}.Add[${_spawn.ID},TASH]}
+
         }
 
       }
@@ -9011,9 +9061,9 @@ sub control_area(bool _debug)
       DEBUG ${sep}control _tmpID${sep}\a-w${_tmpID}\ax
 
       /if (${_tmpID} == TARGET) {
-        /if (${maMobControl.Contains[${_tmpID}]}) {
+        /if (${maMobControl${_type}.Contains[${_tmpID}]}) {
           DEBUG ${sep}removing assist target from maMobControl map${sep}\a-w${_tmpID}\ax
-          /invoke ${maMobControl.Remove[${_tmpID}]}
+          /invoke ${maMobControl${_type}.Remove[${_tmpID}]}
 
           /if (${Defined[timer_mez_ID${_tmpID}]}) {
             DEBUG ${sep} deleting timer for${sep}\a-wtimer_mez_ID${_tmpID}\ax
@@ -9027,27 +9077,40 @@ sub control_area(bool _debug)
       DEBUG ${sep}increment aecounter${sep}\a-w${_agroCount} + 1\ax
       /varcalc _agroCount ${_agroCount} + 1
 
-      /if (${maMobControl.Contains[${_tmpID}]}) {
-        DEBUG ${sep}mob already in maMobControl map${sep}\a-w${_tmpID}\ax
+      /if (${maMobControl${_type}.Contains[${_tmpID}]}) {
+        DEBUG ${sep}mob already in maMobControl${_type} map${sep}\a-w${_tmpID}\ax
         /continue
       }
 
-      /if (!${maMobControl.Contains[${_tmpID}]}) {
-        DEBUG ${sep}mob \arNOT\ax in maMobControl map${sep}\a-w${_tmpID}\ax
+      /if (!${maMobControl${_type}.Contains[${_tmpID}]}) {
+        DEBUG ${sep}mob \arNOT\ax in maMobControl${_type} map${sep}\a-w${_tmpID}\ax
 
-        /if (${lsZoneNoMez.Contains[${Spawn[${_tmpID}].DisplayName}]} || ${lsZoneExclude.Contains[${Spawn[${_tmpID}].DisplayName}]}) {
-          DEBUG ${sep}lsZoneNoMez${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax
-          /invoke ${maMobControl.Add[${_tmpID},EXEMPT]}
+        /if (${lsZoneExclude.Contains[${Spawn[${_tmpID}].DisplayName}]}) {
+          DEBUG ${sep}lsZoneExclude${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax
+          /invoke ${maMobControl${_type}.Add[${_tmpID},EXEMPT]}
 
-        } else /if (${lsZoneCharm.Contains[${Spawn[${_tmpID}].DisplayName}]} && ${maChr.Find[swCharm].Value}) {
+        } else /if (${lsZoneCharm.Contains[${Spawn[${_tmpID}].DisplayName}]} && ${madeBuff.Find[swCharm].Value}) {
           DEBUG ${sep}lsZoneCharm${sep}\a-w${Spawn[${_tmpID}].DisplayName}\ax
-          /invoke ${maMobControl.Add[${_tmpID},CHARM]}
+          /invoke ${maMobControl${_type}.Add[${_tmpID},CHARM]}
 
-        } else {
+        } else /if (${_type.Equal[mez]} && !${lsZoneNoMez.Contains[${Spawn[${_tmpID}].DisplayName}]}) {
           /if (!${Defined[timer_mez_ID${_tmpID}]}) {
             /invoke ${set_timer[${_debug}, timer_mez_ID${_tmpID}, 1]}
           }
-          /invoke ${maMobControl.Add[${_tmpID},MEZ]}
+          /invoke ${maMobControl${_type}.Add[${_tmpID},MEZ]}
+
+        } else /if (${_type.Equal[malo]}) {
+          /if (!${Defined[timer_malo_ID${_tmpID}]}) {
+            /invoke ${set_timer[${_debug}, timer_malo_ID${_tmpID}, 1]}
+          }
+          /invoke ${maMobControl${_type}.Add[${_tmpID},MALO]}
+
+        } else /if (${_type.Equal[slow]}) {
+          /if (!${Defined[timer_slow_ID${_tmpID}]}) {
+            /invoke ${set_timer[${_debug}, timer_slow_ID${_tmpID}, 1]}
+          }
+          /invoke ${maMobControl${_type}.Add[${_tmpID},SLOW]}
+
         }
 
       }
@@ -9065,7 +9128,7 @@ sub control_area(bool _debug)
  * use: ${control_map[DEBUG, THINGIETOCHECK??]}
  *
  * THINGIETOCHECK:
- * dead = check for dead or no more spawns. removes them from the control map
+ * dead = check for dead or no more spawns. removes them from all control maps
  * mez = find mobs that are not mezed. returns ID of nonmezed or short duration remaining mezed mob
  ***|
 sub control_map(bool _debug, string _type)
@@ -9081,32 +9144,41 @@ sub control_map(bool _debug, string _type)
     /declare maRemovals list
     /declare _remcount int local 0
     /declare _count int local 0
-
     /declare _mirem mapiterator local
-    /vardata _mirem maMobControl.First.Clone
-    /invoke ${maRemovals.Clear}
-    /while (!${_mirem.IsEnd}) {
-      GETINPUT
-      DEBUG ${sep}_mirem.Key--.Value${sep}\a-w${_mirem.Key} -- ${_mirem.Value}\ax${sep}${If[!${Spawn[${_mirem.Key}].ID} || ${Spawn[${_mirem.Key}].Dead},\ardead\ax,\agalive\ax]}
-      /if (!${Spawn[${_mirem.Key}].ID} || ${Spawn[${_mirem.Key}].Dead} || ${Spawn[${_mirem.Key}].ID} == TARGET) {
-        DEBUG ${sep}removing${sep}\a-w${_mirem.Key}\ax
+    /declare _miremtype mapiterator local
 
-        | delete the existing mez timer if any?
-        /if (${Defined[timer_mez_ID${_mirem.Key}]}) {
-          /deletevar timer_mez_ID${_mirem.Key}
+    /declare _lsdbt listiterator local
+    /vardata _lsdbt lsdebuffType.First.Clone
+    /while (!${_lsdbt.IsEnd}) {
+
+      /vardata _mirem maMobControl${_lsdbt.Value}.First.Clone
+      /invoke ${maRemovals.Clear}
+      /while (!${_mirem.IsEnd}) {
+        GETINPUT
+        DEBUG ${sep}_mirem.Key--.Value${sep}\a-w${_mirem.Key} -- ${_mirem.Value}\ax${sep}${If[!${Spawn[${_mirem.Key}].ID} || ${Spawn[${_mirem.Key}].Dead},\ardead\ax,\agalive\ax]}
+        /if (!${Spawn[${_mirem.Key}].ID} || ${Spawn[${_mirem.Key}].Dead} || ${Spawn[${_mirem.Key}].ID} == TARGET) {
+          DEBUG ${sep}removing${sep}\a-w${_mirem.Key}\ax
+
+          | delete the existing mez timer if any?
+          /if (${Defined[timer_mez_ID${_mirem.Key}]}) {
+            /deletevar timer_mez_ID${_mirem.Key}
+          }
+
+          | Add the key to the list of items to remove.
+          /invoke ${maRemovals.Append[${_mirem.Key}]}
         }
-
-        | Add the key to the list of items to remove.
-        /invoke ${maRemovals.Append[${_mirem.Key}]}
+        /invoke ${_mirem.Advance}
       }
-      /invoke ${_mirem.Advance}
+
+      /varcalc _remcount ${maRemovals.Count}
+
+      /for _count 1 to ${_remcount}
+        /invoke ${maMobControl${_lsdbt.Value}.Remove[${maRemovals.Head}]}
+      /next _count
+
+      /invoke ${_lsdbt.Advance}
     }
 
-    /varcalc _remcount ${maRemovals.Count}
-
-    /for _count 1 to ${_remcount}
-      /invoke ${maMobControl.Remove[${maRemovals.Head}]}
-    /next _count
 
   }
 
@@ -9114,7 +9186,7 @@ sub control_map(bool _debug, string _type)
   /if (${_type.Equal[mez]}) {
     DEBUG ${sep}cc${sep}
     /declare _mimez mapiterator local
-    /vardata _mimez maMobControl.First.Clone
+    /vardata _mimez maMobControlMez.First.Clone
     /while (!${_mimez.IsEnd}) {
       DEBUG ${sep}_mimez.Key--.Value${sep}\a-w${_mimez.Key} -- ${_mimez.Value}\ax
       ISMEDEAD
@@ -9158,10 +9230,10 @@ sub control_mezae(bool _debug)
   GETINPUT control_mezae NA|NA
   /declare _tmpID int local
 
-  /if (${maMobControl.Count} >= AE#) {
+  /if (${maMobControlMez.Count} >= AE#) {
     DEBUG ${sep}entering AE mez
-    | /vardata _tmpID maMobControl.First
-    /varset _tmpID ${maMobControl.First.Key}
+    | /vardata _tmpID maMobControlMez.First
+    /varset _tmpID ${maMobControlMez.First.Key}
 
     /if (AE# && ${SpawnCount[npc los radius 30 targetable]} >= AE#) {
       DEBUG ${sep}AE# && ${SpawnCount[npc los radius 30 targetable]} >= AE#
@@ -9269,7 +9341,7 @@ sub control_mez(bool _debug, spawn _spawn)
         }
 
         | were not going to try this target again, clear its current control settings
-        /invoke ${maMobControl.Add[${_spawn.ID},EXEMPT]}
+        /invoke ${maMobControlMez.Add[${_spawn.ID},EXEMPT]}
         /if (${Defined[timer_mez_ID${_spawn.ID}]}) {
           /deletevar timer_mez_ID${_spawn.ID}
           /return FALSE
@@ -9407,12 +9479,13 @@ sub target(string _type, int _tmpID)
     /varset _tmpID TARGET
   }
 
-
   | clear the current target and related info, nothing more
   /if (${Select[${_type},release]}) {
     DEBUG ${sep}\a-y${_type}\ax${sep}
 
     /varset stAssTarID 0
+    /varset spawnData 0
+    /varset assistData 0
     /invoke ${maCC.Add[swValidAssTarID,FALSE]}
     /invoke ${maCC.Add[swSetCombat,FALSE]}
     /invoke ${maCC.Add[swSetForced,FALSE]}
@@ -9509,9 +9582,10 @@ sub target(string _type, int _tmpID)
   | clear/reset all combat
   /if (${Select[${_type},clear]} || ${_isdead}) {
     DEBUG ${sep}\a-y${_type}\ax${sep}
-    | GETINPUT target_clear NA|NA
 
     /varset stAssTarID 0
+    /varset spawnData 0
+    /varset assistData 0
     /invoke ${maCC.Add[swValidAssTarID,FALSE]}
     /invoke ${maCC.Add[swSetCombat,FALSE]}
     /invoke ${maCC.Add[swSetForced,FALSE]}
@@ -9541,7 +9615,6 @@ sub target(string _type, int _tmpID)
   }
 
 /return NULL
-
 
 
 
@@ -10002,7 +10075,7 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
     GETOVERHERE
     CHECKEXIT cast_cycle_nuke
     
-    DEBUG ${sep}passed base checks
+    DEBUG ${sep}base nuke checks${sep}\a-wstarted\ax
 
     /if (${target[isdead, ${_tmpID}]}) {
       DEBUG ${sep}Target dead
@@ -10049,6 +10122,7 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
 
     | skip twincast nukes (they are accessed a different way)
     /if (${lsNuke${_liNuke.Value}Tag.Contains[twincast]} && ${_tag.NotEqual[twincast]}) {
+        DEBUG ${sep}invalid passed _tag (twincast check)
       /invoke ${_liNuke.Advance}
       /continue
     }
@@ -10088,6 +10162,8 @@ sub cast_cycle_nuke(bool _debug, int _tmpID, string _tag)
 
       }
     }
+
+    DEBUG ${sep}base nuke checks${sep}\a-wpassed\ax
 
     /call cast ${_debug} ${_tmpID} FALSE
 
@@ -10723,8 +10799,6 @@ sub check_for_corpse(bool _debug)
     DEBUG ${break}fail${sep}\a-wno rez type available\ax
     /return FALSE
   }
-
-  SETHUD "resurrect"
 
   /declare _tmpID int local 0
   /declare _increment int local 1
@@ -13136,14 +13210,14 @@ sub check_buff_cycle_temp(bool _debug)
     DEBUG ${sep}${_countToon} <= ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}
 
     | get the name to something usable and proper case
-    /varset _name ${proper_case[name, "${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}"]}
-    /if (${Spawn[${_name}].Dead}) {
+    | /varset _name ${proper_case[name, "${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}"]}
+    /varset _name ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}
+    /if (${Spawn[${_name}].Dead} || !${Spawn[pc ${_name}].ID}) {
       /varcalc _countToon ${_countToon}+1
       /continue
     }
     
-    
-    /vardata _spawn Spawn[pc ${_name}].ID
+    /vardata _spawn Spawn[${_name}].ID
      
     DEBUG ${sep}_name${sep}\ay${_spawn.DisplayName}\ax
 
@@ -13228,7 +13302,7 @@ sub check_buff_cycle_temp(bool _debug)
       /call cast_data ${_debug} "${maCD.Find[tmpName].Value}"
 
       | distance check
-      /if (${Select[${_spell.TargetType},Group v2]}) {
+      /if (${Select["${_spell.TargetType}",Group v2]}) {
         DEBUG ${sep}distance check${sep}\a-wGroup v2\ax
         /if (${_spawn.Distance} > ${_spell.AERange}) /continue
       } else {
@@ -14812,21 +14886,32 @@ sub get_assist_target(bool _debug, string _call)
     /if (${Select[${maCC.Find[stAssistMode].Value},g,1,2,3]}) {
       DEBUG ${sep}Returning${sep}\a-wsmart assist\ax
 
-      | set the 1st xtarget slot to the assists target
-      /if (${Select[${maCC.Find[stAssistMode].Value},g]} && ${Spawn[${Group.MainAssist.ID}].ID} && !${Spawn[${Group.MainAssist.ID}].Dead}) {
-        DEBUG ${sep}set smart-g${sep}\a-wg\ax
+      | assist info for group assisting
+      /if (${Select[${maCC.Find[stAssistMode].Value},g]} && ${Spawn[${Group.MainAssist.ID}].ID} && !${Spawn[${Group.MainAssist.ID}].Dead} && ${Me.GroupAssistTarget.ID}) {
+        DEBUG ${sep}set smart${sep}\a-wg\ax
+        | /vardata assistData Spawn[pc ${Group.MainAssist.ID}].ID
+        | /vardata spawnData Me.GroupAssistTarget.ID
         /varset stAssTarID ${Me.GroupAssistTarget.ID}
         /if (${_call.Equal[return]}) /return TARGET
+
       } else /if (${Select[${maCC.Find[stAssistMode].Value},1]} && ${Spawn[${Raid.MainAssist[1].ID}].ID} && !${Spawn[${Raid.MainAssist[1].ID}].Dead}) {
-        DEBUG ${sep}set smart-1${sep}\a-w1\ax
+        DEBUG ${sep}set smart${sep}\a-w1\ax
+        /vardata assistData Spawn[pc ${Raid.MainAssist[1].ID}].ID
+        /vardata spawnData Me.RaidAssistTarget[1].ID
         /varset stAssTarID ${Me.RaidAssistTarget[1].ID}
         /if (${_call.Equal[return]}) /return TARGET
+
       } else /if (${Select[${maCC.Find[stAssistMode].Value},2]} && ${Spawn[${Raid.MainAssist[2].ID}].ID} && !${Spawn[${Raid.MainAssist[2].ID}].Dead}) {
-        DEBUG ${sep}set smart-1${sep}\a-w2\ax
+        DEBUG ${sep}set smart${sep}\a-w2\ax
+        /vardata assistData Spawn[pc ${Raid.MainAssist[2].ID}].ID
+        /vardata spawnData Me.RaidAssistTarget[2].ID
         /varset stAssTarID ${Me.RaidAssistTarget[2].ID}
         /if (${_call.Equal[return]}) /return TARGET
+
       } else /if (${Select[${maCC.Find[stAssistMode].Value},3]} && ${Spawn[${Raid.MainAssist[3].ID}].ID} && !${Spawn[${Raid.MainAssist[3].ID}].Dead}) {
-        DEBUG ${sep}set smart-3${sep}\a-w3\ax
+        DEBUG ${sep}set smart${sep}\a-w3\ax
+        /vardata assistData Spawn[pc ${Raid.MainAssist[3].ID}].ID
+        /vardata spawnData Me.RaidAssistTarget[3].ID
         /varset stAssTarID ${Me.RaidAssistTarget[3].ID}
         /if (${_call.Equal[return]}) /return TARGET
       }
@@ -14834,6 +14919,8 @@ sub get_assist_target(bool _debug, string _call)
       | skip corpses and me
       /if (${Spawn[id TARGET].Dead} || TARGET == ${Me.ID} || !${Select[${Spawn[TARGET].Type},npc]}) {
         DEBUG ${break} bad target${sep}\a-wcorpse or self\ax
+        | /vardata assistData 0
+        | /vardata spawnData 0
         /varset stAssTarID 0
         /return TARGET
       }
@@ -14843,7 +14930,7 @@ sub get_assist_target(bool _debug, string _call)
         /if (MELEE || RANGE || NUKE || DOT) {
           /if (${Spawn[TARGET].PctHPs} <= ${maCC.Find[stPctEngage].Value} || ${maOver.Find[swOverPctEngage].Value}) {
              DEBUG ${sep}targeting${sep}\a-wTARGET\ax
-            /if (${Target.ID} != TARGET && !${Spawn[TARGET].Dead}) {
+            /if (${Target.ID} != TARGET) {
               /squelch /target id TARGET
             }
           }
@@ -14890,8 +14977,10 @@ sub get_assist_target(bool _debug, string _call)
           /invoke ${_liass.Advance}    
           /continue        
         
-        | set our target
+        | set our data
         } else /if (${DanNet[${_liass.Value}].Observe["Target.ID"]}) {
+          /vardata assistData Spawn[pc ${_liass.Value}].ID
+          /vardata spawnData DanNet[${_liass.Value}].Observe["Target.ID"]
           /varset stAssTarID ${DanNet[${_liass.Value}].Observe["Target.ID"]}
           /if (${Spawn[${stAssTarID}].PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
             DEBUG ${break}above engage %
@@ -14956,12 +15045,14 @@ sub get_assist_target(bool _debug, string _call)
         }
         
         /squelch /assist ${_liass.Value}
-        /delay 2 ${Me.AssistComplete} 
+        /delay 5 ${Me.AssistComplete} 
         
         /if (${Target.ID} && ${Select[${Target.Type},npc]} || ${Target.ID} != TARGET) {
           DEBUG ${sep}Assisting${sep}\a-w${_liass.Value}\ax
+          /vardata assistData Spawn[${_liass.Value}].ID
           /varset stAssTarID ${Target.ID}  
           /call target set TARGET
+          /vardata spawnData Target.ID
           
           /return ${stAssTarID}
         
@@ -14970,6 +15061,8 @@ sub get_assist_target(bool _debug, string _call)
           /if (!${maOver.Find[swTargetClear].Value}) {
             /squelch /target clear
           }
+          /vardata spawnData 0
+          /vardata assistData 0
           /varset stAssTarID 0
           /return 0      
         }
@@ -15109,7 +15202,7 @@ sub class_cycle(string _order)
 
     | cc routine
     } else /if (${_lico.Value.Equal[cc]} && ${maCC.Find[swCombatControl].Value}) {
-      /call control_routine ${maDebug.Find[mez].Value}
+      /call control_routine ${maDebug.Find[mez].Value} Mez
  
     | aa mana gather routine
     } else /if (${_lico.Value.Equal[gather]} && ${maChr.Find[stPctGather].Value}) {
@@ -15118,6 +15211,14 @@ sub class_cycle(string _order)
     | bard incombat singing
     } else /if (${_lico.Value.Equal[pulseic]}) {
       /call pulse_cycle ${maDebug.Find[pulse].Value} GETASSIST pulseincombat
+
+    | rest routine
+    } else /if (${_lico.Value.Equal[rest]} && PCTREST) {
+      /if (!PULL || (PULL && !${SpawnCount[npc radius ${maEnv.Find[stRestRadius].Value} PS4]})) {
+        /call do_rest ${maDebug.Find[rest].Value}
+      }
+
+
          
     }
 
@@ -15265,10 +15366,11 @@ sub cast_data(bool _debug, string _type)
 
   | Alternate Abilities
     /if (${Select[${_ligt.Value},alt]}) {
-      /if (${Me.AltAbility[${_type}]}) {
+      /if (${Me.AltAbility[${_type}]} && !${Me.AltAbility[${_type}].Passive}) {
         DEBUG ${sep}_type${sep}\agALT\ax
         /vardata _spell Spell[${Me.AltAbility[${_type}].Spell.ID}]
         /invoke ${maCD.Add[type,ALT]}
+        /invoke ${maCD.Add[name,${_type}]}
         /invoke ${maCD.Add[id,${Me.AltAbility[${_type}].ID}]}
         /if (${Me.AltAbilityReady[${_type}]}) {
           /invoke ${maCD.Add[ready,TRUE]}
@@ -15281,6 +15383,7 @@ sub cast_data(bool _debug, string _type)
       /if (${Me.Book[${Spell[${_type}].RankName}]}) {
         DEBUG ${sep}_type${sep}\agSPELL\ax
         /invoke ${maCD.Add[type,SPELL]}
+        /invoke ${maCD.Add[name,${_type}]}
         /invoke ${maCD.Add[id,${Me.Spell[${_type}].ID}]}
         /vardata _spell Spell[${_type}]
         /if (${Me.SpellReady[${_spell.RankName}]}) {
@@ -15295,6 +15398,7 @@ sub cast_data(bool _debug, string _type)
         DEBUG ${sep}_type${sep}\agPULSE\ax
         /vardata _spell Spell[${_type}]
         /invoke ${maCD.Add[type,PULSE]}
+        /invoke ${maCD.Add[name,${_type}]}
         /invoke ${maCD.Add[id,${Me.Spell[${_type}].ID}]}
         /if (${Me.SpellReady[${_spell.RankName}]}) {
           /invoke ${maCD.Add[ready,TRUE]}
@@ -15308,6 +15412,7 @@ sub cast_data(bool _debug, string _type)
         DEBUG ${sep}_type${sep}\agDISC\ax
         /vardata _spell Me.CombatAbility[${Me.CombatAbility[${Spell[${_type}].RankName}]}]
         /invoke ${maCD.Add[type,DISC]}
+        /invoke ${maCD.Add[name,${_type}]}
         /if (${Me.CombatAbilityReady[${_spell}]}) {
           /invoke ${maCD.Add[ready,TRUE]}
         }
@@ -15320,6 +15425,7 @@ sub cast_data(bool _debug, string _type)
         DEBUG ${sep}_type${sep}\agITEM\ax
         /vardata _spell FindItem[=${_type}].Spell
         /invoke ${maCD.Add[type,ITEM]}
+        /invoke ${maCD.Add[name,${_type}]}
         /invoke ${maCD.Add[id,${FindItem[=${_type}].ID}]}
          /if (${Me.ItemReady[=${_type}]}) {
           /invoke ${maCD.Add[ready,TRUE]}
@@ -15349,17 +15455,8 @@ sub cast_data(bool _debug, string _type)
     /invoke ${_lshs.Advance}
   }
 
-  DEBUG ${sep}returning${sep}\a-w${maCD.Find[ready].Value}\ax
+  DEBUG ${sep}cast_data returning${sep}\a-w${maCD.Find[ready].Value}\ax
 /return ${maCD.Find[ready].Value}
-
-
-
-
-
-
-
-
-
 
 
 
@@ -15524,7 +15621,7 @@ sub cast(bool _debug, int _tmpID, string _sub, int _rangeOverride)
 
     | buff on me i shouldnt cast with?
     /if (${check_no_cast_buff[${_debug}, lsNoCastBuff]}) {
-      /return FALSE
+      | /return FALSE
     }
     
     /if (${lsClassCast.Contains[${Me.Class.ShortName}]}) {
@@ -15541,26 +15638,31 @@ sub cast(bool _debug, int _tmpID, string _sub, int _rangeOverride)
 
     | am i casting a spell?
     /if (${Me.Casting.ID}) {
+      DEBUG ${break}casting
       /return FALSE
     }
 
     | global cooldown
     /if (${Me.SpellInCooldown}) {
+      DEBUG ${break}spells are in cooldown
       /return FALSE
     }
 
     | have it?
     /if (!${Me.Book[${_spell.RankName}]}) {
+      DEBUG ${break}dont have spell (\a-r${_spell.RankName}\ax)
       /return FALSE
     }
     
     | gem in cooldown?
     /if (${Me.GemTimer[${_spell.RankName}]}) {
+      DEBUG ${break}gem in cooldown
       /return FALSE
     }
 
     | enough manna to cast?
     /if (${Me.CurrentMana} < ${_spell.Mana}) {
+      DEBUG ${break}not enough mana#{sep}${Me.CurrentMana} < ${_spell.Mana}
       /return FALSE
     }
 
@@ -15581,12 +15683,14 @@ sub cast(bool _debug, int _tmpID, string _sub, int _rangeOverride)
     | check cast range
     /if (${_spell.Range}) {
       /if (${Spawn[${_tmpID}].Distance} > ${_spell.MyRange}) {
+        DEBUG ${break}excceds range${sep}${Spawn[${_tmpID}].Distance} > ${_spell.MyRange}
         /return FALSE
       }
     }
     | check AE range
-    /if (${Select[${_spell.TargetType},Group V2]}) {
+    /if (${Select["${_spell.TargetType}",Group V2]} && ${_spell.AERange}) {
       /if (${Spawn[${_tmpID}].Distance} > ${_spell.AERange}) {
+        DEBUG ${break}exceeds AE range${sep}${Spawn[${_tmpID}].Distance} > ${_spell.AERange}
         /return FALSE
       }
     }
@@ -16016,12 +16120,41 @@ sub cast(bool _debug, int _tmpID, string _sub, int _rangeOverride)
 
 
 
+|***
+ * note: this checks if you have a buff on you
+ * note:
+ * note: it is a requirement to prep the have_buff sub with /call cast_data || ${cast_data[]}
+ * note: this is setting up the outer variable _spell and all the data that spell type needed
+ * note:
+ * use: ${have_buff[DEBUG]}
+ ***|
+sub have_buff(bool _debug)
+  DEBUG \athave_buff\ax()
 
+   
+  /if (${Select[${maCD.Find[type].Value},alt]}) {
+    /if (${Me.Buff[${maCD.Find[name].Value}].ID} || ${Me.Song[${maCD.Find[name].Value}].ID} || ${Me.Buff[${_spell.Name}].ID} || ${Me.Song[${_spell.Name}].ID}) {
+      DEBUG ${break}have buff/song (\a-r${_spell.Name}\ax)
+      /return TRUE
+    }
+    
+   
+  } else /if (${Select[${maCD.Find[type].Value},spell,song,item]}) {
+    /if (${Me.Buff[${_spell.Name}].ID} || ${Me.Song[${_spell.Name}].ID}) {
+      DEBUG ${break}have buff/song (\a-r${_spell.Name}\ax)
+      /return TRUE
+    }
 
+  } else /if (${Select[${maCD.Find[type].Value},disc]}) {
 
-
-
-
+  } else /if (${Select[${maCD.Find[type].Value},ability]}) {
+    
+  }
+    
+    
+    
+/return FALSE
+  
 
 
 

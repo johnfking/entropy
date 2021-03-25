@@ -24,6 +24,24 @@ REMINDER:
 --------------------
 
 
+
+
+210325.01
+- excluded passive AAs from cast_data() routine
+- druid
+  fixed a missing cast_data call
+- /pull petwatch ## - radius around you to watch for and pull npc 
+  pets when all other mobs are dead
+- /entropy tlp (on/off)
+  start for the isolation some different behavior for TLP play styles
+  more to come
+- shaman
+  splashing should work again. may need a little tweaking but its there
+- bard
+  some changed to the initial build of the class combat loop order
+    
+  
+
 210319.01
 - /nuke
   whole-lot-of debugs added

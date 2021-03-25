@@ -39,7 +39,7 @@ sub class_init(bool _debug)
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                xtarget|checkminion                                                 "${auxli} class base loop start"
   /call set_data_list ${_debug} maChr lsOrderClassPre                 heal|manarecovery                                                   "${auxli} class pre combat"
-  /call set_data_list ${_debug} maChr lsOrderClass                    melee|pet|misc|debuff|dot|nuke|alliance|swarm|item                  "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClass                    melee|pet|heal|misc|debuff|dot|nuke|alliance|heal|swarm|item        "${auxli} class active combat order"
   /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover                                                         "${auxli} class post combat "
 
   | AAs
@@ -140,35 +140,25 @@ sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
 
   CHECKTIE
-  | ISMEDEAD
   CHECKEXIT
-  | CHECKREZ
-  | CHECKFADE
 
   SETHUD "heal ${_type}"
 
+
+  | Group Regen Heal
+  /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
+    /if (AE# && ${SpawnCount[npc radius ENV]} >= AE#) {
+      /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 grouphot
+    }
+  }
+
   /if (!SAFEZONE) {
-
-    | Group Regen Heal
-    /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen} && AE#) {
-      /if (${SpawnCount[npc radius ENV]} >= AE#) {
-        /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 grouphot
-      }
-    }
-
-    | forcing surge  
-    /if (${maOver.Find[swOverSplashHurt].Value} && ${maHeal.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
-      /if (${SpawnCount[npc radius ENV]} >= ${maHeal.Find[stCountSplash].Value}) {
-        /call cast_cycle_heal_surge ${maDebug.Find[surge].Value}
-      }
-    }
 
     /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
 
-
     | check for surge
-    /if (${maHeal.Find[stCountSurge].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
-      /if (${hurtCount} >= ${maHeal.Find[stCountSurge].Value}) {
+    /if (${maHeal.Find[stCountSurge].Value} && (${Group.Members} > 1 || ${Raid.Members}) || ${Me.Song[Healing Twincast].ID}) {
+      /if (${SpawnCount[npc radius ENV PS4]} && ${Select[${Me.TargetOfTarget.Type},npc]}) {
         /call cast_cycle_heal_surge ${maDebug.Find[surge].Value}
       }
     }
@@ -220,8 +210,6 @@ sub check_heal(bool _debug, string _type)
 
   ISMEDEAD
   CHECKEXIT
-  | CHECKFADE
-  | CHECKREZ
 
   /call cast_cycle_heal ${_debug} ${hurtID} single
 
@@ -250,18 +238,57 @@ sub cast_cycle_heal_surge(bool _debug)
     DEBUG ${break}.LineOfSight
     /return FALSE
   }
-
+  
   | get our twincast proc
-  /if (!${Me.Song[Healing Twincast].ID}) {
-    /call cast_cycle_nuke ${_debug} ${_tmpID} twincast
+  /if (${lsLineNuke.Contains[EMPTY]} && ${lsLineNuke.Count} == 1) {
+    DEBUG ${sep}resetting the empty nuke line
+    /invoke ${lsLineNuke.Clear}
+    /invoke ${lsLineNuke.Append[${stCount20}]}
   }
 
-  | /if (!${Me.Song[Healing Twincast].ID}) {
-  |   DEBUG ${break}no twincast song
-  |   /return FALSE
-  | }
+  /declare _liNukeTC listiterator local
+  /vardata _liNukeTC lsLineNuke.First.Clone
+  /while (!${_liNukeTC.IsEnd}) {
 
-  | get our surge spell
+    | check the switch
+    /if (!${Bool[${maNuke.Find[swNuke${_liNukeTC.Value}].Value}]}) {
+      DEBUG ${break}switched off${sep}\a-w${maNuke.Find[stNuke${_liNukeTC.Value}].Value}\ax
+      /invoke ${_liNukeTC.Advance}
+      /continue
+    }
+
+    | skip twincast nukes (they are accessed a different way)
+    /if (!${lsNuke${_liNukeTC.Value}Tag.Contains[twincast]}) {
+      DEBUG ${break}invalid twincast check
+      /invoke ${_liNukeTC.Advance}
+      /continue
+    }
+    
+    /if (!${cast_data[${_debug}, "${maNuke.Find[stNuke${_liNukeTC.Value}].Value}"]}) {
+      /invoke ${_liNukeTC.Advance}
+      /continue
+    }
+
+    | cycle the tags
+    /call tag_evaluation ${maDebug.Find[tag].Value} Nuke ${_liNukeTC.Value} ${Me.DisplayName} "${maNuke.Find[stNuke${_liNukeTC.Value}].Value}" cast_cycle_heal_surge
+    /if (!${Macro.Return}) {
+      /invoke ${_liNukeTC.Advance}
+      /continue
+    }
+
+    /call cast ${_debug} ${_tmpID} FALSE
+    
+
+    | forced delay
+    /delay 10s !${Me.Casting.ID}
+    /delay 2.5s
+    
+    /if (${Me.Song[Healing Twincast].ID}) {
+      /break
+    }
+    
+    /invoke ${_liNukeTC.Advance}
+  }
 
   | if the user has not set the line order, set it to a default for now
   /if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
@@ -297,14 +324,8 @@ sub cast_cycle_heal_surge(bool _debug)
       /continue
     }
 
-    | check matching tag pass
-    /if (${lsHeal${_liHeal.Value}Tag.Contains[surge]}) {
-      /varset _myHeal ${maHeal.Find[stHeal${_liHeal.Value}].Value}
-    }
-
     | ready?.. or continue
-    /if (!${cast_data[${_debug}, "${_myHeal}"]}) {
-      /varset _myHeal FALSE
+    /if (!${cast_data[${_debug}, "${maHeal.Find[stHeal${_liHeal.Value}].Value}"]}) {
       /invoke ${_liHeal.Advance}
       /continue
     }

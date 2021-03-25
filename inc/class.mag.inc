@@ -38,14 +38,16 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr swCauldron                       FALSE                         "${auxsw} click cauldron to get prizes or not?"
   /call set_data_map ${_debug} maChr stCauldron                       FALSE                         "${auxna} name of the cauldron item you wish to use"
 
+  | twincast spell
+  /call set_data_map ${_debug} maChr stTC                             PREGEN|1                      "${auxna} twincast spell"
  
-   | class order lists
+  | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                checkminion|manarecover|gather                                    "${auxli} class base loop start"
   /call set_data_list ${_debug} maChr lsOrderClassPre                 EMPTY                                                             "${auxli} class pre combat"
   /call set_data_list ${_debug} maChr lsOrderClass                    melee|debuff|pet|swarm|dot|nuke|misc|item                         "${auxli} class active combat order"
   /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|gather                                                "${auxli} class post combat "
 
- | AAs
+  | AAs
   /call set_data_map ${_debug} maChr stAAUnity                        PREGEN|1                      "${auxna} Thaumaturge's Unity AA"
   /call set_data_map ${_debug} maChr stAAForceofElements              PREGEN|1                      "${auxna} Force of Elements AA"
   /call set_data_map ${_debug} maChr stAAMendCompanion                PREGEN|1                      "${auxna} Mend Companion AA"
@@ -59,6 +61,8 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAAElementalConversion          PREGEN|1                      "${auxna} Elemental Conversion AA"
   /call set_data_map ${_debug} maChr stAAForcefulRejuvenation         PREGEN|1                      "${auxna} Forceful Rejuvenation AA"
   /call set_data_map ${_debug} maChr stAAHostintheShell               PREGEN|1                      "${auxna} Host in the Shell AA"
+  /call set_data_map ${_debug} maChr stAAImprovedTwincast             PREGEN|1                      "${auxna} Improved Twincast aa"
+
 
   /if (${maDebug.Find[init].Value}) {
     OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -214,8 +218,17 @@ sub burn(bool _debug, int _tmpID)
     /return TRUE
   }
 
-  /if (${Target.PctHPs} > 20) {
-    /if (${cast_data[${_debug}, "${maChr.Find[stAAFocusofArcanum].Value}"]}) {
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAFocusofArcanum].Value}"]}) {
+    /call cast ${_debug} 0 FALSE
+  }
+
+  | alternate twincast
+  /if (!${Me.Buff[${maChr.Find[stTC].Value}].ID}) {
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAImprovedTwincast].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
+    }
+  } else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.AltAbilityReady[Improved Twincast]}) {
+    /if (${cast_data[${_debug}, "${maChr.Find[stTC].Value}"]}) {
       /call cast ${_debug} 0 FALSE
     }
   }
@@ -238,8 +251,6 @@ sub burn(bool _debug, int _tmpID)
     }
   }
 
-
-
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
@@ -257,7 +268,6 @@ sub burn(bool _debug, int _tmpID)
     /if (${cast_data[${_debug}, "${maChr.Find[stAAHostintheShell].Value}"]}) {
       /call cast ${_debug} 0 FALSE
     }
-
 
   }
 

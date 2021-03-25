@@ -1900,6 +1900,11 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
   } else /if (${_type.Equal[lua]}) {
     /invoke ${set_switch_env[${_debug}, swLua, TRUE, ${_verbage}]}
 
+  | tlp player
+  } else /if (${_type.Equal[tlp]}) {
+    /invoke ${set_switch_env[${_debug}, swTLP, TRUE, ${_verbage}]}
+
+
   | hud adjustments
   } else /if (${_type.Equal[hud]}) {
 
@@ -2043,6 +2048,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
   /invoke ${maControl.Add[castloops,stCastLoop]}
   /invoke ${maControl.Add[events,swEventsInc]}
   /invoke ${maControl.Add[lua,swLua]}
+  /invoke ${maControl.Add[tlp,swTLP]}
   /invoke ${maControl.Add[hook,swHookSub]}
   /invoke ${maControl.Add[hud,submenu]}
   /invoke ${maControl.Add[dannet,submenu]}
@@ -3479,6 +3485,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
     }
 
     /varset stAssTarID ${Target.ID}
+    /vardata spawnData Target.ID
     /if (${Me.Invis}) {
       /call Bind_control_nomore invis ${_debug}
     }
@@ -3709,6 +3716,15 @@ sub Bind_command_alto(string _type, string _debug)
   /invoke ${target[release]}
   /invoke ${maData.Add[swGetOverHere,FALSE]}
   /invoke ${maData.Add[stCastReturn,RESET]}
+  
+  /if (${Me.AutoFire}) {
+    /squelch /autofire
+  }
+
+  /if (${Me.Combat}) {
+    /squelch /attack off
+  }
+
   /nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
 
 /return TRUE
@@ -6141,6 +6157,10 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   } else /if (${_type.Equal[navstop]}) {
     /if (!${set_control_num_range[${_debug}, stPullNavStopDistance, "${_verbage}", 31, 250]}) /return
 
+  | radius to watch for pets  
+  } else /if (${_type.Equal[petwatch]}) {
+    /if (!${set_control_num_range[${_debug}, stPullPetWatch, "${_verbage}", 0, 60]}) /return
+
   | chain pull #
   } else /if (${_type.Equal[chain]}) {
     /if (!${set_control_num_range[${_debug}, stCountChainPull, "${_verbage}", 0, 99]}) /return
@@ -6255,6 +6275,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   /invoke ${maControl.Add[pathlogic,swNavPathLogic]}
   /invoke ${maControl.Add[stop,submenu]}
   /invoke ${maControl.Add[mode,submenu]}
+  /invoke ${maControl.Add[petwatch,stPullPetWatch]}
   /invoke ${maControl.Add[with,submenu]}
   /invoke ${maControl.Add[outrun,stPullOutrunRange]}
   /invoke ${maControl.Add[sethome,swPullSetHome]}

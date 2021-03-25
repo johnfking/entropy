@@ -53,7 +53,7 @@ sub class_init(bool _debug)
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                EMPTY                                    "${auxli} class base loop start"
   /call set_data_list ${_debug} maChr lsOrderClassPre                 cc                                       "${auxli} class pre combat"
-  /call set_data_list ${_debug} maChr lsOrderClass                    cc|melee|debugg|cc|burn|misc|cc|pet|swarm|cc|alliance|dot|pulseic|cc|nuke|item      "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClass                    cc|melee|debuff|burn|misc|pet|swarm|alliance|dot|pulseic|nuke|item      "${auxli} class active combat order"
   /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover                              "${auxli} class post combat "
 
 

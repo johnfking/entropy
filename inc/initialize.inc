@@ -120,10 +120,20 @@ sub set_initialize(bool _debug)
   | list iterator dump variable
   /declare li listiterator outer
 
-  | control map dumps
+  | control maps
   /declare maControl map outer
   /declare maChrControl map outer
   /declare maMobControl map outer
+  
+  | build the debuf control maps
+  /declare lsdebuffType list outer 
+  /invoke ${lsdebuffType.Append[Mez,Malo,Tash,Share,Charm]}
+  /declare _lsdbt listiterator local
+  /vardata _lsdbt lsdebuffType.First.Clone
+  /while (!${_lsdbt.IsEnd}) {
+    /declare maMobControl${_lsdbt.Value} map outer
+    /invoke ${_lsdbt.Advance}
+  }
 
   | hook map
   /declare maHook map outer
@@ -149,8 +159,16 @@ sub set_initialize(bool _debug)
   | spawn data map
   /declare maSD map outer
   
-  | assist
+  | assist data
   /declare _assist spawn outer
+  /declare assistData spawn outer
+  
+  | assist spawn data
+  /declare spawnData spawn outer
+  
+  | spell/cast data
+  /declare spellData spell outer
+
 
   | TTL stuff
   /declare maTTL map outer
@@ -167,6 +185,7 @@ sub set_initialize(bool _debug)
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro,maMercenary]}
   /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
   /invoke ${lsMaps.Append[maGTFO,maPull,maMelee,madeBuff,maCure]}
+  /invoke ${lsMaps.Append[maMobControlMez]}
 
   | set all output shortcuts
   /call set_data ${_debug} FALSE num                                      string outer "\a-t"
@@ -1204,6 +1223,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_list ${_debug} maPull lsLinePull                         EMPTY                         "${auxli} alternate order for pulling"                                          pull
   /call set_data_map ${_debug} maPull swPull                              FALSE                         "${auxsw} enable pulling (\a-wselect mobs to kill\ax)"                          pull
   /call set_data_map ${_debug} maPull stPullRadius                        0                             "${auxnum} radius to pull mobs from"                                            pull
+  /call set_data_map ${_debug} maPull stPullPetWatch                      0                             "${auxnum} radius to pull dumb ass NPC pets"                                    pull
   /call set_data_map ${_debug} maPull swPullSetHome                       FALSE                         "${auxsw} suto set home marker when pulling is enabled"                         pull
   /call set_data_map ${_debug} maPull stPullNavStopDistance               60                            "${auxnum} how close you will nav pull to a mob before trying too tag it"       pull
   /call set_data ${_debug} FALSE lsPullMode                               list outer base|pet|int|nav|multi
@@ -1414,6 +1434,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy swNavLogSpew                     off                           "${auxsw} (on/off) Show mq2nav log spew in mq2 chat window"
   /call set_data_map ${_debug} maEntropy stMainLoopDelay                  1                             "${auxnum} this is the main delay for the master macro loops. USE CAUTION when changing!"
   /call set_data_map ${_debug} maEntropy swLua                            FALSE                         "${auxsw} use mq2lua plugin"
+  /call set_data_map ${_debug} maEntropy swTLP                            FALSE                         "${auxsw} TLP player"
 
   | dannet options
   /call set_data_map ${_debug} maEntropy stNetworkTimeout                 1                             "${auxnum} dannet timeout for network lag. ignore this if at all possible"

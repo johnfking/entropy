@@ -286,7 +286,7 @@ sub burn(bool _debug, int _tmpID)
     /call cast ${_debug} 0 FALSE
   }
 
-  /if (${is_ready[${_debug}, "${maChr.Find[stAAFocusofArcanum].Value}"]}) {
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAFocusofArcanum].Value}"]}) {
     /call cast ${_debug} 0 FALSE
   }
 
