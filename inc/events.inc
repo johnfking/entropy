@@ -312,10 +312,11 @@ sub Event_Camp(string _line)
  * note: raid and group invite accept controls
  * use: EVENTS
  ***|
-#event Join "#1# invites you to join a #2#.#*#"
+#event Join "#1# invites you to join a #2#."
 sub Event_Join(string _line, string _sender, string _groupraid)
-  | DEBUG \atEvent_Join\ax(\a-w${_sender}, ${_groupraid}\ax)
 
+  /doevents flush Join
+  
   /if (!${is_lsSafeNames[FALSE, ${_sender}]}) {
     /return FALSE
   }
@@ -334,12 +335,13 @@ sub Event_Join(string _line, string _sender, string _groupraid)
   /if (${_groupraid.Equal[raid]}) {
     /delay 1s
     /if (!${maEnv.Find[swTakeRaidInvite].Value}) {
+      OUT Declining ${_groupraid} invite from${sep}\a-w${_sender}\ax
       /raiddecline
       /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["join a raid"]}) {
         /nomodkey /notify ConfirmationDialogBox No_Button leftmouseup
       }
     } else /if (${maEnv.Find[swTakeRaidInvite].Value}) {
-      OUT Accepting ${_groupraid} invite${sep}\a-w${_sender}\ax
+      OUT Accepting ${_groupraid} invite from${sep}\a-w${_sender}\ax
       /raidaccept
       /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["join a raid"]}) {
         /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup

@@ -6071,8 +6071,8 @@ sub check_buff_cycle_others(bool _debug, string _type)
  * note: we dont trust anyone
  * use: ${is_lsSafeNames[DEBUG, spawn]}
  ***|
-sub is_lsSafeNames(bool _debug, spawn _spawn)
-  DEBUG \atis_lsSafeNames\ax(\a-w${_spawn.DisplayName}\ax)
+sub is_lsSafeNames(bool _debug, string _name)
+  DEBUG \atis_lsSafeNames\ax(\a-w${_name}\ax)
 
   | override and accept everyone
   /if (${maOver.Find[swOverSafeNames].Value}) {
@@ -6081,14 +6081,14 @@ sub is_lsSafeNames(bool _debug, spawn _spawn)
   }
 
   | auto accept ${DanNetMacroChannel} channel toons
-  /if (${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Find[${_spawn.DisplayName.Lower}]}) {
-    DEBUG ${sep}safe${sep}\a-wstEntropyGroup_all\ax
+  /if (${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Find[${_name}]}) {
+    DEBUG ${sep}safe.dannet${sep}\a-wstEntropyGroup_all\ax
     /return TRUE
   }
 
   | basic safe list check
-  /if (${lsSafeNames.Contains[${_spawn.DisplayName.Lower}]}) {
-    DEBUG ${sep}safe${sep}\a-wlsSafeNames\ax
+  /if (${lsSafeNames.Contains[${_name}]}) {
+    DEBUG ${sep}safe.safelist${sep}\a-wlsSafeNames\ax
     /return TRUE
   }
 
@@ -13666,7 +13666,7 @@ sub get_resident(bool _debug, string _groupList, int _distance, string _verbage)
         /continue
       }
  
-      /vardata _spawn Spawn[pc ${DanNet.Peers[${_group}].Arg[${_countName},|]}].ID
+      /vardata _spawn Spawn[pc ${DanNet.Peers[${_group}].Arg[${_countName},|]}]
       
       DEBUG ${sep}spawn${sep}\a-w${_spawn.DisplayName}\ax
       
@@ -13913,7 +13913,7 @@ sub check_cure(bool _debug)
 
 
 |***
- * note: cycles a map of tlos too make sure the observers have been set before usage
+ * note: cycles a map of tlos to make sure the observers have been set before usage
  * use: /call observer_validate [mapname] [character to check]
  **|
 sub observer_validate(bool _debug, string _table, string _toon)
@@ -16078,19 +16078,19 @@ sub spawn_hurt(bool _debug, string _type, bool _breakonGroup)
     /for _count 1 to ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}
 
       | get the name to something usable
-      /vardata _spawn spawn_dannet[${_debug}, ${maEntropy.Find[stEntropyGroup_all].Value}, ${_count}]
+      /vardata _spawn Spawn[pc ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}]
       
-      /if (!${_spawn.ID}) {
+      /if (!${_spawn.ID} || ${_spawn.ID} == ${Me.ID}) {
         /continue
       }
       DEBUG ${sep}_spawn.DisplayName${sep}\ay${_spawn.DisplayName}\ax
 
       | is the observer set
       /if (!${DanNet[${_spawn.DisplayName}].ObserveSet["Me.PctHPs"]} || !${DanNet[${_spawn.DisplayName}].ObserveSet["Me.Class.ShortName"]} || !${DanNet[${_spawn.DisplayName}].ObserveSet["Me.ID"]}) {
-        DEBUG ${break}defined${sep}!\a-w${_spawn.DisplayName}_PctHPs\ax
+        DEBUG ${break}observers are mission or catching up
         /continue
       }
-
+      
       DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}${_spawn.DisplayName}${sep}${_spawn.ID}\ax
 
       /if (${DanNet[${_spawn.DisplayName}].Observe["Me.PctHPs"]} > ${maHeal.Find[stHealPoint${DanNet[${_spawn.DisplayName}].Observe["Me.Class.ShortName"]}].Value}*.PCTHO) {
@@ -16123,10 +16123,12 @@ sub spawn_hurt(bool _debug, string _type, bool _breakonGroup)
         DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}_tmpWeight${sep}\a-w${_tmpWeight}\ax
         /if (${Float[${_tmpWeight}].Precision[5]} < ${Float[${_hurtWeight}].Precision[5]}) {
           /varset _hurtWeight ${Float[${_tmpWeight}].Precision[5]}
-          /vardata hurtData DanNet[${_spawn.DisplayName}].Observe["Me.ID"]
+          | /vardata hurtData Spawn[pc ${DanNet[${_spawn.DisplayName}].Observe["Me.ID"]}]
+          /vardata hurtData _spawn
         }
       } else /if (!${maHeal.Find[swHealWeighted].Value}) {
-        /vardata hurtData DanNet[${_spawn.DisplayName}].Observe["Me.ID"]
+        | /vardata hurtData Spawn[pc ${DanNet[${_spawn.DisplayName}].Observe["Me.ID"]}]
+        /vardata hurtData _spawn
       }
 
     /next _count

@@ -24,6 +24,13 @@ REMINDER:
 --------------------
 
 
+210411.01
+** Reminder, this is only an update for MQNext users
+- corected a spawn issue with DanNet Healing
+- groups will form again
+
+
+
 **
 ** WARNING ** NOTICE ** READ THIS **
 **
@@ -35,6 +42,8 @@ REMINDER:
 **
 ** TL;DR - I'm no longer supporting Live MQ, only MQ2Next. Do not update if using Live
 **
+
+210410.01
 - MQ2LUA plugin is now a requirement
 - help updates
   /burn -t - will show you all the tags you have for burns
@@ -97,7 +106,6 @@ REMINDER:
   variance # - (1-5) a +/- to the engage % you have set to generate a high/low for the random and delay for rez taking
 
 
-
 210325.01
 - excluded passive AAs from cast_data() routine
 - druid
@@ -108,7 +116,7 @@ REMINDER:
   start for the isolation some different behavior for TLP play styles
   more to come
 - shaman
-  splashing should work again. may need a little tweaking but its there
+  i
 - bard
   some changed to the initial build of the class combat loop order
   

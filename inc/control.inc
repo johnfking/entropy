@@ -210,7 +210,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
   | check observer view
   } else /if (${_type.Equal[obs]}) { 
-    OUT Observe${sep}\a-w${_verbage}\ax
+    OUT Observed${sep}\a-w${_verbage}\ax
     /declare _count int local 0
     /declare _obs string local
     /for _count 1 to ${DanNet[${_verbage}].Observe.Count[|]}
