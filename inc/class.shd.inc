@@ -137,7 +137,7 @@ sub check_heal(bool _debug, string _type)
   ISMEDEAD
   CHECKEXIT
 
-  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+  /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   | if no one is hurt. back to the start
   /if (!${hurtCount}) {
@@ -178,12 +178,12 @@ sub check_heal(bool _debug, string _type)
     }
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
 
   GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
-  /call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtData.ID} single
   SETHUD EMPTY
 
 /return TRUE
@@ -194,33 +194,33 @@ sub check_heal(bool _debug, string _type)
  * note: kill all the things!
  * use: this shits auto, learn to love it.
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
   CHECKEXIT
-  GETINPUT misc_combat_SHD _tmpID|${_tmpID}
+  GETINPUT misc_combat_SHD _spawn.ID|${_spawn.ID}
   CHECKTIE
   CHECKDEFENSE
   BUFFNOW
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
 
-  /invoke ${do_taunt[${_debug}, ${_tmpID}]}
+  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
 
   /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
     /call cast_shield_flash ${_debug} aa
@@ -240,7 +240,7 @@ sub misc_combat(bool _debug, int _tmpID)
 
   | get me sum...
   /if (AGRO) {
-    /call get_agro ${_debug} ${_tmpID}
+    /call get_agro ${_debug} ${_spawn.ID}
   }
 
   | quickspear proc
@@ -251,11 +251,11 @@ sub misc_combat(bool _debug, int _tmpID)
   | swarm pets
   /if (SWARM) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAAChatteringBones].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
@@ -263,10 +263,10 @@ sub misc_combat(bool _debug, int _tmpID)
     /call cast ${_debug} 0 FALSE
   }
   /if (${cast_data[${_debug}, "${maChr.Find[stAAThoughtLeech].Value}"]} &&  ${Me.PctMana} <= 60*.PCTHO) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   /if (${cast_data[${_debug}, "${maChr.Find[stGougingBlade].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
 /return TRUE
@@ -277,29 +277,29 @@ sub misc_combat(bool _debug, int _tmpID)
  * note: we are agro gods.
  * use: /call get_agro
  ***|
-sub get_agro(bool _debug, int _tmpID)
+sub get_agro(bool _debug, spawn _spawn)
   DEBUG \atget_agro\ax()
 
   ISMEDEAD
   CHECKEXIT
-  GETINPUT get_agro _tmpID|${_tmpID}
+  GETINPUT get_agro _spawn.ID|${_spawn.ID}
 
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
   /if (PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_agro ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
 
-  /invoke ${do_taunt[${_debug}, ${_tmpID}]}
+  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
 
-  /call cast_challenge ${_debug} ${_tmpID}
+  /call cast_challenge ${_debug} ${_spawn.ID}
 
   /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
     /call cast_shield_flash ${_debug} aa
@@ -336,16 +336,16 @@ sub get_agro(bool _debug, int _tmpID)
   /vardata _liha lsHate.First.Clone
   /while (!${_liha.IsEnd}) {
     /if (${cast_data[${_debug}, "${_liha.Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
       /break
     }
     /invoke ${_liha.Advance}
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
-  /invoke ${do_taunt[${_debug}, ${_tmpID}]}
+  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
 
   /if (${Me.PctAggro} >= ${maAgro.Find[stPctAgroHold].Value}) {
     /return FALSE
@@ -353,19 +353,19 @@ sub get_agro(bool _debug, int _tmpID)
 
   | AA pet hate
   /if (${cast_data[${_debug}, "${maChr.Find[stAAProjectionofDoom].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
 
   | fake hate
   /if (${cast_data[${_debug}, "${maChr.Find[stAAAgelessEnmity].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   | named fake hate
   /if (${lsZoneNamed.Contains[${Target.DisplayName}]}) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAcrimony].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
@@ -377,24 +377,24 @@ sub get_agro(bool _debug, int _tmpID)
  * note: don't touch me there...
  * use:
  ***|
-sub burn(bool _debug, int _tmpID)
+sub burn(bool _debug, spawn _spawn)
   DEBUG \atburn\ax()
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
   CHECKEXIT
-  GETINPUT burn_SHD _tmpID|${_tmpID}
+  GETINPUT burn_SHD _spawn.ID|${_spawn.ID}
   CHECKTIE
   CHECKDEFENSE
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   | deflection
@@ -406,7 +406,7 @@ sub burn(bool _debug, int _tmpID)
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -415,7 +415,7 @@ sub burn(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAATVylsResolve].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   /if (${cast_data[${_debug}, "${maChr.Find[stCrimsonBlade].Value}"]}) {
     /call cast ${_debug} 0 FALSE
@@ -424,13 +424,13 @@ sub burn(bool _debug, int _tmpID)
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAAVeilofDarkness].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   /if (${cast_data[${_debug}, "${maChr.Find[stAAHarmTouch].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 

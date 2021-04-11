@@ -1,9 +1,8 @@
 --[[
-- entropoy.mac
-- common.lua
-- 
-- lua shared _stuffs_
--
+entropoy.mac
+common.lua
+
+lua shared stuffs
 --]]
 
 mq = require('mq')
@@ -15,17 +14,20 @@ discord = '${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}'
 
 
 
---[[
 
-for i = 0, mq.TLO.Group.Members()
-do
-  local group_member = mq.TLO.Group.Member(i) 
-  if group_member.Dead() ~= 1 and group_member.Present() ~= 0 and rangeCheck(group_member.Distance(), range) and healthCheck(group_member.PctHPs(), hurt['pct']) then
-    hurt['id'] = group_member.ID()
-    hurt['pct'] = group_member.PctHPs()
-    hurt['cls'] = group_member.Class.ShortName()
-    hurt['count'] = hurt['count'] +1
+out = function (option, verbage)
+
+  --[ help response for no tags for the control --]
+  if option == 'notag' then
+    echo('${lsep}no tags for this control.')
+
+  --[ help response for no map for this control --]
+  elseif option == 'nomap' then
+    echo('${lsep}no map for this control.')
+
+
+    
   end
 end
 
---]]
+

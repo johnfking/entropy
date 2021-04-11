@@ -127,22 +127,22 @@ sub class_main(bool _debug)
  * note: al the extra combat shit
  * use:
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
   TMPIDDEAD
   CHECKEXIT
   GETINPUT
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
   
@@ -164,35 +164,35 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stSynergy].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   
   /if (${cast_data[${_debug}, "${maChr.Find[stPunch].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 														  
   /if (${cast_data[${_debug}, "${maChr.Find[stElbow].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stCurse].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stPrecision].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   
   /if (${cast_data[${_debug}, "${maChr.Find[stPrecisionTwo].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   
   /if (${cast_data[${_debug}, "${maChr.Find[stPrecisionThree].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
-  /if (${cast_data[${_debug}, "${maChr.Find[stShuriken].Value}"]} && ${Spawn[${_tmpID}].Distance} > 31) {
-    /call cast ${_debug} ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stShuriken].Value}"]} && ${Spawn[${_spawn.ID}].Distance} > 31) {
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   
   /if (${cast_data[${_debug}, "${maChr.Find[stMonkey].Value}"]}) {
@@ -224,13 +224,13 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAATwoFingerWaspTouch].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   
   /if (${Me.ActiveDisc.ID} && !${Me.ActiveDisc.Name.Find[Heel]}) { 
     /if (${Me.ActiveDisc.ID} && !${Me.ActiveDisc.Name.Find[Ironfist]}) { 
       /if (${cast_data[${_debug}, "${maChr.Find[stAAVehementRage].Value}"]}) {
-        /call cast ${_debug} ${_tmpID} FALSE
+        /call cast ${_debug} ${_spawn.ID} FALSE
       }
     }
   }
@@ -257,7 +257,7 @@ sub check_heal(bool _debug, string _type)
     }
   }
 
-  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+  /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   | if no one is hurt. back to the start
   /if (!${hurtCount}) {
@@ -284,11 +284,11 @@ sub check_heal(bool _debug, string _type)
     }
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
 
-  /call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
   SETHUD EMPTY
 
@@ -300,11 +300,11 @@ sub check_heal(bool _debug, string _type)
  * note: Monk burn routines
  * use: you made a monk... hahaha
  ***|
-sub burn(bool _debug, int _tmpID)
-  DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+sub burn(bool _debug, spawn _spawn)
+  DEBUG \atburn\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
@@ -312,14 +312,14 @@ sub burn(bool _debug, int _tmpID)
   GETINPUT
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -336,7 +336,7 @@ sub burn(bool _debug, int _tmpID)
   /if (!${Me.ActiveDisc.ID}) {
     /if (${cast_data[${_debug}, "${maChr.Find[stHeel].Value}"]}) {
       /stopdisc
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
 
       | About to draw aggro, get silent strikes up and running
       /if (${cast_data[${_debug}, "${maChr.Find[stAASilentStrikes].Value}"]}) {
@@ -355,7 +355,7 @@ sub burn(bool _debug, int _tmpID)
       
       | Five Point Palm once fully stacked 
       /if (${cast_data[${_debug}, "${maChr.Find[stAAFivePointPalm].Value}"]}) {
-        /call cast ${_debug} ${_tmpID} FALSE
+        /call cast ${_debug} ${_spawn.ID} FALSE
       }
 
       | Always use Dicho and Ton Po's together
@@ -367,7 +367,7 @@ sub burn(bool _debug, int _tmpID)
       }
 
       /if (${cast_data[${_debug}, "${maChr.Find[stCrane].Value}"]}) {
-        /call cast ${_debug} ${_tmpID} FALSE
+        /call cast ${_debug} ${_spawn.ID} FALSE
       }
 
       /if (${cast_data[${_debug}, "${maChr.Find[stAASwiftTailsChant].Value}"]}) {
@@ -413,7 +413,7 @@ sub burn(bool _debug, int _tmpID)
 
       | Five Point Palm once fully stacked
       /if (${cast_data[${_debug}, "${maChr.Find[stAAFivePointPalm].Value}"]}) {
-        /call cast ${_debug} ${_tmpID} FALSE
+        /call cast ${_debug} ${_spawn.ID} FALSE
       }
 
       /if (${cast_data[${_debug}, "${maChr.Find[stAASwiftTailsChant].Value}"]}) {
@@ -430,7 +430,7 @@ sub burn(bool _debug, int _tmpID)
         /call cast ${_debug} 0 FALSE
         /delay 1
         /if (${cast_data[${_debug}, "${maChr.Find[stAAFivePointPalm].Value}"]}) {
-          /call cast ${_debug} ${_tmpID} FALSE
+          /call cast ${_debug} ${_spawn.ID} FALSE
         }
 
         | Always use Dicho and Ton Po's together
@@ -442,7 +442,7 @@ sub burn(bool _debug, int _tmpID)
         }
 
         /if (${cast_data[${_debug}, "${maChr.Find[stCrane].Value}"]}) {
-          /call cast ${_debug} ${_tmpID} FALSE
+          /call cast ${_debug} ${_spawn.ID} FALSE
         }
       }
     }
@@ -455,7 +455,7 @@ sub burn(bool _debug, int _tmpID)
           /stopdisc
           /call cast ${_debug} 0 FALSE
           /if (${cast_data[${_debug}, "${maChr.Find[stCrane].Value}"]}) {
-            /call cast ${_debug} ${_tmpID} FALSE
+            /call cast ${_debug} ${_spawn.ID} FALSE
           }
         }	
       }

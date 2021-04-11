@@ -99,11 +99,11 @@ sub class_main(bool _debug)
  * noote: Combat skills, Disciplines and Alternate abilities.
  * use: yes, there are a lot here... lies..
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
@@ -115,16 +115,16 @@ sub misc_combat(bool _debug, int _tmpID)
   BUFFTEMP
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /call check_cani ${maDebug.Find[canni].Value}
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -154,7 +154,7 @@ sub check_heal(bool _debug, string _type)
 
   /if (!SAFEZONE) {
 
-    /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+    /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
     | check for surge
     /if (${maHeal.Find[stCountSurge].Value} && (${Group.Members} > 1 || ${Raid.Members}) || ${Me.Song[Healing Twincast].ID}) {
@@ -171,7 +171,7 @@ sub check_heal(bool _debug, string _type)
         /call cast_cycle_heal ${_debug} 0 group
       }
 
-      /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+      /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
         /return FALSE
       }
 
@@ -191,27 +191,27 @@ sub check_heal(bool _debug, string _type)
       }
     }
 
-    /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+    /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
       /return FALSE
     }
 
     | single heal over time
     /if (${maHeal.Find[swHealOverTime].Value} && !${timer_Check_Regen}) {
       /if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
-        /call cast_cycle_heal_regen ${_debug} ${hurtID} hot
+        /call cast_cycle_heal_regen ${_debug} ${hurtData.ID} hot
       }
     }
 
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
 
   ISMEDEAD
   CHECKEXIT
 
-  /call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
   SETHUD EMPTY
 
@@ -231,10 +231,10 @@ sub cast_cycle_heal_surge(bool _debug)
   GETINPUT
 
   | get the main assisst ID
-  /declare _tmpID int local ${get_assist_info[${_debug}, ID]}
-  DEBUG ${sep}assist ID${sep}\a-w${_tmpID}\ax
+  /declare _spawn.ID int local ${get_assist_info[${_debug}, ID]}
+  DEBUG ${sep}assist ID${sep}\a-w${_spawn.ID}\ax
 
-  /if (!${Spawn[${_tmpID}].LineOfSight}) {
+  /if (!${Spawn[${_spawn.ID}].LineOfSight}) {
     DEBUG ${break}.LineOfSight
     /return FALSE
   }
@@ -257,9 +257,9 @@ sub cast_cycle_heal_surge(bool _debug)
       /continue
     }
 
-    | skip twincast nukes (they are accessed a different way)
+    | skip non twincast nukes
     /if (!${lsNuke${_liNukeTC.Value}Tag.Contains[twincast]}) {
-      DEBUG ${break}invalid twincast check
+      DEBUG ${break}invalid twincast check (\a-r${maNuke.Find[stNuke${_liNukeTC.Value}].Value}\ax)
       /invoke ${_liNukeTC.Advance}
       /continue
     }
@@ -276,10 +276,7 @@ sub cast_cycle_heal_surge(bool _debug)
       /continue
     }
 
-    /call cast ${_debug} ${_tmpID} FALSE
-    
-
-    | forced delay
+    /call cast ${_debug} ${_spawn.ID} FALSE
     /delay 10s !${Me.Casting.ID}
     /delay 2.5s
     
@@ -331,13 +328,13 @@ sub cast_cycle_heal_surge(bool _debug)
     }
 
     | cycle the tags
-    /call tag_evaluation ${maDebug.Find[tag].Value} Heal ${_liHeal.Value} ${Spawn[${_tmpID}].DisplayName} "${maHeal.Find[stHeal${_liHeal.Value}Con].Value}" cast_cycle_heal_surge
+    /call tag_evaluation ${maDebug.Find[tag].Value} Heal ${_liHeal.Value} ${Spawn[${_spawn.ID}].DisplayName} "${maHeal.Find[stHeal${_liHeal.Value}Con].Value}" cast_cycle_heal_surge
     /if (!${Macro.Return}) {
       /invoke ${_liHeal.Advance}
       /continue
     }
 
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
 
     /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]}) {
       /return TRUE
@@ -354,11 +351,11 @@ sub cast_cycle_heal_surge(bool _debug)
  * note: Shaman burn routines
  * use: normal burn stuf
  ***|
-sub burn(bool _debug, int _tmpID)
-  DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+sub burn(bool _debug, spawn _spawn)
+  DEBUG \atburn\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
@@ -368,28 +365,28 @@ sub burn(bool _debug, int _tmpID)
   CHECKDEFENSE
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
 
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   | swarm aa pet
   /if (SWARM && ${Target.ID}) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAASpiritCall].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
 
   | Lower spell resists
   /if (${cast_data[${_debug}, "${maChr.Find[stAADampenResistance].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   | Twincast next 6 DOTs/HOTs
@@ -404,7 +401,7 @@ sub burn(bool _debug, int _tmpID)
 
   | Mega bear crap
   /if (AUTO && MELEE && ${cast_data[${_debug}, "${maChr.Find[stAARabidBear].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
@@ -522,13 +519,13 @@ sub cast_alliance(bool _debug)
   /if (!${cast_data[${_debug}, "${maChr.Find[stAlliance].Value}"]}) /return FALSE
 
   /declare _name string local ${get_assist_info[${_debug}, name]}
-  /declare _tmpID int local ${get_assist_info[${_debug}, id]}
+  /declare _spawn.ID int local ${get_assist_info[${_debug}, id]}
 
-  /call target set ${_tmpID}
+  /call target set ${_spawn.ID}
 
   /delay 5 ${Target.BuffsPopulated}
   /if (${Target.BuffsPopulated} && !${Target.Buff[${maChr.Find[stAlliance].Value}].ID}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
 /return TRUE

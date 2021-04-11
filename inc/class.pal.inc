@@ -153,33 +153,31 @@ sub class_main(bool _debug)
 
 |***
  * note: all other combat .. things
- * use: /call misc_combat DEBUG [TARGETID]
+ * use: /call misc_combat DEBUG [spawn]
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
-  TMPIDDEAD
+  SPAWNDEAD
   CHECKEXIT
   GETINPUT
 
   /call check_heal_routines
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[minion].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[minion].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
 
-  TMPIDDEAD
+  SPAWNDEAD
 
-  /invoke ${do_taunt[${_debug}, ${_tmpID}]}
-
-  /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
 
   /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
     /call cast_shield_flash FALSE aa
@@ -200,12 +198,12 @@ sub misc_combat(bool _debug, int _tmpID)
     }
   }
 
-  TMPIDDEAD
+  SPAWNDEAD
 
   | undead cripple
   /if (${Target.Body.Name.Equal[Undead]}) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAAVanquishtheFallen].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
@@ -215,17 +213,17 @@ sub misc_combat(bool _debug, int _tmpID)
 
 |***
  * note: I'm more important then you are!
- * use: /call get_agro DEBUG [TARRGETID]
+ * use: /call get_agro DEBUG [spawn]
  ***|
-sub get_agro(bool _debug, int _tmpID)
-  DEBUG \atget_agro\ax()
+sub get_agro(bool _debug, spawn _spawn)
+  DEBUG \atget_agro\ax(\a-w${_spawn.ID}\ax)
 
   CHECKEXIT
   GETINPUT
-  TMPIDDEAD
+  SPAWNDEAD
 
   /if (ENGINE2) {
-    /call cast_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_agro ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -235,18 +233,18 @@ sub get_agro(bool _debug, int _tmpID)
     /call cast_shield_flash FALSE aa
   }
 
-  /call cast_challenge ${_debug} ${_tmpID}
+  /call cast_challenge ${_debug} ${_spawn.ID}
 
-  /invoke ${do_taunt[${_debug}, ${_tmpID}]}
+  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
 
   | chain stun
   /if (${cast_data[${_debug}, "${maChr.Find[stStun].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   | Valiant Defense line. agro+heal
   /if (${cast_data[${_debug}, "${maChr.Find[stValiant].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }  
 
   | AE Stuns
@@ -258,25 +256,25 @@ sub get_agro(bool _debug, int _tmpID)
       /if (!${Raid.Members} || ${Raid.Members} && ${Raid.MainAssist.Name.Equal[${Me.DisplayName}]}) {
         /if (${_coutAE} > 1) {
           /if (${cast_data[${_debug}, "${maChr.Find[stAAHallowedLodestar].Value}"]}) {
-            /call cast ${_debug} ${_tmpID} FALSE
+            /call cast ${_debug} ${_spawn.ID} FALSE
           }
         }
         /if (${_coutAE} > 4) {
           /if (${cast_data[${_debug}, "${maChr.Find[stAABeaconoftheRighteous].Value}"]}) {
-            /call cast ${_debug} 0 ${_tmpID}
+            /call cast ${_debug} 0 ${_spawn.ID}
           }
         }
       }
     }
   }
   
-  TMPIDDEAD
+  SPAWNDEAD
 
   /if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
     /return
   }
 
-  /invoke ${do_taunt[${_debug}, ${_tmpID}]}
+  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
 
   /if (${Me.PctAggro} >= ${maAgro.Find[stPctAgroHold].Value}) {
     /return FALSE
@@ -284,19 +282,19 @@ sub get_agro(bool _debug, int _tmpID)
 
   | AA pet hate (the little sword thingie)
   /if (${cast_data[${_debug}, "${maChr.Find[stAAProjectionofPiety].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   | snap hate
   /if (!${Raid.Members}) {
     /if (${Me.PctAggro} < ${maAgro.Find[stPctAgroHold].Value} && ${cast_data[${_debug}, "${maChr.Find[stAAAgelessEnmity].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
   | named fake hate
   /if ((${Me.PctAggro} < ${maAgro.Find[stPctAgroHold].Value} || ${lsZoneNamed.Contains[${Target.DisplayName}]}) && ${cast_data[${_debug}, "${maChr.Find[stUnflinching].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
 
@@ -316,7 +314,7 @@ sub check_heal(bool _debug, string _type)
 
   SETHUD "heal ${_type}"
 
-  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+  /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   /if (!${hurtCount}) {
     SETHUD EMPTY
@@ -330,7 +328,7 @@ sub check_heal(bool _debug, string _type)
     }
   }
 
-  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+  /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   | ToT heals
   /if (${Select[${_type},tot]} && ${maHeal.Find[swHealToT].Value}) {
@@ -349,13 +347,12 @@ sub check_heal(bool _debug, string _type)
 
       /call cast_cycle_heal ${_debug} ${Target.ID} tot
 
-      /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
+      /return FALSE
     }
   }
 
   | group only heals
   /if (${Select[${_type},group]} && ${Group}) {
-    | Group Splash
 
     | splash heal
     /if (${maHeal.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
@@ -364,7 +361,7 @@ sub check_heal(bool _debug, string _type)
       }
     }
 
-    /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+    /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
       /return FALSE
     }
 
@@ -377,11 +374,11 @@ sub check_heal(bool _debug, string _type)
     /if (${hurtCount} >= 1 || BURN) {
       /if (${cast_data[${_debug}, "${maChr.Find[stAAHandofPiety].Value}"]}) {
         /call cast ${_debug} 0 FALSE
-        /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
+        /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
       }
     }
 
-    /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+    /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
       /return FALSE
     }
 
@@ -389,7 +386,7 @@ sub check_heal(bool _debug, string _type)
     /if (${hurtCount} >= 1) {
       /if (${cast_data[${_debug}, "${maChr.Find[stReflexive].Value}"]}) {
         /call cast ${_debug} TARGET FALSE
-        /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
+        /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
       }
     }
 
@@ -406,7 +403,7 @@ sub check_heal(bool _debug, string _type)
       }
     }
 
-    /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+    /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
       /return FALSE
     }
   }
@@ -418,11 +415,11 @@ sub check_heal(bool _debug, string _type)
     }
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
 
-  /call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
   SETHUD EMPTY
 
@@ -460,23 +457,22 @@ sub cast_AA_marrs_gift(bool _debug)
  * note: Paladin burn routines (like pallys can do any DPS.!)
  * use: seriously why bother
  ***|
-sub burn(bool _debug, int _tmpID)
-  DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+sub burn(bool _debug, spawn _spawn)
+  DEBUG \atburn\ax(\a-w${_spawn.ID}\ax)
 
-  TMPIDDEAD
-
+  SPAWNDEAD
   CHECKEXIT
   GETINPUT
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} TARGET
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} TARGET FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -492,7 +488,7 @@ sub burn(bool _debug, int _tmpID)
     /call cast_shield_flash FALSE aa
   }
 
-  /invoke ${do_taunt[${_debug}, ${_tmpID}]}
+  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
 
   | aa LoH
   /if (${maHeal.Find[swHealSelf].Value} && ${maChr.Find[stPctLoH].Value}) {
@@ -503,7 +499,7 @@ sub burn(bool _debug, int _tmpID)
     }
   }
 
-  TMPIDDEAD
+  SPAWNDEAD
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 

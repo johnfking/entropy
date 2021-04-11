@@ -139,8 +139,8 @@ sub class_main(bool _debug)
  * note: suprize but slap?
  * use: designed for a first attack
  ***|
-sub do_sneak_attack(bool _debug, int _tmpID)
-  DEBUG \atdo_sneak_attack\ax(\a-w${_tmpID}\ax)
+sub do_sneak_attack(bool _debug, spawn _spawn)
+  DEBUG \atdo_sneak_attack\ax(\a-w${_spawn.ID}\ax)
 
   /if (${Select[${Me.CombatState},combat,active,debuffed]}) {
     /return FALSE
@@ -153,7 +153,7 @@ sub do_sneak_attack(bool _debug, int _tmpID)
   CHECKEXIT
 
   /if (${Target.Distance} <= 49 && ${Target.Distance} <= ENV) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
 /return TRUE
@@ -164,31 +164,24 @@ sub do_sneak_attack(bool _debug, int _tmpID)
  * note:
  * use:
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
-
+  SPAWNDEAD
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
-  BUFFNOW
-  BUFFTEMP
 
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -198,59 +191,45 @@ sub misc_combat(bool _debug, int _tmpID)
   }
   
   | Self buffs to keep up at all times (Magnified Frenzy, requires target)
-  /if (${cast_data[${_debug}, "${maChr.Find[stAugmentedFrenzy].Value}"]} && !${Me.Buff[${maChr.Find[stAugmentedFrenzy].Value}].ID}) {
-  	/if (${Me.PctHPs} > 90) {
+ 	/if (${Me.PctHPs} < 90) {
+    /if (${cast_data[${_debug}, "${maChr.Find[stAugmentedFrenzy].Value}"]} && !${Me.Buff[${maChr.Find[stAugmentedFrenzy].Value}].ID}) {
       /call cast ${_debug} 0 FALSE
-      /delay 1
-      /if (${Me.PctHPs} > 90) {
-      		/call cast ${_debug} 0 FALSE
-      		/delay 1
-      }
     }
-		/call cast ${_debug} 0 FALSE
 	}
 	
 
   | Use Drawn to Blood if Frenzied Resolve active
-  /if (${Me.ActiveDisc[Frenzied Resolve].ID} && ${Spawn[id ${_tmpID}].Distance} > ${Spawn[id ${_tmpID}].MaxRangeTo}*.8 && ${Spawn[id ${_tmpID}].Distance} < 60) {
+  /if (${Me.ActiveDisc[Frenzied Resolve].ID} && ${_spawn.Distance} > ${_spawn.MaxRangeTo}*.8 && ${_spawn.Distance} < 60) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAADrawntoBlood].Value}"]}) {
       /call cast ${_debug} 0 FALSE
     }
   }
   
   | Get under 90% with Bloodfury
-  | /if (${Me.PctHPs} > 90 && !${Me.Song[${maChr.Find[stOpenWound].Value}].ID}) {
-  |  /if (${cast_data[${_debug}, "${maChr.Find[stAABloodfury].Value}"]}) {
-  |    /call cast ${_debug} 0 FALSE
-  |  }
-  | }
+  /if (${Me.PctHPs} > 90 && !${Me.Song[${maChr.Find[stOpenWound].Value}].ID}) {
+   /if (${cast_data[${_debug}, "${maChr.Find[stAABloodfury].Value}"]}) {
+     /call cast ${_debug} 0 FALSE
+   }
+  }
 
   | Vindicating Frenzy
   /if (${cast_data[${_debug}, "${maChr.Find[stOverpoweringFrenzy].Value}"]}) {
-  	/if (${Me.PctHPs} > 90) {
-      /call cast ${_debug} 0 FALSE
-      /delay 1
-      /if (${Me.PctHPs} > 90) {
-      		/call cast ${_debug} 0 FALSE
-      		/delay 1
-      }
-    }
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   
   | Vindicating Volley
   /if (${cast_data[${_debug}, "${maChr.Find[stRageVolley].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   | Axe of Derakor
   /if (${cast_data[${_debug}, "${maChr.Find[stAxeofRalos].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   | Vindicating Axe Throw
   /if (${cast_data[${_debug}, "${maChr.Find[stAxeThrow].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   
   | Shared Atavism
@@ -268,13 +247,13 @@ sub misc_combat(bool _debug, int _tmpID)
   | swarm pet
   /if (SWARM) {
     /if (${cast_data[${_debug}, "${maChr.Find[stPhantomAssailant].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
   
   | Binding Axe
   /if (${cast_data[${_debug}, "${maChr.Find[stAABindingAxe].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (AE# && ${Me.Song[Strike of Savagery].ID}) {
@@ -305,7 +284,7 @@ sub misc_combat(bool _debug, int _tmpID)
       /call cast_data ${_debug} "${maChr.Find[stAABraxisHowl].Value}"
       /call cast ${_debug} 0 FALSE
       /call cast_data ${_debug} "${maChr.Find[stDichotomic].Value}"
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
@@ -322,7 +301,7 @@ sub misc_combat(bool _debug, int _tmpID)
       /call cast ${_debug} 0 FALSE
     }
     /if (${cast_data[${_debug}, "${maChr.Find[stDivertiveStrike].Value}"]} && ${Me.PctAggro} > 80) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
@@ -341,14 +320,12 @@ sub check_heal(bool _debug, string _type)
   CHECKTIE
   ISMEDEAD
   CHECKEXIT
-  CHECKREZ
-  CHECKFADE
 
   SETHUD "heal ${_type}"
 
   /if (${Me.PctHPs} > ${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO) /return FALSE
 
-  /call cast_cycle_heal ${_debug} ${hurtID} healsingle
+  /call cast_cycle_heal ${_debug} ${Me.ID} healsingle
 
   SETHUD EMPTY
 
@@ -371,28 +348,23 @@ sub check_heal(bool _debug, string _type)
  *  no cleaving use vengful and glyph
  *  no vengful use frenzied and drawn
  ***|
-sub burn(bool _debug, int _tmpID)
-  DEBUG \atburn\ax(\aw${_tmpID}\ax)
+sub burn(bool _debug, spawn _spawn)
+  DEBUG \atburn\ax(\aw${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
-
+  SPAWNDEAD
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
 

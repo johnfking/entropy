@@ -118,7 +118,7 @@ sub set_initialize(bool _debug)
   /call set_data ${_debug} FALSE DNQHardStop string outer FALSE
 
   | list iterator dump variable
-  /declare li listiterator outer
+  | /declare li listiterator outer
 
   | control maps
   /declare maControl map outer
@@ -134,6 +134,15 @@ sub set_initialize(bool _debug)
     /declare maMobControl${_lsdbt.Value} map outer
     /invoke ${_lsdbt.Advance}
   }
+
+  | dumpster map
+  /declare maData map outer
+  /invoke ${maData.Add[stFacingPositionCheck,FALSE]}
+  /invoke ${maData.Add[stPctEngageSet,FALSE]}
+  /invoke ${maData.Add[stPctEngagePetSet,FALSE]}
+  /invoke ${maData.Add[stPctEngageSwarmSet,FALSE]}
+  /invoke ${maData.Add[stPctEngageBurnSet,FALSE]}
+
 
   | hook map
   /declare maHook map outer
@@ -163,12 +172,14 @@ sub set_initialize(bool _debug)
   /declare _assist spawn outer
   /declare assistData spawn outer
   
-  | assist spawn data
-  /declare spawnData spawn outer
+  | assists target spawn data
+  /declare targetData spawn outer
   
   | spell/cast data
   /declare spellData spell outer
-
+  
+  | current worst hurt data
+  /declare hurtData spawn outer
 
   | TTL stuff
   /declare maTTL map outer
@@ -180,7 +191,7 @@ sub set_initialize(bool _debug)
   | list of all maps used with usable data
   /declare lsMaps list outer
   /invoke ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maBuff,maBurn,maPred]}
-  /invoke ${lsMaps.Append[maEntropy,maTimer,madeBuff,maTie,maMinion]}
+  /invoke ${lsMaps.Append[maEntropy,maTimer,madeBuff,maTie,maMinion,maRest]}
   /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard]}
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro,maMercenary]}
   /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
@@ -257,6 +268,7 @@ sub set_initialize(bool _debug)
   /invoke ${maDBTables.Add[environment_melee,env_var]}
   /invoke ${maDBTables.Add[environment_debuff,env_var]}
   /invoke ${maDBTables.Add[environment_cure,env_var]}
+  /invoke ${maDBTables.Add[environment_rest,env_var]}
  
 /return TRUE
 
@@ -926,9 +938,11 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: mercenary **|
   /call set_data_map ${_debug} maMercenary swMercenary                    FALSE                         "${auxsw} use your mercenary" mercenary
   /call set_data_map ${_debug} maMercenary stMercenaryClass               FALSE                         "${auxna} class type of the mercenary you want to use" mercenary
+
 
 
 
@@ -956,6 +970,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: chr (shared) **|
   | invs
   /call set_data_map ${_debug} maChr stInvisSingle                        FALSE                         "${auxsw} self invisibility"
@@ -963,6 +978,8 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maChr stInvisSingleIVU                     FALSE                         "${auxsw} self invis vs undead"
   /call set_data_map ${_debug} maChr stInvisGroupIVU                      FALSE                         "${auxsw} group invis vs undead"
   /call set_data_map ${_debug} maChr stInvisDelay                         0                             "${auxnum} delay to cast (10ths of a second)"
+  /call set_data_map ${_debug} maChr stOrnamentRobe                       FALSE                         "${auxna} name of the robe you want to swap out for the plaee/ornament visable bug"
+
 
 
 
@@ -994,15 +1011,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEnv swTakeRaidInvite                     FALSE                         "${auxsw} take raid invites from people you trust"
   /call set_data_map ${_debug} maEnv swSoS                                FALSE                         "${auxsw} rogue sos switch"
 
-  | rest
-  /call set_data_map ${_debug} maEnv stPctRest                            0                             "${auxnum} % health/mana to rest at"
-  /call set_data_map ${_debug} maEnv swRestFull                           FALSE                         "${auxsw} rest to full health if possible"
-  /call set_data_map ${_debug} maEnv swRestModRod                         FALSE                         "${auxsw} use mod rods while resting"
-  /call set_data_map ${_debug} maEnv swRestBuff                           FALSE                         "${auxsw} do buffing while resting"
-  /call set_data_map ${_debug} maEnv swRestCombat                         FALSE                         "${auxsw} continue resting while in combat"
-  /call set_data_map ${_debug} maEnv swBegMAG                             FALSE                         "${auxsw} beg mages for pet gear or rods"
-  /call set_data_map ${_debug} maEnv stRestRadius                         30                            "${auxnum} no mob in radius for resting"
-
   | food and drink
   /invoke ${set_data_timer[${_debug}, Check_FoodDrink, 10m]}
   /call set_data_map ${_debug} maEnv stFood                               FALSE                         "${auxna} food item you want to eat"
@@ -1019,7 +1027,23 @@ sub set_initialize_map_character_environment(bool _debug)
 
   | no cast buff list??
   /call set_data_list ${_debug} maChr lsNoCastBuff                        EMPTY                         "${auxli} buffs on you to stop casting"
-  
+
+  /call set_data_map ${_debug} maEnv swBegMAG                            FALSE                         "${auxsw} beg mages for pet gear or rods" 
+
+
+
+
+|** control: rest **|
+  /call set_data_map ${_debug} maRest stPctRest                           0                             "${auxnum} % health/mana to rest at"                  rest
+  /call set_data_map ${_debug} maRest swRestFull                          FALSE                         "${auxsw} rest to full health if possible"            rest
+  /call set_data_map ${_debug} maRest swRestModRod                        FALSE                         "${auxsw} use mod rods while resting"                 rest
+  /call set_data_map ${_debug} maRest swRestBuff                          FALSE                         "${auxsw} do buffing while resting"                   rest
+  /call set_data_map ${_debug} maRest swRestCombat                        FALSE                         "${auxsw} continue resting while in combat"           rest
+  /call set_data_map ${_debug} maRest stRestRadius                        30                            "${auxnum} no mob in radius for resting"              rest
+  /call set_data_map ${_debug} maRest stRestSpawnSearch                   "npc radius ${Parse[0,${maRest.Find[stRestRadius].Value}]} playerstate 4"      "${auxna} spawn search string for resting"            rest
+
+
+
 
 |** control: heal **|
   /call set_data_list ${_debug} maHeal lsOrderHeal                        cure|tot|self|dannet|ch|group|xtarget|pet         "${auxli} heal cycle order"                               heal
@@ -1070,6 +1094,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: cure  **|
   /invoke ${set_data_timer[FALSE, Check_Cure, 6s]}
   /call set_data_list ${_debug} maCure lsLineCure                         EMPTY                         "${auxli} alternate cast order for cures"                 cure
@@ -1077,6 +1102,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maCure swCureSelf                          FALSE                         "${auxsw} enable self curing"                             cure
   /call set_data_map ${_debug} maCure swCureGroup                         FALSE                         "${auxsw} enable group curing"                            cure
   /call set_data_map ${_debug} maCure swCureCrew                          FALSE                         "${auxsw} enable crew curing (everyone)"                  cure
+
 
 
 
@@ -1117,6 +1143,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: buff **|
   /invoke ${set_data_timer[${_debug}, Check_Buff_Cycle, 1m]}
   /invoke ${set_data_timer[${_debug}, Check_Buff_Unity, 5m]}
@@ -1150,8 +1177,10 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: melee **|
   /call set_data_list ${_debug} maMelee lsLineMelee                       EMPTY                         "${auxli} alternate defense activation order" melee
+
 
 
 
@@ -1162,11 +1191,12 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: home **|
   | control list for facing
   /call set_data ${_debug} FALSE lsCombatPosition                         list outer free|left|right|rear|face|random
   | user list for preferences on facing (what they can edit)
-  /call set_data_list ${_debug} maHome lsPosition                         free|left|left|right|right|rear|rear|rear
+  /call set_data_list ${_debug} maHome lsPosition                         left|right|rear|rear|rear
   /call set_data_map ${_debug} maHome stCombatPosition                    free                          "${auxnum} where you will stick to the mob"
   /call set_data ${_debug} maHome swHomeMarker                            map outer FALSE
   /call set_data_map ${_debug} maHome stHomeVariance                      6                             "${auxnum} acceptable buffer range for being home"
@@ -1180,6 +1210,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data ${_debug} maHome swSnapStuck                             map outer FALSE
   /call set_data_map ${_debug} maHome swonAuto                            FALSE                         "${auxsw} set home camp on auto"
   /call set_data_map ${_debug} maHome swinCombat                          FALSE                         "${auxsw} keep home camp while in combat"
+
 
 
 
@@ -1197,6 +1228,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: mode **|
   /call set_data ${_debug} FALSE swModeToken                              bool outer FALSE
   /call set_data ${_debug} FALSE stModeData                               string outer FALSE
@@ -1206,6 +1238,7 @@ sub set_initialize_map_character_environment(bool _debug)
   | /call set_data_map ${_debug} maMode swTrainDivination                   FALSE                         "${auxsw} train divination type spells"
   | /call set_data_map ${_debug} maMode swTrainEvocation                    FALSE                         "${auxsw} train evocation type spells"
   | /call set_data ${_debug} FALSE swTrainSpecialize                        FALSE                         "${auxsw} train specialize field type spells"
+
 
 
 
@@ -1219,6 +1252,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: pull **|
   /call set_data_list ${_debug} maPull lsLinePull                         EMPTY                         "${auxli} alternate order for pulling"                                          pull
   /call set_data_map ${_debug} maPull swPull                              FALSE                         "${auxsw} enable pulling (\a-wselect mobs to kill\ax)"                          pull
@@ -1226,7 +1260,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maPull stPullPetWatch                      0                             "${auxnum} radius to pull dumb ass NPC pets"                                    pull
   /call set_data_map ${_debug} maPull swPullSetHome                       FALSE                         "${auxsw} suto set home marker when pulling is enabled"                         pull
   /call set_data_map ${_debug} maPull stPullNavStopDistance               60                            "${auxnum} how close you will nav pull to a mob before trying too tag it"       pull
-  /call set_data ${_debug} FALSE lsPullMode                               list outer base|pet|int|nav|multi
+  /call set_data ${_debug} FALSE lsPullMode                               list outer base|pet|int|nav|multi|watch
   /call set_data_map ${_debug} maPull stPullMode                          base                          "${auxna} [\a-wbase-nav-int-pet-multi\ax] the mode of pulling you wish to use while looking for said mobs"        pull
   /call set_data ${_debug} FALSE lsPullWith                               list outer melee|range|other
   /call set_data_map ${_debug} maPull stPullWith                          FALSE                         "${auxna} [\a-wmelee-range-other\ax] what you want to pull with???"             pull
@@ -1245,6 +1279,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data ${_debug} FALSE stPullArcRight                           float outer 0
   /call set_data ${_debug} FALSE stPullArcCenter                          float outer 0
   /call set_data ${_debug} maPull stPullArcWidth                          map outer 0
+
 
 
 
@@ -1330,10 +1365,12 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: dot **|
   /call set_data_map ${_debug} maDoT stDotRefresh                         3                             "${auxnum} time left on a dot to refresh it, in seconds"          dot
   /call set_data_map ${_debug} maDoT stPctStopDoT                         0                             "${auxnum} % of mob health to stop dotting it at"                 dot
   /call set_data_list ${_debug} maDoT lsLineDoT                           EMPTY                         "${auxli} alternate cast order for dots"                          dot
+
 
 
 
@@ -1346,6 +1383,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: burn **|
   /call set_data ${_debug} maBurn swBurnConditionMet                      map outer FALSE
   /call set_data ${_debug} maBurn swBurnSpinUp                            map outer FALSE
@@ -1355,6 +1393,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maBurn stBurnCount                         0                             "${auxnum} number of mobs in your area to auto engage burns"      burn
   /call set_data_map ${_debug} maBurn swBurnRaid                          FALSE                         "${auxsw} use burns on raids"                                     burn
   /call set_data_list ${_debug} maBurn lsLineBurn                         EMPTY                         "${auxli} alternate burn line order (engine 2 only)"              burn
+
 
 
 
@@ -1371,6 +1410,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} madeBuff stTimerEradicate                  30s                                 "${auxnum} time to retry an eradicate on a target"                debuff
   /call set_data_map ${_debug} madeBuff swSnare                           FALSE                               "${auxsw} use snare"                                              debuff
   /call set_data ${_debug} FALSE lsSlowIgnore                             list outer "Tendon Slice"|"Helix of the Undying"|"Crippling Snare"
+
 
 
 
@@ -1400,6 +1440,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: over **|
   /call set_data_map ${_debug} maOver swOverLOS                           FALSE                         "${auxsw} override line of sight validations"
   /call set_data_map ${_debug} maOver swOverPctEngage                     FALSE                         "${auxsw} ocerride engage % for all types, instant engage of a mob"
@@ -1412,6 +1453,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maOver swOverGroupAss                      FALSE                         "${auxsw} override group assist rules and force manual"
   /call set_data_map ${_debug} maOver swOverSplashHurt                    FALSE                         "${auxsw} override hurt requirements for splashing (try to keep it in cooldown no matter what)"
   /call set_data_map ${_debug} maOver swTargetClear                       FALSE                         "${auxsw} override clearing targets"
+
 
 
 
@@ -1435,6 +1477,15 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy stMainLoopDelay                  1                             "${auxnum} this is the main delay for the master macro loops. USE CAUTION when changing!"
   /call set_data_map ${_debug} maEntropy swLua                            FALSE                         "${auxsw} use mq2lua plugin"
   /call set_data_map ${_debug} maEntropy swTLP                            FALSE                         "${auxsw} TLP player"
+
+  | randomize
+  /call set_data_map ${_debug} maEntropy stRNDVariance                    3                             "${auxsw} +/- variance for random %s"
+  /call set_data_map ${_debug} maEntropy swRNDEngage                      FALSE                         "${auxsw} randomize engage %"
+  /call set_data_map ${_debug} maEntropy swRNDEngagePet                   FALSE                         "${auxsw} randomize engage pet %"
+  /call set_data_map ${_debug} maEntropy swRNDEngageSwarm                 FALSE                         "${auxsw} randomize engage swarm %"
+  /call set_data_map ${_debug} maEntropy swRNDEngageBurn                  FALSE                         "${auxsw} randomize engage burn %"
+  /call set_data_map ${_debug} maEntropy swRNDRezTake                     FALSE                         "${auxsw} randomize randome delay to accept rez"
+  
 
   | dannet options
   /call set_data_map ${_debug} maEntropy stNetworkTimeout                 1                             "${auxnum} dannet timeout for network lag. ignore this if at all possible"
@@ -1492,6 +1543,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: gtfo **|
   /invoke ${set_data_timer[FALSE, Check_GTFO, 6s]}
   /call set_data_list ${_debug} maGTFO lsLineGTFO                         EMPTY                         "${auxli} order line for GTFO stuff" gtfo
@@ -1501,8 +1553,10 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: clickitem  **|
   /call set_data_list ${_debug} maItem lsLineItem                         EMPTY                         "${auxli} alternate cast order for clickitems" item
+
 
 
 
@@ -1511,14 +1565,17 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
 |** control: MiscDPS  **|
   /call set_data_list ${_debug} maMiscDPS lsLineMiscdps                   EMPTY                         "${auxli} alternate activation order for miscdps routine (engine 2)"
+
 
 
 
 |** control: Agro  **|
   /call set_data_list ${_debug} maAgro lsLineAgro                         EMPTY                         "${auxli} alternate activation order for agro routine (engine 2/3)" agro
   /call set_data_map ${_debug} maAgro swAgro                              FALSE                         "${auxsw} use any agro skills you can (\a-wtaunt not included separate control under /agro\ax)" agro
+
 
 
 
@@ -1839,15 +1896,9 @@ sub set_initialize_hud_variables()
  ***|
 sub set_initialize_hud(bool _debug, string _verbage)
 
-
   /delay 5
-
   /declare _path string local
-  /if (!NEXT) {
-    /varset _path ".\..\MQ2HUD.ini"
-  } else /if (NEXT) {
-    /varset _path "MQ2HUD.ini"
-  }
+  /varset _path "MQ2HUD.ini"
 
   | main HUD for Entropy
   /if (${_verbage.Equal[entropy]}) {
@@ -1875,8 +1926,6 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
 
     /ini ${_path} entropy BG0     3,131,0,0,0,0,██████████████████████████
-
- 
 
     | conbat controls
     /ini ${_path} entropy ccA1    ${Parse[0, "19,134,14,255,255,0,${If[${h_auto},A,]}"]}
@@ -2203,114 +2252,101 @@ sub set_initialize_hud(bool _debug, string _verbage)
  ***|
 sub set_initialize_buttons(bool _debug, string _verbage)
 
-
   /delay 5
-
   /declare _path string local
-  /if (!NEXT) {
-    /varset _path ".\..\MQ2MyButtons.ini"
-  } else /if (NEXT) {
-    /varset _path "MQ2MyButtons.ini"
-  }
+  /varset _path "MQ2MyButtons.ini"
 
-    OUT Updating MQ2MyButtons.INI${sep}\a-w${_verbage}\ax
+  OUT Updating MQ2MyButtons.INI${sep}\a-w${_verbage}\ax
 
-    | window label
-    /ini ${_path} "UISettings" "WindowTitle" "Entropy"
+  | window label
+  /ini ${_path} "UISettings" "WindowTitle" "Entropy"
 
-    | start self
-    /ini ${_path} "Button1" "Label" "Start (Me)"
-    /ini ${_path} "Button1" "Command" "/mac entropy\start.mac"
-    /ini ${_path} "Button1" "Red" "255"
-    /ini ${_path} "Button1" "Green" "255"
-    /ini ${_path} "Button1" "Blue" "255"
+  | start self
+  /ini ${_path} "Button1" "Label" "Start (Me)"
+  /ini ${_path} "Button1" "Command" "/mac entropy\start.mac"
+  /ini ${_path} "Button1" "Red" "255"
+  /ini ${_path} "Button1" "Green" "255"
+  /ini ${_path} "Button1" "Blue" "255"
 
-    | start everyone
-    /ini ${_path} "Button2" "Label" "Start (All)"
-    /ini ${_path} "Button2" "Command" "/dga all /mac entropy\start.mac"
-    /ini ${_path} "Button2" "Red" "255"
-    /ini ${_path} "Button2" "Green" "255"
-    /ini ${_path} "Button2" "Blue" "255"
+  | start everyone
+  /ini ${_path} "Button2" "Label" "Start (All)"
+  /ini ${_path} "Button2" "Command" "/dga all /mac entropy\start.mac"
+  /ini ${_path} "Button2" "Red" "255"
+  /ini ${_path} "Button2" "Green" "255"
+  /ini ${_path} "Button2" "Blue" "255"
 
-    | pull switch
-    /ini ${_path} "Button3" "Label" "Pull"
-    /ini ${_path} "Button3" "Command" "/pull active"
-    /ini ${_path} "Button3" "Red" "255"
-    /ini ${_path} "Button3" "Green" "255"
-    /ini ${_path} "Button3" "Blue" "255"
+  | pull switch
+  /ini ${_path} "Button3" "Label" "Pull"
+  /ini ${_path} "Button3" "Command" "/pull active"
+  /ini ${_path} "Button3" "Red" "255"
+  /ini ${_path} "Button3" "Green" "255"
+  /ini ${_path} "Button3" "Blue" "255"
 
-    | agro switch
-    /ini ${_path} "Button4" "Label" "Agro"
-    /ini ${_path} "Button4" "Command" "/agro active"
-    /ini ${_path} "Button4" "Red" "204"
-    /ini ${_path} "Button4" "Green" "0"
-    /ini ${_path} "Button4" "Blue" "0"
+  | agro switch
+  /ini ${_path} "Button4" "Label" "Agro"
+  /ini ${_path} "Button4" "Command" "/agro active"
+  /ini ${_path} "Button4" "Red" "204"
+  /ini ${_path} "Button4" "Green" "0"
+  /ini ${_path} "Button4" "Blue" "0"
 
-    | tie all switch
-    /ini ${_path} "Button5" "Label" " Tie"
-    /ini ${_path} "Button5" "Command" "/dga /tie"
-    /ini ${_path} "Button5" "Red" "255"
-    /ini ${_path} "Button5" "Green" "255"
-    /ini ${_path} "Button5" "Blue" "153"
+  | tie all switch
+  /ini ${_path} "Button5" "Label" " Tie"
+  /ini ${_path} "Button5" "Command" "/dga /tie"
+  /ini ${_path} "Button5" "Red" "255"
+  /ini ${_path} "Button5" "Green" "255"
+  /ini ${_path} "Button5" "Blue" "153"
 
-    | in charege command
-    /ini ${_path} "Button6" "Label" "In Charge"
-    /ini ${_path} "Button6" "Command" "/env incharge"
-    /ini ${_path} "Button6" "Red" "255"
-    /ini ${_path} "Button6" "Green" "255"
-    /ini ${_path} "Button6" "Blue" "0"
+  | in charege command
+  /ini ${_path} "Button6" "Label" "In Charge"
+  /ini ${_path} "Button6" "Command" "/env incharge"
+  /ini ${_path} "Button6" "Red" "255"
+  /ini ${_path} "Button6" "Green" "255"
+  /ini ${_path} "Button6" "Blue" "0"
 
-    |
-    /ini ${_path} "Button7" "Label" " "
-    /ini ${_path} "Button7" "Command" ""
-    /ini ${_path} "Button7" "Red" "255"
-    /ini ${_path} "Button7" "Green" "255"
-    /ini ${_path} "Button7" "Blue" "153"
+  |
+  /ini ${_path} "Button7" "Label" " "
+  /ini ${_path} "Button7" "Command" ""
+  /ini ${_path} "Button7" "Red" "255"
+  /ini ${_path} "Button7" "Green" "255"
+  /ini ${_path} "Button7" "Blue" "153"
 
-    | set toons home camp
-    /ini ${_path} "Button8" "Label" "Home"
-    /ini ${_path} "Button8" "Command" "/home set"
-    /ini ${_path} "Button8" "Red" "255"
-    /ini ${_path} "Button8" "Green" "255"
-    /ini ${_path} "Button8" "Blue" "255"
+  | set toons home camp
+  /ini ${_path} "Button8" "Label" "Home"
+  /ini ${_path} "Button8" "Command" "/home set"
+  /ini ${_path} "Button8" "Red" "255"
+  /ini ${_path} "Button8" "Green" "255"
+  /ini ${_path} "Button8" "Blue" "255"
 
-    | builds state button
-    /ini ${_path} "Button9" "Label" "State (All) "
-    /ini ${_path} "Button9" "Command" "/state all"
-    /ini ${_path} "Button9" "Red" "255"
-    /ini ${_path} "Button9" "Green" "255"
-    /ini ${_path} "Button9" "Blue" "153"
+  | builds state button
+  /ini ${_path} "Button9" "Label" "State (All) "
+  /ini ${_path} "Button9" "Command" "/state all"
+  /ini ${_path} "Button9" "Red" "255"
+  /ini ${_path} "Button9" "Green" "255"
+  /ini ${_path} "Button9" "Blue" "153"
 
-    | gather your group
-    /ini ${_path} "Button10" "Label" "Gather"
-    /ini ${_path} "Button10" "Command" "/gather"
-    /ini ${_path} "Button10" "Red" "255"
-    /ini ${_path} "Button10" "Green" "255"
-    /ini ${_path} "Button10" "Blue" "255"
+  | gather your group
+  /ini ${_path} "Button10" "Label" "Gather"
+  /ini ${_path} "Button10" "Command" "/gather"
+  /ini ${_path} "Button10" "Red" "255"
+  /ini ${_path} "Button10" "Green" "255"
+  /ini ${_path} "Button10" "Blue" "255"
 
 
-    | auto/manual
-    /ini ${_path} "Button11" "Label" "Auto"
-    /ini ${_path} "Button11" "Command" "/env auto"
-    /ini ${_path} "Button11" "Red" "0"
-    /ini ${_path} "Button11" "Green" "255"
-    /ini ${_path} "Button11" "Blue" "0"
+  | auto/manual
+  /ini ${_path} "Button11" "Label" "Auto"
+  /ini ${_path} "Button11" "Command" "/env auto"
+  /ini ${_path} "Button11" "Red" "0"
+  /ini ${_path} "Button11" "Green" "255"
+  /ini ${_path} "Button11" "Blue" "0"
 
+  | here command
+  /ini ${_path} "Button12" "Label" "Here"
+  /ini ${_path} "Button12" "Command" "/here"
+  /ini ${_path} "Button12" "Red" "255"
+  /ini ${_path} "Button12" "Green" "255"
+  /ini ${_path} "Button12" "Blue" "255"
 
-
-
-    | here command
-    /ini ${_path} "Button12" "Label" "Here"
-    /ini ${_path} "Button12" "Command" "/here"
-    /ini ${_path} "Button12" "Red" "255"
-    /ini ${_path} "Button12" "Green" "255"
-    /ini ${_path} "Button12" "Blue" "255"
-
-
-
-
-    /squelch /mybutton reload
-
+  /squelch /mybutton reload
 
 }
 
@@ -2479,13 +2515,6 @@ sub sql_check(bool _debug, string _query, string _subname, string _action)
  ***|
 sub sql_schema_shared(bool _debug)
   DEBUG \atsql_schema_shared\ax()
-
-
-  | /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS crewmemberroles(id INTEGER PRIMARY KEY autoincrement, crewmemberid INTEGER, role TEXT NOT NULL, FOREIGN KEY (crewmemberid) REFERENCES character(id), FOREIGN KEY (role) REFERENCES roles(name), UNIQUE (crewmemberid, role));
-  | /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS crews(id INTEGER PRIMARY KEY, crewname TEXT NOT NULL);
-  | /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS crewmembers(id INTEGER PRIMARY KEY autoincrement, crewid INTEGER, characterid INTEGER, FOREIGN KEY (crewid) REFERENCES crews(id), FOREIGN KEY (characterid) REFERENCES characters(id), UNIQUE (crewid,characterid));
-  | /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS characters(id INTEGER PRIMARY KEY autoincrement, charactername TEXT NOT NULL, server TEXT NOT NULL);
-
 
   /if (${maDebug.Find[init].Value}) {
     /declare _boottimestart int local ${MacroQuest.Running}
@@ -2740,10 +2769,6 @@ sub data_schema_tag()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('978', 'curse', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('977', 'disease', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('976', 'poison', '1');
-
-
-
-
 
 
 /return TRUE
@@ -3032,21 +3057,6 @@ sub data_schema_tag_validation
 
 
 |***
- * note:
- * use: generate data for schema_bind_name
-
-sub data_schema_bind_name()
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO binds(id, name) VALUES('1', 'tc');
- /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO binds(id, name) VALUES('2', 'tie');
-
-/return TRUE
- ***|
-
-
-
-
-
-|***
  * note: schema data updates
  * use: called on every schema increment
  ***|
@@ -3149,6 +3159,19 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
  | character database
  /if (${_type.Equal[character]} || ${_verbage.Equal[force]}) {
   /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-w${maData.Find[chrID].Value}.sqlite\ax
+
+
+  | redesign for rest
+  /if (${maEnv.Find[build].Value} >= 210404.01 || ${_verbage.Equal[force]}) {
+    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210404.01\ax
+    /invoke ${_tmpMap.Add[,character]}
+    /invoke ${_tmpMap.Add[stPctRest,character]}
+    /invoke ${_tmpMap.Add[swRestFull,character]}                   
+    /invoke ${_tmpMap.Add[swRestModRod,character]}                 
+    /invoke ${_tmpMap.Add[swRestBuff,character]}                   
+    /invoke ${_tmpMap.Add[swRestCombat,character]}                 
+    /invoke ${_tmpMap.Add[stRestRadius,character]}
+  }                 
 
 
   /if (${maEnv.Find[build].Value} >= 210222.01 || ${_verbage.Equal[force]}) {
@@ -3548,6 +3571,5 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
   }
 
 /return
-
 
 

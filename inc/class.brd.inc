@@ -139,12 +139,12 @@ sub class_main(bool _debug)
  *  DES: Combat skills, Disciplines and Alternate abilities.
  *  USE: Disc/aas and stuffs
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax()
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
 
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /call clear_combat
     /call pulse_stop
     /return
@@ -158,20 +158,20 @@ sub misc_combat(bool _debug, int _tmpID)
   BUFFTEMP
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
 
   /if (AUTO) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
-    /call stick_to_target FALSE ${_tmpID}
+    /invoke ${spawn_face[${_spawn.ID}]}
+    /call spawn_stick ${_debug} ${_spawn.ID}
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAAFierceEye].Value}"]}) {
@@ -179,7 +179,7 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stReflexive].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAABladedSong].Value}"]}) {
@@ -187,43 +187,43 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAACacophony].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   
   /if (${maChr.Find[swAABellow].Value} && ${Target.BuffsPopulated}) {
     
     /if (!AE#) {
       /if (${Raid.Members}) {
-        /if (${Spawn[${_tmpID}].PctHPs} > 3 && ${Me.CurrentEndurance} > 3600 && !${Target.MyBuff[Boastful Bellow].ID}) {
+        /if (${_spawn.PctHPs} > 3 && ${Me.CurrentEndurance} > 3600 && !${Target.MyBuff[Boastful Bellow].ID}) {
           /if (${cast_data[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
-            /call cast ${_debug} ${_tmpID} FALSE
+            /call cast ${_debug} ${_spawn.ID} FALSE
           }
         }
       } else /if (!${Raid.Members}) {
-        /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Boastful Bellow].ID}) {
+        /if (${_spawn.PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Boastful Bellow].ID}) {
           /if (${cast_data[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
-            /call cast ${_debug} ${_tmpID} FALSE
+            /call cast ${_debug} ${_spawn.ID} FALSE
           }
         }
       }
     } else /if (AE#) {
       /if (${Raid.Members}) {
-        /if (${Spawn[${_tmpID}].PctHPs} > 3 && ${Me.CurrentEndurance} > 10500 && !${Target.MyBuff[Vainglorious Shout].ID}) {
+        /if (${_spawn.PctHPs} > 3 && ${Me.CurrentEndurance} > 10500 && !${Target.MyBuff[Vainglorious Shout].ID}) {
           /if (${cast_data[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
-            /call cast ${_debug} ${_tmpID} FALSE
+            /call cast ${_debug} ${_spawn.ID} FALSE
           }
         }
       } else /if (!${Raid.Members}) {
-        /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Vainglorious Shout].ID}) {
+        /if (${_spawn.PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Vainglorious Shout].ID}) {
           /if (${cast_data[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
-            /call cast ${_debug} ${_tmpID} FALSE
+            /call cast ${_debug} ${_spawn.ID} FALSE
           }
         }
       } 
     }
   }
   
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /call pulse_stop
     /call clear_combat
     /return FALSE
@@ -243,10 +243,8 @@ sub check_heal(bool _debug, string _type)
   CHECKTIE
   ISMEDEAD
   CHECKEXIT
-  CHECKREZ
-  CHECKFADE
 
-  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+  /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   | if no one is hurt. back to the start
   /if (!${hurtCount}) {
@@ -267,13 +265,13 @@ sub check_heal(bool _debug, string _type)
 
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
 
   GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
 
-  /call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
   SETHUD EMPTY
 
@@ -283,38 +281,38 @@ sub check_heal(bool _debug, string _type)
 
 |***
  * note: rotates bard swarm pets as DPS fillers
- * use: /call cast_servant_swarm DEBUG [TARGETID]
+ * use: /call cast_servant_swarm DEBUG [spawn]
  ***|
-sub cast_servant_swarm(bool _debug, int _tmpID)
-  DEBUG \atcast_servant_swarm\ax(\a-w${_tmpID}\ax)
+sub cast_servant_swarm(bool _debug, spawn _spawn)
+  DEBUG \atcast_servant_swarm\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
   CHECKEXIT
   GETINPUT
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /call pulse_stop
     /call clear_combat
     /return FALSE
   }
 
   /if (AUTO) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
-    /call stick_to_target FALSE ${_tmpID}
+    /invoke ${spawn_face[${_spawn.ID}]}
+    /call spawn_stick ${_debug} ${_spawn.ID}
   }
 
   /if (${Target.ID}) /pet swarm
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAALyricalPrankster].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
     /return
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAASongofStone].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
     /return
   }
 
-  /call cast_temp_pet FALSE ${_tmpID} "${maChr.Find[stNukeServant].Value}"
+  /call cast_temp_pet FALSE ${_spawn.ID} "${maChr.Find[stNukeServant].Value}"
 
 /return TRUE
 
@@ -322,12 +320,10 @@ sub cast_servant_swarm(bool _debug, int _tmpID)
 
 |***
  * note: sings the line of songs for group support
- * use: /call pulse_cycle DEBUG [TARGET]
+ * use: /call pulse_cycle DEBUG [spawn] tag
  ***|
-sub pulse_cycle(bool _debug, _tmpID, string _tag)
-  DEBUG \atpulse_cycle\ax(\a-w${_tmpID}, ${_tag}\ax)
-
-  SETHUD "pulse"
+sub pulse_cycle(bool _debug, spawn _spawn, string _tag)
+  DEBUG \atpulse_cycle\ax(\a-w${_spawn.ID}, ${_tag}\ax)
 
   | if the user has not set the line order, set it to a default for now
   /if (${lsLineSong.Contains[EMPTY]} && ${lsLineSong.Count} == 1) {
@@ -391,14 +387,22 @@ sub pulse_cycle(bool _debug, _tmpID, string _tag)
       /continue
     }
 
-    /if (AUTO && ${_tmpID}) {
-      /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
-      /call stick_to_target FALSE ${_tmpID}
+    SETHUD "pulse"
+
+    /if (AUTO && ${_spawn.ID}) {
+      /invoke ${spawn_face[${_spawn.ID}]}
+      /call spawn_stick ${_debug} ${_spawn.ID}
     }
 
-    /if (MELEE && ${_tmpID}) {
-       /call set_combat_control ${maDebug.Find[decision].Value} TARGET
+    /if (MELEE && ${_spawn.ID}) {
+       /call set_combat_control ${maDebug.Find[decision].Value} ${_spawn.ID}
     }
+
+    /if (AUTO) {
+      /invoke ${spawn_face[${_spawn.ID}]}
+      /call spawn_stick ${_debug} ${_spawn.ID}
+    }
+    
 
     /call cast ${_debug} 0 ignoremovement
 
@@ -470,11 +474,11 @@ sub cast_AA_rallying(bool _debug)
  * note: Bard burn routines
  * use: establish all comp/trigger skills
  ***|
-sub burn(bool _debug, int _tmpID)
-  DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+sub burn(bool _debug, spawn _spawn)
+  DEBUG \atburn\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /call pulse_stop
     /call clear_combat
     /return FALSE
@@ -482,18 +486,16 @@ sub burn(bool _debug, int _tmpID)
 
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -532,7 +534,7 @@ sub burn(bool _debug, int _tmpID)
   | Intensity of the Resolute AA 4 hour reuse
   /call cast_AA_intensity ${maDebug.Find[intensity].Value}
 
-  /call check_item_cycle ${maDebug.Find[item].Value} ${_tmpID}
+  /call check_item_cycle ${maDebug.Find[item].Value} ${_spawn.ID}
 
 /return TRUE
 

@@ -107,31 +107,31 @@ sub class_main(bool _debug)
  * note: Combat skills, Disciplines and Alternate abilities.
  * use: pushmorebuttons!!
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
   TMPIDDEAD
   CHECKEXIT
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAASeasonsWrath].Value}"]} && ${madeBuff.Find[malo].Value}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAAStormStrike].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   | great wolf self/group aa
@@ -164,7 +164,7 @@ sub check_heal(bool _debug, string _type)
 
   SETHUD "heal ${_type}"
 
-  /call get_hurt ${_debug} ${_type}
+  /call spawn_hurt ${_debug} ${_type}
 
   /if (!${hurtCount}) {
     SETHUD EMPTY
@@ -175,19 +175,19 @@ sub check_heal(bool _debug, string _type)
 
     /if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
       /if (${cast_data[${_debug}, "${maChr.Find[stAASwarmofFireflies].Value}"]}) {
-        /call cast ${_debug} ${hurtID} FALSE
+        /call cast ${_debug} ${hurtData.ID} FALSE
       }
     }
 
     /if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
       /if (${cast_data[${_debug}, "${maChr.Find[stAAConvergenceofSpirits].Value}"]}) {
-        /call cast ${_debug} ${hurtID} FALSE
+        /call cast ${_debug} ${hurtData.ID} FALSE
       }
     }
 
   }
 
-  /if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+  /if (!${spawn_hurt[${_debug}, ${_type}]}) /return FALSE
 
   | Group Heal
   /if (${Select[${_type},group]} && ${maHeal.Find[stCountHealGroup].Value}) {
@@ -206,7 +206,7 @@ sub check_heal(bool _debug, string _type)
           /return
         }
 
-        /if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+        /if (!${spawn_hurt[${_debug}, ${_type}]}) /return FALSE
 
         /if (${cast_data[${_debug}, "${maChr.Find[stAABlessingofTunare].Value}"]}) {
           /call cast ${_debug} 0 FALSE
@@ -214,7 +214,7 @@ sub check_heal(bool _debug, string _type)
         }
       }
 
-      /if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+      /if (!${spawn_hurt[${_debug}, ${_type}]}) /return FALSE
 
       | group heal?
       /if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
@@ -224,18 +224,15 @@ sub check_heal(bool _debug, string _type)
     }
   }
 
-  /if (!${get_hurt[${_debug}, ${_type}]}) {
+  /if (!${spawn_hurt[${_debug}, ${_type}]}) {
     /return FALSE
   }
 
   CHECKTIE
   ISMEDEAD
   CHECKEXIT
-  CHECKREZ
-  CHECKFADE
-  GETINPUT dru_heal_end type|${_type}
 
-  /call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
   SETHUD EMPTY
 
@@ -247,33 +244,30 @@ sub check_heal(bool _debug, string _type)
  * note: Druid burn routines
  * use: dpsing the things
  ***|
-sub burn(bool _debug, int _tmpID)
-  DEBUG \atburn\ax()
+sub burn(bool _debug, spawn _spawn)
+DEBUG \atburn\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
-
+  SPAWNDEAD
   CHECKEXIT
   GETINPUT
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
 
   | swarm pets
   /if (SWARM) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAANaturesGuardian].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 

@@ -135,8 +135,8 @@ sub class_main(bool _debug)
  * note: suprize but seks?
  * use: designed for a first attack
  ***|
-sub do_sneak_attack(bool _debug, int _tmpID)
-  DEBUG \atdo_sneak_attack\ax(\a-w${_tmpID}\ax)
+sub do_sneak_attack(bool _debug, spawn _spawn)
+  DEBUG \atdo_sneak_attack\ax(\a-w${_spawn.ID}\ax)
   ISMEDEAD
 
   /if (!${Me.Sneaking} || ${Me.ActiveDisc.ID}) {
@@ -144,7 +144,7 @@ sub do_sneak_attack(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stSneakAttack].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
 
     /if (${maCC.Find[swBackstab].Value} && !${Skill[Backstab].Auto}) {
       /doability backstab
@@ -159,41 +159,34 @@ sub do_sneak_attack(bool _debug, int _tmpID)
  * note: Combat skills, Disciplines and Alternate abilities.
  * use: /call misc_combat_ROG DEBUG
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
-
+  SPAWNDEAD
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
-  BUFFNOW
-  BUFFTEMP
+
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
   
   /if (${cast_data[${_debug}, "${maChr.Find[stAssault].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
-  /call set_combat_melee ${_debug} ${_tmpID}
+  SPAWNDEAD
+  
+  /call set_combat_melee ${_debug} ${_spawn.ID}
   
   /if (${cast_data[${_debug}, "${maChr.Find[stAAShadowsFlanking].Value}"]}) {
     /call cast ${_debug} 0 FALSE
@@ -202,29 +195,23 @@ sub misc_combat(bool _debug, int _tmpID)
     /call cast ${_debug} 0 FALSE
   }
   /if (${cast_data[${_debug}, "${maChr.Find[stAATwistedShank].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
-
-  | /if (${target[isdead, ${_tmpID}]}) {
-  |   /return FALSE
-  | }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stShadowHunter].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   /if (${cast_data[${_debug}, "${maChr.Find[stDisassociative].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   /if (${cast_data[${_debug}, "${maChr.Find[stBleed].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  SPAWNDEAD
 
   /if (${cast_data[${_debug}, "${maChr.Find[stPlay].Value}"]}) {
-    /if (!${lsZoneNamed.Contains[${Spawn[${_tmpID}].DisplayName}]} || !${cast_data[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) {
+    /if (!${lsZoneNamed.Contains[${_spawn.DisplayName}]} || !${cast_data[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) {
       /if (${cast_data[${_debug}, "${maChr.Find[stPlay].Value}"]} && !${Bool[${Me.ActiveDisc}]}) {
         /call cast ${_debug} 0 FALSE
       }
@@ -237,36 +224,32 @@ sub misc_combat(bool _debug, int _tmpID)
     }
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  SPAWNDEAD
 
   /if (${Target.ID} && ${cast_data[${_debug}, "${maChr.Find[stPhantom].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   /if (${cast_data[${_debug}, "${maChr.Find[stHiddenBlade].Value}"]}) {
     /call cast ${_debug} 0 FALSE
   }
   /if (${cast_data[${_debug}, "${maChr.Find[stHack].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   /if (${cast_data[${_debug}, "${maChr.Find[stBladePoison].Value}"]}) {
     /call cast ${_debug} 0 FALSE
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  SPAWNDEAD
 
   /if (!AGRO) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAggro].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
   /if (${maChr.Find[swBlinding].Value} && ${Target.Level} <= ${Me.Level}) {
     /if (${cast_data[${_debug}, "${maChr.Find[stBlinding].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
@@ -289,7 +272,7 @@ sub check_heal(bool _debug, string _type)
 
   SETHUD "heal ${_type}"
 
-  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+  /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   | if no one is hurt. back to the start
   /if (!${hurtCount}) {
@@ -316,13 +299,13 @@ sub check_heal(bool _debug, string _type)
 
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
 
   GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
 
-  /call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
   SETHUD EMPTY
 
@@ -339,7 +322,6 @@ sub set_sos(bool _debug)
 
   /if (!${maEnv.Find[swSoS].Value}) /return FALSE
   /if (${Me.Combat} || ${Me.Stunned} || ${Me.State.Equal[FEIGN]}) /return FALSE
-  | /if (${Me.Casting.ID} || ${Window[TradeWnd].Open} || ${Window[MerchantWnd].Open} || ${Window[BigBankWnd].Open} || ${Me.Mount.ID}) /return FALSE
   /if (${Me.Casting.ID} || ${Me.Mount.ID}) /return FALSE
 
   ISMEDEAD
@@ -373,28 +355,23 @@ sub set_sos(bool _debug)
  * note: burn routines
  * use: seriously. if you are not buning constantly, you are doing something wrong. wtf you thinking.
  ***|
-sub burn(bool _debug, int _tmpID)
-  DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+sub burn(bool _debug, spawn _spawn)
+  DEBUG \atburn\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
-
+  SPAWNDEAD
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -406,9 +383,7 @@ sub burn(bool _debug, int _tmpID)
     /if (${Me.ActiveDisc.Name.Equal[${maChr.Find[stPlay].Value}]} && ${Me.CombatAbilityReady[${Spell[${maChr.Find[stFrenzy].Value}].RankName}]}) /goto :loopmakestopburn_ROG
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  SPAWNDEAD
 
   /if (${cast_data[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) {
     /call cast ${_debug} 0 FALSE
@@ -425,22 +400,19 @@ sub burn(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stPinPoint].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   /if (${cast_data[${_debug}, "${maChr.Find[stAARoguesFury].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
-  }
-  | /if (${cast_data[${_debug}, "${maChr.Find[stMark].Value}"]} && ${Me.PctEndurance} > 15 && ${Spawn[id ${_tmpID}].Level} < ${Spell[${maChr.Find[stMark].Value}].Max[1]}) {
-  /if (${cast_data[${_debug}, "${maChr.Find[stMark].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stMark].Value}"]}) {
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
+
+  SPAWNDEAD
   
   /call cast_AA_spire ${maDebug.Find[spire].Value}
-
 
   /if (!${Me.ActiveDisc.ID}) {
     /if (${cast_data[${_debug}, "${maChr.Find[stFrenzy].Value}"]}) {
@@ -458,9 +430,7 @@ sub burn(bool _debug, int _tmpID)
     /call cast ${_debug} 0 FALSE
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  SPAWNDEAD
   
   /if (${cast_data[${_debug}, "${maChr.Find[stAspBleeder].Value}"]} && !${Me.ActiveDisc.ID}) {
     /call cast ${_debug} 0 FALSE

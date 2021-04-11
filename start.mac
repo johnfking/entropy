@@ -8,9 +8,9 @@
  * evil overlord advisors:
  *  Knightly, dannuic, Saar, thatguy, Crack, Madix, alynel
  *
- * plugins Required: MQ2Collections, MQ2Nav, MQ2SQLite, MQ2DanNet, MQ2MoveUtils
+ * plugins Required: MQ2Collections, MQ2Nav, MQ2SQLite, MQ2DanNet, MQ2MoveUtils, MQ2Lua
  *
- * plugins optional: MQ2Lua
+ * 
  *
  * Donations: paypal.me/exspes
  ***|
@@ -46,8 +46,9 @@
 #define SAFEZONE ${maEnv.Find[swZoneSafe].Value}
 #define BURN ${maBurn.Find[swBurnConditionMet].Value}
 #define PCTHO ${tmpHealAdjust}
-#define PCTREST ${maEnv.Find[stPctRest].Value}
+#define PCTREST ${maRest.Find[stPctRest].Value}
 #define SAFEENV ${maEnv.Find[stEnvSafeRadius].Value}
+#define RESTENV ${maRest.Find[stRestRadius].Value}
 #define PULLENV ${maPull.Find[stPullRadius].Value}
 #define AE# ${maChr.Find[stCountAE].Value}
 #define PET ${maMinion.Find[swPet].Value}
@@ -67,16 +68,13 @@
 #define ENGINE3 ${maEntropy.Find[stEngine].Value.Equal[3]}
 #define MERCENARY ${maMercenary.Find[swMercenary].Value}
 #define MQCLEAR "/if (${Bool[${Plugin[MQ2ChatWnd]}]}) /mqclear"
-#define NEXT ${MacroQuest.InternalName.Equal[Next]}
 #define BUFFNOW "/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) /call check_buff_cycle_now ${maDebug.Find[now].Value}"
 #define BUFFTEMP "/if (${maBuff.Find[swBuffTemp].Value} && !${timer_Check_Buff_Temp}) /call check_buff_cycle_temp ${maDebug.Find[temp].Value}"
-#define LUA ${maEntropy.Find[swLua].Value}
-#define STACKS ${If[${MacroQuest.InternalName.Equal[Next]},WillLand,Stacks]}
 #define GETASSIST "${get_assist_target[${maDebug.Find[assist].Value}, inline]}"
 #define MODE ${swModeToken}
 #define BARD ${Select[${Me.Class.ShortName},BRD]}
 #define TMPIDDEAD "/if (${target[isdead, ${_tmpID}]}) /return FALSE"
-| #define TLP ${maEntropy.Find[swTLP].Value}
+#define SPAWNDEAD "/if (${target[isdead, ${_spawn.ID}]}) /return FALSE"
 
 
 #include entropy\inc\initialize.inc
@@ -98,18 +96,10 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   MQCLEAR
 
   | Make sure plugins are loaded. kill macro if not
-  /if (!${check_plugin[FALSE, TRUE, |MQ2SQLite|MQ2DanNet|Mq2Nav|MQ2MoveUtils|MQ2Collections]}) {
+  /if (!${check_plugin[FALSE, TRUE, |MQ2SQLite|MQ2DanNet|Mq2Nav|MQ2MoveUtils|MQ2Collections|MQ2Lua]}) {
     ECHO Make sure the following plugins are loaded
-    ECHO \a-wMQ2SQLite, MQ2DanNet, Mq2Nav, MQ2MoveUtils, MQ2Collections\ax
+    ECHO \a-wMQ2SQLite, MQ2DanNet, Mq2Nav, MQ2MoveUtils, MQ2Collections, MQ2Lua\ax
     /endmacro
-  }
-
-  /if (NEXT) {
-    /if (!${check_plugin[FALSE, TRUE, |MQ2Lua]}) {
-      ECHO Make sure the following plugins are loaded when using Next
-      ECHO \a-wMQ2Lua\ax
-      /endmacro
-    }
   }
 
   | forced PREGEN updates
@@ -122,8 +112,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210325.01
-  /call set_data FALSE maEnv schema                         map outer 1.43
+  /call set_data FALSE maEnv build                          map outer 210410.01
+  /call set_data FALSE maEnv schema                         map outer 1.45
   /call set_data FALSE maEnv repo                           map outer 210216.01
 
   | prep macro
@@ -341,14 +331,11 @@ sub main(string _var1, string _var2, string _var3, string _var4)
  ***|
 sub prepare_the_end(bool _debug)
 
-  /declare maData map outer
   /declare _pathDB string local Macros
-  /declare _pathINI string local Macros
+  /varset _pathDB ${MacroQuest.Path[macros]}
 
-  /if (NEXT) {
-    /varset _pathDB ${MacroQuest.Path[macros]}
-    /varset _pathINI ${MacroQuest.Path[macros]}\entropy
-  }
+  /declare _pathINI string local Macros
+  /varset _pathINI ${MacroQuest.Path[macros]}\entropy
 
   | character database
   /call set_data ${_debug} FALSE chrID                                   string outer ${MacroQuest.Server.Replace[ ,_].Lower}_${Me.Class.ShortName}_${Me.DisplayName}

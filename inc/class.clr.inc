@@ -191,29 +191,24 @@ sub class_main(bool _debug)
 
 |***
  * note: Combat skills, Disciplines and Alternate abilities.
- * use: /call misc_combat_${Me.Class.ShortName}
+ * use: /call misc_combat_${Me.Class.ShortName} spawnID
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
-  TMPIDDEAD
+  SPAWNDEAD
   CHECKEXIT
   GETINPUT misc_combat_CLR NA|NA
 
-  /if (!PULL) {
-    /call get_assist_target ${maDebug.Find[target].Value}
-    /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
-  }
-
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -226,20 +221,20 @@ sub misc_combat(bool _debug, int _tmpID)
   }  
 
   /if (SWARM) {
-    /call cast_temp_pet ${maDebug.Find[temp].Value} ${_tmpID} "${maChr.Find[stTempPet].Value}"
+    /call cast_temp_pet ${maDebug.Find[temp].Value} ${_spawn.ID} "${maChr.Find[stTempPet].Value}"
   }
 
   | pet AA hammer
   /if (${maBurn.Find[swBurnForce].Value} || (${maBurn.Find[swBurnAuto].Value} && ${lsZoneNamed.Contains[${Target.DisplayName}]})) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAACelestialHammer].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
   | undead aa dot
-  /if (${Target.Body.Name.Equal[Undead]} && DOT) {
+  /if (${_spawn.Body.Name.Equal[Undead]} && DOT) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAATurnUndead].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
@@ -287,12 +282,12 @@ sub check_heal(bool _debug, string _type)
     /call completeheal_chain ${maDebug.Find[chain].Value}
   }
 
-  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+  /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   | Group Regen Heal
   /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
     /if (AE# && ${SpawnCount[npc radius ENV]} >= AE#) {
-      /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 grouphot
+      /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} grouphot
     }
   }
 
@@ -307,7 +302,7 @@ sub check_heal(bool _debug, string _type)
     /call cast_cycle_heal_promise ${_debug}
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     SETHUD EMPTY
     /delay 1
     /return FALSE
@@ -332,7 +327,7 @@ sub check_heal(bool _debug, string _type)
         /if (${cast_data[${_debug}, "${maChr.Find[stAABeaconofLife].Value}"]}) {
           /call cast ${_debug} 0 FALSE
           /invoke ${set_timer[${_debug}, timer_ofLife_pause, 3s]}
-          /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+          /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
         }
       }
 
@@ -340,7 +335,7 @@ sub check_heal(bool _debug, string _type)
       /if (${maChr.Find[stCountArbitrate].Value} && ${hurtCount} >= ${maChr.Find[stCountArbitrate].Value}) {
         /call cast_arbitration ${maDebug.Find[arb].Value}
         /if (${Macro.Return}) {
-          /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}, TRUE]}) {
+          /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}, TRUE]}) {
             /return FALSE
           }
         }
@@ -354,28 +349,28 @@ sub check_heal(bool _debug, string _type)
 
     | single heal over time
     /if (${maHeal.Find[swHealOverTime].Value} && !${timer_Check_Regen}) {
-      /if (${hurtPctHP} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
-        /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} ${hurtID} hot
+      /if (${hurtData.PctHPs} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
+        /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} hot
       }
     }
 
     | Focused Celestial Regeneration - out of raid only
     /if (!${Raid.Members}) {
-      /if (${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO && !${Me.Song[${maChr.Find[stAACelestialRegeneration].Value}].ID}) {
+      /if (${hurtData.PctHPs} <= ${maHeal.Find[stHealPoint${hurtData.Class.ShortName}].Value}*.PCTHO && !${Me.Song[${maChr.Find[stAACelestialRegeneration].Value}].ID}) {
         /if (${cast_data[${_debug}, "${maChr.Find[stAAFocusedCelestialRegeneration].Value}",ready]}) {
-          /call cast ${_debug} ${hurtID} FALSE
+          /call cast ${_debug} ${hurtData.ID} FALSE
         }
       }
     }
 
     | GoM
     /if (${Me.Song[Gift of Mana].ID}) {
-      /if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-        /call cast_list ${_debug} lsGoM ${hurtID}
+      /if (${hurtData.PctHPs} < ${maHeal.Find[stHealPoint${hurtData.Class.ShortName}].Value}*.PCTHO) {
+        /call cast_list ${_debug} lsGoM ${hurtData.ID}
       }
     }
 
-    /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+    /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
     CHECKEXIT
     GETINPUT clr_heal_mid type|${_type}
@@ -388,17 +383,17 @@ sub check_heal(bool _debug, string _type)
     }
 
     | Panic AA single target heal
-    /if (!${timer_ofLife_pause} && ${hurtPctHP} <= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.85*.PCTHO) {
+    /if (!${timer_ofLife_pause} && ${hurtData.PctHPs} <= ${maHeal.Find[stHealPoint${hurtData.Class.ShortName}].Value}*.85*.PCTHO) {
       /if (${cast_data[${_debug}, "${maChr.Find[stAABurstofLife].Value}"]}) {
         /if (${Me.Casting.ID}) {
           /stopcast
         }
-        /call cast ${_debug} ${hurtID} FALSE
+        /call cast ${_debug} ${hurtData.ID} FALSE
         /invoke ${set_timer[${_debug}, timer_ofLife_pause, 3s]}
       }
     }
 
-    /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+    /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
     /if (${maChr.Find[stCountIssuance].Value}) {
       /if (${SpawnCount[npc radius ENV PS4]} >= ${maChr.Find[stCountIssuance].Value}) {
@@ -408,14 +403,14 @@ sub check_heal(bool _debug, string _type)
 
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
 
   CHECKEXIT
   GETINPUT clr_heal_end type|${_type}
 
-  /call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
 /return TRUE
 
@@ -436,23 +431,26 @@ sub Bind_command_issuance(bool _debug)
   /if (!${cast_data[${_debug}, "${maChr.Find[stIssuance].Value}"]}) {
     /return FALSE
   }
-
-  /if (!${Target.ID} || ${Target.ID} == ${Me.ID} || ${Target.Distance} > 55) {
-    /if (${NearestSpawn[2, pc radius 55].ID}) {
-      /call target set ${NearestSpawn[2, pc radius 55].ID}
-    } else /if (${NearestSpawn[1, mercenary radius 55].ID}) {
-      /call target set ${NearestSpawn[1, mercenary radius 55].ID}
-    } else /if (${NearestSpawn[1, npc radius 55].ID}) {
-      /call target set ${NearestSpawn[1, npc radius 55].ID}
-    }
+  
+  /declare _spawn spawn local
+  /if (${NearestSpawn[2, pc radius 55].ID}) {
+    /vardata _spawn NearestSpawn[2, pc radius 55]
+  } else /if (${NearestSpawn[1, mercenary radius 55].ID}) {
+    /vardata _spawn NearestSpawn[1, mercenary radius 55]
+  } else /if (${NearestSpawn[1, npc radius 55].ID}) {
+    /vardata _spawn NearestSpawn[1, npc radius 55]
   }
-
-  /if (!${Spawn[${Target.ID}].CanSplashLand}) {
+  
+  /if (!${_spawn.ID}) {
     /return FALSE
   }
 
-  /if (${Spawn[${Target.ID}].Distance} < 59) {
-    /call cast ${_debug} ${Target.ID} FALSE
+  /if (!${_spawn.CanSplashLand}) {
+    /return FALSE
+  }
+
+  /if (${_spawn.Distance} < 59) {
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   | should we recast?
@@ -462,8 +460,6 @@ sub Bind_command_issuance(bool _debug)
       /delay 4s !${Me.Casting.ID}
     }
   }
-
-  | CHECKREZ
 
 /return TRUE
 
@@ -475,26 +471,21 @@ sub Bind_command_issuance(bool _debug)
  * "It's the day we burn this mother fucker to the ground." squeaked Piglet
  * "My favorite day." said Pooh
  ***|
-sub burn(bool _debug, int _tmpID)
-  DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+sub burn(bool _debug, spawn _spawn)
+  DEBUG \atburn\ax(\a-w${_spawn.ID}\ax)
 
   CHECKEXIT
   GETINPUT clr_burn NA|NA
 
-  /if (!PULL) {
-    /call get_assist_target ${maDebug.Find[target].Value}
-    /if (TARGET != ${_tmpID}) /varset _tmpID TARGET
-  }
-
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
   
@@ -635,45 +626,6 @@ sub prediction(bool _debug)
 
 
 |***
- * note: check alliance and reapply if needed
- * use: /call cast_alliance_${Me.Class.ShortName} [DEBUG]
- ***|
-sub check_alliance(bool _debug)
-  DEBUG \atcheck_alliance\ax()
-
-  CHECKEXIT
-  GETINPUT
-
-  | restart abuse timer
-  /invoke ${set_data_timer[${_debug}, Check_Alliance, RESTART]}
-
-  | this will probably rarely fail. alliance for healers is an instant recast
-  /if (!${cast_data[${_debug}, "${maChr.Find[stAlliance].Value}"]}) {
-    /return FALSE
-  }
-
-  | find out who the hell we should be assisting
-  /declare _tmpID int local ${get_assist_info[${_debug}, id]}
-
-  | bail if no assist set up
-  /if (!${_tmpID}) {
-    /return FALSE
-  }
-
-  | set our target. we need to check buffs
-  /call target set ${_tmpID}
-
-  /delay 5 ${Target.BuffsPopulated}
-
-  /if (${Target.BuffsPopulated} && !${Target.Buff[${maChr.Find[stAlliance].Value}].ID}) {
-    /call cast ${_debug} ${_tmpID} FALSE
-  }
-
-/return TRUE
-
-
-
-|***
 * note: Complete Heal Chain
 * use:
 ***|
@@ -730,18 +682,19 @@ sub completeheal_chain(bool _debug)
   }
 
   | find the bitch to heal
+  /declare _spawn spawn local
   /declare _lich listiterator local
   /vardata _lich lsChain.First.Clone
   /while (!${_lich.IsEnd}) {	
-    /varset _tmpID ${Spawn[pc ${_lich.Value}].ID}
+    /vardata _spawn Spawn[pc ${_lich.Value}].ID
 
-    DEBUG ${sep}Tank${sep}\aw${_count}\ax${sep}\a-w${_tmpID}\ax
+    DEBUG ${sep}Tank${sep}\aw${_count}\ax${sep}\a-w${_spawn.ID}\ax
     /if (!AUTO || !${maHeal.Find[swChain].Value}) {
       /return FALSE
     }
 
     | does the tank have a corpse and is there a live version here. ass-u-me it has rez effects and move on
-    /if (${Spawn[corpse ${_tmpID}]} || ${Spawn[${_tmpID}].Dead} || !${Spawn[${_tmpID}].ID}) {
+    /if (${_spawn.Dead} || !${_spawn.ID}) {
       /invoke ${_lich.Advance}
       /continue
     }
@@ -749,14 +702,14 @@ sub completeheal_chain(bool _debug)
 
   | hold the script for whatever time is set in the pause
   /if (${maHeal.Find[stChainPause].Value}) OUT HOLDING${sep}(${num}${maHeal.Find[stChainPause].Value}s\ax) to start casting.
-  /delay ${maHeal.Find[stChainPause].Value}s ${Spawn[${_tmpID}].PctHPs} >= ${maHeal.Find[stPctChain].Value}
+  /delay ${maHeal.Find[stChainPause].Value}s ${_spawn.PctHPs} >= ${maHeal.Find[stPctChain].Value}
   
   | emergency break to release to heal if HP drop below a specific point
   | tell the next cleric to continue CH while you try and patch
-  /if (${Spawn[${_tmpID}].PctHPs} <= ${maHeal.Find[stPctChain].Value}) {
+  /if (${_spawn.PctHPs} <= ${maHeal.Find[stPctChain].Value}) {
     /invoke ${maHeal.Add[swChainToken,FALSE]}
     /dexecute ${DanNet.Peers[clr].Arg[${_countNext},|]} /invoke ${maHeal.Add[swChainToken,TRUE]}
-    /call cast_cycle_heal ${_debug} ${_tmpID} single
+    /call cast_cycle_heal ${_debug} ${_spawn.ID} single
     /return FALSE
   }
   
@@ -770,15 +723,11 @@ sub completeheal_chain(bool _debug)
 
   | do not want to leave a cleric locked in this any more then needed
   /invoke ${maHeal.Add[swChainToken,FALSE]}
-
-  TMPIDDEAD
   
-  | /if (${target[isdead, ${_tmpID}]}) {
-  |   /return FALSE
-  | }
+  SPAWNDEAD
 
   | cast the heal
-  /call cast_cycle_heal ${_debug} ${_tmpID} complete
+  /call cast_cycle_heal ${_debug} ${_spawn.ID} complete
 
 /return TRUE
 
@@ -910,13 +859,11 @@ sub alliance(bool _debug)
     /return FALSE
   }
   
-  /declare _tmpID int local ${get_assist_info[${_debug}, id]}
-  
-  /if (!${_tmpID}) {
+  /if (!${assistData.ID}) {
     /return FALSE
   }
 
-  /call target set ${_tmpID}
+  /call target set ${assistData.ID}
 
   /delay 2s ${Target.BuffsPopulated}
   /if (${Target.BuffsPopulated}) {
@@ -925,10 +872,9 @@ sub alliance(bool _debug)
     /return FALSE
   }
 
-  /call cast ${_debug} ${_tmpID} FALSE
+  /call cast ${_debug} ${assistData.ID} FALSE
 
 /return TRUE
-
 
 
 

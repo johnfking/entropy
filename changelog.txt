@@ -24,6 +24,78 @@ REMINDER:
 --------------------
 
 
+**
+** WARNING ** NOTICE ** READ THIS **
+**
+** IF you are NOT using NEXT, DO NOT UPDATE
+** the new spawn data types will break on normal MQ
+** 
+** And before anyone asks, I'm not going to main two branches. 
+** Next will be out soon enough.
+**
+** TL;DR - I'm no longer supporting Live MQ, only MQ2Next. Do not update if using Live
+**
+- MQ2LUA plugin is now a requirement
+- help updates
+  /burn -t - will show you all the tags you have for burns
+  /burn -s - will show you all the map variables for the burn command
+  /burn -u - will show you the commands usage (sometimes, this is a lazy option)
+  /burn -h - will give a summary of help for the options in that command
+  * not all -options are available on all commands, some just dont do anything cause theres nothing to do  
+- check_stick() is now spawn_stick() and completely redesigned
+  should be no more adjusting close/far distances while in combat for large mobs or the small ones
+- check_face() is now spawn_face()
+- /alto
+  should stop auto fire and attack a little more reliably now
+- pull_mob_find
+  should properly identify named and no mez mobs again mobs again making them the priority
+- auras
+  targeting/IDs removed. self only now
+- extensive re-typing of int _tmpID to spawn _spawn
+  well over 1k variable adjustments macro wide
+- the assist and the assists target are now spawn types
+- sub get_asssist_info removed
+- assist checks reduced to 1/class cycle
+  meaning if you class cycle is: melee|heal|misc|debuff|dot|nuke|item
+  you will be checking the assist 7 times minimum
+- fixed an issue with buffing with items that have triggered effects
+- cures will obey the line order now
+- bard
+  some refinement to their movement while singing
+  they should react a lot faster to engage combat
+- berzerker
+  corrected a couple math issues and bloodfurry
+- monk
+  corrected the precsion pregens
+- resting
+  /rest [options] is now the control for rest
+  /env rest has been removed
+  previously toons would avoid rest when any mob was within their /env rad ##
+  this has been removed
+  resting will rely only on /rest rad ## now
+  default is 30. so if a mob is within that range, they will not rest
+  if a mob is just outside that range, and your group is engaging them, they will still rest
+  so be mindful of this radius
+  the rest spawn search is also exposed::stRestSpawnSearch
+  you can change this, but thats on you
+  if toons are full mana/stamina, they will return to standing if able
+  toons resting will remain sitting for 12 seconds (unless combat) to prevent the manna lag meter from bobbing them up and 
+  down like a fucking whackamole game
+- pulling
+  /pull one int|pet|nav
+  is a forced 1 time pull of that method
+  /pull mode watch - seconadry puller, allows them to pull only the mobs in the /watch list
+- all .Stacks checks have been replaced with .WillLand
+- randomizations (an attempt to look a little less bot like)
+  note: this system is not applied while in a raid
+  /entropy random [engage|pet|swarm|burn|rez|variance]
+  engage - (on/off) randomize the toons normal engage %
+  pet - (on/off) randomize the pets engage %
+  swarm - (on/off) randomize your swarm pet engage %
+  burn - (on/off) randomize the burn %
+  rez - (on/off) uses the varriance as a random delay time in seconds to accepting rezes
+  variance # - (1-5) a +/- to the engage % you have set to generate a high/low for the random and delay for rez taking
+
 
 
 210325.01
@@ -39,7 +111,6 @@ REMINDER:
   splashing should work again. may need a little tweaking but its there
 - bard
   some changed to the initial build of the class combat loop order
-    
   
 
 210319.01

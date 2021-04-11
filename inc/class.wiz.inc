@@ -120,11 +120,11 @@ sub class_main(bool _debug)
  * note: Combat skills, Disciplines and Alternate abilities.
  * use: /call misc_combat_${Me.Class.ShortName} DEBUG TARGETID
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
@@ -136,14 +136,14 @@ sub misc_combat(bool _debug, int _tmpID)
   BUFFTEMP
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[misc].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[misc].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -151,16 +151,16 @@ sub misc_combat(bool _debug, int _tmpID)
   /if (AGRO) {
   } else /if (!AGRO) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAAArcaneWhisper].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
     /if (${cast_data[${_debug}, "${maChr.Find[stAAMindCrash].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value} && ${lsZoneNamed.Contains[${Spawn[TARGET].DisplayName}]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
     /if (${cast_data[${_debug}, "${maChr.Find[stAAConcussiveIntuition].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctFade].Value}) {
-      call cast ${_debug} ${_tmpID} FALSE
+      call cast ${_debug} ${_spawn.ID} FALSE
     }
     /if (${cast_data[${_debug}, "${maChr.Find[stConcussion].Value}"]} && ${Me.PctAggro} > ${maChr.Find[stPctConcussion].Value}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
@@ -221,7 +221,7 @@ sub check_heal(bool _debug, string _type)
   CHECKREZ
   CHECKFADE
 
-  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+  /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   | if no one is hurt. back to the start
   /if (!${hurtCount}) {
@@ -242,13 +242,13 @@ sub check_heal(bool _debug, string _type)
 
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
 
   GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
 
-  /call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
   SETHUD EMPTY
 
@@ -260,11 +260,11 @@ sub check_heal(bool _debug, string _type)
  * note: Wizard burn routines
  * use: bug guns?
  ***|
-sub burn(bool _debug, int _tmpID)
-  DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+sub burn(bool _debug, spawn _spawn)
+  DEBUG \atburn\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
@@ -274,14 +274,14 @@ sub burn(bool _debug, int _tmpID)
   CHECKDEFENSE
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -329,10 +329,10 @@ sub burn(bool _debug, int _tmpID)
 
   | aww baby
   /if (${maChr.Find[swManaBurn].Value}) {
-    /call target set ${_tmpID}
+    /call target set ${_spawn.ID}
     /if (!${Target.Buff[Mana Burn].ID}) {
       /if (${cast_data[${_debug}, "${maChr.Find[stAAManaBurn].Value}"]}) {
-        /call cast ${_debug} ${_tmpID} FALSE
+        /call cast ${_debug} ${_spawn.ID} FALSE
       }
     }
   }
@@ -340,7 +340,7 @@ sub burn(bool _debug, int _tmpID)
   | swarm pet
   /if (SWARM) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAACallofXuzl].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
@@ -356,8 +356,8 @@ sub burn(bool _debug, int _tmpID)
  * note: Control for getting Twincast either spell or Proc
  * use: /call force_twincast DEBUG
  ***|
-sub force_twincast(bool _debug, int _tmpID)
-  DEBUG \atforce_twincast\ax(\a-w${_tmpID}\ax)
+sub force_twincast(bool _debug, spawn _spawn)
+  DEBUG \atforce_twincast\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
   CHECKEXIT
@@ -365,7 +365,7 @@ sub force_twincast(bool _debug, int _tmpID)
 
   /invoke ${set_data_timer[${_debug}, Force_TC, 6s]}
 
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
@@ -378,7 +378,7 @@ sub force_twincast(bool _debug, int _tmpID)
 
   } else /if (!${Me.Buff[Improved Twincast].ID} && !${Me.Buff[${maChr.Find[stTC].Value}].ID} && !${Me.Buff[Twincast].ID}) {
     /if (${cast_data[${_debug}, "${maChr.Find[stNukeTC${stLine}].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 

@@ -131,71 +131,64 @@ sub class_main(bool _debug)
  * note: Combat skills, Disciplines and Alternate abilities.
  * use: /call misc_combat DEBUG TARGETID
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax()
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
-  BUFFNOW
-  BUFFTEMP
-
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  SPAWNDEAD
 
   /call check_heal_routines
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
 
   /if (${maChr.Find[stCountSummer].Value} && !${timer_Summer_Nuke}) {
-    /call cast_nuke_summer ${maDebug.Find[summer].Value} ${_tmpID}
+    /call cast_nuke_summer ${maDebug.Find[summer].Value} ${_spawn.ID}
   }
 
   | agro control
   /if (AGRO) {
 
-    /invoke ${do_taunt[${_debug}, ${_tmpID}]}
+    /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
 
     /if (${Me.PctAggro} < ${maAgro.Find[stPctAgroHold].Value}) {
       /if (${cast_data[${_debug}, "${maChr.Find[stDiscEnrage].Value}"]}) {
-        /call cast ${_debug} ${_tmpID} FALSE
+        /call cast ${_debug} ${_spawn.ID} FALSE
       }
     }
   }
 
   /if (!AGRO) {
     /if (${cast_data[${_debug}, "${maChr.Find[stDiscJolt].Value}", ready]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
   | elemental arrows rotation
   /if (!${Target.Buff[Elemental Arrow].ID}) {
     /if (${cast_data[${_debug}, "Elemental Arrow"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
   /if (!AE#) {
     /if (${cast_data[${_debug}, "${maChr.Find[stDiscMeleeSingle].Value}", ready]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   } else /if (${SpawnCount[npc OVERLOS radius 60 PS4 targetable]} >= ${maChr.Find[stCountAE].Value} && ${maChr.Find[stCountAE].Value}) {
     /if (${cast_data[${_debug}, "${maChr.Find[stDiscMeleeAE].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
@@ -216,7 +209,7 @@ sub check_heal(bool _debug, string _type)
   CHECKREZ
   CHECKFADE
 
-  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+  /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   | if no one is hurt. back to the start
   /if (!${hurtCount}) {
@@ -238,13 +231,13 @@ sub check_heal(bool _debug, string _type)
     | ToT heals
     /if (${Select[${_type},tot]} && ${hurtCount}) {
       /if (${hurtCount})  {
-        /call cast_cycle_heal ${_debug} ${hurtID} tot
-        /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
+        /call cast_cycle_heal ${_debug} ${hurtData.ID} tot
+        /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
       }
     }
 
 
-    /if (!${get_hurt[${_debug}, ${_type}]}) /return FALSE
+    /if (!${spawn_hurt[${_debug}, ${_type}]}) /return FALSE
 
     | Reflexive Healing Disc
     /if (${hurtCount} && ${Select[${_type},self,group,tot]}) {
@@ -256,20 +249,20 @@ sub check_heal(bool _debug, string _type)
 
 
   /if (${Select[${_type},tot]}) {
-   /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+   /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
       /return FALSE
     }
 
     /call cast_cycle_heal ${_debug} ${Target.ID} tot
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
 
   GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
 
-  /call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
   SETHUD EMPTY
 
@@ -279,14 +272,12 @@ sub check_heal(bool _debug, string _type)
 
 |***
  * note: Control for Spam Agro Nuke
- * use: /call cast_nuke_summer DEBUG [TARGETID]
+ * use: /call cast_nuke_summer DEBUG [spawnID]
  ***|
-sub cast_nuke_summer(bool _debug, int _tmpID)
-  DEBUG \atcast_nuke_summer\ax(\a-w${_tmpID}\ax)
+sub cast_nuke_summer(bool _debug, spawn _spawn)
+  DEBUG \atcast_nuke_summer\ax(\a-w${_spawn.ID}\ax)
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  SPAWNDEAD
 
   /if (!${maChr.Find[stCountSummer].Value}) {
     /return FALSE
@@ -300,8 +291,8 @@ sub cast_nuke_summer(bool _debug, int _tmpID)
   CHECKEXIT
   /invoke ${set_data_timer[${_debug}, Summer_Nuke, RESTART]}
 
-  /if (${cast_data[${_debug}, "${maChr.Find[stSummer].Value}", ready]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+  /if (${cast_data[${_debug}, "${maChr.Find[stSummer].Value}"]}) {
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
 /return TRUE
@@ -312,28 +303,23 @@ sub cast_nuke_summer(bool _debug, int _tmpID)
  * note: really should be starting fires
  * use:
  ***|
-sub burn(bool _debug, int _tmpID)
-  DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+sub burn(bool _debug, spawn _spawn)
+  DEBUG \atburn\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
-
+  SPAWNDEAD
   CHECKEXIT
   GETINPUT
-  CHECKTIE
-  CHECKDEFENSE
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -350,7 +336,7 @@ sub burn(bool _debug, int _tmpID)
   }
 
   | MELEE
-  /if (MELEE && !RANGE || MELEE && ${Spawn[${_tmpID}].Distance} <= ${Spawn[${_tmpID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
+  /if (MELEE && !RANGE || MELEE && ${Spawn[${_spawn.ID}].Distance} <= ${Spawn[${_spawn.ID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
 
     | weapon proc
     /if (${cast_data[${_debug}, "${maChr.Find[stAAImbuedFerocity].Value}"]}) {
@@ -416,13 +402,13 @@ sub burn(bool _debug, int _tmpID)
   | swarm pets
   /if (SWARM) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAAPackHunt].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
   | ae regen
   /if (${cast_data[${_debug}, "${maChr.Find[stDiscHeal].Value}"]} && !${Me.Song[Bladespur Reflection].ID}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
  /return TRUE

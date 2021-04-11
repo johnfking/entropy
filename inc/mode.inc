@@ -752,7 +752,7 @@ sub mode_summon(bool _debug)
   /declare _count int local 0
   /sqlite query "${DBstatic}" dummy SELECT * FROM soulstone;
   /for _count 1 to ${sqlite.Rows[dummy]}
-    /if (${Me.Level} <= ${sqlite.Result[dummy ${_count} env_var]}) {
+    /if (${Me.Level} <= ${sqlite.Result[dummy ${_count} env_var].Arg[1,|]} && ${Me.Level} >= ${sqlite.Result[dummy ${_count} env_var].Arg[2,|]}) {
       /varset _soulstone ${sqlite.Result[dummy ${_count} value]}
       /break
     }

@@ -145,11 +145,11 @@ sub class_main(bool _debug)
  * note: the things we to to irritate chanters and clerics
  * use:
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
@@ -161,16 +161,16 @@ sub misc_combat(bool _debug, int _tmpID)
   BUFFTEMP
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   CHECKDEFENSE
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[misc].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[misc].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -184,11 +184,11 @@ sub misc_combat(bool _debug, int _tmpID)
 
   | stShocking blocks Brace for Impact
   /if (${cast_data[${_debug}, "${maChr.Find[stShocking].Value}"]} && !${Me.Buff[${maChr.Find[stAABraceforImpact].Value}].ID}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stRunes].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stDefense].Value}"]}) {
@@ -196,14 +196,14 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stProvoke].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stCommanding].Value}"]} && !${Me.Song[${maChr.Find[stCommanding].Value}].ID}) {
     /call cast ${_debug} 0 FALSE
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
@@ -216,7 +216,7 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAAGutPunch].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stField].Value}"]} && !${Me.Song[${maChr.Find[stField].Value}].ID}) {
@@ -224,10 +224,10 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stShield].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
@@ -236,14 +236,14 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAAKneeStrike].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
-  /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FALSE
+  /call check_facing ${maDebug.Find[face].Value} ${_spawn.ID} FALSE
 
   | Duplicating these two sub calls here b/c don't want to lose agro or mitigation while firing off this other stuff.
   /if (AGRO) {
-    /call get_agro ${maDebug.Find[agro].Value} ${_tmpID}
+    /call get_agro ${maDebug.Find[agro].Value} ${_spawn.ID}
   }
 
   CHECKDEFENSE
@@ -260,7 +260,7 @@ sub misc_combat(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stPrecision].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stReprisal].Value}"]}) {
@@ -288,18 +288,18 @@ sub misc_combat(bool _debug, int _tmpID)
  * note:
  * use:
  ***|
-sub get_agro(bool _debug, int _tmpID)
-  DEBUG \atget_agro\ax(\a-w${_tmpID}\ax)
+sub get_agro(bool _debug, spawn _spawn)
+  DEBUG \atget_agro\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
   GETINPUT
   CHECKEXIT
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_agro ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_agro ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -309,7 +309,7 @@ sub get_agro(bool _debug, int _tmpID)
         /call cast ${_debug} 0 FALSE
       }
       /if (${cast_data[${_debug}, "${maChr.Find[stWhirling].Value}"]}) {
-        /call cast ${_debug} ${_tmpID} FALSE
+        /call cast ${_debug} ${_spawn.ID} FALSE
       }
       /if (${cast_data[${_debug}, "${maChr.Find[stRallying].Value}"]}) {
         /call cast ${_debug} 0 FALSE
@@ -317,7 +317,7 @@ sub get_agro(bool _debug, int _tmpID)
     }
   }
 
-  /invoke ${do_taunt[${_debug}, ${_tmpID}]}
+  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
 
   /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
     /call cast_shield_flash ${_debug} disc
@@ -328,36 +328,36 @@ sub get_agro(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stProvoke].Value}"]} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stShout].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
 
   /if (${cast_data[${_debug}, "${maChr.Find[stBazu].Value}"]} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAARageoftheForsaken].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
       /if (${cast_data[${_debug}, "${maChr.Find[stAABlastofAnger].Value}"]}) {
-        /call cast ${_debug} ${_tmpID} FALSE
+        /call cast ${_debug} ${_spawn.ID} FALSE
       }
     }
   }
 
-  /invoke ${do_taunt[${_debug}, ${_tmpID}]}
+  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
 
   | 20% agro boost AA with 2/10 uptime
   /if (${cast_data[${_debug}, "${maChr.Find[stAAWarlordsFury].Value}"]} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAABlastofAnger].Value}"]} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
 /return
@@ -381,7 +381,7 @@ sub check_heal(bool _debug, string _type)
   CHECKREZ
   CHECKFADE
 
-  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+  /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   | if no one is hurt. back to the start
   /if (!${hurtCount}) {
@@ -402,13 +402,13 @@ sub check_heal(bool _debug, string _type)
 
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
 
   GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
 
-  /call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
   SETHUD EMPTY
 
@@ -421,11 +421,11 @@ sub check_heal(bool _debug, string _type)
  * not: burn routines
  * use:
  ***|
-sub burn(bool _debug, int _tmpID)
-  DEBUG \atburn\x(\a-w${_tmpID}\ax)
+sub burn(bool _debug, spawn _spawn)
+  DEBUG \atburn\x(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
+  /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
 
@@ -435,14 +435,14 @@ sub burn(bool _debug, int _tmpID)
   CHECKDEFENSE
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -460,7 +460,7 @@ sub burn(bool _debug, int _tmpID)
 
     } else {
       /if (${cast_data[${_debug}, "${maChr.Find[stWarriors].Value}"]}) {
-        /call cast ${_debug} ${_tmpID} FALSE
+        /call cast ${_debug} ${_spawn.ID} FALSE
       }
       /if (${cast_data[${_debug}, "${maChr.Find[stAAMarkoftheMageHunter].Value}"]}) {
         /call cast ${_debug} 0 FALSE
@@ -512,10 +512,10 @@ sub burn(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAttention].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
   /if (${cast_data[${_debug}, "${maChr.Find[stPhantom].Value}"]} && ${Me.TargetOfTarget.Name.NotEqual[${Me.DisplayName}]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${Me.AltAbilityReady[${maChr.Find[stAAResplendentGlory].Value}]} && !${Me.Song[${maChr.Find[stAAHoldtheLine].Value}].ID}) {

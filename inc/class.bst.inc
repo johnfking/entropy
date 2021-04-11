@@ -97,13 +97,10 @@ sub class_main(bool _debug)
   }
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
-    | GETINPUT
-    | CHECKREZ
     /call class_cycle lsOrderClassPre
     /if (!${check_class_loop[${maDebug.Find[status].Value}]}) /return FALSE
 
     /if (VALID && !ENGINE3) {
-      | /call set_combat_control ${maDebug.Find[decision].Value} GETASSIST
       /call class_cycle lsOrderClass
     } else /if (VALID && ENGINE3) {
       /if (${SubDefined[e3_combat_${Me.Class.ShortName}]}) {
@@ -112,7 +109,6 @@ sub class_main(bool _debug)
     }
 
     /if (AUTO && !ENGINE3) {
-      | CHECKFADE
       /call class_cycle lsOrderClassPost
       /if (!${timer_Check_Para}) /call check_mana ${maDebug.Find[para].Value}
     } else /if (AUTO && !ENGINE3) {
@@ -130,47 +126,43 @@ sub class_main(bool _debug)
  * note:
  * use: /call misc_combat DEBUG
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
-  | ISMEDEAD
-  TMPIDDEAD
+  SPAWNDEAD
 
   CHECKEXIT misc_combat
   GETINPUT
   CHECKTIE
-  | CHECKDEFENSE
-  | BUFFNOW
-  | BUFFTEMP
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
 
   /if ((AUTO && MELEE) || MODE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
   
-  TMPIDDEAD
+  SPAWNDEAD
 
   | do we want the mobs attention?
   /if (AGRO) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAARoaringStrike].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
 
   } else /if (!AGRO) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAARoarofThunder].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
-  TMPIDDEAD
+  SPAWNDEAD
 
   /if (${cast_data[${_debug}, "${maChr.Find[stBestial].Value}"]} && !${Me.Song[${maChr.Find[stBestial].Value}].ID}) {
     /call cast ${_debug} 0 FALSE
@@ -178,29 +170,29 @@ sub misc_combat(bool _debug, int _tmpID)
 
   /if (!AE#) {
     /if (${cast_data[${_debug}, "${maChr.Find[stClaws].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   } else /if (AE#) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAEClaws].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
   
-  TMPIDDEAD
+  SPAWNDEAD
 
   /if (${cast_data[${_debug}, "${maChr.Find[atAAEnduringFrenzy].Value}"]} && !${Target.Buff[Enduring Frenzy].ID}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stRake].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stRending].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
-  TMPIDDEAD
+  SPAWNDEAD
 
   /if (${Me.Pet.ID} && !${Me.Song[${maChr.Find[stGrowl].Value}].ID}) {
     /if (${cast_data[${_debug}, "${maChr.Find[stGrowl].Value}"]}) {
@@ -372,12 +364,9 @@ sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
 
   CHECKTIE
-  | ISMEDEAD
   CHECKEXIT
-  | CHECKREZ
-  | CHECKFADE
 
-  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+  /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   | if no one is hurt. back to the start
   /if (!${hurtCount}) {
@@ -400,7 +389,7 @@ sub check_heal(bool _debug, string _type)
     /if (${Select[${_type},tot]} && ${hurtCount}) {
       /if (${hurtCount} >= 1)  {
         /call cast_cycle_heal ${_debug} ${Target.ID} tot
-        /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
+        /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
       }
     }
 
@@ -418,20 +407,20 @@ sub check_heal(bool _debug, string _type)
     | self healing
     /if (${Select[${_type},self]} && ${hurtCount}) {
       /if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-        /if (${cast_data[${_debug}, "Warder's Gift", ${hurtID}]}) {
+        /if (${cast_data[${_debug}, "Warder's Gift"]}) {
           /call cast ${_debug} 0 FALSE
         }
       }
     }
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
 
   GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
 
-  /call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
   SETHUD EMPTY
 
@@ -439,34 +428,28 @@ sub check_heal(bool _debug, string _type)
 
 
 
-
-
-
 |***
  * note: Beast burn routines
  * use:
  ***|
-sub burn(bool _debug, int _tmpID)
-  DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+sub burn(bool _debug, spawn _spawn)
+  DEBUG \atburn\ax(\a-w${_spawn.ID}\ax)
 
-  | ISMEDEAD
-  TMPIDDEAD
-  
+  SPAWNDEAD
   CHECKEXIT burn_BST
   GETINPUT
   CHECKTIE
-  | CHECKDEFENSE
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   
   /if ((AUTO && MELEE) || MODE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -485,11 +468,11 @@ sub burn(bool _debug, int _tmpID)
     /call cast ${_debug} 0 FALSE
   }
 
-  TMPIDDEAD
+  SPAWNDEAD
 
   /if (SWARM) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAAAttackoftheWarders].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
@@ -505,7 +488,7 @@ sub burn(bool _debug, int _tmpID)
     }
   }
 
-  TMPIDDEAD
+  SPAWNDEAD
 
   /call cast_glyph ${maDebug.Find[glyph].Value}
   | Intensity of the Resolute AA 4 hour reuse
@@ -524,7 +507,7 @@ sub burn(bool _debug, int _tmpID)
       /call cast ${_debug} 0 FALSE
     }
 
-    TMPIDDEAD
+    SPAWNDEAD
 
     /call cast_AA_spire ${maDebug.Find[spire].Value}
 

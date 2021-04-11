@@ -30,10 +30,6 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stCharm                          PREGEN|1                      "${auxna} name of your charm spell"
   /call set_data_map ${_debug} maChr swCharm                          FALSE                         "${auxsw} enable using charm"
 
-  | nights endless terror
-  | /call set_data_map ${_debug} maChr stTerror                         PREGEN|1                      "${auxna} name of terror spell"
-  | /call set_data_list ${_debug} maChr lsTerrorToon                    EMPTY                         "${auxli} list of toons you want to keep terror buff on"
-
   /call set_data_map ${_debug} maChr stPctGather                      0                             "${auxnum} % of manna you want to use gather at"
 
   | aa crystals
@@ -139,11 +135,11 @@ sub class_main(bool _debug)
  * note: basic DPS discs
  * use:
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /call target assist ${_tmpID}
+  /call target assist ${_spawn.ID}
 
   CHECKEXIT misc_combat
   GETINPUT
@@ -153,23 +149,23 @@ sub misc_combat(bool _debug, int _tmpID)
   BUFFTEMP
 
   /if (SWARM || PET || ${maMinion.Find[swPetCharm].Value}) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
 
   | use AA beam of slumber?
   /if (${maChr.Find[swAABoS].Value} && ${madeBuff.Find[swMez].Value}) {
-    /if (${Spawn[${_tmpID}].NearestSpawn[3,npc radius 30].ID} && ${Spawn[${_tmpID}].Distance3D} <= 200 && ${Spawn[TARGET].Distance3D} >= ENV*.5) {
+    /if (${_spawn.NearestSpawn[3,npc radius 30].ID} && ${_spawn.Distance3D} <= 200 && ${Spawn[TARGET].Distance3D} >= ENV*.5) {
       /if (${Me.AltAbilityReady[${maChr.Find[stAABeamofSlumber].Value}]}) {
         /if (${Me.Casting.ID}) /stopcast
-        /face ID ${_tmpID} ${If[${maHome.Find[swFaceFast].Value},fast,]}
+        /face ID ${_spawn.ID} ${If[${maHome.Find[swFaceFast].Value},fast,]}
         /if (${cast_data[${_debug}, "${maChr.Find[stAABeamofSlumber].Value}"]}) {
           /call cast ${_debug} 0 FALSE
         }
@@ -177,9 +173,7 @@ sub misc_combat(bool _debug, int _tmpID)
     }
   }
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  SPAWNDEAD
 
   | swarm pet
   /if (SWARM && AGRO) {
@@ -274,7 +268,7 @@ sub check_gather(bool _debug)
 sub check_heal(bool _debug, string _type)
   DEBUG \atcheck_heal\ax(\a-w${_type}\ax)
 
-  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+  /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   | if no one is hurt. back to the start
   /if (!${hurtCount}) {
@@ -292,7 +286,7 @@ sub check_heal(bool _debug, string _type)
     }
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
 
@@ -316,13 +310,13 @@ sub check_heal(bool _debug, string _type)
     }
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
 
   GETINPUT ${Me.Class.ShortName}_heal_end type|${_type}
 
-  /call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
   SETHUD EMPTY
 
@@ -334,28 +328,25 @@ sub check_heal(bool _debug, string _type)
  * note: toast should not be burnt
  * use: establish all comp/trigger skills
  ***|
-sub burn(bool _debug, int _tmpID)
-  DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+sub burn(bool _debug, spawn _spawn)
+  DEBUG \atburn\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  SPAWNDEAD
 
   CHECKEXIT
   GETINPUT
   CHECKTIE
-  CHECKDEFENSE
 
   /if (SWARM || PET || ${maMinion.Find[swPetCharm].Value}) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -364,10 +355,10 @@ sub burn(bool _debug, int _tmpID)
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAAMentalContortion].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
-  /if (${target[isdead, ${_tmpID}]}) /return FALSE
+  SPAWNDEAD
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
@@ -380,7 +371,7 @@ sub burn(bool _debug, int _tmpID)
     /call cast ${_debug} 0 FALSE
   }
 
-  /if (${target[isdead, ${_tmpID}]}) /return FALSE
+  SPAWNDEAD
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAASilentCasting].Value}"]}) {
     /call cast ${_debug}  0 FALSE
@@ -400,7 +391,7 @@ sub burn(bool _debug, int _tmpID)
     /call cast ${_debug} 0 FALSE
   }
 
-  /if (${target[isdead, ${_tmpID}]}) /return FALSE
+  SPAWNDEAD
 
   /call cast_glyph ${maDebug.Find[glyph].Value}
   | Intensity of the Resolute AA 4 hour reuse
@@ -424,7 +415,7 @@ sub find_mob_to_charm(bool _debug)
 
   /declare _count int local 0
   /declare _spawns int local 0
-  /declare _tmpID int local 0
+  /declare _spawn.ID int local 0
   /declare _maxlvl int local ${Spell[${maChr.Find[stCharm].Value}].Max[1]}
 
   /delay 1
@@ -432,13 +423,13 @@ sub find_mob_to_charm(bool _debug)
   /if (${SpawnCount[npc los Range 1 ${_maxlvl} radius ENV targetable]}) {
     /varset _spawns ${SpawnCount[npc los Range 1 ${_maxlvl} radius ENV targetable]}
     /for _count 1 to ${_spawns}
-      /varset _tmpID ${NearestSpawn[${_count}, npc los Range 1 ${_maxlvl} radius ENV targetable].ID}
-      /if (${_tmpID} == TARGET) /continue
-      /if (${lsZoneCharm.Contains[${Spawn[id ${_tmpID}].DisplayName}]} && !${Spawn[${_tmpID}].Master.Type.Equal[Pet]} && !${Spawn[${_tmpID}].Master.Type.Equal[Corpse]}) {
+      /varset _spawn.ID ${NearestSpawn[${_count}, npc los Range 1 ${_maxlvl} radius ENV targetable].ID}
+      /if (${_spawn.ID} == TARGET) /continue
+      /if (${lsZoneCharm.Contains[${Spawn[id ${_spawn.ID}].DisplayName}]} && !${Spawn[${_spawn.ID}].Master.Type.Equal[Pet]} && !${Spawn[${_spawn.ID}].Master.Type.Equal[Corpse]}) {
 
-        /squelch /target ID ${_tmpID}
+        /squelch /target ID ${_spawn.ID}
         /if (!${Target.Tashed.Duration}) {
-          /call voodoo ${_debug} {madeBuff.Find[stTash].Value} ${_tmpID} FALSE
+          /call voodoo ${_debug} {madeBuff.Find[stTash].Value} ${_spawn.ID} FALSE
 
           /while (${Me.SpellInCooldown}) {
             CHECKEXIT
@@ -451,11 +442,11 @@ sub find_mob_to_charm(bool _debug)
 
         /if (${Target.Level} <= 46) {
           /if (${cast_data[${_debug}, "Dire Charm"]}) {
-            /call voodoo ${_debug} "Dire Charm" ${_tmpID} FALSE
+            /call voodoo ${_debug} "Dire Charm" ${_spawn.ID} FALSE
           }
         } else {
           /if (${cast_data[${_debug}, "${maChr.Find[stCharm].Value}"]}) {
-            /call voodoo ${_debug} "${maChr.Find[stCharm].Value}" ${_tmpID} FALSE
+            /call voodoo ${_debug} "${maChr.Find[stCharm].Value}" ${_spawn.ID} FALSE
           }
         }
 

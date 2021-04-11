@@ -226,48 +226,6 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     /invoke ${out[18, 0, 33]}
     /return TRUE
 
-  | output diag info
-  } else /if (${_type.Equal[diag]}) {
-    /echo this is a work in progress
-    /return FALSE
-    OUT Diagnostic${sep}\a-wstart\ax
-    OUT ${Me.Class.ShortName}${sep}\a-w${Me.Level}\ax ${dot} \aw${Zone.ShortName}\ax
-    OUT target: ID${sep}\a-w${Target.ID}\ax (\a-r${Spawn[${Target.ID}].Distance}\ax) ${dot} assist: ID${sep}\a-wTARGET\ax (\a-r${Spawn[TARGET].Range}\ax)
-    OUT env${sep}\a-wENV\ax(${maCC.Find[stZRadius].Value}) ${dot} safe${sep}\a-wSAFEENV\ax ${dot}
-
-
-
-      pullrad${sep}\a-wPULLENV\ax(${maPull.Find[stPullZRadius].Value}) ${dot}
-
-      pathlogic${sep}${maPull.Find[swNavPathLogic].Value}\ax
-
-
-
-
-      pull${sep}\a-w${maPull.Find[swPull].Value}\ax
-      navstop${sep}\a-w${maPull.Find[].Value}\ax
-      mode${sep}\a-w${maPull.Find[stPullMode].Value}\ax
-      with${sep}\a-w${maPull.Find[stPullWith].Value}\ax
-      bando${sep}\a-w${maPull.Find[stRangeBandolier].Value}\ax
-      hstop${sep}\a-w${maPull.Find[stPctHardStop].Value}\ax
-      hstopdur${sep}\a-w${maPull.Find[stHardStopDuration].Value}\ax
-      hstoprez${sep}\a-w${maPull.Find[swHardStopRez].Value}\ax
-
-
-
-      arcL${sep}\a-w${stPullArcLeft}\ax
-      arcR${sep}\a-w${stPullArcRight}\ax
-      arcC${sep}\a-w${stPullArcCenter}\ax
-      arcW${sep}\a-w${maPull.Find[stPullArcWidth].Value}\ax
-
-
-
-    ECHO
-    OUT Diagnostic${sep}\a-wend\ax
-    /invoke ${out[18, 0, 33]}
-    /return
-
-
   | reset dannet.. if you need too
   } else /if (${_type.Equal[hotbar]}) {
     ECHO hotbar
@@ -680,7 +638,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
     /invoke ${out[12, "${dot} ${info}drink\ax:[${If[${Bool[${maEnv.Find[stDrink].Value}]},${num}${maEnv.Find[stDrink].Value}\ax,${off}]}]"]}
     /return
 
-  | rese settings
+  |** rese settings
   } else /if (${_type.Equal[rest]}) {
 
     | set rest %
@@ -718,6 +676,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
     /invoke ${maControl.Add[buff,swRestBuff]}
     /invoke ${set_control_output[${_debug}, maEnv, "env rest", maControl]}
     /return
+    **|
 
   } else /if (${_type.Equal[moblvlmin]}) {
     /if (!${set_control_num_range[${_debug}, stMobLvlMin, "${_verbage}", 1, 500]}) /return
@@ -833,7 +792,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[auto,swAuto|pr]}
   /invoke ${maControl.Add[rad,stEnvRadius]}
-  /invoke ${maControl.Add[rest,submenu]}
+  | /invoke ${maControl.Add[rest,submenu]}
   /invoke ${maControl.Add[meal,submenu]}
   /invoke ${maControl.Add[exp,submenu]}
   /invoke ${maControl.Add[incharge,option]}
@@ -892,8 +851,11 @@ sub Bind_command_cb(string _type)
     /lua run get_help cb ${_type.Right[1]}
     /return TRUE
   }
+  
+  /declare _list list local
+  /invoke ${_list.Append[u,s,a,c,g,r,b,t,xx,robe]}
 
-  /if (${Bool[${_type}]} && ${Select[${_type},u,s,a,c,g,r,b,t,xx]}) {
+  /if (${Bool[${_type}]} && ${_list.Contains[${_type}]}) {
     /call Bind_control_nomore invis
     /call check_buff_cycle ${maDebug.Find[cb].Value} TRUE ${_type}
     /return TRUE
@@ -904,13 +866,13 @@ sub Bind_command_cb(string _type)
   }
   
   /invoke ${maControl.Clear}
-  /invoke ${maControl.Add[u,option]}
-  /invoke ${maControl.Add[s,option]}
-  /invoke ${maControl.Add[a,option]}
-  /invoke ${maControl.Add[c,option]}
-  /invoke ${maControl.Add[g,option]}
-  /invoke ${maControl.Add[t,option]}
-  /invoke ${maControl.Add[b,option]}
+  /declare _licb listiterator local
+  /vardata _licb _list.First.Clone
+  /while (!${_licb.IsEnd}) {
+    /invoke ${maControl.Add[${_licb.Value},option]}
+
+    /invoke ${_licb.Advance}
+  }  
   /invoke ${maControl.Add[m,option]}
   /invoke ${set_control_output[FALSE, maBuff, cb, maControl]} 
 
@@ -920,7 +882,7 @@ sub Bind_command_cb(string _type)
 
 |***
  * note: watches for a spawn in zone
- * use: /watch [add|delete|reset] [TARGET]
+ * use: /watch [add|delete|reset] [current target]
  ***|
 #bind control_watch /watch
 sub Bind_control_watch(string _verbage, string _verbage2, bool _debug)
@@ -1296,7 +1258,7 @@ sub Bind_command_tie(string _type, bool _debug)
   }
 
   | tie toon not in zone?
-  /if (!${Bool[${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}]}) {
+  /if (!${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}) {
     DEBUG ${sep}not in zone${sep}\a-w${maTie.Find[stTieToon].Value}\ax
     /invoke ${maTie.Add[swSetTie, FALSE]}
     /return FALSE
@@ -1325,15 +1287,18 @@ sub Bind_command_tie(string _type, bool _debug)
   } else /if (${_type.Equal[on]}) {
     DEBUG ${sep}setting tie${sep}${on}
     /if (${maTie.Find[swSetTie].Value}) /return
-    /if (${Bool[${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}]}) /invoke ${maTie.Add[swSetTie, TRUE]}
+    | /if (${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}) 
+    /invoke ${maTie.Add[swSetTie, TRUE]}
   } else /if (${_type.Equal[off]}) {
     DEBUG ${sep}setting tie${sep}${off}
     /if (!${maTie.Find[swSetTie].Value}) /return
-    /if (${Bool[${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}]}) /invoke ${maTie.Add[swSetTie, FALSE]}
+    | /if (${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}) 
+    /invoke ${maTie.Add[swSetTie, FALSE]}
 
   } else {
     DEBUG ${sep}setting tie${sep}[\a-yswap\ax]
-    /if (${Bool[${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}]}) /invoke ${maTie.Add[swSetTie,${If[${maTie.Find[swSetTie].Value},FALSE,TRUE]}]}
+    | /if (${Spawn[pc ${maTie.Find[stTieToon].Value}].ID}) 
+    /invoke ${maTie.Add[swSetTie,${If[${maTie.Find[swSetTie].Value},FALSE,TRUE]}]}
   }
   
   /if (!${maTie.Find[swSetTie].Value}) {
@@ -1897,8 +1862,8 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
     /invoke ${set_switch_env[${_debug}, swRelayTell, TRUE, ${_verbage}]}
 
   | use lua
-  } else /if (${_type.Equal[lua]}) {
-    /invoke ${set_switch_env[${_debug}, swLua, TRUE, ${_verbage}]}
+  | } else /if (${_type.Equal[lua]}) {
+  |   /invoke ${set_switch_env[${_debug}, swLua, TRUE, ${_verbage}]}
 
   | tlp player
   } else /if (${_type.Equal[tlp]}) {
@@ -1909,12 +1874,8 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
   } else /if (${_type.Equal[hud]}) {
 
     /declare _path string local
-    /if (!NEXT) {
-      /varset _path ".\..\MQ2HUD.ini"
-    } else /if (NEXT) {
-      /varset _path "MQ2HUD.ini"
-    }
-
+    /varset _path "MQ2HUD.ini"
+    
     | adjust hud clock
     /if (${_verbage.Equal[time]}) {
       /if (${maData.Find[swHUDTime].Value}) {
@@ -1946,17 +1907,60 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
     /invoke ${maControl.Add[delete,out]}
     /invoke ${set_control_output[${_debug}, maEntropy, "entropy hud", maControl]}
     /return TRUE
+    
+    
+    
+    
+  | randomization switches
+  } else /if (${_type.Equal[random]}) {
+
+    | character engage
+    /if (${_verbage.Equal[engage]}) {
+       /invoke ${set_switch_env[${_debug}, swRNDEngage, TRUE, ${_verbage2}]}
+
+    | pet engage
+    } else /if (${_verbage.Equal[pet]}) {
+       /invoke ${set_switch_env[${_debug}, swRNDEngagePet, TRUE, ${_verbage2}]}
+
+    | swarm engage
+    } else /if (${_verbage.Equal[swarm]}) {
+       /invoke ${set_switch_env[${_debug}, swRNDEngageSwarm, TRUE, ${_verbage2}]}
+
+    | burn engage
+    } else /if (${_verbage.Equal[burn]}) {
+       /invoke ${set_switch_env[${_debug}, swRNDEngageBurn, TRUE, ${_verbage2}]}
+
+    | burn engage
+    } else /if (${_verbage.Equal[rez]}) {
+       /invoke ${set_switch_env[${_debug}, swRNDRezTake, TRUE, ${_verbage2}]}
+
+
+       
+    | variance for +/-
+    } else /if (${_verbage.Equal[variance]}) {
+      /if (!${set_control_num_range[${_debug}, stRNDVariance, "${_verbage2}", 1, 5]}) /return
+
+       
+    }
+
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[engage,swRNDEngage]}
+    /invoke ${maControl.Add[pet,swRNDEngagePet]}
+    /invoke ${maControl.Add[swarm,swRNDEngageSwarm]}
+    /invoke ${maControl.Add[burn,swRNDEngageBurn]}
+    /invoke ${maControl.Add[rez,swRNDRezTake]}
+    /invoke ${maControl.Add[variance,stRNDVariance]}
+    /invoke ${set_control_output[${_debug}, maEntropy, "entropy random", maControl]}
+    /return TRUE    
+    
+    
 
 
   | mybutton adjustments
   } else /if (${_type.Equal[buttons]}) {
 
     /declare _path string local
-    /if (!NEXT) {
-      /varset _path ".\..\MQ2Mybuttons.ini"
-    } else /if (NEXT) {
-      /varset _path "MQ2Mybuttons.ini"
-    }
+    /varset _path "MQ2Mybuttons.ini"
 
     | reload mybuttons
     /if (${_verbage.Equal[update]}) {
@@ -2044,10 +2048,10 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
   /invoke ${maControl.Add[fizzles,stCountFizzleRetry]}
   /invoke ${maControl.Add[concolor,swUseConColor]}
   /invoke ${maControl.Add[buttons,option]}
+  /invoke ${maControl.Add[random,submenu]}
   /invoke ${maControl.Add[engine,stEngine]}
   /invoke ${maControl.Add[castloops,stCastLoop]}
   /invoke ${maControl.Add[events,swEventsInc]}
-  /invoke ${maControl.Add[lua,swLua]}
   /invoke ${maControl.Add[tlp,swTLP]}
   /invoke ${maControl.Add[hook,swHookSub]}
   /invoke ${maControl.Add[hud,submenu]}
@@ -2159,685 +2163,6 @@ sub Bind_control_rez(string _type, string _verbage, string _verbage2, string _ad
   }
   /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[${_debug}, maRez, rez, maControl, maControl]}
-
-/return TRUE
-
-
-
-|***
- * note: testing control. not for in game use...
- * use:  please see note: and stop asking stupid questions
- ***|
-#Bind deez /deez
-sub Bind_deez(string _type, string _verbage, string _verbage2, string _verbage3)
-
-  /declare _count int local 0
-
-  /if (${_type.Equal[nutz]}) {
-    /invoke ${out[0, "dannuic said i should put this in to powerlevel people"]}
-    /invoke ${out[0, "well. i'm not going to code in powerleveling. but you can"]}
-    /invoke ${out[0, "have the command anyways"]}
-
-  }
-
-  /if (!${Defined[maDeez]}) {
-    /declare maDeez map outer
-  }
-
-  /if (!${Defined[lsDeez]}) {
-    /declare lsDeez list outer
-  }
-
-  /if (${_type.Equal[lua]}) {
-    | /lua healthreturn
-    /invoke ${out[1, shade, 0]}
-    | /echo ${Lua.Script.Return[1]}
-   }
-
-  /if (${_type.Equal[maCD]}) {
-    /call cast_data TRUE "Composite Blessing" type
-    /call Bind_command_see maCD
-  }
-
-  /if (${_type.Equal[concolor]}) {
-    /if (${Target.ID}) ECHO \ar${Target.Class}\ax is named ${ConColor[FALSE, ${Target.ID}]}
-    /return
-  }
-
-
-  /if (${_type.Equal[scantest]}) {
-    /call scan_inventory_for FALSE ManaClick 2 15
-    /return
-  }
-
-
-  /if (${_type.Equal[loot]}) {
-    /call do_loot_corpse ${maDebug.Find[loot].Value}
-    /return
-  }
-  
-  /if (${_type.Equal[nearest]}) {
-    /declare _mycount spawn local
-    /vardata _mycount NearestSpawn[0, npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value}].ID
-    
-    /echo ${_mycount.ID}
-    
-    /return
-  }  
-
-
-  /if (${_type.Equal[sort]}) {
-    ECHO string of numbers 56,282,900,991,8,67,23,62,76,023,001,5.05,.01,-1
-    /declare _list list local
-    /invoke ${_list.Append[56,282,900,991,8,67,23,62,76,023,001,5.05,.01,-1]}
-    /invoke ${_list.Sort}
-    ECHO ${_list.Head}
-    ECHO ${_list.Tail}
-  }
-  
-  | soul stone tester
-  /if (${_type.Equal[soul]}) {
-  	
-  	/sqlite query "${DBstatic}" dummy SELECT * FROM soulstone;
-		/declare _tmpstone string local FALSE
-		/for _count 1 to ${sqlite.Rows[dummy]}
-			
-    /echo ${sqlite.Result[dummy ${_count} env_var]} ${sqlite.Result[dummy ${_count} value]}
-		/if (${Me.Level} <= ${sqlite.Result[dummy ${_count} env_var]}) {
-		  /varset _tmpstone ${sqlite.Result[dummy ${_count} value]}
-		}
-		/next _count
-    OUT
-    OUT ${_tmpstone}
-  	
-  }
-
-
-  /if (${_type.Equal[best]}) {
-
-    /declare _running         int local 0
-    /declare _max             int local 0
-    /declare _maxName         string local FALSE
-    /declare _findAttrib      string local Spawn NPC
-    /declare _subcat          string local Sum: Animation
-    /declare _targettype      string local Self
-
-    /declare _countNumEff     int local 0
-    /declare _countSPA        int local 0
-
-    /sqlite query "${DBstatic}" dummy SELECT * FROM eq_spa WHERE value="${_findAttrib}";
-
-    ECHO SQLITE${sep}\a-w${sqlite.Result[dummy 1 env_var]}\ax
-
-    /for _count 1 to 960
-
-      | skip empty slots
-      /if (!${Me.Book[${_count}].ID}) /continue
-
-      | subcategory does not match
-      /if (${Me.Book[${_count}].Subcategory.NotEqual[${_subcat}]}) /continue
-      | target type does not match
-      /if (${Me.Book[${_count}].TargetType.NotEqual[${_targettype}]}) /continue
-
-
-      ECHO \ag${Me.Book[${_count}]}::${Me.Book[${_count}].Level}\ax ${dot} (\a-rSPA${sep}${Me.Book[${_count}].SPA}\ax)  ${dot}${dot} SPA ${sqlite.Result[dummy 1 env_var]}${sep}${Me.Book[${_count}].HasSPA[${sqlite.Result[dummy 1 env_var]}]}
-
-
-      | multiple landing non single target
-      /if (${Me.Book[${_count}].HasSPA[470]} || ${Me.Book[${_count}].HasSPA[374]} || ${Me.Book[${_count}].HasSPA[340]}) {
-        ECHO ${sep}multiple landing spell${sep}\a-w${Me.Book[${_count}]}\ax
-
-        /for _countNumEff 1 to ${Me.Book[${_count}].NumEffects}
-
-          | does not contain the SPA we are after
-          | /if (!${Me.Book[${_count}].Trigger[${_countNumEff}].HasSPA[${sqlite.Result[dummy 1 env_var]}]}) /continue
-
-          | ECHO ${_countNumEff} -- (${Me.Book[${_count}].Attrib[${_countSPA}]} != ${sqlite.Result[dummy 1 env_var]})
-
-
-          ECHO ${sep}\a-g${Me.Book[${_count}].Trigger[${_countNumEff}]}\ax ${dot} (\a-rEffects${sep}${Me.Book[${_count}].Trigger[${_countNumEff}].NumEffects}\ax) ${dot}${dot} SPA ${sqlite.Result[dummy 1 env_var]}${sep}${Me.Book[${_count}].Trigger[${_countNumEff}].HasSPA[${sqlite.Result[dummy 1 env_var]}]}
-
-          | cycle every effect of the spell find the one we are after
-          /for _countSPA 1 to ${Me.Book[${_count}].Trigger[${_countNumEff}].NumEffects}
-
-            | ECHO ${_countSPA} .. ${Me.Book[${_count}].Trigger[${_countNumEff}]} .. \a-w${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}\ax
-
-            | /if (${Me.Book[${_count}].Trigger[${_countNumEff}].Attrib[${_countSPA}]} != ${sqlite.Result[dummy 1 env_var]}) /continue
-
-            | ECHO ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]} == ${sqlite.Result[dummy 1 env_var]} ..winner
-
-            /varset _running ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}
-            | /varset _running ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[2]}
-            | ECHO _running ${_countSPA} -- ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}
-
-            /if (${_running} < -1) {
-              /if (${_running} <= ${_max}) {
-                /varset _max ${_running}
-                /varset _maxName ${Me.Book[${_count}]}
-              }
-            } else {
-              /if (${_running} >= ${_max}) {
-                /varset _max ${_running}
-                /varset _maxName ${Me.Book[${_count}]}
-              }
-            }
-
-
-          /next _countSPA
-
-        /next _countNumEff
-
-      | no procing spells
-      } else /if (${Me.Book[${_count}].SPA}) {
-        /for _countSPA 1 to ${Me.Book[${_count}].NumEffects}
-
-          ECHO _running ${_countSPA} -- ${Me.Book[${_count}].Base[${_countSPA}]} .. ${Me.Book[${_count}].Base[${_countSPA}]} .. A:${Me.Book[${_count}].Attrib[${_countSPA}]}
-          /if (${Me.Book[${_count}].Attrib[${_countSPA}]} != ${sqlite.Result[dummy 1 env_var]}) /continue
-
-
-          /varset _running ${Me.Book[${_count}].Base[${_countSPA}]}
-
-          /if (${_running} < -1) {
-            /if (${_running} <= ${_max}) {
-              /varset _max ${_running}
-              /varset _maxName ${Me.Book[${_count}]}
-            }
-          } else {
-            /if (${_running} >= ${_max}) {
-              /varset _max ${_running}
-              /varset _maxName ${Me.Book[${_count}]}
-            }
-          }
-
-
-        /next _countSPA
-      }
-
-    /next _count
-    ECHO ${_maxName}${sep}\a-w${_max}\ax
-  }
-
-
-| ${Spell[${Spell[${Me.Book[${_count}]}].Trigger[2]}].Base[2]}
-
-|**
-    Name,
-    Level,
-    Skill,
-    Mana,
-    ResistAdj,
-    Range,
-    AERange,
-    PushBack,
-    CastTime,
-    FizzleTime,
-    MyCastTime,
-    RecoveryTime,
-    RecastTime,
-    Duration,
-    SpellType,
-    TargetType,
-    ResistType,
-    CastOnYou,
-    CastOnAnother,
-    WearOff,
-    CounterType,
-    CounterNumber,
-    Stacks,
-    StacksPet,
-    WillStack,
-    MyRange,
-    Address,
-    EnduranceCost,
-    MaxLevel,
-    Category,
-    Subcategory,
-    Restrictions,
-    Base,
-    Base2,
-    Max,
-    Calc,
-    Attrib,
-    AutoCast,
-    Extra,
-    RecastTimerID,
-    SPA,
-    ReagentID,
-    ReagentCount,
-    CastByOther,
-    TimeOfDay,
-    DurationWindow,
-    CanMGB,
-    Deletable,
-    BookIcon,
-    Target,
-    Description,
-    StacksWith,
-    Rank,
-    RankName,
-    SpellGroup,
-    SubSpellGroup,
-    Beneficial,
-    IsActiveAA,
-    CalcIndex,
-    NumEffects,
-    Location,
-    IsSwarmSpell,
-    IsSkill,
-    DurationValue1,
-    NewStacks,
-    NewStacksWith,
-    StacksTarget,
-    StacksWithDiscs,
-    IllusionOkWhenMounted,
-    EQSpellDuration,
-    CastByMe,
-    HasSPA,
-    Trigger,
-    BaseName,
-    NoExpendReagentID,
-    StacksSpawn,
-    SpellIcon,
-    GemIcon,
-    SlowPct,
-    HastePct,
-    MyDuration,
-**|
-
-  /if (${_type.Equal[spawn]}) {
-    /declare _spawn spawn local
-    /vardata _spawn Spawn[pc Airavas].ID
-    
-    /echo ${_spawn.Name}
-  }
-
-  /if (${_type.Equal[zone]}) {
-    /call set_zone_lists ${maDebug.Find[area].Value}
-  }
-
-  /if (${_type.Equal[pred]}) {
-    /call get_prediction
-  }
-
-
-  /if (${_type.Equal[toppet]}) {
-
-    /declare _running         int local 0
-    /declare _max             int local 0
-    /declare _maxName         string local FALSE
-    /declare _subcat          string local FALSE
-
-    /if (${Select[${Me.Class.ShortName},MAG]}) {
-      | Sum: Air, Earth, Fire, Water
-
-    } else /if (${Select[${Me.Class.ShortName},ENC,BST,NEC,SHM]}) {
-
-      /if (${Select[${Me.Class.ShortName},ENC]}) /varset _subcat Sum: Animation
-      /if (${Select[${Me.Class.ShortName},BST,SHM]}) /varset _subcat Sum: Warder
-      /if (${Select[${Me.Class.ShortName},NEC]}) /varset _subcat Sum: Undead
-
-      /for _count 1 to ${maHard.Find[stSpellBookSize].Value}
-        /if (!${Me.Book[${_count}].ID}) /continue
-        /if (${Me.Book[${_count}].TargetType.NotEqual[Self]}) /continue
-        /if (${Me.Book[${_count}].Subcategory.NotEqual[${_subcat}]}) /continue
-
-        /varset _running ${Me.Book[${_count}].Level}
-        /if (${_running} >= ${_max}) {
-          /varset _max ${_running}
-          /varset _maxName ${Me.Book[${_count}]}
-        }
-
-      /next _count
-      ECHO ${_maxName}${sep}\a-w${_max}\ax
-    }
-
-
-}
-
-
-  | multi positional swap
-  /if (${_type.Equal[incvar]}) {
-    /if (${_verbage3.Equal[+]}) {
-      /varcalc ${_verbage} ${${_verbage}}+1
-    } else /if (${_verbage3.Equal[-]}) {
-      /varcalc ${_verbage} ${${_verbage}}-1
-    } else {
-      /varcalc ${_verbage} ${${_verbage}}+1
-    }
-
-    ECHO Range.Between[1,${_verbage2}:${${_verbage}}]
-    /if (!${Range.Between[1,${_verbage2}:${${_verbage}}]}) /varset ${_verbage} 0
-    ECHO ${_verbage} is now ${${_verbage}}
-
-  }
-
-
-
-
-  | fakes a hash
-  /if (${_type.Equal[hash]}) {
-    /declare alpha list local
-    /invoke ${alpha.Append[a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z]}
-    /declare numeric list local
-    /invoke ${numeric.Append[0,1,2,3,4,5,6,7,8,9]}
-    /declare _hash string local
-    /declare _list string local
-    /declare _an int local 0
-    /for _count 1 to 32
-      /varset _an ${Math.Rand[1,2]}
-      /if (${_an} == 1) {
-        /varset _list alpha
-      } else /if (${_an} == 2) {
-        /varset _list numeric
-      }
-      /varset _hash ${_hash}${${_list}.Item[${Math.Rand[0,${Math.Calc[${${_list}.Count}-1]}]}]}
-    /next _count
-    ECHO hash: \a-w${_hash}\ax
-  }
-
-  | var echos for debugging
-  /if (${_type.Equal[debug]}) {
-    ECHO
-    OUT \awmode\ax ${dot} melee${sep}\a-wMELEE\ax  nuke${sep}\a-wNUKE\ax  range${sep}\a-wRANGE\ax  dot${sep}\a-wDOT\ax  heal${sep}\a-wHEAL\ax
-    OUT {maEnv.Find[swAuto].Value}${sep}\a-w${maEnv.Find[swAuto].Value}\ax .. #auto:\a-wAUTO\ax
-    OUT {maCC.Find[swSetCombat].Value}${sep}\a-w${maCC.Find[swSetCombat].Value}
-    OUT {maCC.Find[swValidAssTarID].Value}${sep}\a-w${maCC.Find[swValidAssTarID].Value}
-    OUT stAssTarID${sep}\a-w${stAssTarID}
-    OUT {maBurn.Find[swBurnConditionMet].Value}${sep}\a-w${maBurn.Find[swBurnConditionMet].Value}
-    OUT swIsMeDead${sep}\a-w${swIsMeDead}
-    OUT {maEnv.Find[stEnvRadius].Value}${sep}\a-w${maEnv.Find[stEnvRadius].Value}\ax .. #env:\a-wENV\ax
-    /invoke ${out[18, 0, 33]}
-  }
-
-  | map comma test
-  /if (${_type.Equal[map]}) {
-    /invoke ${maDeez.Add[001,1]}
-    /invoke ${maDeez.Add[007,"Bond, James"]}
-    /invoke ${maDeez.Add[007,"Bond-James"]}
-    /call Bind_command_see maDeez
-  }
-
-  | list comma test
-  /if (${_type.Equal[list]}) {
-    /invoke ${lsDeez.Append[001]}
-    /invoke ${lsDeez.Append["bond, james"]}
-    /invoke ${lsDeez.Append["Bond, James"]}
-    /call Bind_command_see lsDeez
-  }
-
-  | item actors test
-  /if (${_type.Equal[actors]}) {
-    /declare MyGroundItem ground local
-    /vardata MyGroundItem Ground.First
-    /for _count 1 to ${GroundItemCount[Glowing Globe]}
-      OUT ${MyGroundItem.Name}${sep}ID-\a-w${MyGroundItem.ID}\ax${sep}Path-\a-w${Navigation.PathExists[${MyGroundItem.ID}]}\ax${sep}dis-\a-w${MyGroundItem.Distance}\ax
-      /vardata MyGroundItem MyGroundItem.Next
-    /next _count
-  }
-
-  | ground item loop test
-  /if (${_type.Equal[ground]}) {
-    /declare _item ground local
-    /vardata _item Ground.First
-    /varset _count 1
-    /while (${_count} <= ${GroundItemCount}) {
-      /if (${_item.DisplayName.Find[Glowing Globe]}) {
-        ECHO ${_count}/${GroundItemCount} -- ${_item.DisplayName}\ax${sep}Path-\a-w${Navigation.PathExists[locyxz ${_item.Y} ${_item.X} ${_item.Z}]}\ax${sep}dis-\a-w${_item.Distance}\ax
-      }
-      /if (${_count} == ${GroundItemCount}) /break
-      /varcalc _count ${_count} + 1
-      /vardata _item _item.Next
-    }
-  }
-
-  | database pull test for a mana click item
-  /if (${_type.Equal[dbtest]}) {
-    /sqlite query "${DBstatic}" dummy SELECT * FROM mana_recovery WHERE env_var="Wand of Arcronite Modulation"
-    OUT ${sqlite.Result[dummy 1 value]}
-  }
-
-
-  | pathing crawl test
-  /if (${_type.Equal[crawl]}) {
-
-    /declare _tmpID int local 0
-    /declare _closest int local 9999999
-    /declare _closestID int local 0
-
-
-    /for _count 1 to ${SpawnCount[npc range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius PULLENV zradius ${maCC.Find[stZRadius].Value} targetable]}
-      /varset _tmpID ${NearestSpawn[${_count}, npc range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius PULLENV zradius ${maCC.Find[stZRadius].Value}].ID}
-      /if (!${Navigation.PathExists[locyxz ${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]}) /continue
-
-      OUT path length to \aw${_tmpID}\ax ${dot} NavDistance${sep}\a-w${Navigation.PathLength[locyxz ${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]}\ax (\aySpawnDistance${sep}${Spawn[${_tmpID}].Distance})
-
-      /if (${Navigation.PathLength[locyxz ${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]} < ${_closest}) {
-        /varset _closest ${Navigation.PathLength[locyxz ${Spawn[${_tmpID}].Y} ${Spawn[${_tmpID}].X} ${Spawn[${_tmpID}].Z}]}
-        /varset _closestID ${_tmpID}
-      }
-
-    /next _count
-    OUT closest mob${sep}\ag${_closestID}\ax
-
-  }
-
-  | testing for finding closest mob
-  /if (${_type.Equal[findmob]}) {
-
-    /call pull_mob_find ${_debug}
-
-    OUT Closest mob${sep}\awTARGET\ax${sep}${con_color[${_debug}, ${_tmpID}]}
-    OUT Setting Target
-    /call target set TARGET
-    /varset stAssTarID 0
-
-  }
-
-  /if (${_type.Equal[legs]})  {
-    ECHO Test 1: ${FindItem[=Ice Woven Shadowscale Leggings].Spell}
-    ECHO Test 2: ${FindItem[=Ice Woven Shadowscale Leggings].SpellID}
-    ECHO Test 3: ${FindItem[=Ice Woven Shadowscale Leggings].Spell.SpellID}
-    ECHO Test 4: ${FindItem[=Ice Woven Shadowscale Leggings].Clicky}
-    ECHO Test 5: ${FindItem[=Ice Woven Shadowscale Leggings].Clicky.Spell}
-    ECHO Test 6: ${FindItem[=Ice Woven Shadowscale Leggings].Clicky.SpellID}
-  }
-
-  | get the hurt variables
-  /if (${_type.Equal[gethurt]}) {
-    /call get_hurt TRUE ${_verbage}
-    MQCLEAR
-    OUT Hirt variables${sep}\a-w${_verbage}\ax
-    OUT hurtID${sep}\a-w${hurtID}\ax (\a-r${Spawn[ID ${hurtID}].DisplayName}\ax)
-    OUT hurtPctHP${sep}\a-w${hurtPctHP}\ax
-    OUT hurtCLS${sep}\a-w${hurtCLS}\ax
-    OUT hurtCount${sep}\a-w${hurtCount}\ax
-  }
-
-  /if (${_type.Equal[tag]}) {
-    /call tag_evaluation TRUE Nuke 20 ${Me.DisplayName} "${Me.DisplayName}"
-    ECHO macro.return${sep}${Macro.Return}
-    | /sqlite clear qNuke_lifetap
-    }
-  }
-
-  | test assist name/id check
-  /if (${_type.Equal[getass]}) {
-    OUT Name${sep}${get_assist_info[FALSE, name]}
-    OUT ID${sep}${get_assist_info[FALSE, id]}
-    OUT Both${sep}${get_assist_info[FALSE, both]}
-  }
-
-  /if (${_type.Equal[behind]}) {
-    /call moveto_behind TRUE
-    /delay 30s !${Me.Moving}
-    /call check_facing ${maDebug.Find[face].Value} ${Target.ID} FORCE
-  }
-
-  | Mock testing of the weighted system for whos hurt
-  /if (${_type.Equal[hurttest]}) {
-
-    /declare lsNames list local
-    /invoke ${lsNames.Append[James,Mary,John,Patricia,Robert,Jennifer,Michael,Linda,William,Elizabeth,David,Barbara]}
-    /invoke ${lsNames.Append[Richard,Susan,Edward,Heather,Aaron,Virginia,Larry,Anna,Ethan,Olivia,Christian,Hannah]}
-    /invoke ${lsNames.Append[Gerald,Megan,Terry,Jacqueline,Lawrence,Alice,Joe,Gloria]}
-
-    | random classes
-    /declare _cls string local
-
-    | random distance range (how far away)
-    /declare _range int local
-
-    | random health hurt % 0(dead) - 100(full health)
-    /declare _hurtPCT float local
-
-    | running count of the dead
-    /declare _hurtDead int local 0
-
-    | running count of the hurt
-    /declare _hurtCount int local 0
-
-    | rotating worst of
-    /declare _hurtCLS string local
-    /declare _hurtName string local
-    /declare _hurtWeight float local 99.01
-    /declare _tmpWeight float local 99.02
-
-    /declare _lina listiterator local
-    /vardata _lina lsNames.First.Clone
-
-    /while (!${_lina.IsEnd}) {
-
-      /varset _cls ${lsClassAll.Item[${Math.Rand[0,15]}]}
-      /varset _hurtPCT ${Math.Rand[0,100]}
-      /varset _range ${Math.Rand[1,300]}
-
-       /if (${_hurtPCT} == 0) {
-        /varcalc _hurtDead ${_hurtDead}+1
-       }
-
-      | if dead, move on or if out of range
-      /if (!${_hurtPCT} || ${_range} > 201) {
-        OUT ${_lina.Value}(\a-r${_cls}\ax) ${dot} ${If[${_hurtPCT} == 0,\ardead\ax,\a-g${_hurtPCT}\ax]} ${If[${_range} > 201,${dot} \a-oOOR\ax,]}
-        /invoke ${_lina.Advance}
-        /continue
-      }
-
-
-      | not hurt?
-      /if (${_hurtPCT} > ${maHeal.Find[stHealPoint${_cls}].Value}) {
-        /invoke ${_lina.Advance}
-        /continue
-      } else {
-        /varcalc _hurtCount ${_hurtCount} + 1
-      }
-
-      | ECHO ${_lina.Value}[(\a-r${_cls}\ax${dot}\a-p${maHeal.Find[stHealPoint${_cls}].Value}\ax) -- {Math.Calc[(${_hurtPCT} - .${maHeal.Find[stHealPoint${_cls}].Value}) / ${maHeal.Find[stHealPoint${_cls}].Value}]}
-      /varset _tmpWeight ${Float[${Math.Calc[(${_hurtPCT} - .${maHeal.Find[stHealPoint${_cls}].Value}) / ${maHeal.Find[stHealPoint${_cls}].Value}]}].Precision[5]}
-
-      /if (${Float[${_tmpWeight}].Precision[5]} < ${Float[${_hurtWeight}].Precision[5]}) {
-        /varset _hurtWeight ${Float[${_tmpWeight}].Precision[5]}
-        /varset _hurtCLS ${_cls}
-        /varset _hurtName ${_lina.Value}
-      }
-
-      OUT ${_lina.Value}(\a-r${_cls}\ax${dot}\a-p${maHeal.Find[stHealPoint${_cls}].Value}\ax) ${dot} \a-g${Math.Calc[${_hurtPCT} - .${maHeal.Find[stHealPoint${_cls}].Value}]}\ax ${dot} ${Float[${_tmpWeight}].Precision[5]}
-
-      /invoke ${_lina.Advance}
-    }
-
-    /invoke ${out[18, 0, 33]}
-    OUT ${_hurtName}${sep}${_hurtCLS}${sep}${Float[${_hurtWeight}].Precision[5]}
-    /invoke ${out[18, 0, 33]}
-    ECHO
-    /return
-
-  }
-  
-  | mock up of merchant buying (string _type, string _verbage, string _verbage2, string _verbage3)
-  /if (${_type.Equal[buy]}) {
-    /echo Buying ${_verbage}!
-  	/declare QTY int local
-  	/declare _current int local
-  	/declare _lagmonster int local
-  | ---SMALL delay to allow the MERCHANT Window to populate
-    /invoke ${Merchant.OpenWindow}
-  	/delay 10s ${Merchant.ItemsReceived}
-  | ----jump out if we have enough on us
-  	
-  	/if (${_verbage2} <= ${FindItemCount[=${_verbage}]}) {
-      /echo you have more than enough ${_verbage}
-      /return
-    }
-  	/varcalc _lagmonster ${Math.Calc[${MacroQuest.Ping} / 10]}
-    /echo ${_lagmonster}
-  	/if (${FindItemCount[=${_verbage}]}) {
-  		/varcalc QTY ${Int[${Math.Calc[${_verbage2}-${FindItemCount[=${_verbage}]}]}]}
-  	} else {
-  		/varset QTY ${_verbage2}
-  	}
-  	
-  	/varcalc _current ${Int[${Math.Calc[${_verbage2}+${FindItemCount[=${_verbage}]}]}]}
-  :Filling
-  	/delay 5s ${Merchant.ItemsReceived}
-
-  	/if (${FindItemCount[=${_verbage}]}>= ${_verbage2}) {
-  		/return
-  	}
-  	/if (${Merchant.Item[=${_verbage}].ID}) {
-  		/invoke ${Merchant.SelectItem[=${_verbage}]}
-  		/delay 2
-  		
-  	} else {
-  		/if (${Window[MerchantWnd].Child[MW_UsableButton].Checked}) {
-  			/notify MerchantWnd MW_UsableButton leftmouseup
-  			/goto :Filling
-  		}
-  		/echo Couldn't find ${_verbage} on this Merchant
-  		/end
-  	}
-  	/echo Buying ${_verbage} until I get ${_verbage2}
-
-  	/while (${QTY}>0) {
-  		/invoke ${Merchant.SelectItem[=${_verbage}]}
-  		/echo Testing only will remove later
-  		/delay 5
-  		/invoke ${Merchant.Buy[${QTY}]}
-  		/delay 5
-  		/delay 5
-  		/varcalc QTY ${Int[${Math.Calc[${_verbage2}-${FindItemCount[=${_verbage}]}]}]}
-  		/echo amount i have ${_current}==${FindItemCount[=${_verbage}]}
-  		/delay 10s ${_current}==${FindItemCount[=${_verbage}]}
-  		/echo I have ${FindItemCount[=${_verbage}]} ${_verbage}
-  		/if (${QTY} <= ${FindItemCount[=${_verbage}]}) {
-  			/popup Woot we did it!!
-  			/break
-  		}
-  		/popup Well lag is too bad so activating the lag monster
-  		/delay ${_lagmonster}
-  	}
-    
-  	/delay 5
-  	/varcalc QTY ${Int[${Math.Calc[${_verbage2}-${FindItemCount[=${_verbage}]}]}]}
-  	/if (${QTY}<=0) /return
-  	/return
-  }
-
-  | Mock up sell routine
-  /if (${_type.Equal[sell]}) {
-    /echo Selling ${_verbage2} ${_verbage}
-    /echo i have ${FindItemCount[=${_verbage}]} ${_verbage}
-    /invoke ${Merchant.OpenWindow}
-    /delay 10s ${Merchant.ItemsReceived}
-
-    /selectitem "${_verbage}"
-    /delay 5
-    /invoke ${Merchant.Sell[${_verbage2}]}
-    /delay 5
-    /echo i now have ${FindItemCount[=${_verbage}]} ${_verbage}
-
-    /return
-
-  }
 
 /return TRUE
 
@@ -3485,7 +2810,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
     }
 
     /varset stAssTarID ${Target.ID}
-    /vardata spawnData Target.ID
+    /vardata targetData Target.ID
     /if (${Me.Invis}) {
       /call Bind_control_nomore invis ${_debug}
     }
@@ -3666,7 +2991,7 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
   } else /if (${_swapslot.Arg[1,|].Equal[CURSOR]}) {
 
   }
-
+  
   /delay 1s ${Cursor.ID}
 
   | put item in slot
@@ -3712,19 +3037,18 @@ sub Bind_command_alto(string _type, string _debug)
     /return TRUE
   }
 
+  /if (${Me.AutoFire}) {
+    /squelch /autofire
+  }
+  /if (${Me.Combat}) {
+    /squelch /attack off
+  }
+
   /call set_stop ${maDebug.Find[stop].Value}
   /invoke ${target[release]}
   /invoke ${maData.Add[swGetOverHere,FALSE]}
   /invoke ${maData.Add[stCastReturn,RESET]}
   
-  /if (${Me.AutoFire}) {
-    /squelch /autofire
-  }
-
-  /if (${Me.Combat}) {
-    /squelch /attack off
-  }
-
   /nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
 
 /return TRUE
@@ -3733,7 +3057,7 @@ sub Bind_command_alto(string _type, string _debug)
 
 |***
  * note: navigates to name/target/locyxz/wp
- * use: /navto [NAME|TARGET|locyxz|wp] [nickname]
+ * use: /navto [NAME|current target|locyxz|wp] [nickname]
  ***|
 #bind command_navto /navto
 sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
@@ -3877,12 +3201,6 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
     /lua run get_help repeat ${_verbage.Right[1]}
     /return TRUE
   }
-
-
-
-  | /call control_broadcast_command repeat ${_verbage} ${_sender}
-  | /if (${Macro.Return.Equal[break]}) /return TRUE
-
 
   /call Bind_control_nomore invis ${_debug}
   /invoke ${out[21, "${broadcast}${sep}\a-w/repeat ${_verbage}\ax"]}
@@ -4622,13 +3940,7 @@ sub Bind_command_grab(string _name, string _silent, bool _debug)
     }
     /return
   } else /if (${Ground[${_name}].Distance3D} <= ${maHard.Find[stRadGrab].Value}) {
-    
-    /if (!NEXT) {
-      /invoke ${Ground[${_name}].Grab}
-    } else {
-      /invoke ${Ground.Search[${_name}].Grab}
-    }
-
+    /invoke ${Ground.Search[${_name}].Grab}
   }
 
 /return TRUE
@@ -5107,7 +4419,7 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
 
 |***
  * note: shortcut to force sub cast in a manual instance
- * use: /entcast [NAME] [TARGET] DEBUG
+ * use: /entcast [NAME] [current target] DEBUG
  ***|
 #bind command_entcast /entcast
 sub Bind_command_entcast(string _name, string _target, bool _debug)
@@ -5120,92 +4432,21 @@ sub Bind_command_entcast(string _name, string _target, bool _debug)
 
 
 
-
-
-
-|***
- * note: lets you initiate a single advanced pull routine
- * use: /onepull.. i mean wtf do you want?
- ***|
-#bind command_onepull /onepull
-sub Bind_command_onepull(string _type, int _tmpID, bool _debug)
-  DEBUG \atBind_command_onepull\ax(\a-w${_type}, ${_tmpID}\ax)
-
-  | get us a target
-  /if (${_tmpID}) {
-    /varset stAssTarID ${_tmpID}
-  } else /if (${Target.ID}) {
-    /varset stAssTarID ${Target.ID}
-  } else {
-    /call pull_mob_find FALSE
-    /if (TARGET) {
-      /invoke ${out[9, "No Targets in${sep}\a-wPULLENV\ax"]}
-      /return
-    }
-  }
-  
-  /if (!${Bool[${_type}]}) {
-    OUT /onepull [int|pet|nav]
-    /return FALSE
-  }
-
-  DEBUG ${sep}stAssTarID${sep}\a-wTARGET\ax
-  DEBUG ${sep}Bind_advancedPulling${sep}\a-w${_type}\ax
-
-  | intervention pulling
-  /if (${_type.Equal[int]}) {
-    /call get_resident ${_debug} |clr|shm ENV notme
-    /if (${Bool[${Macro.Return}]}) {
-      /dex ${Macro.Return} /advancedpullint ${Me.ID}
-    } else {
-      /invoke ${out[9, "NO Intervention pullers in range."]}
-    }
-
-  | pet pulling
-  } else /if (${_type.Equal[pet]}) {
-    /call get_resident ${_debug} |mag|bst|nec|enc|shm|dru ENV notme
-    /if (${Bool[${Macro.Return}]}) {
-      /dex ${Macro.Return} /advancedpullnpet TARGET
-    } else {
-      /invoke ${out[9, "NO pet pullers in range."]}
-    }
-
-  | nav pulling
-  } else /if (${_type.Equal[nav]}) {
-    /call get_resident ${_debug} |tank|melee ENV notme
-    /if (${Bool[${Macro.Return}]}) {
-      /dex ${Macro.Return} /advancedpullnav TARGET
-    } else {
-      /invoke ${out[9, "NO melee nav pullers in range."]}
-    }
-
-  | lul pulling
-  } else /if (${_type.Equal[lul]}) {
-    | to be built still
-  }
-
-/return TRUE
-
-
-
 |***
  * note: forces an intervention spell on that target
- * use: /advancedpullint [TargetID] DEBUG
+ * use: /advancedpullint [spawn] DEBUG
  ***|
 #bind command_pull_int /advancedpullint
-sub Bind_command_pull_int(int _tmpID, bool _debug)
-  DEBUG \atBind_command_pull_int\ax(\a-w${_tmpID}\ax)
+sub Bind_command_pull_int(spawn _spawn, bool _debug)
+  DEBUG \atBind_command_pull_int\ax(\a-w${_spawn.ID}\ax)
 
-  /if (!AUTO) {
-    /return FALSE
-  }
-
-  /if (!${Bool[${_tmpID}]}) {
+  /if (!${_spawn.ID}) {
     /invoke ${out[9, "${notice}${sep}target required"]}
     /return FALSE
   }
-
-  /call cast_cycle_heal ${_debug} ${_tmpID} interventionpull
+  
+  OUT Intervention pull requested for target${sep}\a-w${_spawn.DisplayName}\ax (\a-r${_spawn.ID}\ax)
+  /call cast_cycle_heal ${_debug} ${_spawn.ID} interventionpull
 
 /return FALSE
 
@@ -5216,10 +4457,10 @@ sub Bind_command_pull_int(int _tmpID, bool _debug)
  * use: /advancedpullnav [targetID] DEBUG
  ***|
 #bind command_pull_nav /advancedpullnav
-sub Bind_command_pull_nav(int _tmpID, bool _debug)
+sub Bind_command_pull_nav(spawn _spawn, bool _debug)
   DEBUG \atBind_command_pull_nav\ax(\a-w${_tmpID}\ax)
 
-  /call get_target_navpull FALSE ${_tmpID}
+  /call get_target_navpull ${_debug} ${_spawn.ID}
 
 /return FALSE
 
@@ -5230,10 +4471,10 @@ sub Bind_command_pull_nav(int _tmpID, bool _debug)
  * use: /advancedpullpet [TargetID] DEBUG
  ***|
 #bind command_pull_pet /advancedpullpet
-sub Bind_command_pull_pet(int _tmpID, bool _debug)
+sub Bind_command_pull_pet(spawn _spawn, bool _debug)
   DEBUG \atBind_command_pull_pet\ax(\a-w${_tmpID}\ax)
 
-  /call get_target_petpull FALSE ${_tmpID}
+  /call get_target_petpull ${_debug} ${_spawn.ID}
 
 /return FALSE
 
@@ -5819,6 +5060,9 @@ sub control_pred(bool _debug)
 #bind control_mercenary /mercenary
 sub Bind_control_mercenary(string _type, string _verbage, string _silent, bool _debug)
   DEBUG \atBind_control_mercenary\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
+  
+  OUT DISABLED FOR NOW....
+  /return FALSE
 
   /if (${_type.Left[1].Equal[-]}) {
     /lua run get_help mercenary ${_type.Right[1]}
@@ -6109,6 +5353,62 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   /if (${_type.Equal[active]}) {
     /invoke ${set_switch_env[${_debug}, swPull, TRUE, ${_verbage}]}
 
+  | force intervention pull
+  } else /if (${_type.Equal[one]}) {
+    
+    | get us a target
+    /if (${Target.ID}) {
+      /vardata targetData Target.ID
+    } else {
+      /call pull_mob_find FALSE
+      /if (${targetData.ID}) {
+        /invoke ${out[9, "No Targets in${sep}\a-wPULLENV\ax"]}
+        /return
+      }
+    }
+    
+    | intervention pulling
+    /if (${_verbage.Equal[int]}) {
+      /call get_resident ${_debug} |clr|shm 200 notme
+      /declare _name string local ${Macro.Return}
+      /if (${Bool[${_name}]}) {
+        /invoke ${out[9, "Getting an intervention pull from${sep}\a-w${Macro.Return.Lower}\ax"]}
+        /dexecute ${_name} /advancedpullint ${Me.ID}
+      } else {
+        /invoke ${out[9, "NO Intervention pullers in range (\a-rclr|shm\ax)."]}
+      }
+      /return TRUE
+
+    | pet pulling
+    } else /if (${_verbage.Equal[pet]}) {
+      /call get_resident ${_debug} |mag|bst|nec|enc|shm|dru ENV notme
+      /if (${Bool[${Macro.Return}]}) {
+        /dex ${Macro.Return} /advancedpullnpet TARGET
+      } else {
+        /invoke ${out[9, "NO pet pullers in range (\a-rmag|bst|nec|enc|shm|dru\ax)."]}
+      }
+
+    | nav pulling
+    } else /if (${_verbage.Equal[nav]}) {
+      /call get_resident ${_debug} |tank|melee ENV notme
+      /if (${Bool[${Macro.Return}]}) {
+        /dex ${Macro.Return} /advancedpullnav TARGET
+      } else {
+        /invoke ${out[9, "NO melee nav pullers in range (\a-rtank|melee\ax)."]}
+      }
+
+    | lul pulling
+    } else /if (${_verbage.Equal[lul]}) {
+      | to be built still
+    }    
+    
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[nav,option]}
+    /invoke ${maControl.Add[pet,option]}
+    /invoke ${maControl.Add[int,option]}
+    /invoke ${set_control_output[${_debug}, maPull, "pull one", maControl]}
+    /return TRUE    
+    
   | pull radius
   } else /if (${_type.Equal[rad]}) {
     /invoke ${do_raw_edit[${_debug}, SILENT, stPullRadius, "${_verbage}"]}
@@ -6186,15 +5486,10 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
         /return TRUE
       }
       /call do_raw_edit ${_debug} SILENT stPullMode "pet"
-    | nav pulling
-    } else /if (${_verbage.Equal[nav]}) {
-      /call do_raw_edit ${_debug} SILENT stPullMode "nav"
-    | decision pulling
-    } else /if (${_verbage.Equal[multi]}) {
-      /call do_raw_edit ${_debug} SILENT stPullMode "multi"
-    | base pulling
-    } else /if (${_verbage.Equal[base]}) {
-      /call do_raw_edit ${_debug} SILENT stPullMode "base"
+      
+    | others?
+    } else /if (${Select[${_verbage},nav,multi,base,watch]}) {
+      /call do_raw_edit ${_debug} SILENT stPullMode "${_verbage.Lower}"
     | calm pulling
     } else /if (${_verbage.Equal[calm]}) {
       OUT Non functional. go away...
@@ -6273,6 +5568,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   /invoke ${maControl.Add[rad,stPullRadius]}
   /invoke ${maControl.Add[zrad,stPullZRadius]}
   /invoke ${maControl.Add[pathlogic,swNavPathLogic]}
+  /invoke ${maControl.Add[one,submenu]}
   /invoke ${maControl.Add[stop,submenu]}
   /invoke ${maControl.Add[mode,submenu]}
   /invoke ${maControl.Add[petwatch,stPullPetWatch]}
@@ -7196,5 +6492,62 @@ sub Bind_command_gather(string _type, string _verbage, bool _debug)
 
 /return TRUE
 
+
+
+|***
+ * note: control for rest
+ * use: /rest [options]
+ ***|
+#Bind control_rest /rest
+sub Bind_control_rest(string _type, string _verbage, string _verbage2, string _add_delete, bool _debug)
+  DEBUG \atcontrol_rest\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
+
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help rest ${_type.Right[1]}
+    /return TRUE
+  }
+
+  /if (${Select[${_type},list]}) {
+   OUT Spawn Search${sep}\awstRestSpawnSearch\ax 
+   OUT ${sep}${maRest.Find[stRestSpawnSearch].Value}
+   /return TRUE    
+
+  | set rest %
+  } else /if (${_type.Equal[pct]}) {
+    /if (!${set_control_num_range[${_debug}, stPctRest, "${_verbage}", 0, 99]}) /return
+
+  | rest radius
+  } else /if (${_type.Equal[rad]}) {
+    /if (!${set_control_num_range[${_debug}, stRestRadius, "${_verbage}", 1, 100]}) /return
+
+  | rest to full
+  } else /if (${_type.Equal[full]}) {
+    /invoke ${set_switch_env[${_debug}, swRestFull, TRUE, ${_verbage}]}
+
+  | rest through combat
+  } else /if (${_type.Equal[combat]}) {
+    /invoke ${set_switch_env[${_debug}, swRestCombat, TRUE, ${_verbage}]}
+
+  | mod rods in rest
+  } else /if (${_type.Equal[modrod]}) {
+    /invoke ${set_switch_env[${_debug}, swRestModRod, TRUE, ${_verbage}]}
+
+  | check buffs in rest
+  } else /if (${_type.Equal[buff]}) {
+    /invoke ${set_switch_env[${_debug}, swRestBuff, TRUE, ${_verbage}]}
+
+  }
+
+  /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[list,list]}
+  /invoke ${maControl.Add[pct,stPctRest]}
+  /invoke ${maControl.Add[rad,stRestRadius]}
+  /invoke ${maControl.Add[full,swRestFull]}
+  /invoke ${maControl.Add[combat,swRestCombat]}
+  /invoke ${maControl.Add[modrod,swRestModRod]}
+  /invoke ${maControl.Add[buff,swRestBuff]}
+  /invoke ${set_control_output[${_debug}, maRest, "rest", maControl]}
+
+/return TRUE
 
 

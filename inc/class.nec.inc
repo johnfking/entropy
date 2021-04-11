@@ -115,7 +115,7 @@ sub check_heal(bool _debug, string _type)
 
   CHECKEXIT
 
-  /call get_hurt ${maDebug.Find[hurt].Value} ${_type}
+  /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   | if no one is hurt. back to the start
   /if (!${hurtCount}) {
@@ -152,11 +152,11 @@ sub check_heal(bool _debug, string _type)
     }
   }
 
-  /if (!${get_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     /return FALSE
   }
 
-  /call cast_cycle_heal ${_debug} ${hurtID} single
+  /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
   SETHUD EMPTY
 
@@ -168,22 +168,22 @@ sub check_heal(bool _debug, string _type)
  * note: the extra stuff
  * use: normal routine
  ***|
-sub misc_combat(bool _debug, int _tmpID)
-  DEBUG \atmisc_combat\ax(\a-w${_tmpID}\ax)
+sub misc_combat(bool _debug, spawn _spawn)
+  DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
   TMPIDDEAD
   CHECKEXIT
   GETINPUT
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_tmpID}
+    /call cast_cycle_miscdps ${maDebug.Find[agro].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -192,21 +192,21 @@ sub misc_combat(bool _debug, int _tmpID)
     | wake the dead
     /if (${SpawnCount[corpse radius ${Spell[${maChr.Find[stAAWaketheDead].Value}].MyRange}]} > 3) {
       /if (${cast_data[${_debug}, "${maChr.Find[stAAWaketheDead].Value}"]} && ${Target.PctHPs} > 15) {
-        /call cast ${_debug} ${_tmpID} FALSE
+        /call cast ${_debug} ${_spawn.ID} FALSE
       }
     }
     | aa swarm of decay
     /if (${cast_data[${_debug}, "${maChr.Find[stAASwarmofDecay].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
     | aa Rise of bones
     /if (${cast_data[${_debug}, "${maChr.Find[stAARiseofBones].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAAHereticsTwincast].Value}"]} && !${Me.Song[${maChr.Find[stAAFuneralPyre].Value}].ID}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
 /return TRUE
@@ -217,8 +217,8 @@ sub misc_combat(bool _debug, int _tmpID)
  * note: “You should never attack a necromancer in a cemetery; it’s like chasing Rambo into a building full of loaded guns." --Laurell K. Hamilton, Dead Ice
  * use: burn the dead
  ***|
-sub burn(bool _debug, int _tmpID)
-  DEBUG \atburn\ax(\a-w${_tmpID}\ax)
+sub burn(bool _debug, spawn _spawn)
+  DEBUG \atburn\ax(\a-w${_spawn.ID}\ax)
 
   TMPIDDEAD
 
@@ -226,14 +226,14 @@ sub burn(bool _debug, int _tmpID)
   GETINPUT
 
   /if (SWARM || PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_tmpID}
+    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
   }
   /if (AUTO && MELEE) {
-    /call check_facing ${maDebug.Find[face].Value} ${_tmpID} FORCE
+    /invoke ${spawn_face[${_spawn.ID}]}
   }
 
   /if (ENGINE2) {
-    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_tmpID}
+    /call cast_cycle_burn ${maDebug.Find[burn].Value} ${_spawn.ID}
     /return TRUE
   }
 
@@ -248,18 +248,18 @@ sub burn(bool _debug, int _tmpID)
 
   /if (${Target.PctHPs} > 15 && ${Me.PctHPs} > 90) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAALifeBurn].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
   /if (!${Me.Buff[Spire of Necromancy].ID}) {
     /if (${cast_data[${_debug}, "${maChr.Find[stAAEmbalmersCarapace].Value}"]}) {
-      /call cast ${_debug} ${_tmpID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAAFuneralPyre].Value}"]} && !${Me.Song[${maChr.Find[stAAHereticsTwincast].Value}].ID}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAAMercurialTorment].Value}"]}) {
@@ -287,8 +287,8 @@ sub burn(bool _debug, int _tmpID)
  * note: casts call of blood line of spells
  * use: /call cast_blood DEBUG [ID]
  ***|
-sub cast_blood(bool _debug, int _tmpID)
-  DEBUG \atcast_blood\ax(\a-w${_tmpID}\ax)
+sub cast_blood(bool _debug, spawn _spawn)
+  DEBUG \atcast_blood\ax(\a-w${_spawn.ID}\ax)
 
   CHECKEXIT
   GETINPUT
@@ -296,13 +296,11 @@ sub cast_blood(bool _debug, int _tmpID)
   /invoke ${set_data_timer[${_debug}, Check_Blood, RESTART]}
   /if (${Me.Song[Chaotic Power].ID}) /return FALSE
 
-  /if (${target[isdead, ${_tmpID}]}) {
-    /return FALSE
-  }
+  SPAWNDEAD
 
 
   /if (${cast_data[${_debug}, "${maChr.Find[stBlood].Value}"]}) {
-    /call cast ${_debug} ${_tmpID} FALSE
+    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
 /return TRUE
