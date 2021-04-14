@@ -111,7 +111,7 @@ sub misc_combat(bool _debug, spawn _spawn)
   DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
-  TMPIDDEAD
+  SPAWNDEAD
   CHECKEXIT
 
   /if (SWARM || PET) {

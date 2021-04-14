@@ -1907,7 +1907,7 @@ sub set_initialize_hud(bool _debug, string _verbage)
 
   | row 0
 
-    | invisibilities
+  | invisibilities
     /ini ${_path} entropy INV1    ${Parse[0, "3,134,0,0,255,0,${If[${Me.SPA[12]}||${Me.SPA[314]},I,]}"]}
     /ini ${_path} entropy INV2    ${Parse[0, "3,134,0,255,0,0,${If[${Me.SPA[12]}||${Me.SPA[314]},,I]}"]}
     /ini ${_path} entropy IVU1    ${Parse[0, "3,138,0,0,255,0,${If[${Me.SPA[28]}||${Me.SPA[315]},U,]}"]}
@@ -1918,16 +1918,14 @@ sub set_initialize_hud(bool _debug, string _verbage)
     /ini ${_path} entropy ANI2    ${Parse[0, "3,154,0,255,0,0,${If[${Me.SPA[316]},,A]}"]}
 
 
-   | watch
-    /ini ${_path} entropy waM1    ${Parse[0, "19,255,0,0,255,0,${If[${h_watch},wa,]}"]}
-    /ini ${_path} entropy waM2    ${Parse[0, "19,255,0,25,25,25,${If[${h_watch},,wa]}"]}
-    /ini ${_path} entropy waW1    ${Parse[0, "19,275,0,25,25,25,${If[${stWatchCount},,0]}"]}
-    /ini ${_path} entropy waW2    ${Parse[0, "19,275,0,255,255,255,${If[${stWatchCount},${stWatchCount},]}"]}
+  | watch
+    /ini ${_path} entropy waM1    ${Parse[0, "19,310,0,0,255,0,${If[${h_watch},[       ],]}"]}
+    /ini ${_path} entropy waW2    ${Parse[0, "19,315,1,255,255,255,${If[${stWatchCount},${stWatchCount},]}"]}
 
 
     /ini ${_path} entropy BG0     3,131,0,0,0,0,██████████████████████████
 
-    | conbat controls
+  | conbat controls
     /ini ${_path} entropy ccA1    ${Parse[0, "19,134,14,255,255,0,${If[${h_auto},A,]}"]}
     /ini ${_path} entropy ccA2    ${Parse[0, "19,134,9,25,25,25,${If[${h_auto},,_]}"]}
     /ini ${_path} entropy ccEnv1  ${Parse[0, "19,146,14,140,140,140,${h_env}"]}
@@ -1935,12 +1933,12 @@ sub set_initialize_hud(bool _debug, string _verbage)
     | pulling
     /ini ${_path} entropy ccPM1   ${Parse[0, "19,170,14,0,255,0,${If[${h_pull},${h_pullmode},]}"]}
     /ini ${_path} entropy ccPM2   ${Parse[0, "19,170,14,255,0,0,${If[${h_pull},,${h_pullmode}]}"]}
-    /ini ${_path} entropy ccPR1   ${Parse[0, "19,200,14,255,255,255,${If[${h_pullarea},${h_pullarea},]}"]}
-    /ini ${_path} entropy ccPR2   ${Parse[0, "19,200,9,25,25,25,${If[${h_pullarea},,___]}"]}
+    /ini ${_path} entropy ccPR1   ${Parse[0, "19,205,14,255,255,255,${If[${h_pullarea},${h_pullarea},]}"]}
+    /ini ${_path} entropy ccPR2   ${Parse[0, "19,205,9,25,25,25,${If[${h_pullarea},,___]}"]}
 
     | agro
-    /ini ${_path} entropy ccAg1   ${Parse[0, "19,225,14,255,255,255,${If[${h_agro},A,]}"]}
-    /ini ${_path} entropy ccAg2   ${Parse[0, "19,225,9,25,25,25,${If[${h_agro},,_]}"]}
+    /ini ${_path} entropy ccAg1   ${Parse[0, "19,235,14,255,255,255,${If[${h_agro},A,]}"]}
+    /ini ${_path} entropy ccAg2   ${Parse[0, "19,235,9,25,25,25,${If[${h_agro},,_]}"]}
 
     | combat modes
     /ini ${_path} entropy ccM1    ${Parse[0, "19,255,14,255,255,255,${If[${h_melee},M,]}"]}
@@ -2581,11 +2579,6 @@ sub sql_schema_shared(bool _debug)
       /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (crewmemberroles)"]}) /endmacro
 
 
-      | -------------------- names for binds
-      | /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS binds(id INTEGER PRIMARY KEY, name TEXT, UNIQUE (name));
-      | /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (binds)"]}) /endmacro
-
-
       | -------------------- tags n'stuff
       /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS tag(id INTEGER PRIMARY KEY, name TEXT, created_by INTEGER, UNIQUE (name));
       /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (tag)"]}) /endmacro
@@ -3049,8 +3042,6 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '976', '1', 'CONTROL::MARKER', 'marker /cure poison');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '987', '1', 'ACTION::delaycooldown', 'delays until gem cooldown is clear');
   
- 
-  
 
 /return TRUE
 
@@ -3161,356 +3152,48 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
   /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-w${maData.Find[chrID].Value}.sqlite\ax
 
 
-  | redesign for rest
-  /if (${maEnv.Find[build].Value} >= 210404.01 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210404.01\ax
-    /invoke ${_tmpMap.Add[,character]}
-    /invoke ${_tmpMap.Add[stPctRest,character]}
-    /invoke ${_tmpMap.Add[swRestFull,character]}                   
-    /invoke ${_tmpMap.Add[swRestModRod,character]}                 
-    /invoke ${_tmpMap.Add[swRestBuff,character]}                   
-    /invoke ${_tmpMap.Add[swRestCombat,character]}                 
-    /invoke ${_tmpMap.Add[stRestRadius,character]}
-  }                 
 
 
-  /if (${maEnv.Find[build].Value} >= 210222.01 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210222.01\ax
-    /invoke ${_tmpMap.Add[swMoveBehind,character]}
-  }
-
-  /if (${maEnv.Find[build].Value} >= 210210.01 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210210.01\ax
-    /invoke ${_tmpMap.Add[swblood,character]}
-    /invoke ${_tmpMap.Add[swMoveBehind,character]}
-  }
-
-  /if (${maEnv.Find[build].Value} >= 210201.01 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210201.01\ax
-    /invoke ${_tmpMap.Add[stStance,character]}
-    /invoke ${_tmpMap.Add[stSteel,character]}
-    /invoke ${_tmpMap.Add[stTempRune,character]}
-    /invoke ${_tmpMap.Add[stAAThousandBlades,character]}
-  }
-
-  /if (${maEnv.Find[build].Value} >= 210116.05 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210116.05\ax
-    /invoke ${_tmpMap.Add[stAAReflexiveRetort,character]}
-    /invoke ${_tmpMap.Add[stAARelfexiveRejoinder,character]}
-  }
-
-  | assisting redesign
-  /if (${maEnv.Find[build].Value} >= 210116.01 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210116.01\ax
-    /invoke ${_tmpMap.Add[lsAssistDanNet,character]}
-    /invoke ${_tmpMap.Add[stManualAssist1,character]}
-    /invoke ${_tmpMap.Add[stManualAssist2,character]}
-  }
-
-  /if (${maEnv.Find[build].Value} >= 201201.1 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w201201.1\ax
-    | remove crew table from character DB
-    /sqlite query "${DBcharacter}" dummy DROP TABLE IF EXISTS environment_crew;
-    /invoke ${_tmpMap.Add[stDanNetReturnDelay,hard]}
-
-  }
-  
-
-  | debuff changes
-  /if (${maEnv.Find[build].Value} >= 210103.02 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210103.02\ax
-
-    /invoke ${_tmpMap.Add[swCripple,character]}
-    /invoke ${_tmpMap.Add[stCripple,character]}
-    /invoke ${_tmpMap.Add[stAECripple,character]}
-    /invoke ${_tmpMap.Add[swMez,character]}
-    /invoke ${_tmpMap.Add[stMez,character]}
-    /invoke ${_tmpMap.Add[stCountMezResist,character]}
-    /invoke ${_tmpMap.Add[stAEMez,character]}
-    /invoke ${_tmpMap.Add[swMalo,character]}
-    /invoke ${_tmpMap.Add[stMalo,character]}
-    /invoke ${_tmpMap.Add[stAEMalo,character]}
-    /invoke ${_tmpMap.Add[swTash,character]}
-    /invoke ${_tmpMap.Add[stTash,character]}
-    /invoke ${_tmpMap.Add[stAETash,character]}
-    /invoke ${_tmpMap.Add[swSlow,character]}
-    /invoke ${_tmpMap.Add[stSlow,character]}
-    /invoke ${_tmpMap.Add[stAESlow,character]}
-    /invoke ${_tmpMap.Add[swEradicate,character]}
-    /invoke ${_tmpMap.Add[stEradicate,character]}
-    /invoke ${_tmpMap.Add[stAEEradicate,character]}
-    /invoke ${_tmpMap.Add[stTimerEradicate,character]}
-    /invoke ${_tmpMap.Add[swSnare,character]}
-    /invoke ${_tmpMap.Add[stSnare,character]}
-    /invoke ${_tmpMap.Add[stAESnare,character]}
-
-  }
-
-  | random stuffs
-  /if (${maEnv.Find[build].Value} >= 201218.01 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w201218.01\ax
-    
-    | melee skill changes
-    /invoke ${_tmpMap.Add[swDisarm,character]}
-    /invoke ${_tmpMap.Add[swBash,character]}
-    /invoke ${_tmpMap.Add[swBackstab,character]}
-    /invoke ${_tmpMap.Add[swIntimidation,character]}
-    /invoke ${_tmpMap.Add[swKick,character]}
-    /invoke ${_tmpMap.Add[swDragonpunch,character]}
-    /invoke ${_tmpMap.Add[swEaglestrike,character]}
-    /invoke ${_tmpMap.Add[swTigerclaw,character]}
-    /invoke ${_tmpMap.Add[swFlyingkick,character]}
-    /invoke ${_tmpMap.Add[swRoundkick,character]}
-    /invoke ${_tmpMap.Add[swFrenzy,character]}
-    
-    | druid changes
-    /invoke ${_tmpMap.Add[stAADistructiveVortex,character]}
-    /invoke ${_tmpMap.Add[stAAPeacefulSpiritoftheWood,character]}
-    /invoke ${_tmpMap.Add[stAAStormStrike,character]}
-    
-    
-  }
-  
-
-  | nuke/dot changes
-  /if (${maEnv.Find[build].Value} >= 201126.02 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w201126.02\ax
-    /invoke ${_tmpMap.Add[stPctStopNuke,character]}
-    /invoke ${_tmpMap.Add[stNukeDelay,character]}
-    /invoke ${_tmpMap.Add[swNukeLoop,character]}
-    /invoke ${_tmpMap.Add[stDotRefresh,character]}
-    /invoke ${_tmpMap.Add[stPctStopDoT,character]}
-  }  
-  
-  | temp buff changes
-  /if (${maEnv.Find[build].Value} >= 201123.01 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w201123.01\ax
-    /invoke ${_tmpMap.Add[lsWardToon,character]}
-    /invoke ${_tmpMap.Add[stWard,character]}
-    /invoke ${_tmpMap.Add[lsRetortToon,character]}
-    /invoke ${_tmpMap.Add[stRetort,character]}
-    /invoke ${_tmpMap.Add[lsTempBuffToon,character]}
-    /invoke ${_tmpMap.Add[stTempBuff,character]}
-    /invoke ${_tmpMap.Add[lsGrowthToon,character]}
-    /invoke ${_tmpMap.Add[stGrowth,character]}
-  }  
-
-
-
-  | pulling changes
-  /if (${maEnv.Find[build].Value} >= 200927.01 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200927.01\ax
-    /invoke ${_tmpMap.Add[swPull,character]}
-    /invoke ${_tmpMap.Add[stPullRadius,character]}
-    /invoke ${_tmpMap.Add[swPullSetHome,character]}
-    /invoke ${_tmpMap.Add[stPullNavStopDistance,character]}
-    /invoke ${_tmpMap.Add[stPullMode,character]}
-    /invoke ${_tmpMap.Add[stPullWith,character]}
-    /invoke ${_tmpMap.Add[stRangeOther,character]}
-    /invoke ${_tmpMap.Add[stRangeBandolier,character]}
-    /invoke ${_tmpMap.Add[stPctHardStop,character]}
-    /invoke ${_tmpMap.Add[stHardStopDuration,character]}
-    /invoke ${_tmpMap.Add[stPullZRadius,character]}
-  }
-
-
-  | predictive changes
-  /if (${maEnv.Find[build].Value} >= 200903.01 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200903.01\ax
-    /invoke ${_tmpMap.Add[swPredPrepBurn,character]}
-    /invoke ${_tmpMap.Add[swPredPrepClass,character]}
-  }
-
-
-  | removal of pet type option in minion
-  /if (${maEnv.Find[build].Value} >= 200826.01 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200826.01\ax
-    /invoke ${_tmpMap.Add[stPetType,minion]}
-  }
-
-
-  | ranger summer change
-  /if (${maEnv.Find[build].Value} >= 200824.01 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200824.01\ax
-    /invoke ${_tmpMap.Add[swSummer,character]}
-  }
-
-  | more rez redesign
-  /if (${maEnv.Find[build].Value} >= 200813.01 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200813.01\ax
-    /invoke ${_tmpMap.Add[stRezPriority1,rez]}
-    /invoke ${_tmpMap.Add[stRezPriority2,rez]}
-    /invoke ${_tmpMap.Add[stRezPriority3,rez]}
-    /invoke ${_tmpMap.Add[stRezPriority4,rez]}
-    /invoke ${_tmpMap.Add[stRezPriority5,rez]}
-    /invoke ${_tmpMap.Add[stRezPriority6,rez]}
-    /invoke ${_tmpMap.Add[stRezPriority7,rez]}
-    /invoke ${_tmpMap.Add[stRezPriority8,rez]}
-  }
-
-  /if (${maEnv.Find[build].Value} >= 200810.01 || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200810.01\ax
-    /if (${Select[${Me.Class.ShortName},RNG,PAL,SHD,WAR]}) {
-      /invoke ${_tmpMap.Add[swTaunt,character]}
-      /invoke ${_tmpMap.Add[stPctTaunt,character]}
-    }
-    /invoke ${_tmpMap.Add[swAgro,character]}
-  }
-
-
-  | rez redesign
-    /if (${maEnv.Find[build].Value} >= 200724.01 || ${_verbage.Equal[force]}) {
-      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200724.01\ax
-      /invoke ${_tmpMap.Add[lsRezTokenToon,character]}
-      /invoke ${_tmpMap.Add[swRezGive,character]}
-      /invoke ${_tmpMap.Add[swRezTake,character]}
-      /invoke ${_tmpMap.Add[swRezCombat,character]}
-      /invoke ${_tmpMap.Add[swRezEveryone,character]}
-      /invoke ${_tmpMap.Add[swRezToken,character]}
-      /invoke ${_tmpMap.Add[stPctMinRez,character]}
-      /invoke ${_tmpMap.Add[stMaxRezRange,character]}
-      /invoke ${_tmpMap.Add[stResurrection,character]}
-      /invoke ${_tmpMap.Add[swDivineCleric,character]}
+|**
+    | redesign for rest
+    /if (${maEnv.Find[build].Value} >= 210404.01 || ${_verbage.Equal[force]}) {
+      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210404.01\ax
+      /invoke ${_tmpMap.Add[stPctRest,character]}
+      /invoke ${_tmpMap.Add[swRestFull,character]}                   
+      /invoke ${_tmpMap.Add[swRestModRod,character]}                 
+      /invoke ${_tmpMap.Add[swRestBuff,character]}                   
+      /invoke ${_tmpMap.Add[swRestCombat,character]}                 
+      /invoke ${_tmpMap.Add[stRestRadius,character]}
+      /invoke ${_tmpMap.Add[swMoveBehind,character]}
     }
 
-
-    /if (${maEnv.Find[build].Value} >= 200704.01 || ${_verbage.Equal[force]}) {
-      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w200704.01\ax
-
-      | remove all conditions (condition table, do that later)
-      /invoke ${_tmpList.Append[buff,character,item,defense,heal,song,nuke,dot,agro,miscdps,burn,sash]}
-      /vardata _li _tmpList.First.Clone
-      /while (!${_li.IsEnd}) {
-        /sqlite query "${DBcharacter}" dummy DELETE FROM environment_${_li.Value} WHERE env_var  LIKE "%Con";
-        /invoke ${_li.Advance}
-      }
-
-      | older variables that need to be removed
-      /invoke ${_tmpMap.Add[stRangeItemCount,character]}
-      /invoke ${_tmpMap.Add[lsRangeItemSummon,character]}
-      /invoke ${_tmpMap.Add[lsRangeItem,character]}
-      /invoke ${_tmpMap.Add[lsHealRemedy,character]}
-      /invoke ${_tmpMap.Add[lsHealRenewal,character]}
-      /invoke ${_tmpMap.Add[lsHealIntervention,character]}
-      /invoke ${_tmpMap.Add[lsHealLight,character]}
-      /invoke ${_tmpMap.Add[lsHealBaseLine,character]}
-      /invoke ${_tmpMap.Add[lsNuke,character]}
-      /invoke ${_tmpMap.Add[lsDoT,character]}
-      /invoke ${_tmpMap.Add[lsLineTank,character]}
-      /invoke ${_tmpMap.Add[lsLineCaster,character]}
-      /invoke ${_tmpMap.Add[lsLineMelee,character]}
-      /invoke ${_tmpMap.Add[lsLineMix,character]}
-      /invoke ${_tmpMap.Add[lsLineOther,character]}
-      /invoke ${_tmpMap.Add[lsHealPetLine,character]}
-      /invoke ${_tmpMap.Add[lsNukeFire,character]}
-      /invoke ${_tmpMap.Add[lsNukeMagic,character]}
-      /invoke ${_tmpMap.Add[lsNukeBase,character]}
-      /invoke ${_tmpMap.Add[stHealPanic,character]}
-      /invoke ${_tmpMap.Add[lsHealAdrenaline,character]}
-      /invoke ${_tmpMap.Add[lsHealPuravida,character]}
-      /invoke ${_tmpMap.Add[lsHealTouch,character]}
-      /invoke ${_tmpMap.Add[lsHealBurst,character]}
-      /invoke ${_tmpMap.Add[stCountDefensive,character]}
-      /invoke ${_tmpMap.Add[lsMitigationCycle,character]}
-      /invoke ${_tmpMap.Add[lsMitigationCyclecheck,character]}
-      /invoke ${_tmpMap.Add[lsNoHealToon,character]}
-      /invoke ${_tmpMap.Add[lsNoCureDeBuff,character]}
-      /invoke ${_tmpMap.Add[stHealMode,character]}
-      /invoke ${_tmpMap.Add[lsProtectOutsideGroup,character]}
-      /invoke ${_tmpMap.Add[lsProtectInsideRaid,character]}
-      /invoke ${_tmpMap.Add[lsProtectNPCList,character]}
-      /invoke ${_tmpMap.Add[stHealAdjust,character]}
-      /invoke ${_tmpMap.Add[swHealSelf,character]}
-      /invoke ${_tmpMap.Add[swHealToT,character]}
-      /invoke ${_tmpMap.Add[swHealGroup,character]}
-      /invoke ${_tmpMap.Add[swHealXTarget,character]}
-      /invoke ${_tmpMap.Add[swHealPet,character]}
-      /invoke ${_tmpMap.Add[swHealCure,character]}
-      /invoke ${_tmpMap.Add[stCureCurseItem,character]}
-      /invoke ${_tmpMap.Add[stCurePoisonItem,character]}
-      /invoke ${_tmpMap.Add[stCureDiseaseItem,character]}
-      /invoke ${_tmpMap.Add[stCureCorruptionItem,character]}
-      /invoke ${_tmpMap.Add[lsNoCureDeBuff,character]}
-      /invoke ${_tmpMap.Add[lsHealXTClass,character]}
-      /invoke ${_tmpMap.Add[lsNoHealToon,character]}
-      /invoke ${_tmpMap.Add[swArbitratetoHealGroup,character]}
-      /invoke ${_tmpMap.Add[stVerb,character]}
-      /invoke ${_tmpMap.Add[stSwapBandolier,character]}
-      /invoke ${_tmpMap.Add[lsLine,character]}
-      /invoke ${_tmpMap.Add[lsLineSong,dot]}
-      /invoke ${_tmpMap.Add[stCurrent,character]}
-      /invoke ${_tmpMap.Add[lsSafeListToon,character]}
-      /invoke ${_tmpMap.Add[swBurnForce,character]}
-      /invoke ${_tmpMap.Add[swBurnAuto,character]}
-      /invoke ${_tmpMap.Add[stPctBurnEngage,character]}
-      /invoke ${_tmpMap.Add[stBurnCount,character]}
-      /invoke ${_tmpMap.Add[swBurnRaid,character]}
-      /invoke ${_tmpMap.Add[stAbsorbingAgent,character]}
-      /invoke ${_tmpMap.Add[lsaLineBurn,burn]}
-      /invoke ${_tmpMap.Add[lsHealMending,character]}
-      /invoke ${_tmpMap.Add[lsHealIntervention,character]}
-      /invoke ${_tmpMap.Add[lsHealReckless,character]}
-      /invoke ${_tmpMap.Add[swProc,character]}
-      /invoke ${_tmpMap.Add[stProcBandolier,character]}
-      /invoke ${_tmpMap.Add[swBandolier,character]}
-      /invoke ${_tmpMap.Add[tiCheck_Proc_Bandolier,timer]}
-      /invoke ${_tmpMap.Add[stPctShieldFlash,character]}
-      /invoke ${_tmpMap.Add[stCountShieldFlash,character]}
-      /invoke ${_tmpMap.Add[stWolfSpirit,character]}
-      /invoke ${_tmpMap.Add[lsHealRejuvilation,character]}
-      /invoke ${_tmpMap.Add[swHealOverTime,character]}
-      /invoke ${_tmpMap.Add[stHealOverTime,character]}
-      /invoke ${_tmpMap.Add[stCountHealGroup,character]}
-      /invoke ${_tmpMap.Add[stHealGroup,character]}
-      /invoke ${_tmpMap.Add[swHealGroupOverTime,character]}
-      /invoke ${_tmpMap.Add[stCountSplash,character]}
-      /invoke ${_tmpMap.Add[stSplash,character]}
-      /invoke ${_tmpMap.Add[stHealLight,character]}
-      /invoke ${_tmpMap.Add[stSplashPanic,character]}
-      /invoke ${_tmpMap.Add[stSplashCure,character]}
-      /invoke ${_tmpMap.Add[stCountDef,character]}
-      /invoke ${_tmpMap.Add[stPctDef,character]}
-      /invoke ${_tmpMap.Add[lsLineDefense,character]}
-      /invoke ${_tmpMap.Add[lsHealToT,character]}
-      /invoke ${_tmpMap.Add[stSplash,heal]}
-      | /invoke ${_tmpMap.Add[stHealOverTime,heal]}
-      | /invoke ${_tmpMap.Add[stHealGroupOverTime,heal]}
-      /invoke ${_tmpMap.Add[stHealGroup,heal]}
-      /invoke ${_tmpMap.Add[stHealDesperate,character]}
-      /invoke ${_tmpMap.Add[stHealFont,character]}
-      /invoke ${_tmpMap.Add[stHealDesperate,character]}
-      /invoke ${_tmpMap.Add[stHealFont,character]}
-      /invoke ${_tmpMap.Add[swHealCure,heal]}
-      /invoke ${_tmpMap.Add[stAura1,character]}
-      /invoke ${_tmpMap.Add[stAura1Check,character]}
-      /invoke ${_tmpMap.Add[lsAura1Tag,character]}
-      /invoke ${_tmpMap.Add[stAura2,character]}
-      /invoke ${_tmpMap.Add[stAura2Check,character]}
-      /invoke ${_tmpMap.Add[lsAura2Tag,character]}
-      /invoke ${_tmpMap.Add[swPet,character]}
-      /invoke ${_tmpMap.Add[stPetType,character]}
-      /invoke ${_tmpMap.Add[stPetIllusion,character]}
-      /invoke ${_tmpMap.Add[stPctPetEngage,character]}
-      /invoke ${_tmpMap.Add[swSwarm,character]}
-      /invoke ${_tmpMap.Add[stPctSwarmEngage,character]}
-      /invoke ${_tmpMap.Add[swNoSwarmonDS,character]}
-      /invoke ${_tmpMap.Add[swonForce,character]}
-      /invoke ${_tmpMap.Add[swUsePetGear,character]}
-      /invoke ${_tmpMap.Add[stPetWeapon,character]}
-      /invoke ${_tmpMap.Add[swPetShrink,character]}
-      /invoke ${_tmpMap.Add[stPetShrink,character]}
-      /invoke ${_tmpMap.Add[swPetBuff,character]}
-      /invoke ${_tmpMap.Add[swSteel,character]}
-      /invoke ${_tmpMap.Add[swStance,character]}
-      /invoke ${_tmpMap.Add[tCheck_Stance,timer]}
-      /invoke ${_tmpMap.Add[swSkin,character]}
-      /invoke ${_tmpMap.Add[tCheck_Skin,timer]}
-      /invoke ${_tmpMap.Add[lsHealPanic,character]}
-      /invoke ${_tmpMap.Add[stTwistedShankcharacter]}
-      /invoke ${_tmpMap.Add[swSurge,character]}
-      /invoke ${_tmpMap.Add[stHealSurge,character]}
+    /if (${maEnv.Find[build].Value} >= 210210.01 || ${_verbage.Equal[force]}) {
+      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210210.01\ax
+      /invoke ${_tmpMap.Add[swblood,character]}
     }
 
+    /if (${maEnv.Find[build].Value} >= 210201.01 || ${_verbage.Equal[force]}) {
+      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210201.01\ax
+      /invoke ${_tmpMap.Add[stStance,character]}
+      /invoke ${_tmpMap.Add[stSteel,character]}
+      /invoke ${_tmpMap.Add[stTempRune,character]}
+      /invoke ${_tmpMap.Add[stAAThousandBlades,character]}
+    }
+
+    /if (${maEnv.Find[build].Value} >= 210116.05 || ${_verbage.Equal[force]}) {
+      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210116.05\ax
+      /invoke ${_tmpMap.Add[stAAReflexiveRetort,character]}
+      /invoke ${_tmpMap.Add[stAARelfexiveRejoinder,character]}
+    }
+
+    | assisting redesign
+    /if (${maEnv.Find[build].Value} >= 210116.01 || ${_verbage.Equal[force]}) {
+      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210116.01\ax
+      /invoke ${_tmpMap.Add[lsAssistDanNet,character]}
+      /invoke ${_tmpMap.Add[stManualAssist1,character]}
+      /invoke ${_tmpMap.Add[stManualAssist2,character]}
+    }
+ **|
 
     | remove the items we've collected
     /vardata _mi _tmpMap.First.Clone
@@ -3519,6 +3202,8 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
       /invoke ${_mi.Advance}
     }
   }
+  
+
 
 
   | loot database
@@ -3571,5 +3256,13 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
   }
 
 /return
+
+
+
+
+
+${INIsqlupdate}
+
+${Ini[${INIsqlupdate}].Arg[1,|]}
 
 

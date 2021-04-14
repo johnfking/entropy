@@ -3422,6 +3422,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
   /declare _closestID int local 0
   /declare _navRange int local 0
   /declare _mobcount int local 0
+  /declare _tmpID int local 0
 
   | adjust LOS?
   /if (${maOver.Find[swOverLOS].Value} || ${Select[${maPull.Find[stPullMode].Value},nav,int,pet,calm,multi]}) {
@@ -3454,11 +3455,13 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
 
         ISMEDEAD
 
-        /vardata _spawn NearestSpawn[${If[${_spCount},${Math.Calc[${_count}+${_spCount}]},${_count}]}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}].ID
+        /varset _tmpID ${NearestSpawn[${If[${_spCount}, ${Math.Calc[${_count}+${_spCount}]},${_count}]}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}].ID}
+        SDEBUG ${_tmpID}
+        /vardata _spawn Spawn[${_tmpID}]
 
-        | /if (!${_spawn}) {
-        |   /return FALSE
-        | }
+        /if (!${_spawn.ID}) {
+          /return FALSE
+        }
 
         DEBUG ${sep}_spawn${sep}\a-w${_spawn.ID}\ax navlength${sep}\a-w${Navigation.PathLength[id ${_spawn.ID}]}\ax
 
@@ -3594,7 +3597,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
           /varset stAssTarID ${_spawn.ID}
           /vardata targetData _spawn.ID
           /invoke ${maCC.Add[swSetCombat,TRUE]}
-          DEBUG ${sep}T2K${sep}\awTARGET\aw${sep}\ay${Spawn[TARGET].DisplayName}\ay ${sep} ${If[${Spawn[TARGET].LineOfSight},\ag${Spawn[TARGET].Distance}\ax,\ar${Spawn[TARGET].Distance}\ax]}
+          DEBUG ${sep}T2K${sep}\aw${_spawn.DisplayName}\aw${sep}\ay${_spawn.ID}\ay ${sep} ${If[${_spawn.LineOfSight},\ag${_spawn.Distance}\ax,\ar${_spawn.Distance}\ax]}
         }
 
       /next _count
@@ -3624,11 +3627,11 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
     /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
   }
 
-  /if (!${targetData.ID}) {
+  /if (!${_spawn.ID}) {
     /delay 5
   }
 
-/return ${targetData.ID}
+/return ${_spawn.ID}
 
 
 
@@ -5885,29 +5888,30 @@ sub check_buff_cycle_others(bool _debug, string _type)
   /declare _countToon int 1
   /declare _count int 1
   /declare _toon string local FALSE
-  | /declare _spell string local FALSE
+  /declare _spawn spawn local
+  | /declare _spell spell local
   /declare _found bool local TRUE
   /declare _i int local 1
-  /declare _spellTrigger string local FALSE
+  | /declare _spellTrigger string local FALSE
 
   | non boxed people/mercs (fuck your pets)
   /while (${_countToon} <= ${${_type}.Members}) {
     DEBUG ${sep}_countToon${sep}\a-w${_countToon}\ax / ${${_type}.Members}
 
     | "A girl has no name."
-    /varset _toon ${${_type}.Member[${_countToon}].DisplayName}
-    DEBUG ${sep}_toon${sep}\ay${_toon}\ax
+    /vardata _spawn Spawn[${${_type}.Member[${_countToon}].DisplayName}]
+    DEBUG ${sep}_spawn${sep}\ay${_spawn.ID}\ax
 
     | one of your crew
-    /if (${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Find[${_toon}]}) {
-      DEBUG ${skip}.Me${sep}\a-w${_toon}\ax
+    /if (${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Find[${_spawn.DisplayName}]}) {
+      DEBUG ${skip}.Me${sep}\a-w${_spawn}\ax
       /varcalc _countToon ${_countToon} + 1
       /continue
     }
 
     | skip this person?
-    /if (${Spawn[pc ${_toon}].Dead}) {
-      DEBUG ${skip}.Dead${sep}\a-w${_toon}\ax
+    /if (${_spawn.Dead}) {
+      DEBUG ${skip}.Dead${sep}\a-w${_spawn}\ax
       /varcalc _countToon ${_countToon} + 1
       /continue
     }
@@ -5939,7 +5943,7 @@ sub check_buff_cycle_others(bool _debug, string _type)
       DEBUG ${sep}_count${sep}\a-w${_count}\ax
 
       | cycle the tags
-      /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_toon} "${maBuff.Find[stBuff${_count}].Value}" check_buff_cycle_others
+      /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_spawn.DisplayName} "${maBuff.Find[stBuff${_count}].Value}" check_buff_cycle_others
       /if (!${Macro.Return}) {
         /continue
       }
@@ -5967,12 +5971,12 @@ sub check_buff_cycle_others(bool _debug, string _type)
       
       | distance check
       /if (${Select["${_spell.TargetType}",Group v2]}) {
-        /if (${Spawn[pc ${_toon}].Distance} > ${_spell.AERange}) {
+        /if (${_spawn.Distance} > ${_spell.AERange}) {
           DEBUG ${break}distance check${sep}\a-wGroup v2\ax
           /continue
         }
       } else {
-        /if (${Spawn[pc ${_toon}].Distance} > ${_spell.MyRange} && !${Select[${_spell.TargetType},self]}) {
+        /if (${_spawn.Distance} > ${_spell.MyRange} && !${Select[${_spell.TargetType},self]}) {
           DEBUG ${break}distance check${sep}\a-wtargeted ?? ${_spell.MyRange}\ax
           /continue
         }
@@ -5981,7 +5985,7 @@ sub check_buff_cycle_others(bool _debug, string _type)
       DEBUG ${sep}\awstBuff${_count}\ax${sep}\a-w${_spell.RankName}\ax (\a-r${_spell.NumEffects} triggers\ax)
 
       | target the toon
-      /call target set ${${_type}.Member[${_toon}].ID}
+      /call target set ${_spawn.ID}
 
       | give the game a second to populate the targets buffs
       /delay 2s ${Target.BuffsPopulated}
@@ -5995,8 +5999,7 @@ sub check_buff_cycle_others(bool _debug, string _type)
           
           
           /for _i 1 to ${_spell.NumEffects}
-            /varset _spell.Trigger ${_spell.Trigger[${_i}]}
-            DEBUG ${sep}_spell.Trigger${sep}\a-w${_spell.Trigger[${_i}]}\ax
+            DEBUG ${sep}_spell${sep}\a-w${_spell.Trigger[${_i}]}\ax
 
             | Stacks/WilLand
             /if (!${_spell.Trigger[${_i}].StacksTarget}) {
@@ -6011,7 +6014,7 @@ sub check_buff_cycle_others(bool _debug, string _type)
             }
 
             | cycle the tags
-            /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_toon} "${_spell.Trigger[${_i}]}" check_buff_cycle_others
+            /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_spawn.DisplayName} "${_spell.Trigger[${_i}]}" check_buff_cycle_others
             /if (!${Macro.Return}) {
               /continue
             }
@@ -6020,8 +6023,8 @@ sub check_buff_cycle_others(bool _debug, string _type)
 
           /next _i
 
-          /if (!${_found} && ${Target.ID} == ${${_type}.Member[${_toon}].ID}) {
-            /call cast ${_debug} ${${_type}.Member[${_toon}].ID} FALSE
+          /if (!${_found} && ${Target.ID} == ${_spawn.ID}) {
+            /call cast ${_debug} ${_spawn.ID} FALSE
             /continue
           }
         }
@@ -6039,7 +6042,7 @@ sub check_buff_cycle_others(bool _debug, string _type)
         }
 
         | cycle the tags
-        /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_toon} "${_spell.RankName}" check_buff_cycle_others
+        /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_spawn.DisplayName} "${_spell.RankName}" check_buff_cycle_others
         /if (!${Macro.Return}) {
           /continue
         }
@@ -6050,8 +6053,8 @@ sub check_buff_cycle_others(bool _debug, string _type)
           /varset _found FALSE
         }
 
-        /if (!${_found} && ${Target.ID} == ${${_type}.Member[${_toon}].ID}) {
-          /call cast ${_debug} ${${_type}.Member[${_toon}].ID} FALSE
+        /if (!${_found} && ${Target.ID} == ${_spawn.ID}) {
+          /call cast ${_debug} ${_spawn.ID} FALSE
           /continue
         }
       }
@@ -8131,14 +8134,16 @@ sub get_target_navpull(bool _debug, spawn _spawn)
   CHECKTIE
 
   /declare _count int local 0
+  
+
 
   /if (!PULL) {
     /call set_pull_observer ${_debug}
   } else /if (PULL) {
-    /if (!${_spawn.ID} && !TARGET) {
+    /if (!${_spawn.ID} && !${targetData.ID}) {
       /call pull_mob_find ${_debug}
-      /if (!TARGET) {
-        DEBUG ${sep}\arNO\ax${sep}\a-wtarget ID\ax
+      /if (!${targetData.ID}) {
+        DEBUG ${sep}\arNO\ax${sep}\a-wtargetData.ID\ax
         SETHUD EMPTY
         /return FALSE
       }
@@ -8146,16 +8151,11 @@ sub get_target_navpull(bool _debug, spawn _spawn)
     }
   }
 
-
-|**
-  /if (PULL && !TARGET) {
-    DEBUG ${sep}\arNO\ax${sep}\a-wstAssTarID\ax
-    SETHUD EMPTY
-    /return FALSE
-  } else {
-    /if (!${_spawn.ID}) /varset _spawn TARGET
+  | correct the working spawn information
+  /if (!${_spawn.ID} && ${targetData.ID}) {
+    /vardata _spawn targetData
   }
-  ***|
+
 
   | we have a target, get us within range to pull
   /if (!${Navigation.PathExists[id ${_spawn.ID}]} && !${maOver.Find[swOverNavCheck].Value}) {
@@ -8193,7 +8193,7 @@ sub get_target_navpull(bool _debug, spawn _spawn)
     }
 
     /call pull_mob_tag ${_debug} ${_spawn.ID}
-    /if (${Macro.Return.Equal[tagfailure]}) {
+    /if (${Macro.Return.Equal[tagfailure]}) { 
       DEBUG ${sep}\arNAVpull FAILURE\ax${sep}resetting/returning to camp
       /invoke ${target[clear]}
       /call Bind_control_home return FALSE silent ${maDebug.Find[home].Value}
@@ -8247,8 +8247,6 @@ sub get_target_navpull(bool _debug, spawn _spawn)
     /return FALSE
   }
 
-  | move home
-  
   /if (HOME) {
     /call pull_home_move_to ${_debug} ${_spawn.ID}
   }

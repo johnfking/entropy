@@ -112,7 +112,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210411.01
+  /call set_data FALSE maEnv build                          map outer 210413.01
   /call set_data FALSE maEnv schema                         map outer 1.45
   /call set_data FALSE maEnv repo                           map outer 210216.01
 
@@ -356,6 +356,10 @@ sub prepare_the_end(bool _debug)
   | farmroute location ini
   /call set_data ${_debug} FALSE INIfarmroute                            string outer "${_pathINI}\data\farmroute.ini"
 
+  | /call set_data ${_debug} FALSE INIsqlupdate                            string outer "${_pathINI}\inc\sql_update.ini"
+
+
+
   | load all tag names
   /sqlite query "${DBshared}" qubind SELECT * FROM binds;  
 
@@ -474,6 +478,47 @@ sub prepare_the_end(bool _debug)
 
   | correct the map click spam.
   /squelch /mapclick left alt /nav locyx %y %x |log=off
+
+
+
+
+
+|**
+ /declare _tmpMap map local
+ /declare _mi mapiterator local
+
+ /declare _tmpList list local
+ /declare _li listiterator local
+ /declare _countH int local 0
+ /declare _countK int local 0
+
+  /for _countH 1 to ${Math.Calc[${Ini[${INIsqlupdate}].Count[|]} - 1].Int}
+
+    /echo ${Ini[${INIsqlupdate}].Arg[${_countH},|]}
+
+  /next _countH 
+
+
+}
+
+${Ini[${INIsqlupdate}].Count[|]}
+
+
+**|
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /return TRUE
 

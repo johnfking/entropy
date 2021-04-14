@@ -231,10 +231,10 @@ sub cast_cycle_heal_surge(bool _debug)
   GETINPUT
 
   | get the main assisst ID
-  /declare _spawn.ID int local ${get_assist_info[${_debug}, ID]}
-  DEBUG ${sep}assist ID${sep}\a-w${_spawn.ID}\ax
+  | /declare _spawn.ID int local ${get_assist_info[${_debug}, ID]}
+  | DEBUG ${sep}assist ID${sep}\a-w${_spawn.ID}\ax
 
-  /if (!${Spawn[${_spawn.ID}].LineOfSight}) {
+  /if (!${assistData.LineOfSight}) {
     DEBUG ${break}.LineOfSight
     /return FALSE
   }
@@ -276,7 +276,7 @@ sub cast_cycle_heal_surge(bool _debug)
       /continue
     }
 
-    /call cast ${_debug} ${_spawn.ID} FALSE
+    /call cast ${_debug} ${assistData.ID} FALSE
     /delay 10s !${Me.Casting.ID}
     /delay 2.5s
     
@@ -334,7 +334,7 @@ sub cast_cycle_heal_surge(bool _debug)
       /continue
     }
 
-    /call cast ${_debug} ${_spawn.ID} FALSE
+    /call cast ${_debug} ${assistData.ID} FALSE
 
     /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]}) {
       /return TRUE

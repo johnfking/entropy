@@ -24,11 +24,29 @@ REMINDER:
 --------------------
 
 
+
+210413.01
+** Reminder, this is only an update for MQNext users
+- HUD updates
+- shaman
+  sorted the assist target for splash healing
+- /buff group
+  spell data corrected for triggers
+  name data converted to a spawn
+- druid
+  correctd a dead ID check
+- /pull nav
+  adjustment to the nearest spawn search for nav pulling
+  corected the running spawn data
+  i'm sure i broke something else doing this...
+- database cleanup
+  removed all of the old variable cleanup prioor to the new year
+
+
 210411.01
 ** Reminder, this is only an update for MQNext users
 - corected a spawn issue with DanNet Healing
 - groups will form again
-
 
 
 **
