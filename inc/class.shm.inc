@@ -328,7 +328,7 @@ sub cast_cycle_heal_surge(bool _debug)
     }
 
     | cycle the tags
-    /call tag_evaluation ${maDebug.Find[tag].Value} Heal ${_liHeal.Value} ${Spawn[${_spawn.ID}].DisplayName} "${maHeal.Find[stHeal${_liHeal.Value}Con].Value}" cast_cycle_heal_surge
+    /call tag_evaluation ${maDebug.Find[tag].Value} Heal ${_liHeal.Value} ${assistData.DisplayName} "${maHeal.Find[stHeal${_liHeal.Value}Con].Value}" cast_cycle_heal_surge
     /if (!${Macro.Return}) {
       /invoke ${_liHeal.Advance}
       /continue

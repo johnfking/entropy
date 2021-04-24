@@ -386,12 +386,6 @@ sub mode_temppet(bool _debug)
 sub mode_harvest(bool _debug)
   DEBUG \atmode_harvest\ax()
 
-  /if (!NEXT) {
-    /invoke ${out[0, "${notice} ${dot} this has been depreciated in MQ2Live."]}
-    /invoke ${maMode.Add[harvest,FALSE]}
-    /return FALSE
-  }
-
   ISMEDEAD
   GETINPUT
 

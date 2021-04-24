@@ -855,7 +855,8 @@ sub alliance(bool _debug)
   DEBUG \atalliance\ax()
 
   /invoke ${set_data_timer[${_debug}, Check_Alliance, RESTART]}
-  /if (!${cast_data[${_debug}, "${maChr.Find[stAlliance].Value}"]}) {
+  /declare _tmpSpell string local ${get_best_in_Alliance[${_debug}, "Single", "Heals", "Fc_Cast_Spell_On_Land"]}
+  /if (!${cast_data[${_debug}, "${_tmpSpell}"]}) {
     /return FALSE
   }
   
@@ -867,7 +868,7 @@ sub alliance(bool _debug)
 
   /delay 2s ${Target.BuffsPopulated}
   /if (${Target.BuffsPopulated}) {
-    /if (${Target.Buff[${maChr.Find[stAlliance].Value}].ID}) /return FALSE
+    /if (${Target.Buff[${_tmpSpell}].ID}) /return FALSE
   } else /if (!${Target.BuffsPopulated}) {
     /return FALSE
   }
@@ -875,6 +876,10 @@ sub alliance(bool _debug)
   /call cast ${_debug} ${assistData.ID} FALSE
 
 /return TRUE
+
+
+
+
 
 
 

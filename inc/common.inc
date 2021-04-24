@@ -354,6 +354,9 @@ sub set_data_list(bool _debug, string _map, string _env_var, string _value, stri
  ***|
 sub set_control_num_range(bool _debug, string _variable, int _value, int _low, int _high)
   DEBUG \atset_control_num_range\ax(\a-w${_variable}, ${_value}, ${_low}, ${_high}\ax)
+  
+  /invoke ${maData.Add[outVar,${_variable}]}
+  /invoke ${maData.Add[outVal,${_value}]}
 
   /if ((${Bool[${_value}]} || ${_value} == 0) && ${Range.Between[${_low},${_high}:${Int[${_value}]}]}) {
     /call do_raw_edit ${_debug} SILENT "${_variable}" "${_value}"
@@ -851,6 +854,9 @@ sub set_switch_env(bool _debug, string _switch, bool _sql, string _verbage)
 
   /declare _map string local ${get_key_map[${_debug}, ${_switch}]}
 
+  /invoke ${maData.Add[outVar,${_switch}]}
+  /invoke ${maData.Add[outVal,${_verbage}]}
+
   DEBUG ${sep}_map${sep}${_map}
 
   | set switch TRUE
@@ -934,7 +940,7 @@ sub cast_AA_fireworks(bool _debug)
 sub check_for_rezbox(bool _debug)
   DEBUG \atcheck_for_rezbox\ax()
 
-    /doevents REZ_ACCEPT
+  /doevents REZ_ACCEPT
 
   GETINPUT rez_box_found swIsMeDead|${swIsMeDead}
 
@@ -1066,10 +1072,6 @@ sub check_for_rezbox(bool _debug)
 sub check_buff_cycle_shrink(bool _debug)
   DEBUG \atcheck_buff_cycle_shrink\ax()
 
-  /if (!${maBuff.Find[swBuffShrink].Value}) {
-    /return FALSE
-  }
-
   SETHUD "buff shrink"
 
   /if (AUTO) {
@@ -1105,657 +1107,6 @@ sub check_buff_cycle_shrink(bool _debug)
 
 
 |***
- * note: this casts things. it doesn't care what it casts, but it will cast it.
- * note:
- * note: it is a requirement to prep the voodoo sub with  /call cacst_data || ${cast_data[]}
- * note: this is setting up the outer variable _spell and all the data that spell type needed
- * note:
- * use: /call voodoo DEBUG [TARGETID] [sub to check on the way] [ENV override]
- ***|
-sub voodoo(bool _debug, string _verbage, int _tmpID, string _sub, int _rangeOverride)
-  DEBUG \atvoodoo\ax(\a-w"${_verbage}", tID:${_tmpID}, sub:${_sub}, rngOver:${_rangeOverride}\ax)
-  ISMEDEAD
-  GETOVERHERE
-
-  | critical errors
-  /if (!${Bool[${_verbage}]}) {
-    /invoke ${out[0, "${error}${sep}voodoo${sep}\ar_verbage\ax${sep}\a-w${_verbage}, ${_tmpID}, ${_sub}\ax)"]}
-    /delay 5
-    /return FALSE
-  }
-
-  | generic validations
-  /if (${Me.Invis} && ${_sub.NotEqual[ignoreall]}) {
-    DEBUG ${break}invis
-    /return FALSE
-  }
-
-  /if (!AUTO && ${swIsMeDead}) {
-    /varset swIsMeDead FALSE
-    DEBUG ${sep}passed swIsMeDead
-  }
-
-  | are we moving? and not a bard?
-  /if (!${Select[${_sub},ignoremovement]}) {
-    /if (!BARD && ${Me.Moving}) {
-      DEBUG ${sep}break voodoo.moving
-      /return FALSE
-    }
-  }
-  
-  | correct the range if needed
-  /declare _range int local
-  /if (${Range.Between[1,9999999:${_rangeOverride}]}) {
-    DEBUG ${sep}setting max range to${sep}\a-w${_rangeOverride}\ax
-    /varset _range ${_rangeOverride}
-  } else {
-    /varset _range ENV
-  }
-
-  | is the issued target still a thing???
-  /if (${_tmpID} != 0 && !${Select[${_sub},skiptargetcheck]}) {
-    /if (!${Spawn[${_tmpID}].ID} || ${Spawn[${_tmpID}].Dead}) /return FALSE
-    /if (${Spawn[${_tmpID}].Distance} > ${_range}) /return FALSE
-  }
-
-  DEBUG ${sep}get spell data
-  /call cast_data ${_debug} "${_verbage}"
-  /declare _castLoop int local ${maEntropy.Find[stCastLoop].Value}
-  /declare _tiCastTime timer local 0
-  /declare _castTime int local 0
-  /invoke ${maData.Add[stCastReturn,FALSE]}
-
-  | alt abilities
-  /if (${Select[${maCD.Find[type].Value},ALT]}) {
-    DEBUG ${sep}alt${sep}${_spell.Name} (\a-r${_spell}\ax)
-
-    /if (${Spell[${_spell.Name}].Mana}) {
-      /if (${Me.CurrentMana} < ${Spell[${_spell.Name}].Mana}) {
-        /return FALSE
-      }
-    }
-
-    /if (${_sub.NotEqual[ignoreall]}) {
-      /if (${Me.Buff[${_spell}].ID} || ${Me.Song[${_spell}].ID}) {
-        /return FALSE
-      }
-    }
-
-    | make sure we have our target if one is passed. 0 is assumed no target required
-    /if (${_tmpID}) {
-      /call target set ${_tmpID}
-    }
-
-    /if (${_tmpID} == 0) {
-      /invoke ${out[2, "AA${sep}${sp}${_spell.Name}\ax"]}
-    } else /if (${_tmpID} != 0 && ${Target.ID}) {
-      /invoke ${out[2, "AA${sep}${sp}${_spell.Name}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
-    }
-
-    /while (${_castLoop} > 0) {
-      DEBUG ${sep}altCastLoop${sep}${_spell.Name}
-
-      /if (${_tmpID} && ${Target.ID} != ${_tmpID}) {
-        /break
-      }
- 
-      ISMEDEAD
-      /alt act ${Me.AltAbility[${_verbage}].ID}
-      /delay 5 ${Me.Casting.ID}
-
-      | set delays for casting. GTFO out of this as fast as possible
-      /varset _tiCastTime ${Spell[${_spell.Name}].MyCastTime}
-
-      /while (${_tiCastTime} > 0) {
-        ISMEDEAD
-        /if (${_tmpID} != 0 && ${_sub.NotEqual[skiptargetcheck]}) {
-          /if (${Spawn[id ${_tmpID}].Dead} || !${Spawn[id ${_tmpID}].ID}) {
-            DEBUG ${sep}spell.target dead.break
-            /varset _tiCastTime 0
-            /stopcast
-            /return FALSE
-          }
-        }
-
-        /if (!${Me.Casting.ID}) {
-          /varset _tiCastTime 0
-        }
-
-        /delay 3
-
-      }
-
-      | delay for longer casts if there is any, cooldowns or open spell cast windows
-      DEBUG ${sep}altloop.casting,window,cooldown
-      /while (${Me.Casting.ID} && ${Window[CastingWindow].Open}) {
-        /delay 3
-      }
-
-      /if (${Select[${_sub},ignoreall]}) {
-        /return TRUE
-      }
-      
-      DEBUG ${sep}cast return${sep}\ay${maData.Find[stCastReturn].Value}\ax
-
-      /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,TAKEHOLD,DISTRACTED,RESISTED,FALSE]}) {
-        /varset _castLoop 0
-        /if (BARD) {
-          /call pulse_stop
-        }
-        /break
-      }
-
-      /if (${Select[${maData.Find[stCastReturn].Value},OVERWRITTEN]}) {
-        /varset _castLoop 0
-        /if (BARD) {
-          /call pulse_stop
-        }
-        /break
-      }
-
-      /if (${Select[${maData.Find[stCastReturn].Value},NOTREADY,OUTOFMANA]}) {
-        /varcalc _castLoop ${_castLoop}-1
-        /delay 5
-      }
-
-    }
-    /return TRUE
-
-  | spells
-  } else /if (${Select[${maCD.Find[type].Value},SPELL]}) {
-    DEBUG ${sep}\agSPELL\ax${sep}${_spell}
-
-    | buff on me i shouldnt cast with?
-    /if (${check_no_cast_buff[${_debug}, lsNoCastBuff]}) {
-      /return FALSE
-    }
-    
-    /if (${lsClassCast.Contains[${Me.Class.ShortName}]}) {
-      /if (${Me.PctMana} < 1) {
-        /return FALSE
-      }
-    }
-    
-    | silence SPA
-    /if (${Me.SPA[96]}) {
-      /invoke ${maData.Add[stCastReturn,DISTRACTED]}
-      /return FALSE
-    }
-
-    | am i casting a spell?
-    /if (${Me.Casting.ID}) {
-      /return FALSE
-    }
-
-    | global cooldown
-    /if (${Me.SpellInCooldown}) {
-      /return FALSE
-    }
-
-    | have it?
-    /if (!${Me.Book[${_spell.RankName}]}) {
-      /return FALSE
-    }
-    
-    | gem in cooldown?
-    /if (${Me.GemTimer[${_spell.RankName}]}) {
-      /return FALSE
-    }
-
-    | enough manna to cast?
-    /if (${Me.CurrentMana} < ${_spell.Mana}) {
-      /return FALSE
-    }
-
-    | dont fail buffs so they can be memed when needed
-    /if (!${Me.SpellReady[${_spell.RankName}]} && !${Select[${_spell.Category},Heals]}) {
-      /declare _pass bool local FALSE
-      DEBUG ${sep}SpellType${sep}\a-w${_spell.SpellType}\ax
-      /if (${lsFreePassSpells.Contains[${_spell.SpellType}]}) {
-        /varset _pass TRUE
-      }
-
-      /if (!${_pass}) {
-        DEBUG ${sep}FREE mem pass \arfailure\ax
-        /return FALSE
-      }
-    }
-
-    | check cast range
-    /if (${_spell.Range}) {
-      /if (${Spawn[${_tmpID}].Distance} > ${_spell.MyRange}) {
-        /return FALSE
-      }
-    }
-    | check AE range
-    /if (${Select["${_spell.TargetType}",Group V2]}) {
-      /if (${Spawn[${_tmpID}].Distance} > ${_spell.AERange}) {
-        /return FALSE
-      }
-    }
-    
-    | check for stacking issues
-    /if (${_tmpID} == ${Me.ID} || ${_tmpID} == 0) {
-      /if (${Select[${_spell.SpellType},Beneficial]} && !${Select[${_spell.Category},Heals,Combat Inates]}) {
-        /if (!${_spell.WillLand}) {
-          /return FALSE
-        }
-        /if (${Me.Buff[${_spell}].ID} || ${Me.Song[${_spell}].ID}) {
-          /return FALSE
-        }
-      }
-    }
-
-
-    | make sure we have our target if one is passed. 0 is assumed no target required
-    /if (${_tmpID}) {
-      /call target set ${_tmpID}
-    }
-
-    | types vs zone control
-    /if (!${Select[${_spell.SpellType},Beneficial]}) {
-      /if (${lsZoneNoDisease.Contains[${Target.DisplayName}]} && ${Select[${_spell.ResistType},Disease]}) /return FALSE
-      /if (${lsZoneNoMagic.Contains[${Target.DisplayName}]} && ${Select[${_spell.ResistType},Magic]}) /return FALSE
-      /if (${lsZoneNoPoison.Contains[${Target.DisplayName}]} && ${Select[${_spell.ResistType},Poison]}) /return FALSE
-      /if (${lsZoneNoFire.Contains[${Target.DisplayName}]} && ${Select[${_spell.ResistType},Fire]}) /return FALSE
-      /if (${lsZoneNoCold.Contains[${Target.DisplayName}]} && ${Select[${_spell.ResistType},Cold]}) /return FALSE
-      /if (${lsZoneNoCorruption.Contains[${Target.DisplayName}]} && ${Select[${_spell.ResistType},Corruption]}) /return FALSE
-    }
-
-    | check any subs? yes.. no.. maybe??
-    /if (${Select[${_sub},breakonhealpct]} && ${maHeal.Find[swBreakHealPCT].Value}) {
-      DEBUG ${sep}${_sub}${sep}\a-wbreakonhealpct\ax
-      /if (${Spawn[id ${_tmpID}].PctHPs} >= ${maHeal.Find[stHealPoint${Spawn[id ${_tmpID}].Class.ShortName}].Value}*.PCTHO) {
-        /stopcast
-        /return TURE
-      }
-    }
-    
-    ISMEDEAD
-
-    | if a gom procs and a spell is ready, we hijack the existing cast and use the GOM spell in its place
-    /if (${_tmpID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]} && COMBAT) {
-
-      /declare _ligom listiterator local
-      /vardata _ligom lsGoM.First.Clone
-        /while (!${_ligom.IsEnd}) {
-          /if (${Select[${_ligom.Value},empty]}) /break
-          /if (${cast_data[${_debug}, "${_ligom.Value}"]}) {
-            /vardata _spell Spell[${_ligom.Value}].RankName
-            /break
-          }
-        /invoke ${_ligom.Advance}
-      }
-    }
-
-    /if (${Window[SpellBookWnd].Open}) {
-      /invoke ${Window[SpellBookWnd].DoClose}
-    }
-
-    | mem spell if needed??
-    /if (!${Me.Gem[${_spell}]}) {
-      /call set_spell_to ${_debug} TRUE "${_spell.RankName}" ${maEnv.Find[stBuffGem].Value} TRUE
-    }
-
-    /if (${Spawn[id ${_tmpID}].Dead} && ${_sub.NotEqual[skiptargetcheck]}) {
-      /return FALSE
-    }
-    
-    | is the spell memed
-    /if (${Me.Gem[${_spell.RankName}]}) {
-      
-      /declare _countFizzle int local 0
-      
-      | echos
-      /if (${_tmpID} == 0) {
-        /invoke ${out[3, "Cast${sep}${sp}${_spell.RankName}\ax"]}
-      } else /if (${_tmpID} != 0 && ${Target.ID} && ${Target.ID} == ${_tmpID}) {
-        /invoke ${out[3, "Cast${sep}${sp}${_spell.RankName}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
-      }
-
-      /while (${_castLoop} > 0) {
-        ISMEDEAD
-
-        /if (${Me.Invis} && ${_sub.NotEqual[ignoreall]}) {
-          DEBUG ${sep}spell.cr:DISTRACTED(invis).break
-          /varset _castLoop 0
-          /invoke ${maData.Add[stCastReturn,DISTRACTED]}
-          /break
-        }
-
-        /cast ${Me.Gem[${_spell.RankName}]}
-        /delay 1
-        /delay 1s ${Me.Casting.ID}
-
-        | set delays for casting. GTFO out of this as fast as possible
-        /varset _castTime ${Math.Calc[${_spell.MyCastTime}+60]}
-        DEBUG ${sep}_castTime${sep}\a-w${_castTime}\ax
-
-        | /invoke ${set_timer[${_debug}, _castTime, ${_castTime}]}
-        /varset _tiCastTime ${_castTime}
-
-        /while (${_castTime} > 0) {
-          ISMEDEAD
-          /if (${_tmpID} != 0 && ${_sub.NotEqual[skiptargetcheck]}) {
-            /if (${Spawn[id ${_tmpID}].Dead} || !${Spawn[id ${_tmpID}].ID}) {
-              DEBUG ${sep}spell.target dead.break
-              /stopcast
-              /return FALSE
-            }
-
-            | break on heal % check
-           /if (${Select[${_sub},breakonhealpct]} && ${maHeal.Find[swBreakHealPCT].Value}) {
-              DEBUG ${sep}${_sub}${sep}\a-wbreakonhealpct\ax
-              /if (${Spawn[id ${_tmpID}].PctHPs} >= ${maHeal.Find[stHealPoint${Spawn[id ${_tmpID}].Class.ShortName}].Value}*.PCTHO) {
-                /stopcast
-                /return TURE
-              }
-            }
-          }
-
-          /if (!${Me.Casting.ID}) {
-            /break
-          }
-          /delay 3
-
-        }
-
-        | delay for longer casts if there is any, cooldowns or open spell cast windows
-        DEBUG ${sep}castloop.casting,window,cooldown
-        /while (${Me.Casting.ID} || ${Window[CastingWindow].Open} || ${Me.SpellInCooldown}) {
-          /if (!${Me.Casting.ID}) /break
-          /if (!${Window[CastingWindow].Open}) /break
-          /if (!${Me.SpellInCooldown}) /break
-          /if (!${Me.Moving}) /break
-          /delay 3
-        }
-
-        /doevent
-        DEBUG ${sep}cast return${sep}\ay${maData.Find[stCastReturn].Value}\ax
-
-        /if (${Select[${_sub},ignoreall]}) {
-          /return TRUE
-        }
-
-        | notready / cant cast
-        /if (${Select[${maData.Find[stCastReturn].Value},DISTRACTED,NOTREADY,CANNOTSEE,OUTOFMANA,INTERRUPTED]}) {
-          DEBUG ${sep}spell.cr:DISTRACTED,NOTREADY,CANNOTSEE,OUTOFMANA,INTERRUPTED.\arbreak\ax
-          /varset _castLoop 0
-          /if (BARD) {
-            /call pulse_stop
-          }
-          /break
-
-        | fizzle
-        } else /if (${Select[${maData.Find[stCastReturn].Value},FIZZLE]}) {
-          DEBUG ${sep}spell.cr:FIZZLE.\agretry\ax
-          /if (${maEntropy.Find[stCountFizzleRetry].Value}) {
-            /delay ${Math.Calc[${Me.Gem[${_spell.RankName}].RecastTime.Seconds} + 3]}s 
-            /varcalc _castLoop ${_castLoop} + 1
-
-            /if (${_castLoop} >= ${maEntropy.Find[stCountFizzleRetry].Value}) {
-              /varset _castLoop 0
-              /if (BARD) {
-                /call pulse_stop
-              }
-              /break
-            }
-          }
-          
-
-        | good
-        } else /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,BLOCKED,RESISTED,IMMUNE,FALSE]}) {
-          DEBUG ${sep}spell.cr:SUCCESS,BLOCKED,RESISTED,IMMUNE.\agbreak\ax
-          /varset _castLoop 0
-          /if (BARD) {
-            /call pulse_stop
-          }
-          /break
-
-        }
-
-      }
-
-    }
-    /return TRUE
-
-
-  | discs
-  } else /if (${Select[${maCD.Find[type].Value},DISC]}) {
-
-    DEBUG ${sep}\agDISC\ax${sep}${Spell[${_spell}]}${sep}${_spell.ID}
-    /delay 1
-
-    /if (${Me.CurrentEndurance} < ${_spell.EnduranceCost}) {
-      DEBUG ${break}.CurrentEndurance
-      /return FALSE
-    }
-    /if (${Spawn[id ${_tmpID}].Distance} > ${_spell.MyRange}) {
-      DEBUG ${break}.MyRange
-      /return FALSE
-    }
-    /if (${Me.Song[${_spell}].Duration}) {
-      DEBUG ${break}Me.Song.Duration
-      /return FALSE
-    }
-    /if (${Me.Buff[${_spell}].Duration}) {
-      DEBUG ${break}Me.Song.Duration
-      /return FALSE
-    }
-
-    | stacking
-    /if (!${Spell[${_spell.ID}].WillLand}) {
-      DEBUG ${break}Spell[${_spell.ID}].WillLand
-      /return FALSE
-    }
-
-    | CHECK DISK DURATION VS ACTIVE DISC FOR STACKING ISSUES/ BLOCKED DISCS
-    /if (${Me.ActiveDisc.ID} == ${_spell.ID}) {
-      DEBUG ${break}ActiveDisc.ID == _spell.ID
-      /return FALSE
-    }
-
-    | make sure we have our target if one is passed. 0 is assumed no target required
-    /if (${_tmpID}) {
-      /call target set ${_tmpID}
-    }
-
-    /if (${_tmpID} == 0) {
-      /invoke ${out[4, "Disc${sep}${sp}${Spell[${_spell}]}\ax"]}
-    } else /if (${_tmpID} != 0 && ${Target.ID}) {
-      /invoke ${out[4, "Disc${sep}${sp}${Spell[${_spell}]}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
-    }
-    
-    ISMEDEAD
-    /disc ${_spell.ID}
-
-    /delay 5
-    /while (${Me.Casting.ID} && ${Window[CastingWindow].Open}) {
-      /delay 5
-    }
-
-    /if (BARD) {
-      /call pulse_stop
-    }
-    /return TRUE
-
-  | items
-  } else /if (${Select[${maCD.Find[type].Value},ITEM]}) {
-    DEBUG ${sep}\agITEM\ax${sep}${_verbage}
-
-    /if (${_tmpID} == 0 || ${_tmpID} == ${Me.ID}) {
-
-      | illusion proc check
-      /if (${Me.Buff[${Spell[${FindItem[=${_verbage}].Illusion.SpellID}].Name}].ID} || ${Me.Song[${Spell[${FindItem[=${_verbage}].Illusion.SpellID}].Name}].ID}) /return FALSE
-
-      | mount proc check
-      /if (${Me.Buff[${Spell[${FindItem[=${_verbage}].Mount.SpellID}].Name}].ID} || ${Me.Song[${Spell[${FindItem[=${_verbage}].Mount.SpellID}].Name}].ID}) /return FALSE
-
-      | familiar proc check
-      /if (${Me.Buff[${Spell[${FindItem[=${_verbage}].Familiar.SpellID}].Name}].ID} || ${Me.Song[${Spell[${FindItem[=${_verbage}].Familiar.SpellID}].Name}].ID}) /return FALSE
-
-      | clickitem buffs
-      /if (${Me.Buff[${Spell[${FindItem[=${_verbage}].Clicky.SpellID}].Name}].ID} || ${Me.Song[${Spell[${FindItem[=${_verbage}].Clicky.SpellID}].Name}].ID}) /return FALSE
-
-      | have the base buff/song      
-      /if (${Me.Buff[${FindItem[=${_verbage}].Spell}].ID} || ${Me.Song[${FindItem[=${_verbage}].Spell}].ID}) /return FALSE
-      
-      | distance     
-      /if ( ${Spell[${FindItem[=${_verbage}].Spell}].Range} != 0) {
-        /if (${Spawn[${_tmpID}].Distance} > ${Spell[${FindItem[=${_verbage}].Spell}].MyRange}) /return FALSE
-      }
-    }
-
-    | make sure we have our target if one is passed. 0 is assumed no target required
-    /if (${_tmpID}) {
-      /call target set ${_tmpID}
-    }
-
-    /if (${_tmpID} == 0 || ${_tmpID} == ${Me.ID}) {
-      /if (${lsGrain.Contains[7]}) {
-        OUT Item${sep}${sp}${_verbage}\ax
-      }
-    } else /if (${_tmpID} != 0 && ${Target.ID}) {
-      /if (${lsGrain.Contains[7]}) {
-        OUT Item${sep}${sp}${_verbage}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}
-      }
-    }
-
-    /while (${_castLoop}) {
-      ISMEDEAD
-      /useitem "${_verbage}"
-      /delay 2
-
-      /if (${_tmpID} != 0 && ${_sub.NotEqual[skiptargetcheck]}) {
-        /if (${Spawn[id ${_tmpID}].Dead} || !${Spawn[id ${_tmpID}].ID}) {
-          DEBUG ${sep}item.target dead.break
-          /stopcast
-          /return FALSE
-        }
-
-        | break on heal % check
-        /if (${_sub.Equal[breakonhealpct]} && ${maHeal.Find[swBreakHealPCT].Value}) {
-          DEBUG ${sep}${_sub}${sep}\a-wbreakonhealpct\ax
-          /if (${Spawn[id ${_tmpID}].PctHPs} >= ${maHeal.Find[stHealPoint${Spawn[id ${_tmpID}].Class.ShortName}].Value}*.PCTHO) {
-            /stopcast
-            /return TURE
-          }
-        }
-      }
-      
-      /if (!${Me.ItemReady[=${_verbage}]}) {
-        /return TRUE
-      }
-
-      | get out if its a no cast click item
-      /if (!${FindItem[=${_verbage}].CastTime}) {
-        | DEBUG NO CAST TIME
-        /if (BARD) /call pulse_stop
-        /invoke ${maData.Add[stCastReturn,SUCCESS]}
-        /return
-
-
-      } else {
-        | DEBUG CAST TIME
-        /delay 8
-        /delay ${Math.Calc[${FindItem[${_verbage}].CastTime.Float}+5]}s !${Me.Casting.ID}
-        
-        /while (${Me.Casting.ID} || ${Window[CastingWindow].Open}) {
-          | /if (!${Me.Casting.ID}) /break
-          | /if (!${Window[CastingWindow].Open}) /break
-          /delay 3
-        }       
-        
-        GETINPUT voodoo_item NA|NA
-        /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,RESISTED,OUTOFMANA]}) {
-          /varset _castLoop 0
-          /if (BARD) /call pulse_stop
-          /break
-        }
-        /if (${Select[${maData.Find[stCastReturn].Value},NOTREADY]}) {
-          /varcalc _castLoop ${_castLoop}-1
-          /delay 2
-        }
-      }
-      /return TRUE
-    }
-
-
-  | pulses
-  } else /if (${Select[${maCD.Find[type].Value},PULSE]}) {
-    DEBUG ${sep}\agPULSE\ax${sep}${_verbage}
-
-    /if (${Me.CurrentMana} < ${_spell.Mana}) /return FALSE
-
-    /if (${Window[SpellBookWnd].Open}) /invoke ${Window[SpellBookWnd].DoClose}
-
-    | mem spell if needed??
-    /if (!${Me.Gem[${_spell}]}) {
-      /call set_spell_to ${_debug} TRUE "${_spell}" ${maEnv.Find[stBuffGem].Value} TRUE
-    }
-
-    | make sure we have our target if one is passed. 0 is assumed no target required
-    /if (${_tmpID}) {
-      /call target set ${_tmpID}
-    }
-
-    /if (${_tmpID} == 0) {
-      /invoke ${out[5, "Play${sep}${sp}${_spell}\ax"]}
-    } else /if (${_tmpID} != 0 && ${Target.ID}) {
-      /invoke ${out[5, "Pulse${sep}${sp}${_spell}\ax ${dot} ${con_color[FALSE, ${_tmpID}]}\ax"]}
-    }
-
-    /while (${_castLoop}) {
-      ISMEDEAD
-      /cast ${Me.Gem[${_spell}]}
-      /delay 1
-
-      | bard swap mechanics
-      /while (${Window[CastingWindow].Open}) {
-        /if (${maChr.Find[swInstrumentSwap].Value}) {
-          /if (${Me.CastTimeLeft} < ${maHard.Find[stBardSwapRemain].Value}) {
-            /if (${maBardFocus.Find[${Skill[${Spell[${_verbage}].Skill}].ID}].Value.Arg[3,|]}) {
-              /if (${FindItem[${maBardFocus.Find[${Skill[${Spell[${_verbage}].Skill}].ID}].Value.Arg[1,|]}].WornSlot[offhand]}) {
-                /call Bind_command_swap "${FindItem[${maBardFocus.Find[${Skill[${Spell[${Spell[${_verbage}].ID}].Skill}].ID}].Value.Arg[1,|]}].Name}" 14 FALSE
-              } else /if (${FindItem[${maBardFocus.Find[${Skill[${Spell[${_verbage}].Skill}].ID}].Value.Arg[1,|]}].WornSlot[mainhand]}) {
-                /call Bind_command_swap "${FindItem[${maBardFocus.Find[${Skill[${Spell[${Spell[${_verbage}].ID}].Skill}].ID}].Value.Arg[1,|]}].Name}" 13 FALSE
-              }
-            }
-          }
-        }
-        /delay 3
-      }
-      /delay 3
-      /doevents
-
-      /if (${Select[${_sub},ignoreall]}) {
-        /return TRUE
-      }
-
-      /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,RESISTED,IMMUNE]}) {
-        /varset _castLoop 0
-        /call pulse_stop
-        /break
-      }
-      /if (${Select[${maData.Find[stCastReturn].Value},NOTREADY,DISTRACTED]}) {
-        /delay 2
-      }
-      /varcalc _castLoop ${_castLoop}-1
-    }
-
-    /if (${maChr.Find[swInstrumentSwap].Value}) {
-      /call Bind_command_swap "${maChr.Find[stInstrumentSecondary].Value}" 14 FALSE
-      /call Bind_command_swap "${maChr.Find[stInstrumentPrimary].Value}" 13 FALSE
-    }
-
-    /return TRUE
-  }
-
-/return FALSE
-
-
-
-|***
  * note: stops: casting, movement
  * use: /call set_stop DEBUG [SILENT]
  ***|
@@ -1763,6 +1114,7 @@ sub set_stop(bool _debug, string _silent)
   DEBUG \atset_stop\ax(\a-w${_silent}\ax)
 
   SETHUD "stop"
+  
   GETINPUT set_stop swAuto|${maEnv.Find[swAuto].Value}
 
   /if (${Select[${Me.Class.ShortName},BRD]} && (${Me.Casting.ID} || ${Me.BardSongPlaying} || ${Window[CastingWindow].Open})) {
@@ -3407,12 +2759,13 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
     /varset stAssTarID 0
   }
 
-  | we have an existign target and not using a mode
+  | we have an existing target and not using a mode
   /if (${targetData.ID} && !${_spCount} && !${swModeToken}) {
     /return ${targetData.ID}
   }
 
   /declare _spawn spawn local
+  /declare _tmpID int local 0
   /declare _tmpAgroRange int local ${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
   /declare _count int local 0
   /declare _mobHP int local 999
@@ -3422,11 +2775,10 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
   /declare _closestID int local 0
   /declare _navRange int local 0
   /declare _mobcount int local 0
-  /declare _tmpID int local 0
 
   | adjust LOS?
   /if (${maOver.Find[swOverLOS].Value} || ${Select[${maPull.Find[stPullMode].Value},nav,int,pet,calm,multi]}) {
-    DEBUG ${sep} LOS overridden
+    DEBUG ${sep}LOS overridden
     /varset _los
   }
 
@@ -3442,172 +2794,176 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
       /varset _mobcount ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
     }
 
+    | no mobs around us, no reason to be here
+    /if (!${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
+      DEBUG ${break}NO SpawnCount to pull from
+      /return FALSE
+    }
+
     | search local ENV range in steps for mob acquisition
     DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
+    /for _count ${Math.Calc[${_spCount} +1]} to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
 
-    /if (${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
-      
-      /if (!${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
+      ISMEDEAD
+
+      /varset _tmpID ${NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}].ID}
+      /vardata _spawn Spawn[${_tmpID}]
+
+      /if (!${_spawn.ID}) {
+        DEBUG ${break}something is seriously wrong with the spawn${sep}\ar${_spawn.ID}\ax
         /return FALSE
       }
 
-      /for _count 1 to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
+      DEBUG ${sep}_spawn${sep}\a-w${_spawn.ID}\ax navlength${sep}\a-w${Navigation.PathLength[id ${_spawn.ID}]}\ax
 
-        ISMEDEAD
+      | excluded mobs
+      /if (${lsZoneExclude.Contains[${_spawn.DisplayName}]}) {
+        DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsZoneExclude\ax (\a-r${_spawn.DisplayName}\ax)
+        /continue
+      }
 
-        /varset _tmpID ${NearestSpawn[${If[${_spCount}, ${Math.Calc[${_count}+${_spCount}]},${_count}]}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}].ID}
-        SDEBUG ${_tmpID}
-        /vardata _spawn Spawn[${_tmpID}]
+      | animation checks
+      /if (${lsAnimationNoTarget.Contains[${_spawn.Animation}]}) {
+        DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsAnimationNoTarget\ax (\a-r${_spawn.Animation}\ax)
+        /continue
+      }
 
-        /if (!${_spawn.ID}) {
-          /return FALSE
-        }
+      | fish are friends, not food
+      /if (${lsNoAttackBodyType.Contains[${_spawn.Body}]}) {
+        DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoAttackBodyType\ax (\a-r${_spawn.Body}\ax)
+        /continue
+      }
 
-        DEBUG ${sep}_spawn${sep}\a-w${_spawn.ID}\ax navlength${sep}\a-w${Navigation.PathLength[id ${_spawn.ID}]}\ax
+      | body types to consider.. is this fat shaming?
 
-        | excluded mobs
-        /if (${lsZoneExclude.Contains[${_spawn.DisplayName}]}) {
-          DEBUG ${sep}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsZoneExclude\ax (\a-r${_spawn.DisplayName}\ax)
-          /continue
-        }
-
-        | animation checks
-        /if (${lsAnimationNoTarget.Contains[${_spawn.Animation}]}) {
-          DEBUG ${sep}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsAnimationNoTarget\ax (\a-r${_spawn.Animation}\ax)
-          /varset _spCount 1
-          /continue
-        }
-
-        | fish are friends, not food
-        /if (${lsNoAttackBodyType.Contains[${_spawn.Body}]}) {
-          DEBUG ${sep}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoAttackBodyType\ax (\a-r${_spawn.Body}\ax)
-          /varset _spCount 1
-          /continue
-        }
-
-        | body types to consider.. is this fat shaming?
-
-          | can i come into the out now?
-          /if (${_spawn.Type.Equal[NPC]}) {
-            /if (${lsNoTargetNPC.Contains[${_spawn.DisplayName}]}) {
-              DEBUG ${sep}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetNPC\ax (\a-r${_spawn.DisplayName}\ax)
-              /varset _spCount 1
-              /continue
-            }
-
-          | PCs to not consider
-          } else /if (${_spawn.Type.Equal[PC]}) {
-            /if (${lsNoTargetPC.Contains[${_spawn.DisplayName}]}) {
-              DEBUG ${sep}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetPC\ax (\a-r${_spawn.DisplayName}\ax)
-              /varset _spCount 1
-              /continue
-            }
-
-          | magic creatures to not consider
-          } else /if (${_spawn.Type.Equal[Magic]}) {
-            /if (${lsNoTargetMagic.Contains[${_spawn.DisplayName}]}) {
-              DEBUG ${sep}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetMagic\ax (\a-r${_spawn.DisplayName}\ax)
-              /varset _spCount 1
-              /continue
-            }
+        | can i come into the out now?
+        /if (${_spawn.Type.Equal[NPC]}) {
+          /if (${lsNoTargetNPC.Contains[${_spawn.DisplayName}]}) {
+            DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetNPC\ax (\a-r${_spawn.DisplayName}\ax)
+            /continue
           }
 
-        /if (${_spawn.ID} == ${Me.Pet.ID}) {
-          /continue
-        }
-
-        | CYA for shit MQ will pick up in the environment that does not have a name
-        /if (${_spawn.DisplayName.Length} < 1) {
-          DEBUG ${sep}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wDisplayName.Length < 1\ax
-          /varset _spCount 1
-          /continue
-        }
-
-        | bishes suffering from tunnel vision
-        /if (${maPull.Find[stPullArcWidth].Value}) {
-          |**
-          /if (!${Defined[_tmpDegree]}) {
-            /declare _tmpDegree float local 0
+        | PCs to not consider
+        } else /if (${_spawn.Type.Equal[PC]}) {
+          /if (${lsNoTargetPC.Contains[${_spawn.DisplayName}]}) {
+            DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetPC\ax (\a-r${_spawn.DisplayName}\ax)
+            /continue
           }
 
-          /varset _tmpDegree ${_spawn.HeadingTo[${maData.Find[stCampY].Value},${maData.Find[stCampX].Value}].Degrees}
-
-          /echo 0:(${stPullArcLeft} >= ${stPullArcRight})
-          /if (${stPullArcLeft} >= ${stPullArcRight}) {
-              /echo 1:(${_tmpDegree} < ${stPullArcLeft} && ${_tmpDegree} > ${stPullArcRight}) return 0
-              /if (${_tmpDegree} < ${stPullArcLeft} && ${_tmpDegree} > ${stPullArcRight}) /return 0
-          } else {
-            /echo 2:(${_tmpDegree} < ${stPullArcLeft} || ${_tmpDegree} > ${stPullArcRight}) return 0
-              /if (${_tmpDegree} < ${stPullArcLeft} || ${_tmpDegree} > ${stPullArcRight}) /return 0
-          }
-          **|
-        }
-
-        | check navigation path validity for all but base pulling
-        /if (!${Navigation.PathExists[id ${_spawn.ID}]} && !${maOver.Find[swOverNavCheck].Value} && !${Select[${maPull.Find[stPullMode].Value},base]}) {
-          DEBUG ${sep}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-yid ${_spawn.ID}\ax]\ax (\a-r${_spawn.DisplayName}\ax)
-          /varset _spCount 1
-          /continue
-        }
-
-        | pet tagging mezed mobs only (should be skipped. pets cannot break mez)
-        | skip this if we are the group main assist
-        /if (${Group.MainAssist.Name.NotEqual[${Me.DisplayName}]}) {
-          /if (${maPull.Find[stPullMode].Value.Equal[pet]} && ${lsAnimationMezed.Contains[${_spawn.Animation}]}) {
+        | magic creatures to not consider
+        } else /if (${_spawn.Type.Equal[Magic]}) {
+          /if (${lsNoTargetMagic.Contains[${_spawn.DisplayName}]}) {
+            DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetMagic\ax (\a-r${_spawn.DisplayName}\ax)
             /continue
           }
         }
 
-        | check nav path length
-        /if (${maPull.Find[swNavPathLogic].Value}) {
-          /if (${Navigation.PathLength[id ${_spawn.ID}]} > -1) {
-            /varset _navRange ${Navigation.PathLength[id ${_spawn.ID}]}
+      /if (${_spawn.ID} == ${Me.Pet.ID}) {
+        DEBUG ${break}spawn is my pet
+        /continue
+      }
 
-            | sort by closest nav path length
-            /if (${_navRange} <= ${_closestNAV}) {
-              /varset _closestNAV ${_navRange}
-            } else /if (${_navRange} > ${_closestNAV}) {
-              /continue
-            }
-          } else /if (${Navigation.PathLength[id ${_spawn.ID}]} <= 0) {
-            /continue
-          }
+      | CYA for shit MQ will pick up in the environment that does not have a name
+      /if (${_spawn.DisplayName.Length} < 1) {
+        DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wDisplayName.Length < 1\ax
+        /continue
+      }
+
+      | bishes suffering from tunnel vision
+      /if (${maPull.Find[stPullArcWidth].Value}) {
+        |**
+        /if (!${Defined[_tmpDegree]}) {
+          /declare _tmpDegree float local 0
         }
 
-        | added because MQ sucks ass for getting accurate HP values returned over a mouse dick in length.
-        /if (${_spawn.PctHPs} > 100 && ${_tmpAgroRange} > 200) {
-          /varset _tmpHPAdj 100
+        /varset _tmpDegree ${_spawn.HeadingTo[${maData.Find[stCampY].Value},${maData.Find[stCampX].Value}].Degrees}
+
+        /echo 0:(${stPullArcLeft} >= ${stPullArcRight})
+        /if (${stPullArcLeft} >= ${stPullArcRight}) {
+            /echo 1:(${_tmpDegree} < ${stPullArcLeft} && ${_tmpDegree} > ${stPullArcRight}) return 0
+            /if (${_tmpDegree} < ${stPullArcLeft} && ${_tmpDegree} > ${stPullArcRight}) /return 0
         } else {
-          /varset _tmpHPAdj ${_spawn.PctHPs}
+          /echo 2:(${_tmpDegree} < ${stPullArcLeft} || ${_tmpDegree} > ${stPullArcRight}) return 0
+            /if (${_tmpDegree} < ${stPullArcLeft} || ${_tmpDegree} > ${stPullArcRight}) /return 0
         }
+        **|
+      }
 
-        | is this a priority mob?
-        /if (${lsZoneNoMez.Contains[${_spawn.DisplayName}]} || ${lsZoneNamed.Contains[${_spawn.DisplayName}]}) {
-          DEBUG ${sep}Priority Mob${sep}\a-w${_spawn.DisplayName}\ax
-          /invoke ${maCC.Add[swSetCombat,TRUE]}
-          /vardata targetData _spawn.ID
-          /varset stAssTarID ${_spawn.ID}
-          /return ${_spawn.ID}
+      | check navigation path validity for all but base pulling
+      /if (!${Navigation.PathExists[${_spawn.ID}]} && !${maOver.Find[swOverNavCheck].Value} && !${Select[${maPull.Find[stPullMode].Value},base]}) {
+        DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-y${_spawn.ID}\ax]\ax (\a-r${_spawn.DisplayName}\ax)
+        /continue
+      }
+
+      | pet tagging mezed mobs only (should be skipped. pets cannot break mez)
+      | skip this if we are the group main assist
+      /if (${Group.MainAssist.Name.NotEqual[${Me.DisplayName}]}) {
+        /if (${maPull.Find[stPullMode].Value.Equal[pet]} && ${lsAnimationMezed.Contains[${_spawn.Animation}]}) {
+          /continue
         }
+      }
 
-
-        | get the lowest HP mob if we can
-        /if (${_tmpHPAdj} <= ${_mobHP}) {
-          /varset _mobHP ${_spawn.PctHPs}
-          /varset stAssTarID ${_spawn.ID}
-          /vardata targetData _spawn.ID
-          /invoke ${maCC.Add[swSetCombat,TRUE]}
-          DEBUG ${sep}T2K${sep}\aw${_spawn.DisplayName}\aw${sep}\ay${_spawn.ID}\ay ${sep} ${If[${_spawn.LineOfSight},\ag${_spawn.Distance}\ax,\ar${_spawn.Distance}\ax]}
+      | check nav path length
+      /if (${maPull.Find[swNavPathLogic].Value}) {
+        
+        | break on nav if there is an error in length
+        /if (${Navigation.PathLength[${_spawn.ID}]} < 0) {
+          DEBUG ${break}Navigation.PathLength[${_spawn.ID}] < 0
         }
+        
+        | we DO NOT go out side of the max pull radius.. no matter what!
+        /if (${Navigation.PathLength[${_spawn.ID}]} > PULLENV) {
+          DEBUG ${break}Navigation.PathLength[${_spawn.ID}] > PULLENV
+          /continue
+        }
+        
+        | /if (${Navigation.PathLength[${_spawn.ID}]} > -1) {
+        /varset _navRange ${Navigation.PathLength[${_spawn.ID}]}
 
-      /next _count
+        | sort by closest nav path length
+        /if (${_navRange} <= ${_closestNAV}) {
+          /varset _closestNAV ${_navRange}
+        } else /if (${_navRange} > ${_closestNAV}) {
+          DEBUG ${break}nav check${sep}\a-w${_navRange} > ${_closestNAV}\ax
+          /continue
+        }
+      }
 
-    }
+      | added because MQ sucks ass for getting accurate HP values returned over a mouse dick in length.
+      /if (${_spawn.PctHPs} > 100 && ${_tmpAgroRange} > 200) {
+        /varset _tmpHPAdj 100
+      } else {
+        /varset _tmpHPAdj ${_spawn.PctHPs}
+      }
+
+      | is this a priority mob?
+      /if (${lsZoneNoMez.Contains[${_spawn.DisplayName}]} || ${lsZoneNamed.Contains[${_spawn.DisplayName}]}) {
+        DEBUG ${sep}Priority Mob${sep}\ag${_spawn.DisplayName}\ax
+        /invoke ${maCC.Add[swSetCombat,TRUE]}
+        /vardata targetData _spawn.ID
+        /varset stAssTarID ${_spawn.ID}
+        /return ${_spawn.ID}
+      }
+
+
+      | get the lowest HP mob if we can
+      /if (${_tmpHPAdj} <= ${_mobHP}) {
+        /varset _mobHP ${_spawn.PctHPs}
+        /varset stAssTarID ${_spawn.ID}
+        /vardata targetData _spawn.ID
+        /invoke ${maCC.Add[swSetCombat,TRUE]}
+        DEBUG ${sep}T2K${sep}\aw${_spawn.DisplayName}\aw${sep}\ay${_spawn.ID}\ay ${sep} ${If[${_spawn.LineOfSight},\ag${_spawn.Distance}\ax,\ar${_spawn.Distance}\ax]}
+      }
+
+    /next _count
+
+
 
     /if (!AUTO && !${Select[${_tag},petfarm]}) {
       /return 0
     }
     
+    | we have our target. back to whatever brought us here
     /if (${_spawn.ID}) {
       /return ${_spawn.ID}
     }    
@@ -3616,7 +2972,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
     /if (!TARGET && ${maPull.Find[stPullPetWatch].Value}) {
       /if (${SpawnCount[npcpet radius ${maPull.Find[stPullPetWatch].Value} targetable]}) {
         SWBUF ${sep}killing closest NPC pet
-        /vardata _spawn NearestSpawn[npcpet radius ${maPull.Find[stPullPetWatch].Value} targetable].ID
+        /vardata _spawn NearestSpawn[npcpet radius ${maPull.Find[stPullPetWatch].Value} targetable]
         /invoke ${maCC.Add[swSetCombat,TRUE]}
         /varset stAssTarID ${_spawn.ID}
         /vardata targetData _spawn.ID
@@ -4238,6 +3594,9 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
   /declare _list bool local FALSE
   /declare _found bool local FALSE
 
+
+  /invoke ${maData.Add[outVar,${_variable}]}
+  /invoke ${maData.Add[outVal,${_value}]}
 
   | environment_var edits. not for users...
   /if (${_DBLOC.Arg[1,|].Equal[environment_var]}) {
@@ -4876,6 +4235,8 @@ sub cast_AA_fade(bool _debug)
 sub check_buff_cycle_now(bool _debug)
   DEBUG \atcheck_buff_cycle_now\ax()
 
+  SETHUD "buff now"
+
   /invoke ${set_data_timer[${_debug}, Check_Buff_Now, RESTART]}
 
   /if (AUTO && !${maBuff.Find[swBuffMaster].Value}) {
@@ -4883,7 +4244,6 @@ sub check_buff_cycle_now(bool _debug)
   }
 
   CHECKTIE
-  SETHUD EMPTY
   ISMEDEAD
   CHECKEXIT check_buff_cycle_now
   GETINPUT check_buff_cycle_now NA|NA
@@ -4922,7 +4282,7 @@ sub check_buff_cycle_now(bool _debug)
 
     | do we have it, now that we know what it is?
     /if (${have_buff[${_debug}]}) {
-      DEBUG ${break}have_buff/song (\a-r${_spell.Name}\ax)
+      DEBUG ${break}have_buff/song (\a-r${spellData.Name}\ax)
       /invoke ${_licountself.Advance}
       /continue    
     }
@@ -4945,6 +4305,8 @@ sub check_buff_cycle_now(bool _debug)
     DEBUG ${sep}next iteration
     /invoke ${_licountself.Advance}
   }
+  
+  SETHUD EMPTY
 
 /return TRUE
 
@@ -5004,20 +4366,20 @@ sub check_buff_cycle_unity(bool _debug)
   
   /declare _count int local 0
   /declare _found bool local TRUE
-  DEBUG ${sep}_spell${sep}\a-w${_spell}\ax
-  DEBUG ${sep}effects${sep}\a-w${_spell.NumEffects}\ax
+  DEBUG ${sep}spellData${sep}\a-w${spellData}\ax
+  DEBUG ${sep}effects${sep}\a-w${spellData.NumEffects}\ax
 
-  /for _count 1 to ${_spell.NumEffects}
-    DEBUG ${sep}_count${sep}\aw${_count}\ax${sep}\a-w${_spell.Trigger[${_count}]}\ax
+  /for _count 1 to ${spellData.NumEffects}
+    DEBUG ${sep}_count${sep}\aw${_count}\ax${sep}\a-w${spellData.Trigger[${_count}]}\ax
 
     | trigger
-    /if (${Me.Buff[${_spell.Trigger[${_count}].BaseName}].ID}) /continue
+    /if (${Me.Buff[${spellData.Trigger[${_count}].BaseName}].ID}) /continue
 
     | stacks
-    /if (!${_spell.Trigger[${_count}].WillLand}) /continue
+    /if (!${spellData.Trigger[${_count}].WillLand}) /continue
 
     | do not have
-    /if (!${Me.Buff[${_spell.Trigger[${_count}]}].ID}) /varset _found FALSE
+    /if (!${Me.Buff[${spellData.Trigger[${_count}]}].ID}) /varset _found FALSE
     DEBUG ${sep}_found${sep}\a-w${_found}\ax
 
     /if (!${_found}) /break
@@ -5507,6 +4869,8 @@ sub check_buff_cycle_leg_poison(bool _debug)
 sub check_buff_cycle_beg(bool _debug)
   DEBUG \atcheck_buff_cycle_beg\ax()
 
+  SETHUD "buff beg"
+
   /if (AUTO) {
     /invoke ${set_data_timer[FALSE, Check_Buff_Beg, RESTART]}
     /if (!${maBuff.Find[swBuffMaster].Value}) {
@@ -5518,8 +4882,6 @@ sub check_buff_cycle_beg(bool _debug)
     DEBUG ${break}no buff requests
     /return TRUE
   }
-
-  SETHUD "buff beg"
 
   /declare _remove bool local FALSE
 
@@ -5603,14 +4965,14 @@ sub check_buff_cycle_beg(bool _debug)
 sub check_buff_cycle_crew(bool _debug)
   DEBUG \atcheck_buff_cycle_crew\ax()
 
+  SETHUD "buff crew"
+
   /if (AUTO) {
     /invoke ${set_data_timer[FALSE, Check_Buff_Crew, RESTART]}
     /if (!${maBuff.Find[swBuffMaster].Value}) {
       /return FALSE
     }
   }
-
-  SETHUD "buff crew"
 
   CHECKTIE
   ISMEDEAD
@@ -5736,46 +5098,46 @@ sub check_buff_cycle_crew(bool _debug)
       /call cast_data ${_debug} "${maCD.Find[tmpCastName].Value}"
 
       | distance check
-      /if (${Select["${_spell.TargetType}",Group v2]}) {
+      /if (${Select["${spellData.TargetType}",Group v2]}) {
         DEBUG ${sep}distance check${sep}\a-wGroup v2\ax
-        /if (${_spawn.Distance} > ${_spell.AERange}) /continue
+        /if (${_spawn.Distance} > ${spellData.AERange}) /continue
       } else {
-        DEBUG ${sep}distance check${sep}\a-wtargeted ?? ${_spell.MyRange}\ax
-        /if (${_spell.MyRange}) {
-          /if (${_spawn.Distance} > ${_spell.MyRange} && !${Select[${_spell.TargetType},self]}) /continue
+        DEBUG ${sep}distance check${sep}\a-wtargeted ?? ${spellData.MyRange}\ax
+        /if (${spellData.MyRange}) {
+          /if (${_spawn.Distance} > ${spellData.MyRange} && !${Select[${spellData.TargetType},self]}) /continue
         }
       }
 
      /if (${maCD.Find[hasspa].Value}) {
         DEBUG ${sep}multiple landing spell
 
-        /for _i 1 to ${_spell.NumEffects}
+        /for _i 1 to ${spellData.NumEffects}
           /varset _found TRUE
 
           | skip any secondary procs with no duration
           /if (!${Bool[${Spell[${Spell[${maCD.Find[tmpName].Value}].Base2[${_i}]}].Duration}]}) /continue
 
-          | /varset _spellTrigger ${Spell[${maCD.Find[tmpName].Value}].Trigger[${_i}]}
-          | DEBUG ${sep}${sep}\awTrigger\ax${sep}\a-w${_spell.Trigger}\ax ID:\aw${Spell[${_spell.RankName}].ID}\ax
+          | /varset spellDataTrigger ${Spell[${maCD.Find[tmpName].Value}].Trigger[${_i}]}
+          | DEBUG ${sep}${sep}\awTrigger\ax${sep}\a-w${spellData.Trigger}\ax ID:\aw${Spell[${spellData.RankName}].ID}\ax
 
           | is it buff blocked
-          /dquery ${_spawn.DisplayName} -q "lsBlockedBuffsMe.Find[${_spell.Trigger[${_i}].ID}]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
-          DEBUG ${sep}${sep}BLOCKED .Trigger.Blocked Buff \at${Bool[${DNQReturn}]}\ax ${dot} ${_spell.RankName}
+          /dquery ${_spawn.DisplayName} -q "lsBlockedBuffsMe.Find[${spellData.Trigger[${_i}].ID}]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+          DEBUG ${sep}${sep}BLOCKED .Trigger.Blocked Buff \at${Bool[${DNQReturn}]}\ax ${dot} ${spellData.RankName}
           /if (${Bool[${DNQReturn}]}) {
             /continue
           }
 
           | does it stack
-          /dquery ${_spawn.DisplayName} -q "Spell[${_spell.RankName}].Trigger[${_i}].WillLand" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
-          DEBUG ${sep}${sep}WillLand: .Trigger.WillLand \at${DNQReturn}\ax ${dot} ${_spell.RankName}
+          /dquery ${_spawn.DisplayName} -q "Spell[${spellData.RankName}].Trigger[${_i}].WillLand" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+          DEBUG ${sep}${sep}WillLand: .Trigger.WillLand \at${DNQReturn}\ax ${dot} ${spellData.RankName}
           /if (!${DNQReturn}) {
             /continue
           }
 
           | do we have the triggered buff?
-          /dquery ${_spawn.DisplayName} -q "Me.Buff[${_spell.Trigger[${_i}]}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
-          DEBUG ${sep}trigger${sep}\ay${_spell.Trigger[${_i}]}\ax
-          DEBUG ${sep}${sep}HAVE: .Trigger.ID \at${DNQReturn}\ax ${dot} ${_spell.Trigger[${_i}]}
+          /dquery ${_spawn.DisplayName} -q "Me.Buff[${spellData.Trigger[${_i}]}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+          DEBUG ${sep}trigger${sep}\ay${spellData.Trigger[${_i}]}\ax
+          DEBUG ${sep}${sep}HAVE: .Trigger.ID \at${DNQReturn}\ax ${dot} ${spellData.Trigger[${_i}]}
           /if (!${Bool[${DNQReturn}]}) {
             /varset _found FALSE
             /break
@@ -5793,29 +5155,29 @@ sub check_buff_cycle_crew(bool _debug)
       } else {
         DEBUG ${sep}single landing spell${sep}\a-w{maCD.Add[tmpName,${maBuff.Find[stBuff${_count}].Value}]}\ax
 
-        DEBUG ${sep}\awTrigger\ax${sep}\a-w${_spell.RankName}\ax ID:${_spell.ID}
+        DEBUG ${sep}\awTrigger\ax${sep}\a-w${spellData.RankName}\ax ID:${spellData.ID}
 
         | does it stack
-        /dquery ${_spawn.DisplayName} -q "Spell[${_spell.RankName}].WillLand" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
-        DEBUG ${sep}${sep}WillLand: .Buff.WillLand \at${DNQReturn}\ax ${dot} ${_spell.RankName}
+        /dquery ${_spawn.DisplayName} -q "Spell[${spellData.RankName}].WillLand" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+        DEBUG ${sep}${sep}WillLand: .Buff.WillLand \at${DNQReturn}\ax ${dot} ${spellData.RankName}
   
         /if (!${DNQReturn}) {
           /continue
         }
 
         | is it buff blocked
-        /dquery ${_spawn.DisplayName} -q "lsBlockedBuffsMe.Find[${_spell.ID}]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
-        DEBUG ${sep}${sep}BLOCKED .Buff.Blocked \at${DNQReturn}\ax ${dot} ${_spell.ID}
+        /dquery ${_spawn.DisplayName} -q "lsBlockedBuffsMe.Find[${spellData.ID}]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+        DEBUG ${sep}${sep}BLOCKED .Buff.Blocked \at${DNQReturn}\ax ${dot} ${spellData.ID}
         /if (${Bool[${DNQReturn}]}) /continue
 
         | do we have the triggered buff?
-        /dquery ${_spawn.DisplayName} -q "Me.Buff[${_spell.RankName}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
-        DEBUG ${sep}${sep}HAVE: .Buff.ID \atslot ${DNQReturn}\ax ${dot} ${_spell.ID}
+        /dquery ${_spawn.DisplayName} -q "Me.Buff[${spellData.RankName}].ID" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+        DEBUG ${sep}${sep}HAVE: .Buff.ID \atslot ${DNQReturn}\ax ${dot} ${spellData.ID}
         /if (${Bool[${DNQReturn}]}) {
           /continue
         }
 
-        DEBUG ${sep}${sep}HAVE: .Trigger.ID \at${DNQReturn}\ax ${dot} ${_spell.ID} .. ${maCD.Find[tmpName].Value}
+        DEBUG ${sep}${sep}HAVE: .Trigger.ID \at${DNQReturn}\ax ${dot} ${spellData.ID} .. ${maCD.Find[tmpName].Value}
 
         /if (${_target}) {
           /call cast ${_debug} ${_spawn.ID} FALSE
@@ -5843,10 +5205,13 @@ sub check_buff_cycle_crew(bool _debug)
 sub check_buff_cycle_others(bool _debug, string _type)
   DEBUG \atcheck_buff_cycle_others\ax(\a-w${_type}\ax)
 
+
   | if we are in a raid, we are done here
   /if (!${Raid.Members} && !${Group.Members}) {
     /return FALSE
   }
+
+  SETHUD "buff ${_type.Lower}"
 
   /if (${_type.Equal[group]}) {
     /if (AUTO) {
@@ -5872,8 +5237,6 @@ sub check_buff_cycle_others(bool _debug, string _type)
     /return FALSE
   }
 
-  SETHUD "buff others (${_type})"
-
   CHECKTIE
   ISMEDEAD
   CHECKEXIT check_buff_cycle_others
@@ -5889,10 +5252,8 @@ sub check_buff_cycle_others(bool _debug, string _type)
   /declare _count int 1
   /declare _toon string local FALSE
   /declare _spawn spawn local
-  | /declare _spell spell local
   /declare _found bool local TRUE
   /declare _i int local 1
-  | /declare _spellTrigger string local FALSE
 
   | non boxed people/mercs (fuck your pets)
   /while (${_countToon} <= ${${_type}.Members}) {
@@ -5970,19 +5331,19 @@ sub check_buff_cycle_others(bool _debug, string _type)
       /call cast_data ${_debug} "${maCD.Find[tmpName].Value}"
       
       | distance check
-      /if (${Select["${_spell.TargetType}",Group v2]}) {
-        /if (${_spawn.Distance} > ${_spell.AERange}) {
+      /if (${Select["${spellData.TargetType}",Group v2]}) {
+        /if (${_spawn.Distance} > ${spellData.AERange}) {
           DEBUG ${break}distance check${sep}\a-wGroup v2\ax
           /continue
         }
       } else {
-        /if (${_spawn.Distance} > ${_spell.MyRange} && !${Select[${_spell.TargetType},self]}) {
-          DEBUG ${break}distance check${sep}\a-wtargeted ?? ${_spell.MyRange}\ax
+        /if (${_spawn.Distance} > ${spellData.MyRange} && !${Select[${spellData.TargetType},self]}) {
+          DEBUG ${break}distance check${sep}\a-wtargeted ?? ${spellData.MyRange}\ax
           /continue
         }
       }
 
-      DEBUG ${sep}\awstBuff${_count}\ax${sep}\a-w${_spell.RankName}\ax (\a-r${_spell.NumEffects} triggers\ax)
+      DEBUG ${sep}\awstBuff${_count}\ax${sep}\a-w${spellData.RankName}\ax (\a-r${spellData.NumEffects} triggers\ax)
 
       | target the toon
       /call target set ${_spawn.ID}
@@ -5994,27 +5355,27 @@ sub check_buff_cycle_others(bool _debug, string _type)
         DEBUG ${sep}multiple landing spell
 
         | start sorting the buff triggers
-        /if (${_spell.NumEffects}) {
+        /if (${spellData.NumEffects}) {
           /varset _found TRUE
           
           
-          /for _i 1 to ${_spell.NumEffects}
-            DEBUG ${sep}_spell${sep}\a-w${_spell.Trigger[${_i}]}\ax
+          /for _i 1 to ${spellData.NumEffects}
+            DEBUG ${sep}spellData${sep}\a-w${spellData.Trigger[${_i}]}\ax
 
             | Stacks/WilLand
-            /if (!${_spell.Trigger[${_i}].StacksTarget}) {
+            /if (!${spellData.Trigger[${_i}].StacksTarget}) {
               DEBUG ${break}.StacksTarget
               /continue
             }
 
             | target has the buff?
-            /if (!${Target.Buff[${_spell.Trigger[${_i}]}].ID}) {
+            /if (!${Target.Buff[${spellData.Trigger[${_i}]}].ID}) {
               DEBUG ${sep}does not have buff
               /varset _found FALSE
             }
 
             | cycle the tags
-            /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_spawn.DisplayName} "${_spell.Trigger[${_i}]}" check_buff_cycle_others
+            /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_spawn.DisplayName} "${spellData.Trigger[${_i}]}" check_buff_cycle_others
             /if (!${Macro.Return}) {
               /continue
             }
@@ -6036,19 +5397,19 @@ sub check_buff_cycle_others(bool _debug, string _type)
         /varset _found TRUE
 
         | StacksTarget
-        /if (!${_spell.StacksTarget}) {
+        /if (!${spellData.StacksTarget}) {
           DEBUG ${break}.StacksTarget
           /continue          
         }
 
         | cycle the tags
-        /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_spawn.DisplayName} "${_spell.RankName}" check_buff_cycle_others
+        /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_spawn.DisplayName} "${spellData.RankName}" check_buff_cycle_others
         /if (!${Macro.Return}) {
           /continue
         }
 
         | target has the buff?
-        /if (!${Target.Buff[${_spell.RankName}].ID}) {
+        /if (!${Target.Buff[${spellData.RankName}].ID}) {
           DEBUG ${sep}does not have buff
           /varset _found FALSE
         }
@@ -7636,7 +6997,7 @@ sub cast_AA_intensity(bool _debug)
   }
 
   | stacks?
-  /if (!${_spell.WillLand}) {
+  /if (!${spellData.WillLand}) {
     DEBUG ${break}does nnot stack
     /return FALSE
   }
@@ -8965,7 +8326,7 @@ sub control_area(bool _debug, string _type)
   /for _count 1 to ${_spcount}
 
     | get the first mob in our discovery
-    /vardata _spawn NearestSpawn[${_count}, npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value} PS4].ID
+    /vardata _spawn NearestSpawn[${_count}, npc los range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ENV zradius ${maCC.Find[stZRadius].Value} PS4]
     DEBUG ${sep}control _spawn${sep}\a-w${_spawn.ID}\ax
 
     | if this mob is the current assists target, remove it from our need to control
@@ -9241,7 +8602,7 @@ sub control_mez(bool _debug, spawn _spawn)
 
     /invoke ${get_assist_target[${maDebug.Find[assist].Value}, return]}
     
-    /if (${_spawn.ID} == TARGET) {
+    /if (${_spawn.ID} == ${targetData.ID}) {
       /invoke ${set_timer[${_debug}, timer_mez_ID${_spawn.ID}, 30s]}
       /return FALSE
     }
@@ -9250,12 +8611,13 @@ sub control_mez(bool _debug, spawn _spawn)
     GETOVERHERE
     GETINPUT
 
-    /if (!${Spawn[${_spawn.ID}].LineOfSight}) {
+    /if (!${_spawn.LineOfSight}) {
       /varcalc _resistCount ${_resistCount} + 1
       /continue
     }
 
-    | /call target set ${_spawn.ID}
+    /call target set ${_spawn.ID}
+    
     /if (${Target.Mezzed.Duration.TotalSeconds} > 18) {
       /invoke ${set_timer[${_debug}, timer_mez_ID${_spawn.ID}, ${Target.Mezzed.Duration.TotalSeconds}s]}
       /return TRUE
@@ -9286,7 +8648,7 @@ sub control_mez(bool _debug, spawn _spawn)
 
       }
 
-      /invoke ${set_timer[${_debug}, timer_mez_ID${_spawn.ID}, ${Spell[${madeBuff.Find[stMez].Value}].Duration.Seconds}s]}
+      /invoke ${set_timer[${_debug}, timer_mez_ID${_spawn.ID}, 36s]}
       /return TRUE
 
     } else /if (${Select[${maData.Find[stCastReturn].Value},RESISTED,RESISTEDYOU]}) {
@@ -9327,6 +8689,13 @@ sub set_control_output(bool _debug, string _map, string _outname, string _contro
     /if (${${_control}.Count} > 1) {
       /varset _out ${_out} ${dot}
     }
+  }
+  
+  | single popup outputs
+  /if (${Bool[${maData.Find[outVar].Value}]}) {
+    /invoke ${out_popup["${maData.Find[outVar].Value}: ${maData.Find[outVal].Value}"]}
+    /invoke ${maData.Add[outVar,FALSE]}
+    /invoke ${maData.Add[outVal,FALSE]}
   }
     
   /while (!${_cmi.IsEnd}) {
@@ -9391,7 +8760,7 @@ sub set_control_output(bool _debug, string _map, string _outname, string _contro
     /if (!${_cmi.IsEnd}) /varset _out ${_out} ${dot}
   }
   /invoke ${out[12, "/${_outname} ${dot} ${_out}"]}
-  SETHUD
+  SETHUD EMPTY
 
 /return
 
@@ -9433,6 +8802,7 @@ sub target(string _type, spawn _spawn)
     /invoke ${maData.Add[stPctEngageSwarmSet,FALSE]}
     /invoke ${maData.Add[stPctEngageBurnSet,FALSE]}
     /squelch /target clear
+    SETHUD EMPTY
     /return TRUE
   }
 
@@ -9523,6 +8893,7 @@ sub target(string _type, spawn _spawn)
     /invoke ${maData.Add[stPctEngagePetSet,FALSE]}
     /invoke ${maData.Add[stPctEngageSwarmSet,FALSE]}
     /invoke ${maData.Add[stPctEngageBurnSet,FALSE]}
+    SETHUD EMPTY
     
     /if (${Me.AutoFire}) {
       /squelch /autofire
@@ -11358,6 +10729,8 @@ sub moveto_behind(bool _debug, spawn _spawn)
 sub check_buff_cycle_aura(bool _debug)
   DEBUG \atcheck_buff_cycle_aura\ax()
 
+  SETHUD "buff aura"
+  
   /declare _liBuff listiterator local
   /vardata _liBuff lsCount50.First.Clone
   /while (!${_liBuff.IsEnd}) {
@@ -11432,6 +10805,8 @@ sub check_buff_cycle_aura(bool _debug)
 
     /invoke ${_liBuff.Advance}
   }
+  
+  SETHUD EMPTH
 
 /return TRUE
 
@@ -11603,7 +10978,7 @@ sub check_buff_cycle_self(bool _debug)
 
     | trigger swap AAs... fuck DBG and their shit..
     /if (${Spell[${maData.Find[tmpName].Value}].NumEffects} == 1 && ${Me.AltAbility[${maData.Find[tmpName].Value}]})  {
-      DEBUG ${sep}\arSWAP\ax to trigger _spell\aw==\ax\a-w${Spell[${maData.Find[tmpName].Value}].Trigger[1]}\ax
+      DEBUG ${sep}\arSWAP\ax to trigger spell\aw==\ax\a-w${Spell[${maData.Find[tmpName].Value}].Trigger[1]}\ax
       /invoke ${maData.Add[tmpName,${Spell[${Spell[${maData.Find[tmpName].Value}].Trigger[1]}].RankName}]}
     }
 
@@ -11903,7 +11278,7 @@ sub control_base_edit(bool _debug, string _chk, int _loopnum, string _type, stri
 
     | output the list
     /for _count 1 to ${_loopnum}
-      | /if (${ma${_chk}.Find[st${_chk}${_count}].Value.NotEqual[FALSE]}) {
+      /if (${ma${_chk}.Find[st${_chk}${_count}].Value.NotEqual[FALSE]}) {
 
         /if (${ma${_chk}.Find[st${_chk}${_count}].Value.Count[|]}) {
           /call get_best_in_spell ${_debug} "${ma${_chk}.Find[st${_chk}${_count}].Value.Arg[1,|]}" "${ma${_chk}.Find[st${_chk}${_count}].Value.Arg[2,|]}" "${ma${_chk}.Find[st${_chk}${_count}].Value.Arg[3,|]}"
@@ -11911,15 +11286,9 @@ sub control_base_edit(bool _debug, string _chk, int _loopnum, string _type, stri
         }
         /invoke ${out[12, "\awst${_chk}${_count}\ax${sep}${If[${Skill[${ma${_chk}.Find[st${_chk}${_count}].Value}].Auto},\apauto\ax,${If[${ma${_chk}.Find[sw${_chk}${_count}].Value},${on},${off}]}]}${sep}\a-w${ma${_chk}.Find[st${_chk}${_count}].Value}\ax${If[${Bool[${_tmpName}]}, ${dot} (\a-r${_tmpName}\ax),]}"]}
         /varset _tmpName FALSE
-      | }
+      }
     /next _count
     /invoke ${out[18, 0, 33]}
-    /return TRUE
-  }
-
-  | help?
-  /if (${_type.Equal[aux]}) {
-    /call Bind_command_aux ${_chk.Lower}
     /return TRUE
   }
 
@@ -12257,17 +11626,35 @@ sub get_best_in_spell(bool _debug, string _targettype, string _subcat, string _a
     /if (${sqlite.Resultcode[qBestSpell]} == 0) /break
   }
 
-  /if (!${sqlite.Rows[qBestSpell]}) /return FALSE
+  /if (!${sqlite.Rows[qBestSpell]}) {
+    DEBUG ${break}
+    /return FALSE
+  }
 
   /for _count 1 to ${maHard.Find[stSpellBookSize].Value}
     
-    /if (!${Me.Book[${_count}].ID}) /continue
-    /if (${Me.Book[${_count}].Subcategory.NotEqual[${_subcat}]}) /continue
-    /if (${Me.Book[${_count}].TargetType.NotEqual[${_targettype}]}) /continue
+    /if (!${Me.Book[${_count}].ID}) {
+      | DEBUG ${break}Me.Book[${_count}].ID
+      /continue
+    }
+    /if (${Me.Book[${_count}].Subcategory.NotEqual[${_subcat}]}) {
+      | DEBUG ${break}Me.Book[${_count}].Subcategory.NotEqual[${_subcat}]
+      /continue
+    }
+    
+    /if (${Me.Book[${_count}].TargetType.NotEqual[${_targettype}]}) {
+      | DEBUG ${break}Me.Book[${_count}].TargetType.NotEqual[${_targettype}]
+      /continue
+    }
+    
     
     /if (${Me.Book[${_count}].HasSPA[470]} || ${Me.Book[${_count}].HasSPA[374]} || ${Me.Book[${_count}].HasSPA[340]}) {
+      DEBUG ${sep}${Me.Book[${_count}].HasSPA[470]} || ${Me.Book[${_count}].HasSPA[374]} || ${Me.Book[${_count}].HasSPA[340]}
       /for _countNumEff 1 to ${Me.Book[${_count}].NumEffects}
-        /if (!${Me.Book[${_count}].Trigger[${_countNumEff}].HasSPA[${sqlite.Result[qBestSpell 1 env_var]}]}) /continue
+        /if (!${Me.Book[${_count}].Trigger[${_countNumEff}].HasSPA[${sqlite.Result[qBestSpell 1 env_var]}]}) {
+          | DEBUG ${break}${Me.Book[${_count}].Name} does not contain${sep}\a-w${sqlite.Result[qBestSpell 1 env_var]}\ax
+          /continue
+        }
         /for _countSPA 1 to ${Me.Book[${_count}].Trigger[${_countNumEff}].NumEffects}
           /if (${Me.Book[${_count}].Trigger[${_countNumEff}].Attrib[${_countSPA}]} != ${sqlite.Result[qBestSpell 1 env_var]}) /continue
           /varset _running ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}
@@ -12845,14 +12232,14 @@ sub do_loot_corpse(bool _debug)
 sub check_buff_cycle_temp(bool _debug)
   DEBUG \atcheck_buff_cycle_temp\ax()
 
+  SETHUD "buff temp"
+
   /if (AUTO) {
     /invoke ${set_data_timer[${_debug}, Check_Buff_Temp, RESTART]}
     /if (!${maBuff.Find[swBuffMaster].Value}) {
       /return FALSE
     }
   }
-
-  SETHUD EMPTY
 
   CHECKTIE
   ISMEDEAD
@@ -12964,19 +12351,19 @@ sub check_buff_cycle_temp(bool _debug)
       /call cast_data ${_debug} "${maCD.Find[tmpName].Value}"
 
       | distance check
-      /if (${Select["${_spell.TargetType}",Group v2]}) {
+      /if (${Select["${spellData.TargetType}",Group v2]}) {
         DEBUG ${sep}distance check${sep}\a-wGroup v2\ax
-        /if (${_spawn.Distance} > ${_spell.AERange}) /continue
+        /if (${_spawn.Distance} > ${spellData.AERange}) /continue
       } else {
-        DEBUG ${sep}distance check${sep}\a-wtargeted ?? ${_spell.MyRange}\ax
-        /if (${_spell.MyRange}) {
-          /if (${_spawn.Distance} > ${_spell.MyRange} && !${Select[${_spell.TargetType},self]}) /continue
+        DEBUG ${sep}distance check${sep}\a-wtargeted ?? ${spellData.MyRange}\ax
+        /if (${spellData.MyRange}) {
+          /if (${_spawn.Distance} > ${spellData.MyRange} && !${Select[${spellData.TargetType},self]}) /continue
         }
       }
 
       | does it stack
-      /dquery ${_spawn.DisplayName} -q "Spell[${_spell.RankName}].WillLand" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
-      DEBUG ${sep}${sep}WillLand: .Buff.WillLand \at${DNQReturn}\ax ${dot} ${_spell.RankName}
+      /dquery ${_spawn.DisplayName} -q "Spell[${spellData.RankName}].WillLand" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
+      DEBUG ${sep}${sep}WillLand: .Buff.WillLand \at${DNQReturn}\ax ${dot} ${spellData.RankName}
       /if (!${DNQReturn}) {
         /continue
       }
@@ -14144,33 +13531,33 @@ sub cast_cycle_debuff(bool _debug, spawn _spawn, string _tag, bool _return)
       /continue
     }
     
-    DEBUG ${sep}_spell ${dot}${dot} \aw${_spell.Name}\ax (\a-r${_spell.ID}\ax)
+    DEBUG ${sep}spellData ${dot}${dot} \aw${spellData.Name}\ax (\a-r${spellData.ID}\ax)
     
     /if (${maCD.Find[hasspa].Value}) {
-      DEBUG ${sep}multiple landing ${dot}${dot} \aw${_spell}\ax
+      DEBUG ${sep}multiple landing ${dot}${dot} \aw${spellData}\ax
 
-      /for _count 1 to ${_spell.NumEffects}
+      /for _count 1 to ${spellData.NumEffects}
         DEBUG ${sep}_count ${dot}${dot} \aw${_count}\ax
         /varset _found TRUE
 
         | skip any secondary procs with no duration
-        DEBUG ${sep}duration${sep}\a-w${_spell.Trigger[${_count}].Duration}\ax
-        /if (${_spell.Trigger[${_count}].Duration} < 3) {
+        DEBUG ${sep}duration${sep}\a-w${spellData.Trigger[${_count}].Duration}\ax
+        /if (${spellData.Trigger[${_count}].Duration} < 3) {
           DEBUG ${break} Duration < 3 ticks
           /continue
         }
 
         | stacksTarget
-        DEBUG ${sep}stacks${sep}\a-w${_spell.Trigger[${_count}].StacksTarget}\ax
-        /if (!${_spell.Trigger[${_count}].StacksTarget}) {
-          DEBUG ${break}stack failure ${dot}${dot} \aw${_spell.StacksTarget}\ax
+        DEBUG ${sep}stacks${sep}\a-w${spellData.Trigger[${_count}].StacksTarget}\ax
+        /if (!${spellData.Trigger[${_count}].StacksTarget}) {
+          DEBUG ${break}stack failure ${dot}${dot} \aw${spellData.StacksTarget}\ax
           /continue
         }
 
         | target has debuff
-        DEBUG ${sep}Target.Buff${sep}\a-w${Target.Buff[${_spell.Trigger[${_count}]}].ID}\ax   ...... ${_spell.Trigger[${_count}]}
-        /if (!${Target.Buff[${_spell.Trigger[${_count}]}].ID}) {
-          DEBUG ${sep}NOT FOUND ${dot}${dot} \aw${_spell}\ax
+        DEBUG ${sep}Target.Buff${sep}\a-w${Target.Buff[${spellData.Trigger[${_count}]}].ID}\ax   ...... ${spellData.Trigger[${_count}]}
+        /if (!${Target.Buff[${spellData.Trigger[${_count}]}].ID}) {
+          DEBUG ${sep}NOT FOUND ${dot}${dot} \aw${spellData}\ax
           /varset _found FALSE
           /break
         }
@@ -14194,16 +13581,16 @@ sub cast_cycle_debuff(bool _debug, spawn _spawn, string _tag, bool _return)
       DEBUG ${sep}single landing ${dot}${dot} \aw${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}\ax      
 
       | stackstarget
-      /if (!${_spell.StacksTarget}) {
-        DEBUG ${break} _spell.StacksTarget
+      /if (!${spellData.StacksTarget}) {
+        DEBUG ${break} spellData.StacksTarget
         /invoke ${_lidebuff.Advance}
         /continue
       }
 
       | target has debuff
-      DEBUG ${sep}target deBuff ${Target.Buff[${_spell}].ID}
-      /if (${Target.Buff[${_spell}].ID}) {
-        DEBUG ${break} Target.Buff[${_spell}].ID
+      DEBUG ${sep}target deBuff ${Target.Buff[${spellData}].ID}
+      /if (${Target.Buff[${spellData}].ID}) {
+        DEBUG ${break} Target.Buff[${spellData}].ID
         /invoke ${_lidebuff.Advance}
         /continue
       }
@@ -14316,15 +13703,15 @@ sub check_debuff_routines(spawn _spawn, bool _debug)
             
             | is it a multi landing debuff?
             /if (${maCD.Find[hasspa].Value}) {
-              DEBUG ${sep}multi landing debff${sep}\ay${_spell.Name}\ax
+              DEBUG ${sep}multi landing debff${sep}\ay${spellData.Name}\ax
               
               | cycle each trigger for the debuff
-              /for _count 1 to ${_spell.NumEffects}
+              /for _count 1 to ${spellData.NumEffects}
                 
-                DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax <= ${_spell.Name}${sep}\a-r${_spell.Trigger[${_count}].Base[2]}}\ax
+                DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax <= ${spellData.Name}${sep}\a-r${spellData.Trigger[${_count}].Base[2]}}\ax
                 
                 | is the targets debuff better then the one we are casting      
-                /if (${Target.${_member}.Base[2]} <= ${_spell.Trigger[${_count}].Base[2]} || !${_spell.StacksTarget}) {
+                /if (${Target.${_member}.Base[2]} <= ${spellData.Trigger[${_count}].Base[2]} || !${spellData.StacksTarget}) {
                   | if it is better, add a found marker and continue
                   /invoke ${_found.Append[1]}
                 } else {
@@ -14335,9 +13722,9 @@ sub check_debuff_routines(spawn _spawn, bool _debug)
               /next _count
 
             } else {
-              DEBUG ${sep}single landing debff${sep}\a-w${_spell.Name}\ax
-              /if (${Spell[${Target.${_member}}].Base[2]} <= ${_spell.Base[2]}) {
-                DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax <= ${_spell.Name}${sep}\a-r${_spell.Base[2]}\ax
+              DEBUG ${sep}single landing debff${sep}\a-w${spellData.Name}\ax
+              /if (${Spell[${Target.${_member}}].Base[2]} <= ${spellData.Base[2]}) {
+                DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax <= ${spellData.Name}${sep}\a-r${spellData.Base[2]}\ax
                 /invoke ${_found.Append[1]}
               } else {
                 /invoke ${_found.Append[0]}
@@ -14371,10 +13758,10 @@ sub check_debuff_routines(spawn _spawn, bool _debug)
           /if (${Bool[${maCD.Find[returnCast].Value}]} && ${_spawn.ID}) {
 
             /if (${maCD.Find[hasspa].Value}) {
-              DEBUG ${sep}multi landing debff${sep}\ay${_spell.Name}\ax
-              /for _count 1 to ${_spell.NumEffects}
-                DEBUG Target.${_member}.Base[2] (\a-r${Target.${_member}.Base[2]}\ax) < _spell.Trigger[${_count}].Base[2] (\a-r${_spell.Trigger[${_count}].Base[2]}\ax) || !_spell.StacksTarget (\a-r!${_spell.StacksTarget}\ax)
-                /if (${Target.${_member}.Base[2]} < ${_spell.Trigger[${_count}].Base[2]} || !${_spell.StacksTarget}) {
+              DEBUG ${sep}multi landing debff${sep}\ay${spellData.Name}\ax
+              /for _count 1 to ${spellData.NumEffects}
+                DEBUG Target.${_member}.Base[2] (\a-r${Target.${_member}.Base[2]}\ax) < spellData.Trigger[${_count}].Base[2] (\a-r${spellData.Trigger[${_count}].Base[2]}\ax) || !spellData.StacksTarget (\a-r!${spellData.StacksTarget}\ax)
+                /if (${Target.${_member}.Base[2]} < ${spellData.Trigger[${_count}].Base[2]} || !${spellData.StacksTarget}) {
                   /invoke ${_found.Append[1]}
                 } else {
                   /invoke ${_found.Append[0]}
@@ -14383,9 +13770,9 @@ sub check_debuff_routines(spawn _spawn, bool _debug)
               /next _count
 
             } else {
-              DEBUG ${sep}single landing debff${sep}\a-w${_spell.Name}\ax
-              /if (${Target.${_member}.Base[2]} < ${_spell.Base[2]}) {
-                DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax < ${_spell.Name}${sep}\a-r${_spell.Base[2]}\ax
+              DEBUG ${sep}single landing debff${sep}\a-w${spellData.Name}\ax
+              /if (${Target.${_member}.Base[2]} < ${spellData.Base[2]}) {
+                DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax < ${spellData.Name}${sep}\a-r${spellData.Base[2]}\ax
                 /invoke ${_found.Append[1]}
               } else {
                 /invoke ${_found.Append[0]}
@@ -14999,11 +14386,11 @@ sub check_no_cast_buff(bool _debug, string _cast)
 sub cast_data(bool _debug, string _type)
   DEBUG \atcast_data\aw(\a-w${_type}\ax)
 
-  /if (${Defined[_spell]}) {
-    /deletevar _spell
+  /if (${Defined[spellData]}) {
+    /deletevar spellData
   }
   
-  /declare _spell spell outer
+  /declare spellData spell outer
   /invoke ${maCD.Add[ready,FALSE]}
   /invoke ${maCD.Add[hasspa,FALSE]}
   
@@ -15016,7 +14403,7 @@ sub cast_data(bool _debug, string _type)
     /if (${Select[${_ligt.Value},alt]}) {
       /if (${Me.AltAbility[${_type}]} && !${Me.AltAbility[${_type}].Passive}) {
         DEBUG ${sep}_type${sep}\agALT\ax
-        /vardata _spell Spell[${Me.AltAbility[${_type}].Spell.ID}]
+        /vardata spellData Spell[${Me.AltAbility[${_type}].Spell.ID}]
         /invoke ${maCD.Add[type,ALT]}
         /invoke ${maCD.Add[name,${_type}]}
         /invoke ${maCD.Add[id,${Me.AltAbility[${_type}].ID}]}
@@ -15033,8 +14420,8 @@ sub cast_data(bool _debug, string _type)
         /invoke ${maCD.Add[type,SPELL]}
         /invoke ${maCD.Add[name,${_type}]}
         /invoke ${maCD.Add[id,${Me.Spell[${_type}].ID}]}
-        /vardata _spell Spell[${_type}]
-        /if (${Me.SpellReady[${_spell.RankName}]}) {
+        /vardata spellData Spell[${_type}]
+        /if (${Me.SpellReady[${spellData.RankName}]}) {
           /invoke ${maCD.Add[ready,TRUE]}
         }
         /break
@@ -15044,11 +14431,11 @@ sub cast_data(bool _debug, string _type)
     } else /if (${Select[${_ligt.Value},pulse]} && BARD) {
       /if (${Me.Book[${Spell[${_type}].RankName}]}) {
         DEBUG ${sep}_type${sep}\agPULSE\ax
-        /vardata _spell Spell[${_type}]
+        /vardata spellData Spell[${_type}]
         /invoke ${maCD.Add[type,PULSE]}
         /invoke ${maCD.Add[name,${_type}]}
         /invoke ${maCD.Add[id,${Me.Spell[${_type}].ID}]}
-        /if (${Me.SpellReady[${_spell.RankName}]}) {
+        /if (${Me.SpellReady[${spellData.RankName}]}) {
           /invoke ${maCD.Add[ready,TRUE]}
         }
         /break
@@ -15058,10 +14445,10 @@ sub cast_data(bool _debug, string _type)
     } else /if (${Select[${_ligt.Value},disc]}) {
       /if (${Me.CombatAbility[${Spell[${_type}].RankName}]}) {
         DEBUG ${sep}_type${sep}\agDISC\ax
-        /vardata _spell Me.CombatAbility[${Me.CombatAbility[${Spell[${_type}].RankName}]}]
+        /vardata spellData Me.CombatAbility[${Me.CombatAbility[${Spell[${_type}].RankName}]}]
         /invoke ${maCD.Add[type,DISC]}
         /invoke ${maCD.Add[name,${_type}]}
-        /if (${Me.CombatAbilityReady[${_spell}]}) {
+        /if (${Me.CombatAbilityReady[${spellData}]}) {
           /invoke ${maCD.Add[ready,TRUE]}
         }
         /break
@@ -15071,7 +14458,7 @@ sub cast_data(bool _debug, string _type)
     } else /if (${Select[${_ligt.Value},item]}) {
       /if (${FindItem[=${_type}].ID}) {
         DEBUG ${sep}_type${sep}\agITEM\ax
-        /vardata _spell FindItem[=${_type}].Spell
+        /vardata spellData FindItem[=${_type}].Spell
         /invoke ${maCD.Add[type,ITEM]}
         /invoke ${maCD.Add[name,${_type}]}
         /invoke ${maCD.Add[id,${FindItem[=${_type}].ID}]}
@@ -15096,7 +14483,7 @@ sub cast_data(bool _debug, string _type)
 
   /vardata _lshs lsHasSPA.First.Clone
   /while (!${_lshs.IsEnd}) {
-    /if (${_spell.HasSPA[${_lshs.Value}]}) {
+    /if (${spellData.HasSPA[${_lshs.Value}]}) {
       /invoke ${maCD.Add[hasspa,TRUE]}
       /break
     }
@@ -15112,12 +14499,12 @@ sub cast_data(bool _debug, string _type)
  * note: this casts things. it doesn't care what it casts, but it will cast it.
  * note:
  * note: it is a requirement to prep the cast sub with /call cast_data || ${cast_data[]}
- * note: this is setting up the outer variable _spell and all the data that spell type needed
+ * note: this is setting up the outer variable spellData and all the data that spell type needed
  * note:
  * use: /call cast DEBUG [spawnID] [sub to check on the way] [ENV override]
  ***|
 sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
-  DEBUG \atcast\ax(\a-wtID:${_spawn.ID}, sub:${_sub}, rngOver:${_rangeOverride}\ax) (\a-r${_spell}\ax)
+  DEBUG \atcast\ax(\a-wtID:${_spawn.ID}, sub:${_sub}, rngOver:${_rangeOverride}\ax) (\a-r${spellData}\ax)
   ISMEDEAD
   GETOVERHERE
 
@@ -15169,16 +14556,16 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
 
   | alt abilities
   /if (${Select[${maCD.Find[type].Value},ALT]}) {
-    DEBUG ${sep}alt${sep}${Me.AltAbility[${maCD.Find[id].Value}].Name} (\a-r${_spell}\ax)
+    DEBUG ${sep}alt${sep}${Me.AltAbility[${maCD.Find[id].Value}].Name} (\a-r${spellData}\ax)
 
-    /if (${Spell[${_spell.Name}].Mana}) {
-      /if (${Me.CurrentMana} < ${Spell[${_spell.Name}].Mana}) {
+    /if (${spellData.Mana}) {
+      /if (${Me.CurrentMana} < ${spellData.Mana}) {
         /return FALSE
       }
     }
 
     /if (${_sub.NotEqual[ignoreall]}) {
-      /if (${Me.Buff[${_spell}].ID} || ${Me.Song[${_spell}].ID}) {
+      /if (${Me.Buff[${spellData}].ID} || ${Me.Song[${spellData}].ID}) {
         /return FALSE
       }
     }
@@ -15195,7 +14582,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
     }
 
     /while (${_castLoop} > 0) {
-      DEBUG ${sep}altCastLoop${sep}${_spell.Name}
+      DEBUG ${sep}altCastLoop${sep}${spellData.Name}
 
       /if (${_spawn.ID} && ${Target.ID} != ${_spawn.ID}) {
         /break
@@ -15206,7 +14593,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
       /delay 5 ${Me.Casting.ID}
 
       | set delays for casting. GTFO out of this as fast as possible
-      /varset _tiCastTime ${Spell[${_spell.Name}].MyCastTime}
+      /varset _tiCastTime ${spellData.MyCastTime}
 
       /while (${_tiCastTime} > 0) {
         ISMEDEAD
@@ -15265,7 +14652,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
 
   | spells
   } else /if (${Select[${maCD.Find[type].Value},SPELL]}) {
-    DEBUG ${sep}\agSPELL\ax${sep}${_spell}
+    DEBUG ${sep}\agSPELL\ax${sep}${spellData}
 
     | buff on me i shouldnt cast with?
     /if (${check_no_cast_buff[${_debug}, lsNoCastBuff]}) {
@@ -15297,28 +14684,28 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
     }
 
     | have it?
-    /if (!${Me.Book[${_spell.RankName}]}) {
-      DEBUG ${break}dont have spell (\a-r${_spell.RankName}\ax)
+    /if (!${Me.Book[${spellData.RankName}]}) {
+      DEBUG ${break}dont have spell (\a-r${spellData.RankName}\ax)
       /return FALSE
     }
     
     | gem in cooldown?
-    /if (${Me.GemTimer[${_spell.RankName}]}) {
+    /if (${Me.GemTimer[${spellData.RankName}]}) {
       DEBUG ${break}gem in cooldown
       /return FALSE
     }
 
     | enough manna to cast?
-    /if (${Me.CurrentMana} < ${_spell.Mana}) {
-      DEBUG ${break}not enough mana#{sep}${Me.CurrentMana} < ${_spell.Mana}
+    /if (${Me.CurrentMana} < ${spellData.Mana}) {
+      DEBUG ${break}not enough mana#{sep}${Me.CurrentMana} < ${spellData.Mana}
       /return FALSE
     }
 
     | dont fail buffs so they can be memed when needed
-    /if (!${Me.SpellReady[${_spell.RankName}]} && !${Select[${_spell.Category},Heals]}) {
+    /if (!${Me.SpellReady[${spellData.RankName}]} && !${Select[${spellData.Category},Heals]}) {
       /declare _pass bool local FALSE
-      DEBUG ${sep}SpellType${sep}\a-w${_spell.SpellType}\ax
-      /if (${lsFreePassSpells.Contains[${_spell.SpellType}]}) {
+      DEBUG ${sep}SpellType${sep}\a-w${spellData.SpellType}\ax
+      /if (${lsFreePassSpells.Contains[${spellData.SpellType}]}) {
         /varset _pass TRUE
       }
 
@@ -15329,27 +14716,27 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
     }
 
     | check cast range
-    /if (${_spell.Range}) {
-      /if (${_spawn.Distance} > ${_spell.MyRange}) {
-        DEBUG ${break}excceds range${sep}${_spawn.Distance} > ${_spell.MyRange}
+    /if (${spellData.Range}) {
+      /if (${_spawn.Distance} > ${spellData.MyRange}) {
+        DEBUG ${break}excceds range${sep}${_spawn.Distance} > ${spellData.MyRange}
         /return FALSE
       }
     }
     | check AE range
-    /if (${Select["${_spell.TargetType}",Group V2]} && ${_spell.AERange}) {
-      /if (${_spawn.Distance} > ${_spell.AERange}) {
-        DEBUG ${break}exceeds AE range${sep}${_spawn.Distance} > ${_spell.AERange}
+    /if (${Select["${spellData.TargetType}",Group V2]} && ${spellData.AERange}) {
+      /if (${_spawn.Distance} > ${spellData.AERange}) {
+        DEBUG ${break}exceeds AE range${sep}${_spawn.Distance} > ${spellData.AERange}
         /return FALSE
       }
     }
     
     | check for stacking issues
     /if (${_spawn.ID} == ${Me.ID} || ${_spawn.ID} == 0) {
-      /if (${Select[${_spell.SpellType},Beneficial]} && !${Select[${_spell.Category},Heals,Combat Inates]}) {
-        /if (!${_spell.WillLand}) {
+      /if (${Select[${spellData.SpellType},Beneficial]} && !${Select[${spellData.Category},Heals,Combat Inates]}) {
+        /if (!${spellData.WillLand}) {
           /return FALSE
         }
-        /if (${Me.Buff[${_spell}].ID} || ${Me.Song[${_spell}].ID}) {
+        /if (${Me.Buff[${spellData}].ID} || ${Me.Song[${spellData}].ID}) {
           /return FALSE
         }
       }
@@ -15362,13 +14749,13 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
     }
 
     | types vs zone control
-    /if (!${Select[${_spell.SpellType},Beneficial]}) {
-      /if (${lsZoneNoDisease.Contains[${Target.DisplayName}]} && ${Select[${_spell.ResistType},Disease]}) /return FALSE
-      /if (${lsZoneNoMagic.Contains[${Target.DisplayName}]} && ${Select[${_spell.ResistType},Magic]}) /return FALSE
-      /if (${lsZoneNoPoison.Contains[${Target.DisplayName}]} && ${Select[${_spell.ResistType},Poison]}) /return FALSE
-      /if (${lsZoneNoFire.Contains[${Target.DisplayName}]} && ${Select[${_spell.ResistType},Fire]}) /return FALSE
-      /if (${lsZoneNoCold.Contains[${Target.DisplayName}]} && ${Select[${_spell.ResistType},Cold]}) /return FALSE
-      /if (${lsZoneNoCorruption.Contains[${Target.DisplayName}]} && ${Select[${_spell.ResistType},Corruption]}) /return FALSE
+    /if (!${Select[${spellData.SpellType},Beneficial]}) {
+      /if (${lsZoneNoDisease.Contains[${Target.DisplayName}]} && ${Select[${spellData.ResistType},Disease]}) /return FALSE
+      /if (${lsZoneNoMagic.Contains[${Target.DisplayName}]} && ${Select[${spellData.ResistType},Magic]}) /return FALSE
+      /if (${lsZoneNoPoison.Contains[${Target.DisplayName}]} && ${Select[${spellData.ResistType},Poison]}) /return FALSE
+      /if (${lsZoneNoFire.Contains[${Target.DisplayName}]} && ${Select[${spellData.ResistType},Fire]}) /return FALSE
+      /if (${lsZoneNoCold.Contains[${Target.DisplayName}]} && ${Select[${spellData.ResistType},Cold]}) /return FALSE
+      /if (${lsZoneNoCorruption.Contains[${Target.DisplayName}]} && ${Select[${spellData.ResistType},Corruption]}) /return FALSE
     }
 
     | check any subs? yes.. no.. maybe??
@@ -15387,15 +14774,15 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
 
       /declare _ligom listiterator local
       /declare _tmpspell spell
-      /vardata _tmpspell _spell
+      /vardata _tmpspell spellData
       /vardata _ligom lsGoM.First.Clone
         /while (!${_ligom.IsEnd}) {
           /if (${Select[${_ligom.Value},empty]}) /break
           /if (${cast_data[${_debug}, "${_ligom.Value}"]}) {
-            /vardata _spell Spell[${_ligom.Value}].RankName
+            /vardata spellData Spell[${_ligom.Value}].RankName
             /break
           } else {
-            /vardata _spell _tmpspell
+            /vardata spellData _tmpspell
           }
         /invoke ${_ligom.Advance}
       }
@@ -15406,8 +14793,8 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
     }
 
     | mem spell if needed??
-    /if (!${Me.Gem[${_spell}]}) {
-      /call set_spell_to ${_debug} TRUE "${_spell.RankName}" ${maEnv.Find[stBuffGem].Value} TRUE
+    /if (!${Me.Gem[${spellData}]}) {
+      /call set_spell_to ${_debug} TRUE "${spellData.RankName}" ${maEnv.Find[stBuffGem].Value} TRUE
     }
 
     /if (${_spawn.Dead} && ${_sub.NotEqual[skiptargetcheck]}) {
@@ -15415,15 +14802,15 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
     }
     
     | is the spell memed
-    /if (${Me.Gem[${_spell.RankName}]}) {
+    /if (${Me.Gem[${spellData.RankName}]}) {
       
       /declare _countFizzle int local 0
       
       | echos
       /if (${_spawn.ID} == 0) {
-        /invoke ${out[3, "Cast${sep}${sp}${_spell.RankName}\ax"]}
+        /invoke ${out[3, "Cast${sep}${sp}${spellData.RankName}\ax"]}
       } else /if (${_spawn.ID} != 0 && ${Target.ID} && ${Target.ID} == ${_spawn.ID}) {
-        /invoke ${out[3, "Cast${sep}${sp}${_spell.RankName}\ax ${dot} ${con_color[FALSE, ${_spawn.ID}]}\ax"]}
+        /invoke ${out[3, "Cast${sep}${sp}${spellData.RankName}\ax ${dot} ${con_color[FALSE, ${_spawn.ID}]}\ax"]}
       }
 
       /while (${_castLoop} > 0) {
@@ -15436,12 +14823,12 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
           /break
         }
 
-        /cast ${Me.Gem[${_spell.RankName}]}
+        /cast ${Me.Gem[${spellData.RankName}]}
         /delay 1
         /delay 1s ${Me.Casting.ID}
 
         | set delays for casting. GTFO out of this as fast as possible
-        /varset _castTime ${Math.Calc[${_spell.MyCastTime}+60]}
+        /varset _castTime ${Math.Calc[${spellData.MyCastTime}+60]}
         DEBUG ${sep}_castTime${sep}\a-w${_castTime}\ax
 
         | /invoke ${set_timer[${_debug}, _castTime, ${_castTime}]}
@@ -15503,7 +14890,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
         } else /if (${Select[${maData.Find[stCastReturn].Value},FIZZLE]}) {
           DEBUG ${sep}spell.cr:FIZZLE.\agretry\ax
           /if (${maEntropy.Find[stCountFizzleRetry].Value}) {
-            /delay ${Math.Calc[${Me.Gem[${_spell.RankName}].RecastTime.Seconds} + 3]}s 
+            /delay ${Math.Calc[${Me.Gem[${spellData.RankName}].RecastTime.Seconds} + 3]}s 
             /varcalc _castLoop ${_castLoop} + 1
 
             /if (${_castLoop} >= ${maEntropy.Find[stCountFizzleRetry].Value}) {
@@ -15532,35 +14919,35 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
   | discs
   } else /if (${Select[${maCD.Find[type].Value},DISC]}) {
 
-    DEBUG ${sep}\agDISC\ax${sep}${Spell[${_spell}]}${sep}${_spell.ID}
+    DEBUG ${sep}\agDISC\ax${sep}${spellData}${sep}${spellData.ID}
     /delay 1
 
-    /if (${Me.CurrentEndurance} < ${_spell.EnduranceCost}) {
+    /if (${Me.CurrentEndurance} < ${spellData.EnduranceCost}) {
       DEBUG ${break}.CurrentEndurance
       /return FALSE
     }
-    /if (${_spawn.Distance} > ${_spell.MyRange}) {
+    /if (${_spawn.Distance} > ${spellData.MyRange}) {
       DEBUG ${break}.MyRange
       /return FALSE
     }
-    /if (${Me.Song[${_spell}].Duration}) {
+    /if (${Me.Song[${spellData}].Duration}) {
       DEBUG ${break}Me.Song.Duration
       /return FALSE
     }
-    /if (${Me.Buff[${_spell}].Duration}) {
+    /if (${Me.Buff[${spellData}].Duration}) {
       DEBUG ${break}Me.Song.Duration
       /return FALSE
     }
 
     | stacking
-    /if (!${Spell[${_spell.ID}].WillLand}) {
-      DEBUG ${break}Spell[${_spell.ID}].WillLand
+    /if (!${Spell[${spellData.ID}].WillLand}) {
+      DEBUG ${break}Spell[${spellData.ID}].WillLand
       /return FALSE
     }
 
     | CHECK DISK DURATION VS ACTIVE DISC FOR STACKING ISSUES/ BLOCKED DISCS
-    /if (${Me.ActiveDisc.ID} == ${_spell.ID}) {
-      DEBUG ${break}ActiveDisc.ID == _spell.ID
+    /if (${Me.ActiveDisc.ID} == ${spellData.ID}) {
+      DEBUG ${break}ActiveDisc.ID == spellData.ID
       /return FALSE
     }
 
@@ -15570,13 +14957,13 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
     }
 
     /if (${_spawn.ID} == 0) {
-      /invoke ${out[4, "Disc${sep}${sp}${Spell[${_spell}]}\ax"]}
+      /invoke ${out[4, "Disc${sep}${sp}${Spell[${spellData}]}\ax"]}
     } else /if (${_spawn.ID} != 0 && ${Target.ID}) {
-      /invoke ${out[4, "Disc${sep}${sp}${Spell[${_spell}]}\ax ${dot} ${con_color[FALSE, ${_spawn.ID}]}\ax"]}
+      /invoke ${out[4, "Disc${sep}${sp}${Spell[${spellData}]}\ax ${dot} ${con_color[FALSE, ${_spawn.ID}]}\ax"]}
     }
     
     ISMEDEAD
-    /disc ${_spell.ID}
+    /disc ${spellData.ID}
 
     /delay 5
     /while (${Me.Casting.ID} && ${Window[CastingWindow].Open}) {
@@ -15692,7 +15079,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
   } else /if (${Select[${maCD.Find[type].Value},PULSE]}) {
     DEBUG ${sep}\agPULSE\ax${sep}
 
-    /if (${Me.CurrentMana} < ${_spell.Mana}) {
+    /if (${Me.CurrentMana} < ${spellData.Mana}) {
       /return FALSE
     }
 
@@ -15701,8 +15088,8 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
     }
 
     | mem spell if needed??
-    /if (!${Me.Gem[${_spell.RankName}]}) {
-      /call set_spell_to ${_debug} TRUE "${_spell.RankName}" ${maEnv.Find[stBuffGem].Value} TRUE
+    /if (!${Me.Gem[${spellData.RankName}]}) {
+      /call set_spell_to ${_debug} TRUE "${spellData.RankName}" ${maEnv.Find[stBuffGem].Value} TRUE
     }
 
     | make sure we have our target if one is passed. 0 is assumed no target required
@@ -15711,25 +15098,25 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
     }
 
     /if (${_spawn.ID} == 0) {
-      /invoke ${out[5, "Play${sep}${sp}${_spell.RankName}\ax"]}
+      /invoke ${out[5, "Play${sep}${sp}${spellData.RankName}\ax"]}
     } else /if (${_spawn.ID} != 0 && ${Target.ID}) {
-      /invoke ${out[5, "Pulse${sep}${sp}${_spell.RankName}\ax ${dot} ${con_color[FALSE, ${_spawn.ID}]}\ax"]}
+      /invoke ${out[5, "Pulse${sep}${sp}${spellData.RankName}\ax ${dot} ${con_color[FALSE, ${_spawn.ID}]}\ax"]}
     }
 
     /while (${_castLoop}) {
       ISMEDEAD
-      /cast ${Me.Gem[${_spell.RankName}]}
+      /cast ${Me.Gem[${spellData.RankName}]}
       /delay 1
 
       | bard swap mechanics
       /while (${Window[CastingWindow].Open}) {
         /if (${maChr.Find[swInstrumentSwap].Value}) {
           /if (${Me.CastTimeLeft} < ${maHard.Find[stBardSwapRemain].Value}) {
-            /if (${maBardFocus.Find[${Skill[${_spell.Skill}].ID}].Value.Arg[3,|]}) {
-              /if (${FindItem[${maBardFocus.Find[${Skill[${_spell.Skill}].ID}].Value.Arg[1,|]}].WornSlot[offhand]}) {
-                /call Bind_command_swap "${FindItem[${maBardFocus.Find[${Skill[${Spell[${_spell.ID}].Skill}].ID}].Value.Arg[1,|]}].Name}" 14 FALSE
-              } else /if (${FindItem[${maBardFocus.Find[${Skill[${_spell.Skill}].ID}].Value.Arg[1,|]}].WornSlot[mainhand]}) {
-                /call Bind_command_swap "${FindItem[${maBardFocus.Find[${Skill[${Spell[${_spell.ID}].Skill}].ID}].Value.Arg[1,|]}].Name}" 13 FALSE
+            /if (${maBardFocus.Find[${Skill[${spellData.Skill}].ID}].Value.Arg[3,|]}) {
+              /if (${FindItem[${maBardFocus.Find[${Skill[${spellData.Skill}].ID}].Value.Arg[1,|]}].WornSlot[offhand]}) {
+                /call Bind_command_swap "${FindItem[${maBardFocus.Find[${Skill[${Spell[${spellData.ID}].Skill}].ID}].Value.Arg[1,|]}].Name}" 14 FALSE
+              } else /if (${FindItem[${maBardFocus.Find[${Skill[${spellData.Skill}].ID}].Value.Arg[1,|]}].WornSlot[mainhand]}) {
+                /call Bind_command_swap "${FindItem[${maBardFocus.Find[${Skill[${Spell[${spellData.ID}].Skill}].ID}].Value.Arg[1,|]}].Name}" 13 FALSE
               }
             }
           }
@@ -15776,15 +15163,15 @@ sub have_buff(bool _debug)
 
    
   /if (${Select[${maCD.Find[type].Value},alt]}) {
-    /if (${Me.Buff[${maCD.Find[name].Value}].ID} || ${Me.Song[${maCD.Find[name].Value}].ID} || ${Me.Buff[${_spell.Name}].ID} || ${Me.Song[${_spell.Name}].ID}) {
-      DEBUG ${break}have buff/song (\a-r${_spell.Name}\ax)
+    /if (${Me.Buff[${maCD.Find[name].Value}].ID} || ${Me.Song[${maCD.Find[name].Value}].ID} || ${Me.Buff[${spellData.Name}].ID} || ${Me.Song[${spellData.Name}].ID}) {
+      DEBUG ${break}have buff/song (\a-r${spellData.Name}\ax)
       /return TRUE
     }
     
    
   } else /if (${Select[${maCD.Find[type].Value},spell,song,item]}) {
-    /if (${Me.Buff[${_spell.Name}].ID} || ${Me.Song[${_spell.Name}].ID}) {
-      DEBUG ${break}have buff/song (\a-r${_spell.Name}\ax)
+    /if (${Me.Buff[${spellData.Name}].ID} || ${Me.Song[${spellData.Name}].ID}) {
+      DEBUG ${break}have buff/song (\a-r${spellData.Name}\ax)
       /return TRUE
     }
 
@@ -16177,5 +15564,46 @@ sub spawn_dannet(bool _debug, string _channel, int _count)
 
 
 
+|***
+ * note: find the best alliance you have with given conditions
+ * use: ${get_best_in_alliance[DEBUG, TARGETTYPE, SUBCATEGORY, ATRIBUTENAME]}
+ ***|
+sub get_best_in_alliance(bool _debug, string _targettype, string _subcat, string _attrib)
+  DEBUG \atget_best_in_alliance\ax(\a-w${_targettype}, ${_subcat}, ${_attrib}\ax)
+  
+  /declare _running         int local 0
+  /declare _max             int local 0
+  /declare _maxName         string local FALSE
+  /declare _countNumEff     int local 0
+  /declare _countSPA        int local 0
 
+  /while (TRUE) {
+    /sqlite query "${DBstatic}" qBestSpell SELECT * FROM eq_spa WHERE value="${_attrib}";
+    /if (${sqlite.Resultcode[qBestSpell]} == 0) /break
+  }
 
+  /for _count 1 to ${maHard.Find[stSpellBookSize].Value}
+    /if (!${Me.Book[${_count}].ID}) /continue
+    /if (${Me.Book[${_count}].Subcategory.NotEqual[${_subcat}]}) /continue
+    /if (${Me.Book[${_count}].TargetType.NotEqual[${_targettype}]}) /continue
+    /if (!${Me.Book[${_count}].HasSPA[${sqlite.Result[qBestSpell 1 env_var]}]}) /continue
+    /for _countNumEff 1 to ${Me.Book[${_count}].NumEffects}
+      /for _countSPA 1 to ${Me.Book[${_count}].Trigger[${_countNumEff}].NumEffects}
+        /varset _running ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}
+        /if (${_running} < -1) {
+          /if (${_running} <= ${_max}) {
+            /varset _max ${_running}
+            /varset _maxName ${Me.Book[${_count}]}
+          }
+        } else {
+          /if (${_running} >= ${_max}) {
+            /varset _max ${_running}
+            /varset _maxName ${Me.Book[${_count}]}
+          }
+        }
+      /next _countSPA
+    /next _countNumEff
+  /next _count
+
+/return ${_maxName}    
+  

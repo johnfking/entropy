@@ -130,7 +130,7 @@ sub class_main(bool _debug)
 sub misc_combat(bool _debug, spawn _spawn)
   DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
-  TMPIDDEAD
+  SPAWNDEAD
   CHECKEXIT
   GETINPUT
 

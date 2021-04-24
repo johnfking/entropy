@@ -112,7 +112,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210413.01
+  /call set_data FALSE maEnv build                          map outer 210424.01
   /call set_data FALSE maEnv schema                         map outer 1.45
   /call set_data FALSE maEnv repo                           map outer 210216.01
 
@@ -355,9 +355,8 @@ sub prepare_the_end(bool _debug)
   /call set_data ${_debug} FALSE DBshared                                string outer "${_pathDB}\entropy\data\shared.sqlite"
   | farmroute location ini
   /call set_data ${_debug} FALSE INIfarmroute                            string outer "${_pathINI}\data\farmroute.ini"
-
-  | /call set_data ${_debug} FALSE INIsqlupdate                            string outer "${_pathINI}\inc\sql_update.ini"
-
+  | database clean up records
+  /call set_data ${_debug} FALSE INIsqlupdate                            string outer "${_pathINI}\inc\sql_update.ini"
 
 
   | load all tag names
@@ -433,9 +432,7 @@ sub prepare_the_end(bool _debug)
     /if (${DanNet.Evasive} != ${maEntropy.Find[stNetworkEvasive].Value}) {
       /squelch /dnet evasive ${maEntropy.Find[stNetworkEvasive].Value}
     }
-    | /if (${DanNet.EvasiveRefresh} != ${maEntropy.Find[swEvasiveRefresh].Value}) {
-      /squelch /dnet evasiverefresh ${maEntropy.Find[swEvasiveRefresh].Value}
-    | }
+    /squelch /dnet evasiverefresh ${maEntropy.Find[swEvasiveRefresh].Value}
     /if (${DanNet.Expired} != ${maEntropy.Find[stNetworkExpired].Value}) {
       /squelch /dnet expired ${maEntropy.Find[stNetworkExpired].Value}
     }

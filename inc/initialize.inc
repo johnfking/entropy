@@ -435,7 +435,6 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[arb,submenu]}
     /invoke ${maChrControl.Add[beacon,stCountBeaconofLife]}
-    /invoke ${maChrControl.Add[divinerez,swDivineCleric]}
     /invoke ${maChrControl.Add[issuance,stCountIssuance]}
     /invoke ${maChrControl.Add[primary,submenu]}
     /invoke ${maChrControl.Add[vp,stPctVP]}
@@ -3201,59 +3200,38 @@ sub sql_db_update(bool _debug, string _type, string _verbage)
       /call sql_drop ${_mi.Value} ${_mi.Key} ${maDebug.Find[sql].Value}
       /invoke ${_mi.Advance}
     }
+
+
   }
-  
 
 
+  |** 
+   * uncomment when needed
 
   | loot database
   /if (${_type.Equal[loot]} || ${_verbage.Equal[force]}) {
     /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-wloot.sqlite\ax
-    
-    
   }
-
 
   | nav database
   /if (${_type.Equal[nav]} || ${_verbage.Equal[force]}) {
     /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-wnav.sqlite\ax
-  
-  
   }
-  
-
 
   | shared database
   /if (${_type.Equal[shared]} || ${_verbage.Equal[force]}) {
     /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-wshared.sqlite\ax
     /declare _tmpShare map local
     /declare _mis mapiterator local
-
-
-    | nuke/dot changes
-    /if (${maEnv.Find[build].Value} >= 201128.01 || ${_verbage.Equal[force]}) {
-      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w201128.01 \ax
-      | remove the role  MarkNPC, bad spelling case
-      /sqlite query "${DBshared}" dummy DELETE FROM roles WHERE name = 'MarkNPC'
-
-
-
-    }
-
-
-
   }
-
 
   | zone database
   /if (${_type.Equal[zone]} || ${_verbage.Equal[force]}) {
     /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-wzone.sqlite\ax
-
-
   }
 
-
-  }
+  *
+  **|
 
 /return
 

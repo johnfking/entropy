@@ -19,10 +19,23 @@ on the to do list
 - break out triggers for minion buffs
 - pet gear handing for damn TLP feeders..
 --------------------
-REMINDER:
-- put the `=` back into check_drop_buffs()
---------------------
 
+
+210424.01
+** Reminder, this is only an update for MQNext users
+- monk
+  corrected a dead ID check
+- pulling
+  some adjustments to the loop counting for finding mobs that are possible targets
+  i either made it better, or much, much worse
+- harvest
+  removed a NEXT check
+- disbled /cc alliance till i find a good way to do  them for all classes.
+- corrected ~300 instances of _spell to spellData to keep the damn naming conventions standard
+- shaman
+  corrected the target spawn for splashes
+- cleric
+  removed a dupe command from /chr that was in /rez
 
 
 210413.01

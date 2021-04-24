@@ -336,37 +336,37 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
       
     /call cast_data TRUE "${_verbage}"
 
-    /echo ${_spell.Name}
+    /echo ${spellData.Name}
 
     
     /declare _list string local
     /declare _count int local 0
     
     MQCLEAR
-    OUT \aw${_spell.Name}\ax ${sep} ID\a-w ${_spell}\ax ${sep} Group \a-w${_spell.SpellGroup}\ax ${sep} lvl \a-w${_spell.Level}\ax
-    OUT \awTarget Type ${sep} \a-w${_spell.TargetType}\ax
-    OUT \awSub Category ${sep} \a-w${_spell.Subcategory}\ax
-    OUT \awSPA Count\ax ${sep} \a-w${_spell.NumEffects}\ax
+    OUT \aw${spellData.Name}\ax ${sep} ID\a-w ${spellData}\ax ${sep} Group \a-w${spellData.SpellGroup}\ax ${sep} lvl \a-w${spellData.Level}\ax
+    OUT \awTarget Type ${sep} \a-w${spellData.TargetType}\ax
+    OUT \awSub Category ${sep} \a-w${spellData.Subcategory}\ax
+    OUT \awSPA Count\ax ${sep} \a-w${spellData.NumEffects}\ax
 
-    /for _count 1 to ${_spell.NumEffects}
+    /for _count 1 to ${spellData.NumEffects}
       OUT #\ay${_count}\ax
-      /if (${Select[${_spell.Attrib[${_count}]},10]}) /continue
-      /sqlite query "${DBstatic}" dummy SELECT * FROM eq_spa WHERE env_var='${_spell.Attrib[${_count}]}'
-      OUT ${dot} .Attrib \a-w${_spell.Attrib[${_count}]}\ax ${dot} \a-g${sqlite.Result[dummy 1 value]}\ax
-      OUT ${dot} .Trigger \a-w${_spell.Trigger[${_count}].Name}\ax ${dot} ID:\a-w${_spell.Base2[${_count}]}\ax\ax ()
-      OUT ${dot} .Base \a-w${_spell.Base[${_count}]}\ax
-      OUT ${dot} .Max \a-w${_spell.Max[${_count}]} \ax
-      OUT ${dot} .Calc \a-w${_spell.Calc[${_count}]} \ax
-      OUT ${dot} .Restrictions \a-w${_spell.Restrictions[${_count}]}\ax
-      OUT ${dot} .Extra \a-w${_spell.Extra}\ax
+      /if (${Select[${spellData.Attrib[${_count}]},10]}) /continue
+      /sqlite query "${DBstatic}" dummy SELECT * FROM eq_spa WHERE env_var='${spellData.Attrib[${_count}]}'
+      OUT ${dot} .Attrib \a-w${spellData.Attrib[${_count}]}\ax ${dot} \a-g${sqlite.Result[dummy 1 value]}\ax
+      OUT ${dot} .Trigger \a-w${spellData.Trigger[${_count}].Name}\ax ${dot} ID:\a-w${spellData.Base2[${_count}]}\ax\ax ()
+      OUT ${dot} .Base \a-w${spellData.Base[${_count}]}\ax
+      OUT ${dot} .Max \a-w${spellData.Max[${_count}]} \ax
+      OUT ${dot} .Calc \a-w${spellData.Calc[${_count}]} \ax
+      OUT ${dot} .Restrictions \a-w${spellData.Restrictions[${_count}]}\ax
+      OUT ${dot} .Extra \a-w${spellData.Extra}\ax
 
-      /varset _list ${_list} ${_spell.Attrib[${_count}]}
+      /varset _list ${_list} ${spellData.Attrib[${_count}]}
     /next _count
     OUT ${dot} ${dot} ${dot} ${dot}
     OUT \awSPA list\ax ${sep} \a-w${_list}\ax
 
     | OUT \aw/spellslotinfo\ax
-    /spellslotinfo ${_spell.ID}
+    /spellslotinfo ${spellData.ID}
     /invoke ${out[18, 0, 33]}
     /return TRUE
 
@@ -562,6 +562,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
     /return TRUE
   }
 
+  SETHUD EMPTY
   | macro auto/manual
   /if (${_type.Equal[auto]}) {
     /invoke ${set_switch_env[${_debug}, swAuto, FALSE, ${_verbage}]}
@@ -1725,7 +1726,6 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
 
     }
 
-
     /invoke ${maControl.Clear}
     /invoke ${maControl.Add[list,list]}
     /invoke ${maControl.Add[pct,stPctChain]}
@@ -1733,8 +1733,7 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
     /invoke ${maControl.Add[pause,stChainPause]}
     /invoke ${set_control_output[${_debug}, maHeal, "heal chain", maControl]}
     /return TRUE
-    
-    
+       
   }
 
   /invoke ${maControl.Clear}
@@ -2797,7 +2796,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
 
   | use alliance
   } else /if (${_type.Equal[alliance]}) {
-    /invoke ${set_switch_env[${_debug}, swAlliance, TRUE, ${_verbage}]}
+    | /invoke ${set_switch_env[${_debug}, swAlliance, TRUE, ${_verbage}]}
 
   | stop on target DS switch
   } else /if (${_type.Equal[stoponds]}) {
@@ -2857,7 +2856,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
   /invoke ${maControl.Add[engage,stPctEngage]}
   /invoke ${maControl.Add[zradius,stZRadius]}
   /invoke ${maControl.Add[stoponds,swStoponDS]}
-  /invoke ${maControl.Add[alliance,swAlliance]}
+  | /invoke ${maControl.Add[alliance,swAlliance]}
   /invoke ${set_control_output[${_debug}, maCC, cc, maControl]}
 
 /return TRUE
@@ -3036,7 +3035,7 @@ sub Bind_command_alto(string _type, string _debug)
     /lua run get_help alto ${_type.Right[1]}
     /return TRUE
   }
-
+  
   /if (${Me.AutoFire}) {
     /squelch /autofire
   }
