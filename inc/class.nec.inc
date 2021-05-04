@@ -171,7 +171,7 @@ sub check_heal(bool _debug, string _type)
 sub misc_combat(bool _debug, spawn _spawn)
   DEBUG \atmisc_combat\ax(\a-w${_spawn.ID}\ax)
 
-  TMPIDDEAD
+  SPAWNDEAD
   CHECKEXIT
   GETINPUT
 
@@ -220,7 +220,7 @@ sub misc_combat(bool _debug, spawn _spawn)
 sub burn(bool _debug, spawn _spawn)
   DEBUG \atburn\ax(\a-w${_spawn.ID}\ax)
 
-  TMPIDDEAD
+  SPAWNDEAD
 
   CHECKEXIT
   GETINPUT

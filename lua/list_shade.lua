@@ -10,7 +10,6 @@ require "common"
 math.randomseed(os.time())
 local shade = {}
 
-
   shade[1] = "Seriously... Again..."
   shade[2] = "Did your parents ever ask you to run away from home?"
   shade[3] = "How do you have the energy to talk so much?"

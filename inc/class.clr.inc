@@ -115,6 +115,11 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAAVeturikasPerseverance        PREGEN|1                      "${auxna} veturika's verseverance AA"
   /call set_data_map ${_debug} maChr stAAQuietPrayer                  PREGEN|1                      "${auxna} quiet vrayer AA"
   /call set_data_map ${_debug} maChr stAASanctuary                    PREGEN|1                      "${auxna} sanctuary AA"
+  
+  
+  | test db entry 
+  | /call set_data_map ${_debug} maChr stDeleteMe                    FALSE                            "DELETE THIS ENTRY"
+  
 
   /if (${maDebug.Find[init].Value}) {
     OUT \agset_${Me.Class.ShortName}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
@@ -281,6 +286,16 @@ sub check_heal(bool _debug, string _type)
   /if (${maHeal.Find[swChain].Value} && ${maHeal.Find[swChainToken].Value}) {
     /call completeheal_chain ${maDebug.Find[chain].Value}
   }
+  
+  | Complete Heal
+  /if (${maHeal.Find[stPctCH].Value}) {
+    /if (${Group.MainTank.PctHPs} <= ${maHeal.Find[stPctCH].Value}) {
+      SETHUD "heal complete"
+      /call cast_cycle_heal ${_debug} ${Group.MainTank.ID} complete
+      SETHUD FALSE
+      /return FALSE
+    }
+  }  
 
   /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
@@ -303,7 +318,7 @@ sub check_heal(bool _debug, string _type)
   }
 
   /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
-    SETHUD EMPTY
+    SETHUD
     /delay 1
     /return FALSE
   }
@@ -311,13 +326,6 @@ sub check_heal(bool _debug, string _type)
   SETHUD "heal ${_type.Lower}"
   
   /if (!SAFEZONE) {
-
-    | Complete Heal
-    | requires group roll Main Tank set to function
-    /if (${Select[${_type},ch]}) {
-      /call cast_cycle_heal ${_debug} ${Group.MainTank.ID} complete
-      /return FALSE
-    }
 
     | group healing
     /if (${Select[${_type},group]} && ${hurtCount}) {
@@ -357,7 +365,7 @@ sub check_heal(bool _debug, string _type)
     | Focused Celestial Regeneration - out of raid only
     /if (!${Raid.Members}) {
       /if (${hurtData.PctHPs} <= ${maHeal.Find[stHealPoint${hurtData.Class.ShortName}].Value}*.PCTHO && !${Me.Song[${maChr.Find[stAACelestialRegeneration].Value}].ID}) {
-        /if (${cast_data[${_debug}, "${maChr.Find[stAAFocusedCelestialRegeneration].Value}",ready]}) {
+        /if (${cast_data[${_debug}, "${maChr.Find[stAAFocusedCelestialRegeneration].Value}"]}) {
           /call cast ${_debug} ${hurtData.ID} FALSE
         }
       }

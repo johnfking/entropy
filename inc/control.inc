@@ -264,9 +264,8 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     /return TRUE
 
   } else /if (${_type.Equal[sqlcheck]}) {
-    /invoke ${out[0, "Checking database for stale data${sep}"]}
-    /call sql_db_update ${maDebug.Find[sql].Value} FALSE force
-    /invoke ${out[0, "Done"]}
+    /call sql_schema_stale_check ${maDebug.Find[sql].Value} TRUE
+    /invoke ${out[18, 0, 33]}
     /return TRUE
 
   } else /if (${_type.Equal[sqldrop]}) {
@@ -562,7 +561,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
     /return TRUE
   }
 
-  SETHUD EMPTY
+  SETHUD
   | macro auto/manual
   /if (${_type.Equal[auto]}) {
     /invoke ${set_switch_env[${_debug}, swAuto, FALSE, ${_verbage}]}
@@ -1129,7 +1128,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
       CHECKDEAD
       /delay 2
     }
-    SETHUD EMPTY
+    SETHUD
     /return
 
   } else /if (${_type.Equal[arc]}) {
@@ -1264,6 +1263,10 @@ sub Bind_command_tie(string _type, bool _debug)
     /invoke ${maTie.Add[swSetTie, FALSE]}
     /return FALSE
   }
+  
+  /if (HOME) {
+    /call Bind_control_home clear FALSE silent ${maDebug.Find[home].Value}
+  }  
 
   | set tie on and force to nav
   /if (${_type.Equal[nav]}) {
@@ -1915,40 +1918,38 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
 
     | character engage
     /if (${_verbage.Equal[engage]}) {
-       /invoke ${set_switch_env[${_debug}, swRNDEngage, TRUE, ${_verbage2}]}
+      /if (!${set_control_num_range[${_debug}, stRNDEngage, "${_verbage2}", 0, 100]}) /return
 
     | pet engage
     } else /if (${_verbage.Equal[pet]}) {
-       /invoke ${set_switch_env[${_debug}, swRNDEngagePet, TRUE, ${_verbage2}]}
+      /if (!${set_control_num_range[${_debug}, stRNDEngagePet, "${_verbage2}", 0, 100]}) /return
 
     | swarm engage
     } else /if (${_verbage.Equal[swarm]}) {
-       /invoke ${set_switch_env[${_debug}, swRNDEngageSwarm, TRUE, ${_verbage2}]}
+      /if (!${set_control_num_range[${_debug}, stRNDEngageSwarm, "${_verbage2}", 0, 100]}) /return
 
     | burn engage
     } else /if (${_verbage.Equal[burn]}) {
-       /invoke ${set_switch_env[${_debug}, swRNDEngageBurn, TRUE, ${_verbage2}]}
+      /if (!${set_control_num_range[${_debug}, stRNDEngageBurn, "${_verbage2}", 0, 100]}) /return
 
     | burn engage
     } else /if (${_verbage.Equal[rez]}) {
-       /invoke ${set_switch_env[${_debug}, swRNDRezTake, TRUE, ${_verbage2}]}
+      /if (!${set_control_num_range[${_debug}, stRNDRezTake, "${_verbage2}", 0, 100]}) /return
 
-
-       
-    | variance for +/-
-    } else /if (${_verbage.Equal[variance]}) {
-      /if (!${set_control_num_range[${_debug}, stRNDVariance, "${_verbage2}", 1, 5]}) /return
+    | repeat delay
+    } else /if (${_verbage.Equal[repeat]}) {
+      /if (!${set_control_num_range[${_debug}, stRNDRepeat, "${_verbage2}", 0, 100]}) /return
 
        
     }
 
     /invoke ${maControl.Clear}
-    /invoke ${maControl.Add[engage,swRNDEngage]}
-    /invoke ${maControl.Add[pet,swRNDEngagePet]}
-    /invoke ${maControl.Add[swarm,swRNDEngageSwarm]}
-    /invoke ${maControl.Add[burn,swRNDEngageBurn]}
-    /invoke ${maControl.Add[rez,swRNDRezTake]}
-    /invoke ${maControl.Add[variance,stRNDVariance]}
+    /invoke ${maControl.Add[engage,stRNDEngage]}
+    /invoke ${maControl.Add[pet,stRNDEngagePet]}
+    /invoke ${maControl.Add[swarm,stRNDEngageSwarm]}
+    /invoke ${maControl.Add[burn,stRNDEngageBurn]}
+    /invoke ${maControl.Add[rez,stRNDRezTake]}
+    /invoke ${maControl.Add[repeat,stRNDRepeat]}
     /invoke ${set_control_output[${_debug}, maEntropy, "entropy random", maControl]}
     /return TRUE    
     
@@ -3221,7 +3222,8 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
     /if (${Bool[${Spawn[pc ${_sender} radius 60].ID}]}) {
       /call target set ${_tmpID}
       /if (${Target.ID} == ${_tmpID}) {
-        /delay ${Int[${Math.Calc[${Math.Rand[20]}+10]}]}
+        /delay ${Int[${Math.Calc[${Math.Rand[${maEntropy,Find[stRNDRepeat].Value}]} + 10]}]}
+        
         /say ${_verbage}
         /delay 1s
       }
@@ -4193,7 +4195,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
       }
       /invoke ${_liset.Advance}
     }
-    SETHUD EMPTY
+    SETHUD
     OUT Set${sep}\a-w${_nickname}\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_loadtimestart}) / 10) / 60]}s\ax
     /return TRUE
 

@@ -23,7 +23,7 @@
 
 #define ECHO /echo
 #define DEBUG "/if (${_debug}) ECHO \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax"
-#define SDEBUG "ECHO \ay+[\ax\aw${Time.Second}\ax\at::\ax\aw${Macro.CurLine}\ax\ay]\ax(\a-t${Macro.RunTime}\ax) \ay--\ax "
+#define SDEBUG "ECHO \ay+[\ax\aw${Time.Second}\ax\at::\ax\aw${Macro.CurLine}\ax\ay]\ax(\a-t${Macro.RunTime}\ax) \ay-\ax"
 #define EDEBUG "/if (${maDebug.Find[event].Value}) ECHO \a-p:\ax\aw${Time.Second}\ax\a-p:\ax\aw${Macro.CurLine}\ax\a-p:\ax\a-t${Macro.RunTime}\ax\a-p:\ax${sep}\a-t----\ax${submenu}"
 #define OUT ECHO ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}
 #define GETINPUT "/call get_input"
@@ -112,8 +112,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210424.01
-  /call set_data FALSE maEnv schema                         map outer 1.45
+  /call set_data FALSE maEnv build                          map outer 210504.02
+  /call set_data FALSE maEnv schema                         map outer 1.46
   /call set_data FALSE maEnv repo                           map outer 210216.01
 
   | prep macro
@@ -182,7 +182,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     GETINPUT main_loop swAuto|${maEnv.Find[swAuto].Value}
     ISMEDEAD
     CHECKCURSOR
-    SETHUD EMPTY
+    SETHUD
     CHECKTIE
 
     | check GTFO conditions
@@ -218,7 +218,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     }
 
     /if (AUTO) {
-      SETHUD EMPTY
+      SETHUD
       ISMEDEAD
       GETINPUT
       CHECKREZ
@@ -356,7 +356,7 @@ sub prepare_the_end(bool _debug)
   | farmroute location ini
   /call set_data ${_debug} FALSE INIfarmroute                            string outer "${_pathINI}\data\farmroute.ini"
   | database clean up records
-  /call set_data ${_debug} FALSE INIsqlupdate                            string outer "${_pathINI}\inc\sql_update.ini"
+  /call set_data ${_debug} FALSE INIsqlupdate                            string outer "${_pathINI}\inc\sql.ini"
 
 
   | load all tag names
@@ -392,6 +392,9 @@ sub prepare_the_end(bool _debug)
 
   | map the macro/game environment
   /call set_initial_environment FALSE
+
+  | remove stale table data (if any)
+  /call sql_schema_stale_check ${maDebug.Find[s_stale].Value} FALSE
 
   | check zone schema
   /call sql_schema_zone ${maDebug.Find[s_zone].Value}
@@ -475,47 +478,6 @@ sub prepare_the_end(bool _debug)
 
   | correct the map click spam.
   /squelch /mapclick left alt /nav locyx %y %x |log=off
-
-
-
-
-
-|**
- /declare _tmpMap map local
- /declare _mi mapiterator local
-
- /declare _tmpList list local
- /declare _li listiterator local
- /declare _countH int local 0
- /declare _countK int local 0
-
-  /for _countH 1 to ${Math.Calc[${Ini[${INIsqlupdate}].Count[|]} - 1].Int}
-
-    /echo ${Ini[${INIsqlupdate}].Arg[${_countH},|]}
-
-  /next _countH 
-
-
-}
-
-${Ini[${INIsqlupdate}].Count[|]}
-
-
-**|
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /return TRUE
 

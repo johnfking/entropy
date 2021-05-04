@@ -44,11 +44,11 @@ sub set_debug(string _verbage)
   | combat
   /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait,hardstop,prediction]}
   | other
-  /invoke ${lsDebugother.Append[rest,meal,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch,staminarecover,inventoryscan,invis]}
+  /invoke ${lsDebugother.Append[rest,meal,spire,glyph,fireworks,manarecover,fade,event,watch,tag,safe,intensity,chrwatch,staminarecover,inventoryscan,invis,gather]}
   | admin
   /invoke ${lsDebugadmin.Append[build,observe,house,exit,sql,edit,e3]}
   | schema (database creation/modification)
-  /invoke ${lsDebugschema.Append[init,s_zone,s_character,s_loot,s_nav,s_shared]}
+  /invoke ${lsDebugschema.Append[init,s_zone,s_character,s_loot,s_nav,s_shared,s_stale]}
   | area
   /invoke ${lsDebugzone.Append[area]}
 
@@ -621,9 +621,6 @@ sub sql_schema_zone(bool _debug)
       /sqlite query "${DBzone}" updatebuildnum UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number';
       /if (!${sql_check[${_debug}, updatebuildnum, sql_schema_zone, "UPDATE (metadata)"]})  /endmacro
 
-      | call macro update by version here. doubt there will be any
-      /call sql_db_update ${_debug} zone
-
       | db locked?
       /if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
     }
@@ -641,7 +638,7 @@ sub sql_schema_zone(bool _debug)
       /sqlite query "${DBzone}" updateschemanum UPDATE metadata SET version='${maEnv.Find[schema].Value}' WHERE name='schema_number';
       /if (!${sql_check[${_debug}, updateschemanum, sql_schema_zone, "UPDATE (metadata)"]}) /endmacro
 
-      /call sql_schema_update ${_debug} zone
+      /call sql_schema_update ${_debug} TRUE
 
       /if (${sqlite.Resultcode[updateschemanum]} == 0) /break
     }
@@ -729,10 +726,6 @@ sub sql_schema_loot(bool _debug)
     /while (TRUE) {
       /sqlite query "${DBloot}" updatebuildnum UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number';
       /if (!${sql_check[${_debug}, updatebuildnum, sql_schema_loot, "UPDATE (metadata)"]})  /endmacro
-
-      | call macro update by version here. doubt there will be any
-      /call sql_db_update ${_debug} loot
-
       /if (${sqlite.Resultcode[updatebuildnum]} != 0) /delay 1
       /if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
     }
@@ -850,7 +843,6 @@ sub sql_schema_character(bool _debug)
     DEBUG ${sep}correct build mismatch
     /sqlite query "${DBcharacter}" updatebuildnum  UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number'
     /if (!${sql_check[${_debug}, updatebuildnum,  sql_schema_character, "UPDATE (metadata)"]}) /endmacro
-    /call sql_db_update ${_debug} character
     /sqlite clear updatebuildnum
   }
 
@@ -1478,12 +1470,23 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy swTLP                            FALSE                         "${auxsw} TLP player"
 
   | randomize
-  /call set_data_map ${_debug} maEntropy stRNDVariance                    3                             "${auxsw} +/- variance for random %s"
-  /call set_data_map ${_debug} maEntropy swRNDEngage                      FALSE                         "${auxsw} randomize engage %"
-  /call set_data_map ${_debug} maEntropy swRNDEngagePet                   FALSE                         "${auxsw} randomize engage pet %"
-  /call set_data_map ${_debug} maEntropy swRNDEngageSwarm                 FALSE                         "${auxsw} randomize engage swarm %"
-  /call set_data_map ${_debug} maEntropy swRNDEngageBurn                  FALSE                         "${auxsw} randomize engage burn %"
-  /call set_data_map ${_debug} maEntropy swRNDRezTake                     FALSE                         "${auxsw} randomize randome delay to accept rez"
+  /call set_data_map ${_debug} maEntropy stRNDEngage                      0                             "${auxsw} randomize engage % by ##"
+  /call set_data_map ${_debug} maEntropy stRNDEngagePet                   0                             "${auxsw} randomize engage pet % by ##"
+  /call set_data_map ${_debug} maEntropy stRNDEngageSwarm                 0                             "${auxsw} randomize engage swarm % by ##"
+  /call set_data_map ${_debug} maEntropy stRNDEngageBurn                  0                             "${auxsw} randomize engage burn % by ##"
+  /call set_data_map ${_debug} maEntropy stRNDRezTake                     0                             "${auxsw} randomize random delay to accept rez (10th/sec)"
+  /call set_data_map ${_debug} maEntropy stRNDRepeat                      40                            "${auxsw} randomize delay time to echo /repeat (10th/sec)"
+
+
+  | /call set_data_map ${_debug} maEntropy stRNDVariance                    3                             "${auxsw} +/- variance for random %s"
+  | /call set_data_map ${_debug} maEntropy swRNDEngage                      FALSE                         "${auxsw} randomize engage %"
+  | /call set_data_map ${_debug} maEntropy swRNDEngagePet                   FALSE                         "${auxsw} randomize engage pet %"
+  | /call set_data_map ${_debug} maEntropy swRNDEngageSwarm                 FALSE                         "${auxsw} randomize engage swarm %"
+  | /call set_data_map ${_debug} maEntropy swRNDEngageBurn                  FALSE                         "${auxsw} randomize engage burn %"
+  | /call set_data_map ${_debug} maEntropy stRNDRezTake                     0                            "${auxsw} randomize random delay to accept rez (10th/sec)"
+  | /call set_data_map ${_debug} maEntropy swRNDRezTake                     FALSE                         "${auxsw} randomize random delay to accept rez"
+
+
   
 
   | dannet options
@@ -2416,11 +2419,6 @@ sub sql_schema_nav(bool _debug)
 
       /sqlite query "${DBnav}" updatebuildnum UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number';
       /if (!${sql_check[${_debug}, updatebuildnum, sql_schema_nav, "UPDATE (metadata)"]}) /endmacro
-
-      | call macro update by version here. doubt there will be any
-      /call sql_db_update ${_debug} nav
-
-      | db locked?
       /if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
     }
     /sqlite clear updatebuildnum
@@ -2464,15 +2462,45 @@ sub sql_schema_nav(bool _debug)
  ***|
 sub sql_drop(string _table, string _field, bool _echo)
 
+  /declare _db string local FALSE
+  /declare _dbtable string local FALSE
+
+  | character DB
+  /if (${_table.Equal[character]}) {
+    /varset _db DBcharacter
+    /varset _dbtable environment_${_table}
+
+  | loot DB
+  } else /if (${_table.Equal[loot]}) {
+    /varset _db DBloot
+    /varset _dbtable loot_control
+
+  | zone DB
+  } else /if (${_table.Equal[zone]}) {
+    /varset _db DBzone
+    /varset _dbtable zone_control
+
+  | nav DB
+  } else /if (${_table.Equal[nav]}) {
+    /varset _db DBnav
+    /varset _dbtable waypoint
+    
+  }
+
   | is the data there?
-  /sqlite query "${DBcharacter}" dummy SELECT * FROM environment_${_table} WHERE env_var='${_field}';
+  /sqlite query "${${_db}}" dummy SELECT * FROM ${_dbtable} WHERE env_var='${_field}';
 
   /if (${sqlite.Rows[dummy]}) {
-    /sqlite query "${DBcharacter}" dummy DELETE FROM environment_${_table} WHERE env_var='${_field}';
-    /if (${_echo}) OUT SQL DROP${sep}\a-w${_table}${submenu}${_field}\ax ${dot} \a-w${sqlite.Status[dummy]}\ax
+    /sqlite query "${${_db}}" dummy DELETE FROM ${_dbtable} WHERE env_var='${_field}';
+    /if (${_echo}) {
+      OUT SQL DROP${sep}\a-w${_dbtable}${submenu}${_field}\ax ${dot} \a-w${sqlite.Status[dummy]}\ax
+    }
 
   } else /if (!${sqlite.Rows[dummy]}) {
-    /if (${_echo}) OUT Not Found${sep}\a-w\a-w${_table}${submenu}${_field}\ax\ax
+    /if (${_echo}) {
+     OUT Not Found${sep}\a-w\a-w${_dbtable}${submenu}${_field}\ax\ax
+    }
+    
   }
 
 /return TRUE
@@ -2604,10 +2632,6 @@ sub sql_schema_shared(bool _debug)
     /while (TRUE) {
       /sqlite query "${DBshared}" updatebuildnum UPDATE metadata SET version='${maEnv.Find[build].Value}' WHERE name='build_number';
       /if (!${sql_check[${_debug}, updatebuildnum, sql_schema_shared, "UPDATE (value)"]}) /endmacro
-
-      | call macro update by version here. doubt there will be any
-      /call sql_db_update ${_debug} shared
-
       /if (${sqlite.Resultcode[updatebuildnum]} != 0) /delay 1
       /if (${sqlite.Resultcode[updatebuildnum]} == 0) /break
     }
@@ -3133,114 +3157,78 @@ sub sql_schema_update(bool _debug, string _type)
 
 
 |***
- * note: database data updates
- * use: called on every macro increment
+ * note: check for stale data base of character DB versioning
+ * use:
  ***|
-sub sql_db_update(bool _debug, string _type, string _verbage)
+sub sql_schema_stale_check(bool _debug, bool _force)
+  DEBUG \atsql_schema_stale_check\ax()
 
- /declare _tmpMap map local
- /declare _mi mapiterator local
+  /declare _metadataFail bool local FALSE
 
- /declare _tmpList list local
- /declare _li listiterator local
- /declare _count int local 0
+  | get character build version and maintain previous number
+  /sqlite query "${DBcharacter}" buildnumber SELECT version FROM metadata WHERE name='build_number';
+  /if (!${sql_check[${_debug}, buildnumber, sql_schema_character, "SELECT (buildnumber)"]}) /endmacro
+  
+  /if (!${sqlite.Rows[buildnumber]}) {
+    /return FALSE
+  }
+  /if (${sqlite.Rows[buildnumber]}) {
+    /invoke ${maData.Add[stPreviousBuild,${sqlite.Result[buildnumber 1 version]}]}
+  } else {
+    /invoke ${maData.Add[stPreviousBuild,0]}
+  }
 
+  | get character schema version and maintain previous number
+  /sqlite query "${DBcharacter}" schemanumber SELECT version FROM metadata WHERE name='schema_number';
+  /if (!${sql_check[${_debug}, schemanumber, sql_schema_character, "SELECT (schemanumber)"]}) /endmacro
+  /if (${sqlite.Rows[schemanumber]}) {
+    /invoke ${maData.Add[stPreviousSchema,${sqlite.Result[schemanumber 1 version]}]}
+  } else {
+    /invoke ${maData.Add[stPreviousSchema,0]}
+    /varset _metadataFail TRUE
+  }
 
- | character database
- /if (${_type.Equal[character]} || ${_verbage.Equal[force]}) {
-  /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-w${maData.Find[chrID].Value}.sqlite\ax
+  /declare _schemaMismatch bool local FALSE
+  /declare _buildMismatch bool local FALSE
 
+  | macro mismatch flag
+  /if (${sqlite.Result[buildnumber 1 version].NotEqual[${maEnv.Find[build].Value}]}) {
+    /varset _buildMismatch TRUE
+  }
 
+  | schema mismatch flag
+  /if (${sqlite.Result[schemanumber 1 version].NotEqual[${maEnv.Find[schema].Value}]}) {
+    /varset _schemaMismatch TRUE
+  }
 
+  | run stale data deletion on tables
+  /if (${_buildMismatch} || ${_schemaMismatch} || ${_force}) {
 
-|**
-    | redesign for rest
-    /if (${maEnv.Find[build].Value} >= 210404.01 || ${_verbage.Equal[force]}) {
-      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210404.01\ax
-      /invoke ${_tmpMap.Add[stPctRest,character]}
-      /invoke ${_tmpMap.Add[swRestFull,character]}                   
-      /invoke ${_tmpMap.Add[swRestModRod,character]}                 
-      /invoke ${_tmpMap.Add[swRestBuff,character]}                   
-      /invoke ${_tmpMap.Add[swRestCombat,character]}                 
-      /invoke ${_tmpMap.Add[stRestRadius,character]}
-      /invoke ${_tmpMap.Add[swMoveBehind,character]}
-    }
+    OUT \a-tSchema\ax${sep}\a-wstale data check\ax (\a-r${maEnv.Find[schema].Value}\ax)
+    /declare _count int local 0
+    /declare _countSection int loca 0
+    /declare _section string local
+    /declare _key string local
 
-    /if (${maEnv.Find[build].Value} >= 210210.01 || ${_verbage.Equal[force]}) {
-      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210210.01\ax
-      /invoke ${_tmpMap.Add[swblood,character]}
-    }
-
-    /if (${maEnv.Find[build].Value} >= 210201.01 || ${_verbage.Equal[force]}) {
-      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210201.01\ax
-      /invoke ${_tmpMap.Add[stStance,character]}
-      /invoke ${_tmpMap.Add[stSteel,character]}
-      /invoke ${_tmpMap.Add[stTempRune,character]}
-      /invoke ${_tmpMap.Add[stAAThousandBlades,character]}
-    }
-
-    /if (${maEnv.Find[build].Value} >= 210116.05 || ${_verbage.Equal[force]}) {
-      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210116.05\ax
-      /invoke ${_tmpMap.Add[stAAReflexiveRetort,character]}
-      /invoke ${_tmpMap.Add[stAARelfexiveRejoinder,character]}
-    }
-
-    | assisting redesign
-    /if (${maEnv.Find[build].Value} >= 210116.01 || ${_verbage.Equal[force]}) {
-      /if (${_verbage.Equal[force]}) OUT Build${sep}\a-w210116.01\ax
-      /invoke ${_tmpMap.Add[lsAssistDanNet,character]}
-      /invoke ${_tmpMap.Add[stManualAssist1,character]}
-      /invoke ${_tmpMap.Add[stManualAssist2,character]}
-    }
- **|
-
-    | remove the items we've collected
-    /vardata _mi _tmpMap.First.Clone
-    /while (!${_mi.IsEnd}) {
-      /call sql_drop ${_mi.Value} ${_mi.Key} ${maDebug.Find[sql].Value}
-      /invoke ${_mi.Advance}
-    }
-
+    /for _count 1 to ${Math.Calc[${Ini[${INIsqlupdate}].Count[|]} - 1].Int} 
+      /varset _section ${Ini["${INIsqlupdate}"].Arg[${_count},|]}
+      
+      /if (${_force}) {
+        OUT \aw[\ax\a-w${_section}\ax\aw]\ax
+      }
+      
+      DEBUG ${sep}\ay${_section}\ax
+      /for _countSection 1 to ${Math.Calc[${Ini["${INIsqlupdate}",${_section}].Count[|]} - 1].Int}
+        /varset _key ${Ini["${INIsqlupdate}",${_section}].Arg[${_countSection},|]}        
+        /call sql_drop ${Ini["${INIsqlupdate}",${_section},${_key}]} ${_key} ${_force}
+      /next _countSection
+    /next _count
 
   }
 
+  /sqlite clear schemanumber
+  /sqlite clear buildnumber
 
-  |** 
-   * uncomment when needed
-
-  | loot database
-  /if (${_type.Equal[loot]} || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-wloot.sqlite\ax
-  }
-
-  | nav database
-  /if (${_type.Equal[nav]} || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-wnav.sqlite\ax
-  }
-
-  | shared database
-  /if (${_type.Equal[shared]} || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-wshared.sqlite\ax
-    /declare _tmpShare map local
-    /declare _mis mapiterator local
-  }
-
-  | zone database
-  /if (${_type.Equal[zone]} || ${_verbage.Equal[force]}) {
-    /if (${_verbage.Equal[force]}) OUT Checking DB${sep}\a-wzone.sqlite\ax
-  }
-
-  *
-  **|
-
-/return
-
-
-
-
-
-${INIsqlupdate}
-
-${Ini[${INIsqlupdate}].Arg[1,|]}
+/return TRUE
 
 

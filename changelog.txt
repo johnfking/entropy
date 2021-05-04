@@ -21,6 +21,32 @@ on the to do list
 --------------------
 
 
+
+210502.01
+** Reminder, this is only an update for MQNext users
+- stale DB data checking
+  redesigned it so it should only loop once on an update and
+  not at the check for every table on an update
+- popups
+  control edits now have popups in the form of variable:value
+  if you dont want this shown, turn off /grain 27
+- rezing
+  corrected the spawn data
+- /entropy random
+  i've changed the bools to ints. each one can be its own range of: 0(off)-100
+  when dealing with engages the number is a % high/low
+  when dealing with times/delays they are 1/10th of a second
+- assisting
+  corrected some spawn data
+- necro corrected a couple old ID dead checks  
+- /entropy random
+  repeat ## - the random  dealy for others to repeat what you command. (already existed, just opened it up)
+- gather will force a home clear first
+- removed a few more instances of voodo
+- start of the Lua HUD .. yes its a work in progress  
+
+
+
 210424.01
 ** Reminder, this is only an update for MQNext users
 - monk
