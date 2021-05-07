@@ -2765,7 +2765,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
   }
 
   /declare _spawn spawn local
-  | /declare _tmpID int local 0
+  /declare _tmpID int local 0
   /declare _tmpAgroRange int local ${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
   /declare _count int local 0
   /declare _mobHP int local 999
@@ -2796,19 +2796,21 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
 
     | no mobs around us, no reason to be here
     /if (!${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
-      DEBUG ${break}NO SpawnCount to pull from
-      /return FALSE
+      DEBUG ${sep}SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]
+      DEBUG ${break}NO SpawnCount to pull from${sep}\a-w${_tmpAgroRange}\ax
+      /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
+      /continue
     }
 
     | search local ENV range in steps for mob acquisition
     DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
     /for _count ${Math.Calc[${_spCount} +1]} to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
-
+      SDEBUG _count${sep}${_count}
       ISMEDEAD
 
-      | /varset _tmpID ${NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}].ID}
-      /vardata _spawn NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}]
-      | /vardata _spawn Spawn[${_tmpID}]
+      /varset _tmpID ${NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}].ID}
+      | /vardata _spawn NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}]
+      /vardata _spawn Spawn[${_tmpID}]
 
       /if (!${_spawn.ID}) {
         DEBUG ${break}something is seriously wrong with the spawn${sep}\ar${_spawn.ID}\ax
@@ -2820,18 +2822,21 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
       | excluded mobs
       /if (${lsZoneExclude.Contains[${_spawn.DisplayName}]}) {
         DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsZoneExclude\ax (\a-r${_spawn.DisplayName}\ax)
+        /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
         /continue
       }
 
       | animation checks
       /if (${lsAnimationNoTarget.Contains[${_spawn.Animation}]}) {
         DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsAnimationNoTarget\ax (\a-r${_spawn.Animation}\ax)
+        /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
         /continue
       }
 
       | fish are friends, not food
       /if (${lsNoAttackBodyType.Contains[${_spawn.Body}]}) {
         DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoAttackBodyType\ax (\a-r${_spawn.Body}\ax)
+        /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
         /continue
       }
 
@@ -2841,6 +2846,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
         /if (${_spawn.Type.Equal[NPC]}) {
           /if (${lsNoTargetNPC.Contains[${_spawn.DisplayName}]}) {
             DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetNPC\ax (\a-r${_spawn.DisplayName}\ax)
+            /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
             /continue
           }
 
@@ -2848,6 +2854,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
         } else /if (${_spawn.Type.Equal[PC]}) {
           /if (${lsNoTargetPC.Contains[${_spawn.DisplayName}]}) {
             DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetPC\ax (\a-r${_spawn.DisplayName}\ax)
+            /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
             /continue
           }
 
@@ -2855,6 +2862,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
         } else /if (${_spawn.Type.Equal[Magic]}) {
           /if (${lsNoTargetMagic.Contains[${_spawn.DisplayName}]}) {
             DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetMagic\ax (\a-r${_spawn.DisplayName}\ax)
+            /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
             /continue
           }
         }
@@ -2867,6 +2875,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
       | CYA for shit MQ will pick up in the environment that does not have a name
       /if (${_spawn.DisplayName.Length} < 1) {
         DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wDisplayName.Length < 1\ax
+        /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
         /continue
       }
 
@@ -2891,15 +2900,19 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
       }
 
       | check navigation path validity for all but base pulling
-      /if (!${Navigation.PathExists[${_spawn.ID}]} && !${maOver.Find[swOverNavCheck].Value} && !${Select[${maPull.Find[stPullMode].Value},base]}) {
-        DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-y${_spawn.ID}\ax]\ax (\a-r${_spawn.DisplayName}\ax)
-        /continue
+      /if (!${Select[${maPull.Find[stPullMode].Value},base]}) {
+        /if (!${Navigation.PathExists[id ${_spawn.ID}]} && !${maOver.Find[swOverNavCheck].Value}) {
+          DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-y${_spawn.ID}\ax]\ax (\a-r${_spawn.DisplayName}\ax)
+          /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
+          /continue
+        }
       }
-
+      
       | pet tagging mezed mobs only (should be skipped. pets cannot break mez)
       | skip this if we are the group main assist
       /if (${Group.MainAssist.Name.NotEqual[${Me.DisplayName}]}) {
         /if (${maPull.Find[stPullMode].Value.Equal[pet]} && ${lsAnimationMezed.Contains[${_spawn.Animation}]}) {
+          /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
           /continue
         }
       }
@@ -2915,6 +2928,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
         | we DO NOT go out side of the max pull radius.. no matter what!
         /if (${Navigation.PathLength[${_spawn.ID}]} > PULLENV) {
           DEBUG ${break}Navigation.PathLength[${_spawn.ID}] > PULLENV
+          /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
           /continue
         }
         
@@ -2926,6 +2940,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
           /varset _closestNAV ${_navRange}
         } else /if (${_navRange} > ${_closestNAV}) {
           DEBUG ${break}nav check${sep}\a-w${_navRange} > ${_closestNAV}\ax
+          /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
           /continue
         }
       }
@@ -6438,7 +6453,7 @@ sub check_minion_cycle_summon(bool _debug)
   /declare _minion string local ${get_best_in_pet[${_debug}]}
   /call cast_data ${_debug} "${_minion}"
   
-  /call set_spell_to ${_debug} TRUE "${_spell.RankName}" ${maEnv.Find[stBuffGem].Value} TRUE
+  /call set_spell_to ${_debug} TRUE "${spellData.RankName}" ${maEnv.Find[stBuffGem].Value} TRUE
   /call cast ${_debug} 0 FALSE
   /delay 15s !${Me.Casting.ID}
   /pet hold on
@@ -7026,109 +7041,17 @@ sub cast_AA_intensity(bool _debug)
  ***|
 sub set_hud_data(string _mode)
 
-  /varset h_build ${maEnv.Find[build].Value}
+  | /varset h_build ${maEnv.Find[build].Value}
 
   /if (${Bool[${_mode}]}) {
     /invoke ${maData.Add[mode,${_mode}]}
-    /varset h_mode ${_mode}
+    | /varset h_mode ${_mode}
   } else {
     /invoke ${maData.Add[mode,--]}
-    /varset h_mode
+    | /varset h_mode
   }
-
-  /varset h_time          ${maData.Find[swHUDTime].Value}
-
-  | engages
-  /varset h_engage        ${maCC.Find[stPctEngage].Value}
-  /varset h_engagepet     ${maMinion.Find[stPctPetEngage].Value}
-  /varset h_engageswarm   ${maMinion.Find[stPctSwarmEngage].Value}
-  /varset h_swpet         ${maMinion.Find[swPet].Value}
-  /varset h_swswarm       ${maMinion.Find[swSwarm].Value}
-
-  | cc modes
-  /varset h_auto          ${maEnv.Find[swAuto].Value}
-  /varset h_melee         ${maCC.Find[swCombatMelee].Value}
-  /varset h_range         ${maCC.Find[swCombatRange].Value}
-  /varset h_nuke          ${maCC.Find[swCombatNuke].Value}
-  /varset h_dot           ${maCC.Find[swCombatDoT].Value}
-  /varset h_heal          ${maCC.Find[swCombatHeal].Value}
-  /varset h_control       ${maCC.Find[swCombatControl].Value}
-  /varset h_env           ${maEnv.Find[stEnvRadius].Value}
-
-  | healing
-  | /varset h_healmode      ${maHeal.Find[stHealMode].Value}
-  /varset h_override      ${maHeal.Find[stHealAdjust].Value}
-  /varset h_self          ${maHeal.Find[swHealSelf].Value}
-  /varset h_group         ${maHeal.Find[swHealGroup].Value}
-  /varset h_xt            ${maHeal.Find[swHealXTarget].Value}
-  /varset h_pet           ${maHeal.Find[swHealPet].Value}
-  /varset h_cure          ${maHeal.Find[swHealCure].Value}
-  /varset h_tot           ${maHeal.Find[swHealToT].Value}
-  /varset h_dan           ${maHeal.Find[swHealDanNet].Value}
-
-  | buff
-  /varset h_bself         ${maBuff.Find[swBuffSelf].Value}
-  /varset h_bcrew         ${maBuff.Find[swBuffCrew].Value}
-  /varset h_braid         ${maBuff.Find[swBuffRaid].Value}
-  /varset h_bbeg          ${maBuff.Find[swBuffBeg].Value}
-  /varset h_bunity        ${maBuff.Find[swBuffUnity].Value}
-  /varset h_baura         ${maBuff.Find[swBuffAura].Value}
-  /varset h_btemp         ${maBuff.Find[swBuffTemp].Value}
-  /varset h_bnow          ${maBuff.Find[swBuffNow].Value}
-  /varset h_bmaster       ${maBuff.Find[swBuffMaster].Value}
-  /varset h_bpet          ${maMinion.Find[swPetBuff].Value}
-  /varset h_bgroup        ${maBuff.Find[swBuffGroup].Value}
-
-  | pull / agro
-  /varset h_agro          ${maAgro.Find[swAgro].Value}
-  /varset h_pull          ${maPull.Find[swPull].Value}
-  /varset h_pullarea      ${maPull.Find[stPullRadius].Value}
-  /varset h_pullmode      ${maPull.Find[stPullMode].Value}
-
-  | tie
-  /varset h_tie           ${maTie.Find[swSetTie].Value}
-  /varset h_tietoon       ${maTie.Find[stTieToon].Value}
-  /varset h_tiemode       ${maTie.Find[stTieMode].Value}
-
-  | burn
-  /varset h_buauto        ${maBurn.Find[swBurnAuto].Value}
-  /varset h_bupct         ${maBurn.Find[stPctBurnEngage].Value}
-  /varset h_bucount       ${maBurn.Find[stBurnCount].Value}
-  /varset h_buraid        ${maBurn.Find[swBurnRaid].Value}
-
-  | rest
-  /varset h_rpct          ${maRest.Find[stPctRest].Value}
-  /varset h_rfull         ${maRest.Find[swRestFull].Value}
-  /varset h_rrod          ${maRest.Find[swRestModRod].Value}
-  /varset h_rbuff         ${maRest.Find[swRestBuff].Value}
-  /varset h_rcombat       ${maRest.Find[swRestCombat].Value}
-
-  | rez
-  /varset h_zooc          ${maRez.Find[swRezOOC].Value}
-  /varset h_ztake         ${maRez.Find[swRezTake].Value}
-  /varset h_zic           ${maRez.Find[swRezIC].Value}
-  /varset h_zeveryone     ${maRez.Find[swRezEveryone].Value}
-  /varset h_ztoken        ${maRez.Find[swRezToken].Value}
-  /varset h_zdan          ${maRez.Find[swRezDanNet].Value}
-  /varset h_zrad          ${maRez.Find[stMaxRezRange].Value}
-
-  | character build
-  /varset h_eset          ${maEnv.Find[stBuildSetCurrent].Value}
-
-  | build dev variables
-  /varset h_dcombat         ${maCC.Find[swSetCombat].Value}
-  /varset h_dburn           ${maBurn.Find[swBurnConditionMet].Value}
-  /varset h_denv            ${maEnv.Find[stEnvRadius].Value}
-  /varset h_dsafe           ${maEnv.Find[stEnvSafeRadius].Value}
-  /varset h_dpull           ${maPull.Find[stPullRadius].Value}
-  /varset h_dcaststatus     ${maData.Find[stCastReturn].Value}
-
-  | watch
-  /varset h_watch           ${maWatch.Find[swWatch].Value}
   
-
 /return TRUE
-
 
 
 |***
@@ -7687,7 +7610,7 @@ sub get_target_watchpull(bool _debug, spawn _spawn)
     }
     
     | valid path?
-    /if (!${Navigation.PathExists[${Spawn[radius PULLENV zradius ${maPull.Find[stPullZRadius].Value} ${_liwp.Value}].ID}]}) {
+    /if (!${Navigation.PathExists[id ${Spawn[radius PULLENV zradius ${maPull.Find[stPullZRadius].Value} ${_liwp.Value}].ID}]}) {
       /invoke ${_liwp.Advance}
       /continue      
     }
@@ -7970,6 +7893,7 @@ sub out(int _lvl, string _verbage, int _strNum)
     /sqlite query "${DBstatic}" getstring SELECT value FROM string WHERE env_var='${_strNum}';
     /if (!${sql_check[${_debug}, getstring, out, SELECT]}) /endmacro
     ECHO ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${sqlite.Result[getstring 1 value]}
+    /varset HUDOutput ${sqlite.Result[getstring 1 value]}
 
   | shade output. grain validation
   } else /if (${_verbage.Equal[shade]} && (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0)) {
@@ -7981,10 +7905,12 @@ sub out(int _lvl, string _verbage, int _strNum)
     /sqlite query "${DBstatic}" getstring SELECT value FROM string WHERE env_var='${_strNum}';
     /if (!${sql_check[${_debug}, getstring, out, SELECT]}) /endmacro
     ECHO ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${sqlite.Result[getstring 1 value]}
+    /varset HUDOutput ${sqlite.Result[getstring 1 value]}
 
   | output grain validation with passed verbage
   } else /if (!${Range.Between[1,99999:${Int[${_strNum}]}]} && (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0)) {
     ECHO ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${_verbage}
+    /varset HUDOutput ${_verbage}
 
   }
 
@@ -8607,7 +8533,7 @@ sub control_mez(bool _debug, spawn _spawn)
       /delay 1
     }   
 
-    /invoke ${get_assist_target[${maDebug.Find[assist].Value}, return]}
+    /call get_assist_target ${maDebug.Find[assist].Value}  return
     
     /if (${_spawn.ID} == ${targetData.ID}) {
       /invoke ${set_timer[${_debug}, timer_mez_ID${_spawn.ID}, 30s]}

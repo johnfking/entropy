@@ -239,7 +239,7 @@ sub misc_combat(bool _debug, spawn _spawn)
     /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
-  /call check_facing ${maDebug.Find[face].Value} ${_spawn.ID} FALSE
+  /invoke ${spawn_face[${_spawn.ID}]}
 
   | Duplicating these two sub calls here b/c don't want to lose agro or mitigation while firing off this other stuff.
   /if (AGRO) {

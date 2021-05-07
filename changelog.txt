@@ -22,6 +22,27 @@ on the to do list
 
 
 
+210507.01
+- i've removed the code that fills the data on the old hud
+  you can either do /unloadhud entropy or /plugin mq2hud unload
+  either way, not using it anymore
+  (i did put in some code to unload the old hud)
+- /entropy hud start - loads the lua hud
+  /entropy hud stop - stops the hud
+  /entropy hud auto - (on/off) will start the hud on mac start
+  ---WORK IN PROGRESS---
+- warrior
+  corrected a legacy facing control
+- removed support for mq2mybuttons plugin
+  i'll make a useful button list in lua soon
+- pet summoning
+  corrected a bad varible for the spell data
+- mob finding / pulling
+  several corrections to the mob finding routine
+  might work now??
+  
+
+
 210502.01
 ** Reminder, this is only an update for MQNext users
 - stale DB data checking
@@ -44,7 +65,6 @@ on the to do list
 - gather will force a home clear first
 - removed a few more instances of voodo
 - start of the Lua HUD .. yes its a work in progress  
-
 
 
 210424.01

@@ -1875,42 +1875,25 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
   | hud adjustments
   } else /if (${_type.Equal[hud]}) {
 
-    /declare _path string local
-    /varset _path "MQ2HUD.ini"
-    
-    | adjust hud clock
-    /if (${_verbage.Equal[time]}) {
-      /if (${maData.Find[swHUDTime].Value}) {
-        /invoke ${maData.Add[swHUDTime,FALSE]}
-        /invoke ${out[12, "HUD Time${sep}\a-wGame\ax"]}
+    /if (${_verbage.Equal[start]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.lua 
+      
+    } else /if (${_verbage.Equal[stop]}) {   
+      /lua stop hud.lua
+      
+    } else /if (${_verbage.Equal[auto]}) {   
+      /invoke ${set_switch_env[${_debug}, swHUDAuto, TRUE, ${_verbage2}]}
 
-      } else /if (!${maData.Find[swHUDTime].Value}) {
-        /invoke ${maData.Add[swHUDTime,TRUE]}
-        /invoke ${out[12, "HUD Time${sep}\a-wIRL\ax"]}
-      }
-
-    | reset the MQhud ini file
-    } else /if (${_verbage.Equal[update]}) {
-      /call set_initialize_hud FALSE ${_verbage2}
-      /squelch /loadhud ${_verbage2}
-      /return TRUE
-
-    | delete the hud
-    } else /if (${_verbage.Equal[delete]}) {
-      /ini ${_path} "${_verbage2}" NULL NULL
-      /invoke ${out[12, "Deleting MQ2HUD.INI${sep}\a-w${_verbage2}\ax"]}
-      /squelch /unloadhud ${_verbage2}
-      /return TRUE
     }
 
     /invoke ${maControl.Clear}
-    /invoke ${maControl.Add[time,option]}
-    /invoke ${maControl.Add[update,out]}
-    /invoke ${maControl.Add[delete,out]}
+    /invoke ${maControl.Add[auto,swHUDAuto]}
+    /invoke ${maControl.Add[start,option]}
+    /invoke ${maControl.Add[stop,option]}
     /invoke ${set_control_output[${_debug}, maEntropy, "entropy hud", maControl]}
     /return TRUE
     
-    
+   
     
     
   | randomization switches
@@ -2363,6 +2346,21 @@ sub Bind_noparse_raw_edit(string _variable, string _value, string _add_delete, s
   /call do_raw_edit ${maDebug.Find[edit].Value} FALSE "${_variable}" "${Parse[1,${_value}]}" ${_add_delete} ${_verbage}
 
 /return TRUE
+
+
+|***
+ * note: shorthand for raw db editing from the lua hud
+ * use: still mostly for breaking shit
+ ***|
+#bind_noparse hud_raw_edit /hudedit
+sub Bind_noparse_hud_raw_edit(string _variable, string _value, string _add_delete, string _verbage)
+
+  /call do_raw_edit FALSE SILENT "${_variable}" "${Parse[1,${_value}]}" ${_add_delete}
+
+/return TRUE
+
+
+
 
 
 |***

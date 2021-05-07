@@ -35,19 +35,27 @@ end
 
 
 hudInfo = function ()
+  ent['inv'] = ''
+  ent['ivu'] = ''
+
+  -- invis 
+  if mq.TLO.Me.SPA(12)() ~= 0 or mq.TLO.Me.SPA(314)() ~= 0 then
+    ent['inv'] = 'IV'
+  end
+  
+  -- ivu
+  if mq.TLO.Me.SPA(28)() ~= 0 or mq.TLO.Me.SPA(315)() ~= 0 then
+    ent['ivu'] = 'IVU'
+  end
   
   -- base information
-  ent['build'] = mq.TLO.Macro.Variable('maEnv').Find('build').Value() or ''
+  ent['build'] = mq.TLO.Macro.Variable('maEnv').Find('build').Value() or '--'
   ent['mode'] = mq.TLO.Macro.Variable('maData').Find('mode').Value() or ''
   ent['set'] = mq.TLO.Macro.Variable('maEnv').Find('stBuildSetCurrent').Value() or '--'
   ent['body'] = mq.TLO.Target.Body.Name() or ''
   ent['auto'] = mq.TLO.Macro.Variable('maEnv').Find('swAuto').Value() or '0'
 
-  -- engages
-  ent['engage'] = mq.TLO.Macro.Variable('maCC').Find('stPctEngage').Value() or ''
-  ent['petengage'] = mq.TLO.Macro.Variable('maMinion').Find('stPctPetEngage').Value() or ''
-  ent['swarmengage'] = mq.TLO.Macro.Variable('maMinion').Find('stPctSwarmEngage').Value() or ''
-
+ 
   -- target
   target['shortname'] = mq.TLO.Target.Class.ShortName() or '--'
   target['level'] = mq.TLO.Target.Level() or '--'
@@ -56,20 +64,7 @@ hudInfo = function ()
   target['distance'] = mq.TLO.Target.Distance() or 0
   target['maxrangeto'] = mq.TLO.Target.MaxRangeTo() or 0 
 
-  -- tie
-  ent['tiemode'] = mq.TLO.Macro.Variable('maTie').Find('stTieMode').Value() or '--'
-  ent['tietoon'] = mq.TLO.Macro.Variable('maTie').Find('stTieToon').Value() or '--'
 
-  -- env
-  ent['envrad'] = mq.TLO.Macro.Variable('maEnv').Find('stEnvRadius').Value() or '--'
-
-  -- pull
-  ent['pullrad'] = mq.TLO.Macro.Variable('maPull').Find('stPullRadius').Value() or '--'
-  ent['pullmode'] = mq.TLO.Macro.Variable('maPull').Find('stPullMode').Value() or '--'
-  ent['pullactive'] = mq.TLO.Macro.Variable('maPull').Find('swPull').Value() or false
-
-
- 
 end
 
 
