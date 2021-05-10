@@ -493,7 +493,7 @@ sub check_cani(bool _debug)
 
   | check HP requirements
   
-  /if (${Spell[${Spell[${maChr.Find[stCannibalization].Value}].RankName}].Base[2]} >= ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}].Int} || ${Me.CurrentMana} == ${Me.MaxMana} || ${Me.CurrentHPs} < ${Spell[${Spell[${maChr.Find[stCannibalization].Value}].RankName}].Base[1]}) {
+  /if (${Spell[${Spell[${maChr.Find[stCannibalization].Value}].RankName}].Base[2]} <= ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}].Int} || ${Me.CurrentMana} == ${Me.MaxMana} || ${Me.CurrentHPs} < ${Spell[${Spell[${maChr.Find[stCannibalization].Value}].RankName}].Base[1]}) {
     DEBUG ${break}bad time to cani!!
     /return FALSE
   }

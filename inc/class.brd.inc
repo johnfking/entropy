@@ -208,18 +208,24 @@ sub misc_combat(bool _debug, spawn _spawn)
       }
     } else /if (AE#) {
       /if (${Raid.Members}) {
-        /if (${_spawn.PctHPs} > 3 && ${Me.CurrentEndurance} > 10500 && !${Target.MyBuff[Vainglorious Shout].ID}) {
+        /if (${Spawn[${_tmpID}].PctHPs} > 3 && ${Me.CurrentEndurance} > 10500 && !${Target.MyBuff[Vainglorious Shout].ID}) {
           /if (${cast_data[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
-            /call cast ${_debug} ${_spawn.ID} FALSE
+            /call cast ${_debug} ${_tmpID} FALSE
           }
         }
       } else /if (!${Raid.Members}) {
-        /if (${_spawn.PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Vainglorious Shout].ID}) {
+        /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Vainglorious Shout].ID} && ${SpawnCount[npc los radius 30 targetable]} >= AE#) {
           /if (${cast_data[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
-            /call cast ${_debug} ${_spawn.ID} FALSE
+            /call cast ${_debug} ${_tmpID} FALSE
+          }
+        } else /if (${SpawnCount[npc los radius 30 targetable]} <= AE#) {
+            /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Boastful Bellow].ID}) {
+              /if (${cast_data[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
+              /call cast ${_debug} ${_tmpID} FALSE
+            }
           }
         }
-      } 
+      }
     }
   }
   

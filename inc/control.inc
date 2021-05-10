@@ -2349,17 +2349,17 @@ sub Bind_noparse_raw_edit(string _variable, string _value, string _add_delete, s
 
 
 |***
- * note: shorthand for raw db editing from the lua hud
+ * note: shorthand for raw db editing from lua
  * use: still mostly for breaking shit
  ***|
-#bind_noparse hud_raw_edit /hudedit
-sub Bind_noparse_hud_raw_edit(string _variable, string _value, string _add_delete, string _verbage)
+#bind_noparse lua_raw_edit /luaedit
+sub Bind_noparse_lua_raw_edit(string _variable, string _value, string _add_delete, string _verbage)
 
-  /call do_raw_edit FALSE SILENT "${_variable}" "${Parse[1,${_value}]}" ${_add_delete}
+  DEBUG do_raw_edit FALSE SILENT "${_variable}" "${Parse[1,${_value}]}" "${_add_delete}"
+  
+  /call do_raw_edit FALSE SILENT "${_variable}" "${Parse[1,${_value}]}" "${_add_delete}"
 
 /return TRUE
-
-
 
 
 
@@ -3220,7 +3220,7 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
     /if (${Bool[${Spawn[pc ${_sender} radius 60].ID}]}) {
       /call target set ${_tmpID}
       /if (${Target.ID} == ${_tmpID}) {
-        /delay ${Int[${Math.Calc[${Math.Rand[${maEntropy,Find[stRNDRepeat].Value}]} + 10]}]}
+        /delay ${Int[${Math.Calc[${Math.Rand[${maEntropy.Find[stRNDRepeat].Value}]} + 10]}]}
         
         /say ${_verbage}
         /delay 1s
@@ -4000,6 +4000,11 @@ sub Bind_command_coh(string _verbage, bool _debug)
 #bind control_build /build
 sub Bind_control_build(string _build, string _nickname, string _verbage, bool _debug)
 
+  /if (${_build.Equal[gui]}) {
+    /lua run ${MacroQuest.Path[macros]}\entropy\lua\build.lua
+    /return TRUE
+  }
+
   /if (${_build.Left[1].Equal[-]}) {
     /lua run get_help build ${_build.Right[1]}
     /return TRUE
@@ -4011,7 +4016,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
     /lua run get_help build h
     /return
   }
-
+  
   /declare _count int local 0
 
   | set file name

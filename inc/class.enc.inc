@@ -245,7 +245,7 @@ sub check_gather(bool _debug)
 
   | AA manna crystal
   /if (${maChr.Find[swAACrystals].Value}) {
-    /if (${cast_data[${_debug}, "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}"]}) {
+    /if (${cast_data[${_debug}, "${FindItem[${Spell[Azure Mind Crystal].Base[1]}].Name}"]} && ${Spell[${FindItem[Azure Mind Crystal].Spell}].Base[1]} < ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}].Int} && ${Me.CurrentMana} != ${Me.MaxMana}) {
       /call cast ${_debug} 0 FALSE
     }
   }
@@ -253,7 +253,7 @@ sub check_gather(bool _debug)
   /if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) /return FALSE
 
   | aa Gather Mana
-  /if (${cast_data[${_debug}, "${maChr.Find[stAAGatherMana].Value}"]}) {
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAGatherMana].Value}"]} && ${AltAbility[${maChr.Find[stAAGatherMana].Value}].Spell.Base[1]} < ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}].Int} && ${Me.CurrentMana} != ${Me.MaxMana}) {
     /call cast ${_debug} 0 FALSE
   }
 

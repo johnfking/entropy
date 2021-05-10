@@ -2022,7 +2022,7 @@ sub set_combat_range(bool _debug, spawn _spawn)
 
   /if (AUTO && !${Stick.Active} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
     /if (${_spawn.Distance} < ${maHard.Find[stMinBowDist].Value} || !${_spawn.LineOfSight}) {
-      /call moveto_range TRUE ${_spawn.ID} 35
+      /call moveto_range ${_debug} ${_spawn.ID} 35
     }
   }
 
@@ -3566,9 +3566,10 @@ sub get_key_DBLOC(bool _debug, string _key)
 |***
  * note: user controls
  * use: hey look squirrels...
- * use: /call do_raw_edit DEBUG [silent T/F] [variable to change] [value to change it too|gem#|cursor] [add|delete|clear (for lists)] [T/F noecho]
+ * use: /call do_raw_edit DEBUG [silent T/F] [variable to change] [value to change it too|gem#|cursor] [add|delete|clear (for lists)|overwrite] [T/F noecho]
  ***|
 sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, string _add_delete, bool _noecho)
+/invoke ${maDebug.Add[edit,TRUE]}
 
   /if (${maDebug.Find[edit].Value}) {
     DEBUG \atdo_raw_edit\ax
@@ -3592,7 +3593,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
   }
 
   | error for add/delete
-  /if (${_variable.Left[2].Equal[ls]} && (!${Select[${_add_delete},add,delete,override,overwrite]} && ${_value.NotEqual[clear]})) {
+  /if (${_variable.Left[2].Equal[ls]} && (!${Select[${_add_delete},add,delete,overwrite]} && ${_value.NotEqual[clear]})) {
     /invoke ${out[16, 0, 10]}
     /return FALSE
   }
@@ -3697,7 +3698,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 
   | override switch for build control
   | this is not for normal users. keep your fucking mits off this.
-  } else /if (${_add_delete.Equal[override]}) {
+  } else /if (${_add_delete.Equal[overwrite]}) {
     /varset _value ${_value}
     /if (${_variable.Left[2].Equal[ls]}) {
       /varset _list TRUE
@@ -3711,7 +3712,7 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
   } else /if (${Select[${_add_delete},add,overwrite]}) {
     DEBUG ${sep}\ayadd\ax
     
-    | FORCE A CLEAR BEFORE AN OVERWRITE
+    | FORCE A CLEAR BEFORE AN overwrite 
     /if (${Select[${_add_delete},overwrite]}) {
       /declare _tmpLst list local
       /invoke ${_tmpLst.Delimiter["|"]}
@@ -8702,8 +8703,8 @@ sub set_control_output(bool _debug, string _map, string _outname, string _contro
 |***
  * note: checks/corrects a/the target
  * note: returns FALSE if a target is dead or does not exist, returns TRUE otherwise
- * use: /call target [isdead|clear|set|release] [spawnID]
- * use: ${target[isdead|clear|set|release, spawnID]}
+ * use: /call target [isdead|clear|set|release,reztarget] [spawnID]
+ * use: ${target[isdead|clear|set|release|reztarget, spawnID]}
  ***|
 sub target(string _type, spawn _spawn)
 
@@ -8740,6 +8741,25 @@ sub target(string _type, spawn _spawn)
   }
 
   /declare _isdead bool local FALSE
+
+  | set a target for rezing
+  /if (${Select[${_type},reztarget]}) {
+
+    /if (${Target.ID} == ${_spawn.ID}) {
+      DEBUG ${sep}\a-y${_type}\ax${sep}good
+      /return TRUE
+    }
+
+    DEBUG ${sep}\a-y${_type}\ax${sep}setting
+    /squelch /target id ${_spawn.ID}
+    /delay 1s ${Target.ID} == ${_spawn.ID}
+
+    /if ((${Target.ID} == ${_spawn.ID})) {
+      DEBUG ${sep}\a-y${_type}\ax${sep}isset
+      /return TRUE
+    }
+
+  }
 
   | set a target
   /if (${Select[${_type},set]}) {
@@ -9140,7 +9160,9 @@ sub check_item_cycle(bool _debug, spawn _spawn, string _tag)
     }
     DEBUG _tmpName${sep}\a-w${_tmpName}\ax
 
-    /if (!${cast_data[${_debug}, "${_tmpName}"]}) {
+    /call cast_data ${_debug} "${_tmpName}"
+    /if (!${Macro.Return}) {
+    | /if (!${cast_data[${_debug}, "${_tmpName}"]}) {
       /invoke ${_liC20.Advance}
       /continue
     }
@@ -9664,7 +9686,10 @@ sub cast_cycle_burn(bool _debug, spawn _spawn)
     }
     DEBUG _tmpName${sep}\a-w${_tmpName}\ax
 
-    /if (!${cast_data[${_debug}, "${_tmpName}"]}) {
+    /call cast_data ${_debug} "${_tmpName}"
+    /if (!${Macro.Return}) {
+
+   | /if (!${cast_data[${_debug}, "${_tmpName}"]}) {
       DEBUG ${break}\a-w${_tmpName}\ax${sep}NOT READY
       /invoke ${_liC20.Advance}
       /continue
@@ -9973,7 +9998,7 @@ sub check_for_corpse(bool _debug)
 
     | check the name
     /if (!${Bool[${maRez.Find[stRez${_liC8.Value}].Value}]}) {
-      DEBUG ${sep}no name${sep}\a-w${swRez.Find[stDoT${_liC8.Value}].Value}\ax
+      DEBUG ${sep}no name${sep}\a-w${maRez.Find[swRez${_liC8.Value}].Value}\ax
       /invoke ${_liC8.Advance}
       /continue
     }
@@ -10150,7 +10175,7 @@ sub cast_rez(bool _debug, spawn _spawn, string _rez)
   | get the corpse close to us
   /if (${_spawn.Distance} <= ${maHard.Find[stRezSummonRange].Value}) {
     DEBUG ${sep}/corpse${sep}\a-wid ${_spawn.ID}\ax
-    /target id ${_spawn.ID}
+    /call target reztarget ${_spawn.ID}
     /delay 1
     /squelch /corpse
   }
@@ -10162,8 +10187,7 @@ sub cast_rez(bool _debug, spawn _spawn, string _rez)
     /if (!${maRez.Find[swRezToken].Value}) {
       DEBUG ${sep}casting${sep}\a-w${_rez}\ax
       /delay 5s !${Me.Casting.ID}
-      /squelch /target id ${_spawn.ID}
-      /delay 1s ${Target.ID} == ${_spawn.ID}
+      /call target reztarget ${_spawn.ID}
       /call cast_data ${_debug} "${_rez}"
       /call cast ${_debug} ${_spawn.ID} skiptargetcheck
       /delay 5
@@ -10173,8 +10197,7 @@ sub cast_rez(bool _debug, spawn _spawn, string _rez)
     } else /if (${maRez.Find[swRezToken].Value}) {
       DEBUG ${sep}casting${sep}\a-wclicking token\ax
       /delay 5s !${Me.Casting.ID}
-      /squelch /target id ${_spawn.ID}
-      /delay 1s ${Target.ID} == ${_spawn.ID}
+      /call target reztarget ${_spawn.ID}
       /call cast_data ${_debug} "Token of Resurrection"
       /call cast ${_debug} ${_spawn.ID} skiptargetcheck
       /delay 5
@@ -14189,7 +14212,7 @@ sub class_cycle(string _order)
       /call control_routine ${maDebug.Find[mez].Value} Mez
  
     | aa mana gather routine
-    } else /if (${_lico.Value.Equal[gather]} && ${maChr.Find[stPctGather].Value}) {
+    } else /if (${_lico.Value.Equal[gather]} && ${maChr.Find[stPctGather].Value} && ${Me.PctMana} <= ${maChr.Find[stPctGather].Value}) {
       /call check_gather ${maDebug.Find[gather].Value}
 
     | bard incombat singing
@@ -14331,7 +14354,7 @@ sub check_no_cast_buff(bool _debug, string _cast)
  * use: always return bool, cast is ready or not..
  ***|
 sub cast_data(bool _debug, string _type)
-  DEBUG \atcast_data\aw(\a-w${_type}\ax)
+  DEBUG \atcast_data\aw(\a-w"${_type}"\ax)
 
   /if (${Defined[spellData]}) {
     /deletevar spellData
@@ -15367,7 +15390,7 @@ sub spawn_hurt(bool _debug, string _type, bool _breakonGroup)
 
   | set self hurt
   } else /if (${_type.Equal[self]}) {
-    /vardata hurtData Me.ID
+    /vardata hurtData Spawn[${Me.ID}]
 
     /if (${hurtPctHP} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
       /return 0
@@ -15378,14 +15401,14 @@ sub spawn_hurt(bool _debug, string _type, bool _breakonGroup)
 
   | target of target hurt
   } else /if (${_type.Equal[tot]}) {
-    /vardata hurtData Me.TargetOfTarget.ID
+    /vardata hurtData Spawn[${Me.TargetOfTarget.ID}]
     DEBUG ${sep}hurtData:\a-w${hurtData.ID}\ax
 
     DEBUG ${hurtData.PctHPs} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO
     /if (${hurtData.PctHPs} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
       /return 0
     }
-    /vardata hurtData Target.ID
+    /vardata hurtData Spawn[${Target.ID}]
     /varset hurtCount 1
     /return 1
 

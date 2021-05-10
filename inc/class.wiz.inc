@@ -194,14 +194,18 @@ sub check_gather(bool _debug)
     }
   }
 
-  /if (${cast_data[${_debug}, "${maChr.Find[stGather].Value}"]}) {
-    /call cast ${_debug} 0 FALSE
-    /return TRUE
+  /if (${cast_data[${_debug}, "${maChr.Find[stGather].Value}"]} && ${Me.PctMana} <= ${maChr.Find[stPctGather].Value}) {
+    /if (${Spell[${Spell[${maChr.Find[stGather].Value}].RankName}].Base[1]} <= ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}].Int} && ${Me.CurrentMana} != ${Me.MaxMana}) {
+      /call cast ${_debug} 0 FALSE
+      /return TRUE
+    }
   }
 
-  /if (${cast_data[${_debug}, "${maChr.Find[stAAHarvestofDruzzil].Value}"]}) {
-    /call cast ${_debug} 0 FALSE
-    /return TRUE
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAHarvestofDruzzil].Value}"]} && ${Me.PctMana} <= ${maChr.Find[stPctGather].Value}) {
+    /if (${AltAbility[${maChr.Find[stAAHarvestofDruzzil].Value}].Spell.Base[1]} < ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}].Int} && ${Me.CurrentMana} != ${Me.MaxMana}) {
+      /call cast ${_debug} 0 FALSE
+      /return TRUE
+    }
   }
 
 /return TRUE

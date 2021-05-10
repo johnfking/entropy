@@ -54,6 +54,7 @@ hudInfo = function ()
   ent['set'] = mq.TLO.Macro.Variable('maEnv').Find('stBuildSetCurrent').Value() or '--'
   ent['body'] = mq.TLO.Target.Body.Name() or ''
   ent['auto'] = mq.TLO.Macro.Variable('maEnv').Find('swAuto').Value() or '0'
+  ent['hudoutput'] = mq.TLO.Macro.Variable('HUDOutput')() or '--'
 
  
   -- target

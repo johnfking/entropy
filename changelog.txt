@@ -21,6 +21,17 @@ on the to do list
 --------------------
 
 
+210509.01
+- the Wiki is back in play
+- removed a debug in moveto_range()
+- corected a comma in the /repeat command
+- changes how clickitems and burns processes cast_data() to allow for commas, until MQ is fixed.
+- changed some targeting requirements for coprses in rezing. should hold the target better
+- removed the mq2hud warning
+- gather manna changes for wizard / enchanter / shaman
+- bard
+  couple fixes for Vainglorious Shout
+
 
 210507.01
 - i've removed the code that fills the data on the old hud

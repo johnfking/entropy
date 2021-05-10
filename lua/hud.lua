@@ -104,9 +104,9 @@ local function imguicallback()
         
         -- ImGui.TextDisabled(mq.TLO.Macro.Variable('HUDOutput'))
 
--- if ImGui.BeginChild("logmessages", 500, 20) then
---  ImGui.Text(test)
---  ImGui.EndChild()
+-- if ImGui.BeginChild("logmessages", 500, 40) then
+--   ImGui.Text(ent['hudoutput'])
+--   ImGui.EndChild()
 -- end
 
 
@@ -190,7 +190,7 @@ local function imguicallback()
         local doaura, aurapressed = ImGui.Checkbox("##doaura", mq.TLO.Macro.Variable('maBuff').Find('swBuffAura').Value() == 'TRUE')
         if aurapressed then
           -- mq.cmd.invoke('${maBuff.Add[swBuffAura,'..(doaura and 'TRUE' or 'FALSE')..']}')
-          mq.cmd.hudedit('swBuffAura', doaura and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swBuffAura', doaura and 'TRUE' or 'FALSE')
         end
         ImGui.SameLine()
         local buffaura = ImGui.Button('aura', 60, 22)
@@ -202,7 +202,7 @@ local function imguicallback()
         -- self
         local doself, selfpressed = ImGui.Checkbox("##doself", mq.TLO.Macro.Variable('maBuff').Find('swBuffSelf').Value() == 'TRUE')
         if selfpressed then
-          mq.cmd.hudedit('swBuffSelf', doself and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swBuffSelf', doself and 'TRUE' or 'FALSE')
         end
         ImGui.SameLine()
         local buffself = ImGui.Button('self', 60, 22)
@@ -213,7 +213,7 @@ local function imguicallback()
         -- crew
         local docrew, crewpressed = ImGui.Checkbox("##docrew", mq.TLO.Macro.Variable('maBuff').Find('swBuffCrew').Value() == 'TRUE')
         if crewpressed then
-          mq.cmd.hudedit('swBuffCrew', docrew and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swBuffCrew', docrew and 'TRUE' or 'FALSE')
         end
         ImGui.SameLine()
         local buffcrew = ImGui.Button('crew', 60, 22)
@@ -224,7 +224,7 @@ local function imguicallback()
         -- temp
         local dotemp, temppressed = ImGui.Checkbox("##dotemp", mq.TLO.Macro.Variable('maBuff').Find('swBuffTemp').Value() == 'TRUE')
         if temppressed then
-          mq.cmd.hudedit('swBuffTemp', dotemp and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swBuffTemp', dotemp and 'TRUE' or 'FALSE')
         end
         ImGui.SameLine()
         local bufftemp = ImGui.Button('temp', 60, 22)
@@ -237,7 +237,7 @@ local function imguicallback()
         -- unity
         local dounity, unitypressed = ImGui.Checkbox("##dounity", mq.TLO.Macro.Variable('maBuff').Find('swBuffUnity').Value() == 'TRUE')
         if unitypressed then
-          mq.cmd.hudedit('swBuffUnity', dounity and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swBuffUnity', dounity and 'TRUE' or 'FALSE')
         end
         ImGui.SameLine()
         local buffunity = ImGui.Button('unity', 60, 22)
@@ -248,7 +248,7 @@ local function imguicallback()
         -- minion
         local dominion, minionpressed = ImGui.Checkbox("##dominion", mq.TLO.Macro.Variable('maMinion').Find('swPetBuff').Value() == 'TRUE')
         if minionpressed then
-          mq.cmd.hudedit('swPetBuff', dominion and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swPetBuff', dominion and 'TRUE' or 'FALSE')
         end
         ImGui.SameLine()
         local buffminion = ImGui.Button('minion', 60, 22)
@@ -259,7 +259,7 @@ local function imguicallback()
         -- raid
         local doraid, raidpressed = ImGui.Checkbox("##doraid", mq.TLO.Macro.Variable('maBuff').Find('swBuffRaid').Value() == 'TRUE')
         if raidpressed then
-          mq.cmd.hudedit('swBuffRaid', doraid and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swBuffRaid', doraid and 'TRUE' or 'FALSE')
         end   
         ImGui.SameLine()
         local buffraid = ImGui.Button('raid', 60, 22)
@@ -270,7 +270,7 @@ local function imguicallback()
         -- group
         local dogroup, grouppressed = ImGui.Checkbox("##dogroup", mq.TLO.Macro.Variable('maBuff').Find('swBuffGroup').Value() == 'TRUE')
         if grouppressed then
-          mq.cmd.hudedit('swBuffGroup', dogroup and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swBuffGroup', dogroup and 'TRUE' or 'FALSE')
         end   
         ImGui.SameLine()
         local buffgroup = ImGui.Button('group', 60, 22)
@@ -283,7 +283,7 @@ local function imguicallback()
         -- shrink
         local doshrink, shrinkpressed = ImGui.Checkbox("shrink", mq.TLO.Macro.Variable('maBuff').Find('swBuffShrink').Value() == 'TRUE')
         if shrinkpressed then
-          mq.cmd.hudedit('swBuffShrink', doshrink and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swBuffShrink', doshrink and 'TRUE' or 'FALSE')
         end
 
         ImGui.NextColumn()
@@ -297,19 +297,19 @@ local function imguicallback()
         -- now
         local donow, nowpressed = ImGui.Checkbox("now", mq.TLO.Macro.Variable('maBuff').Find('swBuffNow').Value() == 'TRUE')
         if nowpressed then
-          mq.cmd.hudedit('swBuffNow', donow and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swBuffNow', donow and 'TRUE' or 'FALSE')
         end        
 
         -- ammo
         local doammo, ammopressed = ImGui.Checkbox("ammo", mq.TLO.Macro.Variable('maBuff').Find('swBuffAmmo').Value() == 'TRUE')
         if ammopressed then
-          mq.cmd.hudedit('swBuffAmmo', doammo and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swBuffAmmo', doammo and 'TRUE' or 'FALSE')
         end
 
         -- temp
         local dobeg, begpressed = ImGui.Checkbox("beg", mq.TLO.Macro.Variable('maBuff').Find('swBuffBeg').Value() == 'TRUE')
         if begpressed then
-          mq.cmd.hudedit('swBuffBeg', dobeg and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swBuffBeg', dobeg and 'TRUE' or 'FALSE')
         end
          
         ImGui.Columns()    
@@ -325,25 +325,25 @@ local function imguicallback()
         -- self
         local doself, selfpressed = ImGui.Checkbox("self", mq.TLO.Macro.Variable('maHeal').Find('swHealSelf').Value() == 'TRUE')
         if selfpressed then
-          mq.cmd.hudedit('swHealSelf', doself and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swHealSelf', doself and 'TRUE' or 'FALSE')
         end   
 
         -- dannet
         local dodannet, dannetpressed = ImGui.Checkbox("dannet", mq.TLO.Macro.Variable('maHeal').Find('swHealDanNet').Value() == 'TRUE')
         if dannetpressed then
-          mq.cmd.hudedit('swHealDanNet', dodannet and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swHealDanNet', dodannet and 'TRUE' or 'FALSE')
         end  
         
         -- group
         local dogroup, grouppressed = ImGui.Checkbox("group", mq.TLO.Macro.Variable('maHeal').Find('swHealGroup').Value() == 'TRUE')
         if grouppressed then
-          mq.cmd.hudedit('swHealGroup', dogroup and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swHealGroup', dogroup and 'TRUE' or 'FALSE')
         end  
         
         -- xtarget        
         local doxt, xtpressed = ImGui.Checkbox("##xtarget", mq.TLO.Macro.Variable('maHeal').Find('swHealXTarget').Value() == 'TRUE')
         if xtpressed then
-          mq.cmd.hudedit('swHealXTarget', doxt and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swHealXTarget', doxt and 'TRUE' or 'FALSE')
         end
         ImGui.SameLine()
         local healxt = ImGui.Button('xt', 60, 22)
@@ -354,13 +354,13 @@ local function imguicallback()
         -- pet        
         local dopet, petpressed = ImGui.Checkbox("pet", mq.TLO.Macro.Variable('maHeal').Find('swHealPet').Value() == 'TRUE')
         if petpressed then
-          mq.cmd.hudedit('swHealPet', dopet and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swHealPet', dopet and 'TRUE' or 'FALSE')
         end           
 
         -- rampage       
         local rampage, selectedramp = ImGui.InputTextWithHint('ramp##textentry', mq.TLO.Macro.Variable('maHeal').Find('stRampageTank').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
         if selectedramp then
-          mq.cmd.hudedit('stRampageTank', rampage)
+          mq.cmd.luaedit('stRampageTank', rampage)
         end
        
         ImGui.NextColumn()
@@ -368,13 +368,13 @@ local function imguicallback()
         -- weight
         local doweight, weightpressed = ImGui.Checkbox("weight", mq.TLO.Macro.Variable('maHeal').Find('swHealWeighted').Value() == 'TRUE')
         if weightpressed then
-          mq.cmd.hudedit('swHealWeighted', doweight and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swHealWeighted', doweight and 'TRUE' or 'FALSE')
         end        
         
         -- break
         local dobreak, breakpressed = ImGui.Checkbox("break", mq.TLO.Macro.Variable('maHeal').Find('swBreakHealPCT').Value() == 'TRUE')
         if breakpressed then
-          mq.cmd.hudedit('swBreakHealPCT', dobreak and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swBreakHealPCT', dobreak and 'TRUE' or 'FALSE')
         end         
         
         
@@ -385,97 +385,97 @@ local function imguicallback()
         local warhp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointWAR').Value())
         warhp, used = ImGui.DragInt("WAR", warhp, 1, 0, 99);
         if used then
-          mq.cmd.hudedit('stHealPointWAR', warhp)  
+          mq.cmd.luaedit('stHealPointWAR', warhp)  
         end
         -- pal
         local palhp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointPAL').Value())
         palhp, used = ImGui.DragInt("PAL", palhp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointPAL', palhp)  
+          mq.cmd.luaedit('stHealPointPAL', palhp)  
         end
         -- shd
         local shdhp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointSHD').Value())
         shdhp, used = ImGui.DragInt("SHD", shdhp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointSHD', shdhp)  
+          mq.cmd.luaedit('stHealPointSHD', shdhp)  
         end
         -- CLR
         local clrhp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointCLR').Value())
         clrhp, used = ImGui.DragInt("CLR", clrhp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointCLR', clrhp)  
+          mq.cmd.luaedit('stHealPointCLR', clrhp)  
         end
         -- SHM
         local shmhp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointSHM').Value())
         shmhp, used = ImGui.DragInt("SHM", shmhp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointSHM', shmhp)  
+          mq.cmd.luaedit('stHealPointSHM', shmhp)  
         end
         -- DRU
         local druhp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointDRU').Value())
         druhp, used = ImGui.DragInt("DRU", druhp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointDRU', druhp)  
+          mq.cmd.luaedit('stHealPointDRU', druhp)  
         end
         -- MNK
         local mnkhp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointMNK').Value())
         mnkhp, used = ImGui.DragInt("MNK", mnkhp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointMNK', mnkhp)  
+          mq.cmd.luaedit('stHealPointMNK', mnkhp)  
         end
         -- BER
         local BERhp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointBER').Value())
         BERhp, used = ImGui.DragInt("BER", BERhp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointBER', BERhp)  
+          mq.cmd.luaedit('stHealPointBER', BERhp)  
         end
         -- BRD
         local BRDhp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointBRD').Value())
         BRDhp, used = ImGui.DragInt("BRD", BRDhp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointBRD', BRDhp)  
+          mq.cmd.luaedit('stHealPointBRD', BRDhp)  
         end
         -- ROG
         local ROGhp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointROG').Value())
         ROGhp, used = ImGui.DragInt("ROG", ROGhp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointROG', ROGhp)  
+          mq.cmd.luaedit('stHealPointROG', ROGhp)  
         end
         -- BST
         local BSThp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointBST').Value())
         BSThp, used = ImGui.DragInt("BST", BSThp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointBST', BSThp)  
+          mq.cmd.luaedit('stHealPointBST', BSThp)  
         end
         -- RNG
         local RNGhp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointRNG').Value())
         RNGhp, used = ImGui.DragInt("RNG", RNGhp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointRNG', RNGhp)  
+          mq.cmd.luaedit('stHealPointRNG', RNGhp)  
         end
         -- WIZ
         local WIZhp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointWIZ').Value())
         WIZhp, used = ImGui.DragInt("WIZ", WIZhp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointRNG', WIZhp)  
+          mq.cmd.luaedit('stHealPointRNG', WIZhp)  
         end
         -- MAG
         local MAGhp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointMAG').Value())
         MAGhp, used = ImGui.DragInt("MAG", MAGhp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointMAG', MAGhp)  
+          mq.cmd.luaedit('stHealPointMAG', MAGhp)  
         end
         -- NEC
         local NEChp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointNEC').Value())
         NEChp, used = ImGui.DragInt("NEC", NEChp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointNEC', NEChp)  
+          mq.cmd.luaedit('stHealPointNEC', NEChp)  
         end
         -- ENC
         local ENChp = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPointENC').Value())
         ENChp, used = ImGui.DragInt("ENC", ENChp, 1, 0, 99)
         if used then
-          mq.cmd.hudedit('stHealPointENC', ENChp)  
+          mq.cmd.luaedit('stHealPointENC', ENChp)  
         end
 
         
@@ -494,33 +494,33 @@ local function imguicallback()
         -- dot
         local dotnow, dotpressed = ImGui.Checkbox("dot", mq.TLO.Macro.Variable('maCC').Find('swCombatDoT').Value() == 'TRUE')
         if dotpressed then
-          mq.cmd.hudedit('swCombatDoT', dotnow and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swCombatDoT', dotnow and 'TRUE' or 'FALSE')
         end   
         -- heal
         local healnow, healpressed = ImGui.Checkbox("heal", mq.TLO.Macro.Variable('maCC').Find('swCombatHeal').Value() == 'TRUE')
         if healpressed then
-          mq.cmd.hudedit('swCombatHeal', healnow and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swCombatHeal', healnow and 'TRUE' or 'FALSE')
         end   
         -- melee
         local meleenow, meleepressed = ImGui.Checkbox("melee", mq.TLO.Macro.Variable('maCC').Find('swCombatMelee').Value() == 'TRUE')
         if meleepressed then
-          mq.cmd.hudedit('swCombatMelee', meleenow and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swCombatMelee', meleenow and 'TRUE' or 'FALSE')
         end   
         -- range
         local rangenow, rangepressed = ImGui.Checkbox("range", mq.TLO.Macro.Variable('maCC').Find('swCombatRange').Value() == 'TRUE')
         if rangepressed then
-          mq.cmd.hudedit('swCombatRange', rangenow and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swCombatRange', rangenow and 'TRUE' or 'FALSE')
         end   
         -- nuke
         local nukenow, nukepressed = ImGui.Checkbox("nuke", mq.TLO.Macro.Variable('maCC').Find('swCombatNuke').Value() == 'TRUE')
         if nukepressed then
-          mq.cmd.hudedit('swCombatNuke', nukenow and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swCombatNuke', nukenow and 'TRUE' or 'FALSE')
         end   
         -- cc
         local ccnow, ccpressed = ImGui.Checkbox("cc", mq.TLO.Macro.Variable('maCC').Find('swCombatControl').Value() == 'TRUE')
         if ccpressed then
           if mq.TLO.Me.ClassShortName() == 'ENC' or mq.TLO.Me.ClassShortName() == 'BRD' or mq.TLO.Me.ClassShortName() == 'NEC' or mq.TLO.Me.ClassShortName() == 'MAG' then
-            mq.cmd.hudedit('swCombatControl', ccnow and 'TRUE' or 'FALSE')
+            mq.cmd.luaedit('swCombatControl', ccnow and 'TRUE' or 'FALSE')
           end
         end   
 
@@ -542,7 +542,7 @@ local function imguicallback()
         -- manual assist
         local manualnow, manualpressed = ImGui.Checkbox("manual", mq.TLO.Macro.Variable('maCC').Find('swManualAssist').Value() == 'TRUE')
         if manualpressed then
-          mq.cmd.hudedit('swManualAssist', manualnow and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swManualAssist', manualnow and 'TRUE' or 'FALSE')
         end 
 
 
@@ -551,13 +551,13 @@ local function imguicallback()
         -- engage
         local engage, selectedeng = ImGui.InputTextWithHint('engage##textentry', mq.TLO.Macro.Variable('maCC').Find('stPctEngage').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
         if selectedeng then
-          mq.cmd.hudedit('stPctEngage', engage)
+          mq.cmd.luaedit('stPctEngage', engage)
         end
         
         -- zrad
         local zrad, selectedzrad = ImGui.InputTextWithHint('zrad##textentry', mq.TLO.Macro.Variable('maCC').Find('stZRadius').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
         if selectedzrad then
-          mq.cmd.hudedit('stZRadius', zrad)
+          mq.cmd.luaedit('stZRadius', zrad)
         end        
         
        
@@ -576,7 +576,7 @@ local function imguicallback()
         -- pull active
         local pullactive, pullactivepressed = ImGui.Checkbox("pull", mq.TLO.Macro.Variable('maPull').Find('swPull').Value() == 'TRUE')
         if pullactivepressed then
-          mq.cmd.hudedit('swPull', pullactive and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swPull', pullactive and 'TRUE' or 'FALSE')
         end  
         -- pull mode
         local pullmode = mq.TLO.Macro.Variable('maPull').Find('stPullMode').Value()
@@ -584,7 +584,7 @@ local function imguicallback()
           for _, v in ipairs({ 'base', 'pet', 'int', 'nav', 'multi', 'watch' }) do
             local selectedpm = v == pullmode
             if ImGui.Selectable(v, selectedpm) and not selectedpm then
-              mq.cmd.hudedit('stPullMode', v)
+              mq.cmd.luaedit('stPullMode', v)
             end
           end
 
@@ -597,7 +597,7 @@ local function imguicallback()
           for _, v in ipairs({ 'melee', 'range', 'other' }) do
             local selectedpw = v == pullwith
             if ImGui.Selectable(v, selectedpw) and not selectedpw then
-              mq.cmd.hudedit('stPullWith', v)
+              mq.cmd.luaedit('stPullWith', v)
             end
           end
 
@@ -607,13 +607,13 @@ local function imguicallback()
         -- pathlogic
         local pathlogic, pathlogicpressed = ImGui.Checkbox("pathlogic", mq.TLO.Macro.Variable('maPull').Find('swNavPathLogic').Value() == 'TRUE')
         if pathlogicpressed then
-          mq.cmd.hudedit('swNavPathLogic', pathlogic and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swNavPathLogic', pathlogic and 'TRUE' or 'FALSE')
         end 
 
         -- sethome
         local sethome, sethomepressed = ImGui.Checkbox("sethome", mq.TLO.Macro.Variable('maPull').Find('swPullSetHome').Value() == 'TRUE')
         if sethomepressed then
-          mq.cmd.hudedit('swPullSetHome', sethome and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swPullSetHome', sethome and 'TRUE' or 'FALSE')
         end 
 
 
@@ -622,22 +622,22 @@ local function imguicallback()
         -- pull radius
         local pullrad, selectedpr = ImGui.InputTextWithHint('rad##textentry', mq.TLO.Macro.Variable('maPull').Find('stPullRadius').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
         if selectedpr then
-          mq.cmd.hudedit('stPullRadius', pullrad)
+          mq.cmd.luaedit('stPullRadius', pullrad)
         end    
        -- pullzrad
         local pullzrad, selectedpzr = ImGui.InputTextWithHint('zrad##textentry', mq.TLO.Macro.Variable('maPull').Find('stPullZRadius').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
         if selectedpzr then
-          mq.cmd.hudedit('stPullZRadius', pullzrad)
+          mq.cmd.luaedit('stPullZRadius', pullzrad)
         end           
         -- navstop
         local navstop, selectedns = ImGui.InputTextWithHint('stop##textentry', mq.TLO.Macro.Variable('maPull').Find('stPullNavStopDistance').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
         if selectedns then
-          mq.cmd.hudedit('stPullNavStopDistance', navstop)
+          mq.cmd.luaedit('stPullNavStopDistance', navstop)
         end           
        -- chainpull
         local chainpull, selectedcp = ImGui.InputTextWithHint('chain##textentry', mq.TLO.Macro.Variable('maPull').Find('stCountChainPull').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
         if selectedcp then
-          mq.cmd.hudedit('stCountChainPull', chainpull)
+          mq.cmd.luaedit('stCountChainPull', chainpull)
         end 
 
 
@@ -659,7 +659,7 @@ local function imguicallback()
         local rezrad = tonumber(mq.TLO.Macro.Variable('maRez').Find('stMaxRezRange').Value())
         rezrad, used = ImGui.DragInt("rad", rezrad, 1, 0, 200);
         if used then
-          mq.cmd.hudedit('stMaxRezRange', rezrad)  
+          mq.cmd.luaedit('stMaxRezRange', rezrad)  
         end
 
         local current_rezpct = mq.TLO.Macro.Variable('maRez').Find('stPctMinRez').Value()
@@ -677,12 +677,12 @@ local function imguicallback()
         -- in combat rez
         local doic, icpressed = ImGui.Checkbox("IC", mq.TLO.Macro.Variable('maRez').Find('swRezIC').Value() == 'TRUE')
         if icpressed then
-          mq.cmd.hudedit('swRezIC', doic and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swRezIC', doic and 'TRUE' or 'FALSE')
         end
         -- out of combat rez
         local doooc, oocpressed = ImGui.Checkbox("OOC", mq.TLO.Macro.Variable('maRez').Find('swRezOOC').Value() == 'TRUE')
         if oocpressed then
-          mq.cmd.hudedit('swRezOOC', doooc and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swRezOOC', doooc and 'TRUE' or 'FALSE')
         end
 
         ImGui.NextColumn()
@@ -690,27 +690,27 @@ local function imguicallback()
         -- dannet rezing
         local dodannet, dannetpressed = ImGui.Checkbox("dannet", mq.TLO.Macro.Variable('maRez').Find('swRezDanNet').Value() == 'TRUE')
         if dannetpressed then
-          mq.cmd.hudedit('swRezDanNet', dodannet and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swRezDanNet', dodannet and 'TRUE' or 'FALSE')
         end
         -- rez everyone in range
         local doeveryone, everyonepressed = ImGui.Checkbox("everyone", mq.TLO.Macro.Variable('maRez').Find('swRezEveryone').Value() == 'TRUE')
         if everyonepressed then
-          mq.cmd.hudedit('swRezEveryone', doeveryone and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swRezEveryone', doeveryone and 'TRUE' or 'FALSE')
         end        
         -- use token
         local dotoken, tokenpressed = ImGui.Checkbox("use token", mq.TLO.Macro.Variable('maRez').Find('swRezToken').Value() == 'TRUE')
         if tokenpressed then
-          mq.cmd.hudedit('swRezToken', dotokenl and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swRezToken', dotokenl and 'TRUE' or 'FALSE')
         end  
         -- take rezes
         local dotake, takepressed = ImGui.Checkbox("take", mq.TLO.Macro.Variable('maRez').Find('swRezTake').Value() == 'TRUE')
         if takepressed then
-          mq.cmd.hudedit('swRezTake', dotake and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swRezTake', dotake and 'TRUE' or 'FALSE')
         end  
         -- take call to corpse
         local dotakecall, takecallpressed = ImGui.Checkbox("take call", mq.TLO.Macro.Variable('maRez').Find('swRezTakeCall').Value() == 'TRUE')
         if takecallpressed then
-          mq.cmd.hudedit('swRezTakeCall', dotakecall and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swRezTakeCall', dotakecall and 'TRUE' or 'FALSE')
         end  
 
         
@@ -726,13 +726,13 @@ local function imguicallback()
         -- tietoon       
         local tietoon, selectedtoon = ImGui.InputTextWithHint('toon##textentry', mq.TLO.Macro.Variable('maTie').Find('stTieToon').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
          if selectedtoon then
-         mq.cmd.hudedit('stTieToon', tietoon)
+         mq.cmd.luaedit('stTieToon', tietoon)
         end
 
         -- tie variance
         local tievar, selectedvar = ImGui.InputTextWithHint('variance', mq.TLO.Macro.Variable('maTie').Find('stTieVariance').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
         if selectedvar then
-          mq.cmd.hudedit('stTieVariance', tievar)
+          mq.cmd.luaedit('stTieVariance', tievar)
         end
 
 
@@ -754,13 +754,13 @@ local function imguicallback()
         -- tie in combat
         local incombat, incombatpressed = ImGui.Checkbox("incombat", mq.TLO.Macro.Variable('maTie').Find('swTieCombat').Value() == 'TRUE')
         if incombatpressed then
-          mq.cmd.hudedit('swTieCombat', incombat and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swTieCombat', incombat and 'TRUE' or 'FALSE')
         end          
 
         -- breakworld to tie
         local breakworld, breakworldpressed = ImGui.Checkbox("break to", mq.TLO.Macro.Variable('maTie').Find('swTieBreak').Value() == 'TRUE')
         if breakworldpressed then
-          mq.cmd.hudedit('swTieCombat', breakworld and 'TRUE' or 'FALSE')
+          mq.cmd.luaedit('swTieCombat', breakworld and 'TRUE' or 'FALSE')
         end  
 
 
