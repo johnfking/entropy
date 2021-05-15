@@ -1248,12 +1248,13 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** control: pull **|
-  /call set_data_list ${_debug} maPull lsLinePull                         EMPTY                         "${auxli} alternate order for pulling"                                          pull
-  /call set_data_map ${_debug} maPull swPull                              FALSE                         "${auxsw} enable pulling (\a-wselect mobs to kill\ax)"                          pull
-  /call set_data_map ${_debug} maPull stPullRadius                        0                             "${auxnum} radius to pull mobs from"                                            pull
-  /call set_data_map ${_debug} maPull stPullPetWatch                      0                             "${auxnum} radius to pull dumb ass NPC pets"                                    pull
-  /call set_data_map ${_debug} maPull swPullSetHome                       FALSE                         "${auxsw} suto set home marker when pulling is enabled"                         pull
-  /call set_data_map ${_debug} maPull stPullNavStopDistance               60                            "${auxnum} how close you will nav pull to a mob before trying too tag it"       pull
+  /call set_data_list ${_debug} maPull lsLinePull                         EMPTY                         "${auxli} alternate order for pulling"                                                                            pull
+  /call set_data_map ${_debug} maPull swPull                              FALSE                         "${auxsw} enable pulling (\a-wselect mobs to kill\ax)"                                                            pull
+  /call set_data_map ${_debug} maPull stPullRadius                        0                             "${auxnum} radius to pull mobs from"                                                                              pull
+  /call set_data_map ${_debug} maPull stPullPetWatch                      0                             "${auxnum} radius to pull dumb ass NPC pets"                                                                      pull
+  /call set_data_map ${_debug} maPull swPullSetHome                       FALSE                         "${auxsw} suto set home marker when pulling is enabled"                                                           pull
+  /call set_data_map ${_debug} maPull stPullNavStopDistance               60                            "${auxnum} how close you will nav pull to a mob before trying too tag it"                                         pull
+  /call set_data_map ${_debug} maPull stPullNavVariance                   0                             "${auxnum} % variance added to pull radisu to exceed nav pull lengths to get to a mob"                            pull
   /call set_data ${_debug} FALSE lsPullMode                               list outer base|pet|int|nav|multi|watch
   /call set_data_map ${_debug} maPull stPullMode                          base                          "${auxna} [\a-wbase-nav-int-pet-multi\ax] the mode of pulling you wish to use while looking for said mobs"        pull
   /call set_data ${_debug} FALSE lsPullWith                               list outer melee|range|other

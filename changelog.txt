@@ -21,6 +21,27 @@ on the to do list
 --------------------
 
 
+
+210515.01
+** Reminder, this is only an update for MQNext users
+- fixed a bad debug in the lua hud editor
+- bard
+  corrected some spawn data
+- tags
+  made it so the sub call would work.. /sigh
+- pulling
+  nav pulling no longer works off a radius maximum (kindof), it is now based of the actual path length
+  the range you set for your pull rad will be the nav length to any mobs it finds
+  mobs are still sorted by shortest nav path
+- /pull navvar ## - % variance you will allow nav pulling to exceed the nav path to get to a mob
+  if pull rad=800 and navvar=15, then you can get mobs at 920 navlength, but still only look in 800
+- several hud updates
+- sorted dannet assisting spawn data
+- rez flagging is now turned on with /mode summon
+- corrected an import option for lists for INI loading
+
+
+
 210509.01
 - the Wiki is back in play
 - removed a debug in moveto_range()

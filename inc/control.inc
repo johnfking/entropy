@@ -2355,7 +2355,7 @@ sub Bind_noparse_raw_edit(string _variable, string _value, string _add_delete, s
 #bind_noparse lua_raw_edit /luaedit
 sub Bind_noparse_lua_raw_edit(string _variable, string _value, string _add_delete, string _verbage)
 
-  DEBUG do_raw_edit FALSE SILENT "${_variable}" "${Parse[1,${_value}]}" "${_add_delete}"
+  | DEBUG do_raw_edit FALSE SILENT "${_variable}" "${Parse[1,${_value}]}" "${_add_delete}"
   
   /call do_raw_edit FALSE SILENT "${_variable}" "${Parse[1,${_value}]}" "${_add_delete}"
 
@@ -4036,7 +4036,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
   /invoke ${_skipKey.Append[swWatch,stWatchCount,swSetForced]}
 
   | obfuscation
-  /invoke ${_skipKey.Append[lsProtectOutsideGroup,stTieToon,lsChain,lsAss]}
+  /invoke ${_skipKey.Append[lsProtectOutsideGroup,stTieToon,lsChain,lsAss,lsSafeNames]}
 
   | export to INI routine
   /if (${_build.Equal[save]}) {
@@ -4139,7 +4139,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
         /if (${Select[${_key},NULL]}) /continue
         /if (${_skipKey.Contains[${_key}]}) /continue
         DEBUG ${_key}=${Ini[${_fqn},${_section},${Parse[1,${_key}]},noparse]}
-        /call do_raw_edit FALSE SILENT ${_key} "${Ini[${_fqn},${_section},${Parse[1,${_key}]},noparse]}" OVERRIDE
+        /call do_raw_edit FALSE SILENT ${_key} "${Ini[${_fqn},${_section},${Parse[1,${_key}]},noparse]}" overwrite
       /next _countK
     /next _countS
 
@@ -5461,6 +5461,10 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   } else /if (${_type.Equal[navstop]}) {
     /if (!${set_control_num_range[${_debug}, stPullNavStopDistance, "${_verbage}", 31, 250]}) /return
 
+  | nav % variance
+  } else /if (${_type.Equal[navvar]}) {
+    /if (!${set_control_num_range[${_debug}, stPullNavVariance, "${_verbage}", 0, 99]}) /return
+
   | radius to watch for pets  
   } else /if (${_type.Equal[petwatch]}) {
     /if (!${set_control_num_range[${_debug}, stPullPetWatch, "${_verbage}", 0, 60]}) /return
@@ -5580,6 +5584,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   /invoke ${maControl.Add[outrun,stPullOutrunRange]}
   /invoke ${maControl.Add[sethome,swPullSetHome]}
   /invoke ${maControl.Add[navstop,stPullNavStopDistance]}
+  /invoke ${maControl.Add[navvar,stPullNavVariance]}
   /invoke ${maControl.Add[chain,stCountChainPull]}
   /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[FALSE, maPull, "pull", maControl]}

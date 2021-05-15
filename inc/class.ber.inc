@@ -327,7 +327,7 @@ sub check_heal(bool _debug, string _type)
 
   /call cast_cycle_heal ${_debug} ${Me.ID} healsingle
 
-  SETHUD EMPTY
+  SETHUD
 
 /return TRUE
 

@@ -276,7 +276,7 @@ sub check_heal(bool _debug, string _type)
 
   | if no one is hurt. back to the start
   /if (!${hurtCount}) {
-    SETHUD EMPTY
+    SETHUD
     /return TRUE
   }
 
@@ -307,7 +307,7 @@ sub check_heal(bool _debug, string _type)
 
   /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
-  SETHUD EMPTY
+  SETHUD
 
 /return TRUE
 

@@ -208,20 +208,20 @@ sub misc_combat(bool _debug, spawn _spawn)
       }
     } else /if (AE#) {
       /if (${Raid.Members}) {
-        /if (${Spawn[${_tmpID}].PctHPs} > 3 && ${Me.CurrentEndurance} > 10500 && !${Target.MyBuff[Vainglorious Shout].ID}) {
+        /if (${_spawn.PctHPs} > 3 && ${Me.CurrentEndurance} > 10500 && !${Target.MyBuff[Vainglorious Shout].ID}) {
           /if (${cast_data[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
-            /call cast ${_debug} ${_tmpID} FALSE
+            /call cast ${_debug} ${_spawn.ID} FALSE
           }
         }
       } else /if (!${Raid.Members}) {
-        /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Vainglorious Shout].ID} && ${SpawnCount[npc los radius 30 targetable]} >= AE#) {
+        /if (${_spawn.PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Vainglorious Shout].ID} && ${SpawnCount[npc los radius 30 targetable]} >= AE#) {
           /if (${cast_data[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
-            /call cast ${_debug} ${_tmpID} FALSE
+            /call cast ${_debug} ${_spawn.ID} FALSE
           }
         } else /if (${SpawnCount[npc los radius 30 targetable]} <= AE#) {
-            /if (${Spawn[${_tmpID}].PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Boastful Bellow].ID}) {
+            /if (${_spawn.PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Boastful Bellow].ID}) {
               /if (${cast_data[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
-              /call cast ${_debug} ${_tmpID} FALSE
+              /call cast ${_debug} ${_spawn.ID} FALSE
             }
           }
         }
@@ -254,7 +254,7 @@ sub check_heal(bool _debug, string _type)
 
   | if no one is hurt. back to the start
   /if (!${hurtCount}) {
-    SETHUD EMPTY
+    SETHUD
     /return TRUE
   }
 
@@ -279,7 +279,7 @@ sub check_heal(bool _debug, string _type)
 
   /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
-  SETHUD EMPTY
+  SETHUD
 
 /return TRUE
 
@@ -420,7 +420,7 @@ sub pulse_cycle(bool _debug, spawn _spawn, string _tag)
 
   }
 
-  SETHUD EMPTY
+  SETHUD
 
 /return TRUE
 

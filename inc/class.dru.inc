@@ -167,7 +167,7 @@ sub check_heal(bool _debug, string _type)
   /call spawn_hurt ${_debug} ${_type}
 
   /if (!${hurtCount}) {
-    SETHUD EMPTY
+    SETHUD
     /return
   }
 
@@ -234,7 +234,7 @@ sub check_heal(bool _debug, string _type)
 
   /call cast_cycle_heal ${_debug} ${hurtData.ID} single
 
-  SETHUD EMPTY
+  SETHUD
 
 /return TRUE
 

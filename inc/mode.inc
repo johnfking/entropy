@@ -722,9 +722,6 @@ sub mode_open(string _type, bool _debug)
 /return
 
 
-| /edit modeOpenItem "a hollows mushroom"
-
-
 
 |***
  * note: summons a corpse in lobby
@@ -811,6 +808,7 @@ sub mode_summon(bool _debug)
 
   /squelch /target clear
   /invoke ${maMode.Add[summon,FALSE]}
+  /varset swIsMeDead TRUE
 
 /return FALSE
 
@@ -1649,6 +1647,7 @@ sub task_mob_find(bool _debug, int _spCount, string _tag)
 
   /if (${_spCount}) {
     /varset stAssTarID 0
+    /varset targetData 0
   }
 
   | we have an existign target and not using a mode

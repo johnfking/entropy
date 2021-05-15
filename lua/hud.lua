@@ -53,7 +53,10 @@ local function imguicallback()
           ImGui.SameLine()
           ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maEnv').Find('stEnvRadius').Value())
           -- pull
-          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'pull')    
+          local pullactive = ImGui.SmallButton('pull')
+          if pullactive then
+            mq.cmd.pull('active')
+          end
           ImGui.SameLine()
           ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maPull').Find('stPullRadius').Value())
           ImGui.SameLine()
@@ -128,17 +131,15 @@ local function imguicallback()
             end            
           end
 
-
-
         -- column 2
           ImGui.NextColumn()
           local on = ImGui.Button('On', 60, 22)
-          if auto then
+          if on then
             mq.cmd.on()
           end
           
           local off = ImGui.Button('Off', 60, 22)
-          if auto then
+          if off then
             mq.cmd.off()
           end
 
@@ -147,12 +148,12 @@ local function imguicallback()
           ImGui.NextColumn()
 
           local incharge = ImGui.Button('Control', 60, 22)
-          if agro then
-            mq.cmd.agro('active')
+          if incharge then
+            mq.cmd.env('incharge')
           end
 
           local tie = ImGui.Button('Tie', 60, 22)
-          if agro then
+          if tie then
             mq.cmd.dga('/tie')
           end
 
@@ -640,6 +641,11 @@ local function imguicallback()
           mq.cmd.luaedit('stCountChainPull', chainpull)
         end 
 
+       -- navvariance
+        local navvariance, selectednv = ImGui.InputTextWithHint('var##textentry', mq.TLO.Macro.Variable('maPull').Find('stPullNavVariance').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        if selectednv then
+          mq.cmd.luaedit('stPullNavVariance', navvariance)
+        end 
 
 
 
