@@ -20,6 +20,12 @@ on the to do list
 - pet gear handing for damn TLP feeders..
 --------------------
 
+210516.01
+- corrected a couple varsets in manual assisting
+- mob finding for pulling
+  some changes to the loops and returns
+- /repeat
+  some changes to the randomness  
 
 
 210515.01
@@ -39,7 +45,6 @@ on the to do list
 - sorted dannet assisting spawn data
 - rez flagging is now turned on with /mode summon
 - corrected an import option for lists for INI loading
-
 
 
 210509.01

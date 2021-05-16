@@ -199,7 +199,7 @@ sub Bind_control_mode(string _type, string _verbage, string _verbage2, bool _deb
  ***|
 #bind control_admin /admin
 sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
-  DEBUG \atBind_control_admin\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+  SDEBUG \atBind_control_admin\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
 
   | cehck for undeclared variables
   /if (${_type.Equal[checkvar]}) {
@@ -227,31 +227,23 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     /return TRUE
 
   | reset dannet.. if you need too
-  } else /if (${_type.Equal[hotbar]}) {
-    ECHO hotbar
-
-    /call control_hotbar TRUE get
-    
-    /return TRUE
-    
-  | reset dannet.. if you need too
   } else /if (${_type.Equal[reset]}) {
     /if (!${Bool[${_verbage}]}) {
       OUT This is for resetting plugins.
       OUT eg. \a-w/admin reset dannet\ax
-      OUT will reset the MQ2DanNet plugin.
-      /return
+      OUT will reset the mq2dannett plugin.
+      /return FALSE
     }
-
-    /if (!${Bool[${Plugin[MQ2${_verbage}]}]}) {
+    
+    /if (!${Bool[${Plugin[mq2${_verbage.Lower}]}]}) {
       OUT Invalid or unloaded plugin${sep}\a-wMQ2${_verbage}\ax
-      /return
+      /return FALSE
     }
 
-    /invoke ${out[0, "Resetting Plugin${sep}\a-wMQ2${_verbage}\ax"]}
-    /plugin MQ2${_verbage} unload
+    /invoke ${out[0, "Resetting Plugin${sep}\a-wmq2${_verbage.Lower}\ax"]}
+    /plugin mq2${_verbage.Lower} unload
     /delay 3s
-    /plugin MQ2${_verbage}
+    /plugin mq2${_verbage.Lower}
     /invoke ${out[18, 0, 33]}
     /return TRUE
 
@@ -3217,11 +3209,11 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
 
   | everyone else
   /if (${_sender.NotEqual[${Me.DisplayName}]}) {
-    /if (${Bool[${Spawn[pc ${_sender} radius 60].ID}]}) {
+    /if (${Spawn[pc ${_sender} radius 60].ID}) {
       /call target set ${_tmpID}
       /if (${Target.ID} == ${_tmpID}) {
-        /delay ${Int[${Math.Calc[${Math.Rand[${maEntropy.Find[stRNDRepeat].Value}]} + 10]}]}
-        
+        /declare _tmpInt int local ${Math.Calc[${maEntropy.Find[stRNDRepeat].Value} + 10]}
+        /delay ${Math.Rand[${_tmpInt}]}
         /say ${_verbage}
         /delay 1s
       }

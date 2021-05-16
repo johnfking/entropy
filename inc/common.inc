@@ -2789,7 +2789,8 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
   | time to step the agro range out so we get mobs closer first
   DEBUG ${sep}rad${sep}\aw PULLENV\ax zradius${sep}\a-w${maPull.Find[stPullZRadius].Value}\ax
 
-  /while (${_tmpAgroRange} <= PULLENV && !TARGET) {
+  /while (${_tmpAgroRange} <= PULLENV && !${targetData.ID}) {
+    DEBUG start _tmpAgroRange${sep}${_tmpAgroRange} <= PULLENV
     /delay 1
 
     /if (${_tmpAgroRange} <= SAFEENV) {
@@ -2800,7 +2801,6 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
 
     | no mobs around us, no reason to be here
     /if (!${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
-      DEBUG ${sep}SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]
       DEBUG ${break}NO SpawnCount to pull from${sep}\a-w${_tmpAgroRange}\ax
       /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
       /continue
@@ -2809,12 +2809,12 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
     | search local ENV range in steps for mob acquisition
     DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
     /for _count ${Math.Calc[${_spCount} +1]} to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
-      DEBUG #{sep_count${sep}${_count}
+      DEBUG ${sep}count${sep}${_count} of ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
       ISMEDEAD
-
+      
       | /varset _tmpID ${NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}].ID}
-      /vardata _spawn NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}]
       | /vardata _spawn Spawn[${_tmpID}]
+      /vardata _spawn NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}]
 
       /if (!${_spawn.ID}) {
         DEBUG ${break}something is seriously wrong with the spawn${sep}\ar${_spawn.ID}\ax
@@ -2824,21 +2824,18 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
       | excluded mobs
       /if (${lsZoneExclude.Contains[${_spawn.DisplayName}]}) {
         DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsZoneExclude\ax (\a-r${_spawn.DisplayName}\ax)
-        /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
         /continue
       }
 
       | animation checks
       /if (${lsAnimationNoTarget.Contains[${_spawn.Animation}]}) {
         DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsAnimationNoTarget\ax (\a-r${_spawn.Animation}\ax)
-        /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
         /continue
       }
 
       | fish are friends, not food
       /if (${lsNoAttackBodyType.Contains[${_spawn.Body}]}) {
         DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoAttackBodyType\ax (\a-r${_spawn.Body}\ax)
-        /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
         /continue
       }
 
@@ -2848,7 +2845,6 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
         /if (${_spawn.Type.Equal[NPC]}) {
           /if (${lsNoTargetNPC.Contains[${_spawn.DisplayName}]}) {
             DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetNPC\ax (\a-r${_spawn.DisplayName}\ax)
-            /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
             /continue
           }
 
@@ -2856,7 +2852,6 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
         } else /if (${_spawn.Type.Equal[PC]}) {
           /if (${lsNoTargetPC.Contains[${_spawn.DisplayName}]}) {
             DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetPC\ax (\a-r${_spawn.DisplayName}\ax)
-            /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
             /continue
           }
 
@@ -2864,7 +2859,6 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
         } else /if (${_spawn.Type.Equal[Magic]}) {
           /if (${lsNoTargetMagic.Contains[${_spawn.DisplayName}]}) {
             DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetMagic\ax (\a-r${_spawn.DisplayName}\ax)
-            /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
             /continue
           }
         }
@@ -2904,7 +2898,6 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
       | skip this if we are the group main assist
       /if (${Group.MainAssist.Name.NotEqual[${Me.DisplayName}]}) {
         /if (${maPull.Find[stPullMode].Value.Equal[pet]} && ${lsAnimationMezed.Contains[${_spawn.Animation}]}) {
-          /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
           /continue
         }
       }
@@ -2915,7 +2908,6 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
       /if (!${Select[${maPull.Find[stPullMode].Value},base]}) {
         /if (!${Navigation.PathExists[id ${_spawn.ID}]} && !${maOver.Find[swOverNavCheck].Value}) {
           DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-y${_spawn.ID}\ax]\ax (\a-r${_spawn.DisplayName}\ax)
-          /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
           /continue
         }
       }
@@ -2926,13 +2918,13 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
         | break on nav if there is an error in length
         /if (${Navigation.PathLength[id ${_spawn.ID}]} < 0) {
           DEBUG ${break}Navigation.PathLength[id ${_spawn.ID}] < 0
+          /continue
         }
         
         | nav pulling ignore radius limitation, focus on nav length only and the varriance
         /if (${Select[${maPull.Find[stPullMode].Value},nav]}) {
           /if (${Navigation.PathLength[id ${_spawn.ID}]} > ${Math.Calc[PULLENV + (PULLENV*.${maPull.Find[stPullNavVariance].Value})]}) {
-            DEBUG ${break}Navigation.PathLength[${_spawn.ID}] > ${Math.Calc[PULLENV + (PULLENV*.${maPull.Find[stPullNavVariance].Value})]}
-            /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
+            DEBUG ${break}Navigation.PathLength(nav)[${_spawn.ID}] > ${Math.Calc[PULLENV + (PULLENV*.${maPull.Find[stPullNavVariance].Value})]}
             /continue
           }  
 
@@ -2940,7 +2932,6 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
         } else {
           /if (${Navigation.PathLength[id ${_spawn.ID}]} > PULLENV && ${_spawn.Distance} > PULLENV) {
             DEBUG ${break}Navigation.PathLength[${_spawn.ID}] > PULLENV
-            /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
             /continue
           }
         }
@@ -2952,7 +2943,6 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
           /varset _closestNAV ${_navRange}
         } else /if (${_navRange} > ${_closestNAV}) {
           DEBUG ${break}nav check${sep}\a-w${_navRange} > ${_closestNAV}\ax
-          /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
           /continue
         }
       }
@@ -2991,11 +2981,6 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
       /return 0
     }
     
-    | we have our target. back to whatever brought us here
-    /if (${_spawn.ID}) {
-      /return ${_spawn.ID}
-    }    
-
     | check for pets once everything else is dead    
     /if (!${_spawn.ID} && ${maPull.Find[stPullPetWatch].Value}) {
       /if (${SpawnCount[npcpet radius ${maPull.Find[stPullPetWatch].Value} targetable]}) {
@@ -3005,17 +2990,27 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
         /varset stAssTarID ${_spawn.ID}
         /vardata targetData _spawn.ID
       }
+
     }
 
+    | we have our target. back to whatever brought us here
+    /if (${targetData.ID}) {
+      /return ${targetData.ID}
+    }  
+    
+
     | no target, try next step
+    /varset targetData 0
+    /varset stAssTarID 0
+    DEBUG ${sep}_tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
     /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
   }
 
-  /if (!${_spawn.ID}) {
+  /if (!${targetData.ID}) {
     /delay 2
   }
 
-/return ${_spawn.ID}
+/return 0
 
 
 
@@ -13934,6 +13929,8 @@ sub get_assist_target(bool _debug, string _call)
         DEBUG ${sep}set smart${sep}\a-w1\ax
         /vardata assistData Spawn[${Raid.MainAssist[1].ID}]
         /vardata targetData Spawn[${Me.RaidAssistTarget[1].ID}]
+        | /vardata assistData Raid.MainAssist[1].ID
+        | /vardata targetData Me.RaidAssistTarget[1].ID
         /varset stAssTarID ${Me.RaidAssistTarget[1].ID}
         /if (${_call.Equal[return]}) {
           /return ${targetData.ID}
@@ -14021,7 +14018,7 @@ sub get_assist_target(bool _debug, string _call)
         
         | set our data
         } else /if (${DanNet[${_liass.Value}].Observe["Target.ID"]}) {
-          /vardata assistData Spawn[pc ${_liass.Value}].ID
+          /vardata assistData Spawn[pc ${_liass.Value}]
           /vardata targetData Spawn[${DanNet[${_liass.Value}].Observe["Target.ID"]}]
           /varset stAssTarID ${DanNet[${_liass.Value}].Observe["Target.ID"]}
           /if (${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
@@ -14061,7 +14058,7 @@ sub get_assist_target(bool _debug, string _call)
           /squelch /target clear
         }
         /varset stAssTarID 0
-        /vardata targetData 0
+        /varset targetData 0
         /return 0      
       }
       
@@ -14106,8 +14103,8 @@ sub get_assist_target(bool _debug, string _call)
           /if (!${maOver.Find[swTargetClear].Value}) {
             /squelch /target clear
           }
-          /vardata targetData 0
-          /vardata assistData 0
+          /varset targetData 0
+          /varset assistData 0
           /varset stAssTarID 0
           /return 0      
         }
