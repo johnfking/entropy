@@ -178,6 +178,7 @@ sub Bind_control_mode(string _type, string _verbage, string _verbage2, bool _deb
     }
   }
 
+  |**
   /declare _out string local
   /declare _mimode mapiterator local
   /vardata _mimode maMode.First.Clone
@@ -188,6 +189,26 @@ sub Bind_control_mode(string _type, string _verbage, string _verbage2, bool _deb
   /varset _out ${_out} ${dot} \awdata\ax:(${num}${If[${Bool[${stModeData}]},${stModeData},${off}]}\ax)
   /varset _out ${_out} ${dot} \ar<\ax${info}stop\ax\ar>\ax
   /invoke ${out[12, "/mode ${dot} ${_out}"]}
+  **|
+  
+  /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[forage,option]}
+  /invoke ${maControl.Add[harvest,option]}
+  /invoke ${maControl.Add[fish,option]}
+  /invoke ${maControl.Add[farm,option]}
+  /invoke ${maControl.Add[hunt,option]}
+  /invoke ${maControl.Add[lush,option]}
+  /invoke ${maControl.Add[summon,option]}
+  /invoke ${maControl.Add[temppet,option]}
+  /invoke ${maControl.Add[trainskill,option]}
+  /invoke ${maControl.Add[trainspell,option]}
+  /invoke ${maControl.Add[data,stModeData|pr]}
+  /invoke ${maControl.Add[petfarm,option]}
+  /invoke ${maControl.Add[summon,option]}
+  /invoke ${maControl.Add[drag,option]}
+
+  /invoke ${maControl.Add[stop,option]}
+  /invoke ${set_control_output[${_debug}, maMode, mode, maControl]}
 
 /return TRUE
 
@@ -1931,34 +1952,6 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
     
 
 
-  | mybutton adjustments
-  } else /if (${_type.Equal[buttons]}) {
-
-    /declare _path string local
-    /varset _path "MQ2Mybuttons.ini"
-
-    | reload mybuttons
-    /if (${_verbage.Equal[update]}) {
-      /call set_initialize_buttons FALSE ${_verbage2}
-      /squelch /mybutton reload
-      /squelch /mybutton on
-      /return TRUE
-
-    | delete mybuttons
-    } else /if (${_verbage.Equal[delete]}) {
-      /ini ${_path} "${_verbage2}" NULL NULL
-      /invoke ${out[12, "Deleting MQ2MyButtons.INI${sep}\a-w${_verbage2}\ax"]}
-      /squelch /mybutton off
-      /return TRUE
-    }
-
-    /invoke ${maControl.Clear}
-    /invoke ${maControl.Add[update,option]}
-    /invoke ${maControl.Add[delete,option]}
-    /invoke ${set_control_output[${_debug}, maEntropy, "entropy buttons", maControl]}
-    /return TRUE
-
-
   | dannet stuff
   } else /if (${_type.Equal[dannet]}) {
 
@@ -2022,7 +2015,6 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
   /invoke ${maControl.Add[autolist,swAutoList]}
   /invoke ${maControl.Add[fizzles,stCountFizzleRetry]}
   /invoke ${maControl.Add[concolor,swUseConColor]}
-  /invoke ${maControl.Add[buttons,option]}
   /invoke ${maControl.Add[random,submenu]}
   /invoke ${maControl.Add[engine,stEngine]}
   /invoke ${maControl.Add[castloops,stCastLoop]}
@@ -2348,8 +2340,8 @@ sub Bind_noparse_raw_edit(string _variable, string _value, string _add_delete, s
 sub Bind_noparse_lua_raw_edit(string _variable, string _value, string _add_delete, string _verbage)
 
   | DEBUG do_raw_edit FALSE SILENT "${_variable}" "${Parse[1,${_value}]}" "${_add_delete}"
-  
   /call do_raw_edit FALSE SILENT "${_variable}" "${Parse[1,${_value}]}" "${_add_delete}"
+  | /call do_raw_edit FALSE SILENT "${_variable}" "${Parse[1,${_value}]}" "overwrite"
 
 /return TRUE
 
@@ -2434,7 +2426,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
       /if (${sqlite.Rows[dummy]}) {
         /varset _animationresult ${sqlite.Result[dummy 1 value]}
       }
-      OUT ${sep}Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax${sep}\a-w${_animationresult}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax) ${dot} ID(\a-r${Spawn[id ${_tmpID}].ID}\ax)
+      OUT ${sep}Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax${sep}\a-w${_animationresult}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax) ${dot} ID(\a-r${Spawn[id ${_tmpID}].ID}\ax) ${dot} Type(\a-r${Spawn[id ${_tmpID}].Type}\ax)
       OUT ${sep}Master(\a-r${Spawn[id ${_tmpID}].Master}\ax) ${dot} Owner(\a-r${Spawn[id ${_tmpID}].Owner}\ax)
       ECHO
 
@@ -3992,7 +3984,7 @@ sub Bind_command_coh(string _verbage, bool _debug)
 #bind control_build /build
 sub Bind_control_build(string _build, string _nickname, string _verbage, bool _debug)
 
-  /if (${_build.Equal[gui]}) {
+  /if (${_build.Equal[ui]}) {
     /lua run ${MacroQuest.Path[macros]}\entropy\lua\build.lua
     /return TRUE
   }

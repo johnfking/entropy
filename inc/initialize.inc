@@ -324,8 +324,8 @@ sub set_initial_environment(bool _debug)
 
   | things we dont want pullers attacking
   /call set_data ${_debug} FALSE lsNoAttackBodyType                       list outer aura|banner|campfire|corpse|chest|item|trigger|trap|timer|mount|mercenary|object
-  /call set_data ${_debug} FALSE lsNoTargetNPC                            list outer "a campfire"|"a corpse"|"controller"|"Steel Mass"|"Sphere of Fire"|"an ant"
-  /call set_data ${_debug} FALSE lsNoTargetPC                             list outer "eye of"
+  /call set_data ${_debug} FALSE lsNoTargetNPC                            list outer "a campfire"|"a corpse"|"controller"|"Steel Mass"|"Sphere of Fire"|"an ant"|"a barrel of food"|"a crate of food"
+  /call set_data ${_debug} FALSE lsNoTargetPC                             list outer "eye of|a barrel of food"
   /call set_data ${_debug} FALSE lsNoTargetMagic                          list outer "eye of"
   /call set_data ${_debug} FALSE lsAnimationNoTarget                      list outer 16|43|44|146
   /call set_data ${_debug} FALSE lsAnimationMezed                         list outer 13|49|58
@@ -1472,6 +1472,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy stMainLoopDelay                  1                             "${auxnum} this is the main delay for the master macro loops. USE CAUTION when changing!"
   /call set_data_map ${_debug} maEntropy swLua                            FALSE                         "${auxsw} use mq2lua plugin"
   /call set_data_map ${_debug} maEntropy swTLP                            FALSE                         "${auxsw} TLP player"
+  /call set_data_map ${_debug} maEntropy stCountFizzleRetry               0                             "${auxnum} number of cast retrys on a fizzle"
 
   | hud
   /call set_data_map ${_debug} maEntropy swHUDAuto                        FALSE                         "${auxsw} Auto start HUD on mac start"
@@ -1507,7 +1508,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy swFullNames                      FALSE                         "${auxsw} dannet fullnames"
   /call set_data_map ${_debug} maEntropy stEntropyGroup_all               entropy                       "${auxna} dannet main entropy group"
   /call set_data_map ${_debug} maEntropy swEvasiveRefresh                 FALSE                         "${auxsw} refreshes observers if a client goes evasive"
-  /call set_data_map ${_debug} maEntropy stCountFizzleRetry               0                             "${auxnum} number of cast retrys on a fizzle"
 
   | join the main channel
   /djoin ${maEntropy.Find[stEntropyGroup_all].Value}

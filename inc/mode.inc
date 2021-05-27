@@ -75,7 +75,7 @@ sub mode_trainskill(bool _debug)
   DEBUG \atmode_train\ax()
 
   ISMEDEAD
-  SETHUD "mode trainskill"
+  SETHUD "trainskill"
   /makemevisible
   /delay 1
 
@@ -118,7 +118,7 @@ sub mode_trainskill(bool _debug)
     }
   }
 
-  SETHUD EMPTY
+  SETHUD
 
 /return TRUE
 
@@ -133,7 +133,7 @@ sub mode_fish(bool _debug)
   ISMEDEAD
   GETINPUT
 
-  SETHUD "mode fish"
+  SETHUD "fish"
 
   /if (!${Me.Standing}) /stand
 
@@ -155,7 +155,7 @@ sub mode_fish(bool _debug)
 
   /call check_cursor ${_debug} clear
 
-  SETHUD EMPTY
+  SETHUD
 
 /return TRUE
 
@@ -177,7 +177,7 @@ sub mode_forage(bool _debug)
   }
 
   ISMEDEAD
-  SETHUD "mode forage"
+  SETHUD "forage"
 
   /if (!${Me.Standing}) {
     /stand
@@ -196,7 +196,7 @@ sub mode_forage(bool _debug)
     /delay 2
   }
 
-  SETHUD EMPTY
+  SETHUD
 
 /return TRUE
 
@@ -212,7 +212,7 @@ sub mode_drag(bool _debug)
   /declare _count     int local
   /declare _corpseID  int local
 
-  SETHUD "mode drag"
+  SETHUD "drag"
 
   GETINPUT
   ISMEDEAD
@@ -231,7 +231,7 @@ sub mode_drag(bool _debug)
     /next _count
   }
 
-  SETHUD EMPTY
+  SETHUD
 
 /return
 
@@ -259,7 +259,7 @@ sub mode_petfarm(bool _debug)
   /invoke ${maOver.Add[swOverLOS,TRUE]}
   /varset swModeToken TRUE
 
-  SETHUD "mode petfarm"
+  SETHUD "petfarm"
 
   GETINPUT
 
@@ -281,11 +281,11 @@ sub mode_petfarm(bool _debug)
   /call pull_mob_find ${_debug} 0 petfarm
   DEBUG ${sep}pull_mob_find.return${sep}\a-w${Macro.Return}\ax
 
-  /if (!TARGET) {
-    DEBUG \arNO\ax stAssTarID
-    SETHUD EMPTY
+  /if (!${targetData.ID}) {
+    DEBUG \arNO\ax targetData
+    SETHUD
     GETINPUT
-    /if (${Pet.Distance3D} > 30) {
+    /if (${Pet.Distance3D} > ENV) {
       /call where_the_fuck_is_my_pet ${_debug} FORCE
     }
     /return FALSE
@@ -305,21 +305,26 @@ sub mode_petfarm(bool _debug)
     GETINPUT
     /delay 5
 
-    /if (${Spawn[TARGET].Type.Equal[CORPSE]} || !${Spawn[TARGET].ID}) /break
-    /if (${Me.Pet.Target.ID} != TARGET) /break
-    /if (${Spawn[TARGET].Distance} > PULLENV) /break
-    DEBUG ${sep}here${sep}\a-w${timer_mob_get}\ax \agTARGET\ax
-    /if (!${timer_mob_get}) /break
+    /if (${targetData.Type.Equal[CORPSE]} || !${targetData.ID}) /break
+    /if (${Pet.Target.ID} != ${targetData.ID}) /break
+    /if (${targetData.Distance} > PULLENV) /break
+    DEBUG ${sep}here${sep}\a-w${timer_mob_get}\ax \ag${targetData.ID}\ax
+    /if (!${timer_mob_get}) {
+      /break
+    }
 
   }
 
   /invoke ${maOver.Add[swOverPctEngage,FALSE]}
   /invoke ${maOver.Add[swOverLOS,FALSE]}
   /varset swModeToken FALSE
-  /call where_the_fuck_is_my_pet ${_debug} FORCE
+  /if (${Pet.Distance} > ENV) {
+    /call where_the_fuck_is_my_pet ${_debug} FORCE
+  }
+  
   /call clear_combat
 
-  SETHUD EMPTY
+  SETHUD
 
 /return
 
@@ -339,7 +344,7 @@ sub mode_temppet(bool _debug)
     /return FALSE
   }
 
-  SETHUD "mode temppet"
+  SETHUD "temppet"
   
   /if (${Pet.ID}) {
     /delay 1s
@@ -356,7 +361,7 @@ sub mode_temppet(bool _debug)
   | check for things to torment
   /if (!${SpawnCount[npc radius ${_tmpPullRad}]}) {
     /delay 1s
-    SETHUD EMPTY
+    SETHUD
     /return FALSE
   }
 
@@ -372,7 +377,7 @@ sub mode_temppet(bool _debug)
   /call cast_data ${_debug} "${_petSpell}"
   /call cast ${_debug} ${_tmpID} FALSE
 
-  SETHUD EMPTY
+  SETHUD
 
 
 /return TRUE
@@ -389,7 +394,7 @@ sub mode_harvest(bool _debug)
   ISMEDEAD
   GETINPUT
 
-  SETHUD "mode harvest"
+  SETHUD "harvest"
 
   /declare _lsCollect list local
   /invoke ${_lsCollect.Delimiter[|]}
@@ -405,7 +410,7 @@ sub mode_harvest(bool _debug)
   }
 
   /delay 1s
-  SETHUD EMPTY
+  SETHUD
 
 /return
 
@@ -530,7 +535,7 @@ sub mode_get_waisted(bool _debug)
     VOUT Drinking ${sep} ${cinfo}${_ale}\ax
     /useitem ${_ale}
   }
-  SETHUD EMPTY
+  SETHUD
 /return
 
 
@@ -547,7 +552,7 @@ sub mode_lush(bool _debug)
     /return
   }
 
-  SETHUD "mode lush"
+  SETHUD "lush"
 
   | start drinking.
   /while (${Me.Skill[Alcohol Tolerance]} < ${Skill[Alcohol Tolerance].SkillCap}) {
@@ -566,7 +571,7 @@ sub mode_lush(bool _debug)
     /return TRUE
   }
 
-  SETHUD EMPTY
+  SETHUD
 
 /return TRUE
 
@@ -579,7 +584,7 @@ sub mode_lush(bool _debug)
  ***|
 sub mode_trainspell(string _type, bool _debug)
   ISMEDEAD
-  SETHUD "mode trainspell"
+  SETHUD "trainspell"
 
   | /if (${_type.Equal[specialize]} && !${swModeTrainspellSPC}) {
   |   /varset swModeTrainspellSPC TRUE
@@ -638,7 +643,7 @@ sub mode_trainspell(string _type, bool _debug)
   /next _count
 
 
-  SETHUD EMPTY
+  SETHUD
 
 /return
 
@@ -648,7 +653,7 @@ ${Me.Gem[${_count}].Name}
 
 
   ISMEDEAD
-  SETHUD "mode trainspell"
+  SETHUD "trainspell"
 
   /declare swTrainAlteration bool local TRUE
 
@@ -692,7 +697,7 @@ ${Me.Gem[${_count}].Name}
   /next _count
 
 
-  SETHUD EMPTY
+  SETHUD
 
 
 
@@ -718,7 +723,7 @@ sub mode_open(string _type, bool _debug)
     /return
   }
 
-  SETHUD EMPTY
+  SETHUD
 /return
 
 
@@ -736,7 +741,7 @@ sub mode_summon(bool _debug)
     /return FALSE
   }
 
-  SETHUD "mode summon"
+  SETHUD "summon"
 
   | set stone to buy
   /declare _soulstone string local
@@ -830,7 +835,7 @@ sub mode_hunt(bool _debug)
   /declare _lihunt listiterator local
 
 
-  SETHUD "mode hunt"
+  SETHUD "hunt"
 
   :checkpath
   GETINPUT
@@ -890,7 +895,7 @@ sub mode_hunt(bool _debug)
   /invoke ${maOver.Add[swOverLOS,FALSE]}
   /varset swModeToken FALSE
 
-  SETHUD EMPTY
+  SETHUD
 
 /return TRUE
 
@@ -1207,7 +1212,7 @@ sub task_combatloop(int _tmpID, bool _debug)
     }
 
     /if (${target[isdead, ${_tmpID}]}) {
-      SETHUD EMPTY
+      SETHUD
       /return FALSE
     }
 
@@ -1372,7 +1377,7 @@ sub rof_shard_bodhe(string _opt, bool _debug)
             }
           /next _count
           /delay 2
-          SETHUD EMPTY
+          SETHUD
         }
         /call where_the_fuck_is_my_pet DEBUG TRUE
         :kill_rof_shard_bodhe

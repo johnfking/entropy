@@ -20,6 +20,29 @@ on the to do list
 - pet gear handing for damn TLP feeders..
 --------------------
 
+
+
+
+210527.01
+- /mode
+  command output is now the same format as all the rest
+- /mode petfarm
+  pet owner will not summon its pet until it gets outside of the env radius
+- heal dannet
+  added some descriptions to the debugs
+- manual assisiting
+  some aditions to the engage% check
+- rest
+  pet classes will have their pets sit while resting 
+- pulling
+  added "a barrel of food" and "a crate of food" to the list of untargetable NPCs:lsNoTargetNPC
+- /build ui
+  opens a Lua editor for building characters
+  there are still a metric shit tonne of things to add to this but i wanted to get it
+  out there and get some feed back on it.
+  the sliders are still a little clunky. its being worked on.
+  
+
 210516.01
 - corrected a couple varsets in manual assisting
 - mob finding for pulling

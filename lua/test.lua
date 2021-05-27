@@ -23,7 +23,7 @@ return arg[2]
 
 
 
-
+classTable = { "WAR", "PAL", "SHD", "BST", "ROG", "MNK", "RNG", "BER", "CLR", "SHM", "DRU", "WIZ", "NEC", "ENC", "MAG", "BRD" }
 
 
 --[[

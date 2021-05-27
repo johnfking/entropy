@@ -7,11 +7,10 @@
 
 mq = require('mq')
 echo = mq.cmd.echo
--- DisplayName = mq.TLO.Me.DisplayName()
--- ShortName = mq.TLO.Me.Class.ShortName()
 discord = '${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}'
 ent = {}
 target = {}
+classTable = { "WAR", "PAL", "SHD", "BST", "ROG", "MNK", "RNG", "BER", "CLR", "SHM", "DRU", "WIZ", "NEC", "ENC", "MAG", "BRD" }
 
 
 rez = {}

@@ -1897,7 +1897,7 @@ sub set_combat(bool _debug)
     | adjust range if melee is diabled to keep close to target. give them some range to.. range again
     /if (${Target.Distance} < ${maHard.Find[stMinBowDist].Value} && RANGE && !MELEE) {
       /if (AUTO && !${Stick.Active} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
-        /call moveto_range TARGET ${maHard.Find[stMinMovetoBow].Value}
+        /call moveto_range ${_debug} TARGET ${maHard.Find[stMinMovetoBow].Value}
       }
 
     | can we get to the melee already?
@@ -3328,6 +3328,7 @@ sub do_rest(bool _debug)
         /if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
 
       } else /if (${Select[${Me.Class.ShortName},RNG]}) {
+        /if (PET) /pet sit
       } else /if (${Select[${Me.Class.ShortName},BST]}) {
         /if (!${timer_Check_Para}) /call check_mana ${maDebug.Find[para].Value}
         /if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
@@ -3391,15 +3392,19 @@ sub do_rest(bool _debug)
           /if (${maHeal.Find[swHealXTarget].Value}) /call check_heal FALSE XTarget
         }
         /if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
+        /if (PET) /pet sit
       } else /if (${Select[${Me.Class.ShortName},ENC]}) {
         /if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
+        /if (PET) /pet sit
       } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
       } else /if (${Select[${Me.Class.ShortName},NEC]}) {
         /if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
+        /if (PET) /pet sit
       } else /if (${Select[${Me.Class.ShortName},MAG]}) {
         /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
         /if (${maChr.Find[stPctGather].Value} && !${timer_Check_Gather}) /call check_gather ${maDebug.Find[gather].Value}
         /if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
+        /if (PET) /pet sit
       }
 
       DEBUG ${sep}caster _needrest${sep}\a-w${_needrest}\ax
@@ -3576,7 +3581,7 @@ sub get_key_DBLOC(bool _debug, string _key)
  * use: /call do_raw_edit DEBUG [silent T/F] [variable to change] [value to change it too|gem#|cursor] [add|delete|clear (for lists)|overwrite] [T/F noecho]
  ***|
 sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, string _add_delete, bool _noecho)
-/invoke ${maDebug.Add[edit,TRUE]}
+| /invoke ${maDebug.Add[edit,TRUE]}
 
   /if (${maDebug.Find[edit].Value}) {
     DEBUG \atdo_raw_edit\ax
@@ -5701,7 +5706,7 @@ sub do_loot(bool _debug)
   ISMEDEAD
   GETINPUT do_loot NA|NA
 
-  /invoke ${set_data_timer[FALSE, Check_Loot, RESTART]}
+  /invoke ${set_data_timer[${_debug}, Check_Loot, RESTART]}
 
   | skip if MQ2AutoLoot is being used
   /if (${Bool[${Plugin[MQ2Autoloot]}]}) {
@@ -7926,8 +7931,10 @@ sub out(int _lvl, string _verbage, int _strNum)
   } else /if (${Range.Between[1,99999:${Int[${_strNum}]}]} && (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0)) {
     /sqlite query "${DBstatic}" getstring SELECT value FROM string WHERE env_var='${_strNum}';
     /if (!${sql_check[${_debug}, getstring, out, SELECT]}) /endmacro
-    ECHO ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${sqlite.Result[getstring 1 value]}
-    /varset HUDOutput ${sqlite.Result[getstring 1 value]}
+    /if (${sqlite.Rows[getstring]}) {
+      ECHO ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${sqlite.Result[getstring 1 value]}
+      /varset HUDOutput ${sqlite.Result[getstring 1 value]}
+    }
 
   | output grain validation with passed verbage
   } else /if (!${Range.Between[1,99999:${Int[${_strNum}]}]} && (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0)) {
@@ -14087,7 +14094,24 @@ sub get_assist_target(bool _debug, string _call)
         }
         
         /squelch /assist ${_liass.Value}
-        /delay 5 ${Me.AssistComplete} 
+        /delay 5 ${Me.AssistComplete}
+        
+        /while (${Target.PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
+          /if (!${Target.ID}) {
+            /if (!${maOver.Find[swTargetClear].Value}) {
+              /squelch /target clear
+            }
+            /varset targetData 0
+            /varset assistData 0
+            /varset stAssTarID 0
+            /return 0             
+          }
+          GETINPUT
+          /if (${Target.PctHPs} <= ${maCC.Find[stPctEngage].Value}) {
+            /break
+          }
+          /delay 5
+        }
         
         /if (${Target.ID} && ${Select[${Target.Type},npc]} || ${Target.ID} != TARGET) {
           DEBUG ${sep}Assisting${sep}\a-w${_liass.Value}\ax
@@ -14784,7 +14808,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
         /while (!${_ligom.IsEnd}) {
           /if (${Select[${_ligom.Value},empty]}) /break
           /if (${cast_data[${_debug}, "${_ligom.Value}"]}) {
-            /vardata spellData Spell[${_ligom.Value}].RankName
+            /vardata spellData Spell[${_ligom.Value}]
             /break
           } else {
             /vardata spellData _tmpspell
@@ -15477,17 +15501,17 @@ sub spawn_hurt(bool _debug, string _type, bool _breakonGroup)
 
       | is the observer set
       /if (!${DanNet[${_spawn.DisplayName}].ObserveSet["Me.PctHPs"]} || !${DanNet[${_spawn.DisplayName}].ObserveSet["Me.Class.ShortName"]} || !${DanNet[${_spawn.DisplayName}].ObserveSet["Me.ID"]}) {
-        DEBUG ${break}observers are mission or catching up
+        DEBUG ${break}observers are mission or catching up for ${_spawn.DisplayName}
         /continue
       }
       
       DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}${_spawn.DisplayName}${sep}${_spawn.ID}\ax
 
       /if (${DanNet[${_spawn.DisplayName}].Observe["Me.PctHPs"]} > ${maHeal.Find[stHealPoint${DanNet[${_spawn.DisplayName}].Observe["Me.Class.ShortName"]}].Value}*.PCTHO) {
-        DEBUG ${break} > HealPoint
+        DEBUG ${break} > HealPoint ${sep} ${DanNet[${_spawn.DisplayName}].Observe["Me.PctHPs"]} > ${maHeal.Find[stHealPoint${DanNet[${_spawn.DisplayName}].Observe["Me.Class.ShortName"]}].Value}
         /continue
       } else /if (${_spawn.Distance} > ENV) {
-        DEBUG ${break} > env radius
+        DEBUG ${break} > env radius ${sep} ${_spawn.Distance} > ENV
         /continue
       } else /if (${_spawn.Dead}) {
         DEBUG ${break} dead toon
@@ -15497,14 +15521,14 @@ sub spawn_hurt(bool _debug, string _type, bool _breakonGroup)
         DEBUG ${break} not in zone
         /continue
       } else /if (${_spawn.DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}) {
-        DEBUG ${break} rampage tank
+        DEBUG ${break} rampage tank ${sep} ${_spawn.DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}
         /continue
       }
 
       | hurt running count
       /if (${DanNet[${_spawn.DisplayName}].Observe["Me.PctHPs"]} <= ${maHeal.Find[stHealPoint${DanNet[${_spawn.DisplayName}].Observe["Me.Class.ShortName"]}].Value}*.PCTHO) {
-        DEBUG ${sep}hurtCount +1
         /varcalc hurtCount ${hurtCount} + 1
+        DEBUG ${sep}hurtCount +1 ${sep} ${hurtCount}
       }
 
       /if (${maHeal.Find[swHealWeighted].Value}) {
