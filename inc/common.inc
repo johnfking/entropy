@@ -3227,7 +3227,7 @@ sub do_rest(bool _debug)
 
   | clerics and pallys wait 'till yaulp gone
   /if (${Me.Buff[Yaulp].ID}) {
-    DEBUG ${break}buff{sep}\a-wyalup\ax
+    DEBUG ${break}buff${sep}\a-wyalup\ax
     /return FALSE
   }
   
@@ -3328,10 +3328,10 @@ sub do_rest(bool _debug)
         /if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
 
       } else /if (${Select[${Me.Class.ShortName},RNG]}) {
-        /if (PET) /pet sit
       } else /if (${Select[${Me.Class.ShortName},BST]}) {
         /if (!${timer_Check_Para}) /call check_mana ${maDebug.Find[para].Value}
         /if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
+        /if (PET && !${Pet.Sitting} && ${maEntropy.Find[swTLP].Value}) /pet sit
       }
 
       DEBUG ${sep}hybrid _needrest${sep}\a-w${_needrest}\ax${sep}
@@ -3392,19 +3392,19 @@ sub do_rest(bool _debug)
           /if (${maHeal.Find[swHealXTarget].Value}) /call check_heal FALSE XTarget
         }
         /if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
-        /if (PET) /pet sit
+        /if (PET && !${Pet.Sitting} && ${maEntropy.Find[swTLP].Value}) /pet sit
       } else /if (${Select[${Me.Class.ShortName},ENC]}) {
         /if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
-        /if (PET) /pet sit
+        /if (PET && !${Pet.Sitting} && ${maEntropy.Find[swTLP].Value}) /pet sit
       } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
       } else /if (${Select[${Me.Class.ShortName},NEC]}) {
         /if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
-        /if (PET) /pet sit
+        /if (PET && !${Pet.Sitting} && ${maEntropy.Find[swTLP].Value}) /pet sit
       } else /if (${Select[${Me.Class.ShortName},MAG]}) {
         /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
         /if (${maChr.Find[stPctGather].Value} && !${timer_Check_Gather}) /call check_gather ${maDebug.Find[gather].Value}
         /if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
-        /if (PET) /pet sit
+        /if (PET && !${Pet.Sitting} && ${maEntropy.Find[swTLP].Value}) /pet sit
       }
 
       DEBUG ${sep}caster _needrest${sep}\a-w${_needrest}\ax
@@ -14118,7 +14118,7 @@ sub get_assist_target(bool _debug, string _call)
           /vardata assistData Spawn[${_liass.Value}].ID
           /varset stAssTarID ${Target.ID}  
           /call target set TARGET
-          /vardata targetData Target.ID
+          /vardata targetData Target
           
           /return ${targetData.ID}
         

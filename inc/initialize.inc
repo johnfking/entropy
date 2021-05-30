@@ -15,7 +15,7 @@ sub set_debug(string _verbage)
 
   | generate DEBUGS
   /declare lsDebuglist list outer
-  /invoke ${lsDebuglist.Append[buff,heal,move,debuff,cast,loot,mode,combat,other,minion,class,admin,schema,zone]}
+  /invoke ${lsDebuglist.Append[buff,heal,home,debuff,cast,loot,mode,combat,other,minion,class,admin,schema,zone]}
 
   | build the variables for the DEBUG lists
   /declare _licdeb listiterator local
@@ -29,8 +29,8 @@ sub set_debug(string _verbage)
   /invoke ${lsDebugbuff.Append[cb,ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp,bocked,buffgroup,buffraid,drop]}
   | heal
   /invoke ${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot,dannet,rez,chain,ch]}
-  | move
-  /invoke ${lsDebugmove.Append[face,tie,stick,stop,home,gtfo]}
+  | home
+  /invoke ${lsDebughome.Append[face,tie,stick,stop,home,gtfo]}
   | debuff
   /invoke ${lsDebugdebuff.Append[tash,malo,mez,slow,eradicate,snare]}
   | minion
@@ -40,7 +40,7 @@ sub set_debug(string _verbage)
   | loot
   /invoke ${lsDebugloot.Append[loot]}
   | mode
-  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell,temppet]}
+  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell,temppet,scribe]}
   | combat
   /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait,hardstop,prediction]}
   | other
@@ -529,7 +529,7 @@ sub set_initial_environment(bool _debug)
   | generate modes
   /declare maMode map outer
   /declare lsMode list outer
-  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell,temppet]}
+  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell,temppet,scribe]}
 
   /declare _lisie listiterator local
   /vardata _lisie lsMode.First.Clone
@@ -986,7 +986,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEnv stMobLvlMin                          1                             "${auxnum} lowest level mob you will attack"
   /call set_data_map ${_debug} maEnv stMobLvlMax                          500                           "${auxnum} highest level mob you will attack"
 
-  /call set_data_map ${_debug} maEnv swADVLoot                            FALSE                         "${auxsw} use advanced loot functions"
+  | /call set_data_map ${_debug} maEnv swADVLoot                            FALSE                         "${auxsw} use advanced loot functions"
   /call set_data_map ${_debug} maEnv swAutoInv                            FALSE                         "${auxsw} use autoinventory loot control on cursor items"
   /call set_data_list ${_debug} maEnv lsAutoInventory                     EMPTY                         "${auxli} list of shit to auto inventory"
   /call set_data_map ${_debug} maEnv stBuffGem                            ${Me.NumGems}                 "${auxnum} gem slot to use as a swap for buffing"
@@ -1022,7 +1022,7 @@ sub set_initialize_map_character_environment(bool _debug)
   | no cast buff list??
   /call set_data_list ${_debug} maChr lsNoCastBuff                        EMPTY                         "${auxli} buffs on you to stop casting"
 
-  /call set_data_map ${_debug} maEnv swBegMAG                            FALSE                         "${auxsw} beg mages for pet gear or rods" 
+  /call set_data_map ${_debug} maEnv swBegMAG                             FALSE                         "${auxsw} beg mages for pet gear or rods" 
 
 
 

@@ -22,6 +22,14 @@ on the to do list
 
 
 
+210530.01
+- pet sitting has been restricted to TLP..... not changing it. dont ask..
+- /mode scribe
+  buy and scribe missing spells/tomes
+  thanks to @themanwithnoname for this mode..
+- lots and lots of updates tot he builder UI
+  still lots to go  
+
 
 210527.01
 - /mode
@@ -38,7 +46,7 @@ on the to do list
   added "a barrel of food" and "a crate of food" to the list of untargetable NPCs:lsNoTargetNPC
 - /build ui
   opens a Lua editor for building characters
-  there are still a metric shit tonne of things to add to this but i wanted to get it
+  there are still a metric shittonne of things to add to this but i wanted to get it
   out there and get some feed back on it.
   the sliders are still a little clunky. its being worked on.
   

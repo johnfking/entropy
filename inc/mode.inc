@@ -1836,3 +1836,207 @@ sub task_mob_find(bool _debug, int _spCount, string _tag)
 
 
 
+|***
+ * note: buy missing spells
+ * use: /mode scribe
+ ***|
+sub mode_scribe(bool _debug)
+  ECHO \atBuying spells for you\at
+  SETHUD "mode scribe"
+
+  /if (!${Defined[MaxInvSlots]}) {
+    /declare MaxInvSlots int local 10
+  }
+
+	/declare MinLevel int local 1
+	/declare MaxLevel int local ${Me.Level}
+  /declare MyDeity string ${Me.Deity}
+  /declare _spell string local
+	/declare a int local
+	/declare SpellName string local
+
+	/if (!${Defined[HasVoA]}) {
+	  /declare HasVoA int local 0
+	}
+
+	/if (${Me.HaveExpansion[Veil of Alaris]}) {
+	  /varset HasVoA 1
+	}
+
+	/if (!${Merchant.Open}) {
+    /invoke ${Merchant.OpenWindow}
+    /delay 5s ${Merchant.ItemsReceived}
+  }
+
+  /for a 1 to ${Merchant.Items}
+    SETHUD "check merchant"
+
+    /if (!${Defined[_spell]}) {
+      /declare _spell string local
+    }
+    
+		/if (!${Me.FreeInventory}) {
+      ECHO \axEmpty more bags and try later\ax
+    }
+    
+		/varset SpellName ${Merchant.Item[${a}].Spell.Name}
+    /varset _spell ${Merchant.Item[${a}].Name}
+
+		/if (${Merchant.Item[${a}].Type.Equal[Scroll]} && ${Merchant.Item[${a}].Spell.Level} >= ${MinLevel} && ${Merchant.Item[${a}].Spell.Level} <= ${MaxLevel} && ${Math.Calc[${Merchant.Item[${a}].BuyPrice}\1000]} < ${Me.Platinum} && !${Me.Book[${Merchant.Item[${a}].Spell.Name}]} && !${FindItemCount[${Merchant.Item[${a}]}]}) {
+			/if (${Me.Book[${SpellName}]}) {
+				ECHO \at::\ax I already know\at ${SpellName}\at
+			/continue
+			}
+
+			/if (${FindItemCount[${Merchant.Item[${a}]}]}) {
+				ECHO :: I already have ${Merchant.Item[${a}]} in inventory
+			/continue
+			}
+
+			/if (${Me.CombatAbility[${SpellName} Rk. II]} || ${FindItemCount[${Merchant.Item[${a}]} Rk. II]}) {
+				ECHO :: Skipping lower rank of ${SpellName}
+			/continue
+			}
+
+			/if (${Me.CombatAbility[${SpellName} Rk. III]} || ${FindItemCount[${Merchant.Item[${a}]} Rk. III]}) {
+				ECHO :: Skipping lower rank of ${SpellName}
+			/continue
+			}
+
+			/if (${Merchant.Item[${a}].Deities} && ${MyDeity.NotEqual[${Merchant.Item[${a}].Deity[1]}]}) {
+				ECHO Unable to use ${SpellName} because of deity
+			/continue
+			}
+			/if (${Me.Book[${SpellName} Rk. II]} || ${FindItemCount[${SpellName} Rk. II]}) {
+				ECHO Skipping lower rank of ${SpellName}
+			/continue
+			}
+			/if (${Me.Book[${SpellName} Rk. III]} || ${FindItemCount[${SpellName} Rk. III]}) {
+				ECHO Skipping lower rank of ${SpellName}
+			/continue
+			}
+      SETHUD "Buying something"
+		| this loop is needed because the merchant item number doesn't match up to the interface line number
+			ECHO Buying ${_spell}
+      /invoke ${Merchant.SelectItem[=${_spell}]}
+      /delay 5
+      /invoke ${Merchant.Buy[1]}
+      /delay 5
+      /delay 5
+      DEBUG ${FindItemCount[=${_spell}]} of ${_spell}
+
+		}
+	/next a
+
+	/if (${Merchant.Open}) {
+		/notify MerchantWnd MW_Done_Button leftmouseup
+		/delay 1s !${Merchant.Open}
+	}
+
+	/if (${Select[${Me.Class.ShortName},WAR,BER,MNK,ROG]}) {
+    /declare Bag int local
+    /declare Slot int local
+    SETHUD "tome scribe"
+    /if (${Cursor.ID}) /autoinv
+
+    /if (!${HasVoA} && ${InvSlot[pack${InvScribeSlot}].Item.Type.Equal[Scroll]} && ${InvSlot[pack${InvScribeSlot}].Item.Spell.Level} <= ${Me.Level} && !${Me.Book[${InvSlot[pack${InvScribeSlot}].Item.Spell.Name}]}) /nomodkey /ctrlkey /itemnotify ${InvSlot[pack${InvScribeSlot}]} rightmouseup
+
+    /for Bag 1 to ${MaxInvSlots}
+      /if (${InvSlot[pack${Bag}].Item.Container}) {
+        /if (!${Window[Pack${Bag}].Open}) /itemnotify pack${Bag} rightmouseup
+        /delay 1s ${Window[Pack${Bag}].Open}
+        /for Slot 1 to ${InvSlot[pack${Bag}].Item.Container}
+          /if (${InvSlot[pack${Bag}].Item.Item[${Slot}].Name.Find[Tome]} && ${InvSlot[pack${Bag}].Item.Item[${Slot}].Type.Equal[Scroll]} && ${InvSlot[pack${Bag}].Item.Item[${Slot}].Spell.Level} <= ${Me.Level} && !${Me.Book[${InvSlot[pack${Bag}].Item.Item[${Slot}].Spell.Name}]}) {
+            /if (${HasVoA}) {
+              /nomodkey /ctrlkey /itemnotify in pack${Bag} ${Slot} rightmouseup
+              /delay 1s !${InvSlot[pack${Bag}].Item.Item[${Slot}].ID}
+            } else {
+              /nomodkey /ctrlkey /itemnotify in pack${Bag} ${Slot} leftmouseup
+              /delay 1s ${Cursor.ID}
+              /nomodkey /ctrlkey /itemnotify ${InvSlot[pack${InvScribeSlot}]} leftmouseup
+              /delay 1s !${Cursor.ID}
+              /nomodkey /ctrlkey /itemnotify ${InvSlot[pack${InvScribeSlot}]} rightmouseup
+              /delay 1s !${InvSlot[pack${InvScribeSlot}].ID}
+            }
+          }
+        /next Slot
+
+      }
+      /if (${Window[Pack${Bag}].Open}) {
+        /itemnotify pack${Bag} rightmouseup
+      }
+    /next Bag
+
+    /if (${Cursor.ID}) {
+      /autoinv
+    }
+
+  } else /if (${Select[${Me.Class.ShortName},CLR,DRU,SHM,ENC,WIZ,MAG,NEC]}) {
+    /declare tOut timer local 10s
+    /declare Bag int local
+    /declare Slot int local
+    SETHUD "scribe"
+    /if (${Cursor.ID}) /autoinv
+	  |** Opening your inventory for access bag slots **|
+    /if (!${Window[InventoryWindow].Open}) {
+      /windowstate InventoryWindow open
+    }
+	  |** Open all bags **|
+    /keypress OPEN_INV_BAGS
+
+	  |** Check Top Level Inventory Slot for bag/no bag **|
+    /for Bag 1 to ${MaxInvSlots}
+		  |** If it's a bag do this **|
+      /if (${InvSlot[pack${Bag}].Item.Container}) {
+        /if (!${Window[Pack${Bag}].Open}) /itemnotify pack${Bag} rightmouseup
+        /delay 1s ${Window[Pack${Bag}].Open}
+        /delay 5
+
+        /for Slot 1 to ${InvSlot[pack${Bag}].Item.Container}
+          /if (${InvSlot[pack${Bag}].Item.Item[${Slot}].Type.Equal[Scroll]} && ${InvSlot[pack${Bag}].Item.Item[${Slot}].Spell.Level} <= ${Me.Level} && !${Me.Book[${InvSlot[pack${Bag}].Item.Item[${Slot}].Spell.Name}]}) {
+            /nomodkey /ctrlkey /itemnotify in pack${Bag} ${Slot} rightmouseup
+            /delay 1s ${Cursor.ID}
+              /while (${Cursor.ID}) {
+                /if (${Window[ConfirmationDialogBox].Open} && ${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find[${Cursor.Spell.Name} will replace]}) /notify ConfirmationDialogBox Yes_Button leftmouseup
+                /delay ${tOut} !${Cursor.ID}
+                /delay 2
+                /autoinv
+                /delay 2
+                /if (!${Cursor.ID}) /break
+              }
+            }
+          /next Slot
+  			  | Close the bag I just checked
+        /if (${Window[Pack${Bag}].Open}) /itemnotify pack${Bag} rightmouseup
+ 
+  		} else {
+  			| If it's not a bag, do this
+  			| Debug message /echo TopLevel Inv Slot ~ IsAScroll: ${InvSlot[pack${Bag}].Item.Type.Equal[Scroll]} && Item Spell level: ${InvSlot[pack${Bag}].Item.Spell.Level} <= My Level: ${Me.Level} && Scribed Already: !${Me.Book[${InvSlot[pack${Bag}].Item.Spell.Name}]}
+  			/if (${InvSlot[pack${Bag}].Item.Type.Equal[Scroll]} && ${InvSlot[pack${Bag}].Item.Spell.Level} <= ${Me.Level} && !${Me.Book[${InvSlot[pack${Bag}].Item.Spell.Name}]}) {
+  				/echo Scribing: ${InvSlot[Pack${Bag}].Item.Name}
+  				/nomodkey /ctrlkey /itemnotify pack${Bag} rightmouseup
+  				/delay 1s ${Cursor.ID}
+  				/while (${Cursor.ID}) {
+            /if (${Window[ConfirmationDialogBox].Open} && ${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find[${Cursor.Spell.Name} will replace]}) /notify ConfirmationDialogBox Yes_Button leftmouseup
+            /delay ${tOut} !${Cursor.ID}
+            /delay 2
+            /autoinv
+            /delay 2
+            /if (!${Cursor.ID}) /break
+          }
+  			}
+  		}
+  	/next Bag
+
+	  /if (${Window[SpellBookWnd].Open}) {
+	    /squelch /windowstate SpellBookWnd close
+	  }
+
+  }
+  
+  SETHUD
+  ECHO done buying crap for you
+
+/return FALSE
+
+

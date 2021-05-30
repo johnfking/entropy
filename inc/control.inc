@@ -178,19 +178,6 @@ sub Bind_control_mode(string _type, string _verbage, string _verbage2, bool _deb
     }
   }
 
-  |**
-  /declare _out string local
-  /declare _mimode mapiterator local
-  /vardata _mimode maMode.First.Clone
-  /while (!${_mimode.IsEnd}) {
-    /varset _out ${_out} ${If[${_mimode.Key.Equal[${maMode.First}]},,${dot}]} ${If[${_mimode.Value},\ag${_mimode.Key}\ax,${info}${_mimode.Key}\ax]}
-    /invoke ${_mimode.Advance}
-  }
-  /varset _out ${_out} ${dot} \awdata\ax:(${num}${If[${Bool[${stModeData}]},${stModeData},${off}]}\ax)
-  /varset _out ${_out} ${dot} \ar<\ax${info}stop\ax\ar>\ax
-  /invoke ${out[12, "/mode ${dot} ${_out}"]}
-  **|
-  
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[forage,option]}
   /invoke ${maControl.Add[harvest,option]}
@@ -199,6 +186,7 @@ sub Bind_control_mode(string _type, string _verbage, string _verbage2, bool _deb
   /invoke ${maControl.Add[hunt,option]}
   /invoke ${maControl.Add[lush,option]}
   /invoke ${maControl.Add[summon,option]}
+  /invoke ${maControl.Add[scribe,option]}
   /invoke ${maControl.Add[temppet,option]}
   /invoke ${maControl.Add[trainskill,option]}
   /invoke ${maControl.Add[trainspell,option]}

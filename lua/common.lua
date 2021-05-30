@@ -69,9 +69,98 @@ end
 
 
 
-
+indent = function (count, pos)
+  if pos == 1  then
+    if count < 10 then
+      ImGui.Indent(16)
+    else
+      ImGui.Indent(24)
+    end
+  else
+    if count < 10 then
+      ImGui.Indent(-16)
+    else
+      ImGui.Indent(-24)
+    end
+  end
+end
  
   
+edit_switch_temp = function (name, map, var)
+  local switch, checked = ImGui.Checkbox(name..'##'..var, mq.TLO.Macro.Variable(map).Find(var).Value() == 'TRUE')
+  if checked then
+    mq.cmd.invoke('${'..map..'.Add['..var..','..(switch and 'TRUE' or 'FALSE')..']}')
+  end
+end
+
+
+edit_switch_perm = function (name, map, var)
+  local switch, checked = ImGui.Checkbox(name..'##'..var, mq.TLO.Macro.Variable(map).Find(var).Value() == 'TRUE')
+  if checked then
+    mq.cmd.luaedit(var, switch and 'TRUE' or 'FALSE')
+  end
+end
+
+
+edit_text_perm = function (name, map, var)
+  local line, selected = ImGui.InputTextWithHint(name..'##'..var, mq.TLO.Macro.Variable(map).Find(var).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+  if selected then
+    mq.cmd.luaedit(var, line, 'overwrite')
+  end  
+end
+
+
+edit_tree = function (count, var, alias)
   
+  if ImGui.TreeNode('list') then
+    ImGui.NewLine()
+    for i=1,50 do 
+      ImGui.TextColored(0.39, 0.58, 0.92, 1, i)
+      ImGui.SameLine()
+      if mq.TLO.Macro.Variable('ma'..var).Find('sw'..var..i).Value() == 'TRUE' then
+        local switch, pressed = ImGui.Checkbox('##sw'..var..i, mq.TLO.Macro.Variable('ma'..var).Find('sw'..var..i).Value() == 'TRUE')
+        if pressed then
+          mq.cmd.luaedit('sw'..var..i, switch and 'TRUE' or 'FALSE')
+        end
+        
+        indent(i,1)
+
+        local line, selected = ImGui.InputTextWithHint('name##st'..var..i, mq.TLO.Macro.Variable('ma'..var).Find('st'..var..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        if selected then
+          mq.cmd.luaedit('st'..var..i, line)
+        end
+        
+        if alias == 1 then
+          local line, selected = ImGui.InputTextWithHint('alias##st'..var..i..'Alias', mq.TLO.Macro.Variable('ma'..var).Find('st'..var..i..'Alias').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+          if selected then
+            mq.cmd.luaedit('st'..var..i..'Alias', line)
+          end
+        end
+
+        local line, selected = ImGui.InputTextWithHint('tag##ls'..var..i..'Tag', mq.TLO.Macro.Variable('ma'..var).Find('ls'..var..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        if selected then
+          mq.cmd.luaedit('ls'..var..i..'Tag', 'ls'..var..i..Tag, 'overwrite')
+        end
+        
+        indent(i,2)
+        
+      else 
+        if mq.TLO.Macro.Variable('ma'..var).Find('st'..var..i).Value() == 'FALSE' then
+          tmpName = '##sw'..var..i
+        else
+          tmpName = mq.TLO.Macro.Variable('ma'..var).Find('st'..var..i).Value()..'##sw'..var..i
+        end            
+        
+        local switch, pressed = ImGui.Checkbox(tmpName, mq.TLO.Macro.Variable('ma'..var).Find('swBuff'..i).Value() == 'TRUE')
+        if pressed then
+          mq.cmd.luaedit('sw'..var..i, switch and 'TRUE' or 'FALSE')
+        end
+      end
+    end
+    ImGui.TreePop()      
+  end
+
+end
+
 
 

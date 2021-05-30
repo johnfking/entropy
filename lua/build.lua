@@ -7,7 +7,7 @@
 
 
 
-require "common"
+require 'common'
 local openGUI = true
 local shouldDrawHUD = true
 
@@ -15,11 +15,68 @@ local shouldDrawHUD = true
 healPoint = {}
 local function updateHealPoints()
   for _, classCode in pairs(classTable) do
-    healPoint[classCode] = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPoint'..classCode).Value())
+    if healPoint[classCode] and healPoint[classCode].updated then
+      mq.cmd.luaedit('stHealPoint'..classCode, healPoint[classCode].value)
+      healPoint[classCode].updated = false
+    else
+      if not healPoint[classCode] then healPoint[classCode] = {} end
+      healPoint[classCode]['value'] = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealPoint'..classCode).Value())
+      healPoint[classCode]['updated'] = false
+    end
   end
 end
 
-updateHealPoints()
+
+chrTable = {}
+chrTable['CLR'] = chr_CLR
+
+
+
+
+local classOutput = function (classID)
+  if classID == 2 then -- cleric
+    indent(1,1)
+    ImGui.Columns(3, 'class', false)
+      edit_text_perm('issuance', 'maChr', 'stCountIssuance')
+      edit_text_perm('vp', 'maChr', 'stPctVP')
+    ImGui.NextColumn()
+      edit_text_perm('beacon', 'maChr', 'stCountBeaconofLife')
+    ImGui.NextColumn()
+    ImGui.Columns()     
+    indent(1,2)
+    ImGui.NewLine() 
+    
+    if ImGui.TreeNode('yaulp') then    
+      ImGui.NewLine()   
+      ImGui.Columns(2, 'yaulp', false)
+        edit_switch_perm('yaulp', 'maChr', 'swYaulp')
+      ImGui.NextColumn()
+        edit_text_perm('yaulp', 'maChr', 'stYaulp')
+      ImGui.Columns()    
+      ImGui.NewLine()   
+      ImGui.TreePop()      
+    end    
+    if ImGui.TreeNode('arbitration') then    
+      ImGui.NewLine()   
+      ImGui.Columns(2, 'arb', false)
+        edit_switch_perm('aa', 'maChr', 'swArbitrateAA')
+        edit_switch_perm('epic', 'maChr', 'swArbitrateEpic')
+      ImGui.NextColumn()
+        edit_text_perm('count', 'maChr', 'stCountArbitrate')
+        edit_text_perm('pause', 'maChr', 'stArbitratePause')
+      ImGui.Columns()    
+      ImGui.NewLine()   
+      ImGui.TreePop()      
+    end   
+
+    
+     
+  end
+
+end
+
+
+      
 
 
 local function imguicallback()
@@ -33,474 +90,360 @@ local function imguicallback()
 
 
   elseif shouldDrawHUD then  
-    if ImGui.BeginTabBar('##editortabs') then
+    ImGui.NewLine() 
+
+    -- CHR
+    if ImGui.CollapsingHeader('/chr') then
+      ImGui.NewLine() 
       
+      indent(1,1)
+      ImGui.Columns(4, 'spire', false)
+        edit_text_perm('ae', 'maChr', 'stCountAE')
+      ImGui.NextColumn()
+        edit_text_perm('fade', 'maChr', 'stPctFade')      
+      ImGui.NextColumn()
+      ImGui.NextColumn()
+      ImGui.Columns()      
+      ImGui.NewLine() 
+      indent(1,2)
+      
+      classOutput(mq.TLO.Me.Class.ID())
+      
+      local classoutput = chrTable[mq.TLO.Me.Class.ShortName()]
+      if classoutput ~= nil then 
+        edit_text_perm('issuance', 'maChr', 'stCountIssuance')
+        classoutput() 
+        ImGui.NewLine() 
+      end
 
--- ENTROPY TAB
-      if ImGui.BeginTabItem('Entropy') then
-        ImGui.NewLine()
-
-        ImGui.Columns(2, 'entbase', false)
-          -- swAutoList
-          local _switch, pressed = ImGui.Checkbox("AutoList", mq.TLO.Macro.Variable('maEntropy').Find('swAutoList').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swAutoList', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swBuffCooldownWait
-          local _switch, pressed = ImGui.Checkbox("Buff Cooldown", mq.TLO.Macro.Variable('maEntropy').Find('swBuffCooldownWait').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swBuffCooldownWait', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swUseConColor
-          local _switch, pressed = ImGui.Checkbox("Con Color", mq.TLO.Macro.Variable('maEntropy').Find('swUseConColor').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swUseConColor', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swTLP
-          local _switch, pressed = ImGui.Checkbox("TLP", mq.TLO.Macro.Variable('maEntropy').Find('swTLP').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swTLP', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swBuildSetRemember
-          local _switch, pressed = ImGui.Checkbox("Set Remember", mq.TLO.Macro.Variable('maEntropy').Find('swBuildSetRemember').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swBuildSetRemember', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swRelayTell
-          local _switch, pressed = ImGui.Checkbox("Relay Tells", mq.TLO.Macro.Variable('maEntropy').Find('swRelayTell').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swRelayTell', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swMaintenance
-          local _switch, pressed = ImGui.Checkbox("Maitnenace", mq.TLO.Macro.Variable('maEntropy').Find('swMaintenance').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swMaintenance', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swAutoInvManual
-          local _switch, pressed = ImGui.Checkbox("Inv in Manual", mq.TLO.Macro.Variable('maEntropy').Find('swAutoInvManual').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swAutoInvManual', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swEventsInc
-          local _switch, pressed = ImGui.Checkbox("Events", mq.TLO.Macro.Variable('maEntropy').Find('swEventsInc').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swEventsInc', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swHookSub
-          local _switch, pressed = ImGui.Checkbox("Hooks", mq.TLO.Macro.Variable('maEntropy').Find('swHookSub').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swHookSub', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swHUDAuto
-          local _switch, pressed = ImGui.Checkbox("HUD", mq.TLO.Macro.Variable('maEntropy').Find('swHUDAuto').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swHUDAuto', _switch and 'TRUE' or 'FALSE')
-          end
-
+      if ImGui.TreeNode('intensity of the resolute') then
+        ImGui.NewLine()   
+        ImGui.Columns(4, 'spire', false)
+          edit_switch_perm('group', 'maChr', 'swIntensityGroup')
         ImGui.NextColumn()
-          
-          -- stCastLoop
-          local line, selected = ImGui.InputTextWithHint('Cast Loop', mq.TLO.Macro.Variable('maEntropy').Find('stCastLoop').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stCastLoop', line)
-          end  
-          -- stEngine
-          local line, selected = ImGui.InputTextWithHint('Engine', mq.TLO.Macro.Variable('maEntropy').Find('stEngine').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stEngine', line)
-          end  
-          -- stCountFizzleRetry
-          local line, selected = ImGui.InputTextWithHint('Fizzles', mq.TLO.Macro.Variable('maEntropy').Find('stCountFizzleRetry').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stCountFizzleRetry', line)
-          end  
-          -- stMainLoopDelay
-          local line, selected = ImGui.InputTextWithHint('Main Loop', mq.TLO.Macro.Variable('maEntropy').Find('stMainLoopDelay').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stMainLoopDelay', line)
-          end  
+          edit_switch_perm('raid', 'maChr', 'swIntensityRaid')
+        ImGui.NextColumn()
+        ImGui.Columns()
+        edit_text_perm('name', 'maChr', 'stAAIntensity')      
+        ImGui.TreePop()      
+        ImGui.NewLine()   
+      end  
 
-        ImGui.Columns()          
-
-        ImGui.Columns(3, 'ent1', false)
+      if ImGui.TreeNode('spire') then
+        ImGui.NewLine()   
+        ImGui.Columns(4, 'spire', false)
+          edit_switch_perm('group', 'maChr', 'swSpireGroup')
+        ImGui.NextColumn()
+          edit_switch_perm('raid', 'maChr', 'swSpireRaid')
         ImGui.NextColumn()
         ImGui.NextColumn()
         ImGui.Columns()
+        ImGui.NewLine()   
+        ImGui.TreePop()      
+      end  
 
+      if ImGui.TreeNode('invis') then
+        ImGui.NewLine()   
+        ImGui.Columns(4, 'colinvis', false)
+          edit_text_perm('delay', 'maChr', 'stInvisDelay')
+        ImGui.NextColumn()
+        ImGui.NextColumn()
+        ImGui.NextColumn()
+        ImGui.Columns()
+        edit_text_perm('self invis', 'maChr', 'stInvisSingle')
+        edit_text_perm('group invis', 'maChr', 'stInvisGroup')
+        edit_text_perm('self IVU', 'maChr', 'stInvisSingleIVU')
+        edit_text_perm('group IVU', 'maChr', 'stInvisGroupIVU')
+        ImGui.NewLine()   
+        ImGui.TreePop()      
+      end  
+      
+      if ImGui.TreeNode('class orders') then
+        ImGui.NewLine()   
+        edit_text_perm('base', 'maChr', 'lsOrderClassBase')
+        edit_text_perm('pre', 'maChr', 'lsOrderClassPre')
+        edit_text_perm('combat', 'maChr', 'lsOrderClass')
+        edit_text_perm('post', 'maChr', 'lsOrderClassPost')
+        ImGui.TreePop()      
+      end  
+
+
+      
+      ImGui.NewLine()       
+      indent(1,1)
+      edit_text_perm('cast order', 'maChr', 'lsOrderCastType')
+      indent(1,2)
+          
+      ImGui.NewLine()       
+    end        
+
+    -- ENTROPY
+    if ImGui.CollapsingHeader('/entropy') then    
+      ImGui.NewLine()
+      indent(1,1)
+      
+      ImGui.Columns(2, 'entbase', false)
+        edit_switch_perm('autolist', 'maEntropy', 'swAutoList')
+        edit_switch_perm('buff cooldown', 'maEntropy', 'swBuffCooldownWait')
+        edit_switch_perm('con color', 'maEntropy', 'swUseConColor')
+        edit_switch_perm('TLP', 'maEntropy', 'swTLP')
+        edit_switch_perm('set remember', 'maEntropy', 'swBuildSetRemember')
+        edit_switch_perm('relay tells', 'maEntropy', 'swRelayTell')
+        edit_switch_perm('maitnenace', 'maEntropy', 'swMaintenance')
+        edit_switch_perm('inv in manual', 'maEntropy', 'swAutoInvManual')
+        edit_switch_perm('events', 'maEntropy', 'swEventsInc')
+        edit_switch_perm('hook', 'maEntropy', 'swHookSub')
+        edit_switch_perm('HUD', 'maEntropy', 'swHUDAuto')
+      ImGui.NextColumn()
+        edit_text_perm('cast loop', 'maEntropy', 'stCastLoop')
+        local drop = mq.TLO.Macro.Variable('maEntropy').Find('stEngine').Value()
+        if ImGui.BeginCombo('engine', drop) then
+          for _, v in ipairs({ '1', '2', '3' }) do
+            local selected = v == drop
+            if ImGui.Selectable(v, selected) and not selected then
+              mq.cmd.luaedit('stEngine', v)
+            end
+          end
+          ImGui.EndCombo()
+        end
+        edit_text_perm('fizzles', 'maEntropy', 'stCountFizzleRetry')
+        edit_text_perm('main loop', 'maEntropy', 'stMainLoopDelay')
+      ImGui.Columns() 
+      indent(1,2)         
+
+      ImGui.NewLine()         
+
+      -- /entropy random
+      if ImGui.TreeNode('random') then
         ImGui.NewLine()         
-
-        ImGui.Separator()
-        ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Random')
         ImGui.Columns(2, 'random', false)
-          -- stRNDEngage
-          local line, selected = ImGui.InputTextWithHint('Engage', mq.TLO.Macro.Variable('maEntropy').Find('stRNDEngage').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stRNDEngage', line)
-          end   
-          -- stRNDEngageSwarm
-         local line, selected = ImGui.InputTextWithHint('Engage Swarm', mq.TLO.Macro.Variable('maEntropy').Find('stRNDEngageSwarm').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stRNDEngageSwarm', line)
-          end   
-          -- stRNDRezTake
-          local line, selected = ImGui.InputTextWithHint('Rez Take', mq.TLO.Macro.Variable('maEntropy').Find('stRNDRezTake').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stRNDRezTake', line)
-          end   
-          ImGui.NextColumn()
-          -- stRNDEngagePet
-          local line, selected = ImGui.InputTextWithHint('Engage Pet', mq.TLO.Macro.Variable('maEntropy').Find('stRNDEngagePet').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stRNDEngagePet', line)
-          end  
-          -- stRNDEngageBurn      
-          local line, selected = ImGui.InputTextWithHint('Engage Burn', mq.TLO.Macro.Variable('maEntropy').Find('stRNDEngageBurn').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stRNDEngageBurn', line)
-          end   
-          -- stRNDRepeat   
-          local line, selected = ImGui.InputTextWithHint('Repeat', mq.TLO.Macro.Variable('maEntropy').Find('stRNDRepeat').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stRNDRepeat', line)
-          end   
+          edit_text_perm('engage', 'maEntropy', 'stRNDEngage')
+          edit_text_perm('engage swarm', 'maEntropy', 'stRNDEngageSwarm')
+          edit_text_perm('rez take', 'maEntropy', 'stRNDRezTake')
+        ImGui.NextColumn()
+          edit_text_perm('engage pet', 'maEntropy', 'stRNDEngagePet')
+          edit_text_perm('engage burn', 'maEntropy', 'stRNDEngageBurn')
+          edit_text_perm('repeat', 'maEntropy', 'stRNDRepeat')
         ImGui.Columns() 
+        ImGui.NewLine()   
+        ImGui.TreePop()      
+      end
 
+      -- /entropy dannet
+      if ImGui.TreeNode('dannet') then
         ImGui.NewLine()         
-
-        ImGui.Separator()
-        ImGui.TextColored(0.39, 0.58, 0.92, 1, 'DanNet')
         ImGui.Columns(2, 'dannet', false)
-          -- swLocalEcho
-          local _switch, pressed = ImGui.Checkbox("Local Echo", mq.TLO.Macro.Variable('maEntropy').Find('swLocalEcho').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swLocalEcho', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swCommandEcho
-          local _switch, pressed = ImGui.Checkbox("Command Echo", mq.TLO.Macro.Variable('maEntropy').Find('swCommandEcho').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swCommandEcho', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swFrontDelim
-          local _switch, pressed = ImGui.Checkbox("Front Delimiter", mq.TLO.Macro.Variable('maEntropy').Find('swFrontDelim').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swFrontDelim', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swFullNames
-          local _switch, pressed = ImGui.Checkbox("Full Names", mq.TLO.Macro.Variable('maEntropy').Find('swFullNames').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swFullNames', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swEvasiveRefresh
-          local _switch, pressed = ImGui.Checkbox("Evasive Refresh", mq.TLO.Macro.Variable('maEntropy').Find('swEvasiveRefresh').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swEvasiveRefresh', _switch and 'TRUE' or 'FALSE')
-          end
-          ImGui.NextColumn()
-          -- stNetworkEvasive
-          local line, selected = ImGui.InputTextWithHint('Evasive', mq.TLO.Macro.Variable('maEntropy').Find('stNetworkEvasive').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stNetworkEvasive', line)
-          end           
-          -- stNetworkExpired
-          local line, selected = ImGui.InputTextWithHint('Expired', mq.TLO.Macro.Variable('maEntropy').Find('stNetworkExpired').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stNetworkExpired', line)
-          end   
-          -- stDanNetQueryDelay
-          local line, selected = ImGui.InputTextWithHint('Query', mq.TLO.Macro.Variable('maEntropy').Find('stDanNetQueryDelay').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stDanNetQueryDelay', line)
-          end   
-          -- stNetworkTimeout
-          local line, selected = ImGui.InputTextWithHint('Timeout', mq.TLO.Macro.Variable('maEntropy').Find('stNetworkTimeout').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stNetworkTimeout', line)
-          end 
-          -- stEntropyGroup_all
-          local line, selected = ImGui.InputTextWithHint('Group', mq.TLO.Macro.Variable('maEntropy').Find('stEntropyGroup_all').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stEntropyGroup_all', line)
-          end 
+          edit_switch_perm('local echo', 'maEntropy', 'swLocalEcho')
+          edit_switch_perm('command echo', 'maEntropy', 'swCommandEcho')
+          edit_switch_perm('front delimiter', 'maEntropy', 'swFrontDelim')
+          edit_switch_perm('full names', 'maEntropy', 'swFullNames')
+          edit_switch_perm('evasive refresh', 'maEntropy', 'swEvasiveRefresh')
+        ImGui.NextColumn()
+          edit_text_perm('evasive', 'maEntropy', 'stNetworkEvasive')
+          edit_text_perm('expired', 'maEntropy', 'stNetworkExpired')
+          edit_text_perm('query', 'maEntropy', 'stDanNetQueryDelay')
+          edit_text_perm('timeout', 'maEntropy', 'stNetworkTimeout')
+          edit_text_perm('group', 'maEntropy', 'stEntropyGroup_all')
         ImGui.Columns() 
-
-        ImGui.EndTabItem()
-      end
-
--- ENV TAB
-      if ImGui.BeginTabItem('Env') then
         ImGui.NewLine()
-        
-        
-        -- auto:(off) . autoinv:off . begmage:off . .  . . exp:-> . fireworks:off . incharge . loot:-> . 
-        --  .  . rad:270 .  . saferadius:30 . takegi:on . takeri:off . 
-        
-        
--- stFood
--- stDrink
-
-
--- swSafeListGuild      
-
--- stMobLvlMin
--- stMobLvlMax
-
--- swADVLoot
-
--- swAutoInv
--- lsAutoInventory
-
--- stBuffGem     
--- swHoldBuffGem   
-
--- swCheckTribute
-
--- swTakeGroupInvite
--- swTakeRaidInvite
-
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        ImGui.EndTabItem()
+        ImGui.TreePop()      
       end
-
--- BUFF TAB
-      if ImGui.BeginTabItem('Buff') then
       ImGui.NewLine()
+    end
+
+    -- ENV
+    if ImGui.CollapsingHeader('/env') then    
+      ImGui.NewLine()
+
+        
+      -- begmage:off . .  . . exp:-> . fireworks:off . incharge . 
+      --  .  . rad:270 .  . saferadius:30 . . 
+        
+      if ImGui.TreeNode('food and drink') then        
+        ImGui.NewLine()   
+        ImGui.Columns(2, 'fd', false)
+          edit_text_perm('food', 'maEnv', 'stFood')
+          edit_text_perm('drink', 'maEnv', 'stDrink')
+        ImGui.NextColumn()
+          edit_text_perm('maintain##food', 'maHard', 'stFoodMaintain')
+          edit_text_perm('maintain##drink', 'maHard', 'stDrinkMaintain')
+        ImGui.Columns()
+        ImGui.TreePop()      
+        ImGui.NewLine()   
+      end  
+
+      -- swSafeListGuild      
+
+      -- stMobLvlMin
+      -- stMobLvlMax
+
+
+ 
+
+          edit_switch_perm('auto inventory##swAutoInv', 'maEnv', 'swAutoInv')
+          edit_text_perm('list##lsAutoInventory', 'maEnv', 'lsAutoInventory')
+
       
-      ImGui.Separator()
-      ImGui.TextColored(0.39, 0.58, 0.92, 1, 'shrink')      
+    if ImGui.TreeNode('loot') then
+      ImGui.NewLine()
+          local drop = mq.TLO.Macro.Variable('maEnv').Find('stLootMode').Value()
+          if ImGui.BeginCombo('loot', drop) then
+            for _, v in ipairs({ 'off', 'manual', 'advanced' }) do
+              local selected = v == drop
+              if ImGui.Selectable(v, selected) and not selected then
+                mq.cmd.luaedit('stLootMode', v)
+              end
+            end
+            ImGui.EndCombo()
+          end
+      ImGui.TreePop()      
+      ImGui.NewLine()   
+    end  
+
+
+
+      -- swAutoInv
+      -- lsAutoInventory
+
+      -- stBuffGem     
+      -- swHoldBuffGem   
+
+          edit_switch_perm('tribute##swCheckTribute', 'maEnv', 'swCheckTribute')
+
+          edit_switch_perm('group invite##swTakeGroupInvite', 'maEnv', 'swTakeGroupInvite')
+          edit_switch_perm('raid invite##swTakeRaidInvite', 'maEnv', 'swTakeRaidInvite')
+
+      ImGui.NewLine()
+    end
+
+    -- BUFF
+    if ImGui.CollapsingHeader('/buff') then
+      ImGui.NewLine()
+      indent(1,1)
       ImGui.Columns(3, 'noname', false)
-        -- shrink
-        local _switch, pressed = ImGui.Checkbox("Shrink", mq.TLO.Macro.Variable('maBuff').Find('swBuffShrink').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swBuffShrink', _switch and 'TRUE' or 'FALSE')
-        end 
-      ImGui.NextColumn()     
-        -- shrink height
-        local line, selected = ImGui.InputTextWithHint('Height', mq.TLO.Macro.Variable('maBuff').Find('stShrinkHeight').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-        if selected then
-          mq.cmd.luaedit('stShrinkHeight', line)
-        end
-      ImGui.NextColumn()      
-        -- shrink Item
-        local line, selected = ImGui.InputTextWithHint('Item', mq.TLO.Macro.Variable('maBuff').Find('stShrinkItem').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-        if selected then
-          mq.cmd.luaedit('stShrinkItem', line)
-        end
-      ImGui.Columns()      
-      
+        edit_switch_perm('aura', 'maBuff', 'swBuffAura')
+        edit_switch_perm('self', 'maBuff', 'swBuffSelf')
+        edit_switch_perm('crew', 'maBuff', 'swBuffCrew')
+        edit_switch_perm('temp', 'maBuff', 'swBuffTemp')
+      ImGui.NextColumn()
+        edit_switch_perm('unity', 'maBuff', 'swBuffUnity')
+        edit_switch_perm('minion', 'maBuff', 'swPetBuff')
+        edit_switch_perm('raid', 'maBuff', 'swBuffRaid')
+        edit_switch_perm('group', 'maBuff', 'swBuffGroup')
+      ImGui.NextColumn()
+        edit_switch_perm('now', 'maBuff', 'swBuffNow')
+        edit_switch_perm('ammo', 'maBuff', 'swBuffAmmo')
+        edit_switch_perm('beg', 'maBuff', 'swBuffBeg')
+      ImGui.Columns()  
+      indent(1,2)  
       ImGui.NewLine()
-      ImGui.Separator()      
-        
-      ImGui.Columns(4, 'noname', false)
-        -- auras
-        local _switch, pressed = ImGui.Checkbox("Aura", mq.TLO.Macro.Variable('maBuff').Find('swBuffAura').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swBuffAura', _switch and 'TRUE' or 'FALSE')
-        end
-        -- self
-        local _switch, pressed = ImGui.Checkbox("Self", mq.TLO.Macro.Variable('maBuff').Find('swBuffSelf').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swBuffSelf', _switch and 'TRUE' or 'FALSE')
-        end
-        -- crew
-        local _switch, pressed = ImGui.Checkbox("Crew", mq.TLO.Macro.Variable('maBuff').Find('swBuffCrew').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swBuffCrew', _switch and 'TRUE' or 'FALSE')
-        end
-        -- temp
-        local _switch, pressed = ImGui.Checkbox("Temp", mq.TLO.Macro.Variable('maBuff').Find('swBuffTemp').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swBuffTemp', _switch and 'TRUE' or 'FALSE')
-        end
-        
-        ImGui.NextColumn()
-                
-        -- unity
-        local _switch, pressed = ImGui.Checkbox("Unity", mq.TLO.Macro.Variable('maBuff').Find('swBuffUnity').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swBuffUnity', _switch and 'TRUE' or 'FALSE')
-        end
-        -- minion
-        local _switch, pressed = ImGui.Checkbox("Minion", mq.TLO.Macro.Variable('maMinion').Find('swPetBuff').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swPetBuff', _switch and 'TRUE' or 'FALSE')
-        end
-        -- raid
-        local _switch, pressed = ImGui.Checkbox("Raid", mq.TLO.Macro.Variable('maBuff').Find('swBuffRaid').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swBuffRaid', _switch and 'TRUE' or 'FALSE')
-        end   
-        -- group
-        local _switch, pressed = ImGui.Checkbox("Group", mq.TLO.Macro.Variable('maBuff').Find('swBuffGroup').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swBuffGroup', _switch and 'TRUE' or 'FALSE')
-        end   
-
-        ImGui.NextColumn()
-
-        -- now
-        local _switch, pressed = ImGui.Checkbox("Now", mq.TLO.Macro.Variable('maBuff').Find('swBuffNow').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swBuffNow', _switch and 'TRUE' or 'FALSE')
-        end        
-        -- ammo
-        local _switch, pressed = ImGui.Checkbox("Ammo", mq.TLO.Macro.Variable('maBuff').Find('swBuffAmmo').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swBuffAmmo', _switch and 'TRUE' or 'FALSE')
-        end
-        -- temp
-        local _switch, pressed = ImGui.Checkbox("Beg", mq.TLO.Macro.Variable('maBuff').Find('swBuffBeg').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swBuffBeg', _switch and 'TRUE' or 'FALSE')
-        end
-
-        ImGui.NextColumn()
-
-        -- master
-        local _switch, pressed = ImGui.Checkbox("Master", mq.TLO.Macro.Variable('maBuff').Find('swBuffMaster').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.invoke('${maBuff.Add[swBuffMaster,'..(_switch and 'TRUE' or 'FALSE')..']}')
-        end        
-                     
-        ImGui.Columns()    
+      
+            
+ 
+      if ImGui.TreeNode('shrink') then
         ImGui.NewLine()
+        ImGui.Columns(3, 'shrink', false)
+          edit_switch_perm('shrink', 'maBuff', 'swBuffShrink')
+        ImGui.NextColumn()     
+          edit_text_perm('height', 'maBuff', 'stShrinkHeight')
+        ImGui.NextColumn()
+        ImGui.Columns() 
+        edit_text_perm('item', 'maBuff', 'stShrinkItem')
+        ImGui.NewLine()
+        ImGui.TreePop()      
+      end
 
+      if ImGui.TreeNode('list') then
+        ImGui.NewLine()
         for i=1,50 do 
           ImGui.TextColored(0.39, 0.58, 0.92, 1, i)
           ImGui.SameLine()
           if mq.TLO.Macro.Variable('maBuff').Find('swBuff'..i).Value() == 'TRUE' then
-            local _switch, pressed = ImGui.Checkbox("##doswbuff"..i, mq.TLO.Macro.Variable('maBuff').Find('swBuff'..i).Value() == 'TRUE')
+            local _switch, pressed = ImGui.Checkbox('##swBuff'..i, mq.TLO.Macro.Variable('maBuff').Find('swBuff'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swBuff'..i, _switch and 'TRUE' or 'FALSE')
             end
             
-            ImGui.Indent(16)
+            indent(i,1)
 
             -- spell name
-            local line, selected = ImGui.InputTextWithHint('Name', mq.TLO.Macro.Variable('maBuff').Find('stBuff'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local line, selected = ImGui.InputTextWithHint('name##stBuff'..i, mq.TLO.Macro.Variable('maBuff').Find('stBuff'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
               mq.cmd.luaedit('stBuff'..i, line)
             end
             -- alias
-            local line, selected = ImGui.InputTextWithHint('Alias', mq.TLO.Macro.Variable('maBuff').Find('stBuff'..i..'Alias').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local line, selected = ImGui.InputTextWithHint('alias##stBuff'..i..'Alias', mq.TLO.Macro.Variable('maBuff').Find('stBuff'..i..'Alias').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
               mq.cmd.luaedit('stBuff'..i..'Alias', line)
             end
             -- tag
-            local line, selectedbufftag = ImGui.InputTextWithHint('Tag', mq.TLO.Macro.Variable('maBuff').Find('lsBuff'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local line, selectedbufftag = ImGui.InputTextWithHint('tag##lsBuff'..i..'Tag', mq.TLO.Macro.Variable('maBuff').Find('lsBuff'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selectedbufftag then
-              mq.cmd.luaedit('lsBuff'..i..'Tag', lsBuff..i..Tag, "overwrite")
+              mq.cmd.luaedit('lsBuff'..i..'Tag', lsBuff..i..Tag, 'overwrite')
             end
             
-            ImGui.Indent(-16)
+            indent(i,2)
             
           else 
-            local _switch, pressed = ImGui.Checkbox("##doswbuff"..i, mq.TLO.Macro.Variable('maBuff').Find('swBuff'..i).Value() == 'TRUE')
+            if mq.TLO.Macro.Variable('maBuff').Find('stBuff'..i).Value() == 'FALSE' then
+              tmpName = '##swBuff'..i
+            else
+              tmpName = mq.TLO.Macro.Variable('maBuff').Find('stBuff'..i).Value()..'##swBuff'..i
+            end            
+            
+            local _switch, pressed = ImGui.Checkbox(tmpName, mq.TLO.Macro.Variable('maBuff').Find('swBuff'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swBuff'..i, _switch and 'TRUE' or 'FALSE')
             end
           end
         end
-        ImGui.EndTabItem()
+        ImGui.TreePop()      
       end
 
+      ImGui.NewLine()
+    end
 
--- REZ TAB
-      if ImGui.BeginTabItem('Rez') then
-        ImGui.NewLine()
-        ImGui.Columns(2, 'Rez', false)
+    -- REZ
+    if ImGui.CollapsingHeader('/rez') then
+      ImGui.NewLine()
+      indent(1,1)
 
-        local rezrad = tonumber(mq.TLO.Macro.Variable('maRez').Find('stMaxRezRange').Value())
-        rezrad, used = ImGui.DragInt("rad", rezrad, 1, 0, 200);
-        if used then
-          mq.cmd.luaedit('stMaxRezRange', rezrad)  
-        end
-
-        local current_rezpct = mq.TLO.Macro.Variable('maRez').Find('stPctMinRez').Value()
-        if ImGui.BeginCombo("pct", current_rezpct) then
+      ImGui.Columns(2, 'rezstuff', false)
+        edit_text_perm('radius', 'maRez', 'stMaxRezRange')
+        local combo = mq.TLO.Macro.Variable('maRez').Find('stPctMinRez').Value()
+        if ImGui.BeginCombo('pct', combo) then
           for _, v in ipairs({ '10', '20', '35', '50', '60', '75', '90', '93', '96' }) do
-            local selectedrezpct = v == current_rezpct
-            if ImGui.Selectable(v, selectedrezpct) and not selectedrezpct then
+            local selected = v == combo
+            if ImGui.Selectable(v, selected) and not selected then
               mq.cmd.rez('pct', v)
             end
           end
-
           ImGui.EndCombo()
         end
+        edit_switch_perm('IC', 'maRez', 'swRezIC')
+        edit_switch_perm('OOC', 'maRez', 'swRezOOC')
+      ImGui.NextColumn()
+        edit_switch_perm('dannet', 'maRez', 'swRezDanNet')
+        edit_switch_perm('everyone', 'maRez', 'swRezEveryone')
+        edit_switch_perm('use token', 'maRez', 'swRezToken')
+        edit_switch_perm('take', 'maRez', 'swRezTake')
+        edit_switch_perm('take call', 'maRez', 'swRezTakeCall')
+      ImGui.Columns()   
+      ImGui.NewLine()   
 
-        -- in combat rez
-        local _switch, pressed = ImGui.Checkbox("IC", mq.TLO.Macro.Variable('maRez').Find('swRezIC').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swRezIC', _switch and 'TRUE' or 'FALSE')
-        end
-        -- out of combat rez
-        local _switch, pressed = ImGui.Checkbox("OOC", mq.TLO.Macro.Variable('maRez').Find('swRezOOC').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swRezOOC', _switch and 'TRUE' or 'FALSE')
-        end
+      edit_text_perm('IC', 'maRez', 'lsRezIC')
+      edit_text_perm('OOC', 'maRez', 'lsRezOOC')
 
-        ImGui.NextColumn()
+      
+      indent(1,2)
+      ImGui.NewLine()   
+      if ImGui.TreeNode('spawn search') then  
 
-        -- dannet rezing
-        local _switch, pressed = ImGui.Checkbox("dannet", mq.TLO.Macro.Variable('maRez').Find('swRezDanNet').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swRezDanNet', _switch and 'TRUE' or 'FALSE')
-        end
-        -- rez everyone in range
-        local _switch, pressed = ImGui.Checkbox("everyone", mq.TLO.Macro.Variable('maRez').Find('swRezEveryone').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swRezEveryone', _switch and 'TRUE' or 'FALSE')
-        end        
-        -- use token
-        local _switch, pressed = ImGui.Checkbox("use token", mq.TLO.Macro.Variable('maRez').Find('swRezToken').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swRezToken', _switch and 'TRUE' or 'FALSE')
-        end  
-        -- take rezes
-        local _switch, pressed = ImGui.Checkbox("take", mq.TLO.Macro.Variable('maRez').Find('swRezTake').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swRezTake', _switch and 'TRUE' or 'FALSE')
-        end  
-        -- take call to corpse
-        local _switch, pressed = ImGui.Checkbox("take call", mq.TLO.Macro.Variable('maRez').Find('swRezTakeCall').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swRezTakeCall', _switch and 'TRUE' or 'FALSE')
-        end  
-
-        ImGui.Columns()   
+        -- rez line
         ImGui.NewLine()   
-        
-      -- lsRezIC
-      local line, selected = ImGui.InputTextWithHint('IC Rez', mq.TLO.Macro.Variable('maRez').Find('lsRezIC').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-      if selected then
-         mq.cmd.luaedit('lsRezIC', line, "overwrite")
-      end 
-      -- lsRezOOC
-      local line, selected = ImGui.InputTextWithHint('OOC Rez', mq.TLO.Macro.Variable('maRez').Find('lsRezOOC').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-      if selected then
-         mq.cmd.luaedit('lsRezOOC', line, "overwrite")
-      end 
-        
-        
-
-
-        ImGui.NewLine()   
-        ImGui.Separator()
-        ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Spawn Search')   
-
-        -- line
-        local line, selected = ImGui.InputTextWithHint('Line', mq.TLO.Macro.Variable('maRez').Find('lsLineRez').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-        if selected then
-           mq.cmd.luaedit('lsLineRez', line, "overwrite")
-        end 
+        indent(1,1)
+        edit_text_perm('line', 'maRez', 'lsLineRez')
+        indent(1,2)
 
         ImGui.NewLine()
 
@@ -508,137 +451,202 @@ local function imguicallback()
           ImGui.TextColored(0.39, 0.58, 0.92, 1, i)
           ImGui.SameLine()
           if mq.TLO.Macro.Variable('maRez').Find('swRez'..i).Value() == 'TRUE' then
-            local _switch, pressed = ImGui.Checkbox("##sw"..i, mq.TLO.Macro.Variable('maRez').Find('swRez'..i).Value() == 'TRUE')
+            local _switch, pressed = ImGui.Checkbox('##swRez'..i, mq.TLO.Macro.Variable('maRez').Find('swRez'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swRez'..i, _switch and 'TRUE' or 'FALSE')
             end
-
-            ImGui.Indent(16)
-
+            indent(i,1)
             -- name
-            local _name, selected = ImGui.InputTextWithHint('Spawn', mq.TLO.Macro.Variable('maRez').Find('stRez'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local _name, selected = ImGui.InputTextWithHint('spawn##stRez'..i, mq.TLO.Macro.Variable('maRez').Find('stRez'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
               mq.cmd.luaedit('stRez'..i, _name)
             end
-       
-            ImGui.Indent(-16)
-           
+            indent(i,2)
           else 
-            local _switch, pressed = ImGui.Checkbox("##sw"..i, mq.TLO.Macro.Variable('maRez').Find('swRez'..i).Value() == 'TRUE')
+            if mq.TLO.Macro.Variable('maRez').Find('stRez'..i).Value() == 'FALSE' then
+              tmpName = '##swRez'..i
+            else
+              tmpName = mq.TLO.Macro.Variable('maRez').Find('stRez'..i).Value()..'##swRez'..i
+            end
+            local _switch, pressed = ImGui.Checkbox(tmpName, mq.TLO.Macro.Variable('maRez').Find('swRez'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swRez'..i, _switch and 'TRUE' or 'FALSE')
             end
           end 
         end
-
-       
-        ImGui.EndTabItem()
+        ImGui.TreePop()      
       end
- 
- -- HEAL TAB
-      if ImGui.BeginTabItem('Heal') then
- 
-        ImGui.NewLine()   
 
+      ImGui.NewLine()
+    end
+
+    -- HEAL
+    if ImGui.CollapsingHeader('/heal') then
+
+      ImGui.NewLine()  
+      indent(1,1) 
+
+        ImGui.Columns(3, 'heal', false)
+
+        -- self
+        local _switch, selfpressed = ImGui.Checkbox("self##swHealSelf", mq.TLO.Macro.Variable('maHeal').Find('swHealSelf').Value() == 'TRUE')
+        if selfpressed then
+          mq.cmd.luaedit('swHealSelf', _switch and 'TRUE' or 'FALSE')
+        end   
+        -- dannet
+        local _switch, dannetpressed = ImGui.Checkbox("dannet##swHealDanNet", mq.TLO.Macro.Variable('maHeal').Find('swHealDanNet').Value() == 'TRUE')
+        if dannetpressed then
+          mq.cmd.luaedit('swHealDanNet', _switch and 'TRUE' or 'FALSE')
+        end  
+        -- group
+        local _switch, grouppressed = ImGui.Checkbox("group##swHealGroup", mq.TLO.Macro.Variable('maHeal').Find('swHealGroup').Value() == 'TRUE')
+        if grouppressed then
+          mq.cmd.luaedit('swHealGroup', _switch and 'TRUE' or 'FALSE')
+        end  
+        -- xtarget        
+        local _switch, xtpressed = ImGui.Checkbox("##swHealXTarget", mq.TLO.Macro.Variable('maHeal').Find('swHealXTarget').Value() == 'TRUE')
+        if xtpressed then
+          mq.cmd.luaedit('swHealXTarget', _switch and 'TRUE' or 'FALSE')
+        end
+        ImGui.SameLine()
+        local healxt = ImGui.Button('xt', 60, 22)
+        if healxt then
+          mq.cmd.heal('xt build')
+        end
+
+        -- pet        
+        local _switch, petpressed = ImGui.Checkbox("pet##swHealPet", mq.TLO.Macro.Variable('maHeal').Find('swHealPet').Value() == 'TRUE')
+        if petpressed then
+          mq.cmd.luaedit('swHealPet', _switch and 'TRUE' or 'FALSE')
+        end           
+        -- rampage       
+        local rampage, selectedramp = ImGui.InputTextWithHint('rampage##stRampageTank', mq.TLO.Macro.Variable('maHeal').Find('stRampageTank').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        if selectedramp then
+          mq.cmd.luaedit('stRampageTank', rampage)
+        end
+       
+        ImGui.NextColumn()
         
-        -- line
-        local line, selected = ImGui.InputTextWithHint('Line##textentry', mq.TLO.Macro.Variable('maHeal').Find('lsLineHeal').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-        if selected then
-          mq.cmd.luaedit('lsLineHeal', line, "overwrite")
-        end     
+        -- weight
+        local _switch, weightpressed = ImGui.Checkbox("weight##swHealWeighted", mq.TLO.Macro.Variable('maHeal').Find('swHealWeighted').Value() == 'TRUE')
+        if weightpressed then
+          mq.cmd.luaedit('swHealWeighted', _switch and 'TRUE' or 'FALSE')
+        end        
+        -- break
+        local _switch, breakpressed = ImGui.Checkbox("break##swBreakHealPCT", mq.TLO.Macro.Variable('maHeal').Find('swBreakHealPCT').Value() == 'TRUE')
+        if breakpressed then
+          mq.cmd.luaedit('swBreakHealPCT', _switch and 'TRUE' or 'FALSE')
+        end         
+                
+        ImGui.NextColumn()
+        ImGui.Columns()  
+        edit_text_perm('order', 'maHeal', 'lsOrderHeal')
+        indent(1,2)
         ImGui.NewLine()
-           
-        ImGui.Columns(2, 'nocurename', false)
         
+      if ImGui.TreeNode('list') then 
+        ImGui.NewLine()
+        indent(1,1)
+        -- line
+        local line, selected = ImGui.InputTextWithHint('line##healline', mq.TLO.Macro.Variable('maHeal').Find('lsLineHeal').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        if selected then
+          mq.cmd.luaedit('lsLineHeal', line, 'overwrite')
+        end     
+        indent(1,2)
+
+        ImGui.NewLine()
         for i=1,50 do 
-          
           ImGui.TextColored(0.39, 0.58, 0.92, 1, i)
           ImGui.SameLine()
           if mq.TLO.Macro.Variable('maHeal').Find('swHeal'..i).Value() == 'TRUE' then
-            local _switch, pressed = ImGui.Checkbox("##doswheal"..i, mq.TLO.Macro.Variable('maHeal').Find('swHeal'..i).Value() == 'TRUE')
+            local _switch, pressed = ImGui.Checkbox('##swHeal'..i, mq.TLO.Macro.Variable('maHeal').Find('swHeal'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swHeal'..i, _switch and 'TRUE' or 'FALSE')
             end
 
-            ImGui.Indent(16)
+            indent(i,1)
 
             -- name
-            local line, selected = ImGui.InputTextWithHint('Name', mq.TLO.Macro.Variable('maHeal').Find('stHeal'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local line, selected = ImGui.InputTextWithHint('name##stHeal'..i, mq.TLO.Macro.Variable('maHeal').Find('stHeal'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selectedbuff then
               mq.cmd.luaedit('stHeal'..i, line)
             end
             -- tag
-            local line, selected = ImGui.InputTextWithHint('Tag', mq.TLO.Macro.Variable('maHeal').Find('lsHeal'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local line, selected = ImGui.InputTextWithHint('tag##lsHeal'..i..'Tag', mq.TLO.Macro.Variable('maHeal').Find('lsHeal'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
-              mq.cmd.luaedit('lsHeal'..i..'Tag', line, "overwrite")
+              mq.cmd.luaedit('lsHeal'..i..'Tag', line, 'overwrite')
             end
        
-            ImGui.Indent(-16)
+            indent(i,2)
            
           else 
-            local _switch, pressed = ImGui.Checkbox("##doswheal"..i, mq.TLO.Macro.Variable('maHeal').Find('swHeal'..i).Value() == 'TRUE')
+            if mq.TLO.Macro.Variable('maHeal').Find('stHeal'..i).Value() == 'FALSE' then
+              tmpName = '##swHeal'..i
+            else
+              tmpName = mq.TLO.Macro.Variable('maHeal').Find('stHeal'..i).Value()..'##swHeal'..i
+            end
+            
+            local _switch, pressed = ImGui.Checkbox(tmpName, mq.TLO.Macro.Variable('maHeal').Find('swHeal'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swHeal'..i, _switch and 'TRUE' or 'FALSE')
             end
           end
-         
-          
         end
-        
-        ImGui.NextColumn()
-        
-        
-        -- now the loop inside the imgui callback
-        for classCode, healPoint in pairs(healPoint) do
-          healPoint, used = ImGui.DragInt(classCode..'##healpointslide', healPoint, 1, 0, 99) -- I think this will work, if not I'll show you a way that definitely will work
-          if used then mq.cmd.luaedit('stHealPoint'..classCode, healPoint) end
-        end
-
-        ImGui.Columns()
-      
-       
-        ImGui.EndTabItem()
+        ImGui.NewLine()
+        ImGui.TreePop()      
       end
       
--- NUKE TAB
-      if ImGui.BeginTabItem('Nuke') then
+
+      
+      if ImGui.TreeNode('point') then     
+        ImGui.NewLine() 
+        indent(1,1)
+        for classCode, healPoint in pairs(healPoint) do
+          healPoint.value, used = ImGui.DragInt(classCode..'##healpointslide', healPoint.value, 1, 0, 99)
+          if used then healPoint.updated = true end
+        end
         ImGui.NewLine()
+        indent(1,2)
+      end
+      ImGui.NewLine()
+      ImGui.TreePop()      
+    end
+      
+    -- NUKE
+    if ImGui.CollapsingHeader('/nuke') then
+      ImGui.NewLine()
+      indent(1,1)
 
-        ImGui.Columns(2, 'nocurename', false)
+      ImGui.Columns(2, 'nocurename', false)
+        edit_switch_perm('loop', 'maNuke', 'swNukeLoop')
+        edit_switch_perm('sit', 'maNuke', 'swNukeWhackAMole')
+      ImGui.NextColumn()
 
-          -- swNukeLoop
-          local _switch, pressed = ImGui.Checkbox("Nuke Loop", mq.TLO.Macro.Variable('maNuke').Find('swNukeLoop').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swNukeLoop', _switch and 'TRUE' or 'FALSE')
-          end
-          -- swNukeWhackAMole
-          local _switch, pressed = ImGui.Checkbox("Sit", mq.TLO.Macro.Variable('maNuke').Find('swNukeWhackAMole').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swNukeWhackAMole', _switch and 'TRUE' or 'FALSE')
-          end
+        -- stNukeDelay
+        local line, selected = ImGui.InputTextWithHint('delay', mq.TLO.Macro.Variable('maNuke').Find('stNukeDelay').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        if selected then
+           mq.cmd.luaedit('stNukeDelay', line)
+        end 
+        -- stPctStopNuke
+        local line, selected = ImGui.InputTextWithHint('pct stop', mq.TLO.Macro.Variable('maNuke').Find('stPctStopNuke').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        if selected then
+           mq.cmd.luaedit('stPctStopNuke', line)
+        end 
 
-        ImGui.NextColumn()
+      ImGui.Columns()
+      indent(1,2)
 
-          -- stNukeDelay
-          local line, selected = ImGui.InputTextWithHint('Delay', mq.TLO.Macro.Variable('maNuke').Find('stNukeDelay').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-             mq.cmd.luaedit('stNukeDelay', line)
-          end 
-          -- stPctStopNuke
-          local line, selected = ImGui.InputTextWithHint('Pct Stop', mq.TLO.Macro.Variable('maNuke').Find('stPctStopNuke').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-             mq.cmd.luaedit('stPctStopNuke', line)
-          end 
-
-        ImGui.Columns()
-
+      ImGui.NewLine()
+      if ImGui.TreeNode('list') then
         ImGui.NewLine()
 
         -- line
-        local line, selected = ImGui.InputTextWithHint('Line', mq.TLO.Macro.Variable('maNuke').Find('lsLineNuke').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        indent(1,1)
+        local line, selected = ImGui.InputTextWithHint('line##nukeline', mq.TLO.Macro.Variable('maNuke').Find('lsLineNuke').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
         if selected then
-           mq.cmd.luaedit('lsLineNuke', line, "overwrite")
+           mq.cmd.luaedit('lsLineNuke', line, 'overwrite')
         end 
+        indent(1,2)
 
         ImGui.NewLine()
 
@@ -646,63 +654,76 @@ local function imguicallback()
           ImGui.TextColored(0.39, 0.58, 0.92, 1, i)
           ImGui.SameLine()
           if mq.TLO.Macro.Variable('maNuke').Find('swNuke'..i).Value() == 'TRUE' then
-            local _switch, pressed = ImGui.Checkbox("##sw"..i, mq.TLO.Macro.Variable('maNuke').Find('swNuke'..i).Value() == 'TRUE')
+            local _switch, pressed = ImGui.Checkbox('##swNuke'..i, mq.TLO.Macro.Variable('maNuke').Find('swNuke'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swNuke'..i, _switch and 'TRUE' or 'FALSE')
             end
 
-            ImGui.Indent(16)
+            indent(i,1)
 
             -- name
-            local _name, selected = ImGui.InputTextWithHint('Name', mq.TLO.Macro.Variable('maNuke').Find('stNuke'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local _name, selected = ImGui.InputTextWithHint('name##stNuke'..i, mq.TLO.Macro.Variable('maNuke').Find('stNuke'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
               mq.cmd.luaedit('stNuke'..i, _name)
             end
             -- tag
-            local _tag, selected = ImGui.InputTextWithHint('Tag', mq.TLO.Macro.Variable('maNuke').Find('lsNuke'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local _tag, selected = ImGui.InputTextWithHint('tag##lsNuke'..i, mq.TLO.Macro.Variable('maNuke').Find('lsNuke'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
-              mq.cmd.luaedit('lsNuke'..i..'Tag', _tag, "overwrite")
+              mq.cmd.luaedit('lsNuke'..i..'Tag', _tag, 'overwrite')
             end
        
-            ImGui.Indent(-16)
+            indent(i,2)
            
           else 
-            local _switch, pressed = ImGui.Checkbox("##sw"..i, mq.TLO.Macro.Variable('maNuke').Find('swNuke'..i).Value() == 'TRUE')
+            if mq.TLO.Macro.Variable('maNuke').Find('stNuke'..i).Value() == 'FALSE' then
+              tmpName = '##swNuke'..i
+            else
+              tmpName = mq.TLO.Macro.Variable('maNuke').Find('stNuke'..i).Value()..'##swNuke'..i
+            end            
+            
+            local _switch, pressed = ImGui.Checkbox(tmpName, mq.TLO.Macro.Variable('maNuke').Find('swNuke'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swNuke'..i, _switch and 'TRUE' or 'FALSE')
             end
           end 
         end
-
-        ImGui.EndTabItem()
+        ImGui.NewLine()
+        ImGui.TreePop()      
       end
 
--- DOT TAB
-      if ImGui.BeginTabItem('DoT') then
-        ImGui.NewLine()
+      ImGui.NewLine()
+    end
 
-        ImGui.Columns(2, 'nocurename', false)
+    -- DOT
+    if ImGui.CollapsingHeader('/dot') then
+      ImGui.NewLine()
+      ImGui.Indent(16)
 
-          -- stDotRefresh
-          local line, selected = ImGui.InputTextWithHint('Refresh', mq.TLO.Macro.Variable('maDoT').Find('stDotRefresh').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-             mq.cmd.luaedit('stDotRefresh', line)
-          end 
-          -- stPctStopDoT
-          local line, selected = ImGui.InputTextWithHint('Pct Stop', mq.TLO.Macro.Variable('maDoT').Find('stPctStopDoT').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-             mq.cmd.luaedit('stPctStopDoT', line)
-          end 
+      ImGui.Columns(2, 'nocurename', false)
 
-        ImGui.NextColumn()
-        ImGui.Columns()
+        -- stDotRefresh
+        local line, selected = ImGui.InputTextWithHint('refresh##stDotRefresh', mq.TLO.Macro.Variable('maDoT').Find('stDotRefresh').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        if selected then
+           mq.cmd.luaedit('stDotRefresh', line)
+        end 
+        -- stPctStopDoT
+        local line, selected = ImGui.InputTextWithHint('pct stop##stPctStopDoT', mq.TLO.Macro.Variable('maDoT').Find('stPctStopDoT').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        if selected then
+           mq.cmd.luaedit('stPctStopDoT', line)
+        end 
 
+      ImGui.NextColumn()
+      ImGui.Columns()
+      ImGui.Indent(-16)
+
+      ImGui.NewLine()
+      if ImGui.TreeNode('list') then
         ImGui.NewLine()
 
         -- line
-        local line, selected = ImGui.InputTextWithHint('Line', mq.TLO.Macro.Variable('maDoT').Find('lsLineDoT').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        local line, selected = ImGui.InputTextWithHint('line##lsLineDoT', mq.TLO.Macro.Variable('maDoT').Find('lsLineDoT').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
         if selected then
-           mq.cmd.luaedit('lsLineDoT', line, "overwrite")
+           mq.cmd.luaedit('lsLineDoT', line, 'overwrite')
         end 
 
         ImGui.NewLine()
@@ -711,60 +732,73 @@ local function imguicallback()
           ImGui.TextColored(0.39, 0.58, 0.92, 1, i)
           ImGui.SameLine()
           if mq.TLO.Macro.Variable('maDoT').Find('swDoT'..i).Value() == 'TRUE' then
-            local _switch, pressed = ImGui.Checkbox("##sw"..i, mq.TLO.Macro.Variable('maDoT').Find('swDoT'..i).Value() == 'TRUE')
+            local _switch, pressed = ImGui.Checkbox('##swDoT'..i, mq.TLO.Macro.Variable('maDoT').Find('swDoT'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swDoT'..i, _switch and 'TRUE' or 'FALSE')
             end
 
-            ImGui.Indent(16)
+            indent(i,1)
 
             -- name
-            local _name, selected = ImGui.InputTextWithHint('Name', mq.TLO.Macro.Variable('maDoT').Find('stDoT'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local _name, selected = ImGui.InputTextWithHint('name##stDoT', mq.TLO.Macro.Variable('maDoT').Find('stDoT'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
               mq.cmd.luaedit('stDoT'..i, _name)
             end
             -- tag
-            local _tag, selected = ImGui.InputTextWithHint('Tag', mq.TLO.Macro.Variable('maDoT').Find('lsDoT'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local _tag, selected = ImGui.InputTextWithHint('tag##lsDoT', mq.TLO.Macro.Variable('maDoT').Find('lsDoT'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
-              mq.cmd.luaedit('lsDoT'..i..'Tag', _tag, "overwrite")
+              mq.cmd.luaedit('lsDoT'..i..'Tag', _tag, 'overwrite')
             end
        
-            ImGui.Indent(-16)
+            indent(i,2)
            
           else 
-            local _switch, pressed = ImGui.Checkbox("##sw"..i, mq.TLO.Macro.Variable('maDoT').Find('swDoT'..i).Value() == 'TRUE')
+            if mq.TLO.Macro.Variable('maDoT').Find('stDoT'..i).Value() == 'FALSE' then
+              tmpName = '##swDoT'..i
+            else
+              tmpName = mq.TLO.Macro.Variable('maDoT').Find('stDoT'..i).Value()..'##swDoT'..i
+            end      
+                        
+            local _switch, pressed = ImGui.Checkbox(tmpName, mq.TLO.Macro.Variable('maDoT').Find('swDoT'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swDoT'..i, _switch and 'TRUE' or 'FALSE')
             end
           end 
         end
-
-        ImGui.EndTabItem()
       end
+      ImGui.NewLine()
+    end
 
--- DEFENSE TAB
-      if ImGui.BeginTabItem('Defense') then
+    -- DEFENSE
+    if ImGui.CollapsingHeader('/defense') then
+      ImGui.NewLine()
+      indent(1,1)
+      ImGui.Columns(3, 'defense', false)
+
+      -- count
+      local line, selected = ImGui.InputTextWithHint('count##stCountDef', mq.TLO.Macro.Variable('maDefense').Find('stCountDef').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+      if selected then
+         mq.cmd.luaedit('stCountDef', line, 'overwrite')
+      end 
+      
+      -- pct
+      local line, selected = ImGui.InputTextWithHint('pct##stPctDef', mq.TLO.Macro.Variable('maDefense').Find('stPctDef').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+      if selected then
+         mq.cmd.luaedit('stPctDef', line, 'overwrite')
+      end         
+      indent(1,2)
+      ImGui.NextColumn()
+      ImGui.Columns()
+
+
+      ImGui.NewLine()
+      if ImGui.TreeNode('list') then
         ImGui.NewLine()
-
-        -- count
-        local line, selected = ImGui.InputTextWithHint('Count', mq.TLO.Macro.Variable('maDefense').Find('stCountDef').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-        if selected then
-           mq.cmd.luaedit('stCountDef', line, "overwrite")
-        end 
         
-        -- pct
-        local line, selected = ImGui.InputTextWithHint('Pct', mq.TLO.Macro.Variable('maDefense').Find('stPctDef').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-        if selected then
-           mq.cmd.luaedit('stPctDef', line, "overwrite")
-        end         
-
-
-
-        ImGui.NewLine()
         -- line
-        local line, selected = ImGui.InputTextWithHint('Line', mq.TLO.Macro.Variable('maDefense').Find('lsLineDefense').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        local line, selected = ImGui.InputTextWithHint('line##lsLineDefense', mq.TLO.Macro.Variable('maDefense').Find('lsLineDefense').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
         if selected then
-           mq.cmd.luaedit('lsLineDefense', line, "overwrite")
+           mq.cmd.luaedit('lsLineDefense', line, 'overwrite')
         end 
         
         ImGui.NewLine()
@@ -773,332 +807,847 @@ local function imguicallback()
           ImGui.TextColored(0.39, 0.58, 0.92, 1, i)
           ImGui.SameLine()
           if mq.TLO.Macro.Variable('maDefense').Find('swDefense'..i).Value() == 'TRUE' then
-            local _switch, pressed = ImGui.Checkbox("##sw"..i, mq.TLO.Macro.Variable('maDefense').Find('swDefense'..i).Value() == 'TRUE')
+            local _switch, pressed = ImGui.Checkbox('##swDefense'..i, mq.TLO.Macro.Variable('maDefense').Find('swDefense'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swDefense'..i, _switch and 'TRUE' or 'FALSE')
             end
-
-            ImGui.Indent(16)
+            
+            indent(i,1)
 
             -- name
-            local _name, selected = ImGui.InputTextWithHint('Name', mq.TLO.Macro.Variable('maDefense').Find('stDefense'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local _name, selected = ImGui.InputTextWithHint('name##stDefense'..i, mq.TLO.Macro.Variable('maDefense').Find('stDefense'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
               mq.cmd.luaedit('stDefense'..i, _name)
             end
             -- tag
-            local _tag, selected = ImGui.InputTextWithHint('Tag', mq.TLO.Macro.Variable('maDefense').Find('lsDefense'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local _tag, selected = ImGui.InputTextWithHint('tag##lsDefense'..i, mq.TLO.Macro.Variable('maDefense').Find('lsDefense'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
-              mq.cmd.luaedit('lsDefense'..i..'Tag', _tag, "overwrite")
+              mq.cmd.luaedit('lsDefense'..i..'Tag', _tag, 'overwrite')
             end
-       
-            ImGui.Indent(-16)
+            indent(i,2)
            
           else 
-            local _switch, pressed = ImGui.Checkbox("##sw"..i, mq.TLO.Macro.Variable('maDefense').Find('swDefense'..i).Value() == 'TRUE')
+            if mq.TLO.Macro.Variable('maDefense').Find('stDefense'..i).Value() == 'FALSE' then
+              tmpName = '##swDefense'..i
+            else
+              tmpName = mq.TLO.Macro.Variable('maDefense').Find('stDefense'..i).Value()..'##swDefense'..i
+            end    
+
+            local _switch, pressed = ImGui.Checkbox(tmpName, mq.TLO.Macro.Variable('maDefense').Find('swDefense'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swDefense'..i, _switch and 'TRUE' or 'FALSE')
             end
           end 
         end
-
-        ImGui.EndTabItem()
-      end
-
--- DEBUFF TAB
-      if ImGui.BeginTabItem('Debuff') then
         ImGui.NewLine()
- 
-        -- line
-        local line, selected = ImGui.InputTextWithHint('Line', mq.TLO.Macro.Variable('madeBuff').Find('lsLinedeBuff').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-        if selected then
-          mq.cmd.luaedit('lsLinedeBuff', line, "overwrite")
-        end 
-        -- lsdeBuffOrder
-        local line, selected = ImGui.InputTextWithHint('Debuff Order', mq.TLO.Macro.Variable('madeBuff').Find('lsdeBuffOrder').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-        if selected then
-          mq.cmd.luaedit('lsdeBuffOrder', line, "overwrite")
-        end         
-        
+        ImGui.TreePop()
+      end
+      ImGui.NewLine()
+    end
+
+    -- DEBUFF
+    if ImGui.CollapsingHeader('/debuff') then
+      ImGui.NewLine()
+      indent(1,1)
+      edit_text_perm('order', 'madeBuff', 'lsdeBuffOrder')
+      ImGui.NewLine() 
+
+      ImGui.Columns(4, 'debuffathing', false)
+        edit_switch_perm('cripple', 'madeBuff', 'swCripple')
+        edit_switch_perm('eradicate', 'madeBuff', 'swEradicate')
+        edit_switch_perm('malo', 'madeBuff', 'swMalo')
+      ImGui.NextColumn()
+        edit_switch_perm('slow', 'madeBuff', 'swSlow')
+        edit_switch_perm('snare', 'madeBuff', 'swSnare')
+        edit_switch_perm('tash', 'madeBuff', 'swTash')
+      ImGui.NextColumn()
+        edit_switch_perm('mez', 'madeBuff', 'swMez')
+        edit_text_perm('mez resist', 'madeBuff', 'stCountMezResist')
+      ImGui.NextColumn()
+      ImGui.Columns()
+      ImGui.NewLine()      
+      indent(1,2)
+
+      if ImGui.TreeNode('list') then
         ImGui.NewLine() 
 
-        ImGui.Columns(2, 'nocurename', false)
-          -- cripple:swCripple
-          local _switch, pressed = ImGui.Checkbox("Cripple", mq.TLO.Macro.Variable('madeBuff').Find('swCripple').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swCripple', _switch and 'TRUE' or 'FALSE')
-          end
-          -- eradicate:wEradicate
-          local doswerad, pressed = ImGui.Checkbox("Eradicate", mq.TLO.Macro.Variable('madeBuff').Find('swEradicate').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swEradicate', doswerad and 'TRUE' or 'FALSE')
-          end
-          -- malo:swMalo
-          local _switch, pressed = ImGui.Checkbox("Malo", mq.TLO.Macro.Variable('madeBuff').Find('swMalo').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swMalo', _switch and 'TRUE' or 'FALSE')
-          end
-                    
-          ImGui.NextColumn()
-
-          -- slow:swSlow
-          local _switch, pressed = ImGui.Checkbox("Slow", mq.TLO.Macro.Variable('madeBuff').Find('swSlow').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swSlow', _switch and 'TRUE' or 'FALSE')
-          end
-          -- snare:swSnare
-          local _switch, pressed = ImGui.Checkbox("Snare", mq.TLO.Macro.Variable('madeBuff').Find('swSnare').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swSnare', _switch and 'TRUE' or 'FALSE')
-          end          
-          -- tash:swTash
-          local _switch, pressed = ImGui.Checkbox("Tash", mq.TLO.Macro.Variable('madeBuff').Find('swTash').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swTash', _switch and 'TRUE' or 'FALSE')
-          end
-                  
-          ImGui.NextColumn()
-                  
-          -- mez
-          -- mez active:swMez
-          local _switch, pressed = ImGui.Checkbox("Mez", mq.TLO.Macro.Variable('madeBuff').Find('swMez').Value() == 'TRUE')
-          if pressed then
-            mq.cmd.luaedit('swMez', _switch and 'TRUE' or 'FALSE')
-          end
-          -- mez count:stCountMezResist
-          local line, selected = ImGui.InputTextWithHint('Mez Resist##text', mq.TLO.Macro.Variable('madeBuff').Find('stCountMezResist').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-          if selected then
-            mq.cmd.luaedit('stCountMezResist', line, "overwrite")
-          end 
-          
-        ImGui.Columns()
-
+        -- line
+        local line, selected = ImGui.InputTextWithHint('line##lsLinedeBuff', mq.TLO.Macro.Variable('madeBuff').Find('lsLinedeBuff').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        if selected then
+          mq.cmd.luaedit('lsLinedeBuff', line, 'overwrite')
+        end 
         ImGui.NewLine() 
 
         for i=1,12 do 
           ImGui.TextColored(0.39, 0.58, 0.92, 1, i)
           ImGui.SameLine()
           if mq.TLO.Macro.Variable('madeBuff').Find('swdeBuff'..i).Value() == 'TRUE' then
-            local _switch, pressed = ImGui.Checkbox("##sw"..i, mq.TLO.Macro.Variable('madeBuff').Find('swdeBuff'..i).Value() == 'TRUE')
+            local _switch, pressed = ImGui.Checkbox('##swdeBuff'..i, mq.TLO.Macro.Variable('madeBuff').Find('swdeBuff'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swdeBuff'..i, _switch and 'TRUE' or 'FALSE')
             end
 
-            ImGui.Indent(16)
+            indent(i,1)
 
             -- name
-            local _name, selected = ImGui.InputTextWithHint('Name', mq.TLO.Macro.Variable('madeBuff').Find('stdeBuff'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local _name, selected = ImGui.InputTextWithHint('name##stdeBuff'..i, mq.TLO.Macro.Variable('madeBuff').Find('stdeBuff'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
               mq.cmd.luaedit('stdeBuff'..i, _name)
             end
             -- tag
-            local _tag, selected = ImGui.InputTextWithHint('Tag', mq.TLO.Macro.Variable('madeBuff').Find('lsdeBuff'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local _tag, selected = ImGui.InputTextWithHint('tag##lsdeBuff'..i, mq.TLO.Macro.Variable('madeBuff').Find('lsdeBuff'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
-              mq.cmd.luaedit('lsdeBuff'..i..'Tag', _tag, "overwrite")
+              mq.cmd.luaedit('lsdeBuff'..i..'Tag', _tag, 'overwrite')
             end
        
-            ImGui.Indent(-16)
+            indent(i,2)
            
           else 
-            local _switch, pressed = ImGui.Checkbox("##sw"..i, mq.TLO.Macro.Variable('madeBuff').Find('swdeBuff'..i).Value() == 'TRUE')
+            if mq.TLO.Macro.Variable('madeBuff').Find('stdeBuff'..i).Value() == 'FALSE' then
+              tmpName = '##swdeBuff'..i
+            else
+              tmpName = mq.TLO.Macro.Variable('madeBuff').Find('stdeBuff'..i).Value()..'##swdeBuff'..i
+            end  
+            
+            local _switch, pressed = ImGui.Checkbox('##swdeBuff'..i, mq.TLO.Macro.Variable('madeBuff').Find('swdeBuff'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swdeBuff'..i, _switch and 'TRUE' or 'FALSE')
             end
           end 
         end
+        ImGui.NewLine()
+        ImGui.TreePop()
+      end
+      ImGui.NewLine() 
+    end
+      
+    -- CURE
+    if ImGui.CollapsingHeader('/cure') then
+      ImGui.NewLine() 
+      indent(1,1)
 
-
-        ImGui.EndTabItem()
+      -- no cure
+      local line, selected = ImGui.InputTextWithHint('no cure##lsNoCure', mq.TLO.Macro.Variable('maCure').Find('lsNoCure').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+      if selected then
+        mq.cmd.luaedit('lsNoCure', line, 'overwrite')
+      end         
+      ImGui.NewLine() 
+      
+      -- cure crew
+      local _switch, pressed = ImGui.Checkbox('crew##swCureCrew', mq.TLO.Macro.Variable('maCure').Find('swCureCrew').Value() == 'TRUE')
+      if pressed then
+        mq.cmd.luaedit('swCureCrew', _switch and 'TRUE' or 'FALSE')
+      end
+      -- cure group
+      local _switch, pressed = ImGui.Checkbox('group##swCureGroup', mq.TLO.Macro.Variable('maCure').Find('swCureGroup').Value() == 'TRUE')
+      if pressed then
+        mq.cmd.luaedit('swCureGroup', _switch and 'TRUE' or 'FALSE')
+      end
+      -- cure self
+      local _switch, pressed = ImGui.Checkbox('self##swCureSelf', mq.TLO.Macro.Variable('maCure').Find('swCureSelf').Value() == 'TRUE')
+      if pressed then
+        mq.cmd.luaedit('swCureSelf', _switch and 'TRUE' or 'FALSE')
       end
       
--- Cure TAB
-      if ImGui.BeginTabItem('Cure') then
-        ImGui.NewLine() 
 
+      ImGui.NewLine() 
+      indent(1,2)
+
+      if ImGui.TreeNode('list') then      
+        ImGui.NewLine() 
         -- line
-        local line, selected = ImGui.InputTextWithHint('Line##text', mq.TLO.Macro.Variable('maCure').Find('lsLineCure').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        local line, selected = ImGui.InputTextWithHint('line##lsLineCure', mq.TLO.Macro.Variable('maCure').Find('lsLineCure').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
         if selected then
-          mq.cmd.luaedit('lsLineCure', line, "overwrite")
+          mq.cmd.luaedit('lsLineCure', line, 'overwrite')
         end 
-        -- no cure
-        local line, selected = ImGui.InputTextWithHint('No Cure##text', mq.TLO.Macro.Variable('maCure').Find('lsNoCure').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-        if selected then
-          mq.cmd.luaedit('lsNoCure', line, "overwrite")
-        end         
         ImGui.NewLine() 
         
-        -- cure crew
-        local _switch, pressed = ImGui.Checkbox("Crew", mq.TLO.Macro.Variable('maCure').Find('swCureCrew').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swCureCrew', _switch and 'TRUE' or 'FALSE')
-        end
-        -- cure group
-        local _switch, pressed = ImGui.Checkbox("Group", mq.TLO.Macro.Variable('maCure').Find('swCureGroup').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swCureGroup', _switch and 'TRUE' or 'FALSE')
-        end
-        -- cure self
-        local _switch, pressed = ImGui.Checkbox("Self", mq.TLO.Macro.Variable('maCure').Find('swCureSelf').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swCureSelf', _switch and 'TRUE' or 'FALSE')
-        end
-        
-
-        ImGui.NewLine() 
-        
-
         for i=1,12 do 
           ImGui.TextColored(0.39, 0.58, 0.92, 1, i)
           ImGui.SameLine()
           if mq.TLO.Macro.Variable('maCure').Find('swCure'..i).Value() == 'TRUE' then
-            local _switch, pressed = ImGui.Checkbox("##dosw"..i, mq.TLO.Macro.Variable('maCure').Find('swCure'..i).Value() == 'TRUE')
+            local _switch, pressed = ImGui.Checkbox('##swCure'..i, mq.TLO.Macro.Variable('maCure').Find('swCure'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swCure'..i, _switch and 'TRUE' or 'FALSE')
             end
 
-            ImGui.Indent(16)
+            indent(i,1)
 
             -- name
-            local cure, selected = ImGui.InputTextWithHint('Name', mq.TLO.Macro.Variable('maCure').Find('stCure'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local cure, selected = ImGui.InputTextWithHint('name##stCure'..i, mq.TLO.Macro.Variable('maCure').Find('stCure'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
               mq.cmd.luaedit('stCure'..i, cure)
             end
             -- tag
-            local _tag, selected = ImGui.InputTextWithHint('Tag', mq.TLO.Macro.Variable('maCure').Find('lsCure'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local _tag, selected = ImGui.InputTextWithHint('tag##lsCure'..i, mq.TLO.Macro.Variable('maCure').Find('lsCure'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
-              mq.cmd.luaedit('lsCure'..i..'Tag', _tag, "overwrite")
+              mq.cmd.luaedit('lsCure'..i..'Tag', _tag, 'overwrite')
             end
        
-            ImGui.Indent(-16)
+            indent(i,2)
            
           else 
-            local _switch, pressed = ImGui.Checkbox("##doswheal"..i, mq.TLO.Macro.Variable('maCure').Find('swCure'..i).Value() == 'TRUE')
+            
+            if mq.TLO.Macro.Variable('maCure').Find('stCure'..i).Value() == 'FALSE' then
+              tmpName = '##swCure'..i
+            else
+              tmpName = mq.TLO.Macro.Variable('maCure').Find('stCure'..i).Value()..'##swCure'..i
+            end 
+              
+            local _switch, pressed = ImGui.Checkbox(tmpName, mq.TLO.Macro.Variable('maCure').Find('swCure'..i).Value() == 'TRUE')
             if pressed then
               mq.cmd.luaedit('swCure'..i, _switch and 'TRUE' or 'FALSE')
             end
           end
           
         end
-        ImGui.EndTabItem()
+        ImGui.NewLine()
+        ImGui.TreePop()
+      end
+       ImGui.NewLine() 
+   end
+      
+    -- MELEE
+    if ImGui.CollapsingHeader('/melee') then
+      ImGui.NewLine()
+      indent(1,1)
+
+        -- line
+        local line, selected = ImGui.InputTextWithHint('line##lsLineMelee', mq.TLO.Macro.Variable('maMelee').Find('lsLineMelee').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        if selected then
+           mq.cmd.luaedit('lsLineMelee', line, 'overwrite')
+        end 
+      indent(1,2)
+      ImGui.NewLine()
+      
+      for i=1,12 do 
+        ImGui.TextColored(0.39, 0.58, 0.92, 1, i)
+        ImGui.SameLine()
+        if mq.TLO.Macro.Variable('maMelee').Find('swMelee'..i).Value() == 'TRUE' then
+          local _switch, pressed = ImGui.Checkbox('##swMelee'..i, mq.TLO.Macro.Variable('maMelee').Find('swMelee'..i).Value() == 'TRUE')
+          if pressed then
+            mq.cmd.luaedit('swMelee'..i, _switch and 'TRUE' or 'FALSE')
+          end
+
+          indent(i,1)
+
+          -- name
+          local _name, selected = ImGui.InputTextWithHint('name##stMelee'..i, mq.TLO.Macro.Variable('maMelee').Find('stMelee'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+          if selected then
+            mq.cmd.luaedit('stMelee'..i, _name)
+          end
+          -- tag
+          local _tag, selected = ImGui.InputTextWithHint('tag##lsMelee'..i, mq.TLO.Macro.Variable('maMelee').Find('lsMelee'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+          if selected then
+            mq.cmd.luaedit('lsMelee'..i..'Tag', _tag, 'overwrite')
+          end
+     
+          indent(i,2)
+         
+        else 
+          local _switch, pressed = ImGui.Checkbox('##swMelee'..i, mq.TLO.Macro.Variable('maMelee').Find('swMelee'..i).Value() == 'TRUE')
+          if pressed then
+            mq.cmd.luaedit('swMelee'..i, _switch and 'TRUE' or 'FALSE')
+          end
+        end 
+      end
+
+      ImGui.NewLine()
+    end      
+
+    -- OVERRIDE
+    if ImGui.CollapsingHeader('/override') then
+      ImGui.NewLine()
+      indent(1,1)
+      
+      ImGui.Columns(3, 'overridecol', false)
+        edit_switch_perm('LoS', 'maOver', 'swOverLOS')
+        edit_switch_perm('pct engage', 'maOver', 'swOverPctEngage')
+        edit_switch_perm('loot', 'maOver', 'swOverLoot')
+        edit_switch_perm('safe names', 'maOver', 'swOverSafeNames')
+      ImGui.NextColumn()
+        edit_switch_perm('train spell', 'maOver', 'swOverTrainSpell')
+        edit_switch_perm('env auto', 'maOver', 'swOverEnvAuto')
+        edit_switch_perm('DS check', 'maOver', 'swOverDSCheck')
+        edit_switch_perm('NAV check', 'maOver', 'swOverNavCheck')
+      ImGui.NextColumn()
+        edit_switch_perm('group ass', 'maOver', 'swOverGroupAss')
+        edit_switch_perm('splash hurt', 'maOver', 'swOverSplashHurt')
+        edit_switch_perm('target clear', 'maOver', 'swTargetClear')
+      ImGui.Columns()
+      ImGui.NewLine()
+      indent(1,2)
+    end 
+    
+    -- TIE and TC
+    if ImGui.CollapsingHeader('tie / tc') then
+
+      if ImGui.TreeNode('/tc') then 
+        ImGui.NewLine()
+        ImGui.Indent(16)
+        ImGui.Indent(-16)
+        ImGui.TreePop()
+      end
+
+      if ImGui.TreeNode('/tie') then 
+        ImGui.NewLine()
+        ImGui.Indent(16)
+        ImGui.Indent(-16)
+        ImGui.TreePop()
       end
       
-      
--- MELEE TAB
-      if ImGui.BeginTabItem('Melee') then
-        ImGui.NewLine()
 
+    end
+    
+    -- HOME
+    if ImGui.CollapsingHeader('/home') then
+    end
+
+    -- CC
+    if ImGui.CollapsingHeader('/cc') then
+    end
+
+    -- AGRO
+    if ImGui.CollapsingHeader('/agro') then
+      ImGui.NewLine()
+      indent(1,1)
+
+      -- swAgro          
+      local _switch, pressed = ImGui.Checkbox('active##swAgro', mq.TLO.Macro.Variable('maAgro').Find('swAgro').Value() == 'TRUE')
+      if pressed then
+        mq.cmd.luaedit('swAgro', _switch and 'TRUE' or 'FALSE')
+      end
+      
+      if mq.TLO.Macro.Variable('lsMeleeSkill').Contains('taunt')() == 1 then
+        -- stPctTaunt 
+        local line, selected = ImGui.InputTextWithHint('pct taunt##lsdeBuffOrder', mq.TLO.Macro.Variable('maAgro').Find('stPctTaunt').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        if selected then
+          mq.cmd.luaedit('stPctTaunt', line, 'overwrite')
+        end   
+        -- stPctAgroHold
+        local line, selected = ImGui.InputTextWithHint('pct hold##stPctAgroHold', mq.TLO.Macro.Variable('maAgro').Find('stPctAgroHold').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        if selected then
+          mq.cmd.luaedit('stPctAgroHold', line, 'overwrite')
+        end     
+      end
+      
+
+      indent(1,2)
+      ImGui.NewLine()
+      
+      if mq.TLO.Macro.Variable('maEntropy').Find('stEngine').Value() == '2' then
+
+        if ImGui.TreeNode('list') then 
+          ImGui.Indent(16)
+          
+          -- line
+          local line, selected = ImGui.InputTextWithHint('line##lsLineAgro', mq.TLO.Macro.Variable('maAgro').Find('lsLineAgro').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+          if selected then
+             mq.cmd.luaedit('lsLineAgro', line, 'overwrite')
+          end 
+          ImGui.Indent(-16)
+          ImGui.NewLine()
+          for i=1,20 do 
+            ImGui.TextColored(0.39, 0.58, 0.92, 1, i)
+            ImGui.SameLine()
+            if mq.TLO.Macro.Variable('maAgro').Find('swAgro'..i).Value() == 'TRUE' then
+              local _switch, pressed = ImGui.Checkbox('##swAgro'..i, mq.TLO.Macro.Variable('maAgro').Find('swAgro'..i).Value() == 'TRUE')
+              if pressed then
+                mq.cmd.luaedit('swAgro'..i, _switch and 'TRUE' or 'FALSE')
+              end
+
+              -- name
+              local _name, selected = ImGui.InputTextWithHint('name##stAgro'..i, mq.TLO.Macro.Variable('maAgro').Find('stAgro'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+              if selected then
+                mq.cmd.luaedit('stAgro'..i, _name)
+              end
+              -- tag
+              local _tag, selected = ImGui.InputTextWithHint('tag##lsAgro'..i, mq.TLO.Macro.Variable('maAgro').Find('lsAgro'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+              if selected then
+                mq.cmd.luaedit('lsAgro'..i..'Tag', _tag, 'overwrite')
+              end
+             
+            else 
+              if mq.TLO.Macro.Variable('maAgro').Find('stAgro'..i).Value() == 'FALSE' then
+                tmpName = '##swAgro'..i
+              else
+                tmpName = mq.TLO.Macro.Variable('maAgro').Find('stAgro'..i).Value()..'##swAgro'..i
+              end    
+
+              local _switch, pressed = ImGui.Checkbox(tmpName, mq.TLO.Macro.Variable('maAgro').Find('swAgro'..i).Value() == 'TRUE')
+              if pressed then
+                mq.cmd.luaedit('swAgro'..i, _switch and 'TRUE' or 'FALSE')
+              end
+            end 
+          end
+          ImGui.TreePop()
+        end
+      end
+
+      ImGui.NewLine()
+    end
+
+    if ImGui.CollapsingHeader('/area') then
+    end
+
+    if ImGui.CollapsingHeader('/song') then
+    end
+
+    if ImGui.CollapsingHeader('/burn') then
+      ImGui.NewLine()
+      indent(1,1)
+
+        edit_switch_perm('force', 'maBurn', 'swBurnForce')
+        edit_switch_perm('auto', 'maBurn', 'swBurnAuto')
+        edit_switch_perm('raid', 'maBurn', 'swBurnRaid')
+        edit_text_perm('engage', 'maBurn', 'stPctBurnEngage')
+        edit_text_perm('count', 'maBurn', 'stBurnCount')
+        -- edit_text_perm('line', 'maBurn', 'lsLineBurn')
+
+
+      indent(1,2)
+      ImGui.NewLine()
+    end
+
+    -- CLICKITEM
+    if ImGui.CollapsingHeader('/clickitem') then
+
+      ImGui.NewLine()
+      indent(1, 1)      
+      -- line
+      local line, selected = ImGui.InputTextWithHint('line##lsLineDefense', mq.TLO.Macro.Variable('maDefense').Find('lsLineDefense').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+      if selected then
+         mq.cmd.luaedit('lsLineDefense', line, 'overwrite')
+      end 
+      indent(1, 2)
+      
+      ImGui.NewLine()
+
+      for i=1,20 do 
+        ImGui.TextColored(0.39, 0.58, 0.92, 1, i)
+        ImGui.SameLine()
+        if mq.TLO.Macro.Variable('maItem').Find('swItem'..i).Value() == 'TRUE' then
+          local _switch, pressed = ImGui.Checkbox('##swItem'..i, mq.TLO.Macro.Variable('maItem').Find('swItem'..i).Value() == 'TRUE')
+          if pressed then
+            mq.cmd.luaedit('swItem'..i, _switch and 'TRUE' or 'FALSE')
+          end
+          indent(i, 1)
+          -- name
+          local _name, selected = ImGui.InputTextWithHint('Name##stItem'..i, mq.TLO.Macro.Variable('maItem').Find('stItem'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+          if selected then
+            mq.cmd.luaedit('stDefense'..i, _name)
+          end
+          -- tag
+          local _tag, selected = ImGui.InputTextWithHint('Tag##lsItem'..i, mq.TLO.Macro.Variable('maItem').Find('lsItem'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+          if selected then
+            mq.cmd.luaedit('lsItem'..i..'Tag', _tag, 'overwrite')
+          end
+          indent(i, 0)
+         
+        else 
+          if mq.TLO.Macro.Variable('maItem').Find('stItem'..i).Value() == 'FALSE' then
+            tmpName = '##swItem'..i
+          else
+            tmpName = mq.TLO.Macro.Variable('maItem').Find('stItem'..i).Value()..'##swItem'..i
+          end    
+
+          local _switch, pressed = ImGui.Checkbox(tmpName, mq.TLO.Macro.Variable('maItem').Find('swItem'..i).Value() == 'TRUE')
+          if pressed then
+            mq.cmd.luaedit('swItem'..i, _switch and 'TRUE' or 'FALSE')
+          end
+        end 
+      end
+      ImGui.NewLine()
+    end
+
+    -- PULL
+    if ImGui.CollapsingHeader('/pull') then
+      ImGui.NewLine()
+      indent(1,1)
+
+      ImGui.Columns(2, 'col_pull', false)
+        edit_text_perm('rad', 'maPull', 'stPullRadius')
+        edit_text_perm('zrad', 'maPull', 'stPullZRadius')
+        edit_text_perm('nav stop', 'maPull', 'stPullNavStopDistance')
+        edit_text_perm('nav var', 'maPull', 'stPullNavVariance')
+        -- stPullMode
+        local drop = mq.TLO.Macro.Variable('maPull').Find('stPullMode').Value()
+        if ImGui.BeginCombo('mode', drop) then
+          for _, v in ipairs({ 'base', 'pet', 'int', 'nav', 'multi', 'watch' }) do
+            local selected = v == drop
+            if ImGui.Selectable(v, selected) and not selected then
+              mq.cmd.rez('pct', v)
+            end
+          end
+          ImGui.EndCombo()
+        end
+        -- stPullWith
+        local drop = mq.TLO.Macro.Variable('maPull').Find('stPullWith').Value()
+        if ImGui.BeginCombo('with', drop) then
+          for _, v in ipairs({ 'melee', 'range', 'other' }) do
+            local selected = v == drop
+            if ImGui.Selectable(v, selected) and not selected then
+              mq.cmd.rez('pct', v)
+            end
+          end
+          ImGui.EndCombo()
+        end
+
+      ImGui.NextColumn()
+        edit_text_perm('range bando', 'maPull', 'stRangeBandolier')
+        edit_text_perm('outrun', 'maPull', 'stPullOutrunRange')
+        edit_text_perm('chain', 'maPull', 'stCountChainPull')
+        edit_text_perm('pet watch', 'maPull', 'stPullPetWatch')
+
+      -- swPullSetHome
+      -- swNavPathLogic
+
+      ImGui.Columns()
+
+      indent(1,2)
+      ImGui.NewLine()
+      ImGui.Columns(2, 'noname', false)
+
+      if ImGui.TreeNode('hard stop') then 
+        ImGui.NewLine()
+        indent(1,1)
+          edit_text_perm('pct', 'maPull', 'stPctHardStop')
+          edit_text_perm('duration', 'maPull', 'stHardStopDuration')
+          edit_switch_perm('rez', 'maPull', 'swHardStopRez')
+        ImGui.NextColumn()
+        ImGui.Columns()
+        ImGui.TreePop()
+        ImGui.NewLine()
+        indent(1,2)
+      end
+
+      if ImGui.TreeNode('list') then 
+        ImGui.NewLine()
+        indent(1,1)
+        
+        edit_text_perm('line', 'maPull', 'lsLinePull')
+        indent(1,2)
+        
+        ImGui.NewLine()
         for i=1,12 do 
           ImGui.TextColored(0.39, 0.58, 0.92, 1, i)
           ImGui.SameLine()
-          if mq.TLO.Macro.Variable('maMelee').Find('swMelee'..i).Value() == 'TRUE' then
-            local _switch, pressed = ImGui.Checkbox("##sw"..i, mq.TLO.Macro.Variable('maMelee').Find('swMelee'..i).Value() == 'TRUE')
+          if mq.TLO.Macro.Variable('maPull').Find('swPull'..i).Value() == 'TRUE' then
+            local _switch, pressed = ImGui.Checkbox('##swPull'..i, mq.TLO.Macro.Variable('maPull').Find('swPull'..i).Value() == 'TRUE')
             if pressed then
-              mq.cmd.luaedit('swMelee'..i, _switch and 'TRUE' or 'FALSE')
+              mq.cmd.luaedit('swPull'..i, _switch and 'TRUE' or 'FALSE')
             end
-
-            ImGui.Indent(16)
-
+            indent(i,1)
             -- name
-            local _name, selected = ImGui.InputTextWithHint('Name', mq.TLO.Macro.Variable('maMelee').Find('stMelee'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local _name, selected = ImGui.InputTextWithHint('name##stPull'..i, mq.TLO.Macro.Variable('maPull').Find('stPull'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
-              mq.cmd.luaedit('stMelee'..i, _name)
+              mq.cmd.luaedit('stPull'..i, _name)
             end
             -- tag
-            local _tag, selected = ImGui.InputTextWithHint('Tag', mq.TLO.Macro.Variable('maMelee').Find('lsMelee'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+            local _tag, selected = ImGui.InputTextWithHint('tag##lsPull'..i, mq.TLO.Macro.Variable('maPull').Find('lsPull'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selected then
-              mq.cmd.luaedit('lsMelee'..i..'Tag', _tag, "overwrite")
+              mq.cmd.luaedit('lsPull'..i..'Tag', _tag, 'overwrite')
             end
-       
-            ImGui.Indent(-16)
+            indent(i,2)
            
           else 
-            local _switch, pressed = ImGui.Checkbox("##sw"..i, mq.TLO.Macro.Variable('maMelee').Find('swMelee'..i).Value() == 'TRUE')
+            if mq.TLO.Macro.Variable('maPull').Find('stPull'..i).Value() == 'FALSE' then
+              tmpName = '##swPull'..i
+            else
+              tmpName = mq.TLO.Macro.Variable('maPull').Find('stPull'..i).Value()..'##swPull'..i
+            end    
+
+            local _switch, pressed = ImGui.Checkbox(tmpName, mq.TLO.Macro.Variable('maPull').Find('swPull'..i).Value() == 'TRUE')
             if pressed then
-              mq.cmd.luaedit('swMelee'..i, _switch and 'TRUE' or 'FALSE')
+              mq.cmd.luaedit('swPull'..i, _switch and 'TRUE' or 'FALSE')
             end
           end 
         end
 
-        ImGui.EndTabItem()
-      end      
-
--- OVERRIDE TAB
-      if ImGui.BeginTabItem('Override') then
-        ImGui.NewLine()
-        
-        -- swOverLOS          
-        local _switch, pressed = ImGui.Checkbox("LoS", mq.TLO.Macro.Variable('maOver').Find('swOverLOS').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swOverLOS', _switch and 'TRUE' or 'FALSE')
-        end
-        -- swOverPctEngage    
-        local _switch, pressed = ImGui.Checkbox("Pct Engage", mq.TLO.Macro.Variable('maOver').Find('swOverPctEngage').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swOverPctEngage', _switch and 'TRUE' or 'FALSE')
-        end
-        -- swOverLoot         
-        local _switch, pressed = ImGui.Checkbox("Loot", mq.TLO.Macro.Variable('maOver').Find('swOverLoot').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swOverLoot', _switch and 'TRUE' or 'FALSE')
-        end
-        -- swOverSafeNames    
-        local _switch, pressed = ImGui.Checkbox("Safe Names", mq.TLO.Macro.Variable('maOver').Find('swOverSafeNames').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swOverSafeNames', _switch and 'TRUE' or 'FALSE')
-        end
-        -- swOverTrainSpell   
-        local _switch, pressed = ImGui.Checkbox("Train Spell", mq.TLO.Macro.Variable('maOver').Find('swOverTrainSpell').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swOverTrainSpell', _switch and 'TRUE' or 'FALSE')
-        end
-        -- swOverEnvAuto      
-        local _switch, pressed = ImGui.Checkbox("Env Auto", mq.TLO.Macro.Variable('maOver').Find('swOverEnvAuto').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swOverEnvAuto', _switch and 'TRUE' or 'FALSE')
-        end
-        -- swOverDSCheck      
-        local _switch, pressed = ImGui.Checkbox("DS Check", mq.TLO.Macro.Variable('maOver').Find('swOverDSCheck').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swOverDSCheck', _switch and 'TRUE' or 'FALSE')
-        end
-        -- swOverNavCheck     
-        local _switch, pressed = ImGui.Checkbox("NAV Check", mq.TLO.Macro.Variable('maOver').Find('swOverNavCheck').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swOverNavCheck', _switch and 'TRUE' or 'FALSE')
-        end
-        -- swOverGroupAss     
-        local _switch, pressed = ImGui.Checkbox("Group Ass", mq.TLO.Macro.Variable('maOver').Find('swOverGroupAss').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swOverGroupAss', _switch and 'TRUE' or 'FALSE')
-        end
-        -- swOverSplashHurt   
-        local _switch, pressed = ImGui.Checkbox("Splash Hurt", mq.TLO.Macro.Variable('maOver').Find('swOverSplashHurt').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swOverSplashHurt', _switch and 'TRUE' or 'FALSE')
-        end
-        -- swTargetClear      
-        local _switch, pressed = ImGui.Checkbox("Target Clear", mq.TLO.Macro.Variable('maOver').Find('swTargetClear').Value() == 'TRUE')
-        if pressed then
-          mq.cmd.luaedit('swTargetClear', _switch and 'TRUE' or 'FALSE')
-        end
-        
-        ImGui.EndTabItem()
-      end 
-
-
-      ImGui.EndTabBar()
-      
-      
-      
+        ImGui.TreePop()
+      end
+      ImGui.NewLine()
     end
+
+    -- DEBUG
+    if ImGui.CollapsingHeader('/debug') then
+      ImGui.NewLine()
+ 
+      if ImGui.TreeNode('buff') then
+        ImGui.NewLine()
+        ImGui.Columns(4, 'debugbuff', false)
+          edit_switch_temp('cb', 'maDebug', 'cb')
+          edit_switch_temp('ammo', 'maDebug', 'ammo')
+          edit_switch_temp('beg', 'maDebug', 'beg')
+          edit_switch_temp('unity', 'maDebug', 'unity')
+        ImGui.NextColumn()
+          edit_switch_temp('aura', 'maDebug', 'aura')
+          edit_switch_temp('now', 'maDebug', 'now')
+          edit_switch_temp('crew', 'maDebug', 'crew')
+          edit_switch_temp('buffself', 'maDebug', 'buffself')
+        ImGui.NextColumn()
+          edit_switch_temp('shrink', 'maDebug', 'shrink')
+          edit_switch_temp('poison', 'maDebug', 'poison')
+          edit_switch_temp('class', 'maDebug', 'class')
+          edit_switch_temp('temp', 'maDebug', 'temp')
+        ImGui.NextColumn()
+          edit_switch_temp('blocked', 'maDebug', 'blocked')
+          edit_switch_temp('buffgroup', 'maDebug', 'buffgroup')
+          edit_switch_temp('buffraid', 'maDebug', 'buffraid')
+          edit_switch_temp('drop', 'maDebug', 'drop')
+        ImGui.Columns()
+        ImGui.TreePop()
+        ImGui.NewLine()
+      end  
+      
+      if ImGui.TreeNode('heal') then
+        ImGui.NewLine()
+        ImGui.Columns(4, 'debugheal', false)
+          --cure
+          edit_switch_temp('cure', 'maDebug', 'cure')
+          --xt
+          edit_switch_temp('xt', 'maDebug', 'xt')
+          --group
+          edit_switch_temp('group', 'maDebug', 'group')
+        ImGui.NextColumn()
+          --pet
+          edit_switch_temp('pet', 'maDebug', 'pet')
+          --self
+          edit_switch_temp('self', 'maDebug', 'self')
+          --hurt
+          edit_switch_temp('hurt', 'maDebug', 'hurt')
+        ImGui.NextColumn()
+          --tot
+          edit_switch_temp('tot', 'maDebug', 'tot')
+          --dannet
+          edit_switch_temp('dannet', 'maDebug', 'dannet')
+          --rez
+          edit_switch_temp('rez', 'maDebug', 'rez')
+        ImGui.NextColumn()
+          --chain
+          edit_switch_temp('chain', 'maDebug', 'chain')
+          --ch
+          edit_switch_temp('ch', 'maDebug', 'ch')
+        ImGui.Columns()
+        ImGui.TreePop()
+        ImGui.NewLine()
+      end  
+
+      if ImGui.TreeNode('home') then
+        ImGui.NewLine()
+        ImGui.Columns(4, 'debughome', false)
+          edit_switch_temp('face', 'maDebug', 'face')
+          edit_switch_temp('tie', 'maDebug', 'tie')
+          edit_switch_temp('stick', 'maDebug', 'stick')
+        ImGui.NextColumn()
+          edit_switch_temp('stop', 'maDebug', 'stop')
+          edit_switch_temp('home', 'maDebug', 'home')
+          edit_switch_temp('gtfo', 'maDebug', 'gtfo')
+        ImGui.NextColumn()
+        ImGui.NextColumn()
+        ImGui.Columns()
+        ImGui.TreePop()
+        ImGui.NewLine()
+      end  
+
+      if ImGui.TreeNode('minion') then
+        ImGui.NewLine()
+        ImGui.Columns(4, 'debugminion', false)
+          edit_switch_temp('petbuild', 'maDebug', 'petbuild')
+          edit_switch_temp('lost', 'maDebug', 'lost')
+          edit_switch_temp('sic', 'maDebug', 'sic')
+        ImGui.NextColumn()
+          edit_switch_temp('temp', 'maDebug', 'temp')
+          edit_switch_temp('heal', 'maDebug', 'heal')
+        ImGui.NextColumn()
+        ImGui.NextColumn()
+        ImGui.Columns()
+        ImGui.TreePop()
+        ImGui.NewLine()
+      end  
+
+      if ImGui.TreeNode('debuff') then
+        ImGui.NewLine()
+        ImGui.Columns(4, 'debugdebuff', false)
+          edit_switch_temp('tash', 'maDebug', 'tash')
+          edit_switch_temp('malo', 'maDebug', 'malo')
+          edit_switch_temp('mez', 'maDebug', 'mez')
+        ImGui.NextColumn()
+          edit_switch_temp('slow', 'maDebug', 'slow')
+          edit_switch_temp('eradicate', 'maDebug', 'eradicate')
+          edit_switch_temp('snare', 'maDebug', 'snare')
+        ImGui.NextColumn()
+        ImGui.NextColumn()
+        ImGui.Columns()
+        ImGui.TreePop()
+        ImGui.NewLine()
+      end  
+
+      if ImGui.TreeNode('cast') then
+        ImGui.NewLine()
+        ImGui.Columns(4, 'debugcast', false)
+          edit_switch_temp('item', 'maDebug', 'item')
+          edit_switch_temp('nuke', 'maDebug', 'nuke')
+          edit_switch_temp('dot', 'maDebug', 'dot')
+        ImGui.NextColumn()
+        ImGui.NextColumn()
+        ImGui.NextColumn()
+        ImGui.Columns()
+        ImGui.TreePop()
+        ImGui.NewLine()
+      end  
+
+      if ImGui.TreeNode('loot') then
+        ImGui.NewLine()
+        ImGui.Columns(4, 'debugloot', false)
+          edit_switch_temp('loot', 'maDebug', 'loot')
+        ImGui.NextColumn()
+        ImGui.NextColumn()
+        ImGui.NextColumn()
+        ImGui.Columns()
+        ImGui.TreePop()
+        ImGui.NewLine()
+      end  
+
+      if ImGui.TreeNode('mode') then
+        ImGui.NewLine()
+        ImGui.Columns(4, 'debugmode', false)
+          edit_switch_temp('forage', 'maDebug', 'forage')
+          edit_switch_temp('drag', 'maDebug', 'drag')
+          edit_switch_temp('summon', 'maDebug', 'summon')
+        ImGui.NextColumn()
+          edit_switch_temp('petfarm', 'maDebug', 'petfarm')
+          edit_switch_temp('harvest', 'maDebug', 'harvest')
+          edit_switch_temp('hunt', 'maDebug', 'hunt')
+        ImGui.NextColumn()
+          edit_switch_temp('fish', 'maDebug', 'fish')
+          edit_switch_temp('farm', 'maDebug', 'farm')
+          edit_switch_temp('lush', 'maDebug', 'lush')
+        ImGui.NextColumn()
+          edit_switch_temp('trainskill', 'maDebug', 'trainskill')
+          edit_switch_temp('trainspell', 'maDebug', 'trainspell')
+          edit_switch_temp('temppet', 'maDebug', 'temppet')
+        ImGui.NextColumn()
+        ImGui.Columns()
+        ImGui.TreePop()
+        ImGui.NewLine()
+      end  
+
+      if ImGui.TreeNode('combat') then
+        ImGui.NewLine()
+        ImGui.Columns(4, 'debugcombat', false)
+          edit_switch_temp('def', 'maDebug', 'def')
+          edit_switch_temp('target', 'maDebug', 'target')
+          edit_switch_temp('melee', 'maDebug', 'melee')
+          edit_switch_temp('burn', 'maDebug', 'burn')
+        ImGui.NextColumn()
+          edit_switch_temp('agro', 'maDebug', 'agro')
+          edit_switch_temp('pull', 'maDebug', 'pull')
+          edit_switch_temp('misc', 'maDebug', 'misc')
+          edit_switch_temp('assist', 'maDebug', 'assist')
+        ImGui.NextColumn()
+          edit_switch_temp('decision', 'maDebug', 'decision')
+          edit_switch_temp('proc', 'maDebug', 'proc')
+          edit_switch_temp('ttl', 'maDebug', 'ttl')
+          edit_switch_temp('sash', 'maDebug', 'sash')
+        ImGui.NextColumn()
+          edit_switch_temp('status', 'maDebug', 'status')
+          edit_switch_temp('wait', 'maDebug', 'wait')
+          edit_switch_temp('hardstop', 'maDebug', 'hardstop')
+          edit_switch_temp('prediction', 'maDebug', 'prediction')
+        ImGui.Columns()
+        ImGui.TreePop()
+        ImGui.NewLine()
+      end  
+
+      if ImGui.TreeNode('other') then
+        ImGui.NewLine()
+        ImGui.Columns(4, 'debugother', false)
+          edit_switch_temp('rest', 'maDebug', 'rest')
+          edit_switch_temp('meal', 'maDebug', 'meal')
+          edit_switch_temp('spire', 'maDebug', 'spire')
+          edit_switch_temp('glyph', 'maDebug', 'glyph')
+          edit_switch_temp('fireworks', 'maDebug', 'fireworks')
+        ImGui.NextColumn()
+          edit_switch_temp('manarecover', 'maDebug', 'manarecover')
+          edit_switch_temp('fade', 'maDebug', 'fade')
+          edit_switch_temp('event', 'maDebug', 'event')
+          edit_switch_temp('watch', 'maDebug', 'watch')
+        ImGui.NextColumn()
+          edit_switch_temp('tag', 'maDebug', 'tag')
+          edit_switch_temp('safe', 'maDebug', 'safe')
+          edit_switch_temp('intensity', 'maDebug', 'intensity')
+          edit_switch_temp('chrwatch', 'maDebug', 'chrwatch')
+        ImGui.NextColumn()
+          edit_switch_temp('staminarecover', 'maDebug', 'staminarecover')
+          edit_switch_temp('inventoryscan', 'maDebug', 'inventoryscan')
+          edit_switch_temp('invis', 'maDebug', 'invis')
+          edit_switch_temp('gather', 'maDebug', 'gather')
+        ImGui.Columns()
+        ImGui.TreePop()
+        ImGui.NewLine()
+      end  
+
+      if ImGui.TreeNode('admin') then
+        ImGui.NewLine()
+        ImGui.Columns(4, 'debugadmin', false)
+          edit_switch_temp('build', 'maDebug', 'build')
+          edit_switch_temp('observe', 'maDebug', 'observe')
+          edit_switch_temp('house', 'maDebug', 'house')
+          edit_switch_temp('exit', 'maDebug', 'exit')
+        ImGui.NextColumn()
+          edit_switch_temp('sql', 'maDebug', 'sql')
+          edit_switch_temp('edit', 'maDebug', 'edit')
+          edit_switch_temp('e3', 'maDebug', 'e3')
+        ImGui.NextColumn()
+        ImGui.Columns()
+        ImGui.TreePop()
+        ImGui.NewLine()
+      end  
+
+      if ImGui.TreeNode('schema') then
+        ImGui.NewLine()
+        ImGui.Columns(4, 'debugschema', false)
+          edit_switch_temp('init', 'maDebug', 'init')
+          edit_switch_temp('s_zone', 'maDebug', 's_zone')
+          edit_switch_temp('s_character', 'maDebug', 's_character')
+          edit_switch_temp('s_loot', 'maDebug', 's_loot')
+        ImGui.NextColumn()
+          edit_switch_temp('s_nav', 'maDebug', 's_nav')
+          edit_switch_temp('s_shared', 'maDebug', 's_shared')
+          edit_switch_temp('s_stale', 'maDebug', 's_stale')
+        ImGui.NextColumn()
+        ImGui.Columns()
+        ImGui.TreePop()
+        ImGui.NewLine()
+      end  
+
+      if ImGui.TreeNode('area') then
+        ImGui.NewLine()
+        ImGui.Columns(4, 'debugarea', false)
+          edit_switch_temp('area', 'maDebug', 'area')
+        ImGui.NextColumn()
+        ImGui.NextColumn()
+        ImGui.NextColumn()
+        ImGui.Columns()
+        ImGui.TreePop()
+        ImGui.NewLine()
+      end  
+      ImGui.NewLine()
+
+    end
+    
+    
     ImGui.End()
   end
+
 end
 
 mq.imgui.init('editorwindow', imguicallback)
 
 while openGUI do 
-  mq.delay(1000) 
   updateHealPoints()
+  mq.delay(100) 
 end
 
 
