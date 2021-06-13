@@ -1050,8 +1050,15 @@ sub check_for_rezbox(bool _debug)
 
       /call set_stop ${maDebug.Find[stop].Value} SILENT
 
+      
+      |**
       /if (${maHome.Find[swHomeMarker].Value}) {
         /call Bind_control_home clear NULL NULL ${maDebug.Find[home].Value}
+      }
+      **|
+      
+      /if (${maHome.Find[swMoveDeathClear].Value}) {
+        /call Bind_control_home clear FALSE silent ${maDebug.Find[home].Value}
       }
 
       /return TRUE
@@ -2913,7 +2920,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
       }
 
       | check nav path length
-      /if (${maPull.Find[swNavPathLogic].Value} || ${Select[${maPull.Find[stPullMode].Value},nav]}) {
+      /if ((${maPull.Find[swNavPathLogic].Value} || ${Select[${maPull.Find[stPullMode].Value},nav]}) && !${maMode.Find[petfarm].Value}) {
         
         | break on nav if there is an error in length
         /if (${Navigation.PathLength[id ${_spawn.ID}]} < 0) {
@@ -4925,6 +4932,7 @@ sub check_buff_cycle_beg(bool _debug)
     GETINPUT check_buff_cycle_beg NA|NA
 
     /if (!${is_lsSafeNames[${maDebug.Find[safe].Value}, ${_mibb.Key}]}) {
+      DEBUG${break}not in safe list
       /invoke ${maBuffRequest.Remove[${_mibb.Key}]}
       /return FALSE
     }
@@ -4933,14 +4941,17 @@ sub check_buff_cycle_beg(bool _debug)
     /while (!${_libb.IsEnd}) {
 
       /if (!${maBuff.Find[swBuff${_libb.Value}].Value}) {
+        DEBUG ${break}switch off${sep}swBuff${_libb.Value}
         /invoke ${_libb.Advance}
         /continue
       }
       /if (!${Bool[${maBuff.Find[stBuff${_libb.Value}].Value}]}) {
+        DEBUG ${break}no name${sep}stBuff${_libb.Value}}
         /invoke ${_libb.Advance}
         /continue
       }
       /if (!${Bool[${maBuff.Find[stBuff${_libb.Value}Alias].Value}]}) {
+        DEBUG ${break}no alias${sep}stBuff${_libb.Value}Alias
         /invoke ${_libb.Advance}
         /continue
       }
@@ -8636,6 +8647,7 @@ sub control_mez(bool _debug, spawn _spawn)
  - sw - an ON/OFF green/red switch
  - pr - surround the on/off switch in a ( )
  - mass - mass group buff execution option (spice, aid, cr, so on)
+ - br_no_c - bracketed variables w/o collections
  ***|
 sub set_control_output(bool _debug, string _map, string _outname, string _control)
   DEBUG \atset_control_output\ax(\a-w${_map}, "${_outname}", ${_control}\ax)
@@ -8697,6 +8709,10 @@ sub set_control_output(bool _debug, string _map, string _outname, string _contro
     } else /if (${_cmi.Value.Arg[2,|].Equal[show]}) {
       /varset _out ${_out} ${info}${_cmi.Key}\ax:${num}${${_map}.Find[${_value}].Value}\ax
 
+    | string in brackets w/o collections
+    } else /if (${_cmi.Value.Left[2].Equal[st]} && ${_cmi.Value.Arg[2,|].Equal[br_no_c]}) {
+      /varset _out ${_out} ${info}${_cmi.Key}\ax:[${If[${Bool[${${_value}}]},${num}${${_value}}\ax,${off}]}]
+    
     | string in brackets
     } else /if (${_cmi.Value.Left[2].Equal[st]} && ${_cmi.Value.Arg[2,|].Equal[br]}) {
       /varset _out ${_out} ${info}${_cmi.Key}\ax:[${If[${Bool[${${_map}.Find[${_value}].Value}]},${num}${${_map}.Find[${_value}].Value}\ax,${off}]}]
@@ -12927,6 +12943,7 @@ sub pull_assist_decision(bool _debug)
     DEBUG ${submenu}pullstate (\a-rget assist\ax)
     /call get_assist_target ${maDebug.Find[assist].Value}
     /if (!${Macro.Return}) {
+      /delay 1
       /if (${maOver.Find[swTargetClear].Value}) {
         /invoke ${target[clear]}
       }
@@ -14028,12 +14045,21 @@ sub get_assist_target(bool _debug, string _call)
           /vardata assistData Spawn[pc ${_liass.Value}]
           /vardata targetData Spawn[${DanNet[${_liass.Value}].Observe["Target.ID"]}]
           /varset stAssTarID ${DanNet[${_liass.Value}].Observe["Target.ID"]}
+
+          /if (${targetData.ID} && ${targetData.Type.NotEqual[Corpse]} & ${Target.ID} != ${targetData.ID}) {
+            /squelch /target id ${targetData.ID}
+          }      
+
           /if (${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
-            DEBUG ${break}above engage %
+            DEBUG ${break}HP(${targetData.PctHPs}) > engage(${maCC.Find[stPctEngage].Value}) ${sep} ${targetData} ${targetData.ID}
             /invoke ${_liass.Advance}    
+            /varset targetData 0
+            /varset assistData 0
+            /varset stAssTarID 0
+            /return 0     
             /continue        
           }
-          
+                  
           DEBUG ${sep}targetData${sep}\a-w${targetData.ID}\ax
           /if (${_call.Equal[return]}) {
             /return ${targetData.ID}
@@ -14538,7 +14564,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
   GETOVERHERE
 
   | critical errors
-  /if (!${maCD.Find[id].Value} && !${Select[${maCD.Find[type]},DISC]}) {
+  /if (!${maCD.Find[id].Value} && !${Select[${maCD.Find[type].Value},DISC]}) {
     /invoke ${out[0, "${error}${sep}cast${sep}\a-w${maCD.Find[id].Value}, ${_spawn.ID}, ${_sub}\ax)"]}
     /delay 5
     /return FALSE
@@ -14810,8 +14836,6 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
           /if (${cast_data[${_debug}, "${_ligom.Value}"]}) {
             /vardata spellData Spell[${_ligom.Value}]
             /break
-          } else {
-            /vardata spellData _tmpspell
           }
         /invoke ${_ligom.Advance}
       }

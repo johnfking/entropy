@@ -470,8 +470,8 @@ sub check_cani(bool _debug)
   ISMEDEAD
 
   | use the aa cani
-  /if (${AltAbility[${maChr.Find[stAACannibalization].Value}].Spell.Base[2]} < ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}].Int} && ${Me.CurrentMana} != ${Me.MaxMana} && ${Me.CurrentHPs} > ${AltAbility[${maChr.Find[stAACannibalization].Value}].Spell.Base[1]}) {
-    /if (${cast_data[${_debug}, "${maChr.Find[stAACannibalization].Value}"]}) {
+  /if (${cast_data[${_debug}, "${maChr.Find[stAACannibalization].Value}"]}) {
+    /if (${AltAbility[${maChr.Find[stAACannibalization].Value}].Spell.Base[2]} < ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}].Int} && ${Me.CurrentMana} != ${Me.MaxMana} && ${Me.CurrentHPs} > ${AltAbility[${maChr.Find[stAACannibalization].Value}].Spell.Base[1]}) {
       /call cast ${_debug} 0 FALSE
     }
   } 
@@ -492,15 +492,12 @@ sub check_cani(bool _debug)
   }
 
   | check HP requirements
-  
-  /if (${Spell[${Spell[${maChr.Find[stCannibalization].Value}].RankName}].Base[2]} <= ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}].Int} || ${Me.CurrentMana} == ${Me.MaxMana} || ${Me.CurrentHPs} < ${Spell[${Spell[${maChr.Find[stCannibalization].Value}].RankName}].Base[1]}) {
+  /if (${spellData.RankName.Base[2]} >= ${Math.Calc[${Me.MaxMana}-${Me.CurrentMana}].Int} || ${Me.CurrentMana} == ${Me.MaxMana} || ${Me.CurrentHPs} < ${spellData.RankName.Base[1]}) {
     DEBUG ${break}bad time to cani!!
     /return FALSE
   }
 
-  /if (${cast_data[${_debug}, "${maChr.Find[stCannibalization].Value}"]}) {
-    /call cast ${_debug} 0 FALSE
-  }
+  /call cast ${_debug} 0 FALSE
 
 /return TRUE
 

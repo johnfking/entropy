@@ -22,12 +22,27 @@ on the to do list
 
 
 
+210613.01
+- cast()
+  made a correction to the ID requirement for casting discs
+- shaman
+  some changes to canni casting and calculations
+- /take
+  will now accept translocate to binds
+- beastlord
+  redesigned paragons to work off of spawn types
+- mode data will display properly again
+- fixed a variable error in /coh command
+- dannet assist
+  added some targeting
+      
+
 210530.01
 - pet sitting has been restricted to TLP..... not changing it. dont ask..
 - /mode scribe
   buy and scribe missing spells/tomes
   thanks to @themanwithnoname for this mode..
-- lots and lots of updates tot he builder UI
+- lots and lots of updates to the builder UI
   still lots to go  
 
 

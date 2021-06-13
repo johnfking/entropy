@@ -190,7 +190,7 @@ sub Bind_control_mode(string _type, string _verbage, string _verbage2, bool _deb
   /invoke ${maControl.Add[temppet,option]}
   /invoke ${maControl.Add[trainskill,option]}
   /invoke ${maControl.Add[trainspell,option]}
-  /invoke ${maControl.Add[data,stModeData|pr]}
+  /invoke ${maControl.Add[data,stModeData|br_no_c]}
   /invoke ${maControl.Add[petfarm,option]}
   /invoke ${maControl.Add[summon,option]}
   /invoke ${maControl.Add[drag,option]}
@@ -208,7 +208,7 @@ sub Bind_control_mode(string _type, string _verbage, string _verbage2, bool _deb
  ***|
 #bind control_admin /admin
 sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
-  SDEBUG \atBind_control_admin\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
+  DEBUG \atBind_control_admin\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
 
   | cehck for undeclared variables
   /if (${_type.Equal[checkvar]}) {
@@ -3842,6 +3842,10 @@ sub Bind_command_take(string _type, string _verbage, bool _debug)
     /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
   }
   
+  /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find["be translocated to your bind point"]}) {
+    /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+  }
+
   /if (${Window[LargeDialogWindow].Child[LDW_TextBox].Text.Find["Would you like to travel"]}) {
     /nomodkey /notify LargeDialogWindow LDW_YesButton leftmouseup
   }
@@ -3945,16 +3949,16 @@ sub Bind_command_lesson(string _type, bool _debug)
  * use: /coh [group]
  ***|
 #bind command_coh /coh
-sub Bind_command_coh(string _verbage, bool _debug)
-  DEBUG Bind_command_coh(${_verbage})
+sub Bind_command_coh(string _type, bool _debug)
+  DEBUG /atBind_command_coh/ax(/a-w${_type}/ax)
 
   /if (${_type.Left[1].Equal[-]}) {
     /lua run get_help coh ${_type.Right[1]}
     /return TRUE
   }
 
-  /if (${_verbage.Equal[group]}) {
-    /dex ${get_resident[${_debug}, |mag, 99999]} /call_of_the_hero "${Me.DisplayName}" "${_verbage}"
+  /if (${_type.Equal[group]}) {
+    /dex ${get_resident[${_debug}, |mag, 99999]} /call_of_the_hero "${Me.DisplayName}" "${_type}"
     /return TRUE
   } else {
     /dex ${get_resident[${_debug}, |mag, 99999]} /call_of_the_hero "${Me.DisplayName}"

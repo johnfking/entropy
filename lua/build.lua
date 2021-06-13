@@ -487,57 +487,26 @@ local function imguicallback()
       indent(1,1) 
 
         ImGui.Columns(3, 'heal', false)
+          edit_switch_perm('self', 'maHeal', 'swHealSelf')
+          edit_switch_perm('dannet', 'maHeal', 'swHealDanNet')
+          edit_switch_perm('group', 'maHeal', 'swHealGroup')
+          -- xtarget   
+          local _switch, xtpressed = ImGui.Checkbox("##swHealXTarget", mq.TLO.Macro.Variable('maHeal').Find('swHealXTarget').Value() == 'TRUE')
+          if xtpressed then
+            mq.cmd.luaedit('swHealXTarget', _switch and 'TRUE' or 'FALSE')
+          end
+          ImGui.SameLine()
+          local healxt = ImGui.Button('xt', 60, 22)
+          if healxt then
+            mq.cmd.heal('xt build')
+          end
 
-        -- self
-        local _switch, selfpressed = ImGui.Checkbox("self##swHealSelf", mq.TLO.Macro.Variable('maHeal').Find('swHealSelf').Value() == 'TRUE')
-        if selfpressed then
-          mq.cmd.luaedit('swHealSelf', _switch and 'TRUE' or 'FALSE')
-        end   
-        -- dannet
-        local _switch, dannetpressed = ImGui.Checkbox("dannet##swHealDanNet", mq.TLO.Macro.Variable('maHeal').Find('swHealDanNet').Value() == 'TRUE')
-        if dannetpressed then
-          mq.cmd.luaedit('swHealDanNet', _switch and 'TRUE' or 'FALSE')
-        end  
-        -- group
-        local _switch, grouppressed = ImGui.Checkbox("group##swHealGroup", mq.TLO.Macro.Variable('maHeal').Find('swHealGroup').Value() == 'TRUE')
-        if grouppressed then
-          mq.cmd.luaedit('swHealGroup', _switch and 'TRUE' or 'FALSE')
-        end  
-        -- xtarget        
-        local _switch, xtpressed = ImGui.Checkbox("##swHealXTarget", mq.TLO.Macro.Variable('maHeal').Find('swHealXTarget').Value() == 'TRUE')
-        if xtpressed then
-          mq.cmd.luaedit('swHealXTarget', _switch and 'TRUE' or 'FALSE')
-        end
-        ImGui.SameLine()
-        local healxt = ImGui.Button('xt', 60, 22)
-        if healxt then
-          mq.cmd.heal('xt build')
-        end
-
-        -- pet        
-        local _switch, petpressed = ImGui.Checkbox("pet##swHealPet", mq.TLO.Macro.Variable('maHeal').Find('swHealPet').Value() == 'TRUE')
-        if petpressed then
-          mq.cmd.luaedit('swHealPet', _switch and 'TRUE' or 'FALSE')
-        end           
-        -- rampage       
-        local rampage, selectedramp = ImGui.InputTextWithHint('rampage##stRampageTank', mq.TLO.Macro.Variable('maHeal').Find('stRampageTank').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-        if selectedramp then
-          mq.cmd.luaedit('stRampageTank', rampage)
-        end
+          edit_switch_perm('pet', 'maHeal', 'swHealPet')
+          edit_text_perm('rampage', 'maHeal', 'stRampageTank')
        
         ImGui.NextColumn()
-        
-        -- weight
-        local _switch, weightpressed = ImGui.Checkbox("weight##swHealWeighted", mq.TLO.Macro.Variable('maHeal').Find('swHealWeighted').Value() == 'TRUE')
-        if weightpressed then
-          mq.cmd.luaedit('swHealWeighted', _switch and 'TRUE' or 'FALSE')
-        end        
-        -- break
-        local _switch, breakpressed = ImGui.Checkbox("break##swBreakHealPCT", mq.TLO.Macro.Variable('maHeal').Find('swBreakHealPCT').Value() == 'TRUE')
-        if breakpressed then
-          mq.cmd.luaedit('swBreakHealPCT', _switch and 'TRUE' or 'FALSE')
-        end         
-                
+          edit_switch_perm('weight', 'maHeal', 'swHealWeighted')
+          edit_switch_perm('break', 'maHeal', 'swBreakHealPCT')
         ImGui.NextColumn()
         ImGui.Columns()  
         edit_text_perm('order', 'maHeal', 'lsOrderHeal')
@@ -1078,26 +1047,6 @@ local function imguicallback()
       ImGui.NewLine()
       indent(1,2)
     end 
-    
-    -- TIE and TC
-    if ImGui.CollapsingHeader('tie / tc') then
-
-      if ImGui.TreeNode('/tc') then 
-        ImGui.NewLine()
-        ImGui.Indent(16)
-        ImGui.Indent(-16)
-        ImGui.TreePop()
-      end
-
-      if ImGui.TreeNode('/tie') then 
-        ImGui.NewLine()
-        ImGui.Indent(16)
-        ImGui.Indent(-16)
-        ImGui.TreePop()
-      end
-      
-
-    end
     
     -- HOME
     if ImGui.CollapsingHeader('/home') then

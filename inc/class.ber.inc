@@ -388,14 +388,14 @@ sub burn(bool _debug, spawn _spawn)
   | Brutal/berserking and savage spirit
   /if (!${Me.ActiveDisc.Name.Find[${maChr.Find[stDisconcerting].Value}]} && !${cast_data[${_debug}, "${maChr.Find[stDisconcerting].Value}"]}) {
     /if (!${Me.ActiveDisc.Name.Find[${maChr.Find[stInspiredAnger].Value}]} && ${cast_data[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]}) {
-        /stopdisc
-      }
-      /call cast_data ${_debug} "${maChr.Find[stInspiredAnger].Value}"
+      /stopdisc
+      /delay 1
       /call cast ${_debug} 0 FALSE
-      /if (${cast_data[${_debug}, "${maChr.Find[stAASavageSpirit].Value}"]}) {
-      	/call cast ${_debug} 0 FALSE
-    	}
     }
+    /if (${cast_data[${_debug}, "${maChr.Find[stAASavageSpirit].Value}"]}) {
+    	/call cast ${_debug} 0 FALSE
+    }
+  }
 
 
   | Intensity of the Resolute AA 4 hour reuse
@@ -472,8 +472,10 @@ sub burn(bool _debug, spawn _spawn)
   }
 
   | no berserking use cleaving anger and reckless abandon
-  /if (${cast_data[${_debug}, "${maChr.Find[stCleavingRage].Value}"]} && !${Me.ActiveDisc.ID} && !${cast_data[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]}) {
-    /call cast ${_debug} 0 FALSE
+  /if (!${cast_data[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]} && !${Me.ActiveDisc.ID}) {
+    /if (${cast_data[${_debug}, "${maChr.Find[stCleavingRage].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
+    }
   }
 
 	| Reckless Abandon if avail
@@ -487,16 +489,17 @@ sub burn(bool _debug, spawn _spawn)
   }
 
   | no cleaving use vengful and glyph
-  /if (${cast_data[${_debug}, "${maChr.Find[stVengefulFlurry].Value}"]} && !${Me.ActiveDisc.ID} && ${cast_data[${_debug}, "${maChr.Find[stResolve].Value}"]} && !${cast_data[${_debug}, "${maChr.Find[stCleavingRage].Value}"]} && !${cast_data[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]}) {
-    /call cast ${_debug} 0 FALSE
+  /if (!${cast_data[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]} && !${Me.ActiveDisc.ID} && !${cast_data[${_debug}, "${maChr.Find[stCleavingRage].Value}"]}) {
+    /if (${cast_data[${_debug}, "${maChr.Find[stVengefulFlurry].Value}"]} && ${cast_data[${_debug}, "${maChr.Find[stResolve].Value}"]}) {
+      /call cast ${_debug} 0 FALSE
+    }
   }
 
   /call cast_glyph ${maDebug.Find[glyph].Value}
 
   | no vengful use frenzied
   /if (!${Me.ActiveDisc.ID} && !${cast_data[${_debug}, "${maChr.Find[stInspiredAnger].Value}"]} && !${cast_data[${_debug}, "${maChr.Find[stVengefulFlurry].Value}"]} && !${cast_data[${_debug}, "${maChr.Find[stCleavingRage].Value}"]}) {
-  	/if (${Me.PctHPs} > 90) {
-      /call cast_data ${_debug} "${maChr.Find[stAABloodfury].Value}"
+  	/if (${Me.PctHPs} > 90 && ${cast_data[${_debug}, "${maChr.Find[stAABloodfury].Value}"]}) {
       /call cast ${_debug} 0 FALSE
       /delay 1
     }

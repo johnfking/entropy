@@ -388,9 +388,7 @@ sub Event_TTLend(string _line, string _mob)
  * use: /t uselesstoon IwantThisBuff
  ***|
 #event Talk "#1# tells you,#*# '#2#'"
-
 sub Event_Talk(string line, string _sender, string _chatText)
-
 
   | tell realys
   /if (${maEntropy.Find[swRelayTell].Value} && !${_sender.Find[Banker]} && !${_sender.Find[${Me}]} && !${_sender.Find[${maTie.Find[stTieToon].Value}]} && !${_sender.Find[${Me.Pet.DisplayName}]} && ${lsGrain.Contains[25]}) {
@@ -411,11 +409,11 @@ sub Event_Talk(string line, string _sender, string _chatText)
 
   | Tells for buffs.
   /if (${maBuff.Find[swBuffBeg].Value}) {
-   
+    
     /if (!${Spawn[${_sender}].ID} || ${_sender.Equal[${Me.DisplayName}]}) {
       /return FALSE
     }
-    
+
     /declare _count int local 0
     /for _count 1 to 50
 
@@ -431,6 +429,7 @@ sub Event_Talk(string line, string _sender, string _chatText)
 
       /call Bind_command_requestbuff "${_sender}" Add "${_chatText}"
       /return TRUE
+
     /next _count
 
     /return FALSE

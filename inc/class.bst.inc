@@ -216,6 +216,7 @@ sub check_mana(bool _debug)
   | ISMEDEAD
   CHECKEXIT check_mana_BST
   /declare _count int local 0
+  /declare _spawn spawn local
 
   | consumption of Spirits AA
   /if (${maChr.Find[stPctConsume].Value} && ${Pet.ID} && !SAFEZONE) {
@@ -237,42 +238,44 @@ sub check_mana(bool _debug)
     /declare _below int local 0
 
     /for _count 0 to ${Group}
+      /vardata _spawn Spawn[${Group.Member[${_count}].ID}]
+      
       DEBUG ${sep}${_count}${sep}\a-w${Group.Member[${_count}].DisplayName}\ax
       ISMEDEAD
       CHECKEXIT check_mana_BST2
       
-      /if (!${Spawn[${Group.Member[${_count}].ID}].ID} || !${Group.Member[${_count}].Present}) {
+      /if (!${_spawn.ID} || !${Group.Member[${_spawn.ID}].Present}) {
         DEBUG ${break}notinzone
         /continue
       }
 
-      /if (${Group.Member[${_count}].Type.Equal[corpse]}) {
+      /if (${_spawn.Type.Equal[corpse]}) {
         DEBUG ${break}corpse
         /continue
       }
+
+      /if (${_spawn.ID} == ${Me.Pet.ID}) {
+        DEBUG ${break}pet
+        /continue
+      }
       
-      /if (${Group.Member[${_count}].Class.ShortName.Equal[BRD]}) {
+      /if (${_spawn.Class.ShortName.Equal[BRD]}) {
         DEBUG ${break}bard
         /continue
       }
 
-      /if (!${lsParagonClass.Contains[${Group.Member[${_count}].Class.ShortName}]}) {
-        DEBUG ${break}Bad Class${sep}${Group.Member[${_count}].Class.ShortName}
+      /if (!${lsParagonClass.Contains[${_spawn.Class.ShortName}]}) {
+        DEBUG ${break}Bad Class${sep}${_spawn.Class.ShortName}
         /continue
       }
 
-      /if (${Group.Member[${_count}].PctMana} >= ${maChr.Find[stPctParagonG].Value}*.PCTHO) {
+      /if (${_spawn.PctMana} >= ${maChr.Find[stPctParagonG].Value}*.PCTHO) {
         DEBUG ${break}maChr.Find[stPctParagonG].Value
         /continue
       }
       
-      /if (${Group.Member[${_count}].Distance} > ${Spell[${maChr.Find[stAAParagonofSpirit].Value}].AERange}) {
+      /if (${_spawn.Distance} > ${Spell[${maChr.Find[stAAParagonofSpirit].Value}].AERange}) {
         DEBUG ${break}AERange${sep}${Spell[${maChr.Find[stAAParagonofSpirit].Value}].AERange}
-        /continue
-      }
-
-      /if (${Group.Member[${_count}].ID} == ${Pet.ID}) {
-        DEBUG ${break}pet
         /continue
       }
 
@@ -311,39 +314,46 @@ sub check_mana(bool _debug)
   /if (${Group} && ${maChr.Find[stPctParagonFO].Value} && !SAFEZONE) {
     /declare _found bool local FALSE
     /for _count 0 to ${Group}
+      
+      /vardata _spawn Group.Member[${_count}]
 
-      /if (${Group.Member[${_count}].ID} == ${Me.ID}) {
+      /if (${_spawn.ID} == ${Me.ID}) {
         /continue
       }
       
-      /if (!${Spawn[${Group.Member[${_count}].ID}].ID} || !${Group.Member[${_count}].Present}) {
+      /if (!${_spawn.ID} || !${Group.Member[${_spawn.ID}].Present}) {
         DEBUG ${break}notinzone
         /continue
       }
+
+      /if (${_spawn.ID} == ${Me.Pet.ID}) {
+        DEBUG ${break}pet
+        /continue
+      }
       
-      /if (!${lsParagonClass.Contains[${Group.Member[${_count}].Class.ShortName}]}) {
-        DEBUG ${break}Bad Class${sep}${Group.Member[${_count}].Class.ShortName}
+      /if (!${lsParagonClass.Contains[${_spawn.Class.ShortName}]}) {
+        DEBUG ${break}Bad Class${sep}${_spawn.Class.ShortName}
         /continue
       }
 
-      /if (${Group.Member[${_count}].Type.NotEqual[CORPSE]}) {
+      /if (${_spawn.Type.NotEqual[CORPSE]}) {
         DEBUG ${break}dead
        /continue
       }
 
-      /if (${Group.Member[${_count}].Distance} > ${Spell[${maChr.Find[stAAFocusedParagonofSpirits].Value}].MyRange}) {
+      /if (${_spawn.Distance} > ${Spell[${maChr.Find[stAAFocusedParagonofSpirits].Value}].MyRange}) {
         DEBUG ${break} > ${Spell[${maChr.Find[stAAFocusedParagonofSpirits].Value}].MyRange} range
         /continue
       }
 
-      /if ((${Group.Member[${_count}].PctMana} <=  ${maChr.Find[stPctParagonFO].Value}*.PCTHO) || (${Group.Member[${_count}].PctEndurance} <= ${maChr.Find[stPctParagonFO].Value}*.PCTHO)) {
+      /if ((${_spawn.PctMana} <=  ${maChr.Find[stPctParagonFO].Value}*.PCTHO) || (${_spawn.PctEndurance} <= ${maChr.Find[stPctParagonFO].Value}*.PCTHO)) {
         DEBUG ${sep} mana || stamina <= ${maChr.Find[stPctParagonFO].Value}*.PCTHO
         /varset _found TRUE
       }
 
       /if (${_found}) {
-        OUT ${maChr.Find[stAAFocusedParagonofSpirits].Value}${sep}\a-w${Group.Member[${_count}].DisplayName}\ax
-        /call cast ${_debug} ${Group.Member[${_count}].ID} FALSE
+        OUT ${maChr.Find[stAAFocusedParagonofSpirits].Value}${sep}\a-w${_spawn.DisplayName}\ax
+        /call cast ${_debug} ${_spawn.ID} FALSE
         /varset _found FALSE
         /return TRUE
       }
