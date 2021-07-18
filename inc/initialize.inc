@@ -1033,7 +1033,9 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maRest swRestModRod                        FALSE                         "${auxsw} use mod rods while resting"                 rest
   /call set_data_map ${_debug} maRest swRestBuff                          FALSE                         "${auxsw} do buffing while resting"                   rest
   /call set_data_map ${_debug} maRest swRestCombat                        FALSE                         "${auxsw} continue resting while in combat"           rest
+  /call set_data_map ${_debug} maRest swRestCheckHealth                   FALSE                         "${auxsw} check health as well when resting"          rest
   /call set_data_map ${_debug} maRest stRestRadius                        30                            "${auxnum} no mob in radius for resting"              rest
+  /call set_data_map ${_debug} maRest swRestInRaid                        FALSE                         "${auxsw} enable resting while in raids"              rest
   /call set_data_map ${_debug} maRest stRestSpawnSearch                   "npc radius ${Parse[0,${maRest.Find[stRestRadius].Value}]} playerstate 4"      "${auxna} spawn search string for resting"            rest
 
 

@@ -1585,6 +1585,10 @@ local function imguicallback()
       ImGui.NewLine()
 
     end
+
+    -- REST
+    if ImGui.CollapsingHeader('/rest') then
+    end
     
     
     ImGui.End()

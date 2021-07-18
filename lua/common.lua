@@ -63,7 +63,14 @@ hudInfo = function ()
   target['guild'] = mq.TLO.Target.Guild() or '--'
   target['distance'] = mq.TLO.Target.Distance() or 0
   target['maxrangeto'] = mq.TLO.Target.MaxRangeTo() or 0 
-
+  target['height'] = round(mq.TLO.Target.Height(), 2)
+  target['name'] = mq.TLO.Target.Name() or '--'
+  target['tashed'] = isTashed()
+  target['slowed'] = isSlowed()
+  target['maloed'] = isMaloed()
+  target['crippled'] = isCrippled()
+  target['snared'] = isSnared()
+  -- target['ds'] = hasDS()
 
 end
 
@@ -162,5 +169,61 @@ edit_tree = function (count, var, alias)
 
 end
 
+
+function round(num, numDecimalPlaces)
+  if num == nil then
+    return 0
+  end
+  local mult = 10^(numDecimalPlaces or 0)
+  return math.floor(num * mult + 0.5) / mult
+end
+
+
+function isSlowed()
+  if mq.TLO.Target.Slowed.ID() == nil then
+    return '--'
+  end
+  return 100 - mq.TLO.Target.Slowed.Base(2)()..'%% ('..mq.TLO.Target.BuffDuration(mq.TLO.Target.Slowed()).TotalSeconds()..'s)'
+end
+
+
+function isTashed()
+  if mq.TLO.Target.Tashed.ID() == nil then
+    return '--'
+  end
+  return mq.TLO.Target.Tashed.Base(2)()..'ac ('..mq.TLO.Target.BuffDuration(mq.TLO.Target.Tashed()).TotalSeconds()..'s)'
+end
+
+
+function isMaloed()
+  if mq.TLO.Target.Maloed.ID() == nil then
+    return '--'
+  end
+  return '+'..mq.TLO.Target.Maloed.Base(1)()..'%% ('..mq.TLO.Target.BuffDuration(mq.TLO.Target.Maloed()).TotalSeconds()..'s)'
+end
+
+
+function isCrippled()
+  if mq.TLO.Target.FindBuff('subcat Disempowering').ID() == nil then
+    return '--'
+  end
+  return mq.TLO.Target.FindBuff('subcat Disempowering').Base(4)()..' ('..mq.TLO.Target.BuffDuration(mq.TLO.Target.FindBuff('subcat Disempowering')()).TotalSeconds()..'s)'
+end
+
+
+function isSnared()
+  if mq.TLO.Target.Snared.ID() == nil then
+    return '--'
+  end
+  return mq.TLO.Target.Snared.Base(2)()..'%% ('..mq.TLO.Target.BuffDuration(mq.TLO.Target.Snared()).TotalSeconds()..'s)'
+end
+
+
+function hasDS()
+  if mq.TLO.Target.DSed.ID() == nil then
+    return '--'
+  end
+  return mq.TLO.Target.DSed.Base(2)()..' ('..mq.TLO.Target.BuffDuration(mq.TLO.Target.DSed()).TotalSeconds()..'s)'
+end
 
 

@@ -36,6 +36,266 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
     }
     /invoke ${out[12, "/debug \arSTOP\ax"]}
     /return TRUE
+    
+  } else /if (${_type.Equal[pulltarget]}) {
+
+
+
+    /varset _spCount 0
+
+
+    /if (${_spCount}) {
+      /varset stAssTarID 0
+      /varset targetData 0
+    }
+
+
+    /declare _spawn spawn local
+    /declare _tmpAgroRange int local ${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
+    /declare _count int local 0
+    /declare _mobHP int local 999
+    /declare _tmpHPAdj int local 0
+    /declare _los string local los
+    /declare _closestNAV int local PULLENV
+    /declare _closestID int local 0
+    /declare _navRange int local 0
+    /declare _mobcount int local 0
+
+    | adjust LOS?
+    /if (${maOver.Find[swOverLOS].Value} || ${Select[${maPull.Find[stPullMode].Value},nav,int,pet,calm,multi]}) {
+      DEBUG ${sep}LOS overridden
+      /varset _los
+    }
+
+
+
+
+    /while (${_tmpAgroRange} <= PULLENV && !${targetData.ID}) {
+      /delay 1
+
+      /if (${_tmpAgroRange} <= SAFEENV) {
+        /varset _mobcount ${SpawnCount[npc ${_los} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
+      } else {
+        /varset _mobcount ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
+      }
+
+      | no mobs around us, no reason to be here
+      /if (!${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
+        /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
+        /continue
+      }
+
+      | search local ENV range in steps for mob acquisition
+      /for _count ${Math.Calc[${_spCount} +1]} to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
+        DEBUG ${sep}count${sep}${_count} of ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
+        ISMEDEAD
+        
+        | /varset _tmpID ${NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}].ID}
+        | /vardata _spawn Spawn[${_tmpID}]
+        /vardata _spawn NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}]
+
+        /if (!${_spawn.ID}) {
+          DEBUG ${break}something is seriously wrong with the spawn${sep}\ar${_spawn.ID}\ax
+          /return FALSE
+        }
+
+        | excluded mobs
+        /if (${lsZoneExclude.Contains[${_spawn.DisplayName}]}) {
+          DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsZoneExclude\ax (\a-r${_spawn.DisplayName}\ax)
+        }
+
+        | animation checks
+        /if (${lsAnimationNoTarget.Contains[${_spawn.Animation}]}) {
+          DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsAnimationNoTarget\ax (\a-r${_spawn.Animation}\ax)
+        }
+
+        | fish are friends, not food
+        /if (${lsNoAttackBodyType.Contains[${_spawn.Body}]}) {
+          DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoAttackBodyType\ax (\a-r${_spawn.Body}\ax)
+        }
+
+        | body types to consider.. is this fat shaming?
+
+          | can i come into the out now?
+          /if (${_spawn.Type.Equal[NPC]}) {
+            /if (${lsNoTargetNPC.Contains[${_spawn.DisplayName}]}) {
+              DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetNPC\ax (\a-r${_spawn.DisplayName}\ax)
+              /continue
+            }
+
+          | PCs to not consider
+          } else /if (${_spawn.Type.Equal[PC]}) {
+            /if (${lsNoTargetPC.Contains[${_spawn.DisplayName}]}) {
+              DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetPC\ax (\a-r${_spawn.DisplayName}\ax)
+              /continue
+            }
+
+          | magic creatures to not consider
+          } else /if (${_spawn.Type.Equal[Magic]}) {
+            /if (${lsNoTargetMagic.Contains[${_spawn.DisplayName}]}) {
+              DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetMagic\ax (\a-r${_spawn.DisplayName}\ax)
+              /continue
+            }
+          }
+
+        /if (${_spawn.ID} == ${Me.Pet.ID}) {
+          DEBUG ${break}spawn is my pet
+          /continue
+        }
+
+        | CYA for shit MQ will pick up in the environment that does not have a name
+        /if (${_spawn.DisplayName.Length} < 1) {
+          DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wDisplayName.Length < 1\ax
+          /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
+          /continue
+        }
+
+
+        | skip this if we are the group main assist
+        /if (${Group.MainAssist.Name.NotEqual[${Me.DisplayName}]}) {
+          /if (${maPull.Find[stPullMode].Value.Equal[pet]} && ${lsAnimationMezed.Contains[${_spawn.Animation}]}) {
+            /continue
+          }
+        }
+
+        DEBUG ${sep}_spawn${sep}\a-w${_spawn.ID}\ax navlength${sep}\a-w${Navigation.PathLength[id ${_spawn.ID}]}\ax
+
+        | check navigation path validity for all but base pulling
+        /if (!${Select[${maPull.Find[stPullMode].Value},base]}) {
+          /if (!${Navigation.PathExists[id ${_spawn.ID}]} && !${maOver.Find[swOverNavCheck].Value}) {
+            DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-y${_spawn.ID}\ax]\ax (\a-r${_spawn.DisplayName}\ax)
+            /continue
+          }
+        }
+
+        | check nav path length
+        /if ((${maPull.Find[swNavPathLogic].Value} || ${Select[${maPull.Find[stPullMode].Value},nav]}) && !${maMode.Find[petfarm].Value}) {
+          
+          | break on nav if there is an error in length
+          /if (${Navigation.PathLength[id ${_spawn.ID}]} < 0) {
+            DEBUG ${break}Navigation.PathLength[id ${_spawn.ID}] < 0
+            /continue
+          }
+          
+          | nav pulling ignore radius limitation, focus on nav length only and the varriance
+          /if (${Select[${maPull.Find[stPullMode].Value},nav]}) {
+            /if (${Navigation.PathLength[id ${_spawn.ID}]} > ${Math.Calc[PULLENV + (PULLENV*.${maPull.Find[stPullNavVariance].Value})]}) {
+              DEBUG ${break}Navigation.PathLength(nav)[${_spawn.ID}] > ${Math.Calc[PULLENV + (PULLENV*.${maPull.Find[stPullNavVariance].Value})]}
+              /continue
+            }  
+
+          | we DO NOT go out side of the max pull radius.. no matter what!
+          } else {
+            /if (${Navigation.PathLength[id ${_spawn.ID}]} > PULLENV && ${_spawn.Distance} > PULLENV) {
+              DEBUG ${break}Navigation.PathLength[${_spawn.ID}] > PULLENV
+              /continue
+            }
+          }
+          
+          /varset _navRange ${Navigation.PathLength[id ${_spawn.ID}]}
+
+          | sort by closest nav path length
+          /if (${_navRange} <= ${_closestNAV}) {
+            /varset _closestNAV ${_navRange}
+          } else /if (${_navRange} > ${_closestNAV}) {
+            DEBUG ${break}nav check${sep}\a-w${_navRange} > ${_closestNAV}\ax
+            /continue
+          }
+        }
+
+        | added because MQ sucks ass for getting accurate HP values returned over a mouse dick in length.
+        /if (${_spawn.PctHPs} > 100 && ${_tmpAgroRange} > 200) {
+          /varset _tmpHPAdj 100
+        } else {
+          /varset _tmpHPAdj ${_spawn.PctHPs}
+        }
+
+        | is this a priority mob?
+        /if (${lsZoneNoMez.Contains[${_spawn.DisplayName}]} || ${lsZoneNamed.Contains[${_spawn.DisplayName}]}) {
+          DEBUG ${sep}Priority Mob${sep}\ag${_spawn.DisplayName}\ax
+          /invoke ${maCC.Add[swSetCombat,TRUE]}
+          /vardata targetData _spawn.ID
+          /varset stAssTarID ${_spawn.ID}
+          /return ${_spawn.ID}
+        }
+
+        | get the lowest HP mob if we can
+        /if (${_tmpHPAdj} <= ${_mobHP}) {
+          /varset _mobHP ${_spawn.PctHPs}
+          /varset stAssTarID ${_spawn.ID}
+          /vardata targetData _spawn.ID
+          /invoke ${maCC.Add[swSetCombat,TRUE]}
+          DEBUG ${sep}targetData${sep}\aw${_spawn.DisplayName}\aw${sep}\ay${_spawn.ID}\ay ${sep} ${If[${_spawn.LineOfSight},\ag${_spawn.Distance}\ax,\ar${_spawn.Distance}\ax]}
+          /break
+        }
+
+      /next _count
+
+
+
+
+    | we have our target. back to whatever brought us here
+    /if (${targetData.ID}) {
+      /return ${targetData.ID}
+    }  
+    
+
+    | no target, try next step
+    /varset targetData 0
+    /varset stAssTarID 0
+    DEBUG ${sep}_tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
+    /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
+  }
+
+  /if (!${targetData.ID}) {
+    /delay 2
+  }
+
+| /return 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 
   } else /if (${lsDebuglist.Contains[${_type.Lower}]}) {
 
@@ -2520,6 +2780,21 @@ sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _a
     /call control_base_edit ${maDebug.Find[edit].Value} Burn 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
     /return TRUE
   }
+  
+  | trigger 10 min burns
+  | requires a sub in custom.inc
+  | sub burn_CLANAME_10()
+  | build your routine there
+  /if (${_type.Equal[ten]}) {
+    /if (${SubDefined[burn_${Me.Class.ShortName}_10]}) {
+      /invoke ${maBurn.Add[swBurnConditionMet,TRUE]}    
+      /call burn_${Me.Class.ShortName}_10
+    } else {
+      OUT ${notice} ${sep} sub burn_${Me.Class.ShortName}_10 has not been created in custom.inc
+      /return FALSE
+    }
+    /return TRUE
+  }
 
   | Burn Automatic on/off
   /if (${_type.Equal[auto]}) {
@@ -2566,6 +2841,9 @@ sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _a
   /invoke ${maControl.Add[raid,swBurnRaid]}
   /invoke ${maControl.Add[spinup,option]}
   /invoke ${maControl.Add[list,list]}
+  /if (${SubDefined[burn_${Me.Class.ShortName}_10]}) {
+    /invoke ${maControl.Add[ten,option]}
+  }    
   /invoke ${set_control_output[${_debug}, maBurn, burn, maControl]}
 
 /return TRUE
@@ -5236,11 +5514,15 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
     /if (!${sql_check[${_debug}, dummy, Bind_noparse_tag, "UPDATE (tag_validate)"]}) /endmacro
 
     /sqlite query "${DBshared}" dummy SELECT created_by, eval FROM tag_validate WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}') AND created_by = '2';
-    /if (!${_silent}) {
+
+    | clear it from memory so it will reget the new version
+    /sqlite clear q${_grouping.Left[1].Upper}${_grouping.Right[-1].Lower}_${_tagname}
+
+    | /if (!${_silent}) {
       OUT Evaluation Updated${sep}\aw${_grouping}\ax${sep}${If[${sqlite.Result[dummy 1 created_by].Equal[1]},\aw${_tagname}\ax,\at${_tagname}\ax]}${sep}\a-w${Parse[1,${_eval}]}\ax
       DEBUG ${sep}clear q${_grouping.Left[1].Upper}${_grouping.Right[-1].Lower}_${_tagname}
       /sqlite clear q${_grouping.Left[1].Upper}${_grouping.Right[-1].Lower}_${_tagname}
-      }
+    | }
     /return TRUE
 
   | if its not there, we create/insert a new on
@@ -5250,7 +5532,8 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
     /if (!${sql_check[${_debug}, dummy, Bind_noparse_tag, "INSERT INTO (tag_validate)"]}) /endmacro
     | check it
     /sqlite query "${DBshared}" dummy SELECT created_by, eval FROM tag_validate WHERE grouping=(SELECT id FROM tag_group WHERE grouping='${_grouping}') AND tag=(SELECT id FROM tag WHERE name='${_tagname}') AND created_by = '2';
-    /if (${sqlite.Rows[dummy]} && !${_silent})  {
+    /if (${sqlite.Rows[dummy]})  {
+    | /if (${sqlite.Rows[dummy]} && !${_silent})  {
       OUT Tag and Evaluation Created${sep}\aw${_grouping}\ax${sep}\aw${If[${sqlite.Result[dummy 1 created_by].Equal[2]},\at${_tagname}\ax,\aw${_tagname}\ax]}\ax${sep}\a-w${Parse[1,${_eval}]}\ax
     }
 
@@ -6509,6 +6792,14 @@ sub Bind_control_rest(string _type, string _verbage, string _verbage2, string _a
   } else /if (${_type.Equal[full]}) {
     /invoke ${set_switch_env[${_debug}, swRestFull, TRUE, ${_verbage}]}
 
+  | rest to full
+  } else /if (${_type.Equal[health]}) {
+    /invoke ${set_switch_env[${_debug}, swRestCheckHealth, TRUE, ${_verbage}]}
+
+  | rest while in a raid?
+  } else /if (${_type.Equal[inraid]}) {
+    /invoke ${set_switch_env[${_debug}, swRestInRaid, TRUE, ${_verbage}]}
+
   | rest through combat
   } else /if (${_type.Equal[combat]}) {
     /invoke ${set_switch_env[${_debug}, swRestCombat, TRUE, ${_verbage}]}
@@ -6528,7 +6819,9 @@ sub Bind_control_rest(string _type, string _verbage, string _verbage2, string _a
   /invoke ${maControl.Add[pct,stPctRest]}
   /invoke ${maControl.Add[rad,stRestRadius]}
   /invoke ${maControl.Add[full,swRestFull]}
+  /invoke ${maControl.Add[health,swRestCheckHealth]}
   /invoke ${maControl.Add[combat,swRestCombat]}
+  /invoke ${maControl.Add[inraid,swRestInRaid]}
   /invoke ${maControl.Add[modrod,swRestModRod]}
   /invoke ${maControl.Add[buff,swRestBuff]}
   /invoke ${set_control_output[${_debug}, maRest, "rest", maControl]}

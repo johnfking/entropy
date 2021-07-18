@@ -360,12 +360,6 @@ local function imguicallback()
           mq.cmd.luaedit('swHealPet', _switch and 'TRUE' or 'FALSE')
         end           
 
-        -- rampage       
-        local rampage, selectedramp = ImGui.InputTextWithHint('ramp##textentry', mq.TLO.Macro.Variable('maHeal').Find('stRampageTank').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-        if selectedramp then
-          mq.cmd.luaedit('stRampageTank', rampage)
-        end
-       
         ImGui.NextColumn()
         
         -- weight
@@ -379,7 +373,13 @@ local function imguicallback()
         if breakpressed then
           mq.cmd.luaedit('swBreakHealPCT', _switch and 'TRUE' or 'FALSE')
         end         
-        
+       
+        -- rampage       
+        local rampage, selectedramp = ImGui.InputTextWithHint('ramp##textentry', mq.TLO.Macro.Variable('maHeal').Find('stRampageTank').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+        if selectedramp then
+          mq.cmd.luaedit('stRampageTank', rampage)
+        end
+               
         
         ImGui.NextColumn()
  
@@ -678,6 +678,129 @@ local function imguicallback()
 
         ImGui.EndTabItem()
       end
+
+
+-- rest tab
+      if ImGui.BeginTabItem('Rest') then
+ 
+        ImGui.Columns(2, 'noname', false)
+
+          -- pct
+          local restpct, selectedrestpct = ImGui.InputTextWithHint('pct##textentry', mq.TLO.Macro.Variable('maRest').Find('stPctRest').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+          if selectedrestpct then
+            mq.cmd.luaedit('stPctRest', restpct)
+          end
+          
+          -- rad
+          local restrad, selectedrestrad = ImGui.InputTextWithHint('rad##textentry', mq.TLO.Macro.Variable('maRest').Find('stRestRadius').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+          if selectedrestrad then
+            mq.cmd.luaedit('stRestRadius', restrad)
+          end     
+
+          -- buff
+          local _switch, restbuffpressed = ImGui.Checkbox("buff", mq.TLO.Macro.Variable('maRest').Find('swRestBuff').Value() == 'TRUE')
+          if restbuffpressed then
+            mq.cmd.luaedit('swRestBuff', _switch and 'TRUE' or 'FALSE')
+          end  
+
+          -- full
+          local _switch, restfullpressed = ImGui.Checkbox("full", mq.TLO.Macro.Variable('maRest').Find('swRestFull').Value() == 'TRUE')
+          if restfullpressed then
+            mq.cmd.luaedit('swRestFull', _switch and 'TRUE' or 'FALSE')
+          end  
+
+
+        ImGui.NextColumn()
+
+          -- combat
+          local _switch, restcombatpressed = ImGui.Checkbox("combat", mq.TLO.Macro.Variable('maRest').Find('swRestCombat').Value() == 'TRUE')
+          if restcombatpressed then
+            mq.cmd.luaedit('swRestCombat', _switch and 'TRUE' or 'FALSE')
+          end  
+
+          -- health
+          local _switch, resthealthpressed = ImGui.Checkbox("health", mq.TLO.Macro.Variable('maRest').Find('swRestCheckHealth').Value() == 'TRUE')
+          if resthealthpressed then
+            mq.cmd.luaedit('swRestCheckHealth', _switch and 'TRUE' or 'FALSE')
+          end  
+
+
+          -- inraid
+          local _switch, restraidpressed = ImGui.Checkbox("inraid", mq.TLO.Macro.Variable('maRest').Find('swRestInRaid').Value() == 'TRUE')
+          if restraidpressed then
+            mq.cmd.luaedit('swRestInRaid', _switch and 'TRUE' or 'FALSE')
+          end  
+          
+          -- modrod
+          local _switch, restrodpressed = ImGui.Checkbox("modrod", mq.TLO.Macro.Variable('maRest').Find('swRestModRod').Value() == 'TRUE')
+          if restrodpressed then
+            mq.cmd.luaedit('swRestModRod', _switch and 'TRUE' or 'FALSE')
+          end  
+          
+        ImGui.Columns()
+
+        ImGui.EndTabItem()
+      end    
+
+
+
+-- target tab
+      if ImGui.BeginTabItem('Target') then
+ 
+        -- name
+        ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Name:')
+        ImGui.SameLine()
+        ImGui.TextColored(1, 1, 1, 1, target['name'])        
+        
+        ImGui.Columns(2, 'noname', false)
+
+          -- body
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Body:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, ent['body'])        
+
+          -- height
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Height:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, target['height'])
+
+
+        ImGui.NextColumn()
+        
+          -- slowed
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Slowed:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, target['slowed']) 
+
+          -- tashed
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Tashed:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, target['tashed']) 
+
+          -- maloed
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Malo:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, target['maloed']) 
+
+          -- crippled
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Cripple:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, target['crippled']) 
+
+          -- snared
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Snared:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, target['snared']) 
+
+          -- ds
+          -- ImGui.TextColored(0.39, 0.58, 0.92, 1, 'DS:')
+          -- ImGui.SameLine()
+          -- ImGui.TextColored(1, 1, 1, 1, target['ds']) 
+
+        ImGui.Columns()
+
+        ImGui.EndTabItem()
+      end      
 
       ImGui.EndTabBar()
     end

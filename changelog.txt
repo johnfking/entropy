@@ -21,6 +21,20 @@ on the to do list
 --------------------
 
 
+210717.01
+- /rest health
+  will apply health checks to your rest %
+  if your health is below that %, you will continue to rest
+- /rest inraid - (on/off) completely enabe/disable resting while in a raid
+  does not account for combat state
+- mob finding
+  some changes to the order of mob sorting to find what to kill
+- lua hud  
+  added some target information
+- tags
+  added an aditional memory clear check for changed tags
+  tags will echo changes again 
+
 
 210613.01
 - cast()

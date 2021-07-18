@@ -75,6 +75,8 @@
 #define BARD ${Select[${Me.Class.ShortName},BRD]}
 #define TMPIDDEAD "/if (${target[isdead, ${_tmpID}]}) /return FALSE"
 #define SPAWNDEAD "/if (${target[isdead, ${_spawn.ID}]}) /return FALSE"
+#define NEXT ${MacroQuest.InternalName.Equal[Next]}
+
 
 
 #include entropy\inc\initialize.inc
@@ -118,7 +120,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 210613.01
+  /call set_data FALSE maEnv build                          map outer 210717.01
   /call set_data FALSE maEnv schema                         map outer 1.46
   /call set_data FALSE maEnv repo                           map outer 210216.01
 

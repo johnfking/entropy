@@ -1010,7 +1010,6 @@ sub check_for_rezbox(bool _debug)
 
     | more waiting
     /if (${_swValidRezFound}) {
-      /varset swIsMeDead FALSE
       /delay 1s
       /if (${maEntropy.Find[swRNDRezTake].Value}) {
         /delay ${maEntropy.Find[stRNDVariance].Value}
@@ -1031,6 +1030,7 @@ sub check_for_rezbox(bool _debug)
       /squelch /target clear
       /varset stAssTarID 0
       /varset targetData 0
+      /varset swIsMeDead FALSE
       /invoke ${maCC.Add[swValidAssTarID,FALSE]}
       /invoke ${maCC.Add[swSetCombat,FALSE]}
       /invoke ${maCC.Add[swSetForced,FALSE]}
@@ -2776,7 +2776,6 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
   }
 
   /declare _spawn spawn local
-  | /declare _tmpID int local 0
   /declare _tmpAgroRange int local ${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
   /declare _count int local 0
   /declare _mobHP int local 999
@@ -2819,9 +2818,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
       DEBUG ${sep}count${sep}${_count} of ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
       ISMEDEAD
       
-      | /varset _tmpID ${NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}].ID}
-      | /vardata _spawn Spawn[${_tmpID}]
-      /vardata _spawn NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}]
+      /vardata _spawn NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]
 
       /if (!${_spawn.ID}) {
         DEBUG ${break}something is seriously wrong with the spawn${sep}\ar${_spawn.ID}\ax
@@ -2844,6 +2841,15 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
       /if (${lsNoAttackBodyType.Contains[${_spawn.Body}]}) {
         DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoAttackBodyType\ax (\a-r${_spawn.Body}\ax)
         /continue
+      }
+
+      | is this a priority mob?
+      /if ((${lsZoneNoMez.Contains[${_spawn.DisplayName}]} || ${lsZoneNamed.Contains[${_spawn.DisplayName}]}) && ${_spawn.Distance} <= ENV) {
+        DEBUG ${sep}Close Priority Mob${sep}\ag${_spawn.DisplayName}\ax
+        /invoke ${maCC.Add[swSetCombat,TRUE]}
+        /vardata targetData _spawn.ID
+        /varset stAssTarID ${_spawn.ID}
+        /return ${_spawn.ID}
       }
 
       | body types to consider.. is this fat shaming?
@@ -2959,15 +2965,6 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
         /varset _tmpHPAdj 100
       } else {
         /varset _tmpHPAdj ${_spawn.PctHPs}
-      }
-
-      | is this a priority mob?
-      /if (${lsZoneNoMez.Contains[${_spawn.DisplayName}]} || ${lsZoneNamed.Contains[${_spawn.DisplayName}]}) {
-        DEBUG ${sep}Priority Mob${sep}\ag${_spawn.DisplayName}\ax
-        /invoke ${maCC.Add[swSetCombat,TRUE]}
-        /vardata targetData _spawn.ID
-        /varset stAssTarID ${_spawn.ID}
-        /return ${_spawn.ID}
       }
 
       | get the lowest HP mob if we can
@@ -3215,8 +3212,19 @@ sub check_engaged(bool _debug)
 sub do_rest(bool _debug)
   DEBUG \atdo_rest\ax()
 
+  | no rest in manual
+  /if (!AUTO) {
+    /return FALSE
+  }
+  
+  | rest in raids?
+  /if (!${maRest.Find[swRestInRaid].Value}) {
+    /return FALSE
+  }
+
   | the dead dont need to rest
-  /if (!AUTO || ${swIsMeDead}) {
+  /if (${swIsMeDead}) {
+    DEBUG ${break}swIsMeDead${sep}\a-w${swIsMeDead}\ax
     /return FALSE
   }
 
@@ -3309,9 +3317,15 @@ sub do_rest(bool _debug)
       /if (${maRest.Find[swRestFull].Value} && ${_resting}) {
         /if (${Me.PctEndurance} < 99*.PCTHO) /varset _needrest TRUE
         /if (${Me.PctMana} < 99*.PCTHO) /varset _needrest TRUE
+        /if (${maRest.Find[swRestCheckHealth].Value}) {
+          /if (${Me.PctHPs} < 99*.PCTHO) /varset _needrest TRUE
+        }
       } else {
         /if (${Me.PctEndurance} < PCTREST*.PCTHO) /varset _needrest TRUE
         /if (${Me.PctMana} < PCTREST*.PCTHO) /varset _needrest TRUE
+        /if (${maRest.Find[swRestCheckHealth].Value}) {
+          /if (${Me.PctHPs} < PCTREST*.PCTHO) /varset _needrest TRUE
+        }
       }
 
       DEBUG ${sep}swRestFull${sep}\a-w${_needrest}\ax
@@ -3323,6 +3337,10 @@ sub do_rest(bool _debug)
         /if (${Me.PctEndurance} < PCTREST*.PCTHO) /varset _needrest TRUE
         /if (${Me.PctMana} < PCTREST*.PCTHO) /varset _needrest TRUE
         /if (${maChr.Find[swSongRest].Value}) /varset _needrest TRUE
+        /if (${maRest.Find[swRestCheckHealth].Value}) {
+          /if (${Me.PctHPs} < PCTREST*.PCTHO) /varset _needrest TRUE
+        }
+
 
       } else {
         /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
@@ -3346,10 +3364,16 @@ sub do_rest(bool _debug)
     | Melee: WAR,MNK,ROG,BER
     } else /if (${lsClassMelee.CountOf[${Me.Class.ShortName}]} && !${lsClassCast.CountOf[${Me.Class.ShortName}]}) {
       /if (${Me.PctEndurance} < PCTREST*.PCTHO) /varset _needrest TRUE
+      /if (${maRest.Find[swRestCheckHealth].Value}) {
+        /if (${Me.PctHPs} < PCTREST*.PCTHO) /varset _needrest TRUE
+      }
 
       | rest to full requirement
       /if (${maRest.Find[swRestFull].Value}) {
         /if (${Me.PctEndurance} < 99*.PCTHO) /varset _needrest TRUE
+        /if (${maRest.Find[swRestCheckHealth].Value}) {
+          /if (${Me.PctHPs} < 99*.PCTHO) /varset _needrest TRUE
+        }
       }
 
       DEBUG ${sep}melee _needrest${sep}\a-w${_needrest}\ax
@@ -3368,10 +3392,16 @@ sub do_rest(bool _debug)
         /varset _needrest TRUE
         /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
       }
+      /if (${maRest.Find[swRestCheckHealth].Value}) {
+        /if (${Me.PctHPs} < PCTREST*.PCTHO) /varset _needrest TRUE
+      }
 
       | rest to full requirement
       /if (${maRest.Find[swRestFull].Value}) {
         /if (${Me.PctMana} < 99*.PCTHO) /varset _needrest TRUE
+        /if (${maRest.Find[swRestCheckHealth].Value}) {
+          /if (${Me.PctHPs} < 99*.PCTHO) /varset _needrest TRUE
+        }
         /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
       }
 
@@ -3588,7 +3618,7 @@ sub get_key_DBLOC(bool _debug, string _key)
  * use: /call do_raw_edit DEBUG [silent T/F] [variable to change] [value to change it too|gem#|cursor] [add|delete|clear (for lists)|overwrite] [T/F noecho]
  ***|
 sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, string _add_delete, bool _noecho)
-| /invoke ${maDebug.Add[edit,TRUE]}
+| /varset _debug TRUE
 
   /if (${maDebug.Find[edit].Value}) {
     DEBUG \atdo_raw_edit\ax
@@ -3601,27 +3631,27 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
 
   | ** error control ** |
 
-  | is it really a DB variable?
-  /declare _DBLOC string local ${get_key_DBLOC[${_debug}, ${_variable}]}
-  /declare _originalValue string local ${Parse[1,${_value}]}
+    | is it really a DB variable?
+    /declare _DBLOC string local ${get_key_DBLOC[${_debug}, ${_variable}]}
+    /declare _originalValue string local ${Parse[1,${_value}]}
 
-  | variable error instructions
-  /if ((!${_variable.Length} || ${_DBLOC.Equal[FALSE]}) && ${_value.NotEqual[clear]}) {
-    /invoke ${out[16, "${notice}${sep}\ar/edit\ax${sep}invalid DB variable${sep}\a-w${_variable}\ax"]}
-    /return FALSE
-  }
+    | variable error instructions
+    /if ((!${_variable.Length} || ${_DBLOC.Equal[FALSE]}) && ${_value.NotEqual[clear]}) {
+      /invoke ${out[16, "${notice}${sep}\ar/edit\ax${sep}invalid DB variable${sep}\a-w${_variable}\ax"]}
+      /return FALSE
+    }
 
-  | error for add/delete
-  /if (${_variable.Left[2].Equal[ls]} && (!${Select[${_add_delete},add,delete,overwrite]} && ${_value.NotEqual[clear]})) {
-    /invoke ${out[16, 0, 10]}
-    /return FALSE
-  }
+    | error for add/delete
+    /if (${_variable.Left[2].Equal[ls]} && (!${Select[${_add_delete},add,delete,overwrite]} && ${_value.NotEqual[clear]})) {
+      /invoke ${out[16, 0, 10]}
+      /return FALSE
+    }
 
-  | errors for values
-  /if (!${_value.Length}) {
-    /invoke ${out[16, 0, 11]}
-    /return FALSE
-  }
+    | errors for values
+    /if (!${_value.Length}) {
+      /invoke ${out[16, 0, 11]}
+      /return FALSE
+    }
 
   | ** end of error control .. start of actually getting something fucking done. ** |
 
@@ -3833,7 +3863,9 @@ sub do_raw_edit(bool _debug, string _silent, string _variable, string _value, st
   }
 
   | outputs ???
-  /if (${sqlite.Status[dummy].Equal[Success]} && ${_silent.NotEqual[SILENT]} && !${_noecho}) {
+  | /if (${sqlite.Status[dummy].Equal[Success]} && ${_silent.NotEqual[SILENT]} && !${_noecho}) {
+  /if (${sqlite.Status[dummy].Equal[Success]} && ${_silent.NotEqual[SILENT]}) {
+    
     /if (${_list}) {
       DEBUG LIST output
       /invoke ${out[16, "DB${sep}${_variable}\ax${sep}\a-w${Parse[1,${_originalValue}]}\ax ${dot} \a-y${_add_delete}\ax"]}
@@ -12247,8 +12279,6 @@ sub do_loot_corpse(bool _debug)
 sub check_buff_cycle_temp(bool _debug)
   DEBUG \atcheck_buff_cycle_temp\ax()
 
-  SETHUD "buff temp"
-
   /if (AUTO) {
     /invoke ${set_data_timer[${_debug}, Check_Buff_Temp, RESTART]}
     /if (!${maBuff.Find[swBuffMaster].Value}) {
@@ -12270,6 +12300,8 @@ sub check_buff_cycle_temp(bool _debug)
   /declare _spawn spawn local
 
   DEBUG ${sep}Buff${sep}\a-wTemp\ax
+
+  SETHUD "buff temp"
 
   | each toon
   /while (${_countToon} <= ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}) {
@@ -12404,6 +12436,8 @@ sub check_buff_cycle_temp(bool _debug)
 
   }
 
+  SETHUD
+  
 /return TRUE
  
  

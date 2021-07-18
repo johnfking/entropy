@@ -837,7 +837,7 @@ sub mode_hunt(bool _debug)
 
   SETHUD "hunt"
 
-  :checkpath
+  | :checkpath
   GETINPUT
 
   /if (${Bool[${stModeData}]}) {
@@ -846,8 +846,8 @@ sub mode_hunt(bool _debug)
     /vardata _lihunt _lsHunt.First.Clone
     /while (!${_lihunt.IsEnd}) {
       /if (${Spawn[npc ${_lihunt.Value} radius PULLENV targetable].ID}) {
-        /varset stAssTarID ${NearestSpawn[npc ${_lihunt.Value}].ID}
-        /if (${lsZoneExclude.Contains[${Spawn[${stAssTarID}].DisplayName}]}) {
+        /vardata targetData NearestSpawn[npc ${_lihunt.Value}].ID
+        /if (${lsZoneExclude.Contains[${targetData.DisplayName}]}) {
           /invoke ${_lihunt.Advance}
           /continue
         }
@@ -861,12 +861,13 @@ sub mode_hunt(bool _debug)
     DEBUG ${sep}pull_mob_find.return${sep}\a-w${Macro.Return}\ax
   }
 
-  /if (!TARGET) {
-    DEBUG \arNO\ax stAssTarID
+  /if (!${targetData.ID}) {
+    DEBUG \arNO\ax targetData
     /call clear_combat ${_debug}
     /return FALSE
   }
 
+  |**
   /if (!${Navigation.PathExists[locyxz ${Spawn[TARGET].Y} ${Spawn[TARGET].X} ${Spawn[TARGET].Z}]}) {
     GETINPUT
     /invoke ${out[0, "${notice}${sep}No Nav Path${sep}\a-w${Spawn[TARGET].DisplayName}\ax"]}
@@ -875,11 +876,14 @@ sub mode_hunt(bool _debug)
     /delay 1s
     /goto :checkpath
    }
+   **|
 
   | get to the mob
-  /call pull_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} on
+  /call pull_mob_move_to ${_debug} ${targetData.ID} ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} on
 
-  /if (${Spawn[id TARGET].Dead}) /return TRUE
+  /if (${targetData.Dead}) {
+    /return TRUE
+  }
 
 
   /invoke ${maCC.Add[swSetCombat,TRUE]}
