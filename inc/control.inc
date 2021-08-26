@@ -1849,6 +1849,10 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
   } else /if (${_type.Equal[self]}) {
     /invoke ${set_switch_env[${_debug}, swHealSelf, TRUE, ${_verbage}]}
 
+  | twinheal attempts
+  } else /if (${_type.Equal[twin]}) {
+    /invoke ${set_switch_env[${_debug}, swTwinHeal, TRUE, ${_verbage}]}
+
   | heal targets target
   } else /if (${_type.Equal[tot]}) {
     /if (${lsClassHealToT.Contains[${Me.Class.ShortName}]}) {
@@ -2032,6 +2036,7 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
     /invoke ${maControl.Add[ch,submenu]}
     /invoke ${maControl.Add[chain,submenu]}
     /invoke ${maControl.Add[promise,swHealPromise]}
+    /invoke ${maControl.Add[twin,swTwinHeal]}
   }
 
   /if (${Select[${Me.Class.ShortName},CLR,PAL]}) {
@@ -2954,7 +2959,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
       /invoke ${set_switch_env[${_debug}, swManualAssist, TRUE, ${_verbage2}]}
 
     } else /if (${_verbage.Equal[smart]}) {
-      /if (${Select[${_verbage2},1,2,3,g]}) {
+      /if (${Select[${_verbage2},g,1,2,3,m1,m2,m3]}) {
         /call do_raw_edit ${_debug} SILENT stAssistMode ${_verbage2}
 
       } else  /if (${Select[${_verbage2},off,FALSE]}) {
@@ -6613,15 +6618,12 @@ sub Bind_command_getoverhere(string _type, string _verbage, bool _debug)
 
 
 
-
 |***
  * note: merchant tools
  * use: /merchant
  ***|
 #bind control_merchant /merchant
 sub Bind_control_merchant(string _type, string _verbage, _verbage2, bool _debug)
-
-
 
   | buy
   /if (${_type.Equal[buy]}) {

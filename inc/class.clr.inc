@@ -85,6 +85,9 @@ sub class_init(bool _debug)
   /call set_data ${_debug} maHeal swChainToken                         map outer FALSE
   /call set_data_map ${_debug} maHeal stChainPause                     0                            "${auxnum}duration to pause (in seconds) once getting tolken to start casting"    heal                     
 
+  | try to twinheal
+  /call set_data_map ${_debug} maHeal swTwinHeal                       FALSE                        "${auxsw} allow the code to try to force twinheal buffs before healing"   heal
+
 
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                xtarget                                   "${auxli} class base loop start"
@@ -305,7 +308,13 @@ sub check_heal(bool _debug, string _type)
       /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} grouphot
     }
   }
-
+  
+  
+  | force a twinheal?
+  /if (${maHeal.Find[swTwinHeal].Value}) {
+    /call cast_cycle_proc_twinheal ${maDebug.Find[twin].Value}
+  }
+  
   | forcing of splash  
   /if (!${hurtCount} && ${maOver.Find[swOverSplashHurt].Value} && ${maHeal.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
     /if (${SpawnCount[npc radius ENV]} >= ${maHeal.Find[stCountSplash].Value}) {
@@ -887,10 +896,6 @@ sub alliance(bool _debug)
 
 
 
-
-
-
-
 |***
  * note: class control
  * use: /chr
@@ -901,7 +906,7 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   | to Yaulp or not
   /if (${_type.Equal[yaulp]}) {
     /invoke ${set_switch_env[${_debug}, swYaulp, TRUE, ${_verbage}]}
-
+    
   | Veturika's Perseverance
   } else /if (${_type.Equal[vp]}) {
     /if (!${set_control_num_range[${_debug}, stPctVP, "${_verbage}", 0, 99]}) /return FALSE

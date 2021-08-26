@@ -37,6 +37,7 @@ sub class_init(bool _debug)
 
   | aa boastful bellow switch
   /call set_data_map ${_debug} maChr swAABellow                       FALSE                         "${auxsw} enable/disable using AA Boastful Bellow"
+  /call set_data_map ${_debug} mcChr swVainglorious                   FALSE                         "${auxsw} enable/disable using Vainglorious"
 
   | sing OOC
   /call set_data_map ${_debug} maChr swPulseOOC                       FALSE                         "${auxna} sing while out of combat"
@@ -189,46 +190,33 @@ sub misc_combat(bool _debug, spawn _spawn)
   /if (${cast_data[${_debug}, "${maChr.Find[stAACacophony].Value}"]}) {
     /call cast ${_debug} ${_spawn.ID} FALSE
   }
-  
+
   /if (${maChr.Find[swAABellow].Value} && ${Target.BuffsPopulated}) {
-    
-    /if (!AE#) {
-      /if (${Raid.Members}) {
-        /if (${_spawn.PctHPs} > 3 && ${Me.CurrentEndurance} > 3600 && !${Target.MyBuff[Boastful Bellow].ID}) {
-          /if (${cast_data[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
-            /call cast ${_debug} ${_spawn.ID} FALSE
-          }
-        }
-      } else /if (!${Raid.Members}) {
-        /if (${_spawn.PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Boastful Bellow].ID}) {
-          /if (${cast_data[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
-            /call cast ${_debug} ${_spawn.ID} FALSE
-          }
-        }
-      }
-    } else /if (AE#) {
-      /if (${Raid.Members}) {
-        /if (${_spawn.PctHPs} > 3 && ${Me.CurrentEndurance} > 10500 && !${Target.MyBuff[Vainglorious Shout].ID}) {
-          /if (${cast_data[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
-            /call cast ${_debug} ${_spawn.ID} FALSE
-          }
-        }
-      } else /if (!${Raid.Members}) {
-        /if (${_spawn.PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Vainglorious Shout].ID} && ${SpawnCount[npc los radius 30 targetable]} >= AE#) {
-          /if (${cast_data[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
-            /call cast ${_debug} ${_spawn.ID} FALSE
-          }
-        } else /if (${SpawnCount[npc los radius 30 targetable]} <= AE#) {
-            /if (${_spawn.PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Boastful Bellow].ID}) {
-              /if (${cast_data[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
-              /call cast ${_debug} ${_spawn.ID} FALSE
-            }
-          }
-        }
+    /if (${_spawn.PctHPs} > 30 && ${Me.PctEndurance} > 30 && !${Target.MyBuff[Boastful Bellow].ID} && !${Target.Mezzed.ID}) {
+      /if (${cast_data[${_debug}, "${maChr.Find[stAABoastfulBellow].Value}"]}) {
+        /call cast ${_debug} ${_spawn.ID} FALSE
       }
     }
   }
   
+  /if (${maChr.Find[stAAVaingloriousShout].Value} && ${maChr.Find[swVainglorious].Value} && ${Target.BuffsPopulated}) {
+    /if (${madeBuff.Find[swMez].Value} && AE#) {
+      | output a message warning that you have mezzing enabled and an AE count and vainglorious will hit them all
+      /if (${_spawn.PctHPs} > 3 && ${Me.CurrentEndurance} > 10500 && !${Target.MyBuff[Vainglorious Shout].ID}) {
+        /if (${cast_data[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
+          /call cast ${_debug} ${_spawn.ID} FALSE
+        }
+      }
+    } else /if (!${madeBuff.Find[swMez].Value} && AE#) {
+      /if (${_spawn.PctHPs} > 3 && ${Me.CurrentEndurance} > 10500 && !${Target.MyBuff[Vainglorious Shout].ID}) {
+        /if (${cast_data[${_debug}, "${maChr.Find[stAAVaingloriousShout].Value}"]}) {
+          /call cast ${_debug} ${_spawn.ID} FALSE
+        }
+      }
+    }
+  }
+
+
   /if (${target[isdead, ${_spawn.ID}]}) {
     /call pulse_stop
     /call clear_combat
@@ -688,6 +676,10 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   | use aa bellow
   } else /if (${_type.Equal[bellow]}) {
     /invoke ${set_switch_env[${_debug}, swAABellow, TRUE, ${_verbage}]}
+
+  | use Vainglorious
+  } else /if (${_type.Equal[vainglorious]}) {
+    /invoke ${set_switch_env[${_debug}, swVainglorious, TRUE, ${_verbage}]}
 
   | sing ooc
   } else /if (${_type.Equal[ooc]}) {

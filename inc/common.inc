@@ -1542,7 +1542,7 @@ sub is_target_valid(bool _debug, spawn _spawn)
   }
 
   | shit we really shouldn't be attacking
-  /if (${lsNoAttackBodyType.Contains[${_spawn.Type}]}) /return FALSE
+  /if (${lsNoAttackBodyType.Contains[${_spawn.Type.Lower}]}) /return FALSE
   /if (${lsNoTargetNPC.Contains[${_spawn.DisplayName}]}) /return FALSE
   /if (${lsNoTargetPC.Contains[${_spawn.DisplayName}]}) /return FALSE
   /if (${lsNoTargetMagic.Contains[${_spawn.DisplayName}]}) /return FALSE
@@ -3214,18 +3214,20 @@ sub do_rest(bool _debug)
 
   | no rest in manual
   /if (!AUTO) {
+    DEBUG ${break}no rest in manual
     /return FALSE
   }
   
   | rest in raids?
-  /if (!${maRest.Find[swRestInRaid].Value}) {
+  /if (!${maRest.Find[swRestInRaid].Value} && ${Raid.Members}) {
+    DEBUG ${break}no rest in raids
     /return FALSE
   }
 
   | the dead dont need to rest
   /if (${swIsMeDead}) {
-    DEBUG ${break}swIsMeDead${sep}\a-w${swIsMeDead}\ax
-    /return FALSE
+    | DEBUG ${break}swIsMeDead${sep}\a-w${swIsMeDead}\ax
+    | /return FALSE
   }
 
   | we DO NOT enter rest while in active combat
@@ -3333,7 +3335,7 @@ sub do_rest(bool _debug)
       | bards suck...
       /if (BARD) {
         /call cast_AA_rallying FALSE
-        /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
+        /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
         /if (${Me.PctEndurance} < PCTREST*.PCTHO) /varset _needrest TRUE
         /if (${Me.PctMana} < PCTREST*.PCTHO) /varset _needrest TRUE
         /if (${maChr.Find[swSongRest].Value}) /varset _needrest TRUE
@@ -3343,7 +3345,7 @@ sub do_rest(bool _debug)
 
 
       } else {
-        /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
+        /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
         /call cast_stamina_recovery FALSE
       }
       /if (${Select[${Me.Class.ShortName},PAL]}) {
@@ -3390,7 +3392,7 @@ sub do_rest(bool _debug)
     } else /if (!${lsClassMelee.CountOf[${Me.Class.ShortName}]} && ${lsClassCast.CountOf[${Me.Class.ShortName}]}) {
       /if (${Me.PctMana} < PCTREST*.PCTHO) {
         /varset _needrest TRUE
-        /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
+        /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
       }
       /if (${maRest.Find[swRestCheckHealth].Value}) {
         /if (${Me.PctHPs} < PCTREST*.PCTHO) /varset _needrest TRUE
@@ -3402,7 +3404,7 @@ sub do_rest(bool _debug)
         /if (${maRest.Find[swRestCheckHealth].Value}) {
           /if (${Me.PctHPs} < 99*.PCTHO) /varset _needrest TRUE
         }
-        /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery FALSE
+        /if (${maChr.Find[stPctManaRecovery].Value}) /call do_mana_recovery ${maDebug.Find[manarecover].Value}
       }
 
       /if (${Select[${Me.Class.ShortName},CLR]}) {
@@ -4673,7 +4675,6 @@ sub check_buff_cycle_powersource(bool _debug)
 sub do_mana_recovery(bool _debug)
   DEBUG \atdo_mana_recovery\ax()
 
-
   | turned off? or at max mana?
   /if (!${maChr.Find[stPctManaRecovery].Value} || ${Me.CurrentMana} == ${Me.MaxMana}) {
     DEBUG ${break}${off} || ${Me.CurrentMana} == ${Me.MaxMana}
@@ -4686,6 +4687,7 @@ sub do_mana_recovery(bool _debug)
   }
 
   /if (SAFEZONE) {
+    DEBUG ${break}safezone
     /return FALSE
   }
 
@@ -4711,14 +4713,28 @@ sub do_mana_recovery(bool _debug)
     DEBUG ${sep}\a-w${_lidmc.Value}\ax
     GETOVERHERE
 
+    /if (${Select[${FindItem[=${_lidmc.Value}].Type},Potion,Scroll]}) {
+      DEBUG ${sep}${FindItem[=${_lidmc.Value}]} Is a ${FindItem[=${_lidmc.Value}].Type} so ignoring it!
+      /invoke ${_lidmc.Advance}
+      /continue 
+    }
+
     /if (!${cast_data[${_debug}, "${_lidmc.Value}"]}) {
       /invoke ${_lidmc.Advance}
       /continue
     }
-
+    /if (${FindItem[=${_lidmc.Value}].Type.Equal[Potion]} && ${FindItem[=${_lidmc.Value}].Spell.Duration} > 0) {
+      DEBUG ${sep}${FindItem[=${_lidmc.Value}]} Is a Potion so ignoring it!
+      /invoke ${_lidmc.Advance}
+      /continue 
+    }
     | worth the mana or gonna kill us?
     /if (${FindItem[=${_lidmc.Value}].Spell.Base[2]} < ${Math.Calc[${Me.MaxMana} - ${Me.CurrentMana}].Int} && ${Me.CurrentHPs} > ${FindItem[=${_lidmc.Value}].Spell.Base[1]}) {
       DEBUG ${sep}You can live and get mana too!
+    } else /if (!${FindItem[=${_lidmc.Value}].CanUse}) {
+      DEBUG ${sep}${FindItem[=${_lidmc.Value}]} Can't be used by you!
+      /invoke ${_lidmc.Advance}
+      /continue
     } else /if (${FindItem[=${_lidmc.Value}].Spell.Base[2]} > ${Math.Calc[${Me.MaxMana} - ${Me.CurrentMana}].Int}) {
       DEBUG ${sep}Giving too much mana back dont be a waste.....
       /invoke ${_lidmc.Advance}
@@ -4728,14 +4744,6 @@ sub do_mana_recovery(bool _debug)
       /invoke ${_lidmc.Advance}
       /continue
     }
-
-    | if its a targetable click, change target ID to self
-    /if (${Select[${Spell[${_lidmc.Value}].RankName.TargetType},Self,AE PC v2]}) {
-      /call cast ${_debug} 0 FALSE
-    } else /if (${Select[${Spell[${_lidmc.Value}].RankName.TargetType},Single]}) {
-      /call cast ${_debug} ${Me.ID} FALSE
-    }
-
     /invoke ${_lidmc.Advance}
   }
 
@@ -5339,6 +5347,13 @@ sub check_buff_cycle_others(bool _debug, string _type)
     | one of your crew
     /if (${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Find[${_spawn.DisplayName}]}) {
       DEBUG ${skip}.Me${sep}\a-w${_spawn}\ax
+      /varcalc _countToon ${_countToon} + 1
+      /continue
+    }
+    
+    | no pets
+    /if (${_spawn.Type.Equal[pet]}) {
+      DEBUG ${break}no pet for you
       /varcalc _countToon ${_countToon} + 1
       /continue
     }
@@ -10193,7 +10208,7 @@ sub check_for_corpse(bool _debug)
     /declare _countE int local 0
     /if (${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}) {
       /for _countE 1 to ${SpawnCount[pccorpse radius ${maRez.Find[stMaxRezRange].Value}]}
-      /vardata _spawn NearestSpawn[pc ${_countE}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}].ID
+      /vardata _spawn NearestSpawn[pc ${_countE}, pccorpse radius ${maRez.Find[stMaxRezRange].Value}]
 
       /if (!${Defined[timer_corpse_${_spawn.ID}]}) {
         DEBUG ${sep}timer_corpse_${_spawn.ID}
@@ -13970,7 +13985,7 @@ sub get_assist_target(bool _debug, string _call)
   /if (!${maCC.Find[swManualAssist].Value}) {
  
     | tar acquisition when using smart assist. set XTarget positions.
-    /if (${Select[${maCC.Find[stAssistMode].Value},g,1,2,3]}) {
+    /if (${Select[${maCC.Find[stAssistMode].Value},g,1,2,3,m1,m2,m3]}) {
       DEBUG ${sep}Returning${sep}\a-wsmart assist\ax
 
       | assist info for group assisting
@@ -13983,6 +13998,7 @@ sub get_assist_target(bool _debug, string _call)
           /return ${targetData.ID}
         }
 
+      | raid assist 1
       } else /if (${Select[${maCC.Find[stAssistMode].Value},1]} && ${Raid.MainAssist[1].ID} && !${Raid.MainAssist[1].Dead}) {
         DEBUG ${sep}set smart${sep}\a-w1\ax
         /vardata assistData Spawn[${Raid.MainAssist[1].ID}]
@@ -13993,7 +14009,18 @@ sub get_assist_target(bool _debug, string _call)
         /if (${_call.Equal[return]}) {
           /return ${targetData.ID}
         }
+       
+      | raid mark 1  
+      } else /if (${Select[${maCC.Find[stAssistMode].Value},m1]}) {
+        DEBUG ${sep}set raid mark${sep}\a-wm1\ax
+        /vardata targetData Spawn[${Me.RaidMarkNPC[1].ID}]
+        /varset stAssTarID ${Me.RaidMarkNPC[1].ID}
+        /if (${_call.Equal[return]}) {
+          /return ${targetData.ID}
+        }
 
+
+      | raid assist 2
       } else /if (${Select[${maCC.Find[stAssistMode].Value},2]} && ${Raid.MainAssist[2].ID} && !${Raid.MainAssist[2].Dead}) {
         DEBUG ${sep}set smart${sep}\a-w2\ax
         /vardata assistData Spawn[${Raid.MainAssist[2].ID}]
@@ -14003,6 +14030,17 @@ sub get_assist_target(bool _debug, string _call)
           /return ${targetData.ID}
         }
 
+      | raid mark 2  
+      } else /if (${Select[${maCC.Find[stAssistMode].Value},m2]}) {
+        DEBUG ${sep}set raid mark${sep}\a-wm1\ax
+        /vardata targetData Spawn[${Me.RaidMarkNPC[2].ID}]
+        /varset stAssTarID ${Me.RaidMarkNPC[2].ID}
+        /if (${_call.Equal[return]}) {
+          /return ${targetData.ID}
+        }
+
+
+      | raisd assist 3
       } else /if (${Select[${maCC.Find[stAssistMode].Value},3]} && ${Raid.MainAssist[3].ID} && !${Raid.MainAssist[3].Dead}) {
         DEBUG ${sep}set smart${sep}\a-w3\ax
         /vardata assistData Spawn[${Raid.MainAssist[3].ID}]
@@ -14011,7 +14049,16 @@ sub get_assist_target(bool _debug, string _call)
         /if (${_call.Equal[return]}) {
           /return ${targetData.ID}
         }
-      }
+      
+      | raid mark 3  
+      } else /if (${Select[${maCC.Find[stAssistMode].Value},m3]}) {
+        DEBUG ${sep}set raid mark${sep}\a-wm1\ax
+        /vardata targetData Spawn[${Me.RaidMarkNPC[3].ID}]
+        /varset stAssTarID ${Me.RaidMarkNPC[3].ID}
+        /if (${_call.Equal[return]}) {
+          /return ${targetData.ID}
+        } 
+      }     
 
       | skip corpses and me
       /if (${targetData.Dead} || ${targetData.ID} == ${Me.ID} || !${Select[${targetData.Type},npc]}) {
@@ -14301,6 +14348,11 @@ sub class_cycle(string _order)
     | shared mana_recovery routine
     } else /if (${_lico.Value.Equal[manarecover]} && ${maChr.Find[stPctManaRecovery].Value}) {
       /call do_mana_recovery ${maDebug.Find[manarecover].Value}
+      
+      | bst paragon checks
+      /if (${Me.Class.ShortName.Equal[BST]}) {
+        /if (!${timer_Check_Para}) /call check_mana ${maDebug.Find[para].Value}
+      }
  
     | shares stamina_recovery routine
     } else /if (${_lico.Value.Equal[staminarecover]} && ${lsClassMelee.Contains[${Me.Class.ShortName}]}) {
@@ -15693,4 +15745,86 @@ sub get_best_in_alliance(bool _debug, string _targettype, string _subcat, string
   /next _count
 
 /return ${_maxName}    
+
   
+
+|***
+ * note: proc twincast heal buff (nuke version for clerics and druids)
+ * use: part of heal routine
+ ***|
+sub cast_cycle_proc_twinheal(bool _debug)
+  DEBUG \atcast_cycle_proc_twinheal\ax()
+
+  | break on active twinheal
+  /if (${Me.Song[Healing Twincast].ID}) {
+    DEBUG ${break} twincast heal active
+    /return TRUE
+  }
+
+  | within engage Pct
+  /if (${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value}) {
+    DEBUG ${break}.PctHPs${sep}${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value}
+    /return FALSE
+  }  
+
+  /if (!${targetData.LineOfSight}) {
+    DEBUG ${break}.LineOfSight
+    /return FALSE
+  }
+  
+  CHECKEXIT
+  ISMEDEAD
+  GETINPUT
+
+ 
+  | get our twincast proc
+  /if (${lsLineNuke.Contains[EMPTY]} && ${lsLineNuke.Count} == 1) {
+    DEBUG ${sep}resetting the empty nuke line
+    /invoke ${lsLineNuke.Clear}
+    /invoke ${lsLineNuke.Append[${stCount20}]}
+  }
+
+  /declare _liNukeTC listiterator local
+  /vardata _liNukeTC lsLineNuke.First.Clone
+  /while (!${_liNukeTC.IsEnd}) {
+
+    | check the switch
+    /if (!${Bool[${maNuke.Find[swNuke${_liNukeTC.Value}].Value}]}) {
+      DEBUG ${break}switched off${sep}\a-w${maNuke.Find[stNuke${_liNukeTC.Value}].Value}\ax
+      /invoke ${_liNukeTC.Advance}
+      /continue
+    }
+
+    | skip non twincast nukes
+    /if (!${lsNuke${_liNukeTC.Value}Tag.Contains[twincast]}) {
+      DEBUG ${break}invalid twincast check (\a-r${maNuke.Find[stNuke${_liNukeTC.Value}].Value}\ax)
+      /invoke ${_liNukeTC.Advance}
+      /continue
+    }
+    
+    /if (!${cast_data[${_debug}, "${maNuke.Find[stNuke${_liNukeTC.Value}].Value}"]}) {
+      /invoke ${_liNukeTC.Advance}
+      /continue
+    }
+
+    | cycle the tags
+    /call tag_evaluation ${maDebug.Find[tag].Value} Nuke ${_liNukeTC.Value} ${Me.DisplayName} "${maNuke.Find[stNuke${_liNukeTC.Value}].Value}" cast_cycle_proc_twinheal
+    /if (!${Macro.Return}) {
+      /invoke ${_liNukeTC.Advance}
+      /continue
+    }
+
+    | nuke the mob... cause healer DPS rules!
+    /call cast ${_debug} ${targetData.ID} FALSE
+    /delay 10s !${Me.Casting.ID}
+    /delay 2.5s
+    
+    /if (${Me.Song[Healing Twincast].ID}) {
+      DEBUG ${break} twincast heal active
+      /return TRUE
+    }
+    
+    /invoke ${_liNukeTC.Advance}
+  }
+
+/return FALSE

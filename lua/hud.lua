@@ -19,11 +19,12 @@ local function imguicallback()
   
   if shouldDrawHUD and (ent['build'] == '--' or mq.TLO.EverQuest.GameState() ~= 'INGAME') then
     ImGui.Text('Entropy is not running')
-    ImGui.End()
-
 
   elseif shouldDrawHUD then  
     if ImGui.BeginTabBar('##mytabs') then
+
+
+-- home tab
       if ImGui.BeginTabItem('Home') then
 
         ImGui.Columns(3, 'noname', false)
@@ -107,16 +108,6 @@ local function imguicallback()
           ImGui.TextDisabled(' ')
         end
         
-        -- ImGui.TextDisabled(mq.TLO.Macro.Variable('HUDOutput'))
-
--- if ImGui.BeginChild("logmessages", 500, 40) then
---   ImGui.Text(ent['hudoutput'])
---   ImGui.EndChild()
--- end
-
-
-
--- home tab
         ImGui.Columns(5, 'noname', false)
 
         -- column 1
@@ -181,7 +172,6 @@ local function imguicallback()
         ImGui.Columns()
         ImGui.EndTabItem()
       end
-
 
 
 -- buff tab 
@@ -320,7 +310,6 @@ local function imguicallback()
       end
 
 
-
 -- heal tab
       if ImGui.BeginTabItem('Heal') then
         ImGui.Columns(3, 'noname', false)
@@ -379,16 +368,19 @@ local function imguicallback()
         if selectedramp then
           mq.cmd.luaedit('stRampageTank', rampage)
         end
-               
+
+        -- twinheal: clerics
+        if mq.TLO.Me.Class.ShortName() == 'CLR' or mq.TLO.Me.Class.ShortName() == 'DRU' then
+          local _switch, twinpressed = ImGui.Checkbox("twinheal", mq.TLO.Macro.Variable('maHeal').Find('swTwinHeal').Value() == 'TRUE')
+          if twinpressed then
+            mq.cmd.luaedit('swTwinHeal', _switch and 'TRUE' or 'FALSE')
+          end      
+        end           
         
         ImGui.NextColumn()
- 
-       
         ImGui.Columns()  
-
         ImGui.EndTabItem()
       end
-
 
 
 -- combat tab
@@ -424,7 +416,7 @@ local function imguicallback()
         -- cc
         local _switch, ccpressed = ImGui.Checkbox("cc", mq.TLO.Macro.Variable('maCC').Find('swCombatControl').Value() == 'TRUE')
         if ccpressed then
-          if mq.TLO.Me.ClassShortName() == 'ENC' or mq.TLO.Me.ClassShortName() == 'BRD' or mq.TLO.Me.ClassShortName() == 'NEC' or mq.TLO.Me.ClassShortName() == 'MAG' then
+          if mq.TLO.Me.Class.ShortName() == 'ENC' or mq.TLO.Me.Class.ShortName() == 'BRD' or mq.TLO.Me.Class.ShortName() == 'NEC' or mq.TLO.Me.Class.ShortName() == 'MAG' then
             mq.cmd.luaedit('swCombatControl', _switch and 'TRUE' or 'FALSE')
           end
         end   
@@ -434,10 +426,10 @@ local function imguicallback()
         -- smart assist        
         local current_smartass = mq.TLO.Macro.Variable('maCC').Find('stAssistMode').Value()
         if ImGui.BeginCombo("smart", current_smartass) then
-          for _, v in ipairs({ 'off', 'g', '1', '2', '3' }) do
-            local selectedshade = v == current_smartass
-            if ImGui.Selectable(v, selectedshade) and not selectedshade then
-              mq.cmd.cc('ass smart', v)
+          for _, t in ipairs({ 'off', 'g', '1', '2', '3', 'm1', 'm2', 'm3' }) do
+            local selectedshade = t == current_smartass
+            if ImGui.Selectable(t, selectedshade) and not selectedshade then
+              mq.cmd.cc('ass smart', t)
             end
           end
 
@@ -464,17 +456,14 @@ local function imguicallback()
         if selectedzrad then
           mq.cmd.luaedit('stZRadius', zrad)
         end        
-        
-       
-       
+
         ImGui.Columns()
         ImGui.EndTabItem()
-        
         
       end
 
 
--- Pull tab
+-- pull tab
       if ImGui.BeginTabItem('Pull') then
         ImGui.Columns(3, 'noname', false)
 
@@ -551,18 +540,14 @@ local function imguicallback()
           mq.cmd.luaedit('stPullNavVariance', navvariance)
         end 
 
-
-
-
         ImGui.Columns()
-
         ImGui.EndTabItem()
                 
       end
 
+
 -- rez tab
       if ImGui.BeginTabItem('Rez') then
-
 
         ImGui.Columns(2, 'noname', false)
 
@@ -622,7 +607,6 @@ local function imguicallback()
         if takecallpressed then
           mq.cmd.luaedit('swRezTakeCall', _switch and 'TRUE' or 'FALSE')
         end  
-
         
         ImGui.Columns()      
         ImGui.EndTabItem()
@@ -673,9 +657,7 @@ local function imguicallback()
           mq.cmd.luaedit('swTieCombat', _switch and 'TRUE' or 'FALSE')
         end  
 
-
         ImGui.Columns()
-
         ImGui.EndTabItem()
       end
 
@@ -738,10 +720,8 @@ local function imguicallback()
           end  
           
         ImGui.Columns()
-
         ImGui.EndTabItem()
       end    
-
 
 
 -- target tab
@@ -798,14 +778,13 @@ local function imguicallback()
           -- ImGui.TextColored(1, 1, 1, 1, target['ds']) 
 
         ImGui.Columns()
-
         ImGui.EndTabItem()
       end      
 
       ImGui.EndTabBar()
     end
-    ImGui.End()
   end
+  ImGui.End()
 end
 
 mq.imgui.init('hudwindow', imguicallback)

@@ -20,6 +20,30 @@ on the to do list
 - pet gear handing for damn TLP feeders..
 --------------------
 
+210826.01
+- beastlords should check paragon for self and group more often
+- added the debug switch to all do_mana_recovery checks
+- pets will not longer be included buffs tagged with group and raid when minion is not included
+- /rez other
+  corrected a spawn issue
+- clerics
+  introduced a system to force a 100% (or real close) uptime of healing twincast
+  /heal twin (on/off) to enable twincast healing
+  requirements:
+  - at least 1 Unyielding Line DD nuke loaded (2 works better)
+  - the nuke should be tagged with with a minimum of twincast. do not need to enable /cc nuke
+  - must have an assist set (any of the assist types will work)
+  - advisable to enable /override targetclear
+- bard
+  /chr vainglorious (on/off) switch for vainglorious
+- assist
+  added access to raid marks 1-3
+  using this method there is only target data, not the assist character data
+- hud
+  corrected a couple class checks
+  added in a twinheal option for clerics in the heal tab
+
+
 
 210717.01
 - /rest health

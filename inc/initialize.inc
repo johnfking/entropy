@@ -28,7 +28,7 @@ sub set_debug(string _verbage)
   | buff
   /invoke ${lsDebugbuff.Append[cb,ammo,beg,unity,aura,crew,buffself,shrink,poison,class,now,temp,bocked,buffgroup,buffraid,drop]}
   | heal
-  /invoke ${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot,dannet,rez,chain,ch]}
+  /invoke ${lsDebugheal.Append[cure,xt,group,pet,self,hurt,tot,dannet,rez,chain,ch,twin]}
   | home
   /invoke ${lsDebughome.Append[face,tie,stick,stop,home,gtfo]}
   | debuff
@@ -387,6 +387,7 @@ sub set_initial_environment(bool _debug)
   /invoke ${set_data_timer[${_debug}, Check_Pull_Hardstop, 1]}
   /invoke ${set_data_timer[${_debug}, Check_Pull_Hardstop_Delay, 1]}
   /invoke ${set_data_timer[${_debug}, Check_Inventory_ManaClick, 1m]}
+  /invoke ${set_data_timer[${_debug}, Check_Build_Spawn_Map_Data, 5s]}
 
   | wait time for pulling
   /invoke ${set_timer[${_debug}, wait_for_mob, 0]}
@@ -427,6 +428,7 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[ooc,swPulseOOC]}
     /invoke ${maChrControl.Add[swap,submenu]}
     /invoke ${maChrControl.Add[scan,option]}
+    /invoke ${maChrControl.Add[vainglorious,swVainglorious]}
 
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
     /invoke ${maChrControl.Add[list,list]}
@@ -1300,8 +1302,8 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maCC stGlyph                               FALSE                         "${auxna} name of the glyph you want to use"
 
   /invoke ${set_data_timer[${_debug}, Check_Assist_Delay, 5]}
-  /call set_data_map ${_debug} maCC stAssistMode                          FALSE                         "${auxna} [\axg,1,2,3\ax] your current smart assist mode"
-  /call set_data_map ${_debug} maCC swManualAssist                       FALSE                          "${auxna} use manual assisting"
+  /call set_data_map ${_debug} maCC stAssistMode                          FALSE                         "${auxna} [\axg,1,2,3,m1,m2,m3\ax] your current smart assist mode"
+  /call set_data_map ${_debug} maCC swManualAssist                        FALSE                         "${auxna} use manual assisting"
   /call set_data_map ${_debug} maCC stPctEngage                           98                            "${auxnum} mobs % health to engage it"
   /call set_data_list ${_debug} maCC lsAss                                EMPTY                         "${auxli} list of names to assist"
 
