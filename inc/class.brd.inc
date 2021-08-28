@@ -37,7 +37,7 @@ sub class_init(bool _debug)
 
   | aa boastful bellow switch
   /call set_data_map ${_debug} maChr swAABellow                       FALSE                         "${auxsw} enable/disable using AA Boastful Bellow"
-  /call set_data_map ${_debug} mcChr swVainglorious                   FALSE                         "${auxsw} enable/disable using Vainglorious"
+  /call set_data_map ${_debug} maChr swVainglorious                   FALSE                         "${auxsw} enable/disable using Vainglorious"
 
   | sing OOC
   /call set_data_map ${_debug} maChr swPulseOOC                       FALSE                         "${auxna} sing while out of combat"

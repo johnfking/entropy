@@ -230,15 +230,13 @@ sub cast_cycle_heal_surge(bool _debug)
   ISMEDEAD
   GETINPUT
 
-  | get the main assisst ID
-  | /declare _spawn.ID int local ${get_assist_info[${_debug}, ID]}
-  | DEBUG ${sep}assist ID${sep}\a-w${_spawn.ID}\ax
 
+  |**
   /if (!${assistData.LineOfSight}) {
     DEBUG ${break}.LineOfSight
     /return FALSE
   }
-  
+
   | get our twincast proc
   /if (${lsLineNuke.Contains[EMPTY]} && ${lsLineNuke.Count} == 1) {
     DEBUG ${sep}resetting the empty nuke line
@@ -286,7 +284,11 @@ sub cast_cycle_heal_surge(bool _debug)
     
     /invoke ${_liNukeTC.Advance}
   }
-
+  **|
+  
+  /call cast_cycle_proc_twinheal ${maDebug.Find[surge].Value}
+  
+  
   | if the user has not set the line order, set it to a default for now
   /if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
     DEBUG ${sep}resetting the empty heal line

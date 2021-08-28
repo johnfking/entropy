@@ -14275,6 +14275,7 @@ sub get_assist_target(bool _debug, string _call)
  *  harmonious - knight harmonious routine
  *  cc - CC (mez) routine
  *  gather - aa mana gather routine
+ *  mode - cycle any modes that are enabled
  *  
  ***|
 sub class_cycle(string _order)
@@ -14395,6 +14396,10 @@ sub class_cycle(string _order)
       /if (!PULL || (PULL && !${SpawnCount[npc radius ${maEnv.Find[stRestRadius].Value} PS4]})) {
         /call do_rest ${maDebug.Find[rest].Value}
       }
+      
+    | modes
+    } else /if (${_lico.Value.Equal[mode]} && !${timer_Check_Mode}) {
+      /call check_mode ${maDebug.Find[mode].Value}
          
     }
 
@@ -15749,7 +15754,7 @@ sub get_best_in_alliance(bool _debug, string _targettype, string _subcat, string
   
 
 |***
- * note: proc twincast heal buff (nuke version for clerics and druids)
+ * note: proc twincast heal buff, target changes depending on heal class type
  * use: part of heal routine
  ***|
 sub cast_cycle_proc_twinheal(bool _debug)
@@ -15761,17 +15766,27 @@ sub cast_cycle_proc_twinheal(bool _debug)
     /return TRUE
   }
 
-  | within engage Pct
-  /if (${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value}) {
-    DEBUG ${break}.PctHPs${sep}${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value}
-    /return FALSE
-  }  
+  | do checks by class type
+  /if (${Select[${Me.Class.ShortName},CLR,DRU]}) {
+    /if (${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value}) {
+      DEBUG ${break}.PctHPs${sep}${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value}
+      /return FALSE
+    }  
 
-  /if (!${targetData.LineOfSight}) {
-    DEBUG ${break}.LineOfSight
-    /return FALSE
+    /if (!${targetData.LineOfSight}) {
+      DEBUG ${break}.LineOfSight
+      /return FALSE
+    }
+
+  } else /if (${Select[${Me.Class.ShortName},SHM]}) {
+
+    /if (!${assistData.LineOfSight}) {
+      DEBUG ${break}.LineOfSight
+      /return FALSE
+    }
+
   }
-  
+    
   CHECKEXIT
   ISMEDEAD
   GETINPUT
@@ -15814,11 +15829,27 @@ sub cast_cycle_proc_twinheal(bool _debug)
       /continue
     }
 
-    | nuke the mob... cause healer DPS rules!
-    /call cast ${_debug} ${targetData.ID} FALSE
-    /delay 10s !${Me.Casting.ID}
-    /delay 2.5s
+    | nuke the mob or the tanks.. why not both?
+    /if (${Select[${Me.Class.ShortName},CLR,DRU]}) {
+      /call cast ${_debug} ${targetData.ID} FALSE
+    } else /if (${Select[${Me.Class.ShortName},SHM]}) {
+      /call cast ${_debug} ${assistData.ID} FALSE
+    }
     
+    | forced delay
+    /if (${maNuke.Find[stNukeDelay].Value}) {
+      DEBUG ${sep} nuke delay
+      /delay 10s !${Me.Casting.ID}
+      /delay 2.5s
+      /if (${maNuke.Find[swNukeWhackAMole].Value} && !${Me.Sitting} && !${Me.Mount.ID}) {
+        DEBUG ${sep}sitting
+        /sit
+      }
+      /invoke ${set_data_timer[${_debug}, Nuke_Delay, ${maNuke.Find[stNukeDelay].Value}]}
+      DEBUG ${sep}delaying${sep}\a-w${timer_Nuke_Delay}\ax
+      /delay ${timer_Nuke_Delay}
+    } 
+        
     /if (${Me.Song[Healing Twincast].ID}) {
       DEBUG ${break} twincast heal active
       /return TRUE

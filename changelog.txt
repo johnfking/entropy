@@ -20,6 +20,20 @@ on the to do list
 - pet gear handing for damn TLP feeders..
 --------------------
 
+
+
+
+210828.01
+- can now add "mode" to any class list (/chr list) to have any active modes checked while that 
+  class is doing its normal operations
+- heal twincast nukes will now obey /nuke delay timers
+- shaman
+  adapted to use the new twincast proc for surges 
+- bard
+  fixed vainglorious switch
+
+
+
 210826.01
 - beastlords should check paragon for self and group more often
 - added the debug switch to all do_mana_recovery checks
