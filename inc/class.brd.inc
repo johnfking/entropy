@@ -199,7 +199,7 @@ sub misc_combat(bool _debug, spawn _spawn)
     }
   }
   
-  /if (${maChr.Find[stAAVaingloriousShout].Value} && ${maChr.Find[swVainglorious].Value} && ${Target.BuffsPopulated}) {
+  /if (${Bool[${maChr.Find[stAAVaingloriousShout].Value}]} && ${maChr.Find[swVainglorious].Value} && ${Target.BuffsPopulated}) {
     /if (${madeBuff.Find[swMez].Value} && AE#) {
       | output a message warning that you have mezzing enabled and an AE count and vainglorious will hit them all
       /if (${_spawn.PctHPs} > 3 && ${Me.CurrentEndurance} > 10500 && !${Target.MyBuff[Vainglorious Shout].ID}) {

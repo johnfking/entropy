@@ -21,6 +21,13 @@ on the to do list
 --------------------
 
 
+210904.01
+- set the variable lsBlockedBuffsMe to init sooner in an attempt to
+  fix a rather rare bug for starting the macro
+- bard
+  corrected a vainglorious issue
+- chain pulling
+  some adjustments to mob finding increments
 
 
 210828.01

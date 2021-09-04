@@ -369,8 +369,8 @@ local function imguicallback()
           mq.cmd.luaedit('stRampageTank', rampage)
         end
 
-        -- twinheal: clerics
-        if mq.TLO.Me.Class.ShortName() == 'CLR' or mq.TLO.Me.Class.ShortName() == 'DRU' then
+        -- twinheal: healers.. duh..
+        if mq.TLO.Me.Class.ShortName() == 'CLR' or mq.TLO.Me.Class.ShortName() == 'DRU' or mq.TLO.Me.Class.ShortName() == 'SHM' then
           local _switch, twinpressed = ImGui.Checkbox("twinheal", mq.TLO.Macro.Variable('maHeal').Find('swTwinHeal').Value() == 'TRUE')
           if twinpressed then
             mq.cmd.luaedit('swTwinHeal', _switch and 'TRUE' or 'FALSE')

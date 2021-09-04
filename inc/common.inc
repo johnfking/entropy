@@ -2007,9 +2007,7 @@ sub set_combat_control(bool _debug, spawn _spawn)
   | range combat only
   } else /if (RANGE && !MELEE) {
     DEBUG ${sep}\agrange\ax${sep}\armelee\ax
-
     /call set_combat_range ${_debug} ${_spawn.ID}
-
     /return TRUE
 
   }
@@ -2196,11 +2194,6 @@ sub get_target_basepull(bool _debug, spawn _spawn)
 sub get_target_wait(bool _debug, spawn _spawn, string _waittime)
   DEBUG \atget_target_wait\ax(\a-w${_spawn.ID}, ${_waittime}\ax)
 
-  | too close for comfort
-  /if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
-    /return TRUE
-  }
-
   | wait for mob to get to camp
   DEBUG ${sep}loop \a-wwait for mob\ax${sep}\a-w${_spawn.ID}\ax
   DEBUG ${sep}_wait${sep}\ay${_waittime}\ax
@@ -2292,6 +2285,10 @@ sub get_target_wait(bool _debug, spawn _spawn, string _waittime)
     }
   }
 
+  /if (${maPull.Find[stCountChainPull].Value}) {
+    DEBUG ${break}clearing target for chain puller
+    /invoke ${target[clear]}
+  }
 /return TRUE
 
 
@@ -2812,12 +2809,26 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
       /continue
     }
 
+    /if (${maPull.Find[stCountChainPull].Value} && ${_spCount}) {
+      /if (${_spCount} >= ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius PULLENV zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
+        DEBUG ${sep}spawncount error: looking for more spawns then exist for chain pulling
+        /invoke ${target[clear]}
+        /return FALSE
+      } 
+    }
+    
+
     | search local ENV range in steps for mob acquisition
     DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
     /for _count ${Math.Calc[${_spCount} +1]} to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
       DEBUG ${sep}count${sep}${_count} of ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
       ISMEDEAD
       
+      /if (${_count} > ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
+        DEBUG ${break}spawncount increment invalid moving to next temp radius
+        /continue
+      }
+          
       /vardata _spawn NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]
 
       /if (!${_spawn.ID}) {
@@ -7303,8 +7314,7 @@ sub pull_mob_move_to(bool _debug, spawn _spawn, int _dist, string _LoS)
 
     | abort pull if agro (xtarget only)
     /if (${Me.XTargetSlots}) {
-      | /if (${Me.XTHaterCount}) {
-      /if (${SpawnCount[npc radius SAFEENV PS4]} > 0) {
+      /if (${SpawnCount[npc radius SAFEENV PS4]} > 0  && ${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} > SAFEENV && !${swModeToken}) {
         DEBUG ${break}we have agro.. drop intended target and return to camp
         /varset _spawn 0
         /return TRUE        
@@ -7500,24 +7510,27 @@ sub get_target_petpull(bool _debug, spawn _spawn, int _spCount)
 
 |***
  * note: mechanics for nav pulling
- * note: /call get_target_navpull DEBUG [spawn]
+ * note: /call get_target_navpull DEBUG [spawn] [spawncount adjustment]
  ***|
-sub get_target_navpull(bool _debug, spawn _spawn)
-  DEBUG \atget_target_navpull\ax(\a-w${_spawn.ID}\ax)
+sub get_target_navpull(bool _debug, spawn _spawn, int _spCount)
+  DEBUG \atget_target_navpull\ax(\a-w${_spawn.ID}, ${_spCount}\ax)
 
   ISMEDEAD
   GETINPUT get_target_navpull _spawn|${_spawn.ID}
   CHECKTIE
 
   /declare _count int local 0
-  
-
 
   /if (!PULL) {
     /call set_pull_observer ${_debug}
   } else /if (PULL) {
     /if (!${_spawn.ID} && !${targetData.ID}) {
-      /call pull_mob_find ${_debug}
+      
+      /if (!${Bool[${_spCount}]}) {
+        /varset _spCount 0
+      }      
+      
+      /call pull_mob_find ${_debug} ${_spCount}
       /if (!${targetData.ID}) {
         DEBUG ${sep}\arNO\ax${sep}\a-wtargetData.ID\ax
         SETHUD
@@ -11224,7 +11237,6 @@ sub tag_evaluation(bool _debug, string _type, int _num, string _name, spell _spe
 
       | remove buff tag
       } else /if (${Parse[99,${sqlite.Result[q${_type}_${_litag.Value} 1 eval].Find[DROPBUFF-]}]}) {
-        SDEBUG ------ here -- ${sqlite.Result[q${_type}_${_litag.Value} 1 eval]} -- ${sqlite.Result[q${_type}_${_litag.Value} 1 eval].Arg[2,-]}
         /invoke ${Me.Buff[${sqlite.Result[q${_type}_${_litag.Value} 1 eval].Arg[2,-]}].Remove}
 
       | action tags here
@@ -13005,7 +13017,7 @@ sub pull_assist_decision(bool _debug)
       DEBUG ${submenu}pullstate (\a-ralternate puller\ax)
 
       | chain pulling
-      /if (${maPull.Find[stCountChainPull].Value} && ${maPull.Find[stPullMode].Value.NotEqual[base]} && ${SpawnCount[NPC los radius SAFEENV PS4 targetable]} <= ${maPull.Find[stCountChainPull].Value}) {
+      /if (${maPull.Find[stCountChainPull].Value} && ${maPull.Find[stPullMode].Value.NotEqual[base]} && ${SpawnCount[NPC los radius ENV PS4 targetable]} <= ${maPull.Find[stCountChainPull].Value}) {
         DEBUG ${submenu}pullstate (\a-rchain pull\ax)
           
           | hardstop check
@@ -13026,7 +13038,9 @@ sub pull_assist_decision(bool _debug)
           DEBUG ${submenu}pullstate (\a-radvanced: prep chain\ax)
           /call pull_prep_advanced ${maDebug.Find[pull].Value}
           DEBUG ${submenu}pullstate (\a-radvanced: ${maPull.Find[stPullMode].Value} chain\ax)
-          /call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value} 0 ${Int[${Math.Calc[${maPull.Find[stCountChainPull].Value} + 1]}]}
+          | /call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value} 0 ${Int[${Math.Calc[${maPull.Find[stCountChainPull].Value} + 1]}]}
+          /call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value} 0 ${maPull.Find[stCountChainPull].Value}
+          
    
       }
       
@@ -14264,7 +14278,6 @@ sub get_assist_target(bool _debug, string _call)
  *  item - /clickitem
  *  pet - sends pets in and swarm for active combat
  *  swarm - class specific sparm pets like bst and mage
- *  heal - /heal
  *  manarecover - shared mana_recover() routine
  *  alliance - *borked atm*
  *  staminarecover - shared stamina_recover() routine

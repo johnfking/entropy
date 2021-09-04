@@ -157,7 +157,7 @@ sub set_initialize(bool _debug)
   /declare maControlRez map outer
 
   | self blocked buffs
-  /declare lsBlockedBuffsMe string outer
+  | /declare lsBlockedBuffsMe string outer
 
   | PREGEN recorder
   /declare maPREGEN map outer
@@ -1203,6 +1203,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data ${_debug} maData stCampZ                                 map outer 999999999
   /call set_data_map ${_debug} maHome stMount                             FALSE                         "${auxna} name of mount you wish to sit your fat ass on"
   /call set_data_map ${_debug} maHome swMoveDeathClear                    FALSE                         "${auxsw} on = clear home marker and movements on death"
+  /call set_data_map ${_debug} maHome swMoveGatherClear                   FALSE                         "${auxsw} on = clear home marker when a gather is issued"
   /call set_data_map ${_debug} maHome swFaceFast                          FALSE                         "${auxsw} use fast facing movements"
   /call set_data_map ${_debug} maHome stFaceArc                           15                            "${auxnum} [\a-w1-45\az] acceptable range of facing and still be on target"
   /call set_data ${_debug} maHome swSnapStuck                             map outer FALSE

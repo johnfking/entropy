@@ -1273,7 +1273,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 
 
 
-  | pull modes
+  | position
   } else /if (${_type.Equal[position]}) {
 
     | stick wherever
@@ -1407,8 +1407,21 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   } else /if (${_type.Equal[mount]}) {
     /invoke ${do_raw_edit[FALSE, SILENT, stMount, "${_verbage}"]}
 
-  } else /if (${_type.Equal[deathclear]}) {
-    /invoke ${set_switch_env[FALSE, swMoveDeathClear, TRUE, ${_verbage}]}
+  | when to clear home
+  } else /if (${_type.Equal[stop]}) {
+
+    /if (${_type.Equal[death]}) {
+      /invoke ${set_switch_env[${_debug}, swMoveDeathClear, TRUE, ${_verbage}]}
+
+    } else /if (${_type.Equal[gather]}) {
+      /invoke ${set_switch_env[${_debug}, swMoveGatherClear, TRUE, ${_verbage}]}
+    }
+
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[death,swMoveDeathClear]}
+    /invoke ${maControl.Add[gather,swMoveGatherClear]}
+    /invoke ${set_control_output[${_debug}, maHome, "home stop", maControl]}
+    /return FALSE
 
   } else /if (${_type.Equal[onauto]}) {
     /invoke ${set_switch_env[FALSE, swonAuto, TRUE, ${_verbage}]}
@@ -1432,9 +1445,10 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Add[facefast,swFaceFast]}
   /invoke ${maControl.Add[arc,stFaceArc]}
   /invoke ${maControl.Add[mount,stMount]}
-  /invoke ${maControl.Add[deathclear,swMoveDeathClear]}
+  /invoke ${maControl.Add[stop,submenu]}
   /invoke ${maControl.Add[onauto,swonAuto]}
   /invoke ${maControl.Add[incombat,swinCombat]}
+  /invoke ${maControl.Add[clear,option]}
   /invoke ${maControl.Add[campfire,option]}
   /invoke ${maControl.Add[position,submenu]}
   /invoke ${set_control_output[${_debug}, maHome, home, maControl]}
