@@ -20,6 +20,11 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
    /return TRUE
   }
 
+  /if (${_type.Equal[ui]}) {
+    /lua run ${MacroQuest.Path[macros]}\entropy\lua\debug.lua
+    /return TRUE
+  }
+
   /declare _count int local 0
 
   /if (${_type.Equal[stop]}) {

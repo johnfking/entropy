@@ -21,6 +21,14 @@ on the to do list
 --------------------
 
 
+
+
+210907.01
+- corrections to the GOM diversion in the cast routine
+- wait for mob in the pulling routine should account for odd close spawns faster
+
+
+
 210904.01
 - set the variable lsBlockedBuffsMe to init sooner in an attempt to
   fix a rather rare bug for starting the macro

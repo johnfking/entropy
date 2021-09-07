@@ -2194,6 +2194,11 @@ sub get_target_basepull(bool _debug, spawn _spawn)
 sub get_target_wait(bool _debug, spawn _spawn, string _waittime)
   DEBUG \atget_target_wait\ax(\a-w${_spawn.ID}, ${_waittime}\ax)
 
+  | too close for comfort
+  /if (${SpawnCount[npc radius SAFEENV PS4 targetable]} && !${maPull.Find[stCountChainPull].Value}) {
+    /return TRUE
+  }
+
   | wait for mob to get to camp
   DEBUG ${sep}loop \a-wwait for mob\ax${sep}\a-w${_spawn.ID}\ax
   DEBUG ${sep}_wait${sep}\ay${_waittime}\ax
@@ -2207,6 +2212,7 @@ sub get_target_wait(bool _debug, spawn _spawn, string _waittime)
 
     /if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
       DEBUG ${break}/while \a-ghostile mob in safeenv raidus\ax
+      /invoke ${set_timer[${_debug}, wait_for_mob, 0]}
       /invoke ${target[clear]}
       /break
     }
@@ -2289,6 +2295,7 @@ sub get_target_wait(bool _debug, spawn _spawn, string _waittime)
     DEBUG ${break}clearing target for chain puller
     /invoke ${target[clear]}
   }
+  
 /return TRUE
 
 
@@ -14931,16 +14938,31 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
     | if a gom procs and a spell is ready, we hijack the existing cast and use the GOM spell in its place
     /if (${_spawn.ID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]} && COMBAT) {
 
-      /declare _ligom listiterator local
+      | remember original spell just incase
       /declare _tmpspell spell
       /vardata _tmpspell spellData
+
+      /declare _ligom listiterator local
       /vardata _ligom lsGoM.First.Clone
-        /while (!${_ligom.IsEnd}) {
-          /if (${Select[${_ligom.Value},empty]}) /break
-          /if (${cast_data[${_debug}, "${_ligom.Value}"]}) {
-            /vardata spellData Spell[${_ligom.Value}]
-            /break
-          }
+      /while (!${_ligom.IsEnd}) {
+        
+        | exit gom cast if not set
+        /if (${Select[${_ligom.Value},empty]}) /break
+        
+        | get spell setup
+        /call cast_data ${_debug} "${_ligom.Value}"
+        
+        | if not ready reset to current spell and tr again if another is available
+        /if (!${Macro.Return}) {
+          /vardata spellData _tmpspell
+          /invoke ${_ligom.Advance}
+          /continue
+          
+        | if it is ready, take the new set data and run with it
+        } else /if (${Macro.Return}) {
+          /break
+        }
+        
         /invoke ${_ligom.Advance}
       }
     }
