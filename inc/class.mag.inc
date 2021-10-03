@@ -352,10 +352,9 @@ sub check_gather(bool _debug)
 sub Bind_control_mag_coh(string _sender, string _verbage, bool _debug)
   DEBUG \atBind_control_mag_coh\ax(\a-w${_sender}, ${_verbage}\ax)
 
-  | output control map
-  /if (${_sender.Equal[aux]}) {
-    /call Bind_command_aux coh
-    /return
+  /if (${_type.Left[1].Equal[-]}) {
+    /lua run get_help coh ${_type.Right[1]}
+    /return TRUE
   }
 
   /if (${_verbage.Equal[group]}) {

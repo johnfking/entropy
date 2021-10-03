@@ -2519,7 +2519,7 @@ sub pull_mob_tag(bool _debug, spawn _spawn)
   | loop cycle start
   /declare _loopbreak int local 1
 
-  /if (${_spawn.LineOfSight}) {
+  /if (${_spawn.LineOfSight} || !${maPull.Find[swPullNavLoS].Value}) {
     DEBUG ${sep}Target${sep}\agLoS\ax
 
     | get our target
@@ -2957,7 +2957,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
           /if (${Navigation.PathLength[id ${_spawn.ID}]} > ${Math.Calc[PULLENV + (PULLENV*.${maPull.Find[stPullNavVariance].Value})]}) {
             DEBUG ${break}Navigation.PathLength(nav)[${_spawn.ID}] > ${Math.Calc[PULLENV + (PULLENV*.${maPull.Find[stPullNavVariance].Value})]}
             /continue
-          }  
+          }
 
         | we DO NOT go out side of the max pull radius.. no matter what!
         } else {
@@ -4749,6 +4749,7 @@ sub do_mana_recovery(bool _debug)
     | worth the mana or gonna kill us?
     /if (${FindItem[=${_lidmc.Value}].Spell.Base[2]} < ${Math.Calc[${Me.MaxMana} - ${Me.CurrentMana}].Int} && ${Me.CurrentHPs} > ${FindItem[=${_lidmc.Value}].Spell.Base[1]}) {
       DEBUG ${sep}You can live and get mana too!
+      /call cast ${_debug} ${Me.ID} FALSE
     } else /if (!${FindItem[=${_lidmc.Value}].CanUse}) {
       DEBUG ${sep}${FindItem[=${_lidmc.Value}]} Can't be used by you!
       /invoke ${_lidmc.Advance}
@@ -4762,6 +4763,13 @@ sub do_mana_recovery(bool _debug)
       /invoke ${_lidmc.Advance}
       /continue
     }
+    | if its a targetable click, change target ID to self
+    /if (${Select[${Spell[${_lidmc.Value}].RankName.TargetType},Self,AE PC v2]}) {
+      /call cast ${_debug} 0 FALSE
+    } else /if (${Select[${Spell[${_lidmc.Value}].RankName.TargetType},Single]}) {
+      /call cast ${_debug} ${Me.ID} FALSE
+    }
+
     /invoke ${_lidmc.Advance}
   }
 
@@ -5098,7 +5106,7 @@ sub check_buff_cycle_crew(bool _debug)
     }
 
     | get the name to something usable
-    /vardata _spawn Spawn[pc ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}].ID
+    /vardata _spawn Spawn[pc ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}]
     
     DEBUG ${sep}_spawn${sep}\ay${_spawn.DisplayName}\ax
 
@@ -5341,7 +5349,7 @@ sub check_buff_cycle_others(bool _debug, string _type)
   CHECKEXIT check_buff_cycle_others
   GETINPUT check_buff_cycle_others NA|NA
 
-  | i'd like to go on the recored and let everyone know i fucking hate mercs. more then bards
+  | i'd like to go on the record and let everyone know i fucking hate mercs. more then bards
   | they are a bitch to code around and they kill the group content of this game
   | ok, i feel better now. moving on..
 
@@ -7342,6 +7350,14 @@ sub pull_mob_move_to(bool _debug, spawn _spawn, int _dist, string _LoS)
         /return TRUE
       }
     }
+    
+    | alow move to mob to stop sooner on ranged combat for modes only
+    /if (${swModeToken}) {
+      /if (RANGE && ${_spawn.Distance} <= ENV) {
+        /call target set ${_spawn.ID}
+        /return TRUE
+      }
+    }
 
     /delay 1
   }
@@ -7572,7 +7588,7 @@ sub get_target_navpull(bool _debug, spawn _spawn, int _spCount)
 
   | set the target
   /invoke ${out[9, "Fetching${sep}${con_color[${_debug}, ${_spawn.ID}]}\ax"]}
-  /call target set ${_spawn.ID}
+  | /call target set ${_spawn.ID} 
 
   | if the mob is kinda close??
   /if (${_spawn.LineOfSight} && ${_spawn.Distance} < ENV) {
@@ -7585,7 +7601,7 @@ sub get_target_navpull(bool _debug, spawn _spawn, int _spCount)
     }
 
     /if (MELEE && ${_spawn.Distance} > ${Math.Calc[${_spawn.MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
-      /call pull_mob_move_to ${_debug} ${_spawn.ID} ${maPull.Find[stPullNavStopDistance].Value} on
+      /call pull_mob_move_to ${_debug} ${_spawn.ID} ${maPull.Find[stPullNavStopDistance].Value} ${maPull.Find[swPullNavLoS].Value}
     }
 
     /call pull_mob_tag ${_debug} ${_spawn.ID}
@@ -7606,9 +7622,9 @@ sub get_target_navpull(bool _debug, spawn _spawn, int _spCount)
     | melee pulls get up the mobs ass
     | all other methods obey the stop distance settings
     /if (${maPull.Find[stPullWith].Value.Equal[melee]}) {
-      /call pull_mob_move_to ${_debug} ${_spawn.ID} ${Math.Calc[${_spawn.MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} on
+      /call pull_mob_move_to ${_debug} ${_spawn.ID} ${Math.Calc[${_spawn.MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} ${maPull.Find[swPullNavLoS].Value}
     } else {
-      /call pull_mob_move_to ${_debug} ${_spawn.ID} ${maPull.Find[stPullNavStopDistance].Value} on
+      /call pull_mob_move_to ${_debug} ${_spawn.ID} ${maPull.Find[stPullNavStopDistance].Value} ${maPull.Find[swPullNavLoS].Value}
     }
 
     /while (${Me.Moving}) {
@@ -7720,7 +7736,7 @@ sub get_target_watchpull(bool _debug, spawn _spawn)
       /continue      
     }
 
-    /vardata _spawn Spawn[radius PULLENV zradius ${maPull.Find[stPullZRadius].Value} ${_liwp.Value}].ID
+    /vardata _spawn Spawn[radius PULLENV zradius ${maPull.Find[stPullZRadius].Value} ${_liwp.Value}]
 
     DEBUG .. ${_spawn.DisplayName} .. ${_spawn.ID}
     /call get_target_navpull ${_debug} ${_spawn.ID}
@@ -8571,7 +8587,7 @@ sub control_mezae(bool _debug)
 
   /if (${maMobControlMez.Count} >= AE#) {
     DEBUG ${sep}entering AE mez
-    /vardata _spawn Spawn[${maMobControlMez.First.Key}].ID
+    /vardata _spawn Spawn[${maMobControlMez.First.Key}]
 
     /if (AE# && ${SpawnCount[npc los radius 30 targetable]} >= AE#) {
       DEBUG ${sep}AE# && ${SpawnCount[npc los radius 30 targetable]} >= AE#
@@ -10198,7 +10214,7 @@ sub check_for_corpse(bool _debug)
         DEBUG ${sep}${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} dead${sep}\a-w${Spawn[${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].Dead}\ax
         /continue
       } else /if (${Spawn[${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].Dead}) {
-        /vardata _spawn Spawn[pc ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}].ID
+        /vardata _spawn Spawn[pc ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countD},|]} radius ${maRez.Find[stMaxRezRange].Value}]
       }
 
       | mark the toon if it isnt already
@@ -10385,7 +10401,6 @@ sub check_watch_spawn(bool _debug)
       /beep
     }
   }
-  
 
   /invoke ${set_data_timer[${_debug}, Check_Watch, RESTART]}
 
@@ -11825,11 +11840,12 @@ sub get_best_in_pet(bool _debug)
     /varset _subcat Sum: Undead
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
     DEBUG ${sep}found MAG${sep}\a-wSum: ${maChr.Find[stMinionElementType].Value}\ax
-    /varset _subcat Sum: ${maChr.Find[stMinionElementType].Value}
+    /varset _subcat "Sum: ${maChr.Find[stMinionElementType].Value}"
   }
 
   /for _count 1 to ${maHard.Find[stSpellBookSize].Value}
     /if (!${Me.Book[${_count}].ID}) /continue
+    /if (${Me.Book[${_count}].Category.NotEqual[Pet]}) /continue
     /if (${Me.Book[${_count}].Subcategory.NotEqual[${_subcat}]}) /continue
     /if (${Me.Book[${_count}].TargetType.NotEqual[Self]}) /continue
     
@@ -12347,7 +12363,7 @@ sub check_buff_cycle_temp(bool _debug)
       /continue
     }
      
-    /vardata _spawn Spawn[pc ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}].ID
+    /vardata _spawn Spawn[pc ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_countToon},|]}]
     | skip this person?
     /if (!${_spawn.ID} || ${_spawn.Dead}) {
       DEBUG ${sep}skipping${sep}\a-w${_spawn.DisplayName}\ax
@@ -12528,16 +12544,12 @@ sub control_broadcast_command(string _command, string _option, string _verbage, 
 
   /varset _command ${proper_case[name, ${_command}]}
 
-  /if (${_option.Equal[aux]}) {
-    /call Bind_command_aux ${_command}
-    /return break
-  } else /if (${_option.Equal[-h]}) {
+  /if (${_option.Equal[-h]}) {
     OUT use${sep}\a-w/${_command.Lower} [self|group|zone|raid|all|broadcast]\ax
     /return break
   } else /if (${Select[${_option},-o,broadcast]}) {
     /if (${lsBroadcastTypes.Contains[${_verbage}]}) {
       /call do_raw_edit FALSE SILENT stBroadcast${_command} "${_verbage.Lower}"
-      | /varset _command ${_command.Lower}
     } else /if (${Bool[${_verbage}]} && !${lsBroadcastTypes.Contains[${_verbage}]}) {
       OUT Options${sep}\a-w/${_command.Lower} broadcast\ax
       /call out_list lsBroadcastTypes
@@ -14353,7 +14365,7 @@ sub class_cycle(string _order)
 
     | pet and swarm (idiot) pets
     } else /if (${_lico.Value.Equal[pet]} && (PET || SWARM)) {
-      /call send_pet ${maDebug.Find[sic].Value} TARGET
+      /call send_pet ${maDebug.Find[sic].Value} ${targetData.ID}
 
     | class specific swarm pets like mage and beast
     } else /if (${_lico.Value.Equal[swarm]} && SWARM) {
@@ -14694,9 +14706,11 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
 
   | are we moving? and not a bard?
   /if (!${Select[${_sub},ignoremovement]}) {
-    /if (!BARD && ${Me.Moving}) {
-      DEBUG ${sep}break cast.moving
-      /return FALSE
+    /if (!BARD) {
+      /if (${Me.Moving}) {
+        DEBUG ${sep}break cast.moving
+        /return FALSE
+      }
     }
   }
   
@@ -15424,6 +15438,16 @@ sub spawn_stick(bool _debug, spawn _spawn)
 
   /if (!${maData.Find[stFacingPositionCheck].Value}) {
     DEBUG ${sep}position adjustment${sep}\a-w${maData.Find[stFacingPosition].Value}\ax
+    
+    | adaptation to get to targets not line of sight before stick move
+    /if (!${_spawn.LineOfSight}) {
+      DEBUG ${sep}getting to mob..los is bad${sep}\a-w${_spawn.DisplayName}\ax
+      OUT Getting to spawn${sep}\a-w${_spawn.DisplayName}\ax
+      /nav ID ${_spawn.ID} |distance=${Math.Calc[${_spawn.MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} lineofsight=off log=${maEntropy.Find[swNavLogSpew].Value}
+      /delay 1s ${Me.Moving}
+      /delay 5s !${Me.Moving}
+    }
+    
     OUT Position${sep}\a-w${maData.Find[stFacingPosition].Value}\ax
     /stick id ${_spawn.ID} ${Math.Calc[${_spawn.MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} snaproll ${maData.Find[stFacingPosition].Value}
     /invoke ${maData.Add[stFacingPositionCheck,TRUE]}

@@ -22,11 +22,24 @@ on the to do list
 
 
 
+211003.01
+- several spawn type adjustments
+- corrections to mod rod usage
+- removed a debug in /admin spa
+- pets finder will now only look in the pet category and not created items on mage (dumb mages)
+- updated some more of the inmacro help optputs
+- 85 added to rez selection for the TLPers
+- /pull nav
+  will no longer pretarget the mob till it is within targeting criteria (nav stop / cast range / los)
+  added an option to turn on/off LoS checking with nav pulling. (credit: iluvseq)
+  added navlos switch to hud
+- melee logic to adjust for close range mobs that are still not los
+- corrected some target ids in /mode hunt
+
 
 210907.01
 - corrections to the GOM diversion in the cast routine
 - wait for mob in the pulling routine should account for odd close spawns faster
-
 
 
 210904.01
@@ -46,7 +59,6 @@ on the to do list
   adapted to use the new twincast proc for surges 
 - bard
   fixed vainglorious switch
-
 
 
 210826.01
@@ -71,7 +83,6 @@ on the to do list
 - hud
   corrected a couple class checks
   added in a twinheal option for clerics in the heal tab
-
 
 
 210717.01

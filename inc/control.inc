@@ -582,6 +582,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
   | parse SPA data
   } else /if (${_type.Equal[spa]}) {
+    ECHO
 
     /if (!${Bool[${_verbage}]}) {
       OUT Display the SPA data for a given spell (A)ffect
@@ -599,7 +600,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
       /varset _verbage ${Me.Song[${_verbage.Right[-4]}]}
     }    
       
-    /call cast_data TRUE "${_verbage}"
+    /call cast_data ${_debug} "${_verbage}"
 
     /echo ${spellData.Name}
 
@@ -631,7 +632,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     OUT \awSPA list\ax ${sep} \a-w${_list}\ax
 
     | OUT \aw/spellslotinfo\ax
-    /spellslotinfo ${spellData.ID}
+    | /spellslotinfo ${spellData.ID}
     /invoke ${out[18, 0, 33]}
     /return TRUE
 
@@ -5822,6 +5823,9 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
     /invoke ${set_control_output[${_debug}, maPull, "pull stop", maControl]}
     /return TRUE
 
+  | enable/disable needing LoS for nav pulling
+  } else /if (${_type.Equal[navlos]}) {
+    /invoke ${set_switch_env[${_debug}, swPullNavLoS, TRUE, ${_verbage}]}
 
   | pull modes
   } else /if (${_type.Equal[with]}) {
@@ -5857,6 +5861,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   /invoke ${maControl.Add[active,swPull]}
   | /invoke ${maControl.Add[arc,stPullArcWidth|pr]}
   /invoke ${maControl.Add[rad,stPullRadius]}
+  /invoke ${maControl.Add[navlos,swPullNavLoS]}
   /invoke ${maControl.Add[zrad,stPullZRadius]}
   /invoke ${maControl.Add[pathlogic,swNavPathLogic]}
   /invoke ${maControl.Add[one,submenu]}

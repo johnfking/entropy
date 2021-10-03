@@ -162,8 +162,10 @@ elseif command == 'pull' then
     echo('chain${lsep}when only this many mobs in camp, seconday puller goes and gets more')
     echo('mode${lsep}how you want to pull base|pet|int|nav|multi|watch')
     echo('navstop${lsep}stop this far from a mob then attempt to pull')
+    echo('navlos${lsep}require los on nav pull checks')
     echo('outrun${lsep}get this far from a mob, turn walk on')
     echo('pathlogic${lsep}use nav path distance to find targets')
+    echo('petwatch${lsep}## radius to watch for pets to kill')
     echo('rad${lsep}y/x radius to pull in')
     echo('sethome${lsep}auto set a home marker before pulling')
     echo('stop${lsep}reasons to stop pulling?')
@@ -241,6 +243,7 @@ elseif command == 'heal' then
     echo('rampage${lsep}name of rampage tank')
     echo('self${lsep}heal yourself (not needed with group healing)')
     echo('splash${lsep}# of mobs in /env rad to use splash')
+    echo('twin${lsep}(clr,dru,shm) attempt to force twincast heals.')
     echo('weight${lsep}calculate the worst hurt by healpoint settings')
     echo('xt${lsep}heal people on xtarget')
     echo('xtclass${lsep}set xtarget classes to heal')
@@ -948,6 +951,19 @@ elseif command == 'rest' then
     out('notag')
   end
 
+
+--[ /coh --]
+elseif command == 'coh' then
+  if option == 'u' then
+    echo('\aw/'..command..' [\a-w group... \aw]')
+  elseif option == 'h' then
+    echo('w/o option requests a single target coh for you')
+    echo('group option requests a full group coh')
+  elseif option == 's' then
+    out('nomap')
+  elseif option == 't' then
+    out('notag')
+  end
 
 
 

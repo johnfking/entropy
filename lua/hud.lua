@@ -540,6 +540,16 @@ local function imguicallback()
           mq.cmd.luaedit('stPullNavVariance', navvariance)
         end 
 
+        ImGui.NextColumn()
+
+        -- navlos
+        local _switch, navlospressed = ImGui.Checkbox("navlos", mq.TLO.Macro.Variable('maPull').Find('swPullNavLoS').Value() == 'TRUE')
+        if navlospressed then
+          mq.cmd.luaedit('swPullNavLoS', _switch and 'TRUE' or 'FALSE')
+        end 
+
+
+
         ImGui.Columns()
         ImGui.EndTabItem()
                 
@@ -559,7 +569,7 @@ local function imguicallback()
 
         local current_rezpct = mq.TLO.Macro.Variable('maRez').Find('stPctMinRez').Value()
         if ImGui.BeginCombo("pct", current_rezpct) then
-          for _, v in ipairs({ '10', '20', '35', '50', '60', '75', '90', '93', '96' }) do
+          for _, v in ipairs({ '10', '20', '35', '50', '60', '75', '85', '90', '93', '96' }) do
             local selectedrezpct = v == current_rezpct
             if ImGui.Selectable(v, selectedrezpct) and not selectedrezpct then
               mq.cmd.rez('pct', v)

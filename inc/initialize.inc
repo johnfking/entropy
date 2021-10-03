@@ -156,9 +156,6 @@ sub set_initialize(bool _debug)
   | rez control map
   /declare maControlRez map outer
 
-  | self blocked buffs
-  | /declare lsBlockedBuffsMe string outer
-
   | PREGEN recorder
   /declare maPREGEN map outer
   
@@ -1106,7 +1103,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 |** control: rez  **|
   /call set_data ${_debug} FALSE swIsMeDead                               bool outer FALSE
-  /call set_data ${_debug} FALSE lsRezPct                                 list outer "10|20|35|50|60|75|90|93|96"
+  /call set_data ${_debug} FALSE lsRezPct                                 list outer "10|20|35|50|60|75|85|90|93|96"
   /call set_data_list ${_debug} maRez lsRezIC                             PREGEN|1                      "${auxli} names of in combat rezes"                                           rez
   /call set_data_list ${_debug} maRez lsRezOOC                            PREGEN|1                      "${auxli} names of  out of combat rezes"                                      rez
   /call set_data_list ${_debug} maRez lsNoRezToon                         EMPTY                         "${auxli} names of people you never want to rez"                              rez
@@ -1272,6 +1269,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maPull swNavPathLogic                      TRUE                          "${auxsw} use nav path lenght logic for finding targets to pull"                pull
   /call set_data_map ${_debug} maPull stCountChainPull                    0                             "${auxnum} # of mobs left in area to go pull more"                              pull
   /call set_data_map ${_debug} maPull stPullOutrunRange                   0                             "${auxnum} slowdown range when pulling a mob back to camp so you dont outrun them" pull
+  /call set_data_map ${_debug} maPull swPullNavLoS                        TRUE                          "${auxsw} is Line of Sight required for nav pulling"                                pull
 
   | arc controls
   | /call set_data_map ${_debug} maPull stPullArcCardinal                   FALSE                         "${auxna} cardinal direction to pull from camp"                                 pull
