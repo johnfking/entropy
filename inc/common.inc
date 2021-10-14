@@ -981,6 +981,8 @@ sub check_for_rezbox(bool _debug)
         /varset _stRezWindowPct 60
       } else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["(75 percent)"]}]}) {
         /varset _stRezWindowPct 75
+      } else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["(85 percent)"]}]}) {
+        /varset _stRezWindowPct 85
       } else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["(90 percent)"]}]}) {
         /varset _stRezWindowPct 90
       } else /if (${Bool[${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find["(96 percent)"]}]}) {
@@ -3141,7 +3143,7 @@ sub check_exit(bool _debug, string _call)
   DEBUG \atcheck_exit\ax(\a-w${_call}\ax)
 
   | invis
-  /if (${Me.Invis} && !${Select[${Me.Class.ShortName},ROG]}) /return TRUE
+  /if (CHECKINVIS && !${Select[${Me.Class.ShortName},ROG]}) /return TRUE
 
   | movement
   /if (${Me.Moving} && !BARD) /return TRUE
@@ -3209,7 +3211,8 @@ sub check_engaged(bool _debug)
 
   | am i the puller or main agro with mobs in range?
   /if (PULL && AGRO) {
-    /if (${SpawnCount[npc OVERLOS radius 15*2 PS4]}) {
+    | /if (${SpawnCount[npc OVERLOS radius 15*2 PS4]}) {
+    /if (${SpawnCount[npc OVERLOS radius ${maRest.Find[stRestRadius].value} PS4]}) {
       /return TRUE
     }
   }
@@ -3236,9 +3239,15 @@ sub do_rest(bool _debug)
     /return FALSE
   }
   
+  | initial spawncount check
+  /if (${SpawnCount[${maRest.Find[stRestSpawnSearch].Value}]}) {
+    DEBUG ${break}mobs close
+    /return FALSE
+  }
+  
   | rest in raids?
   /if (!${maRest.Find[swRestInRaid].Value} && ${Raid.Members}) {
-    DEBUG ${break}no rest in raids
+    DEBUG ${break}no rest in raidsS
     /return FALSE
   }
 
@@ -3249,7 +3258,7 @@ sub do_rest(bool _debug)
   }
 
   | we DO NOT enter rest while in active combat
-  /if (${Me.CombatState.Equal[combat]}) {
+  /if (!${maRest.Find[swRestCombat].Value} && ${Me.CombatState.Equal[combat]}) {
     DEBUG ${break}active combat
     /return FALSE
   }
@@ -3276,7 +3285,7 @@ sub do_rest(bool _debug)
   /varset _needrest FALSE
   CHECKREZ
   
-  /if (((!${maRest.Find[swRestCombat].Value} || ${Me.CombatState.Equal[combat]}) && ${SpawnCount[${maRest.Find[stRestSpawnSearch].Value}]}) || !AUTO) {
+  /if ((!${maRest.Find[swRestCombat].Value} && ${Me.CombatState.Equal[combat]}) ||!AUTO || ${SpawnCount[${maRest.Find[stRestSpawnSearch].Value}]}) {
     /varset _needrest FALSE
     /if (${Me.State.NotEqual[STAND]}) /stand
     /if (BARD && ${Me.BardSongPlaying}) {
@@ -4731,46 +4740,44 @@ sub do_mana_recovery(bool _debug)
     DEBUG ${sep}\a-w${_lidmc.Value}\ax
     GETOVERHERE
 
-    /if (${Select[${FindItem[=${_lidmc.Value}].Type},Potion,Scroll]}) {
-      DEBUG ${sep}${FindItem[=${_lidmc.Value}]} Is a ${FindItem[=${_lidmc.Value}].Type} so ignoring it!
-      /invoke ${_lidmc.Advance}
-      /continue 
-    }
-
     /if (!${cast_data[${_debug}, "${_lidmc.Value}"]}) {
       /invoke ${_lidmc.Advance}
       /continue
     }
-    /if (${FindItem[=${_lidmc.Value}].Type.Equal[Potion]} && ${FindItem[=${_lidmc.Value}].Spell.Duration} > 0) {
-      DEBUG ${sep}${FindItem[=${_lidmc.Value}]} Is a Potion so ignoring it!
+
+    | no potions or scrolls (spells in inventory)
+    /if (${Select[${FindItem[=${_lidmc.Value}].Type},Potion,Scroll]}) {
+      DEBUG ${sep}${FindItem[=${_lidmc.Value}]} Is a ${FindItem[=${_lidmc.Value}].Type} so ignoring it!
       /invoke ${_lidmc.Advance}
       /continue 
-    }
+
     | worth the mana or gonna kill us?
-    /if (${FindItem[=${_lidmc.Value}].Spell.Base[2]} < ${Math.Calc[${Me.MaxMana} - ${Me.CurrentMana}].Int} && ${Me.CurrentHPs} > ${FindItem[=${_lidmc.Value}].Spell.Base[1]}) {
-      DEBUG ${sep}You can live and get mana too!
-      /call cast ${_debug} ${Me.ID} FALSE
+    } else /if (${Me.CurrentHPs} < ${spellData.Base[1]}) {
+      DEBUG ${sep}Come back when you have more HP slacker
+      /invoke ${_lidmc.Advance}
+      /continue
+
+    | can we use it?
     } else /if (!${FindItem[=${_lidmc.Value}].CanUse}) {
       DEBUG ${sep}${FindItem[=${_lidmc.Value}]} Can't be used by you!
       /invoke ${_lidmc.Advance}
       /continue
-    } else /if (${FindItem[=${_lidmc.Value}].Spell.Base[2]} > ${Math.Calc[${Me.MaxMana} - ${Me.CurrentMana}].Int}) {
-      DEBUG ${sep}Giving too much mana back dont be a waste.....
+      
+    | only use instant duration things
+    } else /if (${spellData.Duration} > 0) {
+      DEBUG ${sep}${FindItem[=${_lidmc.Value}]} has a castable buff so not touching it....
       /invoke ${_lidmc.Advance}
       /continue
-    } else /if (${Me.CurrentHPs} > ${FindItem[=${_lidmc.Value}].Spell.Base[1]}) {
-      DEBUG ${sep}Come back when you have more HP slacker
-      /invoke ${_lidmc.Advance}
-      /continue
-    }
-    | if its a targetable click, change target ID to self
-    /if (${Select[${Spell[${_lidmc.Value}].RankName.TargetType},Self,AE PC v2]}) {
-      /call cast ${_debug} 0 FALSE
-    } else /if (${Select[${Spell[${_lidmc.Value}].RankName.TargetType},Single]}) {
-      /call cast ${_debug} ${Me.ID} FALSE
+    } 
+
+    | cast something already
+    /call cast ${_debug} ${Me.ID} FALSE
+    /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS]}) {
+      /return TRUE
     }
 
     /invoke ${_lidmc.Advance}
+
   }
 
 /return TRUE
@@ -9518,7 +9525,7 @@ sub cast_cycle_nuke(bool _debug, spawn _spawn, string _tag)
  * use: /call cast_cycle_dot DEBUG [spawnID]
  ***|
 sub cast_cycle_dot(bool _debug, spawn _spawn)
-  DEBUG \atcast_cycle_dot\ax(\a-w${_spawn.ID}\ax)
+  DEBUG \atcast_cycle_dot\ax(\a-wtID:${_spawn.ID}\ax)
 
   | if the user has not set the line order, set it to a default for now
   /if (${lsLineDoT.Contains[EMPTY]} && ${lsLineDoT.Count} == 1) {
@@ -9547,21 +9554,26 @@ sub cast_cycle_dot(bool _debug, spawn _spawn)
         /return FALSE
       }
     }
+    
+    /call cast_data ${_debug} "${maDoT.Find[stDoT${_liC20.Value}].Value}"
 
     | TTL evaluations
     /if (${maTTL.Find[swTTL].Value}) {
       /if (${maTTL.Contains[${_spawn.DisplayName}]}) {
+
         DEBUG ${sep}ttl
+
         | check overall durations of the average kill +2 tics over the spell duration time
-        /if (${Spell[${Spell[${maDoT.Find[stDoT${_liC20.Value}].Value}].RankName}].Duration} > ${Math.Calc[${maTTL.Find[${_spawn.DisplayName}].Value.Arg[2,|]} + (${maTTL.Find[${_spawn.DisplayName}].Value.Arg[2,|]}*.5)]}) {
+        /if (${spellData.Duration} > ${Math.Calc[${maTTL.Find[${_spawn.DisplayName}].Value.Arg[2,|]} + (${maTTL.Find[${_spawn.DisplayName}].Value.Arg[2,|]}*.5)]}) {
           /invoke ${_liC20.Advance}
           /continue
         }
         | if mob is less then 50% hp and spell duration is > 1/2 your average kill time
-        /if (${_spawn.PctHPs} < 50 && ${Spell[${Spell[${maDoT.Find[stDoT${_liC20.Value}].Value}].RankName}].Duration} > ${Math.Calc[${maTTL.Find[${_spawn.DisplayName}].Value.Arg[2,|]} / 2]}) {
+        /if (${_spawn.PctHPs} < 50 && ${spellData.Duration} > ${Math.Calc[${maTTL.Find[${_spawn.DisplayName}].Value.Arg[2,|]} / 2]}) {
           /invoke ${_liC20.Advance}
           /continue
         }
+
       }
     }
 
@@ -9575,8 +9587,8 @@ sub cast_cycle_dot(bool _debug, spawn _spawn)
     /call target set ${_spawn.ID}
 
     /if (${Target.ID} == ${_spawn.ID}) {
-      /if (${Target.BuffDuration[${maDoT.Find[stDoT${_liC20.Value}].Value}].TotalSeconds} >= ${maDoT.Find[stDotRefresh].Value}) {
-        DEBUG ${sep}dot refresh fail
+      /if (${Target.BuffDuration[${spellData}].TotalSeconds} >= ${maDoT.Find[stDotRefresh].Value}) {
+        DEBUG ${sep}dot refresh fail. target has dot ${Target.BuffDuration[${spellData}].TotalSeconds} >= ${maDoT.Find[stDotRefresh].Value}
         /invoke ${_liC20.Advance}
         /continue
       }
@@ -14640,6 +14652,8 @@ sub cast_data(bool _debug, string _type)
         /invoke ${maCD.Add[type,ITEM]}
         /invoke ${maCD.Add[name,${_type}]}
         /invoke ${maCD.Add[id,${FindItem[=${_type}].ID}]}
+        /invoke ${maCD.Add[clickid,${FindItem[=${_type}].Clicky.SpellID}]}
+        /invoke ${maCD.Add[clickname,${Spell[${FindItem[=${_type}].Clicky.SpellID}].Name}]}
          /if (${Me.ItemReady[=${_type}]}) {
           /invoke ${maCD.Add[ready,TRUE]}
         }
@@ -14694,7 +14708,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
   }
 
   | generic validations
-  /if (${Me.Invis} && ${_sub.NotEqual[ignoreall]}) {
+  /if (CHECKINVIS && ${_sub.NotEqual[ignoreall]}) {
     DEBUG ${break}invis
     /return FALSE
   }
@@ -14722,7 +14736,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
   } else {
     /varset _range ENV
   }
-
+  
   | is the issued target still a thing???
   /if (${_spawn.ID} != 0 && !${Select[${_sub},skiptargetcheck]}) {
     /if (!${_spawn.ID} || ${_spawn.Dead}) /return FALSE
@@ -14733,6 +14747,8 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
   /declare _tiCastTime timer local 0
   /declare _castTime int local 0
   /invoke ${maData.Add[stCastReturn,FALSE]}
+  
+
 
   | alt abilities
   /if (${Select[${maCD.Find[type].Value},ALT]}) {
@@ -15009,7 +15025,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
       /while (${_castLoop} > 0) {
         ISMEDEAD
 
-        /if (${Me.Invis} && ${_sub.NotEqual[ignoreall]}) {
+        /if (CHECKINVIS && ${_sub.NotEqual[ignoreall]}) {
           DEBUG ${sep}spell.cr:DISTRACTED(invis).break
           /varset _castLoop 0
           /invoke ${maData.Add[stCastReturn,DISTRACTED]}
@@ -15170,6 +15186,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
 
   | items
   } else /if (${Select[${maCD.Find[type].Value},ITEM]}) {
+
     DEBUG ${sep}\agITEM\ax${sep}${FindItem[${maCD.Find[id].Value}].Name}
 
     /if (${_spawn.ID} == 0 || ${_spawn.ID} == ${Me.ID}) {
@@ -15299,7 +15316,8 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
     /while (${_castLoop}) {
       ISMEDEAD
       /cast ${Me.Gem[${spellData.RankName}]}
-      /delay 1
+      | /delay 1
+      CHECKTIE
 
       | bard swap mechanics
       /while (${Window[CastingWindow].Open}) {
@@ -15316,7 +15334,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
         }
         /delay 3
       }
-      /delay 3
+      | /delay 3
       /doevents
 
       /if (${Select[${_sub},ignoreall]}) {
@@ -15329,7 +15347,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
         /break
       }
       /if (${Select[${maData.Find[stCastReturn].Value},NOTREADY,DISTRACTED]}) {
-        /delay 2
+        /delay 1
       }
       /varcalc _castLoop ${_castLoop}-1
     }

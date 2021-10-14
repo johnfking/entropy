@@ -21,6 +21,19 @@ on the to do list
 --------------------
 
 
+211013.01
+- some adjustments to rest check/loop breaks
+- bard
+  changes to the delays for singing (removed or shortened several of them)
+- dots
+  items used for dots will obey same rules as spells now
+- druid
+  heals again. for what its worth
+- tags
+  inmygroup - (heal, buff, cure) the intended target has to be in your group
+- redesign for mana recovery (needs some tlp testing, getting lazy in my old age)  
+- testing some breaks in larger loops for /env auto off. will roll these out slowly
+
 
 211003.01
 - several spawn type adjustments

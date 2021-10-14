@@ -68,7 +68,12 @@ local shade = {}
   shade[56] = "cause at this moment i have nothing to loose - islandgirl671"
   shade[57] = "gonna chalk this up to another pointless discussion, you do your way, i'll continue raiding my way. - exspes"
   shade[58] = "this function looks like it was designed by an asshole - brainiac"
-
+  shade[59] = "Yeah uh I dunno sounds like your pc is messed up - brainiac"
+  shade[60] = "Onward Sir Honkers, There's Fuckary to be spread!"
+  shade[61] = "Fuckery Department, Please Hold"
+  shade[62] = "Just because the clerics heal you doesn't mean they like you."
+  
+  
 
 mq.cmd.echo('\a#FFBF00'..shade[math.random(#shade)]..'\ax')
 

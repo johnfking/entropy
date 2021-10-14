@@ -59,6 +59,8 @@ hudInfo = function ()
   -- target
   target['shortname'] = mq.TLO.Target.Class.ShortName() or '--'
   target['level'] = mq.TLO.Target.Level() or '--'
+  target['los'] = mq.TLO.Target.LineOfSight() or '--'
+  target['id'] = mq.TLO.Target.ID() or '--'
   target['displayname'] = mq.TLO.Target.DisplayName() or '--'
   target['guild'] = mq.TLO.Target.Guild() or '--'
   target['distance'] = mq.TLO.Target.Distance() or 0
@@ -71,6 +73,7 @@ hudInfo = function ()
   target['crippled'] = isCrippled()
   target['snared'] = isSnared()
   -- target['ds'] = hasDS()
+  
 
 end
 
@@ -224,6 +227,14 @@ function hasDS()
     return '--'
   end
   return mq.TLO.Target.DSed.Base(2)()..' ('..mq.TLO.Target.BuffDuration(mq.TLO.Target.DSed()).TotalSeconds()..'s)'
+end
+
+
+function hasLoS()
+  if mq.TLO.Target.LineOfSight() == nil then
+    return '--'
+  end
+  return mq.TLO.Target.LineOfSight()
 end
 
 

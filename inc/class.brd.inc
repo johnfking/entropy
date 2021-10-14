@@ -425,7 +425,7 @@ sub pulse_stop(string _marker, bool _debug)
     /invoke ${maData.Add[stCastReturn,FALSE]}
     /stopsong
     /stopcast
-    /delay 10 !${Me.Casting.ID}
+    /delay 1 !${Me.Casting.ID}
   }
 
 /return TRUE

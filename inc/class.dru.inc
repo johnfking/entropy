@@ -162,7 +162,7 @@ sub check_heal(bool _debug, string _type)
   ISMEDEAD
   CHECKEXIT
 
-  SETHUD "heal ${_type}"
+  SETHUD "heal ${_type.Lower}"
 
   /call spawn_hurt ${_debug} ${_type}
 
@@ -173,13 +173,13 @@ sub check_heal(bool _debug, string _type)
 
   /if (!SAFEZONE) {
 
-    /if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+    /if (${hurtData.PctHPs} < ${maHeal.Find[stHealPoint${hurtData.Class.ShortName}].Value}*.PCTHO) {
       /if (${cast_data[${_debug}, "${maChr.Find[stAASwarmofFireflies].Value}"]}) {
         /call cast ${_debug} ${hurtData.ID} FALSE
       }
     }
 
-    /if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+    /if (${hurtData.PctHPs} < ${maHeal.Find[stHealPoint${hurtData.Class.ShortName}].Value}*.PCTHO) {
       /if (${cast_data[${_debug}, "${maChr.Find[stAAConvergenceofSpirits].Value}"]}) {
         /call cast ${_debug} ${hurtData.ID} FALSE
       }
@@ -195,13 +195,13 @@ sub check_heal(bool _debug, string _type)
 
       /if (!SAFEZONE) {
 
-      /if (${hurtPctHP} < ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-        /if (${cast_data[${_debug}, "${maChr.Find[stAAWildtendersSurvival].Value}"]}) {
-          /call cast ${_debug} 0 FALSE
+        /if (${hurtData.PctHPs} < ${maHeal.Find[stHealPoint${hurtData.Class.ShortName}].Value}*.PCTHO) {
+          /if (${cast_data[${_debug}, "${maChr.Find[stAAWildtendersSurvival].Value}"]}) {
+            /call cast ${_debug} 0 FALSE
+          }
         }
-      }
 
-        /if (${cast_data[${_debug}, "${maChr.Find[stAAPeacefulSpiritoftheWood].Value}"]}) {
+        /if (${cast_data[${_debug}, "${maChr.Find[stAASpiritoftheWood].Value}"]}) {
           /call cast ${_debug} ${Me.ID} FALSE
           /return
         }
@@ -209,7 +209,7 @@ sub check_heal(bool _debug, string _type)
         /if (!${spawn_hurt[${_debug}, ${_type}]}) /return FALSE
 
         /if (${cast_data[${_debug}, "${maChr.Find[stAABlessingofTunare].Value}"]}) {
-          /call cast ${_debug} 0 FALSE
+          /call cast ${_debug} ${Me.ID} FALSE
           /return
         }
       }

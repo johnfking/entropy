@@ -1019,8 +1019,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
 
       | if i'm issuing the command. turn off tie and move along
       /if (${_name.Equal[${Me.DisplayName}]}) {
-        /invoke ${do_raw_edit[FALSE, SILENT, stTieToon, FALSE]}
-
+        /invoke ${do_raw_edit[${_debug}, SILENT, stTieToon, FALSE]}
         /continue
       }
 

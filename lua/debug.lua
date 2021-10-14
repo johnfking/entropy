@@ -1,8 +1,8 @@
 --
--- entropoy.mac
--- build.lua
+-- entropy.mac
 -- 
--- character building
+-- 
+-- 
 --
 
 
@@ -17,7 +17,7 @@ local shouldDrawHUD = true
 local function imguicallback()
   hudInfo()
   
-  openGUI, shouldDrawHUD = ImGui.Begin('What Now?? '..ent['build'], openGUI)
+  openGUI, shouldDrawHUD = ImGui.Begin('Info Overload '..ent['build'], openGUI)
   
   if shouldDrawHUD and ent['build'] == '--' then
     ImGui.Text('Entropy is not running')
@@ -441,10 +441,126 @@ local function imguicallback()
       indent(1,2)
     end
 
- 
+    -- target data
+    if ImGui.CollapsingHeader('target data') then
+      indent(1,1)
+      
+      if mq.TLO.Target.ID() then
+        ImGui.NewLine()
+
+        -- ID
+        ImGui.TextColored(0.39, 0.58, 0.92, 1, 'ID:')
+        ImGui.SameLine()
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Target.ID())        
+        -- name
+        ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Name:')
+        ImGui.SameLine()
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Target.Name())        
+        -- displayname
+        ImGui.TextColored(0.39, 0.58, 0.92, 1, 'DisplayName:')
+        ImGui.SameLine()
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Target.DisplayName())        
+
+      
+        ImGui.NewLine()    
+        
+        ImGui.Columns(2, 'noname', false)
+  
+          -- distance
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'distance:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, round(mq.TLO.Target.Distance(), 2))   
+          
+          -- valid loc
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'valid loc:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, mq.TLO.EverQuest.ValidLoc(string.format("%f %f %f", mq.TLO.Target.X(), mq.TLO.Target.Y(), mq.TLO.Target.Z())))
+          
+          
+               
+
+        ImGui.NextColumn()
+
+          -- pathexists
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'pathexists:')
+          ImGui.SameLine()
+          --ImGui.TextColored(1, 1, 1, 1, mq.TLO.Navigation.PathExists(id mq.TLO.Target.ID())
+
+        --pathlength
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'pathlength:')
+          ImGui.SameLine()
+          --ImGui.TextColored(1, 1, 1, 1, mq.TLO.Navigation.PathLength(id mq.TLO.Target.ID())
+        
+
+
+        ImGui.Columns()        
+        
+        
+        
+        ImGui.NewLine() 
+        ImGui.NewLine()    
+        ImGui.Columns(2, 'noname', false)
+
+          -- body
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Body:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, mq.TLO.Target.Body.Name())        
+
+          -- height
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Height:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, round(mq.TLO.Target.Height(), 2))
+
+          -- height
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'LoS:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, target['los'])
+
+
+
+        ImGui.NextColumn()
+        
+          -- slowed
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Slowed:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, target['slowed']) 
+
+          -- tashed
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Tashed:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, target['tashed']) 
+
+          -- maloed
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Malo:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, target['maloed']) 
+
+          -- crippled
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Cripple:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, target['crippled']) 
+
+          -- snared
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Snared:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, target['snared']) 
+
+          -- ds
+          -- ImGui.TextColored(0.39, 0.58, 0.92, 1, 'DS:')
+          -- ImGui.SameLine()
+          -- ImGui.TextColored(1, 1, 1, 1, target['ds']) 
+
+        ImGui.Columns()
+        
+      else
+        ImGui.NewLine()
+        ImGui.TextColored(0.39, 0.58, 0.92, 1, 'No Target')
+      end
+     
+    end
     
-    ImGui.End()
   end
+  ImGui.End()
 
 end
 

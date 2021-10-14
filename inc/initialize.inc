@@ -171,12 +171,14 @@ sub set_initialize(bool _debug)
   
   | assists target spawn data
   /declare targetData spawn outer
+  /vardata targetData Me
   
   | spell/cast data
   /declare spellData spell outer
   
   | current worst hurt data
   /declare hurtData spawn outer
+  /vardata hurtData Me
 
   | TTL stuff
   /declare maTTL map outer
@@ -898,7 +900,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
-|** testing variables (no ingame use)**|
+|** testing variables (no ingame use) **|
   /declare test1 int outer 0
 
 
@@ -1023,7 +1025,9 @@ sub set_initialize_map_character_environment(bool _debug)
 
   /call set_data_map ${_debug} maEnv swBegMAG                             FALSE                         "${auxsw} beg mages for pet gear or rods" 
 
-
+  | ignore invis checks
+  /call set_data_map ${_debug} maEnv swIgnoreInvis                        FALSE                         "${auxsw} ignore all invis checks" 
+  
 
 
 |** control: rest **|
@@ -2286,6 +2290,7 @@ sub data_schema_tag()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('990', 'mezae', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('989', 'cripple', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('987', 'delaycooldown', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('986', 'inmygroup', '1');
 
 
 
@@ -2384,6 +2389,7 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '17', '1', '${Parse[0,${Select[${_name},${Group.MainAssist.DisplayName},${maCC.Find[stManualAssist1].Value},${maCC.Find[stManualAssist2].Value}]}]}', 'my assist');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '997', '1', 'CONTROL::MARKER', 'intervention pulling for clerics and shaman');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '987', '1', 'ACTION::delaycooldown', 'delays until gem cooldown is clear');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '986', '1', '${Parse[0,${Group.Member[${_name}].Index}]}', 'target must be in my group');
 
   | nuke
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
@@ -2554,6 +2560,10 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '17', '1', '${Parse[0,${Select[${_name},${Group.MainAssist.DisplayName},${maCC.Find[stManualAssist1].Value},${maCC.Find[stManualAssist2].Value}]}]}', 'my assist');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '998', '1', 'CONTROL::MARKER', 'marker /buff temp');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '987', '1', 'ACTION::delaycooldown', 'delays until gem cooldown is clear');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '986', '1', '${Parse[0,${Group.Member[${_name}].Index}]}', 'target must be in my group');
+
+
+
 
 
   | debuff
@@ -2573,6 +2583,7 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '977', '1', 'CONTROL::MARKER', 'marker /cure disease');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '976', '1', 'CONTROL::MARKER', 'marker /cure poison');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '987', '1', 'ACTION::delaycooldown', 'delays until gem cooldown is clear');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '986', '1', '${Parse[0,${Group.Member[${_name}].Index}]}', 'target must be in my group');
   
 
 /return TRUE

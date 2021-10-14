@@ -32,6 +32,8 @@
 #define CHECKEXIT "/if (${check_exit[${maDebug.Find[exit].Value}]}) /return"
 #define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maPull.Find[swPull].Value} && !${Me.Invis}) /call check_for_corpse ${maDebug.Find[rez].Value}"
 #define CHECKFADE "/if (${maChr.Find[stPctFade].Value}) /call cast_AA_fade ${maDebug.Find[fade].Value}"
+#define CHECKINVIS ${Me.Invis} && !${maEnv.Find[swIgnoreInvis].Value}
+#define CHECKAUTO "/if (!${maEnv.Find[swAuto].Value}) /return FALSE"
 #define OVERLOS "${If[${maOver.Find[swOverLOS].Value},,los]}"
 #define PS4 playerstate 4
 #define AUTO ${maEnv.Find[swAuto].Value}
@@ -123,7 +125,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 211003.01
+  /call set_data FALSE maEnv build                          map outer 211013.01
   /call set_data FALSE maEnv schema                         map outer 1.46
   /call set_data FALSE maEnv repo                           map outer 210216.01
 
