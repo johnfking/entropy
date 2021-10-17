@@ -76,7 +76,7 @@ sub mode_trainskill(bool _debug)
 
   ISMEDEAD
   SETHUD "trainskill"
-  /makemevisible
+  /call Bind_control_nomore invis
   /delay 1
 
   /if (${Me.Skill[Taunt]} < ${Skill[Taunt].SkillCap} && ${Me.AbilityReady[Taunt]}) {
@@ -135,12 +135,14 @@ sub mode_fish(bool _debug)
 
   SETHUD "fish"
 
-  /if (!${Me.Standing}) /stand
+  /if (!${Me.Standing}) {
+    /stand
+  }
 
   /call check_cursor ${_debug} clear
 
   /if (${Me.ItemReady[Fisherman's Companion]} && !${Me.ItemReady[Brell's Fishin' Pole]} && !${Me.Inventory[mainhand].ID}) {
-    /if (${Me.Invis}) /docommand /makemevisable
+    /call Bind_control_nomore invis
     /if (${cast_data[${_debug}, "Fisherman's Companion"]}) {
       /call cast ${_debug} ${Me.ID} FALSE
     }
@@ -237,9 +239,6 @@ sub mode_drag(bool _debug)
 
 
 
-
-
-
 |***
  * note: Pet Farm
  * use: /mode petfarm
@@ -327,7 +326,6 @@ sub mode_petfarm(bool _debug)
   SETHUD
 
 /return
-
 
 
 
@@ -1110,7 +1108,7 @@ sub task_get(bool _debug, string _verbage)
 
   /call target set ${Spawn[${sqlite.Result[farmquery 1 questmob]}].ID}
 
-  /makemevisible
+  /call Bind_control_nomore invis
   /delay 5
   /say ${sqlite.Result[farmquery 1 phrase]}
 
@@ -1437,7 +1435,7 @@ sub rof_shard_bodhe(string _opt, bool _debug)
     /if (${Spawn[npc ${sqlite.Result[farmquery3 1 questmob]}].Distance} <= 20) {
       /call target set ${Spawn[npc ${sqlite.Result[farmquery3 1 questmob]}].ID}
       /delay 5
-      /makemevisible
+      /call Bind_control_nomore invis
       /delay 5
       /keypress hail
     }

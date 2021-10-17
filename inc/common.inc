@@ -352,16 +352,33 @@ sub set_data_list(bool _debug, string _map, string _env_var, string _value, stri
  * note: enforced a range of numbers from a user enterd value
  * use: ${set_control_num_range[DEBUG, VARIABLE, "VALUE", LOW, HIGH]}
  ***|
-sub set_control_num_range(bool _debug, string _variable, int _value, int _low, int _high)
-  DEBUG \atset_control_num_range\ax(\a-w${_variable}, ${_value}, ${_low}, ${_high}\ax)
+sub set_control_num_range(bool _debug, string _variable, string _value, int _low, int _high)
+  DEBUG \atset_control_num_range\ax(\a-w${_variable}, "${_value}", "${_low}", ${_high}\ax)
   
   /invoke ${maData.Add[outVar,${_variable}]}
   /invoke ${maData.Add[outVal,${_value}]}
+  /declare _valid bool local FALSE
+  
+  | allow 0 and falses
+  /if (${Select[${_value},"0","FALSE"]}) {
+    DEBUG ${sep} "${_value}" == "0","FALSE"
+    /varset _valid TRUE
+  }
 
-  /if ((${Bool[${_value}]} || ${_value} == 0) && ${Range.Between[${_low},${_high}:${Int[${_value}]}]}) {
-    /call do_raw_edit ${_debug} SILENT "${_variable}" "${_value}"
-    /return TRUE
-  } else {
+  | just another check
+  /if (${_value.Length} > 0 && ${Math.Abs[${_value}]} > -1) {
+    DEBUG ${sep}Math.Abs[${_value}] > -1
+    /varset _valid TRUE
+  }
+
+  | in range
+  /if (${_value.Length} > 0 && ${Range.Between[${_low},${_high}:${Int[${_value}]}]}) {
+    DEBUG ${sep} Range.Between[${_low},${_high}:${Int[${_value}]}]
+    /varset _valid TRUE
+  }
+
+  /if (!${_valid}) {
+    DEBUG ${sep} _valid=FALSE
     /invoke ${out[1, shade, 0]}
     /if (${_low} == 0) {
       /invoke ${out[0, "${notice}${sep}Control Range ${dot} ${info}${_low}\ax(\aroff\ax)${info} - ${_high}\ax"]}
@@ -370,6 +387,10 @@ sub set_control_num_range(bool _debug, string _variable, int _value, int _low, i
       /invoke ${out[0, "${notice}${sep}Control Range ${dot} ${info}${_low} - ${_high}\ax"]}
       /return FALSE
     }
+  } else {
+    /call do_raw_edit ${_debug} SILENT "${_variable}" "${_value}"
+    /return TRUE
+
   }
 
 /return FALSE
@@ -884,6 +905,9 @@ sub set_switch_env(bool _debug, string _switch, bool _sql, string _verbage)
     /sqlite query "${DBcharacter}" dummy UPDATE ${_DBLOC.Arg[1,|]} SET value='${${_map}.Find[${_switch}].Value}' WHERE ${_DBLOC.Arg[2,|]}='${_switch}';
     /if (!${sql_check[${_debug}, dummy, set_switch_env, "UPDATE ${_DBLOC.Arg[1,|]}"]}) /endmacro
   }
+  
+  /invoke ${maData.Add[outVar,${_switch}]}
+  /invoke ${maData.Add[outVal,${${_map}.Find[${_switch}].Value}]}
 
 /return ${${_map}.Find[${_switch}].Value}
 
@@ -1082,14 +1106,13 @@ sub check_for_rezbox(bool _debug)
 sub check_buff_cycle_shrink(bool _debug)
   DEBUG \atcheck_buff_cycle_shrink\ax()
 
-  SETHUD "buff shrink"
+  /invoke ${set_data_timer[FALSE, Check_Buff_Shrink, RESTART]}
 
-  /if (AUTO) {
-    /invoke ${set_data_timer[FALSE, Check_Buff_Shrink, RESTART]}
-    /if (!${maBuff.Find[swBuffMaster].Value}) {
-      /return FALSE
-    }
+  /if (!${maBuff.Find[swBuffMaster].Value}) {
+    /return FALSE
   }
+
+  SETHUD "buff shrink"
 
   CHECKTIE
   ISMEDEAD
@@ -7334,14 +7357,29 @@ sub pull_mob_move_to(bool _debug, spawn _spawn, int _dist, string _LoS)
       }
     }
 
-    | abort pull if agro (xtarget only)
-    /if (${Me.XTargetSlots}) {
-      /if (${SpawnCount[npc radius SAFEENV PS4]} > 0  && ${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} > SAFEENV && !${swModeToken}) {
+    | abort nav if agro (non mode)
+    /if (!${swModeToken}) {
+      /if (${SpawnCount[npc radius SAFEENV PS4]} > 0  && ${NearestSpawn[npc radius SAFEENV PS4].ID} != ${_spawn.ID} && ${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} > SAFEENV) {
         DEBUG ${break}we have agro.. drop intended target and return to camp
         /varset _spawn 0
-        /return TRUE        
+        /return TRUE    
       }
     }
+
+
+    | abort pull if agro (mode)
+    /if (${swModeToken}) {
+      /if (${SpawnCount[npc radius SAFEENV PS4]} > 0 && ${NearestSpawn[npc radius SAFEENV PS4].ID} != ${_spawn.ID}) {
+        DEBUG ${break}we have agro.. drop intended, clear and allow reacquisition
+        /invoke ${target[clear]}
+        /call set_stop_movement ${_debug}
+        /return FALSE
+      }
+    }
+
+
+
+
 
     | range from camp check
     /if (${Select[${maPull.Find[stPullMode].Value},nav]}) {
@@ -8025,7 +8063,7 @@ sub out(int _lvl, string _verbage, int _strNum)
 
   | shade output. grain validation
   } else /if (${_verbage.Equal[shade]} && (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0)) {
-    /lua list_shade
+    /lua run list_shade
     /return TRUE
 
   | output grain validation

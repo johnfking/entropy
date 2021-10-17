@@ -20,7 +20,7 @@ local shade = {}
   shade[8] = "Go ahead tell them everything you know. It'll only take 10 seconds."
   shade[9] = "Sometimes the first step to forgiveness is realising the other person was born an idiot."
   shade[10] = "I'm getting Disc lag . . . again. - Mayax"
-  shade[11] = "oh man....i figured out why i was lagging the other day...i look in my case and my kids knocked off my cpu fan. - Mayax] = "
+  shade[11] = "oh man....i figured out why i was lagging the other day...i look in my case and my kids knocked off my cpu fan. - Mayax"
   shade[12] = "I'm jealous of all the people that haven't met you!"
   shade[13] = "You're slower than a herd of turtles stampeding through peanut butter."
   shade[14] = "Oh good, my dog found a chainsaw."
@@ -72,8 +72,7 @@ local shade = {}
   shade[60] = "Onward Sir Honkers, There's Fuckary to be spread!"
   shade[61] = "Fuckery Department, Please Hold"
   shade[62] = "Just because the clerics heal you doesn't mean they like you."
-  
-  
+  shade[63] = "Found another one. Reaching for something to throw! - Xeniaz"
 
 mq.cmd.echo('\a#FFBF00'..shade[math.random(#shade)]..'\ax')
 

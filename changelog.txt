@@ -21,6 +21,26 @@ on the to do list
 --------------------
 
 
+
+
+211016.01
+- entering a command with a number option and not actually entering the number, 
+  like /env rad and hitting enter will not longer set the value to 0
+- fixed the sarcastic response call. quit doing dumb things..
+- fixed the popup output for bool switches
+- no more shrinking when its turned off.. this one was bugging me
+- adjusted the logic of how a mob is detected mofing to a taret using nav.. pull_mob_moveto()
+  if anything is detected within the toons safe radius that is hostile and not the intended target, the 
+  movement routine will be cleard. for modes, it will allow the acquisition of a new target, for non modes away from 
+  your groups camp, it will release the current intended target and return to camp.
+  this is gonna require some testing and refinement. but it should help.
+  side note: huge safe rad is bad. dont do it.
+
+
+211013.02
+- forgot to increment the schema version
+
+
 211013.01
 - some adjustments to rest check/loop breaks
 - bard

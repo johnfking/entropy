@@ -1262,7 +1262,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
     /if (${Window[FellowshipWnd].Open}) /invoke ${Window[FellowshipWnd].DoClose}
     /return TRUE
 
-  | gather your crew
+  |** gather your crew
   } else /if (${_type.Equal[gather]}) {
 
     /if (${_verbage.Equal[all]}) {
@@ -1276,7 +1276,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
     }
     /return TRUE
 
-
+  **|
 
   | position
   } else /if (${_type.Equal[position]}) {
