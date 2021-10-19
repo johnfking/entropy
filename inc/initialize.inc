@@ -1174,7 +1174,9 @@ sub set_initialize_map_character_environment(bool _debug)
   /invoke ${set_data_timer[${_debug}, Check_Buff_Aura, 3m]}
   /call set_data_map ${_debug} maBuff swBuffAura                          FALSE                         "${auxsw} use auras or not. i dont care"
 
-
+  | tlp specific
+  /call set_data_map ${_debug} maBuff swBuffKeepMount                     FALSE                         "${auxsw} allows TLPs to keep the mount buff and the mount stat buff"
+  
 
 
 |** control: melee **|

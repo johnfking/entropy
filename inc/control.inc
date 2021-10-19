@@ -1403,14 +1403,10 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   } else /if (${_type.Equal[variance]}) {
     /if (!${set_control_num_range[FALSE, stHomeVariance, "${_verbage}", 0, 15]}) /return
 
-  | } else /if (${_type.Equal[movebehind]}) {
-  |   /invoke ${set_switch_env[FALSE, swMoveBehind, TRUE, ${_verbage}]}
-
   } else /if (${_type.Equal[facefast]}) {
     /invoke ${set_switch_env[FALSE, swFaceFast, TRUE, ${_verbage}]}
 
-  } else /if (${_type.Equal[mount]}) {
-    /invoke ${do_raw_edit[FALSE, SILENT, stMount, "${_verbage}"]}
+ 
 
   | when to clear home
   } else /if (${_type.Equal[stop]}) {
@@ -1446,16 +1442,15 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[set,swHomeMarker|pr]}
   /invoke ${maControl.Add[variance,stHomeVariance]}
-  | /invoke ${maControl.Add[movebehind,swMoveBehind]}
   /invoke ${maControl.Add[facefast,swFaceFast]}
   /invoke ${maControl.Add[arc,stFaceArc]}
-  /invoke ${maControl.Add[mount,stMount]}
+  | /invoke ${maControl.Add[mount,stMount]}
   /invoke ${maControl.Add[stop,submenu]}
   /invoke ${maControl.Add[onauto,swonAuto]}
   /invoke ${maControl.Add[incombat,swinCombat]}
   /invoke ${maControl.Add[clear,option]}
   /invoke ${maControl.Add[campfire,option]}
-  /invoke ${maControl.Add[position,submenu]}
+  /invoke ${maControl.Add[position,submenu]}  
   /invoke ${set_control_output[${_debug}, maHome, home, maControl]}
 
 /return TRUE
@@ -2488,6 +2483,11 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
     /invoke ${set_control_output[${_debug}, maBuff, "buff shrink", maControl]}
     /return
 
+  | TLP keep the mount and the buff
+  } else /if (${_type.Equal[keepmount]}) {
+    /invoke ${set_switch_env[${_debug}, swBuffKeepMount, TRUE, ${_verbage}]}
+
+
   }
 
   /invoke ${maControl.Clear}
@@ -2496,16 +2496,19 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
   /invoke ${maControl.Add[beg,swBuffBeg]}
   /invoke ${maControl.Add[drop,swDropBuffs]}
   /invoke ${maControl.Add[crew,swBuffCrew]}
+  /invoke ${maControl.Add[group,swBuffGroup]}
+  /invoke ${maControl.Add[keepmount,swBuffKeepMount]}
   /invoke ${maControl.Add[master,swBuffMaster|pr]}
   /invoke ${maControl.Add[now,swBuffNow]}
   | /invoke ${maControl.Add[ps,swBuffPowersource]}
   /invoke ${maControl.Add[raid,swBuffRaid]}
-  /invoke ${maControl.Add[group,swBuffGroup]}
   /invoke ${maControl.Add[self,swBuffSelf]}
   /invoke ${maControl.Add[shrink,submenu]}
   /invoke ${maControl.Add[temp,swBuffTemp]}
   /invoke ${maControl.Add[unity,swBuffUnity]}
   /invoke ${maControl.Add[list,list]}
+  
+
   /invoke ${set_control_output[${_debug}, maBuff, buff, maControl]}
 
 /return TRUE

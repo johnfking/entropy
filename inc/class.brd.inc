@@ -564,6 +564,7 @@ sub scan_focus(string _type, bool _debug)
   DEBUG \atscan_focus\ax(\a-w${_type}\ax)
 
   /declare _invItem         int local 0
+  /declare _invItemAug      int local 0
   /declare _containerItem   int local 0
   /declare _tmpItemID       int local 0
   /declare _tmpUsable       int local 0
@@ -609,6 +610,9 @@ sub scan_focus(string _type, bool _debug)
         | can i use it?
         /if (${Me.Level} < ${FindItem[${_tmpItemID}].RequiredLevel}) /continue
 
+        | bard focus??
+        /if (${Select[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},49,70,12,54,41]}) /continue
+
         | usable in primary/secondary?
         /if (${FindItem[${_tmpItemID}].WornSlot[offhand]} || ${FindItem[${_tmpItemID}].WornSlot[mainhand]}) {
           /varset _tmpUsable 1
@@ -635,9 +639,15 @@ sub scan_focus(string _type, bool _debug)
     | if its not a container? top level inv/gear
     } else {
 
-      /varset _tmpItemID ${Me.Inventory[${_invItem}].ID}
+      /if (${Me.Inventory[${_invItem}].AugSlot[2].Type} == 17) { 
+        /varset _tmpItemID ${Me.Inventory[${_invItem}].AugSlot[2].Item.ID}
+      } else {
+        /varset _tmpItemID ${Me.Inventory[${_invItem}].ID}
+      }
+
       /if (!${FindItem[${_tmpItemID}].Focus2.Spell.ID}) /continue
       /if (${Me.Level} < ${FindItem[${_tmpItemID}].RequiredLevel}) /continue
+      /if (${Select[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},49,70,12,54,41]}) /continue
       /if (${FindItem[${_tmpItemID}].WornSlot[offhand]} || ${FindItem[${_tmpItemID}].WornSlot[mainhand]}) {
         /varset _tmpUsable 1
       }
@@ -646,9 +656,28 @@ sub scan_focus(string _type, bool _debug)
         DEBUG ${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},|${_tmpItemID}|${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]}|${_tmpUsable}
         /invoke ${maBardFocus.Add[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},|${_tmpItemID}|${FindItem[${_tmpItemID}].Focus2.Spell.Base[1]}|${_tmpUsable}]}
       }
+
     }
 
   /next _invItem
+  
+  
+  | check augs on worn slots for type 17s 
+  | some expansions put the bard focus on augs
+  |** fuck these devs...
+  /for _invItem 2 to 19
+    
+    /for _invItemAug 0 to ${Me.Inventory[${_invItem}].Augs}
+      | /echo ${x} - ${y} - ${Me.Inventory[${x}].AugSlot[${y}].Item}
+    
+      /if (${Me.Inventory[${_invItem}].AugSlot[${_invItemAug}].Type} != 17) /continue
+      
+      | /echo ${Me.Inventory[${x}].Name} == ${Me.Inventory[${x}].AugSlot[${y}].Item.Focus2.Spell.Base[1]}
+      
+    /next _invItemAug
+     
+  /next _invItem
+  **|
 
   /if (${_type.Equal[see]}) {
     /call Bind_command_see maBardFocus

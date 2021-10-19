@@ -6560,11 +6560,11 @@ sub check_minion_cycle_summon(bool _debug)
   /if (PET && !${Me.Pet.ID} && !${Select[${Me.Class.ShortName},BST]}) {
     DEBUG ${sep}checking pet components
     /if (${Select[${Me.Class.ShortName},ENC]} && !${FindItemCount[=Tiny Dagger]}) {
-      /invoke ${maData.Add[peterror,RUE]}
+      /invoke ${maData.Add[peterror,TRUE]}
     } else /if (${Select[${Me.Class.ShortName},MAG]} && !${FindItemCount[=Malachite]}) {
-      /invoke ${maData.Add[peterror,RUE]}
+      /invoke ${maData.Add[peterror,TRUE]}
     } else /if (${Select[${Me.Class.ShortName},NEC,SHD]} && !${FindItemCount[=Bone Chips]}) {
-      /invoke ${maData.Add[peterror,RUE]}
+      /invoke ${maData.Add[peterror,TRUE]}
     }
 
     /if (${maData.Find[peterror].Value}) {
@@ -7366,7 +7366,6 @@ sub pull_mob_move_to(bool _debug, spawn _spawn, int _dist, string _LoS)
       }
     }
 
-
     | abort pull if agro (mode)
     /if (${swModeToken}) {
       /if (${SpawnCount[npc radius SAFEENV PS4]} > 0 && ${NearestSpawn[npc radius SAFEENV PS4].ID} != ${_spawn.ID}) {
@@ -7376,10 +7375,6 @@ sub pull_mob_move_to(bool _debug, spawn _spawn, int _dist, string _LoS)
         /return FALSE
       }
     }
-
-
-
-
 
     | range from camp check
     /if (${Select[${maPull.Find[stPullMode].Value},nav]}) {
@@ -11214,18 +11209,24 @@ sub check_buff_cycle_self(bool _debug)
       /delay 5s !${Me.Casting.ID}
       /for _countD 1 to ${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.NumEffects}
         /if (${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.Trigger[${_countD}].Name.Find[Illusion:]} || ${Me.Buff[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].ID}) {
+          
           | mounts
-          /if (${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}].ID}) {
-            /invoke ${out[0, "Removing${sep}\a-w${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}\ax"]}
-            /invoke ${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}].Remove}
-            /delay 5
-          }
+          /if (${FindItem[${maBuff.Find[stBuff${_count}].Value}].Type.Equal[Mount]} && !${maBuff.Find[swBuffKeepMount].Value}) {
+            /if (${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}].ID}) {
+              /invoke ${out[0, "Removing${sep}\a-w${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}\ax"]}
+              /invoke ${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}].Remove}
+              /delay 5
+            }
+          
           | illusions
-          /if (${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.Trigger[${_countD}]}].ID}) {
-            /invoke ${out[0, "Removing${sep}\a-w${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}\ax"]}
-            /invoke ${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.Trigger[${_countD}]}].Remove}
-            /delay 5
+          } else /if (${FindItem[${maBuff.Find[stBuff${_count}].Value}].Type.Equal[Illusion]}) {
+            /if (${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.Trigger[${_countD}]}].ID}) {
+              /invoke ${out[0, "Removing${sep}\a-w${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}\ax"]}
+              /invoke ${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.Trigger[${_countD}]}].Remove}
+              /delay 5
+            }
           }
+          
         }
       /next _countD
     }
@@ -15224,22 +15225,60 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
 
   | items
   } else /if (${Select[${maCD.Find[type].Value},ITEM]}) {
-
     DEBUG ${sep}\agITEM\ax${sep}${FindItem[${maCD.Find[id].Value}].Name}
 
     /if (${_spawn.ID} == 0 || ${_spawn.ID} == ${Me.ID}) {
+      DEBUG here
 
-      | illusion proc check
-      /if (${Me.Buff[${Spell[${FindItem[${maCD.Find[id].Value}].Illusion.SpellID}].Name}].ID} || ${Me.Song[${Spell[${FindItem[${maCD.Find[id].Value}].Illusion.SpellID}].Name}].ID}) /return FALSE
+      | illusion check
+      /if (${FindItem[${maCD.Find[id].Value}].Type.Equal[Illusion]} && !${Me.Mount.ID}) {
+        /if (${Me.Buff[${FindItem[${maCD.Find[id].Value}].Illusion}].ID} || ${Me.Song[${FindItem[${maCD.Find[id].Value}].Illusion}].ID}) {
+          DEBUG ${sep}I have the illusion
+          /return FALSE
+        }
+      
 
-      | mount proc check
-      /if (${Me.Buff[${Spell[${FindItem[${maCD.Find[id].Value}].Mount.SpellID}].Name}].ID} || ${Me.Song[${Spell[${FindItem[${maCD.Find[id].Value}].Mount.SpellID}].Name}].ID}) /return FALSE
+      | mount check
+      } else /if (${FindItem[${maCD.Find[id].Value}].Type.Equal[Mount]}) {
+        DEBUG ${sep}mount check
+        
+        /declare _foundmount bool local FALSE
+        /declare _foundstat bool local FALSE
 
-      | familiar proc check
-      /if (${Me.Buff[${Spell[${FindItem[${maCD.Find[id].Value}].Familiar.SpellID}].Name}].ID} || ${Me.Song[${Spell[${FindItem[${maCD.Find[id].Value}].Familiar.SpellID}].Name}].ID}) /return FALSE
+        | mount buff
+        /if (${Me.Mount.ID} && ${maBuff.Find[swBuffKeepMount].Value}) {
+          DEBUG ${sep}i have the mount
+          /varset _foundmount TRUE
+        }        
 
-      | clickitem buffs
-      /if (${Me.Buff[${Spell[${FindItem[${maCD.Find[id].Value}].Clicky.SpellID}].Name}].ID} || ${Me.Song[${Spell[${FindItem[${maCD.Find[id].Value}].Clicky.SpellID}].Name}].ID}) /return FALSE
+        | mount stat buff
+        /if (${Me.Buff[${FindItem[${maCD.Find[id].Value}].Illusion}].ID}) {
+          DEBUG ${sep}i have the mount stats
+          /varset _foundstat TRUE
+        }
+        
+        DEBUG mount:${_foundmount} && stat:${_foundstat}
+        /if (${maBuff.Find[swBuffKeepMount].Value}) {
+          /if (${_foundmount} && ${_foundstat}) {
+            /return FALSE
+          }
+        } else /if (!${maBuff.Find[swBuffKeepMount].Value}) {
+          /if (${_foundstat}) {
+            /return FALSE
+          }
+        }
+
+
+      | familiar check
+      } else /if (${FindItem[${maCD.Find[id].Value}].Type.Equal[Familiar]}) {
+        /if (${Me.Buff[${FindItem[${maCD.Find[id].Value}].Illusion}].ID}) {
+          /return FALSE
+        }
+
+      | catch clickitem check
+      } else /if (${Me.Buff[${Spell[${FindItem[${maCD.Find[id].Value}].Clicky.SpellID}].Name}].ID} || ${Me.Song[${Spell[${FindItem[${maCD.Find[id].Value}].Clicky.SpellID}].Name}].ID}) {
+        /return FALSE
+      }
 
       | have the base buff/song      
       /if (${Me.Buff[${FindItem[${maCD.Find[id].Value}].Spell}].ID} || ${Me.Song[${FindItem[${maCD.Find[id].Value}].Spell}].ID}) /return FALSE

@@ -23,6 +23,19 @@ on the to do list
 
 
 
+
+- bard
+  the scan for focus items will include type 17 augs
+- pets
+  correct a copy/paste error with regeant checking
+- a lot of changes to how the macro sees mounts/illusions/familiars and other clickies
+  i prob broke tlp, no idea..
+- /buff keepmount (t/f) - will allow you to keep the mount and let it be recast even with the 
+  mount benefit on the toon.
+  this switch will override the drop tag for mounts
+
+
+
 211016.01
 - entering a command with a number option and not actually entering the number, 
   like /env rad and hitting enter will not longer set the value to 0
