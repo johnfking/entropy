@@ -196,9 +196,10 @@ sub set_initialize(bool _debug)
   /invoke ${lsMaps.Append[maEntropy,maTimer,madeBuff,maTie,maMinion,maRest]}
   /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard]}
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro,maMercenary]}
-  /invoke ${lsMaps.Append[maHeal,maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
-  /invoke ${lsMaps.Append[maGTFO,maPull,maMelee,madeBuff,maCure]}
+  /invoke ${lsMaps.Append[maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
+  /invoke ${lsMaps.Append[maGTFO,maPull,maMelee,maCure]}
   /invoke ${lsMaps.Append[maMobControlMez]}
+  /invoke ${lsMaps.Append[maHud]}
 
   | set all output shortcuts
   /call set_data ${_debug} FALSE num                                      string outer "\a-t"
@@ -271,6 +272,7 @@ sub set_initialize(bool _debug)
   /invoke ${maDBTables.Add[environment_debuff,env_var]}
   /invoke ${maDBTables.Add[environment_cure,env_var]}
   /invoke ${maDBTables.Add[environment_rest,env_var]}
+  /invoke ${maDBTables.Add[environment_hud,env_var]}
  
 /return TRUE
 
@@ -912,6 +914,20 @@ sub set_initialize_map_character_environment(bool _debug)
 
 |** cast type search order **|
   /call set_data_list ${_debug} maChr lsOrderCastType                    alt|pulse|spell|disc|item|ability     "${auxli} cast type order search"
+
+
+|** HUD settings **|
+  /call set_data_map ${_debug} maHud swTabBuff                            TRUE                         "${auxsw} buff tab"
+  /call set_data_map ${_debug} maHud swTabHeal                            TRUE                         "${auxsw} heal tab"
+  /call set_data_map ${_debug} maHud swTabCombat                          TRUE                         "${auxsw} combat tab"
+  /call set_data_map ${_debug} maHud swTabPull                            TRUE                         "${auxsw} pull tab"
+  /call set_data_map ${_debug} maHud swTabRez                             TRUE                         "${auxsw} rez tab"
+  /call set_data_map ${_debug} maHud swTabTie                             TRUE                         "${auxsw} tie tab"
+  /call set_data_map ${_debug} maHud swTabRest                            TRUE                         "${auxsw} rest tab"
+  /call set_data_map ${_debug} maHud swTabTarget                          TRUE                         "${auxsw} target tab"
+
+
+
 
 
 
@@ -1804,6 +1820,7 @@ sub set_initialize_static_map(bool _debug)
   /invoke ${maStaticMaps.Add[maManaRecovery,mana_recovery]}
   /invoke ${maStaticMaps.Add[maExpansion,env_xpac]}
   /invoke ${maStaticMaps.Add[maCure,cure]}
+  /invoke ${maStaticMaps.Add[maHud,hud]}
   /invoke ${maStaticMaps.Add[maChrWatch,chrwatch]}
   | /invoke ${maStaticMaps.Add[maRezID,rezid]}
 

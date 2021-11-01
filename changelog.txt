@@ -21,9 +21,19 @@ on the to do list
 --------------------
 
 
+211031.01
+- changed /see spawns # to work off spawn data type
+- pull mob finding
+  i have removed the NPC only restriction
+- adjusted the drop tag for illusions to match the members that dont mean what they say
+- shaman splash
+  adjusted it a bit. may be a bit too aggressive, will have to see
+- lots and lots of changes to the hud and build ui
+- hude tabs
+  in build ui->hud section you can turn off hud tabs you dont want
 
 
-
+211018.01
 - bard
   the scan for focus items will include type 17 augs
 - pets
@@ -33,7 +43,6 @@ on the to do list
 - /buff keepmount (t/f) - will allow you to keep the mount and let it be recast even with the 
   mount benefit on the toon.
   this switch will override the drop tag for mounts
-
 
 
 211016.01

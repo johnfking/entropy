@@ -157,8 +157,8 @@ sub check_heal(bool _debug, string _type)
     /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
     | check for surge
-    /if (${maHeal.Find[stCountSurge].Value} && (${Group.Members} > 1 || ${Raid.Members}) || ${Me.Song[Healing Twincast].ID}) {
-      /if (${SpawnCount[npc radius ENV PS4]} && ${Select[${Me.TargetOfTarget.Type},npc]}) {
+    /if (${maHeal.Find[stCountSurge].Value} && (${Group.Members} || ${Raid.Members}) || ${Me.Song[Healing Twincast].ID}) {
+      /if (${SpawnCount[npc radius ENV]}) {
         /call cast_cycle_heal_surge ${maDebug.Find[surge].Value}
       }
     }

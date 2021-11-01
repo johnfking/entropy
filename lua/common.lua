@@ -95,7 +95,7 @@ indent = function (count, pos)
   end
 end
  
-  
+ -- temporary switch 
 edit_switch_temp = function (name, map, var)
   local switch, checked = ImGui.Checkbox(name..'##'..var, mq.TLO.Macro.Variable(map).Find(var).Value() == 'TRUE')
   if checked then
@@ -103,7 +103,7 @@ edit_switch_temp = function (name, map, var)
   end
 end
 
-
+-- simple switchbox
 edit_switch_perm = function (name, map, var)
   local switch, checked = ImGui.Checkbox(name..'##'..var, mq.TLO.Macro.Variable(map).Find(var).Value() == 'TRUE')
   if checked then
@@ -111,13 +111,39 @@ edit_switch_perm = function (name, map, var)
   end
 end
 
+-- blank checkbox with a command button as the name
+edit_switch_perm_cmd = function (name, map, var, cmd)
+  local switch, checked = ImGui.Checkbox('##'..var, mq.TLO.Macro.Variable(map).Find(var).Value() == 'TRUE')
+  if checked then
+    mq.cmd.luaedit(var, switch and 'TRUE' or 'FALSE')
+  end
+  ImGui.SameLine()
+  local _button = ImGui.Button(name, 60, 22)
+  if _button then
+    mq.cmd('/'..cmd)
+  end  
+  
+end
 
+-- edit text variable
 edit_text_perm = function (name, map, var)
   local line, selected = ImGui.InputTextWithHint(name..'##'..var, mq.TLO.Macro.Variable(map).Find(var).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
   if selected then
     mq.cmd.luaedit(var, line, 'overwrite')
   end  
 end
+
+cmd_button = function (name, y, x, cmd)
+  local off = ImGui.Button(name, y, x)
+  if off then
+    mq.cmd('/'..cmd)
+  end
+end
+
+
+
+
+
 
 
 edit_tree = function (count, var, alias)

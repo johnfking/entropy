@@ -2851,23 +2851,35 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
     
 
     | search local ENV range in steps for mob acquisition
-    DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
-    /for _count ${Math.Calc[${_spCount} +1]} to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
-      DEBUG ${sep}count${sep}${_count} of ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
+    DEBUG ${sep}count:\aw${SpawnCount[${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
+    /for _count ${Math.Calc[${_spCount} +1]} to ${SpawnCount[${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
+      DEBUG ${sep}count${sep}${_count} of ${SpawnCount[${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
       ISMEDEAD
       
-      /if (${_count} > ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
+      /if (${_count} > ${SpawnCount[${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
         DEBUG ${break}spawncount increment invalid moving to next temp radius
         /continue
       }
           
-      /vardata _spawn NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]
+      /vardata _spawn NearestSpawn[${_count}, ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]
 
       /if (!${_spawn.ID}) {
         DEBUG ${break}something is seriously wrong with the spawn${sep}\ar${_spawn.ID}\ax
         /return FALSE
       }
+      
+      | if we dont specify PCs to ignore, we ignore all of them...
+      /if (${_spawn.Type.Equal[pc]} && ${lsNoTargetPC.Contains[EMPTY]} && ${lsNoTargetPC.Count} == 1) {
+        DEBUG ${break}use a diferent macro if oyu want to attack players${sep}\ar${_spawn.Type}\ax
+        /continue
+      }
 
+      | skip pets, we deal with them last
+      /if (${_spawn.Type.Equal[npcpet]}) {
+        DEBUG ${break}do not engage pets in the main cycle{sep}\ar${_spawn.Type}\ax
+        /continue
+      }
+  
       | excluded mobs
       /if (${lsZoneExclude.Contains[${_spawn.DisplayName}]}) {
         DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsZoneExclude\ax (\a-r${_spawn.DisplayName}\ax)
@@ -11207,28 +11219,36 @@ sub check_buff_cycle_self(bool _debug)
     /if (${lsBuff${_count}Tag.Contains[drop]}) {
       DEBUG ${sep}tag-\a-ydrop\ax
       /delay 5s !${Me.Casting.ID}
-      /for _countD 1 to ${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.NumEffects}
-        /if (${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.Trigger[${_countD}].Name.Find[Illusion:]} || ${Me.Buff[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Spell}].ID}) {
-          
-          | mounts
-          /if (${FindItem[${maBuff.Find[stBuff${_count}].Value}].Type.Equal[Mount]} && !${maBuff.Find[swBuffKeepMount].Value}) {
-            /if (${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}].ID}) {
-              /invoke ${out[0, "Removing${sep}\a-w${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}\ax"]}
-              /invoke ${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}].Remove}
-              /delay 5
-            }
-          
-          | illusions
-          } else /if (${FindItem[${maBuff.Find[stBuff${_count}].Value}].Type.Equal[Illusion]}) {
-            /if (${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.Trigger[${_countD}]}].ID}) {
-              /invoke ${out[0, "Removing${sep}\a-w${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}\ax"]}
-              /invoke ${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.Trigger[${_countD}]}].Remove}
-              /delay 5
-            }
-          }
-          
+
+      | mounts
+      /if (${FindItem[${maBuff.Find[stBuff${_count}].Value}].Type.Equal[Mount]} && !${maBuff.Find[swBuffKeepMount].Value}) {
+        /if (${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}].ID}) {
+          /invoke ${out[0, "Removing${sep}\a-w${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}\ax"]}
+          /invoke ${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}].Remove}
+          /delay 5
         }
-      /next _countD
+      }
+
+      | illusions
+      /if (${FindItem[${maBuff.Find[stBuff${_count}].Value}].Type.Equal[Illusion]}) {
+        DEBUG ${sep} removing illusion ${maBuff.Find[stBuff${_count}].Value}
+
+        /if (${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.NumEffects} == 1) {
+          /invoke ${out[0, "Removing${sep}\a-w${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell}\ax"]}
+          /invoke ${Me.Buff[${FindItem[Fabled Ball of Golem Clay].Spell}].Remove}
+          /delay 5
+ 
+        } else /for _countD 1 to ${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.NumEffects}
+          /if (${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.Trigger[${_countD}].Name.Find[Illusion:]}) {
+              /if (${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.Trigger[${_countD}]}].ID}) {
+                /invoke ${out[0, "Removing${sep}\a-w${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.Trigger[${_countD}]}]}\ax"]}
+                /invoke ${Me.Buff[${FindItem[${maBuff.Find[stBuff${_count}].Value}].Spell.Trigger[${_countD}]}].Remove}
+                /delay 5
+              }
+            }
+        /next _countD
+      }
+        
     }
 
   /next _count
@@ -11236,6 +11256,7 @@ sub check_buff_cycle_self(bool _debug)
   SETHUD
 
 /return TRUE
+
 
 
 

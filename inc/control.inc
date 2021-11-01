@@ -259,47 +259,6 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
 | /return 0
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     
 
   } else /if (${lsDebuglist.Contains[${_type.Lower}]}) {
@@ -2683,7 +2642,8 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
   } else /if (${_variable.Equal[spawns]}) {
     MQCLEAR
     OUT Nearest \aw5\ax spawns
-    /declare _tmpID int local
+    | /declare _tmpID int local
+    /declare _spawn spawn
     /declare _animationresult string local UNKNOWN ANIMATION
     
     /if (!${Bool[${_verbage}]}) {
@@ -2691,20 +2651,19 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
     }
 
     /for _count 1 to ${_verbage}
-      /varset _tmpID ${NearestSpawn[${_count}].ID}
-      OUT #\ag${_count}\ax${sep}name:\a-w${Spawn[id ${_tmpID}].Name}\ax${sep}${con_color[${_debug}, ${_tmpID}]}
-      OUT ${sep}Dis(\a-r${Spawn[${_tmpID}].Distance}\ax) ${dot} Y(\a-r${Spawn[id ${_tmpID}].Y}\ax)X(\a-r${Spawn[id ${_tmpID}].X}\ax)
+      /vardata _spawn NearestSpawn[${_count}]
+      OUT #\ag${_count}\ax${sep}name:\a-w${_spawn.Name}\ax${sep}${con_color[${_debug}, ${_spawn}]}
+      OUT ${sep}Dis(\a-r${_spawn.Distance}\ax) ${dot} Y(\a-r${_spawn.Y}\ax)X(\a-r${_spawn.X}\ax)
 
-      /sqlite query "${DBstatic}" dummy SELECT value FROM animation WHERE env_var='${Spawn[id ${_tmpID}].Animation}'
+      /sqlite query "${DBstatic}" dummy SELECT value FROM animation WHERE env_var='${_spawn.Animation}'
       /if (!${sql_check[${_debug}, dummy, control_debug, "SELECT (value)"]}) /endmacro
       /varset _animationresult string local UNKNOWN ANIMATION
       /if (${sqlite.Rows[dummy]}) {
         /varset _animationresult ${sqlite.Result[dummy 1 value]}
       }
-      OUT ${sep}Animation(\a-r${Spawn[id ${_tmpID}].Animation}\ax${sep}\a-w${_animationresult}\ax) ${dot} Body(\a-r${Spawn[id ${_tmpID}].Body}\ax) ${dot} ID(\a-r${Spawn[id ${_tmpID}].ID}\ax) ${dot} Type(\a-r${Spawn[id ${_tmpID}].Type}\ax)
-      OUT ${sep}Master(\a-r${Spawn[id ${_tmpID}].Master}\ax) ${dot} Owner(\a-r${Spawn[id ${_tmpID}].Owner}\ax)
+      OUT ${sep}Animation(\a-r${_spawn.Animation}\ax${sep}\a-w${_animationresult}\ax) ${dot} Body(\a-r${_spawn.Body}\ax) ${dot} ID(\a-r${_spawn.ID}\ax) ${dot} Type(\a-r${_spawn.Type}\ax)
+      OUT ${sep}Master(\a-r${_spawn.Master}\ax) ${dot} Owner(\a-r${_spawn.Owner}\ax)
       ECHO
-
     /next _count
     /invoke ${out[18, 0, 33]}
     /return FALSE
