@@ -2778,7 +2778,7 @@ sub pull_mob_tag(bool _debug, spawn _spawn)
 
 
 |***
- * note: Finds and sets stAssTarID
+ * note: Finds and sets stAssTarID / targetData
  * use: /call pull_mob_find DEBUG [# to force SpawnCount increment]
  ***|
 sub pull_mob_find(bool _debug, int _spCount, string _tag)
@@ -2851,17 +2851,17 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
     
 
     | search local ENV range in steps for mob acquisition
-    DEBUG ${sep}count:\aw${SpawnCount[${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
-    /for _count ${Math.Calc[${_spCount} +1]} to ${SpawnCount[${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
+    DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
+    /for _count ${Math.Calc[${_spCount} +1]} to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
       DEBUG ${sep}count${sep}${_count} of ${SpawnCount[${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
       ISMEDEAD
       
-      /if (${_count} > ${SpawnCount[${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
+      /if (${_count} > ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
         DEBUG ${break}spawncount increment invalid moving to next temp radius
         /continue
       }
           
-      /vardata _spawn NearestSpawn[${_count}, ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]
+      /vardata _spawn NearestSpawn[${_count}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]
 
       /if (!${_spawn.ID}) {
         DEBUG ${break}something is seriously wrong with the spawn${sep}\ar${_spawn.ID}\ax
@@ -6994,60 +6994,24 @@ sub cast_shield_flash(bool _debug, string _type)
 
   CHECKEXIT
 
-  | mark current bandolier and swap to flash
-  /declare _Bandolier string local FALSE
-
-  | take note of current Bandolier
-  /if (!${Me.Bandolier[${maSash.Find[stSashShieldFlash].Value}].Active}) {
-    /declare _count int local 0
-
-    /for _count 1 to 12
-      ISMEDEAD
-      /if (${Me.Bandolier[${_count}].Active}) {
-        /varset _Bandolier ${Me.Bandolier[${_count}]}
-        /break
-      }
-    /next _count
-  }
+  /invoke ${spawn_face[TARGET]}
+  /call check_sash_cycle ${maDebug.Find[sash].Value} defensive
 
   | pally / shadowknight
   /if (${_type.Equal[aa]}) {
-    /invoke ${spawn_face[TARGET]}
-    /invoke ${Me.Bandolier[${maSash.Find[stSashShieldFlash].Value}].Activate}
     /call cast_data ${_debug} "Shield Flash" 
     /call cast ${_debug} 0 FALSE
 
   | warior
   } else /if (${_type.Equal[disc]}) {
-    /invoke ${spawn_face[TARGET]}
-    /invoke ${Me.Bandolier[${maSash.Find[stSashShieldFlash].Value}].Activate}
     /call cast_data ${_debug} "${maChr.Find[stFlash].Value}" 
     /call cast ${_debug} 0 FALSE
   }
 
   | reset to previous bandolier
   /if (${Me.Bandolier[${maSash.Find[stSashShieldFlash].Value}].Name.NotEqual[${_Bandolier}]}) {
-    /docommand /timed 70 /bandolier Activate ${_Bandolier}
+    /docommand /timed 70 /call check_sash_cycle ${maDebug.Find[sash].Value} mainsash
   }
-
-/return TRUE
-
-
-
-|***
- * note: swaps bandolier
- * use: /call set_bandolier DEBUG [1h|2h|range|no|avatar]
- ***|
-sub set_bandolier(bool _debug)
-  DEBUG \atset_bandolier\ax()
-
-  /if (${bandolierSwap.Equal[${bandolier${_band}}]}) /return TRUE
-  /if (!${maCC.Find[swBandolier].Value}) /return FALSE
-  /if (!${Bool[${bandolierNormal}]}) /return FALSE
-  /if (!${Bool[${bandolier${_band}}]}) /return FALSE
-  /delay 1
-  /bandolier Activate ${bandolier${_band}}
-  /varset bandolierSwap ${bandolier${_band}}
 
 /return TRUE
 
@@ -8870,7 +8834,9 @@ sub set_control_output(bool _debug, string _map, string _outname, string _contro
     }
 
     /invoke ${_cmi.Advance}
-    /if (!${_cmi.IsEnd}) /varset _out ${_out} ${dot}
+    /if (!${_cmi.IsEnd}) {
+      /varset _out ${_out} ${dot}
+    }
   }
   /invoke ${out[12, "/${_outname} ${dot} ${_out}"]}
   SETHUD
@@ -9084,63 +9050,6 @@ sub pull_mob_attraction(bool _debug, spawn _spawn, bool _force)
   }
 
   /call cast ${_debug} ${_spawn.ID} FALSE PULLENV
-
-/return TRUE
-
-
-
-|***
- * note: swap to a bandolier for a proc
- * use: /sash proc [NAME]
- ***|
-sub check_sash_proc(bool _debug)
-  DEBUG \atcheck_sash_proc\ax()
-
-  | make sure the settings we need are there
-  /if (!${maSash.Find[swSashProc].Value}) {
-    /invoke ${set_data_timer[${_debug}, Check_Proc_Sash, 30s]}
-    /return FALSE
-  }
-
-  /invoke ${set_data_timer[${_debug}, Check_Proc_Sash, RESTART]}
-
-  | set the buff we need to look for
-  /declare _buff string local ${FindItem[${Me.Bandolier[${maSash.Find[stSashProc].Value}].Item[1]}].Spell}
-
-  |
-  /if ((${Me.Buff[${_buff}].ID} || ${Me.Song[${_buff}].ID} || ${Target.Buff[${_buff}].ID}) && ${Me.Bandolier[${maSash.Find[stSashProc].Value}].Active}) {
-    DEBUG ${sep}buff found${sep}\a-w${_buff}\ax
-
-    | primary
-    /if (${Bool[${maData.Find[stMainhand].Value}]}) {
-      /call Bind_command_swap "${maData.Find[stMainhand].Value}" 13 ${_debug}
-    }
-
-    | secondary
-    /if (${Bool[${maData.Find[stOffhand].Value}]}) {
-      /call Bind_command_swap "${maData.Find[stOffhand].Value}" 14 ${_debug}
-    }
-
-    | ranged
-    /if (${Bool[${maData.Find[stRanged].Value}]}) {
-      /call Bind_command_swap "${maData.Find[stRanged].Value}" 11 ${_debug}
-    }
-
-    | ammo
-    /if (${Bool[${maData.Find[stAmmo].Value}]}) {
-      /call Bind_command_swap "${maData.Find[stAmmo].Value}" 22 ${_debug}
-    }
-    /return TRUE
-  }
-
-  /if (!${Me.Buff[${_buff}].ID} && !${Me.Song[${_buff}].ID} && !${Target.Buff[${_buff}].ID} && !${Me.Bandolier[${maSash.Find[stSashProc].Value}].Active} && ${Spell[${_buff}].WillLand}) {
-    /invoke ${maData.Add[stMainhand,${Me.Inventory[mainhand].Name}]}
-    /invoke ${maData.Add[stOffhand,${Me.Inventory[offhand].Name}]}
-    /invoke ${maData.Add[stRanged,${Me.Inventory[ranged].Name}]}
-    /invoke ${maData.Add[stAmmo,${Me.Inventory[ammo].Name}]}
-    /delay 1
-    /invoke ${Me.Bandolier[${maSash.Find[stSashProc].Value}].Activate}
-  }
 
 /return TRUE
 
@@ -13654,7 +13563,7 @@ sub cast_cycle_debuff(bool _debug, spawn _spawn, string _tag, bool _return)
     DEBUG ${sep}checking ${_lidebuff.Value}${sep}\a-w${madeBuff.Find[stdeBuff${_lidebuff.Value}].Value}\ax
 
     | check the switch
-    /if (!${Bool[${madeBuff.Find[swdeBuff${_lidebuff.Value}].Value}]}) {
+    /if (!${madeBuff.Find[swdeBuff${_lidebuff.Value}].Value}) {
       DEBUG ${break}${_lidebuff.Value} switch off
       /invoke ${_lidebuff.Advance}
       /continue
@@ -13792,7 +13701,7 @@ sub cast_cycle_debuff(bool _debug, spawn _spawn, string _tag, bool _return)
  * use: /call check_debuff_routines
  ***|
 sub check_debuff_routines(spawn _spawn, bool _debug)
-  DEBUG \atcheck_debuff_routines\ax(\aw${_spawn.ID}\ax)
+  SDEBUG \atcheck_debuff_routines\ax(\aw${_spawn.ID}\ax)
  
   | kill this routine if there is no valid target
   /if (!${_spawn.ID}) {
@@ -13824,13 +13733,6 @@ sub check_debuff_routines(spawn _spawn, bool _debug)
       /return FALSE
     }
 
-    | is the debuff turned on
-    /if (!${madeBuff.Find[sw${_variable}].Value}) {
-      DEBUG ${break}off
-      /invoke ${_lideorder.Advance}
-      /continue
-    }
-    
     /delay 2s ${Target.BuffsPopulated}
     
     /if (${target[isdead, ${_spawn.ID}]}) {
@@ -13848,12 +13750,28 @@ sub check_debuff_routines(spawn _spawn, bool _debug)
         
         | set our tlo member name
         /if (${_lideorder.Value.Equal[tash]}) {
+          /if (!${madeBuff.Find[swTash].Value}) {
+            /invoke ${_lideorder.Advance}
+            /continue                        
+          }
           /varset _member Tashed
         } else /if (${_lideorder.Value.Equal[cripple]}) {
+          /if (!${madeBuff.Find[swCripple].Value}) {
+            /invoke ${_lideorder.Advance}                        
+            /continue                        
+          }
           /varset _member Crippled
         } else /if (${_lideorder.Value.Equal[malo]}) {
+          /if (!${madeBuff.Find[swMalo].Value}) {
+            /invoke ${_lideorder.Advance}                        
+            /continue                        
+          }
           /varset _member Maloed
         } else /if (${_lideorder.Value.Equal[slow]}) {
+          /if (!${madeBuff.Find[swSlow].Value}) {
+            /invoke ${_lideorder.Advance}                        
+            /continue                        
+          }
           /varset _member Slowed
         } 
         DEBUG ${sep}debuff${sep}\ay${_lideorder.Value}\ax
@@ -13970,7 +13888,7 @@ sub check_debuff_routines(spawn _spawn, bool _debug)
       /invoke ${maCD.Add[returnCast,FALSE]}
       /invoke ${_lideorder.Advance}
     }
-
+                
   }
   
 /return TRUE
@@ -14429,7 +14347,7 @@ sub class_cycle(string _order)
 
     | /debuff
     } else /if (${_lico.Value.Equal[debuff]} && !${timer_Check_deBuffs}) {
-      /call check_debuff_routines TARGET
+      /call check_debuff_routines ${targetData.ID}
 
     | /clickitems
     } else /if (${_lico.Value.Equal[item]}) {
@@ -15838,7 +15756,6 @@ sub spawn_hurt(bool _debug, string _type, bool _breakonGroup)
     /next _count
     /return ${hurtCount}
 
-
   }
 
 /return 0
@@ -16034,3 +15951,189 @@ sub cast_cycle_proc_twinheal(bool _debug)
   }
 
 /return FALSE
+
+
+
+
+|***
+ * note: check sash stuff
+ * use: /call check_sash_cycle DEBUG [tag] [T/F]
+ ***|
+sub check_sash_cycle(bool _debug, string _tag, bool _return)
+  DEBUG \atcheck_sash_cycle\ax(\a-w${_tag}\ax)
+  
+  
+  /if (${timer_Check_Sash}) {
+    /return FALSE
+  }
+  
+  /invoke ${set_data_timer[${_debug}, Check_Sash, RESTART]}
+
+  | if the user has not set the line order, set it to a default for now
+  /if (${lsLineSash.Contains[EMPTY]} && ${lsLineSash.Count} == 1) {
+    DEBUG ${sep}resetting the empty sash line
+    /invoke ${lsLineSash.Clear}
+    /invoke ${lsLineSash.Append[${stCount12}]}
+  }
+
+  /invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
+
+  /declare _mySash string local FALSE
+  /declare _lisash listiterator local
+  /vardata _lisash lsLineSash.First.Clone
+
+  /while (!${_lisash.IsEnd}) {
+    DEBUG ${sep}sash${sep}\a-w${maSash.Find[stSash${_lisash.Value}].Value}${sep}${maSash.Find[stSash${_lisash.Value}]}\ax
+    GETINPUT check_sash_cycle NA|NA
+    ISMEDEAD
+    GETOVERHERE
+    CHECKEXIT check_sash_cycle
+
+    | check the switch
+    /if (!${maSash.Find[swSash${_lisash.Value}].Value}) {
+      /invoke ${_lisash.Advance}
+      /continue
+    }
+
+    | check matching tag for failure
+    /if (!${lsSash${_lisash.Value}Tag.Contains[${_tag}]}) {
+      DEBUG ${break}no tag${sep}\a-w${_tag}\ax
+      /invoke ${_lisash.Advance}
+      /continue
+    }
+
+    | check matching tag pass
+    /if (${lsSash${_lisash.Value}Tag.Contains[${_tag}]}) {
+      /varset _mySash ${maSash.Find[stSash${_lisash.Value}].Value}
+    }
+
+    | macro starting bandolier
+    /if (${_tag.Equal[macstart]}) {
+      /if (!${Me.Bandolier[${_mySash}].Active}) {
+        /invoke ${Me.Bandolier[${_mySash}].Activate}
+      }
+      /return TRUE
+    }
+    
+    | just after a sash name
+    /if (${_return}) {
+      /return ${maSash.Find[stSash${_lisash.Value}].Value}
+    }
+    
+    | cycle the tags
+    /call tag_evaluation ${maDebug.Find[tag].Value} Sash ${_lisash.Value} ${Me.DisplayName} "${_mySash}" check_sash_cycle
+    /if (!${Macro.Return}) {
+      /invoke ${_lisash.Advance}
+      /continue
+    } else {
+      /invoke ${Me.Bandolier[${_mySash}].Activate}
+      /return TRUE
+    }
+
+
+    /invoke ${_lisash.Advance}
+  }
+
+/return TRUE
+
+
+
+|***
+ * note: swap to a bandolier for a proc
+ * use: check_sash_proc DEBUG [self|target]
+ ***|
+sub check_sash_proc(bool _debug, string _target)
+  DEBUG \atcheck_sash_proc\ax()
+  
+  /return TRUE
+
+  | make sure the settings we need are there
+  | /if (!${maSash.Find[swSashProc].Value}) {
+  |   /invoke ${set_data_timer[${_debug}, Check_Proc_Sash, 30s]}
+  |   /return FALSE
+  | }
+
+  /invoke ${set_data_timer[${_debug}, Check_Proc_Sash, RESTART]}
+  /declare _count int local 0
+  /declare _spell spell local
+  /declare _sash string local FALSE
+
+  | set the spells we need to look for
+  
+  
+  /for _count 1 to 2
+    
+    /varset _sash ${check_sash_cycle[FALSE, procontarget, TRUE]}
+    /vardata _spell FindItem[${Me.Bandolier[${_sash}].Item[${_count}]}].Spell
+    
+    
+    
+    /if (${_target.Equal[self]}) {
+ 
+      ${Me.Buff[${_buff}].ID} || ${Me.Song[${_buff}].ID}
+ 
+      
+    } else /if (${_target.Equal[target]}) {
+ 
+ ${Target.Buff[${_buff}].ID}
+      
+    }
+    
+    
+    
+
+  /next _count
+  
+  
+  
+  
+
+
+
+  |
+  /if ((${Me.Buff[${_buff}].ID} || ${Me.Song[${_buff}].ID} || ${Target.Buff[${_buff}].ID}) && ${Me.Bandolier[${maSash.Find[stSashProc].Value}].Active}) {
+    DEBUG ${sep}buff found${sep}\a-w${_buff}\ax
+
+    | primary
+    /if (${Bool[${maData.Find[stMainhand].Value}]}) {
+      /call Bind_command_swap "${maData.Find[stMainhand].Value}" 13 ${_debug}
+    }
+
+    | secondary
+    /if (${Bool[${maData.Find[stOffhand].Value}]}) {
+      /call Bind_command_swap "${maData.Find[stOffhand].Value}" 14 ${_debug}
+    }
+
+    | ranged
+    /if (${Bool[${maData.Find[stRanged].Value}]}) {
+      /call Bind_command_swap "${maData.Find[stRanged].Value}" 11 ${_debug}
+    }
+
+    | ammo
+    /if (${Bool[${maData.Find[stAmmo].Value}]}) {
+      /call Bind_command_swap "${maData.Find[stAmmo].Value}" 22 ${_debug}
+    }
+    /return TRUE
+  }
+
+  /if (!${Me.Buff[${_buff}].ID} && !${Me.Song[${_buff}].ID} && !${Target.Buff[${_buff}].ID} && !${Me.Bandolier[${maSash.Find[stSashProc].Value}].Active} && ${Spell[${_buff}].WillLand}) {
+    /invoke ${maData.Add[stMainhand,${Me.Inventory[mainhand].Name}]}
+    /invoke ${maData.Add[stOffhand,${Me.Inventory[offhand].Name}]}
+    /invoke ${maData.Add[stRanged,${Me.Inventory[ranged].Name}]}
+    /invoke ${maData.Add[stAmmo,${Me.Inventory[ammo].Name}]}
+    /delay 1
+    /invoke ${Me.Bandolier[${maSash.Find[stSashProc].Value}].Activate}
+  }
+
+/return TRUE
+
+
+
+
+
+
+Earthcaller
+
+
+
+${FindItem[${Me.Bandolier[testband].Item[1]}].Spell}

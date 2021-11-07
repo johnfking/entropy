@@ -344,25 +344,26 @@ local function imguicallback()
         if ImGui.BeginTabItem('Target') then
    
           -- name
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'DisplayName:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, target['displayname'])        
+          
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Name:')
           ImGui.SameLine()
           ImGui.TextColored(1, 1, 1, 1, target['name'])        
-          
-          ImGui.Columns(2, 'noname', false)
+
+
+            
+          ImGui.NewLine()
+
+          ImGui.Columns(2, 'tarbase', false)
+
 
             -- body
             ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Body:')
             ImGui.SameLine()
             ImGui.TextColored(1, 1, 1, 1, ent['body'])        
 
-            -- height
-            ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Height:')
-            ImGui.SameLine()
-            ImGui.TextColored(1, 1, 1, 1, target['height'])
-
-
-          ImGui.NextColumn()
-          
             -- slowed
             ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Slowed:')
             ImGui.SameLine()
@@ -377,6 +378,15 @@ local function imguicallback()
             ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Malo:')
             ImGui.SameLine()
             ImGui.TextColored(1, 1, 1, 1, target['maloed']) 
+
+
+          ImGui.NextColumn()
+
+            -- height
+            ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Height:')
+            ImGui.SameLine()
+            ImGui.TextColored(1, 1, 1, 1, target['height'])
+
 
             -- crippled
             ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Cripple:')

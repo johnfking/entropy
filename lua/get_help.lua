@@ -560,12 +560,10 @@ elseif command == 'sash' then
     echo('\aw/'..command..' [\a-w option \aw]')
   elseif option == 'h' then
     echo('active${lsep} use bandolier swapping')
-    echo('flash${lsep} [tanks] shield flash settings')
-    echo('proc${lsep}weapons to swap to until they proc on the target')
   elseif option == 's' then
     mq.cmd.call('Bind_command_see maSash')
   elseif option == 't' then
-    out('notag')
+    mq.cmd.call('Bind_noparse_tag see sash')
   end
     
 

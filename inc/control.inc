@@ -1370,11 +1370,11 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   | when to clear home
   } else /if (${_type.Equal[stop]}) {
 
-    /if (${_type.Equal[death]}) {
-      /invoke ${set_switch_env[${_debug}, swMoveDeathClear, TRUE, ${_verbage}]}
+    /if (${_verbage.Equal[death]}) {
+      /invoke ${set_switch_env[${_debug}, swMoveDeathClear, TRUE, ${_silent}]}
 
-    } else /if (${_type.Equal[gather]}) {
-      /invoke ${set_switch_env[${_debug}, swMoveGatherClear, TRUE, ${_verbage}]}
+    } else /if (${_verbage.Equal[gather]}) {
+      /invoke ${set_switch_env[${_debug}, swMoveGatherClear, TRUE, ${_silent}]}
     }
 
     /invoke ${maControl.Clear}
@@ -5108,33 +5108,38 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _a
   } else /if (${_type.Equal[active]}) {
     /invoke ${set_switch_env[${_debug}, swSash, TRUE, ${_verbage}]}
 
+
+  } else /if (${_type.Equal[startwith]}) {
+    /invoke ${do_raw_edit[${_debug}, SILENT, stSashStart, "${_verbage}"]}
+
   | shield flash
   } else /if (${_type.Equal[flash]}) {
     /if (${_verbage.Equal[pct]}) {
       /if (!${set_control_num_range[${_debug}, stPctShieldFlash, "${_verbage2}", 0, 99]}) /return
     } else /if (${_verbage.Equal[count]}) {
       /if (!${set_control_num_range[${_debug}, stCountShieldFlash, "${_verbage2}", 0, 99]}) /return
-    } else /if (${_verbage.Equal[name]}) {
-      /invoke ${do_raw_edit[${_debug}, SILENT, stSashShieldFlash, "${_verbage2}"]}
+    | } else /if (${_verbage.Equal[name]}) {
+    |   /invoke ${do_raw_edit[${_debug}, SILENT, stSashShieldFlash, "${_verbage2}"]}
     }
 
     /invoke ${maControl.Clear}
     /invoke ${maControl.Add[pct,stPctShieldFlash]}
     /invoke ${maControl.Add[count,stCountShieldFlash]}
-    /invoke ${maControl.Add[name,stSashShieldFlash|br]}
+    | /invoke ${maControl.Add[name,stSashShieldFlash|br]}
     /invoke ${set_control_output[${_debug}, maSash, "sash flash", maControl]}
     /return TRUE
 
   }
 
   /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[list,list]}
   /invoke ${maControl.Add[active,swSash]}
-  /invoke ${maControl.Add[proc,submenu]}
+  | /invoke ${maControl.Add[startwith,stSashStart|br]}
+  | /invoke ${maControl.Add[proc,submenu]}
   /if (${Select[${Me.Class.ShortName},PAL,WAR,SHD]}) {
     /invoke ${maControl.Add[flash,submenu]}
   }
 
-  /invoke ${maControl.Add[list,list]}
   /invoke ${set_control_output[${_debug}, maSash, sash, maControl]}
 
 /return TRUE

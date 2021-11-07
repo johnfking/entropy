@@ -1389,12 +1389,12 @@ sub Event_XorbbEye()
 sub Event_Xorbb3()
   /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
   /echo I need to face away from him for a bit
-  /beep
-  /stop
-  /stop
-  /target id ${Spawn[npc King Xorbb].ID}
+  /call set_stop ${maDebug.Find[stop].Value} SILENT
+  /call target set ${Spawn[npc King Xorbb].ID}
   /squelch /face away
-  /if (${lstClassMelee.Find[${Me.Class.Name}]}) /delay 16s
+  /if (${lsClassMelee.Find[${Me.Class.Name}]}) {
+    /delay 16s
+  }
 /return
 
 
@@ -2512,7 +2512,7 @@ sub Event_Tofs2(string Line)
 
 
 
-|Tantor
+| Tantor
 
 #Event Tantor "Tantor roars, pointing its trunk at |${Me.DisplayName}|."
 Sub Event_Tantor()
@@ -2574,3 +2574,8 @@ sub Event_TrunkRock()
 /return
 
 
+
+
+|********************************************************************************************
+ ** Rorment of Luclin ()
+ **|

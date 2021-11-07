@@ -125,8 +125,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 211031.01
-  /call set_data FALSE maEnv schema                         map outer 1.48
+  /call set_data FALSE maEnv build                          map outer 211107.01
+  /call set_data FALSE maEnv schema                         map outer 1.50
   /call set_data FALSE maEnv repo                           map outer 210216.01
 
   | prep macro
@@ -171,6 +171,12 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 
   /if (${maEntropy.Find[swBuildSetRemember].Value}) {
     /call Bind_control_env set ${maEnv.Find[stBuildSetCurrent].Value}
+  }
+  
+  
+  | check starting sash
+  /if (${maSash.Find[swSash].Value}) {
+    /call check_sash_cycle ${maDebug.Find[sash].Value} macstart
   }
 
   /invoke ${out[0, "\agReady\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax", 0]}

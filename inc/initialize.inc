@@ -346,7 +346,7 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} FALSE lsFreePassSpells                         list outer Beneficial|Beneficial(Group)|Pet|Aura
 
   | control lines
-  /call set_data ${_debug} FALSE lsControlLine                            list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez|gtfo|pull|melee|debuff|cure
+  /call set_data ${_debug} FALSE lsControlLine                            list outer nuke|song|dot|heal|item|miscdps|agro|defense|burn|rez|gtfo|pull|melee|debuff|cure|sash
 
   | increment lists
   /call set_data ${_debug} FALSE stCount6                                 string outer "0|1|2|3|4|5"
@@ -925,8 +925,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHud swTabTie                             TRUE                         "${auxsw} tie tab"
   /call set_data_map ${_debug} maHud swTabRest                            TRUE                         "${auxsw} rest tab"
   /call set_data_map ${_debug} maHud swTabTarget                          TRUE                         "${auxsw} target tab"
-
-
 
 
 
@@ -1614,16 +1612,19 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** control: sash  **|
+  /invoke ${set_data_timer[${_debug}, Check_Sash, 6s]}
   /invoke ${set_data_timer[FALSE, Check_Proc_Sash, 5s]}
   /call set_data_map ${_debug} maSash swSashProc                          FALSE                         "${auxsw} enable sash for a procing weapon"               sash
-  /call set_data_map ${_debug} maSash stSashProc                          FALSE                         "${auxna} name of ash with procing  weapon"               sash
+  /call set_data_map ${_debug} maSash stSashProc                          FALSE                         "${auxna} name of sash with procing  weapon"              sash
   /call set_data_map ${_debug} maSash swSash                              FALSE                         "${auxsw} enable auto sash swapping based off conditions" sash
+  /call set_data_map ${_debug} maSash stSashStart                         FALSE                         "${auxna} name of sash to start with"                     sash
+  /call set_data_list ${_debug} maSash lsLineSash                         EMPTY                         "${auxli} alternate sash activation order"                sash
 
   | tank shield flash
   /if (${Select[${Me.Class.ShortName},PAL,WAR,SHD]}) {
     /call set_data_map ${_debug} maSash stPctShieldFlash                  0                             "${auxnum} % of HP to try to get shield flash running"    sash
     /call set_data_map ${_debug} maSash stCountShieldFlash                0                             "${auxnum} # of mobs to hit shield flash"                 sash
-    /call set_data_map ${_debug} maSash stSashShieldFlash                 FALSE                         "${auxna} name of sash to be used for Slash skills"       sash
+    | /call set_data_map ${_debug} maSash stSashShieldFlash                 FALSE                         "${auxna} name of sash to be used for Slash skills"       sash
   }
 
 
@@ -1821,6 +1822,7 @@ sub set_initialize_static_map(bool _debug)
   /invoke ${maStaticMaps.Add[maExpansion,env_xpac]}
   /invoke ${maStaticMaps.Add[maCure,cure]}
   /invoke ${maStaticMaps.Add[maHud,hud]}
+  /invoke ${maStaticMaps.Add[maSash,sash]}
   /invoke ${maStaticMaps.Add[maChrWatch,chrwatch]}
   | /invoke ${maStaticMaps.Add[maRezID,rezid]}
 
@@ -2223,6 +2225,30 @@ sub data_schema_roles()
 
 |***
  * note:
+ * use: generate data for schema_tag_group
+ ***|
+sub data_schema_tag_group()
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('1', 'heal');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('2', 'nuke');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('3', 'dot');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('4', 'burn');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('5', 'song');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('6', 'defense');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('7', 'buff');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('8', 'miscdps');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('9', 'item');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'pull');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('11', 'melee');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('12', 'debuff');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('13', 'cure');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('14', 'sash');
+
+/return TRUE
+
+
+
+|***
+ * note:
  * use: generate data for schema_tag
  ***|
 sub data_schema_tag()
@@ -2320,28 +2346,13 @@ sub data_schema_tag()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('976', 'poison', '1');
 
 
-/return TRUE
+  | sash
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('969', 'mainsash', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('968', 'defensive', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('967', 'proconme', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('966', 'procontarget', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('965', 'macstart', '1');
 
-
-
-|***
- * note:
- * use: generate data for schema_tag_group
- ***|
-sub data_schema_tag_group()
-  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('1', 'heal');
-  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('2', 'nuke');
-  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('3', 'dot');
-  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('4', 'burn');
-  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('5', 'song');
-  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('6', 'defense');
-  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('7', 'buff');
-  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('8', 'miscdps');
-  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('9', 'item');
-  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('10', 'pull');
-  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('11', 'melee');
-  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('12', 'debuff');
-  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('13', 'cure');
 
 
 /return TRUE
@@ -2603,9 +2614,24 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '976', '1', 'CONTROL::MARKER', 'marker /cure poison');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '987', '1', 'ACTION::delaycooldown', 'delays until gem cooldown is clear');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '986', '1', '${Parse[0,${Group.Member[${_name}].Index}]}', 'target must be in my group');
-  
+
+
+
+  | sash  
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('14', '969', '1', 'CONTROL::MARKER', 'marker main sash');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('14', '968', '1', 'CONTROL::MARKER', 'marker defensive sash');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('14', '967', '1', 'CONTROL::MARKER', 'marker proc check on me?');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('14', '966', '1', 'CONTROL::MARKER', 'marker proc check on the target?');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('14', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met'); 
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('14', '965', '1', 'CONTROL::MARKER', 'marker load this sash on mac start');
+ 
+ 
 
 /return TRUE
+
+
+
+
 
 
 

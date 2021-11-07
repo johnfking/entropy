@@ -21,6 +21,14 @@ on the to do list
 --------------------
 
 
+211107.01
+- /home stop death (on/off) works again
+- mob targeting should work again. i undid the things i did to undo the 
+  things knightly did cause the names do not mean what they said they mean
+- debuffing should count correctly now might even debuff too. guess we will see
+- /sash is being worked on. dont expect it to work for you for this build!
+
+
 211031.01
 - changed /see spawns # to work off spawn data type
 - pull mob finding

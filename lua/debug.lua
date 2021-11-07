@@ -473,9 +473,11 @@ local function imguicallback()
           
           -- valid loc
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'valid loc:')
-          ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, mq.TLO.EverQuest.ValidLoc(string.format("%f %f %f", mq.TLO.Target.X(), mq.TLO.Target.Y(), mq.TLO.Target.Z())))
+          -- ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, target['validloc'])
           
+
+          -- mq.TLO.EverQuest.ValidLoc(string.format("%f %f %f", mq.TLO.Target.X(), mq.TLO.Target.Y(), mq.TLO.Target.Z()))
           
                
 
@@ -483,12 +485,12 @@ local function imguicallback()
 
           -- pathexists
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'pathexists:')
-          ImGui.SameLine()
-          --ImGui.TextColored(1, 1, 1, 1, mq.TLO.Navigation.PathExists(id mq.TLO.Target.ID())
+          --ImGui.SameLine()
+          --ImGui.TextColored(1, 1, 1, 1, mq.TLO.Navigation.PathExists(ID mq.TLO.Target.ID()))
 
         --pathlength
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'pathlength:')
-          ImGui.SameLine()
+          --ImGui.SameLine()
           --ImGui.TextColored(1, 1, 1, 1, mq.TLO.Navigation.PathLength(id mq.TLO.Target.ID())
         
 
@@ -513,8 +515,10 @@ local function imguicallback()
 
           -- height
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'LoS:')
-          ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, target['los'])
+          --ImGui.SameLine()
+          
+        --ImGui.TextColored(1, 1, 1, 1, mq.TLO.Spawn().LineOfSight())
+          -- ImGui.TextColored(1, 1, 1, 1, target['los'])
 
 
 
@@ -559,15 +563,15 @@ local function imguicallback()
      
     end
     
-  end
   ImGui.End()
+  end
 
 end
 
 mq.imgui.init('editorwindow', imguicallback)
 
 while openGUI do 
-  mq.delay(100) 
+  mq.delay(1000) 
 end
 
 
