@@ -39,6 +39,10 @@ sub class_init(bool _debug)
   | PBAE stun
   /call set_data_map ${_debug} maChr stAEStun                         PREGEN|1                      "${auxna} name of your point blank ae stun"
 
+  | remez time
+  /call set_data_map ${_debug} maChr streMezTime                      18s                           "${auxnum} min mez time in seconds left to remez"
+
+
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                gather|checkminion                        "${auxli} class base loop start"
   /call set_data_list ${_debug} maChr lsOrderClassPre                 cc|manarecover                            "${auxli} class pre combat"

@@ -2642,7 +2642,6 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
   } else /if (${_variable.Equal[spawns]}) {
     MQCLEAR
     OUT Nearest \aw5\ax spawns
-    | /declare _tmpID int local
     /declare _spawn spawn
     /declare _animationresult string local UNKNOWN ANIMATION
     

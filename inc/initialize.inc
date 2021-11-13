@@ -430,6 +430,7 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[swap,submenu]}
     /invoke ${maChrControl.Add[scan,option]}
     /invoke ${maChrControl.Add[vainglorious,swVainglorious]}
+    /invoke ${maChrControl.Add[remez,streMezTime|br]}
 
   } else /if (${Select[${Me.Class.ShortName},BST]}) {
     /invoke ${maChrControl.Add[list,list]}
@@ -458,6 +459,7 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[gather,stPctGather]}
     /invoke ${maChrControl.Add[bos,swAABoS]}
     /invoke ${maChrControl.Add[crystal,swAACrystals]}
+    /invoke ${maChrControl.Add[remez,streMezTime|br]}
 
   } else /if (${Select[${Me.Class.ShortName},MAG]}) {
     /invoke ${maChrControl.Add[list,list]}
@@ -475,7 +477,7 @@ sub set_initial_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
     /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[blood,submenu]}
-    /invoke ${maChrControl.Add[gather,stPctBloom]}
+    | /invoke ${maChrControl.Add[gather,stPctBloom]}
 
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
     /invoke ${maChrControl.Add[list,list]}

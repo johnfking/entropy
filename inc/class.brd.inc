@@ -32,6 +32,9 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stSongRest                       FALSE                         "${auxna} song to use while group resting"
   /call set_data_map ${_debug} maChr stSongRefresh                    6                             "${auxnum} remaining duration on a song to refresh. in seconds"
 
+  | remez time
+  /call set_data_map ${_debug} maChr streMezTime                      18s                           "${auxnum} min mez time in seconds left to remez"
+
   | current song line
   /call set_data_list ${_debug} maSong lsLineSong                     EMPTY                         "${auxli} list of song numbers to sing"  song
 

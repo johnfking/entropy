@@ -21,6 +21,21 @@ on the to do list
 --------------------
 
 
+
+
+211113.01
+- corrected an inline delay for dead people
+- changed to the "name" usage for adding NPC xtargets to heal them
+- bard / enchanter
+  base remez time externalized. default is now 18 seconds [18s].  mez will be reapplied if below that time
+- rezing
+  some adjustments to corpse finding. Or, you could just die less
+- bard singing
+  put the delay back that allowed songs to finishing playing
+- /debug ui
+  added a few more things 
+
+
 211107.01
 - /home stop death (on/off) works again
 - mob targeting should work again. i undid the things i did to undo the 

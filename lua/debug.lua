@@ -560,11 +560,85 @@ local function imguicallback()
         ImGui.NewLine()
         ImGui.TextColored(0.39, 0.58, 0.92, 1, 'No Target')
       end
-     
+      indent(1,2)
+      ImGui.NewLine()
     end
     
-  ImGui.End()
+    -- local spawns
+    if ImGui.CollapsingHeader('local spawns') then
+      indent(1,1)
+      ImGui.NewLine()
+
+      for x = 1,5,1
+      do
+        if ImGui.TreeNode(""..x.." :: "..mq.TLO.NearestSpawn(x).DisplayName().."") then
+
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'name##:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, mq.TLO.NearestSpawn(x).Name()) 
+          ImGui.SameLine()
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'ID:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, mq.TLO.NearestSpawn(x).ID()) 
+
+          -- distance
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Distance:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, round(mq.TLO.NearestSpawn(x).Distance(), 2)) 
+
+          -- Y,X,Z     
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Y:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, round(mq.TLO.NearestSpawn(x).Y(), 2)) 
+          ImGui.SameLine()
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, '  X:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, round(mq.TLO.NearestSpawn(x).X(), 2)) 
+          ImGui.SameLine()
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, '  Z:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, round(mq.TLO.NearestSpawn(x).Z(), 2)) 
+          
+          -- Animation
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Animation:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, mq.TLO.NearestSpawn(x).Animation()) 
+
+          -- Body / type
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Body:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, mq.TLO.NearestSpawn(x).Body()) 
+          ImGui.SameLine()
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, '   Type:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, mq.TLO.NearestSpawn(x).Type()) 
+
+          -- Master / Owner
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Master:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, mq.TLO.NearestSpawn(x).Master()) 
+          ImGui.SameLine()
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, '   Owner:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, mq.TLO.NearestSpawn(x).Owner()) 
+
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'LoS:')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, mq.TLO.NearestSpawn(x).LineOfSight()) 
+
+
+          ImGui.TreePop()
+          ImGui.NewLine()
+        end
+      end
+
+      indent(1,2)
+      ImGui.NewLine()
+    end
+    
+    
   end
+  ImGui.End()
 
 end
 

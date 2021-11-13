@@ -30,7 +30,7 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr swBlood                          FALSE                         "${auxsw} use  blood spell"
   /call set_data_map ${_debug} maChr stBlood                          PREGEN|1                      "${auxna} name of current call for blood spell"
 
-  /call set_data_map ${_debug} maChr stPctBloom                       0                             "${auxnum} % of manna you want to use bloom at"
+  | /call set_data_map ${_debug} maChr stPctBloom                       0                             "${auxnum} % of manna you want to use bloom at"
 
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                checkminion|manarecover|gather                                                        "${auxli} class base loop start"
@@ -321,11 +321,11 @@ sub check_gather(bool _debug)
   CHECKEXIT
   GETINPUT
 
-  /if (${cast_data[${_debug}, "Death Bloom"]}) {
+  /if (${cast_data[${_debug}, "${maChr.Value[stAADeathBloom].Value}"]}) {
     /call cast ${_debug} 0 FALSE
   }
 
-/return TRUE
+
 
 
 
@@ -352,8 +352,8 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
     /return TRUE
 
   | use bloom mana recovery
-  } else /if (${_type.Equal[gather]}) {
-    /if (!${set_control_num_range[${_debug}, stPctBloom, "${_verbage}", 0, 99]}) /return FALSE
+  | } else /if (${_type.Equal[gather]}) {
+  |   /if (!${set_control_num_range[${_debug}, stPctBloom, "${_verbage}", 0, 99]}) /return FALSE
 
   }
 
