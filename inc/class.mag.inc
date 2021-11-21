@@ -44,7 +44,7 @@ sub class_init(bool _debug)
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                checkminion|manarecover|gather                                    "${auxli} class base loop start"
   /call set_data_list ${_debug} maChr lsOrderClassPre                 EMPTY                                                             "${auxli} class pre combat"
-  /call set_data_list ${_debug} maChr lsOrderClass                    melee|debuff|pet|swarm|dot|nuke|misc|item                         "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClass                    melee|debuff|pet|burn|swarm|dot|nuke|misc|item                    "${auxli} class active combat order"
   /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|gather                                                "${auxli} class post combat "
 
   | AAs
@@ -202,7 +202,7 @@ sub check_heal(bool _debug, string _type)
 sub burn(bool _debug, spawn _spawn)
   DEBUG \atburn\ax(\a-w${_spawn.ID}\ax)
 
-  TMPIDDEAD
+  SPAWNDEAD
   CHECKEXIT
   GETINPUT
 

@@ -40,7 +40,7 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAEStun                         PREGEN|1                      "${auxna} name of your point blank ae stun"
 
   | remez time
-  /call set_data_map ${_debug} maChr streMezTime                      18s                           "${auxnum} min mez time in seconds left to remez"
+  /call set_data_map ${_debug} maChr streMezTime                      180                           "${auxnum} min mez time in seconds left to remez"
 
 
   | class order lists

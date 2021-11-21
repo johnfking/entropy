@@ -23,6 +23,22 @@ on the to do list
 
 
 
+211121.01
+- /override tmpengage
+  60 seconds of ignoring the engage %
+- bard / enchanter
+  adjusted the detault mez reset time
+  you will need to adjust your /chr setting
+- mage
+  added in burn to the default lsOrderClass
+  you will need to adjust yours for your mage to burn
+  corrected an old target dead check
+- rezing
+  adjustetd a spawn ID issue
+- necromancer
+  /chr gather ##%
+  
+
 211113.01
 - corrected an inline delay for dead people
 - changed to the "name" usage for adding NPC xtargets to heal them

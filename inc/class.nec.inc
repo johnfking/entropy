@@ -30,6 +30,9 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr swBlood                          FALSE                         "${auxsw} use  blood spell"
   /call set_data_map ${_debug} maChr stBlood                          PREGEN|1                      "${auxna} name of current call for blood spell"
 
+  /invoke ${set_data_timer[${_debug}, Check_Gather, 3s]}
+  /call set_data_map ${_debug} maChr stGather                         PREGEN|1                      "${auxna} spell or item to use to recover manna (not rods or aas)"
+  /call set_data_map ${_debug} maChr stPctGather                      0                             "${auxnum} percent to start using gather tricks"
   | /call set_data_map ${_debug} maChr stPctBloom                       0                             "${auxnum} % of manna you want to use bloom at"
 
   | class order lists
@@ -118,37 +121,34 @@ sub check_heal(bool _debug, string _type)
   /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
   | if no one is hurt. back to the start
-  /if (!${hurtCount}) {
+  /if (!${hurtCount} || SAFEZONE) {
     SETHUD
     /return TRUE
   }
 
-  /if (!SAFEZONE) {
+  | group healing
+  /if (${Select[${_type},group]} && ${hurtCount}) {
 
-    | group healing
-    /if (${Select[${_type},group]} && ${hurtCount}) {
+    | group heal
+    /if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
+      /call cast_cycle_heal ${_debug} 0 group
+    }
+  }
 
-      | group heal
-      /if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
-        /call cast_cycle_heal ${_debug} 0 group
+  /if (${Select[${_type},self]} && ${hurtCount}) {
+
+    | aa Dying grasp
+    /if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.PCTHO) {
+      /if (${cast_data[${_debug}, "${maChr.Find[stAADyingGrasp].Value}"]}) {
+        /call cast ${_debug} ${_type} FALSE
       }
     }
 
-    /if (${Select[${_type},self]} && ${hurtCount}) {
+  }
 
-      | aa Dying grasp
-      /if (${Me.PctHPs} <= ${${Me.Class.ShortName}Point}*.PCTHO) {
-        /if (${cast_data[${_debug}, "${maChr.Find[stAADyingGrasp].Value}"]}) {
-          /call cast ${_debug} ${_type} FALSE
-        }
-      }
-
-    }
-
-    /if (${Select[${_type},pet]} && ${hurtCount}) {
-      /if (${cast_data[${_debug}, "${maChr.Find[stAAMendCompanion].Value}"]}) {
-        /call cast ${_debug} ${Pet.ID} FALSE
-      }
+  /if (${Select[${_type},pet]} && ${hurtCount}) {
+    /if (${cast_data[${_debug}, "${maChr.Find[stAAMendCompanion].Value}"]}) {
+      /call cast ${_debug} ${Pet.ID} FALSE
     }
   }
 
@@ -160,7 +160,7 @@ sub check_heal(bool _debug, string _type)
 
   SETHUD
 
-/return tRUE
+/return TRUE
 
 
 
@@ -314,7 +314,19 @@ sub cast_blood(bool _debug, spawn _spawn)
 sub check_gather(bool _debug)
   DEBUG \atcheck_gather\ax()
 
+  /invoke ${set_data_timer[${_debug}, Check_Gather, RESTART]}
+
   /if (${Zone.ID} == ${Me.BoundLocation[0].ID} || SAFEZONE) {
+    /return FALSE
+  }
+
+  /if (${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO) {
+    DEBUG ${sep} manna: ${Me.PctMana} >= ${maChr.Find[stPctGather].Value}*.PCTHO
+    /return FALSE
+  }
+
+  /if (${Me.Buff[Heretic's Twincast].ID} || ${Me.Buff[Twincast].ID}) {
+    DEBUG ${sep}twincast running. get manna later
     /return FALSE
   }
 
@@ -325,7 +337,7 @@ sub check_gather(bool _debug)
     /call cast ${_debug} 0 FALSE
   }
 
-
+/return TRUE
 
 
 
@@ -351,9 +363,10 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
     /invoke ${set_control_output[${_debug}, maHeal, "chr blood", maChrControl]}
     /return TRUE
 
-  | use bloom mana recovery
-  | } else /if (${_type.Equal[gather]}) {
-  |   /if (!${set_control_num_range[${_debug}, stPctBloom, "${_verbage}", 0, 99]}) /return FALSE
+  | set gather use %
+  } else /if (${_type.Equal[gather]}) {
+    /if (!${set_control_num_range[${_debug}, stPctGather, "${_verbage}", 0, 99]}) /return FALSE
+
 
   }
 
@@ -364,3 +377,4 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   /invoke ${set_control_output[${_debug}, maChr, chr, maChrControl]}
 
 /return TRUE
+

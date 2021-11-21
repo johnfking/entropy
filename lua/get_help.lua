@@ -601,6 +601,7 @@ elseif command == 'override' then
     echo('groupass${lsep}override yourself as groupassist and force manual assist')
     echo('splashhurt${lsep}allows clerics to ignore bypass hurtchecks for splashing to keep it on forced cooldown')
     echo('targetclear${lsep}removes target clearing requirement')
+    echo('tmpengage${lsep}60 seconds of ignoring the engage %')
   elseif option == 's' then
     mq.cmd.call('Bind_command_see maOver')
   elseif option == 't' then

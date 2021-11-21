@@ -2499,6 +2499,7 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Add[groupass,swOverGroupAss]}
   /invoke ${maControl.Add[splashhurt,swOverSplashHurt]}
   /invoke ${maControl.Add[targetclear,swTargetClear]}
+  /invoke ${maControl.Add[tmpengage,option]}
 
   /if (${_type.Equal[startcheck]}) {
     /declare _out string local
@@ -2540,6 +2541,11 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
   } else /if (${_type.Equal[targetclear]}) {
     /invoke ${set_switch_env[${_debug}, swTargetClear, TRUE, ${_verbage}]}
 
+  } else /if (${_type.Equal[tmpengage]}) {
+    /invoke ${set_switch_env[${_debug}, swOverPctEngage, FALSE, TRUE]}
+    OUT /override engage \agENABLED\ax . Disabling in 60 seconds!
+    /timed 600 /invoke ${maOver.Add[swOverPctEngage,FALSE]}
+    /return TRUE
   }
 
   /if (${_silent.Equal[SILENT]}) /return

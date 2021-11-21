@@ -477,6 +477,7 @@ sub set_initial_environment(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
     /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[blood,submenu]}
+    /invoke ${maChrControl.Add[gather,stPctGather]}
     | /invoke ${maChrControl.Add[gather,stPctBloom]}
 
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {

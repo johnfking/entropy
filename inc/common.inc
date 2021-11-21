@@ -10104,9 +10104,9 @@ sub check_for_corpse(bool _debug)
 
       | find us a corpse!
       /while (!${_found}) {
-        /vardata _spawn NearestSpawn[${_increment}, pccorpse ${maRez.Find[stRez${_liC8.Value}].Value} radius ${maRez.Find[stMaxRezRange].Value}]
-        | /varset _tmpID ${NearestSpawn[${_increment}, ${maRez.Find[stRez${_liC8.Value}].Value} radius ${maRez.Find[stMaxRezRange].Value}].ID}
-        | /vardata _spawn Spawn[${_tmpID}]
+        | /vardata _spawn NearestSpawn[${_increment}, pccorpse ${maRez.Find[stRez${_liC8.Value}].Value} radius ${maRez.Find[stMaxRezRange].Value}]
+        /varset _tmpID ${NearestSpawn[${_increment}, ${maRez.Find[stRez${_liC8.Value}].Value} radius ${maRez.Find[stMaxRezRange].Value}].ID}
+        /vardata _spawn Spawn[${_tmpID}]
         
         DEBUG ${sep}_spawn${sep}\a-w${NearestSpawn[${_increment}, ${maRez.Find[stRez${_liC8.Value}].Value} radius ${maRez.Find[stMaxRezRange].Value}].ID}\ax (\a-r${maRez.Find[stRez${_liC8.Value}].Value}\ax)
 
