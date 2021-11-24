@@ -69,7 +69,6 @@ sub set_debug(string _verbage)
   } else /if (${Select[${Me.Class.ShortName},MNK]}) {
     /invoke ${lsDebugclass.Append[fury]}
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
-    /invoke ${lsDebugclass.Append[blood,bloom]}
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
     /invoke ${lsDebugclass.Append[splash,harmonious]}
   } else /if (${Select[${Me.Class.ShortName},RNG]}) {
@@ -478,7 +477,6 @@ sub set_initial_environment(bool _debug)
     /invoke ${maChrControl.Add[list,list]}
     /invoke ${maChrControl.Add[blood,submenu]}
     /invoke ${maChrControl.Add[gather,stPctGather]}
-    | /invoke ${maChrControl.Add[gather,stPctBloom]}
 
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
     /invoke ${maChrControl.Add[list,list]}
@@ -978,7 +976,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHard stSpellBookSize                     960                           "${auxnum} maximum # of spell book slots"                                           hard
   /call set_data_map ${_debug} maHard stFoodMaintain                      3000                          "${auxnum} level of, i'm full, to maintain for food"                                hard
   /call set_data_map ${_debug} maHard stDrinkMaintain                     3000                          "${auxnum} level of, i'm not thirsty, to maintain for drink"                        hard
-  /call set_data_map ${_debug} maHard stPullMobFindStep                   5                             "${auxnum} number of increments your pull radius is broken into to look for mobs"   hard
+  | /call set_data_map ${_debug} maHard stPullMobFindStep                   5                             "${auxnum} number of increments your pull radius is broken into to look for mobs"   hard
 
 
 
@@ -1293,6 +1291,11 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maPull stCountChainPull                    0                             "${auxnum} # of mobs left in area to go pull more"                              pull
   /call set_data_map ${_debug} maPull stPullOutrunRange                   0                             "${auxnum} slowdown range when pulling a mob back to camp so you dont outrun them" pull
   /call set_data_map ${_debug} maPull swPullNavLoS                        TRUE                          "${auxsw} is Line of Sight required for nav pulling"                                pull
+  /call set_data_map ${_debug} maPull swPullHealCheck                     FALSE                         "${auxsw} self healing check while pulling"                                         pull
+  /call set_data_map ${_debug} maPull stPullStep                          5                             "${auxnum} # of steps to increment mob finding. 0 to disable"                       pull
+
+  | /call set_data_map ${_debug} maPull swPullNoStep                        FALSE                         "${auxsw} do not use steps to find mobs. use entire pull radius"                    pull
+
 
   | arc controls
   | /call set_data_map ${_debug} maPull stPullArcCardinal                   FALSE                         "${auxna} cardinal direction to pull from camp"                                 pull
@@ -2025,6 +2028,7 @@ sub sql_drop(string _table, string _field, bool _echo)
   }
 
   | is the data there?
+  | /echo --  sqlite query "${${_db}}" dummy SELECT * FROM ${_dbtable} WHERE env_var='${_field}';
   /sqlite query "${${_db}}" dummy SELECT * FROM ${_dbtable} WHERE env_var='${_field}';
 
   /if (${sqlite.Rows[dummy]}) {
@@ -2356,6 +2360,7 @@ sub data_schema_tag()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('966', 'procontarget', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('965', 'macstart', '1');
 
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('960', 'ignoremovement', '1');
 
 
 /return TRUE
@@ -2423,6 +2428,7 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '997', '1', 'CONTROL::MARKER', 'intervention pulling for clerics and shaman');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '987', '1', 'ACTION::delaycooldown', 'delays until gem cooldown is clear');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '986', '1', '${Parse[0,${Group.Member[${_name}].Index}]}', 'target must be in my group');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '960', '1', 'CONTROL::MARKER', 'marker force ignore movement checks');
 
   | nuke
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
@@ -2533,7 +2539,6 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '987', '1', 'ACTION::delaycooldown', 'delays until gem cooldown is clear');
 
-
   | buffs
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '49', '1', 'CONTROL::MARKER', 'marker /buff self');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '48', '1', 'CONTROL::MARKER', 'marker /buff minion');
@@ -2595,9 +2600,8 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '987', '1', 'ACTION::delaycooldown', 'delays until gem cooldown is clear');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '986', '1', '${Parse[0,${Group.Member[${_name}].Index}]}', 'target must be in my group');
 
-
-
-
+  | pull
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('10', '960', '1', 'CONTROL::MARKER', 'marker force ignore movement checks');
 
   | debuff
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('12', '996', '1', 'CONTROL::MARKER', 'marker /debuff mez');
@@ -2617,8 +2621,6 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '976', '1', 'CONTROL::MARKER', 'marker /cure poison');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '987', '1', 'ACTION::delaycooldown', 'delays until gem cooldown is clear');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '986', '1', '${Parse[0,${Group.Member[${_name}].Index}]}', 'target must be in my group');
-
-
 
   | sash  
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('14', '969', '1', 'CONTROL::MARKER', 'marker main sash');

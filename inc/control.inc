@@ -5728,6 +5728,11 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   } else /if (${_type.Equal[chain]}) {
     /if (!${set_control_num_range[${_debug}, stCountChainPull, "${_verbage}", 0, 99]}) /return
 
+
+  | enable/disable heal check
+  } else /if (${_type.Equal[healcheck]}) {
+    /invoke ${set_switch_env[${_debug}, swPullHealCheck, TRUE, ${_verbage}]}
+
   | outrun range
   } else /if (${_type.Equal[outrun]}) {
     /if (!${set_control_num_range[${_debug}, stPullOutrunRange, "${_verbage}", 0, 1000]}) /return
@@ -5739,6 +5744,12 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   | enable/disable using nav pull length to find mobs
   } else /if (${_type.Equal[pathlogic]}) {
     /invoke ${set_switch_env[${_debug}, swNavPathLogic, TRUE, ${_verbage}]}
+
+  | enable/disable using step calculations to find valid mobs
+  } else /if (${_type.Equal[step]}) {
+    /if (!${set_control_num_range[${_debug}, stPullStep, "${_verbage}", 0, 10]}) /return
+    
+
 
   | pull modes
   } else /if (${_type.Equal[mode]}) {
@@ -5835,10 +5846,12 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   /invoke ${maControl.Add[navlos,swPullNavLoS]}
   /invoke ${maControl.Add[zrad,stPullZRadius]}
   /invoke ${maControl.Add[pathlogic,swNavPathLogic]}
+  /invoke ${maControl.Add[step,stPullStep]}
   /invoke ${maControl.Add[one,submenu]}
   /invoke ${maControl.Add[stop,submenu]}
   /invoke ${maControl.Add[mode,submenu]}
   /invoke ${maControl.Add[petwatch,stPullPetWatch]}
+  /invoke ${maControl.Add[healcheck,swPullHealCheck]}
   /invoke ${maControl.Add[with,submenu]}
   /invoke ${maControl.Add[outrun,stPullOutrunRange]}
   /invoke ${maControl.Add[sethome,swPullSetHome]}

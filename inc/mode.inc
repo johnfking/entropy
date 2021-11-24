@@ -292,7 +292,7 @@ sub mode_petfarm(bool _debug)
 
   CHECKTIE
   /doevents
-  /call target set TARGET
+  /call target set ${targetData.ID}
 
   /pet attack
 
@@ -307,7 +307,6 @@ sub mode_petfarm(bool _debug)
     /if (${targetData.Type.Equal[CORPSE]} || !${targetData.ID}) /break
     /if (${Pet.Target.ID} != ${targetData.ID}) /break
     /if (${targetData.Distance} > PULLENV) /break
-    DEBUG ${sep}here${sep}\a-w${timer_mob_get}\ax \ag${targetData.ID}\ax
     /if (!${timer_mob_get}) {
       /break
     }

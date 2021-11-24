@@ -550,6 +550,24 @@ sub Event_16stein6(string line)
  **|
 
 
+#Event mask1 "You feel a gaze of deadly power focusing on you.#.#"
+sub Event_mask1()
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+
+  /if (!${cast_data[FALSE, "Mirrored Mask"]}) {
+    /return FALSE
+  }
+
+  /call set_stop ${maDebug.Find[stop].Value} SILENT
+  /call cast FALSE ${Me.ID} FALSE
+
+/return TRUE
+
+
+
+
+
+
 |********************************************************************************************
  ** Dragons of Norrath (February 2005)
  **|

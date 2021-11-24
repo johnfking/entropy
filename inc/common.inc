@@ -2630,20 +2630,6 @@ sub pull_mob_tag(bool _debug, spawn _spawn)
     /if (${maPull.Find[stPullWith].Value.Equal[other]}) {
       DEBUG ${sep}Tag${sep}Other${sep}${tar}${_spawn.DisplayName}\ax
 
-      | make sure we are stopped
-      /if (!${Select[${Me.Class.ShortName},BRD]}) {
-        /declare _breakmove int local 1
-        /while (${Me.Moving} || ${Navigation.Active}) {
-          DEBUG ${sep}stop tag${sep}\a-wnavigation\ax (\a-r${_breakmove}\ax)
-          /nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
-          /varcalc _breakmove ${_breakmove}+1
-          /if ((!${Me.Moving} && !${Navigation.Active}) || ${_breakmove} > 4) {
-            /break
-          }
-          /delay 1s !${Me.Moving} && !${Navigation.Active}
-        }
-      }
-
       DEBUG ${sep}Entering _loopbreak OTHER
       /while (${_loopbreak} <= ${maHard.Find[stPullMobTagTry].Value}) {
 
@@ -2804,7 +2790,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
   }
 
   /declare _spawn spawn local
-  /declare _tmpAgroRange int local ${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
+  /declare _tmpAgroRange int local 0
   /declare _count int local 0
   /declare _mobHP int local 999
   /declare _tmpHPAdj int local 0
@@ -2813,6 +2799,14 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
   /declare _closestID int local 0
   /declare _navRange int local 0
   /declare _mobcount int local 0
+
+
+  | set the temp agro radius for steps
+  /if (!${maPull.Find[stPullStep].Value}) {
+    /varset _tmpAgroRange ${Int[${Math.Calc[PULLENV - 1]}]}
+  } else {
+    /varset _tmpAgroRange ${Int[${Math.Calc[PULLENV / ${maPull.Find[stPullStep].Value}]}]}
+  }
 
   | adjust LOS?
   /if (${maOver.Find[swOverLOS].Value} || ${Select[${maPull.Find[stPullMode].Value},nav,int,pet,calm,multi]}) {
@@ -2836,7 +2830,11 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
     | no mobs around us, no reason to be here
     /if (!${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
       DEBUG ${break}NO SpawnCount to pull from${sep}\a-w${_tmpAgroRange}\ax
-      /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
+      /if (!${maPull.Find[swPullStep].Value}) {
+        /break
+      } else {
+        /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maPull.Find[stPullStep].Value}]}]}
+      }
       /continue
     }
 
@@ -2938,7 +2936,13 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
       | CYA for shit MQ will pick up in the environment that does not have a name
       /if (${_spawn.DisplayName.Length} < 1) {
         DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wDisplayName.Length < 1\ax
-        /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
+
+        /if (!${maPull.Find[swPullStep].Value}) {
+          /varset _tmpAgroRange ${Int[${Math.Calc[PULLENV - 1]}]}
+        } else {
+          /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maPull.Find[stPullStep].Value}]}]}
+        }
+
         /continue
       }
 
@@ -3060,8 +3064,13 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
     | no target, try next step
     /varset targetData 0
     /varset stAssTarID 0
-    DEBUG ${sep}_tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
-    /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
+    /if (!${maPull.Find[swPullStep].Value}) {
+      /break
+    } else {
+      DEBUG ${sep}_tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maPull.Find[stPullStep].Value}]}]}
+      /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maPull.Find[stPullStep].Value}]}]}
+    }
+
   }
 
   /if (!${targetData.ID}) {
@@ -7313,6 +7322,14 @@ sub pull_mob_move_to(bool _debug, spawn _spawn, int _dist, string _LoS)
       /invoke ${target[clear]}
       /break
     }
+    
+    | self heal while returning to camp; heal needs tag ignoremovement
+    /if (${maPull.Find[swPullHealCheck].Value}) {
+      /call spawn_hurt ${maDebug.Find[hurt].Value} self
+      /if (${hurtCount}) {
+        /call cast_cycle_heal ${_debug} ${Me.ID} ignoremovement
+      }
+    }    
 
     | are we there yet??? (no los required)
     /if (!${Bool[${_LoS}]}) {
@@ -10634,7 +10651,11 @@ sub cast_cycle_heal(bool _debug, spawn _spawn, string _tag)
     }
 
     /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
-    /call cast ${_debug} ${_spawn.ID} breakonhealpct
+    /if (${_tag.Equal[ignoremovement]}) {
+      /call cast ${_debug} ${_spawn.ID} ignoremovement
+    } else {
+      /call cast ${_debug} ${_spawn.ID} breakonhealpct
+    }
 
     /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,DISTRACTED,OUTOFMANA,STUNNED]}) {
       /break
@@ -12083,7 +12104,26 @@ sub pull_get_other_type(bool _debug, spawn _spawn)
       /continue
     }
 
-    /call cast ${_debug} ${_spawn.ID} FALSE PULLENV
+
+    | make sure we are stopped if needed
+    /if (!${Select[${Me.Class.ShortName},BRD]} || !${lsPull${_liC12.Value}Tag.Contains[ignoremovement]}) {
+      /declare _breakmove int local 1
+      /while (${Me.Moving} || ${Navigation.Active}) {
+        DEBUG ${sep}stop tag${sep}\a-wnavigation\ax (\a-r${_breakmove}\ax)
+        /nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
+        /varcalc _breakmove ${_breakmove}+1
+        /if ((!${Me.Moving} && !${Navigation.Active}) || ${_breakmove} > 4) {
+          /break
+        }
+        /delay 1s !${Me.Moving} && !${Navigation.Active}
+      }
+    }
+
+    /if (${lsPull${_liC12.Value}Tag.Contains[ignoremovement]}) {
+      /call cast ${_debug} ${_spawn.ID} ignoremovement PULLENV
+    } else { 
+      /call cast ${_debug} ${_spawn.ID} FALSE PULLENV
+    }
     
     | good cast, get out...
     /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,BLOCKED,RESISTED,IMMUNE]}) {
@@ -12939,6 +12979,14 @@ sub pull_home_move_to(bool _debug, spawn _spawn)
   /while (${Navigation.Active}) {
     /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
     GETOVERHERE
+    
+    | self heal while returning to camp; heal needs tag ignoremovement
+    /if (${maPull.Find[swPullHealCheck].Value}) {
+      /call spawn_hurt ${maDebug.Find[hurt].Value} self
+      /if (${hurtCount}) {
+        /call cast_cycle_heal ${_debug} ${Me.ID} ignoremovement
+      }
+    }
 
     | do we slow down if we start to outrun a mob?
     /if (${maPull.Find[stPullOutrunRange].Value} && !${Me.Mount.ID}) {

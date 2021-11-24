@@ -160,6 +160,7 @@ elseif command == 'pull' then
   elseif option == 'h' then
     echo('active${lsep}puling on or off?')
     echo('chain${lsep}when only this many mobs in camp, seconday puller goes and gets more')
+    echo('healcheck${lsep}check yourself for heals while pulling')
     echo('mode${lsep}how you want to pull base|pet|int|nav|multi|watch')
     echo('navstop${lsep}stop this far from a mob then attempt to pull')
     echo('navlos${lsep}require los on nav pull checks')
@@ -168,6 +169,7 @@ elseif command == 'pull' then
     echo('petwatch${lsep}## radius to watch for pets to kill')
     echo('rad${lsep}y/x radius to pull in')
     echo('sethome${lsep}auto set a home marker before pulling')
+    echo('step${lsep}## (0-10) steps to chop up env rad for pulling mobs?')
     echo('stop${lsep}reasons to stop pulling?')
     echo('with${lsep}list of things you can pull with')
     echo('zrad${lsep}z radius to pull in')

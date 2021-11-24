@@ -23,6 +23,26 @@ on the to do list
 
 
 
+211124.04
+- events.inc
+  added an event for OMM silver mask clicking (no idea if it works)
+- tag
+  ignoremovement - will force ignoring movement checks
+  using this on anything with a cast time > 0 is just dumb. dont do it, it wont work
+- /pull step # (0-10) - sets the number of steps your pull radius is chopped into while looking for mobs
+  0 to disable and treat the entire pull radius as one search
+- /pull healcheck (on/off) - check healing while pulling
+- pulling (moving)
+  while returning home from a pull, healing checks will be done for self only
+  so... add tags self and ignoremovement to a heal you want cast on you while running
+  home cause you cant take a hit like a gurly monk!?!?
+  while moving to a target to pull, the same checks will be made. i have 
+  reservations about this and target changing. so it may need some adjustments  
+- pulling (tagging mobs)
+  if the tag ignoremovement is added to the pull other thing you are pulling 
+  with, movement checks will be skipped
+  
+
 211121.01
 - /override tmpengage
   60 seconds of ignoring the engage %
