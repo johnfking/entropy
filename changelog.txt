@@ -21,7 +21,26 @@ on the to do list
 --------------------
 
 
-
+211126.02
+- /mode summon
+  adapted for the patch changes to no longer needing soulstones
+- hud
+  fixed a label in the combat tab
+  position should not reset on new builds (debug and build as well)
+- corrected some missed variables and math in the /pull step addition (math is hard)
+- chanters can use /chr remez ## now
+- fixed a target hold issue in nav pulling
+- /build ui
+  updated to account for /agro changes
+- changes to agro
+  class order: taunt is no longer valid (does nothing)
+  class order: agro, now includes taunt for tanks
+  /agro [list] is no longer restricted to engine2, you can build our own agro routines
+  tank class routine get_agro() is ignored. i'll remove it later
+  tags: 16ish base tags added for agro. can use /agro -t to see them
+  
+  ** you will need to make the agro changes on your tanks
+  
 
 211124.04
 - events.inc

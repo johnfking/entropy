@@ -2830,8 +2830,8 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
     | no mobs around us, no reason to be here
     /if (!${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
       DEBUG ${break}NO SpawnCount to pull from${sep}\a-w${_tmpAgroRange}\ax
-      /if (!${maPull.Find[swPullStep].Value}) {
-        /break
+      /if (!${maPull.Find[stPullStep].Value}) {
+        /varcalc _tmpAgroRange ${_tmpAgroRange}+1
       } else {
         /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maPull.Find[stPullStep].Value}]}]}
       }
@@ -2937,7 +2937,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
       /if (${_spawn.DisplayName.Length} < 1) {
         DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wDisplayName.Length < 1\ax
 
-        /if (!${maPull.Find[swPullStep].Value}) {
+        /if (!${maPull.Find[stPullStep].Value}) {
           /varset _tmpAgroRange ${Int[${Math.Calc[PULLENV - 1]}]}
         } else {
           /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maPull.Find[stPullStep].Value}]}]}
@@ -3064,8 +3064,8 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
     | no target, try next step
     /varset targetData 0
     /varset stAssTarID 0
-    /if (!${maPull.Find[swPullStep].Value}) {
-      /break
+    /if (!${maPull.Find[stPullStep].Value}) {
+      /varcalc _tmpAgroRange ${_tmpAgroRange}+1
     } else {
       DEBUG ${sep}_tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maPull.Find[stPullStep].Value}]}]}
       /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maPull.Find[stPullStep].Value}]}]}
@@ -7017,9 +7017,9 @@ sub cast_shield_flash(bool _debug, string _type)
   }
 
   | reset to previous bandolier
-  /if (${Me.Bandolier[${maSash.Find[stSashShieldFlash].Value}].Name.NotEqual[${_Bandolier}]}) {
-    /docommand /timed 70 /call check_sash_cycle ${maDebug.Find[sash].Value} mainsash
-  }
+  | /if (${Me.Bandolier[${maSash.Find[stSashShieldFlash].Value}].Name.NotEqual[${_Bandolier}]}) {
+  |   /docommand /timed 70 /call check_sash_cycle ${maDebug.Find[sash].Value} mainsash
+  | }
 
 /return TRUE
 
@@ -7597,6 +7597,7 @@ sub get_target_navpull(bool _debug, spawn _spawn, int _spCount)
 
   | correct the working spawn information
   /if (!${_spawn.ID} && ${targetData.ID}) {
+    DEBUG ${sep} setting _spawn <- targetData
     /vardata _spawn targetData
   }
 
@@ -7620,7 +7621,7 @@ sub get_target_navpull(bool _debug, spawn _spawn, int _spCount)
 
   | set the target
   /invoke ${out[9, "Fetching${sep}${con_color[${_debug}, ${_spawn.ID}]}\ax"]}
-  | /call target set ${_spawn.ID} 
+  /call target set ${_spawn.ID} 
 
   | if the mob is kinda close??
   /if (${_spawn.LineOfSight} && ${_spawn.Distance} < ENV) {
@@ -9607,11 +9608,29 @@ sub cast_cycle_dot(bool _debug, spawn _spawn)
 
 
 |***
- * note: casts skills from maAgro for engine2
- * use: /call cast_cycle_agro DEBUG [spawnIT]
+ * note: casts skills from maAgro
+ * use: /call cast_cycle_agro DEBUG [spawnID]
  ***|
 sub cast_cycle_agro(bool _debug, spawn _spawn)
   DEBUG \atcast_cycle_agro\ax(\a-w${_spawn.ID}\ax)
+
+  /if (!AGRO) {
+    DEBUG ${break}agro off
+    /return FALSE
+  }
+
+  /invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
+
+  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  CHECKEXIT
+
+  | taunt
+  /if (${lsMeleeSkill.Contains[taunt]} && ${Me.AbilityReady[Taunt]}) {
+    /if (${Target.ID} && (${Me.PctAggro} < ${maCC.Find[stPctTaunt].Value} || ${Me.TargetOfTarget.ID} != ${Me.ID})) {
+      /invoke ${out[8, "Melee${sep}${sp}Taunt\ax ${dot} ${con_color[${_debug}, ${_spawn.ID}]}\ax"]}
+      /doability Taunt
+    }
+  }
 
   | if the user has not set the line order, set it to a default for now
   /if (${lsLineAgro.Contains[EMPTY]} && ${lsLineAgro.Count} == 1) {
@@ -9619,8 +9638,6 @@ sub cast_cycle_agro(bool _debug, spawn _spawn)
     /invoke ${lsLineAgro.Clear}
     /invoke ${lsLineAgro.Append[${stCount20}]}
   }
-
-  /invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
 
   /declare _liC20 listiterator local
   /vardata _liC20 lsLineAgro.First.Clone
@@ -9663,7 +9680,7 @@ sub cast_cycle_agro(bool _debug, spawn _spawn)
     }
 
     /call cast ${_debug} ${_spawn.ID} FALSE
-
+    
     /invoke ${_liC20.Advance}
   }
 
@@ -11698,7 +11715,7 @@ sub do_taunt(bool _debug, spawn _spawn)
   }
 
   /invoke ${out[8, "Melee${sep}${sp}Taunt\ax ${dot} ${con_color[${_debug}, ${_spawn.ID}]}\ax"]}
-  /doability Taunt
+  /doability Taunt 
 
 /return TRUE
 
@@ -12050,7 +12067,7 @@ sub check_gtfo(bool _debug)
 
 |***
  * note: casts skills from maPull for engine2
- * use: /call cast_cycle_agro DEBUG TEMPID
+ * use: /call pull_get_other_type DEBUG TEMPID
  ***|
 sub pull_get_other_type(bool _debug, spawn _spawn)
   DEBUG \atpull_get_other_type\ax(\a-w${_spawn.ID}\ax)
@@ -12062,16 +12079,17 @@ sub pull_get_other_type(bool _debug, spawn _spawn)
     /invoke ${lsLinePull.Append[${stCount12}]}
   }
 
+  /declare _breakmove int local 1
   /declare _liC12 listiterator local
   /vardata _liC12 lsLinePull.First.Clone
   /while (!${_liC12.IsEnd}) {
 
     SPAWNDEAD
 
-    GETINPUT cast_cycle_agro NA|NA
+    GETINPUT pull_get_other_type NA|NA
     /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
     GETOVERHERE
-    CHECKEXIT cast_cycle_agro
+    CHECKEXIT pull_get_other_type
 
     /call target set ${_spawn.ID}
 
@@ -12107,7 +12125,6 @@ sub pull_get_other_type(bool _debug, spawn _spawn)
 
     | make sure we are stopped if needed
     /if (!${Select[${Me.Class.ShortName},BRD]} || !${lsPull${_liC12.Value}Tag.Contains[ignoremovement]}) {
-      /declare _breakmove int local 1
       /while (${Me.Moving} || ${Navigation.Active}) {
         DEBUG ${sep}stop tag${sep}\a-wnavigation\ax (\a-r${_breakmove}\ax)
         /nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
@@ -13105,7 +13122,7 @@ sub pull_assist_decision(bool _debug)
       DEBUG ${submenu}pullstate (\a-rpull check\ax)
 
       | hardstop check
-      /if (!${SpawnCount[NPC radius ENV PS4 targetable]}) {
+      /if (!${SpawnCount[npc radius ENV targetable]}) {
         DEBUG ${submenu}pullstate (\a-rhardstop: no mobs\ax)
         /if (!${timer_Check_Pull_Hardstop}) {
           /call pull_hardstop ${maDebug.Find[hardstop].Value}
@@ -14437,12 +14454,13 @@ sub class_cycle(string _order)
       /if (!${timer_Check_Xtarget_Build}) /call check_xtarget_build FALSE
       
     | taunt classes
-    } else /if (${_lico.Value.Equal[taunt]}) {
-      /invoke ${do_taunt[${maDebug.Find[taunt].Value}, ${targetData.ID}]}
+    | } else /if (${_lico.Value.Equal[taunt]}) {
+    |   /invoke ${do_taunt[${maDebug.Find[taunt].Value}, ${targetData.ID}]}
       
     | agro routines
     } else /if (${_lico.Value.Equal[agro]} && AGRO) {
-      /call get_agro ${maDebug.Find[agro].Value} ${targetData.ID}
+      | /call get_agro ${maDebug.Find[agro].Value} ${targetData.ID}
+      /call cast_cycle_agro ${maDebug.Find[agro].Value} ${targetData.ID}
 
     | knight harmonious routine
     } else /if (${_lico.Value.Equal[harmonious]} && ${maChr.Find[swHarmonious].Value}) {

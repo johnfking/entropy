@@ -239,9 +239,9 @@ sub misc_combat(bool _debug, spawn _spawn)
   }
 
   | get me sum...
-  /if (AGRO) {
-    /call get_agro ${_debug} ${_spawn.ID}
-  }
+  | /if (AGRO) {
+  |   /call get_agro ${_debug} ${_spawn.ID}
+  | }
 
   | quickspear proc
   /if (${cast_data[${_debug}, "${maChr.Find[stAAGiftoftheQuickSpear].Value}"]}) {
@@ -297,7 +297,7 @@ sub get_agro(bool _debug, spawn _spawn)
     /return TRUE
   }
 
-  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
+  | /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
 
   /call cast_challenge ${_debug} ${_spawn.ID}
 
@@ -345,7 +345,7 @@ sub get_agro(bool _debug, spawn _spawn)
   /if (${target[isdead, ${_spawn.ID}]}) {
     /return FALSE
   }
-  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
+  | /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
 
   /if (${Me.PctAggro} >= ${maAgro.Find[stPctAgroHold].Value}) {
     /return FALSE

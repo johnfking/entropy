@@ -473,6 +473,11 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   /if (${_type.Equal[gather]}) {
     /if (!${set_control_num_range[${_debug}, stPctGather, "${_verbage}", 0, 99]}) /return FALSE
 
+  | remez time?
+  } else /if (${_type.Equal[remez]}) {
+    /if (!${set_control_num_range[${_debug}, streMezTime, "${_verbage}", 0, 9999]}) /return FALSE
+
+
   | use AA crystals
   } else /if (${_type.Equal[crystal]}) {
     /invoke ${set_switch_env[${_debug}, swAACrystals, TRUE, ${_verbage}]}

@@ -730,88 +730,22 @@ sub mode_open(string _type, bool _debug)
  * use: /mode summon DEBUG
  ***|
 sub mode_summon(bool _debug)
-  DEBUG \atmode_summon\ax()
+  SDEBUG \atmode_summon\ax()
 
-  | in the lobby?
   /if (${Zone.ShortName.NotEqual[GuildLobby]}) {
     /invoke ${maMode.Add[summon,FALSE]}
     /return FALSE
   }
-
   SETHUD "summon"
-
-  | set stone to buy
-  /declare _soulstone string local
-  /declare _count int local 0
-  /sqlite query "${DBstatic}" dummy SELECT * FROM soulstone;
-  /for _count 1 to ${sqlite.Rows[dummy]}
-    /if (${Me.Level} <= ${sqlite.Result[dummy ${_count} env_var].Arg[1,|]} && ${Me.Level} >= ${sqlite.Result[dummy ${_count} env_var].Arg[2,|]}) {
-      /varset _soulstone ${sqlite.Result[dummy ${_count} value]}
-      /break
-    }
-  /next _count
-  
-  :summonstart
-  GETINPUT
-  ISMEDEAD
-
-  | do we need to buy a stone?
-  /if (!${FindItemCount[=${_soulstone}]}) {
-    /nav spawn npc A Disciple of Luclin |log=${maEntropy.Find[swNavLogSpew].Value}
-
-    :priestinventory
-      /delay 10s !${Navigation.Active}
-      /delay 1s
-      /squelch /target A Disciple of Luclin
-      /delay 1s
-      /nomodkey /click right target
-      /delay 5s ${Window[MerchantWnd].Open}
-      /if (!${Window[MerchantWnd].Open}) /goto :priestinventory
-    /delay 1s
-    /call vendor_buy ${maDebug.Find[vendor].Value} "${_soulstone}" 1
-
-    :closepriestinventory
-      /nomodkey /notify MerchantWnd MW_Done_Button LeftMouseUp
-      /delay 10
-      /if (${Window[MerchantWnd].Open}) /goto :closepriestinventory
-  }
-  /if (!${FindItemCount[=${_soulstone}]}) /goto :summonstart
-
-  | move to rezer
-  /nav spawn npc A Priest of Luclin |log=${maEntropy.Find[swNavLogSpew].Value} distance=6
-  /delay 10s !${Navigation.Active}
-
-  | get stone on cursor
-  /itemnotify "${_soulstone}" leftmouseup
-  /delay 5
-
-  :givetopriest
-    /squelch /target A Priest of Luclin
-    /delay 5
-    /nomodkey /click left target
-    /delay 5
-    /delay 5s ${Window[GiveWnd].Open}
-    /if (!${Window[GiveWnd].Open}) /goto :givetopriest
-    /if (${Window[GiveWnd].Open}) {
-      /notify GiveWnd GVW_Give_Button leftmouseup
-      /delay 3s
-      /if (${Window[GiveWnd].Open}) /goto :GiveSoulStone
-    }
-
-  :CloseInvWnd
-    /if (${Window[InventoryWindow].Open}) {
-      /nomodkey /notify InventoryWindow IW_DoneButton LeftMouseUp
-      /delay 5
-      /if (${Window[InventoryWindow].Open}) /goto :CloseInvWnd
-    }
-
-  /if (${Window[InventoryWindow].Open}) /nomodkey /notify InventoryWindow IW_DoneButton LeftMouseUp
-  /delay 5
-
+  /call Bind_command_navto "A Priest of Luclin" ${_debug}
+  /call target set ${Spawn[A Priest of Luclin].ID}
+  /say summon 
+  /delay 1s
   /squelch /target clear
   /invoke ${maMode.Add[summon,FALSE]}
   /varset swIsMeDead TRUE
-
+  SETHUD
+  
 /return FALSE
 
 

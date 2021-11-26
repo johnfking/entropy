@@ -82,7 +82,7 @@ end
 local function imguicallback()
   hudInfo()
   
-  openGUI, shouldDrawHUD = ImGui.Begin('Entropy Editor '..ent['build'], openGUI)
+  openGUI, shouldDrawHUD = ImGui.Begin('Entropy Editor '..ent['build']..'###EntropyEditor', openGUI)
   
   if shouldDrawHUD and ent['build'] == '--' then
     ImGui.Text('Entropy is not running')
@@ -97,30 +97,18 @@ local function imguicallback()
       ImGui.NewLine()
       indent(1,1)
 
-      -- swAgro          
-      local _switch, pressed = ImGui.Checkbox('active##swAgro', mq.TLO.Macro.Variable('maAgro').Find('swAgro').Value() == 'TRUE')
-      if pressed then
-        mq.cmd.luaedit('swAgro', _switch and 'TRUE' or 'FALSE')
-      end
-      
-      if mq.TLO.Macro.Variable('lsMeleeSkill').Contains('taunt')() == 1 then
-        -- stPctTaunt 
-        local line, selected = ImGui.InputTextWithHint('pct taunt##lsdeBuffOrder', mq.TLO.Macro.Variable('maAgro').Find('stPctTaunt').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-        if selected then
-          mq.cmd.luaedit('stPctTaunt', line, 'overwrite')
-        end   
-        -- stPctAgroHold
-        local line, selected = ImGui.InputTextWithHint('pct hold##stPctAgroHold', mq.TLO.Macro.Variable('maAgro').Find('stPctAgroHold').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
-        if selected then
-          mq.cmd.luaedit('stPctAgroHold', line, 'overwrite')
-        end     
-      end
+      ImGui.Columns(2, 'agrothingies', false)
+        edit_switch_perm('agro', 'maAgro', 'swAgro')
+        edit_text_perm('% hold', 'maAgro', 'stPctAgroHold')
+      ImGui.NextColumn()
+        edit_text_perm('% taunt', 'maAgro', 'stPctTaunt')
+      ImGui.Columns()  
       
 
       indent(1,2)
       ImGui.NewLine()
       
-      if mq.TLO.Macro.Variable('maEntropy').Find('stEngine').Value() == '2' then
+      --if mq.TLO.Macro.Variable('maEntropy').Find('stEngine').Value() == '2' then
 
         if ImGui.TreeNode('list') then 
           ImGui.Indent(16)
@@ -140,6 +128,8 @@ local function imguicallback()
               if pressed then
                 mq.cmd.luaedit('swAgro'..i, _switch and 'TRUE' or 'FALSE')
               end
+              
+              indent(i,1)
 
               -- name
               local _name, selected = ImGui.InputTextWithHint('name##stAgro'..i, mq.TLO.Macro.Variable('maAgro').Find('stAgro'..i).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
@@ -151,6 +141,8 @@ local function imguicallback()
               if selected then
                 mq.cmd.luaedit('lsAgro'..i..'Tag', _tag, 'overwrite')
               end
+              
+              indent(i,2)
              
             else 
               if mq.TLO.Macro.Variable('maAgro').Find('stAgro'..i).Value() == 'FALSE' then
@@ -167,7 +159,7 @@ local function imguicallback()
           end
           ImGui.TreePop()
         end
-      end
+      --end
 
       ImGui.NewLine()
     end

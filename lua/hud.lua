@@ -15,7 +15,7 @@ local function imguicallback()
   hudInfo()
   
   -- openGUI, shouldDrawHUD = ImGui.Begin('Entropy '..ent['build'], openGUI, ImGuiWindowFlags.NoScrollbar)
-  openGUI, shouldDrawHUD = ImGui.Begin('Entropy '..ent['build'], openGUI)
+  openGUI, shouldDrawHUD = ImGui.Begin('Entropy '..ent['build']..'###EntropyHUD', openGUI)
   
   if shouldDrawHUD and (ent['build'] == '--' or mq.TLO.EverQuest.GameState() ~= 'INGAME') then
     ImGui.Text('Entropy is not running')
@@ -184,7 +184,7 @@ local function imguicallback()
       if mq.TLO.Macro.Variable('maHud').Find('swTabCombat').Value() == "TRUE" then
         if ImGui.BeginTabItem('Combat') then
           ImGui.Columns(2, 'noname', false)
-            edit_switch_perm('dannet', 'maCC', 'swCombatDoT')
+            edit_switch_perm('dot', 'maCC', 'swCombatDoT')
             edit_switch_perm('heal', 'maCC', 'swCombatHeal')
             edit_switch_perm('melee', 'maCC', 'swCombatMelee')
             edit_switch_perm('range', 'maCC', 'swCombatRange')

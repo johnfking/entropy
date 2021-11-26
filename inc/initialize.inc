@@ -2249,6 +2249,7 @@ sub data_schema_tag_group()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('12', 'debuff');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('13', 'cure');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('14', 'sash');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag_group(id, grouping) VALUES('15', 'agro');
 
 /return TRUE
 
@@ -2345,13 +2346,11 @@ sub data_schema_tag()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('986', 'inmygroup', '1');
 
 
-
   | cure stuff
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('979', 'corruption', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('978', 'curse', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('977', 'disease', '1');
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('976', 'poison', '1');
-
 
   | sash
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('969', 'mainsash', '1');
@@ -2361,6 +2360,18 @@ sub data_schema_tag()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('965', 'macstart', '1');
 
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('960', 'ignoremovement', '1');
+
+  | agro
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('959', 'ae2', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('958', 'ae4', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('957', 'ae6', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('956', 'ae8', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('955', 'badtot', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('954', 'nochanter', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('953', 'aeon', '1');
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('952', 'agrohold', '1');
+
+
 
 
 /return TRUE
@@ -2630,9 +2641,32 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('14', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met'); 
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('14', '965', '1', 'CONTROL::MARKER', 'marker load this sash on mac start');
  
+  | agro
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '23', '1', '${Parse[0,${maPull.Find[swPull].Value}]}', 'must be the puller');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '26', '1', '${Parse[0,!${Raid.Members}]}', 'not in a raid');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '27', '1', '${Parse[0,${Raid.Members}]}', 'in a raid');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '28', '1', '${Parse[0,${maBurn.Find[swBurnConditionMet].Value}]}', 'burn conditions must be met');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '29', '1', '${Parse[0,${maMinion.Find[swSwarm].Value}]}', 'use with swarm pets');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '30', '1', '${Parse[0,${Group.Members}]}', 'must be in a group');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '960', '1', 'CONTROL::MARKER', 'marker force ignore movement checks');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '19', '1', '${Parse[0,${Select[${Me.CombatState},combat]} || ${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'must be in combat');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '959', '1', '${Parse[0,${SpawnCount[npc radius ${maEnv.Find[stEnvRadius].Value} playerstate 4]}]} >= 2', 'spawncount >=2');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '958', '1', '${Parse[0,${SpawnCount[npc radius ${maEnv.Find[stEnvRadius].Value} playerstate 4]}]} >= 4', 'spawncount >=4');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '957', '1', '${Parse[0,${SpawnCount[npc radius ${maEnv.Find[stEnvRadius].Value} playerstate 4]}]} >= 6', 'spawncount >=6');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '956', '1', '${Parse[0,${SpawnCount[npc radius ${maEnv.Find[stEnvRadius].Value} playerstate 4]}]} >= 8', 'spawncount >=8');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '955', '1', '${Parse[0,${Me.TargetOfTarget.ID} != ${Me.ID}]}', 'target of target is not me');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '954', '1', '${Parse[0,!${SpawnCount[pc enchanter radius ${maEnv.Find[stEnvRadius].Value}]}]}', 'no  chanters around');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '953', '1', '${Parse[0,${maChr.Find[stCountAE].Value}]} && ${Parse[0,${maChr.Find[stCountAE].Value} > 0]}', 'ae is enabled');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('15', '952', '1', '${Parse[0,${Me.PctAggro} < ${maAgro.Find[stPctAgroHold].Value}]}', 'target agro below pctagrohold setting');
  
 
 /return TRUE
+
+
+
+
+
 
 
 

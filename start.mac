@@ -125,8 +125,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 211124.04
-  /call set_data FALSE maEnv schema                         map outer 1.52
+  /call set_data FALSE maEnv build                          map outer 211126.02
+  /call set_data FALSE maEnv schema                         map outer 1.56
   /call set_data FALSE maEnv repo                           map outer 210216.01
 
   | prep macro

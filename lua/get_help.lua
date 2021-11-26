@@ -297,7 +297,7 @@ elseif command == 'agro' then
   elseif option == 's' then
     mq.cmd.call('Bind_command_see maAgro')
   elseif option == 't' then
-    out('notag')
+    mq.cmd.call('Bind_noparse_tag see agro')
   end
 
 

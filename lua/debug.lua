@@ -17,7 +17,7 @@ local shouldDrawHUD = true
 local function imguicallback()
   hudInfo()
   
-  openGUI, shouldDrawHUD = ImGui.Begin('Info Overload '..ent['build'], openGUI)
+  openGUI, shouldDrawHUD = ImGui.Begin('Info Overload '..ent['build']..'###EntropyDebug', openGUI)
   
   if shouldDrawHUD and ent['build'] == '--' then
     ImGui.Text('Entropy is not running')

@@ -4979,17 +4979,17 @@ sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _a
     /return TRUE
   }
 
-  /if (ENGINE1 && ${Select[${_type},list]}) {
-    /invoke ${out[0, "/agro list is only available with engine 2/3 enabled."]}
-    /return FALSE
-  }
+  | /if (ENGINE1 && ${Select[${_type},list]}) {
+    | /invoke ${out[0, "/agro list is only available with engine 2/3 enabled."]}
+    | /return FALSE
+  | }
 
-  /if (ENGINE2 || ENGINE3) {
+  | /if (ENGINE2 || ENGINE3) {
     /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
       /call control_base_edit ${maDebug.Find[edit].Value} Agro 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
       /return TRUE
     }
-  }
+  | }
 
   /if (${_type.Equal[taunt]} && ${lsMeleeSkill.Contains[taunt]}) {
     /if (!${set_control_num_range[${_debug}, stPctTaunt, "${_verbage}", 0, 99]}) /return FALSE
