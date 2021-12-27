@@ -977,6 +977,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHard stFoodMaintain                      3000                          "${auxnum} level of, i'm full, to maintain for food"                                hard
   /call set_data_map ${_debug} maHard stDrinkMaintain                     3000                          "${auxnum} level of, i'm not thirsty, to maintain for drink"                        hard
   | /call set_data_map ${_debug} maHard stPullMobFindStep                   5                             "${auxnum} number of increments your pull radius is broken into to look for mobs"   hard
+  /call set_data_map ${_debug} maHard stModeDragTargetCheck               5                             "${auxnum} speed that you grab another corpse to drag. lower = faster"              hard
 
 
 
@@ -2079,7 +2080,7 @@ sub sql_check(bool _debug, string _query, string _subname, string _action)
  * note:
  * use: generate shared.sqlite
  ***|
-sub sql_schema_shared(bool _debug)
+sub sql_schema_shared(bool _debug, bool _force)
   DEBUG \atsql_schema_shared\ax()
 
   /if (${maDebug.Find[init].Value}) {
@@ -2106,14 +2107,14 @@ sub sql_schema_shared(bool _debug)
   }
 
   | if the numbers match, we consider it valid and go away to dosoemthing else.
-  /if (!${_schemaMismatch} && !${_buildMismatch}) {
+  /if (!${_schemaMismatch} && !${_buildMismatch} && !${_force}) {
     DEBUG ${sep}Macro and Schema builds match for shared database, bailing on this routine
     /sqlite clear schemanumber
     /sqlite clear buildnumber
     /return TRUE
   }
 
-  /if (!${sqlite.Rows[schemanumber]}) {
+  /if (!${sqlite.Rows[schemanumber]} || ${_force}) {
     OUT \a-tSchema Build\ax${sep}\a-wshared\ax (\a-r${maEnv.Find[schema].Value}\ax)
     /while (TRUE) {
 
@@ -2179,7 +2180,7 @@ sub sql_schema_shared(bool _debug)
     /sqlite clear updatebuildnum
   }
 
-  /if (${_schemaMismatch}) {
+  /if (${_schemaMismatch} || ${_force}) {
     /if (${sqlite.Status[schemanumber].NotEqual[success]}) {
       OUT \a-tSchema Update\ax${sep}\a-wshared\ax (\a-r${sqlite.Result[schemanumber 1 version]}\ax -> \a-r${maEnv.Find[schema].Value}\ax)
     } else {
@@ -2372,6 +2373,7 @@ sub data_schema_tag()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('952', 'agrohold', '1');
 
 
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('951', 'memspell', '1');
 
 
 /return TRUE
@@ -2440,6 +2442,7 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '987', '1', 'ACTION::delaycooldown', 'delays until gem cooldown is clear');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '986', '1', '${Parse[0,${Group.Member[${_name}].Index}]}', 'target must be in my group');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '960', '1', 'CONTROL::MARKER', 'marker force ignore movement checks');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('1', '951', '1', 'ACTION::memspell', 'force meming of spell into buff slot if not on bar');
 
   | nuke
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
@@ -2469,6 +2472,7 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '1001', '1', 'CONTROL::MARKER', 'marker for totem type cast results');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '999', '1', 'CONTROL::MARKER', 'marker for point blank ae nukes');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '987', '1', 'ACTION::delaycooldown', 'delays until gem cooldown is clear');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('2', '951', '1', 'ACTION::memspell', 'force meming of spell into buff slot if not on bar');
 
   | dot
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
@@ -2495,6 +2499,7 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '987', '1', 'ACTION::delaycooldown', 'delays until gem cooldown is clear');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('3', '951', '1', 'ACTION::memspell', 'force meming of spell into buff slot if not on bar');
 
   | song
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
@@ -2523,6 +2528,7 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '1005', '1', 'CONTROL::MARKER', 'marker for songs to pulse out of combat');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '1003', '1', 'CONTROL::MARKER', 'marker for songs to pulse while in combat');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '1004', '1', 'CONTROL::MARKER', 'marker for songs to pulse while resting');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('5', '951', '1', 'ACTION::memspell', 'force meming of spell into buff slot if not on bar');
 
   | defense
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '18', '1', '${Parse[0,!${Select[${Me.CombatState},combat]} && !${SpawnCount[npc radius ${maEnv.Find[stEnvSafeRadius].Value} playerstate 4]}]}', 'cannot be in combat');
@@ -2632,6 +2638,7 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '976', '1', 'CONTROL::MARKER', 'marker /cure poison');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '987', '1', 'ACTION::delaycooldown', 'delays until gem cooldown is clear');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '986', '1', '${Parse[0,${Group.Member[${_name}].Index}]}', 'target must be in my group');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('13', '951', '1', 'ACTION::memspell', 'force meming of spell into buff slot if not on bar');
 
   | sash  
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('14', '969', '1', 'CONTROL::MARKER', 'marker main sash');

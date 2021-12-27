@@ -2822,8 +2822,10 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
     /delay 1
 
     /if (${_tmpAgroRange} <= SAFEENV) {
+      DEBUG ${sep}looking inside safeenv: SAFEENV
       /varset _mobcount ${SpawnCount[npc ${_los} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
     } else {
+      DEBUG ${sep}looking inside temp radius: ${_tmpAgroRange}
       /varset _mobcount ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
     }
 
@@ -3035,45 +3037,42 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
         /break
       }
 
+      | no target, try next step
+      /if (!${_spawn.ID}) {
+        /varset targetData 0
+        /varset stAssTarID 0
+        /if (!${maPull.Find[stPullStep].Value}) {
+          /varcalc _tmpAgroRange ${_tmpAgroRange}+1
+        } else {
+          DEBUG ${sep}_tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maPull.Find[stPullStep].Value}]}]}
+          /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maPull.Find[stPullStep].Value}]}]}
+        }
+      }
+
     /next _count
-
-
 
     /if (!AUTO && !${Select[${_tag},petfarm]}) {
       /return 0
     }
-    
-    | check for pets once everything else is dead    
-    /if (!${_spawn.ID} && ${maPull.Find[stPullPetWatch].Value}) {
-      /if (${SpawnCount[npcpet radius ${maPull.Find[stPullPetWatch].Value} targetable]}) {
-        DEBUG ${sep}killing closest NPC pet
-        /vardata _spawn NearestSpawn[npcpet radius ${maPull.Find[stPullPetWatch].Value} targetable]
-        /invoke ${maCC.Add[swSetCombat,TRUE]}
-        /varset stAssTarID ${_spawn.ID}
-        /vardata targetData _spawn.ID
-      }
-
-    }
-
-    | we have our target. back to whatever brought us here
-    /if (${targetData.ID}) {
-      /return ${targetData.ID}
-    }  
-    
-
-    | no target, try next step
-    /varset targetData 0
-    /varset stAssTarID 0
-    /if (!${maPull.Find[stPullStep].Value}) {
-      /varcalc _tmpAgroRange ${_tmpAgroRange}+1
-    } else {
-      DEBUG ${sep}_tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maPull.Find[stPullStep].Value}]}]}
-      /varcalc _tmpAgroRange ${_tmpAgroRange}+${Int[${Math.Calc[PULLENV / ${maPull.Find[stPullStep].Value}]}]}
-    }
 
   }
 
-  /if (!${targetData.ID}) {
+  | check for pets once once we have nothing else to look for
+  /if (!${_spawn.ID} && ${maPull.Find[stPullPetWatch].Value}) {
+    /if (${SpawnCount[npcpet radius ${maPull.Find[stPullPetWatch].Value} targetable]}) {
+      DEBUG ${sep}killing closest NPC pet
+      /vardata _spawn NearestSpawn[npcpet radius ${maPull.Find[stPullPetWatch].Value} targetable]
+      /invoke ${maCC.Add[swSetCombat,TRUE]}
+      /varset stAssTarID ${_spawn.ID}
+      /vardata targetData _spawn.ID
+    }
+  }
+
+
+  | do we have what we need?
+  /if (${targetData.ID}) {
+    /return ${targetData.ID}
+  } else  /if (!${targetData.ID}) {
     /delay 2
   }
 
@@ -3255,7 +3254,7 @@ sub check_engaged(bool _debug)
   | am i the puller or main agro with mobs in range?
   /if (PULL && AGRO) {
     | /if (${SpawnCount[npc OVERLOS radius 15*2 PS4]}) {
-    /if (${SpawnCount[npc OVERLOS radius ${maRest.Find[stRestRadius].value} PS4]}) {
+    /if (${SpawnCount[npc OVERLOS radius RESTENV PS4]}) {
       /return TRUE
     }
   }
@@ -10409,7 +10408,7 @@ sub check_watch_spawn(bool _debug)
 
 |***
  * note: regeneration spells (not the AAs)
- * use: /call cast_cycle_heal_regen DEBUG [healgrouphot|healhot]
+ * use: /call cast_cycle_heal_regen DEBUG [grouphot|hot]
  ***|
 sub cast_cycle_heal_regen(bool _debug, string _tag)
   DEBUG \atcast_cycle_heal_regen\ax(\a-w${_tag}\ax)
@@ -10463,7 +10462,7 @@ sub cast_cycle_heal_regen(bool _debug, string _tag)
 
       | check matching tag
       /if (!${lsHeal${_liHoT.Value}Tag.Contains[grouphot]}) {
-        DEBUG ${break}wrongtag
+        DEBUG ${break}wrongtag: no grouphot
         /invoke ${_liHoT.Advance}
         /continue
       }
@@ -10503,9 +10502,12 @@ sub cast_cycle_heal_regen(bool _debug, string _tag)
     /declare _HoTBase int local 0
     /declare _liHot listiterator local
     /vardata _liHot lsGroupRegens.First.Clone
+
     | look for a current HoT
+    DEBUG ${sep}checking for existing regen
     /while (!${_liHot.IsEnd}) {
-      /if (${Me.Song[${_liHot.Value}].ID}) {
+      /if (${Me.Song[${_liHot.Value}].ID} || ${Me.Song[${Spell[${_liHot.Value}].AutoCast}].ID}) {
+        DEBUG ${sep}found-${Me.Song[${_liHot.Value}].ID}
         /varset _HoTFound TRUE
         /varset _HoTBase ${Spell[${_liHot.Value}].Base[1]}
         /break
@@ -10519,7 +10521,9 @@ sub cast_cycle_heal_regen(bool _debug, string _tag)
       /return FALSE
     }
 
+    | we go into this thinking we have a HoT, even if we dont
     /declare _found bool TRUE
+    
     | check regen SPA
     /if (${Spell[${_myHoT}].HasSPA[374]}) {
       /for _count 1 to ${Spell[${_myHoT}].NumEffects}
@@ -10531,10 +10535,16 @@ sub cast_cycle_heal_regen(bool _debug, string _tag)
         }
       /next _count
     } else {
-      /if (!${Me.Song[${_myHoT}].ID}) /varset _found FALSE
-      /if (${Spell[${_myHoT}].WillLand}) /varset _found FALSE
+      /if (!${Me.Song[${_myHoT}].ID} && ${Spell[${_myHoT}].WillLand}) {
+        /varset _found FALSE
+      }
     }
-    /call cast ${_debug} 0 FALSE
+    
+    | we dont have the regen, it will land, and its better then another regen class we have on us.. 
+    /if (!${_found}) {
+      /call cast ${_debug} 0 FALSE
+    }
+    
     /return TRUE
 
   | single heal over time
@@ -11282,6 +11292,14 @@ sub tag_evaluation(bool _debug, string _type, int _num, string _name, spell _spe
       | action tags here
       } else /if (${Parse[99,${sqlite.Result[q${_type}_${_litag.Value} 1 eval].Find[ACTION::]}]}) {
         DEBUG ${sep}doing a thing for tag${sep} (\a-rq${_type}_${_litag.Value}\ax)
+
+        | memspell
+        /if (${_litag.Value.Equal[memspell]}) {
+          DEBUG ${sep}tag${sep}\a-wmemspell\ax
+          /if (!${Me.Gem[${_spell.RankName}]}) {
+            /call set_spell_to ${_debug} TRUE "${_spell.RankName}" ${maEnv.Find[stBuffGem].Value} TRUE
+          }
+        }
 
         | delay1s
         /if (${_litag.Value.Equal[delay1s]}) {
@@ -14480,7 +14498,7 @@ sub class_cycle(string _order)
 
     | rest routine
     } else /if (${_lico.Value.Equal[rest]} && PCTREST) {
-      /if (!PULL || (PULL && !${SpawnCount[npc radius ${maEnv.Find[stRestRadius].Value} PS4]})) {
+      /if (!PULL || (PULL && !${SpawnCount[npc radius RESTENV PS4]})) {
         /call do_rest ${maDebug.Find[rest].Value}
       }
       

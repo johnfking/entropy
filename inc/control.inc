@@ -490,6 +490,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
   } else /if (${_type.Equal[sqlcheck]}) {
     /call sql_schema_stale_check ${maDebug.Find[sql].Value} TRUE
+    /call sql_schema_shared ${maDebug.Find[sql].Value} TRUE
     /invoke ${out[18, 0, 33]}
     /return TRUE
 
@@ -864,46 +865,6 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
     /invoke ${out[12, "${dot} ${info}drink\ax:[${If[${Bool[${maEnv.Find[stDrink].Value}]},${num}${maEnv.Find[stDrink].Value}\ax,${off}]}]"]}
     /return
 
-  |** rese settings
-  } else /if (${_type.Equal[rest]}) {
-
-    | set rest %
-    /if (${_verbage.Equal[pct]}) {
-      /if (!${set_control_num_range[${_debug}, stPctRest, "${_silent}", 0, 99]}) /return
-
-    | rest radius
-    } else /if (${_verbage.Equal[rad]}) {
-      /if (!${set_control_num_range[${_debug}, stRestRadius, "${_silent}", 1, 100]}) /return
-
-    | rest to full
-    } else /if (${_verbage.Equal[full]}) {
-      /invoke ${set_switch_env[FALSE, swRestFull, TRUE, ${_silent}]}
-
-    | rest through combat
-    } else /if (${_verbage.Equal[combat]}) {
-      /invoke ${set_switch_env[FALSE, swRestCombat, TRUE, ${_silent}]}
-
-    | mod rods in rest
-    } else /if (${_verbage.Equal[modrod]}) {
-      /invoke ${set_switch_env[FALSE, swRestModRod, TRUE, ${_silent}]}
-
-    | check buffs in rest
-    } else /if (${_verbage.Equal[buff]}) {
-      /invoke ${set_switch_env[FALSE, swRestBuff, TRUE, ${_silent}]}
-
-    }
-
-    /invoke ${maControl.Clear}
-    /invoke ${maControl.Add[pct,stPctRest]}
-    /invoke ${maControl.Add[rad,stRestRadius]}
-    /invoke ${maControl.Add[full,swRestFull]}
-    /invoke ${maControl.Add[combat,swRestCombat]}
-    /invoke ${maControl.Add[modrod,swRestModRod]}
-    /invoke ${maControl.Add[buff,swRestBuff]}
-    /invoke ${set_control_output[${_debug}, maEnv, "env rest", maControl]}
-    /return
-    **|
-
   } else /if (${_type.Equal[moblvlmin]}) {
     /if (!${set_control_num_range[${_debug}, stMobLvlMin, "${_verbage}", 1, 500]}) /return
 
@@ -1220,22 +1181,6 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
     /delay 5s ${Me.Fellowship.Campfire}
     /if (${Window[FellowshipWnd].Open}) /invoke ${Window[FellowshipWnd].DoClose}
     /return TRUE
-
-  |** gather your crew
-  } else /if (${_type.Equal[gather]}) {
-
-    /if (${_verbage.Equal[all]}) {
-      /invoke ${out[12, "Gathering${sep}\a-wall\ax"]}
-      /dgexecute all /squelch /target clear
-      /dgexecute all /navto ${Me.ID}
-    } else {
-      /invoke ${out[12, "Gathering${sep}\a-wgroup\ax"]}
-      /dggexecute /squelch /target clear
-      /dggexecute /navto ${Me.ID}
-    }
-    /return TRUE
-
-  **|
 
   | position
   } else /if (${_type.Equal[position]}) {
@@ -2102,10 +2047,6 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
   } else /if (${_type.Equal[relaytell]}) {
     /invoke ${set_switch_env[${_debug}, swRelayTell, TRUE, ${_verbage}]}
 
-  | use lua
-  | } else /if (${_type.Equal[lua]}) {
-  |   /invoke ${set_switch_env[${_debug}, swLua, TRUE, ${_verbage}]}
-
   | tlp player
   } else /if (${_type.Equal[tlp]}) {
     /invoke ${set_switch_env[${_debug}, swTLP, TRUE, ${_verbage}]}
@@ -2132,9 +2073,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
     /invoke ${set_control_output[${_debug}, maEntropy, "entropy hud", maControl]}
     /return TRUE
     
-   
-    
-    
+     
   | randomization switches
   } else /if (${_type.Equal[random]}) {
 
@@ -2162,7 +2101,6 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
     } else /if (${_verbage.Equal[repeat]}) {
       /if (!${set_control_num_range[${_debug}, stRNDRepeat, "${_verbage2}", 0, 100]}) /return
 
-       
     }
 
     /invoke ${maControl.Clear}
@@ -2175,8 +2113,6 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
     /invoke ${set_control_output[${_debug}, maEntropy, "entropy random", maControl]}
     /return TRUE    
     
-    
-
 
   | dannet stuff
   } else /if (${_type.Equal[dannet]}) {

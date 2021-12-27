@@ -21,6 +21,26 @@ on the to do list
 --------------------
 
 
+211226.01
+- corrected a monk old voodoo call
+- maHard stModeDragTargetCheck, time to recheck for corpses to drag. default is 5.
+  can lower it if its not responsive enough for bards/selos
+- corrected a logic issue in group regens. it shouldnt spam them anymore
+- tag:memspell . added to dot/nuke/cure/heal/song (dont think its needed in song)
+  will mem the spell into your buffslot ## if it is not already memed
+- added more pull controls in /build ui
+- corrected a bad rest variable.. would explain a lot of things...
+- /debug ui 
+  added in spawncounts by each radius the macro uses so you can see what it sees
+  increased the local spawn info to 10
+- pulling
+  so, inbetween a mob engagement, the check for local (safe radius) spawns was removed for buffing (no clue how this happened)
+  the code was trying to buff everything you had turned on inbetween every mob kill if buff the timer was over...
+  the puller should be a bit more focused on local mobs now, but will still check buffs according to timers when no mobs are close
+- pulling (finding mobs)
+  should never engage pets untill everything else is dead  
+
+
 211126.02
 - /mode summon
   adapted for the patch changes to no longer needing soulstones

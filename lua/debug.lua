@@ -568,8 +568,48 @@ local function imguicallback()
     if ImGui.CollapsingHeader('local spawns') then
       indent(1,1)
       ImGui.NewLine()
+      
+      if ImGui.TreeNode("spawn counts in [radius]") then
+        
+        -- environment radius
+        local envrad = mq.TLO.Macro.Variable('maEnv').Find('stEnvRadius').Value()
+        ImGui.TextColored(0.39, 0.58, 0.92, 1, '/env rad: ['..envrad..'] ')
+        ImGui.SameLine()
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.SpawnCount('npc radius '..envrad..'')())
 
-      for x = 1,5,1
+        -- pull radius
+        local pullrad = mq.TLO.Macro.Variable('maPull').Find('stPullRadius').Value()
+        ImGui.TextColored(0.39, 0.58, 0.92, 1, '/pull rad: ['..pullrad..'] ')
+        ImGui.SameLine()
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.SpawnCount('npc radius '..pullrad..'')()) 
+        
+        -- rez radius
+        local rezrad = mq.TLO.Macro.Variable('maRez').Find('stMaxRezRange').Value()
+        ImGui.TextColored(0.39, 0.58, 0.92, 1, '/rez rad: ['..rezrad..'] ')
+        ImGui.SameLine()
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.SpawnCount('pccorpse radius '..rezrad..'')()) 
+
+        -- rest radius
+        local restrad = mq.TLO.Macro.Variable('maRest').Find('stRestRadius').Value()
+        ImGui.TextColored(0.39, 0.58, 0.92, 1, '/rest rad: ['..restrad..'] ')
+        ImGui.SameLine()
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.SpawnCount('npc radius '..restrad..' playerstate 4')()) 
+
+        -- safe radius
+        local saferad = mq.TLO.Macro.Variable('maEnv').Find('stEnvSafeRadius').Value()
+        ImGui.TextColored(0.39, 0.58, 0.92, 1, '/env saferadius: ['..saferad..'] ')
+        ImGui.SameLine()
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.SpawnCount('npc radius '..saferad..'')()) 
+
+
+ 
+        ImGui.TreePop()
+      end
+      
+      ImGui.NewLine()
+      
+
+      for x = 1,10,1
       do
         if ImGui.TreeNode(""..x.." :: "..mq.TLO.NearestSpawn(x).DisplayName().."") then
 

@@ -1569,9 +1569,17 @@ local function imguicallback()
         edit_text_perm('outrun', 'maPull', 'stPullOutrunRange')
         edit_text_perm('chain', 'maPull', 'stCountChainPull')
         edit_text_perm('pet watch', 'maPull', 'stPullPetWatch')
-
-
       ImGui.Columns()
+      
+      ImGui.Columns(2, 'col_pull2', false)      
+        edit_switch_perm('active', 'maPull', 'swPull')
+        edit_switch_perm('navlos', 'maPull', 'swPullNavLoS')
+        edit_switch_perm('pathlogic', 'maPull', 'swNavPathLogic')
+      ImGui.NextColumn()
+        edit_switch_perm('healcheck', 'maPull', 'swPullHealCheck')
+        edit_switch_perm('sethome', 'maPull', 'swPullSetHome')
+      ImGui.Columns()
+
 
       indent(1,2)
       ImGui.NewLine()
@@ -1748,6 +1756,34 @@ local function imguicallback()
       end
     end
     
+    -- maHard
+    if ImGui.CollapsingHeader('maHard') then 
+      ImGui.NewLine()
+      indent(1,1)
+      
+
+      edit_text_perm('stBardSwapRemain', 'maHard', 'stBardSwapRemain')
+      edit_text_perm('stDrinkMaintain', 'maHard', 'stDrinkMaintain')
+      edit_text_perm('stFoodMaintain', 'maHard', 'stFoodMaintain')
+      edit_text_perm('stMaxBowDist', 'maHard', 'stMaxBowDist')
+      edit_text_perm('stMaxCureRad', 'maHard', 'stMaxCureRad')
+      edit_text_perm('stMaxMeleeAdj', 'maHard', 'stMaxMeleeAdj')
+      edit_text_perm('stMaxRadPet', 'maHard', 'stMaxRadPet')
+      edit_text_perm('stMinBowDist', 'maHard', 'stMinBowDist')
+      edit_text_perm('stMinMovetoBow', 'maHard', 'stMinMovetoBow')
+      edit_text_perm('stModeDragTargetCheck', 'maHard', 'stModeDragTargetCheck')
+      edit_text_perm('stPullMobTagTry', 'maHard', 'stPullMobTagTry')
+      edit_text_perm('stRadGrab', 'maHard', 'stRadGrab')
+      edit_text_perm('stRezFail', 'maHard', 'stRezFail')
+      edit_text_perm('stRezFailToken', 'maHard', 'stRezFailToken')
+      edit_text_perm('stRezIgnoreFucktards', 'maHard', 'stRezIgnoreFucktards')
+      edit_text_perm('stRezSuccess', 'maHard', 'stRezSuccess')
+      edit_text_perm('stRezSummonRange', 'maHard', 'stRezSummonRange')
+      edit_text_perm('stSpellBookSize', 'maHard', 'stSpellBookSize')
+      ImGui.NewLine()
+      indent(1,2)
+
+    end
     
     ImGui.End()
   end

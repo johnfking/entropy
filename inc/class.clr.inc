@@ -441,7 +441,10 @@ sub check_heal(bool _debug, string _type)
 sub Bind_command_issuance(bool _debug)
   DEBUG \atBind_command_issuance\ax()
 
-  /if (!${check_class[FALSE, |CLR]}) /return FALSE
+  /if (!${check_class[FALSE, |CLR]}) {
+    /return FALSE
+  }
+  
   ISMEDEAD
   CHECKEXIT
 
@@ -451,18 +454,23 @@ sub Bind_command_issuance(bool _debug)
   
   /declare _spawn spawn local
   /if (${NearestSpawn[2, pc radius 55].ID}) {
+    DEBUG ${sep}using pc radius 55
     /vardata _spawn NearestSpawn[2, pc radius 55]
   } else /if (${NearestSpawn[1, mercenary radius 55].ID}) {
+    DEBUG ${sep}using mercenary radius 55
     /vardata _spawn NearestSpawn[1, mercenary radius 55]
   } else /if (${NearestSpawn[1, npc radius 55].ID}) {
+    DEBUG ${sep}using pc radius 55
     /vardata _spawn NearestSpawn[1, npc radius 55]
   }
   
   /if (!${_spawn.ID}) {
+    DEBUG ${break}no spawns usable
     /return FALSE
   }
 
   /if (!${_spawn.CanSplashLand}) {
+    DEBUG ${break}splash cannot land
     /return FALSE
   }
 

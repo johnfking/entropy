@@ -227,7 +227,7 @@ sub mode_drag(bool _debug)
       /varset _corpseID ${NearestSpawn[${_count},pccorpse radius 110].ID}
       /if (${Spawn[${_corpseID}].Distance} > 15) {
         /squelch /target id ${_corpseID}
-        /delay 5 ${Target.ID} == ${_corpseID}
+        /delay ${maHard.Find[stModeDragTargetCheck].Value} ${Target.ID} == ${_corpseID}
         /corpse
       }
     /next _count
@@ -398,7 +398,7 @@ sub mode_harvest(bool _debug)
   /invoke ${_lsCollect.Append[${stModeData}]}
   /declare _licol listiterator local
   /vardata _licol _lsCollect.First.Clone
-
+  
   /while (!${_licol.IsEnd}) {
     /if (${GroundItemCount[${_licol.Value}]}) {
       /call get_ground_item ${_debug} "${_licol.Value}"
