@@ -173,6 +173,8 @@ sub mode_forage(bool _debug)
   /if (${Select[${Me.CombatState},combat]}) {
     /return FALSE
   }
+  
+  /call check_cursor ${_debug} clear
 
   /if (!${Me.AbilityReady[forage]}) {
     /return FALSE
@@ -187,15 +189,15 @@ sub mode_forage(bool _debug)
 
   DEBUG ${sep}forage
   /doability forage
-  /delay 1s
+  /delay 3s ${Cursor.ID}
 
   /while (${Cursor.ID}) {
     GETINPUT
     ISMEDEAD
 
     /call check_cursor ${_debug} clear
+    /delay 3s ${Cursor.ID}
     /if (!${Cursor.ID}) /break
-    /delay 2
   }
 
   SETHUD
@@ -450,7 +452,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
   /while (${_item.ID}) {
     /varset _validdis ${Navigation.PathLength[item ${_item.ID}]}
     /varset _validpath ${Navigation.PathExists[item ${_item.ID}]}
-    DEBUG ID:\a-w${_item.ID}\ax .. Dis:${If[${_validdis} > 0,\a-w${_validdis}\ax,\arinvalid\ax]}
+    DEBUG ${sep}ID:\a-w${_item.ID}\ax .. Dis:${If[${_validdis} > 0,\a-w${_validdis}\ax,\arinvalid\ax]}
 
     /if (${_validdis} <= 0 || !${_validpath}) {
       /vardata _item Ground.Next
@@ -464,7 +466,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
     /vardata _item Ground.Next
   }
 
-  DEBUG FINAL ID:${_finalGround.ID}
+  DEBUG ${sep}FINAL ID:${_finalGround.ID}
   /invoke ${Ground.Search[${_finalGround.ID}]}
   /nav item |dist=10 log=${maEntropy.Find[swNavLogSpew].Value}
   /delay 1s
@@ -555,8 +557,7 @@ sub mode_lush(bool _debug)
   /while (${Me.Skill[Alcohol Tolerance]} < ${Skill[Alcohol Tolerance].SkillCap}) {
     /if (!${Me.ItemReady[=${stModeData}]}) /break
     /if (${Me.Drunk} < 200) {
-      /call cast_data ${_debug} "${stModeData}"
-      /call cast ${_debug} 0 FALSE
+      /useitem ${stModeData}
     }
     /delay 2
     /delay 2s ${Me.Drunk} <  190
@@ -595,6 +596,10 @@ sub mode_trainspell(string _type, bool _debug)
   /for _count 1 to ${Me.NumGems}
 
     /call do_rest ${maDebug.Find[rest].Value}
+    
+    /if (${Me.Invis}) {
+      /call Bind_control_nomore invis
+    }
 
     | validate skill caps and spell. if cap is maxed, move on
     | /if (!${maOver.Find[swOverTrainSpell].Value}) {

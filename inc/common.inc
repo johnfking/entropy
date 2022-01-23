@@ -1070,7 +1070,6 @@ sub check_for_rezbox(bool _debug)
         /squelch /attack off
       }
 
-      /varset swIsMeDead FALSE
       /varset _swValidRezFound FALSE
       /doevents REZ_ACCEPT
 
@@ -1115,7 +1114,7 @@ sub check_buff_cycle_shrink(bool _debug)
   SETHUD "buff shrink"
 
   CHECKTIE
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT check_buff_cycle_shrink
 
   GETINPUT check_buff_cycle_shrink NA|NA
@@ -1173,6 +1172,9 @@ sub set_stop(bool _debug, string _silent)
 
   | pull wait timer
   /invoke ${set_timer[${_debug}, wait_for_mob, 0]}
+  
+  | reset burns
+  /invoke ${maBurn.Add[swBurnConditionMet,FALSE]}
 
   /if (${_silent.NotEqual[SILENT]}) {
     /invoke ${out[0, 0, 7]}
@@ -1275,7 +1277,7 @@ sub moveto_range(bool _debug, spawn _spawn, int _range)
   /varcalc _locX ${_dist}*${Me.X} + (1-${_dist})*${_spawn.X}
   /varcalc _locY ${_dist}*${Me.Y} + (1-${_dist})*${_spawn.Y}
   /if (${Navigation.PathExists[locyxz ${_locY} ${_locX} ${Me.Z}]} && ${EverQuest.ValidLoc[${_locX} ${_locY} ${Me.Z}]} && ${LineOfSight[${_locY},${_locX},${Me.Z}:${_spawn.Y},${_spawn.X},${_spawn.Z}]}) {
-    DEBUG {Navigation.PathExists[locyxz ${_locY} ${_locX} ${Me.Z}]} && ${EverQuest.ValidLoc[${_locX} ${_locY} ${Me.Z}]} && ${LineOfSight[${_locY},${_locX},${Me.Z}:${_spawn.Y},${_spawn.X},${_spawn.Z}]
+    DEBUG Navigation.PathExists[locyxz ${_locY} ${_locX} ${Me.Z}] && EverQuest.ValidLoc[${_locX} ${_locY} ${Me.Z}] && LineOfSight[${_locY},${_locX},${Me.Z}:${_spawn.Y},${_spawn.X},${_spawn.Z}]
     DEBUG ${sep}(\a-r0\ax) locyxz ${_locY} ${_locX} ${Me.Z}
     /nav locyxz ${_locY} ${_locX} ${Me.Z} |log=${maEntropy.Find[swNavLogSpew].Value}
     /delay 5 ${Navigation.Active}
@@ -1506,6 +1508,7 @@ sub clear_combat(bool _debug)
   /invoke ${maCC.Add[swSetCombat,FALSE]}
   /invoke ${maCC.Add[swSetForced,FALSE]}
   /invoke ${set_data_timer[FALSE, Check_Behind, 0]}
+  /invoke ${maBurn.Add[swBurnConditionMet,FALSE]}
 
   /if (${Me.AutoFire}) {
     /squelch /autofire
@@ -1552,7 +1555,7 @@ sub is_target_valid(bool _debug, spawn _spawn)
     /return TRUE
   }
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT is_target_valid _spawn|${_spawn.ID}
 
   /if (!${Target.ID}) /return FALSE
@@ -1597,7 +1600,7 @@ sub is_burn_valid(bool _debug)
   DEBUG \atis_burn_valid\ax()
 
   | dont do shit in safe zone..
-  /if (SAFEZONE) {
+  /if (SAFEZONE && !${targetData.DisplayName.Find[combat dummy]}) {
     DEBUG ${break}safezone${sep}\a-wreturning FALSE\ax
     /invoke ${maBurn.Add[swBurnConditionMet,FALSE]}
     /return FALSE
@@ -1609,7 +1612,7 @@ sub is_burn_valid(bool _debug)
     /invoke ${maBurn.Add[swBurnConditionMet,FALSE]}
     /return FALSE
   }
-
+  
   | if always set to burn, always burn while in combat
   /if (${maBurn.Find[swBurnForce].Value} && (${Me.CombatState.Equal[combat]} || ${Target.DisplayName.Find[combat dummy]})) {
     DEBUG ${break}FORCED burn mode${sep}\a-wreturning TRUE\ax
@@ -1630,13 +1633,27 @@ sub is_burn_valid(bool _debug)
     /return FALSE
   }
 
+
+
+  | if number of mobs in the local area reaches the /burn count ## threshold
+  /if (${maBurn.Find[stBurnCount].Value}) {
+    /if (${SpawnCount[npc radius ENV targetable PS4]} >= ${maBurn.Find[stBurnCount].Value}) {
+      DEBUG ${break}spawncount in radius${sep}\a-wreturning TRUE\ax
+      /invoke ${maBurn.Add[swBurnConditionMet,TRUE]}
+      /return TRUE
+    }
+  }
+
+
+  /declare _tmpBurnFlag bool local FALSE
+
+
   | if the current target is a namer
   /if (${maBurn.Find[swBurnAuto].Value} && !HEAL) {
     | target is named ?
-    /if (${lsZoneNamed.Contains[${Target.DisplayName}]} && !${maOver.Find[swOverName].Value}) {
-      DEBUG ${break}target is named${sep}\a-wreturning TRUE\ax
-      /invoke ${maBurn.Add[swBurnConditionMet,TRUE]}
-      /return TRUE
+    /if (${lsZoneNamed.Contains[${targetData.DisplayName}]} && !${maOver.Find[swOverName].Value}) {
+      DEBUG ${sep}target is named
+      /varset _tmpBurnFlag TRUE
     }
     
 
@@ -1656,23 +1673,12 @@ sub is_burn_valid(bool _debug)
       /invoke ${maData.Add[stPctEngageBurnSet,${maBurn.Find[stPctBurnEngage].Value}]} 
     }
       
-    /if (${targetData.PctHPs} <= ${maData.Find[stPctEngageBurnSet].Value}) {
+    /if (${targetData.PctHPs} <= ${maData.Find[stPctEngageBurnSet].Value} && ${_tmpBurnFlag}) {
       DEBUG ${break}burn engage %${sep}\a-w${targetData.PctHPs}\ax
       /invoke ${maBurn.Add[swBurnConditionMet,TRUE]}
       /return TRUE
     }  
   
-  }
-
-
-
-  | if number of mobs in the local area reaches the /burn count ## threashold
-  /if (${maBurn.Find[stBurnCount].Value}) {
-    /if (${SpawnCount[npc radius ENV targetable PS4]} >= ${maBurn.Find[stBurnCount].Value}) {
-      DEBUG ${break}spawncount in radius${sep}\a-wreturning TRUE\ax
-      /invoke ${maBurn.Add[swBurnConditionMet,TRUE]}
-      /return TRUE
-    }
   }
 
   | healers and off combat routines simply check for a named in the local area to start a burn. no direct target of a named is required. just be in the area.
@@ -1853,123 +1859,13 @@ sub check_combat_status(bool _debug)
 
 
 |***
- *  DES: preps toon for combat modes
- *  USE: /call set_combat DEBUG
- *  NOTE:
- ***|
-sub set_combat(bool _debug)
-  DEBUG \atset_combat\ax()
-
-  /if (${target[isdead, TARGET]}) {
-    /return FALSE
-  }
-
-  | home check
-  /if (HOME && ${maHome.Find[swinCombat].Value}) {
-    /declare _curVarDis float local ${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]}
-    /if (${_curVarDis} > SAFEENV && PULL) {
-      /call Bind_control_home return NULL NULL ${maDebug.Find[home].Value}
-    }
-  }
-
-  CHECKCURSOR
-
-  | out of range?
-  /if (${Target.Distance} > ENV && !${maCC.Find[swSetForced].Value}) {
-    /return FALSE
-  }
-
-  /if (${Me.State.NotEqual[stand]}) /stand
-  /if (AUTO && ${Me.State.Equal[feign]}) /squelch /stand
-  /if (!AUTO && ${Me.Invis}) {
-    /call Bind_control_nomore invis ${_debug}
-  }
-
-  | not within ${combatradius} and far enought to range?
-  /if (${Target.Distance} > 30 && ${Target.Distance} > ${Spawn[id TARGET].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}) {
-
-    | range mobs if enabled
-    /if (RANGE) {
-
-      /invoke ${spawn_face[TARGET]}
-
-      | no need to move were are at a good distance
-      /if (${Stick.Active}) {
-        /squelch /stick off
-      }
-
-      /if (${lsZoneRanged.Contains[${Target.DisplayName}]}) {
-        /if (${Me.AutoFire}) /squelch /autofire
-      } else {
-        /if (${Spawn[TARGET].LineOfSight} && !${Me.AutoFire}) {
-          /squelch /autofire
-        }
-      }
-
-    | cannot range, so melee if in agro range?
-    } else /if (!RANGE && MELEE) {
-      /if (${lsZoneNoMelee.Contains[${Target.DisplayName}]} || (AUTO && ${maCC.Find[swStoponDS].Value} && ${Target.DSed.ID} && !AGRO)) {
-        /squelch /attack off
-        /return
-      } else {
-        /if (${Me.AutoFire}) /squelch /autofire
-        /invoke ${spawn_face[TARGET]}
-        /if ((AUTO || ${swModeToken}) && !${timer_check_stick}) {
-          /call set_combat_control ${maDebug.Find[decision].Value} TARGET
-        }
-      }
-
-    }
-  }
-
-  | mob too close for range
-  /if (${Target.Distance} <= ${maHard.Find[stMinBowDist].Value}) {
-
-    | adjust range if melee is diabled to keep close to target. give them some range to.. range again
-    /if (${Target.Distance} < ${maHard.Find[stMinBowDist].Value} && RANGE && !MELEE) {
-      /if (AUTO && !${Stick.Active} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
-        /call moveto_range ${_debug} TARGET ${maHard.Find[stMinMovetoBow].Value}
-      }
-
-    | can we get to the melee already?
-    } else /if (MELEE) {
-      /if (${lsZoneNoMelee.Contains[${Target.DisplayName}]} || (AUTO && ${maCC.Find[swStoponDS].Value} && ${Target.DSed.ID} && !AGRO)) {
-        /squelch /attack off
-        /return FALSE
-      } else {
-        /if (${Me.AutoFire}) {
-          /squelch /autofire
-        }
-        /invoke ${spawn_face[TARGET]}
-
-        /if (${maSash.Find[swSashProc].Value} && !${timer_Check_Proc_Sash}) {
-          /call check_sash_proc ${_debug}
-        } else {
-          /call cycle_sash ${maDebug.Find[sash].Value}
-        }
-
-        /if (MELEE) {
-          /squelch /attack on
-        }
-        /if (AUTO && !${timer_Check_Behind}) {
-          /call set_combat_control ${maDebug.Find[decision].Value} TARGET
-        }
-      }
-    }
-  }
-
-/return
-
-
-
-|***
  * note: decision tree for what kind of combat to do
  * use: /call set_combat_control DEBUG [spawnID]
  ***|
 sub set_combat_control(bool _debug, spawn _spawn)
   DEBUG \atset_combat_control\ax(\a-w${_spawn.ID}\ax)
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
 
   /if (!AUTO && ${maCC.Find[swSetForced].Value} && ${Target.ID}) {
     /vardata _spawn Target.ID
@@ -2024,6 +1920,10 @@ sub set_combat_control(bool _debug, spawn _spawn)
       /call set_combat_range ${_debug} ${_spawn.ID}
       /return TRUE
     }
+    
+    /if (!${timer_Check_Behind}) {
+      /call spawn_stick ${_debug} ${_spawn.ID}
+    }   
 
     /call set_combat_melee ${_debug} ${_spawn.ID}
     /return TRUE
@@ -2082,12 +1982,12 @@ sub set_combat_melee(bool _debug, spawn _spawn)
     /call check_sash_proc ${_debug}
   }
 
-  /if (MELEE) {
+  /if (MELEE && !${Me.Combat}) {
     /squelch /attack on
   }
 
   SPAWNDEAD
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT set_combat_melee _spawn|${_spawn.ID}
   
   /if (!${timer_Check_Behind}) {
@@ -2140,7 +2040,7 @@ sub get_target_buff_time_left(bool _debug, string _buff)
 sub get_target_basepull(bool _debug, spawn _spawn)
   DEBUG \atget_target_basepull\ax(\a-w${_spawn.ID}\ax)
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT get_target_basepull NA|NA
   CHECKTIE
 
@@ -2365,7 +2265,7 @@ sub pull_mob_prep(bool _debug, spawn _spawn)
 
     | CHECKCURSOR TRUE
     GETINPUT pull_mob_prep _spawn|${_spawn.ID}
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
 
     | stand the fuck up. seriously...
     /if (${SpawnCount[npc ${_los} radius PULLENV targetable]} && ${Me.State.NotEqual[stand]}) {
@@ -2582,7 +2482,7 @@ sub pull_mob_tag(bool _debug, spawn _spawn)
 
         /delay 5
         GETINPUT
-        /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+        ISMEDEAD
 
         | have the targets attention. can go back
         /if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
@@ -2853,7 +2753,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
     DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
     /for _count ${Math.Calc[${_spCount} +1]} to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
       DEBUG ${sep}count${sep}${_count} of ${SpawnCount[${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
-      /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+      ISMEDEAD
       
       /if (${_count} > ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
         DEBUG ${break}spawncount increment invalid moving to next temp radius
@@ -3091,7 +2991,7 @@ sub set_spell_to(bool _debug, bool _echo, string _spellname, string _spellgem, b
     /return TRUE
   }
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT set_spell_to NA|NA
 
   /declare _ready bool FALSE
@@ -3339,7 +3239,7 @@ sub do_rest(bool _debug)
     /return FALSE
   }
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKCURSOR
   CHECKTIE
   GETINPUT
@@ -3528,7 +3428,7 @@ sub do_rest(bool _debug)
     /varset _resting TRUE
     /delay 2
     CHECKTIE
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETINPUT do_rest_loop NA|NA
     /goto :loopneedmorerest
   } else /if (!${_needrest}) {
@@ -4253,7 +4153,7 @@ sub set_tie(bool _debug)
     /call Bind_control_home clear FALSE silent ${maDebug.Find[home].Value}
   }
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT set_tie _spawn|${_spawn.ID}
 
   | reasons to not tie to a toon
@@ -4313,7 +4213,7 @@ sub set_tie(bool _debug)
     }
 
     :okweresticking
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETINPUT set_tie_stick NA|NA
 
     /if (${_spawn.Distance} <= ${maTie.Find[stTieVariance].Value}) {
@@ -4348,7 +4248,7 @@ sub cast_AA_fade(bool _debug)
     /return FALSE
   }
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT
   
   /if (${Me.PctHPs} > ${maChr.Find[stPctFade].Value}) {
@@ -4383,7 +4283,7 @@ sub check_buff_cycle_now(bool _debug)
 
   SETHUD "buff now"
   CHECKTIE
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT check_buff_cycle_now
   GETINPUT check_buff_cycle_now NA|NA
 
@@ -4495,7 +4395,7 @@ sub check_buff_cycle_unity(bool _debug)
   }
 
   CHECKTIE
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT check_buff_cycle_unity
   GETINPUT check_buff_cycle_unity NA|NA
   
@@ -4584,6 +4484,31 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
   | self
   /if ((${maBuff.Find[swBuffSelf].Value} && AUTO && !${timer_Check_Buff_Self}) || (${Select[${_verbage},s,xx]} && ${_force})) {
     /call check_buff_cycle_self ${If[${_force},${_debug},${maDebug.Find[buffself].Value}]}
+
+    /if (${Select[${Me.Class.ShortName},BER]}) {
+    } else /if (${Select[${Me.Class.ShortName},BRD]}) {
+    } else /if (${Select[${Me.Class.ShortName},BST]}) {
+    } else /if (${Select[${Me.Class.ShortName},CLR]}) {
+    } else /if (${Select[${Me.Class.ShortName},DRU]}) {
+    } else /if (${Select[${Me.Class.ShortName},ENC]}) {
+      /if (${maChr.Find[swAACrystals].Value}) {
+        /call check_crystals ${If[${_force},${_debug},${maDebug.Find[crystal].Value}]}
+      }
+    } else /if (${Select[${Me.Class.ShortName},MAG]}) {
+    } else /if (${Select[${Me.Class.ShortName},MNK]}) {
+    } else /if (${Select[${Me.Class.ShortName},NEC]}) {
+    } else /if (${Select[${Me.Class.ShortName},PAL]}) {
+    } else /if (${Select[${Me.Class.ShortName},RNG]}) {
+    } else /if (${Select[ ${Me.Class.ShortName},ROG]}) {
+      /if ((${maChr.Find[stLegPoison].Value} && AUTO && !${timer_Check_Poison}) || ${_force}) {
+        /call check_buff_cycle_leg_poison ${If[${_force},${_debug},${maDebug.Find[poison].Value}]}
+      }
+    } else /if (${Select[${Me.Class.ShortName},SHD]}) {
+    } else /if (${Select[${Me.Class.ShortName},SHM]}) {
+    } else /if (${Select[${Me.Class.ShortName},WAR]}) {
+    } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
+    }
+
   }
 
   | crew
@@ -4619,38 +4544,6 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
   | plate robe ornament swap bug
   /if (${Select[${_verbage},robe]}) {
     /call check_ornament_robe
-  }
-
-
-  | class specific buffs. buff self required
-  /if ((${maBuff.Find[swBuffSelf].Value} && !${timer_Check_Buff_Self}) || (${_verbage.Equal[s]} && ${_force})) {
-    /if (${Select[${Me.Class.ShortName},BER]}) {
-    } else /if (${Select[${Me.Class.ShortName},BRD]}) {
-    } else /if (${Select[${Me.Class.ShortName},BST]}) {
-    } else /if (${Select[${Me.Class.ShortName},CLR]}) {
-    } else /if (${Select[${Me.Class.ShortName},DRU]}) {
-    } else /if (${Select[${Me.Class.ShortName},ENC]}) {
-      | chanter hp/manna crystals
-      /if (${maChr.Find[swAACrystals].Value}) {
-        /call check_crystals ${If[${_force},${_debug},${maDebug.Find[crystal].Value}]}
-      }
-
-    } else /if (${Select[${Me.Class.ShortName},MAG]}) {
-    } else /if (${Select[${Me.Class.ShortName},MNK]}) {
-    } else /if (${Select[${Me.Class.ShortName},NEC]}) {
-    } else /if (${Select[${Me.Class.ShortName},PAL]}) {
-    } else /if (${Select[${Me.Class.ShortName},RNG]}) {
-    } else /if (${Select[${Me.Class.ShortName},ROG]}) {
-      | summon leg poison
-      /if (${maChr.Find[stLegPoison].Value} && ((AUTO && !${timer_Check_Poison}) || ${_force})) {
-        /call check_buff_cycle_leg_poison ${If[${_force},${_debug},${maDebug.Find[poison].Value}]}
-      }
-
-    } else /if (${Select[${Me.Class.ShortName},SHD]}) {
-    } else /if (${Select[${Me.Class.ShortName},SHM]}) {
-    } else /if (${Select[${Me.Class.ShortName},WAR]}) {
-    } else /if (${Select[${Me.Class.ShortName},WIZ]}) {
-    }
   }
 
   | reapply buff slot?
@@ -4765,7 +4658,7 @@ sub do_mana_recovery(bool _debug)
     /return FALSE
   }
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT
   GETINPUT do_mana_recovery NA|NA
 
@@ -4864,7 +4757,7 @@ sub cast_yaulp(bool _debug)
     /return FALSE
   }
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT cast_yaulp
   /call cast ${_debug} 0 FALSE
 
@@ -4889,7 +4782,7 @@ sub check_buff_cycle_ammo(bool _debug)
   }
 
   CHECKTIE
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT check_buff_cycle_ammo
   GETINPUT check_buff_cycle_ammo NA|NA
 
@@ -4966,7 +4859,7 @@ sub check_buff_cycle_leg_poison(bool _debug)
   }
 
   CHECKTIE
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT check_buff_cycle_leg_poison NA|NA
 
   /declare _count int local 0
@@ -4983,15 +4876,17 @@ sub check_buff_cycle_leg_poison(bool _debug)
 
     | do we have enough summoned
     /if (${FindItemCount[${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Clicky.SpellID}].Base[1]}]} >= ${maChr.Find[stLegPoison].Value}) {
+      DEBUG ${break}we have enough poisons--${FindItemCount[${Spell[${FindItem[=${maBuff.Find[stBuff${_count}].Value}].Clicky.SpellID}].Base[1]}]} / ${maChr.Find[stLegPoison].Value}
       /return FALSE
     }
 
-    /if (!${SpawnCount[radius ENV PS4 targetable]}) {
-      /call Bind_control_nomore invis ${_debug}
+    /if (${SpawnCount[radius ENV PS4 targetable]}) {
+      DEBUG ${break}hostiles too close--${SpawnCount[radius ENV PS4 targetable]}
+      /return FALSE
     }
 
     /if (${cast_data[${_debug}, "${maBuff.Find[stBuff${_count}].Value}"]}) {
-      /call cast ${_debug} 0 FALSE
+      /call cast ${_debug} 0 ignoreall
       /delay 5 ${Me.Casting.ID}
       /delay 3s !${Me.Casting.ID}
     }
@@ -5042,7 +4937,7 @@ sub check_buff_cycle_beg(bool _debug)
   /while (!${_mibb.IsEnd}) {
 
     CHECKTIE
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     CHECKEXIT check_buff_cycle_beg
     GETINPUT check_buff_cycle_beg NA|NA
 
@@ -5131,7 +5026,7 @@ sub check_buff_cycle_crew(bool _debug)
   }
 
   CHECKTIE
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT check_buff_cycle_crew
   GETINPUT check_buff_cycle_crew NA|NA
 
@@ -5394,7 +5289,7 @@ sub check_buff_cycle_others(bool _debug, string _type)
   }
 
   CHECKTIE
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT check_buff_cycle_others
   GETINPUT check_buff_cycle_others NA|NA
 
@@ -5639,7 +5534,7 @@ sub cast_item_summon(bool _debug, string _var)
   DEBUG \atcast_item_summon\ax()
 
   CHECKTIE
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT cast_item_summon
   GETINPUT cast_item_summon NA|NA
 
@@ -5672,7 +5567,7 @@ sub cast_item_summon(bool _debug, string _var)
  ***|
 sub cast_challenge(bool _debug, spawn _spawn)
   DEBUG \atcast_challenge\ax(\a-w${_spawn.ID}\ax)
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
 
   /if (${Target.BuffDuration[${maChr.Find[stChallenge].Value}].TotalSeconds}) {
     DEBUG ${sep}Target.BuffDuration${sep}\a-w${Target.BuffDuration[${maChr.Find[stChallenge].Value}].TotalSeconds}\ax
@@ -5707,7 +5602,7 @@ sub cast_stamina_recovery(bool _debug)
     /return FALSE
   }
   
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT cast_stamina_recovery NA|NA
 
   /declare _endurancePoint int local 0
@@ -5753,7 +5648,7 @@ sub cast_stamina_recovery(bool _debug)
 sub check_harmonious(bool _debug)
   DEBUG \atcheck_harmonious\ax()
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT check_harmonious
   GETINPUT check_harmonious NA|NA
 
@@ -5792,7 +5687,7 @@ sub get_item_convert(bool _debug, string _item, string _fullname)
 
   /while (!${FindItem[${_fullname}].ID}) {
     GETINPUT get_item_convert NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     /convertitem ${_item}
     /delay 1s
   }
@@ -5836,7 +5731,7 @@ sub Event_forcedloreleave(string line, string _itemName, bool _debug)
 sub do_loot(bool _debug)
   DEBUG \atdo_loot\ax()
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT do_loot NA|NA
 
   /invoke ${set_data_timer[${_debug}, Check_Loot, RESTART]}
@@ -5907,7 +5802,7 @@ sub do_loot(bool _debug)
 
       /while (${AdvLoot.SCount}) {
         GETOVERHERE
-        /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+        ISMEDEAD
 
         /if (${AdvLoot.SList[1].Name.Equal[NULL]}) {
           /continue
@@ -6026,7 +5921,7 @@ sub do_loot(bool _debug)
 
       /while (${AdvLoot.PCount}) {
         GETOVERHERE
-        /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+        ISMEDEAD
 
         | advloot window checkboxes will override
         /delay 1s !${AdvLoot.LootInProgress}
@@ -6135,7 +6030,7 @@ sub do_loot(bool _debug)
 
   | I'M SERIOUSLY SICK OF FIXING THIS delete code.
               /while (${FindItem[="${_tmpName}"].ID}) {
-                /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+                ISMEDEAD
                 /delay 5
                 /nomodkey /shift /itemnotify in Pack${Math.Calc[${FindItem[=${_tmpName}].ItemSlot}-22]} ${Math.Calc[${FindItem[=${_tmpName}].ItemSlot2}+1]} leftmouseup
 
@@ -6190,7 +6085,7 @@ sub check_cursor(bool _debug, string _verbage)
   /if (${_verbage.Equal[getoffthedamncursor]} && ${Cursor.ID}) {
     /declare _cursorbail int local 1
     /while (${Cursor.ID} && ${_cursorbail} < 31 && ${Me.FreeInventory}) {
-      /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+      ISMEDEAD
       GETOVERHERE
       /autoinventory
       /delay 2
@@ -6206,7 +6101,7 @@ sub check_cursor(bool _debug, string _verbage)
   }
 
   /if (${timer_Check_Cursor}) /return FALSE
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
 
   | please bow your heads..  lsAutoInventory has entered the room
   /if (${lsAutoInventory.Contains[${Cursor.Name}]}) {
@@ -6288,7 +6183,7 @@ sub cast_temp_pet(bool _debug, spawn _spawn, string _tmpSpell)
     /if (${Me.Pet.ID}) /return FALSE
   }
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT cast_temp_pet
   GETINPUT cast_temp_pet NA|NA
   SPAWNDEAD
@@ -6342,7 +6237,7 @@ sub send_pet(bool _debug, spawn _spawn)
     /return FALSE
   }
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT send_pet
   GETINPUT send_pet NA|NA
   
@@ -6475,7 +6370,7 @@ sub check_minion_cycle(bool _debug, bool _force)
 sub check_minion_cycle_shrink(bool _debug)
   DEBUG \atcheck_minion_cycle_shrink\ax()
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT check_minion_cycle_shrink
   GETINPUT check_minion_cycle_shrink NA|NA
 
@@ -6491,7 +6386,7 @@ sub check_minion_cycle_shrink(bool _debug)
 
   | me shrinks
   /while (${Me.Pet.Height} > 2 && ${_count} < 2) {
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     /call cast ${_debug} ${Me.Pet.ID} FALSE
     /varcalc _count ${_count}+1
   }
@@ -6571,7 +6466,7 @@ sub check_minion_cycle_buff(bool _debug)
 sub check_minion_cycle_summon(bool _debug)
   DEBUG \atcheck_minion_cycle_summon\ax()
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT check_minion_cycle_summon
   GETINPUT check_minion_cycle_summon NA|NA
 
@@ -6626,7 +6521,7 @@ sub check_minion_cycle_weapons(bool _debug)
     /return FALSE
   }
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT check_minion_cycle_weapons
   GETINPUT check_minion_cycle_weapons NA|NA
 
@@ -6685,7 +6580,7 @@ sub check_minion_cycle_weapons(bool _debug)
 sub check_minion_cycle_Illusion(bool _debug)
   DEBUG \atcheck_minion_cycle_Illusion\ax()
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT check_minion_cycle_Illusion
   GETINPUT check_minion_cycle_Illusion NA|NA
 
@@ -6754,7 +6649,7 @@ sub give_to_pet(string _item, bool _debug)
 
   /call target set ${Me.Pet.ID}
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT give_to_pet NA|NA
   /if (${Cursor.ID} && ${Me.Pet.ID}) {
     /if (${Cursor.Name.Equal[${_item}]}) {
@@ -6784,7 +6679,7 @@ sub get_minion_summon_weapons(bool _debug)
   }
 
   CHECKTIE
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT get_minion_summon_weapons NA|NA
 
   /declare _count int local 0
@@ -6958,7 +6853,7 @@ sub get_MAG_folded_pack(bool _debug)
   /declare _ligmfp listiterator local
   /vardata _ligmfp _lsout.First.Clone
   /while (!${_ligmfp.IsEnd}) {
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     /if (${FindItemCount[Folded Pack of ${_ligmfp.Value} Armaments]}) {
       DEBUG ${sep}found mage pack${sep}\a-wFolded Pack of ${_ligmfp.Value} Armaments\ax
       /return Folded Pack of ${_ligmfp.Value} Armaments
@@ -7043,7 +6938,7 @@ sub cast_glyph(bool _debug)
     }
   }
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT cast_glyph NA|NA
 
   | buy the AA
@@ -7073,7 +6968,7 @@ sub cast_glyph(bool _debug)
 sub cast_AA_spire(bool _debug)
   DEBUG \atcast_AA_spire\aw()
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT cast_AA_spire
   GETINPUT cast_AA_spire NA|NA
 
@@ -7106,7 +7001,7 @@ sub cast_AA_spire(bool _debug)
 sub cast_AA_intensity(bool _debug)
   DEBUG \atcast_AA_intensity\aw()
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT cast_AA_intensity
   GETINPUT cast_AA_intensity NA|NA
   
@@ -7167,7 +7062,7 @@ sub set_hud_data(string _mode)
 sub set_AA_agro(bool _debug)
   DEBUG \atset_AA_agro\ax()
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT set_AA_agro NA|NA
 
   | turn agro ON
@@ -7249,7 +7144,7 @@ sub get_target_intpull(bool _debug, spawn _spawn)
     /return FALSE
   }
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT get_target_intpull NA|NA
   CHECKTIE
 
@@ -7299,7 +7194,7 @@ sub pull_mob_move_to(bool _debug, spawn _spawn, int _dist, string _LoS)
 
   DEBUG ${sep}moving to${sep}\a-w${_spawn.ID}\ax
   /while (${Navigation.Active}) {
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
 
     /if (!AUTO && !MODE) {
@@ -7404,7 +7299,7 @@ sub pull_mob_move_to(bool _debug, spawn _spawn, int _dist, string _LoS)
 sub get_target_petpull(bool _debug, spawn _spawn, int _spCount)
   DEBUG \atget_target_petpull\ax(\a-w${_spawn.ID}, ${_spCount}\ax)
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT get_target_petpull _spawn|${_spawn.ID}
   CHECKTIE
 
@@ -7494,7 +7389,7 @@ sub get_target_petpull(bool _debug, spawn _spawn, int _spCount)
 
   /while (TRUE) {
 
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     GETINPUT get_target_petpull_range NA|NA
 
@@ -7569,7 +7464,7 @@ sub get_target_petpull(bool _debug, spawn _spawn, int _spCount)
 sub get_target_navpull(bool _debug, spawn _spawn, int _spCount)
   DEBUG \atget_target_navpull\ax(\a-w${_spawn.ID}, ${_spCount}\ax)
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT get_target_navpull _spawn|${_spawn.ID}
   CHECKTIE
 
@@ -7660,7 +7555,7 @@ sub get_target_navpull(bool _debug, spawn _spawn, int _spCount)
     }
 
     /while (${Me.Moving}) {
-      /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+      ISMEDEAD
       GETOVERHERE
       /if (${_spawn.LineOfSight} && ${_spawn.Distance} < ${maPull.Find[stPullNavStopDistance].Value}) {
         /break
@@ -7733,7 +7628,7 @@ sub get_target_calmpull(bool _debug, spawn _spawn)
 sub get_target_watchpull(bool _debug, spawn _spawn)
   DEBUG \atget_target_watchpull\ax(\a-w${_spawn.ID}\ax)
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT get_target_watchpull NA|NA
   CHECKTIE
 
@@ -7875,7 +7770,7 @@ sub get_target_multipull(bool _debug)
     /invoke ${out[9, "Waiting on ${dot} ${con_color[${_debug}, TARGET]}${sep}\a-w30s\ax"]}
     /while (${targetData.ID} && ${targetData.Distance} > ${maHard.Find[stMinBowDist].Value}) {
       GETINPUT get_target_multipull_wait NA|NA
-      /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+      ISMEDEAD
       /delay 2
 
       | target gone.. wtf?
@@ -8066,7 +7961,6 @@ sub out(int _lvl, string _verbage, int _strNum)
   } else /if (!${Range.Between[1,99999:${Int[${_strNum}]}]} && (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0)) {
     ECHO ${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}${_verbage}
     /varset HUDOutput ${_verbage}
-
   }
 
 /return FALSE
@@ -8133,7 +8027,7 @@ sub check_mode(bool _debug, string _verbage)
   | reset used for zoning, and other stuffs
   /if (${_verbage.Equal[reset]}) {
     /while (!${_mimode.IsEnd}) {
-      /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+      ISMEDEAD
       GETOVERHERE
       /if (${_mimode.Value}) {
         /invoke ${maMode.Add[${_mimode.Key},FALSE]}
@@ -8145,7 +8039,7 @@ sub check_mode(bool _debug, string _verbage)
 
   | normal check routine
   /while (!${_mimode.IsEnd}) {
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     /if (${_mimode.Value}) {
       DEBUG mode_${_mimode.Key}
@@ -8373,7 +8267,7 @@ sub control_routine(bool _debug, string _type)
           /continue
         }
 
-        /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+        ISMEDEAD
         GETOVERHERE
         CHECKEXIT
         /call control_mez ${_debug} ${Spawn[${_mobcheck.Key}].ID}
@@ -8576,7 +8470,7 @@ sub control_map(bool _debug, string _type)
     /vardata _mimez maMobControlMez.First.Clone
     /while (!${_mimez.IsEnd}) {
       DEBUG ${sep}_mimez.Key--.Value${sep}\a-w${_mimez.Key} -- ${_mimez.Value}\ax
-      /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+      ISMEDEAD
       GETOVERHERE
       
       
@@ -8613,7 +8507,7 @@ sub control_map(bool _debug, string _type)
 sub control_mezae(bool _debug)
   DEBUG \atcontrol_mezae\ax()
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT control_mezae NA|NA
   /declare _spawn spawn local
 
@@ -8695,7 +8589,7 @@ sub control_mez(bool _debug, spawn _spawn)
       /return FALSE
     }
 
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     GETINPUT
 
@@ -9164,7 +9058,7 @@ sub cast_cycle_defense(bool _debug, spawn _spawn)
   /while (!${_liC20.IsEnd}) {
 
     GETINPUT cast_cycle_defense NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
 
     | check the switch
@@ -9201,7 +9095,7 @@ sub cast_cycle_defense(bool _debug, spawn _spawn)
       /varset _spawn 0
     }
 
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
 
     /call cast ${_debug} ${_spawn.ID} FALSE
 
@@ -9232,7 +9126,7 @@ sub check_item_cycle(bool _debug, spawn _spawn, string _tag)
   /while (!${_liC20.IsEnd}) {
 
     GETINPUT check_item_cycle NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     CHECKEXIT
 
@@ -9365,7 +9259,7 @@ sub cast_cycle_nuke(bool _debug, spawn _spawn, string _tag)
     }
     
     GETINPUT cast_cycle_nuke NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     CHECKEXIT cast_cycle_nuke
     
@@ -9548,7 +9442,7 @@ sub cast_cycle_dot(bool _debug, spawn _spawn)
     }
 
     GETINPUT cast_cycle_dot NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     CHECKEXIT cast_cycle_dot
 
@@ -9620,11 +9514,11 @@ sub cast_cycle_agro(bool _debug, spawn _spawn)
 
   /invoke ${is_burn_valid[${maDebug.Find[burn].Value}]}
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT
 
   | taunt
-  /if (${lsMeleeSkill.Contains[taunt]} && ${Me.AbilityReady[Taunt]}) {
+  /if (${lsMeleeSkill.Contains[taunt]} && ${Me.AbilityReady[Taunt]} && AUTO) {
     /if (${Target.ID} && (${Me.PctAggro} < ${maCC.Find[stPctTaunt].Value} || ${Me.TargetOfTarget.ID} != ${Me.ID})) {
       /invoke ${out[8, "Melee${sep}${sp}Taunt\ax ${dot} ${con_color[${_debug}, ${_spawn.ID}]}\ax"]}
       /doability Taunt
@@ -9645,7 +9539,7 @@ sub cast_cycle_agro(bool _debug, spawn _spawn)
     SPAWNDEAD
 
     GETINPUT cast_cycle_agro NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     CHECKEXIT cast_cycle_agro
 
@@ -9711,7 +9605,7 @@ sub cast_cycle_miscdps(bool _debug, spawn _spawn)
     SPAWNDEAD
 
     GETINPUT cast_cycle_miscdps NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     CHECKEXIT cast_cycle_miscdps
 
@@ -9773,7 +9667,7 @@ sub cast_cycle_burn(bool _debug, spawn _spawn)
   /while (!${_liC20.IsEnd}) {
 
     GETINPUT cast_cycle_burn NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     CHECKEXIT cast_cycle_burn
 
@@ -9868,7 +9762,7 @@ sub cycle_sash(bool _debug)
   /while (!${_liC12.IsEnd}) {
 
     GETINPUT cast_cycle_bandolier NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     CHECKEXIT cast_cycle_bandolier
 
@@ -10289,7 +10183,7 @@ sub cast_rez(bool _debug, spawn _spawn, string _rez)
     /return FALSE
   }
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT cast_rez _rez|${_rez}
 
   SETHUD "resurrect"
@@ -10445,7 +10339,7 @@ sub cast_cycle_heal_regen(bool _debug, string _tag)
       }
 
       CHECKEXIT
-      /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+      ISMEDEAD
       GETOVERHERE
       
       | check the switch
@@ -10635,7 +10529,7 @@ sub cast_cycle_heal(bool _debug, spawn _spawn, string _tag)
   /while (!${_liHeal.IsEnd}) {
     DEBUG ${sep}heal${sep}\a-w${maHeal.Find[stHeal${_liHeal.Value}].Value}${sep}${maHeal.Find[stHeal${_liHeal.Value}]}\ax
     GETINPUT cast_cycle_heal NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     CHECKEXIT cast_cycle_heal
 
@@ -10677,7 +10571,7 @@ sub cast_cycle_heal(bool _debug, spawn _spawn, string _tag)
       /continue
     }
 
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     /if (${_tag.Equal[ignoremovement]}) {
       /call cast ${_debug} ${_spawn.ID} ignoremovement
     } else {
@@ -10716,7 +10610,7 @@ sub cast_cycle_heal_promise(bool _debug)
   /while (!${_liHeal.IsEnd}) {
     DEBUG ${sep}heal${sep}\a-w${maHeal.Find[stHeal${_liHeal.Value}].Value}${sep}${maHeal.Find[stHeal${_liHeal.Value}]}\ax
     GETINPUT cast_cycle_heal_promise NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     CHECKEXIT cast_cycle_heal_promise
 
@@ -10834,7 +10728,7 @@ sub check_buff_cycle_aura(bool _debug)
   /vardata _liBuff lsCount50.First.Clone
   /while (!${_liBuff.IsEnd}) {
     GETINPUT check_buff_cycle_aura NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     CHECKEXIT check_buff_cycle_aura
 
@@ -11029,7 +10923,7 @@ sub check_buff_cycle_self(bool _debug)
     }
   }
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT check_buff_cycle_self NA|NA
 
   /declare _count int local 0
@@ -11568,7 +11462,7 @@ sub cast_cooldown_wait(bool _debug)
 
   /while (${Me.SpellInCooldown}) {
     CHECKEXIT
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     /if (!${Me.SpellInCooldown}) {
       /break
@@ -11709,7 +11603,12 @@ sub con_color(bool _debug, spawn _spawn)
 sub do_taunt(bool _debug, spawn _spawn)
   DEBUG \atdo_taunt\ax(\a-w${_spawn.ID}\ax)
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  /if (!AUTO) {
+    /return FALSE
+  }
+
+
+  ISMEDEAD
   CHECKEXIT
 
   /if (!${maAgro.Find[stPctTaunt].Value} || !AGRO) {
@@ -11993,7 +11892,7 @@ sub control_GTFO(string _verbage, bool _debug)
   
   /if (SAFEZONE) /return FALSE
   
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
 
   | forced?
   /if (${_verbage.Equal[force]}) {
@@ -12070,7 +11969,7 @@ sub check_gtfo(bool _debug)
 
     DEBUG ${sep}_liC12.Value${sep}\a-w${_liC12.Value}\ax${sep}passed tags
 
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     
     /call cast ${_debug} 0 FALSE
@@ -12105,7 +12004,7 @@ sub pull_get_other_type(bool _debug, spawn _spawn)
     SPAWNDEAD
 
     GETINPUT pull_get_other_type NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     CHECKEXIT pull_get_other_type
 
@@ -12392,7 +12291,7 @@ sub check_buff_cycle_temp(bool _debug)
   }
 
   CHECKTIE
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKEXIT check_buff_cycle_temp
   GETINPUT check_buff_cycle_temp NA|NA
 
@@ -12447,7 +12346,7 @@ sub check_buff_cycle_temp(bool _debug)
     /for _count 1 to 50
       
       CHECKEXIT
-      /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+      ISMEDEAD
       GETOVERHERE
     
       /varset _tmpBuff 
@@ -12821,7 +12720,7 @@ sub cast_cycle_melee(bool _debug, spawn _spawn, string _tag)
   }
 
   CHECKEXIT
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   CHECKDEFENSE
 
   /call target set ${_spawn.ID}
@@ -12853,7 +12752,7 @@ sub cast_cycle_melee(bool _debug, spawn _spawn, string _tag)
   /while (!${_liMelee.IsEnd}) {
 
     GETINPUT cast_cycle_melee NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     CHECKEXIT cast_cycle_melee
 
@@ -12905,7 +12804,7 @@ sub cast_cycle_melee(bool _debug, spawn _spawn, string _tag)
       /continue
     }
 
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     
     /invoke ${out[8, "Melee${sep}${sp}${maMelee.Find[stMelee${_liMelee.Value}].Value}\ax ${dot} ${con_color[${_debug}, ${_spawn.ID}]}\ax"]}
     /doability "${maMelee.Find[stMelee${_liMelee.Value}].Value}"
@@ -13012,7 +12911,7 @@ sub pull_home_move_to(bool _debug, spawn _spawn)
 
   /delay 5 ${Navigation.Active}
   /while (${Navigation.Active}) {
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     
     | self heal while returning to camp; heal needs tag ignoremovement
@@ -13177,6 +13076,7 @@ sub pull_assist_decision(bool _debug)
 sub pull_mob_intervention(bool _debug, spawn _spawn)
   DEBUG \atpull_mob_intervention\ax(\a-w${_spawn.ID}\ax)
   /call cast_cycle_heal ${_debug} ${_spawn.ID} interventionpull
+
 /return TRUE
 
 
@@ -13196,7 +13096,7 @@ sub get_resident(bool _debug, string _groupList, int _distance, string _verbage)
   /for _countGroup 1 to ${_groupList.Count[|]}
     /varset _group ${_groupList.Arg[${_countGroup},|]}
     
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
 
     | group empty / does not exist
     /if (!${DanNet.PeerCount[${_group}]}) {
@@ -13216,7 +13116,7 @@ sub get_resident(bool _debug, string _groupList, int _distance, string _verbage)
       
       DEBUG ${sep}spawn${sep}\a-w${_spawn.DisplayName}\ax
       
-      /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+      ISMEDEAD
 
       | never use the MA
       /if (${Group.MainAssist.ID} == ${_spawn.ID} || ${_verbage.Equal[notme]} && ${_spawn.ID} == ${Me.ID}) {
@@ -13324,7 +13224,7 @@ sub check_cure(bool _debug)
 
   SETHUD "check cure"
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT check_cure NA|NA
 
   | My daughter said you have issues.. She's usually right.
@@ -13413,7 +13313,7 @@ sub check_cure(bool _debug)
       OUT Medic${sep}\a-w${_toon}\ax (\a-r${DanNet[${_toon}].Observe["Me.TotalCounters"]}\ax)
     }
 
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     CHECKEXIT
 
     | cure with spell
@@ -13636,7 +13536,7 @@ sub cast_cycle_debuff(bool _debug, spawn _spawn, string _tag, bool _return)
   /while (!${_lidebuff.IsEnd}) {
 
     GETINPUT cast_cycle_debuff NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     CHECKEXIT cast_cycle_debuff
     
@@ -13803,7 +13703,7 @@ sub check_debuff_routines(spawn _spawn, bool _debug)
 
     GETOVERHERE
     CHECKEXIT
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}    
+    ISMEDEAD    
  
     /varset _debug ${If[${maDebug.Find[${_lideorder.Value}].Value},TRUE,FALSE]}
     
@@ -13996,7 +13896,7 @@ sub cast_cycle_cure(bool _debug, spawn _spawn, string _tag, bool _return)
   /while (!${_lilc.IsEnd}) {
 
     GETINPUT cast_cycle_defense NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
 
     | check the switch
@@ -14040,7 +13940,7 @@ sub cast_cycle_cure(bool _debug, spawn _spawn, string _tag, bool _return)
 
     DEBUG ${sep}_lilc.Value${sep}\a-w${_lilc.Value}\ax${sep}passed tags
     
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
         
     /call cast ${_debug} ${_spawn.ID} FALSE
 
@@ -14390,7 +14290,7 @@ sub class_cycle(string _order)
   /vardata _lico ${_order}.First.Clone
   /while (!${_lico.IsEnd}) {
 
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
 
     | /heal
     /if (${_lico.Value.Equal[heal]}) {
@@ -14474,6 +14374,10 @@ sub class_cycle(string _order)
     | taunt classes
     | } else /if (${_lico.Value.Equal[taunt]}) {
     |   /invoke ${do_taunt[${maDebug.Find[taunt].Value}, ${targetData.ID}]}
+
+    | pally stun
+    } else /if (${Select[${Me.Class.ShortName},PAL]} && ${_lico.Value.Equal[stun]}) {
+      /call cast_AA_stun ${maDebug.Find[stun].Value}  ${targetData.ID}
       
     | agro routines
     } else /if (${_lico.Value.Equal[agro]} && AGRO) {
@@ -14758,9 +14662,9 @@ sub cast_data(bool _debug, string _type)
  ***|
 sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
   DEBUG \atcast\ax(\a-wtID:${_spawn.ID}, sub:${_sub}, rngOver:${_rangeOverride}\ax) (\a-r${spellData}\ax)
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETOVERHERE
-
+  
   | critical errors
   /if (!${maCD.Find[id].Value} && !${Select[${maCD.Find[type].Value},DISC]}) {
     /invoke ${out[0, "${error}${sep}cast${sep}\a-w${maCD.Find[id].Value}, ${_spawn.ID}, ${_sub}\ax)"]}
@@ -14845,7 +14749,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
         /break
       }
  
-      /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+      ISMEDEAD
       /alt act ${Me.AltAbility[${maCD.Find[id].Value}].ID}
       /delay 5 ${Me.Casting.ID}
 
@@ -14853,7 +14757,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
       /varset _tiCastTime ${spellData.MyCastTime}
 
       /while (${_tiCastTime} > 0) {
-        /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+        ISMEDEAD
         /if (${_spawn.ID} != 0 && ${_sub.NotEqual[skiptargetcheck]}) {
           /if (${_spawn.Dead} || !${_spawn.ID}) {
             DEBUG ${sep}spell.target dead.break
@@ -15024,7 +14928,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
       }
     }
     
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
 
     | if a gom procs and a spell is ready, we hijack the existing cast and use the GOM spell in its place
     /if (${_spawn.ID} != 0 && ${Target.ID} && ${Me.Song[Gift of Mana].ID} && !${Select[${Me.Class.ShortName},CLR]} && COMBAT) {
@@ -15084,7 +14988,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
       }
 
       /while (${_castLoop} > 0) {
-        /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+        ISMEDEAD
 
         /if (CHECKINVIS && ${_sub.NotEqual[ignoreall]}) {
           DEBUG ${sep}spell.cr:DISTRACTED(invis).break
@@ -15105,7 +15009,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
         /varset _tiCastTime ${_castTime}
 
         /while (${_castTime} > 0) {
-          /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+          ISMEDEAD
           /if (${_spawn.ID} != 0 && ${_sub.NotEqual[skiptargetcheck]}) {
             /if (${_spawn.Dead} || !${_spawn.ID}) {
               DEBUG ${sep}spell.target dead.break
@@ -15232,7 +15136,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
       /invoke ${out[4, "Disc${sep}${sp}${Spell[${spellData}]}\ax ${dot} ${con_color[FALSE, ${_spawn.ID}]}\ax"]}
     }
     
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     /disc ${spellData.ID}
 
     /delay 5
@@ -15327,7 +15231,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
     }
 
     /while (${_castLoop}) {
-      /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+      ISMEDEAD
       /useitem "${FindItem[${maCD.Find[id].Value}].Name}"
       /delay 2
 
@@ -15413,7 +15317,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
     }
 
     /while (${_castLoop}) {
-      /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+      ISMEDEAD
       /cast ${Me.Gem[${spellData.RankName}]}
       /delay 1
       CHECKTIE
@@ -15431,9 +15335,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
             }
           }
         }
-        | /delay 1
       }
-      | /delay 1
       /doevents
 
       /if (${Select[${_sub},ignoreall]}) {
@@ -15531,7 +15433,7 @@ sub spawn_stick(bool _debug, spawn _spawn)
   
   SPAWNDEAD
 
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT spawn_stick tmpID|${_spawn.ID}
   
   /invoke ${spawn_face[${_spawn.ID}]}
@@ -15540,10 +15442,15 @@ sub spawn_stick(bool _debug, spawn _spawn)
   | position check
   /invoke ${set_data_timer[${_debug}, Check_Behind, RESTART]}
   /declare _position string local
-
+  
+  /if (!${Select[${maHome.Find[stCombatPosition].Value},free,random]}) {
+    /invoke ${maData.Add[stFacingPositionCheck,FALSE]}
+  }
+  
   /if (${Select[${maHome.Find[stCombatPosition].Value},random]} && !${maData.Find[stFacingPositionCheck].Value}) {
 
     /if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
+      /squelch /stick off
       /return TRUE
     }
    
@@ -15552,7 +15459,7 @@ sub spawn_stick(bool _debug, spawn _spawn)
   } else /if (!${Select[${maHome.Find[stCombatPosition].Value},random]}) {
     /invoke ${maData.Add[stFacingPosition,${maHome.Find[stCombatPosition].Value}]}
   }
-
+  
   /if (!${maData.Find[stFacingPositionCheck].Value}) {
     DEBUG ${sep}position adjustment${sep}\a-w${maData.Find[stFacingPosition].Value}\ax
     
@@ -15963,7 +15870,7 @@ sub cast_cycle_proc_twinheal(bool _debug)
   }
     
   CHECKEXIT
-  /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+  ISMEDEAD
   GETINPUT
 
  
@@ -16068,7 +15975,7 @@ sub check_sash_cycle(bool _debug, string _tag, bool _return)
   /while (!${_lisash.IsEnd}) {
     DEBUG ${sep}sash${sep}\a-w${maSash.Find[stSash${_lisash.Value}].Value}${sep}${maSash.Find[stSash${_lisash.Value}]}\ax
     GETINPUT check_sash_cycle NA|NA
-    /if (${is_me_dead[${maDebug.Find[rez].Value}]}) /call check_for_rezbox ${maDebug.Find[rez].Value}
+    ISMEDEAD
     GETOVERHERE
     CHECKEXIT check_sash_cycle
 

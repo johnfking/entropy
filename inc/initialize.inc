@@ -70,7 +70,7 @@ sub set_debug(string _verbage)
     /invoke ${lsDebugclass.Append[fury]}
   } else /if (${Select[${Me.Class.ShortName},NEC]}) {
   } else /if (${Select[${Me.Class.ShortName},PAL]}) {
-    /invoke ${lsDebugclass.Append[splash,harmonious]}
+    /invoke ${lsDebugclass.Append[splash,harmonious,stun]}
   } else /if (${Select[${Me.Class.ShortName},RNG]}) {
     /invoke ${lsDebugclass.Append[summer]}
   } else /if (${Select[${Me.Class.ShortName},ROG]}) {
@@ -327,7 +327,8 @@ sub set_initial_environment(bool _debug)
   /call set_data ${_debug} FALSE lsNoTargetNPC                            list outer "a campfire"|"a corpse"|"controller"|"Steel Mass"|"Sphere of Fire"|"an ant"|"a barrel of food"|"a crate of food"
   /call set_data ${_debug} FALSE lsNoTargetPC                             list outer "eye of|a barrel of food"
   /call set_data ${_debug} FALSE lsNoTargetMagic                          list outer "eye of"
-  /call set_data ${_debug} FALSE lsAnimationNoTarget                      list outer 16|43|44|146
+  /call set_data ${_debug} FALSE lsAnimationNoTarget                      list outer 16|43|44
+  | /call set_data ${_debug} FALSE lsAnimationNoTarget                      list outer 16|43|44|146
   /call set_data ${_debug} FALSE lsAnimationMezed                         list outer 13|49|58
 
   | cardinal directions
@@ -374,7 +375,7 @@ sub set_initial_environment(bool _debug)
   /invoke ${set_data_timer[${_debug}, Check_Observers, 1m]}
   /invoke ${set_data_timer[${_debug}, Check_Poison, 1m]}
   /invoke ${set_data_timer[${_debug}, Check_deBuffs, 6s]}
-  /invoke ${set_data_timer[${_debug}, Check_Behind, 5s]}
+  /invoke ${set_data_timer[${_debug}, Check_Behind, 15s]}
   /invoke ${set_data_timer[${_debug}, Check_Tribute, 1m]}
   /invoke ${set_data_timer[${_debug}, Check_Loot, 1s]}
   /invoke ${set_data_timer[${_debug}, Check_Mode, 5]}

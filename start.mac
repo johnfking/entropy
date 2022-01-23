@@ -105,7 +105,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     ECHO \a-wMQ2SQLite, MQ2DanNet, Mq2Nav, MQ2MoveUtils, MQ2Collections, MQ2Lua\ax
     /endmacro
   }
-  
+
   | remove old huds
   /if (${check_plugin[FALSE, FALSE, |MQ2Hud]}) {
     /squelch /unloadhud entropy
@@ -125,7 +125,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 211226.01
+  /call set_data FALSE maEnv build                          map outer 220123.01
   /call set_data FALSE maEnv schema                         map outer 1.58
   /call set_data FALSE maEnv repo                           map outer 210216.01
 

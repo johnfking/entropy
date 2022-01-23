@@ -168,6 +168,7 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
         | check navigation path validity for all but base pulling
         /if (!${Select[${maPull.Find[stPullMode].Value},base]}) {
           /if (!${Navigation.PathExists[id ${_spawn.ID}]} && !${maOver.Find[swOverNavCheck].Value}) {
+          | /if (!${Navigation.PathExists[id ${_spawn.ID}]}) {
             DEBUG ${break}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-y${_spawn.ID}\ax]\ax (\a-r${_spawn.DisplayName}\ax)
             /continue
           }

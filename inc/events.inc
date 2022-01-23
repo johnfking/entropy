@@ -292,9 +292,8 @@ sub Event_Zone(string _line)
   }
   /call check_mode FALSE RESET
   /call check_zone_id ${maDebug.Find[zone].Value}
-  | /if (${maHome.Find[swHomeMarker].Value}) {
-    /call Bind_control_home clear
-  | }
+  /call Bind_control_home clear
+
 /return FALSE
 
 

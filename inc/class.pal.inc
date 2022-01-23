@@ -63,7 +63,7 @@ sub class_init(bool _debug)
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                xtarget                                                                       "${auxli} class base loop start"
   /call set_data_list ${_debug} maChr lsOrderClassPre                 heal|manarecover|staminarecovery                                              "${auxli} class pre combat"
-  /call set_data_list ${_debug} maChr lsOrderClass                    taunt|agro|melee|heal|burn|misc|dot|nuke|item|taunt|agro|debuff|alliance|harmonious      "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClass                    taunt|stun|agro|melee|heal|stun|burn|misc|dot|nuke|item|taunt|stun|agro|debuff|alliance|harmonious      "${auxli} class active combat order"
   /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|staminarecovery                                                   "${auxli} class post combat "
 
   | AAs
@@ -227,7 +227,7 @@ sub get_agro(bool _debug, spawn _spawn)
     /return TRUE
   }
 
-  /call set_combat ${_debug}
+  | /call set_combat ${_debug}
 
   /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
     /call cast_shield_flash FALSE aa
@@ -513,6 +513,25 @@ sub burn(bool _debug, spawn _spawn)
   /call cast_glyph ${maDebug.Find[glyph].Value}
   | Intensity of the Resolute AA 4 hour reuse
   /call cast_AA_intensity ${maDebug.Find[intensity].Value}
+
+/return TRUE
+
+
+
+|***
+ * note: AA stun
+ * use: /chr stun to select
+ ***|
+sub cast_AA_stun(bool _debug, spawn _spawn)
+  DEBUG \atcast_AA_stun\ax(\a-w${_spawn.ID}\ax)
+
+  SPAWNDEAD
+  CHECKEXIT
+  GETINPUT
+  
+  /if (${cast_data[${_debug}, "${maChr.Find[stStun].Value}"]}) {
+    /call cast ${_debug} ${_spawn.ID} FALSE
+  }
 
 /return TRUE
 

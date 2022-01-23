@@ -384,28 +384,29 @@ sub pulse_cycle(bool _debug, spawn _spawn, string _tag)
       /continue
     }
 
+    /if (${_spawn.ID}) {
+
+      /if (MELEE) {
+         /call set_combat_control ${maDebug.Find[decision].Value} ${_spawn.ID}
+      }
+
+      /if (AUTO && ${_spawn.ID}) {
+        /invoke ${spawn_face[${_spawn.ID}]}
+        /call spawn_stick ${_debug} ${_spawn.ID}
+      }
+    }    
+
     SETHUD "pulse"
 
-    /if (AUTO && ${_spawn.ID}) {
-      /invoke ${spawn_face[${_spawn.ID}]}
-      /call spawn_stick ${_debug} ${_spawn.ID}
-    }
-
-    /if (MELEE && ${_spawn.ID}) {
-       /call set_combat_control ${maDebug.Find[decision].Value} ${_spawn.ID}
-    }
-
-    /if (AUTO) {
-      /invoke ${spawn_face[${_spawn.ID}]}
-      /call spawn_stick ${_debug} ${_spawn.ID}
-    }
-    
-
     /call cast ${_debug} 0 ignoremovement
-
-    /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,RESISTED,IMMUNE]}) {
+    
+    /if (${Macro.Return}) {
       /return TRUE
     }
+
+    | /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,RESISTED,IMMUNE]}) {
+    |   /return TRUE
+    | }
 
     /invoke ${_lipl.Advance}
 

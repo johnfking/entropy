@@ -15,12 +15,23 @@
 
 on the to do list
 --------------------
-- ranger silent shot ambush spell
-- break out triggers for minion buffs
-- pet gear handing for damn TLP feeders..
 --------------------
 
 
+220123.01
+- /mode lush
+  corrected a cast issue with.. well not like you can cast alcohol.
+- melee position on a mob 
+  added a check so it should reposition rean and left/right sides better
+- class specific buffs like rogue poisons and changer gems should respond a bit better now
+- burns
+  engage% should be followed a bit closer
+  mobcount or force will override any other checks
+- bards
+  think i found the issue with them wanting to keep singing
+  maybe they will behave a bit more now. /shrug
+  
+    
 211226.01
 - corrected a monk old voodoo call
 - maHard stModeDragTargetCheck, time to recheck for corpses to drag. default is 5.
