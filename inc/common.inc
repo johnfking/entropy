@@ -6265,6 +6265,7 @@ sub send_pet(bool _debug, spawn _spawn)
     /if (${_spawn.PctHPs} < ${maData.Find[stPctEngageSetPet].Value}) {
       /call target set ${_spawn.ID}
       /pet attack
+      /pet swarm
     }
   }
 
@@ -8218,7 +8219,7 @@ sub control_routine(bool _debug, string _type)
     | if no mobs are returned we bail
     /if (!${_countArea}) {
       DEBUG ${break}\arNo\ax mez targets${sep}\a-w${_countArea}\ax
-      /delay 1
+      | /delay 1
       /return TRUE
     }
 
@@ -10304,8 +10305,8 @@ sub check_watch_spawn(bool _debug)
  * note: regeneration spells (not the AAs)
  * use: /call cast_cycle_heal_regen DEBUG [grouphot|hot]
  ***|
-sub cast_cycle_heal_regen(bool _debug, string _tag)
-  DEBUG \atcast_cycle_heal_regen\ax(\a-w${_tag}\ax)
+sub cast_cycle_heal_regen(bool _debug, spawn _spawn, string _tag)
+  DEBUG \atcast_cycle_heal_regen\ax(\a-w${_spawn.ID}, ${_tag}\ax)
 
   /invoke ${set_data_timer[${_debug}, Check_Regen, RESTART]}
 
@@ -10468,6 +10469,13 @@ sub cast_cycle_heal_regen(bool _debug, string _tag)
         /continue
       }
 
+      | good tag, set a name
+      /if (${lsHeal${_liHoT.Value}Tag.Contains[hot]}) {
+        DEBUG ${sep}setting _myHoT${sep}\a-w${maHeal.Find[stHeal${_liHoT.Value}].Value}\ax
+        /varset _myHoT ${maHeal.Find[stHeal${_liHoT.Value}].Value}
+        /break
+      }
+
       | ready?.. or continue
       /if (!${cast_data[${_debug}, "${_myHoT}"]}) {
         DEBUG ${break}notready
@@ -10476,12 +10484,7 @@ sub cast_cycle_heal_regen(bool _debug, string _tag)
         /continue
       }
       
-      | good tag, set a name
-      /if (${lsHeal${_liHoT.Value}Tag.Contains[hot]}) {
-        DEBUG ${sep}setting _myHoT${sep}\a-w${maHeal.Find[stHeal${_liHoT.Value}].Value}\ax
-        /varset _myHoT ${maHeal.Find[stHeal${_liHoT.Value}].Value}
-        /break
-      }
+
       /invoke ${_liHoT.Advance}
     }
 
@@ -10496,7 +10499,7 @@ sub cast_cycle_heal_regen(bool _debug, string _tag)
     /dquery ${hurtData.DisplayName} -q "Me.Song[${Spell[${_myHoT}].RankName}].Duration" -o DNQReturn2 -t ${maEntropy.Find[stDanNetQueryDelay].Value}
     DEBUG DNQReturn2.Duration${sep}\a-w${DNQReturn2}\ax (\a-r${hurtData.DisplayName}\ax)
     /if (${DNQReturn} && !${DNQReturn2}) {
-      /call cast ${_debug} ${hurtData.ID} FALSE
+      /call cast ${_debug} ${_spawn.ID} FALSE
     }
 
     /return TRUE
@@ -15154,7 +15157,6 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
     DEBUG ${sep}\agITEM\ax${sep}${FindItem[${maCD.Find[id].Value}].Name}
 
     /if (${_spawn.ID} == 0 || ${_spawn.ID} == ${Me.ID}) {
-      DEBUG here
 
       | illusion check
       /if (${FindItem[${maCD.Find[id].Value}].Type.Equal[Illusion]} && !${Me.Mount.ID}) {

@@ -35,7 +35,7 @@
 #define CHECKINVIS ${Me.Invis} && !${maEnv.Find[swIgnoreInvis].Value}
 #define CHECKAUTO "/if (!${maEnv.Find[swAuto].Value}) /return FALSE"
 #define OVERLOS "${If[${maOver.Find[swOverLOS].Value},,los]}"
-#define PS4 playerstate 4
+#define PS4 "playerstate 4"
 #define AUTO ${maEnv.Find[swAuto].Value}
 #define ENV ${maEnv.Find[stEnvRadius].Value}
 #define PULL ${maPull.Find[swPull].Value}
@@ -125,7 +125,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 220123.01
+  /call set_data FALSE maEnv build                          map outer 220213.01
   /call set_data FALSE maEnv schema                         map outer 1.58
   /call set_data FALSE maEnv repo                           map outer 210216.01
 

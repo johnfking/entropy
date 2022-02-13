@@ -333,7 +333,7 @@ sub check_gather(bool _debug)
   CHECKEXIT
   GETINPUT
 
-  /if (${cast_data[${_debug}, "${maChr.Value[stAADeathBloom].Value}"]}) {
+  /if (${cast_data[${_debug}, "${maChr.Find[stAADeathBloom].Value}"]}) {
     /call cast ${_debug} 0 FALSE
   }
 

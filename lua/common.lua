@@ -34,21 +34,42 @@ end
 
 
 hudInfo = function ()
-  ent['inv'] = ''
-  ent['ivu'] = ''
 
   -- invis 
   if mq.TLO.Me.SPA(12)() ~= 0 or mq.TLO.Me.SPA(314)() ~= 0 then
     ent['inv'] = 'IV'
+    ent['invhud'] = ' - IV'
+  else
+    ent['inv'] = ''
+    ent['invhud'] = ''
   end
   
   -- ivu
   if mq.TLO.Me.SPA(28)() ~= 0 or mq.TLO.Me.SPA(315)() ~= 0 then
     ent['ivu'] = 'IVU'
+    ent['ivuhud'] = ' - IVU'
+  else
+    ent['ivu'] = ''
+    ent['ivuhud'] = ''
   end
   
   -- base information
   ent['build'] = mq.TLO.Macro.Variable('maEnv').Find('build').Value() or '--'
+
+
+
+  if ent['build'] ~= '--' then
+    if mq.TLO.Macro.Variable('maEnv').Find('swAuto').Value() == 'TRUE' then
+      ent['autohud'] = ' - auto'
+    else
+      ent['autohud'] = ' - manual'
+    end
+  else
+    ent['autohud'] = ''
+  end
+  
+ --  ent['hudtitle'] = mq.TLO.Macro.Variable('maEnv').Find('build').Value()..ent['autotitle']..ent['invhud']..ent['ivuhud'] or '--'
+  ent['hudtitle'] = ent['autohud']..ent['invhud']..ent['ivuhud'] or '--'
   ent['mode'] = mq.TLO.Macro.Variable('maData').Find('mode').Value() or ''
   ent['set'] = mq.TLO.Macro.Variable('maEnv').Find('stBuildSetCurrent').Value() or '--'
   ent['body'] = mq.TLO.Target.Body.Name() or ''

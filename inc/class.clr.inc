@@ -305,7 +305,7 @@ sub check_heal(bool _debug, string _type)
   | Group Regen Heal
   /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
     /if (AE# && ${SpawnCount[npc radius ENV]} >= AE#) {
-      /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} grouphot
+      /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} ${Me.ID} grouphot
     }
   }
   
@@ -367,7 +367,7 @@ sub check_heal(bool _debug, string _type)
     | single heal over time
     /if (${maHeal.Find[swHealOverTime].Value} && !${timer_Check_Regen}) {
       /if (${hurtData.PctHPs} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
-        /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} hot
+        /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} ${hurtData.ID} hot
       }
     }
 
@@ -643,7 +643,7 @@ sub prediction(bool _debug)
 
   | Group Regen Heal
   /if (${maHeal.Find[swHealGroupOverTime].Value}) {
-    /call cast_cycle_heal_regen ${_debug} 0 healgrouphot
+    /call cast_cycle_heal_regen ${_debug} ${Me.ID} grouphot
   }
 
 /return TRUE

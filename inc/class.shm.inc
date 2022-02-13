@@ -148,7 +148,7 @@ sub check_heal(bool _debug, string _type)
   | Group Regen Heal
   /if (${maHeal.Find[swHealGroupOverTime].Value} && !${timer_Check_Regen}) {
     /if (AE# && ${SpawnCount[npc radius ENV]} >= AE#) {
-      /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} 0 grouphot
+      /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} ${Me.ID} grouphot
     }
   }
 

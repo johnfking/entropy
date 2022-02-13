@@ -324,7 +324,7 @@ sub set_initial_environment(bool _debug)
 
   | things we dont want pullers attacking
   /call set_data ${_debug} FALSE lsNoAttackBodyType                       list outer aura|banner|campfire|corpse|chest|item|trigger|trap|timer|mount|mercenary|object
-  /call set_data ${_debug} FALSE lsNoTargetNPC                            list outer "a campfire"|"a corpse"|"controller"|"Steel Mass"|"Sphere of Fire"|"an ant"|"a barrel of food"|"a crate of food"
+  /call set_data ${_debug} FALSE lsNoTargetNPC                            list outer "a campfire"|"a corpse"|"controller"|"Steel Mass"|"Sphere of Fire"|"an ant"|"a barrel of food"|"a crate of food"|"Agent of Change"
   /call set_data ${_debug} FALSE lsNoTargetPC                             list outer "eye of|a barrel of food"
   /call set_data ${_debug} FALSE lsNoTargetMagic                          list outer "eye of"
   /call set_data ${_debug} FALSE lsAnimationNoTarget                      list outer 16|43|44
@@ -927,6 +927,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHud swTabTie                             TRUE                         "${auxsw} tie tab"
   /call set_data_map ${_debug} maHud swTabRest                            TRUE                         "${auxsw} rest tab"
   /call set_data_map ${_debug} maHud swTabTarget                          TRUE                         "${auxsw} target tab"
+  /call set_data_map ${_debug} maHud swTabAbout                           FALSE                        "${auxsw} about tab"
 
 
 

@@ -1158,7 +1158,7 @@ sub task_combatloop(int _tmpID, bool _debug)
  *  toons to actually do the killing.
  ***|
 sub rof_shard_bodhe(string _opt, bool _debug)
-  | /varset _debug TRUE
+  /varset _debug TRUE
   DEBUG \atrof_shard_bodhe\ax(\a-w${_opt}\ax)
   /declare _timestart int local 0
   /varset swModeToken TRUE
@@ -1322,8 +1322,8 @@ sub rof_shard_bodhe(string _opt, bool _debug)
           /invoke ${maCC.Add[swValidAssTarID,TRUE]}
           /invoke ${maCC.Add[swSetCombat,TRUE]}
           /invoke ${maCC.Add[swSetForced,TRUE]}   
-          /call check_facing ${_debug} TARGET FORCE    
-          /call stick_to_target ${_debug} TARGET  
+          /invoke ${spawn_face[TARGET]}
+          /call spawn_stick ${_debug} TARGET
           /call class_main
           /if (${SpawnCount[npc PS4 radius SAFEENV]} && ${Me.XTarget}) /goto :kill_rof_shard_bodhe
 

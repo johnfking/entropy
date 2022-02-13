@@ -18,6 +18,24 @@ on the to do list
 --------------------
 
 
+
+220213.01
+- corrected an issue with the define for playerstate
+- paladin
+  adopted cleric splash routine and override option
+- necro
+  fixed a bad variable in death bloom
+- shaman
+  several changes to the splash healing
+- hud
+  changes to the hud title; shows auto/manual IV/IVU
+  random typo
+- AoC added to the no NPC pulling list
+- beastlord
+  corrected a dead check in paragon and part of the spawn group check
+- added swarm attack with pet attack
+  
+
 220123.01
 - /mode lush
   corrected a cast issue with.. well not like you can cast alcohol.

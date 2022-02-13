@@ -15,7 +15,7 @@ local function imguicallback()
   hudInfo()
   
   -- openGUI, shouldDrawHUD = ImGui.Begin('Entropy '..ent['build'], openGUI, ImGuiWindowFlags.NoScrollbar)
-  openGUI, shouldDrawHUD = ImGui.Begin('Entropy '..ent['build']..'###EntropyHUD', openGUI)
+  openGUI, shouldDrawHUD = ImGui.Begin('Entropy'..ent['hudtitle']..'###EntropyHUD', openGUI)
   
   if shouldDrawHUD and (ent['build'] == '--' or mq.TLO.EverQuest.GameState() ~= 'INGAME') then
     ImGui.Text('Entropy is not running')
@@ -250,7 +250,7 @@ local function imguicallback()
           ImGui.NextColumn()
             edit_text_perm('rad', 'maPull', 'stPullRadius')
             edit_text_perm('zrad', 'maPull', 'stPullZRadius')
-            edit_text_perm('srop', 'maPull', 'stPullNavStopDistance')
+            edit_text_perm('stop', 'maPull', 'stPullNavStopDistance')
             edit_text_perm('chain', 'maPull', 'stCountChainPull')
             edit_text_perm('var', 'maPull', 'stPullNavVariance')
           ImGui.NextColumn()
@@ -407,7 +407,12 @@ local function imguicallback()
           ImGui.EndTabItem()
         end    
       end  
-      
+
+-- about tab
+      if mq.TLO.Macro.Variable('maHud').Find('swTabAbout').Value() == "TRUE" then
+        if ImGui.BeginTabItem('About') then
+        end
+      end      
       
       
 

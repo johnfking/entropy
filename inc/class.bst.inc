@@ -244,7 +244,7 @@ sub check_mana(bool _debug)
       ISMEDEAD
       CHECKEXIT check_mana_BST2
       
-      /if (!${_spawn.ID} || !${Group.Member[${_spawn.ID}].Present}) {
+      /if (!${_spawn.ID} || !${Group.Member[${_spawn.DisplayName}].Present}) {
         DEBUG ${break}notinzone
         /continue
       }
@@ -321,7 +321,7 @@ sub check_mana(bool _debug)
         /continue
       }
       
-      /if (!${_spawn.ID} || !${Group.Member[${_spawn.ID}].Present}) {
+      /if (!${_spawn.ID} || !${Group.Member[${_spawn.DisplayName}].Present}) {
         DEBUG ${break}notinzone
         /continue
       }
@@ -336,9 +336,9 @@ sub check_mana(bool _debug)
         /continue
       }
 
-      /if (${_spawn.Type.NotEqual[CORPSE]}) {
+      /if (${_spawn.Type.Equal[CORPSE]}) {
         DEBUG ${break}dead
-       /continue
+        /continue
       }
 
       /if (${_spawn.Distance} > ${Spell[${maChr.Find[stAAFocusedParagonofSpirits].Value}].MyRange}) {

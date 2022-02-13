@@ -316,19 +316,18 @@ sub check_heal(bool _debug, string _type)
 
   /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
-  /if (!${hurtCount}) {
-    SETHUD
-    /return FALSE
-  }
-
-  | splash heal
-  /if (${maHeal.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
+  | forcing of splash  
+  /if (!${hurtCount} && ${maOver.Find[swOverSplashHurt].Value} && ${maHeal.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
     /if (${SpawnCount[npc radius ENV]} >= ${maHeal.Find[stCountSplash].Value}) {
       /call Bind_command_splash ${maDebug.Find[splash].Value}
     }
   }
 
-  /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
+  /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
+    SETHUD
+    /delay 1
+    /return FALSE
+  }
 
   | ToT heals
   /if (${Select[${_type},tot]} && ${maHeal.Find[swHealToT].Value}) {
