@@ -35,41 +35,89 @@ end
 
 hudInfo = function ()
 
-  -- invis 
-  if mq.TLO.Me.SPA(12)() ~= 0 or mq.TLO.Me.SPA(314)() ~= 0 then
-    ent['inv'] = 'IV'
-    ent['invhud'] = ' - IV'
-  else
-    ent['inv'] = ''
-    ent['invhud'] = ''
-  end
-  
-  -- ivu
-  if mq.TLO.Me.SPA(28)() ~= 0 or mq.TLO.Me.SPA(315)() ~= 0 then
-    ent['ivu'] = 'IVU'
-    ent['ivuhud'] = ' - IVU'
-  else
-    ent['ivu'] = ''
-    ent['ivuhud'] = ''
-  end
-  
-  -- base information
+  ent['hudam'] = ''
+  ent['hudtoonname'] = ''
+  ent['hudivu'] = ''
+  ent['hudinv'] = ''
+  ent['hudbuild'] = ''
+  ent['hudent'] = ''
+  ent['dash'] = ''
+
+  -- build #
   ent['build'] = mq.TLO.Macro.Variable('maEnv').Find('build').Value() or '--'
 
 
+  -- buid hud variables
+  if ent['build'] ~= '--' then 
+    
 
-  if ent['build'] ~= '--' then
-    if mq.TLO.Macro.Variable('maEnv').Find('swAuto').Value() == 'TRUE' then
-      ent['autohud'] = ' - auto'
-    else
-      ent['autohud'] = ' - manual'
+
+    -- title?
+    if mq.TLO.Macro.Variable('maHud').Find('swTitleEnt').Value() == 'TRUE' then
+      ent['hudent'] = 'Entropy'
+      ent['dash'] = ' - '
     end
+
+    -- build
+    if mq.TLO.Macro.Variable('maHud').Find('swTitleBuild').Value() == 'TRUE' then
+      ent['hudbuild'] = ent['dash']..ent['build']
+      ent['dash'] = ' - '
+    end
+
+    -- toon name?
+    if mq.TLO.Macro.Variable('maHud').Find('swTitleName').Value() == 'TRUE' then
+      ent['hudtoonname'] = ent['dash']..mq.TLO.Me.DisplayName()
+      ent['dash'] = ' - '
+    else
+      
+    end  
+
+    -- auto on or off?
+    if mq.TLO.Macro.Variable('maHud').Find('swTitleAM').Value() == 'TRUE' then
+      if mq.TLO.Macro.Variable('maEnv').Find('swAuto').Value() == 'TRUE' then
+        ent['hudam'] = ent['dash']..'auto'
+        ent['dash'] = ' - '
+      else
+        ent['hudam'] = ent['dash']..'manual'
+        ent['dash'] = ' - '
+      end
+    end
+
+    -- invis 
+    if mq.TLO.Macro.Variable('maHud').Find('swTitleIV').Value() == 'TRUE' then
+      if mq.TLO.Me.SPA(12)() ~= 0 or mq.TLO.Me.SPA(314)() ~= 0 then
+        ent['hudinv'] = ent['dash']..'IV'
+        ent['dash'] = ' - '
+        ent['inv'] = 'IV'
+      else
+        ent['inv'] = ''
+      end
+    end
+    
+    -- ivu
+    if mq.TLO.Macro.Variable('maHud').Find('swTitleIVU').Value() == 'TRUE' then
+      if mq.TLO.Me.SPA(28)() ~= 0 or mq.TLO.Me.SPA(315)() ~= 0 then
+        ent['hudivu'] = ent['dash']..'IVU'
+        ent['dash'] = ' - '
+        ent['ivu'] = 'IVU'
+      else
+        ent['ivu'] = ''
+      end
+    end
+
+    ent['hudtitle'] = ent['hudent']..ent['hudbuild']..ent['hudtoonname']..ent['hudam']..ent['hudinv']..ent['hudivu']
+
   else
-    ent['autohud'] = ''
+    ent['hudtitle'] = 'Off'..ent['hudinv']..ent['hudivu']
   end
+
+
+  -- build hud string
+
   
  --  ent['hudtitle'] = mq.TLO.Macro.Variable('maEnv').Find('build').Value()..ent['autotitle']..ent['invhud']..ent['ivuhud'] or '--'
-  ent['hudtitle'] = ent['autohud']..ent['invhud']..ent['ivuhud'] or '--'
+  -- ent['hudtitle'] = ent['hudam']..ent['inv']..ent['ivu'] or '--'
+  -- ent['hudtitle'] = ent['hudent']..ent['hudbuild']..ent['hudtoonname']..ent['hudam']..ent['inv']..ent['ivu']
   ent['mode'] = mq.TLO.Macro.Variable('maData').Find('mode').Value() or ''
   ent['set'] = mq.TLO.Macro.Variable('maEnv').Find('stBuildSetCurrent').Value() or '--'
   ent['body'] = mq.TLO.Target.Body.Name() or ''
@@ -287,3 +335,20 @@ function hasLoS()
 end
 
 
+
+info_about = function ()
+
+  ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Written By: ')
+  ImGui.SameLine()
+  ImGui.TextColored(1, 1, 1, 1, 'Exspes')        
+  ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Discord: ')
+  ImGui.SameLine()
+  ImGui.TextColored(1, 1, 1, 1, 'exspes#1620')        
+  ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Site: ')
+  ImGui.SameLine()
+  ImGui.TextColored(1, 1, 1, 1, 'https://entropy.exspes.com/')        
+  ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Donate: ')
+  ImGui.SameLine()
+  ImGui.TextColored(1, 1, 1, 1, 'paypal.me/exspes')     
+
+end

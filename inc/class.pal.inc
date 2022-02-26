@@ -42,11 +42,11 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stPctMG                          0                             "${auxnum} % of mana to use mars gift aa"
 
   | /call set_data_map ${_debug} maChr stTempRune                       PREGEN|1                      "${auxna} fast reuse disc rune"
-  /call set_data_map ${_debug} maChr stChallenge                      PREGEN|1                      "${auxna} challenge spell for agro"
-  /call set_data_map ${_debug} maChr stValiant                        PREGEN|1                      "${auxna} vlaiant spell for defensive"
-  /call set_data_map ${_debug} maChr stUnflinching                    PREGEN|1                      "${auxna} name of unflinching disc to use for agro help"
-  /call set_data_map ${_debug} maChr stReflexive                      PREGEN|1                      "${auxna} name of reflexive disc"
-  /call set_data_map ${_debug} maChr stDichotomic                     PREGEN|1                      "${auxna} dichotomic name"
+  | /call set_data_map ${_debug} maChr stChallenge                      PREGEN|1                      "${auxna} challenge spell for agro"
+  | /call set_data_map ${_debug} maChr stValiant                        PREGEN|1                      "${auxna} vlaiant spell for defensive"
+  | /call set_data_map ${_debug} maChr stUnflinching                    PREGEN|1                      "${auxna} name of unflinching disc to use for agro help"
+  | /call set_data_map ${_debug} maChr stReflexive                      PREGEN|1                      "${auxna} name of reflexive disc"
+  | /call set_data_map ${_debug} maChr stDichotomic                     PREGEN|1                      "${auxna} dichotomic name"
 
   | lay on hands
   /call set_data_map FALSE maChr stPctLoH                             0                             "${auxnum} % of mana to use aa lay on hands. requires self healing to be enabled"
@@ -63,7 +63,7 @@ sub class_init(bool _debug)
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                xtarget                                                                       "${auxli} class base loop start"
   /call set_data_list ${_debug} maChr lsOrderClassPre                 heal|manarecover|staminarecovery                                              "${auxli} class pre combat"
-  /call set_data_list ${_debug} maChr lsOrderClass                    taunt|stun|agro|melee|heal|stun|burn|misc|dot|nuke|item|taunt|stun|agro|debuff|alliance|harmonious      "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClass                    taunt|stun|agro|melee|heal|stun|burn|misc|heal|dot|nuke|item|taunt|stun|agro|heal|debuff|alliance|harmonious      "${auxli} class active combat order"
   /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|staminarecovery                                                   "${auxli} class post combat "
 
   | AAs
@@ -214,7 +214,7 @@ sub misc_combat(bool _debug, spawn _spawn)
 |***
  * note: I'm more important then you are!
  * use: /call get_agro DEBUG [spawn]
- ***|
+
 sub get_agro(bool _debug, spawn _spawn)
   DEBUG \atget_agro\ax(\a-w${_spawn.ID}\ax)
 
@@ -299,7 +299,7 @@ sub get_agro(bool _debug, spawn _spawn)
 
 
 /return TRUE
-
+ ***|
 
 
 |***

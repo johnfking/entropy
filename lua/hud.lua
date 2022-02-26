@@ -15,10 +15,10 @@ local function imguicallback()
   hudInfo()
   
   -- openGUI, shouldDrawHUD = ImGui.Begin('Entropy '..ent['build'], openGUI, ImGuiWindowFlags.NoScrollbar)
-  openGUI, shouldDrawHUD = ImGui.Begin('Entropy'..ent['hudtitle']..'###EntropyHUD', openGUI)
+  openGUI, shouldDrawHUD = ImGui.Begin(ent['hudtitle']..'###EntropyHUD', openGUI)
   
   if shouldDrawHUD and (ent['build'] == '--' or mq.TLO.EverQuest.GameState() ~= 'INGAME') then
-    ImGui.Text('Entropy is not running')
+    info_about()
 
   elseif shouldDrawHUD then  
     if ImGui.BeginTabBar('##mytabs') then
@@ -154,8 +154,8 @@ local function imguicallback()
             edit_switch_perm('now', 'maBuff', 'swBuffNow')
             edit_switch_perm('ammo', 'maBuff', 'swBuffAmmo')
             edit_switch_perm('beg', 'maBuff', 'swBuffBeg')
-          ImGui.Columns()    
-          ImGui.EndTabItem()
+        ImGui.Columns()    
+        ImGui.EndTabItem()
         end
       end
 
@@ -351,13 +351,10 @@ local function imguicallback()
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Name:')
           ImGui.SameLine()
           ImGui.TextColored(1, 1, 1, 1, target['name'])        
-
-
             
           ImGui.NewLine()
 
           ImGui.Columns(2, 'tarbase', false)
-
 
             -- body
             ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Body:')
@@ -411,11 +408,16 @@ local function imguicallback()
 -- about tab
       if mq.TLO.Macro.Variable('maHud').Find('swTabAbout').Value() == "TRUE" then
         if ImGui.BeginTabItem('About') then
+         
+          ImGui.TextColored(1, 1, 1, 1, 'Entropy')
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Build: ')
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, ent['build'])        
+          ImGui.NewLine()
+          info_about()
+
         end
       end      
-      
-      
-
       ImGui.EndTabBar()
     end
   end

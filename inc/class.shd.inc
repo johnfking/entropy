@@ -38,21 +38,21 @@ sub class_init(bool _debug)
 
   /invoke ${set_data_timer[${_debug}, Check_VoT, 21m]}
   /call set_data_map ${_debug} maChr swVoT                            FALSE                         "${auxsw} use voice of thule aa"
-  /call set_data_map ${_debug} maChr stTempRune                       PREGEN|1                      "${auxna} fast reuse disc rune"
-  /call set_data_map ${_debug} maChr stChallenge                      PREGEN|1                      "${auxna} challenge spell for agro"
+  | /call set_data_map ${_debug} maChr stTempRune                       PREGEN|1                      "${auxna} fast reuse disc rune"
+  | /call set_data_map ${_debug} maChr stChallenge                      PREGEN|1                      "${auxna} challenge spell for agro"
   /call set_data_map ${_debug} maChr stCrimsonBlade                   PREGEN|1                      "${auxna} blade melee dps"
-  /call set_data_map ${_debug} maChr stAcrimony                       PREGEN|1                      "${auxna} hate attention"
+  | /call set_data_map ${_debug} maChr stAcrimony                       PREGEN|1                      "${auxna} hate attention"
   /call set_data_map ${_debug} maChr stRancor                         PREGEN|1                      "${auxna} blade disc tap"
-  /call set_data_list ${_debug} maChr lsHate                          EMPTY                         "${auxli} single target hate skills to use"
-  /call set_data_list ${_debug} maChr lsAEHate                        EMPTY                         "${auxli} ae hate skills to use"
+  | /call set_data_list ${_debug} maChr lsHate                          EMPTY                         "${auxli} single target hate skills to use"
+  | /call set_data_list ${_debug} maChr lsAEHate                        EMPTY                         "${auxli} ae hate skills to use"
   /call set_data_map ${_debug} maChr stAELifeTap                      PREGEN|1                      "${auxna} se lifetap nuke"
-  /call set_data_map ${_debug} maChr stLeechcurse                     PREGEN|1                      "${auxna} leechcurse disc"
+  | /call set_data_map ${_debug} maChr stLeechcurse                     PREGEN|1                      "${auxna} leechcurse disc"
   /call set_data_map ${_debug} maChr stGougingBlade                   PREGEN|1                      "${auxna} gouging blade family disc"
 
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                checkminion                                                                   "${auxli} class base loop start"
   /call set_data_list ${_debug} maChr lsOrderClassPre                 manarecover|staminarecovery                                                   "${auxli} class pre combat"
-  /call set_data_list ${_debug} maChr lsOrderClass                    taunt|melee|agro|heal|burn|misc|dot|nuke|item|debuff|alliance|harmonious      "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClass                    taunt|melee|agro|heal|burn|misc|dot|nuke|item|agro|debuff|alliance|harmonious      "${auxli} class active combat order"
   /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|staminarecovery                                                   "${auxli} class post combat "
 
   | AAs
@@ -259,9 +259,9 @@ sub misc_combat(bool _debug, spawn _spawn)
     /return FALSE
   }
 
-  /if (${cast_data[${_debug}, "${maChr.Find[stTempRune].Value}"]}) {
-    /call cast ${_debug} 0 FALSE
-  }
+ |  /if (${cast_data[${_debug}, "${maChr.Find[stTempRune].Value}"]}) {
+ |    /call cast ${_debug} 0 FALSE
+ |  }
   /if (${cast_data[${_debug}, "${maChr.Find[stAAThoughtLeech].Value}"]} &&  ${Me.PctMana} <= 60*.PCTHO) {
     /call cast ${_debug} ${_spawn.ID} FALSE
   }
@@ -276,7 +276,7 @@ sub misc_combat(bool _debug, spawn _spawn)
 |***
  * note: we are agro gods.
  * use: /call get_agro
- ***|
+
 sub get_agro(bool _debug, spawn _spawn)
   DEBUG \atget_agro\ax()
 
@@ -370,7 +370,7 @@ sub get_agro(bool _debug, spawn _spawn)
   }
 
 /return TRUE
-
+ ***|
 
 
 |***

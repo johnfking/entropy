@@ -930,6 +930,14 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHud swTabAbout                           FALSE                        "${auxsw} about tab"
 
 
+  /call set_data_map ${_debug} maHud swTitleEnt                           TRUE                         "${auxsw} show in titlebar: Entropy:"
+  /call set_data_map ${_debug} maHud swTitleName                          TRUE                         "${auxsw} show in titlebar: Toon Name"
+  /call set_data_map ${_debug} maHud swTitleIV                            TRUE                         "${auxsw} show in titlebar: Invis"
+  /call set_data_map ${_debug} maHud swTitleIVU                           TRUE                         "${auxsw} show in titlebar: Invis vs Undead"
+  /call set_data_map ${_debug} maHud swTitleAM                            TRUE                         "${auxsw} show in titlebar: Auto or Manual"
+  /call set_data_map ${_debug} maHud swTitleBuild                         TRUE                         "${auxsw} show in titlebar: Entropy Build #"
+
+
 
 
 |** control: grain **|

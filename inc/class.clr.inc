@@ -37,9 +37,6 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maHeal swHealGroupOverTime             FALSE                         "${auxsw} use group heal over time spells/aas"              heal
   /call set_data_map ${_debug} maChr swCelestialRegen                 FALSE                         "${auxsw} use celestial regen aa"
 
-  | single heal over time
-  /call set_data_map ${_debug} maChr stCountIssuance                  0                             "${auxnum} number of mobs in area to use issuance"
-
   /call set_data_map ${_debug} maChr stAlliance                       PREGEN|1                      "${auxna} alliance spell"
   /call set_data ${_debug} maData stAllianceSPA                       map outer "481"
 
@@ -472,6 +469,10 @@ sub Bind_command_issuance(bool _debug)
   /if (!${_spawn.CanSplashLand}) {
     DEBUG ${break}splash cannot land
     /return FALSE
+  }
+  
+  /if (${Target.ID} == ${Me.ID}) {
+    /invoke ${target[clear]}
   }
 
   /if (${_spawn.Distance} < 59) {

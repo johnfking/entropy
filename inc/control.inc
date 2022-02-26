@@ -3525,7 +3525,7 @@ sub Bind_command_invis(string _type, string _verbage, bool _debug)
  ***|
 #bind control_port /port
 sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
-  DEBUG \atBind_control_port\ax(\a-w${_type}, ${_nick1}, ${_nick2}\ax)
+  DEBUG \atBind_control_port\ax(\a-wtype:${_type}, nick1:${_nick1}, nick2:${_nick2}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
     /lua run get_help port ${_type.Right[1]}
@@ -3536,6 +3536,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
   /declare _portName string local FALSE
   /declare _list list local
   /declare _out string local
+  /declare _tmpcount int local 0
 
   /if (${_type.Equal[see]} || !${Bool[${_type}]}) {
     /if (!${Bool[${_nick1}]}) {
@@ -3724,65 +3725,82 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
   | vendor ports
   } else /if (${Select[${_type},vendor]}) {
 
-    /if (!${Spawn[npc Teleportation Assistan].ID}) {
-      OUT No Teleportation Assistant in this guild hall.
-      /return FALSE
-    }
-    
     | need a mesh
     /if (!${Navigation.MeshLoaded}) {
       /invoke ${out[0, "${notice} ${dot} NO Nav Mesh for this zone."]}
       /return FALSE
     }
     
-    /sqlite query "${DBstatic}" dummy SELECT * FROM port WHERE type='vendor' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]} LIMIT 1;
-    
-    :start
-    /if (!${FindItemCount[=${sqlite.Result[dummy 1 component]}]}) {
-      /nav id ${Spawn[npc Teleportation Assistan].ID} |log=${maEntropy.Find[swNavLogSpew].Value} dist=8
+    | set teleport merchant
+    /declare _portSpawn spawn local
+    /if (${Spawn[npc Zeflmin].ID}) {
+      /vardata _portSpawn Spawn[npc Zeflmin]
+    } else /if (${Spawn[npc Teleportation Assistan].ID}) {
+      /vardata _portSpawn Spawn[npc Teleportation Assistan]
+    } else {
+      /invoke ${out[0, "${notice} ${dot} No Teleportation Merchant in this hall."]}
+      /return FALSE
+    }
 
-      :inventory
+    DEBUG ${sep}sqlite: dummy SELECT * FROM port WHERE type='vendor' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]} LIMIT 1;
+    /sqlite query "${DBstatic}" dummy SELECT * FROM port WHERE type='vendor' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',]} LIMIT 1;
+
+    /if (!${sqlite.Rows[dummy]}) {
+      /invoke ${out[0, "${notice} ${dot} Invalid Request: ${_nick1}"]}
+      /return FALSE
+    }
+
+    DEBUG ${sep}results:
+    DEBUG ${sep}${sep}component result: ${sqlite.Result[dummy 1 component]}]}
+    DEBUG ${sep}${sep}component count: ${FindItemCount[=${sqlite.Result[dummy 1 component]}]}
+    
+    /while (!${FindItemCount[=${sqlite.Result[dummy 1 component]}]} && ${_tmpcount} < 5) {
+      
+      /if (${FindItemCount[=${sqlite.Result[dummy 1 component]}]}) {
+        /break
+      }
+       
+      /nav id ${_portSpawn.ID} |log=${maEntropy.Find[swNavLogSpew].Value} dist=8
+
+      /if (!${Window[MerchantWnd].Open}) {
         /delay 10s !${Navigation.Active}
         /delay 1s
-        /squelch /target Teleportation Assistant
+        /squelch /target id ${_portSpawn.ID}
         /delay 1s
         /nomodkey /click right target
         /delay 5s ${Window[MerchantWnd].Open}
-        /if (!${Window[MerchantWnd].Open}) /goto :inventory
+      }
+
       /delay 1s
       /call vendor_buy ${maDebug.Find[vendor].Value} "${sqlite.Result[dummy 1 component]}" 1
 
-      :closeinventory
+      /if (${Window[MerchantWnd].Open}) {
         /nomodkey /notify MerchantWnd MW_Done_Button LeftMouseUp
-        /delay 10
-        /if (${Window[MerchantWnd].Open}) /goto :closeinventory
+      }
+      /varcalc _tmpcount ${_tmpcount} + 1
     }
-    /if (!${FindItemCount[=${sqlite.Result[dummy 1 component]}]}) /goto :start
-
-      
+     
     | get stone on cursor
     /itemnotify "${sqlite.Result[dummy 1 component]}" leftmouseup
     /delay 5
 
-    :giveto
-      /squelch /target Teleportation Assistant
+    /if (!${Window[GiveWnd].Open}) {
+      /squelch /target id ${_portSpawn.ID}
       /delay 5
       /nomodkey /click left target
       /delay 5
       /delay 5s ${Window[GiveWnd].Open}
-      /if (!${Window[GiveWnd].Open}) /goto :giveto
-      /if (${Window[GiveWnd].Open}) {
-        /notify GiveWnd GVW_Give_Button leftmouseup
-        /delay 3s
-        | /if (${Window[GiveWnd].Open}) /goto :GiveSoulStone
-      }
+    }
 
-    :CloseInvWnd
-      /if (${Window[InventoryWindow].Open}) {
-        /nomodkey /notify InventoryWindow IW_DoneButton LeftMouseUp
-        /delay 5
-        /if (${Window[InventoryWindow].Open}) /goto :CloseInvWnd
-      }
+    /if (${Window[GiveWnd].Open}) {
+      /notify GiveWnd GVW_Give_Button leftmouseup
+      /delay 3s
+    }
+
+    /if (${Window[InventoryWindow].Open}) {
+      /nomodkey /notify InventoryWindow IW_DoneButton LeftMouseUp
+      /delay 5
+    }
 
     /if (${Window[InventoryWindow].Open}) /nomodkey /notify InventoryWindow IW_DoneButton LeftMouseUp
     /delay 5

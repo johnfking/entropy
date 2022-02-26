@@ -18,6 +18,26 @@ on the to do list
 --------------------
 
 
+220225.01
+- loot
+  added a control to force looting NO TRADE items if you have it set in your personal loot control as need or greed
+  this should stop the looter from hanging in the loot cycle, USE CAUTION
+- hud
+  you can now turn on off what the hud title bar displays
+  -> /build ui -> hud -> headder
+- paladin
+  lots of little changes
+  removed/commented some old variables
+- shadowknight
+  see paladin 
+- cleric
+  added a target clear before finding an issuance target  
+- main DB
+  added in a few more ports
+- /port
+  will now work in the old style guild hall (first world TLP problems)
+  added in some error checking
+  
 
 220213.01
 - corrected an issue with the define for playerstate

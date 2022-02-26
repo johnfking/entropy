@@ -4596,7 +4596,7 @@ sub check_buff_cycle_powersource(bool _debug)
     /nomodkey /itemnotify "${_currentPSSlot}" leftmouseup
     /delay 1s ${Cursor.ID}
     /if (${Cursor.Name.Equal[${_currentPSSlot}]}) /destroy
-    /delay 1s ${Cursor.Equal[Null]}
+    /delay 1s !${Cursor.ID}
   }
 
   | powersources that are not sealed
@@ -5936,14 +5936,21 @@ sub do_loot(bool _debug)
           /continue
         } else /if (${AdvLoot.PList[1].AlwaysGreed}) {
           /advloot personal 1 loot
+          /delay 1
+          /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find[is a NO TRADE item]}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
           /continue
         } else /if (${AdvLoot.PList[1].AlwaysNeed}) {
           /advloot personal 1 loot
+          /delay 1
+          /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find[is a NO TRADE item]}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
           /continue
         } else /if (${AdvLoot.PList[1].Never}) {
           /advloot personal 1 leave
           /continue
         }
+        
+        /if (${Window[ConfirmationDialogbox].Child[CD_TextOutPut].Text.Find[is a NO TRADE item]}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+        
 
         DEBUG ${sep}personal${sep}1${sep}\a-e${AdvLoot.PList[1].Name}\ax
 
@@ -6598,6 +6605,9 @@ sub check_minion_cycle_Illusion(bool _debug)
 /return TRUE
 
 
+/if (${InvSlot[25].Item.ID} == 0) /echo 555
+
+
 
 |***
  * note: returns a non container inventory slot ##, 0 on full bag inventory, you can pass an optional name to find an item in a top slot
@@ -6625,7 +6635,7 @@ sub get_openPackSlot(bool _debug, string _orFind)
   }
 
   /for _count ${_start} to ${_stop}
-    /if (${InvSlot[${_count}].Item.Name.Equal[NULL]}) {
+    /if (${InvSlot[${_count}].Item.ID} == 0) {
       /return ${_count}
     }
   /next _count
@@ -9708,8 +9718,6 @@ sub cast_cycle_burn(bool _debug, spawn _spawn)
 
     /call cast_data ${_debug} "${_tmpName}"
     /if (!${Macro.Return}) {
-
-   | /if (!${cast_data[${_debug}, "${_tmpName}"]}) {
       DEBUG ${break}\a-w${_tmpName}\ax${sep}NOT READY
       /invoke ${_liC20.Advance}
       /continue
@@ -11521,6 +11529,10 @@ sub set_control_shared(string _type, string _verbage, string _verbage2, bool _de
   /if (${_type.Equal[see]}) {
     /call Bind_command_see maChr ${_verbage}
     /return SKIP
+    
+  } else /if (${_type.Equal[ui]}) {
+    /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.${Me.Class.ShortName}.lua
+    /return SKIP
 
   } else /if (${_type.Equal[list]}) {
     OUT Base Order${sep}\a-wlsOrderClassBase\ax
@@ -12972,7 +12984,7 @@ sub pull_assist_decision(bool _debug)
     }
     
     | no assist set at all
-    /if (!${Bool[${maCC.Find[stAssistMode].Value}]} && !${maCC.Find[swManualAssist].Value} && (${lsAss.Contains[EMPTY]} && ${lsAss.Count} == 1)) {
+    /if (!${Bool[${maCC.Find[stAssistMode].Value}]} && !${maCC.Find[swManualAssist].Value} && (${lsAss.Contains[EMPTY]} && ${lsAss.Count} == 1) && ${Group.Members}) {
       DEBUG ${submenu}pullstate (\a-rno assist set, releasing\ax)
       /if (!${maOver.Find[swTargetClear].Value}) {
         /invoke ${target[clear]}
@@ -15323,7 +15335,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
       /cast ${Me.Gem[${spellData.RankName}]}
       /delay 1
       CHECKTIE
-
+      
       | bard swap mechanics
       /while (${Window[CastingWindow].Open}) {
         /if (${maChr.Find[swInstrumentSwap].Value}) {
@@ -15343,6 +15355,14 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
       /if (${Select[${_sub},ignoreall]}) {
         /return TRUE
       }
+
+|**
+/if (${Me.AltAbility[Metronome]}) {
+	/delay ${spellData.CastTime.Seconds}s
+} else {
+	/delay ${Math.Calc[${spellData.CastTime.Seconds}+${Math.Calc[${spellData.CastTime.Seconds}*.05]}]}s
+}
+**|     
 
       /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,RESISTED,IMMUNE]}) {
         /varset _castLoop 0
@@ -15767,10 +15787,10 @@ sub check_ornament_robe(bool _debug)
     /return FALSE
   }
   /invoke ${maData.Add[stChestItem,${InvSlot[17].Item.Name}]}
-  /call Bind_command_swap "${maChr.Find[stOrnamentRobe].Value}" 18 ${_debug}
+  /call Bind_command_swap "${maChr.Find[stOrnamentRobe].Value}" 17 ${_debug}
   /call cast ${_debug} 0 FALSE
   /delay 8
-  /call Bind_command_swap "${maData.Find[stChestItem].Value}" 18 ${_debug}
+  /call Bind_command_swap "${maData.Find[stChestItem].Value}" 17 ${_debug}
   /delay 8
   /invoke ${Me.Buff["Illusion: Skeleton"].Remove}
 
