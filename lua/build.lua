@@ -726,276 +726,7 @@ local function imguicallback()
       end
       ImGui.NewLine() 
     end
-
---[[
-    -- DEBUG
-    if ImGui.CollapsingHeader('/debug') then
-      ImGui.NewLine()
  
-      if ImGui.TreeNode('buff') then
-        ImGui.NewLine()
-        ImGui.Columns(4, 'debugbuff', false)
-          edit_switch_temp('cb', 'maDebug', 'cb')
-          edit_switch_temp('ammo', 'maDebug', 'ammo')
-          edit_switch_temp('beg', 'maDebug', 'beg')
-          edit_switch_temp('unity', 'maDebug', 'unity')
-        ImGui.NextColumn()
-          edit_switch_temp('aura', 'maDebug', 'aura')
-          edit_switch_temp('now', 'maDebug', 'now')
-          edit_switch_temp('crew', 'maDebug', 'crew')
-          edit_switch_temp('buffself', 'maDebug', 'buffself')
-        ImGui.NextColumn()
-          edit_switch_temp('shrink', 'maDebug', 'shrink')
-          edit_switch_temp('poison', 'maDebug', 'poison')
-          edit_switch_temp('class', 'maDebug', 'class')
-          edit_switch_temp('temp', 'maDebug', 'temp')
-        ImGui.NextColumn()
-          edit_switch_temp('blocked', 'maDebug', 'blocked')
-          edit_switch_temp('buffgroup', 'maDebug', 'buffgroup')
-          edit_switch_temp('buffraid', 'maDebug', 'buffraid')
-          edit_switch_temp('drop', 'maDebug', 'drop')
-        ImGui.Columns()
-        ImGui.TreePop()
-        ImGui.NewLine()
-      end  
-      
-      if ImGui.TreeNode('heal') then
-        ImGui.NewLine()
-        ImGui.Columns(4, 'debugheal', false)
-          --cure
-          edit_switch_temp('cure', 'maDebug', 'cure')
-          --xt
-          edit_switch_temp('xt', 'maDebug', 'xt')
-          --group
-          edit_switch_temp('group', 'maDebug', 'group')
-        ImGui.NextColumn()
-          --pet
-          edit_switch_temp('pet', 'maDebug', 'pet')
-          --self
-          edit_switch_temp('self', 'maDebug', 'self')
-          --hurt
-          edit_switch_temp('hurt', 'maDebug', 'hurt')
-        ImGui.NextColumn()
-          --tot
-          edit_switch_temp('tot', 'maDebug', 'tot')
-          --dannet
-          edit_switch_temp('dannet', 'maDebug', 'dannet')
-          --rez
-          edit_switch_temp('rez', 'maDebug', 'rez')
-        ImGui.NextColumn()
-          --chain
-          edit_switch_temp('chain', 'maDebug', 'chain')
-          --ch
-          edit_switch_temp('ch', 'maDebug', 'ch')
-        ImGui.Columns()
-        ImGui.TreePop()
-        ImGui.NewLine()
-      end  
-
-      if ImGui.TreeNode('home') then
-        ImGui.NewLine()
-        ImGui.Columns(4, 'debughome', false)
-          edit_switch_temp('face', 'maDebug', 'face')
-          edit_switch_temp('tie', 'maDebug', 'tie')
-          edit_switch_temp('stick', 'maDebug', 'stick')
-        ImGui.NextColumn()
-          edit_switch_temp('stop', 'maDebug', 'stop')
-          edit_switch_temp('home', 'maDebug', 'home')
-          edit_switch_temp('gtfo', 'maDebug', 'gtfo')
-        ImGui.NextColumn()
-        ImGui.NextColumn()
-        ImGui.Columns()
-        ImGui.TreePop()
-        ImGui.NewLine()
-      end  
-
-      if ImGui.TreeNode('minion') then
-        ImGui.NewLine()
-        ImGui.Columns(4, 'debugminion', false)
-          edit_switch_temp('petbuild', 'maDebug', 'petbuild')
-          edit_switch_temp('lost', 'maDebug', 'lost')
-          edit_switch_temp('sic', 'maDebug', 'sic')
-        ImGui.NextColumn()
-          edit_switch_temp('temp', 'maDebug', 'temp')
-          edit_switch_temp('heal', 'maDebug', 'heal')
-        ImGui.NextColumn()
-        ImGui.NextColumn()
-        ImGui.Columns()
-        ImGui.TreePop()
-        ImGui.NewLine()
-      end  
-
-      if ImGui.TreeNode('debuff') then
-        ImGui.NewLine()
-        ImGui.Columns(4, 'debugdebuff', false)
-          edit_switch_temp('tash', 'maDebug', 'tash')
-          edit_switch_temp('malo', 'maDebug', 'malo')
-          edit_switch_temp('mez', 'maDebug', 'mez')
-        ImGui.NextColumn()
-          edit_switch_temp('slow', 'maDebug', 'slow')
-          edit_switch_temp('eradicate', 'maDebug', 'eradicate')
-          edit_switch_temp('snare', 'maDebug', 'snare')
-        ImGui.NextColumn()
-        ImGui.NextColumn()
-        ImGui.Columns()
-        ImGui.TreePop()
-        ImGui.NewLine()
-      end  
-
-      if ImGui.TreeNode('cast') then
-        ImGui.NewLine()
-        ImGui.Columns(4, 'debugcast', false)
-          edit_switch_temp('item', 'maDebug', 'item')
-          edit_switch_temp('nuke', 'maDebug', 'nuke')
-          edit_switch_temp('dot', 'maDebug', 'dot')
-        ImGui.NextColumn()
-        ImGui.NextColumn()
-        ImGui.NextColumn()
-        ImGui.Columns()
-        ImGui.TreePop()
-        ImGui.NewLine()
-      end  
-
-      if ImGui.TreeNode('loot') then
-        ImGui.NewLine()
-        ImGui.Columns(4, 'debugloot', false)
-          edit_switch_temp('loot', 'maDebug', 'loot')
-        ImGui.NextColumn()
-        ImGui.NextColumn()
-        ImGui.NextColumn()
-        ImGui.Columns()
-        ImGui.TreePop()
-        ImGui.NewLine()
-      end  
-
-      if ImGui.TreeNode('mode') then
-        ImGui.NewLine()
-        ImGui.Columns(4, 'debugmode', false)
-          edit_switch_temp('forage', 'maDebug', 'forage')
-          edit_switch_temp('drag', 'maDebug', 'drag')
-          edit_switch_temp('summon', 'maDebug', 'summon')
-        ImGui.NextColumn()
-          edit_switch_temp('petfarm', 'maDebug', 'petfarm')
-          edit_switch_temp('harvest', 'maDebug', 'harvest')
-          edit_switch_temp('hunt', 'maDebug', 'hunt')
-        ImGui.NextColumn()
-          edit_switch_temp('fish', 'maDebug', 'fish')
-          edit_switch_temp('farm', 'maDebug', 'farm')
-          edit_switch_temp('lush', 'maDebug', 'lush')
-        ImGui.NextColumn()
-          edit_switch_temp('trainskill', 'maDebug', 'trainskill')
-          edit_switch_temp('trainspell', 'maDebug', 'trainspell')
-          edit_switch_temp('temppet', 'maDebug', 'temppet')
-        ImGui.NextColumn()
-        ImGui.Columns()
-        ImGui.TreePop()
-        ImGui.NewLine()
-      end  
-
-      if ImGui.TreeNode('combat') then
-        ImGui.NewLine()
-        ImGui.Columns(4, 'debugcombat', false)
-          edit_switch_temp('def', 'maDebug', 'def')
-          edit_switch_temp('target', 'maDebug', 'target')
-          edit_switch_temp('melee', 'maDebug', 'melee')
-          edit_switch_temp('burn', 'maDebug', 'burn')
-        ImGui.NextColumn()
-          edit_switch_temp('agro', 'maDebug', 'agro')
-          edit_switch_temp('pull', 'maDebug', 'pull')
-          edit_switch_temp('misc', 'maDebug', 'misc')
-          edit_switch_temp('assist', 'maDebug', 'assist')
-        ImGui.NextColumn()
-          edit_switch_temp('decision', 'maDebug', 'decision')
-          edit_switch_temp('proc', 'maDebug', 'proc')
-          edit_switch_temp('ttl', 'maDebug', 'ttl')
-          edit_switch_temp('sash', 'maDebug', 'sash')
-        ImGui.NextColumn()
-          edit_switch_temp('status', 'maDebug', 'status')
-          edit_switch_temp('wait', 'maDebug', 'wait')
-          edit_switch_temp('hardstop', 'maDebug', 'hardstop')
-          edit_switch_temp('prediction', 'maDebug', 'prediction')
-        ImGui.Columns()
-        ImGui.TreePop()
-        ImGui.NewLine()
-      end  
-
-      if ImGui.TreeNode('other') then
-        ImGui.NewLine()
-        ImGui.Columns(4, 'debugother', false)
-          edit_switch_temp('rest', 'maDebug', 'rest')
-          edit_switch_temp('meal', 'maDebug', 'meal')
-          edit_switch_temp('spire', 'maDebug', 'spire')
-          edit_switch_temp('glyph', 'maDebug', 'glyph')
-          edit_switch_temp('fireworks', 'maDebug', 'fireworks')
-        ImGui.NextColumn()
-          edit_switch_temp('manarecover', 'maDebug', 'manarecover')
-          edit_switch_temp('fade', 'maDebug', 'fade')
-          edit_switch_temp('event', 'maDebug', 'event')
-          edit_switch_temp('watch', 'maDebug', 'watch')
-        ImGui.NextColumn()
-          edit_switch_temp('tag', 'maDebug', 'tag')
-          edit_switch_temp('safe', 'maDebug', 'safe')
-          edit_switch_temp('intensity', 'maDebug', 'intensity')
-          edit_switch_temp('chrwatch', 'maDebug', 'chrwatch')
-        ImGui.NextColumn()
-          edit_switch_temp('staminarecover', 'maDebug', 'staminarecover')
-          edit_switch_temp('inventoryscan', 'maDebug', 'inventoryscan')
-          edit_switch_temp('invis', 'maDebug', 'invis')
-          edit_switch_temp('gather', 'maDebug', 'gather')
-        ImGui.Columns()
-        ImGui.TreePop()
-        ImGui.NewLine()
-      end  
-
-      if ImGui.TreeNode('admin') then
-        ImGui.NewLine()
-        ImGui.Columns(4, 'debugadmin', false)
-          edit_switch_temp('build', 'maDebug', 'build')
-          edit_switch_temp('observe', 'maDebug', 'observe')
-          edit_switch_temp('house', 'maDebug', 'house')
-          edit_switch_temp('exit', 'maDebug', 'exit')
-        ImGui.NextColumn()
-          edit_switch_temp('sql', 'maDebug', 'sql')
-          edit_switch_temp('edit', 'maDebug', 'edit')
-          edit_switch_temp('e3', 'maDebug', 'e3')
-        ImGui.NextColumn()
-        ImGui.Columns()
-        ImGui.TreePop()
-        ImGui.NewLine()
-      end  
-
-      if ImGui.TreeNode('schema') then
-        ImGui.NewLine()
-        ImGui.Columns(4, 'debugschema', false)
-          edit_switch_temp('init', 'maDebug', 'init')
-          edit_switch_temp('s_zone', 'maDebug', 's_zone')
-          edit_switch_temp('s_character', 'maDebug', 's_character')
-          edit_switch_temp('s_loot', 'maDebug', 's_loot')
-        ImGui.NextColumn()
-          edit_switch_temp('s_nav', 'maDebug', 's_nav')
-          edit_switch_temp('s_shared', 'maDebug', 's_shared')
-          edit_switch_temp('s_stale', 'maDebug', 's_stale')
-        ImGui.NextColumn()
-        ImGui.Columns()
-        ImGui.TreePop()
-        ImGui.NewLine()
-      end  
-
-      if ImGui.TreeNode('area') then
-        ImGui.NewLine()
-        ImGui.Columns(4, 'debugarea', false)
-          edit_switch_temp('area', 'maDebug', 'area')
-        ImGui.NextColumn()
-        ImGui.NextColumn()
-        ImGui.NextColumn()
-        ImGui.Columns()
-        ImGui.TreePop()
-        ImGui.NewLine()
-      end  
-      ImGui.NewLine()
-
-    end
-]]    
 
     -- DEFENSE
     if ImGui.CollapsingHeader('/defense') then
@@ -1146,6 +877,10 @@ local function imguicallback()
       end
       ImGui.NewLine()
     end
+
+
+
+
 
     -- ENV
     if ImGui.CollapsingHeader('/env') then    
@@ -1532,6 +1267,9 @@ local function imguicallback()
       ImGui.NewLine()
     end
 
+
+
+
     -- OVERRIDE
     if ImGui.CollapsingHeader('/override') then
       ImGui.NewLine()
@@ -1810,8 +1548,8 @@ local function imguicallback()
 
     end
     
-    ImGui.End()
   end
+  ImGui.End()
 
 end
 

@@ -18,6 +18,26 @@ on the to do list
 --------------------
 
 
+
+220313.01
+- help 
+  made some path adjustments to the help system
+- pulling (mob finding)
+  lot of changes to the order and skipping of invalid targets
+- pally
+  corrected a misfire with LoH for heal ToT
+- removed the no heal list from the build export
+- asssisting
+  DanNet assist should no longer flash the intended target
+  corrected the inline delays for assisting from the class calls
+- warrior
+  removed a hate generation skill from the normal DPS routine
+- war/pal/sk
+  removed all the old agro code  
+- /build ui  
+  shouldnt crash on minimize anymore (i hope)
+
+
 220225.01
 - loot
   added a control to force looting NO TRADE items if you have it set in your personal loot control as need or greed

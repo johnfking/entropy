@@ -37,7 +37,7 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stCommanding                     PREGEN|1                      "${auxna} Commanding Voice family disc"
   /call set_data_map ${_debug} maChr stReprisal                       PREGEN|1                      "${auxna} Determined Reprisal family disc"
   /call set_data_map ${_debug} maChr stEvasive                        PREGEN|1                      "${auxna} Evasive Discipline family disc"
-  /call set_data_map ${_debug} maChr stProvoke                        PREGEN|1                      "${auxna} Provoke family disc"
+  | /call set_data_map ${_debug} maChr stProvoke                        PREGEN|1                      "${auxna} Provoke family disc"
   /call set_data_map ${_debug} maChr stWhirling                       PREGEN|1                      "${auxna} Whirling Blade family disc"
   /call set_data_map ${_debug} maChr stWade                           PREGEN|1                      "${auxna} Wade into Battle family disc"
   /call set_data_map ${_debug} maChr stRallying                       PREGEN|1                      "${auxna} Rallying Roar family disc"
@@ -195,9 +195,9 @@ sub misc_combat(bool _debug, spawn _spawn)
     /call cast ${_debug} 0 FALSE
   }
 
-  /if (${cast_data[${_debug}, "${maChr.Find[stProvoke].Value}"]}) {
-    /call cast ${_debug} ${_spawn.ID} FALSE
-  }
+  | /if (${cast_data[${_debug}, "${maChr.Find[stProvoke].Value}"]}) {
+  |   /call cast ${_debug} ${_spawn.ID} FALSE
+  | }
 
   /if (${cast_data[${_debug}, "${maChr.Find[stCommanding].Value}"]} && !${Me.Song[${maChr.Find[stCommanding].Value}].ID}) {
     /call cast ${_debug} 0 FALSE
@@ -278,86 +278,6 @@ sub misc_combat(bool _debug, spawn _spawn)
 
   /if (${cast_data[${_debug}, "${maChr.Find[stAABattleLeap].Value}"]} && !${Me.Song[${maChr.Find[stAABattleLeap].Value}].ID} && !${Me.Song[Group Bestial Alignment].ID}) {
     /call cast ${_debug} 0 FALSE
-  }
-
-/return
-
-
-
-|***
- * note:
- * use:
- ***|
-sub get_agro(bool _debug, spawn _spawn)
-  DEBUG \atget_agro\ax(\a-w${_spawn.ID}\ax)
-
-  ISMEDEAD
-  GETINPUT
-  CHECKEXIT
-  /if (${target[isdead, ${_spawn.ID}]}) {
-    /return FALSE
-  }
-
-  /if (ENGINE2) {
-    /call cast_cycle_agro ${maDebug.Find[agro].Value} ${_spawn.ID}
-    /return TRUE
-  }
-
-  /if (AE#) {
-    /if (${SpawnCount[npc radius ENV targetable PS4]} >= AE#) {
-      /if (${cast_data[${_debug}, "${maChr.Find[stAAAreaTaunt].Value}"]}) {
-        /call cast ${_debug} 0 FALSE
-      }
-      /if (${cast_data[${_debug}, "${maChr.Find[stWhirling].Value}"]}) {
-        /call cast ${_debug} ${_spawn.ID} FALSE
-      }
-      /if (${cast_data[${_debug}, "${maChr.Find[stRallying].Value}"]}) {
-        /call cast ${_debug} 0 FALSE
-      }
-    }
-  }
-
-  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
-
-  /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
-    /call cast_shield_flash ${_debug} disc
-  }
-
-  /if (${Me.PctAggro} >= ${maAgro.Find[stPctAgroHold].Value}) {
-    /return FALSE
-  }
-
-  /if (${cast_data[${_debug}, "${maChr.Find[stProvoke].Value}"]} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
-    /call cast ${_debug} ${_spawn.ID} FALSE
-  }
-
-  /if (${cast_data[${_debug}, "${maChr.Find[stShout].Value}"]}) {
-    /call cast ${_debug} ${_spawn.ID} FALSE
-  }
-
-
-  /if (${cast_data[${_debug}, "${maChr.Find[stBazu].Value}"]} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
-    /call cast ${_debug} ${_spawn.ID} FALSE
-  }
-
-  /if (${Me.TargetOfTarget.Name.NotEqual[${Me.CleanName}]}) {
-    /if (${cast_data[${_debug}, "${maChr.Find[stAARageoftheForsaken].Value}"]}) {
-      /call cast ${_debug} ${_spawn.ID} FALSE
-      /if (${cast_data[${_debug}, "${maChr.Find[stAABlastofAnger].Value}"]}) {
-        /call cast ${_debug} ${_spawn.ID} FALSE
-      }
-    }
-  }
-
-  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
-
-  | 20% agro boost AA with 2/10 uptime
-  /if (${cast_data[${_debug}, "${maChr.Find[stAAWarlordsFury].Value}"]} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
-    /call cast ${_debug} ${_spawn.ID} FALSE
-  }
-
-  /if (${cast_data[${_debug}, "${maChr.Find[stAABlastofAnger].Value}"]} && ${Me.TargetOfTarget.ID} != ${Me.ID}) {
-    /call cast ${_debug} ${_spawn.ID} FALSE
   }
 
 /return

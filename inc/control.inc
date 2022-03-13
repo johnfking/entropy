@@ -16,7 +16,7 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
   DEBUG \atBind_control_debug\ax(\a-w${_type}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-   /lua run get_help debug ${_type.Right[1]}
+   /lua run HELP debug ${_type.Right[1]}
    /return TRUE
   }
 
@@ -313,9 +313,9 @@ sub Bind_command_help(string _type, bool _debug)
   
   /if (${_lsHelp.Contains[${_type}]}) {
     ECHO
-    /lua run get_help ${_type} u
+    /lua run HELP ${_type} u
     /delay 1
-    /lua run get_help ${_type} h
+    /lua run HELP ${_type} h
     /invoke ${out[18, 0, 33]}
     /return TRUE
   }
@@ -358,7 +358,7 @@ sub Bind_control_mode(string _type, string _verbage, string _verbage2, bool _deb
   DEBUG \atBind_control_mode\ax(\a-w${_type}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help mode ${_type.Right[1]}
+    /lua run HELP mode ${_type.Right[1]}
     /return TRUE
   }
 
@@ -561,11 +561,8 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
       /varset _verbage ${Me.Song[${_verbage.Right[-4]}]}
     }    
       
-    /call cast_data ${_debug} "${_verbage}"
+    /call cast_data FALSE "${_verbage}"
 
-    /echo ${spellData.Name}
-
-    
     /declare _list string local
     /declare _count int local 0
     
@@ -594,6 +591,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
     | OUT \aw/spellslotinfo\ax
     | /spellslotinfo ${spellData.ID}
+    /deletevar spellData
     /invoke ${out[18, 0, 33]}
     /return TRUE
 
@@ -785,7 +783,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
   DEBUG \atBind_control_env\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help env ${_type.Right[1]}
+    /lua run HELP env ${_type.Right[1]}
     /return TRUE
   }
 
@@ -1017,7 +1015,7 @@ sub Bind_to_chr(string _type, string _verbage, string _silent, bool _debug)
   | DEBUG /call set_control _type:${_type} _verbage:${_verbage} _silent:${_silent} _debug:${_debug}
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help chr ${_type.Right[1]}
+    /lua run HELP chr ${_type.Right[1]}
     /return TRUE
   }
   
@@ -1035,7 +1033,7 @@ sub Bind_to_chr(string _type, string _verbage, string _silent, bool _debug)
 sub Bind_command_cb(string _type)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help cb ${_type.Right[1]}
+    /lua run HELP cb ${_type.Right[1]}
     /return TRUE
   }
   
@@ -1076,7 +1074,7 @@ sub Bind_control_watch(string _verbage, string _verbage2, bool _debug)
   DEBUG \atBind_control_watch\ax(\a-w${_verbage}, ${_verbage2}\ax)
 
   /if (${_verbage.Left[1].Equal[-]}) {
-    /lua run get_help watch ${_verbage.Right[1]}
+    /lua run HELP watch ${_verbage.Right[1]}
     /return TRUE
   }
 
@@ -1136,7 +1134,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   DEBUG \atBind_control_home\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help home ${_type.Right[1]}
+    /lua run HELP home ${_type.Right[1]}
     /return TRUE
   }
 
@@ -1371,7 +1369,7 @@ sub Bind_control_tc(string _type, string _verbage, string _silent, bool _debug)
   DEBUG \atBind_control_tc\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help tc ${_type.Right[1]}
+    /lua run HELP tc ${_type.Right[1]}
     /return TRUE
   }
 
@@ -1433,7 +1431,7 @@ sub Bind_command_tie(string _type, bool _debug)
   DEBUG \atBind_command_tie\ax(\a-w${_type}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help tie ${_type.Right[1]}
+    /lua run HELP tie ${_type.Right[1]}
     /return TRUE
   }
 
@@ -1508,7 +1506,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
   DEBUG \atBind_control_area\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help area ${_type.Right[1]}
+    /lua run HELP area ${_type.Right[1]}
     /return TRUE
   }
 
@@ -1708,7 +1706,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
 sub Bind_command_beg(string _buff, string _operate)
 
   /if (${_buff.Left[1].Equal[-]}) {
-    /lua run get_help beg ${_buff.Right[1]}
+    /lua run HELP beg ${_buff.Right[1]}
     /return TRUE
   }
 
@@ -1750,7 +1748,7 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
   DEBUG \atcontrol_heal\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help heal ${_type.Right[1]}
+    /lua run HELP heal ${_type.Right[1]}
     /return TRUE
   }
   
@@ -1979,7 +1977,7 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
   DEBUG \atcontrol_entropy\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help entropy ${_type.Right[1]}
+    /lua run HELP entropy ${_type.Right[1]}
     /return TRUE
   }
 
@@ -2208,7 +2206,7 @@ sub Bind_control_rez(string _type, string _verbage, string _verbage2, string _ad
   DEBUG \atcontrol_rez\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help rez ${_type.Right[1]}
+    /lua run HELP rez ${_type.Right[1]}
     /return TRUE
   }
 
@@ -2307,7 +2305,7 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
   DEBUG \atBind_control_buff\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help buff ${_type.Right[1]}
+    /lua run HELP buff ${_type.Right[1]}
     /return TRUE
   }
 
@@ -2420,7 +2418,7 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
   DEBUG \atBind_control_over\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help override ${_type.Right[1]}
+    /lua run HELP override ${_type.Right[1]}
     /return TRUE
   }
 
@@ -2500,7 +2498,7 @@ sub Bind_control_over(string _type, string _verbage, string _silent, bool _debug
 sub Bind_noparse_raw_edit(string _variable, string _value, string _add_delete, string _verbage)
 
   /if (${_variable.Left[1].Equal[-]}) {
-    /lua run get_help edit ${_variable.Right[1]}
+    /lua run HELP edit ${_variable.Right[1]}
     /return TRUE
   }
 
@@ -2536,7 +2534,7 @@ sub Bind_command_see(string _variable, string _verbage, string _silent)
   DEBUG .Left[2]${sep}\a-w${_variable.Left[2]}\ax
 
   /if (${_variable.Left[1].Equal[-]}) {
-    /lua run get_help see ${_variable.Right[1]}
+    /lua run HELP see ${_variable.Right[1]}
     /return TRUE
   }
 
@@ -2695,7 +2693,7 @@ sub Bind_control_burn(string _type, string _verbage, string _verbage2, string _a
   DEBUG \atBind_control_burn\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help burn ${_type.Right[1]}
+    /lua run HELP burn ${_type.Right[1]}
     /return TRUE
   }
 
@@ -2787,7 +2785,7 @@ sub Bind_control_debuff(string _type, string _verbage, string _verbage2, string 
   DEBUG \atBind_control_debuff\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help debuff ${_type.Right[1]}
+    /lua run HELP debuff ${_type.Right[1]}
     /return TRUE
   }
 
@@ -2859,7 +2857,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
   /declare _out string local
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help cc ${_type.Right[1]}
+    /lua run HELP cc ${_type.Right[1]}
     /return TRUE
   }
 
@@ -2888,7 +2886,7 @@ sub Bind_control_cc(string _type, string _verbage, string _verbage2, string _ver
       } else  /if (${Select[${_verbage2},off,FALSE]}) {
         /call do_raw_edit ${_debug} SILENT stAssistMode FALSE
       } else {
-        /lua run get_help cc ccasserror
+        /lua run HELP cc ccasserror
         /return FALSE
       }
       
@@ -3209,7 +3207,7 @@ sub Bind_command_swap(string _item, int _toslot, bool _debug)
 sub Bind_command_alto(string _type, string _debug)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help alto ${_type.Right[1]}
+    /lua run HELP alto ${_type.Right[1]}
     /return TRUE
   }
   
@@ -3240,7 +3238,7 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
   DEBUG \atBind_command_navto\ax(\a-w${_verbage}, "${_loc}"\ax)
 
   /if (${_verbage.Left[1].Equal[-]}) {
-   /lua run get_help navto ${_verbage.Right[1]}
+   /lua run HELP navto ${_verbage.Right[1]}
    /return TRUE
   }
 
@@ -3374,7 +3372,7 @@ sub Bind_command_repeat(string _verbage, string _sender, int _tmpID, bool _debug
 
 
   /if (${_verbage.Left[1].Equal[-]}) {
-    /lua run get_help repeat ${_verbage.Right[1]}
+    /lua run HELP repeat ${_verbage.Right[1]}
     /return TRUE
   }
 
@@ -3480,7 +3478,7 @@ sub Bind_command_enter(string _type, string _verbage, bool _debug)
 sub Bind_command_invis(string _type, string _verbage, bool _debug)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help invis ${_type.Right[1]}
+    /lua run HELP invis ${_type.Right[1]}
     /return TRUE
   }
 
@@ -3528,7 +3526,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
   DEBUG \atBind_control_port\ax(\a-wtype:${_type}, nick1:${_nick1}, nick2:${_nick2}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help port ${_type.Right[1]}
+    /lua run HELP port ${_type.Right[1]}
     /return TRUE
   }
 
@@ -3847,7 +3845,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
 sub Bind_command_off(string _type, string _verbage, bool _debug)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help off ${_type.Right[1]}
+    /lua run HELP off ${_type.Right[1]}
     /return TRUE
   }
   
@@ -3900,7 +3898,7 @@ sub Bind_command_off(string _type, string _verbage, bool _debug)
 sub Bind_command_on(string _type, string _verbage, bool _debug)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help on ${_type.Right[1]}
+    /lua run HELP on ${_type.Right[1]}
     /return TRUE
   }
 
@@ -3953,7 +3951,7 @@ sub Bind_command_on(string _type, string _verbage, bool _debug)
 sub Bind_command_cls(string _type, string _verbage, bool _debug)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help cls ${_type.Right[1]}
+    /lua run HELP cls ${_type.Right[1]}
     /return TRUE
   }
   
@@ -3975,7 +3973,7 @@ sub Bind_command_cls(string _type, string _verbage, bool _debug)
 sub Bind_command_here(string _type, string _verbage, bool _debug)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help here ${_type.Right[1]}
+    /lua run HELP here ${_type.Right[1]}
     /return TRUE
   }
 
@@ -4047,7 +4045,7 @@ sub Bind_command_here(string _type, string _verbage, bool _debug)
 sub Bind_command_take(string _type, string _verbage, bool _debug)
 
   /if (${_type.Left[1].Equal[-]}) {
-   /lua run get_help take ${_type.Right[1]}
+   /lua run HELP take ${_type.Right[1]}
    /return TRUE
   }
 
@@ -4122,13 +4120,13 @@ sub Bind_command_grab(string _name, string _silent, bool _debug)
   DEBUG Bind_command_grab(\a-w${_name}\ax)
 
   /if (${_name.Left[1].Equal[-]}) {
-    /lua run get_help grab ${_name.Right[1]}
+    /lua run HELP grab ${_name.Right[1]}
     /return TRUE
   }
   
   | typed something wrong
   /if (${_name.Equal[NULL]} || !${Bool[${_name}]} || ${_name.Equal[info]} ) {
-    /lua run get_help grab h
+    /lua run HELP grab h
     /return
   }
 
@@ -4154,7 +4152,7 @@ sub Bind_command_grab(string _name, string _silent, bool _debug)
 sub Bind_command_lesson(string _type, bool _debug)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help lesson ${_type.Right[1]}
+    /lua run HELP lesson ${_type.Right[1]}
     /return TRUE
   }
 
@@ -4177,7 +4175,7 @@ sub Bind_command_coh(string _type, bool _debug)
   DEBUG /atBind_command_coh/ax(/a-w${_type}/ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help coh ${_type.Right[1]}
+    /lua run HELP coh ${_type.Right[1]}
     /return TRUE
   }
 
@@ -4206,14 +4204,14 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
   }
 
   /if (${_build.Left[1].Equal[-]}) {
-    /lua run get_help build ${_build.Right[1]}
+    /lua run HELP build ${_build.Right[1]}
     /return TRUE
   }
 
   /if (!${Bool[${_build}]} || !${Bool[${_nickname}]}) {
-    /lua run get_help build u
+    /lua run HELP build u
     /delay 1
-    /lua run get_help build h
+    /lua run HELP build h
     /return
   }
   
@@ -4236,7 +4234,7 @@ sub Bind_control_build(string _build, string _nickname, string _verbage, bool _d
   /invoke ${_skipKey.Append[swWatch,stWatchCount,swSetForced]}
 
   | obfuscation
-  /invoke ${_skipKey.Append[lsProtectOutsideGroup,stTieToon,lsChain,lsAss,lsSafeNames]}
+  /invoke ${_skipKey.Append[lsProtectOutsideGroup,stTieToon,lsChain,lsAss,lsSafeNames,lsNoHealToon,stRampageTank]}
 
   | export to INI routine
   /if (${_build.Equal[save]}) {
@@ -4417,7 +4415,7 @@ sub Bind_control_cursor(string _type, string _verbage, bool _debug)
   DEBUG \atBind_control_cursor\ax(\a-w${_type}, ${_verbage}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help cursor ${_type.Right[1]}
+    /lua run HELP cursor ${_type.Right[1]}
     /return TRUE
   }
 
@@ -4501,7 +4499,7 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
   DEBUG \atBind_control_minion\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help minion ${_type.Right[1]}
+    /lua run HELP minion ${_type.Right[1]}
     /return TRUE
   }
 
@@ -4692,7 +4690,7 @@ sub Bind_command_pull_pet(spawn _spawn, bool _debug)
 sub Bind_control_grain(string _type, bool _debug)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help grain ${_type.Right[1]}
+    /lua run HELP grain ${_type.Right[1]}
     /return TRUE
   }
 
@@ -4747,7 +4745,7 @@ sub Bind_control_clickitem(string _type, string _verbage, string _verbage2, stri
   DEBUG \atBind_control_clickitem\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help clickitem ${_type.Right[1]}
+    /lua run HELP clickitem ${_type.Right[1]}
     /return TRUE
   }
 
@@ -4773,7 +4771,7 @@ sub Bind_control_defense(string _type, string _verbage, string _verbage2, string
   DEBUG \atcontrol_defense\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help defense ${_type.Right[1]}
+    /lua run HELP defense ${_type.Right[1]}
     /return TRUE
   }
 
@@ -4810,7 +4808,7 @@ sub Bind_control_TTL(string _type, string _verbage, string _silent, bool _debug)
   DEBUG \atBind_control_TTL\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help ttl ${_type.Right[1]}
+    /lua run HELP ttl ${_type.Right[1]}
     /return TRUE
   }
 
@@ -4845,7 +4843,7 @@ sub Bind_control_nuke(string _type, string _verbage, string _verbage2, string _a
   DEBUG \atcontrol_nuke\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help nuke ${_type.Right[1]}
+    /lua run HELP nuke ${_type.Right[1]}
     /return TRUE
   }
 
@@ -4892,7 +4890,7 @@ sub Bind_control_dot(string _type, string _verbage, string _verbage2, string _ad
   DEBUG \atcontrol_dot\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help dot ${_type.Right[1]}
+    /lua run HELP dot ${_type.Right[1]}
     /return TRUE
   }
 
@@ -4930,7 +4928,7 @@ sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _a
   DEBUG \atcontrol_agro\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help agro ${_type.Right[1]}
+    /lua run HELP agro ${_type.Right[1]}
     /return TRUE
   }
 
@@ -4986,7 +4984,7 @@ sub Bind_control_miscdps(string _type, string _verbage, string _verbage2, string
   }
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help miscdps ${_type.Right[1]}
+    /lua run HELP miscdps ${_type.Right[1]}
     /return TRUE
   }
 
@@ -5017,7 +5015,7 @@ sub Bind_control_song(string _type, string _verbage, string _verbage2, string _a
   }
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help song ${_type.Right[1]}
+    /lua run HELP song ${_type.Right[1]}
     /return TRUE
   }
   
@@ -5043,7 +5041,7 @@ sub Bind_control_sash(string _type, string _verbage, string _verbage2, string _a
   DEBUG \atcontrol_sash\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help sash ${_type.Right[1]}
+    /lua run HELP sash ${_type.Right[1]}
     /return TRUE
   }
 
@@ -5115,7 +5113,7 @@ sub Bind_control_cure(string _type, string _verbage, string _verbage2, string _a
   DEBUG \atcontrol_cure\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help cure ${_type.Right[1]}
+    /lua run HELP cure ${_type.Right[1]}
     /return TRUE
   }
   
@@ -5159,7 +5157,7 @@ sub Bind_control_pred(string _type, string _verbage, string _verbage2, string _s
   DEBUG \atBind_control_TTL\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help pred ${_type.Right[1]}
+    /lua run HELP pred ${_type.Right[1]}
     /return TRUE
   }
 
@@ -5274,7 +5272,7 @@ sub Bind_control_mercenary(string _type, string _verbage, string _silent, bool _
   /return FALSE
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help mercenary ${_type.Right[1]}
+    /lua run HELP mercenary ${_type.Right[1]}
     /return TRUE
   }
 
@@ -5316,7 +5314,7 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
   DEBUG \atBind_noparse_tag\ax(\a-w${_grouping}, ${_tagname}, ${Parse[1,${_eval}]}\ax)
 
   /if (${_grouping.Left[1].Equal[-]}) {
-    /lua run get_help tag ${_grouping.Right[1]}
+    /lua run HELP tag ${_grouping.Right[1]}
     /return TRUE
   }
   
@@ -5504,7 +5502,7 @@ sub Bind_control_gtfo(string _type, string _verbage, string _verbage2, string _a
 
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help gtfo ${_type.Right[1]}
+    /lua run HELP gtfo ${_type.Right[1]}
     /return TRUE
   }
 
@@ -5554,7 +5552,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
   DEBUG \atBind_control_pulll\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help pull ${_type.Right[1]}
+    /lua run HELP pull ${_type.Right[1]}
     /return TRUE
   }
 
@@ -5828,7 +5826,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
 sub Bind_control_crew(string _type, string _verbage, string _verbage2, string _verbage3, string _verbage4, bool _debug)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help crew ${_type.Right[1]}
+    /lua run HELP crew ${_type.Right[1]}
     /return TRUE
   }
 
@@ -6426,7 +6424,7 @@ sub Bind_control_melee(string _type, string _verbage, string _verbage2, string _
   DEBUG \atBind_control_melee\ax(\a-w${_type}, ${_verbage}, ${_verbage2}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help melee ${_type.Right[1]}
+    /lua run HELP melee ${_type.Right[1]}
     /return TRUE
   }
 
@@ -6451,7 +6449,7 @@ sub Bind_control_melee(string _type, string _verbage, string _verbage2, string _
 sub Bind_control_nomore(string _type, bool _debug)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help nomore ${_type.Right[1]}
+    /lua run HELP nomore ${_type.Right[1]}
     /return TRUE
   }
 
@@ -6736,7 +6734,7 @@ sub Bind_control_rest(string _type, string _verbage, string _verbage2, string _a
   DEBUG \atcontrol_rest\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_add_delete}\ax)
 
   /if (${_type.Left[1].Equal[-]}) {
-    /lua run get_help rest ${_type.Right[1]}
+    /lua run HELP rest ${_type.Right[1]}
     /return TRUE
   }
 

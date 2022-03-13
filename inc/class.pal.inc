@@ -212,97 +212,6 @@ sub misc_combat(bool _debug, spawn _spawn)
 
 
 |***
- * note: I'm more important then you are!
- * use: /call get_agro DEBUG [spawn]
-
-sub get_agro(bool _debug, spawn _spawn)
-  DEBUG \atget_agro\ax(\a-w${_spawn.ID}\ax)
-
-  CHECKEXIT
-  GETINPUT
-  SPAWNDEAD
-
-  /if (ENGINE2) {
-    /call cast_cycle_agro ${maDebug.Find[agro].Value} ${_spawn.ID}
-    /return TRUE
-  }
-
-  | /call set_combat ${_debug}
-
-  /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
-    /call cast_shield_flash FALSE aa
-  }
-
-  /call cast_challenge ${_debug} ${_spawn.ID}
-
-  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
-
-  | chain stun
-  /if (${cast_data[${_debug}, "${maChr.Find[stStun].Value}"]}) {
-    /call cast ${_debug} ${_spawn.ID} FALSE
-  }
-
-  | Valiant Defense line. agro+heal
-  /if (${cast_data[${_debug}, "${maChr.Find[stValiant].Value}"]}) {
-    /call cast ${_debug} ${_spawn.ID} FALSE
-  }  
-
-  | AE Stuns
-  /if (AE#) {
-    /if (${SpawnCount[npc OVERLOS radius 60 PS4 targetable]} >= AE#) {
-      /declare _coutAE int local 0
-      /varset _coutAE ${SpawnCount[npc OVERLOS radius 60 PS4 targetable]}
-
-      /if (!${Raid.Members} || ${Raid.Members} && ${Raid.MainAssist.Name.Equal[${Me.DisplayName}]}) {
-        /if (${_coutAE} > 1) {
-          /if (${cast_data[${_debug}, "${maChr.Find[stAAHallowedLodestar].Value}"]}) {
-            /call cast ${_debug} ${_spawn.ID} FALSE
-          }
-        }
-        /if (${_coutAE} > 4) {
-          /if (${cast_data[${_debug}, "${maChr.Find[stAABeaconoftheRighteous].Value}"]}) {
-            /call cast ${_debug} 0 ${_spawn.ID}
-          }
-        }
-      }
-    }
-  }
-  
-  SPAWNDEAD
-
-  /if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
-    /return
-  }
-
-  /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
-
-  /if (${Me.PctAggro} >= ${maAgro.Find[stPctAgroHold].Value}) {
-    /return FALSE
-  }
-
-  | AA pet hate (the little sword thingie)
-  /if (${cast_data[${_debug}, "${maChr.Find[stAAProjectionofPiety].Value}"]}) {
-    /call cast ${_debug} ${_spawn.ID} FALSE
-  }
-
-  | snap hate
-  /if (!${Raid.Members}) {
-    /if (${Me.PctAggro} < ${maAgro.Find[stPctAgroHold].Value} && ${cast_data[${_debug}, "${maChr.Find[stAAAgelessEnmity].Value}"]}) {
-      /call cast ${_debug} ${_spawn.ID} FALSE
-    }
-  }
-
-  | named fake hate
-  /if ((${Me.PctAggro} < ${maAgro.Find[stPctAgroHold].Value} || ${lsZoneNamed.Contains[${Target.DisplayName}]}) && ${cast_data[${_debug}, "${maChr.Find[stUnflinching].Value}"]}) {
-    /call cast ${_debug} ${_spawn.ID} FALSE
-  }
-
-
-/return TRUE
- ***|
-
-
-|***
  * note: Palading group heal. centered more to splashing
  * use:
  ***|
@@ -335,7 +244,7 @@ sub check_heal(bool _debug, string _type)
     /if (${hurtCount} >= 1)  {
 
       | aa LoH targets target
-      /if (${maChr.Find[stPctLoH].Value}) {
+      /if (${maChr.Find[stPctLoH].Value} && ${Target.ID}) {
         /if (${Me.TargetOfTarget.PctHPs} <= ${maChr.Find[stPctLoH].Value}*.PCTHO) {
           /if (${cast_data[${maDebug.Find[tot].Value}, "${maChr.Find[stAALayonHands].Value}"]}) {
             /call cast ${maDebug.Find[tot].Value} ${Target.ID} FALSE

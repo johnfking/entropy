@@ -78,7 +78,7 @@
 #define TMPIDDEAD "/if (${target[isdead, ${_tmpID}]}) /return FALSE"
 #define SPAWNDEAD "/if (${target[isdead, ${_spawn.ID}]}) /return FALSE"
 #define NEXT ${MacroQuest.InternalName.Equal[Next]}
-
+#define HELP ${MacroQuest.Path[macros]}\entropy\lua\get_help.lua
 
 
 #include entropy\inc\initialize.inc
@@ -125,7 +125,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 220225.01
+  /call set_data FALSE maEnv build                          map outer 220313.01
   /call set_data FALSE maEnv schema                         map outer 1.58
   /call set_data FALSE maEnv repo                           map outer 220225.01
 

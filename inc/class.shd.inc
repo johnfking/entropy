@@ -238,11 +238,6 @@ sub misc_combat(bool _debug, spawn _spawn)
       /invoke ${Me.Buff[${maChr.Find[stAAVoiceofThule].Value}].Remove}
   }
 
-  | get me sum...
-  | /if (AGRO) {
-  |   /call get_agro ${_debug} ${_spawn.ID}
-  | }
-
   | quickspear proc
   /if (${cast_data[${_debug}, "${maChr.Find[stAAGiftoftheQuickSpear].Value}"]}) {
     /call cast ${_debug} 0 FALSE
@@ -259,9 +254,6 @@ sub misc_combat(bool _debug, spawn _spawn)
     /return FALSE
   }
 
- |  /if (${cast_data[${_debug}, "${maChr.Find[stTempRune].Value}"]}) {
- |    /call cast ${_debug} 0 FALSE
- |  }
   /if (${cast_data[${_debug}, "${maChr.Find[stAAThoughtLeech].Value}"]} &&  ${Me.PctMana} <= 60*.PCTHO) {
     /call cast ${_debug} ${_spawn.ID} FALSE
   }
@@ -271,106 +263,6 @@ sub misc_combat(bool _debug, spawn _spawn)
 
 /return TRUE
 
-
-
-|***
- * note: we are agro gods.
- * use: /call get_agro
-
-sub get_agro(bool _debug, spawn _spawn)
-  DEBUG \atget_agro\ax()
-
-  ISMEDEAD
-  CHECKEXIT
-  GETINPUT get_agro _spawn.ID|${_spawn.ID}
-
-  /if (${target[isdead, ${_spawn.ID}]}) {
-    /return FALSE
-  }
-
-  /if (PET) {
-    /call send_pet ${maDebug.Find[sic].Value} ${_spawn.ID}
-  }
-
-  /if (ENGINE2) {
-    /call cast_cycle_agro ${maDebug.Find[agro].Value} ${_spawn.ID}
-    /return TRUE
-  }
-
-  | /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
-
-  /call cast_challenge ${_debug} ${_spawn.ID}
-
-  /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
-    /call cast_shield_flash ${_debug} aa
-  }
-
-  | AE Hate
-  /if (AE#) {
-    /if (${SpawnCount[npc radius 50 PS4]} >= AE#) {
-        /declare _liaeha listiterator local
-        /vardata _liaeha lsAEHate.First.Clone
-        /while (!${_liaeha.IsEnd}) {
-          /if (${cast_data[${_debug}, "${_liaeha.Value}"]}) {
-            /call cast ${_debug} 0 FALSE
-            /break
-          }
-          /invoke ${_liaeha.Advance}
-        }
-
-      | AE lifetap
-      /if (!${SpawnCount[pc enchanter radius SAFEENV*2]}) {
-        /if (${cast_data[${_debug}, "${maChr.Find[stAELifeTap].Value}"]}) {
-          /call cast ${_debug} 0 FALSE
-        }
-      }
-    }
-  }
-
-  /if (${Me.PctAggro} >= ${maAgro.Find[stPctAgroHold].Value}) {
-    /return FALSE
-  }
-
-  | single hate
-  /declare _liha listiterator local
-  /vardata _liha lsHate.First.Clone
-  /while (!${_liha.IsEnd}) {
-    /if (${cast_data[${_debug}, "${_liha.Value}"]}) {
-      /call cast ${_debug} ${_spawn.ID} FALSE
-      /break
-    }
-    /invoke ${_liha.Advance}
-  }
-
-  /if (${target[isdead, ${_spawn.ID}]}) {
-    /return FALSE
-  }
-  | /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
-
-  /if (${Me.PctAggro} >= ${maAgro.Find[stPctAgroHold].Value}) {
-    /return FALSE
-  }
-
-  | AA pet hate
-  /if (${cast_data[${_debug}, "${maChr.Find[stAAProjectionofDoom].Value}"]}) {
-    /call cast ${_debug} ${_spawn.ID} FALSE
-  }
-
-
-  | fake hate
-  /if (${cast_data[${_debug}, "${maChr.Find[stAAAgelessEnmity].Value}"]}) {
-    /call cast ${_debug} ${_spawn.ID} FALSE
-  }
-
-  | named fake hate
-  /if (${lsZoneNamed.Contains[${Target.DisplayName}]}) {
-    /if (${cast_data[${_debug}, "${maChr.Find[stAcrimony].Value}"]}) {
-      /call cast ${_debug} ${_spawn.ID} FALSE
-    }
-  }
-
-/return TRUE
- ***|
 
 
 |***
