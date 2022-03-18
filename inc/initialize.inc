@@ -401,6 +401,7 @@ sub set_initial_environment(bool _debug)
   /invoke ${maChrControl.Add[fade,stPctFade]}
   /invoke ${maChrControl.Add[spire,submenu]}
   /invoke ${maChrControl.Add[intensity,submenu]}
+  /invoke ${maChrControl.Add[hud,submenu]}
 
   | controls for heal classes
   /if (${lsClassHeal.Contains[${Me.Class.ShortName}]}) {
@@ -919,6 +920,8 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** HUD settings **|
+  /call set_data_map ${_debug} maEntropy swHUDAuto                        FALSE                        "${auxsw} Auto start HUD on mac start"
+  /call set_data_map ${_debug} maChr swHUDClassAuto                       FALSE                        "${auxsw} Auto start Class HUD on mac start"
   /call set_data_map ${_debug} maHud swTabBuff                            TRUE                         "${auxsw} buff tab"
   /call set_data_map ${_debug} maHud swTabHeal                            TRUE                         "${auxsw} heal tab"
   /call set_data_map ${_debug} maHud swTabCombat                          TRUE                         "${auxsw} combat tab"
@@ -936,6 +939,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHud swTitleIVU                           TRUE                         "${auxsw} show in titlebar: Invis vs Undead"
   /call set_data_map ${_debug} maHud swTitleAM                            TRUE                         "${auxsw} show in titlebar: Auto or Manual"
   /call set_data_map ${_debug} maHud swTitleBuild                         TRUE                         "${auxsw} show in titlebar: Entropy Build #"
+  /call set_data_map ${_debug} maHud swTitleHealAdj                       FALSE                        "${auxsw} show in titlebar: Heal Adjust %"
 
 
 
@@ -1514,8 +1518,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy swTLP                            FALSE                         "${auxsw} TLP player"
   /call set_data_map ${_debug} maEntropy stCountFizzleRetry               0                             "${auxnum} number of cast retrys on a fizzle"
 
-  | hud
-  /call set_data_map ${_debug} maEntropy swHUDAuto                        FALSE                         "${auxsw} Auto start HUD on mac start"
 
   | randomize
   /call set_data_map ${_debug} maEntropy stRNDEngage                      0                             "${auxsw} randomize engage % by ##"

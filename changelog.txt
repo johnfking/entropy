@@ -18,6 +18,19 @@ on the to do list
 --------------------
 
 
+220318.01
+- added /heal adj to:
+  the hud heal tab, the hud titlebar (if you want)
+  in build ui
+- /splash
+  complete redesign of the splash controls for cleric 
+  splash will not force a twincast nuke when splash is available with the intent to always twincast the splash
+  adding twinheal nuke (glorious line) with a tag twinheal and the splash control will use that
+  the glorious line nuke will pull your current set assists target to nuke then continue with the splash
+  If you have a Bifold and the nuke does not proc a twin heal, it will try to use that
+  If that doesnt workm it will try the AA Channeling the Divine for the twin heal procs
+  If that doesnt work, it will just normal splash
+   
 
 220313.01
 - help 

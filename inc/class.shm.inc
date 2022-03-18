@@ -231,61 +231,6 @@ sub cast_cycle_heal_surge(bool _debug)
   GETINPUT
 
 
-  |**
-  /if (!${assistData.LineOfSight}) {
-    DEBUG ${break}.LineOfSight
-    /return FALSE
-  }
-
-  | get our twincast proc
-  /if (${lsLineNuke.Contains[EMPTY]} && ${lsLineNuke.Count} == 1) {
-    DEBUG ${sep}resetting the empty nuke line
-    /invoke ${lsLineNuke.Clear}
-    /invoke ${lsLineNuke.Append[${stCount20}]}
-  }
-
-  /declare _liNukeTC listiterator local
-  /vardata _liNukeTC lsLineNuke.First.Clone
-  /while (!${_liNukeTC.IsEnd}) {
-
-    | check the switch
-    /if (!${Bool[${maNuke.Find[swNuke${_liNukeTC.Value}].Value}]}) {
-      DEBUG ${break}switched off${sep}\a-w${maNuke.Find[stNuke${_liNukeTC.Value}].Value}\ax
-      /invoke ${_liNukeTC.Advance}
-      /continue
-    }
-
-    | skip non twincast nukes
-    /if (!${lsNuke${_liNukeTC.Value}Tag.Contains[twincast]}) {
-      DEBUG ${break}invalid twincast check (\a-r${maNuke.Find[stNuke${_liNukeTC.Value}].Value}\ax)
-      /invoke ${_liNukeTC.Advance}
-      /continue
-    }
-    
-    /if (!${cast_data[${_debug}, "${maNuke.Find[stNuke${_liNukeTC.Value}].Value}"]}) {
-      /invoke ${_liNukeTC.Advance}
-      /continue
-    }
-
-    | cycle the tags
-    /call tag_evaluation ${maDebug.Find[tag].Value} Nuke ${_liNukeTC.Value} ${Me.DisplayName} "${maNuke.Find[stNuke${_liNukeTC.Value}].Value}" cast_cycle_heal_surge
-    /if (!${Macro.Return}) {
-      /invoke ${_liNukeTC.Advance}
-      /continue
-    }
-
-    /call cast ${_debug} ${assistData.ID} FALSE
-    /delay 10s !${Me.Casting.ID}
-    /delay 2.5s
-    
-    /if (${Me.Song[Healing Twincast].ID}) {
-      /break
-    }
-    
-    /invoke ${_liNukeTC.Advance}
-  }
-  **|
-  
   /call cast_cycle_proc_twinheal ${maDebug.Find[surge].Value}
   
   

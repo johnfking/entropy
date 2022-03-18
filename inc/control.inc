@@ -44,16 +44,12 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
     
   } else /if (${_type.Equal[pulltarget]}) {
 
-
-
     /varset _spCount 0
-
 
     /if (${_spCount}) {
       /varset stAssTarID 0
       /varset targetData 0
     }
-
 
     /declare _spawn spawn local
     /declare _tmpAgroRange int local ${Int[${Math.Calc[PULLENV / ${maHard.Find[stPullMobFindStep].Value}]}]}
@@ -561,8 +557,12 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
       /varset _verbage ${Me.Song[${_verbage.Right[-4]}]}
     }    
       
-    /call cast_data FALSE "${_verbage}"
+    /if (${Defined[spellData]}) {
+      /deletevar spellData
+    }
 
+    /declare spellData spell outer
+    /vardata spellData Spell[${_verbage}]    
     /declare _list string local
     /declare _count int local 0
     
@@ -583,14 +583,11 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
       OUT ${dot} .Calc \a-w${spellData.Calc[${_count}]} \ax
       OUT ${dot} .Restrictions \a-w${spellData.Restrictions[${_count}]}\ax
       OUT ${dot} .Extra \a-w${spellData.Extra}\ax
-
       /varset _list ${_list} ${spellData.Attrib[${_count}]}
     /next _count
     OUT ${dot} ${dot} ${dot} ${dot}
     OUT \awSPA list\ax ${sep} \a-w${_list}\ax
 
-    | OUT \aw/spellslotinfo\ax
-    | /spellslotinfo ${spellData.ID}
     /deletevar spellData
     /invoke ${out[18, 0, 33]}
     /return TRUE
@@ -1809,7 +1806,6 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
   | set the XTarget class to heal
   } else /if (${_type.Equal[xtclass]}) {
     /call set_control_shortname ${_debug} lsHealXTClass ${_verbage}
-    | /call set_control_chr_xtclass FALSE ${_verbage}
     /invoke ${out[12, "/heal xtclass ${dot} ${Macro.Return}"]}
     /return
 
@@ -3419,17 +3415,79 @@ sub Bind_command_splash(bool _debug)
   /if (!${check_class[${_debug}, |PAL|CLR]}) {
     /return FALSE
   }
+  
+  | is splash ready?
+  | if the user has not set the line order, set it to a default for now
+  /if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
+    DEBUG ${sep}resetting the empty heal line
+    /invoke ${lsLineHeal.Clear}
+    /invoke ${lsLineHeal.Append[${stCount50}]}
+  }
 
+  /declare _switch bool local FALSE
+  /declare _liHeal listiterator local
+  /vardata _liHeal lsLineHeal.First.Clone
+  /while (!${_liHeal.IsEnd}) {
+    DEBUG ${sep}heal${sep}\a-w${maHeal.Find[stHeal${_liHeal.Value}].Value}${sep}${maHeal.Find[stHeal${_liHeal.Value}]}\ax
+    GETINPUT cast_cycle_heal NA|NA
+    ISMEDEAD
+    GETOVERHERE
+    CHECKEXIT cast_cycle_heal
+
+    | check the switch
+    /if (!${maHeal.Find[swHeal${_liHeal.Value}].Value}) {
+      /invoke ${_liHeal.Advance}
+      /continue
+    }
+
+    | check the item name
+    /if (!${Bool[${maHeal.Find[stHeal${_liHeal.Value}].Value}]}) {
+      /invoke ${_liHeal.Advance}
+      /continue
+    }
+
+    | check matching tag for failure
+    /if (!${lsHeal${_liHeal.Value}Tag.Contains[splash]}) {
+      DEBUG ${break}no tag${sep}\a-wsplash\ax
+      /invoke ${_liHeal.Advance}
+      /continue
+    }
+
+    | ready?
+    /if (${cast_data[${_debug}, "${maHeal.Find[stHeal${_liHeal.Value}].Value}"]}) {
+      DEBUG ${sep}Spalsh is ready${sep}\aw${maHeal.Find[stHeal${_liHeal.Value}].Value}\ax
+      /varset _switch TRUE
+      /break
+    }
+
+    /delay 1
+    /invoke ${_liHeal.Advance}
+  }
+
+  | switch failure || spell not ready to be cast
+  /if (!${_switch}) {
+    DEBUG ${break}\arSplash is not ready\ax
+    /return FALSE
+  }
+
+  /if (${maHeal.Find[swTwinHeal].Value}) {
+    | /call cast_cooldown_wait ${_debug}
+    /call cast_cycle_proc_twinheal ${_debug}  
+    /if (${Select[${Macro.Return},1]}) {
+      /call cast_cooldown_wait ${_debug}
+    }
+  }
+  
   | paladin
   /if (${Me.Class.ShortName.Equal[PAL]}) {
     DEBUG ${sep}paladin splash
-    /call cast_cycle_heal ${_debug} 0 splash
+    /call cast ${_debug} 0 FALSE
   }
 
   | cleric
   /if (${Me.Class.ShortName.Equal[CLR]}) {
     DEBUG ${sep}cleric splash
-    /call cast_cycle_heal ${_debug} ${Me.ID} splash
+    /call cast ${_debug} ${Me.ID} FALSE
   }
 
 /return TRUE
@@ -6469,6 +6527,19 @@ sub Bind_control_nomore(string _type, bool _debug)
   } else /if (${Select[${_type},levi]}) {
     /call remove_spa ${_debug} 57
     /return TRUE
+
+  | remove t3e3 event from ToL
+  } else /if (${Select[${_type},t3e3]}) {
+    | levi
+    /call remove_spa ${_debug} 57
+    | DS
+    
+    | Movement
+    /call remove_spa ${_debug} 3
+
+    /return TRUE
+
+
   
   | remove invis
   } else /if (${Select[${_type},invis]}) {
@@ -6517,7 +6588,7 @@ sub Bind_control_nomore(string _type, bool _debug)
     /makemevisible 
     /return TRUE
 
-  | remove invis
+  | remove all buffs
   } else /if (${Select[${_type},removeall]}) {
     /declare _count int local 0
     /while (${_count} <= ${Me.MaxBuffSlots}) {

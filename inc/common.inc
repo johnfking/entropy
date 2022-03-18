@@ -11558,10 +11558,6 @@ sub set_control_shared(string _type, string _verbage, string _verbage2, bool _de
     /call Bind_command_see maChr ${_verbage}
     /return SKIP
     
-  } else /if (${_type.Equal[ui]}) {
-    /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.${Me.Class.ShortName}.lua
-    /return SKIP
-
   } else /if (${_type.Equal[list]}) {
     OUT Base Order${sep}\a-wlsOrderClassBase\ax
     /call out_list lsOrderClassBase
@@ -11603,6 +11599,30 @@ sub set_control_shared(string _type, string _verbage, string _verbage2, bool _de
   | use hiatus disc
   } else /if (${_type.Equal[hiatus]} && ${lsClassMelee.Contains[${Me.Class.ShortName}]}) {
     /invoke ${set_switch_env[${_debug}, swHiatus, TRUE, ${_verbage}]}
+
+  | class hud adjustments
+  } else /if (${_type.Equal[hud]}) {
+
+    /if (${_verbage.Equal[start]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.${Me.Class.ShortName.Lower}.lua 
+      
+    } else /if (${_verbage.Equal[stop]}) {   
+      /lua stop hud.${Me.Class.ShortName.Lower}.lua
+      
+    } else /if (${_verbage.Equal[auto]}) {   
+      /invoke ${set_switch_env[${_debug}, swHUDClassAuto, TRUE, ${_verbage2}]}
+
+    }
+
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[auto,swHUDClassAuto]}
+    /invoke ${maControl.Add[start,option]}
+    /invoke ${maControl.Add[stop,option]}
+    /invoke ${set_control_output[${_debug}, maChr, "chr hud", maControl]}
+    /return TRUE
+
+
+
 
   }
 
@@ -14516,7 +14536,6 @@ sub check_heal_routines()
     /invoke ${_liho.Advance}
   }
 
-
   CHECKREZ
 
 /return TRUE
@@ -15896,26 +15915,26 @@ sub cast_cycle_proc_twinheal(bool _debug)
   | break on active twinheal
   /if (${Me.Song[Healing Twincast].ID}) {
     DEBUG ${break} twincast heal active
-    /return TRUE
+    /return 2
   }
-
+  
   | do checks by class type
   /if (${Select[${Me.Class.ShortName},CLR,DRU]}) {
-    /if (${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value}) {
+    /if (${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
       DEBUG ${break}.PctHPs${sep}${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value}
-      /return FALSE
+      /return 0
     }  
 
     /if (!${targetData.LineOfSight}) {
       DEBUG ${break}.LineOfSight
-      /return FALSE
+      /return 0
     }
 
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
 
     /if (!${assistData.LineOfSight}) {
       DEBUG ${break}.LineOfSight
-      /return FALSE
+      /return 0
     }
 
   }
@@ -15923,7 +15942,6 @@ sub cast_cycle_proc_twinheal(bool _debug)
   CHECKEXIT
   ISMEDEAD
   GETINPUT
-
  
   | get our twincast proc
   /if (${lsLineNuke.Contains[EMPTY]} && ${lsLineNuke.Count} == 1) {
@@ -15935,12 +15953,10 @@ sub cast_cycle_proc_twinheal(bool _debug)
   /declare _liNukeTC listiterator local
   /vardata _liNukeTC lsLineNuke.First.Clone
   /while (!${_liNukeTC.IsEnd}) {
-
-    | check the switch
-    /if (!${Bool[${maNuke.Find[swNuke${_liNukeTC.Value}].Value}]}) {
-      DEBUG ${break}switched off${sep}\a-w${maNuke.Find[stNuke${_liNukeTC.Value}].Value}\ax
-      /invoke ${_liNukeTC.Advance}
-      /continue
+    
+    /if (${Me.Song[Healing Twincast].ID}) {
+      DEBUG ${break} twincast heal active
+      /return 2
     }
 
     | skip non twincast nukes
@@ -15962,37 +15978,38 @@ sub cast_cycle_proc_twinheal(bool _debug)
       /continue
     }
 
-    | nuke the mob or the tanks.. why not both?
+    | nuke the mob or the tanks.. both?
     /if (${Select[${Me.Class.ShortName},CLR,DRU]}) {
       /call cast ${_debug} ${targetData.ID} FALSE
     } else /if (${Select[${Me.Class.ShortName},SHM]}) {
       /call cast ${_debug} ${assistData.ID} FALSE
     }
     
-    | forced delay
-    /if (${maNuke.Find[stNukeDelay].Value}) {
-      DEBUG ${sep} nuke delay
-      /delay 10s !${Me.Casting.ID}
-      /delay 2.5s
-      /if (${maNuke.Find[swNukeWhackAMole].Value} && !${Me.Sitting} && !${Me.Mount.ID}) {
-        DEBUG ${sep}sitting
-        /sit
-      }
-      /invoke ${set_data_timer[${_debug}, Nuke_Delay, ${maNuke.Find[stNukeDelay].Value}]}
-      DEBUG ${sep}delaying${sep}\a-w${timer_Nuke_Delay}\ax
-      /delay ${timer_Nuke_Delay}
-    } 
-        
+    /delay 2.25s !${Me.SpellInCooldown}
+    
     /if (${Me.Song[Healing Twincast].ID}) {
       DEBUG ${break} twincast heal active
-      /return TRUE
+      /return 1
     }
     
     /invoke ${_liNukeTC.Advance}
   }
+  
+  | bifold backup
+  /if (!${Me.Song[Healing Twincast].ID} && ${cast_data[${_debug}, "Bilfold Focus of the Evil Eye"]}) {
+    /call cast ${_debug} 0 FALSE
+    /return 2
+  }
+  
+  | channeling of divine backup
+  /if (${Select[${Me.Class.ShortName},CLR]}) {
+    /if (!${Me.Song[Healing Twincast].ID} && ${cast_data[${_debug}, "Channeling the Divine"]}) {
+      /call cast ${_debug} 0 FALSE
+      /return 2
+    }
+  }
 
-/return FALSE
-
+/return 0
 
 
 

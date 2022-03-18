@@ -125,7 +125,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 220313.01
+  /call set_data FALSE maEnv build                          map outer 220318.01
   /call set_data FALSE maEnv schema                         map outer 1.58
   /call set_data FALSE maEnv repo                           map outer 220225.01
 
@@ -495,10 +495,16 @@ sub prepare_the_end(bool _debug)
   | set hud variables
   | /call set_initialize_hud_variables
   
-  | sort the hud
+  | sort the macro hud
   /if (${maEntropy.Find[swHUDAuto].Value}) {
     /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.lua
   }
+
+  | sort the class hud
+  /if (${maChr.Find[swHUDClassAuto].Value}) {
+    /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.${Me.Class.ShortName}.lua
+  }
+
 
   | correct the map click spam.
   /squelch /mapclick left alt /nav locyx %y %x |log=off

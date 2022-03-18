@@ -40,17 +40,14 @@ hudInfo = function ()
   ent['hudivu'] = ''
   ent['hudinv'] = ''
   ent['hudbuild'] = ''
+  ent['hudadj'] =  mq.TLO.Macro.Variable('maHeal').Find('stHealAdjust').Value() or ' 0'
   ent['hudent'] = ''
   ent['dash'] = ''
-
-  -- build #
   ent['build'] = mq.TLO.Macro.Variable('maEnv').Find('build').Value() or '--'
 
 
   -- buid hud variables
   if ent['build'] ~= '--' then 
-    
-
 
     -- title?
     if mq.TLO.Macro.Variable('maHud').Find('swTitleEnt').Value() == 'TRUE' then
@@ -68,8 +65,6 @@ hudInfo = function ()
     if mq.TLO.Macro.Variable('maHud').Find('swTitleName').Value() == 'TRUE' then
       ent['hudtoonname'] = ent['dash']..mq.TLO.Me.DisplayName()
       ent['dash'] = ' - '
-    else
-      
     end  
 
     -- auto on or off?
@@ -104,20 +99,32 @@ hudInfo = function ()
         ent['ivu'] = ''
       end
     end
-
-    ent['hudtitle'] = ent['hudent']..ent['hudbuild']..ent['hudtoonname']..ent['hudam']..ent['hudinv']..ent['hudivu']
+    
+    -- adj
+    if mq.TLO.Macro.Variable('maHud').Find('swTitleHealAdj').Value() == 'TRUE' then
+      if ent['hudadj'] ~= '0' then
+        ent['hudadj'] = ent['dash']..ent['hudadj']
+        ent['dash'] = ' - '
+      else
+        ent['hudadj'] = ''
+      end
+    else
+      if mq.TLO.Macro.Variable('maHud').Find('swTitleHealAdj').Value() ~= 'TRUE' then
+        ent['hudadj'] = ''
+      end
+    end
+    
+    
+    -- build hud string
+    ent['hudtitle'] = ent['hudent']..ent['hudbuild']..ent['hudtoonname']..ent['hudam']..ent['hudinv']..ent['hudivu']..ent['hudadj']
 
   else
-    ent['hudtitle'] = 'Off'..ent['hudinv']..ent['hudivu']
+    ent['hudtitle'] = 'Off'
   end
 
 
-  -- build hud string
 
   
- --  ent['hudtitle'] = mq.TLO.Macro.Variable('maEnv').Find('build').Value()..ent['autotitle']..ent['invhud']..ent['ivuhud'] or '--'
-  -- ent['hudtitle'] = ent['hudam']..ent['inv']..ent['ivu'] or '--'
-  -- ent['hudtitle'] = ent['hudent']..ent['hudbuild']..ent['hudtoonname']..ent['hudam']..ent['inv']..ent['ivu']
   ent['mode'] = mq.TLO.Macro.Variable('maData').Find('mode').Value() or ''
   ent['set'] = mq.TLO.Macro.Variable('maEnv').Find('stBuildSetCurrent').Value() or '--'
   ent['body'] = mq.TLO.Target.Body.Name() or ''

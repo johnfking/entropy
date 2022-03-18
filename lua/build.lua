@@ -726,7 +726,6 @@ local function imguicallback()
       end
       ImGui.NewLine() 
     end
- 
 
     -- DEFENSE
     if ImGui.CollapsingHeader('/defense') then
@@ -878,10 +877,6 @@ local function imguicallback()
       ImGui.NewLine()
     end
 
-
-
-
-
     -- ENV
     if ImGui.CollapsingHeader('/env') then    
       ImGui.NewLine()
@@ -974,6 +969,7 @@ local function imguicallback()
         ImGui.NextColumn()
           edit_switch_perm('weight', 'maHeal', 'swHealWeighted')
           edit_switch_perm('break', 'maHeal', 'swBreakHealPCT')
+          edit_text_perm('adjust', 'maHeal', 'stHealAdjust')
         ImGui.NextColumn()
         ImGui.Columns()  
         edit_text_perm('order', 'maHeal', 'lsOrderHeal')
@@ -1087,7 +1083,8 @@ local function imguicallback()
 
       indent(1,1) 
       ImGui.NewLine()  
-      edit_switch_perm('hud on start', 'maEntropy', 'swHUDAuto')
+      edit_switch_perm('macro hud on start', 'maEntropy', 'swHUDAuto')
+      edit_switch_perm('class hud on start', 'maChr', 'swHUDClassAuto')
       ImGui.NewLine()
       indent(1,2)
 
@@ -1123,18 +1120,13 @@ local function imguicallback()
         ImGui.NextColumn()
           edit_switch_perm('INV', 'maHud', 'swTitleIV')
           edit_switch_perm('IVU', 'maHud', 'swTitleIVU')
+          edit_switch_perm('Adj', 'maHud', 'swTitleHealAdj')
         ImGui.NextColumn()
         ImGui.Columns()  
       indent(1,2)
       ImGui.TreePop() 
-    end
+      end
     ImGui.NewLine()
-
-
-
-
-
-
     end
 
     -- MELEE
@@ -1266,9 +1258,6 @@ local function imguicallback()
 
       ImGui.NewLine()
     end
-
-
-
 
     -- OVERRIDE
     if ImGui.CollapsingHeader('/override') then

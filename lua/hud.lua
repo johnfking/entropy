@@ -171,10 +171,11 @@ local function imguicallback()
           ImGui.NextColumn()
             edit_switch_perm('weight', 'maHeal', 'swHealWeighted')
             edit_switch_perm('break', 'maHeal', 'swBreakHealPCT')
-            edit_text_perm('rampage', 'maHeal', 'stRampageTank')
             if mq.TLO.Me.Class.ShortName() == 'CLR' or mq.TLO.Me.Class.ShortName() == 'DRU' or mq.TLO.Me.Class.ShortName() == 'SHM' then
               edit_switch_perm('twinheal', 'maHeal', 'swTwinHeal')     
             end           
+            edit_text_perm('adjust', 'maHeal', 'stHealAdjust')
+            edit_text_perm('rampage', 'maHeal', 'stRampageTank')
           ImGui.Columns()  
           ImGui.EndTabItem()
         end
@@ -428,9 +429,6 @@ mq.imgui.init('hudwindow', imguicallback)
 
 while openGUI do 
   mq.delay(1000)
-  --if not imgui.exists('hudwindow') then
-  --  imgui.init('hudwindow', callback)
-  --end  
 end
 
 
