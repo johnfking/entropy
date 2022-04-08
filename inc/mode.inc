@@ -170,18 +170,20 @@ sub mode_fish(bool _debug)
 sub mode_forage(bool _debug)
   DEBUG \atmode_forage\ax()
 
+  SETHUD "forage"
+
+
   /if (${Select[${Me.CombatState},combat]}) {
     /return FALSE
   }
   
-  /call check_cursor ${_debug} clear
+  /call check_cursor ${_debug} getoffthedamncursor
 
   /if (!${Me.AbilityReady[forage]}) {
     /return FALSE
   }
 
   ISMEDEAD
-  SETHUD "forage"
 
   /if (!${Me.Standing}) {
     /stand
@@ -190,15 +192,9 @@ sub mode_forage(bool _debug)
   DEBUG ${sep}forage
   /doability forage
   /delay 3s ${Cursor.ID}
+  
+  /call check_cursor ${_debug} getoffthedamncursor
 
-  /while (${Cursor.ID}) {
-    GETINPUT
-    ISMEDEAD
-
-    /call check_cursor ${_debug} clear
-    /delay 3s ${Cursor.ID}
-    /if (!${Cursor.ID}) /break
-  }
 
   SETHUD
 
@@ -394,6 +390,8 @@ sub mode_harvest(bool _debug)
   GETINPUT
 
   SETHUD "harvest"
+  
+  | /call check_cursor ${_debug} clear
 
   /declare _lsCollect list local
   /invoke ${_lsCollect.Delimiter[|]}
@@ -424,7 +422,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
   DEBUG \atget_ground_item\ax(\a-w"${_tmpItem}"\ax)
 
   /if (${Cursor.ID}) {
-    /call check_cursor ${_debug} clear
+    /call check_cursor ${_debug} getoffthedamncursor
   }
 
   /if (!${GroundItemCount[${_tmpItem}]}) {
@@ -475,7 +473,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
     DEBUG ${sep}whileloop${sep}\a-wMe.Moving\ax
 
     /if (${Cursor.ID}) {
-      /call check_cursor ${_debug} clear
+      /call check_cursor ${_debug} getoffthedamncursor
     }
 
     /if (${_finalGround.Distance3D} <= 19) {
@@ -483,7 +481,7 @@ sub get_ground_item(bool _debug, string _tmpItem)
       /nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
       /call Bind_command_grab "${_tmpItem}" ${_debug}
       /if (${Cursor.ID}) {
-        /call check_cursor ${_debug} clear
+        /call check_cursor ${_debug} getoffthedamncursor
       }
       /break
     }

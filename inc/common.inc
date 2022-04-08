@@ -5175,16 +5175,6 @@ sub check_buff_cycle_crew(bool _debug)
       
       /call cast_data ${_debug} "${maCD.Find[tmpCastName].Value}"
 
-      | distance check
-      /if (${Select["${spellData.TargetType}",Group v2]}) {
-        DEBUG ${sep}distance check${sep}\a-wGroup v2\ax
-        /if (${_spawn.Distance} > ${spellData.AERange}) /continue
-      } else {
-        DEBUG ${sep}distance check${sep}\a-wtargeted ?? ${spellData.MyRange}\ax
-        /if (${spellData.MyRange}) {
-          /if (${_spawn.Distance} > ${spellData.MyRange} && !${Select[${spellData.TargetType},self]}) /continue
-        }
-      }
 
      /if (${maCD.Find[hasspa].Value}) {
         DEBUG ${sep}multiple landing spell
@@ -5194,9 +5184,6 @@ sub check_buff_cycle_crew(bool _debug)
 
           | skip any secondary procs with no duration
           /if (!${Bool[${Spell[${Spell[${maCD.Find[tmpName].Value}].Base2[${_i}]}].Duration}]}) /continue
-
-          | /varset spellDataTrigger ${Spell[${maCD.Find[tmpName].Value}].Trigger[${_i}]}
-          | DEBUG ${sep}${sep}\awTrigger\ax${sep}\a-w${spellData.Trigger}\ax ID:\aw${Spell[${spellData.RankName}].ID}\ax
 
           | is it buff blocked
           /dquery ${_spawn.DisplayName} -q "lsBlockedBuffsMe.Find[${spellData.Trigger[${_i}].ID}]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
@@ -5235,7 +5222,7 @@ sub check_buff_cycle_crew(bool _debug)
 
         DEBUG ${sep}\awTrigger\ax${sep}\a-w${spellData.RankName}\ax ID:${spellData.ID}
 
-        | does it stack
+        | will it land
         /dquery ${_spawn.DisplayName} -q "Spell[${spellData.RankName}].WillLand" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
         DEBUG ${sep}${sep}WillLand: .Buff.WillLand \at${DNQReturn}\ax ${dot} ${spellData.RankName}
   
@@ -5245,7 +5232,7 @@ sub check_buff_cycle_crew(bool _debug)
 
         | is it buff blocked
         /dquery ${_spawn.DisplayName} -q "lsBlockedBuffsMe.Find[${spellData.ID}]" -o DNQReturn -t ${maEntropy.Find[stDanNetQueryDelay].Value}
-        DEBUG ${sep}${sep}BLOCKED .Buff.Blocked \at${DNQReturn}\ax ${dot} ${spellData.ID}
+        DEBUG ${sep}${sep}BLOCKED .lsBlockedBuffsMe.Blocked \at${DNQReturn}\ax ${dot} ${spellData.ID}
         /if (${Bool[${DNQReturn}]}) /continue
 
         | do we have the triggered buff?
@@ -5254,8 +5241,6 @@ sub check_buff_cycle_crew(bool _debug)
         /if (${Bool[${DNQReturn}]}) {
           /continue
         }
-
-        DEBUG ${sep}${sep}HAVE: .Trigger.ID \at${DNQReturn}\ax ${dot} ${spellData.ID} .. ${maCD.Find[tmpName].Value}
 
         /if (${_target}) {
           /call cast ${_debug} ${_spawn.ID} FALSE
@@ -5649,7 +5634,7 @@ sub cast_stamina_recovery(bool _debug)
     /return TRUE
 
   | rest disc
-  } else /if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stRest].Value}].RankName}]} && !${Select[${Me.CombatState},active]}) {
+  } else /if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stRest].Value}].RankName}]} && !${Select[${Me.CombatState},active,cooldown]}) {
     DEBUG rest${sep}\a-w${maChr.Find[stRest].Value}\ax
     /if (${Me.CombatAbility[${maChr.Find[stRest].Value} Rk. III]}) /varset _endurancePoint 29
     /if (${Me.CombatAbility[${maChr.Find[stRest].Value} Rk. II]}) /varset _endurancePoint 25
@@ -13223,7 +13208,7 @@ sub get_resident(bool _debug, string _groupList, int _distance, string _verbage)
 sub remove_spa(bool _debug, int _spa)
   DEBUG \atremove_spa\ax(\a-w${_spa}\ax)
  
-  /if (!${Me.SPA[${_spa}]}) {
+  /if (!${Bool[${Me.SPA[${_spa}]}]}) {
     /return TRUE
   }
 
@@ -13232,7 +13217,8 @@ sub remove_spa(bool _debug, int _spa)
   /for _count 1 to ${Me.MaxBuffSlots}
    
     | remove buffs
-    /if (${Me.Buff[${_count}].HasSPA[${_spa}]}) {
+    DEBUG ${sep}Me.Buff[${_count}].HasSPA[${_spa}]${sep}\a-w${Me.Buff[${_count}].HasSPA[${_spa}]}\ax
+    /if (${Me.Buff[${_count}].HasSPA[${_spa}]} && ${Me.Buff[${_count}].Spell.NumEffects} <= ${maHard.Find[stMaxSPARemoveCount].Value}) {
       /if (${lsGrain.Contains[28]}) {
         OUT Removing (\a-r${_count}\ax)${sep}\a-w${Me.Buff[${_count}]}\ax
       }
@@ -13240,7 +13226,7 @@ sub remove_spa(bool _debug, int _spa)
       /delay 2
     }
 
-    /if (!${Me.SPA[${_spa}]}) {
+    /if (!${Bool[${Me.SPA[${_spa}]}]}) {
       /return TRUE
     }
     
@@ -13257,7 +13243,7 @@ sub remove_spa(bool _debug, int _spa)
       /delay 2
     }    
    
-    /if (!${Me.SPA[${_spa}]}) {
+    /if (!${Bool[${Me.SPA[${_spa}]}]}) {
       /return TRUE
     }
 
@@ -14604,14 +14590,20 @@ sub check_no_cast_buff(bool _debug, string _cast)
 sub cast_data(bool _debug, string _type)
   DEBUG \atcast_data\aw(\a-w"${_type}"\ax)
 
-  /if (${Defined[spellData]}) {
-    /deletevar spellData
-  }
+  | /if (${Defined[spellData]}) {
+  |   /deletevar spellData
+  | }
   
-  /declare spellData spell outer
+  | /declare spellData spell outer
   /invoke ${maCD.Add[ready,FALSE]}
   /invoke ${maCD.Add[hasspa,FALSE]}
-  
+  /invoke ${maCD.Add[type,FALSE]}
+  /invoke ${maCD.Add[name,FALSE]}
+  /invoke ${maCD.Add[id,0]}
+  /invoke ${maCD.Add[clickid,0]}
+  /invoke ${maCD.Add[clickname,FALSE]}
+
+ 
   /declare _lshs listiterator local
   /declare _ligt listiterator local
   /vardata _ligt lsOrderCastType.First.Clone

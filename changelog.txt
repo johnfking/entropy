@@ -18,6 +18,11 @@ on the to do list
 --------------------
 
 
+220408.01
+- adjustment to rest for the combat cooldown
+- working on an /event system. just getting it out there for a few to test
+
+
 220318.01
 - added /heal adj to:
   the hud heal tab, the hud titlebar (if you want)

@@ -6528,18 +6528,21 @@ sub Bind_control_nomore(string _type, bool _debug)
     /call remove_spa ${_debug} 57
     /return TRUE
 
+  | remove ALLLL!!! damage Shields
+  } else /if (${Select[${_type},ds]}) {
+    /call remove_spa ${_debug} 59
+    /return TRUE
+
   | remove t3e3 event from ToL
   } else /if (${Select[${_type},t3e3]}) {
     | levi
     /call remove_spa ${_debug} 57
     | DS
-    
-    | Movement
+    /call remove_spa ${_debug} 59
+    | movement
     /call remove_spa ${_debug} 3
 
     /return TRUE
-
-
   
   | remove invis
   } else /if (${Select[${_type},invis]}) {

@@ -193,7 +193,7 @@ sub set_initialize(bool _debug)
   /declare lsMaps list outer
   /invoke ${lsMaps.Append[maChr,maEnv,maHome,maCC,maHeal,maRez,maBuff,maBurn,maPred]}
   /invoke ${lsMaps.Append[maEntropy,maTimer,madeBuff,maTie,maMinion,maRest]}
-  /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard]}
+  /invoke ${lsMaps.Append[maData,maDebug,maOver,maPREGEN,maMode,maHard,maEvent]}
   /invoke ${lsMaps.Append[maBuffRequest,maHook,maManaRecovery,maTTL,maWatch,maAgro,maMercenary]}
   /invoke ${lsMaps.Append[maNuke,maDoT,maItem,maDefense,maMiscDPS,maSong,maSash,maControlRez]}
   /invoke ${lsMaps.Append[maGTFO,maPull,maMelee,maCure]}
@@ -272,6 +272,7 @@ sub set_initialize(bool _debug)
   /invoke ${maDBTables.Add[environment_cure,env_var]}
   /invoke ${maDBTables.Add[environment_rest,env_var]}
   /invoke ${maDBTables.Add[environment_hud,env_var]}
+  /invoke ${maDBTables.Add[environment_event,env_var]}
  
 /return TRUE
 
@@ -992,6 +993,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHard stDrinkMaintain                     3000                          "${auxnum} level of, i'm not thirsty, to maintain for drink"                        hard
   | /call set_data_map ${_debug} maHard stPullMobFindStep                   5                             "${auxnum} number of increments your pull radius is broken into to look for mobs"   hard
   /call set_data_map ${_debug} maHard stModeDragTargetCheck               5                             "${auxnum} speed that you grab another corpse to drag. lower = faster"              hard
+  /call set_data_map ${_debug} maHard stMaxSPARemoveCount                 10                            "${auxnum} highest spa a spell/buff has to look at for removal"                              hard
 
 
 
@@ -1645,6 +1647,31 @@ sub set_initialize_map_character_environment(bool _debug)
     /call set_data_map ${_debug} maSash stCountShieldFlash                0                             "${auxnum} # of mobs to hit shield flash"                 sash
     | /call set_data_map ${_debug} maSash stSashShieldFlash                 FALSE                         "${auxna} name of sash to be used for Slash skills"       sash
   }
+
+
+|** control: Event  **|
+
+  | Close the Gate raid. bloodfalls
+  /call set_data_map ${_debug} maEvent stBloodfallsHideLocYX              "-560 342"                                "${auxna} hide emote for bloodfalls_raid"               event
+
+  /call set_data_map ${_debug} maEvent stBloodfallsBuggs                  "Velium Endowed Cloak of Security"        "${auxna} hide emote for bloodfalls_raid"               event
+  /call set_data_map ${_debug} maEvent stBloodfallsChased                 "Cloak of the Fleeting Foot"              "${auxna} chase emote for bloodfalls_raid"              event
+  /call set_data_map ${_debug} maEvent stBloodfallsDrowning               "Philter of Aquatic Haunt"                "${auxna} drowning emote for bloodfalls_raid"           event
+  /call set_data_map ${_debug} maEvent stBloodfallsFalling                "Shield of Striding"                      "${auxna} falling emote for bloodfalls_raid"            event
+  /call set_data_map ${_debug} maEvent stBloodfallsMonster                "Cloudy Potion"                           "${auxna} monster emote for bloodfalls_raid"            event
+  /call set_data_map ${_debug} maEvent stBloodfallsCurse                  "Jeweled Skull of Null"                   "${auxna} curse emote for bloodfalls_raid"              event
+
+  | maiden eye hide locations
+  /call set_data_list ${_debug} maEvent lsMaidenHideLocYX               "635 470|783 110|877 467|822 566|1267 361|636 -50"                         "${auxli} hide from raid emote for maidens eye gorgana" event
+
+  | karnor 23 anni raid
+  /call set_data_map ${_debug} maEvent stKarnorHideLocYX               "-69 -723"                         "${auxna} hide from raid emote for Karnor Mad Emperor Event" event
+
+
+
+
+
+
 
 
   /if (${maDebug.Find[init].Value}) {

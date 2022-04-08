@@ -1532,6 +1532,7 @@ local function imguicallback()
       edit_text_perm('stRezSuccess', 'maHard', 'stRezSuccess')
       edit_text_perm('stRezSummonRange', 'maHard', 'stRezSummonRange')
       edit_text_perm('stSpellBookSize', 'maHard', 'stSpellBookSize')
+      edit_text_perm('stMaxSPARemoveCount', 'maHard', 'stMaxSPARemoveCount')
       ImGui.NewLine()
       indent(1,2)
 
