@@ -398,7 +398,7 @@ sub set_control_num_range(bool _debug, string _variable, string _value, int _low
 
 
 |***
- * note: DEFINE call to forde event and bind queue checking
+ * note: DEFINE call to force event and bind queue checking
  * use: GETINPUT [SUBTOCREATE] [VARIABLETOMAKEACCESSABLE]
  ***|
 sub get_input(string _sub, string _variable)
@@ -2734,6 +2734,7 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
     | no mobs around us, no reason to be here
     /if (!${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
       DEBUG ${break}NO SpawnCount to pull from${sep}\a-w${_tmpAgroRange}\ax
+      DEBUG ${sep} (!${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]})
       /if (!${maPull.Find[stPullStep].Value}) {
         /varcalc _tmpAgroRange ${_tmpAgroRange}+1
       } else {
@@ -2793,7 +2794,12 @@ sub pull_mob_find(bool _debug, int _spCount, string _tag)
             } else /if (${lsZoneExclude.Contains[${_spawn.DisplayName}]}) {
               DEBUG ${skip}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsZoneExclude\ax (\a-r${_spawn.DisplayName}\ax)
               /varset _tmpIncrement TRUE
-
+              
+            | no pull mobs
+            } else /if (${lsZoneNoPull.Contains[${_spawn.DisplayName}]} && ${_spawn.Distance3D} > SAFEENV) {
+              DEBUG ${skip}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsZoneNoPull\ax (\a-r${_spawn.DisplayName}\ax)
+              /varset _tmpIncrement TRUE
+ 
             | fish are friends, not food
             } else /if (${lsNoAttackBodyType.Contains[${_spawn.Body}]}) {
               DEBUG ${skip}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoAttackBodyType\ax (\a-r${_spawn.Body}\ax)
@@ -9983,7 +9989,7 @@ sub check_for_corpse(bool _debug)
       /invoke ${_liic.Advance}
     }
 
-  | something to rez with out of combat? should let the corpses rot...0
+  | something to rez with out of combat? should let the corpses rot...
   } else /if (!${Select[${Me.CombatState},combat]}) {
     /declare _liooc listiterator local
     /vardata _liooc lsRezOOC.First.Clone
@@ -10377,7 +10383,7 @@ sub cast_cycle_heal_regen(bool _debug, spawn _spawn, string _tag)
 
       | check matching tag
       /if (!${lsHeal${_liHoT.Value}Tag.Contains[grouphot]}) {
-        DEBUG ${break}wrongtag: no grouphot
+        DEBUG ${break}wrongtag: no grouphot tag
         /invoke ${_liHoT.Advance}
         /continue
       }
@@ -11008,8 +11014,6 @@ sub check_buff_cycle_self(bool _debug)
 
         | SDEBUG ${sep}${Spell[${Spell[${maData.Find[tmpName].Value}].Base2[${_i}]}].Name} \aw::\ax slot-${Me.Buff[${Spell[${Spell[${maData.Find[tmpName].Value}].Base2[${_i}]}].Name}].ID}
 
-
-
         | SPA has no duration, skip it
         /if (!${Spell[${Spell[${maData.Find[tmpName].Value}].Base2[${_i}]}].Duration}) {
           DEBUG ${break}\aw.Duration\ax break (${Spell[${Spell[${maData.Find[tmpName].Value}].Base2[${_i}]}].Name})
@@ -11129,7 +11133,6 @@ sub check_buff_cycle_self(bool _debug)
   SETHUD
 
 /return TRUE
-
 
 
 
@@ -11606,9 +11609,6 @@ sub set_control_shared(string _type, string _verbage, string _verbage2, bool _de
     /invoke ${set_control_output[${_debug}, maChr, "chr hud", maControl]}
     /return TRUE
 
-
-
-
   }
 
 /return TRUE
@@ -11699,6 +11699,8 @@ sub get_best_in_spell(bool _debug, string _targettype, string _subcat, string _a
   /declare _countNumEff     int local 0
   /declare _countSPA        int local 0
   /declare _count           int local 0
+  /declare _lvlmax          int local 0
+  /declare _lvlrunning      int local 0
 
   /while (TRUE) {
     /sqlite query "${DBstatic}" qBestSpell SELECT * FROM eq_spa WHERE value="${_attrib}";
@@ -11737,33 +11739,55 @@ sub get_best_in_spell(bool _debug, string _targettype, string _subcat, string _a
         /for _countSPA 1 to ${Me.Book[${_count}].Trigger[${_countNumEff}].NumEffects}
           /if (${Me.Book[${_count}].Trigger[${_countNumEff}].Attrib[${_countSPA}]} != ${sqlite.Result[qBestSpell 1 env_var]}) /continue
           /varset _running ${Me.Book[${_count}].Trigger[${_countNumEff}].Base[${_countSPA}]}
+          /varset _lvlrunning ${Me.Book[${_count}].Level}
           /if (${_running} < -1) {
             /if (${_running} <= ${_max}) {
               /varset _max ${_running}
               /varset _maxName ${Me.Book[${_count}]}
             }
           } else {
-            /if (${_running} >= ${_max}) {
+            /if (${_running} >= ${_max} && ${_lvlrunning} > ${_lvlmax}) {
               /varset _max ${_running}
               /varset _maxName ${Me.Book[${_count}]}
+              /varset _lvlmax ${_lvlrunning}
             }
           }
         /next _countSPA
       /next _countNumEff
+
+    | Darth_Voidptr#5678 addition for melee guards
+    | Desired spell is Melee Guard type
+    } else /if (${Me.Book[${_count}].HasSPA[162]} && (${sqlite.Result[qBestSpell 1 env_var]} == 162)) {
+       DEBUG ${sep}${Me.Book[${_count}].HasSPA[162]}
+      /for _countSPA 1 to ${Me.Book[${_count}].NumEffects}
+      /if (${Me.Book[${_count}].Attrib[${_countSPA}]} != ${sqlite.Result[qBestSpell 1 env_var]}) {
+        /continue
+      }
       
+      | Melee guard Base tends to be the same, the "goodness" is on Max
+      /varset _running ${Me.Book[${_count}].Max[${_countSPA}]}
+      /if (${_running} >= ${_max}) {
+        /varset _max ${_running}
+        /varset _maxName ${Me.Book[${_count}]}
+      }
+      /next _countSPA
+    | end Darth_Voidptr#5678 addition
+    
     } else /if (${Me.Book[${_count}].SPA}) {
       /for _countSPA 1 to ${Me.Book[${_count}].NumEffects}
         /if (${Me.Book[${_count}].Attrib[${_countSPA}]} != ${sqlite.Result[qBestSpell 1 env_var]}) /continue
         /varset _running ${Me.Book[${_count}].Base[${_countSPA}]}
+        /varset _lvlrunning ${Me.Book[${_count}].Level}
         /if (${_running} < -1) {
           /if (${_running} <= ${_max}) {
             /varset _max ${_running}
             /varset _maxName ${Me.Book[${_count}]}
           }
         } else {
-          /if (${_running} >= ${_max}) {
+          /if (${_running} >= ${_max} && ${_lvlrunning} > ${_lvlmax}) {
             /varset _max ${_running}
             /varset _maxName ${Me.Book[${_count}]}
+            /varset _lvlmax ${_lvlrunning}
           }
         }
       /next _countSPA
@@ -11869,7 +11893,7 @@ sub get_prediction(bool _debug)
     /return FALSE
   } else /if (!${assistData.ID} && HEAL) {
     /if (${Group.MainAssist.ID}) {
-      /varset assistData.ID Group.MainAssist.ID
+      /varset assistData Group.MainAssist.ID
     } else {
       /invoke ${set_data_timer[${_debug}, Check_Prediction, 12s]}
       DEBUG ${break}NO ASSIST found/set
@@ -14979,7 +15003,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
       DEBUG ${sep}${_sub}${sep}\a-wbreakonhealpct\ax
       /if (${_spawn.PctHPs} >= ${maHeal.Find[stHealPoint${_spawn.Class.ShortName}].Value}*.PCTHO) {
         /stopcast
-        /return TURE
+        /return TRUE
       }
     }
     
@@ -15077,7 +15101,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
               DEBUG ${sep}${_sub}${sep}\a-wbreakonhealpct\ax
               /if (${_spawn.PctHPs} >= ${maHeal.Find[stHealPoint${_spawn.Class.ShortName}].Value}*.PCTHO) {
                 /stopcast
-                /return TURE
+                /return TRUE
               }
             }
           }
@@ -15301,7 +15325,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
           DEBUG ${sep}${_sub}${sep}\a-wbreakonhealpct\ax
           /if (${_spawn.PctHPs} >= ${maHeal.Find[stHealPoint${_spawn.Class.ShortName}].Value}*.PCTHO) {
             /stopcast
-            /return TURE
+            /return TRUE
           }
         }
       }
@@ -15503,7 +15527,6 @@ sub spawn_stick(bool _debug, spawn _spawn)
   
   | position check
   /invoke ${set_data_timer[${_debug}, Check_Behind, RESTART]}
-  /declare _position string local
   
   /if (!${Select[${maHome.Find[stCombatPosition].Value},free,random]}) {
     /invoke ${maData.Add[stFacingPositionCheck,FALSE]}
@@ -15521,6 +15544,8 @@ sub spawn_stick(bool _debug, spawn _spawn)
   } else /if (!${Select[${maHome.Find[stCombatPosition].Value},random]}) {
     /invoke ${maData.Add[stFacingPosition,${maHome.Find[stCombatPosition].Value}]}
   }
+  
+  | /if (${swModeToken}) /return TRUE
   
   /if (!${maData.Find[stFacingPositionCheck].Value}) {
     DEBUG ${sep}position adjustment${sep}\a-w${maData.Find[stFacingPosition].Value}\ax

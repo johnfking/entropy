@@ -835,10 +835,12 @@ quest phrases: go look
 farms
 ********************|
 
-
-
 sub tov_ew_ada(bool _debug)
   DEBUG \attov_ew_ada\ax()
+  |
+  | This is no longer a useful automation mode. I'm gonna leave it here as an example tho.
+  |
+  /return FALSE
 
   /if (${Target.ID}) /squelch /target clear
 
@@ -1156,16 +1158,31 @@ sub task_combatloop(int _tmpID, bool _debug)
  *  toons to actually do the killing.
  ***|
 sub rof_shard_bodhe(string _opt, bool _debug)
-  /varset _debug TRUE
   DEBUG \atrof_shard_bodhe\ax(\a-w${_opt}\ax)
+
+  OUT ${notice} 
+  OUT ${dot} This mode makes temp changes to your pulling design. 
+  OUT ${dot} You should restart the macro when you are finished using this mode.
+  OUT ${dot} Also, this mode is only as good as your nav mesh is. Keep that in mind.
+  OUT
+  
+  | set some basics to make sure it works correctly
   /declare _timestart int local 0
   /varset swModeToken TRUE
+  /invoke ${maPull.Add[stPullZRadius,200]}
+  /invoke ${maPull.Add[stPullRadius,190]}
+  /invoke ${maOver.Add[swOverLOS,TRUE]}
+  /invoke ${maPull.Add[swNavPathLogic,FALSE]}
+  /invoke ${maPull.Add[swPullNavLoS,FALSE]}
+  /invoke ${maPull.Add[stPullMode,base]}
+  /invoke ${maAgro.Add[swAgro,TRUE]}
+  /invoke ${maEnv.Add[swAuto,FALSE]}
+
 
   /declare _quest string local Fear Begins at Home
   /declare _count int local 0
   /declare _mobinc int local 0
   /declare _spcount int local 0
-  /declare _pullrad int local 200
 
   /declare _huntlocs int local 5
   /declare _curpos int local 0
@@ -1193,17 +1210,6 @@ sub rof_shard_bodhe(string _opt, bool _debug)
 
   /if (${Me.Sitting}) /stand
   /squelch /hidecorpse always
-
-  /if (AUTO) {
-    /call Bind_control_env auto off
-  }
-  /call Bind_control_cc pull rad ${_pullrad}
-  /if (!AGRO) {
-    /call Bind_control_agro active on
-  }
-
-  | set nav pulling
-  /call Bind_control_cc pull mode nav
 
   /if (${Select[${Me.Class.ShortName},ROG]}) {
     /invoke ${set_switch_env[${_debug}, swMoveBehind, TRUE, FALSE]}
@@ -1278,9 +1284,9 @@ sub rof_shard_bodhe(string _opt, bool _debug)
           SETHUD "finding location"
           /for _count 1 to ${_huntlocs}
             /varset _curpos ${_count}
-            /if (${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius ${_pullrad}]}) {
-              DEBUG _count${sep}\a-w${_curpos}\ax .. SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius ${_pullrad}]
-              OUT location ${_curpos}${sep}\a-w${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius ${_pullrad}]} mobs\ax
+            /if (${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius PULLENV]}) {
+              DEBUG _count${sep}\a-w${_curpos}\ax .. SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius PULLENV]
+              OUT location ${_curpos}${sep}\a-w${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius PULLENV]} mobs\ax
               SETHUD "navto marker"
               /call Bind_command_navto loc "${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[2,|]} ${_loc${_curpos}.Arg[3,|]}" FALSE ${_debug}
               /if (${_curpos} == 1) {
@@ -1300,28 +1306,31 @@ sub rof_shard_bodhe(string _opt, bool _debug)
           /delay 2
           SETHUD
         }
-        /call where_the_fuck_is_my_pet DEBUG TRUE
+        /call where_the_fuck_is_my_pet ${_debug} TRUE
         :kill_rof_shard_bodhe
-        /while (${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius ${_pullrad}]}) {
-          DEBUG ${sep}spawncount loc${_curpos}${sep}\a-w${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius ${_pullrad}]}\ax
+        /while (${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius PULLENV]}) {
+          DEBUG ${sep}spawncount loc${_curpos}${sep}\a-w${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius PULLENV]}\ax
 
           SETHUD "find target"
-          /call task_mob_find ${_debug}
+          /call pull_mob_find ${_debug} 
+          | ${_debug}
 
-          /if (!TARGET) {
+          /if (!${targetData.ID}) {
+            OUT NO Target Data
             /goto :rof_shard_bodhe_step2
           }
 
-          /call target set TARGET
-          SETHUD "navto target"
-          /call task_mob_move_to ${_debug} TARGET ${Math.Calc[${Spawn[id TARGET].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
+          /call pull_mob_move_to ${_debug} ${targetData.ID} 5 FALSE
+          | SETHUD "navto target"
+          | /call task_mob_move_to ${_debug} ${targetData.ID} ${Math.Calc[${Spawn[id ${targetData.ID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
+          /call target set ${targetData.ID}
  
           /if (${maMinion.Find[swonForce].Value}) /pet attack
           /invoke ${maCC.Add[swValidAssTarID,TRUE]}
           /invoke ${maCC.Add[swSetCombat,TRUE]}
           /invoke ${maCC.Add[swSetForced,TRUE]}   
-          /invoke ${spawn_face[TARGET]}
-          /call spawn_stick ${_debug} TARGET
+          /invoke ${spawn_face[${targetData.ID}]}
+          /call spawn_stick ${_debug} ${targetData.ID}
           /call class_main
           /if (${SpawnCount[npc PS4 radius SAFEENV]} && ${Me.XTarget}) /goto :kill_rof_shard_bodhe
 
@@ -1331,7 +1340,7 @@ sub rof_shard_bodhe(string _opt, bool _debug)
           }
 
           | move to start if we get too far away
-          /if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[2,|]} ${_loc${_curpos}.Arg[3,|]}]} > 80 || !${SpawnCount[npc radius ${_pullrad}]}) {
+          /if (${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[2,|]} ${_loc${_curpos}.Arg[3,|]}]} > 80 || !${SpawnCount[npc radius PULLENV]}) {
             /call Bind_command_navto loc "${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[2,|]} ${_loc${_curpos}.Arg[3,|]}" FALSE ${_debug}
           }
 
@@ -1550,210 +1559,6 @@ sub task_mob_move_to(bool _debug, int _tmpID, int _dist)
   }
 
 /return TRUE
-
-
-
-|***
- * note: Finds and sets stAssTarID for tasks
- * use: /call task_mob_find DEBUG [# to force SpawnCount increment]
- ***|
-sub task_mob_find(bool _debug, int _spCount, string _tag)
-  DEBUG \attask_mob_find\ax(\a-w${_spCount}\ax)
-
-  /if (!${Bool[${_spCount}]}) {
-    /varset _spCount 0
-  }
-
-  /if (!${swModeToken}) {
-    /if (HOME && !${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
-      DEBUG ${break}no token for mode. stopping
-      /call Bind_control_home return NULL NULL ${maDebug.Find[home].Value}
-    }
-  }
-
-  /if (${_spCount}) {
-    /varset stAssTarID 0
-    /varset targetData 0
-  }
-
-  | we have an existign target and not using a mode
-  /if (TARGET && !${_spCount} && !${swModeToken}) {
-    /return TARGET
-  }
-
-  /declare _tmpID int local
-  /declare _tmpAgroRange int local ${Int[${Math.Calc[PULLENV/5]}]}
-  /declare _count int local 0
-  /declare _mobHP int local 999
-  /declare _tmpHPAdj int local 0
-  /declare _los string local
-  /declare _closestNAV int local PULLENV
-  /declare _closestID int local 0
-  /declare _navRange int local 0
-  /declare _mobcount int local 0
-
-  | /declare _tmpCombatRange int local ${maHard.Find[stMinBowDist].Value}
-
-  | adjust LOS?
-  /if (${maOver.Find[swOverLOS].Value} || ${Select[${maCC.Find[stPullMode].Value},nav,int,pet,calm,multi]}) {
-    DEBUG ${sep} LOS overridden
-    /varset _los
-  }
-
-  | time to step the agro range out so we get mobs closer first
-  DEBUG ${sep}range${sep}\aw${maEnv.Find[stMobLvlMin].Value}\ax-\aw${maEnv.Find[stMobLvlMax].Value}\ax zradius${sep}\a-w${maPull.Find[stPullZRadius].Value}\ax
-
-  /while (${_tmpAgroRange} <= PULLENV && !TARGET) {
-    /delay 1
-
-    /if (${_tmpAgroRange} <= SAFEENV) {
-      /varset _mobcount ${SpawnCount[npc ${_los} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
-    } else {
-      /varset _mobcount ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
-    }
-
-    | search local ENV range in steps of 10 for mob acquisition
-  DEBUG ${sep}SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}
-    DEBUG ${sep}count:\aw${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}\ax radius${sep}\ay${_tmpAgroRange}\ax
-
-    /if (${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}) {
-
-      /for _count 1 to ${SpawnCount[npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value} targetable]}
-
-        ISMEDEAD
-
-        /varset _tmpID ${NearestSpawn[${If[${_spCount},${Math.Calc[${_count}+${_spCount}]},${_count}]}, npc ${_los} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius ${_tmpAgroRange} zradius ${maPull.Find[stPullZRadius].Value}].ID}
-        DEBUG ${sep}_tmpID${sep}\a-w${_tmpID}\ax navlength${sep}\a-w${Navigation.PathLength[id ${_tmpID}]}\ax
-
-        | excluded mobs
-        /if (${lsZoneExclude.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
-          DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsZoneExclude\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
-          /continue
-        }
-
-        | animation checks
-        | /if (${lsAnimationNoTarget.Contains[${Spawn[id ${_tmpID}].Animation}]}) {
-        |   DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsAnimationNoTarget\ax (\a-r${Spawn[id ${_tmpID}].Animation}\ax)
-        |   /varset _spCount 1
-        |   /continue
-        | }
-
-        | fish are friends, not food
-        /if (${lsNoAttackBodyType.Contains[${Spawn[id ${_tmpID}].Body}]}) {
-          DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoAttackBodyType\ax (\a-r${Spawn[id ${_tmpID}].Body}\ax)
-          /varset _spCount 1
-          /continue
-        }
-
-        | can i come into the out now?
-        /if (${Spawn[id ${_tmpID}].Type.Equal[NPC]}) {
-          /if (${lsNoTargetNPC.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
-            DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetNPC\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
-            /varset _spCount 1
-            /continue
-          }
-        }
-
-        | PCs to not consider
-        /if (${Spawn[id ${_tmpID}].Type.Equal[PC]}) {
-          /if (${lsNoTargetPC.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
-            DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetPC\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
-            /varset _spCount 1
-            /continue
-          }
-        }
-
-        | magic creatures to not consider
-        /if (${Spawn[id ${_tmpID}].Type.Equal[Magic]}) {
-          /if (${lsNoTargetMagic.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
-            DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetMagic\ax (\a-r${Spawn[${_tmpID}].DisplayName}\ax)
-            /varset _spCount 1
-            /continue
-          }
-        }
-
-        /if (${_tmpID} == ${Me.Pet.ID}) {
-          /continue
-        }
-
-        | CYA for shit MQ will pick up in the environment that does not have a name
-        /if (${Spawn[ID ${_tmpID}].DisplayName.Length} < 1) {
-          DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wDisplayName.Length < 1\ax
-          /varset _spCount 1
-          /continue
-        }
-
-        | check navigation path validity
-        /if (!${Navigation.PathExists[id ${_tmpID}]} && !${maOver.Find[swOverNavCheck].Value}) {
-          DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-yid ${_tmpID}\ax]\ax (\a-r${Spawn[id ${_tmpID}].DisplayName}\ax)
-          /varset _spCount 1
-          /continue
-        }
-
-        | pet tagging mezed mobs only (should be skipped. pets cannot break mez)
-        | skip this if we are the group main assist
-        /if (${Group.MainAssist.Name.NotEqual[${Me.DisplayName}]}) {
-          /if (${maCC.Find[stPullMode].Value.Equal[pet]} && ${lsAnimationMezed.Contains[${Spawn[id ${_tmpID}].Animation}]}) {
-            /continue
-          }
-        }
-
-        |** check nav length
-        /if (${Navigation.PathLength[id ${_tmpID}]} > -1) {
-          /varset _navRange ${Navigation.PathLength[id ${_tmpID}]}
-
-          | sort by closest nav path length
-          /if (${_navRange} <= ${_closestNAV}) {
-            /varset _closestNAV ${_navRange}
-          } else /if (${_navRange} > ${_closestNAV}) {
-            /continue
-          }
-        } else /if (${Navigation.PathLength[id ${_tmpID}]} <= 0) {
-          /continue
-        }
-
-        **|
-
-        | added because MQ sucks ass for getting accurate HP values returned over a mouse dick in length.
-        /if (${Spawn[id ${_tmpID}].PctHPs} > 100 && ${_tmpAgroRange} > 200) {
-          /varset _tmpHPAdj 100
-        } else {
-          /varset _tmpHPAdj ${Spawn[id ${_tmpID}].PctHPs}
-        }
-
-        | get the lowest HP mob if we can
-        /if (${_tmpHPAdj} <= ${_mobHP}) {
-          /varset _mobHP ${Spawn[id ${_tmpID}].PctHPs}
-          /varset stAssTarID ${_tmpID}
-          /invoke ${maCC.Add[swSetCombat,TRUE]}
-          DEBUG ${sep}T2K${sep}\awTARGET\aw${sep}\ay${Spawn[TARGET].DisplayName}\ay ${sep} ${If[${Spawn[TARGET].LineOfSight},\ag${Spawn[TARGET].Distance}\ax,\ar${Spawn[TARGET].Distance}\ax]}
-        }
-
-        | is this a priority mob?
-        /if (${lsZoneNoMez.Contains[${Spawn[ID ${_tmpID}].DisplayName}]} || ${lsZoneNamed.Contains[${Spawn[id ${_tmpID}].DisplayName}]}) {
-          DEBUG ${sep}Priority Mob${sep}\a-w${Spawn[id ${_tmpID}].DisplayName}\ax
-          | off tanks have to sort by a different position
-          /if (TARGET && ${Me.XTarget[1].ID} == ${_tmpID}) {
-            DEBUG ${sep}#:${_count}${dot}${_tmpID}${sep}\arPASS\ax on${sep}\a-wMe.XTarget[1].ID != _tmpID\ax
-            /continue
-          }
-          /return TARGET
-        }
-
-      /next _count
-
-    }
-
-    /if (TARGET) /return TARGET
-    /varcalc _tmpAgroRange ${_tmpAgroRange}+${Math.Calc[PULLENV/5]}
-  }
-
-  /if (!TARGET) {
-    /delay 5
-  }
-
-/return TARGET
-
 
 
 

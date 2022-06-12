@@ -18,6 +18,23 @@ on the to do list
 --------------------
 
 
+
+220612.01
+- rezing
+  a blocked rez "Your ability has failed. Timer has been reset."
+  will not be treated as a successful landing resurrection. a timer will be set default is 30s
+  before another attempt is made
+- best in book spells
+  will now adapt by the max SPA @Darth_Voidptr#5678
+- mode rof_shard_bodhe
+  adapted to use the whatever class is runnings main routine for combat
+  no more special build combat routine
+- /area nopull
+  adds a mob to ignore for pulling purposes only. if the mob is within the pullers saferadius, 
+  this exeption is skipped and the mob will be pulled
+  
+
+
 220408.01
 - adjustment to rest for the combat cooldown
 - working on an /event system. just getting it out there for a few to test

@@ -79,10 +79,18 @@ sub REZ_ACCEPT(string _line, bool _debug)
 #event CAST_BEGIN                  "You begin singing#*#"
 #event CAST_BEGIN                  "Your #1# begins to glow.#*#"
 #event CAST_BEGIN                  "Your summon#*#"
+#event CAST_BEGIN                  "Your ability has failed. Timer has been reset#.#"
 sub Event_CAST_BEGIN(string _line, bool _debug)
   EDEBUG SUCCESS
   /invoke ${maData.Add[stCastReturn,SUCCESS]}
 /return
+
+
+| #event CAST_BLOCKED            "Your ability has failed. Timer has been reset."
+| sub Event_CAST_BLOCKED(string _line, bool _debug)
+|   EDEBUG BLOCKED
+|   /invoke ${maData.Add[stCastReturn,BLOCKED]}
+| /return
 
 #event CAST_OVERWRITTEN            "Your#*#has been overwritten#*#"
 sub Event_CAST_OVERWRITTEN(string _line, bool _debug)
@@ -2508,7 +2516,7 @@ sub Event_Tofs2(string Line)
 
 
 |********************************************************************************************
- ** Claws of Veeshan ()
+ ** Claws of Veeshan (2020)
  **|
  
  
@@ -2594,5 +2602,5 @@ sub Event_TrunkRock()
 
 
 |********************************************************************************************
- ** Rorment of Luclin ()
+ ** Torment of Luclin (2021)
  **|

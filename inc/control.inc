@@ -1559,6 +1559,8 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
     /varset _element lsZoneNoCold
   } else /if (${_type.Equal[nocorruption]}) {
     /varset _element lsZoneNoCorruption
+  } else /if (${_type.Equal[nopull]}) {
+    /varset _element lsZoneNoPull
 
 
   | debuffs
@@ -1642,7 +1644,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
     }
 
   | remaining list adjustments
-  } else /if (${Select[${_type},exclude,named,charm,ranged,hunt,nomez,nocast,nomelee,nomagic,nodisease,nofire,nopoison,nocold,nocorruption,nosnare,nocripple,notash,nomalo,noeradicate,noslow]} && ${Target.ID}) {
+  } else /if (${Select[${_type},exclude,named,charm,ranged,hunt,nomez,nocast,nomelee,nomagic,nodisease,nofire,nopoison,nocold,nocorruption,nosnare,nocripple,notash,nomalo,noeradicate,noslow,nopull]} && ${Target.ID}) {
     DEBUG ${sep}target${sep}\a-w${Target.DisplayName}\ax
     /if (!${${_element}.Contains[${Target.DisplayName}]}) {
       | Add a property to a mob
@@ -1677,6 +1679,7 @@ sub Bind_control_area(string _type, string _verbage, string _silent, bool _debug
   /invoke ${maControl.Add[safe,swZoneSafe]}
   /invoke ${maControl.Add[named,option]}
   /invoke ${maControl.Add[exclude,option]}
+  /invoke ${maControl.Add[nopull,option]}
   /invoke ${maControl.Add[charm,option]}
   /invoke ${maControl.Add[ranged,option]}
   /invoke ${maControl.Add[nomez,option]}
