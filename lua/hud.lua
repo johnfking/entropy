@@ -133,7 +133,6 @@ local function imguicallback()
         ImGui.EndTabItem()
       end
 
-
 -- buff tab 
       if mq.TLO.Macro.Variable('maHud').Find('swTabBuff').Value() == "TRUE" then
         if ImGui.BeginTabItem('Buff') then
@@ -356,6 +355,11 @@ local function imguicallback()
           ImGui.NewLine()
 
           ImGui.Columns(2, 'tarbase', false)
+
+            -- ID
+            ImGui.TextColored(0.39, 0.58, 0.92, 1, 'ID:')
+            ImGui.SameLine()
+            ImGui.TextColored(1, 1, 1, 1, mq.TLO.Target.ID())        
 
             -- body
             ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Body:')

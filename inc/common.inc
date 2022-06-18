@@ -2057,7 +2057,19 @@ sub get_target_basepull(bool _debug, spawn _spawn)
   /if (${_spawn.ID}) {
     /varset stAssTarID ${_spawn.ID}
   } else {
-    /call pull_mob_find ${_debug}
+    | /call pull_mob_find ${_debug}
+    
+    /invoke ${pull_constraints[]}
+    /call build_map_spawndata
+    /call pull_mob_find_v2
+    
+    | check for pets
+    /if (!${Macro.Return}) {
+      /invoke ${maData.Add[pulltype,NPCPET]}
+      /call build_map_spawndata
+      /call pull_mob_find_v2
+    }
+    
   }
 
   DEBUG ${sep}target${sep}\a-wTARGET\ax
@@ -2131,9 +2143,9 @@ sub get_target_wait(bool _debug, spawn _spawn, string _waittime)
   /if (!${_spawn.Dead}) {
     /invoke ${out[9, "Waiting on${sep}${con_color[${_debug}, ${_spawn.ID}]}${sep}\a-w${_waittime}\ax"]}
   }
-
+  
   /while (${wait_for_mob}) {
-
+    
     /if (${SpawnCount[npc radius SAFEENV PS4 targetable]}) {
       DEBUG ${break}/while \a-ghostile mob in safeenv raidus\ax
       /invoke ${set_timer[${_debug}, wait_for_mob, 0]}
@@ -2191,7 +2203,7 @@ sub get_target_wait(bool _debug, spawn _spawn, string _waittime)
       DEBUG ${sep}/while \a-gbreak_MaxRangeTo <> ${maHard.Find[stMinBowDist].Value}\ax
       /break
     }
-
+    
     | LoS time reduction
     /if (!${_spawn.LineOfSight} && ${_spawn.Distance} < ENV) {
       /delay 1
@@ -2214,6 +2226,16 @@ sub get_target_wait(bool _debug, spawn _spawn, string _waittime)
       /break
     }
   }
+  
+  |** if its close enough. lets move to it
+  /if (${_spawn.Distance} > ${_spawn.MaxRangeTo} && ${_spawn.Distance} >= SAFEENV) {
+    DEBUG ${break}mob is inside env, move to it.
+    /invoke ${set_timer[${_debug}, wait_for_mob, 0]}
+    /delay 5
+    /call spawn_stick ${_debug} ${_spawn.ID}
+    /break
+  }  
+  **|
 
   /if (${maPull.Find[stCountChainPull].Value}) {
     DEBUG ${break}clearing target for chain puller
@@ -7220,7 +7242,7 @@ sub pull_mob_move_to(bool _debug, spawn _spawn, int _dist, string _LoS)
 
   /nav ID ${_spawn.ID} |distance=${_dist} lineofsight=${_LoS} log=${maEntropy.Find[swNavLogSpew].Value}
   /delay 1s ${Navigation.Active}
-
+  
   DEBUG ${sep}moving to${sep}\a-w${_spawn.ID}\ax
   /while (${Navigation.Active}) {
     ISMEDEAD
@@ -7256,25 +7278,28 @@ sub pull_mob_move_to(bool _debug, spawn _spawn, int _dist, string _LoS)
 
     | are we there yet??? (no los required)
     /if (!${Bool[${_LoS}]}) {
-      /if (${_spawn.Distance} <= ${_dist} && !${_spawn.LineOfSight}) {
+      /if (${targetData.Distance} <= ${_dist} && !${_spawn.LineOfSight}) {
         DEBUG ${sep}dis check${sep}\a-w${_spawn.Distance} <= ${_dist} && !\arLOS\ax
         /delay 2
         /nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
         /return TRUE
       }
       
+
     | LOS required
     } else /if (${Bool[${_LoS}]}) {
       /if (${_spawn.Distance} <= ${_dist} && ${_spawn.LineOfSight}) {
         DEBUG ${sep}dis \arHALT\ax${sep}\a-w${_spawn.Distance} <= \ag${_dist}\ax && \agLOS\a-w (\a-r${_spawn.ID}\ax)
+        /call target set ${_spawn.ID}
+        /delay 10
         /nav stop |log=${maEntropy.Find[swNavLogSpew].Value}
         /return TRUE
       }
     }
 
-    | abort nav if agro (non mode)
+   | abort nav if agro (non mode)
     /if (!${swModeToken}) {
-      /if (${SpawnCount[npc radius SAFEENV PS4]} > 0  && ${NearestSpawn[npc radius SAFEENV PS4].ID} != ${_spawn.ID} && ${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} > SAFEENV) {
+      /if (${SpawnCount[npc radius SAFEENV PS4]} > 0 && ${NearestSpawn[npc radius SAFEENV PS4].ID} != ${_spawn.ID} && ${Math.Distance[${Me.Y},${Me.X},${Me.Z}:${maData.Find[stCampY].Value},${maData.Find[stCampX].Value},${maData.Find[stCampZ].Value}]} > SAFEENV) {
         DEBUG ${break}we have agro.. drop intended target and return to camp
         /varset _spawn 0
         /return TRUE    
@@ -7325,8 +7350,8 @@ sub pull_mob_move_to(bool _debug, spawn _spawn, int _dist, string _LoS)
  * note: uses a pet class to get mobs to camp
  * use: /call get_target_petpull DEBUG [targetID] [adjusted find counter]
  ***|
-sub get_target_petpull(bool _debug, spawn _spawn, int _spCount)
-  DEBUG \atget_target_petpull\ax(\a-w${_spawn.ID}, ${_spCount}\ax)
+sub get_target_petpull(bool _debug, spawn _spawn)
+  DEBUG \atget_target_petpull\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
   GETINPUT get_target_petpull _spawn|${_spawn.ID}
@@ -7349,13 +7374,13 @@ sub get_target_petpull(bool _debug, spawn _spawn, int _spCount)
     /call set_pull_observer ${_debug}
   } else {
 
-    | if we pass an increment adjustment, set it, otherwise, 0
-    /if (!${Bool[${_spCount}]}) {
-      /varset _spCount 0
-    }
-    
     | find us a mob
-    /call pull_mob_find ${_debug} ${_spCount}
+    /invoke ${pull_constraints[${_debug}]}
+    /call build_map_spawndata
+    /call pull_mob_find_v2
+
+
+    | /call pull_mob_find ${_debug} ${_spCount}
   }
 
   | if we dont find a mob, restart the cycke
@@ -7488,10 +7513,10 @@ sub get_target_petpull(bool _debug, spawn _spawn, int _spCount)
 
 |***
  * note: mechanics for nav pulling
- * note: /call get_target_navpull DEBUG [spawn] [spawncount adjustment]
+ * note: /call get_target_navpull DEBUG [spawn]
  ***|
-sub get_target_navpull(bool _debug, spawn _spawn, int _spCount)
-  DEBUG \atget_target_navpull\ax(\a-w${_spawn.ID}, ${_spCount}\ax)
+sub get_target_navpull(bool _debug, spawn _spawn)
+  DEBUG \atget_target_navpull\ax(\a-w${_spawn.ID}\ax)
 
   ISMEDEAD
   GETINPUT get_target_navpull _spawn|${_spawn.ID}
@@ -7504,11 +7529,17 @@ sub get_target_navpull(bool _debug, spawn _spawn, int _spCount)
   } else /if (PULL) {
     /if (!${_spawn.ID} && !${targetData.ID}) {
       
-      /if (!${Bool[${_spCount}]}) {
-        /varset _spCount 0
-      }      
+      /invoke ${pull_constraints[${_debug}]}
+      /call build_map_spawndata
+      /call pull_mob_find_v2
       
-      /call pull_mob_find ${_debug} ${_spCount}
+      | check for pets
+      /if (!${Macro.Return}) {
+        /invoke ${maData.Add[pulltype,NPCPET]}
+        /call build_map_spawndata
+        /call pull_mob_find_v2
+      }
+
       /if (!${targetData.ID}) {
         DEBUG ${sep}\arNO\ax${sep}\a-wtargetData.ID\ax
         SETHUD
@@ -7544,10 +7575,11 @@ sub get_target_navpull(bool _debug, spawn _spawn, int _spCount)
 
   | set the target
   /invoke ${out[9, "Fetching${sep}${con_color[${_debug}, ${_spawn.ID}]}\ax"]}
-  /call target set ${_spawn.ID} 
+  | /call target set ${_spawn.ID} 
 
   | if the mob is kinda close??
   /if (${_spawn.LineOfSight} && ${_spawn.Distance} < ENV) {
+    /call target set ${_spawn.ID}
     DEBUG ${sep}navpull${sep}in sight < ENV
     /call pull_mob_prep ${_debug} ${_spawn.ID}
     /if (!${Macro.Return}) {
@@ -10082,11 +10114,14 @@ sub check_for_corpse(bool _debug)
         }
 
         | if there is no id, or the current corpse has a marker on it, move on
-        /if (!${_spawn.ID} || ${timer_corpse_${_spawn.ID}}) {
-          DEBUG ${sep}badID or timer set. next corpse
+        /if (!${_spawn.ID}) {
+          DEBUG ${sep}badID. next corpse
+          /varcalc _increment ${_increment} + 1
+        } else /if (${timer_corpse_${_spawn.ID}}) {
+          DEBUG ${sep}timer set. next corpse
           /varcalc _increment ${_increment} + 1
         } else {
-          DEBUG found good corpse
+          DEBUG ${sep}found good corpse
           /varset _found TRUE
         }
       }
@@ -13034,7 +13069,13 @@ sub pull_assist_decision(bool _debug)
   
   /if (!PULL) {
   
-    /if (!TARGET || ${Spawn[TARGET].Distance} > ENV || HEAL) {
+    /if (!${targetData.ID}) {
+      /if (!${maOver.Find[swTargetClear].Value}) {
+        /invoke ${target[clear]}
+      }
+    }
+
+    /if (${targetData.Distance} > ENV || HEAL) {
       /if (!${maOver.Find[swTargetClear].Value}) {
         /invoke ${target[clear]}
       }
@@ -13066,7 +13107,7 @@ sub pull_assist_decision(bool _debug)
   } else /if (PULL) {
     
     | alternate pullers
-    /if (${Group.MainAssist.ID} != ${Me.ID} && ${Group.Members}) {
+    /if (${Group.MainAssist.ID} != ${Me.ID} && ${Group.Members} && !${maOver.Find[swOverGroupAss].Value}) {
       DEBUG ${submenu}pullstate (\a-ralternate puller\ax)
 
       | chain pulling
@@ -13093,20 +13134,77 @@ sub pull_assist_decision(bool _debug)
           DEBUG ${submenu}pullstate (\a-radvanced: ${maPull.Find[stPullMode].Value} chain\ax)
           | /call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value} 0 ${Int[${Math.Calc[${maPull.Find[stCountChainPull].Value} + 1]}]}
           /call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value} 0 ${maPull.Find[stCountChainPull].Value}
-          
-   
       }
-      
+
+
       | break pulling if a mob is in ENV AND LOS and go back to assist
-      /if (${SpawnCount[npc los radius ENV PS4]}) {
+      /if (${SpawnCount[npc los radius ENV PS4]} && !${maOver.Find[swOverGroupAss].Value}) {
         DEBUG ${submenu}pullstate (\a-rswapping to assist for los proximity agro\ax)
         /call get_assist_target ${maDebug.Find[assist].Value}
         /return FALSE
       }
+
+
+      | Pet pulling
+      /if (${maPull.Find[stPullMode].Value.Equal[pet]}) {
+        DEBUG ${submenu}pullstate (\a-rpet pull\ax)
+          
+          | hardstop check
+          /if (!${SpawnCount[NPC radius ENV PS4 targetable]}) {
+            DEBUG ${submenu}pullstate (\a-rhardstop: no mobs\ax)
+            /if (!${timer_Check_Pull_Hardstop}) {
+              /call pull_hardstop ${maDebug.Find[hardstop].Value}
+              /if (${Macro.Return}) {
+                /return FALSE
+              }
+            } else /if (${timer_Check_Pull_Hardstop}) {
+              DEBUG ${submenu}pullstate (\a-rhardstop Timer${sep}${timer_Check_Pull_Hardstop}\ax)
+              /delay 1
+              /return FALSE
+            }
+          }
+
+          DEBUG ${submenu}pullstate (\a-radvanced: prep chain\ax)
+          /call pull_prep_advanced ${maDebug.Find[pull].Value}
+          DEBUG ${submenu}pullstate (\a-radvanced: ${maPull.Find[stPullMode].Value} pet\ax)
+          /call get_target_petpull ${maDebug.Find[pull].Value} 0
+      }
+
+
+    } else /if (${Group.MainAssist.ID} != ${Me.ID} && ${Group.Members} && ${maOver.Find[swOverGroupAss].Value} || !${targetData.ID}) {
+
+      DEBUG ${submenu}pullstate (\a-rpull check\ax)
+
+      | hardstop check
+      /if (!${SpawnCount[npc radius ENV targetable]}) {
+        DEBUG ${submenu}pullstate (\a-rhardstop: no mobs\ax)
+        /if (!${timer_Check_Pull_Hardstop}) {
+          /call pull_hardstop ${maDebug.Find[hardstop].Value}
+          /if (${Macro.Return}) {
+            /return FALSE
+          }
+        } else /if (${timer_Check_Pull_Hardstop}) {
+          DEBUG ${submenu}pullstate (\a-rhardstop Timer${sep}${timer_Check_Pull_Hardstop}\ax)
+          /delay 1
+          /return FALSE
+        }
+      }
+
+      /if (${maPull.Find[stPullMode].Value.Equal[base]}) {
+        DEBUG ${submenu}pullstate (\a-rbase\ax)
+        /call get_target_basepull ${maDebug.Find[pull].Value}
+      } else {
+        DEBUG ${submenu}pullstate (\a-radvanced: prep\ax)
+        /call pull_prep_advanced ${maDebug.Find[pull].Value}
+        DEBUG ${submenu}pullstate (\a-radvanced: ${maPull.Find[stPullMode].Value}\ax)
+        /call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
+      }
+
+      
     }
    
 
-    | pulling when there is no established target    
+    |**  pulling when there is no established target    
     /if (!TARGET) {
       DEBUG ${submenu}pullstate (\a-rpull check\ax)
 
@@ -13135,6 +13233,7 @@ sub pull_assist_decision(bool _debug)
         /call get_target_${maPull.Find[stPullMode].Value}pull ${maDebug.Find[pull].Value}
       }
     }
+    **|
   }
 
 /return TRUE
@@ -14062,7 +14161,7 @@ sub get_assist_target(bool _debug, string _call)
   | smart / DanNet Assisting
   /if (!${maCC.Find[swManualAssist].Value}) {
  
-    | tar acquisition when using smart assist. set XTarget positions.
+    | tar acquisition when using smart assist.
     /if (${Select[${maCC.Find[stAssistMode].Value},g,1,2,3,m1,m2,m3]}) {
       DEBUG ${sep}Returning${sep}\a-wsmart assist\ax
 
@@ -14076,70 +14175,31 @@ sub get_assist_target(bool _debug, string _call)
           /return ${targetData.ID}
         }
 
-      | raid assist 1
-      } else /if (${Select[${maCC.Find[stAssistMode].Value},1]} && ${Raid.MainAssist[1].ID} && !${Raid.MainAssist[1].Dead}) {
-        DEBUG ${sep}set smart${sep}\a-w1\ax
-        /vardata assistData Spawn[${Raid.MainAssist[1].ID}]
-        /vardata targetData Spawn[${Me.RaidAssistTarget[1].ID}]
-        | /vardata assistData Raid.MainAssist[1].ID
-        | /vardata targetData Me.RaidAssistTarget[1].ID
-        /varset stAssTarID ${Me.RaidAssistTarget[1].ID}
-        /if (${_call.Equal[return]}) {
-          /return ${targetData.ID}
+      | raid assist
+      } else /if (${Select[${maCC.Find[stAssistMode].Value},1,2,3]}) {
+        DEBUG ${sep}set smart${sep}\a-w${_set}\ax
+        /declare _set int local ${maCC.Find[stAssistMode].Value}
+        /if (!${Raid.MainAssist[${_set}].ID} || ${Raid.MainAssist[${_set}].Dead}) {
+          /return 0
         }
-       
-      | raid mark 1  
-      } else /if (${Select[${maCC.Find[stAssistMode].Value},m1]}) {
-        DEBUG ${sep}set raid mark${sep}\a-wm1\ax
-        /vardata targetData Spawn[${Me.RaidMarkNPC[1].ID}]
-        /varset stAssTarID ${Me.RaidMarkNPC[1].ID}
-        /if (${_call.Equal[return]}) {
-          /return ${targetData.ID}
-        }
+        /vardata assistData Spawn[${Raid.MainAssist[${_set}].ID}]
+        /vardata targetData Spawn[${Me.RaidAssistTarget[${_set}].ID}]
+        /varset stAssTarID ${Me.RaidAssistTarget[${_set}].ID}
 
+      | raid mark  
+      } else /if (${Select[${maCC.Find[stAssistMode].Value},m1,m2,m3]}) {
+        /declare _set int local ${maCC.Find[stAssistMode].Value.Right[1]}
+        DEBUG ${sep}set raid mark${sep}\a-wm${_set}\ax
+        /vardata targetData Spawn[${Me.RaidMarkNPC[${_set}].ID}]
+        /varset stAssTarID ${Me.RaidMarkNPC[${_set}].ID}
+      }
 
-      | raid assist 2
-      } else /if (${Select[${maCC.Find[stAssistMode].Value},2]} && ${Raid.MainAssist[2].ID} && !${Raid.MainAssist[2].Dead}) {
-        DEBUG ${sep}set smart${sep}\a-w2\ax
-        /vardata assistData Spawn[${Raid.MainAssist[2].ID}]
-        /vardata targetData Spawn[${Me.RaidAssistTarget[2].ID}]
-        /varset stAssTarID ${Me.RaidAssistTarget[2].ID}
-        /if (${_call.Equal[return]}) {
-          /return ${targetData.ID}
-        }
-
-      | raid mark 2  
-      } else /if (${Select[${maCC.Find[stAssistMode].Value},m2]}) {
-        DEBUG ${sep}set raid mark${sep}\a-wm1\ax
-        /vardata targetData Spawn[${Me.RaidMarkNPC[2].ID}]
-        /varset stAssTarID ${Me.RaidMarkNPC[2].ID}
-        /if (${_call.Equal[return]}) {
-          /return ${targetData.ID}
-        }
-
-
-      | raisd assist 3
-      } else /if (${Select[${maCC.Find[stAssistMode].Value},3]} && ${Raid.MainAssist[3].ID} && !${Raid.MainAssist[3].Dead}) {
-        DEBUG ${sep}set smart${sep}\a-w3\ax
-        /vardata assistData Spawn[${Raid.MainAssist[3].ID}]
-        /vardata targetData Spawn[${Me.RaidAssistTarget[3].ID}]
-        /varset stAssTarID ${Me.RaidAssistTarget[3].ID}
-        /if (${_call.Equal[return]}) {
-          /return ${targetData.ID}
-        }
-      
-      | raid mark 3  
-      } else /if (${Select[${maCC.Find[stAssistMode].Value},m3]}) {
-        DEBUG ${sep}set raid mark${sep}\a-wm1\ax
-        /vardata targetData Spawn[${Me.RaidMarkNPC[3].ID}]
-        /varset stAssTarID ${Me.RaidMarkNPC[3].ID}
-        /if (${_call.Equal[return]}) {
-          /return ${targetData.ID}
-        } 
-      }     
+      /if (${_call.Equal[return]} && ${targetData.ID}) {
+        /return ${targetData.ID}
+      } 
 
       | skip corpses and me
-      /if (${targetData.Dead} || ${targetData.ID} == ${Me.ID} || !${Select[${targetData.Type},npc]}) {
+      /if (${targetData.Dead} || ${targetData.ID} == ${Me.ID} || !${Select[${targetData.Type},npc]} || !${targetData.ID}) {
         DEBUG ${break} bad target${sep}\a-wcorpse or self\ax
         /varset assistData 0
         /varset targetData 0
@@ -14236,7 +14296,6 @@ sub get_assist_target(bool _debug, string _call)
       }
       
     }
-
 
   | manual assisting
   } else /if (${maCC.Find[swManualAssist].Value} && ${_call.NotEqual[inline]}) {
@@ -15420,13 +15479,9 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
         /return TRUE
       }
 
-|**
-/if (${Me.AltAbility[Metronome]}) {
-	/delay ${spellData.CastTime.Seconds}s
-} else {
-	/delay ${Math.Calc[${spellData.CastTime.Seconds}+${Math.Calc[${spellData.CastTime.Seconds}*.05]}]}s
-}
-**|     
+      /if (!${Me.AltAbility[Metronome]}) {
+      	/delay ${Math.Calc[${spellData.CastTime.Seconds}+${Math.Calc[${spellData.CastTime.Seconds}*.05]}]}s
+      }
 
       /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,RESISTED,IMMUNE]}) {
         /varset _castLoop 0
@@ -16204,11 +16259,265 @@ sub check_sash_proc(bool _debug, string _target)
 
 
 
+|***
+ * note: builds teh spawn data map (maSD) for all mobs in your pull rad
+ *       we do not care if its a valid path or not. just get all the mobs of that type
+ * use: /call build_map_spawndata
+ ***|
+sub build_map_spawndata(bool _debug)
+  DEBUG \atbuild_map_spawndata\ax(\a-w\ax)
+
+  /declare _count int local 0
+  /declare _spawn spawn local
+  /declare _spawnCount int local 0
+  /declare _priority int local 0
+  
+  /varset _spawnCount ${SpawnCount[${maSD.Find[type].Value} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius PULLENV zradius ${maPull.Find[stPullZRadius].Value} targetable]}
+  
+  /for _count 1 to ${_spawnCount}
+
+    /if (!${NearestSpawn[${_count}, ${maSD.Find[type].Value} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius PULLENV zradius ${maPull.Find[stPullZRadius].Value} targetable].ID}) {
+      DEBUG ${sep} NearestSpawn ${_count} invalid. moving to next
+      /continue
+    }
+    
+    /vardata _spawn NearestSpawn[${_count}, ${maSD.Find[type].Value} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius PULLENV zradius ${maPull.Find[stPullZRadius].Value} targetable]
+
+      | arc limiting
+      /if (${maPull.Find[stPullArcWidth].Value}) {
+        /if (!${Defined[_tmpDegree]}) {
+          /declare _tmpDegree float local 0
+        }
+        /varset _tmpDegree ${_spawn.HeadingTo[${maData.Find[stCampY].Value},${maData.Find[stCampX].Value}].Degrees}
+        DEBUG ${sep}0:(${stPullArcLeft} >= ${stPullArcRight})
+        /if (${stPullArcLeft} >= ${stPullArcRight}) {
+          DEBUG ${sep}1:${_tmpDegree} < ${stPullArcLeft} && ${_tmpDegree} > ${stPullArcRight}
+          /if (${_tmpDegree} < ${stPullArcLeft} && ${_tmpDegree} > ${stPullArcRight}) {
+            /continue
+          }
+        } else {
+          DEBUG ${sep}2:${_tmpDegree} < ${stPullArcLeft} || ${_tmpDegree} > ${stPullArcRight}
+          /if (${_tmpDegree} < ${stPullArcLeft} || ${_tmpDegree} > ${stPullArcRight}) {
+            /continue
+          }
+        }
+      }
+
+      | things to consider
+    
+      | we do not hunt ourselves or our pets. you have issues...
+      /if (${_spawn.ID} == ${Me.ID} || ${_spawn.Type.Equal[pcpet]} || ${_spawn.ID} == ${Me.Pet.ID}) {
+        DEBUG ${skip}do not engage pets in the main cycle${sep}\ar${_spawn.Type}\ax
+        /continue
+
+      | skip pets unless you are specifically looking for them
+      } else /if (${_spawn.Type.Equal[NPCPET]} && ${maSD.Find[type].Value.NotEqual[NPCPET]}) {
+        DEBUG ${skip}do not engage NPC pets in the main cycle, do it later${sep}\ar${_spawn.Type}\ax
+        /continue
+
+      | excluded mobs
+      } else /if (${lsZoneExclude.Contains[${_spawn.DisplayName}]}) {
+        DEBUG ${skip}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsZoneExclude\ax (\a-r${_spawn.DisplayName}\ax)
+        /continue
+        
+      | no pull mobs
+      } else /if (${lsZoneNoPull.Contains[${_spawn.DisplayName}]} && ${_spawn.Distance3D} > SAFEENV) {
+        DEBUG ${skip}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsZoneNoPull\ax (\a-r${_spawn.DisplayName}\ax)
+        /continue
+
+      | fish are friends, not food
+      } else /if (${lsNoAttackBodyType.Contains[${_spawn.Body}]}) {
+        DEBUG ${skip}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoAttackBodyType\ax (\a-r${_spawn.Body}\ax)
+        /continue
+
+      | animation checks
+      } else /if (${lsAnimationNoTarget.Contains[${_spawn.Animation}]}) {
+        DEBUG ${skip}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsAnimationNoTarget\ax (\a-r${_spawn.Animation}\ax)
+        /continue
+
+      | magic creatures to not consider
+      } else /if (${_spawn.Type.Equal[Magic]} && ${lsNoTargetMagic.Contains[${_spawn.DisplayName}]}) {
+        DEBUG ${skip}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wlsNoTargetMagic\ax (\a-r${_spawn.DisplayName}\ax)
+        /continue
+
+      | skip this if we are the not group main assist and pet pulling
+      } else /if (${Group.MainAssist.Name.NotEqual[${Me.DisplayName}]}) {
+        /if (${maPull.Find[stPullMode].Value.Equal[pet]} && ${lsAnimationMezed.Contains[${_spawn.Animation}]}) {
+          /continue
+        }
+
+      |** check navigation path validity for all but base pulling
+      } else /if (!${Select[${maPull.Find[stPullMode].Value},base]}) {
+        /if (!${Navigation.PathExists[id ${_spawn.ID}]} && !${maOver.Find[swOverNavCheck].Value}) {
+           DEBUG ${skip}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-y${_spawn.ID}\ax]\ax (\a-r${_spawn.DisplayName}\ax)
+          /continue
+        }
+      **|
+
+      }
+   
+    | mark priority mob
+    /if ((${lsZoneNoMez.Contains[${_spawn.DisplayName}]} || ${lsZoneNamed.Contains[${_spawn.DisplayName}]}) && ${_spawn.Distance} <= ENV) {
+      /varset _priority 1
+    }
+
+    | key: spawn ID
+    | value -  1|pc/npc/? 2|dist 3|navpath 4|named/nomez/normal 0/1
+    DEBUG ${sep}maSD.Add[${_spawn.ID}, |${_spawn.Type}|${_spawn.Distance}|${Navigation.PathLength[id ${_spawn.ID}]}|${_priority}]
+    /invoke ${maSD.Add[${_spawn.ID}, |${_spawn.Type}|${_spawn.Distance}|${Navigation.PathLength[id ${_spawn.ID}]}|${_priority}]}
+    
+    | reset values
+    /varset _priority 0
+    
+  /next _count
+  
+/return TRUE  
+
+
+  
+|***
+ * note: finds the closest mob based on what is in the spawn data map
+ * use: /call pull_mob_find_v2. returns a valid spawn ID and sets spawnData
+ ***|  
+sub pull_mob_find_v2(bool _debug)
+  DEBUG \atpull_mob_find_v2\ax(\a-w\ax)
+
+  | break on empty maps
+  /if (${maSD.Count} < 5) {
+    DEBUG ${sep}Nothing to pull in Pull Radius / Pull Z Radius
+    /varset targetData 0
+    /varset stAssTarID 0
+    /delay 5
+    /return FALSE
+  }
+
+  /declare _findtimestart int local ${MacroQuest.Running}
+  /declare _path float local PULLENV
+  /declare _spawn spawn local
+  /declare _del int local 3
+ 
+  /declare _lipath mapiterator local
+  /vardata _lipath maSD.First.Clone
+  /while (!${_lipath.IsEnd}) {
+        
+    | no spawn
+    /if (!${Spawn[${_lipath.Key}].ID}) {
+      DEBUG ${break}map spawn no longer exists
+      /invoke ${_lipath.Advance}
+      /delay 5
+      /continue
+    }
+
+    |** line of sight, base pulling only
+    /if (${Select[${maPull.Find[stPullMode].Value},base]} && !${_spawn.LineOfSight}) {
+      SDEBUG ${sep}bad line of sight for base pulling
+      /varset targetData 0
+      /varset stAssTarID 0
+      /return 0
+    }
+    **|
+
+    
+    | are we using linear distance or nav path distance
+    | we dafault to nav path. adjust if necessary
+    /if (${Select[${maPull.Find[stPullMode].Value},base]}) {
+      DEBUG ${sep}set linear distance
+      /varset _del 2
+    }
+    
+    | invalid path lengths
+    /if (${_lipath.Value.Arg[${_del},|]} <= 0 && !${Select[${maSD.Find[tag].Value},petpull]}) {
+      DEBUG ${sep} swap ${_lipath.Value.Arg[${_del},|]} <= 0
+      /invoke ${_lipath.Advance}
+      /continue
+    }
+    
+    | find the one with the closest distance
+    /if (${_lipath.Value.Arg[${_del},|]} <= ${_path} && ${Bool[${_lipath.Value.Arg[${_del},|]}]}) {
+      DEBUG ${sep} swap ${_lipath.Value.Arg[${_del},|]} <= ${_path}
+      /varset _path ${_lipath.Value.Arg[${_del},|]}
+      /vardata _spawn Spawn[${_lipath.Key}]
+    }
+
+    | priority mob in ENV range (close)
+    | we accept this mob as default and go for it
+    /if (${_lipath.Value.Arg[4,|]} == 1 && ${_lipath.Value.Arg[${_del},|]} <= ENV) {
+      DEBUG ${sep}found a priority mob that is close
+      /break
+    }
+
+    /invoke ${_lipath.Advance}
+  }
+
+  | something has gone wrong and we no longer have a spawn
+  /if (!${_spawn.ID}) {
+    DEBUG ${sep}Spawn ID no longer valid or never existed. Breaking Pull
+    /varset targetData 0
+    /varset stAssTarID 0
+    /return 0
+  }
+
+  
+  | special debug output for finding fuckery
+  /if (${maSD.Find[debug].Value}) {
+    /echo ${sep}${_spawn}${sep}navlength${sep}${_path} .. 
+    /nav ID ${_spawn.ID}
+    /nav pause
+  }
+  
+  | echo wtf we are doing
+  | /invoke ${out[0, "Tagging${sep}${_spawn.DisplayName} \a-w(${Math.Calc[((${MacroQuest.Running}-${_findtimestart}) / 10) / 60]}s)\ax", 0]}
+
+  | set needed data
+  DEBUG /varset stAssTarID ${_spawn.ID}
+  
+  /varset stAssTarID ${_spawn.ID}
+  /vardata targetData _spawn.ID
+
+  | we return spawn id just cause some things are old and cranky
+/return ${_spawn.ID}
 
 
 
-Earthcaller
+|***
+ * note: sets the constraints for mobs in pull data map
+ * note: /invoke ${pull_constraints[DEBUG, TYPE, TAG, RANGE]}
+ ***|
+sub pull_constraints(bool _debug, string _type, string _tag, int _range)
+  DEBUG \atpull_constraints\ax(\a-w${_type}, ${_tag}, ${_range}\ax) 
+  
+  | we clear the map every time before we use it
+  /invoke ${maSD.Clear}
+
+  | debug 
+  /if (!${Bool[${_debug}]}) {
+    /invoke ${maSD.Add[debug,FALSE]}
+  } else {
+    /invoke ${maDebug.Add[pull,${_debug}]}
+    /invoke ${maSD.Add[debug,${_debug}]}
+  }
+
+  | pull mob type
+  /if (!${Bool[${_type}]}) {
+    /invoke ${maSD.Add[type,NPC]}
+  } else {
+    /invoke ${maSD.Add[type,${_type}]}
+  }
+  
+  | constraint tags
+  /if (!${Bool[${_tag}]}) {
+    /invoke ${maSD.Add[tag,FALSE]}
+  } else {
+    /invoke ${maSD.Add[tag,${_tag}]}
+  }
+  
+  | constraint range
+  /if (!${Bool[${_range}]}) {
+    /invoke ${maSD.Add[range,PULLENV]}
+  } else {
+    /invoke ${maSD.Add[range,${_range}]}
+  }
+
+/return TRUE
 
 
-
-${FindItem[${Me.Bandolier[testband].Item[1]}].Spell}

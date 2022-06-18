@@ -227,7 +227,8 @@ local function imguicallback()
             -- tag
             local line, selectedbufftag = ImGui.InputTextWithHint('tag##lsBuff'..i..'Tag', mq.TLO.Macro.Variable('maBuff').Find('lsBuff'..i..'Tag').Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
             if selectedbufftag then
-              mq.cmd.luaedit('lsBuff'..i..'Tag', lsBuff..i..Tag, 'overwrite')
+              -- mq.cmd.luaedit('lsBuff'..i..'Tag', lsBuff..i..Tag, 'overwrite')
+              mq.cmd.luaedit('lsBuff'..i..'Tag', line, 'overwrite')
             end
             
             indent(i,2)

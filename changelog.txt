@@ -19,10 +19,38 @@ on the to do list
 
 
 
+
+220618.01
+- /build ui -> buff tags
+  fixed a bad variable
+- adjustments to rez timer checking for valid IDs
+- bard
+  put in (read uncommented) a small delay for bards that do not have the Metronome aa
+  (you should get that btw)
+- assisting
+  design change. should no longer pick up PC.... "should"
+- /override groupass
+  will now ignore the group assist and pull regardless if you have pull settings on
+  the group assist and you may end up with the same target, but.. meh..
+- mode forage will echo whats foraged
+- pulling (mob finding and validating)  
+  this is a coimplete redesign for mob finding
+  mob acquisition and discovery have been split up
+  the macro will now find all the mobs in your area (pull rad) and then 
+  it will decide which one to pull base off of pull mode, path, so on.
+  
+  you can do an /admin pull npc and see what mob its going to pull.
+  or do /see maSD to get a list of all the mobs it seens in your area.
+  
+  so far i have converted: nav pulling, base, pet, as well as pet farm
+  any pulling not comverted will continue to work the old way.
+  
+
+
 220612.01
 - rezing
   a blocked rez "Your ability has failed. Timer has been reset."
-  will not be treated as a successful landing resurrection. a timer will be set default is 30s
+  will now be treated as a successful landing resurrection. a timer will be set default is 30s
   before another attempt is made
 - best in book spells
   will now adapt by the max SPA @Darth_Voidptr#5678
@@ -31,7 +59,7 @@ on the to do list
   no more special build combat routine
 - /area nopull
   adds a mob to ignore for pulling purposes only. if the mob is within the pullers saferadius, 
-  this exeption is skipped and the mob will be pulled
+  this exception is skipped and the mob will be pulled
   
 
 

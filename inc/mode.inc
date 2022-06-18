@@ -177,7 +177,7 @@ sub mode_forage(bool _debug)
     /return FALSE
   }
   
-  /call check_cursor ${_debug} getoffthedamncursor
+  /call check_cursor ${_debug} clear
 
   /if (!${Me.AbilityReady[forage]}) {
     /return FALSE
@@ -193,7 +193,7 @@ sub mode_forage(bool _debug)
   /doability forage
   /delay 3s ${Cursor.ID}
   
-  /call check_cursor ${_debug} getoffthedamncursor
+  /call check_cursor ${_debug} clear
 
 
   SETHUD
@@ -275,7 +275,11 @@ sub mode_petfarm(bool _debug)
   }
 
   | find a mob
-  /call pull_mob_find ${_debug} 0 petfarm
+  /invoke ${pull_constraints[${_debug}, NPC, petpull]}
+  /call build_map_spawndata
+  /call pull_mob_find_v2
+
+  
   DEBUG ${sep}pull_mob_find.return${sep}\a-w${Macro.Return}\ax
 
   /if (!${targetData.ID}) {
