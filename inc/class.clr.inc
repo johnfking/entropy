@@ -306,12 +306,6 @@ sub check_heal(bool _debug, string _type)
     }
   }
   
-  
-  | force a twinheal?
-  | /if (${maHeal.Find[swTwinHeal].Value}) {
-  |   /call cast_cycle_proc_twinheal ${maDebug.Find[twin].Value}
-  | }
-  
   | forcing of splash  
   /if (!${hurtCount} && ${maOver.Find[swOverSplashHurt].Value} && ${maHeal.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
     /if (${SpawnCount[npc radius ENV]} >= ${maHeal.Find[stCountSplash].Value}) {

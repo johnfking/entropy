@@ -207,7 +207,7 @@ end
 edit_text_perm = function (name, map, var)
   local line, selected = ImGui.InputTextWithHint(name..'##'..var, mq.TLO.Macro.Variable(map).Find(var).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
   if selected then
-    mq.cmd.luaedit(var, line, 'overwrite')
+    mq.cmd.luaedit(var, '"'..line..'"', 'overwrite')
   end  
 end
 

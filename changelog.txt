@@ -18,7 +18,19 @@ on the to do list
 --------------------
 
 
-
+220625.01
+- pet pulling
+  added in exception for mezed targets
+- /heal self
+  some adjustments to the spawn data
+- pal
+  fix so pally will twincast splash.. lots..
+- UIs
+  should now take strings with spaces w/o using quotes
+- splash
+  adjustments to fix a some bad cast data when trying to splash
+- fixed a debug in /ass
+    
 
 220618.01
 - /build ui -> buff tags
@@ -34,7 +46,7 @@ on the to do list
   the group assist and you may end up with the same target, but.. meh..
 - mode forage will echo whats foraged
 - pulling (mob finding and validating)  
-  this is a coimplete redesign for mob finding
+  this is a complete redesign for mob finding
   mob acquisition and discovery have been split up
   the macro will now find all the mobs in your area (pull rad) and then 
   it will decide which one to pull base off of pull mode, path, so on.
@@ -43,7 +55,7 @@ on the to do list
   or do /see maSD to get a list of all the mobs it seens in your area.
   
   so far i have converted: nav pulling, base, pet, as well as pet farm
-  any pulling not comverted will continue to work the old way.
+  any pulling not converted will continue to work the old way.
   
 
 

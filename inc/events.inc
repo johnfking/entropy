@@ -2604,3 +2604,206 @@ sub Event_TrunkRock()
 |********************************************************************************************
  ** Torment of Luclin (2021)
  **|
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+|********************************************************************************************
+ * this is the start of the event bind. these are custom events done by expansion.
+ * these will not work for everyone. hence the custpom part.
+ * note: seriously, i just explained it
+ * use: varries... suck it
+ ***|
+#Bind event /event
+sub Bind_event(string _action, string _option)
+
+
+  /if (${_action.Left[1].Equal[-]}) {
+    /lua run HELP event ${_action.Right[1]}
+    /return TRUE
+  }
+
+  | we build the bind outpurs on the fly for this control
+  /invoke ${maControl.Clear}
+
+
+  | some default never changing options
+  /if (${_action.Equal[ui]}) {
+    /lua run ${MacroQuest.Path[macros]}\entropy\lua\event.lua
+    /return TRUE
+  } else /if (${_action.Equal[banner]}) {
+    /nav id ${Spawn[banner].ID}
+    /return TRUE
+  } else /if (${_action.Equal[campfire]}) {
+    /nav id ${Spawn[campfire].ID}
+    /return TRUE
+  }
+
+  | /invoke ${maControl.Add[ui,option]}
+  /invoke ${maControl.Add[banner,option]}
+  /invoke ${maControl.Add[campfire,option]}
+
+
+| ---  start of ToL events
+  /if (${Zone.ShortName.Equal[maidentwo_raid]}) {    
+ 
+    | gorgana huge chain aura-
+    /if (${_action.Equal[hide]}) {
+      /if (${Me.Snared}) {
+        /call Bind_control_gtfo FORCE
+      }
+      /declare _pathlength int local 99999
+      /declare _swap string local
+      /declare _liloc listiterator local
+      /vardata _liloc lsMaidenHideLocYX.First.Clone
+      /while (!${_liloc.IsEnd}) {        
+        /if (${Navigation.PathLength[locyx ${_liloc.Value}]} < ${_pathlength}) {
+          /varset _pathlength ${Navigation.PathLength[locyx ${_liloc.Value}]}
+          /varset _swap ${_liloc.Value}
+        }
+        /invoke ${_liloc.Advance}
+      }
+      /nav locyx ${_swap}
+      /delay 5
+      /while (${Me.Moving}) {
+       /delay 1
+      }
+      /return TRUE
+    }
+    
+    | gorgana move to purple arura    
+    /if (${_action.Equal[aura]}) {
+      /declare _aura spawn local
+      /vardata _aura NearestSpawn[${maEvent.Find[st28MaidenAura].Value}]
+      /if (!${_aura.ID}) {
+        /return FALSE
+      }
+      /nav id ${_aura.ID}
+      /return TRUE
+    }
+
+    /invoke ${maControl.Add[hide,option]}
+    /invoke ${maControl.Add[aura,option]}
+    
+    
+  | Bloodfalls Close the Gate raid
+  } else /if (${Zone.ShortName.Equal[bloodfalls_raid]}) {
+    
+    | hide from T emote
+    /if (${_action.Equal[hide]}) {
+      /nav locyx ${maEvent.Find[stBloodfallsHideLocYX].Value}
+      /return TRUE
+    }
+    
+    | various cures
+    /if (${_action.Equal[cure]}) {
+    
+      | Bugs :: damage shield
+      /if (${Me.Buff[Buggs].ID}) {
+        /call remove_spa ${_debug} 59
+        /if (${cast_data[${_debug}, "${maEvent.Find[stBloodfallsBuggs].Value}"]}) {
+          /call cast ${_debug} ${Me.ID} FALSE
+        }
+      | Chased! :: Sow
+      } else /if (${Me.Buff[Chased].ID}) {
+        /call remove_spa ${_debug} 3
+        /if (${cast_data[${_debug}, "${maEvent.Find[stBloodfallsChased].Value}"]}) {
+          /call cast ${_debug} ${Me.ID} FALSE
+        }
+      | Drowning :: EB
+      } else /if (${Me.Buff[Drowning].ID}) {
+        /call remove_spa ${_debug} 57
+        /if (${cast_data[${_debug}, "${maEvent.Find[stBloodfallsDrowning].Value}"]}) {
+          /call cast ${_debug} ${Me.ID} FALSE
+        }
+      | Falling :: Levi
+      } else /if (${Me.Buff[Falling].ID}) {
+        /call remove_spa ${_debug} 57
+        /if (${cast_data[${_debug}, "${maEvent.Find[stBloodfallsFalling].Value}"]}) {
+          /call cast ${_debug} ${Me.ID} FALSE
+        }
+      | Monster :: invis
+      } else /if (${Me.Buff[Monster].ID}) {
+        /if (${cast_data[${_debug}, "${maEvent.Find[stBloodfallsMonster].Value}"]}) {
+          /call cast ${_debug} ${Me.ID} FALSE
+        }
+      | Curse of Shadows :: dispell
+      } else /if (${Me.Buff[Curse of Shadows].ID}) {
+        /if (${cast_data[${_debug}, "${maEvent.Find[stBloodfallsCurse].Value}"]}) {
+          /call cast ${_debug} ${Me.ID} FALSE
+        }
+      }
+      /return TRUE
+    }
+    
+    /invoke ${maControl.Add[hide,option]}
+    /invoke ${maControl.Add[cure,option]}
+ 
+ 
+  | Aetn Vex Thal Raid
+  } else /if (${Zone.ShortName.Equal[vexthaltwo_raid]}) {
+ 
+    | 3 stage cure
+    /if (${_action.Equal[cure]}) {
+      /call cast_cycle_cure ${_debug} ${Me.ID} FALSE FALSE
+    | run to room for emote
+    } else /if (${_action.Equal[hide]}) {
+      /nav locyx ${maEvent.Find[stAetnHideLocYX].Value}
+    }
+
+    /invoke ${maControl.Add[hide,option]}
+    /invoke ${maControl.Add[cure,option]}
+
+    
+  | Oubliette of Light Raid
+  } else /if (${Zone.ShortName.Equal[basilica_raid]}) {
+
+    | center of purple aura    
+    /if (${_action.Equal[aura]}) {
+      /declare _aura spawn local
+      /vardata _aura NearestSpawn[${maEvent.Find[st28OublietteAura].Value}]
+      /if (!${_aura.ID}) {
+        /return FALSE
+      }
+      /nav id ${_aura.ID}
+      /return TRUE
+    }
+
+    /invoke ${maControl.Add[aura,option]}
+
+ 
+  }
+  
+  
+| ---  start of Anni events
+  | Karnor anni raid
+  /if (${Zone.ShortName.Equal[karnor_raid]}) {
+    
+    | ae mez run to east room away from raid
+    /if (${_action.Equal[hide]}) {
+      /nav locyx ${maEvent.Find[stKarnorHideLocYX].Value}
+    }
+    
+    /invoke ${maControl.Add[hide,option]}
+    
+  }
+  
+
+  /invoke ${set_control_output[FALSE, maEvent, "event", maControl]}
+    
+/return TRUE
+ 
+ 
+ 

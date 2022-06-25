@@ -51,6 +51,9 @@ sub class_init(bool _debug)
   | lay on hands
   /call set_data_map FALSE maChr stPctLoH                             0                             "${auxnum} % of mana to use aa lay on hands. requires self healing to be enabled"
 
+  | try to twinheal
+  /call set_data_map ${_debug} maHeal swTwinHeal                       FALSE                        "${auxsw} allow the code to try to force twinheal buff before healing"   heal
+
   | yaulp
   /invoke ${set_data_timer[${_debug}, Check_Yaulp, 6s]}
   /call set_data_map ${_debug} maChr swYaulp                          FALSE                         "${auxsw} use yaulp"
@@ -224,9 +227,9 @@ sub check_heal(bool _debug, string _type)
   SETHUD "heal ${_type}"
 
   /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
-
+  
   | forcing of splash  
-  /if (!${hurtCount} && ${maOver.Find[swOverSplashHurt].Value} && ${maHeal.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
+  /if (!${hurtCount} && ${maOver.Find[swOverSplashHurt].Value} && ${maHeal.Find[stCountSplash].Value}) {
     /if (${SpawnCount[npc radius ENV]} >= ${maHeal.Find[stCountSplash].Value}) {
       /call Bind_command_splash ${maDebug.Find[splash].Value}
     }
@@ -244,7 +247,7 @@ sub check_heal(bool _debug, string _type)
     /if (${hurtCount} >= 1)  {
 
       | aa LoH targets target
-      /if (${maChr.Find[stPctLoH].Value} && ${Target.ID}) {
+      /if (${maChr.Find[stPctLoH].Value} && ${Target.ID} && ${Bool[${Me.TargetOfTarget.PctHPs}]}) {
         /if (${Me.TargetOfTarget.PctHPs} <= ${maChr.Find[stPctLoH].Value}*.PCTHO) {
           /if (${cast_data[${maDebug.Find[tot].Value}, "${maChr.Find[stAALayonHands].Value}"]}) {
             /call cast ${maDebug.Find[tot].Value} ${Target.ID} FALSE
@@ -293,7 +296,7 @@ sub check_heal(bool _debug, string _type)
     | heal disc
     /if (${hurtCount} >= 1) {
       /if (${cast_data[${_debug}, "${maChr.Find[stReflexive].Value}"]}) {
-        /call cast ${_debug} TARGET FALSE
+        /call cast ${_debug} ${targetData.ID} FALSE
         /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) /return FALSE
       }
     }

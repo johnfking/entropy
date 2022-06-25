@@ -967,6 +967,24 @@ elseif command == 'coh' then
   end
 
 
+--[ /event --]
+elseif command == 'event' then
+  if option == 'u' then
+    echo('\aw/'..command..' [\a-w ui|aura|banner|campfire|hide|.... \aw]')
+  elseif option == 'h' then
+    echo('aura${lsep}runs you to the designated aura')
+    echo('campfire${lsep}runs you to the nearest campfire')
+    echo('banner${lsep}runs you to the guild banner')
+    echo('hide${lsep}moves you to a designate hiding spot for the event')
+    echo('cure${lsep}cures you according to the event and settings')
+  elseif option == 's' then
+    mq.cmd.call('Bind_command_see maEvent')
+  elseif option == 't' then
+    out('notag')
+ end
+
+
+
 
 
 end

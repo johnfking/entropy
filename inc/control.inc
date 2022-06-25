@@ -1750,11 +1750,11 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
     /invoke ${maControl.Add[ch,submenu]}
     /invoke ${maControl.Add[chain,submenu]}
     /invoke ${maControl.Add[promise,swHealPromise]}
-    /invoke ${maControl.Add[twin,swTwinHeal]}
   }
 
   /if (${Select[${Me.Class.ShortName},CLR,PAL]}) {
     /invoke ${maControl.Add[splash,stCountSplash]}
+    /invoke ${maControl.Add[twin,swTwinHeal]}
   }
 
   /invoke ${maControl.Add[list,list]}
@@ -2304,16 +2304,14 @@ sub Bind_noparse_raw_edit(string _variable, string _value, string _add_delete, s
 /return TRUE
 
 
+
 |***
  * note: shorthand for raw db editing from lua
  * use: still mostly for breaking shit
  ***|
 #bind_noparse lua_raw_edit /luaedit
 sub Bind_noparse_lua_raw_edit(string _variable, string _value, string _add_delete, string _verbage)
-
-  | DEBUG do_raw_edit FALSE SILENT "${_variable}" "${Parse[1,${_value}]}" "${_add_delete}"
   /call do_raw_edit FALSE SILENT "${_variable}" "${Parse[1,${_value}]}" "${_add_delete}"
-  | /call do_raw_edit FALSE SILENT "${_variable}" "${Parse[1,${_value}]}" "overwrite"
 
 /return TRUE
 
@@ -3226,6 +3224,7 @@ sub Bind_command_splash(bool _debug)
   }
 
   /declare _switch bool local FALSE
+  /declare _tmpSplash int local 0
   /declare _liHeal listiterator local
   /vardata _liHeal lsLineHeal.First.Clone
   /while (!${_liHeal.IsEnd}) {
@@ -3257,6 +3256,7 @@ sub Bind_command_splash(bool _debug)
     | ready?
     /if (${cast_data[${_debug}, "${maHeal.Find[stHeal${_liHeal.Value}].Value}"]}) {
       DEBUG ${sep}Spalsh is ready${sep}\aw${maHeal.Find[stHeal${_liHeal.Value}].Value}\ax
+      /varset _tmpSplash ${_liHeal.Value}
       /varset _switch TRUE
       /break
     }
@@ -3278,6 +3278,11 @@ sub Bind_command_splash(bool _debug)
       /call cast_cooldown_wait ${_debug}
     }
   }
+
+
+  | correct the cast data back to the splash
+  /invoke ${cast_data[${_debug}, "${maHeal.Find[stHeal${_tmpSplash}].Value}"]}
+
   
   | paladin
   /if (${Me.Class.ShortName.Equal[PAL]}) {
@@ -5443,7 +5448,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
       /call get_resident ${_debug} |clr|shm 200 notme
       /declare _name string local ${Macro.Return}
       /if (${Bool[${_name}]}) {
-        /invoke ${out[9, "Getting an intervention pull from${sep}\a-w${Macro.Return.Lower}\ax"]}
+        /invoke ${out[9, "Pull Intervention${sep}\a-w${Macro.Return.Lower}\ax ${submenu} \a-w${targetData.DisplayName}\ax"]} 
         /dexecute ${_name} /advancedpullint ${Me.ID}
       } else {
         /invoke ${out[9, "NO Intervention pullers in range (\a-rclr|shm\ax)."]}

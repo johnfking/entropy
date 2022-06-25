@@ -2055,10 +2055,8 @@ sub get_target_basepull(bool _debug, spawn _spawn)
   | She lays the poodle on the table. Bartender says,'I suppose you won't be needing a drink.'
   | Naked lady says...
   /if (${_spawn.ID}) {
-    /varset stAssTarID ${_spawn.ID}
+    /vardata targetData _spawn.ID
   } else {
-    | /call pull_mob_find ${_debug}
-    
     /invoke ${pull_constraints[]}
     /call build_map_spawndata
     /call pull_mob_find_v2
@@ -2075,7 +2073,7 @@ sub get_target_basepull(bool _debug, spawn _spawn)
   DEBUG ${sep}target${sep}\a-wTARGET\ax
 
   | When you grow up, your heart dies.
-  /if (!TARGET) {
+  /if (!${targetData.ID}) {
     SETHUD
     /if (HOME && !${SpawnCount[npc radius 15 PS4 targetable]}) {
       /call Bind_control_home return NULL NULL ${maDebug.Find[home].Value}
@@ -2084,21 +2082,21 @@ sub get_target_basepull(bool _debug, spawn _spawn)
   }
 
   | Could you describe the ruckus, sir?
-  /if (TARGET) {
-    /if (${Target.ID} != TARGET) {
-      /call target set TARGET
+  /if (${targetData.ID}) {
+    /if (${Target.ID} != ${targetData.ID}) {
+      /call target set ${targetData.ID}
     }
   }
 
   | Screws fall out all the time, the world is an imperfect place.
-  /call pull_mob_prep ${_debug} TARGET
+  /call pull_mob_prep ${_debug} ${targetData.ID}
   /if (!${Macro.Return}) {
     DEBUG ${sep}\arPrep FAILURE\ax${sep}resetting
     /invoke ${target[clear]}
     /return FALSE
   }
 
-  /call pull_mob_tag ${_debug} TARGET
+  /call pull_mob_tag ${_debug} ${targetData.ID}
   /if (${Macro.Return.Equal[tagfailure]}) {
     DEBUG ${sep}\arNAVpull FAILURE\ax${sep}resetting/returning to camp
     /invoke ${target[clear]}
@@ -2114,7 +2112,7 @@ sub get_target_basepull(bool _debug, spawn _spawn)
   DEBUG ${sep}loop \a-wwaitformob\ax
 
   /declare _waittime int local ${Math.Calc[(PULLENV + ${_spawn.Distance})*.08]}
-  /call get_target_wait ${maDebug.Find[wait].Value} TARGET ${_waittime}s
+  /call get_target_wait ${maDebug.Find[wait].Value} ${targetData.ID} ${_waittime}s
 
   DEBUG ${sep}\arCLOSING\ax${sep}\atget_target_basepull\ax (\a-rTARGET\ax)
   SETHUD
@@ -7379,8 +7377,6 @@ sub get_target_petpull(bool _debug, spawn _spawn)
     /call build_map_spawndata
     /call pull_mob_find_v2
 
-
-    | /call pull_mob_find ${_debug} ${_spCount}
   }
 
   | if we dont find a mob, restart the cycke
@@ -7400,8 +7396,15 @@ sub get_target_petpull(bool _debug, spawn _spawn)
   | if the target is mezed, we need to look again, increment the spawncount
   /if (${Target.Mezzed.ID}) {
     /invoke ${target[clear]}
-    /call pull_mob_find ${_debug} ${Int[${Math.Calc[${_spCount} + 1]}]}
+    | /call pull_mob_find ${_debug} ${Int[${Math.Calc[${_spCount} + 1]}]}
+
+    | /invoke ${pull_constraints[${_debug}]}
+    /invoke ${maSD.Add[${_spawn.ID}, |NPC|-9|-9|0
+    /call pull_mob_find_v2
   }
+  /call target set ${_spawn.ID}
+  
+
 
   DEBUG ${sep}target${sep}\ay${_spawn.ID}\ax${sep}\aw${_spawn.DisplayName}\ax ${sep} dist:\a-w${_spawn.Distance}\ax
 
@@ -14177,8 +14180,8 @@ sub get_assist_target(bool _debug, string _call)
 
       | raid assist
       } else /if (${Select[${maCC.Find[stAssistMode].Value},1,2,3]}) {
-        DEBUG ${sep}set smart${sep}\a-w${_set}\ax
         /declare _set int local ${maCC.Find[stAssistMode].Value}
+        DEBUG ${sep}set smart${sep}\a-w${_set}\ax
         /if (!${Raid.MainAssist[${_set}].ID} || ${Raid.MainAssist[${_set}].Dead}) {
           /return 0
         }
@@ -14805,7 +14808,7 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
   
   | critical errors
   /if (!${maCD.Find[id].Value} && !${Select[${maCD.Find[type].Value},DISC]}) {
-    /invoke ${out[0, "${error}${sep}cast${sep}\a-w${maCD.Find[id].Value}, ${_spawn.ID}, ${_sub}\ax)"]}
+    /invoke ${out[0, "${error}${sep}cast${sep}\a-w${maCD.Find[id].Value}, spawn:${_spawn.ID}, sub:${_sub}\ax)"]}
     /delay 5
     /return FALSE
   }
@@ -15781,7 +15784,7 @@ sub spawn_hurt(bool _debug, string _type, bool _breakonGroup)
     }
 
     /vardata hurtData Me.Pet
-    /if (${hurtPctHP} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+    /if (${hurtPctHP} >= ${maHeal.Find[stHealPoint${Me.Class.ShortName}].Value}*.PCTHO) {
       /return 0
     }
     /varset hurtCount 1
@@ -15790,12 +15793,13 @@ sub spawn_hurt(bool _debug, string _type, bool _breakonGroup)
   | set self hurt
   } else /if (${_type.Equal[self]}) {
     /vardata hurtData Spawn[${Me.ID}]
-
-    /if (${hurtPctHP} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-      /return 0
-    }
     /varset hurtCount 1
-    /return 1
+
+    /if (${hurtData.PctHPs} >= ${maHeal.Find[stHealPoint${hurtData.Class.ShortName}].Value}*.PCTHO) {
+      /varset hurtCount 0
+
+    }
+    /return ${hurtCount}
 
 
   | target of target hurt
@@ -15803,8 +15807,8 @@ sub spawn_hurt(bool _debug, string _type, bool _breakonGroup)
     /vardata hurtData Spawn[${Me.TargetOfTarget.ID}]
     DEBUG ${sep}hurtData:\a-w${hurtData.ID}\ax
 
-    DEBUG ${hurtData.PctHPs} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO
-    /if (${hurtData.PctHPs} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
+    DEBUG ${hurtData.PctHPs} >= ${maHeal.Find[stHealPoint${hurtData.Class.ShortName}].Value}*.PCTHO
+    /if (${hurtData.PctHPs} >= ${maHeal.Find[stHealPoint${hurtData.Class.ShortName}].Value}*.PCTHO) {
       /return 0
     }
     /vardata hurtData Spawn[${Target.ID}]
@@ -15990,7 +15994,7 @@ sub cast_cycle_proc_twinheal(bool _debug)
     /return 2
   }
   
-  | do checks by class type
+  | do checks by class type; dont need to worry about pally, they can jsut casnt regardless
   /if (${Select[${Me.Class.ShortName},CLR,DRU]}) {
     /if (${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
       DEBUG ${break}.PctHPs${sep}${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value}
@@ -16039,6 +16043,7 @@ sub cast_cycle_proc_twinheal(bool _debug)
     }
     
     /if (!${cast_data[${_debug}, "${maNuke.Find[stNuke${_liNukeTC.Value}].Value}"]}) {
+      DEBUG ${sep}cast_data[${_debug}, "${maNuke.Find[stNuke${_liNukeTC.Value}].Value}"] \arFAIL\ax
       /invoke ${_liNukeTC.Advance}
       /continue
     }
@@ -16051,11 +16056,11 @@ sub cast_cycle_proc_twinheal(bool _debug)
     }
 
     | nuke the mob or the tanks.. both?
-    /if (${Select[${Me.Class.ShortName},CLR,DRU]}) {
+    | /if (${Select[${Me.Class.ShortName},CLR,DRU,PAL]}) {
       /call cast ${_debug} ${targetData.ID} FALSE
-    } else /if (${Select[${Me.Class.ShortName},SHM]}) {
-      /call cast ${_debug} ${assistData.ID} FALSE
-    }
+    | } else /if (${Select[${Me.Class.ShortName},SHM]}) {
+    |   /call cast ${_debug} ${assistData.ID} FALSE
+    | }
     
     /delay 2.25s !${Me.SpellInCooldown}
     
@@ -16262,7 +16267,7 @@ sub check_sash_proc(bool _debug, string _target)
 |***
  * note: builds teh spawn data map (maSD) for all mobs in your pull rad
  *       we do not care if its a valid path or not. just get all the mobs of that type
- * use: /call build_map_spawndata
+ * use: /invoke ${build_map_spawndata[DEBUG]}
  ***|
 sub build_map_spawndata(bool _debug)
   DEBUG \atbuild_map_spawndata\ax(\a-w\ax)
@@ -16282,6 +16287,14 @@ sub build_map_spawndata(bool _debug)
     }
     
     /vardata _spawn NearestSpawn[${_count}, ${maSD.Find[type].Value} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius PULLENV zradius ${maPull.Find[stPullZRadius].Value} targetable]
+
+
+      | line of sight, base pulling only
+      /if (${Select[${maPull.Find[stPullMode].Value},base]} && !${_spawn.LineOfSight}) {
+        DEBUG ${sep}bad line of sight for base pulling${sep}${_spawn.Name}
+        /continue
+      }
+
 
       | arc limiting
       /if (${maPull.Find[stPullArcWidth].Value}) {
@@ -16345,15 +16358,6 @@ sub build_map_spawndata(bool _debug)
         /if (${maPull.Find[stPullMode].Value.Equal[pet]} && ${lsAnimationMezed.Contains[${_spawn.Animation}]}) {
           /continue
         }
-
-      |** check navigation path validity for all but base pulling
-      } else /if (!${Select[${maPull.Find[stPullMode].Value},base]}) {
-        /if (!${Navigation.PathExists[id ${_spawn.ID}]} && !${maOver.Find[swOverNavCheck].Value}) {
-           DEBUG ${skip}#:${_count}${dot}${_spawn.ID}${sep}\arPASS\ax on${sep}\a-wNavigation.PathExists[\a-y${_spawn.ID}\ax]\ax (\a-r${_spawn.DisplayName}\ax)
-          /continue
-        }
-      **|
-
       }
    
     | mark priority mob
@@ -16363,8 +16367,8 @@ sub build_map_spawndata(bool _debug)
 
     | key: spawn ID
     | value -  1|pc/npc/? 2|dist 3|navpath 4|named/nomez/normal 0/1
-    DEBUG ${sep}maSD.Add[${_spawn.ID}, |${_spawn.Type}|${_spawn.Distance}|${Navigation.PathLength[id ${_spawn.ID}]}|${_priority}]
-    /invoke ${maSD.Add[${_spawn.ID}, |${_spawn.Type}|${_spawn.Distance}|${Navigation.PathLength[id ${_spawn.ID}]}|${_priority}]}
+    DEBUG ${sep}maSD.Add[${_spawn.ID}, |${_spawn.Type}|${_spawn.Distance}|${Navigation.PathLength[id ${_spawn.ID}]}|${_priority}|${_spawn.Name}]
+    /invoke ${maSD.Add[${_spawn.ID}, |${_spawn.Type}|${_spawn.Distance}|${Navigation.PathLength[id ${_spawn.ID}]}|${_priority}|${_spawn.Name}]}
     
     | reset values
     /varset _priority 0
@@ -16408,21 +16412,18 @@ sub pull_mob_find_v2(bool _debug)
       /continue
     }
 
-    |** line of sight, base pulling only
-    /if (${Select[${maPull.Find[stPullMode].Value},base]} && !${_spawn.LineOfSight}) {
-      SDEBUG ${sep}bad line of sight for base pulling
-      /varset targetData 0
-      /varset stAssTarID 0
-      /return 0
-    }
-    **|
-
-    
     | are we using linear distance or nav path distance
     | we dafault to nav path. adjust if necessary
     /if (${Select[${maPull.Find[stPullMode].Value},base]}) {
       DEBUG ${sep}set linear distance
       /varset _del 2
+    }
+
+    | blocked for some reason
+    /if (${Select[${_lipath.Value.Arg[${_del},|]},-9]}) {
+      DEBUG ${sep} this mob has been blocked for some reason, moving on
+      /invoke ${_lipath.Advance}
+      /continue
     }
     
     | invalid path lengths
@@ -16469,13 +16470,13 @@ sub pull_mob_find_v2(bool _debug)
   | /invoke ${out[0, "Tagging${sep}${_spawn.DisplayName} \a-w(${Math.Calc[((${MacroQuest.Running}-${_findtimestart}) / 10) / 60]}s)\ax", 0]}
 
   | set needed data
-  DEBUG /varset stAssTarID ${_spawn.ID}
+  DEBUG /vardata targetData ${_spawn.ID}
   
   /varset stAssTarID ${_spawn.ID}
   /vardata targetData _spawn.ID
 
-  | we return spawn id just cause some things are old and cranky
-/return ${_spawn.ID}
+  | we return targetdata id just cause some things are old and cranky
+/return ${stAssTarID}
 
 
 

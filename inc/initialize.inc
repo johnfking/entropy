@@ -1651,21 +1651,40 @@ sub set_initialize_map_character_environment(bool _debug)
 
 |** control: Event  **|
 
-  | Close the Gate raid. bloodfalls
-  /call set_data_map ${_debug} maEvent stBloodfallsHideLocYX              "-560 342"                                "${auxna} hide emote for bloodfalls_raid"               event
+| Expansion 28: Terror of Luclin
+  | Bloodfalls: Close the Gate
+  /call set_data_map ${_debug} maEvent st28BloodfallsHideLocYX              "-560 342"                                "${auxna} hide emote for bloodfalls_raid"               event
+  /call set_data_map ${_debug} maEvent st28BloodfallsBuggs                  "Velium Endowed Cloak of Security"        "${auxna} hide emote for bloodfalls_raid"               event
+  /call set_data_map ${_debug} maEvent st28BloodfallsChased                 "Cloak of the Fleeting Foot"              "${auxna} chase emote for bloodfalls_raid"              event
+  /call set_data_map ${_debug} maEvent st28BloodfallsDrowning               "Philter of Aquatic Haunt"                "${auxna} drowning emote for bloodfalls_raid"           event
+  /call set_data_map ${_debug} maEvent st28BloodfallsFalling                "Shield of Striding"                      "${auxna} falling emote for bloodfalls_raid"            event
+  /call set_data_map ${_debug} maEvent st28BloodfallsMonster                "Cloudy Potion"                           "${auxna} monster emote for bloodfalls_raid"            event
+  /call set_data_map ${_debug} maEvent st28BloodfallsCurse                  "Jeweled Skull of Null"                   "${auxna} curse emote for bloodfalls_raid"              event
+  | maiden eye hide locations: goranga
+  /call set_data_list ${_debug} maEvent ls28MaidenHideLocYX                 "635 470|783 110|877 467|822 566|1267 361|636 -50"                         "${auxli} hide from raid emote for maidens eye gorgana" event
+  /call set_data_list ${_debug} maEvent st28MaidenAura                      "Moon Meteor"                             "${auxna} name of aura to run for safety"             event
+  | Vex Thal: aetn
+  /call set_data_map ${_debug} maEvent st28AetnHideLocYX                    "28 1097"                                 "${auxna} hide emote for vexthaltwo_raid"               event
+  | Oubliette
+  /call set_data_list ${_debug} maEvent st28OublietteAura                   "Inner Circle"                             "${auxna} name of aura to run for safety"             event
 
-  /call set_data_map ${_debug} maEvent stBloodfallsBuggs                  "Velium Endowed Cloak of Security"        "${auxna} hide emote for bloodfalls_raid"               event
-  /call set_data_map ${_debug} maEvent stBloodfallsChased                 "Cloak of the Fleeting Foot"              "${auxna} chase emote for bloodfalls_raid"              event
-  /call set_data_map ${_debug} maEvent stBloodfallsDrowning               "Philter of Aquatic Haunt"                "${auxna} drowning emote for bloodfalls_raid"           event
-  /call set_data_map ${_debug} maEvent stBloodfallsFalling                "Shield of Striding"                      "${auxna} falling emote for bloodfalls_raid"            event
-  /call set_data_map ${_debug} maEvent stBloodfallsMonster                "Cloudy Potion"                           "${auxna} monster emote for bloodfalls_raid"            event
-  /call set_data_map ${_debug} maEvent stBloodfallsCurse                  "Jeweled Skull of Null"                   "${auxna} curse emote for bloodfalls_raid"              event
 
-  | maiden eye hide locations
-  /call set_data_list ${_debug} maEvent lsMaidenHideLocYX               "635 470|783 110|877 467|822 566|1267 361|636 -50"                         "${auxli} hide from raid emote for maidens eye gorgana" event
 
+
+| Anniversary Events
   | karnor 23 anni raid
-  /call set_data_map ${_debug} maEvent stKarnorHideLocYX               "-69 -723"                         "${auxna} hide from raid emote for Karnor Mad Emperor Event" event
+  /call set_data_map ${_debug} maEvent stKarnorHideLocYX                  "-69 -723"                         "${auxna} hide from raid emote for Karnor Mad Emperor Event"   event
+
+
+
+
+| Expansion 26: Torment of Velious
+  | Till Death do us PartTower of Frozen Shadows
+  | /call set_data_list ${_debug} maEvent st26TowerHail                      "a Golem Usher"                             "${auxna} name of hail mob on event 2"             event
+
+
+
+
 
 
 
@@ -2046,7 +2065,7 @@ sub sql_drop(string _table, string _field, bool _echo)
   /declare _dbtable string local FALSE
 
   | character DB
-  /if (${_table.Equal[character]}) {
+  /if (${Select[${_table},character,event]}) {
     /varset _db DBcharacter
     /varset _dbtable environment_${_table}
 
@@ -2060,6 +2079,7 @@ sub sql_drop(string _table, string _field, bool _echo)
     /varset _db DBzone
     /varset _dbtable zone_control
 
+
   | nav DB
   } else /if (${_table.Equal[nav]}) {
     /varset _db DBnav
@@ -2068,7 +2088,7 @@ sub sql_drop(string _table, string _field, bool _echo)
   }
 
   | is the data there?
-  | /echo --  sqlite query "${${_db}}" dummy SELECT * FROM ${_dbtable} WHERE env_var='${_field}';
+  | /echo --  SELECT * FROM ${_dbtable} WHERE env_var='${_field}';
   /sqlite query "${${_db}}" dummy SELECT * FROM ${_dbtable} WHERE env_var='${_field}';
 
   /if (${sqlite.Rows[dummy]}) {
@@ -2869,7 +2889,7 @@ sub sql_schema_stale_check(bool _debug, bool _force)
       
       DEBUG ${sep}\ay${_section}\ax
       /for _countSection 1 to ${Math.Calc[${Ini["${INIsqlupdate}",${_section}].Count[|]} - 1].Int}
-        /varset _key ${Ini["${INIsqlupdate}",${_section}].Arg[${_countSection},|]}        
+        /varset _key ${Ini["${INIsqlupdate}",${_section}].Arg[${_countSection},|]}    
         /call sql_drop ${Ini["${INIsqlupdate}",${_section},${_key}]} ${_key} ${_force}
       /next _countSection
     /next _count
