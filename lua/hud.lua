@@ -7,6 +7,7 @@
 
 
 require "common"
+
 local openGUI = true
 local shouldDrawHUD = true
 
@@ -424,7 +425,7 @@ local function imguicallback()
         end
       end      
       ImGui.EndTabBar()
-    end
+    end    
   end
   ImGui.End()
 end

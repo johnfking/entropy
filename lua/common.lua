@@ -6,6 +6,9 @@
 --
 
 mq = require('mq')
+
+
+
 echo = mq.cmd.echo
 discord = '${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}'
 ent = {}
@@ -350,12 +353,12 @@ info_about = function ()
   ImGui.TextColored(1, 1, 1, 1, 'Exspes')        
   ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Discord: ')
   ImGui.SameLine()
-  ImGui.TextColored(1, 1, 1, 1, 'exspes#1620')        
+  ImGui.TextColored(1, 1, 1, 1, 'exspes#1620')
   ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Site: ')
   ImGui.SameLine()
-  ImGui.TextColored(1, 1, 1, 1, 'https://entropy.exspes.com/')        
+  ImGui.TextColored(1, 1, 1, 1, 'https://entropy.exspes.com/')
   ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Donate: ')
   ImGui.SameLine()
-  ImGui.TextColored(1, 1, 1, 1, 'paypal.me/exspes')     
+  ImGui.TextColored(1, 1, 1, 1, 'paypal.me/exspes')
 
 end

@@ -44,6 +44,15 @@ local function imguicallback()
     if ImGui.CollapsingHeader('Terror of Luclin 28:ToL') then
       ImGui.NewLine() 
  
+      if ImGui.TreeNode('Vader :: Umbral Plains') then
+        ImGui.NewLine()
+        edit_text_perm('hide YX', 'maEvent', 'ls28UmbralHideLocYX')
+        ImGui.NewLine()
+        edit_text_perm('home YX', 'maEvent', 'st28UmbralHomeLocYX')
+        ImGui.NewLine()
+        indent(1,2)
+      end  
+
       if ImGui.TreeNode('Close the Gates :: Bloodfalls') then
         ImGui.NewLine()
         edit_text_perm('hide YX', 'maEvent', 'st28BloodfallsHideLocYX')

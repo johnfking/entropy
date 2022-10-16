@@ -2622,7 +2622,7 @@ sub Event_TrunkRock()
  
 |********************************************************************************************
  * this is the start of the event bind. these are custom events done by expansion.
- * these will not work for everyone. hence the custpom part.
+ * these will not work for everyone. hence the custom part.
  * note: seriously, i just explained it
  * use: varries... suck it
  ***|
@@ -2635,13 +2635,14 @@ sub Bind_event(string _action, string _option)
     /return TRUE
   }
 
-  | we build the bind outpurs on the fly for this control
+  | we build the bind outputs on the fly for this control
   /invoke ${maControl.Clear}
 
 
   | some default never changing options
   /if (${_action.Equal[ui]}) {
     /lua run ${MacroQuest.Path[macros]}\entropy\lua\event.lua
+    /lua run ${MacroQuest.Path[macros]}\entropy\lua\eventbuttons.lua
     /return TRUE
   } else /if (${_action.Equal[banner]}) {
     /nav id ${Spawn[banner].ID}
@@ -2651,7 +2652,7 @@ sub Bind_event(string _action, string _option)
     /return TRUE
   }
 
-  | /invoke ${maControl.Add[ui,option]}
+  /invoke ${maControl.Add[ui,option]}
   /invoke ${maControl.Add[banner,option]}
   /invoke ${maControl.Add[campfire,option]}
 
@@ -2667,7 +2668,7 @@ sub Bind_event(string _action, string _option)
       /declare _pathlength int local 99999
       /declare _swap string local
       /declare _liloc listiterator local
-      /vardata _liloc lsMaidenHideLocYX.First.Clone
+      /vardata _liloc ls28MaidenHideLocYX.First.Clone
       /while (!${_liloc.IsEnd}) {        
         /if (${Navigation.PathLength[locyx ${_liloc.Value}]} < ${_pathlength}) {
           /varset _pathlength ${Navigation.PathLength[locyx ${_liloc.Value}]}
@@ -2703,7 +2704,7 @@ sub Bind_event(string _action, string _option)
     
     | hide from T emote
     /if (${_action.Equal[hide]}) {
-      /nav locyx ${maEvent.Find[stBloodfallsHideLocYX].Value}
+      /nav locyx ${maEvent.Find[st28BloodfallsHideLocYX].Value}
       /return TRUE
     }
     
@@ -2713,35 +2714,35 @@ sub Bind_event(string _action, string _option)
       | Bugs :: damage shield
       /if (${Me.Buff[Buggs].ID}) {
         /call remove_spa ${_debug} 59
-        /if (${cast_data[${_debug}, "${maEvent.Find[stBloodfallsBuggs].Value}"]}) {
+        /if (${cast_data[${_debug}, "${maEvent.Find[st28BloodfallsBuggs].Value}"]}) {
           /call cast ${_debug} ${Me.ID} FALSE
         }
       | Chased! :: Sow
       } else /if (${Me.Buff[Chased].ID}) {
         /call remove_spa ${_debug} 3
-        /if (${cast_data[${_debug}, "${maEvent.Find[stBloodfallsChased].Value}"]}) {
+        /if (${cast_data[${_debug}, "${maEvent.Find[st28BloodfallsChased].Value}"]}) {
           /call cast ${_debug} ${Me.ID} FALSE
         }
       | Drowning :: EB
       } else /if (${Me.Buff[Drowning].ID}) {
         /call remove_spa ${_debug} 57
-        /if (${cast_data[${_debug}, "${maEvent.Find[stBloodfallsDrowning].Value}"]}) {
+        /if (${cast_data[${_debug}, "${maEvent.Find[st28BloodfallsDrowning].Value}"]}) {
           /call cast ${_debug} ${Me.ID} FALSE
         }
       | Falling :: Levi
       } else /if (${Me.Buff[Falling].ID}) {
         /call remove_spa ${_debug} 57
-        /if (${cast_data[${_debug}, "${maEvent.Find[stBloodfallsFalling].Value}"]}) {
+        /if (${cast_data[${_debug}, "${maEvent.Find[st28BloodfallsFalling].Value}"]}) {
           /call cast ${_debug} ${Me.ID} FALSE
         }
       | Monster :: invis
       } else /if (${Me.Buff[Monster].ID}) {
-        /if (${cast_data[${_debug}, "${maEvent.Find[stBloodfallsMonster].Value}"]}) {
+        /if (${cast_data[${_debug}, "${maEvent.Find[st28BloodfallsMonster].Value}"]}) {
           /call cast ${_debug} ${Me.ID} FALSE
         }
       | Curse of Shadows :: dispell
       } else /if (${Me.Buff[Curse of Shadows].ID}) {
-        /if (${cast_data[${_debug}, "${maEvent.Find[stBloodfallsCurse].Value}"]}) {
+        /if (${cast_data[${_debug}, "${maEvent.Find[st28BloodfallsCurse].Value}"]}) {
           /call cast ${_debug} ${Me.ID} FALSE
         }
       }
@@ -2760,7 +2761,7 @@ sub Bind_event(string _action, string _option)
       /call cast_cycle_cure ${_debug} ${Me.ID} FALSE FALSE
     | run to room for emote
     } else /if (${_action.Equal[hide]}) {
-      /nav locyx ${maEvent.Find[stAetnHideLocYX].Value}
+      /nav locyx ${maEvent.Find[st28AetnHideLocYX].Value}
     }
 
     /invoke ${maControl.Add[hide,option]}
@@ -2783,8 +2784,45 @@ sub Bind_event(string _action, string _option)
 
     /invoke ${maControl.Add[aura,option]}
 
- 
+
+  | Maidens Eye
+  } else /if (${Zone.ShortName.Equal[umbraltwo_raid]}) {
+
+    /if (${_action.Equal[home]}) {
+      /nav locyx -165 129
+
+    | hide hide for virul emote (the green one) on the darth vader event
+    } else /if (${_action.Equal[hide]}) {
+
+      /declare _pathlength int local 99999
+      /declare _swap string local
+      /declare _liloc listiterator local
+      /vardata _liloc ls28UmbralHideLocYX.First.Clone
+      /while (!${_liloc.IsEnd}) {        
+        /if (${Navigation.PathLength[locyx ${_liloc.Value}]} < ${_pathlength}) {
+          /varset _pathlength ${Navigation.PathLength[locyx ${_liloc.Value}]}
+          /varset _swap ${_liloc.Value}
+        }
+        /invoke ${_liloc.Advance}
+      }
+      /nav locyx ${_swap}
+      /delay 5
+      /while (${Me.Moving}) {
+       /delay 1
+      }
+      /return TRUE
+    }
+
+    /invoke ${maControl.Add[home,option]}
+    /invoke ${maControl.Add[hide,option]}
+
   }
+  
+  
+  |  154.3 53.6 -51.5 - rock
+  | -55.9 322.9 -46.9- rock
+  | -284.3 -347.6 -44.2 - tree
+  |  -169.0 132.6 - home
   
   
 | ---  start of Anni events

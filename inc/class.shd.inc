@@ -315,9 +315,6 @@ sub burn(bool _debug, spawn _spawn)
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
-  /if (${cast_data[${_debug}, "${maChr.Find[stAAVeilofDarkness].Value}"]}) {
-    /call cast ${_debug} ${_spawn.ID} FALSE
-  }
   /if (${cast_data[${_debug}, "${maChr.Find[stAAHarmTouch].Value}"]}) {
     /call cast ${_debug} ${_spawn.ID} FALSE
   }

@@ -64,6 +64,8 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
   /declare _libug listiterator local
   /vardata _libug lsDebuglist.First.Clone
   /declare _out string local
+  
+  /varset _out ${out_ui} ${dot}
 
   /while (!${_libug.IsEnd}) {
     /varset _out ${_out} ${If[${_libug.Value.Equal[${lsDebuglist.First}]},,${dot}]} ${info}${_libug.Value}\ax:${submenu}
@@ -212,10 +214,11 @@ sub Bind_control_mode(string _type, string _verbage, string _verbage2, bool _deb
  * use: /admin
  ***|
 #bind control_admin /admin
+#bind control_admin /admn
 sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _silent, bool _debug)
   DEBUG \atBind_control_admin\ax(\a-w${_type}, ${_verbage}, ${_verbage2}, ${_silent}\ax)
 
-  | cehck for undeclared variables
+  | check for undeclared variables
   /if (${_type.Equal[checkvar]}) {
     OUT Checking for any undefined variables.
     /invoke ${Macro.Undeclared}
@@ -236,7 +239,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
 
 
   | check observer view
-  } else /if (${_type.Equal[obs]}) { 
+  } else /if (${_type.Equal[obs]}) {
     OUT Observed${sep}\a-w${_verbage}\ax
     /declare _count int local 0
     /declare _obs string local
@@ -354,11 +357,6 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
       /varset _verbage ${Me.Song[${_verbage.Right[-4]}]}
     }    
       
-    /if (${Defined[spellData]}) {
-      /deletevar spellData
-    }
-
-    /declare spellData spell outer
     /vardata spellData Spell[${_verbage}]    
     /declare _list string local
     /declare _count int local 0
@@ -385,7 +383,6 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     OUT ${dot} ${dot} ${dot} ${dot}
     OUT \awSPA list\ax ${sep} \a-w${_list}\ax
 
-    /deletevar spellData
     /invoke ${out[18, 0, 33]}
     /return TRUE
 
@@ -509,9 +506,9 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
         OUT ${num}${Zone.Name}\ax${sep}\a-w${Zone.ShortName}\ax
       }
      /return TRUE
-    }
 
-    /if (${_verbage.Equal[zone]}) {
+
+    } else /if (${_verbage.Equal[zone]}) {
       MQCLEAR
       | current core loot file
       /declare _ini string local exspes\\zonedata.ini
@@ -1832,8 +1829,8 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
     /invoke ${set_switch_env[${_debug}, swAutoList, TRUE, ${_verbage}]}
 
   | count of cast loop attempts
-  } else /if (${_type.Equal[castloops]}) {
-    /invoke ${set_switch_env[${_debug}, stCastLoop, TRUE, ${_verbage}]}
+  } else /if (${_type.Equal[castloop]}) {
+    /if (!${set_control_num_range[${_debug}, stCastLoop, "${_verbage}", 1, 10]}) /return
 
   | code engine
   } else /if (${_type.Equal[engine]}) {
@@ -5258,7 +5255,7 @@ sub Bind_noparse_tag(string _grouping, string _tagname, string _eval, bool _sile
     /if (${Select[${_grouping},list,see]} && !${Bool[${_tagname}]}) {
       /for _count 1 to ${sqlite.Rows[dummy]}
         /if (${Parse[99,${sqlite.Result[dummy ${_count} eval].Find[::]}]}) {
-          OUT \aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}\a-o${sqlite.Result[dummy ${_count} name]\ax${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} aux]}]}\ax
+          OUT \aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}\a-o${sqlite.Result[dummy ${_count} name]}\ax${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} aux]}]}\ax
         } else {
           OUT \aw${sqlite.Result[dummy ${_count} grouping]}\ax${sep}${If[${sqlite.Result[dummy ${_count} created_by].Equal[1]},\a-g${sqlite.Result[dummy ${_count} name]}\ax,\at${sqlite.Result[dummy ${_count} name]}\ax]}${sep}\a-w${Parse[2,${sqlite.Result[dummy ${_count} eval]}]}\ax
         }
@@ -6671,4 +6668,61 @@ sub Bind_control_rest(string _type, string _verbage, string _verbage2, string _a
 
 /return TRUE
 
+
+
+|***
+ * note: replacement for /note... screw that thing
+ * use: /notes
+ * use: /notes ID# 
+ ***|
+#bind command_notes /notes
+sub Bind_command_notes(string _noteID, string _verbage, string _verbage2)
+
+  /if (${_noteID.Equal[ui]}) {
+    /lua run ${MacroQuest.Path[macros]}\entropy\lua\notes.lua
+    /return TRUE
+  }
+
+
+
+  | /echo _noteID${sep}${_noteID}
+  | /echo _verbage${sep}${_verbage}
+  | /echo _verbage2${sep}${_verbage2}
+
+  | update title only
+  /if (${_verbage.Equal[title]}) {
+    /sqlite query "${DBshared}" dummy UPDATE notes SET name="${_verbage2}" WHERE noteid="note${_noteID}";
+    /if (!${sql_check[FALSE, dummy, set_data_notes, "UPDATE notes title"]}) /endmacro    
+    /varset note${_noteID}name ${_verbage2}
+    /return TRUE
+
+
+  | add a note
+  } else /if (${_noteID.Equal[add]}) {
+    
+    /varcalc notescount ${notescount} + 1
+    /varset notescount ${Int[${notescount}]}
+    
+    /sqlite query "${DBshared}" build INSERT INTO notes(noteid, name, text) VALUES('note${notescount}', 'note${notescount}', 'Blank Note: ${notescount}');
+    /sqlite query "${DBshared}" dummy SELECT * FROM notes WHERE noteid="note${notescount}";
+    /declare note${notescount}name string outer ${sqlite.Result[dummy 1 name]}
+    /declare note${notescount}text string outer ${sqlite.Result[dummy 1 text]}
+    /return TRUE
+
+
+  | update note only
+  } else /if (${_verbage.NotEqual[title]} && ${Bool[${_verbage}]}) {
+    /sqlite query "${DBshared}" dummy UPDATE notes SET 'text'="${Parse[1,${_verbage}]}" WHERE noteid="note${_noteID}";
+    /if (!${sql_check[FALSE, dummy, set_data_notes, "UPDATE notes body"]}) /endmacro    
+    /varset note${_noteID}text ${_verbage}
+    /return TRUE
+   
+  } 
+
+
+  /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[ui,ui]}
+  /invoke ${set_control_output[FALSE, maData, "notes", maControl]}
+
+/return TRUE
 

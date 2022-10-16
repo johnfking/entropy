@@ -125,8 +125,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 220625.01
-  /call set_data FALSE maEnv schema                         map outer 1.61
+  /call set_data FALSE maEnv build                          map outer 221016.01
+  /call set_data FALSE maEnv schema                         map outer 1.65
   /call set_data FALSE maEnv repo                           map outer 220225.01
 
   | prep macro
@@ -492,8 +492,8 @@ sub prepare_the_end(bool _debug)
   | check game cash?
   /call check_free_ingame_cash ${maDebug.Find[init].Value}
 
-  | set hud variables
-  | /call set_initialize_hud_variables
+  | build notes
+  /call initialize_notes
   
   | sort the macro hud
   /if (${maEntropy.Find[swHUDAuto].Value}) {
@@ -504,6 +504,10 @@ sub prepare_the_end(bool _debug)
   /if (${maChr.Find[swHUDClassAuto].Value}) {
     /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.${Me.Class.ShortName}.lua
   }
+
+
+  | start needed lua files
+  /lua run ${MacroQuest.Path[macros]}\entropy\lua\binds.lua
 
 
   | correct the map click spam.

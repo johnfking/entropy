@@ -8730,7 +8730,16 @@ sub set_control_output(bool _debug, string _map, string _outname, string _contro
   /declare _cmi mapiterator local
   /vardata _cmi ${_control}.First.Clone
   
-  | start the control with the list option if there is one.
+  | start the control with the UI option if there is one.
+  /if (${${_control}.Contains[ui]}) {
+    /varset _out ${_out} ${out_ui}
+    /if (${${_control}.Count} > 1) {
+      /varset _out ${_out} ${dot}
+    }
+  }  
+  
+  
+  | add list second if there is one
   /if (${${_control}.Contains[list]}) {
     /varset _out ${_out} ${out_list}
     /if (${${_control}.Count} > 1) {
@@ -11811,7 +11820,8 @@ sub get_best_in_spell(bool _debug, string _targettype, string _subcat, string _a
       /next _countSPA
     | end Darth_Voidptr#5678 addition
     
-    } else /if (${Me.Book[${_count}].SPA}) {
+    | } else /if (${Me.Book[${_count}].SPA}) {
+    } else {
       /for _countSPA 1 to ${Me.Book[${_count}].NumEffects}
         /if (${Me.Book[${_count}].Attrib[${_countSPA}]} != ${sqlite.Result[qBestSpell 1 env_var]}) /continue
         /varset _running ${Me.Book[${_count}].Base[${_countSPA}]}
@@ -13953,6 +13963,10 @@ sub check_debuff_routines(spawn _spawn, bool _debug)
               | cycle each trigger for the debuff
               /for _count 1 to ${spellData.NumEffects}
                 
+                /if (!${spellData.Trigger[${_count}].Base[2]}) {
+                  /continue
+                }
+                
                 DEBUG ${break}compare${sep}${Target.${_member}.Name}${sep}\a-r${Target.${_member}.Base[2]}\ax <= ${spellData.Name}${sep}\a-r${spellData.Trigger[${_count}].Base[2]}\ax
                 
                 | is the targets debuff better then the one we are casting      
@@ -15463,8 +15477,8 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
       CHECKTIE
       
       | bard swap mechanics
-      /while (${Window[CastingWindow].Open}) {
-        /if (${maChr.Find[swInstrumentSwap].Value}) {
+      /if (${maChr.Find[swInstrumentSwap].Value}) {
+        /while (${Window[CastingWindow].Open}) {
           /if (${Me.CastTimeLeft} < ${maHard.Find[stBardSwapRemain].Value}) {
             /if (${maBardFocus.Find[${Skill[${spellData.Skill}].ID}].Value.Arg[3,|]}) {
               /if (${FindItem[${maBardFocus.Find[${Skill[${spellData.Skill}].ID}].Value.Arg[1,|]}].WornSlot[offhand]}) {
@@ -15476,15 +15490,28 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
           }
         }
       }
-      /doevents
 
       /if (${Select[${_sub},ignoreall]}) {
         /return TRUE
       }
 
-      /if (!${Me.AltAbility[Metronome]}) {
-      	/delay ${Math.Calc[${spellData.CastTime.Seconds}+${Math.Calc[${spellData.CastTime.Seconds}*.05]}]}s
+      /while (${Me.CastTimeLeft} > 1 && ${Me.CastTimeLeft} < 7000 && ${Me.BardSongPlaying}) {
+        /delay 5
       }
+      /doevents CAST_BEGIN
+      
+      |**
+      /if (${Me.Casting.ID}) {
+        /if (${Me.AltAbility[Metronome].ID}) {
+          SDEBUG ${Math.Calc[${spellData.CastTime.Seconds}-${Math.Calc[${spellData.CastTime.Seconds}*.05]}]}s
+          /delay ${Math.Calc[${spellData.CastTime.Seconds}-${Math.Calc[${spellData.CastTime.Seconds}*.05]}]}s
+        } else /if (!${Me.AltAbility[Metronome].ID}) {
+          SDEBUG Math.Calc[${spellData.CastTime.Seconds}+${Math.Calc[${spellData.CastTime.Seconds}*.05]}]
+        	/delay ${Math.Calc[${spellData.CastTime.Seconds}+${Math.Calc[${spellData.CastTime.Seconds}*.05]}]}
+        }
+      }
+      **|
+
 
       /if (${Select[${maData.Find[stCastReturn].Value},SUCCESS,RESISTED,IMMUNE]}) {
         /varset _castLoop 0
@@ -16056,11 +16083,11 @@ sub cast_cycle_proc_twinheal(bool _debug)
     }
 
     | nuke the mob or the tanks.. both?
-    | /if (${Select[${Me.Class.ShortName},CLR,DRU,PAL]}) {
+    /if (${Select[${Me.Class.ShortName},CLR,DRU,PAL]}) {
       /call cast ${_debug} ${targetData.ID} FALSE
-    | } else /if (${Select[${Me.Class.ShortName},SHM]}) {
-    |   /call cast ${_debug} ${assistData.ID} FALSE
-    | }
+    } else /if (${Select[${Me.Class.ShortName},SHM]}) {
+      /call cast ${_debug} ${assistData.ID} FALSE
+    }
     
     /delay 2.25s !${Me.SpellInCooldown}
     
@@ -16391,7 +16418,7 @@ sub pull_mob_find_v2(bool _debug)
     DEBUG ${sep}Nothing to pull in Pull Radius / Pull Z Radius
     /varset targetData 0
     /varset stAssTarID 0
-    /delay 5
+    /delay 1
     /return FALSE
   }
 
@@ -16408,7 +16435,7 @@ sub pull_mob_find_v2(bool _debug)
     /if (!${Spawn[${_lipath.Key}].ID}) {
       DEBUG ${break}map spawn no longer exists
       /invoke ${_lipath.Advance}
-      /delay 5
+      /delay 1
       /continue
     }
 
@@ -16521,4 +16548,20 @@ sub pull_constraints(bool _debug, string _type, string _tag, int _range)
 
 /return TRUE
 
+
+
+
+|***
+ * note: generate initial environment sql and map for shared data
+ * use: /call set_data_map DEBUG [id] [name] [text]
+ ***|
+sub set_data_notes(bool _debug, string _noteid, string _name, string _text)
+  DEBUG \atset_data_map\ax(\a-w${_noteid}, ${_name}, "${_text}"\ax)
+
+  
+  /sqlite query "${DBshared}" dummy UPDATE notes SET 'text'="${Parse[1,${_text}]}", name="${_name}" WHERE noteid="note${_noteid}";
+  /if (!${sql_check[${_debug}, dummy, set_data_notes, "UPDATE notes"]}) /endmacro
+
+
+/return TRUE
 

@@ -18,6 +18,22 @@ on the to do list
 --------------------
 
 
+
+221016.01
+- bard casting
+  changed the process used to watch bard casting to prevent recasts or not finishing casting
+- shadowknight
+  removed veil of darkness aa from burn
+- /tag
+  corrected a missing } in the list/see control
+- /notes
+  added in a note system. cause i really dislike the existing one in EQ
+  /notes ui will bring up the window
+  didnt design a delete method.. just reuse.
+  notes are shared across toons
+- corrected an SPA issue with get best spell in book (i blame knightly)
+
+
 220625.01
 - pet pulling
   added in exception for mezed targets

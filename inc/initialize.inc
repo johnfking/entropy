@@ -116,9 +116,6 @@ sub set_initialize(bool _debug)
   /call set_data ${_debug} FALSE DNQReturn2 string outer FALSE
   /call set_data ${_debug} FALSE DNQHardStop string outer FALSE
 
-  | list iterator dump variable
-  | /declare li listiterator outer
-
   | control maps
   /declare maControl map outer
   /declare maChrControl map outer
@@ -237,6 +234,7 @@ sub set_initialize(bool _debug)
   /call set_data ${_debug} FALSE break                                    string outer "${sep}\a#FF06BBbreak\ax${sep}"
   /call set_data ${_debug} FALSE skip                                     string outer "${sep}\a#FF06BBskip\ax${sep}"
   /call set_data ${_debug} FALSE out_list                                 string outer "\a#1E90FF[\ax\awlist\ax\a#1E90FF]\ax"
+  /call set_data ${_debug} FALSE out_ui                                   string outer "\a#FFFB00UI\ax"
 
   | lua
   /call set_data ${_debug} FALSE lsep                                    string outer "\a#00FFFF :: \a#C0C0C0"
@@ -294,6 +292,7 @@ sub set_initial_environment(bool _debug)
     /varcalc cos[${_count}] ${Math.Cos[9 * ${_count}]}
     /varcalc sin[${_count}] ${Math.Sin[9 * ${_count}]}
   /next _count
+ 
 
   | yo' dawg, i heard you like lists. so heres a list of lists for your lists
   /call set_data ${_debug} FALSE lsClassAll                               list outer WAR|PAL|SHD|BRD|RNG|BST|BER|MNK|ROG|WIZ|MAG|ENC|NEC|CLR|DRU|SHM
@@ -1649,6 +1648,10 @@ sub set_initialize_map_character_environment(bool _debug)
   }
 
 
+
+
+
+
 |** control: Event  **|
 
 | Expansion 28: Terror of Luclin
@@ -1662,11 +1665,14 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEvent st28BloodfallsCurse                  "Jeweled Skull of Null"                   "${auxna} curse emote for bloodfalls_raid"              event
   | maiden eye hide locations: goranga
   /call set_data_list ${_debug} maEvent ls28MaidenHideLocYX                 "635 470|783 110|877 467|822 566|1267 361|636 -50"                         "${auxli} hide from raid emote for maidens eye gorgana" event
-  /call set_data_list ${_debug} maEvent st28MaidenAura                      "Moon Meteor"                             "${auxna} name of aura to run for safety"             event
+  /call set_data_list ${_debug} maEvent st28MaidenAura                      "Moon Meteor"                             "${auxna} name of aura to run for safety"               event
   | Vex Thal: aetn
   /call set_data_map ${_debug} maEvent st28AetnHideLocYX                    "28 1097"                                 "${auxna} hide emote for vexthaltwo_raid"               event
   | Oubliette
-  /call set_data_list ${_debug} maEvent st28OublietteAura                   "Inner Circle"                             "${auxna} name of aura to run for safety"             event
+  /call set_data_list ${_debug} maEvent st28OublietteAura                   "Inner Circle"                            "${auxna} name of aura to run for safety"               event
+  | umbral Plains
+  /call set_data_list ${_debug} maEvent ls28UmbralHideLocYX                 "536.7 154|-284.3 -347.6"                 "${auxli} hide from vader for green aura"               event
+  /call set_data_list ${_debug} maEvent st28UmbralHomeLocYX                 "-165 129"                                "${auxna} general return home location"                 event
 
 
 
@@ -1703,7 +1709,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 |***
  * note: loads class epics
- * use: do i need to ssay it again?
+ * use: do i need to say it again?
  ***|
 sub set_initialize_class_epic(bool _debug)
   DEBUG \atset_initialize_class_epic\ax()
@@ -1831,6 +1837,49 @@ sub set_initialize_map_20(bool _debug)
   }
 
 /return TRUE
+
+
+
+
+|***
+ * note: set/build the 20 count skill maps
+ * use:
+ ***|
+sub set_initialize_map_20_shared(bool _debug)
+  DEBUG \atset_initialize_map_20\ax()
+
+  /if (${maDebug.Find[init].Value}) {
+    /declare _boottimestart int local ${MacroQuest.Running}
+  }
+
+  /declare _tmpMap map local
+  /declare _tmi mapiterator local
+  /declare _liC20 listiterator local
+  /invoke ${_tmpMap.Add[Notes,notes]}
+
+  /vardata _tmi _tmpMap.First.Clone
+  /while (!${_tmi.IsEnd}) {
+    /vardata _liC20 lsCount20.First.Clone
+    /while (!${_liC20.IsEnd}) {
+      /call set_data_map ${_debug} ma${_tmi.Key} sw${_tmi.Key}${_liC20.Value} FALSE "${auxsw} ${_tmi.Value} ${_liC20.Value} switch" ${_tmi.Value}
+      /call set_data_map ${_debug} ma${_tmi.Key} st${_tmi.Key}${_liC20.Value} FALSE "${auxna} ${_tmi.Value} ${_liC20.Value} name" ${_tmi.Value}
+      /invoke ${_liC20.Advance}
+    }
+
+    /if (${maDebug.Find[init].Value}) {
+      OUT \agset_initialize_map_20\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax
+      /mqp
+    }
+
+    /invoke ${_tmi.Advance}
+  }
+
+/return TRUE
+
+
+
+
+
 
 
 
@@ -2186,6 +2235,14 @@ sub sql_schema_shared(bool _debug, bool _force)
       /sqlite query "${DBshared}" build INSERT OR IGNORE INTO metadata VALUES('schema_number', '${maEnv.Find[schema].Value}');
       /if (!${sql_check[${_debug}, build, sql_schema_shared, "INSERT INTO (metadata)"]}) /endmacro
 
+
+      | -------------------- general data
+      | /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS basedata(id INTEGER PRIMARY KEY autoincrement, sub TEXT NOT NULL, data TEXT NOT NULL);
+      | /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (notescount)"]}) /endmacro
+      | /sqlite query "${DBshared}" build INSERT OR IGNORE INTO basedata(sub, data) VALUES('notescount', '5');
+
+
+
       | -------------------- crews
       | create the characters
       /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS characters(id INTEGER PRIMARY KEY autoincrement, charactername TEXT NOT NULL, server TEXT NOT NULL);
@@ -2219,6 +2276,21 @@ sub sql_schema_shared(bool _debug, bool _force)
       /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS tag_validate(grouping INTEGER, tag INTEGER, created_by INTEGER, eval TEXT, aux TEXT, UNIQUE(tag, grouping), FOREIGN KEY (tag) REFERENCES tag(id), FOREIGN KEY (grouping) REFERENCES tag_group(id));
       /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (tag_validate)"]}) /endmacro
       /call data_schema_tag_validation
+
+
+
+      | -------------------- Notes
+      /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS notes(id INTEGER PRIMARY KEY autoincrement, noteid TEXT NOT NULL, name TEXT NOT NULL, text TEXT NOT NULL);
+      /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (notes)"]}) /endmacro
+      | /declare _count int local 0
+      | /sqlite query "${DBshared}" build CREATE TABLE IF NOT EXISTS notescount(id INTEGER PRIMARY KEY autoincrement, count TEXT NOT NULL);
+      | /if (!${sql_check[${_debug}, build, sql_schema_shared, "CREATE TABLE IF NOT EXISTS (notescount)"]}) /endmacro
+      | add base note data
+      | /sqlite query "${DBshared}" build INSERT OR IGNORE INTO notescount(count) VALUES('5');
+      | /for _count 1 to 5
+      |  /sqlite query "${DBshared}" build INSERT OR IGNORE INTO notes(noteid, name, text) VALUES('note${_count}', 'note${_count}', 'Test Note: ${_count}');
+      | /next _count
+ 
 
       /if (${sqlite.Resultcode[build]} != 0) /delay 1
       /if (${sqlite.Resultcode[build]} == 0) /break
@@ -2732,14 +2804,6 @@ sub data_schema_tag_validation
 
 
 
-
-
-
-
-
-
-
-
 |***
  * note: schema data updates
  * use: called on every schema increment
@@ -2901,4 +2965,33 @@ sub sql_schema_stale_check(bool _debug, bool _force)
 
 /return TRUE
 
+
+
+|***
+ * note: builds variables for /notes
+ * use: it does a thing..  think
+ ***|
+sub initialize_notes()
+
+  /declare _count int local
+
+  | non maped note variables
+  /sqlite query "${DBshared}" dummy SELECT * FROM notes;
+  /declare notescount string outer ${sqlite.Rows[dummy]}  
+  
+  /if (!${notescount}) {
+    /return FALSE
+  }
+  
+  /for _count 1 to ${notescount}
+    /sqlite query "${DBshared}" dummy SELECT * FROM notes WHERE noteid="note${_count}";
+    /if (!${sqlite.Rows[dummy]}) {
+      /echo failed return
+      /continue
+    }
+    /declare note${_count}name string outer ${sqlite.Result[dummy 1 name]}
+    /declare note${_count}text string outer ${sqlite.Result[dummy 1 text]}
+  /next _count
+  
+/return TRUE
 
