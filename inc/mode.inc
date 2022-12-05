@@ -342,42 +342,82 @@ sub mode_temppet(bool _debug)
     OUT This is for Clerics and Wizards ONLY. Turning off /mode temppet
     /return FALSE
   }
-
-  SETHUD "temppet"
   
+  ISMEDEAD
+
   /if (${Pet.ID}) {
     /delay 1s
     /return TRUE
   }
 
-  /declare _tmpPullRad int local 0
-  /if (PULLENV > 200) {
-    /varset _tmpPullRad 200
-  } else {
-    /varset _tmpPullRad PULLENV
-  }
+  SETHUD "temppet"
+
+  /invoke ${maOver.Add[swOverPctEngage,TRUE]}
+  /invoke ${maOver.Add[1swOverLOS,TRUE]}
+  /varset swModeToken TRUE
   
-  | check for things to torment
-  /if (!${SpawnCount[npc radius ${_tmpPullRad}]}) {
-    /delay 1s
+  GETINPUT  
+
+  | check loot
+  /if (${maEnv.Find[swADVLoot].Value} && !${timer_Check_Loot}) {
+    /if (${Me.UseAdvancedLooting} && !${AdvLoot.LootInProgress}) /call do_loot ${maDebug.Find[loot].Value}
+  }
+
+
+  | temp pets have a limited range
+  /if (PULLENV > 200) {
+    /invoke ${maPull.Add[stPullRadius,200]}    
+  } 
+
+  | find a mob
+  /invoke ${pull_constraints[${_debug}, NPC, petpull]}
+  /call build_map_spawndata
+  /call pull_mob_find_v2
+
+  
+  
+
+  /if (!${targetData.ID}) {
+    DEBUG \arNO\ax targetData
     SETHUD
+    GETINPUT
     /return FALSE
   }
+
+  CHECKTIE
+  /doevents
+  /call target set ${targetData.ID}
 
   | get our pet spell
   /declare _petSpell string local ${get_best_in_spell[${_debug}, "Self", "Sum: Animation", "Spawn NPC"]}
   
-  | get us a target•
-  /declare _tmpID int local ${NearestSpawn[1, npc radius ${_tmpPullRad}].ID}
-  /delay 5
-  /call target set ${_tmpID}
-    
   | send in the clowns
   /call cast_data ${_debug} "${_petSpell}"
-  /call cast ${_debug} ${_tmpID} FALSE
+  /call cast ${_debug} ${targetData.ID} FALSE
+
+
+  /invoke ${set_timer[${_debug}, timer_mob_get, 20s]}
+
+  /while (TARGET) {
+    GETINPUT
+    /delay 5
+
+    /if (${targetData.Type.Equal[CORPSE]} || !${targetData.ID}) /break
+    /if (${Pet.Target.ID} != ${targetData.ID}) /break
+    /if (${targetData.Distance} > PULLENV) /break
+    /if (!${timer_mob_get}) {
+      /break
+    }
+
+  }
+
+  /invoke ${maOver.Add[swOverPctEngage,FALSE]}
+  /invoke ${maOver.Add[swOverLOS,FALSE]}
+  /varset swModeToken FALSE
+ 
+  /call clear_combat
 
   SETHUD
-
 
 /return TRUE
 
@@ -792,8 +832,10 @@ sub mode_hunt(bool _debug)
     }
 
   } else /if (!${Bool[${stModeData}]}) {
-    /call pull_mob_find ${_debug} ${_count}
-    DEBUG ${sep}pull_mob_find.return${sep}\a-w${Macro.Return}\ax
+    /invoke ${pull_constraints[${_debug}, NPC]}
+    /call build_map_spawndata
+    /call pull_mob_find_v2
+
   }
 
   /if (!${targetData.ID}) {

@@ -6,16 +6,12 @@
 --
 
 
-require "common"
-
+require 'common'
 local openGUI = true
 local shouldDrawHUD = true
 
-
 local function imguicallback()
   hudInfo()
-  
-  -- openGUI, shouldDrawHUD = ImGui.Begin('Entropy '..ent['build'], openGUI, ImGuiWindowFlags.NoScrollbar)
   openGUI, shouldDrawHUD = ImGui.Begin(ent['hudtitle']..'###EntropyHUD', openGUI)
   
   if shouldDrawHUD and (ent['build'] == '--' or mq.TLO.EverQuest.GameState() ~= 'INGAME') then
@@ -46,28 +42,31 @@ local function imguicallback()
 
         ImGui.NextColumn()
           -- tie   
-          ImGui.TextColored(0.39, 0.58, 0.92, 1, mq.TLO.Macro.Variable('maTie').Find('stTieMode').Value())
+          -- ImGui.TextColored(mq.TLO.Macro.Variable('maTie').Find('stTieMode').Value(), 0x337ea3, 1)
+          -- ImGui.TextColored(0.39, 0.58, 0.92, 1, mq.TLO.Macro.Variable('maTie').Find('stTieMode').Value())
+          ImGui.TextColored(0.39, 0.58, 0.92, 1, mq.TLO.Macro.Variable('maTie').Find('stTieMode').Value() or '')
+          -- ImGui.TextColored(ImVec4(0.39, 0.58, 0.92, 1), 'Nav')
           ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maTie').Find('stTieToon').Value())
+          ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maTie').Find('stTieToon').Value() or '')
 
 
         ImGui.NextColumn()
           -- env
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'env')
           ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maEnv').Find('stEnvRadius').Value())
+          ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maEnv').Find('stEnvRadius').Value() or '')
           -- pull
           local pullactive = ImGui.SmallButton('pull')
           if pullactive then
             mq.cmd.pull('active')
           end
           ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maPull').Find('stPullRadius').Value())
+          ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maPull').Find('stPullRadius').Value() or '')
           ImGui.SameLine()
           if mq.TLO.Macro.Variable('maPull').Find('swPull').Value() == 'TRUE' then
-            ImGui.TextColored(0, 1, 0, 1, mq.TLO.Macro.Variable('maPull').Find('stPullMode').Value())
+            ImGui.TextColored(0, 1, 0, 1, mq.TLO.Macro.Variable('maPull').Find('stPullMode').Value() or '')
           else 
-            ImGui.TextColored(1, 0, 0, 1, mq.TLO.Macro.Variable('maPull').Find('stPullMode').Value())
+            ImGui.TextColored(1, 0, 0, 1, mq.TLO.Macro.Variable('maPull').Find('stPullMode').Value() or '')
           end
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'invis')
           ImGui.SameLine()
@@ -80,15 +79,15 @@ local function imguicallback()
         -- engage %s, target body, distances
         ImGui.TextColored(0.39, 0.58, 0.92, 1, '[')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maCC').Find('stPctEngage').Value())
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maCC').Find('stPctEngage').Value() or '')
         ImGui.SameLine()
         ImGui.TextColored(0.39, 0.58, 0.92, 1, '][')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maMinion').Find('stPctPetEngage').Value())
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maMinion').Find('stPctPetEngage').Value() or '')
         ImGui.SameLine()
         ImGui.TextColored(0.39, 0.58, 0.92, 1, '][')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maMinion').Find('stPctSwarmEngage').Value())
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maMinion').Find('stPctSwarmEngage').Value() or '')
         ImGui.SameLine()
         ImGui.TextColored(0.39, 0.58, 0.92, 1, '][')
         ImGui.SameLine()

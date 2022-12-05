@@ -99,17 +99,14 @@ local function imguicallback()
 
       ImGui.Columns(2, 'agrothingies', false)
         edit_switch_perm('agro', 'maAgro', 'swAgro')
-        edit_text_perm('% hold', 'maAgro', 'stPctAgroHold')
+        edit_text_perm('hold', 'maAgro', 'stPctAgroHold')
       ImGui.NextColumn()
-        edit_text_perm('% taunt', 'maAgro', 'stPctTaunt')
+        edit_text_perm('taunt', 'maAgro', 'stPctTaunt')
       ImGui.Columns()  
       
-
       indent(1,2)
       ImGui.NewLine()
       
-      --if mq.TLO.Macro.Variable('maEntropy').Find('stEngine').Value() == '2' then
-
         if ImGui.TreeNode('list') then 
           ImGui.Indent(16)
           
@@ -159,7 +156,6 @@ local function imguicallback()
           end
           ImGui.TreePop()
         end
-      --end
 
       ImGui.NewLine()
     end
@@ -1085,6 +1081,7 @@ local function imguicallback()
       indent(1,1) 
       ImGui.NewLine()  
       edit_switch_perm('macro hud on start', 'maEntropy', 'swHUDAuto')
+      edit_switch_perm('close hud on end', 'maEntropy', 'swHUDCloseonEnd')
       edit_switch_perm('class hud on start', 'maChr', 'swHUDClassAuto')
       ImGui.NewLine()
       indent(1,2)

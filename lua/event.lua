@@ -27,10 +27,8 @@ local function imguicallback()
   elseif shouldDrawHUD then  
     ImGui.NewLine() 
 
-
     if ImGui.TreeNode('Options') then
       ImGui.NewLine()
-      --edit_text_perm('hide YX', 'maEvent', 'stBloodfallsHideLocYX')
       edit_switch_perm('events active', 'maEntropy', 'swEventsInc')
 
       ImGui.NewLine()
@@ -38,6 +36,14 @@ local function imguicallback()
     end  
     ImGui.NewLine() 
 
+
+
+
+-- Nights of Shadow
+    if ImGui.CollapsingHeader('Nights of Shadow 29:NoS') then
+      ImGui.NewLine() 
+      ImGui.NewLine() 
+    end
 
 
 -- Terror of Luclin
@@ -98,33 +104,33 @@ local function imguicallback()
 
 
 
-    --if ImGui.CollapsingHeader('Claws of Veeshan') then
-    --if ImGui.CollapsingHeader('Torment of Velious') then
-    --if ImGui.CollapsingHeader('The Burning Lands') then
-    --if ImGui.CollapsingHeader('Ring of Scale') then
-    --if ImGui.CollapsingHeader('Empires of Kunark') then
-    --if ImGui.CollapsingHeader('The Broken Mirror') then
-    --if ImGui.CollapsingHeader('The Darkened Sea') then
-    --if ImGui.CollapsingHeader('Call of the Forsaken') then
-    --if ImGui.CollapsingHeader('Rain of Fear') then
-    --if ImGui.CollapsingHeader('Veil of Alaris') then
-    --if ImGui.CollapsingHeader('House of Thule') then
-    --if ImGui.CollapsingHeader('Underfoot') then
-    --if ImGui.CollapsingHeader('Seeds of Destruction') then
-    --if ImGui.CollapsingHeader('Secrets of Faydwer') then
-    --if ImGui.CollapsingHeader('The Buried Sea') then
-    --if ImGui.CollapsingHeader('The Serpents Spine') then
-    --if ImGui.CollapsingHeader('Prophecy of Ro') then
-    --if ImGui.CollapsingHeader('Depths of Darkhollow') then
-    --if ImGui.CollapsingHeader('Dragons of Norrath') then
-    --if ImGui.CollapsingHeader('Omens of War') then
-    --if ImGui.CollapsingHeader('Gates of Discord') then
-    --if ImGui.CollapsingHeader('Lost Dungeons of Norrath') then
-    --if ImGui.CollapsingHeader('The Legacy of Ykesha') then
-    --if ImGui.CollapsingHeader('The Planes of Power') then
-    --if ImGui.CollapsingHeader('The Shadows of Luclin') then
-    --if ImGui.CollapsingHeader('The Scars of Velious') then
-    --if ImGui.CollapsingHeader('The Ruins of Kunark') then
+    --if ImGui.CollapsingHeader('Claws of Veeshan 27:CoV') then
+    --if ImGui.CollapsingHeader('Torment of Velious 26:ToV') then
+    --if ImGui.CollapsingHeader('The Burning Lands 25:TBL') then
+    --if ImGui.CollapsingHeader('Ring of Scale 24:ROS') then
+    --if ImGui.CollapsingHeader('Empires of Kunark 23:EOK') then
+    --if ImGui.CollapsingHeader('The Broken Mirror 22:TBM') then
+    --if ImGui.CollapsingHeader('The Darkened Sea 21:TDS') then
+    --if ImGui.CollapsingHeader('Call of the Forsaken 20:CoTF') then
+    --if ImGui.CollapsingHeader('Rain of Fear 19:RoF') then
+    --if ImGui.CollapsingHeader('Veil of Alaris 18:VoA') then
+    --if ImGui.CollapsingHeader('House of Thule 17:HoT') then
+    --if ImGui.CollapsingHeader('Underfoot 16:UF') then
+    --if ImGui.CollapsingHeader('Seeds of Destruction 15:SoD') then
+    --if ImGui.CollapsingHeader('Secrets of Faydwer 14:SoF') then
+    --if ImGui.CollapsingHeader('The Buried Sea 13:TBS') then
+    --if ImGui.CollapsingHeader('The Serpents Spine 12:SS') then
+    --if ImGui.CollapsingHeader('Prophecy of Ro 11:PoR') then
+    --if ImGui.CollapsingHeader('Depths of Darkhollow 10:DoD') then
+    --if ImGui.CollapsingHeader('Dragons of Norrath 9:DoN') then
+    --if ImGui.CollapsingHeader('Omens of War 8:OOW') then
+    --if ImGui.CollapsingHeader('Gates of Discord 7:GoD') then
+    --if ImGui.CollapsingHeader('Lost Dungeons of Norrath 6:LDoN') then
+    --if ImGui.CollapsingHeader('The Legacy of Ykesha 5:LoY') then
+    --if ImGui.CollapsingHeader('The Planes of Power 4:PoP') then
+    --if ImGui.CollapsingHeader('The Shadows of Luclin 3:SoL') then
+    --if ImGui.CollapsingHeader('The Scars of Velious 2:SoV') then
+    --if ImGui.CollapsingHeader('The Ruins of Kunark 1:RoK') then
  
 
 

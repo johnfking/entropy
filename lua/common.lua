@@ -8,7 +8,6 @@
 mq = require('mq')
 
 
-
 echo = mq.cmd.echo
 discord = '${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}'
 ent = {}
@@ -19,8 +18,9 @@ classTable = { "WAR", "PAL", "SHD", "BST", "ROG", "MNK", "RNG", "BER", "CLR", "S
 rez = {}
 rez['radius'] = tonumber(mq.TLO.Macro.Variable('maRez').Find('stMaxRezRange').Value())
 
-
-
+outs = {}
+outs['nopath'] = ' \a-w[\ax\arno valid path\ax\a-w]\ax'
+outs['move'] = '\a-tMove:\ax '
 
 out = function (option, verbage)
   -- help response for no tags for the control
@@ -208,11 +208,18 @@ end
 
 -- edit text variable
 edit_text_perm = function (name, map, var)
-  local line, selected = ImGui.InputTextWithHint(name..'##'..var, mq.TLO.Macro.Variable(map).Find(var).Value(), '', ImGuiInputTextFlags.EnterReturnsTrue)
+  if mq.TLO.Macro.Variable(map).Find(var).Value() == 'FALSE' then 
+    map = '--'
+  end
+  
+  
+  
+  local line, selected = ImGui.InputTextWithHint(name..'##', tostring(mq.TLO.Macro.Variable(map).Find(var).Value()), '', ImGuiInputTextFlags.EnterReturnsTrue)
   if selected then
     mq.cmd.luaedit(var, '"'..line..'"', 'overwrite')
   end  
 end
+
 
 cmd_button = function (name, y, x, cmd)
   local off = ImGui.Button(name, y, x)
@@ -313,7 +320,7 @@ function isMaloed()
 end
 
 
-function isCrippled()
+function isCrippled ()
   if mq.TLO.Target.FindBuff('subcat Disempowering').ID() == nil then
     return '--'
   end
@@ -321,7 +328,7 @@ function isCrippled()
 end
 
 
-function isSnared()
+function isSnared ()
   if mq.TLO.Target.Snared.ID() == nil then
     return '--'
   end
@@ -329,7 +336,7 @@ function isSnared()
 end
 
 
-function hasDS()
+function hasDS ()
   if mq.TLO.Target.DSed.ID() == nil then
     return '--'
   end
@@ -337,7 +344,7 @@ function hasDS()
 end
 
 
-function hasLoS()
+function hasLoS ()
   if mq.TLO.Target.LineOfSight() == nil then
     return '--'
   end
@@ -347,7 +354,6 @@ end
 
 
 info_about = function ()
-
   ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Written By: ')
   ImGui.SameLine()
   ImGui.TextColored(1, 1, 1, 1, 'Exspes')        
@@ -360,5 +366,19 @@ info_about = function ()
   ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Donate: ')
   ImGui.SameLine()
   ImGui.TextColored(1, 1, 1, 1, 'paypal.me/exspes')
+end
 
+
+function sleep (a) 
+  local sec = tonumber(os.clock() + a); 
+  while (os.clock() < sec) do 
+  end 
+end
+
+
+-- check range
+rangeCheck = function (targetRange)
+  
+  return targetRange <= tonumber(mq.TLO.Macro.Variable('maEnv').Find('stEnvRadius').Value())
+  -- return memberRange <= math.max(unpack(range))
 end

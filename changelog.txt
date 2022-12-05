@@ -19,6 +19,28 @@ on the to do list
 
 
 
+
+221205.01
+- /entropy
+  hud closeonend - closes out the hud lua on macro /end command
+- /mode
+  temppet (clr/wiz) adapted to new pull routines
+  hunt - adapted pull routine
+- small change to the stamina recovery for melee
+- hud
+  updated to acount for no variables to populate on mac start/restart
+- /build ui
+  corrected a string to bool value issue
+- fix for in combat turning off heal mode
+***WARNING***
+- lua path updates 
+  this is to fix the need to copy/move the lua files
+  the macro will not check the lua require pats settings. if entropy is not there the
+  macro will end with insturctions.
+  https://entropy.exspes.com/wiki/index.php/Install#Lua
+- updates to the wiki for macro install and lua paths
+  
+
 221016.01
 - bard casting
   changed the process used to watch bard casting to prevent recasts or not finishing casting

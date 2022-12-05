@@ -2818,11 +2818,25 @@ sub Bind_event(string _action, string _option)
 
   }
   
+ 
+ 
+ | ---  start of NoS events
+  /if (${Zone.ShortName.Equal[idontexistyet]}) {    
+
+  | Shar Vhal
+  | Padul Caverns
   
-  |  154.3 53.6 -51.5 - rock
-  | -55.9 322.9 -46.9- rock
-  | -284.3 -347.6 -44.2 - tree
-  |  -169.0 132.6 - home
+
+
+
+
+
+
+
+
+  } 
+  
+
   
   
 | ---  start of Anni events

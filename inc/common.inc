@@ -3247,10 +3247,10 @@ sub do_rest(bool _debug)
   }
 
   | the dead dont need to rest
-  /if (${swIsMeDead}) {
+  | /if (${swIsMeDead}) {
     | DEBUG ${break}swIsMeDead${sep}\a-w${swIsMeDead}\ax
     | /return FALSE
-  }
+  | }
 
   | we DO NOT enter rest while in active combat
   /if (!${maRest.Find[swRestCombat].Value} && ${Me.CombatState.Equal[combat]}) {
@@ -5632,7 +5632,7 @@ sub cast_challenge(bool _debug, spawn _spawn)
 sub cast_stamina_recovery(bool _debug)
   DEBUG \atcast_stamina_recovery\ax()
 
-  /if (${Me.PctEndurance} > 34) {
+  /if (${Me.PctEndurance} > 34 || ${Me.Endurance} < 50) {
     /return FALSE
   }
 
@@ -10546,7 +10546,7 @@ sub cast_cycle_heal_regen(bool _debug, spawn _spawn, string _tag)
       /if (${lsHeal${_liHoT.Value}Tag.Contains[hot]}) {
         DEBUG ${sep}setting _myHoT${sep}\a-w${maHeal.Find[stHeal${_liHoT.Value}].Value}\ax
         /varset _myHoT ${maHeal.Find[stHeal${_liHoT.Value}].Value}
-        /break
+        | /break
       }
 
       | ready?.. or continue
@@ -12984,9 +12984,9 @@ sub check_housekeeping(bool _debug)
   }
 
   | error control
-  /if (${maCC.Find[swCombatHeal].Value} && !${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
-    /invoke ${set_switch_env[${_debug}, swCombatHeal, TRUE, FALSE]}
-  }
+  | /if (${maCC.Find[swCombatHeal].Value} && !${Select[${Me.Class.ShortName},CLR,SHM,DRU]}) {
+  |   /invoke ${set_switch_env[${_debug}, swCombatHeal, TRUE, FALSE]}
+  | }
   /if (${maCC.Find[swCombatControl].Value} && !${Select[${Me.Class.ShortName},ENC,BRD,NEC,MAG]}) {
     /invoke ${set_switch_env[${_debug}, swCombatControl, TRUE, FALSE]}
   }
@@ -13533,6 +13533,15 @@ sub check_cure(bool _debug)
       /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
       /goto :end_cure
     }
+
+    /if (${DanNet[${_toon}].Observe["Me.Mezzed"]}) {
+      DEBUG ${sep}${_toon} is MEZZED...I'm retarded and mezzed myself... ffs
+      /delay 3s !${Me.SpellInCooldown}
+      /call cast_cycle_cure ${_debug} ${Spawn[pc ${_toon}].ID} curse
+      /invoke ${set_data_timer[${_debug}, Check_Cure, 1s]}
+      /goto :end_cure
+    }
+
 
   /next _count
 
@@ -14491,10 +14500,16 @@ sub class_cycle(string _order)
 
     | class specific swarm pets like mage and beast
     } else /if (${_lico.Value.Equal[swarm]} && SWARM) {
-      /call cast_temp_pet ${maDebug.Find[temp].Value} ${targetData.ID} "${maChr.Find[stNukeServant].Value}"
       /if (BARD) {
         /call cast_servant_swarm ${maDebug.Find[temp].Value} ${targetData.ID}
+        /return TRUE
+      } else /if (${Select[${Me.Class.ShortName},CLR,WIZ]}) {
+        /call cast_temp_pet ${maDebug.Find[temp].Value} ${targetData.ID} "${maChr.Find[stTempPet].Value}"
+        /return TRUE
       }
+      /call cast_temp_pet ${maDebug.Find[temp].Value} ${targetData.ID} "${maChr.Find[stNukeServant].Value}"
+
+
 
     | alliance
     } else /if (${_lico.Value.Equal[alliance]} && ${maCC.Find[swAlliance].Value} && !${timer_Check_Alliance}) {
@@ -15908,11 +15923,9 @@ sub spawn_hurt(bool _debug, string _type, bool _breakonGroup)
         DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}_tmpWeight${sep}\a-w${_tmpWeight}\ax
         /if (${Float[${_tmpWeight}].Precision[5]} < ${Float[${_hurtWeight}].Precision[5]}) {
           /varset _hurtWeight ${Float[${_tmpWeight}].Precision[5]}
-          | /vardata hurtData Spawn[pc ${DanNet[${_spawn.DisplayName}].Observe["Me.ID"]}]
           /vardata hurtData _spawn
         }
       } else /if (!${maHeal.Find[swHealWeighted].Value}) {
-        | /vardata hurtData Spawn[pc ${DanNet[${_spawn.DisplayName}].Observe["Me.ID"]}]
         /vardata hurtData _spawn
       }
 
@@ -16550,7 +16563,6 @@ sub pull_constraints(bool _debug, string _type, string _tag, int _range)
 
 
 
-
 |***
  * note: generate initial environment sql and map for shared data
  * use: /call set_data_map DEBUG [id] [name] [text]
@@ -16558,10 +16570,38 @@ sub pull_constraints(bool _debug, string _type, string _tag, int _range)
 sub set_data_notes(bool _debug, string _noteid, string _name, string _text)
   DEBUG \atset_data_map\ax(\a-w${_noteid}, ${_name}, "${_text}"\ax)
 
-  
   /sqlite query "${DBshared}" dummy UPDATE notes SET 'text'="${Parse[1,${_text}]}", name="${_name}" WHERE noteid="note${_noteid}";
   /if (!${sql_check[${_debug}, dummy, set_data_notes, "UPDATE notes"]}) /endmacro
 
+/return TRUE
+
+
+
+|***
+ * note: verify lua require paths have been set up. END macro if not
+ * use: /call check_lua_requires
+ ***|
+sub check_lua_requires()
+
+  /if (!${Lua.RequirePaths.Find[macros\entropy\lua\?.lua]}) {
+    OUT
+    OUT \ar-----\ax
+    OUT \ayNOTICE\ax
+    OUT
+    OUT \ayMake sure the following is set in your Lua Requires Paths:\ax
+    OUT \awMacroQuest Console->Windows->Settings->pulgins->lua->Lua Require Paths:
+    OUT \awadd: macros\\entropy\\lua\\?.lua\ax
+    OUT
+    OUT \arENDING MACRO\ax
+    OUT \ar-----\ax
+    OUT
+    /endmacro
+  }
 
 /return TRUE
+
+
+
+
+
 

@@ -176,6 +176,10 @@ sub set_initialize(bool _debug)
   /declare hurtData spawn outer
   /vardata hurtData Me
 
+  /declare hurtData2 spawn outer
+
+
+
   | TTL stuff
   /declare maTTL map outer
   /call set_data ${_debug} maTTL stTTLTimeStart                           map outer 0
@@ -921,6 +925,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 |** HUD settings **|
   /call set_data_map ${_debug} maEntropy swHUDAuto                        FALSE                        "${auxsw} Auto start HUD on mac start"
+  /call set_data_map ${_debug} maEntropy swHUDCloseonEnd                  FALSE                        "${auxsw} Close the HUD on mq end"
   /call set_data_map ${_debug} maChr swHUDClassAuto                       FALSE                        "${auxsw} Auto start Class HUD on mac start"
   /call set_data_map ${_debug} maHud swTabBuff                            TRUE                         "${auxsw} buff tab"
   /call set_data_map ${_debug} maHud swTabHeal                            TRUE                         "${auxsw} heal tab"
@@ -973,26 +978,27 @@ sub set_initialize_map_character_environment(bool _debug)
 |** control: hard **|
 | these variables are not for users to change
 | they are here in case adjustments need to be made so i dont have to go through k's of lines of code to find them all
-  /call set_data_map ${_debug} maHard stMaxMeleeAdj                       9                             "${auxna} % variance for max meele range adjustment"                                hard
-  /call set_data_map ${_debug} maHard stRadGrab                           20                            "${auxna} pick up allowable 3d radius for EQ"                                       hard
-  /call set_data_map ${_debug} maHard stMaxRadPet                         200                           "${auxna} max usable range for pets"                                                hard
-  /call set_data_map ${_debug} maHard stMinBowDist                        31                            "${auxna} minimum distance to be able to bow or throw"                              hard
-  /call set_data_map ${_debug} maHard stMaxBowDist                        250                           "${auxna} maximum distance to bow or throw"                                         hard
-  /call set_data_map ${_debug} maHard stMinMovetoBow                      35                            "${auxna} minimum distance to move to get bow/throw range"                          hard
-  /call set_data_map ${_debug} maHard stRezSuccess                        30s                           "${auxnum} timer reset to rez the same person on a success"                         hard
-  /call set_data_map ${_debug} maHard stRezFail                           15s                           "${auxnum} timer reset to rez the same person on a fail"                            hard
-  /call set_data_map ${_debug} maHard stRezFailToken                      1m                            "${auxnum} timer reset to rez the same person on a fail with a token rez"           hard
-  /call set_data_map ${_debug} maHard stRezSummonRange                    100                           "${auxnum} /corpse summon range when rezing"                                        hard
-  /call set_data_map ${_debug} maHard stRezIgnoreFucktards                30m                           "${auxnum} suration to mark corpses on the no rez list"                             hard
-  /call set_data_map ${_debug} maHard stMaxCureRad                        200                           "${auxnum} max radius to check for curing"                                          hard
-  /call set_data_map ${_debug} maHard stPullMobTagTry                     5                             "${auxnum} max trys to tag a mob while pulling"                                     hard
-  /call set_data_map ${_debug} maHard stBardSwapRemain                    1500                          "${auxnum} ms left on cast time to swap instrument in"                              hard
-  /call set_data_map ${_debug} maHard stSpellBookSize                     960                           "${auxnum} maximum # of spell book slots"                                           hard
-  /call set_data_map ${_debug} maHard stFoodMaintain                      3000                          "${auxnum} level of, i'm full, to maintain for food"                                hard
-  /call set_data_map ${_debug} maHard stDrinkMaintain                     3000                          "${auxnum} level of, i'm not thirsty, to maintain for drink"                        hard
+  /call set_data_map ${_debug} maHard stMaxMeleeAdj                       9                             "${auxna} % variance for max meele range adjustment"                                  hard
+  /call set_data_map ${_debug} maHard stRadGrab                           20                            "${auxna} pick up allowable 3d radius for EQ"                                         hard
+  /call set_data_map ${_debug} maHard stMaxRadPet                         200                           "${auxna} max usable range for pets"                                                  hard
+  /call set_data_map ${_debug} maHard stMinBowDist                        31                            "${auxna} minimum distance to be able to bow or throw"                                hard
+  /call set_data_map ${_debug} maHard stMaxBowDist                        250                           "${auxna} maximum distance to bow or throw"                                           hard
+  /call set_data_map ${_debug} maHard stMinMovetoBow                      35                            "${auxna} minimum distance to move to get bow/throw range"                             hard
+  /call set_data_map ${_debug} maHard stRezSuccess                        30s                           "${auxnum} timer reset to rez the same person on a success"                           hard
+  /call set_data_map ${_debug} maHard stRezFail                           15s                           "${auxnum} timer reset to rez the same person on a fail"                              hard
+  /call set_data_map ${_debug} maHard stRezFailToken                      1m                            "${auxnum} timer reset to rez the same person on a fail with a token rez"             hard
+  /call set_data_map ${_debug} maHard stRezSummonRange                    100                           "${auxnum} /corpse summon range when rezing"                                          hard
+  /call set_data_map ${_debug} maHard stRezIgnoreFucktards                30m                           "${auxnum} suration to mark corpses on the no rez list"                               hard
+  /call set_data_map ${_debug} maHard stMaxCureRad                        200                           "${auxnum} max radius to check for curing"                                            hard
+  /call set_data_map ${_debug} maHard stPullMobTagTry                     5                             "${auxnum} max trys to tag a mob while pulling"                                       hard
+  /call set_data_map ${_debug} maHard stBardSwapRemain                    1500                          "${auxnum} ms left on cast time to swap instrument in"                                hard
+  /call set_data_map ${_debug} maHard stSpellBookSize                     960                           "${auxnum} maximum # of spell book slots"                                             hard
+  /call set_data_map ${_debug} maHard stFoodMaintain                      3000                          "${auxnum} level of, i'm full, to maintain for food"                                  hard
+  /call set_data_map ${_debug} maHard stDrinkMaintain                     3000                          "${auxnum} level of, i'm not thirsty, to maintain for drink"                          hard
   | /call set_data_map ${_debug} maHard stPullMobFindStep                   5                             "${auxnum} number of increments your pull radius is broken into to look for mobs"   hard
-  /call set_data_map ${_debug} maHard stModeDragTargetCheck               5                             "${auxnum} speed that you grab another corpse to drag. lower = faster"              hard
-  /call set_data_map ${_debug} maHard stMaxSPARemoveCount                 10                            "${auxnum} highest spa a spell/buff has to look at for removal"                              hard
+  /call set_data_map ${_debug} maHard stModeDragTargetCheck               5                             "${auxnum} speed that you grab another corpse to drag. lower = faster"                hard
+  /call set_data_map ${_debug} maHard stMaxSPARemoveCount                 10                            "${auxnum} highest spa a spell/buff has to look at for removal"                       hard
+  /call set_data_map ${_debug} maHard swDev                               FALSE                         "${auxnum} developer stufd. not ready for release"                                    hard
 
 
 
@@ -1653,6 +1659,22 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** control: Event  **|
+
+
+| Expansion 29: Nights of Shadow
+
+ 
+  | T3
+  | Shar Vhal: Under Seige
+  | /call set_data_map ${_debug} ls29UnderSeigeHeartHelp                      "Grawleh|Jimuul|Garig|Ragnar|Falea|Hala|Zoliq|Fehril"    "${auxli} run to hail for heart cure"                 event
+  | spirits maybe?
+  
+
+
+
+
+
+
 
 | Expansion 28: Terror of Luclin
   | Bloodfalls: Close the Gate

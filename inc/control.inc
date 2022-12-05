@@ -583,6 +583,7 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
   | macro auto/manual
   /if (${_type.Equal[auto]}) {
     /invoke ${set_switch_env[${_debug}, swAuto, FALSE, ${_verbage}]}
+    /lua stop ${MacroQuest.Path[macros]}\entropy\lua\health.lua
     /invoke ${out[12, "/env ${If[${maEnv.Find[swAuto].Value},${good}auto\ax,${bad}auto\ax]}"]}
 
     /if (!${maEnv.Find[swAuto].Value}) {
@@ -1058,7 +1059,7 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   } else /if (${_type.Equal[return]} && AUTO) {
     /if (${maHome.Find[stCampZ].Value} > 999999991) {
       /return FALSE
-    } else /if (!${Navigation.PathExists[locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value}]}) {
+    } else /if (!${Navigation.PathExists[locyxz ${maData.Find[stCampY].Value} ${maData.Find[stCampX].Value} ${maData.Find[stCampZ].Value}]} && ${maHome.Find[swHomeMarker].Value}) {
       /invoke ${out[19, "${notice}${sep}no path home"]}
       /return FALSE
     }
@@ -1854,13 +1855,18 @@ sub Bind_control_entropy(string _type, string _verbage, string _verbage2, string
     } else /if (${_verbage.Equal[stop]}) {   
       /lua stop hud.lua
       
+    } else /if (${_verbage.Equal[closeonend]}) {   
+      /invoke ${set_switch_env[${_debug}, swHUDCloseonEnd, TRUE, ${_verbage2}]}
+
     } else /if (${_verbage.Equal[auto]}) {   
       /invoke ${set_switch_env[${_debug}, swHUDAuto, TRUE, ${_verbage2}]}
+
 
     }
 
     /invoke ${maControl.Clear}
     /invoke ${maControl.Add[auto,swHUDAuto]}
+    /invoke ${maControl.Add[closeonend,swHUDCloseonEnd]}
     /invoke ${maControl.Add[start,option]}
     /invoke ${maControl.Add[stop,option]}
     /invoke ${set_control_output[${_debug}, maEntropy, "entropy hud", maControl]}
@@ -3276,11 +3282,9 @@ sub Bind_command_splash(bool _debug)
     }
   }
 
-
   | correct the cast data back to the splash
   /invoke ${cast_data[${_debug}, "${maHeal.Find[stHeal${_tmpSplash}].Value}"]}
 
-  
   | paladin
   /if (${Me.Class.ShortName.Equal[PAL]}) {
     DEBUG ${sep}paladin splash
