@@ -97,6 +97,7 @@
  * use: none. auto
  ***|
 sub main(string _var1, string _var2, string _var3, string _var4)
+
   /declare _boottimestart int local ${MacroQuest.Running}
   MQCLEAR
 
@@ -106,12 +107,6 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     ECHO \a-wMQ2SQLite, MQ2DanNet, Mq2Nav, MQ2MoveUtils, MQ2Collections, MQ2Lua\ax
     /endmacro
   }
-
-  | remove old huds
-  | /if (${check_plugin[FALSE, FALSE, |MQ2Hud]}) {
-  |   /squelch /unloadhud entropy
-  |   /squelch /unloadhud dev
-  | }
 
   | forced PREGEN updates
   /declare pregenUpdate bool outer FALSE
@@ -126,7 +121,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 221205.01
+  /call set_data FALSE maEnv build                          map outer 221224.01
   /call set_data FALSE maEnv schema                         map outer 1.65
   /call set_data FALSE maEnv repo                           map outer 220225.01
 
@@ -231,6 +226,11 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     /if (${maBuff.Find[swDropBuffs].Value} && !${timer_Check_Drop_Buffs}) {
       /call check_drop_buffs ${maDebug.Find[drop].Value}
     }
+    
+    | check observers
+    /if (!${timer_Check_Observers}) {
+      /call observer_build ${maDebug.Find[observe].Value} obs_chrwatch add TRUE
+    }   
 
     | mode check
     /if (!${timer_Check_Mode}) {
@@ -245,12 +245,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
       CHECKTIE
 
 
-      | check observers
+      | curing observers
       /if (!${timer_Check_Observers}) {
-        
-        /call observer_build ${maDebug.Find[observe].Value} obs_chrwatch add TRUE
-
-        | curing observers
         /if (${maCure.Find[swCureGroup].Value} || ${maCure.Find[swCureCrew].Value}) {
           /call observer_build ${maDebug.Find[observe].Value} obs_cure add
         }
@@ -270,8 +266,6 @@ sub main(string _var1, string _var2, string _var3, string _var4)
       /if (DEV) {
         /lua run ${MacroQuest.Path[macros]}\entropy\lua\health.lua
       }
-
-
 
       | check tribute
       /if (${maEnv.Find[swCheckTribute].Value}) {
@@ -348,6 +342,10 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /if (${maEntropy.Find[swHUDCloseonEnd].Value}) {
     /lua stop ${MacroQuest.Path[macros]}\entropy\lua\hud.lua
   }
+  /if (${maEntropy.Find[swHUDDriveCloseonEnd].Value}) {
+    /lua stop ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
+  }  
+    
   /lua stop ${MacroQuest.Path[macros]}\entropy\lua\binds.lua
   /lua stop ${MacroQuest.Path[macros]}\entropy\lua\health.lua
   /endmacro
@@ -514,7 +512,7 @@ sub prepare_the_end(bool _debug)
   /if (${maEntropy.Find[swHUDAuto].Value}) {
     /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.lua
   }
-  
+
   | sort the class hud
   /if (${maChr.Find[swHUDClassAuto].Value} && DEV) {
     /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.${Me.Class.ShortName}.lua

@@ -108,6 +108,8 @@ local function imguicallback()
           ImGui.TextDisabled(' ')
         end
         
+
+--[[
         -- column 1
         ImGui.Columns(5, 'noname', false)
           if mq.TLO.Macro.Variable('maEnv').Find('swAuto').Value() == 'TRUE' then
@@ -130,6 +132,8 @@ local function imguicallback()
           cmd_button('Gather', 60, 22, 'gather')
           cmd_button('Here', 60, 22, 'here')
         ImGui.Columns()
+--]]
+
         ImGui.EndTabItem()
       end
 
@@ -163,10 +167,12 @@ local function imguicallback()
         if ImGui.BeginTabItem('Heal') then
           ImGui.Columns(2, 'noname', false)
             edit_switch_perm('self', 'maHeal', 'swHealSelf')
+            ImGui.SameLine()
+            edit_switch_perm('pet', 'maHeal', 'swHealPet')
             edit_switch_perm('dannet', 'maHeal', 'swHealDanNet')
             edit_switch_perm('group', 'maHeal', 'swHealGroup')
             edit_switch_perm_cmd('xt', 'maHeal', 'swHealXTarget', 'heal xt build')
-            edit_switch_perm('pet', 'maHeal', 'swHealPet')
+            -- edit_switch_perm('pet', 'maHeal', 'swHealPet')
           ImGui.NextColumn()
             edit_switch_perm('weight', 'maHeal', 'swHealWeighted')
             edit_switch_perm('break', 'maHeal', 'swBreakHealPCT')
@@ -183,16 +189,22 @@ local function imguicallback()
 -- combat tab
       if mq.TLO.Macro.Variable('maHud').Find('swTabCombat').Value() == "TRUE" then
         if ImGui.BeginTabItem('Combat') then
-          ImGui.Columns(2, 'noname', false)
+          ImGui.Columns(3, 'firstc', false)
             edit_switch_perm('dot', 'maCC', 'swCombatDoT')
             edit_switch_perm('heal', 'maCC', 'swCombatHeal')
+          ImGui.NextColumn()
             edit_switch_perm('melee', 'maCC', 'swCombatMelee')
             edit_switch_perm('range', 'maCC', 'swCombatRange')
+          ImGui.NextColumn()
             edit_switch_perm('nuke', 'maCC', 'swCombatNuke')
             if mq.TLO.Me.Class.ShortName() == 'ENC' or mq.TLO.Me.Class.ShortName() == 'BRD' or mq.TLO.Me.Class.ShortName() == 'NEC' or mq.TLO.Me.Class.ShortName() == 'MAG' then
               edit_switch_perm('cc', 'maCC', 'swCombatControl')
             end   
-          ImGui.NextColumn()
+          ImGui.Columns()
+            
+            
+            
+          ImGui.Columns(2, 'secondc', false)
             local current_smartass = mq.TLO.Macro.Variable('maCC').Find('stAssistMode').Value()
             if ImGui.BeginCombo("smart", current_smartass) then
               for _, t in ipairs({ 'off', 'g', '1', '2', '3', 'm1', 'm2', 'm3' }) do
@@ -204,7 +216,8 @@ local function imguicallback()
               ImGui.EndCombo()
             end
             edit_switch_perm('manual', 'maCC', 'swManualAssist')
-            ImGui.NewLine()
+            
+          ImGui.NextColumn()
             edit_text_perm('engage', 'maCC', 'stPctEngage')
             edit_text_perm('zrad', 'maCC', 'stZRadius')
           ImGui.Columns()
@@ -244,17 +257,17 @@ local function imguicallback()
 
               ImGui.EndCombo()
             end
+            edit_text_perm('var', 'maPull', 'stPullNavVariance')
 
-            edit_switch_perm('pathlogic', 'maPull', 'swNavPathLogic')
-            edit_switch_perm('sethome', 'maPull', 'swPullSetHome')
           ImGui.NextColumn()
             edit_text_perm('rad', 'maPull', 'stPullRadius')
             edit_text_perm('zrad', 'maPull', 'stPullZRadius')
             edit_text_perm('stop', 'maPull', 'stPullNavStopDistance')
             edit_text_perm('chain', 'maPull', 'stCountChainPull')
-            edit_text_perm('var', 'maPull', 'stPullNavVariance')
           ImGui.NextColumn()
             edit_switch_perm('navlos', 'maPull', 'swPullNavLoS')
+            edit_switch_perm('pathlogic', 'maPull', 'swNavPathLogic')
+            edit_switch_perm('sethome', 'maPull', 'swPullSetHome')
           ImGui.Columns()
           ImGui.EndTabItem()
                   
@@ -291,6 +304,7 @@ local function imguicallback()
             edit_switch_perm('everyone', 'maRez', 'swRezEveryone')
             edit_switch_perm('use token', 'maRez', 'swRezToken')
             edit_switch_perm('take', 'maRez', 'swRezTake')
+            ImGui.SameLine()
             edit_switch_perm('take call', 'maRez', 'swRezTakeCall')
           ImGui.Columns()      
           ImGui.EndTabItem()

@@ -13,6 +13,8 @@
  ***|
 sub set_debug(string _verbage)
 
+  /declare maEnv map outer
+
   | generate DEBUGS
   /declare lsDebuglist list outer
   /invoke ${lsDebuglist.Append[buff,heal,home,debuff,cast,loot,mode,combat,other,minion,class,admin,schema,zone]}
@@ -40,7 +42,7 @@ sub set_debug(string _verbage)
   | loot
   /invoke ${lsDebugloot.Append[loot]}
   | mode
-  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell,temppet,scribe]}
+  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell,temppet,scribe,pat]}
   | combat
   /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait,hardstop,prediction]}
   | other
@@ -539,7 +541,7 @@ sub set_initial_environment(bool _debug)
   | generate modes
   /declare maMode map outer
   /declare lsMode list outer
-  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell,temppet,scribe]}
+  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell,temppet,scribe,pat]}
 
   /declare _lisie listiterator local
   /vardata _lisie lsMode.First.Clone
@@ -926,6 +928,8 @@ sub set_initialize_map_character_environment(bool _debug)
 |** HUD settings **|
   /call set_data_map ${_debug} maEntropy swHUDAuto                        FALSE                        "${auxsw} Auto start HUD on mac start"
   /call set_data_map ${_debug} maEntropy swHUDCloseonEnd                  FALSE                        "${auxsw} Close the HUD on mq end"
+  /call set_data_map ${_debug} maEntropy swHUDDriveCloseonEnd             TRUE                         "${auxsw} Close the Drive HUD on mq end"
+  /call set_data_map ${_debug} maEntropy swHUDDriveAuto                   FALSE                        "${auxsw} Auto start Drive HUD on mac start"
   /call set_data_map ${_debug} maChr swHUDClassAuto                       FALSE                        "${auxsw} Auto start Class HUD on mac start"
   /call set_data_map ${_debug} maHud swTabBuff                            TRUE                         "${auxsw} buff tab"
   /call set_data_map ${_debug} maHud swTabHeal                            TRUE                         "${auxsw} heal tab"

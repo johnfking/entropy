@@ -438,8 +438,8 @@ sub burn(bool _debug, spawn _spawn)
         | Always use Dicho and Ton Po's together
         /if (${cast_data[${_debug}, "${maChr.Find[stDichotomic].Value}"]}) {
           /if (${cast_data[${_debug}, "${maChr.Find[stAATonPoStance].Value}"]}) {
-            /call voodoo ${_debug} "${maChr.Find[stDichotomic].Value}" 0 FALSE
-            /call voodoo ${_debug} "${maChr.Find[stAATonPoStance].Value}" 0 FALSE
+            /call cast ${_debug} "${maChr.Find[stDichotomic].Value}" 0 FALSE
+            /call cast ${_debug} "${maChr.Find[stAATonPoStance].Value}" 0 FALSE
           }
         }
 

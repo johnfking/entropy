@@ -2392,7 +2392,8 @@ sub pull_hardstop(bool _debug)
     }
 
     | skip this person?
-    /if (!${Spawn[pc ${_toon}].ID} || ${DanNet[${_toon}].Observe["Me.Dead"]} || ${Spawn[pc ${_toon}].Distance} > ENV || ${_toon.Equal[${Me.DisplayName}]}) {
+    | /if (!${Spawn[pc ${_toon}].ID} || ${DanNet[${_toon}].Observe["Me.Dead"]} || ${Spawn[pc ${_toon}].Distance} > ENV || ${_toon.Equal[${Me.DisplayName}]}) {
+    /if (!${Spawn[pc ${_toon}].ID} || ${DanNet[${_toon}].Observe["Me.Dead"]} || ${_toon.Equal[${Me.DisplayName}]}) {
       DEBUG ${sep}skipping${sep}\a-w${_toon}\ax ${dot} me, dead or beyond ENV
       /varcalc _countToon ${_countToon} + 1
       /continue
@@ -4500,7 +4501,7 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
       /return FALSE
     }
   }
-
+  
   /if (${_force}) {
     DEBUG ${sep}forced /cb${sep}\ao${_verbage}\ax
     /declare _buffcycletimestart int local ${MacroQuest.Running}
@@ -13585,7 +13586,7 @@ sub observer_validate(bool _debug, string _table, string _toon)
  * use: /call observer_build DEBUG [db table of things to observe] [add|drop] [silent T/F]
  ***|
 sub observer_build(bool _debug, string _table, string _action, bool _silent)
-  DEBUG \atset_observers\ax(\a-w${_table}, ${_action}, ${_silent}\ax)
+  DEBUG \atobserver_build\ax(\a-w${_table}, ${_action}, ${_silent}\ax)
 
   /declare _count           int     local 1
   /declare _countObs        int     local 1
@@ -13609,6 +13610,7 @@ sub observer_build(bool _debug, string _table, string _action, bool _silent)
 
   | only reload if not there
   /if (!${sqlite.Rows[${_table}]}) {
+    DEBUG ${_table} SELECT * FROM ${_table};
     /sqlite query "${DBstatic}" ${_table} SELECT * FROM ${_table};
   }
    
@@ -13624,10 +13626,10 @@ sub observer_build(bool _debug, string _table, string _action, bool _silent)
     /varset _countFail 0
     
     | skip me
-    /if (${_toon.Equal[${Me.DisplayName}]}) {
-      /varcalc _count ${_count} + 1
-      /continue
-    }
+    | /if (${_toon.Equal[${Me.DisplayName}]}) {
+    |   /varcalc _count ${_count} + 1
+    |   /continue
+    | }
     
     DEBUG ${sep}_toon\aw ${_count}\ax::\at${_toon}\ax
     /varset _found FALSE

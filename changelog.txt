@@ -18,7 +18,31 @@ on the to do list
 --------------------
 
 
-
+221224.01 (xmas eve edition)
+- hud
+  removed some of the buttons and rearranged things to 
+  make it a little more combact
+- drive controls
+  /drive
+  enables a hud that monitors your crew
+  this is a work in progress
+  currently watches:
+  -invis/stacking
+  -distance
+  -levitate
+  -green=macro active and on auto
+  -blue=macro active and in manual
+  -purple=macro inactive
+  -red=toon dead
+  -toon currentlly casting sepll id. (the name just took up too much space)
+  most of the common crew based commands as buttons
+- active observers added:
+  entropy auto switch
+  casting.id
+  invis spas
+  levi spa
+  movement buff spa
+    
 
 221205.01
 - /entropy

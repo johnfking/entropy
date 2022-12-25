@@ -1812,3 +1812,31 @@ sub mode_scribe(bool _debug)
 /return FALSE
 
 
+
+
+|***
+ *  DES: pets the kitties in kitty town
+ *  USE: /mode pat ## DEBUG
+ ***|
+sub mode_pat(bool _debug)
+
+  DEBUG \atmode_pat\ax()
+
+  ISMEDEAD
+  GETINPUT
+
+  SETHUD "pat"
+ 
+  /target rajyk
+  /delay ${Math.Rand[5,10]}
+  /pat
+  /delay ${Math.Rand[50,70]}
+ 
+  /target palav
+  /delay ${Math.Rand[5,10]}
+  /pat
+  /delay ${Math.Rand[50,70]}
+    
+  
+/return
+

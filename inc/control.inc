@@ -192,6 +192,7 @@ sub Bind_control_mode(string _type, string _verbage, string _verbage2, bool _deb
   /invoke ${maControl.Add[farm,option]}
   /invoke ${maControl.Add[hunt,option]}
   /invoke ${maControl.Add[lush,option]}
+  /invoke ${maControl.Add[pat,option]}
   /invoke ${maControl.Add[summon,option]}
   /invoke ${maControl.Add[scribe,option]}
   /invoke ${maControl.Add[temppet,option]}
@@ -3524,6 +3525,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
     /click right item
     /delay 5
     | select the menu to port
+    SDEBUG ${sqlite.Result[dummy 1 menu]}
     /invoke ${Menu.Select[${sqlite.Result[dummy 1 menu]}]}
 
 
@@ -6729,4 +6731,20 @@ sub Bind_command_notes(string _noteID, string _verbage, string _verbage2)
   /invoke ${set_control_output[FALSE, maData, "notes", maControl]}
 
 /return TRUE
+
+
+
+|***
+ * note: drive controls
+ * use: /drive
+ ***|
+#bind command_drive /drive
+sub Bind_command_drive()
+
+  /lua run ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
+  /return TRUE
+
+/return TRUE
+
+
 

@@ -2821,16 +2821,18 @@ sub Bind_event(string _action, string _option)
  
  
  | ---  start of NoS events
-  /if (${Zone.ShortName.Equal[idontexistyet]}) {    
+ 
+  | shar vahl 2 group mission
+  /if (${Zone.ShortName.Equal[sharvahltwo_missiontwo]}) {    
 
-  | Shar Vhal
-  | Padul Caverns
-  
+| Ragnar|Jimuul|Grawleh
 
-
-
-
-
+    /if (${_action.Equal[home]}) {
+      /navto spiritist
+      /target spiritist
+      /say help
+    }
+    /invoke ${maControl.Add[say,option]}
 
 
 

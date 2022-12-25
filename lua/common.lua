@@ -22,7 +22,7 @@ outs = {}
 outs['nopath'] = ' \a-w[\ax\arno valid path\ax\a-w]\ax'
 outs['move'] = '\a-tMove:\ax '
 
-out = function (option, verbage)
+function out (option, verbage)
   -- help response for no tags for the control
   if option == 'notag' then
     echo('${lsep}no tags for this control.')
@@ -36,7 +36,7 @@ end
 
 
 
-hudInfo = function ()
+function hudInfo ()
 
   ent['hudam'] = ''
   ent['hudtoonname'] = ''
@@ -47,6 +47,7 @@ hudInfo = function ()
   ent['hudent'] = ''
   ent['dash'] = ''
   ent['build'] = mq.TLO.Macro.Variable('maEnv').Find('build').Value() or '--'
+  ent['channel'] = mq.TLO.Macro.Variable('maEntropy').Find('stEntropyGroup_all').Value()
 
 
   -- buid hud variables
@@ -160,7 +161,7 @@ end
 
 
 
-indent = function (count, pos)
+function indent (count, pos)
   if pos == 1  then
     if count < 10 then
       ImGui.Indent(16)
@@ -177,7 +178,7 @@ indent = function (count, pos)
 end
  
  -- temporary switch 
-edit_switch_temp = function (name, map, var)
+function edit_switch_temp (name, map, var)
   local switch, checked = ImGui.Checkbox(name..'##'..var, mq.TLO.Macro.Variable(map).Find(var).Value() == 'TRUE')
   if checked then
     mq.cmd.invoke('${'..map..'.Add['..var..','..(switch and 'TRUE' or 'FALSE')..']}')
@@ -185,7 +186,7 @@ edit_switch_temp = function (name, map, var)
 end
 
 -- simple switchbox
-edit_switch_perm = function (name, map, var)
+function edit_switch_perm (name, map, var)
   local switch, checked = ImGui.Checkbox(name..'##'..var, mq.TLO.Macro.Variable(map).Find(var).Value() == 'TRUE')
   if checked then
     mq.cmd.luaedit(var, switch and 'TRUE' or 'FALSE')
@@ -193,7 +194,7 @@ edit_switch_perm = function (name, map, var)
 end
 
 -- blank checkbox with a command button as the name
-edit_switch_perm_cmd = function (name, map, var, cmd)
+function edit_switch_perm_cmd (name, map, var, cmd)
   local switch, checked = ImGui.Checkbox('##'..var, mq.TLO.Macro.Variable(map).Find(var).Value() == 'TRUE')
   if checked then
     mq.cmd.luaedit(var, switch and 'TRUE' or 'FALSE')
@@ -207,7 +208,7 @@ edit_switch_perm_cmd = function (name, map, var, cmd)
 end
 
 -- edit text variable
-edit_text_perm = function (name, map, var)
+function edit_text_perm (name, map, var)
   if mq.TLO.Macro.Variable(map).Find(var).Value() == 'FALSE' then 
     map = '--'
   end
@@ -221,10 +222,17 @@ edit_text_perm = function (name, map, var)
 end
 
 
-cmd_button = function (name, y, x, cmd)
-  local off = ImGui.Button(name, y, x)
-  if off then
+function cmd_button (name, y, x, cmd)
+  local cb = ImGui.Button(name, y, x)
+  if cb then
     mq.cmd('/'..cmd)
+  end
+end
+
+function cmd_button_all (name, y, x, cmd)
+ local off = ImGui.Button(name, y, x)
+  if off then
+    mq.cmd.dgae('/' .. cmd)
   end
 end
 
@@ -232,9 +240,7 @@ end
 
 
 
-
-
-edit_tree = function (count, var, alias)
+function edit_tree (count, var, alias)
   
   if ImGui.TreeNode('list') then
     ImGui.NewLine()
