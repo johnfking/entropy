@@ -4108,7 +4108,11 @@ sub check_zone_id(bool _debug, bool _force)
     }
 
     /call set_zone_lists ${maDebug.Find[area].Value}
+    
+    
     /varset swIsMeDead FALSE
+    
+    
     /varset _zoned TRUE
     /doevents flush
     /invoke ${maData.Add[swGetOverHere,FALSE]}
@@ -4496,10 +4500,15 @@ sub check_buff_cycle(bool _debug, bool _force, string _verbage)
   DEBUG \atcheck_buff_cycle\ax(\a-wforce:${_force}, verb:${_verbage}\ax)
 
   /if (AUTO) {
+    | reset master buff timer
     /invoke ${set_data_timer[${_debug}, Check_Buff_Cycle, RESTART]}
     /if (!${maBuff.Find[swBuffMaster].Value}) {
       /return FALSE
     }
+    | buffing in the guild lobby?
+    /if (${maBuff.Find[swBuffNoLobby].Value} && ${Select[${Zone.ShortName},GuildLobby]}) {
+      /return FALSE
+    }    
   }
   
   /if (${_force}) {
@@ -7201,27 +7210,44 @@ sub get_target_intpull(bool _debug, spawn _spawn)
   /if (${_spawn.ID}) {
     /varset stAssTarID ${_spawn.ID}
   } else {
-    /call pull_mob_find FALSE
+    /invoke ${pull_constraints[${_debug}]}
+    /call build_map_spawndata FALSE
+    /call pull_mob_find_v2 FALSE
   }
 
-  /if (!TARGET) {
+  /if (!${targetData.ID}) {
     SETHUD
     /return FALSE
   }
 
-  /call target set ${_spawn.ID}
+  /call target set ${targetData.ID}
 
   /delay 1s
   /dex ${get_resident[${_debug}, |clr, 60]} /advancedpullint ${Me.ID} ${_debug}
   /delay 1s
+  
 
-  /call pull_mob_prep ${_debug} ${_spawn.ID}
-  /if (!${Macro.Return}) {
-    DEBUG ${sep}\arPrep FAILURE\ax${sep}resetting
-    /invoke ${target[clear]}
-    /return FALSE
+  /if (${targetData.Dstance} > ${targetData.Distance}*.9) {
+    /call pull_mob_tag ${_debug} ${targetData.ID}
+    /if (${Macro.Return.Equal[tagfailure]}) {
+      DEBUG ${sep}\arNAVpull FAILURE\ax${sep}resetting/returning to camp
+      /invoke ${target[clear]}
+      /call Bind_control_home return FALSE silent ${maDebug.Find[home].Value}
+      /return FALSE
+    }
   }
 
+  /if (MELEE) {
+    /attack on
+  }
+
+  | wait for mob to get to camp
+  DEBUG ${sep}loop \a-wwaitformob\ax
+
+  /declare _waittime int local ${Math.Calc[(PULLENV + ${targetData.Distance})*.08]}
+  /call get_target_wait ${maDebug.Find[wait].Value} ${targetData.ID} ${_waittime}s
+
+  DEBUG ${sep}\arCLOSING\ax${sep}\atget_target_intpull\ax (\a-rTARGET\ax)
   SETHUD
 
 /return TRUE
@@ -16307,7 +16333,7 @@ sub check_sash_proc(bool _debug, string _target)
 
 
 |***
- * note: builds teh spawn data map (maSD) for all mobs in your pull rad
+ * note: builds the spawn data map (maSD) for all mobs in your pull radius
  *       we do not care if its a valid path or not. just get all the mobs of that type
  * use: /invoke ${build_map_spawndata[DEBUG]}
  ***|
@@ -16320,10 +16346,12 @@ sub build_map_spawndata(bool _debug)
   /declare _priority int local 0
   
   /varset _spawnCount ${SpawnCount[${maSD.Find[type].Value} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius PULLENV zradius ${maPull.Find[stPullZRadius].Value} targetable]}
+  DEBUG spawncount${sep}${_spawnCount}
   
   /for _count 1 to ${_spawnCount}
 
     /if (!${NearestSpawn[${_count}, ${maSD.Find[type].Value} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius PULLENV zradius ${maPull.Find[stPullZRadius].Value} targetable].ID}) {
+      DEBUG NearestSpawn[${_count}, ${maSD.Find[type].Value} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius PULLENV zradius ${maPull.Find[stPullZRadius].Value} targetable].ID
       DEBUG ${sep} NearestSpawn ${_count} invalid. moving to next
       /continue
     }
@@ -16365,7 +16393,7 @@ sub build_map_spawndata(bool _debug)
         DEBUG ${skip}do not engage pets in the main cycle${sep}\ar${_spawn.Type}\ax
         /continue
 
-      | skip pets unless you are specifically looking for them
+      | skip NPC pets unless you are specifically looking for them
       } else /if (${_spawn.Type.Equal[NPCPET]} && ${maSD.Find[type].Value.NotEqual[NPCPET]}) {
         DEBUG ${skip}do not engage NPC pets in the main cycle, do it later${sep}\ar${_spawn.Type}\ax
         /continue
@@ -16408,7 +16436,7 @@ sub build_map_spawndata(bool _debug)
     }
 
     | key: spawn ID
-    | value -  1|pc/npc/? 2|dist 3|navpath 4|named/nomez/normal 0/1
+    | value -  1|pc/npc/? 2|dist 3|navpath 4|named/nomez/normal 0/1|name
     DEBUG ${sep}maSD.Add[${_spawn.ID}, |${_spawn.Type}|${_spawn.Distance}|${Navigation.PathLength[id ${_spawn.ID}]}|${_priority}|${_spawn.Name}]
     /invoke ${maSD.Add[${_spawn.ID}, |${_spawn.Type}|${_spawn.Distance}|${Navigation.PathLength[id ${_spawn.ID}]}|${_priority}|${_spawn.Name}]}
     
@@ -16424,6 +16452,9 @@ sub build_map_spawndata(bool _debug)
 |***
  * note: finds the closest mob based on what is in the spawn data map
  * use: /call pull_mob_find_v2. returns a valid spawn ID and sets spawnData
+ 
+ ** ID::|Type|Linear distance|Nav Distance|priority|realname
+ 
  ***|  
 sub pull_mob_find_v2(bool _debug)
   DEBUG \atpull_mob_find_v2\ax(\a-w\ax)
@@ -16456,7 +16487,7 @@ sub pull_mob_find_v2(bool _debug)
 
     | are we using linear distance or nav path distance
     | we dafault to nav path. adjust if necessary
-    /if (${Select[${maPull.Find[stPullMode].Value},base]}) {
+    /if (${Select[${maPull.Find[stPullMode].Value},base,int]}) {
       DEBUG ${sep}set linear distance
       /varset _del 2
     }

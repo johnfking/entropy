@@ -18,10 +18,19 @@ on the to do list
 --------------------
 
 
+221228.01
+- /buff
+  nolobby - disables automated buffing in the guild lobby. no impact on manual
+- /pull
+  int - adapted to new pulling routines
+- /drive
+  several updates to fix the stupid crashing (still not sure i got them all)
+    
+
 221224.01 (xmas eve edition)
 - hud
   removed some of the buttons and rearranged things to 
-  make it a little more combact
+  make it a little more compact
 - drive controls
   /drive
   enables a hud that monitors your crew
@@ -34,7 +43,7 @@ on the to do list
   -blue=macro active and in manual
   -purple=macro inactive
   -red=toon dead
-  -toon currentlly casting sepll id. (the name just took up too much space)
+  -toon currently casting spell id. (the name just took up too much space)
   most of the common crew based commands as buttons
 - active observers added:
   entropy auto switch

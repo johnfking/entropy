@@ -13,21 +13,22 @@ local shouldDrawHUD = true
 
 
 info = {}
+info['channel'] = mq.TLO.Macro.Variable('maEntropy').Find('stEntropyGroup_all').Value()
+info['build'] = mq.TLO.Macro.Variable('maEnv').Find('build').Value() or '--'
 
-
-
-function groupinfo ()
-  for i = 1, mq.TLO.DanNet.PeerCount(ent['channel'])() 
+function driveinfo ()
+  for i = 1, mq.TLO.DanNet.PeerCount(info['channel'])() 
   do
 
-    toon = mq.TLO.DanNet.Peers(ent['channel']).Arg(i,'|')()
+    toon = mq.TLO.DanNet.Peers(info['channel']).Arg(i,'|')()
     
-    if mq.TLO.Spawn(toon).ID() == 0 then 
-      goto continue 
-    end
-    
+   
     -- distance
-    info[toon .. 'distance'] = round(mq.TLO.Spawn(toon).Distance(), 0)
+    if mq.TLO.Spawn(toon).Distance() == nil then
+      info[toon .. 'distance'] = 0
+    else
+      info[toon .. 'distance'] = round(mq.TLO.Spawn(toon).Distance(), 0)
+    end
 
     -- state
     if mq.TLO.Spawn(toon).Dead() then
@@ -55,40 +56,35 @@ function groupinfo ()
     info[toon .. 'inv'] = ''
     info[toon .. 'movement'] = ''
     info[toon .. 'levi'] = ''
+  
     
-    
-    if mq.TLO.Group.Member(i).ID() == mq.TLO.Me.ID() then
-      --goto continue
+    -- ivu  
+    if mq.TLO.DanNet(toon).Observe('Me.SPA[315]')() == '0' and mq.TLO.DanNet(toon).Observe('Me.SPA[28]')() == '0' then
+      info[toon .. 'ivu'] = ''
+    else 
+      info[toon .. 'ivu'] = 'U'
     end
-   
-    
-      -- ivu  
-      if mq.TLO.DanNet(toon).Observe('Me.SPA[315]')() == '0' and mq.TLO.DanNet(toon).Observe('Me.SPA[28]')() == '0' then
-        info[toon .. 'ivu'] = ''
-      else 
-        info[toon .. 'ivu'] = 'U'
-      end
 
-      -- ivu  
-      if mq.TLO.DanNet(toon).Observe('Me.SPA[314]')() == '0' and mq.TLO.DanNet(toon).Observe('Me.SPA[12]')() == '0' then
-        info[toon .. 'inv'] = ''
-      else
-        info[toon .. 'inv'] = 'I'
-      end
+    -- ivu  
+    if mq.TLO.DanNet(toon).Observe('Me.SPA[314]')() == '0' and mq.TLO.DanNet(toon).Observe('Me.SPA[12]')() == '0' then
+      info[toon .. 'inv'] = ''
+    else
+      info[toon .. 'inv'] = 'I'
+    end
 
-      -- movement  
-      if mq.TLO.DanNet(toon).Observe('Me.SPA[3]')() == '0'  then
-        info[toon .. 'movement'] = ''
-      else
-        info[toon .. 'movement'] = 'M'
-      end
+    -- movement  
+    if mq.TLO.DanNet(toon).Observe('Me.SPA[3]')() == '0'  then
+      info[toon .. 'movement'] = ''
+    else
+      info[toon .. 'movement'] = 'M'
+    end
 
-      -- Levi  
-      if mq.TLO.DanNet(toon).Observe('Me.SPA[57]')() == '0'  then
-        info[toon .. 'levi'] = ''
-      else
-        info[toon .. 'levi'] = 'L'
-      end
+    -- Levi  
+    if mq.TLO.DanNet(toon).Observe('Me.SPA[57]')() == '0'  then
+      info[toon .. 'levi'] = ''
+    else
+      info[toon .. 'levi'] = 'L'
+    end
 
   ::continue::  
   end
@@ -107,24 +103,23 @@ end
 
 
 local function imguicallback()
-  hudInfo()
-  groupinfo()
+  driveinfo()
   openGUI, shouldDrawHUD = ImGui.Begin('Drive###EntropyDrive', openGUI)
   
   local toon = tempname
   
-  if shouldDrawHUD and (ent['build'] == '--' or mq.TLO.EverQuest.GameState() ~= 'INGAME') then
-
+  if shouldDrawHUD and (info['build'] == '--' or mq.TLO.EverQuest.GameState() ~= 'INGAME') then
 
   elseif shouldDrawHUD then  
-
       
     -- column 1
     ImGui.Columns(7, 'tooninfo', false)
-      for i = 1, mq.TLO.DanNet.PeerCount(ent['channel'])() 
+      for i = 1, mq.TLO.DanNet.PeerCount(info['channel'])() 
       do
-        toon = mq.TLO.DanNet.Peers(ent['channel']).Arg(i,'|')()
-        if mq.TLO.Spawn(toon).ID() == 0 or mq.TLO.Spawn(toon).Type() == 'Mercenary' then goto continue end
+        toon = mq.TLO.DanNet.Peers(info['channel']).Arg(i,'|')()
+        if mq.TLO.Spawn(toon).ID() == 0 then 
+          goto continue 
+        end
 
         -- dead
         if info[toon .. 'state'] == 0 then
@@ -147,9 +142,9 @@ local function imguicallback()
     -- column 2
     ImGui.NextColumn()
 
-      for i = 1, mq.TLO.DanNet.PeerCount(ent['channel'])() 
+      for i = 1, mq.TLO.DanNet.PeerCount(info['channel'])() 
       do      
-        toon = mq.TLO.DanNet.Peers(ent['channel']).Arg(i,'|')()
+        toon = mq.TLO.DanNet.Peers(info['channel']).Arg(i,'|')()
 
         if mq.TLO.Spawn(toon).ID() == 0 then 
           goto continue 
@@ -169,9 +164,9 @@ local function imguicallback()
     -- column 3
     ImGui.NextColumn()
     
-      for i = 1, mq.TLO.DanNet.PeerCount(ent['channel'])() 
+      for i = 1, mq.TLO.DanNet.PeerCount(info['channel'])() 
       do
-        toon = mq.TLO.DanNet.Peers(ent['channel']).Arg(i,'|')()
+        toon = mq.TLO.DanNet.Peers(info['channel']).Arg(i,'|')()
       
         if mq.TLO.Spawn(toon).ID() == 0 then 
           goto continue 

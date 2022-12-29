@@ -13,8 +13,6 @@
  ***|
 sub set_debug(string _verbage)
 
-  /declare maEnv map outer
-
   | generate DEBUGS
   /declare lsDebuglist list outer
   /invoke ${lsDebuglist.Append[buff,heal,home,debuff,cast,loot,mode,combat,other,minion,class,admin,schema,zone]}
@@ -1210,6 +1208,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maBuff stShrinkHeight                      2.04                          "${auxna} shrink min height"
   /call set_data_map ${_debug} maBuff swBuffNow                           FALSE                         "${auxsw} buff the now things"
   /call set_data_map ${_debug} maBuff swBuffAmmo                          FALSE                         "${auxsw} summons ammo"
+  /call set_data_map ${_debug} maBuff swBuffNoLobby                       FALSE                         "${auxsw} no buffing in the lobby"
 
   | auras
   /invoke ${set_data_timer[${_debug}, Check_Buff_Aura, 3m]}

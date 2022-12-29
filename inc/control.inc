@@ -2119,7 +2119,7 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
   /if (${_type.Equal[master]}) {
     /invoke ${set_switch_env[${_debug}, swBuffMaster, FALSE, ${_verbage}]}
 
-  } else /if (${_type.Equal[ps]}) {
+  | } else /if (${_type.Equal[ps]}) {
     | /invoke ${set_switch_env[${_debug}, swBuffPowersource, TRUE, ${_verbage}]}
 
   } else /if (${_type.Equal[self]}) {
@@ -2130,6 +2130,9 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
 
   } else /if (${_type.Equal[now]}) {
     /invoke ${set_switch_env[${_debug}, swBuffNow, TRUE, ${_verbage}]}
+
+  } else /if (${_type.Equal[nolobby]}) {
+    /invoke ${set_switch_env[${_debug}, swBuffNoLobby, TRUE, ${_verbage}]}
 
   } else /if (${_type.Equal[raid]}) {
     /invoke ${set_switch_env[${_debug}, swBuffRaid, TRUE, ${_verbage}]}
@@ -2194,6 +2197,7 @@ sub Bind_control_buff(string _type, string _verbage, string _verbage2, string _a
   /invoke ${maControl.Add[group,swBuffGroup]}
   /invoke ${maControl.Add[keepmount,swBuffKeepMount]}
   /invoke ${maControl.Add[master,swBuffMaster|pr]}
+  /invoke ${maControl.Add[nolobby,swBuffNoLobby]}
   /invoke ${maControl.Add[now,swBuffNow]}
   | /invoke ${maControl.Add[ps,swBuffPowersource]}
   /invoke ${maControl.Add[raid,swBuffRaid]}
