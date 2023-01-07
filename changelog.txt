@@ -18,6 +18,53 @@ on the to do list
 --------------------
 
 
+
+230106.01
+** NOTICE: you will need the most current build of MQ to use this!
+- /pull mode
+  int - now works as a command
+- drive ui (almost a complete redesign)
+  100% dannet peers
+  some clickable things
+  only watches peers in the same zone
+  - distance from driver
+  - endurance%
+  - manna %
+  - levitation
+  - Invis / Invis vs undead
+  - target
+  - current action (spell or disc)
+  
+  drive buttons
+  - auto on for all
+  - auto off for all
+  - mqp for all
+  - tie on/off
+  - tie force nav mode
+  - tie force stick mode
+  - self auto on/off
+  - /incontrol
+  - campfire drop
+  - stack invis
+  - remove all invis
+  - remove all levi
+  - all assist
+  - all hail
+  - request one single intervention pull on current target
+  - all /autoinventory
+  - /gather
+  - /here
+- hud  
+  redesigned the buttons at the bottom to match /drive
+  current target los; red=no los, green=good los
+  icons for the invis in the title bar
+  stupid number of other things
+- events
+  started adding in NoS stuff.
+  updated buttons portion to be.. well.. buttons.
+- ALL ui controls moved to /ui
+
+
 221228.01
 - /buff
   nolobby - disables automated buffing in the guild lobby. no impact on manual

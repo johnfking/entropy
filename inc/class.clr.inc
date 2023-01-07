@@ -356,7 +356,7 @@ sub check_heal(bool _debug, string _type)
     }
 
     | single heal over time
-    /if (${maHeal.Find[swHealOverTime].Value} && !${timer_Check_Regen}) {
+    /if (${maHeal.Find[swHealOverTime].Value}) {
       /if (${hurtData.PctHPs} <= ${maHeal.Find[stHealPointHoT].Value}*.PCTHO) {
         /call cast_cycle_heal_regen ${maDebug.Find[regen].Value} ${hurtData.ID} hot
       }

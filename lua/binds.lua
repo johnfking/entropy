@@ -60,7 +60,7 @@ end
 move = function (...)
   local option = {...}
 
-  -- duck, ducck, goose?
+  -- duck, duck, goose?
   if option[1] == 'duck' then
     if mq.TLO.Me.State() ~= 'duck' then
       if mq.TLO.Me.Mount.ID() ~= nil then
@@ -158,17 +158,6 @@ move = function (...)
 end
     
 mq.bind('/move', move)
-
---   print(math.abs(5+5))
-
-
---       /nav ID ${_spawn.ID} |distance=${Math.Calc[${_spawn.MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} lineofsight=off log=${maEntropy.Find[swNavLogSpew].Value}
-
-
-
-
-
-
 
 
 

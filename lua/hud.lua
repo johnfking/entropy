@@ -12,128 +12,119 @@ local shouldDrawHUD = true
 
 local function imguicallback()
   hudInfo()
-  openGUI, shouldDrawHUD = ImGui.Begin(ent['hudtitle']..'###EntropyHUD', openGUI)
+  openGUI, shouldDrawHUD = ImGui.Begin(ent.hudtitle .. '###EntropyHUD', openGUI)
   
-  if shouldDrawHUD and (ent['build'] == '--' or mq.TLO.EverQuest.GameState() ~= 'INGAME') then
+  if shouldDrawHUD and (ent.build == '--' or mq.TLO.EverQuest.GameState() ~= 'INGAME') then
     info_about()
 
   elseif shouldDrawHUD then  
     if ImGui.BeginTabBar('##mytabs') then
 
-
 -- home tab
       if ImGui.BeginTabItem('Home') then
 
-        ImGui.Columns(3, 'noname', false)
-          -- mode
-          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'mode')
-          ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, ent['mode'])
-          -- y, x, z location
-          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'yxz')
-          ImGui.SameLine()
-          if mq.TLO.Me.Y() then
-            ImGui.TextColored(1, 1, 1, 1, math.floor(mq.TLO.Me.Y())..', '..math.floor(mq.TLO.Me.X())..', '..math.floor(mq.TLO.Me.Z()))
-          end
-          -- last set used
-          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'set')
-          ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, ent['set'])
 
-        ImGui.NextColumn()
-          -- tie   
-          -- ImGui.TextColored(mq.TLO.Macro.Variable('maTie').Find('stTieMode').Value(), 0x337ea3, 1)
-          -- ImGui.TextColored(0.39, 0.58, 0.92, 1, mq.TLO.Macro.Variable('maTie').Find('stTieMode').Value())
-          ImGui.TextColored(0.39, 0.58, 0.92, 1, mq.TLO.Macro.Variable('maTie').Find('stTieMode').Value() or '')
-          -- ImGui.TextColored(ImVec4(0.39, 0.58, 0.92, 1), 'Nav')
-          ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maTie').Find('stTieToon').Value() or '')
+        local tableFlags = bit32.bor(ImGuiTableFlags.Resizable,
+                                    ImGuiTableFlags.RowBg,
+                                    ImGuiTableFlags.SizingFixedFit,
+                                    ImGuiTableFlags.Borders,
+                                    ImGuiTableFlags.Hideable)
+					
+      	if ImGui.BeginTable('hud', 6, tableFlags) then
 
+          -- row 1
+      		ImGui.TableNextRow()	
+        		ImGui.TableNextColumn()
+              ImGui.TextColored(0.39, 0.58, 0.92, 1, 'mode')
+      			ImGui.TableNextColumn()
+      			  ImGui.TextColored(1, 1, 1, 1, ent.mode)
+      			ImGui.TableNextColumn()
+      			  ImGui.TextColored(0.39, 0.58, 0.92, 1, (mq.TLO.Macro.Variable('maTie').Find('stTieMode').Value() or ''))
+      			ImGui.TableNextColumn()
+      			  ImGui.TextColored(1, 1, 1, 1, (mq.TLO.Macro.Variable('maTie').Find('stTieToon').Value() or ''))
+      			ImGui.TableNextColumn()
+              ImGui.TextColored(0.39, 0.58, 0.92, 1, 'env')
+      			ImGui.TableNextColumn()
+      			  ImGui.TextColored(1, 1, 1, 1, (mq.TLO.Macro.Variable('maEnv').Find('stEnvRadius').Value() or ''))
 
-        ImGui.NextColumn()
-          -- env
-          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'env')
-          ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maEnv').Find('stEnvRadius').Value() or '')
-          -- pull
-          local pullactive = ImGui.SmallButton('pull')
-          if pullactive then
-            mq.cmd.pull('active')
-          end
-          ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maPull').Find('stPullRadius').Value() or '')
-          ImGui.SameLine()
-          if mq.TLO.Macro.Variable('maPull').Find('swPull').Value() == 'TRUE' then
-            ImGui.TextColored(0, 1, 0, 1, mq.TLO.Macro.Variable('maPull').Find('stPullMode').Value() or '')
-          else 
-            ImGui.TextColored(1, 0, 0, 1, mq.TLO.Macro.Variable('maPull').Find('stPullMode').Value() or '')
-          end
-          ImGui.TextColored(0.39, 0.58, 0.92, 1, 'invis')
-          ImGui.SameLine()
-          ImGui.TextColored(0, 1, 1, 1, ent['ivu'])
-          ImGui.SameLine()
-          ImGui.TextColored(0, 1, 1, 1, ent['inv'])
-        -- end of columns
-        ImGui.Columns()
+          -- row 2
+      		ImGui.TableNextRow()	
+        		ImGui.TableNextColumn()
+              ImGui.TextColored(0.39, 0.58, 0.92, 1, 'yxz')
+    	  		ImGui.TableNextColumn()
+              if mq.TLO.Me.Y() then
+                ImGui.TextColored(1, 1, 1, 1, string.format('%.1f, %.1f, %.1f', mq.TLO.Me.Y(), mq.TLO.Me.X(), mq.TLO.Me.Z()))
+             end
+    	  		ImGui.TableNextColumn()
+    	  		ImGui.TableNextColumn()
+    	  		ImGui.TableNextColumn()
+    	  			-- ImGui.TextColored(0.39, 0.58, 0.92, 1, 'pull')
+              if mq.TLO.Macro.Variable('maPull').Find('swPull').Value() == 'TRUE' then
+                ImGui.TextColored(0, 1, 0, 1, 'pull')
+              else 
+                ImGui.TextColored(1, 0, 0, 1, 'pull')
+              end
+              if ImGui.IsItemHovered() and ImGui.IsMouseReleased(ImGuiMouseButton.Left) then
+                mq.cmd.pull('active')
+              end 
+    	  		ImGui.TableNextColumn()
+      			  ImGui.TextColored(1, 1, 1, 1, (mq.TLO.Macro.Variable('maPull').Find('stPullRadius').Value() or ''))
+              ImGui.SameLine()
+    		
+      		-- row 3
+      		ImGui.TableNextRow()	
+        		ImGui.TableNextColumn()
+              ImGui.TextColored(0.39, 0.58, 0.92, 1, 'set')
+        		ImGui.TableNextColumn()
+              ImGui.TextColored(1, 1, 1, 1, ent.set)
+        		ImGui.TableNextColumn()
+        		ImGui.TableNextColumn()
+        		ImGui.TableNextColumn()
+        		ImGui.TableNextColumn()
 
+      		ImGui.Columns()
+          ImGui.EndTable()
+        end
+
+        -- ImGui.Separator()
         -- engage %s, target body, distances
         ImGui.TextColored(0.39, 0.58, 0.92, 1, '[')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maCC').Find('stPctEngage').Value() or '')
+        ImGui.TextColored(1, 1, 1, 1, (mq.TLO.Macro.Variable('maCC').Find('stPctEngage').Value() or ''))
         ImGui.SameLine()
         ImGui.TextColored(0.39, 0.58, 0.92, 1, '][')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maMinion').Find('stPctPetEngage').Value() or '')
+        ImGui.TextColored(1, 1, 1, 1, (mq.TLO.Macro.Variable('maMinion').Find('stPctPetEngage').Value() or ''))
         ImGui.SameLine()
         ImGui.TextColored(0.39, 0.58, 0.92, 1, '][')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maMinion').Find('stPctSwarmEngage').Value() or '')
+        ImGui.TextColored(1, 1, 1, 1, (mq.TLO.Macro.Variable('maMinion').Find('stPctSwarmEngage').Value() or ''))
         ImGui.SameLine()
         ImGui.TextColored(0.39, 0.58, 0.92, 1, '][')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, ent['body'])
+        ImGui.TextColored(1, 1, 1, 1, (mq.TLO.Target.Body.Name() or ''))
         ImGui.SameLine()
         ImGui.TextColored(0.39, 0.58, 0.92, 1,']')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, math.floor(target['distance']))
-        ImGui.SameLine()
-        ImGui.TextColored(0.39, 0.58, 0.92, 1, '-')
-        ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, math.floor(target['maxrangeto']))
+        ImGui.Text(string.format('%.1f : %.1f', mq.TLO.Target.Distance() or 0 , mq.TLO.Target.MaxRangeTo() or 0))
+
 
         -- target information
-        if mq.TLO.Target.ID() ~= nil then   
-          ImGui.TextColored(1, 1, 1, 1, '['..target['shortname'].." "..target['level']..'] '..target['displayname']..' <'..target['guild']..'>')
+        if mq.TLO.Target.ID() ~= 0 then
+          local spawn = mq.TLO.Spawn(mq.TLO.Target.ID())
+          local guildName = ' '
+          if spawn.Guild() ~= nil then 
+            guildName = '<' .. spawn.Guild()  .. '>'
+          end
+          if spawn.LineOfSight() then
+            ImGui.TextColored(0, 1, 0, 1, '[' .. spawn.Class.ShortName() .. ' ' .. spawn.Level() .. '] ' .. spawn.DisplayName() .. ' ' .. guildName )
+          else
+            ImGui.TextColored(1, 0, 0, 1, '[' .. spawn.Class.ShortName() .. ' ' .. spawn.Level() .. '] ' .. spawn.DisplayName() .. ' ' .. guildName )
+          end
         else
-          ImGui.TextDisabled(' ')
+          ImGui.TextDisabled('')
         end
         
-
---[[
-        -- column 1
-        ImGui.Columns(5, 'noname', false)
-          if mq.TLO.Macro.Variable('maEnv').Find('swAuto').Value() == 'TRUE' then
-            cmd_button('Auto: on', 60, 48, 'env auto')
-          else 
-            cmd_button('Auto: off', 60, 48, 'env auto')
-          end
-        -- column 2
-        ImGui.NextColumn()
-          cmd_button('On', 60, 22, 'on')
-          cmd_button('Off', 60, 22, 'off')
-        -- column 3
-        ImGui.NextColumn()
-          cmd_button('Control', 60, 22, 'env incharge')
-          cmd_button('Tie', 60, 22, 'dga /tie')
-        -- column 4
-        ImGui.NextColumn()
-        -- column 5
-        ImGui.NextColumn()
-          cmd_button('Gather', 60, 22, 'gather')
-          cmd_button('Here', 60, 22, 'here')
-        ImGui.Columns()
---]]
-
         ImGui.EndTabItem()
       end
 
@@ -361,11 +352,11 @@ local function imguicallback()
           -- name
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'DisplayName:')
           ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, target['displayname'])        
+          ImGui.TextColored(1, 1, 1, 1, (mq.TLO.Target.DisplayName() or ''))        
           
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Name:')
           ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, target['name'])        
+          ImGui.TextColored(1, 1, 1, 1, (mq.TLO.Target.Name() or ''))        
             
           ImGui.NewLine()
 
@@ -374,27 +365,27 @@ local function imguicallback()
             -- ID
             ImGui.TextColored(0.39, 0.58, 0.92, 1, 'ID:')
             ImGui.SameLine()
-            ImGui.TextColored(1, 1, 1, 1, mq.TLO.Target.ID())        
+            ImGui.TextColored(1, 1, 1, 1, (mq.TLO.Target.ID() or ''))        
 
             -- body
             ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Body:')
             ImGui.SameLine()
-            ImGui.TextColored(1, 1, 1, 1, ent['body'])        
+            ImGui.TextColored(1, 1, 1, 1, (mq.TLO.Target.Body() or ''))        
 
             -- slowed
             ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Slowed:')
             ImGui.SameLine()
-            ImGui.TextColored(1, 1, 1, 1, target['slowed']) 
+            ImGui.TextColored(1, 1, 1, 1, isSlowed()) 
 
             -- tashed
             ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Tashed:')
             ImGui.SameLine()
-            ImGui.TextColored(1, 1, 1, 1, target['tashed']) 
+            ImGui.TextColored(1, 1, 1, 1, isTashed()) 
 
             -- maloed
             ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Malo:')
             ImGui.SameLine()
-            ImGui.TextColored(1, 1, 1, 1, target['maloed']) 
+            ImGui.TextColored(1, 1, 1, 1, isMaloed()) 
 
 
           ImGui.NextColumn()
@@ -402,23 +393,17 @@ local function imguicallback()
             -- height
             ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Height:')
             ImGui.SameLine()
-            ImGui.TextColored(1, 1, 1, 1, target['height'])
-
+            ImGui.TextColored(1, 1, 1, 1, string.format('%.2f', mq.TLO.Target.Height() or 0))
 
             -- crippled
             ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Cripple:')
             ImGui.SameLine()
-            ImGui.TextColored(1, 1, 1, 1, target['crippled']) 
+            ImGui.TextColored(1, 1, 1, 1, isCrippled()) 
 
             -- snared
             ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Snared:')
             ImGui.SameLine()
-            ImGui.TextColored(1, 1, 1, 1, target['snared']) 
-
-            -- ds
-            -- ImGui.TextColored(0.39, 0.58, 0.92, 1, 'DS:')
-            -- ImGui.SameLine()
-            -- ImGui.TextColored(1, 1, 1, 1, target['ds']) 
+            ImGui.TextColored(1, 1, 1, 1, isSnared()) 
 
           ImGui.Columns()
           ImGui.EndTabItem()
@@ -439,7 +424,52 @@ local function imguicallback()
         end
       end      
       ImGui.EndTabBar()
-    end    
+    end  
+    
+    
+    -- buttons at the bottom
+    if mq.TLO.Macro.Variable('maHud').Find('swHUDbuttons').Value() == "TRUE" then
+    
+      ImGui.Separator()
+
+      ImGui.Columns(4, 'buttons', true)
+        cmd_button(ico.allauto, ico.x, ico.y, 'on', 'all macro auto')
+        ImGui.SameLine()
+        cmd_button(ico.allmanual, ico.x, ico.y, 'off', 'all macro manual')
+        ImGui.SameLine()
+        if mq.TLO.Macro.Variable('maEnv').Find('swAuto').Value() == 'TRUE' then
+          cmd_button(ico.manual, ico.x, ico.y, 'env auto', 'macro manual')
+        else 
+          cmd_button(ico.auto, ico.x, ico.y, 'env auto', 'macro auto')
+        end
+
+      -- 2
+      ImGui.NextColumn()
+        cmd_button(ico.tie, ico.x, ico.y, 'dga /tie', '/tie on/off')
+        ImGui.SameLine()
+        cmd_button(ico.tienav, ico.x, ico.y, 'dga /tie nav', 'tie with nav')
+        ImGui.SameLine()
+        cmd_button(ico.tiestick, ico.x, ico.y, 'dga /tie stick', 'tie with stick')
+
+      --3
+      ImGui.NextColumn()
+        cmd_button(ico.incharge, ico.x, ico.y, 'env incharge', '/incharge')
+        ImGui.SameLine()
+        cmd_button(ico.invis, ico.x, ico.y, 'invis', 'stack invisibility')
+        ImGui.SameLine()
+        cmd_button(ico.noinvis, ico.x, ico.y, 'dga /nomore invis', 'remove all invisibility')
+
+      -- 4
+      ImGui.NextColumn()
+        cmd_button(ico.intpull, ico.x, ico.y, 'pull one int', 'single intervention pull')
+        ImGui.SameLine()
+        cmd_button(ico.gather, ico.x, ico.y, 'gather', '/gather')
+        ImGui.SameLine()
+        cmd_button(ico.here, ico.x, ico.y, 'here', '/here')
+   
+      ImGui.Columns()
+    end
+
   end
   ImGui.End()
 end

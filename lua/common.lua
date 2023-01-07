@@ -6,21 +6,59 @@
 --
 
 mq = require('mq')
-
+ICON = require('mq.icons')
 
 echo = mq.cmd.echo
 discord = '${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}'
-ent = {}
-target = {}
 classTable = { "WAR", "PAL", "SHD", "BST", "ROG", "MNK", "RNG", "BER", "CLR", "SHM", "DRU", "WIZ", "NEC", "ENC", "MAG", "BRD" }
 
 
-rez = {}
-rez['radius'] = tonumber(mq.TLO.Macro.Variable('maRez').Find('stMaxRezRange').Value())
+rez = {
+  radius = tonumber(mq.TLO.Macro.Variable('maRez').Find('stMaxRezRange').Value() or 0)
+}
 
-outs = {}
-outs['nopath'] = ' \a-w[\ax\arno valid path\ax\a-w]\ax'
-outs['move'] = '\a-tMove:\ax '
+outs = {
+  nopath = ' \a-w[\ax\arno valid path\ax\a-w]\ax',
+  move = '\a-tMove:\ax '
+}
+
+
+ico = {
+  none = '',
+  y = 22,
+  x = 22,
+  invis = ICON.FA_EYE,
+  invisvsundead = ICON.MD_REMOVE_RED_EYE,
+  levi = ICON.MD_FILTER_DRAMA,
+  movement = ICON.MD_DIRECTIONS_RUN,
+  here = ICON.MD_LOCATION_ON,
+  noinvis = ICON.FA_EYE_SLASH,
+  nolevi = ICON.MD_CLOUD_OFF,
+  auto = ICON.FA_TOGGLE_OFF,
+  manual = ICON.FA_TOGGLE_ON,
+  allauto = ICON.FA_PLAY,
+  allmanual = ICON.FA_STOP,
+  tie = ICON.MD_GESTURE,
+  tienav = ICON.MD_NAVIGATION,
+  tiestick = ICON.FA_STICKY_NOTE,
+  incharge = ICON.MD_INSERT_LINK,
+  intpull = ICON.MD_EXPOSURE_PLUS_1,
+  gather = ICON.FA_USERS,
+  autoinventory = ICON.MD_IMPORT_CONTACTS,
+  hail = ICON.FA_WEIXIN,
+  assist = ICON.FA_EXCHANGE,
+  campfire = ICON.FA_FIRE,
+  mqp = ICON.FA_PAUSE,
+  home = ICON.MD_HOME,
+  cure = ICON.FA_BUG,
+  say = ICON.MD_CHAT,
+  banner = ICON.FA_FLAG_O,
+  hide = ICON.MD_DIRECTIONS_RUN,
+  aura = ICON.MD_PANORAMA_FISH_EYE,
+  drive = ICON.MD_DRIVE_ETA
+}
+
+
 
 function out (option, verbage)
   -- help response for no tags for the control
@@ -35,130 +73,94 @@ end
 
 
 
+ent = {}
+
 
 function hudInfo ()
 
-  ent['hudam'] = ''
-  ent['hudtoonname'] = ''
-  ent['hudivu'] = ''
-  ent['hudinv'] = ''
-  ent['hudbuild'] = ''
-  ent['hudadj'] =  mq.TLO.Macro.Variable('maHeal').Find('stHealAdjust').Value() or ' 0'
-  ent['hudent'] = ''
-  ent['dash'] = ''
-  ent['build'] = mq.TLO.Macro.Variable('maEnv').Find('build').Value() or '--'
-  ent['channel'] = mq.TLO.Macro.Variable('maEntropy').Find('stEntropyGroup_all').Value()
-
+  local swBreak = false
+  ent.dash = ' - '
+  ent.hudinv = ''
+  ent.hudtoonname = ''
+  ent.hudbuild = ''
+  ent.hudam = ''
+  ent.hudinv = ''
+  ent.hudivu = ''
+  ent.hudent = ''
+  ent.hudadj = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealAdjust').Value()) or 0
+  ent.build = mq.TLO.Macro.Variable('maEnv').Find('build').Value() or '--'
+  ent.channel = mq.TLO.Macro.Variable('maEntropy').Find('stEntropyGroup_all').Value()
+  ent.mode = mq.TLO.Macro.Variable('maData').Find('mode').Value() or ''
+  ent.set = mq.TLO.Macro.Variable('maEnv').Find('stBuildSetCurrent').Value() or '--'
+  ent.auto = mq.TLO.Macro.Variable('maEnv').Find('swAuto').Value() or '0'
 
   -- buid hud variables
-  if ent['build'] ~= '--' then 
+  if ent.build ~= '--' then 
 
     -- title?
     if mq.TLO.Macro.Variable('maHud').Find('swTitleEnt').Value() == 'TRUE' then
-      ent['hudent'] = 'Entropy'
-      ent['dash'] = ' - '
+      ent.hudent = 'Entropy'
+      swBreak = true
     end
 
     -- build
     if mq.TLO.Macro.Variable('maHud').Find('swTitleBuild').Value() == 'TRUE' then
-      ent['hudbuild'] = ent['dash']..ent['build']
-      ent['dash'] = ' - '
+      ent.hudbuild = (swBreak and ent.dash or '') .. ent.build
+      swBreak = true
     end
 
     -- toon name?
     if mq.TLO.Macro.Variable('maHud').Find('swTitleName').Value() == 'TRUE' then
-      ent['hudtoonname'] = ent['dash']..mq.TLO.Me.DisplayName()
-      ent['dash'] = ' - '
+      ent.hudtoonname = (swBreak and ent.dash or '') .. mq.TLO.Me.DisplayName()
+      swBreak = true
     end  
 
     -- auto on or off?
     if mq.TLO.Macro.Variable('maHud').Find('swTitleAM').Value() == 'TRUE' then
       if mq.TLO.Macro.Variable('maEnv').Find('swAuto').Value() == 'TRUE' then
-        ent['hudam'] = ent['dash']..'auto'
-        ent['dash'] = ' - '
+        ent.hudam = (swBreak and ent.dash or '') .. 'auto'
+        swBreak = true
       else
-        ent['hudam'] = ent['dash']..'manual'
-        ent['dash'] = ' - '
+        ent.hudam = (swBreak and ent.dash or '') .. 'manual'
+        swBreak = true
       end
     end
 
     -- invis 
     if mq.TLO.Macro.Variable('maHud').Find('swTitleIV').Value() == 'TRUE' then
       if mq.TLO.Me.SPA(12)() ~= 0 or mq.TLO.Me.SPA(314)() ~= 0 then
-        ent['hudinv'] = ent['dash']..'IV'
-        ent['dash'] = ' - '
-        ent['inv'] = 'IV'
-      else
-        ent['inv'] = ''
+        ent.hudinv = (swBreak and ent.dash or '') .. ico.invis
+        swBreak = true
       end
     end
     
     -- ivu
     if mq.TLO.Macro.Variable('maHud').Find('swTitleIVU').Value() == 'TRUE' then
       if mq.TLO.Me.SPA(28)() ~= 0 or mq.TLO.Me.SPA(315)() ~= 0 then
-        ent['hudivu'] = ent['dash']..'IVU'
-        ent['dash'] = ' - '
-        ent['ivu'] = 'IVU'
-      else
-        ent['ivu'] = ''
+        ent.hudivu = (swBreak and ent.dash or '') .. ico.invisvsundead
+        swBreak = true
       end
     end
     
-    -- adj
+    -- heal adjust
     if mq.TLO.Macro.Variable('maHud').Find('swTitleHealAdj').Value() == 'TRUE' then
-      if ent['hudadj'] ~= '0' then
-        ent['hudadj'] = ent['dash']..ent['hudadj']
-        ent['dash'] = ' - '
+      if ent.hudadj ~= 0 and swBreak then 
+        ent.hudadj = ent.dash .. ent.hudadj
       else
-        ent['hudadj'] = ''
+        ent.hudadj = ''
       end
-    else
-      if mq.TLO.Macro.Variable('maHud').Find('swTitleHealAdj').Value() ~= 'TRUE' then
-        ent['hudadj'] = ''
-      end
+    else 
+      ent.hudadj = ''
     end
-    
-    
+
     -- build hud string
-    ent['hudtitle'] = ent['hudent']..ent['hudbuild']..ent['hudtoonname']..ent['hudam']..ent['hudinv']..ent['hudivu']..ent['hudadj']
+    ent.hudtitle = ent.hudent .. ent.hudbuild .. ent.hudtoonname .. ent.hudam .. ent.hudinv .. ent.hudivu .. ent.hudadj
 
   else
-    ent['hudtitle'] = 'Off'
+    ent.hudtitle = '---'
   end
 
-
-
-  
-  ent['mode'] = mq.TLO.Macro.Variable('maData').Find('mode').Value() or ''
-  ent['set'] = mq.TLO.Macro.Variable('maEnv').Find('stBuildSetCurrent').Value() or '--'
-  ent['body'] = mq.TLO.Target.Body.Name() or ''
-  ent['auto'] = mq.TLO.Macro.Variable('maEnv').Find('swAuto').Value() or '0'
-  ent['hudoutput'] = mq.TLO.Macro.Variable('HUDOutput')() or '--'
-
- 
-  -- target
-  target['shortname'] = mq.TLO.Target.Class.ShortName() or '--'
-  target['level'] = mq.TLO.Target.Level() or '--'
-  target['los'] = mq.TLO.Target.LineOfSight() or '--'
-  target['id'] = mq.TLO.Target.ID() or '--'
-  target['displayname'] = mq.TLO.Target.DisplayName() or '--'
-  target['guild'] = mq.TLO.Target.Guild() or '--'
-  target['distance'] = mq.TLO.Target.Distance() or 0
-  target['maxrangeto'] = mq.TLO.Target.MaxRangeTo() or 0 
-  target['height'] = round(mq.TLO.Target.Height(), 2)
-  target['name'] = mq.TLO.Target.Name() or '--'
-  -- target['validloc'] = mq.TLO.EverQuest.ValidLoc(string.format("%f %f %f", mq.TLO.Target.X(), mq.TLO.Target.Y(), mq.TLO.Target.Z())) or '--'
-  target['validloc'] = mq.TLO.EverQuest.ValidLoc(mq.TLO.Target.ID()) or '--'
-  target['tashed'] = isTashed()
-  target['slowed'] = isSlowed()
-  target['maloed'] = isMaloed()
-  target['crippled'] = isCrippled()
-  target['snared'] = isSnared()
-  -- target['ds'] = hasDS()
-  
-
 end
-
 
 
 function indent (count, pos)
@@ -212,9 +214,6 @@ function edit_text_perm (name, map, var)
   if mq.TLO.Macro.Variable(map).Find(var).Value() == 'FALSE' then 
     map = '--'
   end
-  
-  
-  
   local line, selected = ImGui.InputTextWithHint(name..'##', tostring(mq.TLO.Macro.Variable(map).Find(var).Value()), '', ImGuiInputTextFlags.EnterReturnsTrue)
   if selected then
     mq.cmd.luaedit(var, '"'..line..'"', 'overwrite')
@@ -222,22 +221,19 @@ function edit_text_perm (name, map, var)
 end
 
 
-function cmd_button (name, y, x, cmd)
+function cmd_button (name, y, x, cmd, tooltip)
   local cb = ImGui.Button(name, y, x)
   if cb then
     mq.cmd('/'..cmd)
   end
-end
-
-function cmd_button_all (name, y, x, cmd)
- local off = ImGui.Button(name, y, x)
-  if off then
-    mq.cmd.dgae('/' .. cmd)
+  if tooltip ~= nil then
+    if ImGui.IsItemHovered() then
+      ImGui.BeginTooltip()
+      ImGui.Text(tooltip)
+      ImGui.EndTooltip()
+    end   
   end
 end
-
-
-
 
 
 function edit_tree (count, var, alias)
@@ -304,7 +300,7 @@ end
 
 function isSlowed()
   if mq.TLO.Target.Slowed.ID() == nil then
-    return '--'
+    return ''
   end
   return 100 - mq.TLO.Target.Slowed.Base(2)()..'%% ('..mq.TLO.Target.BuffDuration(mq.TLO.Target.Slowed()).TotalSeconds()..'s)'
 end
@@ -312,7 +308,7 @@ end
 
 function isTashed()
   if mq.TLO.Target.Tashed.ID() == nil then
-    return '--'
+    return ''
   end
   return mq.TLO.Target.Tashed.Base(2)()..'ac ('..mq.TLO.Target.BuffDuration(mq.TLO.Target.Tashed()).TotalSeconds()..'s)'
 end
@@ -320,7 +316,7 @@ end
 
 function isMaloed()
   if mq.TLO.Target.Maloed.ID() == nil then
-    return '--'
+    return ''
   end
   return '+'..mq.TLO.Target.Maloed.Base(1)()..'%% ('..mq.TLO.Target.BuffDuration(mq.TLO.Target.Maloed()).TotalSeconds()..'s)'
 end
@@ -328,7 +324,7 @@ end
 
 function isCrippled ()
   if mq.TLO.Target.FindBuff('subcat Disempowering').ID() == nil then
-    return '--'
+    return ''
   end
   return mq.TLO.Target.FindBuff('subcat Disempowering').Base(4)()..' ('..mq.TLO.Target.BuffDuration(mq.TLO.Target.FindBuff('subcat Disempowering')()).TotalSeconds()..'s)'
 end
@@ -336,7 +332,7 @@ end
 
 function isSnared ()
   if mq.TLO.Target.Snared.ID() == nil then
-    return '--'
+    return ''
   end
   return mq.TLO.Target.Snared.Base(2)()..'%% ('..mq.TLO.Target.BuffDuration(mq.TLO.Target.Snared()).TotalSeconds()..'s)'
 end
@@ -344,7 +340,7 @@ end
 
 function hasDS ()
   if mq.TLO.Target.DSed.ID() == nil then
-    return '--'
+    return ''
   end
   return mq.TLO.Target.DSed.Base(2)()..' ('..mq.TLO.Target.BuffDuration(mq.TLO.Target.DSed()).TotalSeconds()..'s)'
 end
@@ -352,7 +348,7 @@ end
 
 function hasLoS ()
   if mq.TLO.Target.LineOfSight() == nil then
-    return '--'
+    return ''
   end
   return mq.TLO.Target.LineOfSight()
 end
@@ -388,3 +384,4 @@ rangeCheck = function (targetRange)
   return targetRange <= tonumber(mq.TLO.Macro.Variable('maEnv').Find('stEnvRadius').Value())
   -- return memberRange <= math.max(unpack(range))
 end
+

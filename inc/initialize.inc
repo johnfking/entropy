@@ -928,6 +928,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEntropy swHUDCloseonEnd                  FALSE                        "${auxsw} Close the HUD on mq end"
   /call set_data_map ${_debug} maEntropy swHUDDriveCloseonEnd             TRUE                         "${auxsw} Close the Drive HUD on mq end"
   /call set_data_map ${_debug} maEntropy swHUDDriveAuto                   FALSE                        "${auxsw} Auto start Drive HUD on mac start"
+  /call set_data_map ${_debug} maHud swHUDbuttons                         TRUE                         "${auxsw} show buttons at the botom of the hud"
   /call set_data_map ${_debug} maChr swHUDClassAuto                       FALSE                        "${auxsw} Auto start Class HUD on mac start"
   /call set_data_map ${_debug} maHud swTabBuff                            TRUE                         "${auxsw} buff tab"
   /call set_data_map ${_debug} maHud swTabHeal                            TRUE                         "${auxsw} heal tab"
@@ -985,7 +986,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHard stMaxRadPet                         200                           "${auxna} max usable range for pets"                                                  hard
   /call set_data_map ${_debug} maHard stMinBowDist                        31                            "${auxna} minimum distance to be able to bow or throw"                                hard
   /call set_data_map ${_debug} maHard stMaxBowDist                        250                           "${auxna} maximum distance to bow or throw"                                           hard
-  /call set_data_map ${_debug} maHard stMinMovetoBow                      35                            "${auxna} minimum distance to move to get bow/throw range"                             hard
+  /call set_data_map ${_debug} maHard stMinMovetoBow                      35                            "${auxna} minimum distance to move to get bow/throw range"                            hard
   /call set_data_map ${_debug} maHard stRezSuccess                        30s                           "${auxnum} timer reset to rez the same person on a success"                           hard
   /call set_data_map ${_debug} maHard stRezFail                           15s                           "${auxnum} timer reset to rez the same person on a fail"                              hard
   /call set_data_map ${_debug} maHard stRezFailToken                      1m                            "${auxnum} timer reset to rez the same person on a fail with a token rez"             hard
@@ -1001,6 +1002,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHard stModeDragTargetCheck               5                             "${auxnum} speed that you grab another corpse to drag. lower = faster"                hard
   /call set_data_map ${_debug} maHard stMaxSPARemoveCount                 10                            "${auxnum} highest spa a spell/buff has to look at for removal"                       hard
   /call set_data_map ${_debug} maHard swDev                               FALSE                         "${auxnum} developer stufd. not ready for release"                                    hard
+  /call set_data_map ${_debug} maHard stDelayLua                          6s                            "${auxnum} time to delay initial lua scripts to allow all variables to populate"      hard
 
 
 

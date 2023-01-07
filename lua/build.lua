@@ -82,17 +82,19 @@ end
 local function imguicallback()
   hudInfo()
   
-  openGUI, shouldDrawHUD = ImGui.Begin('Entropy Editor '..ent['build']..'###EntropyEditor', openGUI)
+  openGUI, shouldDrawHUD = ImGui.Begin('build###EntropyEditor', openGUI)
   
-  if shouldDrawHUD and ent['build'] == '--' then
+  if shouldDrawHUD and ent.build == '--' then
     ImGui.Text('Entropy is not running')
     ImGui.End()
 
 
   elseif shouldDrawHUD then  
     ImGui.NewLine() 
-
-    -- AGRO
+    cmd_button('start hud', 70, 22, 'entropy hud start')
+    ImGui.NewLine()  
+    
+  -- AGRO
     if ImGui.CollapsingHeader('/agro') then
       ImGui.NewLine()
       indent(1,1)
@@ -160,7 +162,7 @@ local function imguicallback()
       ImGui.NewLine()
     end
 
-    -- BUFF
+  -- BUFF
     if ImGui.CollapsingHeader('/buff') then
       ImGui.NewLine()
       indent(1,1)
@@ -249,7 +251,7 @@ local function imguicallback()
       ImGui.NewLine()
     end
 
-    -- BURN
+  -- BURN
     if ImGui.CollapsingHeader('/burn') then
       ImGui.NewLine()
       indent(1,1)
@@ -266,7 +268,7 @@ local function imguicallback()
       ImGui.NewLine()
     end
 
-    -- CC
+  -- CC
     if ImGui.CollapsingHeader('/cc') then
       ImGui.NewLine() 
       
@@ -352,7 +354,7 @@ local function imguicallback()
 
     end
 
-    -- CHR
+  -- CHR
     if ImGui.CollapsingHeader('/chr') then
       ImGui.NewLine() 
       
@@ -437,7 +439,7 @@ local function imguicallback()
       ImGui.NewLine()       
     end        
 
-    -- CLICKITEM
+  -- CLICKITEM
     if ImGui.CollapsingHeader('/clickitem') then
 
       ImGui.NewLine()
@@ -488,7 +490,7 @@ local function imguicallback()
       ImGui.NewLine()
     end
 
-    -- CURE
+  -- CURE
     if ImGui.CollapsingHeader('/cure') then
       ImGui.NewLine() 
       indent(1,1)
@@ -574,7 +576,7 @@ local function imguicallback()
        ImGui.NewLine() 
    end
 
-    -- DOT
+  -- DOT
     if ImGui.CollapsingHeader('/dot') then
       ImGui.NewLine()
       ImGui.Indent(16)
@@ -649,7 +651,7 @@ local function imguicallback()
       ImGui.NewLine()
     end
 
-    -- DEBUFF
+  -- DEBUFF
     if ImGui.CollapsingHeader('/debuff') then
       ImGui.NewLine()
       indent(1,1)
@@ -725,7 +727,7 @@ local function imguicallback()
       ImGui.NewLine() 
     end
 
-    -- DEFENSE
+  -- DEFENSE
     if ImGui.CollapsingHeader('/defense') then
       ImGui.NewLine()
       indent(1,1)
@@ -801,7 +803,7 @@ local function imguicallback()
       ImGui.NewLine()
     end
 
-    -- ENTROPY
+  -- ENTROPY
     if ImGui.CollapsingHeader('/entropy') then    
       ImGui.NewLine()
       indent(1,1)
@@ -875,7 +877,7 @@ local function imguicallback()
       ImGui.NewLine()
     end
 
-    -- ENV
+  -- ENV
     if ImGui.CollapsingHeader('/env') then    
       ImGui.NewLine()
 
@@ -940,7 +942,7 @@ local function imguicallback()
       ImGui.NewLine()
     end
 
-    -- HEAL
+  -- HEAL
     if ImGui.CollapsingHeader('/heal') then
 
       ImGui.NewLine()  
@@ -1042,7 +1044,7 @@ local function imguicallback()
       ImGui.TreePop()      
     end
 
-    -- HOME
+  -- HOME
     if ImGui.CollapsingHeader('/home') then
       ImGui.NewLine()
       indent(1,1)
@@ -1076,60 +1078,7 @@ local function imguicallback()
 
     end
 
-    -- HUD
-    if ImGui.CollapsingHeader('hud') then
-
-      indent(1,1) 
-      ImGui.NewLine()  
-      edit_switch_perm('macro hud on start', 'maEntropy', 'swHUDAuto')
-      edit_switch_perm('close hud on end', 'maEntropy', 'swHUDCloseonEnd')
-      edit_switch_perm('close drive hud on end', 'maEntropy', 'swHUDDriveCloseonEnd')
-      edit_switch_perm('class hud on start', 'maChr', 'swHUDClassAuto')
-      ImGui.NewLine()
-      indent(1,2)
-
-      if ImGui.TreeNode('tabs') then
-        indent(1,1) 
-        ImGui.NewLine()  
-        ImGui.Columns(3, 'hud', false)
-          edit_switch_perm('buff', 'maHud', 'swTabBuff')
-          edit_switch_perm('heal', 'maHud', 'swTabHeal')
-          edit_switch_perm('combat', 'maHud', 'swTabCombat')
-          edit_switch_perm('pull', 'maHud', 'swTabPull')
-          edit_switch_perm('about', 'maHud', 'swTabAbout')
-        ImGui.NextColumn()
-          edit_switch_perm('rez', 'maHud', 'swTabRez')
-          edit_switch_perm('tie', 'maHud', 'swTabTie')
-          edit_switch_perm('rest', 'maHud', 'swTabRest')
-          edit_switch_perm('target', 'maHud', 'swTabTarget')
-        ImGui.NextColumn()
-        ImGui.Columns()  
-        ImGui.NewLine()  
-        indent(1,2)
-      ImGui.TreePop() 
-    end
-
-      if ImGui.TreeNode('headder') then
-        indent(1,1) 
-        ImGui.NewLine()  
-        ImGui.Columns(3, 'hud', false)
-          edit_switch_perm('Entropy', 'maHud', 'swTitleEnt')
-          edit_switch_perm(ent['build'], 'maHud', 'swTitleBuild')
-          edit_switch_perm('Name', 'maHud', 'swTitleName')
-          edit_switch_perm('Auto / Manual', 'maHud', 'swTitleAM')
-        ImGui.NextColumn()
-          edit_switch_perm('INV', 'maHud', 'swTitleIV')
-          edit_switch_perm('IVU', 'maHud', 'swTitleIVU')
-          edit_switch_perm('Adj', 'maHud', 'swTitleHealAdj')
-        ImGui.NextColumn()
-        ImGui.Columns()  
-      indent(1,2)
-      ImGui.TreePop() 
-      end
-    ImGui.NewLine()
-    end
-
-    -- MELEE
+  -- MELEE
     if ImGui.CollapsingHeader('/melee') then
       ImGui.NewLine()
       indent(1,1)
@@ -1177,7 +1126,7 @@ local function imguicallback()
       ImGui.NewLine()
     end      
 
-    -- NUKE
+  -- NUKE
     if ImGui.CollapsingHeader('/nuke') then
       ImGui.NewLine()
       indent(1,1)
@@ -1259,7 +1208,7 @@ local function imguicallback()
       ImGui.NewLine()
     end
 
-    -- OVERRIDE
+  -- OVERRIDE
     if ImGui.CollapsingHeader('/override') then
       ImGui.NewLine()
       indent(1,1)
@@ -1283,7 +1232,7 @@ local function imguicallback()
       indent(1,2)
     end 
 
-    -- PULL
+  -- PULL
     if ImGui.CollapsingHeader('/pull') then
       ImGui.NewLine()
       indent(1,1)
@@ -1398,7 +1347,7 @@ local function imguicallback()
       ImGui.NewLine()
     end
 
-    -- REST
+  -- REST
     if ImGui.CollapsingHeader('/rest') then
 
       ImGui.NewLine()
@@ -1425,7 +1374,7 @@ local function imguicallback()
       indent(1,2)
     end
 
-    -- REZ
+  -- REZ
     if ImGui.CollapsingHeader('/rez') then
       ImGui.NewLine()
       indent(1,1)
@@ -1502,13 +1451,13 @@ local function imguicallback()
       ImGui.NewLine()
     end
 
-    -- SONG
+  -- SONG
     if mq.TLO.Me.Class.ShortName() == "BRD" then
       if ImGui.CollapsingHeader('/song') then
       end
     end
     
-    -- maHard
+  -- maHard
     if ImGui.CollapsingHeader('maHard') then 
       ImGui.NewLine()
       indent(1,1)
@@ -1533,6 +1482,7 @@ local function imguicallback()
       edit_text_perm('stRezSummonRange', 'maHard', 'stRezSummonRange')
       edit_text_perm('stSpellBookSize', 'maHard', 'stSpellBookSize')
       edit_text_perm('stMaxSPARemoveCount', 'maHard', 'stMaxSPARemoveCount')
+      edit_text_perm('stDelayLua', 'maHard', 'stDelayLua')
       ImGui.NewLine()
       indent(1,2)
 

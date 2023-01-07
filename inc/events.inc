@@ -1941,6 +1941,37 @@ sub Event_AM1()
 /return
 
 
+#Event AM1 "#*#You feel faint claws scratching#*#"
+#Event AM1 "#*#Fire begins to form around your feet."
+sub Event_AM1()
+  /if (!${maEntropy.Find[swEventsInc].Value}) /return FALSE
+  /if (!${Zone.ShortName.Equal[arxmentis_raid]}) /return
+  /declare tempx float local ${Me.X}
+  /declare tempy float local ${Me.Y}
+  /navto loc "104 1.06 ${Me.Z}"
+  /delay 1s ${Navigation.Active}
+  /while (${Navigation.Active}) {
+    CHECKEXIT
+    /delay 1s
+  }
+ /call set_timer FALSE AM1Timer 13s
+  /while(${AM1Timer}) {
+    CHECKEXIT
+    /delay 1s
+  }
+  /navto loc "${tempy} ${tempx} ${Me.Z}"
+  /delay 1s ${Navigation.Active}
+  /while (${Navigation.Active}) {
+    CHECKEXIT
+    /delay 1s
+  }
+
+/return
+
+
+
+
+
 #Event AM1Safe "#*#Dark claws rake at your body#*#"
 sub Event_AM1Safe()
 /return safe
@@ -2639,9 +2670,12 @@ sub Bind_event(string _action, string _option)
   /invoke ${maControl.Clear}
 
 
-  | some default never changing options
+  | some default never changing options    /invoke ${maControl.Add[UI,option]}
+
   /if (${_action.Equal[ui]}) {
     /lua run ${MacroQuest.Path[macros]}\entropy\lua\event.lua
+    /return TRUE
+  } else /if (${_action.Equal[buttons]}) {
     /lua run ${MacroQuest.Path[macros]}\entropy\lua\eventbuttons.lua
     /return TRUE
   } else /if (${_action.Equal[banner]}) {
@@ -2652,14 +2686,17 @@ sub Bind_event(string _action, string _option)
     /return TRUE
   }
 
-  /invoke ${maControl.Add[ui,option]}
-  /invoke ${maControl.Add[banner,option]}
-  /invoke ${maControl.Add[campfire,option]}
+  | /invoke ${maControl.Add[ui,option]}
+
 
 
 | ---  start of ToL events
   /if (${Zone.ShortName.Equal[maidentwo_raid]}) {    
  
+
+
+| ToL -----------------------
+| ---------------------------
     | gorgana huge chain aura-
     /if (${_action.Equal[hide]}) {
       /if (${Me.Snared}) {
@@ -2820,29 +2857,39 @@ sub Bind_event(string _action, string _option)
   
  
  
- | ---  start of NoS events
+| NoS -----------------------
+| ---------------------------
  
-  | shar vahl 2 group mission
-  /if (${Zone.ShortName.Equal[sharvahltwo_missiontwo]}) {    
-
-| Ragnar|Jimuul|Grawleh
-
-    /if (${_action.Equal[home]}) {
-      /navto spiritist
-      /target spiritist
+  | shar vahl 2 group raid/mission
+  /if (${Select[${Zone.ShortName},sharvahltwo_missiontwo,sharvahltwo_raid]}) {
+ 
+    /if (${_action.Equal[say]}) {
+      /call set_stop ${maDebug.Find[stop].Value} SILENT
+      /if (${Target.ID}) {
+        /squelch /target clear
+      }
+      /vardata targetData NearestSpawn[1, npc Spiritist]
+      /if (!${targetData.ID}) {
+        /return FALSE
+      }
+      /call target set ${targetData.ID}
+      /nav id ${targetData.ID}
+      /while (${targetData.Distance} >= 50) {
+        /delay 3
+      }
       /say help
     }
     /invoke ${maControl.Add[say,option]}
-
-
-
+    
   } 
   
 
   
   
-| ---  start of Anni events
-  | Karnor anni raid
+| Anniversary ---------------
+| ---------------------------
+
+  | Karnor raid
   /if (${Zone.ShortName.Equal[karnor_raid]}) {
     
     | ae mez run to east room away from raid
@@ -2853,8 +2900,10 @@ sub Bind_event(string _action, string _option)
     /invoke ${maControl.Add[hide,option]}
     
   }
-  
 
+  | always display options  
+  /invoke ${maControl.Add[banner,option]}
+  /invoke ${maControl.Add[campfire,option]}
   /invoke ${set_control_output[FALSE, maEvent, "event", maControl]}
     
 /return TRUE

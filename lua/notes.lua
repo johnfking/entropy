@@ -36,10 +36,9 @@ end
 
 
 local imguicallback = function()
-  openGUI, shouldDrawGUI = ImGui.Begin('/notes', openGUI)
+  openGUI, shouldDrawGUI = ImGui.Begin('notes##EntropyNotes', openGUI)
   if shouldDrawGUI then
     ImGui.NewLine()
-
 
 
   local addathing = ImGui.Button('+ Note', 60, 22)

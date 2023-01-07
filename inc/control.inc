@@ -20,11 +20,6 @@ sub Bind_control_debug(string _type, string _verbage, bool _debug)
    /return TRUE
   }
 
-  /if (${_type.Equal[ui]}) {
-    /lua run ${MacroQuest.Path[macros]}\entropy\lua\debug.lua
-    /return TRUE
-  }
-
   /declare _count int local 0
 
   /if (${_type.Equal[stop]}) {
@@ -333,6 +328,14 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     /invoke ${out[18, 0, 33]}
     /return TRUE
 
+  | reset lua
+  } else /if (${_type.Equal[resetlua]}) {
+    OUT Resetting Lua Plugin ${sep}
+    /plugin mq2lua unload
+    /delay 3s
+    /plugin mq2lua load
+    /return TRUE
+
   | delete entropy aliases
   } else /if (${_type.Equal[whitewash]}) {
     /call set_alias delete ${maDebug.Find[init].Value}
@@ -553,7 +556,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
   /invoke ${maControl.Add[pull,out]}
   /invoke ${maControl.Add[obs,out]}
   /invoke ${maControl.Add[whitewash,option]}
-  | /invoke ${maControl.Add[import,out]}
+  /invoke ${maControl.Add[resetlua,option]}
   /invoke ${maControl.Add[keymap,out]}
   /invoke ${maControl.Add[see,out]}
   /invoke ${maControl.Add[sqlcheck,option]}
@@ -3128,6 +3131,11 @@ sub Bind_command_navto(string _verbage, string _loc, string _opt, bool _debug)
     /nav id ${Target.ID} |dist=${maHome.Find[stHomeVariance].Value} log=${maEntropy.Find[swNavLogSpew].Value}
 
   | nav to closest spawn matching name
+  } else /if (${_verbage.Equal[id]}) {
+ 
+      /nav id ${_loc} |dist=${maHome.Find[stHomeVariance].Value} log=${maEntropy.Find[swNavLogSpew].Value}
+
+  | nav to closest spawn matching name
   } else /if (${Bool[${_verbage}]} && ${_verbage.NotEqual[loc]}) {
     /if (!${Spawn[${_verbage}].ID}) {
       /invoke ${out[22, "not in zone${sep}\a-w${_verbage}\ax"]}
@@ -4069,21 +4077,18 @@ sub Bind_command_coh(string _type, bool _debug)
 #bind control_build /build
 sub Bind_control_build(string _build, string _nickname, string _verbage, bool _debug)
 
-  /if (${_build.Equal[ui]}) {
-    /lua run ${MacroQuest.Path[macros]}\entropy\lua\build.lua
-    /return TRUE
-  }
-
   /if (${_build.Left[1].Equal[-]}) {
     /lua run HELP build ${_build.Right[1]}
     /return TRUE
   }
 
   /if (!${Bool[${_build}]} || !${Bool[${_nickname}]}) {
-    /lua run HELP build u
-    /delay 1
-    /lua run HELP build h
-    /return
+    /invoke ${maControl.Clear}
+    /invoke ${maControl.Add[save,option]}
+    /invoke ${maControl.Add[load,option]}
+    /invoke ${maControl.Add[set,option]}
+    /invoke ${set_control_output[${_debug}, maData, build, maControl]}  
+    /return TRUE
   }
   
   /declare _count int local 0
@@ -5443,7 +5448,9 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
     /if (${Target.ID}) {
       /vardata targetData Target.ID
     } else {
-      /call pull_mob_find FALSE
+      /invoke ${pull_constraints[${_debug}]}
+      /call build_map_spawndata FALSE
+      /call pull_mob_find_v2 FALSE
       /if (${targetData.ID}) {
         /invoke ${out[9, "No Targets in${sep}\a-wPULLENV\ax"]}
         /return
@@ -5586,7 +5593,7 @@ sub Bind_control_pull(string _type, string _verbage, string _verbage2, string _s
       /call do_raw_edit ${_debug} SILENT stPullMode "pet"
       
     | others?
-    } else /if (${Select[${_verbage},nav,multi,base,watch]}) {
+    } else /if (${Select[${_verbage},nav,int,multi,base,watch]}) {
       /call do_raw_edit ${_debug} SILENT stPullMode "${_verbage.Lower}"
     | calm pulling
     } else /if (${_verbage.Equal[calm]}) {
@@ -6336,6 +6343,19 @@ sub Bind_control_nomore(string _type, bool _debug)
     /invoke ${out[18, 0, 33]}
     /return FALSE
 
+  | remove bad buffs for Close the Gate raid in ToL
+  } else /if (${Select[${_type},ctg]}) {
+    /call remove_spa ${_debug} 57
+    /call remove_spa ${_debug} 59
+    /call remove_spa ${_debug} 12
+    /call remove_spa ${_debug} 28
+    /call remove_spa ${_debug} 29
+    /call remove_spa ${_debug} 314
+    /call remove_spa ${_debug} 315
+    /call remove_spa ${_debug} 316
+    /call remove_spa ${_debug} 3
+    /return TRUE
+
   | remove levi
   } else /if (${Select[${_type},levi]}) {
     /call remove_spa ${_debug} 57
@@ -6346,26 +6366,42 @@ sub Bind_control_nomore(string _type, bool _debug)
     /call remove_spa ${_debug} 59
     /return TRUE
 
-  | remove t3e3 event from ToL
-  } else /if (${Select[${_type},t3e3]}) {
-    | levi
-    /call remove_spa ${_debug} 57
-    | DS
-    /call remove_spa ${_debug} 59
-    | movement
-    /call remove_spa ${_debug} 3
-
-    /return TRUE
-  
   | remove invis
   } else /if (${Select[${_type},invis]}) {
+    | invisibility
     /call remove_spa ${_debug} 12
+    | invis vs undead
     /call remove_spa ${_debug} 28
+    | invis vs animals
     /call remove_spa ${_debug} 29
+    | improved invis
     /call remove_spa ${_debug} 314
+    | improved invis vs undead
     /call remove_spa ${_debug} 315
+    | improved invis vs animals
     /call remove_spa ${_debug} 316
-    
+
+    | rogue sos
+    /if (${maEnv.Find[swSoS].Value}) {
+      /if (!${Me.AbilityReady[sneak]}) {
+        /delay ${Me.AbilityReady[sneak]}
+        OUT Removing${sep}\a-wSneak\ax
+        /doability sneak
+      }
+      /if (!${Me.AbilityReady[hide]}) {
+        /delay ${Me.AbilityReady[hide]}
+        OUT Removing${sep}\a-wHide\ax
+        /doability hide
+      }
+    }
+
+
+  | remove invis
+  } else /if (${Select[${_type},normalinvis]}) {
+    /call remove_spa ${_debug} 12
+    /call remove_spa ${_debug} 314
+    /call remove_spa ${_debug} 29
+    /call remove_spa ${_debug} 316
     
     /if (${maEnv.Find[swSoS].Value}) {
       /if (!${Me.AbilityReady[sneak]}) {
@@ -6379,10 +6415,16 @@ sub Bind_control_nomore(string _type, bool _debug)
         /doability hide
       }
     }
-    
+
+
+  | remove invis vs undead
+  } else /if (${Select[${_type},undeadinvis]}) {
+    /call remove_spa ${_debug} 28
+    /call remove_spa ${_debug} 315
     
     /return TRUE
-  | remove invis
+
+  | remove DA
   } else /if (${Select[${_type},da]}) {
     /call remove_spa ${_debug} 40
     /return TRUE
@@ -6435,6 +6477,7 @@ sub Bind_control_nomore(string _type, bool _debug)
   /invoke ${maControl.Add[levi,option]}
   /invoke ${maControl.Add[da,option]}
   /invoke ${maControl.Add[spa##,option]}
+  /invoke ${maControl.Add[ctg,option]}
   /invoke ${maControl.Add[removeall,option]}
   /invoke ${set_control_output[FALSE, maMelee, "nomore", maControl]}  
 
@@ -6688,17 +6731,6 @@ sub Bind_control_rest(string _type, string _verbage, string _verbage2, string _a
 #bind command_notes /notes
 sub Bind_command_notes(string _noteID, string _verbage, string _verbage2)
 
-  /if (${_noteID.Equal[ui]}) {
-    /lua run ${MacroQuest.Path[macros]}\entropy\lua\notes.lua
-    /return TRUE
-  }
-
-
-
-  | /echo _noteID${sep}${_noteID}
-  | /echo _verbage${sep}${_verbage}
-  | /echo _verbage2${sep}${_verbage2}
-
   | update title only
   /if (${_verbage.Equal[title]}) {
     /sqlite query "${DBshared}" dummy UPDATE notes SET name="${_verbage2}" WHERE noteid="note${_noteID}";
@@ -6706,10 +6738,8 @@ sub Bind_command_notes(string _noteID, string _verbage, string _verbage2)
     /varset note${_noteID}name ${_verbage2}
     /return TRUE
 
-
   | add a note
   } else /if (${_noteID.Equal[add]}) {
-    
     /varcalc notescount ${notescount} + 1
     /varset notescount ${Int[${notescount}]}
     
@@ -6718,7 +6748,6 @@ sub Bind_command_notes(string _noteID, string _verbage, string _verbage2)
     /declare note${notescount}name string outer ${sqlite.Result[dummy 1 name]}
     /declare note${notescount}text string outer ${sqlite.Result[dummy 1 text]}
     /return TRUE
-
 
   | update note only
   } else /if (${_verbage.NotEqual[title]} && ${Bool[${_verbage}]}) {
@@ -6729,26 +6758,128 @@ sub Bind_command_notes(string _noteID, string _verbage, string _verbage2)
    
   } 
 
-
-  /invoke ${maControl.Clear}
-  /invoke ${maControl.Add[ui,ui]}
-  /invoke ${set_control_output[FALSE, maData, "notes", maControl]}
-
 /return TRUE
-
 
 
 |***
- * note: drive controls
- * use: /drive
+ * note:UI controls
+ * use:
  ***|
-#bind command_drive /drive
-sub Bind_command_drive()
+#Bind control_ui /ui
+sub Bind_control_ui(sring _verbage, string _verbage2, bool _debug)
+  DEBUG \atcontrol_ui\ax(\a-w${_verbage}, ${_verbage2}\ax)
 
-  /lua run ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
-  /return TRUE
+  /if (${_verbage.Left[1].Equal[-]}) {
+    /lua run HELP ui ${_type.Right[1]}
+    /return TRUE
+  }
+
+  | ui admin
+  /if (${_verbage.Equal[admin]}) {
+    /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\uiadmin.lua
+    } else /if (${_verbage2.Equal[ui]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\uiadmin.lua
+    } else /if (${_verbage2.Equal[off]}) {
+      /lua stop ${MacroQuest.Path[macros]}\entropy\lua\uiadmin.lua
+    }
+    /return TRUE       
+  }
+
+  | drive ui
+  /if (${_verbage.Equal[drive]}) {
+    /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\drivebuttons.lua
+    } else /if (${_verbage2.Equal[ui]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
+    } else /if (${_verbage2.Equal[buttons]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\drivebuttons.lua
+    } else /if (${_verbage2.Equal[off]}) {
+      /lua stop ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
+      /lua stop ${MacroQuest.Path[macros]}\entropy\lua\drivebuttons.lua
+    }
+    /return TRUE
+  }
+  
+
+  | main hud
+  /if (${_verbage.Equal[hud]}) {
+    /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.lua
+    } else /if (${_verbage2.Equal[ui]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.lua
+    } else /if (${_verbage2.Equal[off]}) {
+      /lua stop ${MacroQuest.Path[macros]}\entropy\lua\hud.lua
+    }
+    /return TRUE    
+  }
+
+  | build ui
+  /if (${_verbage.Equal[build]}) {
+    /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\build.lua
+    } else /if (${_verbage2.Equal[ui]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\build.lua
+    } else /if (${_verbage2.Equal[off]}) {
+      /lua stop ${MacroQuest.Path[macros]}\entropy\lua\build.lua
+    }
+    /return TRUE    
+  }
+
+  | drive ui
+  /if (${_verbage.Equal[event]}) {
+    /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\event.lua
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\eventbuttons.lua
+    } else /if (${_verbage2.Equal[ui]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\event.lua
+    } else /if (${_verbage2.Equal[buttons]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\eventbuttons.lua
+    } else /if (${_verbage2.Equal[off]}) {
+      /lua stop ${MacroQuest.Path[macros]}\entropy\lua\event.lua
+      /lua stop ${MacroQuest.Path[macros]}\entropy\lua\eventbuttons.lua
+    }
+    /return TRUE
+  }
+
+  | notes ui
+  /if (${_verbage.Equal[notes]}) {
+    /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\notes.lua
+    } else /if (${_verbage2.Equal[ui]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\notes.lua
+    } else /if (${_verbage2.Equal[off]}) {
+      /lua stop ${MacroQuest.Path[macros]}\entropy\lua\notes.lua
+    }
+    /return TRUE    
+  }
+
+
+  | notes ui
+  /if (${_verbage.Equal[debug]}) {
+    /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\debug.lua
+    } else /if (${_verbage2.Equal[ui]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\debug.lua
+    } else /if (${_verbage2.Equal[off]}) {
+      /lua stop ${MacroQuest.Path[macros]}\entropy\lua\debug.lua
+    }
+    /return TRUE    
+  }
+
+
+
+  /invoke ${maControl.Clear}
+  /invoke ${maControl.Add[admin,option]}
+  /invoke ${maControl.Add[debug,option]}
+  /invoke ${maControl.Add[drive,option]}
+  /invoke ${maControl.Add[hud,option]}
+  /invoke ${maControl.Add[build,option]}
+  /invoke ${maControl.Add[event,option]}
+  /invoke ${maControl.Add[notes,option]}
+
+  /invoke ${set_control_output[${_debug}, maHard, ui, maControl]}
 
 /return TRUE
-
-
 

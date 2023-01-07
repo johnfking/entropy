@@ -17,7 +17,7 @@ local shouldDrawHUD = true
 local function imguicallback()
   hudInfo()
   
-  openGUI, shouldDrawHUD = ImGui.Begin('Info Overload '..ent['build']..'###EntropyDebug', openGUI)
+  openGUI, shouldDrawHUD = ImGui.Begin('debug###EntropyDebug', openGUI)
   
   if shouldDrawHUD and ent['build'] == '--' then
     ImGui.Text('Entropy is not running')
@@ -373,43 +373,43 @@ local function imguicallback()
 
       ImGui.TextColored(0.39, 0.58, 0.92, 1, 'name: ')
       ImGui.SameLine()
-      ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').Name())
+      ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').Name() or 0)
       ImGui.SameLine()
       ImGui.TextColored(0.39, 0.58, 0.92, 1, '[')
       ImGui.SameLine()
-      ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').ID())
+      ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').ID() or 0)
       ImGui.SameLine()
       ImGui.TextColored(0.39, 0.58, 0.92, 1, ']')
 
-      ImGui.Columns(2, 'targetdat', false)
+      -- ImGui.Columns(2, 'targetdata', false)
 
         ImGui.TextColored(0.39, 0.58, 0.92, 1, 'engage pct:')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maCC').Find('stPctEngage').Value())
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maCC').Find('stPctEngage').Value() or 0)
 
         ImGui.TextColored(0.39, 0.58, 0.92, 1, 'los:')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').LineOfSight())
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').LineOfSight() or 0)
 
         ImGui.TextColored(0.39, 0.58, 0.92, 1, 'distance:')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').Distance())
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').Distance() or 0)
 
-      ImGui.NextColumn()
+      -- ImGui.NextColumn()
 
         ImGui.TextColored(0.39, 0.58, 0.92, 1, 'PctHPs:')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').PctHPs())
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').PctHPs() or 0)
 
         ImGui.TextColored(0.39, 0.58, 0.92, 1, 'body:')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').Body())
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').Body() or 0)
 
         ImGui.TextColored(0.39, 0.58, 0.92, 1, 'animation:')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').Animation())
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').Animation() or 0)
 
-      ImGui.Columns()
+      -- ImGui.Columns()
 
       ImGui.NewLine()
       indent(1,2)
@@ -421,20 +421,20 @@ local function imguicallback()
 
       ImGui.TextColored(0.39, 0.58, 0.92, 1, 'assist set:')
       ImGui.SameLine()
-      ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maCC').Find('stAssistMode').Value())
+      ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('maCC').Find('stAssistMode').Value() or '--')
       
       ImGui.TextColored(0.39, 0.58, 0.92, 1, 'name:')
       ImGui.SameLine()
-      ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('assistData').DisplayName())
+      ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('assistData').DisplayName() or '--')
 
 
       ImGui.TextColored(0.39, 0.58, 0.92, 1, 'id:')
       ImGui.SameLine()
-      ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('assistData').ID())
+      ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('assistData').ID() or 0)
       
       ImGui.TextColored(0.39, 0.58, 0.92, 1, 'distance:')
       ImGui.SameLine()
-      ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('assistData').Distance())
+      ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('assistData').Distance() or 0)
 
 
       ImGui.NewLine()
@@ -451,15 +451,15 @@ local function imguicallback()
         -- ID
         ImGui.TextColored(0.39, 0.58, 0.92, 1, 'ID:')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Target.ID())        
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Target.ID() or 0)        
         -- name
         ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Name:')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Target.Name())        
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Target.Name() or '--')        
         -- displayname
         ImGui.TextColored(0.39, 0.58, 0.92, 1, 'DisplayName:')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Target.DisplayName())        
+        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Target.DisplayName() or '--')        
 
       
         ImGui.NewLine()    
@@ -469,12 +469,12 @@ local function imguicallback()
           -- distance
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'distance:')
           ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, round(mq.TLO.Target.Distance(), 2))   
+          ImGui.TextColored(1, 1, 1, 1, round(mq.TLO.Target.Distance(), 2) or 0)   
           
           -- valid loc
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'valid loc:')
           -- ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, target['validloc'])
+           ImGui.TextColored(1, 1, 1, 1, mq.TLO.EverQuest.ValidLoc(string.format("%.2f %.2f %.2f", mq.TLO.Target.X(), mq.TLO.Target.Y(), mq.TLO.Target.Z())) or 0)
           
 
           -- mq.TLO.EverQuest.ValidLoc(string.format("%f %f %f", mq.TLO.Target.X(), mq.TLO.Target.Y(), mq.TLO.Target.Z()))

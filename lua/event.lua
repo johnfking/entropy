@@ -42,7 +42,27 @@ local function imguicallback()
 -- Nights of Shadow
     if ImGui.CollapsingHeader('Nights of Shadow 29:NoS') then
       ImGui.NewLine() 
+
+      if ImGui.TreeNode('Queen :: Paludal Caverns') then
+        ImGui.NewLine()
+        indent(1,2)
+      end  
+
+      if ImGui.TreeNode('Pit Fight :: Shar Vahl') then
+        ImGui.NewLine()
+        indent(1,2)
+      end  
+
+      if ImGui.TreeNode('Mean Streets :: Shar Vahl') then
+        ImGui.NewLine()
+        indent(1,2)
+      end  
+
+
       ImGui.NewLine() 
+
+
+
     end
 
 

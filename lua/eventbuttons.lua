@@ -1,8 +1,8 @@
 --
 -- entropoy.mac
--- events.lua
+-- eventbuttons.lua
 -- 
--- premade hotkeys
+-- premade hotkeys for raid designed events.
 --
 
 
@@ -11,26 +11,24 @@ require "common"
 local openGUI = true
 local shouldDrawGUI = true
 
-local butnum = {} 
-butnum[3] = 'hide'
-butnum[4] = 'aura'
-butnum[5] = 'cure'
-butnum[6] = 'home'
-butnum[7] = 'say'
-
-
 local imguicallback = function()
-  openGUI, shouldDrawGUI = ImGui.Begin('Event', openGUI)
+  openGUI, shouldDrawGUI = ImGui.Begin('event##eventbuttons', openGUI, ImGuiWindowFlags.NoTitleBar + ImGuiWindowFlags.NoScrollbar)
   if shouldDrawGUI then
-    cmd_button('banner', 60, 22, 'event banner')
+    cmd_button(ico.banner, ico.x, ico.y, 'event banner', 'move to banner')
     ImGui.SameLine()
-    cmd_button('campfire', 60, 22, 'event campfire')
+    cmd_button(ico.campfire, ico.x, ico.y, 'event campfire', 'move to campfire')
     ImGui.SameLine()
     
-    for i = 3,7 do
-      cmd_button(butnum[i], 60, 22, 'event '..butnum[i])
-      if (((i - 1) % 6) < 5) then ImGui.SameLine() end
-    end
+    cmd_button(ico.hide, ico.x, ico.y, 'event hide', 'hide from emote')
+    ImGui.SameLine()
+    cmd_button(ico.aura, ico.x, ico.y, 'event aura', 'move to aura')
+    ImGui.SameLine()
+    cmd_button(ico.cure, ico.x, ico.y, 'event cure', 'cure self')
+    ImGui.SameLine()
+    cmd_button(ico.home, ico.x, ico.y, 'event home', 'move to home marker')
+    ImGui.SameLine()
+    cmd_button(ico.say, ico.x, ico.y, 'event say', 'move to and speak')
+
   end
   ImGui.End()
 end
