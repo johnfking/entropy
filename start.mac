@@ -123,7 +123,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 230106.01
+  /call set_data FALSE maEnv build                          map outer 230318.01
   /call set_data FALSE maEnv schema                         map outer 1.65
   /call set_data FALSE maEnv repo                           map outer 220225.01
 
@@ -266,7 +266,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
       }
 
       /if (DEV) {
-        | /timed ${maHard.Find[stDelayLua].Value} /lua run ${MacroQuest.Path[macros]}\entropy\lua\health.lua
+        /timed ${maHard.Find[stDelayLua].Value} /lua run ${MacroQuest.Path[macros]}\entropy\lua\health.lua
       }
 
       | check tribute
@@ -350,7 +350,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   }  
     
   /lua stop ${MacroQuest.Path[macros]}\entropy\lua\binds.lua
-  | /lua stop ${MacroQuest.Path[macros]}\entropy\lua\health.lua
+  /lua stop ${MacroQuest.Path[macros]}\entropy\lua\health.lua
   /lua stop ${MacroQuest.Path[macros]}\entropy\lua\event.lua
   /lua stop ${MacroQuest.Path[macros]}\entropy\lua\eventbuttons.lua
   /endmacro
@@ -520,7 +520,7 @@ sub prepare_the_end(bool _debug)
 
   | sort the class hud
   /if (${maChr.Find[swHUDClassAuto].Value} && DEV) {
-    /timed ${maHard.Find[stDelayLua].Value} /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.${Me.Class.ShortName}.lua
+    | /timed ${maHard.Find[stDelayLua].Value} /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.${Me.Class.ShortName}.lua
   }
 
 

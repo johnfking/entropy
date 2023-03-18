@@ -2679,15 +2679,14 @@ sub Bind_event(string _action, string _option)
     /lua run ${MacroQuest.Path[macros]}\entropy\lua\eventbuttons.lua
     /return TRUE
   } else /if (${_action.Equal[banner]}) {
+    /call set_stop ${maDebug.Find[stop].Value} SILENT
     /nav id ${Spawn[banner].ID}
     /return TRUE
   } else /if (${_action.Equal[campfire]}) {
+    /call set_stop ${maDebug.Find[stop].Value} SILENT
     /nav id ${Spawn[campfire].ID}
     /return TRUE
   }
-
-  | /invoke ${maControl.Add[ui,option]}
-
 
 
 | ---  start of ToL events
@@ -2728,6 +2727,7 @@ sub Bind_event(string _action, string _option)
       /if (!${_aura.ID}) {
         /return FALSE
       }
+      /stopcast
       /nav id ${_aura.ID}
       /return TRUE
     }
@@ -2815,6 +2815,7 @@ sub Bind_event(string _action, string _option)
       /if (!${_aura.ID}) {
         /return FALSE
       }
+      /call set_stop ${maDebug.Find[stop].Value} SILENT
       /nav id ${_aura.ID}
       /return TRUE
     }
@@ -2861,7 +2862,7 @@ sub Bind_event(string _action, string _option)
 | ---------------------------
  
   | shar vahl 2 group raid/mission
-  /if (${Select[${Zone.ShortName},sharvahltwo_missiontwo,sharvahltwo_raid]}) {
+  /if (${Select[${Zone.ShortName},sharvahltwo_missiontwo,sharvahltwo_raidthree]}) {
  
     /if (${_action.Equal[say]}) {
       /call set_stop ${maDebug.Find[stop].Value} SILENT
@@ -2881,7 +2882,7 @@ sub Bind_event(string _action, string _option)
     }
     /invoke ${maControl.Add[say,option]}
     
-  } 
+  }
   
 
   

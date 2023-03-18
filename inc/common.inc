@@ -5319,7 +5319,7 @@ sub cast_stamina_recovery(bool _debug)
     /return TRUE
 
   | rest disc
-  } else /if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stRest].Value}].RankName}]} && !${Select[${Me.CombatState},active,cooldown]}) {
+  } else /if (${Me.CombatAbilityReady[${Spell[${maChr.Find[stRest].Value}].RankName}]} && !${Select[${Me.CombatState},combat]}) {
     DEBUG rest${sep}\a-w${maChr.Find[stRest].Value}\ax
     /if (${Me.CombatAbility[${maChr.Find[stRest].Value} Rk. III]}) /varset _endurancePoint 29
     /if (${Me.CombatAbility[${maChr.Find[stRest].Value} Rk. II]}) /varset _endurancePoint 25
@@ -6557,7 +6557,7 @@ sub get_MAG_folded_pack(bool _debug)
   DEBUG \atget_MAG_folded_pack\ax()
 
   /declare _lsout list local
-  /invoke ${_lsout.Append[Wirn's,Thassis',Frightforged,Manaforged,Spectral]}
+  /invoke ${_lsout.Append[Wirn's,Thassis',Frightforged,Manaforged,Spectral,Shak Dathor's]}
   /declare _ligmfp listiterator local
   /vardata _ligmfp _lsout.First.Clone
   /while (!${_ligmfp.IsEnd}) {
@@ -8783,12 +8783,27 @@ sub cast_cycle_defense(bool _debug, spawn _spawn)
 
   DEBUG ${sep}spawncount${sep}\a-w${SpawnCount[NPC radius SAFEENV PS4]} < ${maDefense.Find[stCountDef].Value}\ax
   DEBUG ${sep}HP%${sep}\a-w${Me.PctHPs} > ${maDefense.Find[stPctDef].Value}\ax
+  
+  /declare _safeNum local TRUE
+  /declare _safeHP local TRUE
+  
+  | check spawn count
+  /if (${SpawnCount[NPC radius SAFEENV PS4]} >= ${maDefense.Find[stCountDef].Value} && ${maDefense.Find[stCountDef].Value}) {
+    DEBUG ${sep}in due to spawns 
+    /varset _safeNum FALSE
+  }  
 
-  /if ((${SpawnCount[NPC radius SAFEENV PS4]} < ${maDefense.Find[stCountDef].Value}) && (${Me.PctHPs} > ${maDefense.Find[stPctDef].Value})) {
-    DEBUG ${sep}not in danger
-    /return FALSE
+  | check HP
+  /if (${Me.PctHPs} <= ${maDefense.Find[stPctDef].Value}) {
+    DEBUG ${sep}in danger due to health
+    /varset _safeHP FALSE
   }
-
+  
+  | are we safe or not?
+  /if (${_safeNum} && ${_safeHP}) {
+    /return TRUE
+  }
+  
   | if the user has not set the line order, set it to a default for now
   /if (${lsLineDefense.Contains[EMPTY]} && ${lsLineDefense.Count} == 1) {
     DEBUG ${sep}resetting the empty defense line
@@ -8831,7 +8846,8 @@ sub cast_cycle_defense(bool _debug, spawn _spawn)
 
     DEBUG ${sep}_liC20.Value${sep}\a-w${_liC20.Value}\ax${sep}passed tags
 
-    | seff targetable defnsive "things"
+    | seff targetable defense "things"
+    | if its click and forget, don't need a self tag.
     /if (${lsDefense${_liC20.Value}Tag.Contains[self]}) {
       /vardata _spawn Me.ID
     } else {
@@ -10728,7 +10744,7 @@ sub check_buff_cycle_self(bool _debug)
       /for _i 1 to ${Spell[${maData.Find[tmpName].Value}].NumEffects}
         DEBUG ${sep}\a-t${_i}/${Spell[${maData.Find[tmpName].Value}].NumEffects}\ax \aw::\ax ${Spell[${Spell[${maData.Find[tmpName].Value}].Base2[${_i}]}].Name} \aw::\ax ${Me.Buff[${Spell[${Spell[${maData.Find[tmpName].Value}].Base2[${_i}]}].Name}].ID} \aw::\ax Duration(\a-w${Spell[${Spell[${maData.Find[tmpName].Value}].Base2[${_i}]}].Duration.TotalSeconds}s\ax)
 
-        | SDEBUG ${sep}${Spell[${Spell[${maData.Find[tmpName].Value}].Base2[${_i}]}].Name} \aw::\ax slot-${Me.Buff[${Spell[${Spell[${maData.Find[tmpName].Value}].Base2[${_i}]}].Name}].ID}
+        | DEBUG ${sep}${Spell[${Spell[${maData.Find[tmpName].Value}].Base2[${_i}]}].Name} \aw::\ax slot-${Me.Buff[${Spell[${Spell[${maData.Find[tmpName].Value}].Base2[${_i}]}].Name}].ID}
 
         | SPA has no duration, skip it
         /if (!${Spell[${Spell[${maData.Find[tmpName].Value}].Base2[${_i}]}].Duration}) {
@@ -15188,10 +15204,10 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
       |**
       /if (${Me.Casting.ID}) {
         /if (${Me.AltAbility[Metronome].ID}) {
-          SDEBUG ${Math.Calc[${spellData.CastTime.Seconds}-${Math.Calc[${spellData.CastTime.Seconds}*.05]}]}s
+          DEBUG ${Math.Calc[${spellData.CastTime.Seconds}-${Math.Calc[${spellData.CastTime.Seconds}*.05]}]}s
           /delay ${Math.Calc[${spellData.CastTime.Seconds}-${Math.Calc[${spellData.CastTime.Seconds}*.05]}]}s
         } else /if (!${Me.AltAbility[Metronome].ID}) {
-          SDEBUG Math.Calc[${spellData.CastTime.Seconds}+${Math.Calc[${spellData.CastTime.Seconds}*.05]}]
+          DEBUG Math.Calc[${spellData.CastTime.Seconds}+${Math.Calc[${spellData.CastTime.Seconds}*.05]}]
         	/delay ${Math.Calc[${spellData.CastTime.Seconds}+${Math.Calc[${spellData.CastTime.Seconds}*.05]}]}
         }
       }

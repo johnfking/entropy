@@ -18,7 +18,20 @@ on the to do list
 --------------------
 
 
+230318.01
+- drive
+  had a bad package include.. removed it.
+- pet weapons
+  added Shak Dathor's for the folded pack list
+- /defense
+  changed how it checks of area mobs and your health
+- /mode open
+  works as other modes do now using mode data as its source
+  slowed it down a little so its not quite as obvious
+- removed a couple old debugs
 
+  
+  
 230106.01
 ** NOTICE: you will need the most current build of MQ to use this!
 - /pull mode

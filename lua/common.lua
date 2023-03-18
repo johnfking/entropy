@@ -6,9 +6,8 @@
 --
 
 mq = require('mq')
-ICON = require('mq.icons')
+ICON = require('mq/icons')
 
-echo = mq.cmd.echo
 discord = '${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}'
 classTable = { "WAR", "PAL", "SHD", "BST", "ROG", "MNK", "RNG", "BER", "CLR", "SHM", "DRU", "WIZ", "NEC", "ENC", "MAG", "BRD" }
 
@@ -63,11 +62,11 @@ ico = {
 function out (option, verbage)
   -- help response for no tags for the control
   if option == 'notag' then
-    echo('${lsep}no tags for this control.')
+    print('no tags for this control.')
 
   -- help response for no map for this control
   elseif option == 'nomap' then
-    echo('${lsep}no map for this control.')
+    print('no map for this control.')
   end
 end
 

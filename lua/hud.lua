@@ -106,7 +106,7 @@ local function imguicallback()
         ImGui.SameLine()
         ImGui.TextColored(0.39, 0.58, 0.92, 1,']')
         ImGui.SameLine()
-        ImGui.Text(string.format('%.1f : %.1f', mq.TLO.Target.Distance() or 0 , mq.TLO.Target.MaxRangeTo() or 0))
+        ImGui.Text(string.format('%.0f : %.0f', mq.TLO.Target.Distance() or 0 , mq.TLO.Target.MaxRangeTo() or 0))
 
 
         -- target information

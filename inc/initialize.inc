@@ -40,7 +40,7 @@ sub set_debug(string _verbage)
   | loot
   /invoke ${lsDebugloot.Append[loot]}
   | mode
-  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell,temppet,scribe,pat]}
+  /invoke ${lsDebugmode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell,temppet,scribe,pat,open]}
   | combat
   /invoke ${lsDebugcombat.Append[def,target,melee,burn,agro,pull,misc,assist,decision,proc,ttl,sash,status,wait,hardstop,prediction]}
   | other
@@ -175,9 +175,6 @@ sub set_initialize(bool _debug)
   | current worst hurt data
   /declare hurtData spawn outer
   /vardata hurtData Me
-
-  /declare hurtData2 spawn outer
-
 
 
   | TTL stuff
@@ -539,7 +536,7 @@ sub set_initial_environment(bool _debug)
   | generate modes
   /declare maMode map outer
   /declare lsMode list outer
-  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell,temppet,scribe,pat]}
+  /invoke ${lsMode.Append[forage,drag,summon,petfarm,harvest,hunt,fish,farm,lush,trainskill,trainspell,temppet,scribe,pat,open]}
 
   /declare _lisie listiterator local
   /vardata _lisie lsMode.First.Clone
@@ -1673,9 +1670,15 @@ sub set_initialize_map_character_environment(bool _debug)
   | Shar Vhal: Under Seige
   | /call set_data_map ${_debug} ls29UnderSeigeHeartHelp                      "Grawleh|Jimuul|Garig|Ragnar|Falea|Hala|Zoliq|Fehril"    "${auxli} run to hail for heart cure"                 event
   | spirits maybe?
-  
+  | Darklight Caverns:   
+  | Firefall Pass: 
+  | /call set_data_list ${_debug} maEvent ls29FirefallHideLocYX                 "1116 99"                                                  "${auxli} run away for the emote" event
+
+  | T2
 
 
+
+  | T1
 
 
 
@@ -1706,7 +1709,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 | Anniversary Events
   | karnor 23 anni raid
-  /call set_data_map ${_debug} maEvent stKarnorHideLocYX                  "-69 -723"                         "${auxna} hide from raid emote for Karnor Mad Emperor Event"   event
+  /call set_data_map ${_debug} maEvent stKarnorHideLocYX                  "-69 -723"                                  "${auxna} hide from raid emote for Karnor Mad Emperor Event"   event
 
 
 

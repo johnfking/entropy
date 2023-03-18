@@ -17,7 +17,7 @@ local shouldDrawHUD = true
 local function imguicallback()
   hudInfo()
   
-  openGUI, shouldDrawHUD = ImGui.Begin('/event###EntropyEvent', openGUI)
+  openGUI, shouldDrawHUD = ImGui.Begin('event###EntropyEvent', openGUI)
   
   if shouldDrawHUD and ent['event'] == '--' then
     ImGui.Text('Entropy is not running')
@@ -39,24 +39,70 @@ local function imguicallback()
 
 
 
--- Nights of Shadow
-    if ImGui.CollapsingHeader('Nights of Shadow 29:NoS') then
+    if ImGui.CollapsingHeader('Nights of Shadow 29 :: NoS') then
       ImGui.NewLine() 
 
-      if ImGui.TreeNode('Queen :: Paludal Caverns') then
+
+      -- tier 1
+     if ImGui.TreeNode('Paludal Depths :: Insatiable Appetite') then
         ImGui.NewLine()
-        indent(1,2)
+        
+        ImGui.Indent(-20)
       end  
 
-      if ImGui.TreeNode('Pit Fight :: Shar Vahl') then
+
+
+      if ImGui.TreeNode('Shar Vahl :: Pit Fight') then
         ImGui.NewLine()
-        indent(1,2)
+        
+        ImGui.Indent(-20)
       end  
 
-      if ImGui.TreeNode('Mean Streets :: Shar Vahl') then
+      if ImGui.TreeNode('Shar Vahl :: Mean Streets') then
         ImGui.NewLine()
-        indent(1,2)
+        
+        ImGui.Indent(-20)
       end  
+
+
+      -- tier 2
+      if ImGui.TreeNode('Shadow haven :: When One Door Closes') then
+        ImGui.NewLine()
+        
+        ImGui.Indent(-20)
+      end  
+
+      if ImGui.TreeNode('Deepshade :: Mycondi Mutiny') then
+        ImGui.NewLine()
+        
+        ImGui.Indent(-20)
+      end  
+
+      if ImGui.TreeNode('Deepshade :: Dance of the Demiurge') then
+        ImGui.NewLine()
+        
+        ImGui.Indent(-20)
+      end 
+
+
+      -- tier 3
+      if ImGui.TreeNode('Darklight Caverns :: The Spirit Fades') then
+        ImGui.NewLine()
+        
+        ImGui.Indent(-20)
+      end  
+
+      if ImGui.TreeNode('Firefall Pass :: The Shadow Moves') then
+        ImGui.NewLine()
+        
+        ImGui.Indent(-20)
+      end  
+
+      if ImGui.TreeNode('Shar Vahl :: Under Seige') then
+        ImGui.NewLine()
+        
+        ImGui.Indent(-20)
+      end
 
 
       ImGui.NewLine() 
@@ -65,9 +111,7 @@ local function imguicallback()
 
     end
 
-
--- Terror of Luclin
-    if ImGui.CollapsingHeader('Terror of Luclin 28:ToL') then
+    if ImGui.CollapsingHeader('Terror of Luclin 28 :: ToL') then
       ImGui.NewLine() 
  
       if ImGui.TreeNode('Vader :: Umbral Plains') then
@@ -122,35 +166,114 @@ local function imguicallback()
       ImGui.NewLine() 
     end
 
+    if ImGui.CollapsingHeader('Claws of Veeshan 27 :: CoV') then
+      ImGui.NewLine() 
+    end
 
+    if ImGui.CollapsingHeader('Torment of Velious 26 :: ToV') then
+      ImGui.NewLine() 
+    end
 
-    --if ImGui.CollapsingHeader('Claws of Veeshan 27:CoV') then
-    --if ImGui.CollapsingHeader('Torment of Velious 26:ToV') then
-    --if ImGui.CollapsingHeader('The Burning Lands 25:TBL') then
-    --if ImGui.CollapsingHeader('Ring of Scale 24:ROS') then
-    --if ImGui.CollapsingHeader('Empires of Kunark 23:EOK') then
-    --if ImGui.CollapsingHeader('The Broken Mirror 22:TBM') then
-    --if ImGui.CollapsingHeader('The Darkened Sea 21:TDS') then
-    --if ImGui.CollapsingHeader('Call of the Forsaken 20:CoTF') then
-    --if ImGui.CollapsingHeader('Rain of Fear 19:RoF') then
-    --if ImGui.CollapsingHeader('Veil of Alaris 18:VoA') then
-    --if ImGui.CollapsingHeader('House of Thule 17:HoT') then
-    --if ImGui.CollapsingHeader('Underfoot 16:UF') then
-    --if ImGui.CollapsingHeader('Seeds of Destruction 15:SoD') then
-    --if ImGui.CollapsingHeader('Secrets of Faydwer 14:SoF') then
-    --if ImGui.CollapsingHeader('The Buried Sea 13:TBS') then
-    --if ImGui.CollapsingHeader('The Serpents Spine 12:SS') then
-    --if ImGui.CollapsingHeader('Prophecy of Ro 11:PoR') then
-    --if ImGui.CollapsingHeader('Depths of Darkhollow 10:DoD') then
-    --if ImGui.CollapsingHeader('Dragons of Norrath 9:DoN') then
-    --if ImGui.CollapsingHeader('Omens of War 8:OOW') then
-    --if ImGui.CollapsingHeader('Gates of Discord 7:GoD') then
-    --if ImGui.CollapsingHeader('Lost Dungeons of Norrath 6:LDoN') then
-    --if ImGui.CollapsingHeader('The Legacy of Ykesha 5:LoY') then
-    --if ImGui.CollapsingHeader('The Planes of Power 4:PoP') then
-    --if ImGui.CollapsingHeader('The Shadows of Luclin 3:SoL') then
-    --if ImGui.CollapsingHeader('The Scars of Velious 2:SoV') then
-    --if ImGui.CollapsingHeader('The Ruins of Kunark 1:RoK') then
+    if ImGui.CollapsingHeader('The Burning Lands 25 :: TBL') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('Ring of Scale 24 :: ROS') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('Empires of Kunark 23 :: EOK') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('The Broken Mirror 22 :: TBM') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('The Darkened Sea 21 :: TDS') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('Call of the Forsaken 20 :: CoTF') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('Rain of Fear 19 :: RoF') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('Veil of Alaris 18 :: VoA') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('House of Thule 17 :: HoT') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('Underfoot 16 :: UF') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('Seeds of Destruction 15 :: SoD') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('Secrets of Faydwer 14 :: SoF') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('The Buried Sea 13 :: TBS') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('The Serpents Spine 12 :: SS') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('Prophecy of Ro 11 :: PoR') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('Depths of Darkhollow 10 :: DoD') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('Dragons of Norrath 9 :: DoN') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('Omens of War 8 :: OOW') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('Gates of Discord 7 :: GoD') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('Lost Dungeons of Norrath 6 :: LDoN') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('The Legacy of Ykesha 5 :: LoY') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('The Planes of Power 4 :: PoP') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('The Shadows of Luclin 3 :: SoL') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('The Scars of Velious 2 :: SoV') then
+      ImGui.NewLine() 
+    end
+
+    if ImGui.CollapsingHeader('The Ruins of Kunark 1 :: RoK') then
+      ImGui.NewLine() 
+    end
+
  
 
 

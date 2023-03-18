@@ -9,7 +9,7 @@
 require 'common'
 local openGUI = true
 local shouldDrawHUD = true
-local ICON = require('lib.ICONs')
+
 
 local function imguicallback()
   hudInfo()

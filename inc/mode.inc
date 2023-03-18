@@ -277,7 +277,7 @@ sub mode_petfarm(bool _debug)
   | find a mob
   /invoke ${pull_constraints[${_debug}, NPC, petpull]}
   /call build_map_spawndata
-  /call pull_mob_find_v2
+  /call pull_mob_find_v2 FALSE
 
   
   DEBUG ${sep}pull_mob_find.return${sep}\a-w${Macro.Return}\ax
@@ -308,7 +308,7 @@ sub mode_petfarm(bool _debug)
 
     /if (${targetData.Type.Equal[CORPSE]} || !${targetData.ID}) /break
     /if (${Pet.Target.ID} != ${targetData.ID}) /break
-    /if (${targetData.Distance} > PULLENV) /break
+    | /if (${targetData.Distance} > PULLENV) /break
     /if (!${timer_mob_get}) {
       /break
     }
@@ -750,18 +750,17 @@ ${Me.Gem[${_count}].Name}
  *  USE: /call mode_open | /mode open
  *  NOTE:
  ***|
-sub mode_open(string _type, bool _debug)
+sub mode_open(bool _debug)
   ISMEDEAD
   SETHUD "Open"
 
-  /call timer_set timer_mode_open ${tMode_Open}
-  /declare _tmpID int local
+  /invoke ${set_data_timer[FALSE, timer_mode_open, 2s]}
 
-  /if (${SpawnCount[${modeOpenItem} npc radius 20]}) {
-    /varset _tmpID ${Spawn[${modeOpenItem} npc radius 20].ID}
-    /squelch /target ID ${_tmpID}
-    /if (${Target.Dead}) /return
-    /delay 2s ${Target.ID} == ${_tmpID}
+  /if (${SpawnCount[${stModeData} radius 20]}) {
+    /vardata targetData NearestSpawn[${stModeData} radius 20]
+    /if (${targetData.Dead}) /return
+    /squelch /target ID ${targetData.ID}
+    /delay 2s ${Target.ID} == ${targetData.ID}
     /open
     /delay 1s
     /return
@@ -777,7 +776,7 @@ sub mode_open(string _type, bool _debug)
  * use: /mode summon DEBUG
  ***|
 sub mode_summon(bool _debug)
-  SDEBUG \atmode_summon\ax()
+  DEBUG \atmode_summon\ax()
 
   /if (${Zone.ShortName.NotEqual[GuildLobby]}) {
     /invoke ${maMode.Add[summon,FALSE]}
@@ -1018,7 +1017,7 @@ sub tov_ew_ada(bool _debug)
     }
 
     :tov_ew_ada_step5_6_wait
-    SDEBUG waiting for${sep}\a-w${_tmpMob}\ax
+    DEBUG waiting for${sep}\a-w${_tmpMob}\ax
 
     | kill spawn
     /if (!${Spawn[npc radius 45 ${_tmpMob}].ID}) {
@@ -1026,7 +1025,7 @@ sub tov_ew_ada(bool _debug)
       /goto :tov_ew_ada_step5_6
     } else /if (${Spawn[npc radius 45 ${_tmpMob}].ID}) {
       /dismount
-      SDEBUG ${dot}found${sep}\a-w${_tmpMob}\ax
+      DEBUG ${dot}found${sep}\a-w${_tmpMob}\ax
       /call target set ${Spawn[${_tmpMob}].ID}
       /delay 1s ${Target.ID} == ${Spawn[${_tmpMob}].ID}
     }

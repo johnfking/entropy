@@ -843,20 +843,23 @@ sub Bind_command_cb(string _type)
     /return TRUE
   } else /if (${Bool[${_type}]} && ${Select[${_type},m]}) {
     /call Bind_control_nomore invis
-     /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
-     /return TRUE
+    /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
+    /return TRUE
   }
   
   /invoke ${maControl.Clear}
-  /declare _licb listiterator local
-  /vardata _licb _list.First.Clone
-  /while (!${_licb.IsEnd}) {
-    /invoke ${maControl.Add[${_licb.Value},option]}
-
-    /invoke ${_licb.Advance}
-  }  
+  /invoke ${maControl.Add[u,option]}
+  /invoke ${maControl.Add[s,option]}
+  /invoke ${maControl.Add[a,option]}
+  /invoke ${maControl.Add[g,option]}
+  /invoke ${maControl.Add[r,option]}
+  /invoke ${maControl.Add[b,option]}
+  /invoke ${maControl.Add[t,option]}
+  /invoke ${maControl.Add[xx,option]}
+  /invoke ${maControl.Add[robe,option]}
+  /invoke ${maControl.Add[c,option]}
   /invoke ${maControl.Add[m,option]}
-  /invoke ${set_control_output[FALSE, maBuff, cb, maControl]} 
+  /invoke ${set_control_output[FALSE, maBuff, "cb", maControl]} 
 
 /return TRUE
 
@@ -3485,7 +3488,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
   } 
 
   | /if (${Select[${_type},wiz,dru,guild,item,vendor,aa]}) {
-  |   SDEBUG SELECT * FROM port WHERE type='${_type}' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',AND nick2='FALSE']} LIMIT 1
+  |   DEBUG SELECT * FROM port WHERE type='${_type}' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',AND nick2='FALSE']} LIMIT 1
   |   /sqlite query "${DBstatic}" portreturn SELECT * FROM port WHERE type='${_type}' AND nick1='${_nick1}' ${If[${Bool[${_nick2}]},AND nick2='${_nick2}',AND nick2='FALSE']} LIMIT 1
   |   /varset _portName ${sqlite.Result[portreturn 1 name1]}
   | }
@@ -3537,7 +3540,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
     /click right item
     /delay 5
     | select the menu to port
-    SDEBUG ${sqlite.Result[dummy 1 menu]}
+    DEBUG ${sqlite.Result[dummy 1 menu]}
     /invoke ${Menu.Select[${sqlite.Result[dummy 1 menu]}]}
 
 
@@ -6394,7 +6397,7 @@ sub Bind_control_nomore(string _type, bool _debug)
         /doability hide
       }
     }
-
+    /return TRUE
 
   | remove invis
   } else /if (${Select[${_type},normalinvis]}) {
@@ -6415,13 +6418,12 @@ sub Bind_control_nomore(string _type, bool _debug)
         /doability hide
       }
     }
-
+    /return TRUE
 
   | remove invis vs undead
   } else /if (${Select[${_type},undeadinvis]}) {
     /call remove_spa ${_debug} 28
-    /call remove_spa ${_debug} 315
-    
+    /call remove_spa ${_debug} 315    
     /return TRUE
 
   | remove DA
@@ -6878,8 +6880,7 @@ sub Bind_control_ui(sring _verbage, string _verbage2, bool _debug)
   /invoke ${maControl.Add[build,option]}
   /invoke ${maControl.Add[event,option]}
   /invoke ${maControl.Add[notes,option]}
-
-  /invoke ${set_control_output[${_debug}, maHard, ui, maControl]}
+  /invoke ${set_control_output[${_debug}, maHard, "ui", maControl]}
 
 /return TRUE
 
