@@ -80,7 +80,8 @@ local function imguicallback()
 
       if ImGui.TreeNode('Deepshade :: Dance of the Demiurge') then
         ImGui.NewLine()
-        
+        edit_text_perm('hide YX', 'maEvent', 'ls29DeepshadeHideLocYX')
+        ImGui.NewLine()        
         ImGui.Indent(-20)
       end 
 
@@ -94,11 +95,16 @@ local function imguicallback()
 
       if ImGui.TreeNode('Firefall Pass :: The Shadow Moves') then
         ImGui.NewLine()
+        edit_text_perm('Hide YX', 'maEvent', 'ls29FirefallHideLocYX')
+        ImGui.NewLine()
         
         ImGui.Indent(-20)
       end  
 
       if ImGui.TreeNode('Shar Vahl :: Under Seige') then
+        ImGui.NewLine()
+        edit_text_perm('say target', 'maEvent', 'st29UnderSeigeHeartSayTarget')
+        edit_text_perm('say phrase', 'maEvent', 'st29UnderSeigeHeartSayPhrase')
         ImGui.NewLine()
         
         ImGui.Indent(-20)
@@ -106,9 +112,6 @@ local function imguicallback()
 
 
       ImGui.NewLine() 
-
-
-
     end
 
     if ImGui.CollapsingHeader('Terror of Luclin 28 :: ToL') then

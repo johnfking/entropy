@@ -28,8 +28,12 @@ sub class_init(bool _debug)
 
   /call set_data_map ${_debug} maChr stPctCanniHP                     60                            "${auxnum} HP level to stop using canni"
   /call set_data_map ${_debug} maChr stPctCanniManna                  60                            "${auxnum} mana level to start using canni"
+  /call set_data_map ${_debug} maChr stPctChannelingManna             40                            "${auxnum} mana level to start using spiritual channeling"
 
   /call set_data_map ${_debug} maHeal stCountSurge                    0                             "${auxnum} number of people hurt to use surge healing"
+
+  | try to twinheal
+  /call set_data_map ${_debug} maHeal swTwinHeal                      FALSE                         "${auxsw} allow the code to try to force twinheal buffs before healing"   heal
 
   /call set_data_map ${_debug} maChr stDichotomic                     PREGEN|1                      "${auxna} dichotomic spell"
   /call set_data_map ${_debug} maChr stAlliance                       PREGEN|1                      "${auxna} alliance spell"
@@ -51,6 +55,7 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAARabidBear                    PREGEN|1                      "${auxna} Rabid Bear aa"
   /call set_data_map ${_debug} maChr stAACannibalization              PREGEN|1                      "${auxna} Cannibalization aa"
   /call set_data_map ${_debug} maChr stAAAncestralAid                 PREGEN|1                      "${auxna} Ancestral Aid aa"
+  /call set_data_map ${_debug} maChr stAASpiritualChanneling          PREGEN|1                      "${auxna} Spiritual Channeling aa"
 
 /return
 
@@ -152,27 +157,25 @@ sub check_heal(bool _debug, string _type)
     }
   }
 
+
+  | check for surge
+  /if (${maHeal.Find[stCountSurge].Value} && (${Group.Members} || ${Raid.Members}) || ${Me.Song[Healing Twincast].ID}) {
+    /if (${SpawnCount[npc radius ENV]} && ${assistData.Distance} < 150) {
+      /call cast_cycle_heal_surge ${maDebug.Find[surge].Value}
+    }
+  }
+
+
   /if (!SAFEZONE) {
 
     /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
-    | check for surge
-    /if (${maHeal.Find[stCountSurge].Value} && (${Group.Members} || ${Raid.Members}) || ${Me.Song[Healing Twincast].ID}) {
-      /if (${SpawnCount[npc radius ENV]}) {
-        /call cast_cycle_heal_surge ${maDebug.Find[surge].Value}
-      }
-    }
-
     | group healing
-    /if (${Select[${_type},group]} && ${Group}) {
+    /if (${Select[${_type},group]} && ${Group} && ${hurtCount}) {
 
       | group heal
       /if (${maHeal.Find[stCountHealGroup].Value} && ${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
         /call cast_cycle_heal ${_debug} 0 group
-      }
-
-      /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
-        /return FALSE
       }
 
       | stationary ward heal
@@ -183,6 +186,7 @@ sub check_heal(bool _debug, string _type)
       }
 
     }
+
 
     | PET HEALING
     /if (${Select[${_type},pet]} && ${maMinion.Find[swPet].Value} && ${Pet.ID}) {
@@ -231,8 +235,13 @@ sub cast_cycle_heal_surge(bool _debug)
   GETINPUT
 
 
-  /call cast_cycle_proc_twinheal ${maDebug.Find[surge].Value}
-  
+  /if (${maHeal.Find[swTwinHeal].Value}) {
+    /call cast_cycle_proc_twinheal ${maDebug.Find[surge].Value}  
+    /if (${Select[${Macro.Return},1]}) {
+      /call cast_cooldown_wait ${_debug}
+    }
+  }
+
   
   | if the user has not set the line order, set it to a default for now
   /if (${lsLineHeal.Contains[EMPTY]} && ${lsLineHeal.Count} == 1) {
@@ -402,14 +411,26 @@ sub check_cani(bool _debug)
     /return TRUE
   }
 
-  /if (${Me.PctMana} >= ${maChr.Find[stPctCanniManna].Value}) {
-    DEBUG ${break}returning(1) - too much mana${sep}\a-w${Me.PctMana} >= ${maChr.Find[stPctCanniManna].Value}\ax
-    /return FALSE
-  }
+  
   /if (${Me.PctHPs} <= ${maChr.Find[stPctCanniHP].Value}) {
     DEBUG ${break}returning(1) - HP too low${sep}\a-w${Me.PctHPs} <= ${maChr.Find[stPctCanniHP].Value}\ax
     /return FALSE
   }
+  
+
+  | Spiritual Channeling AA
+
+
+
+  
+  
+  /if (${Me.PctMana} >= ${maChr.Find[stPctCanniManna].Value}) {
+    DEBUG ${break}returning(1) - too much mana${sep}\a-w${Me.PctMana} >= ${maChr.Find[stPctCanniManna].Value}\ax
+    /return FALSE
+  }
+  
+  
+
 
 
   CHECKEXIT
@@ -534,6 +555,8 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   } else /if (${_type.Equal[canni]}) {
     /if (${_verbage.Equal[mana]}) {
       /if (!${set_control_num_range[${_debug}, stPctCanniManna, ${_verbage2}, 0, 99]}) /return FALSE
+    } else /if (${_verbage.Equal[channeling]}) {
+      /if (!${set_control_num_range[${_debug}, stPctChannelingManna, ${_verbage2}, 0, 99]}) /return FALSE
     } else /if (${_verbage.Equal[hp]}) {
       /if (!${set_control_num_range[${_debug}, stPctCanniHP, ${_verbage2}, 0, 99]}) /return FALSE
     } else /if (${_verbage.Equal[aa]}) {
@@ -544,6 +567,7 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
 
     /invoke ${maControl.Clear}
     /invoke ${maControl.Add[mana,stPctCanniManna]}
+    /invoke ${maControl.Add[channeling,stPctChannelingManna]}
     /invoke ${maControl.Add[hp,stPctCanniHP]}
     /invoke ${maControl.Add[aa,stAACannibalization|br]}
     /invoke ${maControl.Add[spell,stCannibalization|br]}

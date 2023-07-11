@@ -5451,7 +5451,52 @@ sub do_loot(bool _debug)
   /if (${maEnv.Find[stLootMode].Value.Equal[manual]}) {
 
 
-  | advanced loot
+  | advanced leaving loot
+  } else /if (${maEnv.Find[stLootMode].Value.Equal[leaveall]}) {
+  
+    /if (!${AdvLoot.SCount} && !${AdvLoot.PCount}) {
+      DEBUG ${break}loot empty
+      /return FALSE
+    }
+
+    /if (!${Me.UseAdvancedLooting} || ${AdvLoot.LootInProgress}) {
+      DEBUG ${break}loot in progress
+      /return FALSE
+    }
+    
+    /if (!${maOver.Find[swOverLoot].Value}) {
+      /if (${Raid.Members}) {
+        /if (${Raid.MasterLooter.ID} != ${Me.ID} && ${Group.MasterLooter.ID} != ${Me.ID} ) {
+          /return FALSE
+        }
+      } else /if (!${Raid.Members}) {
+        /if (${Group.Members} && ${Group.MasterLooter.ID} != ${Me.ID}) {
+          /return FALSE
+        }
+      }
+    }
+
+   
+    /delay 1s !${AdvLoot.LootInProgress}
+
+    /while (${AdvLoot.SCount}) {
+      /if (${AdvLoot.SList[1].Name.Equal[NULL]}) {
+        /continue
+      }
+      /advloot shared 1 leave
+      /delay 5
+    }
+
+    /while (${AdvLoot.PCount}) {
+      /if (${AdvLoot.PList[1].Name.Equal[NULL]}) {
+        /continue
+      }
+      /advloot personal 1 leave
+      /delay 5
+    }
+
+
+  | advanced looting  
   } else /if (${maEnv.Find[stLootMode].Value.Equal[advanced]}) {
     
     /if (${Group.Members} && ${Group.MasterLooter.ID} != ${Me.ID}) {
@@ -6872,7 +6917,7 @@ sub get_target_intpull(bool _debug, spawn _spawn)
   /call target set ${targetData.ID}
 
   /delay 1s
-  /dex ${get_resident[${_debug}, |clr, 60]} /advancedpullint ${Me.ID} ${_debug}
+  /dex ${get_resident[${_debug}, |clr, ENV]} /advancedpullint ${Me.ID} ${_debug}
   /delay 1s
   
 
@@ -11253,7 +11298,7 @@ sub check_invis_single(bool _debug)
   } else {
     /call set_stop_movement ${_debug}
     /call cast ${_debug} 0 FALSE
-    /delay 2
+    /delay 5
     /delay 2s !${Me.Casting.ID}
 
   }
@@ -16017,10 +16062,12 @@ sub build_map_spawndata(bool _debug)
     /vardata _spawn NearestSpawn[${_count}, ${maSD.Find[type].Value} range ${maEnv.Find[stMobLvlMin].Value} ${maEnv.Find[stMobLvlMax].Value} radius PULLENV zradius ${maPull.Find[stPullZRadius].Value} targetable]
 
 
-      | line of sight, base pulling only
-      /if (${Select[${maPull.Find[stPullMode].Value},base]} && !${_spawn.LineOfSight}) {
-        DEBUG ${sep}bad line of sight for base pulling${sep}${_spawn.Name}
-        /continue
+      | line of sight, base pulling only and not in a /mode
+      /if (!${swModeToken}) {
+        /if (${Select[${maPull.Find[stPullMode].Value},base]} && !${_spawn.LineOfSight}) {
+          DEBUG ${sep}bad line of sight for base pulling${sep}${_spawn.Name}
+          /continue
+        }
       }
 
 
@@ -16145,7 +16192,7 @@ sub pull_mob_find_v2(bool _debug)
 
     | are we using linear distance or nav path distance
     | we dafault to nav path. adjust if necessary
-    /if (${Select[${maPull.Find[stPullMode].Value},base,int]}) {
+    /if (${Select[${maPull.Find[stPullMode].Value},base,int]} || ${maMode.Find[petfarm].Value}) {
       DEBUG ${sep}set linear distance
       /varset _del 2
     }
@@ -16158,7 +16205,7 @@ sub pull_mob_find_v2(bool _debug)
     }
     
     | invalid path lengths
-    /if (${_lipath.Value.Arg[${_del},|]} <= 0 && !${Select[${maSD.Find[tag].Value},petpull]}) {
+    /if (${_lipath.Value.Arg[${_del},|]} <= 0 && !${Select[${maSD.Find[tag].Value},petpull]} && !${swModeToken}) {
       DEBUG ${sep} swap ${_lipath.Value.Arg[${_del},|]} <= 0
       /invoke ${_lipath.Advance}
       /continue

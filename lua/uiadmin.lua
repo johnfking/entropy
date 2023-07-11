@@ -22,7 +22,7 @@ local function imguicallback()
 
   elseif shouldDrawHUD then  
     ImGui.NewLine() 
-    cmd_button('hud', 60, 22, 'ui hud on')
+    cmd_button('hud', 60, 22, 'ui2 hud on')
     ImGui.NewLine()  
     
   -- HUD

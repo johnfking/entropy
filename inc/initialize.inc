@@ -390,6 +390,7 @@ sub set_initial_environment(bool _debug)
   /invoke ${set_data_timer[${_debug}, Check_Pull_Hardstop_Delay, 1]}
   /invoke ${set_data_timer[${_debug}, Check_Inventory_ManaClick, 1m]}
   /invoke ${set_data_timer[${_debug}, Check_Build_Spawn_Map_Data, 5s]}
+  /invoke ${set_data_timer[${_debug}, Mode_Open, 3s]}
 
   | wait time for pulling
   /invoke ${set_timer[${_debug}, wait_for_mob, 0]}
@@ -1017,7 +1018,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 |** control: env **|
-  /call set_data ${_debug} FALSE lsLootMode                               list outer off|manual|advanced
+  /call set_data ${_debug} FALSE lsLootMode                               list outer off|manual|advanced|leaveall
   /call set_data_map ${_debug} maEnv  stLootMode                          off                           "${auxna} [\a-woff-manual-advanced\ax] how or if you want to loot things"
   /call set_data ${_debug} maEnv swAuto                                   map outer FALSE
   /call set_data_map ${_debug} maEnv swSafeListGuild                      FALSE                         "${auxsw} let guild in your safe list"
@@ -1025,7 +1026,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maEnv stMobLvlMin                          1                             "${auxnum} lowest level mob you will attack"
   /call set_data_map ${_debug} maEnv stMobLvlMax                          500                           "${auxnum} highest level mob you will attack"
 
-  | /call set_data_map ${_debug} maEnv swADVLoot                            FALSE                         "${auxsw} use advanced loot functions"
   /call set_data_map ${_debug} maEnv swAutoInv                            FALSE                         "${auxsw} use autoinventory loot control on cursor items"
   /call set_data_list ${_debug} maEnv lsAutoInventory                     EMPTY                         "${auxli} list of shit to auto inventory"
   /call set_data_map ${_debug} maEnv stBuffGem                            ${Me.NumGems}                 "${auxnum} gem slot to use as a swap for buffing"
@@ -1668,17 +1668,32 @@ sub set_initialize_map_character_environment(bool _debug)
  
   | T3
   | Shar Vhal: Under Seige
-  | /call set_data_map ${_debug} ls29UnderSeigeHeartHelp                      "Grawleh|Jimuul|Garig|Ragnar|Falea|Hala|Zoliq|Fehril"    "${auxli} run to hail for heart cure"                 event
-  | spirits maybe?
+  /call set_data_map ${_debug} maEvent st29UnderSeigeHeartSayTarget                 "Spiritist"    "${auxli} run to hail for heart cure target"                 event
+  /call set_data_map ${_debug} maEvent st29UnderSeigeHeartSayPhrase                 "Help"         "${auxli} run to hail for heart cure say?"                  event
+
+
+  | deepshade
+  /call set_data_list ${_debug} maEvent ls29DeepshadeHideLocYX                      "128 1177|225 1129|264 1072|237 1009"                            "${auxli} run from the various emotes"  event
+  
   | Darklight Caverns:   
+
+
   | Firefall Pass: 
-  | /call set_data_list ${_debug} maEvent ls29FirefallHideLocYX                 "1116 99"                                                  "${auxli} run away for the emote" event
+  /call set_data_list ${_debug} maEvent ls29FirefallHideLocYX                  "1116 99"                                                              "${auxli} run away for the emote" event
+
+
 
   | T2
+
+  | Shadow Haaven
+    | door
+    /call set_data_list ${_debug} maEvent ls29DoorHideLocYX                      "632 -753"                                                            "${auxli} run from the charm emote"  event
 
 
 
   | T1
+
+
 
 
 

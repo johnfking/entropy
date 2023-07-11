@@ -18,6 +18,23 @@ on the to do list
 --------------------
 
 
+- looting option
+  /env loot leaveall, simply leaves all loot on corpse without any checks
+- bestlord
+  changes to the group and focused paragon checks
+- bard
+  adjustment o the focus check for gear
+- since eq stole the /ui command (bastards) it needed a new name. so, its now /ui2
+  if someone wants to nominate a better name, i'm all ears.
+- shaman
+  refined the heal routines a little
+  added /heal twincast (on/off) switch can turn off forcing twincast
+  aa spiritual channeling addeed under /chr cani channeling ##
+
+
+  
+
+
 230318.01
 - drive
   had a bad package include.. removed it.
@@ -30,7 +47,6 @@ on the to do list
   slowed it down a little so its not quite as obvious
 - removed a couple old debugs
 
-  
   
 230106.01
 ** NOTICE: you will need the most current build of MQ to use this!

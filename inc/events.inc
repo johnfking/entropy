@@ -467,7 +467,6 @@ sub Event_Talk(string line, string _sender, string _chatText)
 
 
 | 16th anniversary .. http://special.eqresource.com/pubcrawl.php
-|***
 #event 16anniStein "#*# Visigothe says, #1#"
 sub Event_16anniStein(string line, string _verbage)
   /if (!${Spawn[npc Galdorin].ID}) /return
@@ -475,46 +474,13 @@ sub Event_16anniStein(string line, string _verbage)
     /target ID ${Spawn[npc Galdorin].ID}
     /delay 3 ${Target.ID} == ${Spawn[npc Galdorin].ID}
   } else /if (${Spawn[npc Galdorin].Distance} > 30) {
-    VOUT ${onotice} ${sep} Must be next to Galdorin Visigothe in Abysmal Sea.
+    OUT ${onotice} ${sep} Must be next to Galdorin Visigothe in Abysmal Sea.
     /return
   }
+  /delay ${Int[${Math.Calc[${Math.Rand[5]}+5]}]}
   /say ${_verbage}
 /return
-**|
 
-|**
-#event 16stein1 "Galdorin Visigothe says, 'My stinky stein has rough dirty lips,'"
-#event 16stein2 "Galdorin Visigothe says, 'but she loves a deep carouse.'"
-#event 16stein3 "Galdorin Visigothe says, 'Beer or ale are her great trips.'"
-#event 16stein4 "Galdorin Visigothe says, 'No matter how many vows'"
-#event 16stein5 "Galdorin Visigothe says, 'I make or break, my drinking glass'"
-#event 16stein6 "Galdorin Visigothe says, 'reminds me of my lovely Brasse.'"
-
-sub Event_16stein1(string line)
-  /say My stinky stein has rough dirty lips,
-/return
-
-sub Event_16stein2(string line)
-  /say but she loves a deep carouse.
-/return
-
-sub Event_16stein3(string line)
-  /say Beer or ale are her great trips.
-/return
-
-sub Event_16stein4(string line)
-  /say No matter how many vows
-/return
-
-sub Event_16stein5(string line)
-  /say I make or break, my drinking glass
-/return
-
-sub Event_16stein6(string line)
-  /say reminds me of my lovely Brasse.
-/return
-
-****|
 
 
 |********************************************************************************************
@@ -2078,7 +2044,8 @@ sub Event_CureAkkapanDot()
     /varset swSetTie FALSE
   }
 
-  /varset _rnd ${Int[${Math.Calc[${Math.Rand[5]}+1]}]}
+  /varset _rnd 
+  /fs what
   :loopmovetospot
     /if (${_rnd} == 1) /moveto loc 2570 1007
     /if (${_rnd} == 2) /moveto loc 2557 1185
@@ -2861,7 +2828,7 @@ sub Bind_event(string _action, string _option)
 | NoS -----------------------
 | ---------------------------
  
-  | shar vahl 2 group raid/mission
+  | shar vahl 2 group T3 raid / mission
   /if (${Select[${Zone.ShortName},sharvahltwo_missiontwo,sharvahltwo_raidthree]}) {
  
     /if (${_action.Equal[say]}) {
@@ -2869,7 +2836,7 @@ sub Bind_event(string _action, string _option)
       /if (${Target.ID}) {
         /squelch /target clear
       }
-      /vardata targetData NearestSpawn[1, npc Spiritist]
+      /vardata targetData NearestSpawn[2, npc ${maEvent.Find[st29UnderSeigeHeartSayTarget].Value}]
       /if (!${targetData.ID}) {
         /return FALSE
       }
@@ -2878,13 +2845,27 @@ sub Bind_event(string _action, string _option)
       /while (${targetData.Distance} >= 50) {
         /delay 3
       }
-      /say help
+      /say ${maEvent.Find[st29UnderSeigeHeartSayPhrase].Value}
     }
     /invoke ${maControl.Add[say,option]}
+ 
+  | deepshade raid part 2
+  } else /if (${Zone.ShortName.Equal[guildhalllrg_int]}) {
+
+    /declare _loc int ${Math.Rand[0,${ls29DeepshadeHideLocYX.Count}]}
     
+    /call set_stop ${maDebug.Find[stop].Value} SILENT
+
+    /echo ${_loc}
+
+    /echo ${ls29DeepshadeHideLocYX.Item[${_loc}]}
+
+
+    /invoke ${maControl.Add[hide,option]}
+
+  
   }
   
-
   
   
 | Anniversary ---------------

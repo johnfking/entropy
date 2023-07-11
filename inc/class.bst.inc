@@ -213,10 +213,8 @@ sub check_mana(bool _debug)
 
   /invoke ${set_data_timer[${_debug}, Check_Para, RESTART]}
 
-  | ISMEDEAD
+  ISMEDEAD
   CHECKEXIT check_mana_BST
-  /declare _count int local 0
-  /declare _spawn spawn local
 
   | consumption of Spirits AA
   /if (${maChr.Find[stPctConsume].Value} && ${Pet.ID} && !SAFEZONE) {
@@ -226,141 +224,21 @@ sub check_mana(bool _debug)
         /return TRUE
       }
     }
+  }  
+  
+  | check focused paragon
+  /if (${cast_data[${_debug}, "${maChr.Find[stAAFocusedParagonofSpirits].Value}"]}) {
+    DEBUG ${sep}checking${sep}\a-wfocused paragon\ax
+    /call check_mana_paragon_focused ${_debug}
   }
-  
-  /if (${Me.Song[${maChr.Find[stAAParagonofSpirit].Value}].ID}) {
-    DEBUG ${break}have${sep}${maChr.Find[stAAParagonofSpirit].Value} (1)
-    /return FALSE
-  } 
-  
+
+  | check group paragon
   /if (${cast_data[${_debug}, "${maChr.Find[stAAParagonofSpirit].Value}"]}) {
     DEBUG ${sep}checking${sep}\a-wparagon for group\ax
-    /declare _below int local 0
-
-    /for _count 0 to ${Group}
-      /vardata _spawn Spawn[${Group.Member[${_count}].ID}]
-      
-      DEBUG ${sep}${_count}${sep}\a-w${Group.Member[${_count}].DisplayName}\ax
-      ISMEDEAD
-      CHECKEXIT check_mana_BST2
-      
-      /if (!${_spawn.ID} || !${Group.Member[${_spawn.DisplayName}].Present}) {
-        DEBUG ${break}notinzone
-        /continue
-      }
-
-      /if (${_spawn.Type.Equal[corpse]}) {
-        DEBUG ${break}corpse
-        /continue
-      }
-
-      /if (${_spawn.ID} == ${Me.Pet.ID}) {
-        DEBUG ${break}pet
-        /continue
-      }
-      
-      /if (${_spawn.Class.ShortName.Equal[BRD]}) {
-        DEBUG ${break}bard
-        /continue
-      }
-
-      /if (!${lsParagonClass.Contains[${_spawn.Class.ShortName}]}) {
-        DEBUG ${break}Bad Class${sep}${_spawn.Class.ShortName}
-        /continue
-      }
-
-      /if (${_spawn.PctMana} >= ${maChr.Find[stPctParagonG].Value}*.PCTHO) {
-        DEBUG ${break}maChr.Find[stPctParagonG].Value
-        /continue
-      }
-      
-      /if (${_spawn.Distance} > ${Spell[${maChr.Find[stAAParagonofSpirit].Value}].AERange}) {
-        DEBUG ${break}AERange${sep}${Spell[${maChr.Find[stAAParagonofSpirit].Value}].AERange}
-        /continue
-      }
-
-      /varcalc _below ${_below}+1
-      /if (${_below}) {
-        DEBUG ${break}we found someone
-        /break
-      }
-    /next _count
-
-    /if (${_below} && !SAFEZONE) {
-      /call cast ${_debug} 0 FALSE
-      /return TRUE
-    }
+    /call check_mana_paragon_group ${_debug}
   }
   
-  | stop here if no focused is ready
-  /if (!${cast_data[${_debug}, "${maChr.Find[stAAFocusedParagonofSpirits].Value}"]}) {
-    /return FALSE
-  }
-  
-  
-  | self paragon
-  DEBUG ${sep}checking self${sep}\a-wfocused paragon\ax
-  /if (${maChr.Find[stPctParagonF].Value} && !SAFEZONE && !${Me.Song[${maChr.Find[stAAFocusedParagonofSpirits].Value}].ID}) {
-    /if (${Me.PctMana} <= ${maChr.Find[stPctParagonF].Value}*.PCTHO || ${Me.PctEndurance} <= ${maChr.Find[stPctParagonF].Value}*.PCTHO) {
-      /if (${cast_data[${_debug}, "${maChr.Find[stAAFocusedParagonofSpirits].Value}"]}) {
-        /call cast ${_debug} ${Me.ID} FALSE
-        /return TRUE
-      }
-    }
-  }
-  
-  | Group member single Paragon
-  DEBUG ${sep}checking group${sep}\a-wfocused paragon\ax
-  /if (${Group} && ${maChr.Find[stPctParagonFO].Value} && !SAFEZONE) {
-    /declare _found bool local FALSE
-    /for _count 0 to ${Group}
-      
-      /vardata _spawn Group.Member[${_count}]
 
-      /if (${_spawn.ID} == ${Me.ID}) {
-        /continue
-      }
-      
-      /if (!${_spawn.ID} || !${Group.Member[${_spawn.DisplayName}].Present}) {
-        DEBUG ${break}notinzone
-        /continue
-      }
-
-      /if (${_spawn.ID} == ${Me.Pet.ID}) {
-        DEBUG ${break}pet
-        /continue
-      }
-      
-      /if (!${lsParagonClass.Contains[${_spawn.Class.ShortName}]}) {
-        DEBUG ${break}Bad Class${sep}${_spawn.Class.ShortName}
-        /continue
-      }
-
-      /if (${_spawn.Type.Equal[CORPSE]}) {
-        DEBUG ${break}dead
-        /continue
-      }
-
-      /if (${_spawn.Distance} > ${Spell[${maChr.Find[stAAFocusedParagonofSpirits].Value}].MyRange}) {
-        DEBUG ${break} > ${Spell[${maChr.Find[stAAFocusedParagonofSpirits].Value}].MyRange} range
-        /continue
-      }
-
-      /if ((${_spawn.PctMana} <=  ${maChr.Find[stPctParagonFO].Value}*.PCTHO) || (${_spawn.PctEndurance} <= ${maChr.Find[stPctParagonFO].Value}*.PCTHO)) {
-        DEBUG ${sep} mana || stamina <= ${maChr.Find[stPctParagonFO].Value}*.PCTHO
-        /varset _found TRUE
-      }
-
-      /if (${_found}) {
-        OUT ${maChr.Find[stAAFocusedParagonofSpirits].Value}${sep}\a-w${_spawn.DisplayName}\ax
-        /call cast ${_debug} ${_spawn.ID} FALSE
-        /varset _found FALSE
-        /return TRUE
-      }
-
-    /next _count
-  }  
-   
 /return TRUE
 
 
@@ -565,6 +443,221 @@ sub cast_AA_paragon(bool _debug)
   /call cast ${_debug} 0 FALSE
   
 /return TRUE
+
+
+
+
+
+
+
+|***
+ * note: Focused Paragon. will maintain the bst
+ * use: /call check_mana_paragon_focused
+ ***|
+sub check_mana_paragon_focused(bool _debug)
+  DEBUG \atcheck_mana_paragon_focused\ax()
+
+  | ISMEDEAD
+  CHECKEXIT check_mana_paragon_focused
+  /declare _count int local 0
+  /declare _spawn spawn local
+
+  | self paragon
+  DEBUG ${sep}checking self${sep}\a-wfocused paragon\ax
+  /if (${maChr.Find[stPctParagonF].Value} && !SAFEZONE && !${Me.Song[${maChr.Find[stAAFocusedParagonofSpirits].Value}].ID}) {
+    /if (${Me.PctMana} <= ${maChr.Find[stPctParagonF].Value}*.PCTHO || ${Me.PctEndurance} <= ${maChr.Find[stPctParagonF].Value}*.PCTHO) {
+      /if (${cast_data[${_debug}, "${maChr.Find[stAAFocusedParagonofSpirits].Value}"]}) {
+        /call cast ${_debug} ${Me.ID} FALSE
+        /return TRUE
+      }
+    }
+  }
+  
+  | Group member single Paragon
+  DEBUG ${sep}checking group${sep}\a-wfocused paragon\ax
+  /if (${Group} && ${maChr.Find[stPctParagonFO].Value} && !SAFEZONE) {
+    /declare _found bool local FALSE
+    /for _count 1 to ${Group}
+      
+      /vardata _spawn Group.Member[${_count}]
+      
+      /if (!${_spawn.ID} || !${Group.Member[${_spawn.DisplayName}].Present}) {
+        DEBUG ${break}notinzone
+        /continue
+      }
+
+      /if (!${lsParagonClass.Contains[${_spawn.Class.ShortName}]}) {
+        DEBUG ${break}Bad Class${sep}${_spawn.Class.ShortName}
+        /continue
+      }
+
+      /if (${_spawn.Type.Equal[CORPSE]}) {
+        DEBUG ${break}dead
+        /continue
+      }
+
+      /if (${_spawn.Distance} > ${Spell[${maChr.Find[stAAFocusedParagonofSpirits].Value}].MyRange}) {
+        DEBUG ${break} > ${Spell[${maChr.Find[stAAFocusedParagonofSpirits].Value}].MyRange} range
+        /continue
+      }
+
+      /if ((${_spawn.PctMana} <=  ${maChr.Find[stPctParagonFO].Value}*.PCTHO) || (${_spawn.PctEndurance} <= ${maChr.Find[stPctParagonFO].Value}*.PCTHO)) {
+        DEBUG ${sep} mana || stamina <= ${maChr.Find[stPctParagonFO].Value}*.PCTHO
+        /varset _found TRUE
+      }
+
+      /if (${_found}) {
+        OUT ${maChr.Find[stAAFocusedParagonofSpirits].Value}${sep}\a-w${_spawn.DisplayName}\ax
+        /call cast ${_debug} ${_spawn.ID} FALSE
+        /varset _found FALSE
+        /return TRUE
+      }
+
+    /next _count
+  }  
+   
+/return TRUE
+
+
+
+
+
+|***
+ * note: Paragon of Spirits. will maintain the bst
+ * use: /call check_mana_paragon_group
+ ***|
+sub check_mana_paragon_group(bool _debug)
+  DEBUG \atcheck_mana_paragon_group\ax()
+
+  | ISMEDEAD
+  CHECKEXIT check_mana_paragon_group
+  /declare _count int local 0
+  /declare _spawn spawn local
+
+  DEBUG ${sep}checking${sep}\a-wparagon for group\ax
+  /declare _below int local 0
+
+  /for _count 0 to ${Group}
+    /vardata _spawn Spawn[${Group.Member[${_count}].ID}]
+    
+    DEBUG ${sep}${_count}${sep}\a-w${Group.Member[${_count}].DisplayName}\ax
+    ISMEDEAD
+    CHECKEXIT check_mana_BST2
+    
+    /if (!${_spawn.ID} || !${Group.Member[${_spawn.DisplayName}].Present}) {
+      DEBUG ${break}notinzone
+      /continue
+    }
+
+    /if (${_spawn.Type.Equal[corpse]}) {
+      DEBUG ${break}corpse
+      /continue
+    }
+
+    /if (${_spawn.ID} == ${Me.Pet.ID}) {
+      DEBUG ${break}pet
+      /continue
+    }
+    
+    /if (${_spawn.Class.ShortName.Equal[BRD]}) {
+      DEBUG ${break}bard
+      /continue
+    }
+
+    /if (!${lsParagonClass.Contains[${_spawn.Class.ShortName}]}) {
+      DEBUG ${break}Bad Class${sep}${_spawn.Class.ShortName}
+      /continue
+    }
+
+    /if (${_spawn.PctMana} >= ${maChr.Find[stPctParagonG].Value}*.PCTHO) {
+      DEBUG ${break}maChr.Find[stPctParagonG].Value
+      /continue
+    }
+    
+    /if (${_spawn.Distance} > ${Spell[${maChr.Find[stAAParagonofSpirit].Value}].AERange}) {
+      DEBUG ${break}AERange${sep}${Spell[${maChr.Find[stAAParagonofSpirit].Value}].AERange}
+      /continue
+    }
+
+    /varcalc _below ${_below}+1
+    /if (${_below}) {
+      DEBUG ${break}we found someone
+      /break
+    }
+  /next _count
+
+  /if (${_below} && !SAFEZONE) {
+    /call cast ${_debug} 0 FALSE
+    /return TRUE
+  }
+  
+
+
+   
+/return TRUE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -676,6 +676,8 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
       /invoke ${do_raw_edit[${_debug}, SILENT, stLootMode, "manual"]}
     } else /if (${_verbage.Equal[advanced]}) {
       /invoke ${do_raw_edit[${_debug}, SILENT, stLootMode, "advanced"]}
+    } else /if (${_verbage.Equal[leaveall]}) {
+      /invoke ${do_raw_edit[${_debug}, SILENT, stLootMode, "leaveall"]}
     }
 
     /declare _liL listiterator local
@@ -1748,6 +1750,7 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
 
   /if (${Select[${Me.Class.ShortName},SHM]}) {
     /invoke ${maControl.Add[surge,stCountSurge]}
+    /invoke ${maControl.Add[twin,swTwinHeal]}
   }
 
   /if (${Select[${Me.Class.ShortName},CLR]}) {
@@ -6767,16 +6770,16 @@ sub Bind_command_notes(string _noteID, string _verbage, string _verbage2)
  * note:UI controls
  * use:
  ***|
-#Bind control_ui /ui
-sub Bind_control_ui(sring _verbage, string _verbage2, bool _debug)
-  DEBUG \atcontrol_ui\ax(\a-w${_verbage}, ${_verbage2}\ax)
+#Bind control_ui2 /ui2
+sub Bind_control_ui2(sring _verbage, string _verbage2, bool _debug)
+  DEBUG \atcontrol_ui2\ax(\a-w${_verbage}, ${_verbage2}\ax)
 
   /if (${_verbage.Left[1].Equal[-]}) {
     /lua run HELP ui ${_type.Right[1]}
     /return TRUE
   }
 
-  | ui admin
+  | admin
   /if (${_verbage.Equal[admin]}) {
     /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
       /lua run ${MacroQuest.Path[macros]}\entropy\lua\uiadmin.lua
@@ -6829,7 +6832,7 @@ sub Bind_control_ui(sring _verbage, string _verbage2, bool _debug)
     /return TRUE    
   }
 
-  | drive ui
+  | events
   /if (${_verbage.Equal[event]}) {
     /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
       /lua run ${MacroQuest.Path[macros]}\entropy\lua\event.lua
@@ -6845,7 +6848,7 @@ sub Bind_control_ui(sring _verbage, string _verbage2, bool _debug)
     /return TRUE
   }
 
-  | notes ui
+  | notes
   /if (${_verbage.Equal[notes]}) {
     /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
       /lua run ${MacroQuest.Path[macros]}\entropy\lua\notes.lua
@@ -6858,7 +6861,7 @@ sub Bind_control_ui(sring _verbage, string _verbage2, bool _debug)
   }
 
 
-  | notes ui
+  | debug
   /if (${_verbage.Equal[debug]}) {
     /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
       /lua run ${MacroQuest.Path[macros]}\entropy\lua\debug.lua
@@ -6880,7 +6883,7 @@ sub Bind_control_ui(sring _verbage, string _verbage2, bool _debug)
   /invoke ${maControl.Add[build,option]}
   /invoke ${maControl.Add[event,option]}
   /invoke ${maControl.Add[notes,option]}
-  /invoke ${set_control_output[${_debug}, maHard, "ui", maControl]}
+  /invoke ${set_control_output[${_debug}, maHard, "ui2", maControl]}
 
 /return TRUE
 

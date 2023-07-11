@@ -323,6 +323,7 @@ sub mode_petfarm(bool _debug)
   }
   
   /call clear_combat
+  /mapshow NPC
 
   SETHUD
 
@@ -754,19 +755,25 @@ sub mode_open(bool _debug)
   ISMEDEAD
   SETHUD "Open"
 
-  /invoke ${set_data_timer[FALSE, timer_mode_open, 2s]}
+  /invoke ${set_data_timer[${_debug}, Mode_Open, 3s]}
 
   /if (${SpawnCount[${stModeData} radius 20]}) {
     /vardata targetData NearestSpawn[${stModeData} radius 20]
     /if (${targetData.Dead}) /return
-    /squelch /target ID ${targetData.ID}
-    /delay 2s ${Target.ID} == ${targetData.ID}
+    /while (${Target.ID} != ${targetData.ID}) {
+      /delay 5
+      /squelch /target ID ${targetData.ID}
+    }
+    /delay 5
     /open
-    /delay 1s
-    /return
   }
 
   SETHUD
+  
+  /while (${timer_Mode_Open}) {
+    /delay 5
+  }
+  
 /return
 
 
@@ -1335,10 +1342,10 @@ sub rof_shard_bodhe(string _opt, bool _debug)
               SETHUD "navto marker"
               /call Bind_command_navto loc "${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[2,|]} ${_loc${_curpos}.Arg[3,|]}" FALSE ${_debug}
               /if (${_curpos} == 1) {
-                /call check_buff_cycle ${maDebug.Find[cb].Value} TRUE a
-                /call check_buff_cycle ${maDebug.Find[cb].Value} TRUE s
-                /call check_buff_cycle ${maDebug.Find[cb].Value} TRUE u
-                /call check_minion_cycle ${maDebug.Find[petbuild].Value} TRUE
+                /call check_buff_cycle ${maDebug.Find[cb].Value} FALSE a
+                /call check_buff_cycle ${maDebug.Find[cb].Value} FALSE s
+                /call check_buff_cycle ${maDebug.Find[cb].Value} FALSE u
+                /call check_minion_cycle ${maDebug.Find[petbuild].Value} FALSE
                 /if (${SubDefined[check_mana]}) /call check_mana
                 /call do_rest ${maDebug.Find[rest].Value}
 
@@ -1357,13 +1364,21 @@ sub rof_shard_bodhe(string _opt, bool _debug)
           DEBUG ${sep}spawncount loc${_curpos}${sep}\a-w${SpawnCount[npc loc ${_loc${_curpos}.Arg[2,|]}  ${_loc${_curpos}.Arg[1,|]} ${_loc${_curpos}.Arg[3,|]} radius PULLENV]}\ax
 
           SETHUD "find target"
-          /call pull_mob_find ${_debug} 
+          
+          
+          | /call pull_mob_find ${_debug} 
+          /invoke ${pull_constraints[${_debug}, NPC]}
+          /call build_map_spawndata FALSE
+          /call pull_mob_find_v2 FALSE
+          
+          
           | ${_debug}
 
           /if (!${targetData.ID}) {
             OUT NO Target Data
             /goto :rof_shard_bodhe_step2
           }
+          | /call pull_mob_move_to ${_debug} ${targetData.ID} ${Math.Calc[${Spawn[id ${targetData.ID}].MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} on
 
           /call pull_mob_move_to ${_debug} ${targetData.ID} 5 FALSE
           | SETHUD "navto target"

@@ -615,7 +615,7 @@ sub scan_focus(string _type, bool _debug)
         /if (${Me.Level} < ${FindItem[${_tmpItemID}].RequiredLevel}) /continue
 
         | bard focus??
-        /if (${Select[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},49,70,12,54,41]}) /continue
+        /if (!${Select[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},49,70,12,54,41]}) /continue
 
         | usable in primary/secondary?
         /if (${FindItem[${_tmpItemID}].WornSlot[offhand]} || ${FindItem[${_tmpItemID}].WornSlot[mainhand]}) {
@@ -651,7 +651,7 @@ sub scan_focus(string _type, bool _debug)
 
       /if (!${FindItem[${_tmpItemID}].Focus2.Spell.ID}) /continue
       /if (${Me.Level} < ${FindItem[${_tmpItemID}].RequiredLevel}) /continue
-      /if (${Select[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},49,70,12,54,41]}) /continue
+      /if (!${Select[${FindItem[${_tmpItemID}].Focus2.Spell.Base[3]},49,70,12,54,41]}) /continue
       /if (${FindItem[${_tmpItemID}].WornSlot[offhand]} || ${FindItem[${_tmpItemID}].WornSlot[mainhand]}) {
         /varset _tmpUsable 1
       }
