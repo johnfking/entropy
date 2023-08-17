@@ -40,7 +40,7 @@ sub class_init(bool _debug)
 
   /call set_data_list ${_debug} maChr lsHealToT                       PREGEN|3                      "${auxli} targets target healing line of spells"
 
-  /invoke ${set_data_timer[${_debug}, Check_Para, 2s]}
+  /invoke ${set_data_timer[${_debug}, Check_Para, 1m]}
   /call set_data_map ${_debug} maChr stPctParagonG                    0                             "${auxnum} pct mana to use group paragon aa"
   /call set_data_map ${_debug} maChr stPctParagonF                    0                             "${auxnum} pct mana to use focused paragon aa on you"
   /call set_data_map ${_debug} maChr stPctParagonFO                   0                             "${auxnum} pct mana to use focused paragon aa on someone else"
@@ -89,7 +89,9 @@ sub class_main(bool _debug)
 
   /if (AUTO && !ENGINE3) {
     /call class_cycle lsOrderClassBase
-    /if (!${timer_Check_Para}) /call check_mana ${maDebug.Find[para].Value}
+    /if (!${timer_Check_Para}) {
+      /call check_mana ${maDebug.Find[para].Value}
+    }
   } else /if (AUTO && ENGINE3) {
     /if (${SubDefined[e3_pre_${Me.Class.ShortName}]}) {
       /call e3_pre_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -110,7 +112,9 @@ sub class_main(bool _debug)
 
     /if (AUTO && !ENGINE3) {
       /call class_cycle lsOrderClassPost
-      /if (!${timer_Check_Para}) /call check_mana ${maDebug.Find[para].Value}
+      /if (!${timer_Check_Para}) {
+        /call check_mana ${maDebug.Find[para].Value}
+      }
     } else /if (AUTO && !ENGINE3) {
       /if (${SubDefined[e3_post_${Me.Class.ShortName}]}) {
         /call e3_post_${Me.Class.ShortName} ${maDebug.Find[e3].Value}
@@ -478,6 +482,7 @@ sub check_mana_paragon_focused(bool _debug)
   /if (${Group} && ${maChr.Find[stPctParagonFO].Value} && !SAFEZONE) {
     /declare _found bool local FALSE
     /for _count 1 to ${Group}
+      /delay 3
       
       /vardata _spawn Group.Member[${_count}]
       
@@ -538,6 +543,7 @@ sub check_mana_paragon_group(bool _debug)
   /declare _below int local 0
 
   /for _count 0 to ${Group}
+    /delay 3
     /vardata _spawn Spawn[${Group.Member[${_count}].ID}]
     
     DEBUG ${sep}${_count}${sep}\a-w${Group.Member[${_count}].DisplayName}\ax
@@ -591,8 +597,6 @@ sub check_mana_paragon_group(bool _debug)
     /return TRUE
   }
   
-
-
    
 /return TRUE
 

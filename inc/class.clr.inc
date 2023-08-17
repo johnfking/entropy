@@ -49,6 +49,7 @@ sub class_init(bool _debug)
 
   | splash
   /call set_data_map ${_debug} maHeal stCountSplash                   0                             "${auxnum} number mobs in range to use a splash heal"       heal
+  /call set_data_map ${_debug} maHeal swSplashMeOnly                  FALSE                         "${auxsw} splash targets me only and nothing else"          heal
 
   | divine rez
   /call set_data_map ${_debug} maRez swDivineCleric                   FALSE                         "${auxsw} divine rez other clerics"                         rez
@@ -306,6 +307,15 @@ sub check_heal(bool _debug, string _type)
     }
   }
   
+  | check twincast proc ??
+  /if (${maHeal.Find[swTwinHeal].Value}) {
+    /call cast_cooldown_wait ${_debug}
+    /call cast_cycle_proc_twinheal ${_debug}  
+    /if (${Select[${Macro.Return},1]}) {
+      /call cast_cooldown_wait ${_debug}
+    }
+  }  
+
   | forcing of splash  
   /if (!${hurtCount} && ${maOver.Find[swOverSplashHurt].Value} && ${maHeal.Find[stCountSplash].Value} && (${Group.Members} > 1 || ${Raid.Members})) {
     /if (${SpawnCount[npc radius ENV]} >= ${maHeal.Find[stCountSplash].Value}) {

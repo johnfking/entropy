@@ -32,54 +32,54 @@
 #define CHECKEXIT "/if (${check_exit[${maDebug.Find[exit].Value}]}) /return"
 #define CHECKREZ "/if (${maEnv.Find[swAuto].Value} && !${maPull.Find[swPull].Value} && !${Me.Invis}) /call check_for_corpse ${maDebug.Find[rez].Value}"
 #define CHECKFADE "/if (${maChr.Find[stPctFade].Value}) /call cast_AA_fade ${maDebug.Find[fade].Value}"
-#define CHECKINVIS ${Me.Invis} && !${maEnv.Find[swIgnoreInvis].Value}
+#define CHECKINVIS "${Me.Invis} && !${maEnv.Find[swIgnoreInvis].Value}"
 #define CHECKAUTO "/if (!${maEnv.Find[swAuto].Value}) /return FALSE"
 #define OVERLOS "${If[${maOver.Find[swOverLOS].Value},,los]}"
 #define PS4 "playerstate 4"
-#define AUTO ${maEnv.Find[swAuto].Value}
-#define ENV ${maEnv.Find[stEnvRadius].Value}
-#define PULL ${maPull.Find[swPull].Value}
-#define AGRO ${maAgro.Find[swAgro].Value}
-#define TARGET ${stAssTarID}
-#define TIE ${maTie.Find[swSetTie].Value}
-#define HOME ${maHome.Find[swHomeMarker].Value}
-#define VALID ${maCC.Find[swValidAssTarID].Value}
-#define COMBAT ${maCC.Find[swSetCombat].Value}
-#define SAFEZONE ${maEnv.Find[swZoneSafe].Value}
-#define BURN ${maBurn.Find[swBurnConditionMet].Value}
-#define PCTHO ${tmpHealAdjust}
-#define PCTREST ${maRest.Find[stPctRest].Value}
-#define SAFEENV ${maEnv.Find[stEnvSafeRadius].Value}
-#define RESTENV ${maRest.Find[stRestRadius].Value}
-#define PULLENV ${maPull.Find[stPullRadius].Value}
-#define AE# ${maChr.Find[stCountAE].Value}
-#define PET ${maMinion.Find[swPet].Value}
-#define SWARM ${maMinion.Find[swSwarm].Value}
-#define RANGE ${maCC.Find[swCombatRange].Value}
-#define MELEE ${maCC.Find[swCombatMelee].Value}
-#define NUKE ${maCC.Find[swCombatNuke].Value}
-#define DOT ${maCC.Find[swCombatDoT].Value}
-#define HEAL ${maCC.Find[swCombatHeal].Value}
+#define AUTO "${maEnv.Find[swAuto].Value}"
+#define ENV "${maEnv.Find[stEnvRadius].Value}"
+#define PULL "${maPull.Find[swPull].Value}"
+#define AGRO "${maAgro.Find[swAgro].Value}"
+#define TARGET "${stAssTarID}"
+#define TIE "${maTie.Find[swSetTie].Value}"
+#define HOME "${maHome.Find[swHomeMarker].Value}"
+#define VALID "${maCC.Find[swValidAssTarID].Value}"
+#define COMBAT "${maCC.Find[swSetCombat].Value}"
+#define SAFEZONE "${maEnv.Find[swZoneSafe].Value}"
+#define BURN "${maBurn.Find[swBurnConditionMet].Value}"
+#define PCTHO "${tmpHealAdjust}"
+#define PCTREST "${maRest.Find[stPctRest].Value}"
+#define SAFEENV "${maEnv.Find[stEnvSafeRadius].Value}"
+#define RESTENV "${maRest.Find[stRestRadius].Value}"
+#define PULLENV "${maPull.Find[stPullRadius].Value}"
+#define AE# "${maChr.Find[stCountAE].Value}"
+#define PET "${maMinion.Find[swPet].Value}"
+#define SWARM "${maMinion.Find[swSwarm].Value}"
+#define RANGE "${maCC.Find[swCombatRange].Value}"
+#define MELEE "${maCC.Find[swCombatMelee].Value}"
+#define NUKE "${maCC.Find[swCombatNuke].Value}"
+#define DOT "${maCC.Find[swCombatDoT].Value}"
+#define HEAL "${maCC.Find[swCombatHeal].Value}"
 #define CHECKTIE "/if (${maTie.Find[swSetTie].Value} && !${timer_Check_Tie} || ${maTie.Find[swTieBreak].Value} && ${maData.Find[swGetOverHere].Value}) /call set_tie ${maDebug.Find[tie].Value}"
 #define GETOVERHERE "/if (${maTie.Find[swTieBreak].Value} && ${maData.Find[swGetOverHere].Value}) /call set_tie ${maDebug.Find[tie].Value}"
 #define CHECKCURSOR "/if (${Cursor.ID} && !${timer_Check_Cursor} && ((AUTO && ${maEnv.Find[swAutoInv].Value}) || ${maEntropy.Find[swAutoInvManual].Value})) /call check_cursor ${maDebug.Find[loot].Value}"
 #define SETHUD "/call set_hud_data"
 #define CHECKDEFENSE  "/call cast_cycle_defense ${maDebug.Find[def].Value}"
-#define ENGINE1 ${maEntropy.Find[stEngine].Value.Equal[1]}
-#define ENGINE2 ${maEntropy.Find[stEngine].Value.Equal[2]}
-#define ENGINE3 ${maEntropy.Find[stEngine].Value.Equal[3]}
-#define MERCENARY ${maMercenary.Find[swMercenary].Value}
+#define ENGINE1 "${maEntropy.Find[stEngine].Value.Equal[1]}"
+#define ENGINE2 "${maEntropy.Find[stEngine].Value.Equal[2]}"
+#define ENGINE3 "${maEntropy.Find[stEngine].Value.Equal[3]}"
+#define MERCENARY "${maMercenary.Find[swMercenary].Value}"
 #define MQCLEAR "/if (${Bool[${Plugin[MQ2ChatWnd]}]}) /mqclear"
 #define BUFFNOW "/if (${maBuff.Find[swBuffNow].Value} && !${timer_Check_Buff_Now}) /call check_buff_cycle_now ${maDebug.Find[now].Value}"
 #define BUFFTEMP "/if (${maBuff.Find[swBuffTemp].Value} && !${timer_Check_Buff_Temp}) /call check_buff_cycle_temp ${maDebug.Find[temp].Value}"
 #define GETASSIST "${get_assist_target[${maDebug.Find[assist].Value}, inline]}"
-#define MODE ${swModeToken}
-#define BARD ${Select[${Me.Class.ShortName},BRD]}
+#define MODE "${swModeToken}"
+#define BARD "${Select[${Me.Class.ShortName},BRD]}"
 #define TMPIDDEAD "/if (${target[isdead, ${_tmpID}]}) /return FALSE"
 #define SPAWNDEAD "/if (${target[isdead, ${_spawn.ID}]}) /return FALSE"
-#define NEXT ${MacroQuest.InternalName.Equal[Next]}
-#define HELP ${MacroQuest.Path[macros]}\entropy\lua\get_help.lua
-#define DEV ${maHard.Find[swDev].Value}
+#define NEXT "${MacroQuest.InternalName.Equal[Next]}"
+#define HELP "${MacroQuest.Path[macros]}\entropy\lua\get_help.lua"
+#define DEV "${maHard.Find[swDev].Value}"
 
 
 #include entropy\inc\initialize.inc
@@ -98,7 +98,7 @@
  ***|
 sub main(string _var1, string _var2, string _var3, string _var4)
 
-  | /declare maEnv map outer
+  /declare maEnv map outer
 
   /declare _boottimestart int local ${MacroQuest.Running}
   MQCLEAR
@@ -123,7 +123,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 230406.02
+  /call set_data FALSE maEnv build                          map outer 230817.01
   /call set_data FALSE maEnv schema                         map outer 1.66
   /call set_data FALSE maEnv repo                           map outer 220225.01
 
@@ -187,6 +187,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     }
     /delay ${maEntropy.Find[stMainLoopDelay].Value}
   }
+  
+  /call sort_lua_stuff
 
   | main loop
   /while (!${maEntropy.Find[swMaintenance].Value}) {
@@ -341,18 +343,22 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /if (${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}) {
     /dleave ${maEntropy.Find[stEntropyGroup_all].Value}
   }
+
+  | unload lua stuffs
+  /declare _liAlias list local
+  /invoke ${_liAlias.Append[radar,binds,health,event,eventbuttons,drive,drivebuttons]}
+  /declare _lial listiterator local
+  /vardata _lial _liAlias.First.Clone
+  /while (!${_lial.IsEnd}) {
+    /lua stop ${MacroQuest.Path[macros]}\entropy\lua\${_lial.Value}.lua
+    /invoke ${_lial.Advance}
+  }
+
+
   /if (${maEntropy.Find[swHUDCloseonEnd].Value}) {
     /lua stop ${MacroQuest.Path[macros]}\entropy\lua\hud.lua
   }
-  /if (${maEntropy.Find[swHUDDriveCloseonEnd].Value}) {
-    /lua stop ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
-    /lua stop ${MacroQuest.Path[macros]}\entropy\lua\drivebuttons.lua
-  }  
-    
-  /lua stop ${MacroQuest.Path[macros]}\entropy\lua\binds.lua
-  /lua stop ${MacroQuest.Path[macros]}\entropy\lua\health.lua
-  /lua stop ${MacroQuest.Path[macros]}\entropy\lua\event.lua
-  /lua stop ${MacroQuest.Path[macros]}\entropy\lua\eventbuttons.lua
+
   /endmacro
 
 /return
@@ -513,27 +519,41 @@ sub prepare_the_end(bool _debug)
   | build notes
   /call initialize_notes
 
+  | correct the map click spam.
+  /squelch /mapclick left alt /nav locyx %y %x |log=off
+  
+/return TRUE
+
+
+
+|***
+ * note:  get lua stuff running
+ * use: /call sort_lua_stuff
+ ***|
+sub sort_lua_stuff()
+
   | sort the macro hud
   /if (${maEntropy.Find[swHUDAuto].Value}) {
-    /timed ${maHard.Find[stDelayLua].Value} /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.lua
+    | /timed ${maHard.Find[stDelayLua].Value} 
+    /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.lua
+  }
+
+  | sort the drive hud
+  /if (${maEntropy.Find[swHUDDriveAuto].Value}) {
+    | /timed ${maHard.Find[stDelayLua].Value} 
+    /lua run ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
   }
 
   | sort the class hud
   /if (${maChr.Find[swHUDClassAuto].Value} && DEV) {
-    | /timed ${maHard.Find[stDelayLua].Value} /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.${Me.Class.ShortName}.lua
+    | /timed ${maHard.Find[stDelayLua].Value} 
+    /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.${Me.Class.ShortName}.lua
   }
-
 
   | start needed lua files
   /if (DEV) {
-    /timed ${maHard.Find[stDelayLua].Value} /lua run ${MacroQuest.Path[macros]}\entropy\lua\binds.lua
+    | /timed ${maHard.Find[stDelayLua].Value} 
+    /lua run ${MacroQuest.Path[macros]}\entropy\lua\binds.lua
   }
 
-
-  | correct the map click spam.
-  /squelch /mapclick left alt /nav locyx %y %x |log=off
-  
-
 /return TRUE
-
-

@@ -26,9 +26,9 @@ sub class_init(bool _debug)
 
   /call set_data_map ${_debug} maChr stAlliance                       PREGEN|1                      "${auxna} alliance spell .. damn useless thing"
 
-  /invoke ${set_data_timer[${_debug}, Check_Harmonious, 1m]}
-  /call set_data_map ${_debug} maChr swHarmonious                     FALSE                         "${auxsw} use harmonious"
-  /call set_data_map ${_debug} maChr stHarmonious                     PREGEN|1                      "${auxna} name of the harmonions spell"
+  | /invoke ${set_data_timer[${_debug}, Check_Harmonious, 1m]}
+  | /call set_data_map ${_debug} maChr swHarmonious                     FALSE                         "${auxsw} use harmonious"
+  | /call set_data_map ${_debug} maChr stHarmonious                     PREGEN|1                      "${auxna} name of the harmonions spell"
 
   | temp combat buffs (self only)
   /call set_data_map ${_debug} maChr stStance                         PREGEN|1                      "${auxna} name of the self stance buff"
@@ -52,7 +52,7 @@ sub class_init(bool _debug)
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                checkminion                                                                   "${auxli} class base loop start"
   /call set_data_list ${_debug} maChr lsOrderClassPre                 manarecover|staminarecovery                                                   "${auxli} class pre combat"
-  /call set_data_list ${_debug} maChr lsOrderClass                    taunt|melee|agro|heal|burn|misc|dot|nuke|item|agro|debuff|alliance|harmonious      "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClass                    taunt|melee|agro|heal|burn|misc|dot|nuke|item|agro|debuff|alliance            "${auxli} class active combat order"
   /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|staminarecovery                                                   "${auxli} class post combat "
 
   | AAs
@@ -100,6 +100,8 @@ sub class_main(bool _debug)
   /if (${maSash.Find[stPctShieldFlash].Value} || ${maSash.Find[stCountShieldFlash].Value}) {
     /call cast_shield_flash ${_debug} aa
   }
+  
+  BUFFNOW
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
     /call class_cycle lsOrderClassPre
@@ -360,8 +362,8 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
     /invoke ${set_switch_env[${_debug}, swVoT, TRUE, ${_verbage}]}
 
   | harmonious
-  } else /if (${_type.Equal[harmonious]}) {
-    /invoke ${set_switch_env[${_debug}, swHarmonious, TRUE, ${_verbage}]}
+  | } else /if (${_type.Equal[harmonious]}) {
+  |   /invoke ${set_switch_env[${_debug}, swHarmonious, TRUE, ${_verbage}]}
 
   | attraction
   } else /if (${_type.Equal[attraction]}) {

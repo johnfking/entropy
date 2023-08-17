@@ -3975,7 +3975,7 @@ sub cast_AA_fade(bool _debug)
 
 
 |***
- * note: checks and casts whats int lsBuffNow
+ * note: checks and casts whats in lsBuffNow
  * use: /call check_buff_cycle_now DEBUG
  ***|
 sub check_buff_cycle_now(bool _debug)
@@ -14282,7 +14282,7 @@ sub class_cycle(string _order)
 
     | knight harmonious routine
     } else /if (${_lico.Value.Equal[harmonious]} && ${maChr.Find[swHarmonious].Value}) {
-      /if (!${timer_Check_Harmonious}) /call check_harmonious ${maDebug.Find[harmonious].Value}
+      | /if (!${timer_Check_Harmonious}) /call check_harmonious ${maDebug.Find[harmonious].Value}
 
     | cc routine
     } else /if (${_lico.Value.Equal[cc]} && ${maCC.Find[swCombatControl].Value}) {
@@ -14295,6 +14295,12 @@ sub class_cycle(string _order)
     | bard incombat singing
     } else /if (${_lico.Value.Equal[pulseic]}) {
       /call pulse_cycle ${maDebug.Find[pulse].Value} GETASSIST pulseincombat
+      
+    | cure things if you can
+    } else /if (${_lico.Value.Equal[cure]} && !${timer_Check_Cure}) {
+      /if (${maCure.Find[swCureSelf].Value} || ${maCure.Find[swCureGroup].Value} || ${maCure.Find[swCureCrew].Value}) { 
+        /call check_cure ${maDebug.Find[cure].Value}
+      }
 
     | rest routine
     } else /if (${_lico.Value.Equal[rest]} && PCTREST) {
@@ -15753,19 +15759,45 @@ sub get_best_in_alliance(bool _debug, string _targettype, string _subcat, string
   
 
 |***
- * note: proc twincast heal buff, target changes depending on heal class type
+ * note: proc twincast heal buff of some type, target changes depending on heal class type
  * use: part of heal routine
  ***|
 sub cast_cycle_proc_twinheal(bool _debug)
   DEBUG \atcast_cycle_proc_twinheal\ax()
 
-  | break on active twinheal
-  /if (${Me.Song[Healing Twincast].ID}) {
-    DEBUG ${break} twincast heal active
+  | break on active twincast
+  /if (${Me.Song[Healing Twincast].ID} || ${Me.Buff[Twincast].ID} || ${Me.Buff[Channeling the Divine].ID} || ${Me.Buff[Bifold Focus].ID}) {
+    DEBUG ${break} twincast active
+    /return 2
+  }
+
+  | attempt to get fast cast stuff first. 
+  | bifold backup (Item)
+  /if (${cast_data[${_debug}, "Bifold Focus of the Evil Eye"]}) {
+    /call cast ${_debug} 0 FALSE
     /return 2
   }
   
-  | do checks by class type; dont need to worry about pally, they can jsut casnt regardless
+  | channeling of divine (Cleric)
+  /if (${Select[${Me.Class.ShortName},CLR]}) {
+    /if (${cast_data[${_debug}, "Channeling the Divine"]}) {
+      /call cast ${_debug} 0 FALSE
+      /return 2
+    }
+  }
+
+  | Hand of Tunare (Paladin)
+  /if (${Select[${Me.Class.ShortName},PAL]}) {
+    /if (${cast_data[${_debug}, "Hand of Tunare"]}) {
+      /call cast ${_debug} 0 FALSE
+      /return 2
+    }
+  }
+
+
+
+  | try nukes second
+  | do nuke checks by class type; dont need to worry about pally, they can just cast regardless
   /if (${Select[${Me.Class.ShortName},CLR,DRU]}) {
     /if (${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value} && !${maOver.Find[swOverPctEngage].Value}) {
       DEBUG ${break}.PctHPs${sep}${targetData.PctHPs} > ${maCC.Find[stPctEngage].Value}
@@ -15778,14 +15810,12 @@ sub cast_cycle_proc_twinheal(bool _debug)
     }
 
   } else /if (${Select[${Me.Class.ShortName},SHM]}) {
-
     /if (!${assistData.LineOfSight}) {
       DEBUG ${break}.LineOfSight
       /return 0
     }
-
   }
-    
+
   CHECKEXIT
   ISMEDEAD
   GETINPUT
@@ -15796,13 +15826,13 @@ sub cast_cycle_proc_twinheal(bool _debug)
     /invoke ${lsLineNuke.Clear}
     /invoke ${lsLineNuke.Append[${stCount20}]}
   }
-
+  
   /declare _liNukeTC listiterator local
   /vardata _liNukeTC lsLineNuke.First.Clone
   /while (!${_liNukeTC.IsEnd}) {
     
-    /if (${Me.Song[Healing Twincast].ID}) {
-      DEBUG ${break} twincast heal active
+    /if (${Me.Song[Healing Twincast].ID} || ${Me.Buff[Twincast].ID} || ${Me.Buff[Channeling the Divine].ID} || ${Me.Buff[Bifold Focus].ID}) {
+      DEBUG ${break} twincast active
       /return 2
     }
 
@@ -15826,7 +15856,7 @@ sub cast_cycle_proc_twinheal(bool _debug)
       /continue
     }
 
-    | nuke the mob or the tanks.. both?
+    | nuke the mob or the tanks.. both? both is better!
     /if (${Select[${Me.Class.ShortName},CLR,DRU,PAL]}) {
       /call cast ${_debug} ${targetData.ID} FALSE
     } else /if (${Select[${Me.Class.ShortName},SHM]}) {
@@ -15836,27 +15866,13 @@ sub cast_cycle_proc_twinheal(bool _debug)
     /delay 2.25s !${Me.SpellInCooldown}
     
     /if (${Me.Song[Healing Twincast].ID}) {
-      DEBUG ${break} twincast heal active
+      DEBUG ${break} twincast active
       /return 1
     }
     
     /invoke ${_liNukeTC.Advance}
   }
   
-  | bifold backup
-  /if (!${Me.Song[Healing Twincast].ID} && ${cast_data[${_debug}, "Bilfold Focus of the Evil Eye"]}) {
-    /call cast ${_debug} 0 FALSE
-    /return 2
-  }
-  
-  | channeling of divine backup
-  /if (${Select[${Me.Class.ShortName},CLR]}) {
-    /if (!${Me.Song[Healing Twincast].ID} && ${cast_data[${_debug}, "Channeling the Divine"]}) {
-      /call cast ${_debug} 0 FALSE
-      /return 2
-    }
-  }
-
 /return 0
 
 

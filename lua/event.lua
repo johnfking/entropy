@@ -50,8 +50,6 @@ local function imguicallback()
         ImGui.Indent(-20)
       end  
 
-
-
       if ImGui.TreeNode('Shar Vahl :: Pit Fight') then
         ImGui.NewLine()
         
@@ -95,7 +93,7 @@ local function imguicallback()
 
       if ImGui.TreeNode('Firefall Pass :: The Shadow Moves') then
         ImGui.NewLine()
-        edit_text_perm('Hide YX', 'maEvent', 'ls29FirefallHideLocYX')
+        edit_text_perm('Hide YX', 'maEvent', 'ls29FirefallSettingHideLocYX')
         ImGui.NewLine()
         
         ImGui.Indent(-20)
@@ -105,6 +103,7 @@ local function imguicallback()
         ImGui.NewLine()
         edit_text_perm('say target', 'maEvent', 'st29UnderSeigeHeartSayTarget')
         edit_text_perm('say phrase', 'maEvent', 'st29UnderSeigeHeartSayPhrase')
+        edit_text_perm('home YX', 'maEvent', 'st29UnderSeigeHomeLocYX')
         ImGui.NewLine()
         
         ImGui.Indent(-20)
@@ -178,6 +177,21 @@ local function imguicallback()
     end
 
     if ImGui.CollapsingHeader('The Burning Lands 25 :: TBL') then
+      ImGui.NewLine() 
+
+      if ImGui.TreeNode('The Stone Demise :: Unfettered Emerald Excellence (Mearatas)') then
+        ImGui.NewLine()
+        edit_text_perm('Move: Animation', 'maEvent', 'st25MearatasHideAnimationLocYX')
+        edit_text_perm('Move: Breezes', 'maEvent', 'st25MearatasHideBreezesLocYX')
+        edit_text_perm('Move: Flame', 'maEvent', 'st25MearatasHideFlameLocYX')
+        edit_text_perm('Move: Stone', 'maEvent', 'st25MearatasHideStoneLocYX')
+        edit_text_perm('Move: Waves', 'maEvent', 'st25MearatasHideWavesLocYX')
+        edit_text_perm('home YX', 'maEvent', 'st25MearatasHomeLocYX')
+        ImGui.NewLine()
+        
+        ImGui.Indent(-20)
+      end
+
       ImGui.NewLine() 
     end
 

@@ -22,6 +22,17 @@ outs = {
 }
 
 
+function settableflags()
+  tableFlags = bit32.bor(ImGuiTableFlags.Resizable,
+                          ImGuiTableFlags.RowBg,
+                          ImGuiTableFlags.SizingFixedFit,
+                          ImGuiTableFlags.Borders,
+                          ImGuiTableFlags.Hideable) 
+end
+                                  
+
+
+
 ico = {
   none = '',
   y = 22,
@@ -54,7 +65,11 @@ ico = {
   banner = ICON.FA_FLAG_O,
   hide = ICON.MD_DIRECTIONS_RUN,
   aura = ICON.MD_PANORAMA_FISH_EYE,
-  drive = ICON.MD_DRIVE_ETA
+  drive = ICON.MD_DRIVE_ETA,
+  radar = ICON.MD_SETTINGS_INPUT_ANTENNA,
+  target = ICON.FA_BULLSEYE,
+  event = ICON.MD_EVENT,
+  notes = ICON.MD_NOTE
 }
 
 
@@ -235,6 +250,9 @@ function cmd_button (name, y, x, cmd, tooltip)
 end
 
 
+
+
+
 function edit_tree (count, var, alias)
   
   if ImGui.TreeNode('list') then
@@ -384,3 +402,53 @@ rangeCheck = function (targetRange)
   -- return memberRange <= math.max(unpack(range))
 end
 
+
+
+
+-- return colors for targets
+function concolor (spawn)
+  
+  if concolor == 'RED' then
+    return ''
+  end
+  
+  if concolor == 'YELLOW' then
+    return ''
+  end
+  
+  if concolor == 'WHITE' then
+    return ''
+  end
+  
+  if concolor == 'BLUE' then
+    return ''
+  end
+
+  
+  if concolor == 'LIGHT BLUE' then
+    return ''
+  end
+  
+  if concolor == 'GREEN' then
+    return ''
+  end
+  
+  if concolor == 'GREY' then
+    return ''
+  end
+  
+end
+ 
+ 
+ 
+ 
+function btnoptn(name)
+  
+  if mq.TLO.Macro.Variable('maHud').Find('swHUDBTN'..name..'').Value() == 'TRUE' then 
+    return true
+  else 
+    return false 
+  end
+  
+  
+end

@@ -2646,24 +2646,24 @@ sub Bind_event(string _action, string _option)
     /lua run ${MacroQuest.Path[macros]}\entropy\lua\eventbuttons.lua
     /return TRUE
   } else /if (${_action.Equal[banner]}) {
+    /call Bind_control_home clear
     /call set_stop ${maDebug.Find[stop].Value} SILENT
     /nav id ${Spawn[banner].ID}
     /return TRUE
   } else /if (${_action.Equal[campfire]}) {
+    /call Bind_control_home clear
     /call set_stop ${maDebug.Find[stop].Value} SILENT
     /nav id ${Spawn[campfire].ID}
     /return TRUE
   }
 
 
-| ---  start of ToL events
-  /if (${Zone.ShortName.Equal[maidentwo_raid]}) {    
- 
 
 
 | ToL -----------------------
 | ---------------------------
-    | gorgana huge chain aura-
+  /if (${Zone.ShortName.Equal[maidentwo_raid]}) {    
+     | gorgana huge chain aura-
     /if (${_action.Equal[hide]}) {
       /if (${Me.Snared}) {
         /call Bind_control_gtfo FORCE
@@ -2765,6 +2765,7 @@ sub Bind_event(string _action, string _option)
       /call cast_cycle_cure ${_debug} ${Me.ID} FALSE FALSE
     | run to room for emote
     } else /if (${_action.Equal[hide]}) {
+      /call Bind_control_home clear
       /nav locyx ${maEvent.Find[st28AetnHideLocYX].Value}
     }
 
@@ -2798,7 +2799,7 @@ sub Bind_event(string _action, string _option)
 
     | hide hide for virul emote (the green one) on the darth vader event
     } else /if (${_action.Equal[hide]}) {
-
+      /call Bind_control_home clear
       /declare _pathlength int local 99999
       /declare _swap string local
       /declare _liloc listiterator local
@@ -2832,6 +2833,7 @@ sub Bind_event(string _action, string _option)
   /if (${Select[${Zone.ShortName},sharvahltwo_missiontwo,sharvahltwo_raidthree]}) {
  
     /if (${_action.Equal[say]}) {
+      /call Bind_control_home clear
       /call set_stop ${maDebug.Find[stop].Value} SILENT
       /if (${Target.ID}) {
         /squelch /target clear
@@ -2846,27 +2848,106 @@ sub Bind_event(string _action, string _option)
         /delay 3
       }
       /say ${maEvent.Find[st29UnderSeigeHeartSayPhrase].Value}
+    } else /if (${_action.Equal[home]}) {
+      /call Bind_control_home clear
+      /call set_stop ${maDebug.Find[stop].Value} SILENT
+      /nav locyx ${maEvent.Find[st29UnderSeigeHomeLocYX].Value}
+    
+    
     }
     /invoke ${maControl.Add[say,option]}
+    /invoke ${maControl.Add[home,option]}
  
   | deepshade raid part 2
-  } else /if (${Zone.ShortName.Equal[guildhalllrg_int]}) {
+  } else /if (${Zone.ShortName.Equal[deepshade_raid]}) {
 
-    /declare _loc int ${Math.Rand[0,${ls29DeepshadeHideLocYX.Count}]}
+
+    | run to room for emote
+    /if (${_action.Equal[hide]}) {
+      /call Bind_control_home clear
+      | /declare _loc int ${Math.Rand[0,${ls29DeepshadeHideLocYX.Count}]}
+      | /call set_stop ${maDebug.Find[stop].Value} SILENT
+      | /echo ${_loc}
+      /nav locyx ${ls29DeepshadeHideLocYX.Item[${Math.Rand[0,${Math.Calc[${ls29DeepshadeHideLocYX.Count} -1]}]}]}
+      /return TRUE
     
-    /call set_stop ${maDebug.Find[stop].Value} SILENT
-
-    /echo ${_loc}
-
-    /echo ${ls29DeepshadeHideLocYX.Item[${_loc}]}
-
+    }
 
     /invoke ${maControl.Add[hide,option]}
 
+
+  | Firefall Pass
+  } else /if (${Zone.ShortName.Equal[firefallpass_raid]}) {
+
+    /if (${_action.Equal[hide]}) {
+/echo here
+      /call Bind_control_home clear
+      /call set_stop ${maDebug.Find[stop].Value} SILENT
+
+      /if (${Me.Song[Setting Sun].ID} || ${Me.Buff[Setting Sun].ID}) {
+        /nav locyx ${maEvent.Find[ls29FirefallSettingHideLocYX].Value}
+        /delay 5 ${Navigation.Active}
+        /while (${Navigation.Active}) {
+           /if (!${Me.Song[Setting Sun].ID} || ${Me.Buff[Setting Sun].ID}) {
+            /call set_stop ${maDebug.Find[stop].Value} SILENT
+            /return TRUE
+          }
+          /delay 5
+        }       
+      } else /if (${Me.Song[Rising Sun].ID} || ${Me.Buff[Rising Sun].ID}) {
+        /nav id ${Spawn[Dawn].ID}        
+      }
+      
+      /invoke ${maControl.Add[hide,option]}
+      
+    }
+
+
+
+
+
+  }
+
+|  Your Location is 1262.20, 3.75, 77.06, Shadows Move
+ 
+
+| TBL -----------------------
+| ---------------------------
+
+  | T3: Mearatas Raid
+  /if (${Select[${Zone.ShortName},mearatas_raid]}) {
+ 
+    /if (${_action.Equal[home]}) {
+      /echo here
+        /call Bind_control_home clear
+        /call set_stop ${maDebug.Find[stop].Value} SILENT
+        /nav locyx ${maEvent.Find[st25MearatasHomeLocYX].Value}
+      
+
+    } else /if (${_action.Equal[hide]}) {
+      /call Bind_control_home clear
+      /call set_stop ${maDebug.Find[stop].Value} SILENT
+
+      /if (${Me.Buff[Mark of Animation].ID}) {
+        /nav locyx ${maEvent.Find[st25MearatasHideAnimationLocYX].Value}
+      } else /if (${Me.Buff[Mark of Breezes].ID}) {
+        /nav locyx ${maEvent.Find[st25MearatasHideBreezesLocYX].Value}
+      } else /if (${Me.Buff[Mark of Flame].ID}) {
+        /nav locyx ${maEvent.Find[st25MearatasHideFlameLocYX].Value}
+      } else /if (${Me.Buff[Mark of Stone].ID}) {
+        /nav locyx ${maEvent.Find[st25MearatasHideStoneLocYX].Value}
+      } else /if (${Me.Buff[Mark of Waves].ID}) {
+        /nav locyx ${maEvent.Find[st25MearatasHideWavesLocYX].Value}
+      }
+     
+    }
+    /invoke ${maControl.Add[hide,option]}
+    /invoke ${maControl.Add[home,option]}
   
   }
-  
-  
+
+
+
   
 | Anniversary ---------------
 | ---------------------------
@@ -2882,6 +2963,9 @@ sub Bind_event(string _action, string _option)
     /invoke ${maControl.Add[hide,option]}
     
   }
+  
+  
+  
 
   | always display options  
   /invoke ${maControl.Add[banner,option]}

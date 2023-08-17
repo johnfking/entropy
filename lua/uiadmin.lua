@@ -35,7 +35,8 @@ local function imguicallback()
       edit_switch_perm('close hud when macro ends', 'maEntropy', 'swHUDCloseonEnd')
       edit_switch_perm('show buttons on hud', 'maHud', 'swHUDbuttons')
       -- edit_switch_perm('class hud on start', 'maChr', 'swHUDClassAuto')
-     
+      edit_switch_perm('Main Target: On for display name, OFF for real name', 'maHud', 'swHUDDisplayName')
+    
       ImGui.NewLine()
       indent(1,2)
 
@@ -58,7 +59,36 @@ local function imguicallback()
         ImGui.NewLine()  
         indent(1,2)
       ImGui.TreePop() 
-    end
+      end
+
+      if ImGui.TreeNode('buttons') then
+        ImGui.Text('* no more than 12 is suggested')
+        indent(1,1) 
+        ImGui.Columns(3, 'hudbuttons', false)
+          edit_switch_perm('all auto', 'maHud', 'swHUDBTNallauto')
+          edit_switch_perm('all manual', 'maHud', 'swHUDBTNallmanual')
+          edit_switch_perm('auto', 'maHud', 'swHUDBTNauto')
+          edit_switch_perm('tie switch', 'maHud', 'swHUDBTNtie')
+          edit_switch_perm('tie nav', 'maHud', 'swHUDBTNtienav')
+          edit_switch_perm('tie stick', 'maHud', 'swHUDBTNtiestick')
+        ImGui.NextColumn()
+          edit_switch_perm('incharge', 'maHud', 'swHUDBTNincharge')
+          edit_switch_perm('stack invis', 'maHud', 'swHUDBTNinvis')
+          edit_switch_perm('no invis', 'maHud', 'swHUDBTNnoinvis')
+          edit_switch_perm('int pull', 'maHud', 'swHUDBTNintpull')
+          edit_switch_perm('gather', 'maHud', 'swHUDBTNgather')
+          edit_switch_perm('here', 'maHud', 'swHUDBTNhere')
+        ImGui.NextColumn()
+          edit_switch_perm('ui: radar', 'maHud', 'swHUDBTNradar')
+          edit_switch_perm('ui: drive', 'maHud', 'swHUDBTNdrive')
+          edit_switch_perm('ui: event buttons', 'maHud', 'swHUDBTNevent')
+          edit_switch_perm('ui: notes', 'maHud', 'swHUDBTNnotes')
+        ImGui.Columns()  
+        ImGui.NewLine()  
+        indent(1,2)
+      ImGui.TreePop() 
+      end
+
 
       if ImGui.TreeNode('headder') then
         indent(1,1) 
@@ -85,9 +115,8 @@ local function imguicallback()
     if ImGui.CollapsingHeader('drive') then
       indent(1,1) 
       ImGui.NewLine()  
-
-      edit_switch_perm('close drive hud macro end', 'maEntropy', 'swHUDDriveCloseonEnd')
-      
+      edit_switch_perm('Auto start drive on mac start', 'maEntropy', 'swHUDDriveAuto')
+      -- edit_switch_perm('close drive hud macro end', 'maEntropy', 'swHUDDriveCloseonEnd')
       ImGui.NewLine()
       indent(1,2)
     end
@@ -100,6 +129,36 @@ local function imguicallback()
       ImGui.NewLine()
       indent(1,2)
     end
+
+  -- radar
+    if ImGui.CollapsingHeader('radar') then
+      indent(1,1) 
+      ImGui.NewLine()  
+      
+      
+        local radarcount = tonumber(mq.TLO.Macro.Variable('maHud').Find('stRadarCount').Value())
+        radarcount, used = ImGui.DragInt("count##radarcount", radarcount, 1, 0, 1000);
+        if used then
+          mq.cmd.luaedit('stRadarCount', radarcount)  
+        end
+        
+        local current_sorttype = mq.TLO.Macro.Variable('maHud').Find('stRadarSortType').Value()
+        if ImGui.BeginCombo("sorttype", current_sorttype) then
+          for _, t in ipairs({ 'npc', 'pc' }) do
+            local selectedshade = t == current_sorttype
+            if ImGui.Selectable(t, selectedshade) and not selectedshade then
+              mq.cmd.luaedit('stRadarSortType', '"'..t..'"')
+            end
+          end
+          ImGui.EndCombo()
+        end
+        edit_switch_perm('targetable?', 'maHud', 'swRadarSortTargetable')      
+      
+
+      ImGui.NewLine()
+      indent(1,2)
+    end
+
 
 
   -- build

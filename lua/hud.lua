@@ -22,15 +22,8 @@ local function imguicallback()
 
 -- home tab
       if ImGui.BeginTabItem('Home') then
-
-
-        local tableFlags = bit32.bor(ImGuiTableFlags.Resizable,
-                                    ImGuiTableFlags.RowBg,
-                                    ImGuiTableFlags.SizingFixedFit,
-                                    ImGuiTableFlags.Borders,
-                                    ImGuiTableFlags.Hideable)
-					
-      	if ImGui.BeginTable('hud', 6, tableFlags) then
+        settableflags()
+       	if ImGui.BeginTable('hud', 6, tableFlags) then
 
           -- row 1
       		ImGui.TableNextRow()	
@@ -117,10 +110,19 @@ local function imguicallback()
             guildName = '<' .. spawn.Guild()  .. '>'
           end
           if spawn.LineOfSight() then
-            ImGui.TextColored(0, 1, 0, 1, '[' .. spawn.Class.ShortName() .. ' ' .. spawn.Level() .. '] ' .. spawn.DisplayName() .. ' ' .. guildName )
+            if mq.TLO.Macro.Variable('maHud').Find('swHUDDisplayName').Value() == 'TRUE' then
+              ImGui.TextColored(0, 1, 0, 1, '[' .. spawn.Class.ShortName() .. ' ' .. spawn.Level() .. '] ' .. spawn.DisplayName() .. ' ' .. guildName )
+            else
+              ImGui.TextColored(0, 1, 0, 1, '[' .. spawn.Class.ShortName() .. ' ' .. spawn.Level() .. '] ' .. spawn.Name() .. ' ' .. guildName )
+             end
           else
-            ImGui.TextColored(1, 0, 0, 1, '[' .. spawn.Class.ShortName() .. ' ' .. spawn.Level() .. '] ' .. spawn.DisplayName() .. ' ' .. guildName )
-          end
+            if mq.TLO.Macro.Variable('maHud').Find('swHUDDisplayName').Value() == 'TRUE' then
+              ImGui.TextColored(1, 0, 0, 1, '[' .. spawn.Class.ShortName() .. ' ' .. spawn.Level() .. '] ' .. spawn.DisplayName() .. ' ' .. guildName )
+            else
+              ImGui.TextColored(1, 0, 0, 1, '[' .. spawn.Class.ShortName() .. ' ' .. spawn.Level() .. '] ' .. spawn.Name() .. ' ' .. guildName )
+            end
+         end
+
         else
           ImGui.TextDisabled('')
         end
@@ -162,17 +164,23 @@ local function imguicallback()
             ImGui.SameLine()
             edit_switch_perm('pet', 'maHeal', 'swHealPet')
             edit_switch_perm('dannet', 'maHeal', 'swHealDanNet')
+            ImGui.SameLine()
             edit_switch_perm('group', 'maHeal', 'swHealGroup')
             edit_switch_perm_cmd('xt', 'maHeal', 'swHealXTarget', 'heal xt build')
-            -- edit_switch_perm('pet', 'maHeal', 'swHealPet')
+            if mq.TLO.Me.Class.ShortName() == 'CLR' or mq.TLO.Me.Class.ShortName() == 'PAL' then
+              edit_switch_perm('splashmeonly', 'maHeal', 'swSplashMeOnly')     
+            end  
+
           ImGui.NextColumn()
             edit_switch_perm('weight', 'maHeal', 'swHealWeighted')
+            ImGui.SameLine()
             edit_switch_perm('break', 'maHeal', 'swBreakHealPCT')
-            if mq.TLO.Me.Class.ShortName() == 'CLR' or mq.TLO.Me.Class.ShortName() == 'DRU' or mq.TLO.Me.Class.ShortName() == 'SHM' then
+            if mq.TLO.Me.Class.ShortName() == 'CLR' or mq.TLO.Me.Class.ShortName() == 'PAL' or mq.TLO.Me.Class.ShortName() == 'SHM' then
               edit_switch_perm('twinheal', 'maHeal', 'swTwinHeal')     
-            end           
-            edit_text_perm('adjust', 'maHeal', 'stHealAdjust')
-            edit_text_perm('rampage', 'maHeal', 'stRampageTank')
+            end
+     
+            edit_text_perm('adj', 'maHeal', 'stHealAdjust')
+            edit_text_perm('ramp', 'maHeal', 'stRampageTank')
           ImGui.Columns()  
           ImGui.EndTabItem()
         end
@@ -426,49 +434,78 @@ local function imguicallback()
       ImGui.EndTabBar()
     end  
     
-    
     -- buttons at the bottom
     if mq.TLO.Macro.Variable('maHud').Find('swHUDbuttons').Value() == "TRUE" then
-    
       ImGui.Separator()
-
-      ImGui.Columns(4, 'buttons', true)
-        cmd_button(ico.allauto, ico.x, ico.y, 'on', 'all macro auto')
+      
+      if btnoptn('allauto') then 
+        cmd_button(ico.allauto, ico.x, ico.y, 'on', 'all macro auto') 
         ImGui.SameLine()
+      end
+      if btnoptn('allmanual') then 
         cmd_button(ico.allmanual, ico.x, ico.y, 'off', 'all macro manual')
         ImGui.SameLine()
+      end      
+      if btnoptn('auto') then 
         if mq.TLO.Macro.Variable('maEnv').Find('swAuto').Value() == 'TRUE' then
           cmd_button(ico.manual, ico.x, ico.y, 'env auto', 'macro manual')
         else 
           cmd_button(ico.auto, ico.x, ico.y, 'env auto', 'macro auto')
         end
-
-      -- 2
-      ImGui.NextColumn()
+        ImGui.SameLine()
+      end
+      if btnoptn('tie') then 
         cmd_button(ico.tie, ico.x, ico.y, 'dga /tie', '/tie on/off')
         ImGui.SameLine()
+      end
+      if btnoptn('tienav') then 
         cmd_button(ico.tienav, ico.x, ico.y, 'dga /tie nav', 'tie with nav')
         ImGui.SameLine()
+      end
+      if btnoptn('tiestick') then 
         cmd_button(ico.tiestick, ico.x, ico.y, 'dga /tie stick', 'tie with stick')
-
-      --3
-      ImGui.NextColumn()
+        ImGui.SameLine()
+      end
+      if btnoptn('incharge') then 
         cmd_button(ico.incharge, ico.x, ico.y, 'env incharge', '/incharge')
         ImGui.SameLine()
+      end
+      if btnoptn('invis') then 
         cmd_button(ico.invis, ico.x, ico.y, 'invis', 'stack invisibility')
         ImGui.SameLine()
+      end
+      if btnoptn('noinvis') then 
         cmd_button(ico.noinvis, ico.x, ico.y, 'dga /nomore invis', 'remove all invisibility')
-
-      -- 4
-      ImGui.NextColumn()
+        ImGui.SameLine()
+      end
+      if btnoptn('intpull') then 
         cmd_button(ico.intpull, ico.x, ico.y, 'pull one int', 'single intervention pull')
         ImGui.SameLine()
+      end
+      if btnoptn('gather') then 
         cmd_button(ico.gather, ico.x, ico.y, 'gather', '/gather')
         ImGui.SameLine()
+      end
+      if btnoptn('here') then 
         cmd_button(ico.here, ico.x, ico.y, 'here', '/here')
-   
-      ImGui.Columns()
-    end
+        ImGui.SameLine()
+      end
+      if btnoptn('radar') then 
+        cmd_button(ico.radar, ico.x, ico.y, 'ui2 radar', 'ui: radar')
+        ImGui.SameLine()
+      end      
+      if btnoptn('drive') then 
+        cmd_button(ico.drive, ico.x, ico.y, 'ui2 drive', 'ui: drive')
+        ImGui.SameLine()
+      end
+      if btnoptn('event') then 
+        cmd_button(ico.event, ico.x, ico.y, 'ui2 event buttons', 'ui: event buttons')
+        ImGui.SameLine()
+      end
+      if btnoptn('notes') then 
+        cmd_button(ico.notes, ico.x, ico.y, 'ui2 notes', 'ui: notes')
+        ImGui.SameLine()
+      end    end
 
   end
   ImGui.End()

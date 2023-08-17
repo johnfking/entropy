@@ -1658,6 +1658,10 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
   } else /if (${_type.Equal[splash]} && ${Select[${Me.Class.ShortName},CLR,PAL]}) {
     /if (!${set_control_num_range[${_debug}, stCountSplash, "${_verbage}", 0, 6]}) /return
 
+  | splash target
+  } else /if (${_type.Equal[splash]} && ${Select[${Me.Class.ShortName},CLR,PAL]}) {
+    /invoke ${set_switch_env[${_debug}, swSplashMeOnly, TRUE, ${_verbage}]}
+
   | heal group
   } else /if (${_type.Equal[group]}) {
     /invoke ${set_switch_env[${_debug}, swHealGroup, TRUE, ${_verbage}]}
@@ -1762,6 +1766,7 @@ sub Bind_control_heal(string _type, string _verbage, string _verbage2, string _a
 
   /if (${Select[${Me.Class.ShortName},CLR,PAL]}) {
     /invoke ${maControl.Add[splash,stCountSplash]}
+    /invoke ${maControl.Add[splashmeonly,swSplashMeOnly]}
     /invoke ${maControl.Add[twin,swTwinHeal]}
   }
 
@@ -3293,8 +3298,7 @@ sub Bind_command_splash(bool _debug)
     /return FALSE
   }
 
-  /if (${maHeal.Find[swTwinHeal].Value}) {
-    | /call cast_cooldown_wait ${_debug}
+  /if (${maHeal.Find[swTwinHeal].Value} && ${Select[${Me.Class.ShortName},PAL]}) {
     /call cast_cycle_proc_twinheal ${_debug}  
     /if (${Select[${Macro.Return},1]}) {
       /call cast_cooldown_wait ${_debug}
@@ -3304,15 +3308,9 @@ sub Bind_command_splash(bool _debug)
   | correct the cast data back to the splash
   /invoke ${cast_data[${_debug}, "${maHeal.Find[stHeal${_tmpSplash}].Value}"]}
 
-  | paladin
-  /if (${Me.Class.ShortName.Equal[PAL]}) {
-    DEBUG ${sep}paladin splash
-    /call cast ${_debug} 0 FALSE
-  }
-
-  | cleric
-  /if (${Me.Class.ShortName.Equal[CLR]}) {
-    DEBUG ${sep}cleric splash
+  /if (${Target.ID} && ${Target.Distance} < ${spellData.MyRange} && !${maHeal.Find[swSplashMeOnly].Value}) {
+    /call cast ${_debug} 0 FALSE      
+  } else {
     /call cast ${_debug} ${Me.ID} FALSE
   }
 
@@ -6820,6 +6818,17 @@ sub Bind_control_ui2(sring _verbage, string _verbage2, bool _debug)
     /return TRUE    
   }
 
+  | spawn ui
+  /if (${_verbage.Equal[radar]}) {
+    /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
+      /lua run ${MacroQuest.Path[macros]}\entropy\lua\radar.lua
+    } else /if (${_verbage2.Equal[off]}) {
+      /lua stop ${MacroQuest.Path[macros]}\entropy\lua\radar.lua
+    }
+    /return TRUE    
+  }    
+
+
   | build ui
   /if (${_verbage.Equal[build]}) {
     /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
@@ -6883,6 +6892,7 @@ sub Bind_control_ui2(sring _verbage, string _verbage2, bool _debug)
   /invoke ${maControl.Add[build,option]}
   /invoke ${maControl.Add[event,option]}
   /invoke ${maControl.Add[notes,option]}
+  /invoke ${maControl.Add[spawn,option]}
   /invoke ${set_control_output[${_debug}, maHard, "ui2", maControl]}
 
 /return TRUE

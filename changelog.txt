@@ -13,11 +13,46 @@
  ***|
 
 
-on the to do list
---------------------
+
 --------------------
 
 
+
+230817.01
+- paladin 
+  hand of tunare aa to the twincast routine
+- added cure to the class lines so it can be used outside the healing switch
+- beastlord
+  corrected 2 no delay looping issues that was bogging down the mac for that class
+  i also suggest doing: /edit tiCheck-Para 2m
+- drive
+  added the event buttons by toon listed   
+  think i finally have the zone crash fixed.. possibly... maybe
+- hud
+  can control the target name to a real name or display name
+  can now choose what buttons are displayed on the bottom of the hud under /ui2 admin
+- fast cast/short duration reuse buffs should be checked a lot more
+- knights
+  harmonious removed. use it as a buff with tags: now, incombat
+  same thing for repudiate/rune line
+- events
+  movelocs for Mearatas Raid mark debuffs
+  move loc/spawn for Rising/Setting Sun in Shadows Move raid
+  event UI updated
+- splashing (cleric/paladin)
+  splash will default center on whatever the current target is as long as it is with in cast range
+  if not in cast range it will default to caster
+  /heal splashmeonly (on/off) - on will force splashing you as the target only
+  hud updated for clerics/pallys
+- radar
+  /ui2 radar on/off
+  will show npc or pc according to the count number in options
+  clicking a name will target it
+  distance shows red for out of meele range green for in range
+  marks will be shown by name: raid assists/marks as well as group assist/marks
+  
+
+230710.01
 - looting option
   /env loot leaveall, simply leaves all loot on corpse without any checks
 - bestlord
@@ -30,9 +65,6 @@ on the to do list
   refined the heal routines a little
   added /heal twincast (on/off) switch can turn off forcing twincast
   aa spiritual channeling addeed under /chr cani channeling ##
-
-
-  
 
 
 230318.01

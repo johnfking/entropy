@@ -923,11 +923,10 @@ sub set_initialize_map_character_environment(bool _debug)
 
 |** HUD settings **|
   /call set_data_map ${_debug} maEntropy swHUDAuto                        FALSE                        "${auxsw} Auto start HUD on mac start"
-  /call set_data_map ${_debug} maEntropy swHUDCloseonEnd                  FALSE                        "${auxsw} Close the HUD on mq end"
-  /call set_data_map ${_debug} maEntropy swHUDDriveCloseonEnd             TRUE                         "${auxsw} Close the Drive HUD on mq end"
-  /call set_data_map ${_debug} maEntropy swHUDDriveAuto                   FALSE                        "${auxsw} Auto start Drive HUD on mac start"
-  /call set_data_map ${_debug} maHud swHUDbuttons                         TRUE                         "${auxsw} show buttons at the botom of the hud"
+  /call set_data_map ${_debug} maEntropy swHUDCloseonEnd                  TRUE                         "${auxsw} Close the HUD on mq end"
   /call set_data_map ${_debug} maChr swHUDClassAuto                       FALSE                        "${auxsw} Auto start Class HUD on mac start"
+  /call set_data_map ${_debug} maHud swHUDbuttons                         TRUE                         "${auxsw} show buttons at the botom of the hud"
+  /call set_data_map ${_debug} maHud swHUDDisplayName                     TRUE                         "${auxsw} True for target display name. False for target real name"
   /call set_data_map ${_debug} maHud swTabBuff                            TRUE                         "${auxsw} buff tab"
   /call set_data_map ${_debug} maHud swTabHeal                            TRUE                         "${auxsw} heal tab"
   /call set_data_map ${_debug} maHud swTabCombat                          TRUE                         "${auxsw} combat tab"
@@ -937,8 +936,6 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHud swTabRest                            TRUE                         "${auxsw} rest tab"
   /call set_data_map ${_debug} maHud swTabTarget                          TRUE                         "${auxsw} target tab"
   /call set_data_map ${_debug} maHud swTabAbout                           FALSE                        "${auxsw} about tab"
-
-
   /call set_data_map ${_debug} maHud swTitleEnt                           TRUE                         "${auxsw} show in titlebar: Entropy:"
   /call set_data_map ${_debug} maHud swTitleName                          TRUE                         "${auxsw} show in titlebar: Toon Name"
   /call set_data_map ${_debug} maHud swTitleIV                            TRUE                         "${auxsw} show in titlebar: Invis"
@@ -946,6 +943,41 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHud swTitleAM                            TRUE                         "${auxsw} show in titlebar: Auto or Manual"
   /call set_data_map ${_debug} maHud swTitleBuild                         TRUE                         "${auxsw} show in titlebar: Entropy Build #"
   /call set_data_map ${_debug} maHud swTitleHealAdj                       FALSE                        "${auxsw} show in titlebar: Heal Adjust %"
+
+
+  |** hud buttons **|
+  /call set_data_map ${_debug} maHud swHUDBTNallauto                      TRUE                         "${auxsw} button option for: allauto"
+  /call set_data_map ${_debug} maHud swHUDBTNallmanual                    TRUE                         "${auxsw} button option for: all manual"
+  /call set_data_map ${_debug} maHud swHUDBTNmanual                       TRUE                         "${auxsw} button option for: manual"
+  /call set_data_map ${_debug} maHud swHUDBTNauto                         TRUE                         "${auxsw} button option for: auto"
+  /call set_data_map ${_debug} maHud swHUDBTNtie                          TRUE                         "${auxsw} button option for: tie switch"
+  /call set_data_map ${_debug} maHud swHUDBTNtienav                       TRUE                         "${auxsw} button option for: force tie nav"
+  /call set_data_map ${_debug} maHud swHUDBTNtiestick                     TRUE                         "${auxsw} button option for: force tie stick"
+  /call set_data_map ${_debug} maHud swHUDBTNincharge                     TRUE                         "${auxsw} button option for: in charge"
+  /call set_data_map ${_debug} maHud swHUDBTNinvis                        TRUE                         "${auxsw} button option for: stack invis"
+  /call set_data_map ${_debug} maHud swHUDBTNnoinvis                      TRUE                         "${auxsw} button option for: remove all invis"
+  /call set_data_map ${_debug} maHud swHUDBTNintpull                      TRUE                         "${auxsw} button option for: request intervention pull"
+  /call set_data_map ${_debug} maHud swHUDBTNgather                       TRUE                         "${auxsw} button option for: family meeting time"
+  /call set_data_map ${_debug} maHud swHUDBTNhere                         TRUE                         "${auxsw} button option for: right here right now"
+  /call set_data_map ${_debug} maHud swHUDBTNradar                        FALSE                        "${auxsw} button option for: radar ui"
+  /call set_data_map ${_debug} maHud swHUDBTNdrive                        FALSE                        "${auxsw} button option for: drive ui"
+  /call set_data_map ${_debug} maHud swHUDBTNevent                        FALSE                        "${auxsw} button option for: event buttons ui"
+  /call set_data_map ${_debug} maHud swHUDBTNnotes                        FALSE                        "${auxsw} button option for: notes ui"
+  
+
+
+
+  |** radar settings **|
+  /call set_data_map ${_debug} maHud stRadarCount                         10                            "${auxnum} number of NPCs to populate radar"
+  /call set_data_map ${_debug} maHud stRadarSortType                      npc                           "${auxnum} sort radar by NPC or PC"
+  /call set_data_map ${_debug} maHud swRadarSortTargetable                TRUE                          "${auxnum} focus on only mobs that can be targeted"
+
+
+
+|** Drive settings **|
+  /call set_data_map ${_debug} maEntropy swHUDDriveAuto                   FALSE                        "${auxsw} Auto start Drive HUD on mac start"
+  | /call set_data_map ${_debug} maEntropy swHUDDriveCloseonEnd             TRUE                         "${auxsw} Close the Drive HUD on mq end"
+
 
 
 
@@ -1000,7 +1032,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHard stModeDragTargetCheck               5                             "${auxnum} speed that you grab another corpse to drag. lower = faster"                hard
   /call set_data_map ${_debug} maHard stMaxSPARemoveCount                 10                            "${auxnum} highest spa a spell/buff has to look at for removal"                       hard
   /call set_data_map ${_debug} maHard swDev                               FALSE                         "${auxnum} developer stufd. not ready for release"                                    hard
-  /call set_data_map ${_debug} maHard stDelayLua                          6s                            "${auxnum} time to delay initial lua scripts to allow all variables to populate"      hard
+  /call set_data_map ${_debug} maHard stDelayLua                          8s                            "${auxnum} time to delay initial lua scripts to allow all variables to populate"      hard
 
 
 
@@ -1669,32 +1701,22 @@ sub set_initialize_map_character_environment(bool _debug)
   | T3
   | Shar Vhal: Under Seige
   /call set_data_map ${_debug} maEvent st29UnderSeigeHeartSayTarget                 "Spiritist"    "${auxli} run to hail for heart cure target"                 event
-  /call set_data_map ${_debug} maEvent st29UnderSeigeHeartSayPhrase                 "Help"         "${auxli} run to hail for heart cure say?"                  event
-
+  /call set_data_map ${_debug} maEvent st29UnderSeigeHeartSayPhrase                 "Help"         "${auxli} run to hail for heart cure say?"                   event
+  /call set_data_list ${_debug} maEvent st29UnderSeigeHomeLocYX                     "-854 141"     "${auxna} general return home location"                      event
 
   | deepshade
   /call set_data_list ${_debug} maEvent ls29DeepshadeHideLocYX                      "128 1177|225 1129|264 1072|237 1009"                            "${auxli} run from the various emotes"  event
   
   | Darklight Caverns:   
 
-
   | Firefall Pass: 
-  /call set_data_list ${_debug} maEvent ls29FirefallHideLocYX                  "1116 99"                                                              "${auxli} run away for the emote" event
-
-
+  /call set_data_list ${_debug} maEvent ls29FirefallSettingHideLocYX                "1262 3"                                                          "${auxli} run away for the emote Setting Sun" event
 
   | T2
-
   | Shadow Haaven
     | door
     /call set_data_list ${_debug} maEvent ls29DoorHideLocYX                      "632 -753"                                                            "${auxli} run from the charm emote"  event
-
-
-
   | T1
-
-
-
 
 
 
@@ -1736,6 +1758,17 @@ sub set_initialize_map_character_environment(bool _debug)
 
 
 
+
+| Expansion 25: The Burning Lands
+
+  | T3
+  | Unfettered Emerald Excellence (AKA Mearatas)
+    /call set_data_list ${_debug} maEvent st25MearatasHideAnimationLocYX             "239 0"                             "${auxna} hide location for: Animation"             event
+    /call set_data_list ${_debug} maEvent st25MearatasHideBreezesLocYX               "553 104"                           "${auxna} hide location for: Breezes"               event
+    /call set_data_list ${_debug} maEvent st25MearatasHideFlameLocYX                 "359 167"                           "${auxna} hide location for: Flame"                 event
+    /call set_data_list ${_debug} maEvent st25MearatasHideStoneLocYX                 "553 -100"                          "${auxna} hide location for: Stone"                 event
+    /call set_data_list ${_debug} maEvent st25MearatasHideWavesLocYX                 "358 -165"                          "${auxna} hide location for: Waves"                 event
+    /call set_data_list ${_debug} maEvent st25MearatasHomeLocYX                      "497 0"                             "${auxna} home rally point"                 event
 
 
 

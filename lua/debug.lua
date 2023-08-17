@@ -389,7 +389,7 @@ local function imguicallback()
 
         ImGui.TextColored(0.39, 0.58, 0.92, 1, 'los:')
         ImGui.SameLine()
-        ImGui.TextColored(1, 1, 1, 1, mq.TLO.Macro.Variable('targetData').LineOfSight() or 0)
+        ImGui.TextColored(1, 1, 1, 1, tostring(mq.TLO.Macro.Variable('targetData').LineOfSight()) or 0)
 
         ImGui.TextColored(0.39, 0.58, 0.92, 1, 'distance:')
         ImGui.SameLine()
@@ -473,8 +473,8 @@ local function imguicallback()
           
           -- valid loc
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'valid loc:')
-          -- ImGui.SameLine()
-           ImGui.TextColored(1, 1, 1, 1, mq.TLO.EverQuest.ValidLoc(string.format("%.2f %.2f %.2f", mq.TLO.Target.X(), mq.TLO.Target.Y(), mq.TLO.Target.Z())) or 0)
+          ImGui.SameLine()
+          ImGui.TextColored(1, 1, 1, 1, mq.TLO.EverQuest.ValidLoc(string.format("%.2f %.2f %.2f", mq.TLO.Target.X(), mq.TLO.Target.Y(), mq.TLO.Target.Z())) or 0)
           
 
           -- mq.TLO.EverQuest.ValidLoc(string.format("%f %f %f", mq.TLO.Target.X(), mq.TLO.Target.Y(), mq.TLO.Target.Z()))

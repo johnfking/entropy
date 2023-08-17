@@ -31,22 +31,23 @@ sub class_init(bool _debug)
 
   | heals
   /call set_data_map ${_debug} maHeal stCountSplash                   0                             "${auxnum} number mobs in range to use a splash heal" heal
+  /call set_data_map ${_debug} maHeal swSplashMeOnly                  FALSE                         "${auxsw} splash targets me only and nothing else"          heal
 
   | harmonions
-  /invoke ${set_data_timer[${_debug}, Check_Harmonious, 1m]}
-  /call set_data_map ${_debug} maChr swHarmonious                     FALSE                         "${auxsw} use harmonious"
-  /call set_data_map ${_debug} maChr stHarmonious                     PREGEN|1                      "${auxna} name of the harmonions spell"
+  | /invoke ${set_data_timer[${_debug}, Check_Harmonious, 1m]}
+  | /call set_data_map ${_debug} maChr swHarmonious                   FALSE                         "${auxsw} use harmonious"
+  | /call set_data_map ${_debug} maChr stHarmonious                   PREGEN|1                      "${auxna} name of the harmonions spell"
 
   | Marrs Gift
   /invoke ${set_data_timer[${_debug}, Check_Marrs_Gift, 10s]}
   /call set_data_map ${_debug} maChr stPctMG                          0                             "${auxnum} % of mana to use mars gift aa"
 
-  | /call set_data_map ${_debug} maChr stTempRune                       PREGEN|1                      "${auxna} fast reuse disc rune"
-  | /call set_data_map ${_debug} maChr stChallenge                      PREGEN|1                      "${auxna} challenge spell for agro"
-  | /call set_data_map ${_debug} maChr stValiant                        PREGEN|1                      "${auxna} vlaiant spell for defensive"
-  | /call set_data_map ${_debug} maChr stUnflinching                    PREGEN|1                      "${auxna} name of unflinching disc to use for agro help"
-  | /call set_data_map ${_debug} maChr stReflexive                      PREGEN|1                      "${auxna} name of reflexive disc"
-  | /call set_data_map ${_debug} maChr stDichotomic                     PREGEN|1                      "${auxna} dichotomic name"
+  | /call set_data_map ${_debug} maChr stTempRune                     PREGEN|1                      "${auxna} fast reuse disc rune"
+  | /call set_data_map ${_debug} maChr stChallenge                    PREGEN|1                      "${auxna} challenge spell for agro"
+  | /call set_data_map ${_debug} maChr stValiant                      PREGEN|1                      "${auxna} vlaiant spell for defensive"
+  | /call set_data_map ${_debug} maChr stUnflinching                  PREGEN|1                      "${auxna} name of unflinching disc to use for agro help"
+  | /call set_data_map ${_debug} maChr stReflexive                    PREGEN|1                      "${auxna} name of reflexive disc"
+  | /call set_data_map ${_debug} maChr stDichotomic                   PREGEN|1                      "${auxna} dichotomic name"
 
   | lay on hands
   /call set_data_map FALSE maChr stPctLoH                             0                             "${auxnum} % of mana to use aa lay on hands. requires self healing to be enabled"
@@ -66,7 +67,7 @@ sub class_init(bool _debug)
   | class order lists
   /call set_data_list ${_debug} maChr lsOrderClassBase                xtarget                                                                       "${auxli} class base loop start"
   /call set_data_list ${_debug} maChr lsOrderClassPre                 heal|manarecover|staminarecovery                                              "${auxli} class pre combat"
-  /call set_data_list ${_debug} maChr lsOrderClass                    taunt|stun|agro|melee|heal|stun|burn|misc|heal|dot|nuke|item|taunt|stun|agro|heal|debuff|alliance|harmonious      "${auxli} class active combat order"
+  /call set_data_list ${_debug} maChr lsOrderClass                    taunt|melee|agro|stun|heal|nike|bur|misc|item|debuff|alliance                 "${auxli} class active combat order"
   /call set_data_list ${_debug} maChr lsOrderClassPost                manarecover|staminarecovery                                                   "${auxli} class post combat "
 
   | AAs
@@ -75,10 +76,10 @@ sub class_init(bool _debug)
   /call set_data_map ${_debug} maChr stAAVanquishtheFallen            PREGEN|1                      "${auxna} Vanquish the Fallen AA"
   /call set_data_map ${_debug} maChr stAALayonHands                   PREGEN|1                      "${auxna} Lay on Hands AA"
   /call set_data_map ${_debug} maChr stAAGiftofLife                   PREGEN|1                      "${auxna} Gift of Life AA"
-  /call set_data_map ${_debug} maChr stAAHallowedLodestar             PREGEN|1                      "${auxna} Hallowed Lodestar AA"
-  /call set_data_map ${_debug} maChr stAABeaconoftheRighteous         PREGEN|1                      "${auxna} Beacon of the Righteous AA"
-  /call set_data_map ${_debug} maChr stAAProjectionofPiety            PREGEN|1                      "${auxna} Projection of Piety AA"
-  /call set_data_map ${_debug} maChr stAAAgelessEnmity                PREGEN|1                      "${auxna} Ageless Enmity AA"
+  | /call set_data_map ${_debug} maChr stAAHallowedLodestar             PREGEN|1                      "${auxna} Hallowed Lodestar AA"
+  | /call set_data_map ${_debug} maChr stAABeaconoftheRighteous         PREGEN|1                      "${auxna} Beacon of the Righteous AA"
+  | /call set_data_map ${_debug} maChr stAAProjectionofPiety            PREGEN|1                      "${auxna} Projection of Piety AA"
+  | /call set_data_map ${_debug} maChr stAAAgelessEnmity                PREGEN|1                      "${auxna} Ageless Enmity AA"
   /call set_data_map ${_debug} maChr stAAMarrsGift                    PREGEN|1                      "${auxna} Marr's Gift AA"
   /call set_data_map ${_debug} maChr stAAValorousRage                 PREGEN|1                      "${auxna} Valorous Rage AA"
   /call set_data_map ${_debug} maChr stAADeflectionDiscipline         PREGEN|1                      "${auxna} Deflection Discipline AA"
@@ -118,6 +119,8 @@ sub class_main(bool _debug)
         }
       }
     }
+    
+    BUFFNOW
 
     /if (!${timer_Check_Marrs_Gift} && ${maChr.Find[stPctMG].Value} && ${Me.PctMana} <= ${maChr.Find[stPctMG].Value}) {
       /call cast_AA_marrs_gift
@@ -178,6 +181,7 @@ sub misc_combat(bool _debug, spawn _spawn)
     /return TRUE
   }
 
+  BUFFNOW
   SPAWNDEAD
 
   /invoke ${do_taunt[${_debug}, ${_spawn.ID}]}
@@ -235,6 +239,7 @@ sub check_heal(bool _debug, string _type)
     }
   }
 
+  BUFFNOW
   /if (!${spawn_hurt[${maDebug.Find[hurt].Value}, ${_type}]}) {
     SETHUD
     /delay 1
@@ -411,6 +416,7 @@ sub burn(bool _debug, spawn _spawn)
   }
 
   SPAWNDEAD
+  BUFFNOW
 
   /call cast_AA_spire ${maDebug.Find[spire].Value}
 
@@ -506,8 +512,8 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
     /if (!${set_control_num_range[${_debug}, stPctMG, "${_verbage}", 0, 99]}) /return
 
   | harmonious
-  } else /if (${_type.Equal[harmonious]}) {
-    /invoke ${set_switch_env[${_debug}, swHarmonious, TRUE, ${_verbage}]}
+  | } else /if (${_type.Equal[harmonious]}) {
+  |   /invoke ${set_switch_env[${_debug}, swHarmonious, TRUE, ${_verbage}]}
 
   | attraction
   } else /if (${_type.Equal[attraction]}) {
