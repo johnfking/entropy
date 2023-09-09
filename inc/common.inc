@@ -420,32 +420,35 @@ sub get_input(string _sub, string _variable)
 
 |***
  * note: check that a plugin is loaded
- * use:
+ * use: sub debug error plugins to check for
  ***|
 sub check_plugin(bool _debug, bool _error, string _plugin)
-  DEBUG \atcheck_plugin\ax(\a-w${_error}, ${_plugin}\ax)
+  DEBUG \atcheck_plugin\ax(\a-w${_error}, ${_plugin})
 
-  /if (!${Bool[${_plugin}]}) {
-    /invoke ${out[0, 0, 60]}
-    /endmacro
-  }
   /declare _plugcount int local 0
   /declare _count int local 0
-
-  /for _count 1 to ${_plugin.Count[|]}
-    /if (${Bool[${Plugin[${_plugin.Arg[${_count},|]}]}]}) {
+  
+  /declare _lsPlugin list local
+  /invoke ${_lsPlugin.Delimiter["|"]}
+  /invoke ${_lsPlugin.Append[${_plugin}]}
+  /declare _li listiterator local 
+  /vardata _li _lsPlugin.First.Clone
+  /while (!${_li.IsEnd}) {
+    DEBUG ${_li.Value}\a#AA00AA::\ax${Bool[${Plugin[${_li.Value}]}]}
+    /if (${Bool[${Plugin[${_li.Value}]}]}) {
       /varcalc _plugcount ${_plugcount}+1
-    } else /if (!${Bool[${Plugin[${_plugin.Arg[${_count},|]}]}]} && ${_error}) {
-       ECHO \arWARNING\ax\a-p::\ax\a-w${_plugin.Arg[${_count},|]}\ax is not loaded
+    } else /if (!${Bool[${Plugin[${_li.Value}]}]} && ${_error}) {
+       ECHO \arWARNING\ax\a#AA00AA::\ax\a-w${_li.Value}\ax is not loaded
     }
-  /next _count
-
-  /if (${_plugcount} == ${_plugin.Count[|]}) {
-    /return TRUE
-  } else /if (${_plugcount} != ${_plugin.Count[|]}) {
-    /return FALSE
+    
+    /invoke ${_li.Advance}
   }
 
+  /if (${_plugcount} == ${_lsPlugin.Count}) {
+    DEBUG count:${_plugcount} == total:${_lsPlugin.Count}
+    /return TRUE
+  } 
+  
 /return FALSE
 
 
@@ -1074,14 +1077,7 @@ sub check_for_rezbox(bool _debug)
       /doevents REZ_ACCEPT
 
       /call set_stop ${maDebug.Find[stop].Value} SILENT
-
-      
-      |**
-      /if (${maHome.Find[swHomeMarker].Value}) {
-        /call Bind_control_home clear NULL NULL ${maDebug.Find[home].Value}
-      }
-      **|
-      
+     
       /if (${maHome.Find[swMoveDeathClear].Value}) {
         /call Bind_control_home clear FALSE silent ${maDebug.Find[home].Value}
       }
@@ -2619,9 +2615,6 @@ sub pull_mob_tag(bool _debug, spawn _spawn)
         /range
       }
 
-      | /while (${Target.AggroHolder.Name.NotEqual[${Me.DisplayName}]} || ${_count} < 4) {
-      |   /if (${Target.AggroHolder.Name.Equal[${Me.DisplayName}]}) /break
-
       /while (${Me.TargetOfTarget.ID} != ${Me.ID} || ${_count} < 4) {
         /if (${Me.TargetOfTarget.ID} != ${Me.ID}) /break
         /if (${Target.ID} && ${_spawn.Distance} > ${maHard.Find[stMinBowDist].Value}) {
@@ -2896,12 +2889,6 @@ sub do_rest(bool _debug)
     /return FALSE
   }
 
-  | the dead dont need to rest
-  | /if (${swIsMeDead}) {
-    | DEBUG ${break}swIsMeDead${sep}\a-w${swIsMeDead}\ax
-    | /return FALSE
-  | }
-
   | we DO NOT enter rest while in active combat
   /if (!${maRest.Find[swRestCombat].Value} && ${Me.CombatState.Equal[combat]}) {
     DEBUG ${break}active combat
@@ -3021,10 +3008,10 @@ sub do_rest(bool _debug)
         /call cast_stamina_recovery FALSE
       }
       /if (${Select[${Me.Class.ShortName},PAL]}) {
-        /if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
+        | /if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
       } else /if (${Select[${Me.Class.ShortName},SHD]}) {
         /if (PET && !${timer_Check_Minion_Cycle}) /call check_minion_cycle ${maDebug.Find[petbuild].Value}
-        /if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
+        | /if (${maChr.Find[swHarmonious].Value} && !${timer_Check_Harmonious}) /call check_harmonious
 
       } else /if (${Select[${Me.Class.ShortName},RNG]}) {
       } else /if (${Select[${Me.Class.ShortName},BST]}) {
@@ -6210,7 +6197,7 @@ sub check_minion_cycle_buff(bool _debug)
 
 
 |***
- * note: summons your girl friend..
+ * note: summons your girlfriend..
  * use: /call check_minion_cycle_summon DEBUG
  ***|
 sub check_minion_cycle_summon(bool _debug)
@@ -7733,7 +7720,7 @@ sub out(int _lvl, string _verbage, int _strNum)
 
   | shade output. grain validation
   } else /if (${_verbage.Equal[shade]} && (${lsGrain.Contains[${_lvl}]} || ${_lvl} == 0)) {
-    /lua run list_shade
+    /lua run ${MacroQuest.Path[macros]}\entropy\lua\list_shade.lua
     /return TRUE
 
   | output grain validation
@@ -11620,6 +11607,9 @@ sub get_best_in_pet(bool _debug)
   } else /if (${Select[${Me.Class.ShortName},BST,SHM]}) {
     DEBUG ${sep}found BST,SHM${sep}\a-wSum: Warder\ax
     /varset _subcat Sum: Warder
+  } else /if (${Select[${Me.Class.ShortName},CLR]}) {
+    DEBUG ${sep}found CLR${sep}\a-wSum: Animation\ax
+    /varset _subcat Sum: Animation
   } else /if (${Select[${Me.Class.ShortName},NEC,SHD]}) {
     DEBUG ${sep}found NEC,SDH${sep}\a-wSum: Undead\ax
     /varset _subcat Sum: Undead

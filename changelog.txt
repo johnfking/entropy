@@ -18,6 +18,28 @@
 
 
 
+
+
+230909.01
+- knights
+  removed the remaining harmonions timer calls
+- ui2 drive
+  can add/remove the bottons at bottom
+  removed the extra/non connected row of buttons
+- radar
+  can now swap between xtarget view and spawn count view
+  xtarget view shows raid/group marks as well as assists
+  con colors, target HPs, and what your current target is
+  added in a pet attack button to the spawn view. will make an on.off switch for them later.
+- corected a bad lua call for the sarcasim lines
+- rewrote the plugin checker. was working fine before, but did it anyway.  
+
+
+
+
+
+
+
 230817.01
 - paladin 
   hand of tunare aa to the twincast routine

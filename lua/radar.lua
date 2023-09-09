@@ -13,19 +13,28 @@ local shouldDrawHUD = true
 
 
 local function nodename(spawnID)
-  local name = '##'..spawnID
+  -- local name = '##'..spawnID
+  local name = ''
   for x = 1, 3, 1
   do
-    if mq.TLO.Me.RaidMarkNPC(x).ID() == spawnID then name = 'm'..x
-    elseif mq.TLO.Me.RaidAssistTarget(x).ID() == spawnID then name = 'a'..x
-    elseif mq.TLO.Me.GroupMarkNPC(x).ID() == spawnID then name = 'g'..x
+    if mq.TLO.Me.RaidMarkNPC(x).ID() == spawnID then 
+      name = 'M'..x
+    elseif mq.TLO.Me.RaidAssistTarget(x).ID() == spawnID then 
+      name = 'A'..x
+    elseif mq.TLO.Me.GroupMarkNPC(x).ID() == spawnID then 
+      name = 'GM'..x
     end
   end
 
   if mq.TLO.Me.GroupAssistTarget.ID() == spawnID then
-    name = 'g'
+     name = 'G'
   end
-  return name
+
+  if name ~= nil then
+    ImGui.SameLine()
+    color("ORANGE", name)
+  end
+  
 end
 
 local function targetable()
@@ -39,35 +48,45 @@ end
 
 local function imguicallback()
   hudInfo()
-  openGUI, shouldDrawHUD = ImGui.Begin(ico['radar'] .. ' radar###EntropyRadar', openGUI)
+  openGUI, shouldDrawHUD = ImGui.Begin(ico.radar .. ' radar###EntropyRadar', openGUI)
  
   if shouldDrawHUD and (ent.build == '--' or mq.TLO.EverQuest.GameState() ~= 'INGAME') then
 
   elseif shouldDrawHUD then  
 
-        settableflags()
-        ImGui.Text(ico['target'])
-        if mq.TLO.Target.ID() > 0  and mq.TLO.Target.ID() ~= nil then
-          ImGui.SameLine()
-          ImGui.TextColored(0.39, 0.58, 0.92, 1, mq.TLO.Target.Name())
-        end
+    settableflags()
+    ImGui.Text(ico['target'])
+    if mq.TLO.Target.ID() > 0  and mq.TLO.Target.ID() ~= nil then
+      ImGui.SameLine()
+      ImGui.TextColored(0.39, 0.58, 0.92, 1, mq.TLO.Target.Name())
+    end
+    ImGui.Separator()
 
-        --ImGui.NewLine()
-        if ImGui.BeginTable('spawns', 2, tableFlags) then
+
+    -- spawn view
+    if mq.TLO.Macro.Variable('maHud').Find('stRadarViewType').Value() == 'spawn' then
+        
+      ImGui.Columns(2, 'noname', false)
+        local radarcount = tonumber(mq.TLO.Macro.Variable('maHud').Find('stRadarCount').Value())
+        radarcount, used = ImGui.DragInt("count##radarcount", radarcount, 1, 0, 50);
+        if used then
+          mq.cmd.luaedit('stRadarCount', radarcount)  
+        end
+      ImGui.NextColumn()
+      ImGui.Columns()
+ 
+        if ImGui.BeginTable('spawns', 3, tableFlags) then
           local sorttype = mq.TLO.Macro.Variable('maHud').Find('stRadarSortType').Value()
           local sortcount = tonumber(mq.TLO.Macro.Variable('maHud').Find('stRadarCount').Value())
           local totalcount = tonumber(mq.TLO.SpawnCount(""..sorttype.." "..targetable().."")())
           if sortcount > totalcount then sortcount = totalcount end
-          
           -- area sweep for mob counts
-          for x = 1, sortcount, 1
-          do
-                  
+          for x = 1, sortcount, 1 do
             ImGui.TableNextColumn()
             nearspawn = mq.TLO.NearestSpawn(x .. ", " ..sorttype.." "..targetable().."")
-            
             if nearspawn.ID() ~= nil then
-              if ImGui.TreeNode(nodename(nearspawn.ID())) then
+              
+              if ImGui.TreeNode('##'..x) then
                 ImGui.Text('ID: %d', nearspawn.ID())
                 ImGui.SameLine()
                 ImGui.Text('::')
@@ -93,13 +112,62 @@ local function imguicallback()
               else
                 ImGui.TextColored(1, 0, 0, 1, round(nearspawn.Distance(), 0))
               end
-      
-            end
 
+              ImGui.TableNextColumn()
+                ImGui.Text(ico.pet)
+                if ImGui.IsItemHovered() and ImGui.IsMouseReleased(ImGuiMouseButton.Left) then
+                  mq.cmd.target('id ' .. nearspawn.ID())
+                  mq.cmd.minion('force')
+                end
+
+                --ImGui.SameLine()
+                --ImGui.Text(ico.num1)
+
+                --ImGui.SameLine()
+                --ImGui.Text(ico.num2)
+
+                --ImGui.SameLine()
+                --ImGui.Text(ico.num3)
+
+
+            end
           end
-          ImGui.EndTable()
+
+        ImGui.EndTable()        
         end
 
+    elseif mq.TLO.Macro.Variable('maHud').Find('stRadarViewType').Value() == 'xtarget' then
+
+      if ImGui.BeginTable('xtarget', 2, tableFlags) then       
+        for x = 1, mq.TLO.Me.XTargetSlots(), 1 do
+          xtspawn = mq.TLO.Spawn(mq.TLO.Me.XTarget(x).ID())
+          ImGui.TableNextColumn()
+            if xtspawn.ID() == 0 then
+              ImGui.Text(x)
+            else
+              ImGui.Text(x)
+              nodename(xtspawn.ID())
+              ImGui.SameLine()
+              color(xtspawn.ConColor(), xtspawn.Name())
+              if ImGui.IsItemHovered() and ImGui.IsMouseReleased(ImGuiMouseButton.Left) then
+                mq.cmd.xtarget(x)
+              end                
+              
+              if mq.TLO.Target.ID() == xtspawn.ID() then
+                ImGui.SameLine()
+                ImGui.Text(ico.arrowleft)
+              end
+            end
+          ImGui.TableNextColumn()
+            if xtspawn.ID() ~= 0 then
+              ImGui.Text(xtspawn.PctHPs())
+            end
+         
+        end
+      end
+      ImGui.EndTable()        
+    end
+   
   end
   ImGui.End()
 
@@ -108,7 +176,7 @@ end
 mq.imgui.init('editorwindow', imguicallback)
 
 while openGUI do 
-  mq.delay(1000) 
+  mq.delay(500) 
 end
 
 

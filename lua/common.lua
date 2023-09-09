@@ -17,21 +17,40 @@ rez = {
 }
 
 outs = {
-  nopath = ' \a-w[\ax\arno valid path\ax\a-w]\ax',
-  move = '\a-tMove:\ax '
+  num = '\a-t',
+  submenu = '\a#1E90FF->\ax',
+  r0 = '\ar0\ax',
+  erroro = '\arERROR\ax',
+  tar = '\a-w',
+  pc = '\a-w',
+  sp = '\a-r',
+  bad = '\ar',
+  good = '\ag',
+  bug = '\at',
+  info = '\aw',
+  sep = '\a#AA00AA::\ax',
+  dot = '\at.\ax',
+  on = '\agon\ax',
+  off = '\aroff\ax',
+  warning = '\arWARNING\ax',
+  fatal = '\arFATAL ERROR\ax \at..\ax \arENDING MACRO\ax',
+  caution = '\arCAUTION\ax',
+  trueo = '\arTRUE\ax',
+  falseo = '\arFALSE\ax',
+  destroy = '\arDESTROY\ax',
+  leave = '\awLeave\ax',
+  add = '\agAdd\ax',
+  keep = '\agKeep\ax',
+  notice = '\ayNotice\ax',
+  combat = '\amCombat\ax',
+  removing = '\arRemoving\ax',
+  broadcast = 'Broadcast',
+  breako = '${sep}\a#FF06BBbreak\ax${sep}',
+  lsep = 'a#00FFFF :: \a#C0C0C0',
+  enabled = '\agenabled\ax',
+  disabled = '\ardisabled\ax'
+
 }
-
-
-function settableflags()
-  tableFlags = bit32.bor(ImGuiTableFlags.Resizable,
-                          ImGuiTableFlags.RowBg,
-                          ImGuiTableFlags.SizingFixedFit,
-                          ImGuiTableFlags.Borders,
-                          ImGuiTableFlags.Hideable) 
-end
-                                  
-
-
 
 ico = {
   none = '',
@@ -69,21 +88,13 @@ ico = {
   radar = ICON.MD_SETTINGS_INPUT_ANTENNA,
   target = ICON.FA_BULLSEYE,
   event = ICON.MD_EVENT,
-  notes = ICON.MD_NOTE
+  notes = ICON.MD_NOTE,
+  arrowleft = ICON.MD_ARROW_BACK,
+  pet = ICON.MD_PETS,
+  num1 = ICON.MD_FILTER_1,
+  num2 = ICON.MD_FILTER_2,
+  num3 = ICON.MD_FILTER_3
 }
-
-
-
-function out (option, verbage)
-  -- help response for no tags for the control
-  if option == 'notag' then
-    print('no tags for this control.')
-
-  -- help response for no map for this control
-  elseif option == 'nomap' then
-    print('no map for this control.')
-  end
-end
 
 
 
@@ -257,7 +268,7 @@ function edit_tree (count, var, alias)
   
   if ImGui.TreeNode('list') then
     ImGui.NewLine()
-    for i=1,50 do 
+    for i = 1, 50 do 
       ImGui.TextColored(0.39, 0.58, 0.92, 1, i)
       ImGui.SameLine()
       if mq.TLO.Macro.Variable('ma'..var).Find('sw'..var..i).Value() == 'TRUE' then
@@ -372,7 +383,7 @@ end
 
 
 
-info_about = function ()
+function info_about ()
   ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Written By: ')
   ImGui.SameLine()
   ImGui.TextColored(1, 1, 1, 1, 'Exspes')        
@@ -404,45 +415,32 @@ end
 
 
 
-
--- return colors for targets
-function concolor (spawn)
+-- return color for text
+function color (color, thing_to_color)
   
-  if concolor == 'RED' then
-    return ''
-  end
-  
-  if concolor == 'YELLOW' then
-    return ''
-  end
-  
-  if concolor == 'WHITE' then
-    return ''
-  end
-  
-  if concolor == 'BLUE' then
-    return ''
-  end
-
-  
-  if concolor == 'LIGHT BLUE' then
-    return ''
-  end
-  
-  if concolor == 'GREEN' then
-    return ''
-  end
-  
-  if concolor == 'GREY' then
-    return ''
+  if color == 'RED' then
+    ImGui.TextColored(1, 0.0, 0.0, 1, thing_to_color)
+  elseif color == 'YELLOW' then
+    ImGui.TextColored(1, 1, 0.0, 1, thing_to_color)
+  elseif color == 'WHITE' then
+    ImGui.TextColored(1, 1, 1, 1, thing_to_color)
+  elseif color == 'BLUE' then
+    ImGui.TextColored(0.0, 0.0, 1, 1, thing_to_color)
+  elseif color == 'LIGHT BLUE' then
+    ImGui.TextColored(0.50, 0.50, 0.80, 1, thing_to_color)
+  elseif color == 'GREEN' then
+    ImGui.TextColored(0.0, 1, 0.0, 1, thing_to_color)
+  elseif color == 'GREY' then
+    ImGui.TextColored(0.50, 0.50, 0.50, 1, thing_to_color)
+  elseif color == 'ORANGE' then
+    ImGui.TextColored(0.99, 0.65, 0, 1, thing_to_color)
   end
   
 end
  
  
  
- 
-function btnoptn(name)
+function btnoptn (name)
   
   if mq.TLO.Macro.Variable('maHud').Find('swHUDBTN'..name..'').Value() == 'TRUE' then 
     return true
@@ -452,3 +450,123 @@ function btnoptn(name)
   
   
 end
+
+
+
+function control_movement (...)  
+  local op = {...}   
+   
+  if op[1] == 'stop_all' then   
+    if mq.TLO.Navigation.Active() == true then
+      mq.cmd.nav('stop |log=off')
+    end
+    if mq.TLO.Stick.Active() == true then
+      mq.cmd.squelch('/stick off')
+    end
+    if mq.TLO.Me.Moving() == true then
+      mq.cmd.keypress('forward')
+      mq.cmd.keypress('back')
+    end
+  end
+
+end
+
+
+function control_casting (...)
+  local op = {...}
+ 
+  if op[1] == 'stop_all'then 
+    if mq.TLO.Me.Casting.ID() ~= nil then
+      mq.cmd.stopcast()
+    end
+  end
+  
+end
+
+
+function control_combat (...)
+  local op = {...}
+
+    if op[1] == 'stop_all' then 
+      if mq.TLO.Me.AutoFire() == true then 
+        mq.cmd.squelch('/autofire off')
+      end
+    
+      if mq.TLO.Me.Combat() == true then
+        mq.cmd.squelch('/attack off')
+      end
+    end
+
+    if op[1] == 'stop_melee' then 
+      if mq.TLO.Me.Combat() == true then
+        mq.cmd.squelch('/attack off')
+      end
+    end
+    
+    if op[1] == 'stop_range' then 
+      if mq.TLO.Me.AutoFire() == true then 
+        mq.cmd.squelch('/autofire off')
+      end
+    end
+
+end
+
+
+function control_target (...)
+  local op = {...}
+
+  if op[1] == 'release' then
+    mq.cmd.varset('stAssTarID 0')
+    mq.cmd.varset('targetData 0')
+    mq.cmd.varset('assistData 0')
+    mq.cmd.squelch('/target clear')
+    mq.cmd.invoke('${maCC.Add[swValidAssTarID,FALSE]}')
+    mq.cmd.invoke('${maCC.Add[swSetCombat,FALSE]}')
+    mq.cmd.invoke('${maCC.Add[swSetForced,FALSE]}')
+    mq.cmd.invoke('${set_data_timer[FALSE, Check_Behind, 0]}')
+    mq.cmd.invoke('${maData.Add[stFacingPositionCheck,FALSE]}')
+    mq.cmd.invoke('${maData.Add[stPctEngageSet,FALSE]}')
+    mq.cmd.invoke('${maData.Add[stPctEngagePetSet,FALSE]}')
+    mq.cmd.invoke('${maData.Add[stPctEngageSwarmSet,FALSE]}')
+    mq.cmd.invoke('${maData.Add[stPctEngageBurnSet,FALSE]}')
+    
+  end
+
+
+end
+
+
+
+
+function out (...)
+  local op = {...}
+
+  -- default 2 strings    
+  if op[1] == 2 then
+    print(string.format('\a-t%s\ax \a-w%s\ax', op[2], op[3]))
+
+  -- default 2 strings with an error
+  elseif op[1] == 2.1 then
+   print(string.format('\a-t%s\ax \a-w%s\ax '.. outs['dot'] ..' \ar%s\ax', op[2], op[3], op[4])) 
+
+  
+  -- help response for no tags for the control
+  elseif op[1] == 'notag' then
+    print('no tags for this control.')
+
+  -- help response for no map for this control
+  elseif op[1] == 'nomap' then
+    print('no map for this control.')
+
+  end
+end
+
+
+
+
+
+function settableflags ()
+  tableFlags = bit32.bor(ImGuiTableFlags.Resizable, ImGuiTableFlags.RowBg, ImGuiTableFlags.SizingFixedFit, ImGuiTableFlags.Borders, ImGuiTableFlags.Hideable) 
+end
+
+

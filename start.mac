@@ -104,9 +104,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   MQCLEAR
 
   | Make sure plugins are loaded. kill macro if not
-  /if (!${check_plugin[FALSE, TRUE, |MQ2SQLite|MQ2DanNet|Mq2Nav|MQ2MoveUtils|MQ2Collections|MQ2Lua]}) {
-    ECHO Make sure the following plugins are loaded
-    ECHO \a-wMQ2SQLite, MQ2DanNet, Mq2Nav, MQ2MoveUtils, MQ2Collections, MQ2Lua\ax
+  /if (!${check_plugin[FALSE, TRUE, MQ2SQLite|MQ2DanNet|Mq2Nav|MQ2MoveUtils|MQ2Collections|MQ2Lua]}) {
     /endmacro
   }
 
@@ -123,7 +121,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 230817.01
+  /call set_data FALSE maEnv build                          map outer 230909.01
   /call set_data FALSE maEnv schema                         map outer 1.66
   /call set_data FALSE maEnv repo                           map outer 220225.01
 
@@ -346,7 +344,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
 
   | unload lua stuffs
   /declare _liAlias list local
-  /invoke ${_liAlias.Append[radar,binds,health,event,eventbuttons,drive,drivebuttons]}
+  /invoke ${_liAlias.Append[radar,binds,health,event,eventbuttons,drive,uiadmin]}
   /declare _lial listiterator local
   /vardata _lial _liAlias.First.Clone
   /while (!${_lial.IsEnd}) {

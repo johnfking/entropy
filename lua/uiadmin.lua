@@ -24,15 +24,26 @@ local function imguicallback()
     ImGui.NewLine() 
     cmd_button('hud', 60, 22, 'ui2 hud on')
     ImGui.NewLine()  
+
+  -- autostart
+    if ImGui.CollapsingHeader('autostart') then
+      indent(1,1) 
+      ImGui.NewLine()  
+      edit_switch_perm('Main', 'maEntropy', 'swHUDAuto')
+      edit_switch_perm('Drive', 'maEntropy', 'swHUDDriveAuto')
+      edit_switch_perm('Event Buttons', 'maHud', 'swHUDEventButtonsAuto')
+      edit_switch_perm('Radar', 'maHud', 'stRadarAuto')
+
+
+
+      ImGui.NewLine()  
+      indent(1,2)
+    end
     
   -- HUD
     if ImGui.CollapsingHeader('hud') then
 
-      indent(1,1) 
-      ImGui.NewLine()  
-
-      edit_switch_perm('start hud when macro starts', 'maEntropy', 'swHUDAuto')
-      edit_switch_perm('close hud when macro ends', 'maEntropy', 'swHUDCloseonEnd')
+      -- edit_switch_perm('close hud when macro ends', 'maEntropy', 'swHUDCloseonEnd')
       edit_switch_perm('show buttons on hud', 'maHud', 'swHUDbuttons')
       -- edit_switch_perm('class hud on start', 'maChr', 'swHUDClassAuto')
       edit_switch_perm('Main Target: On for display name, OFF for real name', 'maHud', 'swHUDDisplayName')
@@ -117,6 +128,8 @@ local function imguicallback()
       ImGui.NewLine()  
       edit_switch_perm('Auto start drive on mac start', 'maEntropy', 'swHUDDriveAuto')
       -- edit_switch_perm('close drive hud macro end', 'maEntropy', 'swHUDDriveCloseonEnd')
+      edit_switch_perm('show buttons on drive', 'maHud', 'swHUDDrivebuttons')
+
       ImGui.NewLine()
       indent(1,2)
     end
@@ -135,25 +148,41 @@ local function imguicallback()
       indent(1,1) 
       ImGui.NewLine()  
       
-      
-        local radarcount = tonumber(mq.TLO.Macro.Variable('maHud').Find('stRadarCount').Value())
-        radarcount, used = ImGui.DragInt("count##radarcount", radarcount, 1, 0, 1000);
-        if used then
-          mq.cmd.luaedit('stRadarCount', radarcount)  
-        end
-        
-        local current_sorttype = mq.TLO.Macro.Variable('maHud').Find('stRadarSortType').Value()
-        if ImGui.BeginCombo("sorttype", current_sorttype) then
-          for _, t in ipairs({ 'npc', 'pc' }) do
-            local selectedshade = t == current_sorttype
-            if ImGui.Selectable(t, selectedshade) and not selectedshade then
-              mq.cmd.luaedit('stRadarSortType', '"'..t..'"')
+        -- type of radar to view
+        local current_view = mq.TLO.Macro.Variable('maHud').Find('stRadarViewType').Value()
+        if ImGui.BeginCombo("view", current_view) then
+          for _, t in ipairs({ 'spawn', 'xtarget' }) do
+            local selected_view = t == current_view
+            if ImGui.Selectable(t, selected_view) and not selected_view then
+              mq.cmd.luaedit('stRadarViewType', '"'..t..'"')
             end
           end
           ImGui.EndCombo()
         end
-        edit_switch_perm('targetable?', 'maHud', 'swRadarSortTargetable')      
-      
+
+        
+        -- spawn count       
+        if mq.TLO.Macro.Variable('maHud').Find('stRadarViewType').Value() == 'spawn' then
+          ImGui.NewLine()  
+          local current_sorttype = mq.TLO.Macro.Variable('maHud').Find('stRadarSortType').Value()
+          if ImGui.BeginCombo("sort", current_sorttype) then
+            for _, t in ipairs({ 'npc', 'pc' }) do
+              local selectedshade = t == current_sorttype
+              if ImGui.Selectable(t, selectedshade) and not selectedshade then
+                mq.cmd.luaedit('stRadarSortType', '"'..t..'"')
+              end
+            end
+            ImGui.EndCombo()
+          end
+        
+          local radarcount = tonumber(mq.TLO.Macro.Variable('maHud').Find('stRadarCount').Value())
+          radarcount, used = ImGui.DragInt("spawncount##radarcount", radarcount, 1, 0, 1000);
+          if used then
+            mq.cmd.luaedit('stRadarCount', radarcount)  
+          end
+
+          edit_switch_perm('targetable?', 'maHud', 'swRadarSortTargetable')      
+        end     
 
       ImGui.NewLine()
       indent(1,2)

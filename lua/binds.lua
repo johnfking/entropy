@@ -10,10 +10,16 @@ require 'common'
 local sql = require('lsqlite3')
 
 
-local admin2 = function (...)
-  local option = {...}
 
-  if option[1] == 'members' then
+
+
+
+
+
+local admin2 = function (...)
+  local op = {...}
+
+  if op[1] == 'members' then
     local basicTypes = {'Character', 'Target', 'Spawn'}
     local memberCount = 1
 
@@ -29,7 +35,7 @@ local admin2 = function (...)
     end
   end
   
-  if option[1] == 'spawn' then
+  if op[1] == 'spawn' then
     _spawn = mq.TLO.Target
     print(_spawn.Type())
     for _, _spawn in ipairs(mq.getFilteredSpawns(filter)) do
@@ -45,119 +51,165 @@ mq.bind('/admin2', admin2)
 
 
 
-function filter(_spawn)
-  return _spawn.Type() == 'NPC'
-end 
+function finis (...)
+  local op = {...}
+  
+  if op[1] ~= nil then  
+    out(2, '/finis', op[1])
+  else
+    out(2, '/finis', '[all, cast, move, combat]')
+  end
+  
+  
+  -- stop everything possible  
+  if op[1] == 'all' then
+    control_combat('stop_all')      
+    control_movement('stop_all')
+    control_casting('stop_all')
+    control_target('release')
+    
+    
+    
+  -- stop all casting
+  elseif op[1] == 'cast' then
+    control_casting('stop_all')
+
+  -- stop all movement
+  elseif op[1] == 'move' then
+    control_movement('stop_all')
+
+  -- stop all combat
+  elseif op[1] == 'combat' then
+    control_combat('stop_all')
+
+  -- release target
+  elseif op[1] == 'target' then
+    control_target('release')
+
+
+  end
+  
+end
+
+mq.bind('/finis', finis)
 
 
 
 
 
 
+function move (...)
+  local op = {...}
 
-
-
-move = function (...)
-  local option = {...}
-
+  if op[1] == nil then  
+    out(2, '/move', '[stop, stand, sit, duck, jump, rewind, loc y x, to name or id]')
+  end
+  
   -- duck, duck, goose?
-  if option[1] == 'duck' then
+  if op[1] == 'duck' then
     if mq.TLO.Me.State() ~= 'duck' then
-      if mq.TLO.Me.Mount.ID() ~= nil then
-        mq.cmd('/dismount')
+     if mq.TLO.Me.Mount.ID() ~= nil then
+        mq.cmd.dismount()
       end
-      mq.cmd('/stand')     
+      if mq.TLO.Me.State() ~= 'stand' then
+        mq.cmd.stand()
+      end
+      -- mq.cmd.stand()     
       mq.delay(800)
-      mq.cmd('/keypress duck')
+      mq.cmd.keypress('duck')
+      mq.delay(100)
+      mq.cmd.keypress('forward')
+      out(2, '/move', 'duck')
     end
 
   -- sit down
-  elseif option[1] == 'sit' then
+  elseif op[1] == 'sit' then
     if mq.TLO.Me.State() ~= 'sit' then
-      mq.cmd('/sit')
+      mq.cmd.sit()
+      out(2, '/move', 'sit')
     end
 
   -- stand up
-  elseif option[1] == 'stand' then
+  elseif op[1] == 'stand' then
     if mq.TLO.Me.State() ~= 'stand' then
-      mq.cmd('/stand')
+      mq.cmd.stand()
+      out(2, '/move', 'stand')
     end
   
   -- jump, cause why not
-  elseif option[1] == 'jump' then
-    mq.cmd('/keypress jump')
+  elseif op[1] == 'jump' then
+    mq.cmd.keypress('jump')
+    out(2, '/move', 'jump')
     
   -- rewind position
-  elseif option[1] == 'rewind' then
-    mq.cmd('/rewind')
-
+  elseif op[1] == 'rewind' then
+    mq.cmd.rewind()
+    out(2, '/move', 'rewind')
   -- stop all movement
-  elseif option[1] == 'stop' then
-    print(outs['move'] .. 'Stop')
-
-    if mq.TLO.Navigation.Active() == true then
-      mq.cmd('/nav stop |log=off')
-    end
-    if mq.TLO.Stick.Active() == 'TRUE' then
-      mq.cmd('/squelch /stick off')
-    end
-    if mq.TLO.Me.Moving() == 'TRUE' then
-      mq.cmd('/keypress forward')
-      mq.cmd('/keypress back')
-    end
+  elseif op[1] == 'stop' then
+    control_movement('stop')
+    out(2, '/move', 'stop')
     
-    
-
-
 
 
   -- move to something
-  elseif option[1] == 'to' then
-    if mq.TLO.Target.ID() ~= 0 and option[2] == nil then
+  elseif op[1] == 'to' then
+
+    local navlog = mq.TLO.Macro.Variable('maEntropy').Find('swNavLogSpew').Value()
+
+    if mq.TLO.Target.ID() ~= 0 and op[2] == nil then
+      
       local _spawn = mq.TLO.Target
-      print(math.abs(_spawn.MaxRangeTo() + mq.TLO.Macro.Variable('maHard').Find('stMaxMeleeAdj').Value()))
-      print(outs['move'] .. _spawn.DisplayName())
-      mq.cmd('/nav id ' .. _spawn.ID() .. '|dist=' .. math.abs(_spawn.MaxRangeTo() + mq.TLO.Macro.Variable('maHard').Find('stMaxMeleeAdj').Value()) .. ' log=off')
-    elseif option[2] ~= nil then
+      local melee_distance = math.abs(_spawn.MaxRangeTo() * tonumber(string.format(".%.1d", mq.TLO.Macro.Variable('maHard').Find('stMaxMeleeAdj').Value())))
+      out(2, '/move to', _spawn.DisplayName())
+      mq.cmd.nav('id ' .. _spawn.ID() .. '|dist=' .. melee_distance .. ' log=off')
+
+
+
+
+    elseif op[2] ~= nil then
       -- error check
-      if mq.TLO.Spawn(option[2]).ID() <= 1 then
-        print(outs['move'] .. option[2] .. ' [\arspawn invalid\ax]')
+      if mq.TLO.Spawn(op[2]).ID() <= 1 then
+        out(2.1, '/move to', op[2], 'invalid spawn ID')
         return
       end
-      local _spawn = mq.TLO.Spawn(option[2])
+      local _spawn = mq.TLO.Spawn(op[2])
+      local melee_distance = math.abs(_spawn.MaxRangeTo() * tonumber(string.format(".%.1d", mq.TLO.Macro.Variable('maHard').Find('stMaxMeleeAdj').Value())))
+
+
       if mq.TLO.Navigation.PathExists('id ' .. _spawn.ID())() == true then
-        print(outs['move'] .. _spawn.DisplayName())
-        mq.cmd('/nav id ' .. _spawn.ID() .. '|dist=' .. math.abs(_spawn.MaxRangeTo() + mq.TLO.Macro.Variable('maHard').Find('stMaxMeleeAdj').Value()) .. ' log=off')
+        out(2, '/move to', _spawn.DisplayName())
+        mq.cmd.nav('id ' .. _spawn.ID() .. '|dist=' .. melee_distance .. ' log='..navlog)
       else
-        print(outs['move'] .. _spawn.DisplayName() .. outs['nopath'])
+        out(2, '/move to', _spawn.DisplayName().. ' \arno valid path\ax')
       end
 
     end
 
  
   -- move to location
-  elseif option[1] == 'loc' then
+  elseif op[1] == 'loc' then
     -- error check
-    if option[2] == nil then
-      option[2] = '?'
-    elseif option[3] == nil then
-      option[3] = '?'
+    if op[2] == nil then
+      op[2] = '?'
+    elseif op[3] == nil then
+      op[3] = '?'
     end
-    if option[2] == '?' or option[3] == '?' then
-      print('\arError: \axy=' .. option[2] .. ' x=' .. option[3])
+    if op[2] == '?' or op[3] == '?' then
+      out(2, '/move loc \arError: \axy=' .. op[2] .. ' x=' .. op[3])
       return
     end
-    print(outs['move'] ..'LOC \a-ty:\ax' .. option[2] .. ' \a-tx\ax' .. option[3])
-    mq.cmd('/nav locyxz ' .. option[2] .. ' ' .. option[3] .. ' |dist=6 log=' .. mq.TLO.Macro.Variable('maEntropy').Find('swNavLogSpew').Value())
-    
-  else
-    
-    
+    print(outs['move'] ..'LOC \a-ty:\ax' .. op[2] .. ' \a-tx\ax' .. op[3])
+    mq.cmd.nav('locyxz ' .. op[2] .. ' ' .. op[3] .. ' |dist=6 log='..•navlog)
     
   end
 end
     
 mq.bind('/move', move)
+
+
+
+
 
 
 
@@ -171,6 +223,11 @@ while running do
     end
 end
 
+
+
+function filter(_spawn)
+  return _spawn.Type() == 'NPC'
+end 
 
 
 

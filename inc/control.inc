@@ -287,6 +287,32 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     /invoke ${out[18, 0, 33]}
     /return TRUE
 
+  } else /if (${_type.Equal[findpet]}) {
+    /invoke ${get_best_in_pet[TRUE]}
+    /return TRUE
+
+
+
+
+    } else /if (${_type.Equal[plugin]}) {
+      
+      /declare _lsPlugin list local
+      /invoke ${_lsPlugin.Append[MQ2SQLite,MQ2DanNet,Mq2Nav,MQ2MoveUtils,MQ2Collections,MQ2Lua]}
+      
+      /echo plugin count${sep}${_lsPlugin.Count}
+      /declare _li listiterator local 
+      /vardata _li _lsPlugin.First.Clone
+    
+      /while (!${_li.IsEnd}) {
+
+          /echo ${_li.Value} ${sep} ${Bool[${Plugin[${_li.Value}]}]}
+
+        /invoke ${_li.Advance}
+      }
+      /return true
+
+
+
   } else /if (${_type.Equal[sqldrop]}) {
     
     OUT This is for dropping sqlite tables. Probably shouldn't be doing ths.
@@ -545,6 +571,7 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
       /invoke ${out[18, 0, 33]}
       ECHO
       /return
+
     }
 
 
@@ -552,8 +579,10 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
   /invoke ${out[12, "PID${sep}\a-w${EverQuest.PID}\ax"]}
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[checkvar,out]}
+  /invoke ${maControl.Add[plugin,out]}
   /invoke ${maControl.Add[spa,out]}
   /invoke ${maControl.Add[pull,out]}
+  /invoke ${maControl.Add[findpet,out]}
   /invoke ${maControl.Add[obs,out]}
   /invoke ${maControl.Add[whitewash,option]}
   /invoke ${maControl.Add[resetlua,option]}
@@ -4455,6 +4484,23 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
   } else /if (${_type.Equal[onforce]}) {
     /invoke ${set_switch_env[${_debug}, swonForce, TRUE, ${_verbage}]}
 
+  | sends pet to target (summons if necessary
+  } else /if (${_type.Equal[force]}) {
+    /if (${Select[${Me.Class.ShortName},CLR,WIZ]}) {
+      /if (!${Target.ID} || ${Me.Pet.ID}) {
+        /return FALSE
+      }
+      /if (${Target.ID} && !${Me.Pet.ID}) {
+        /declare _minion string local ${get_best_in_pet[${_debug}]}
+        /call cast_data ${_debug} "${_minion}"
+        /call cast ${_debug} ${Target.ID} FALSE
+      }
+    } else /if (${Target.ID} && ${Me.Pet.ID}) {
+      /pet attack
+    }
+    
+    /return TRUE
+
   | buff your pet?
   } else /if (${_type.Equal[buff]}) {
     /invoke ${set_switch_env[${_debug}, swPetBuff, TRUE, ${_verbage}]}
@@ -4478,7 +4524,6 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
   /if (${_silent.Equal[SILENT]}) /return
 
   /invoke ${maControl.Clear}
-  | /invoke ${maControl.Add[type,stPetType|br]}
   /invoke ${maControl.Add[illusion,stPetIllusion|br]}
   /invoke ${maControl.Add[pet,swPet]}
   /if (${Select[${Me.Class.ShortName},ENC,DRU,MAG,NEC]}) {
@@ -4486,6 +4531,7 @@ sub Bind_control_minion(string _type, string _verbage, string _silent, bool _deb
   }
   /invoke ${maControl.Add[buff,swPetBuff]}
   /invoke ${maControl.Add[build,option]}
+  /invoke ${maControl.Add[force,option]}
   /invoke ${maControl.Add[shrink,submenu]}
   /invoke ${maControl.Add[engage,stPctPetEngage]}
   /invoke ${maControl.Add[swarm,swSwarm]}
@@ -6793,14 +6839,14 @@ sub Bind_control_ui2(sring _verbage, string _verbage2, bool _debug)
   /if (${_verbage.Equal[drive]}) {
     /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
       /lua run ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
-      /lua run ${MacroQuest.Path[macros]}\entropy\lua\drivebuttons.lua
+      | /lua run ${MacroQuest.Path[macros]}\entropy\lua\drivebuttons.lua
     } else /if (${_verbage2.Equal[ui]}) {
       /lua run ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
-    } else /if (${_verbage2.Equal[buttons]}) {
-      /lua run ${MacroQuest.Path[macros]}\entropy\lua\drivebuttons.lua
+    |} else /if (${_verbage2.Equal[buttons]}) {
+      | /lua run ${MacroQuest.Path[macros]}\entropy\lua\drivebuttons.lua
     } else /if (${_verbage2.Equal[off]}) {
       /lua stop ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
-      /lua stop ${MacroQuest.Path[macros]}\entropy\lua\drivebuttons.lua
+      | /lua stop ${MacroQuest.Path[macros]}\entropy\lua\drivebuttons.lua
     }
     /return TRUE
   }
@@ -6818,8 +6864,15 @@ sub Bind_control_ui2(sring _verbage, string _verbage2, bool _debug)
     /return TRUE    
   }
 
-  | spawn ui
+  | spawn ui (radar)
   /if (${_verbage.Equal[radar]}) {
+
+    | direct edit of the radar count    
+    /if (${Int[${_verbage2}]} > 0 && ${Bool[${Int[${_verbage2}]}]}) {
+      /call do_raw_edit ${_debug} SILENT stRadarCount "${_verbage2}"
+      /return TRUE
+    }
+    
     /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
       /lua run ${MacroQuest.Path[macros]}\entropy\lua\radar.lua
     } else /if (${_verbage2.Equal[off]}) {

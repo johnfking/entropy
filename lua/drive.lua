@@ -35,12 +35,7 @@ local function imguicallback()
 		local ColumnID_Target = 11
 		local ColumnID_Cast = 12
 
-    local tableFlags = bit32.bor(ImGuiTableFlags.Resizable,
-                                ImGuiTableFlags.RowBg,
-                                ImGuiTableFlags.SizingFixedFit,
-                                ImGuiTableFlags.Borders,
-                                ImGuiTableFlags.Hideable)
-					
+		settableflags()			
   	if ImGui.BeginTable('Crew', 13, tableFlags) then
 
   		ImGui.TableSetupColumn('Name', ImGuiTableColumnFlags.DefaultSort, 0.0, ColumnID_Name)
@@ -86,37 +81,37 @@ local function imguicallback()
       				-- #2
       				ImGui.TableNextColumn()
     						ImGui.TextColored(1, 1, 1, 1, toon.PctHPs())
-      					--if toon.PctHPs() >= 70 then
-      					--	ImGui.TextColored(0, 1, 0, 1, toon.PctHPs())
-      					--elseif toon.PctHPs() < 70 and toon.PctHPs() >= 40 then
-      					--	ImGui.TextColored(1, 1, 0, 1, toon.PctHPs())
-      				  --elseif toon.PctHPs() < 40 then
-      					--	ImGui.TextColored(1, 0, 0, 1, toon.PctHPs())
-      					--end
+      					if toon.PctHPs() >= 70 then
+      						ImGui.TextColored(0, 1, 0, 1, toon.PctHPs())
+      					elseif toon.PctHPs() < 70 and toon.PctHPs() >= 40 then
+      						ImGui.TextColored(1, 1, 0, 1, toon.PctHPs())
+      				  elseif toon.PctHPs() < 40 then
+      						ImGui.TextColored(1, 0, 0, 1, toon.PctHPs())
+      					end
 
     				  
     				  -- #3 pct manna
     					ImGui.TableNextColumn()
     							ImGui.TextColored(1, 1, 1, 1, toon.PctMana())
-                --if toon.PctMana() >= 65 then
-    						--	ImGui.TextColored(0, 1, 0, 1, toon.PctMana())
-    						--elseif toon.PctMana() < 65 and toon.PctMana() >= 30 then
-    						--	ImGui.TextColored(1, 1, 0, 1, toon.PctMana())
-    						--elseif toon.PctMana() < 30 then
-    						--	ImGui.TextColored(1, 0, 0, 1, toon.PctMana())
-    					  --end
+                if toon.PctMana() >= 65 then
+    							ImGui.TextColored(0, 1, 0, 1, toon.PctMana())
+    						elseif toon.PctMana() < 65 and toon.PctMana() >= 30 then
+    							ImGui.TextColored(1, 1, 0, 1, toon.PctMana())
+    						elseif toon.PctMana() < 30 then
+    							ImGui.TextColored(1, 0, 0, 1, toon.PctMana())
+    					  end
 
             
               -- #4 pct endurance
     					ImGui.TableNextColumn()
     					  ImGui.TextColored(1, 1, 1, 1, toon.PctEndurance())
-    						--if toon.PctEndurance() >= 65 then
-    						--	ImGui.TextColored(0, 1, 0, 1, toon.PctEndurance())
-    						--elseif toon.PctEndurance() < 65 and toon.PctEndurance() >= 30 then
-    						--	ImGui.TextColored(1, 1, 0, 1, toon.PctEndurance())
-    						--	elseif toon.PctEndurance() < 30 then
-    						--	ImGui.TextColored(1, 0, 0, 1, toon.PctEndurance())
-    						--end
+    						if toon.PctEndurance() >= 65 then
+    							ImGui.TextColored(0, 1, 0, 1, toon.PctEndurance())
+    						elseif toon.PctEndurance() < 65 and toon.PctEndurance() >= 30 then
+    							ImGui.TextColored(1, 1, 0, 1, toon.PctEndurance())
+    							elseif toon.PctEndurance() < 30 then
+    							ImGui.TextColored(1, 0, 0, 1, toon.PctEndurance())
+    						end
 
     					
     					-- #5 distance		
@@ -332,16 +327,78 @@ local function imguicallback()
     					ImGui.TableNextColumn()
     			    ImGui.Columns()
       	    end
-          
           end
-
-
   		end
-    
       ImGui.EndTable()
   	end
+
+    -- start buttons
+    -- buttons at the bottom
+    if mq.TLO.Macro.Variable('maHud').Find('swHUDDrivebuttons').Value() == "TRUE" then
+      ImGui.Separator()
+
+
+      ImGui.Columns(7, 'buttons', false)
+        cmd_button(ico.allauto, ico.x, ico.y, 'on', 'all macro auto')
+        ImGui.SameLine()
+        cmd_button(ico.allmanual, ico.x, ico.y, 'off', 'all macro manual')
+        ImGui.SameLine()
+        cmd_button(ico.mqp, ico.x, ico.y, 'dga /mqp', 'all macro pause')
+
+      -- 2
+      ImGui.NextColumn()
+        cmd_button(ico.tie, ico.x, ico.y, 'dga /tie', '/tie on/off')
+        ImGui.SameLine()
+        cmd_button(ico.tienav, ico.x, ico.y, 'dga /tie nav', 'tie with nav')
+        ImGui.SameLine()
+        cmd_button(ico.tiestick, ico.x, ico.y, 'dga /tie stick', 'tie with stick')
+
+      --3
+      ImGui.NextColumn()
+       if mq.TLO.Macro.Variable('maEnv').Find('swAuto').Value() == 'TRUE' then
+          cmd_button(ico.manual, ico.x, ico.y, 'env auto', 'macro manual')
+        else 
+          cmd_button(ico.auto, ico.x, ico.y, 'env auto', 'macro auto')
+        end
+        ImGui.SameLine()
+        cmd_button(ico.incharge, ico.x, ico.y, 'env incharge', '/incharge')
+        ImGui.SameLine()
+        cmd_button(ico.campfire, ico.x, ico.y, 'home campfire incharge', 'drop campfire')
+
+      -- 4
+      ImGui.NextColumn()
+        cmd_button(ico.invis, ico.x, ico.y, 'invis', 'stack invisibility')
+        ImGui.SameLine()
+        cmd_button(ico.noinvis, ico.x, ico.y, 'dga /nomore invis', 'remove all invisibility')
+        ImGui.SameLine()
+        cmd_button(ico.nolevi, ico.x, ico.y, 'dga /nomore levi', 'remove all levitation')
+
+      -- 5
+      ImGui.NextColumn()
+        --local myname = mq.TLO.Me.DisplayName() or ''
+        cmd_button(ico.assist, ico.x, ico.y, 'dge /assist ' .. (mq.TLO.Me.DisplayName() or ' '), 'all /assist')
+        ImGui.SameLine()
+        cmd_button(ico.hail, ico.x, ico.y, 'dga /hail', 'all /hail')
+        ImGui.SameLine()
+        cmd_button(ico.intpull, ico.x, ico.y, 'pull one int', 'single intervention pull')
+
+      -- 6
+      ImGui.NextColumn()
+        cmd_button(ico.autoinventory, ico.x, ico.y, 'dga /autoinventory', 'everyone autoinventoy')
+        ImGui.SameLine()
+        cmd_button(ico.gather, ico.x, ico.y, 'gather', '/gather')
+        ImGui.SameLine()
+        cmd_button(ico.here, ico.x, ico.y, 'here', '/here')
+
+      -- 7
+      ImGui.NextColumn()
+        cmd_button(ico.radar, ico.x, ico.y, 'ui2 radar', 'ui: radar')
+
+
+      ImGui.Columns()
+    end
+ 	
   end
-    	
 
   ImGui.End()
   

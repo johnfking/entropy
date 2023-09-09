@@ -945,7 +945,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHud swTitleHealAdj                       FALSE                        "${auxsw} show in titlebar: Heal Adjust %"
 
 
-  |** hud buttons **|
+  |** buttons **|
   /call set_data_map ${_debug} maHud swHUDBTNallauto                      TRUE                         "${auxsw} button option for: allauto"
   /call set_data_map ${_debug} maHud swHUDBTNallmanual                    TRUE                         "${auxsw} button option for: all manual"
   /call set_data_map ${_debug} maHud swHUDBTNmanual                       TRUE                         "${auxsw} button option for: manual"
@@ -965,18 +965,24 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHud swHUDBTNnotes                        FALSE                        "${auxsw} button option for: notes ui"
   
 
-
+  |** Event Buttons **|
+  /call set_data_map ${_debug} maHud swHUDEventButtonsAuto                FALSE                        "${auxsw} Auto start Event Buttons"
 
   |** radar settings **|
+  /call set_data_map ${_debug} maHud stRadarAuto                         FALSE                         "${auxnum} Auto start radar"
+  /call set_data_map ${_debug} maHud stRadarViewType                     xtarget                        "${auxnum} radar view: spawns or xtarget"
   /call set_data_map ${_debug} maHud stRadarCount                         10                            "${auxnum} number of NPCs to populate radar"
   /call set_data_map ${_debug} maHud stRadarSortType                      npc                           "${auxnum} sort radar by NPC or PC"
   /call set_data_map ${_debug} maHud swRadarSortTargetable                TRUE                          "${auxnum} focus on only mobs that can be targeted"
+  /call set_data_map ${_debug} maHud swRadarshowXTbuttons                 FALSE                         "${auxnum} show buttons to target xtarg slots"
+  /call set_data_map ${_debug} maHud swRadarshowXTbuttondetails           FALSE                         "${auxnum} change from buttons to full names"
 
 
 
 |** Drive settings **|
   /call set_data_map ${_debug} maEntropy swHUDDriveAuto                   FALSE                        "${auxsw} Auto start Drive HUD on mac start"
   | /call set_data_map ${_debug} maEntropy swHUDDriveCloseonEnd             TRUE                         "${auxsw} Close the Drive HUD on mq end"
+  /call set_data_map ${_debug} maHud swHUDDrivebuttons                     TRUE                         "${auxsw} show buttons at the botom of the drive hud"
 
 
 
