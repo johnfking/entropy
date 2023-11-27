@@ -80,7 +80,6 @@ local function imguicallback()
 
       				-- #2
       				ImGui.TableNextColumn()
-    						ImGui.TextColored(1, 1, 1, 1, toon.PctHPs())
       					if toon.PctHPs() >= 70 then
       						ImGui.TextColored(0, 1, 0, 1, toon.PctHPs())
       					elseif toon.PctHPs() < 70 and toon.PctHPs() >= 40 then
@@ -92,7 +91,6 @@ local function imguicallback()
     				  
     				  -- #3 pct manna
     					ImGui.TableNextColumn()
-    							ImGui.TextColored(1, 1, 1, 1, toon.PctMana())
                 if toon.PctMana() >= 65 then
     							ImGui.TextColored(0, 1, 0, 1, toon.PctMana())
     						elseif toon.PctMana() < 65 and toon.PctMana() >= 30 then
@@ -104,7 +102,6 @@ local function imguicallback()
             
               -- #4 pct endurance
     					ImGui.TableNextColumn()
-    					  ImGui.TextColored(1, 1, 1, 1, toon.PctEndurance())
     						if toon.PctEndurance() >= 65 then
     							ImGui.TextColored(0, 1, 0, 1, toon.PctEndurance())
     						elseif toon.PctEndurance() < 65 and toon.PctEndurance() >= 30 then

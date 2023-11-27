@@ -42,12 +42,12 @@ local function imguicallback()
     
   -- HUD
     if ImGui.CollapsingHeader('hud') then
-
-      -- edit_switch_perm('close hud when macro ends', 'maEntropy', 'swHUDCloseonEnd')
+      indent(1,1)
+      ImGui.NewLine()
       edit_switch_perm('show buttons on hud', 'maHud', 'swHUDbuttons')
-      -- edit_switch_perm('class hud on start', 'maChr', 'swHUDClassAuto')
       edit_switch_perm('Main Target: On for display name, OFF for real name', 'maHud', 'swHUDDisplayName')
-    
+      edit_text_perm('blank', 'maHud', 'stHUDBlank')
+          
       ImGui.NewLine()
       indent(1,2)
 
@@ -185,6 +185,9 @@ local function imguicallback()
         end     
 
       ImGui.NewLine()
+      edit_switch_perm('pet button', 'maHud', 'swRadarshowPetbutton')      
+      edit_switch_perm('mark buttons', 'maHud', 'swRadarshowMarkbutton')
+      ImGui.NewLine()
       indent(1,2)
     end
 
@@ -192,15 +195,6 @@ local function imguicallback()
 
   -- build
     if ImGui.CollapsingHeader('build') then
-      indent(1,1) 
-      ImGui.NewLine()  
-
-      ImGui.NewLine()
-      indent(1,2)
-    end
-
-  -- event
-    if ImGui.CollapsingHeader('event') then
       indent(1,1) 
       ImGui.NewLine()  
 

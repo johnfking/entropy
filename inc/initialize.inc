@@ -943,6 +943,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maHud swTitleAM                            TRUE                         "${auxsw} show in titlebar: Auto or Manual"
   /call set_data_map ${_debug} maHud swTitleBuild                         TRUE                         "${auxsw} show in titlebar: Entropy Build #"
   /call set_data_map ${_debug} maHud swTitleHealAdj                       FALSE                        "${auxsw} show in titlebar: Heal Adjust %"
+  /call set_data_map ${_debug} maHud stHUDBlank                           "--"                         "${auxna} blank out for hud"
 
 
   |** buttons **|
@@ -966,21 +967,23 @@ sub set_initialize_map_character_environment(bool _debug)
   
 
   |** Event Buttons **|
-  /call set_data_map ${_debug} maHud swHUDEventButtonsAuto                FALSE                        "${auxsw} Auto start Event Buttons"
+  /call set_data_map ${_debug} maHud swHUDEventButtonsAuto                FALSE                         "${auxsw} Auto start Event Buttons"
 
   |** radar settings **|
-  /call set_data_map ${_debug} maHud stRadarAuto                         FALSE                         "${auxnum} Auto start radar"
-  /call set_data_map ${_debug} maHud stRadarViewType                     xtarget                        "${auxnum} radar view: spawns or xtarget"
+  /call set_data_map ${_debug} maHud stRadarAuto                          FALSE                         "${auxnum} Auto start radar"
+  /call set_data_map ${_debug} maHud stRadarViewType                      xtarget                       "${auxnum} radar view: spawns or xtarget"
   /call set_data_map ${_debug} maHud stRadarCount                         10                            "${auxnum} number of NPCs to populate radar"
   /call set_data_map ${_debug} maHud stRadarSortType                      npc                           "${auxnum} sort radar by NPC or PC"
   /call set_data_map ${_debug} maHud swRadarSortTargetable                TRUE                          "${auxnum} focus on only mobs that can be targeted"
   /call set_data_map ${_debug} maHud swRadarshowXTbuttons                 FALSE                         "${auxnum} show buttons to target xtarg slots"
   /call set_data_map ${_debug} maHud swRadarshowXTbuttondetails           FALSE                         "${auxnum} change from buttons to full names"
+  /call set_data_map ${_debug} maHud swRadarshowPetbutton                 FALSE                         "${auxnum} show pet button"
+  /call set_data_map ${_debug} maHud swRadarshowMarkbutton                FALSE                         "${auxnum} show raid/group mark buttons"
 
 
 
 |** Drive settings **|
-  /call set_data_map ${_debug} maEntropy swHUDDriveAuto                   FALSE                        "${auxsw} Auto start Drive HUD on mac start"
+  /call set_data_map ${_debug} maEntropy swHUDDriveAuto                   FALSE                         "${auxsw} Auto start Drive HUD on mac start"
   | /call set_data_map ${_debug} maEntropy swHUDDriveCloseonEnd             TRUE                         "${auxsw} Close the Drive HUD on mq end"
   /call set_data_map ${_debug} maHud swHUDDrivebuttons                     TRUE                         "${auxsw} show buttons at the botom of the drive hud"
 
@@ -1151,6 +1154,7 @@ sub set_initialize_map_character_environment(bool _debug)
 
   | points for healing
   /call set_data_map ${_debug} maHeal stHealPointHoT                    80                            "${auxnum} % of health to use single heal over time"                          heal
+  | /call set_data_map ${_debug} maHeal stHealPointPanic                  20                            "${auxnum} % of health to use for a panic heal"                               heal
   /declare _lishp listiterator local
   /vardata _lishp lsClassAll.First
   /while (!${_lishp.IsEnd}) {
@@ -1342,7 +1346,7 @@ sub set_initialize_map_character_environment(bool _debug)
   /call set_data_map ${_debug} maPull stPullNavVariance                   0                             "${auxnum} % variance added to pull radisu to exceed nav pull lengths to get to a mob"                            pull
   /call set_data ${_debug} FALSE lsPullMode                               list outer base|pet|int|nav|multi|watch
   /call set_data_map ${_debug} maPull stPullMode                          base                          "${auxna} [\a-wbase-nav-int-pet-multi\ax] the mode of pulling you wish to use while looking for said mobs"        pull
-  /call set_data ${_debug} FALSE lsPullWith                               list outer melee|range|other
+  /call set_data ${_debug} FALSE lsPullWith                               list outer  
   /call set_data_map ${_debug} maPull stPullWith                          FALSE                         "${auxna} [\a-wmelee-range-other\ax] what you want to pull with???"             pull
   /call set_data_map ${_debug} maPull stRangeBandolier                    FALSE                         "${auxna} name of bandolier for ranged pulling?"                                pull
   /call set_data_map ${_debug} maPull stPctHardStop                       0                             "${auxnum} % of crew sta/manna to stop pulling at to give them rest time?"      pull

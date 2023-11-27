@@ -323,7 +323,7 @@ sub mode_petfarm(bool _debug)
   }
   
   /call clear_combat
-  /mapshow NPC
+  | /mapshow NPC
 
   SETHUD
 

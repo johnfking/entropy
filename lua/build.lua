@@ -173,7 +173,7 @@ local function imguicallback()
         edit_switch_perm('temp', 'maBuff', 'swBuffTemp')
       ImGui.NextColumn()
         edit_switch_perm('unity', 'maBuff', 'swBuffUnity')
-        edit_switch_perm('minion', 'maBuff', 'swPetBuff')
+        edit_switch_perm('minion', 'maMinion', 'swPetBuff')
         edit_switch_perm('raid', 'maBuff', 'swBuffRaid')
         edit_switch_perm('group', 'maBuff', 'swBuffGroup')
       ImGui.NextColumn()
@@ -1078,6 +1078,39 @@ local function imguicallback()
 
     end
 
+
+  -- MINION
+    if class_pet[mq.TLO.Me.Class.ShortName()] then
+      if ImGui.CollapsingHeader('/minion') then
+        ImGui.NewLine()
+        indent(1,1)        
+
+        ImGui.Columns(3, 'minioncol', false)
+          edit_switch_perm('use pet', 'maMinion', 'swPet')
+          edit_switch_perm('buff pet', 'maMinion', 'swPetBuff')
+          edit_switch_perm('shrink', 'maMinion', 'swPetShrink')
+          edit_switch_perm('use swarm', 'maMinion', 'swSwarm')
+          edit_switch_perm('no swarm on ds', 'maMinion', 'swNoSwarmonDS')
+          edit_switch_perm('on cc force', 'maMinion', 'swonForce')
+          edit_switch_perm('use pet gear', 'maMinion', 'swUsePetGear')
+
+        ImGui.NextColumn()
+          edit_text_perm('% to send pet', 'maMinion', 'stPctPetEngage')
+          edit_text_perm('illusion', 'maMinion', 'stPetIllusion')
+          edit_text_perm('shrink item', 'maMinion', 'stPetShrink')
+          edit_text_perm('% to send swarm', 'maMinion', 'stPctSwarmEngage')
+          edit_text_perm('weapons', 'maMinion', 'stPetWeapon')
+          if mq.TLO.Me.Class.Shortname() == 'MAG' then
+            edit_text_perm('beg alias', 'maMinion', 'stBegAlias')
+          end
+        
+        ImGui.Columns()
+        ImGui.NewLine()        
+        indent(1,2)        
+      end
+    end
+
+
   -- MELEE
     if ImGui.CollapsingHeader('/melee') then
       ImGui.NewLine()
@@ -1242,28 +1275,36 @@ local function imguicallback()
         edit_text_perm('zrad', 'maPull', 'stPullZRadius')
         edit_text_perm('nav stop', 'maPull', 'stPullNavStopDistance')
         edit_text_perm('nav var', 'maPull', 'stPullNavVariance')
-        -- stPullMode
-        local drop = mq.TLO.Macro.Variable('maPull').Find('stPullMode').Value()
-        if ImGui.BeginCombo('mode', drop) then
+
+
+        -- pull mode
+        local pullmode = mq.TLO.Macro.Variable('maPull').Find('stPullMode').Value()
+        if ImGui.BeginCombo("mode", pullmode) then
           for _, v in ipairs({ 'base', 'pet', 'int', 'nav', 'multi', 'watch' }) do
-            local selected = v == drop
-            if ImGui.Selectable(v, selected) and not selected then
-              mq.cmd.rez('pct', v)
+            local selectedpm = v == pullmode
+            if ImGui.Selectable(v, selectedpm) and not selectedpm then
+              mq.cmd.luaedit('stPullMode', v)
             end
           end
+
           ImGui.EndCombo()
         end
-        -- stPullWith
-        local drop = mq.TLO.Macro.Variable('maPull').Find('stPullWith').Value()
-        if ImGui.BeginCombo('with', drop) then
+
+
+        -- pull with
+        local pullwith = mq.TLO.Macro.Variable('maPull').Find('stPullWith').Value()
+        if ImGui.BeginCombo("with", pullwith) then
           for _, v in ipairs({ 'melee', 'range', 'other' }) do
-            local selected = v == drop
-            if ImGui.Selectable(v, selected) and not selected then
-              mq.cmd.rez('pct', v)
+            local selectedpw = v == pullwith
+            if ImGui.Selectable(v, selectedpw) and not selectedpw then
+              mq.cmd.luaedit('stPullWith', v)
             end
           end
+
           ImGui.EndCombo()
         end
+
+
 
       ImGui.NextColumn()
         edit_text_perm('range bando', 'maPull', 'stRangeBandolier')
@@ -1487,6 +1528,51 @@ local function imguicallback()
       indent(1,2)
 
     end
+
+  -- maTimer
+    if ImGui.CollapsingHeader('maTimer') then 
+      ImGui.NewLine()
+      indent(1,1)
+      
+
+      ImGui.Columns(2, 'timers', false)
+
+        edit_text_perm('Try_Door', 'maTimer', 'tiTry_Door')
+        edit_text_perm('Check_Ammo', 'maTimer', 'tiCheck_Ammo')
+        edit_text_perm('Nuke_Delay', 'maTimer', 'tiNuke_Delay')
+        edit_text_perm('Check_Cursor', 'maTimer', 'tiCheck_Cursor')
+        edit_text_perm('Check_Zone_ID', 'maTimer', 'tiCheck_Zone_ID')
+        edit_text_perm('Check_Observers', 'maTimer', 'tiCheck_Observers')
+        edit_text_perm('Check_Poison', 'maTimer', 'tiCheck_Poison')
+        edit_text_perm('Check_deBuffs', 'maTimer', 'tiCheck_deBuffs')
+        edit_text_perm('Check_Behind', 'maTimer', 'tiCheck_Behind')
+        edit_text_perm('Check_Tribute', 'maTimer', 'tiCheck_Tribute')
+        edit_text_perm('Check_Loot', 'maTimer', 'tiCheck_Loot')
+        edit_text_perm('Check_Mode', 'maTimer', 'tiCheck_Mode')
+        edit_text_perm('Check_LoS_Timeout', 'maTimer', 'tiCheck_LoS_Timeout')
+        edit_text_perm('Check_Housekeeping', 'maTimer', 'tiCheck_Housekeeping')
+        edit_text_perm('Check_Home', 'maTimer', 'tiCheck_Home')
+        edit_text_perm('Check_Target', 'maTimer', 'tiCheck_Target')
+        edit_text_perm('Check_Alliance', 'maTimer', 'tiCheck_Alliance')
+        edit_text_perm('Check_Mercenary', 'maTimer', 'tiCheck_Mercenary')
+        edit_text_perm('Check_Pull_Hardstop', 'maTimer', 'tiCheck_Pull_Hardstop')
+        edit_text_perm('Check_Pull_Hardstop_Delay', 'maTimer', 'tiCheck_Pull_Hardstop_Delay')
+        edit_text_perm('Check_Inventory_ManaClick', 'maTimer', 'tiCheck_Inventory_ManaClick')
+        edit_text_perm('Check_Build_Spawn_Map_Data', 'maTimer', 'tiCheck_Build_Spawn_Map_Data')
+        edit_text_perm('Mode_Open', 'maTimer', 'tiMode_Open')
+
+
+      ImGui.NextColumn()
+      ImGui.Columns()
+
+
+
+
+     ImGui.NewLine()
+      indent(1,2)
+
+    end
+
     
   end
   ImGui.End()

@@ -489,6 +489,7 @@ sub Bind_command_issuance(bool _debug)
       /call cast ${_debug} 0 FALSE
       /delay 4s !${Me.Casting.ID}
     }
+    /return TRUE
   }
 
 /return TRUE

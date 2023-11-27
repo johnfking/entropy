@@ -8,6 +8,9 @@
 mq = require('mq')
 ICON = require('mq/icons')
 
+
+
+
 discord = '${If[${Bool[${Plugin[MQ2Discord]}]},\at-\ax,]}'
 classTable = { "WAR", "PAL", "SHD", "BST", "ROG", "MNK", "RNG", "BER", "CLR", "SHM", "DRU", "WIZ", "NEC", "ENC", "MAG", "BRD" }
 
@@ -93,8 +96,31 @@ ico = {
   pet = ICON.MD_PETS,
   num1 = ICON.MD_FILTER_1,
   num2 = ICON.MD_FILTER_2,
-  num3 = ICON.MD_FILTER_3
+  num3 = ICON.MD_FILTER_3,
+  port = ICON.FA_MAP_O
 }
+
+
+class_wis = {
+  CLR = true,
+  PAL = true,
+  SHM = true
+}
+
+class_int = {
+  NEC = true,
+  MAG = true,
+  ENC = true  
+}
+
+class_pet = {
+  MAG = true,
+  ENC = true,
+  BST = true,
+  NEC = true,
+  SHM = true  
+}
+
 
 
 
@@ -115,8 +141,8 @@ function hudInfo ()
   ent.hudadj = tonumber(mq.TLO.Macro.Variable('maHeal').Find('stHealAdjust').Value()) or 0
   ent.build = mq.TLO.Macro.Variable('maEnv').Find('build').Value() or '--'
   ent.channel = mq.TLO.Macro.Variable('maEntropy').Find('stEntropyGroup_all').Value()
-  ent.mode = mq.TLO.Macro.Variable('maData').Find('mode').Value() or ''
-  ent.set = mq.TLO.Macro.Variable('maEnv').Find('stBuildSetCurrent').Value() or '--'
+  ent.mode = mq.TLO.Macro.Variable('maData').Find('mode').Value() or mq.TLO.Macro.Variable('maHud').Find('stHUDBlank').Value()
+  ent.set = mq.TLO.Macro.Variable('maEnv').Find('stBuildSetCurrent').Value() or mq.TLO.Macro.Variable('maHud').Find('stHUDBlank').Value()
   ent.auto = mq.TLO.Macro.Variable('maEnv').Find('swAuto').Value() or '0'
 
   -- buid hud variables

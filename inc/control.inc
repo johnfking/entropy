@@ -291,27 +291,22 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
     /invoke ${get_best_in_pet[TRUE]}
     /return TRUE
 
-
-
-
-    } else /if (${_type.Equal[plugin]}) {
-      
-      /declare _lsPlugin list local
-      /invoke ${_lsPlugin.Append[MQ2SQLite,MQ2DanNet,Mq2Nav,MQ2MoveUtils,MQ2Collections,MQ2Lua]}
-      
-      /echo plugin count${sep}${_lsPlugin.Count}
-      /declare _li listiterator local 
-      /vardata _li _lsPlugin.First.Clone
+  } else /if (${_type.Equal[plugin]}) {
     
-      /while (!${_li.IsEnd}) {
+    /declare _lsPlugin list local
+    /invoke ${_lsPlugin.Append[MQ2SQLite,MQ2DanNet,Mq2Nav,MQ2MoveUtils,MQ2Collections,MQ2Lua]}
+    
+    /echo plugin count${sep}${_lsPlugin.Count}
+    /declare _li listiterator local 
+    /vardata _li _lsPlugin.First.Clone
+  
+    /while (!${_li.IsEnd}) {
 
-          /echo ${_li.Value} ${sep} ${Bool[${Plugin[${_li.Value}]}]}
+        /echo ${_li.Value} ${sep} ${Bool[${Plugin[${_li.Value}]}]}
 
-        /invoke ${_li.Advance}
-      }
-      /return true
-
-
+      /invoke ${_li.Advance}
+    }
+    /return true
 
   } else /if (${_type.Equal[sqldrop]}) {
     
@@ -376,7 +371,6 @@ sub Bind_control_admin(string _type, string _verbage, string _verbage2, string _
       OUT \a-w/admin spa "EXACT SPELLNAME with ranks"\ax or gem#
       /return FALSE
     }
-  
 
     | reset gem as value if needed
     /if (${_verbage.Find[gem]} && ${_verbage.Length} < 6) {
@@ -805,7 +799,6 @@ sub Bind_control_env(string _type, string _verbage, string _silent, bool _debug)
   /invoke ${maControl.Clear}
   /invoke ${maControl.Add[auto,swAuto|pr]}
   /invoke ${maControl.Add[rad,stEnvRadius]}
-  | /invoke ${maControl.Add[rest,submenu]}
   /invoke ${maControl.Add[meal,submenu]}
   /invoke ${maControl.Add[exp,submenu]}
   /invoke ${maControl.Add[incharge,option]}
@@ -1140,8 +1133,6 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
   } else /if (${_type.Equal[facefast]}) {
     /invoke ${set_switch_env[FALSE, swFaceFast, TRUE, ${_verbage}]}
 
- 
-
   | when to clear home
   } else /if (${_type.Equal[stop]}) {
 
@@ -1192,9 +1183,10 @@ sub Bind_control_home(string _type, string _verbage, string _silent, bool _debug
 
 
 |***
- * note: control for /tc
+ * note: control for /tc or tcemu for emulators
  * use:
  ***|
+#bind control_tc /tcemu
 #bind control_tc /tc
 sub Bind_control_tc(string _type, string _verbage, string _silent, bool _debug)
   DEBUG \atBind_control_tc\ax(\a-w${_type}, ${_verbage}, ${_silent}\ax)
@@ -4858,17 +4850,10 @@ sub Bind_control_agro(string _type, string _verbage, string _verbage2, string _a
     /return TRUE
   }
 
-  | /if (ENGINE1 && ${Select[${_type},list]}) {
-    | /invoke ${out[0, "/agro list is only available with engine 2/3 enabled."]}
-    | /return FALSE
-  | }
-
-  | /if (ENGINE2 || ENGINE3) {
-    /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
-      /call control_base_edit ${maDebug.Find[edit].Value} Agro 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
-      /return TRUE
-    }
-  | }
+  /if (${Select[${_verbage},see,tag,alias,clear]} || ${Select[${_type},list,line]} || ${Range.Between[1,20:${Int[${_type}]}]}) {
+    /call control_base_edit ${maDebug.Find[edit].Value} Agro 20 "${_type}" "${_verbage}" "${_verbage2}" ${_add_delete}
+    /return TRUE
+  }
 
   /if (${_type.Equal[taunt]} && ${lsMeleeSkill.Contains[taunt]}) {
     /if (!${set_control_num_range[${_debug}, stPctTaunt, "${_verbage}", 0, 99]}) /return FALSE
@@ -6591,7 +6576,7 @@ sub Bind_control_merchant(string _type, string _verbage, _verbage2, bool _debug)
   	}
   	
   	/varcalc _current ${Int[${Math.Calc[${_verbage2}+${FindItemCount[=${_verbage}]}]}]}
-  :Filling
+  | Filling
   	/delay 5s ${Merchant.ItemsReceived}
 
   	/if (${FindItemCount[=${_verbage}]}>= ${_verbage2}) {
@@ -6839,14 +6824,10 @@ sub Bind_control_ui2(sring _verbage, string _verbage2, bool _debug)
   /if (${_verbage.Equal[drive]}) {
     /if (!${Bool[${_verbage2}]} || ${_verbage2.Equal[on]}) {
       /lua run ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
-      | /lua run ${MacroQuest.Path[macros]}\entropy\lua\drivebuttons.lua
     } else /if (${_verbage2.Equal[ui]}) {
       /lua run ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
-    |} else /if (${_verbage2.Equal[buttons]}) {
-      | /lua run ${MacroQuest.Path[macros]}\entropy\lua\drivebuttons.lua
     } else /if (${_verbage2.Equal[off]}) {
       /lua stop ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
-      | /lua stop ${MacroQuest.Path[macros]}\entropy\lua\drivebuttons.lua
     }
     /return TRUE
   }

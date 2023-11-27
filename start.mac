@@ -121,7 +121,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 230909.01
+  /call set_data FALSE maEnv build                          map outer 231127.01
   /call set_data FALSE maEnv schema                         map outer 1.66
   /call set_data FALSE maEnv repo                           map outer 220225.01
 
@@ -175,6 +175,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     /call check_sash_cycle ${maDebug.Find[sash].Value} macstart
   }
 
+  /call sort_lua_stuff
+
   /invoke ${out[0, "\agReady\ax${sep}\a-w${Math.Calc[((${MacroQuest.Running}-${_boottimestart}) / 10) / 60]}s\ax", 0]}
 
   | maintenance loop
@@ -185,8 +187,6 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     }
     /delay ${maEntropy.Find[stMainLoopDelay].Value}
   }
-  
-  /call sort_lua_stuff
 
   | main loop
   /while (!${maEntropy.Find[swMaintenance].Value}) {
@@ -266,7 +266,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
       }
 
       /if (DEV) {
-        /timed ${maHard.Find[stDelayLua].Value} /lua run ${MacroQuest.Path[macros]}\entropy\lua\health.lua
+        | /timed ${maHard.Find[stDelayLua].Value} /lua run "${MacroQuest.Path[macros]}\entropy\lua\health.lua"
       }
 
       | check tribute
@@ -292,7 +292,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
       }
 
       | fireworks
-      /if (${maEnv.Find[swAAFireworks].Value} && !${timer_Waste_Fireworks}) {
+      /if (!${timer_Waste_Fireworks} && ${maEnv.Find[swAAFireworks].Value}) {
         /call cast_AA_fireworks ${maDebug.Find[fireworks].Value}
       }
 
@@ -308,7 +308,7 @@ sub main(string _var1, string _var2, string _var3, string _var4)
       }
       
       | check loot
-      /if (AUTO && ${maEnv.Find[stLootMode].Value.NotEqual[off]} && !${timer_Check_Loot} && !${Stick.Active}) {
+      /if (AUTO && !${timer_Check_Loot} && ${maEnv.Find[stLootMode].Value.NotEqual[off]} && !${Stick.Active}) {
         /call do_loot ${maDebug.Find[loot].Value}
       }
 
@@ -342,19 +342,11 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     /dleave ${maEntropy.Find[stEntropyGroup_all].Value}
   }
 
-  | unload lua stuffs
-  /declare _liAlias list local
-  /invoke ${_liAlias.Append[radar,binds,health,event,eventbuttons,drive,uiadmin]}
-  /declare _lial listiterator local
-  /vardata _lial _liAlias.First.Clone
-  /while (!${_lial.IsEnd}) {
-    /lua stop ${MacroQuest.Path[macros]}\entropy\lua\${_lial.Value}.lua
-    /invoke ${_lial.Advance}
-  }
+  /call lua_end_scripts
 
 
   /if (${maEntropy.Find[swHUDCloseonEnd].Value}) {
-    /lua stop ${MacroQuest.Path[macros]}\entropy\lua\hud.lua
+    /lua stop "${MacroQuest.Path[macros]}\entropy\lua\hud.lua"
   }
 
   /endmacro
@@ -369,8 +361,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
  ***|
 sub prepare_the_end(bool _debug)
 
-  | checl the lua path
-  /call check_lua_requires
+  | check the lua path
+  /call lua_check_requires
 
   /declare _pathDB string local Macros
   /varset _pathDB ${MacroQuest.Path[macros]}
@@ -530,28 +522,27 @@ sub prepare_the_end(bool _debug)
  ***|
 sub sort_lua_stuff()
 
+  | check required packages are installed for Lua
+  /lua run "${MacroQuest.Path[macros]}\entropy\lua\packages.lua"
+
   | sort the macro hud
   /if (${maEntropy.Find[swHUDAuto].Value}) {
-    | /timed ${maHard.Find[stDelayLua].Value} 
-    /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.lua
+    /timed ${maHard.Find[stDelayLua].Value} /lua run "${MacroQuest.Path[macros]}\entropy\lua\hud.lua"
   }
 
   | sort the drive hud
   /if (${maEntropy.Find[swHUDDriveAuto].Value}) {
-    | /timed ${maHard.Find[stDelayLua].Value} 
-    /lua run ${MacroQuest.Path[macros]}\entropy\lua\drive.lua
+    /timed ${maHard.Find[stDelayLua].Value} /lua run "${MacroQuest.Path[macros]}\entropy\lua\drive.lua"
   }
 
   | sort the class hud
   /if (${maChr.Find[swHUDClassAuto].Value} && DEV) {
-    | /timed ${maHard.Find[stDelayLua].Value} 
-    /lua run ${MacroQuest.Path[macros]}\entropy\lua\hud.${Me.Class.ShortName}.lua
+    /timed ${maHard.Find[stDelayLua].Value} /lua run "${MacroQuest.Path[macros]}\entropy\lua\hud.${Me.Class.ShortName}.lua"
   }
 
   | start needed lua files
   /if (DEV) {
-    | /timed ${maHard.Find[stDelayLua].Value} 
-    /lua run ${MacroQuest.Path[macros]}\entropy\lua\binds.lua
+    /timed ${maHard.Find[stDelayLua].Value} /lua run "${MacroQuest.Path[macros]}\entropy\lua\binds.lua"
   }
 
 /return TRUE

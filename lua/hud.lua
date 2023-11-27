@@ -7,6 +7,8 @@
 
 
 require 'common'
+
+
 local openGUI = true
 local shouldDrawHUD = true
 
@@ -140,7 +142,7 @@ local function imguicallback()
           edit_switch_perm_cmd('temp', 'maBuff', 'swBuffTemp', 'cb t')
         ImGui.NextColumn()
           edit_switch_perm_cmd('unity', 'maBuff', 'swBuffUnity', 'cb u')
-          edit_switch_perm_cmd('minion', 'maBuff', 'swPetBuff', 'cb m')
+          edit_switch_perm_cmd('minion', 'maMinion', 'swPetBuff', 'cb m')
           edit_switch_perm_cmd('raid', 'maBuff', 'swBuffRaid', 'cb r')
           edit_switch_perm_cmd('group', 'maBuff', 'swBuffGroup', 'cb g')
           ImGui.NextColumn()
@@ -175,7 +177,7 @@ local function imguicallback()
             edit_switch_perm('weight', 'maHeal', 'swHealWeighted')
             ImGui.SameLine()
             edit_switch_perm('break', 'maHeal', 'swBreakHealPCT')
-            if mq.TLO.Me.Class.ShortName() == 'CLR' or mq.TLO.Me.Class.ShortName() == 'PAL' or mq.TLO.Me.Class.ShortName() == 'SHM' then
+            if class_wis[mq.TLO.Me.Class.ShortName()] then
               edit_switch_perm('twinheal', 'maHeal', 'swTwinHeal')     
             end
      

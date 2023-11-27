@@ -18,6 +18,33 @@
 
 
 
+- luarocks
+  corrected some orders and delays to adapt to the package installs for the lastest MQ release
+  i had an issue with the initial installs due to a delay in the macro. if this gives you issues,
+  end macro for entropy and run this: (copy paste into console)
+    /lua run "${MacroQuest.Path[macros]}\entropy\lua\packages.lua"
+  run it 2 times. first time will install "lsqlite3" second time will install "luafilesystem". 
+- lua  
+  changed the load orders, trying to stop that stupid undefined variable error.
+  several visual corrections
+  added in some quotes to account for spaces in lua file paths, because.. reasons..
+  minion button in buffs (build and hud) works now
+  pull with and mode celect correctly now in build ui
+  general timers have geen added to the build ui
+  minion controls will show up in build ui for static pet classes
+- radar
+  can add/remove: pet attack button and mark buttons for raid or group
+- corrected a mez check in curing
+- cleric
+  early exit for issuance so it doesnt get stuck on a laggy cast timer
+- added in Yalrrek's to pet toys
+- added alternate command for /tc, /tcemu for emu servers that still use LoN.
+- fixed some random typos... theres soo damn many of them
+  
+
+
+
+
 
 
 230909.01
@@ -33,11 +60,6 @@
   added in a pet attack button to the spawn view. will make an on.off switch for them later.
 - corected a bad lua call for the sarcasim lines
 - rewrote the plugin checker. was working fine before, but did it anyway.  
-
-
-
-
-
 
 
 230817.01

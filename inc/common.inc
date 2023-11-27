@@ -6589,7 +6589,7 @@ sub get_MAG_folded_pack(bool _debug)
   DEBUG \atget_MAG_folded_pack\ax()
 
   /declare _lsout list local
-  /invoke ${_lsout.Append[Wirn's,Thassis',Frightforged,Manaforged,Spectral,Shak Dathor's]}
+  /invoke ${_lsout.Append[Wirn's,Thassis',Yalrek's,Frightforged,Manaforged,Spectral,Shak Dathor's]}
   /declare _ligmfp listiterator local
   /vardata _ligmfp _lsout.First.Clone
   /while (!${_ligmfp.IsEnd}) {
@@ -11577,12 +11577,10 @@ sub set_rank(bool _debug, string _spell)
       DEBUG ${sep} returning basename${sep}\a-w${Spell[${_spell}].BaseName}\ax
       /return ${Spell[${_spell}].BaseName}
     } else {
-      DEBUG ${sep} returning rankname${sep}\a-w${Spell[${_spell}].BaseName}\ax
+      DEBUG ${sep} returning rankname${sep}\a-w${Spell[${_spell}].RankName}\ax
       /return ${Spell[${_spell}].RankName}
     }
   }
-
-  DEBUG ${sep} returning${sep}\a-w${Spell[${_spell}].BaseName}\ax
 
 /return ${_spell}
 
@@ -12224,7 +12222,7 @@ sub check_buff_cycle_temp(bool _debug)
       | cycle the tags
       /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_count} ${_spawn.DisplayName} "${maCD.Find[tmpName].Value}" check_buff_cycle_temp
       /if (!${Macro.Return}) {
-        DEBUG ${sep}skip${sep}failed tag cycle check
+        DEBUG ${sep}skip${sep}failed tag cycle check "${maCD.Find[tmpName].Value}"
         /continue
       }
 
@@ -13254,7 +13252,7 @@ sub check_cure(bool _debug)
       /goto :end_cure
     }
 
-    /if (${DanNet[${_toon}].Observe["Me.Mezzed"]}) {
+    /if (${DanNet[${_toon}].Observe["Me.Mezzed.ID"]}) {
       DEBUG ${sep}${_toon} is MEZZED...I'm retarded and mezzed myself... ffs
       /delay 3s !${Me.SpellInCooldown}
       /call cast_cycle_cure ${_debug} ${Spawn[pc ${_toon}].ID} curse
@@ -16325,7 +16323,7 @@ sub set_data_notes(bool _debug, string _noteid, string _name, string _text)
  * note: verify lua require paths have been set up. END macro if not
  * use: /call check_lua_requires
  ***|
-sub check_lua_requires()
+sub lua_check_requires()
 
   /if (!${Lua.RequirePaths.Find[macros\entropy\lua\?.lua]}) {
     OUT
@@ -16345,7 +16343,21 @@ sub check_lua_requires()
 /return TRUE
 
 
+|***
+ * note: blind unload of all running lua scripts
+ * use: /call check_lua_requires
+ ***|
+sub lua_end_scripts()
 
+  /declare _liAlias list local
+  /invoke ${_liAlias.Append[radar,binds,health,event,eventbuttons,drive,uiadmin]}
+  /declare _lial listiterator local
+  /vardata _lial _liAlias.First.Clone
+  /while (!${_lial.IsEnd}) {
+    /lua stop "${MacroQuest.Path[macros]}\entropy\lua\${_lial.Value}.lua"
+    /invoke ${_lial.Advance}
+  }
 
+/return true
 
 

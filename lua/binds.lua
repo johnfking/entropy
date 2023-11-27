@@ -7,12 +7,6 @@
 
 
 require 'common'
-local sql = require('lsqlite3')
-
-
-
-
-
 
 
 
