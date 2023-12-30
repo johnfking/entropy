@@ -474,7 +474,7 @@ local function imguicallback()
           -- valid loc
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'valid loc:')
           ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, mq.TLO.EverQuest.ValidLoc(string.format("%.2f %.2f %.2f", mq.TLO.Target.X(), mq.TLO.Target.Y(), mq.TLO.Target.Z())) or 0)
+          -- ImGui.TextColored(1, 1, 1, 1, mq.TLO.EverQuest.ValidLoc(string.format("%.2f %.2f %.2f", mq.TLO.Target.X(), mq.TLO.Target.Y(), mq.TLO.Target.Z())) or 0)
           
 
           -- mq.TLO.EverQuest.ValidLoc(string.format("%f %f %f", mq.TLO.Target.X(), mq.TLO.Target.Y(), mq.TLO.Target.Z()))
@@ -527,27 +527,27 @@ local function imguicallback()
           -- slowed
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Slowed:')
           ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, target['slowed']) 
+          ImGui.TextColored(1, 1, 1, 1, isSlowed()) 
 
           -- tashed
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Tashed:')
           ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, target['tashed']) 
+          ImGui.TextColored(1, 1, 1, 1, isTashed()) 
 
           -- maloed
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Malo:')
           ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, target['maloed']) 
+          ImGui.TextColored(1, 1, 1, 1, isMaloed()) 
 
           -- crippled
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Cripple:')
           ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, target['crippled']) 
+          ImGui.TextColored(1, 1, 1, 1, isCrippled()) 
 
           -- snared
           ImGui.TextColored(0.39, 0.58, 0.92, 1, 'Snared:')
           ImGui.SameLine()
-          ImGui.TextColored(1, 1, 1, 1, target['snared']) 
+          ImGui.TextColored(1, 1, 1, 1, isSnared()) 
 
           -- ds
           -- ImGui.TextColored(0.39, 0.58, 0.92, 1, 'DS:')

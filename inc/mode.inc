@@ -109,14 +109,31 @@ sub mode_trainskill(bool _debug)
   }
 
   | Bind Wounds
-  /if (${Me.AbilityReady[Bind Wound]} && ${FindItem[=Bandages].ID}) {
-    /if (${Me.Skill[Bind Wound]} < ${Skill[Bind Wound].SkillCap} && ${Me.PctHPs} < 99*.PCTHO) {
-      DEBUG ${sep}bind
-      /call target set ${Me.ID}
+  /if (${Me.AbilityReady[Bind Wound]} && ${FindItem[=Bandages].ID} && ${Me.Skill[Bind Wound]} < ${Skill[Bind Wound].SkillCap}) {
+    
+    /declare _count int local 0
+    /declare _spawn spawn local
+    /for _count 0 to 5
+      /vardata _spawn Spawn[${Group.Member[${_count}]}]
+      /if (${_spawn.PctHPs} != 100) {
+        /break
+      }
+    /next _count 
+
+    /call target set ${_spawn.ID}
+    /if (${Target.Type.Equal[PC]}) {
       /doability "Bind Wound"
-      /delay 14s
     }
+
+    /while (!${Me.AbilityReady[Bind Wound]}) {
+      /delay 5
+    }
+
+    /call target release
+    /delay 1s
   }
+  
+
 
   SETHUD
 
@@ -681,6 +698,7 @@ sub mode_trainspell(string _type, bool _debug)
 
     | seriously theres an apocalypse going on, shoud wash your hands
     /if (${Cursor.ID}) {
+      | /destroy
       /call check_cursor ${_debug} clear
     }
 

@@ -96,7 +96,7 @@ function move (...)
   local op = {...}
 
   if op[1] == nil then  
-    out(2, '/move', '[stop, stand, sit, duck, jump, rewind, loc y x, to name or id]')
+    out(2, '/move', '[stop, stand, sit, duck, jump, rewind, loc y x, to name or id, door, doorname or #]')
   end
   
   -- duck, duck, goose?
@@ -144,6 +144,51 @@ function move (...)
     control_movement('stop')
     out(2, '/move', 'stop')
     
+
+-- Laurion's Song considerations
+  elseif op[1] == 'door' then
+
+    -- from the inn to the zone doors
+    if mq.TLO.Zone.ShortName() == 'laurioninn' then
+      if op[2] == 'heroes' then
+        out(2, '/move to The Heroes Forge Door')
+        mq.cmd.nav('locyxz -344 1048 5 |log=off')
+      elseif op[2] == '4' or op[2] == 'unkempt' then
+        out(2, '/move to The Unkempt Woods Door')
+        mq.cmd.nav('locyxz -1007 -188 25 |log=off')
+      elseif op[2] == '6' or op[2] == 'timorous' then
+        out(2, '/move to Timorous Falls Door')
+        mq.cmd.nav('locyxz -1004 -147 25 |log=off')
+      elseif op[2] == '7' or op[2] == 'pallomen' then
+        out(2, '/move to PalLomen Door')
+        mq.cmd.nav('locyxz -1022 -127 25 |log=off')
+      elseif op[2] == '9' or op[2] == 'moors' then
+        out(2, '/move to Moors of Nokk Door')
+        mq.cmd.nav('locyxz -928 -130, 24 |log=off')
+      elseif op[2] == '10' or op[2] == 'ankexfen' then
+        out(2, '/move to Ankexfen Keep Door')
+        mq.cmd.nav('locyxz -926 -176 25 |log=off')
+      end
+    end
+
+
+    -- in the various zone to the door out    
+    if mq.TLO.Zone.ShortName() == 'herosforge' then
+      mq.cmd.nav('locyxz 604 -1367 328 |log=off')
+    elseif mq.TLO.Zone.ShortName() == 'pallomen' then
+      mq.cmd.nav('locyxz -1013 -773 -23 |log=off')
+    elseif mq.TLO.Zone.ShortName() == 'timorousfalls' then
+      mq.cmd.nav('locyxz -28 -26 -8 |log=off')
+    elseif mq.TLO.Zone.ShortName() == 'unkemptwoods' then
+      mq.cmd.nav('locyxz 2528 -3410 -288 |log=off')
+    elseif mq.TLO.Zone.ShortName() == 'unkemptwoods' then
+      mq.cmd.nav('locyxz 2528 -3410 -288 |log=off')
+    elseif mq.TLO.Zone.ShortName() == 'ankexfen' then
+      mq.cmd.nav('locyxz -56 56 -4 |log=off')
+    elseif mq.TLO.Zone.ShortName() == 'moorsofnokk' then
+      mq.cmd.nav('locyxz 1749 757 -93 |log=off')
+    end
+
 
 
   -- move to something
@@ -194,7 +239,7 @@ function move (...)
       return
     end
     print(outs['move'] ..'LOC \a-ty:\ax' .. op[2] .. ' \a-tx\ax' .. op[3])
-    mq.cmd.nav('locyxz ' .. op[2] .. ' ' .. op[3] .. ' |dist=6 log='..•navlog)
+    mq.cmd.nav('locyxz ' .. op[2] .. ' ' .. op[3] .. ' |dist=6 log='..navlog)
     
   end
 end

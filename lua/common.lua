@@ -359,6 +359,14 @@ function isSlowed()
   return 100 - mq.TLO.Target.Slowed.Base(2)()..'%% ('..mq.TLO.Target.BuffDuration(mq.TLO.Target.Slowed()).TotalSeconds()..'s)'
 end
 
+-- just return the base % slowed
+function isSlowedBase()
+  if mq.TLO.Target.Slowed.ID() == nil then
+    return ''
+  end
+  return 100 - mq.TLO.Target.Slowed.Base(2)()..'%%'
+end
+
 
 function isTashed()
   if mq.TLO.Target.Tashed.ID() == nil then
@@ -376,7 +384,7 @@ function isMaloed()
 end
 
 
-function isCrippled ()
+function isCrippled()
   if mq.TLO.Target.FindBuff('subcat Disempowering').ID() == nil then
     return ''
   end
@@ -384,7 +392,7 @@ function isCrippled ()
 end
 
 
-function isSnared ()
+function isSnared()
   if mq.TLO.Target.Snared.ID() == nil then
     return ''
   end
@@ -567,14 +575,17 @@ end
 function out (...)
   local op = {...}
 
+  -- simple echo response
+  if op[1] == 1 then
+    print(string.format('\a-t%s\ax', op[2]))
+
   -- default 2 strings    
-  if op[1] == 2 then
+  elseif op[1] == 2 then
     print(string.format('\a-t%s\ax \a-w%s\ax', op[2], op[3]))
 
   -- default 2 strings with an error
   elseif op[1] == 2.1 then
    print(string.format('\a-t%s\ax \a-w%s\ax '.. outs['dot'] ..' \ar%s\ax', op[2], op[3], op[4])) 
-
   
   -- help response for no tags for the control
   elseif op[1] == 'notag' then

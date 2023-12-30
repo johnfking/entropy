@@ -138,6 +138,7 @@ sub set_initialize(bool _debug)
   /invoke ${maData.Add[stPctEngagePetSet,FALSE]}
   /invoke ${maData.Add[stPctEngageSwarmSet,FALSE]}
   /invoke ${maData.Add[stPctEngageBurnSet,FALSE]}
+  /invoke ${maData.Add[stStartClassID,${Me.Class.ID}]}
 
 
   | hook map
@@ -391,7 +392,15 @@ sub set_initial_environment(bool _debug)
   /invoke ${set_data_timer[${_debug}, Check_Inventory_ManaClick, 1m]}
   /invoke ${set_data_timer[${_debug}, Check_Build_Spawn_Map_Data, 5s]}
   /invoke ${set_data_timer[${_debug}, Mode_Open, 3s]}
-
+  /invoke ${set_data_timer[${_debug}, Agro, 2s]}
+  
+  | Knight Timers
+  /if (${Select[${Me.Class.ShortName},PAL,SHD]}) {
+    /invoke ${set_data_timer[${_debug}, Withstand, 2s]}
+  }  
+  
+  
+  
   | wait time for pulling
   /invoke ${set_timer[${_debug}, wait_for_mob, 0]}
 
@@ -2595,6 +2604,11 @@ sub data_schema_tag()
   /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('951', 'memspell', '1');
 
 
+  /sqlite query "${DBshared}" dummy INSERT OR IGNORE INTO tag(id, name, created_by) VALUES('950', 'knightwithstand', '1');
+
+
+
+
 /return TRUE
 
 
@@ -2774,6 +2788,7 @@ sub data_schema_tag_validation
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '42', '1', 'ACTION::dropinvis', 'drops invis and sos');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '67', '1', '${Parse[0,!${Me.FeetWet}]}', 'must be out of water');
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '987', '1', 'ACTION::delaycooldown', 'delays until gem cooldown is clear');
+  /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('6', '950', '1', 'CONTROL::MARKER', 'marker knight fast withstand rune line');
 
   | buffs
   /sqlite query "${DBshared}" dummy INSERT OR REPLACE INTO tag_validate(grouping, tag, created_by, eval, aux) VALUES('7', '49', '1', 'CONTROL::MARKER', 'marker /buff self');

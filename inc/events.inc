@@ -252,6 +252,7 @@ sub Event_CAST_TAKEHOLD(string _line, bool _debug)
 /return
 
 #event CAST_REZFAIL               "You were unable to restore the corpse to life, but you may have success with a later attempt#*#"
+#event CAST_REZFAIL               "This spell only works on corpses#*#"
 sub Event_CAST_REZFAIL(string _line, bool _debug)
   EDEBUG REZFAIL
   /invoke ${maData.Add[stCastReturn,REZFAIL]}

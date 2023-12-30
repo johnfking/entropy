@@ -17,7 +17,19 @@
 --------------------
 
 
-
+231230.01
+- druid
+  added in single target HoT
+- agro
+  put in a 2 sec base delay/break do it doesnt try to fire all the skills at once  
+- complete redesign of buff now sub
+- knights
+  withstand rune line
+  add to /defense with the tag knightwithstand
+  considerable increase in its usage
+  
+  
+231127.01
 - luarocks
   corrected some orders and delays to adapt to the package installs for the lastest MQ release
   i had an issue with the initial installs due to a delay in the macro. if this gives you issues,
@@ -30,7 +42,7 @@
   added in some quotes to account for spaces in lua file paths, because.. reasons..
   minion button in buffs (build and hud) works now
   pull with and mode celect correctly now in build ui
-  general timers have geen added to the build ui
+  general timers have been added to the build ui
   minion controls will show up in build ui for static pet classes
 - radar
   can add/remove: pet attack button and mark buttons for raid or group
@@ -41,11 +53,6 @@
 - added alternate command for /tc, /tcemu for emu servers that still use LoN.
 - fixed some random typos... theres soo damn many of them
   
-
-
-
-
-
 
 230909.01
 - knights

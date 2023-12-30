@@ -522,247 +522,6 @@ sub check_free_ingame_cash(bool _debug)
 
 
 |***
- * note: checks whos hurt, returns a count. sets most hurt: ID, Class, pct hurt
- * use: /call get_hurt DEBUG [group|pet|mypet|xtarget|tot|CH|reset] || ${get_hurt[DEBUG, group|pet|mypet|xtarget|tot|ch|reset]}
- ***|
-sub get_hurt(bool _debug, string _type, bool _breakonGroup)
-  DEBUG \atget_hurt\ax(\a-w${_type}\ax)
-  DEBUG ${sep}using weighted HP check${sep}\a-w${maHeal.Find[swHealWeighted].Value}\ax
-
-  /declare _count int local 0
-  /varset hurtID ${Me.ID}
-  /varset hurtPctHP 100
-  /varset hurtCLS ${Me.Class.ShortName}
-  /varset hurtCount 0
-  /varset hurtDead 0
-  /declare _hurtWeight float local 99.01
-  /declare _tmpWeight float local 99.02
-
-  | we just take defaults of no one hurt and exit.
-  /if (${_type.Equal[reset]}) {
-    /return 0
-
-  | check group hurt
-  } else /if (${_type.Equal[group]}) {
-    DEBUG \a-w{_type.Equal[group]}\ax
-
-    /for _count 0 to ${Group.Members}
-      DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}${Group.Member[${_count}].Name}${sep}${Group.Member[${_count}].ID}\ax
-      /if (${Group.Member[${_count}].PctHPs} > ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}*.PCTHO) /continue
-      /if (${Group.Member[${_count}].Distance} > ENV) /continue
-      /if (!${Group.Member[${_count}].Present}) /continue
-      /if (${Group.Member[${_count}].Dead}) {
-        /varcalc hurtDead ${hurtDead} + 1
-        /continue
-      }
-      /if (${Group.Member[${_count}].DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}) /continue
-      /if (${lsNoHealToon.Contains[${Group.Member[${_count}].DisplayName}]}) /continue
-
-      | group hurt running count
-      /if (${Group.Member[${_count}].PctHPs} <= ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}*.PCTHO) {
-        /varcalc hurtCount ${hurtCount} + 1
-        /if (${maHeal.Find[stCountHealGroup].Value} && ${_breakonGroup}) {
-          DEBUG ${sep}break on${sep}\a-w${hurtCount}\ax \aw>=\ax \a-w${maHeal.Find[stCountHealGroup].Value}\ax
-          /if (${hurtCount} >= ${maHeal.Find[stCountHealGroup].Value}) {
-            /return ${hurtCount}
-          }
-        }
-      }
-
-      /if (${maHeal.Find[swHealWeighted].Value}) {
-        /varset _tmpWeight ${Float[${Math.Calc[(${Group.Member[${_count}].PctHPs} - .${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}) / ${maHeal.Find[stHealPoint${Group.Member[${_count}].Class.ShortName}].Value}].Value}]}].Precision[5]}
-        DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}_tmpWeight${sep}\a-w${_tmpWeight}\ax
-        /if (${Float[${_tmpWeight}].Precision[5]} < ${Float[${_hurtWeight}].Precision[5]}) {
-          /varset _hurtWeight ${Float[${_tmpWeight}].Precision[5]}
-          /varset hurtPctHP ${Group.Member[${_count}].PctHPs}
-          /varset hurtID ${Group.Member[${_count}].ID}
-          /varset hurtCLS ${Group.Member[${_count}].Class.ShortName}
-        }
-      } else /if (!${maHeal.Find[swHealWeighted].Value}) {
-        /varset hurtPctHP ${Group.Member[${_count}].PctHPs}
-        /varset hurtID ${Group.Member[${_count}].ID}
-        /varset hurtCLS ${Group.Member[${_count}].Class.ShortName}
-      }
-
-    /next _count
-    /return ${hurtCount}
-
-
-  | check xtarget hurt
-  } else /if (${_type.Equal[xtarget]}) {
-    DEBUG \a-w{_type.Equal[xtarget]}\ax
-    /for _count 1 to ${Me.XTargetSlots}
-      /if (!${Me.XTarget[${_count}].ID}) /continue
-      /if (${Me.XTarget[${_count}].Dead}) /continue
-      /if (${Me.XTarget[${_count}].PctHPs} > ${hurtPctHP}) /continue
-      /if (${Me.XTarget[${_count}].Distance} > ENV) /continue
-      /if (${Me.XTarget[${_count}].DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}) /continue
-      /if (${lsNoHealToon.Contains[${Me.XTarget[${_count}].DisplayName}]}) /continue
-      /if (!${Me.XTarget[${_count}].Type.Equal[PC]} && !${lsProtectOutsideGroup.Contains[${Me.XTarget[${_count}].DisplayName}]}) /continue
-      /if (${Me.XTarget[${_count}].PctHPs} > ${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}*.PCTHO) /continue
-      /varset _tmpWeight ${Float[${Math.Calc[(${Me.XTarget[${_count}].PctHPs} - .${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}) / ${maHeal.Find[stHealPoint${Me.XTarget[${_count}].Class.ShortName}].Value}].Value}]}].Precision[5]}
-
-      /if (${Float[${_tmpWeight}].Precision[5]} < ${Float[${_hurtWeight}].Precision[5]}) {
-        /varset _hurtWeight ${Float[${_tmpWeight}].Precision[5]}
-        /varset hurtID ${Me.XTarget[${_count}].ID}
-        /varset hurtPctHP ${Me.XTarget[${_count}].PctHPs}
-        /varset hurtCLS ${Me.XTarget[${_count}].Class.ShortName}
-        /varset hurtCount 1
-      }
-
-    /next _count
-    /return ${hurtCount}
-
-
-  | check pet hurt
-  } else /if (${_type.Equal[pet]}) {
-    /for _count 0 to ${Group}
-      /if (!${Group.Member[${_count}].Pet.ID}) /continue
-      /if (${Group.Member[${_count}].Pet.PctHPs} > ${maHeal.Find[stHealPoint${Group.Member[${_count}].Pet.Class.ShortName}].Value}) /continue
-      /if (${Group.Member[${_count}].Pet.Distance} > ENV) /continue
-      /if (${Group.Member[${_count}].Pet.PctHPs} >= ${hurtPctHP}) /continue
-
-      /varset hurtCount 1
-      /varset hurtID ${Group.Member[${_count}].Pet.ID}
-      /varset hurtPctHP ${Group.Member[${_count}].Pet.PctHPs}
-      /varset hurtCLS ${Group.Member[${_count}].Pet.Class.ShortName}
-    /next _count
-    /return ${hurtCount}
-
-
-  | self only pet hurt
-  } else /if (${_type.Equal[mypet]}) {
-    /if (!${Me.Pet.ID}) /return FALSE
-    /if (${Me.Pet.PctHPs} >= ${maHeal.Find[stHealPoint${Me.Pet.Class.ShortName}].Value}) {
-      /return 0
-    }
-    /if (${Me.Pet.Distance} > ENV) {
-      /return 0
-    }
-
-    /varset hurtID ${Me.Pet.ID}
-    /varset hurtPctHP ${Me.Pet.PctHPs}
-    /varset hurtCLS Pet
-    /if (${hurtPctHP} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-      /return 0
-    }
-    /varset hurtCount 1
-    /return 1
-
-  | set self hurt
-  } else /if (${_type.Equal[self]}) {
-    /varset hurtID ${Me.ID}
-    /varset hurtPctHP ${Me.PctHPs}
-    /varset hurtCLS ${Me.Class.ShortName}
-
-    /if (${hurtPctHP} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-      /return 0
-    }
-    /varset hurtCount 1
-    /return 1
-
-
-  | target of target hurt
-  } else /if (${_type.Equal[tot]}) {
-    /varset hurtID ${Me.TargetOfTarget.ID}
-    /varset hurtPctHP ${Me.TargetOfTarget.PctHPs}
-    /varset hurtCLS ${Me.TargetOfTarget.Class.ShortName}
-    DEBUG ${sep}hurtID:\a-w${hurtID}\ax ${dot} hurtPctHP:\a-w${hurtPctHP}\ax ${dot} hurtCLS:\a-w${hurtCLS}\ax
-
-    DEBUG ${hurtPctHP} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO
-    /if (${hurtPctHP} >= ${maHeal.Find[stHealPoint${hurtCLS}].Value}*.PCTHO) {
-      /return 0
-    }
-    /varset hurtID ${Target.ID}
-    /varset hurtCount 1
-
-    DEBUG ${sep}hurtID:\a-w${hurtID}\ax ${dot} hurtPctHP:\a-w${hurtPctHP}\ax ${dot} hurtCLS:\a-w${hurtCLS}\ax
-
-    /return 1
-
-
-  | Cleric Complete Heal hurt check
-  } else /if (${_type.Equal[complete]}) {
-    DEBUG \a-w{_type.Equal[complete]}\ax
-
-    DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}${Group.MainTank.Name}${sep}${Group.MainTank.ID}\ax
-    /if (${Group.MainTank.PctHPs} > ${maHeal.Find[stPctCH].Value}*.PCTHO) /return 0
-    /if (${Group.MainTank.Distance} > ENV) /return 0
-    /if (!${Group.MainTank.Present} || ${Group.MainTank.Dead}) /return 0
-
-    /return 1
-
-
-  | dannet healing
-  } else /if (${_type.Equal[DanNet]}) {
-    /declare _toon string local
-
-    | each toon
-    /for _count 1 to ${DanNet.PeerCount[${maEntropy.Find[stEntropyGroup_all].Value}]}
-
-      | get the name to something usable
-      /varset _toon ${DanNet.Peers[${maEntropy.Find[stEntropyGroup_all].Value}].Arg[${_count},|]}
-      DEBUG ${sep}_toon${sep}\ay${_toon}\ax
-
-      | is the observer set
-      /if (!${DanNet[${_toon}].ObserveSet["Me.PctHPs"]} || !${DanNet[${_toon}].ObserveSet["Me.Class.ShortName"]} || !${DanNet[${_toon}].ObserveSet["Me.ID"]}) {
-        DEBUG ${break}defined${sep}!\a-w${_toon}_PctHPs\ax
-        /continue
-      }
-
-      DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}${Spawn[pc ${_toon}].DisplayName}${sep}${Spawn[pc ${_toon}].ID}\ax
-
-      /if (${DanNet[${_toon}].Observe["Me.PctHPs"]} > ${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}*.PCTHO) {
-        DEBUG ${break} > HealPoint
-        /continue
-      } else /if (${Spawn[pc ${_toon}].Distance} > ENV) {
-        DEBUG ${break} > env radius
-        /continue
-      } else /if (${Spawn[pc ${_toon}].Dead}) {
-        DEBUG ${break} dead toon
-        /varcalc hurtDead ${hurtDead} + 1
-        /continue
-      } else /if (!${Spawn[pc ${_toon}].ID}) {
-        DEBUG ${break} not in zone
-        /continue
-      } else /if (${Spawn[pc ${_toon}].DisplayName.Equal[${maHeal.Find[stRampageTank].Value}]}) {
-        DEBUG ${break} rampage tank
-        /continue
-      }
-
-      | hurt running count
-      /if (${DanNet[${_toon}].Observe["Me.PctHPs"]} <= ${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}*.PCTHO) {
-        DEBUG ${sep}hurtCount +1
-        /varcalc hurtCount ${hurtCount} + 1
-      }
-
-      /if (${maHeal.Find[swHealWeighted].Value}) {
-        DEBUG ${sep}_count${sep}\a-w${_toon}\ax${sep}\a-o(${DanNet[${_toon}].Observe["Me.PctHPs"]} - .${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}) / ${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}\ax
-        /varset _tmpWeight ${Float[${Math.Calc[(${DanNet[${_toon}].Observe["Me.PctHPs"]} - .${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}) / ${maHeal.Find[stHealPoint${DanNet[${_toon}].Observe["Me.Class.ShortName"]}].Value}].Precision[5]}]}
-        DEBUG ${sep}_count${sep}\a-w${_count}\ax${sep}_tmpWeight${sep}\a-w${_tmpWeight}\ax
-        /if (${Float[${_tmpWeight}].Precision[5]} < ${Float[${_hurtWeight}].Precision[5]}) {
-          /varset _hurtWeight ${Float[${_tmpWeight}].Precision[5]}
-          /varset hurtPctHP ${DanNet[${_toon}].Observe["Me.PctHPs"]}
-          /varset hurtID ${DanNet[${_toon}].Observe["Me.ID"]}
-          /varset hurtCLS ${DanNet[${_toon}].Observe["Me.Class.ShortName"]}
-        }
-      } else /if (!${maHeal.Find[swHealWeighted].Value}) {
-        /varset hurtPctHP ${DanNet[${_toon}].Observe["Me.PctHPs"]}
-        /varset hurtID ${DanNet[${_toon}].Observe["Me.ID"]}
-        /varset hurtCLS ${DanNet[${_toon}].Observe["Me.Class.ShortName"]}
-      }
-
-    /next _count
-    /return ${hurtCount}
-
-
-  }
-
-/return 0
-
-
-
-|***
  * note: checks facing of a spawn
  * use: /invoke ${spawn_face[spawn]}
  ***|
@@ -1979,6 +1738,9 @@ sub set_combat_melee(bool _debug, spawn _spawn)
   }
 
   /if (MELEE && !${Me.Combat}) {
+    /if (${Target.ID} == ${Me.ID}) {
+      /call target set ${_spawn.ID}
+    }
     /squelch /attack on
   }
 
@@ -2100,7 +1862,7 @@ sub get_target_basepull(bool _debug, spawn _spawn)
     /return FALSE
   }
 
-  /if (MELEE) {
+  /if (MELEE && ${Target.ID} != ${Me.ID}) {
     /attack on
   }
 
@@ -2476,8 +2238,9 @@ sub pull_mob_tag(bool _debug, spawn _spawn)
     /if (${maPull.Find[stPullWith].Value.Equal[melee]} && ${_spawn.Distance} <= ${Math.Calc[${_spawn.MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} || ${_spawn.Distance} <= ${Math.Calc[${_spawn.MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}) {
       DEBUG ${sep}Tag${sep}Melee${sep}${tar}${_spawn.DisplayName}\ax
       GETINPUT pull_mob_tag_melee NA|NA
-
-      /attack on
+      /if (${Target.ID} != ${Me.ID}) {
+        /attack on
+      }
       | make sure we are stopped
       /if (!${Select[${Me.Class.ShortName},BRD]}) {
         /declare _breakmove int local 1
@@ -2649,7 +2412,10 @@ sub pull_mob_tag(bool _debug, spawn _spawn)
     /if (MELEE && ${_spawn.Distance} > ${Math.Calc[${_spawn.MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} && ${_spawn.Distance} <= ENV) {
       DEBUG ${sep}Tag${sep}Melee${sep}${tar}${_spawn.DisplayName}\ax
       GETINPUT pull_mob_tag_both NA|NA
-      /attack on
+      
+      /if (${Target.ID} != ${Me.ID}) {
+        /attack on
+      }
 
       DEBUG ${sep}${_spawn.Distance} > ${Math.Calc[${_spawn.MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]}
       DEBUG ${sep}Tag${sep}Melee${sep}${tar}${_spawn.DisplayName}\ax \agNAVTO\ax
@@ -2667,7 +2433,11 @@ sub pull_mob_tag(bool _debug, spawn _spawn)
   /if (${_spawn.Distance} <= ${Math.Calc[${_spawn.MaxRangeTo}*.${maHard.Find[stMaxMeleeAdj].Value}]} && MELEE && !RANGE) {
     DEBUG ${sep}Tag${sep}Melee NO RANGE${sep}${tar}${_spawn.DisplayName}\ax
     GETINPUT pull_mob_tag_fail NA|NA
-    /attack on
+
+    /if (${Target.ID} != ${Me.ID}) {
+      /attack on
+    }
+
     /return TRUE
 
   }
@@ -3968,7 +3738,6 @@ sub cast_AA_fade(bool _debug)
 sub check_buff_cycle_now(bool _debug)
   DEBUG \atcheck_buff_cycle_now\ax()
 
-
   /invoke ${set_data_timer[${_debug}, Check_Buff_Now, RESTART]}
 
   /if (AUTO && !${maBuff.Find[swBuffMaster].Value}) {
@@ -3981,62 +3750,87 @@ sub check_buff_cycle_now(bool _debug)
   CHECKEXIT check_buff_cycle_now
   GETINPUT check_buff_cycle_now NA|NA
 
-  /declare _licountself listiterator local
-  /vardata _licountself lsCount50.First.Clone
-  /while (!${_licountself.IsEnd}) {
+  /declare _liBuff listiterator local
+  /vardata _liBuff lsCount50.First.Clone
+  /while (!${_liBuff.IsEnd}) {
     
     GETOVERHERE
-
+    
+ 
     | buff on/off switch
-    /if (!${maBuff.Find[swBuff${_licountself.Value}].Value}) {
-      /invoke ${_licountself.Advance}
-      /continue
-    }
-
-    | now tag needed
-    /if (!${lsBuff${_licountself.Value}Tag.Contains[now]}) {
-      DEBUG ${break}${_licountself.Value}${sep}\a-wno now tag\ax
-      /invoke ${_licountself.Advance}
+    /if (!${maBuff.Find[swBuff${_liBuff.Value}].Value}) {
+      /invoke ${_liBuff.Advance}
       /continue
     }
 
     | no name set?
-    /if (!${Bool[${maBuff.Find[stBuff${_licountself.Value}].Value}]}) {
-      DEBUG ${break}no name set:${_licountself.Value}
-      /invoke ${_licountself.Advance}
+    /if (!${Bool[${maBuff.Find[stBuff${_liBuff.Value}].Value}]}) {
+      DEBUG ${break}no name set:${_liBuff.Value}
+      /invoke ${_liBuff.Advance}
       /continue
     }
 
-    /if (!${cast_data[${_debug}, "${maBuff.Find[stBuff${_licountself.Value}].Value}"]}) {
-      DEBUG ${break}${_licountself.Value}${sep}\a-wnot ready\ax (\a-r${maBuff.Find[stBuff${_licountself.Value}].Value}\ax)
-      /invoke ${_licountself.Advance}
+    | now tag needed
+    /if (!${lsBuff${_liBuff.Value}Tag.Contains[now]}) {
+      DEBUG ${break}${_liBuff.Value}${sep}\a-wno now tag\ax
+      /invoke ${_liBuff.Advance}
       /continue
     }
+
+
+    | start name redirects
+    /if (${maBuff.Find[stBuff${_liBuff}].Value.Count[|]} == 3) {
+      DEBUG ${sep}get best in
+      /call get_best_in_spell ${_debug} "${maBuff.Find[stBuff${_liBuff}].Value.Arg[1,|]}" "${maBuff.Find[stBuff${_liBuff}].Value.Arg[2,|]}" "${maBuff.Find[stBuff${_liBuff}].Value.Arg[3,|]}"
+      /call cast_data ${_debug} "${Macro.Return}"
+      
+    | get item clickie name
+    } else /if (${FindItem[=${maBuff.Find[stBuff${_liBuff}].Value}].ID}) {
+      DEBUG ${sep}item${sep}${maBuff.Find[stBuff${_liBuff}].Value}${sep}\a-w${Spell[${FindItem[=${maBuff.Find[stBuff${_liBuff}].Value}].Clicky.SpellID}].Name}\ax
+      /call cast_data ${_debug} "${maBuff.Find[stBuff${_liBuff}].Value}"
+
+    | stick with buff name
+    } else {
+      DEBUG ${sep}defaultname${sep}${maBuff.Find[stBuff${_liBuff}].Value}\ax
+      /call cast_data ${_debug} "${maBuff.Find[stBuff${_liBuff}].Value}"
+    }
+
 
     | do we have it, now that we know what it is?
     /if (${have_buff[${_debug}]}) {
       DEBUG ${break}have_buff/song (\a-r${spellData.Name}\ax)
-      /invoke ${_licountself.Advance}
+      /invoke ${_liBuff.Advance}
       /continue    
     }
-    
+
+
+    | froce gem wait/up
+    /if (${lsBuff${_liBuff.Value}Tag.Contains[delaycooldown]}) {
+      DEBUG ${break}${_liBuff.Value}${sep}\a-wwait for spell gem refresh\ax (\a-r${spellData.Name}\ax)
+      /call cast_cooldown_wait ${_debug}
+    } else /if (!${cast_data[${_debug}, "${maBuff.Find[stBuff${_liBuff.Value}].Value}"]} && !${lsBuff${_liBuff.Value}Tag.Contains[delaycooldown]}) {
+      DEBUG ${break}${_liBuff.Value}${sep}\a-wnot ready\ax (\a-r${maBuff.Find[stBuff${_liBuff.Value}].Value}\ax) (\a-r${spellData.Name}\ax)
+      /invoke ${_liBuff.Advance}
+      /continue
+    }
+
     | cycle the tags
-    /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_licountself.Value} ${Me.DisplayName} "${maBuff.Find[stBuff${_licountself.Value}].Value}" check_buff_cycle_now
+    /call tag_evaluation ${maDebug.Find[tag].Value} Buff ${_liBuff.Value} ${Me.DisplayName} "${maBuff.Find[stBuff${_liBuff.Value}].Value}" check_buff_cycle_now
     /if (!${Macro.Return}) {
-      DEBUG ${break}${_licountself.Value}${sep}\a-wcondition fail\ax
-      /invoke ${_licountself.Advance}
+      DEBUG ${break}${_liBuff.Value}${sep}\a-wcondition fail\ax
+      /invoke ${_liBuff.Advance}
       /continue
     }
 
     /call cast ${_debug} 0 FALSE
 
-    /if (${lsBuff${_licountself.Value}Tag.Contains[autoinventory]}) {
+    /if (${lsBuff${_liBuff.Value}Tag.Contains[autoinventory]}) {
       /delay 2s ${Cursor.ID}
       /call check_cursor ${_debug} clear
     }
 
     DEBUG ${sep}next iteration
-    /invoke ${_licountself.Advance}
+    /invoke ${_liBuff.Advance}
   }
   
   SETHUD
@@ -4786,9 +4580,6 @@ sub check_buff_cycle_crew(bool _debug)
       /if (!${lsBuff${_count}Tag.Contains[crew]}) {
         /continue
       }
-      
-      | start redirect for names
-      | /varset _tmpBuff ${maBuff.Find[stBuff${_count}].Value}
       
       | buffs with SDPA parsing to be done
       /if (${maBuff.Find[stBuff${_count}].Value.Count[|]} == 3) {
@@ -6322,19 +6113,63 @@ sub check_minion_cycle_Illusion(bool _debug)
   GETINPUT check_minion_cycle_Illusion NA|NA
 
   | pet has illusion
-  /if (${Me.Pet.Buff[${Spell[${FindItem[${maMinion.Find[stPetIllusion].Value}].Clicky.SpellID}].Name}]}) {
+  /if (${Pet.Buff[${Spell[${FindItem[${maMinion.Find[stPetIllusion].Value}].Clicky.SpellID}].Name}]}) {
     /return TRUE
   }
 
   | chekck for pet illusion
   /if (${cast_data[${_debug}, "${maMinion.Find[stPetIllusion].Value}"]}) {
-    /call cast ${_debug} ${Me.Pet.ID} FALSE
+    /call cast ${_debug} ${Pet.ID} FALSE
   }
 
 /return TRUE
 
 
-/if (${InvSlot[25].Item.ID} == 0) /echo 555
+
+
+
+
+
+
+${maMinion.Find[stPetIllusion].Value}
+
+${FindItem[${maMinion.Find[stPetIllusion].Value}].Clicky.Name}
+
+
+${Pet.Buff[Pet Illusion: Brownie].Name}
+
+
+${Pet.Buff[${FindItem[${maMinion.Find[stPetIllusion].Value}].Clicky.SpellID}]}
+
+${Pet.Buff[${Spell[${FindItem[${maMinion.Find[stPetIllusion].Value}].Clicky.SpellID}].Name}]}
+
+
+${FindItem[${maMinion.Find[stPetIllusion].Value}].Spell}
+
+
+
+${FindItem[${maMinion.Find[stPetIllusion].Value}].Spell.Trigger[1].Name.Find[Pet Illusion:]}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -6918,7 +6753,7 @@ sub get_target_intpull(bool _debug, spawn _spawn)
     }
   }
 
-  /if (MELEE) {
+  /if (MELEE && ${Target.ID} != ${Me.ID}) {
     /attack on
   }
 
@@ -9298,8 +9133,8 @@ sub cast_cycle_dot(bool _debug, spawn _spawn)
 sub cast_cycle_agro(bool _debug, spawn _spawn)
   DEBUG \atcast_cycle_agro\ax(\a-w${_spawn.ID}\ax)
 
-  /if (!AGRO) {
-    DEBUG ${break}agro off
+  /if (!AGRO || ${timer_Agro}) {
+    DEBUG ${break}agro off/delay timer active
     /return FALSE
   }
 
@@ -9315,6 +9150,7 @@ sub cast_cycle_agro(bool _debug, spawn _spawn)
       /doability Taunt
     }
   }
+  
 
   | if the user has not set the line order, set it to a default for now
   /if (${lsLineAgro.Contains[EMPTY]} && ${lsLineAgro.Count} == 1) {
@@ -9335,6 +9171,11 @@ sub cast_cycle_agro(bool _debug, spawn _spawn)
     CHECKEXIT cast_cycle_agro
 
     /call target set ${_spawn.ID}
+
+    /if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
+      /invoke ${set_data_timer[${_debug}, Agro, RESTART]}
+      /return TRUE
+    }
 
     | check the switch
     /if (!${Bool[${maAgro.Find[swAgro${_liC20.Value}].Value}]}) {
@@ -9364,6 +9205,13 @@ sub cast_cycle_agro(bool _debug, spawn _spawn)
     }
 
     /call cast ${_debug} ${_spawn.ID} FALSE
+
+    /if (${Me.TargetOfTarget.ID} == ${Me.ID}) {
+      /invoke ${set_data_timer[${_debug}, Agro, RESTART]}
+      /return TRUE
+    }
+    
+    /return TRUE
     
     /invoke ${_liC20.Advance}
   }
@@ -11252,9 +11100,6 @@ sub cast_cooldown_wait(bool _debug)
   }
 
   /while (${Me.SpellInCooldown}) {
-    CHECKEXIT
-    ISMEDEAD
-    GETOVERHERE
     /if (!${Me.SpellInCooldown}) {
       /break
     }
@@ -14180,6 +14025,10 @@ sub class_cycle(string _order)
       /call cast_cycle_melee ${maDebug.Find[melee].Value} GETASSIST
     }
     
+    /if (${Select[${Me.Class.ShortName},PAL,SHD]}) {
+      /call cast_cycle_knight_withstand FALSE
+    }
+    
     BUFFNOW
     CHECKDEFENSE
     BUFFTEMP
@@ -14562,7 +14411,9 @@ sub cast(bool _debug, spawn _spawn, string _sub, int _rangeOverride)
   
   | critical errors
   /if (!${maCD.Find[id].Value} && !${Select[${maCD.Find[type].Value},DISC]}) {
-    /invoke ${out[0, "${error}${sep}cast${sep}\a-w${maCD.Find[id].Value}, spawn:${_spawn.ID}, sub:${_sub}\ax)"]}
+    /invoke ${out[0, "${error}${sep}cast${sep}\a-w${maCD.Find[id].Value} / ${maCD.Find[id].Value}"]}
+    /invoke ${out[0, "spawn:${_spawn.ID}"]}
+    /invoke ${out[0, "sub:${_sub}\ax)"]}
     /delay 5
     /return FALSE
   }
@@ -16358,6 +16209,84 @@ sub lua_end_scripts()
     /invoke ${_lial.Advance}
   }
 
-/return true
+/return TRUE
+
+
+|***
+ * note: start of controls for personas
+ * use: /call persona_control
+ ***|
+sub persona_control(bool _debug, string _type)
+
+  /if (${_type.Equal[check]}) {
+    /if (${Me.Class.ID} != ${maData.Find[stStartClassID].Value}) {
+      DEBUG Classes fdo not match ending macro
+      OUT \arENDING MACRO\ax ${sep} Classes do not match
+      /endmacro
+    }
+  }
+
+/return TRUE
+
+
+|***
+ * note: keep the knight withstand line on cooldown. use that synergy!
+ * use: cast, even if it is up. always use
+ ***|
+sub cast_cycle_knight_withstand(bool _debug)
+  DEBUG \atcast_cycle_knight_withstand\ax()
+
+  | check class or bail
+  /if (!${Select[${Me.Class.ShortName},PAL,SHD]} || ${timer_Withstand}) {
+    /return FALSE
+  }
+
+  | if the user has not set the line order, set it to a default for now
+  /if (${lsLineDefense.Contains[EMPTY]} && ${lsLineDefense.Count} == 1) {
+    DEBUG ${sep}resetting the empty defense line
+    /invoke ${lsLineDefense.Clear}
+    /invoke ${lsLineDefense.Append[${stCount20}]}
+  }
+
+  /declare _liC20 listiterator local
+  /vardata _liC20 lsCount20.First.Clone
+  /while (!${_liC20.IsEnd}) {
+
+    ISMEDEAD
+    | check the switch / name
+    /if (!${Bool[${maDefense.Find[swDefense${_liC20.Value}].Value}]} || !${Bool[${maDefense.Find[stDefense${_liC20.Value}].Value}]}) {
+      /invoke ${_liC20.Advance}
+      /continue
+    }
+
+    | 'knightwithstand' tag needed
+    /if (!${lsDefense${_liC20.Value}Tag.Contains[knightwithstand]}) {
+      DEBUG ${break}${_liC20.Value}${sep}\a-wno knightwithstand tag\ax
+       /invoke ${_liC20.Advance}
+       /continue
+     }
+     
+    | is it ready?
+    /if (!${cast_data[${_debug}, "${maDefense.Find[stDefense${_liC20.Value}].Value}"]}) {
+      /return FALSE
+    }     
+
+    | cycle the tags
+    /call tag_evaluation ${maDebug.Find[tag].Value} Defense ${_liC20.Value} ${Me.DisplayName} "${maDefense.Find[stDefense${_liC20.Value}].Value}" cast_cycle_knight_withstand
+    /if (!${Macro.Return}) {
+      /invoke ${_liC20.Advance}
+      /continue
+    }
+
+    DEBUG ${sep}_liC20.Value${sep}\a-w${_liC20.Value}\ax${sep}passed tags
+
+    /call cast ${_debug} 0 FALSE
+    /invoke ${set_data_timer[${_debug}, Withstand, RESTART]}
+
+    /invoke ${_liC20.Advance}
+  }
+  
+/return TRUE
+
 
 

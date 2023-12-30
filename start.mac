@@ -80,6 +80,7 @@
 #define NEXT "${MacroQuest.InternalName.Equal[Next]}"
 #define HELP "${MacroQuest.Path[macros]}\entropy\lua\get_help.lua"
 #define DEV "${maHard.Find[swDev].Value}"
+#define WITHSTAND "/call cast_cycle_knight_withstand ${maDebug.Find[def].Value}"
 
 
 #include entropy\inc\initialize.inc
@@ -121,8 +122,8 @@ sub main(string _var1, string _var2, string _var3, string _var4)
   /call delete_conflict_alias FALSE
 
   | current entropy version #'s
-  /call set_data FALSE maEnv build                          map outer 231127.01
-  /call set_data FALSE maEnv schema                         map outer 1.66
+  /call set_data FALSE maEnv build                          map outer 231230.01
+  /call set_data FALSE maEnv schema                         map outer 1.67
   /call set_data FALSE maEnv repo                           map outer 220225.01
 
   | prep macro
@@ -195,6 +196,9 @@ sub main(string _var1, string _var2, string _var3, string _var4)
     /if (!${timer_Check_Housekeeping}) {
       /call check_housekeeping ${maDebug.Find[house].Value}
     }
+    
+    | temp control for personas
+    /call persona_control FALSE check
 
     GETINPUT main_loop swAuto|${maEnv.Find[swAuto].Value}
     ISMEDEAD
@@ -523,7 +527,7 @@ sub prepare_the_end(bool _debug)
 sub sort_lua_stuff()
 
   | check required packages are installed for Lua
-  /lua run "${MacroQuest.Path[macros]}\entropy\lua\packages.lua"
+  | /lua run "${MacroQuest.Path[macros]}\entropy\lua\packages.lua"
 
   | sort the macro hud
   /if (${maEntropy.Find[swHUDAuto].Value}) {

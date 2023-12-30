@@ -3542,7 +3542,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
     /declare _item ground local
 
     /invoke ${Ground.Search[${_item.ID}]}
-    /nav item |dist=20 log=${maEntropy.Find[swNavLogSpew].Value}
+    /nav item |dist=15 log=${maEntropy.Find[swNavLogSpew].Value}
     /delay 1s
 
     /while (${Me.Moving}) {
@@ -3562,7 +3562,7 @@ sub Bind_control_port(string _type, string _nick1, string _nick2, bool _debug)
     /click right item
     /delay 5
     | select the menu to port
-    DEBUG ${sqlite.Result[dummy 1 menu]}
+    SDEBUG ${sqlite.Result[dummy 1 menu]}
     /invoke ${Menu.Select[${sqlite.Result[dummy 1 menu]}]}
 
 

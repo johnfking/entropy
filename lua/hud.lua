@@ -53,7 +53,6 @@ local function imguicallback()
     	  		ImGui.TableNextColumn()
     	  		ImGui.TableNextColumn()
     	  		ImGui.TableNextColumn()
-    	  			-- ImGui.TextColored(0.39, 0.58, 0.92, 1, 'pull')
               if mq.TLO.Macro.Variable('maPull').Find('swPull').Value() == 'TRUE' then
                 ImGui.TextColored(0, 1, 0, 1, 'pull')
               else 
@@ -102,6 +101,8 @@ local function imguicallback()
         ImGui.TextColored(0.39, 0.58, 0.92, 1,']')
         ImGui.SameLine()
         ImGui.Text(string.format('%.0f : %.0f', mq.TLO.Target.Distance() or 0 , mq.TLO.Target.MaxRangeTo() or 0))
+        ImGui.SameLine()
+        ImGui.TextColored(1, 1, 1, 1, (isSlowedBase() or ''))
 
 
         -- target information

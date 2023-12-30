@@ -26,10 +26,6 @@ sub class_init(bool _debug)
 
   /call set_data_map ${_debug} maChr stAlliance                       PREGEN|1                      "${auxna} alliance spell .. damn useless thing"
 
-  | /invoke ${set_data_timer[${_debug}, Check_Harmonious, 1m]}
-  | /call set_data_map ${_debug} maChr swHarmonious                     FALSE                         "${auxsw} use harmonious"
-  | /call set_data_map ${_debug} maChr stHarmonious                     PREGEN|1                      "${auxna} name of the harmonions spell"
-
   | temp combat buffs (self only)
   /call set_data_map ${_debug} maChr stStance                         PREGEN|1                      "${auxna} name of the self stance buff"
   /call set_data_map ${_debug} maChr stSkin                           PREGEN|1                      "${auxna} name of the steel self buff"
@@ -38,15 +34,9 @@ sub class_init(bool _debug)
 
   /invoke ${set_data_timer[${_debug}, Check_VoT, 21m]}
   /call set_data_map ${_debug} maChr swVoT                            FALSE                         "${auxsw} use voice of thule aa"
-  | /call set_data_map ${_debug} maChr stTempRune                       PREGEN|1                      "${auxna} fast reuse disc rune"
-  | /call set_data_map ${_debug} maChr stChallenge                      PREGEN|1                      "${auxna} challenge spell for agro"
   /call set_data_map ${_debug} maChr stCrimsonBlade                   PREGEN|1                      "${auxna} blade melee dps"
-  | /call set_data_map ${_debug} maChr stAcrimony                       PREGEN|1                      "${auxna} hate attention"
   /call set_data_map ${_debug} maChr stRancor                         PREGEN|1                      "${auxna} blade disc tap"
-  | /call set_data_list ${_debug} maChr lsHate                          EMPTY                         "${auxli} single target hate skills to use"
-  | /call set_data_list ${_debug} maChr lsAEHate                        EMPTY                         "${auxli} ae hate skills to use"
-  /call set_data_map ${_debug} maChr stAELifeTap                      PREGEN|1                      "${auxna} se lifetap nuke"
-  | /call set_data_map ${_debug} maChr stLeechcurse                     PREGEN|1                      "${auxna} leechcurse disc"
+  /call set_data_map ${_debug} maChr stAELifeTap                      PREGEN|1                      "${auxna} ae lifetap nuke"
   /call set_data_map ${_debug} maChr stGougingBlade                   PREGEN|1                      "${auxna} gouging blade family disc"
 
   | class order lists
@@ -102,6 +92,7 @@ sub class_main(bool _debug)
   }
   
   BUFFNOW
+  WITHSTAND
 
   /while (${check_combat_status[${maDebug.Find[status].Value}]}) {
     /call class_cycle lsOrderClassPre
@@ -138,6 +129,7 @@ sub check_heal(bool _debug, string _type)
   CHECKTIE
   ISMEDEAD
   CHECKEXIT
+  WITHSTAND
 
   /call spawn_hurt ${maDebug.Find[hurt].Value} ${_type}
 
@@ -207,6 +199,7 @@ sub misc_combat(bool _debug, spawn _spawn)
   CHECKEXIT
   GETINPUT misc_combat_SHD _spawn.ID|${_spawn.ID}
   CHECKTIE
+  WITHSTAND
   CHECKDEFENSE
   BUFFNOW
 
@@ -282,6 +275,7 @@ sub burn(bool _debug, spawn _spawn)
   CHECKEXIT
   GETINPUT burn_SHD _spawn.ID|${_spawn.ID}
   CHECKTIE
+  WITHSTAND
   CHECKDEFENSE
 
   /if (SWARM || PET) {
@@ -360,10 +354,6 @@ sub set_control(string _type, string _verbage, string _verbage2, bool _debug)
   | voice of Thule
   /if (${_type.Equal[vot]}) {
     /invoke ${set_switch_env[${_debug}, swVoT, TRUE, ${_verbage}]}
-
-  | harmonious
-  | } else /if (${_type.Equal[harmonious]}) {
-  |   /invoke ${set_switch_env[${_debug}, swHarmonious, TRUE, ${_verbage}]}
 
   | attraction
   } else /if (${_type.Equal[attraction]}) {
